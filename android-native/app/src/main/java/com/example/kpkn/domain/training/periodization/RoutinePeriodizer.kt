@@ -21,6 +21,7 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.SessionDurationEstimator
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.domain.training.generator.CatalogEntry
 import com.example.kpkn.domain.training.generator.DayEquipment
 import com.example.kpkn.domain.training.generator.Disciplines
@@ -391,11 +392,15 @@ object RoutinePeriodizer {
         if (exercise.catalogConfigurationId == targetId) return exercise
         val target = ctx.catalog.entry(targetId) ?: return exercise
         val info = target.legacy
+        // F-22 (decisión 2): con marca del básico, la variante lleva kilos estimados (marcados «estimada»); sin marca o sin factor, sin kilos.
+        val estimate = exercise.catalogConfigurationId?.let { baseId ->
+            exercise.reference1RM?.takeIf { it > 0.0 }?.let { VariantLoadEstimates.estimate(baseId, it, targetId) }
+        }
         // Una variante nueva no hereda el 1RM, el TM ni los contextos de otra configuración.
-        return exercise.copy(name = info.name,exerciseDbId = targetId,exerciseId = targetId,canonicalExerciseId = targetId,
+        return exercise.copy(name = info.name,loadEstimate = estimate,exerciseDbId = targetId,exerciseId = targetId,canonicalExerciseId = targetId,
             exerciseFamilyId = target.familyId,catalogRevision = info.catalogRevision,catalogDefinitionId = info.catalogDefinitionId,
             catalogConfigurationId = targetId,performanceProfileId = info.performanceProfileId,effectiveMuscles = info.involvedMuscles,
-            variantName = info.catalogVariantChips.joinToString(" · "),reference1RM = null,referenceTrainingMax = null,prFor1RM = null,
+            variantName = info.catalogVariantChips.joinToString(" · "),reference1RM = estimate?.estimatedOneRmKg,referenceTrainingMax = null,prFor1RM = null,
             loadReference = null,selectedAspects = null,contextProfilesV3 = emptyList(),defaultContextProfileIdV3 = null,
             sets = exercise.sets.map { it.copy(weight = null,targetPercentageRM = null,loadBasis = null,
                 plannedTargetV2 = null,leftTarget = null,rightTarget = null,contextKeyV2 = null,contextProfileIdV3 = null,

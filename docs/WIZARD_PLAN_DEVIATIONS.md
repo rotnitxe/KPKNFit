@@ -1025,3 +1025,38 @@ La oferta mantiene todos los programas a medida y pliega sólo el catálogo. Ele
 La orden T-42 amplía explícitamente la excepción de navegación interna de biblioteca: «Crear mi programa a medida» abre TRAINING_ONLY sin planId cuando el alta ya está hecha; antes del alta usa FULL. La creación manual y el guard de enlaces externos se conservan. La tarjeta está también en una biblioteca vacía. Esta entrada no vuelve a pedir nutrición ni la modifica.
 
 El protocolo exacto con fecha es una elección persistida y sólo afecta a la preparación con fecha activa. Invalida candidatos/vista previa mediante la misma huella del motor; por eso T-43 requiere setter y clave del VM además del StateFlow visual de T-41. La activación conserva semanas y receta literales, sin forzar el final del programa a la competición. El evento independiente sigue vinculado por fecha clave y no añade sesiones ficticias. Android E aprobó 76/76 con ocho clases. Una revisión posterior evita el revelado vacío cuando sólo existe catálogo; su caso Compose aprobó20/20 y el cierre conjunto3074/3074. La entrada y salida del asistente están verificadas en Z Flip; oferta completa/activación no se recorrieron físicamente.
+
+### DEC-prog-2026-10-27-01 — Kilos estimados para variantes
+
+Decisión del usuario del 27-oct-2026 («Estimar con aviso»). Se levanta la regla de no inferir cargas **sólo** para las variantes de la tabla de abajo: una variante sin marca propia recibe kilos calculados desde la marca del básico de competición de su familia (`VariantLoadEstimates`, `domain/training`). Nada más se infiere: un ejercicio fuera de la tabla, o con la marca del básico ausente, sigue sin kilos.
+
+Reglas que se mantienen:
+
+- **Siempre «estimada».** El ejercicio lleva `Exercise.loadEstimate` (básico de origen, marca de origen, factor y 1RM estimado). La tarjeta del programa y la de la sesión en vivo terminan la línea de prescripción con «carga estimada», y la descripción de accesibilidad explica el origen y pide declarar la marca propia.
+- **Nunca marca declarada.** La referencia de carga de la variante sigue `PENDING`; la lectura de migración (`ExerciseTrainingMax.migrate`) no promueve una carga estimada a referencia capturada. Si la persona declara la marca de la variante, gana la declarada y la estimación desaparece al reconstruir.
+- **Dónde se aplica.** El materializador (variantes de recetas con referencia pendiente, p. ej. powerbuild-16-4), la rotación de variantes del periodizador (T-71) y el cambio de ejercicio de tipo equivalente (T-73). Un cambio de «mismo patrón» no estima.
+
+Factores fijos de KPKN relativos al básico de cada familia (el factor entre dos variantes es el cociente de sus coeficientes):
+
+| Familia | Variante | Factor |
+|---|---|---|
+| Sentadilla | barra baja (básico) | 1,00 |
+| Sentadilla | barra alta | 0,95 |
+| Sentadilla | con pausa | 0,85 |
+| Sentadilla | al cajón | 0,90 |
+| Sentadilla | frontal | 0,80 |
+| Sentadilla | con barra de seguridad | 0,90 |
+| Sentadilla | Anderson (pines) | 0,85 |
+| Banca | competición (básico) | 1,00 |
+| Banca | con pausa | 0,95 |
+| Banca | Spoto | 0,92 |
+| Banca | inclinada | 0,80 |
+| Banca | agarre cerrado | 0,90 |
+| Banca | press de suelo | 0,90 |
+| Peso muerto | convencional (básico) | 1,00 |
+| Peso muerto | con déficit | 0,90 |
+| Peso muerto | hasta las rodillas | 0,85 |
+| Peso muerto | rumano | 0,70 |
+| Peso muerto | con piernas rígidas | 0,65 |
+
+Ejemplo: barra baja 200 kg → con pausa 170 kg; barra alta 190 kg → barra baja 200 kg (÷ 0,95). El sumo no está en la tabla y no se estima.

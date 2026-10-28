@@ -33,8 +33,11 @@ object SessionSlopRules {
         }
     }
 
-    /** Una aparición repetida está permitida solo si está enlazada a la anterior (identidad propia, F-15). */
-    private fun linked(e: Exercise): Boolean = e.relativeToCanonicalExerciseId != null
+    /**
+     * Una aparición repetida está permitida solo si tiene identidad propia (F-15): enlazada a otra aparición o con el rótulo
+     * del autor. El rótulo cuenta porque `normalizedIdentityFields()` borra el enlace a sí mismo al persistir el programa.
+     */
+    private fun linked(e: Exercise): Boolean = e.relativeToCanonicalExerciseId != null || e.occurrenceLabel != null
 
     fun violations(session: Session): List<SlopViolation> {
         val out = mutableListOf<SlopViolation>()
@@ -43,7 +46,8 @@ object SessionSlopRules {
         strength.filter { it.sets.isEmpty() }.forEach { out += SlopViolation(SlopRule.EMPTY_EXERCISE, session.name, it.name) }
         fun repeated(key: (Exercise) -> String?, rule: SlopRule) {
             strength.groupBy(key).filterKeys { it != null }.forEach { (k, list) ->
-                if (list.size > 1 && list.drop(1).any { !linked(it) }) out += SlopViolation(rule, session.name, "$k ×${list.size}: ${list.map { it.name }}")
+                // Como máximo una aparición sin identidad propia (la base); da igual si va antes o después (velocidad primero).
+                if (list.size > 1 && list.count { !linked(it) } > 1) out += SlopViolation(rule, session.name, "$k ×${list.size}: ${list.map { it.name }}")
             }
         }
         repeated({ it.catalogConfigurationId }, SlopRule.DUPLICATE_CONFIGURATION)

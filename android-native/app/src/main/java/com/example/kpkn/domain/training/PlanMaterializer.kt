@@ -66,6 +66,7 @@ import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
 import com.example.kpkn.domain.training.approach.approachLevelOf
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -958,7 +959,7 @@ object PlanMaterializer {
                 referenceExerciseId = stableExerciseId
                     ?: legacyExercises[slot.lift.configurationId + "|"]?.removeFirstOrNull()?.id,
             )
-        }
+        }.let { withOccurrenceIdentity(day, it) }
         val parts = groupParts(day, exercises, idProvider, stableSessionId)
         val cardioPart = cardioPartOf(day, week, scope, idProvider, stableSessionId)
         val cardioFirst = cardioPart != null && day.cardioBlocks.any {
@@ -1018,7 +1019,7 @@ object PlanMaterializer {
             }
             Exercise(
                 id = stableExerciseId ?: idProvider.newId(),
-                name = block.details.type.name.lowercase().replace('_', ' '),
+                name = CardioTypeLabels.label(block.details.type),
                 cardioDetails = block.details,
                 recipeDayId = day.id,
                 recipeSlotId = block.id.takeIf { day.id != null },
@@ -1034,6 +1035,53 @@ object PlanMaterializer {
             isCardioGroup = true,
         )
     }
+
+    /**
+     * F-15 · Identidad propia de las apariciones repetidas por el autor. Un slot que cuelga de otro del mismo día
+     * (`supplementalOf`), o un SPEED con la misma configuración que un T1 sin enlace (Coan, PHAT), y que repite su ejercicio
+     * (misma configuración, misma definición o misma familia de movimiento) o lleva rótulo explícito, queda enlazado al ancla:
+     * `relativeToCanonicalExerciseId` = configuración del ancla; `VARIATION` si la configuración es distinta, `TECHNIQUE` si es
+     * la misma con técnica o velocidad y `ASSISTANCE` si es la misma sin técnica. Con la misma configuración recibe además un
+     * rótulo (el del autor o uno por defecto) para que la tarjeta no salga idéntica a la del ancla.
+     */
+    private fun withOccurrenceIdentity(day: DayRecipe, exercises: List<Exercise>): List<Exercise> =
+        day.slots.zip(exercises).mapIndexed { index, (slot, exercise) ->
+            val anchorIndex = slot.supplementalOf
+                ?.let { id -> day.slots.indexOfFirst { it.id == id } }
+                ?.takeIf { it >= 0 && it != index }
+                ?: day.slots.indexOfFirst { other ->
+                    slot.role == SlotRole.SPEED && other !== slot && other.role == SlotRole.T1_MAIN &&
+                        other.lift.configurationId == slot.lift.configurationId
+                }.takeIf { it >= 0 }
+            val anchor = anchorIndex?.let { day.slots[it] } ?: return@mapIndexed exercise
+            val configurationId = slot.lift.configurationId
+            val anchorConfigurationId = anchor.lift.configurationId
+            val sameConfiguration = configurationId == anchorConfigurationId
+            val related = sameConfiguration ||
+                configurationId.substringBefore("__") == anchorConfigurationId.substringBefore("__") ||
+                SessionSlopRules.familyOf(configurationId)?.let { it == SessionSlopRules.familyOf(anchorConfigurationId) } == true
+            if (!related && slot.occurrenceLabel == null) return@mapIndexed exercise
+            val technique = slot.technique
+            val isSpeed = slot.role == SlotRole.SPEED || technique == TechniqueModifier.SPEED
+            val label = slot.occurrenceLabel ?: if (sameConfiguration) {
+                when {
+                    isSpeed -> "Velocidad"
+                    technique != null -> technique.displayName()
+                    else -> "Volumen"
+                }
+            } else {
+                null
+            }
+            exercise.copy(
+                relativeToCanonicalExerciseId = anchorConfigurationId,
+                relationshipType = when {
+                    !sameConfiguration -> ExerciseRelationshipType.VARIATION
+                    technique != null || slot.role == SlotRole.SPEED -> ExerciseRelationshipType.TECHNIQUE
+                    else -> ExerciseRelationshipType.ASSISTANCE
+                },
+                occurrenceLabel = label,
+            )
+        }
 
     private fun groupParts(
         day: DayRecipe,
@@ -1141,10 +1189,29 @@ object PlanMaterializer {
         // 1RM desde un TM. Una referencia declarada de trabajo observado/lastre es la base de todas las series.
         fun readsOneRm(basis: LoadBasis): Boolean =
             basis == LoadBasis.PERCENT_1RM || basis == LoadBasis.PERCENT_DESIRED_MAX
-        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg)
         val hasCapacityReference = oneRmReference != null || tmReference != null
+        // F-21 (decisión 2): una variante con referencia de capacidad PENDIENTE y sin marca declarada recibe una estimación visible
+        // desde la marca del básico de competición de su familia. La referencia sigue pendiente: nunca se guarda como declarada.
+        val variantEstimate: VariantLoadEstimate? = if (
+            hasCapacityReference &&
+            oneRmReference?.let(::referenceBaseKg) == null && tmReference?.let(::referenceBaseKg) == null &&
+            listOfNotNull(oneRmReference, tmReference).any { it.state == PlanLoadReferenceState.PENDING }
+        ) {
+            slot.lift.liftSlot?.let { liftSlot ->
+                val sourceConfigurationId = recipe.liftSlots[liftSlot]
+                val sourceOneRm = TrainingMaxResolver.oneRm(profile, liftSlot)
+                if (sourceConfigurationId != null && sourceOneRm != null && sourceConfigurationId != slot.lift.configurationId) {
+                    VariantLoadEstimates.estimate(sourceConfigurationId, sourceOneRm, slot.lift.configurationId)
+                } else {
+                    null
+                }
+            }
+        } else {
+            null
+        }
+        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg) ?: variantEstimate?.estimatedOneRmKg
         val declaredTmKg: Double? = when {
-            tmReference != null -> referenceBaseKg(tmReference)
+            tmReference != null -> referenceBaseKg(tmReference) ?: variantEstimate?.let { it.estimatedOneRmKg * recipeTmFraction }
             declaredOneRmKg != null -> declaredOneRmKg * recipeTmFraction
             explicit == null -> tm
             else -> null
@@ -1288,7 +1355,7 @@ object PlanMaterializer {
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
             reference1RM = if (hasCapacityReference) declaredOneRmKg else if (explicit == null) oneRm else null,
             referenceTrainingMax = when {
-                tmReference != null -> referenceBaseKg(tmReference)
+                tmReference != null -> referenceBaseKg(tmReference) ?: declaredTmKg.takeIf { variantEstimate != null }
                 oneRmReference != null -> declaredTmKg.takeIf { working.any { it.percent != null && !readsOneRm(it.loadBasis) } }
                 explicit == null -> tm
                 else -> null
@@ -1316,6 +1383,7 @@ object PlanMaterializer {
             recipeDayId = recipeDayId,
             recipeSlotId = slot.id.takeIf { recipeDayId != null },
             nativeProgressionManaged = nativeProgressionManaged,
+            loadEstimate = variantEstimate,
         )
         val apre = resolveLiveApreBlock(materializedExercise, recipe.id, recipe.progression is ProgressionRule.ApreXrm)
         val marked = if (apre == null) materializedExercise else materializedExercise.copy(

@@ -66,6 +66,8 @@ object ExerciseTrainingMax {
             listOf(PlanLoadReferenceKind.EXERCISE_1RM to (exercise.reference1RM ?: profileOneRm),
                 PlanLoadReferenceKind.EXERCISE_TM to (exercise.referenceTrainingMax ?: profileTm)).forEach { (kind, kg) ->
                 val query = request(exercise, kind) ?: return@forEach
+                // Una carga estimada (F-21) nunca se promueve a marca declarada: solo la persona la declara.
+                if (exercise.loadEstimate != null && kg == (if (kind == PlanLoadReferenceKind.EXERCISE_1RM) exercise.reference1RM else exercise.referenceTrainingMax)) return@forEach
                 if (kg == null || !kg.isFinite() || kg <= 0.0 || resolved(result, exercise, kind) != null) return@forEach
                 val fromProfile = if (kind == PlanLoadReferenceKind.EXERCISE_TM) profileTm == kg else profileOneRm == kg
                 val reference = query.copy(state = PlanLoadReferenceState.CAPTURED, capturedLoadKg = kg,
@@ -219,7 +221,10 @@ object ExerciseTrainingMax {
 
     private fun hydratedKg(program: Program, exercise: Exercise, kind: PlanLoadReferenceKind, fallback: Double?): Double? {
         val reference = resolved(program, exercise, kind) ?: return fallback
-        return if (reference.state == PlanLoadReferenceState.CAPTURED) reference.capturedLoadKg else null
+        // Con una carga estimada (F-21) la referencia pendiente no borra la estimación visible.
+        return if (reference.state == PlanLoadReferenceState.CAPTURED) reference.capturedLoadKg
+        else if (exercise.loadEstimate != null && reference.metadata?.invalidatedAtMs == null) fallback
+        else null
     }
 
     fun hydrate(program: Program, exercise: Exercise): Exercise = exercise.copy(

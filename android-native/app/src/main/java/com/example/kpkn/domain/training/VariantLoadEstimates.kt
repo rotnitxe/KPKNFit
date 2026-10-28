@@ -17,6 +17,16 @@ data class VariantLoadEstimate(
  * prudente: la carga se marca «estimada» y la persona la corrige declarando la marca de la variante.
  */
 object VariantLoadEstimates {
+    /** Cierre de la línea de prescripción de un ejercicio cuya carga es una estimación (F-23). */
+    const val PRESCRIPTION_LABEL = "carga estimada"
+
+    /** Texto de accesibilidad de una carga estimada: de dónde sale y cómo ajustarla. [basicName] null = «del básico». */
+    fun accessibilityLabel(estimate: VariantLoadEstimate, basicName: String?): String {
+        val origin = basicName?.takeIf { it.isNotBlank() }?.let { "de $it" } ?: "del básico"
+        return "Carga estimada desde tu 1RM $origin (×${NativeProgressionText.formatKg(estimate.factor)}). " +
+            "Declara la marca de esta variante para ajustarla."
+    }
+
     private val SQUAT = mapOf(
         CatalogIds.SQ_LOW to 1.0,
         CatalogIds.SQ_HIGH to 0.95,

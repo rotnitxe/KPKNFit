@@ -4,6 +4,7 @@ import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.protocols.displayName as techniqueDisplayName
 
@@ -41,15 +42,16 @@ fun exerciseDisplayParts(
         nicknameKey = exercise.nicknameKey(),
         nicknames = nicknames,
     )
+    val occurrenceChip = occurrenceChipOf(exercise)
     val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
             parentName = parentName,
-            chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
+            chips = dedupeChips(listOfNotNull(occurrenceChip) + v2Chips).filterNot(::isDisplayNoiseChip),
         )
     }
     if (!exercise.catalogConfigurationId.isNullOrBlank()) {
-        return ExerciseDisplayParts(parentName = parentName)
+        return ExerciseDisplayParts(parentName = parentName, chips = listOfNotNull(occurrenceChip))
     }
     val technique = recipeTechniqueLabel(exercise)
     val selected = exercise.selectedAspects.orEmpty()
@@ -64,9 +66,21 @@ fun exerciseDisplayParts(
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
         parentName = parentName,
-        chips = dedupeChips(listOfNotNull(technique) + options.map { it.name } + listOfNotNull(legacyVariant))
+        chips = dedupeChips(listOfNotNull(occurrenceChip, technique) + options.map { it.name } + listOfNotNull(legacyVariant))
             .filterNot(::isDisplayNoiseChip),
     )
+}
+
+/**
+ * Rótulo de una aparición repetida por el autor («Volumen BBB 5×10», «Velocidad»), como primer chip. Una variación con nombre
+ * propio (`VARIATION` enlazada a otra configuración) no lo necesita: ya se distingue por su nombre.
+ */
+private fun occurrenceChipOf(exercise: Exercise): String? {
+    val label = exercise.occurrenceLabel?.trim().orEmpty()
+    if (label.isBlank()) return null
+    val isNamedVariation = exercise.relationshipType == ExerciseRelationshipType.VARIATION &&
+        exercise.relativeToCanonicalExerciseId != null
+    return label.takeUnless { isNamedVariation }
 }
 
 /**
