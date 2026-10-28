@@ -62,6 +62,8 @@ import com.example.kpkn.domain.nutrition.TagResolver
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
 import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.data.food.v2.NutritionParserV2Holder
+import com.example.kpkn.domain.nutrition.v2.ResolvedTagAdapterV2
 import com.example.kpkn.domain.nutrition.TagOrigin
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.ClarificationRequest
@@ -369,8 +371,23 @@ fun FoodLoggerDrawer(
         // are read before the hop and every Compose state write happens after withContext returns.
         val contextBefore = detectedContext
         val currentMealType = mealType
+        // Modo sombra del intérprete v2: el ajuste se lee al empezar el análisis; si v2 no resuelve nada, se usa v1.
+        val useParserV2 = settings.nutritionParserV2
         val (resolvedContext, mergedTags) = withContext(Dispatchers.Default) {
-            val result = createTagResolver().resolveAll(parsed, contextBefore, currentMealType)
+            val v2Tags = if (useParserV2) {
+                try {
+                    NutritionParserV2Holder.parser(appContext)?.let { parserV2 ->
+                        ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.rawDescription), parserV2.catalog)
+                    }?.takeIf { candidate -> candidate.any { it.isResolved } }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    android.util.Log.w("FoodLoggerDrawer", "Intérprete v2 falló; se usa el actual", error)
+                    null
+                }
+            } else null
+            val result = if (v2Tags != null) v2Tags to contextBefore
+            else createTagResolver().resolveAll(parsed, contextBefore, currentMealType)
             val newTags = result.first
             // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
             // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.

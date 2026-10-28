@@ -2,8 +2,11 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.AnalysisSource
 import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.domain.nutrition.nutrients.NutrientId
+import com.example.kpkn.domain.nutrition.nutrients.nutrientAmount
 import java.text.Normalizer
 import java.util.Locale
+import kotlin.math.abs
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -43,6 +46,14 @@ object NutrientCoverage {
     private fun read(food: LoggedFood, key: NutrientKey): Datum {
         val missing = Datum(null, NutrientDataKind.MISSING)
         if (food.isQuickEntry) return missing
+        val weak = food.isUncertain || food.recipeId != null || food.analysisSource in setOf(
+            AnalysisSource.LOCAL_AI_ESTIMATE, AnalysisSource.EXTERNAL_API_ESTIMATE, AnalysisSource.LOCAL_HEURISTIC) ||
+            weakEvidence(food.evidenceJson)
+        val kind = if (weak) NutrientDataKind.ESTIMATED else NutrientDataKind.DECLARED
+        // Primero la instantánea del catálogo: un 0 declarado es dato; la ausencia de la clave no lo es.
+        food.nutrientAmount(key.nutrientId)?.takeIf { it.isFinite() && it >= 0.0 }?.let {
+            return Datum(it, if (energyMismatch(food)) NutrientDataKind.ESTIMATED else kind)
+        }
         val explicit = food.micronutrients.firstOrNull { normalize(it.name) in aliases(key) }
         val amount = if (explicit != null) {
             convert(explicit.amount, explicit.unit, key) ?: return missing
@@ -50,12 +61,22 @@ object NutrientCoverage {
             NutrientKey.FIBER -> food.fiber
             NutrientKey.SODIUM -> food.sodiumMg
             NutrientKey.POTASSIUM -> food.potassiumMg
+            NutrientKey.SUGARS -> food.sugar
+            NutrientKey.SAT_FAT -> food.fatBreakdown?.saturated ?: 0.0
+            NutrientKey.MONO_FAT -> food.fatBreakdown?.monounsaturated ?: 0.0
+            NutrientKey.POLY_FAT -> food.fatBreakdown?.polyunsaturated ?: 0.0
+            NutrientKey.TRANS_FAT -> food.fatBreakdown?.trans ?: 0.0
+            NutrientKey.CAFFEINE -> food.caffeineMg
             else -> 0.0
         }.takeIf { it.isFinite() && it > 0.0 } ?: return missing
-        val weak = food.isUncertain || food.recipeId != null || food.analysisSource in setOf(
-            AnalysisSource.LOCAL_AI_ESTIMATE, AnalysisSource.EXTERNAL_API_ESTIMATE, AnalysisSource.LOCAL_HEURISTIC) ||
-            weakEvidence(food.evidenceJson)
-        return Datum(amount, if (weak) NutrientDataKind.ESTIMATED else NutrientDataKind.DECLARED)
+        return Datum(amount, kind)
+    }
+    /** F4-9: si la energía de la instantánea difiere de las kcal del registro en más de 15 % Y más de 25 kcal, la ficha ya no describe lo comido. */
+    private fun energyMismatch(food: LoggedFood): Boolean {
+        val snapEnergy = food.nutrientAmount(NutrientId.ENERGY)?.takeIf { it.isFinite() } ?: return false
+        val kcal = food.calories.takeIf { it.isFinite() && it > 0.0 } ?: return false
+        val diff = abs(snapEnergy - kcal)
+        return diff > 0.15 * kcal && diff > 25.0
     }
     private fun weakEvidence(raw: String?): Boolean {
         if (raw.isNullOrBlank()) return false
@@ -82,6 +103,19 @@ object NutrientCoverage {
         NutrientKey.THIAMIN -> setOf("tiamina", "thiamin", "vitaminab1")
         NutrientKey.RIBOFLAVIN -> setOf("riboflavina", "riboflavin", "vitaminab2")
         NutrientKey.NIACIN -> setOf("niacina", "niacin", "vitaminab3")
+        NutrientKey.SUGARS -> setOf("azucares", "azucarestotales", "sugars", "sugar", "totalsugars")
+        NutrientKey.ADDED_SUGARS -> setOf("azucaresanadidos", "azucaresagregados", "addedsugars")
+        NutrientKey.SAT_FAT -> setOf("grasasaturada", "grasassaturadas", "saturatedfat")
+        NutrientKey.MONO_FAT -> setOf("grasamonoinsaturada", "grasasmonoinsaturadas", "monounsaturatedfat")
+        NutrientKey.POLY_FAT -> setOf("grasapoliinsaturada", "grasaspoliinsaturadas", "polyunsaturatedfat")
+        NutrientKey.TRANS_FAT -> setOf("grasatrans", "grasastrans", "transfat")
+        NutrientKey.CHOLESTEROL -> setOf("colesterol", "cholesterol")
+        NutrientKey.PHOSPHORUS -> setOf("fosforo", "phosphorus")
+        NutrientKey.CHOLINE -> setOf("colina", "choline")
+        NutrientKey.EPA_DHA -> setOf("epadha", "epamasdha", "omega3epadha")
+        NutrientKey.ALA -> setOf("ala", "acidoalfalinolenico", "alphalinolenicacid", "omega3ala")
+        NutrientKey.CAFFEINE -> setOf("cafeina", "caffeine")
+        NutrientKey.ALCOHOL -> setOf("alcohol", "etanol", "ethanol")
         else -> setOf(normalize(key.label), normalize(key.label.replace("Vitamina", "Vitamin")))
     }
     private fun convert(value: Double, sourceUnit: String, key: NutrientKey): Double? {

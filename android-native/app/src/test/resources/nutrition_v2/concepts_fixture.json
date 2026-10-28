@@ -1,0 +1,237 @@
+{
+  "generation": "fixture-2026-10-28",
+  "conceptsSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "concepts": [
+    {
+      "id": "arroz_blanco", "name": "Arroz blanco", "kind": "FOOD", "category": "PASTAS_ARROZ",
+      "aliasesEs": ["arroz", "arroz blanco", "arroz graneado"],
+      "aliasesEn": ["white rice", "rice"],
+      "typos": ["aroz", "arros"],
+      "defaultState": "COOKED", "defaultForm": "NA",
+      "variants": [
+        {"state": "COOKED", "form": "NA", "ref": "r_arroz_cocido"},
+        {"state": "RAW", "form": "NA", "ref": "r_arroz_crudo"}
+      ],
+      "countable": false, "unit": null,
+      "portions": [
+        {"label": "taza", "grams": 160, "state": "COOKED"},
+        {"label": "taza", "grams": 185, "state": "RAW"},
+        {"label": "cucharada", "grams": 12, "state": "COOKED"}
+      ],
+      "defaultGrams": 180, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "huevo", "name": "Huevo", "kind": "FOOD", "category": "HUEVOS",
+      "aliasesEs": ["huevo", "huevos"],
+      "aliasesEn": ["egg", "eggs"],
+      "typos": ["uevo", "huebo"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [
+        {"state": "COOKED", "form": "NA", "ref": "r_huevo_cocido"},
+        {"state": "RAW", "form": "NA", "ref": "r_huevo_crudo"},
+        {"state": "FRIED", "form": "NA", "ref": "r_huevo_frito"}
+      ],
+      "countable": true, "unit": {"names": ["unidad"], "grams": {"S": 44, "M": 50, "L": 56}},
+      "portions": [],
+      "defaultGrams": 100, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "manzana", "name": "Manzana", "kind": "FOOD", "category": "FRUTAS",
+      "aliasesEs": ["manzana", "manzanas"],
+      "aliasesEn": ["apple", "apples"],
+      "typos": ["mansana"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_manzana"}],
+      "countable": true, "unit": {"names": ["unidad"], "grams": {"S": 150, "M": 182, "L": 220}},
+      "portions": [],
+      "defaultGrams": 182, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "leche_entera", "name": "Leche entera", "kind": "DRINK", "category": "LACTEOS",
+      "aliasesEs": ["leche", "leche entera"],
+      "aliasesEn": ["whole milk", "milk"],
+      "typos": ["lechee"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_leche_entera"}],
+      "countable": false, "unit": null,
+      "portions": [
+        {"label": "vaso", "grams": 200},
+        {"label": "taza", "grams": 240}
+      ],
+      "defaultGrams": 200, "densityGPerMl": 1.03, "reconstitution": null, "components": null
+    },
+    {
+      "id": "leche_en_polvo_entera", "name": "Leche en polvo entera", "kind": "FOOD", "category": "LACTEOS",
+      "aliasesEs": ["leche en polvo", "leche en polvo entera"],
+      "aliasesEn": ["powdered milk", "milk powder"],
+      "typos": ["leche en polbo"],
+      "defaultState": "NA", "defaultForm": "POWDER_DRY",
+      "variants": [
+        {"state": "NA", "form": "POWDER_DRY", "ref": "r_leche_polvo"},
+        {"state": "NA", "form": "RECONSTITUTED", "ref": "r_leche_recon"}
+      ],
+      "countable": false, "unit": null,
+      "portions": [{"label": "cucharada", "grams": 7}],
+      "defaultGrams": 26, "densityGPerMl": null,
+      "reconstitution": {"gramsPer100ml": 13, "medium": "AGUA"},
+      "components": null
+    },
+    {
+      "id": "cafe", "name": "Café", "kind": "DRINK", "category": "BEBIDAS",
+      "aliasesEs": ["cafe", "cafecito"],
+      "aliasesEn": ["coffee"],
+      "typos": ["cafee"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [
+        {"state": "NA", "form": "NA", "ref": "r_cafe"},
+        {"state": "NA", "form": "SUGAR_FREE", "ref": "r_cafe"}
+      ],
+      "countable": false, "unit": null,
+      "portions": [],
+      "defaultGrams": 200, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "atun_en_aceite", "name": "Atún en aceite", "kind": "FOOD", "category": "PESCADOS_MARISCOS",
+      "aliasesEs": ["atun en aceite", "atun", "atun enlatado"],
+      "aliasesEn": ["tuna in oil", "canned tuna"],
+      "typos": ["atún en aseite"],
+      "defaultState": "NA", "defaultForm": "CANNED_DRAINED",
+      "variants": [
+        {"state": "NA", "form": "CANNED_DRAINED", "ref": "r_atun_escurrido"},
+        {"state": "NA", "form": "CANNED_UNDRAINED", "ref": "r_atun_sin_escurrir"}
+      ],
+      "countable": false, "unit": null,
+      "portions": [{"label": "lata", "grams": 120}],
+      "defaultGrams": 120, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "palta", "name": "Palta", "kind": "FOOD", "category": "FRUTAS",
+      "aliasesEs": ["palta", "aguacate"],
+      "aliasesEn": ["avocado"],
+      "typos": ["palda"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_palta"}],
+      "countable": true, "unit": {"names": ["unidad"], "grams": {"S": 100, "M": 150, "L": 200}},
+      "portions": [
+        {"label": "cucharada", "grams": 30},
+        {"label": "rebanada", "grams": 25}
+      ],
+      "defaultGrams": 100, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "marraqueta", "name": "Marraqueta", "kind": "FOOD", "category": "CEREALES_PANES",
+      "aliasesEs": ["marraqueta", "pan batido"],
+      "aliasesEn": ["chilean bread roll"],
+      "typos": ["maraqueta"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_pan"}],
+      "countable": true, "unit": {"names": ["unidad"], "grams": {"M": 100}},
+      "portions": [],
+      "defaultGrams": 100, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "yogur", "name": "Yogur", "kind": "FOOD", "category": "LACTEOS",
+      "aliasesEs": ["yogur", "yogurt"],
+      "aliasesEn": ["yogurt"],
+      "typos": ["yogurth"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_yogur"}],
+      "countable": false, "unit": null,
+      "portions": [{"label": "envase", "grams": 125}],
+      "defaultGrams": 125, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "pastel_de_choclo", "name": "Pastel de choclo", "kind": "DISH", "category": "PLATOS",
+      "aliasesEs": ["pastel de choclo"],
+      "aliasesEn": ["corn pie"],
+      "typos": ["pastel de coclo"],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "kpkn_pastel_de_choclo"}],
+      "countable": false, "unit": null,
+      "portions": [{"label": "plato", "grams": 350}],
+      "defaultGrams": 350, "densityGPerMl": null, "reconstitution": null,
+      "components": [
+        {"ref": "r_choclo", "grams": 150, "note": "pastelera de choclo"},
+        {"ref": null, "grams": 100, "note": "pino sin ficha"}
+      ]
+    },
+    {
+      "id": "churrasco_corte", "name": "Churrasco (corte)", "kind": "FOOD", "category": "CARNES",
+      "aliasesEs": ["churrasco", "churrasco de vacuno"],
+      "aliasesEn": [],
+      "typos": [],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_churrasco_corte"}],
+      "countable": false, "unit": null,
+      "portions": [],
+      "defaultGrams": 150, "densityGPerMl": null, "reconstitution": null, "components": null
+    },
+    {
+      "id": "churrasco_sandwich", "name": "Churrasco (sándwich)", "kind": "DISH", "category": "PLATOS",
+      "aliasesEs": ["churrasco", "sandwich de churrasco"],
+      "aliasesEn": [],
+      "typos": [],
+      "defaultState": "NA", "defaultForm": "NA",
+      "variants": [{"state": "NA", "form": "NA", "ref": "r_churrasco_sandwich"}],
+      "countable": true, "unit": {"names": ["unidad"], "grams": {"M": 250}},
+      "portions": [],
+      "defaultGrams": 250, "densityGPerMl": null, "reconstitution": null, "components": null
+    }
+  ],
+  "records": {
+    "r_arroz_cocido": {"name": "Rice, white, cooked, no added fat",
+      "per100g": {"energy": 130, "protein": 2.7, "fat": 0.3, "carbs": 28.2},
+      "portions": [{"label": "1 cup", "grams": 158}], "densityGPerMl": null},
+    "r_arroz_crudo": {"name": "Rice, white, long-grain, raw",
+      "per100g": {"energy": 365, "protein": 7.1, "fat": 0.7, "carbs": 80.0},
+      "portions": [{"label": "1 cup", "grams": 185}], "densityGPerMl": null},
+    "r_huevo_cocido": {"name": "Egg, whole, hard-boiled",
+      "per100g": {"energy": 155, "protein": 12.6, "fat": 10.6, "carbs": 1.1},
+      "portions": [{"label": "1 large", "grams": 50}]},
+    "r_huevo_crudo": {"name": "Egg, whole, raw",
+      "per100g": {"energy": 143, "protein": 12.4, "fat": 9.96, "carbs": 0.96},
+      "portions": [{"label": "1 egg", "grams": 50}, {"label": "1 cup", "grams": 245}]},
+    "r_huevo_frito": {"name": "Egg, whole, fried with oil",
+      "per100g": {"energy": 196, "protein": 13.6, "fat": 14.8, "carbs": 0.8},
+      "portions": [{"label": "1 egg", "grams": 46}]},
+    "r_manzana": {"name": "Apples, raw, with skin",
+      "per100g": {"energy": 52, "protein": 0.3, "fat": 0.2, "carbs": 13.8},
+      "portions": [{"label": "1 medium", "grams": 182}, {"label": "1 cup, sliced", "grams": 109}]},
+    "r_leche_entera": {"name": "Milk, whole, 3.25% milkfat",
+      "per100g": {"energy": 61, "protein": 3.2, "fat": 3.3, "carbs": 4.8},
+      "portions": [{"label": "1 cup", "grams": 244}, {"label": "1 tbsp", "grams": 15.3}],
+      "densityGPerMl": 1.03},
+    "r_leche_polvo": {"name": "Milk, dry, whole",
+      "per100g": {"energy": 496, "protein": 26.3, "fat": 26.7, "carbs": 38.4},
+      "portions": [{"label": "1 cup", "grams": 128}], "densityGPerMl": null},
+    "r_leche_recon": {"name": "Milk, whole, reconstituted from dry",
+      "per100g": {"energy": 61, "protein": 3.3, "fat": 3.3, "carbs": 4.7},
+      "portions": [], "densityGPerMl": null},
+    "r_cafe": {"name": "Coffee, brewed",
+      "per100g": {"energy": 1, "protein": 0.1, "fat": 0.0, "carbs": 0.0},
+      "portions": [{"label": "1 cup", "grams": 237}]},
+    "r_atun_escurrido": {"name": "Tuna, light, canned in oil, drained",
+      "per100g": {"energy": 198, "protein": 29.1, "fat": 8.2, "carbs": 0.0},
+      "portions": [{"label": "1 can", "grams": 142}]},
+    "r_atun_sin_escurrir": {"name": "Tuna, light, canned in oil, undrained",
+      "per100g": {"energy": 280, "protein": 24.0, "fat": 20.0, "carbs": 0.0},
+      "portions": [{"label": "1 can", "grams": 170}]},
+    "r_palta": {"name": "Avocados, raw",
+      "per100g": {"energy": 160, "protein": 2.0, "fat": 14.7, "carbs": 8.5},
+      "portions": [{"label": "1 fruit", "grams": 201}]},
+    "r_pan": {"name": "Bread, white, commercially prepared",
+      "per100g": {"energy": 265, "protein": 9.4, "fat": 3.2, "carbs": 49.0},
+      "portions": [{"label": "1 slice", "grams": 25}]},
+    "r_yogur": {"name": "Yogurt, plain, whole milk",
+      "per100g": {"energy": 61, "protein": 3.5, "fat": 3.3, "carbs": 4.7},
+      "portions": [{"label": "1 container (6 oz)", "grams": 170}, {"label": "2 tbsp", "grams": 30}]},
+    "kpkn_pastel_de_choclo": {"name": "Pastel de choclo (derivado)",
+      "per100g": {"energy": 140, "protein": 9.0, "fat": 6.0, "carbs": 12.0},
+      "portions": []},
+    "r_churrasco_corte": {"name": "Beef, round, steak, grilled",
+      "per100g": {"energy": 220, "protein": 27.0, "fat": 12.0, "carbs": 0.0}, "portions": []},
+    "r_churrasco_sandwich": {"name": "Steak sandwich",
+      "per100g": {"energy": 270, "protein": 14.0, "fat": 12.0, "carbs": 26.0}, "portions": []}
+  },
+  "ambiguous": [{"alias": "churrasco", "concepts": ["churrasco_corte", "churrasco_sandwich"]}]
+}

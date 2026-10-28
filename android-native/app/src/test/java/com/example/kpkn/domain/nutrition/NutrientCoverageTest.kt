@@ -66,4 +66,63 @@ class NutrientCoverageTest {
         val result = NutrientCoverage.summarize(listOf(sodium("Declarado", 10.0, 900.0), LoggedFood(calories = 100.0)), NutrientKey.SODIUM)
         assertEquals(0.9, result.declaredFraction, 1e-10); assertEquals(NutrientCoverageState.COMPLETE, result.state)
     }
+    private fun snap(vararg entries: Pair<String, Double>, amount: Double = 100.0, unit: String = "g") =
+        LoggedFood(foodName = "Con instantanea", amount = amount, unit = unit, calories = 100.0, nutrientsPer100g = mapOf(*entries))
+    @Test fun `un cero de la instantanea es cero declarado aunque el campo legado sea cero`() {
+        val result = NutrientCoverage.summarize(listOf(snap("sodium" to 0.0).copy(sodiumMg = 0.0)), NutrientKey.SODIUM)
+        assertEquals(0.0, result.totalKnown!!, 0.0); assertEquals(1, result.declaredCount)
+        assertEquals(NutrientCoverageState.COMPLETE, result.state)
+    }
+    @Test fun `sin la clave en la instantanea rige la regla vieja del campo legado`() {
+        val result = NutrientCoverage.summarize(listOf(snap("potassium" to 50.0).copy(sodiumMg = 120.0)), NutrientKey.SODIUM)
+        assertEquals(120.0, result.totalKnown!!, 0.0)
+    }
+    @Test fun `la instantanea se escala por la cantidad en gramos`() {
+        val result = NutrientCoverage.summarize(listOf(snap("vitamin_d" to 2.0, amount = 250.0)), NutrientKey.VITAMIN_D)
+        assertEquals(5.0, result.totalKnown!!, 1e-9); assertEquals(1, result.declaredCount)
+    }
+    @Test fun `con unidad distinta de gramos la instantanea cae a la regla vieja`() {
+        val food = snap("sodium" to 50.0, amount = 250.0, unit = "ml")
+        assertNull(NutrientCoverage.summarize(listOf(food), NutrientKey.SODIUM).totalKnown)
+        assertEquals(80.0, NutrientCoverage.summarize(listOf(food.copy(sodiumMg = 80.0)), NutrientKey.SODIUM).totalKnown!!, 0.0)
+    }
+    @Test fun `un registro incierto con instantanea es estimado y la entrada rapida sigue sin dato`() {
+        val uncertain = NutrientCoverage.summarize(listOf(snap("sodium" to 10.0).copy(isUncertain = true)), NutrientKey.SODIUM)
+        assertEquals(10.0, uncertain.totalKnown!!, 0.0); assertEquals(1, uncertain.estimatedCount); assertEquals(0, uncertain.declaredCount)
+        val quick = NutrientCoverage.summarize(listOf(snap("sodium" to 10.0).copy(isQuickEntry = true)), NutrientKey.SODIUM)
+        assertNull(quick.totalKnown); assertEquals(1, quick.missingCount)
+    }
+    @Test fun `grasa saturada y cafeina legadas salen de sus campos`() {
+        val food = LoggedFood(calories = 100.0, fatBreakdown = FatBreakdown(saturated = 4.0, trans = 0.5), caffeineMg = 80.0, sugar = 12.0)
+        assertEquals(4.0, NutrientCoverage.summarize(listOf(food), NutrientKey.SAT_FAT).totalKnown!!, 0.0)
+        assertEquals(0.5, NutrientCoverage.summarize(listOf(food), NutrientKey.TRANS_FAT).totalKnown!!, 0.0)
+        assertNull(NutrientCoverage.summarize(listOf(food), NutrientKey.MONO_FAT).totalKnown)
+        assertEquals(80.0, NutrientCoverage.summarize(listOf(food), NutrientKey.CAFFEINE).totalKnown!!, 0.0)
+        assertEquals(12.0, NutrientCoverage.summarize(listOf(food), NutrientKey.SUGARS).totalKnown!!, 0.0)
+    }
+    @Test fun `los alias de las claves nuevas leen la lista de micronutrientes`() {
+        val food = LoggedFood(calories = 100.0, micronutrients = listOf(Micronutrient("Fósforo", 300.0, "mg"), Micronutrient("Colina", 0.1, "g")))
+        assertEquals(300.0, NutrientCoverage.summarize(listOf(food), NutrientKey.PHOSPHORUS).totalKnown!!, 0.0)
+        assertEquals(100.0, NutrientCoverage.summarize(listOf(food), NutrientKey.CHOLINE).totalKnown!!, 1e-9)
+    }
+    @Test fun `F4-9 energia de la instantanea cercana a las kcal del registro sigue declarada`() {
+        val rice = snap("energy" to 130.0, "sodium" to 1.0).copy(calories = 131.0)
+        val result = NutrientCoverage.summarize(listOf(rice), NutrientKey.SODIUM)
+        assertEquals(1, result.declaredCount); assertEquals(0, result.estimatedCount)
+    }
+    @Test fun `F4-9 frito con aceite supera ambos umbrales y pasa a estimado`() {
+        val fried = snap("energy" to 130.0, "sodium" to 1.0, amount = 200.0).copy(calories = 400.0)
+        val result = NutrientCoverage.summarize(listOf(fried), NutrientKey.SODIUM)
+        assertEquals(2.0, result.totalKnown!!, 1e-9); assertEquals(0, result.declaredCount); assertEquals(1, result.estimatedCount)
+    }
+    @Test fun `F4-9 una diferencia de mas de 15 por ciento pero de menos de 25 kcal sigue declarada`() {
+        val small = snap("energy" to 40.0, "sodium" to 1.0).copy(calories = 60.0)
+        val result = NutrientCoverage.summarize(listOf(small), NutrientKey.SODIUM)
+        assertEquals(1, result.declaredCount); assertEquals(0, result.estimatedCount)
+    }
+    @Test fun `F4-9 sin energia en la instantanea la regla no aplica`() {
+        val noEnergy = snap("sodium" to 1.0).copy(calories = 900.0)
+        val result = NutrientCoverage.summarize(listOf(noEnergy), NutrientKey.SODIUM)
+        assertEquals(1, result.declaredCount); assertEquals(0, result.estimatedCount)
+    }
 }

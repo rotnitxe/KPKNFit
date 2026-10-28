@@ -164,6 +164,12 @@ data class LoggedFood(
     /** Procedencia inmutable de receta; campos JSON opcionales, sin cambiar Room. */
     val recipeId: String? = null,
     val recipeVersion: Int? = null,
+    /** F4: id de la ficha del paquete de catálogo de la que viene el alimento; null si no se pudo enlazar. */
+    val catalogRecordId: String? = null,
+    /** F4: instantánea de nutrientes POR 100 g (clave = `NutrientId.key`); clave ausente = sin dato, 0 = cero declarado. */
+    val nutrientsPer100g: Map<String, Double>? = null,
+    /** F4: generación del paquete de catálogo de la que salió la instantánea. */
+    val catalogGeneration: String? = null,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────

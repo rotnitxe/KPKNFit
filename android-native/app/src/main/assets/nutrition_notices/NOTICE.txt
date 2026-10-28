@@ -1,0 +1,20 @@
+Fuentes de los datos de nutrición de KPKN Fit
+
+El catálogo de alimentos combina datos abiertos y los adapta: nombres y alias en español, porciones
+caseras, conceptos («lo que una persona nombra al comer»), unidades normalizadas (sodio en mg, etc.),
+«sin dato» distinto de cero y fichas derivadas de platos por componentes. Ninguna organización de
+origen avala esta adaptación ni la precisión de sus resultados.
+
+- U.S. Department of Agriculture, Agricultural Research Service. FoodData Central: FNDDS (survey
+  foods, publicación 2024-10-31), SR Legacy (2018-04) y Foundation Foods (2026-04-30).
+  Dominio público (CC0 1.0). https://fdc.nal.usda.gov
+- ANSES. Table de composition nutritionnelle des aliments Ciqual 2025 (versión 2025-11-03).
+  Licence Ouverte / Open Licence 2.0 (Etalab). https://ciqual.anses.fr
+- Open Food Facts contributors: productos vendidos en Chile. Base de datos bajo Open Database
+  License (ODbL 1.0); contenidos de cada producto bajo Database Contents License (DbCL 1.0).
+  https://world.openfoodfacts.org
+- Vocabulario de conceptos y alias en español: elaborado para KPKN Fit (2026) a partir de esas
+  fuentes.
+
+Generación del catálogo: bd5319a45f529dbe.
+Los textos completos de las licencias se muestran en esta misma sección.

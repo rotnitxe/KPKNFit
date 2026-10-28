@@ -3,6 +3,7 @@ package com.example.kpkn.screens.nutrition.nutrients
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.*
@@ -44,5 +45,39 @@ class NutrientsSheetTest {
         rule.onNodeWithText("Fibra").performClick()
         rule.onNodeWithTag("contributors-FIBER").assertExists()
         rule.onNodeWithText("Alimento con ficha: 12,5 g").assertExists()
+    }
+    @Test fun losEncabezadosDeGrupoAparecen() {
+        show("complete")
+        NutrientGroup.entries.forEach {
+            rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrient-group-${it.name}"))
+            rule.onNodeWithTag("nutrient-group-${it.name}").assertExists()
+        }
+    }
+    @Test fun unGrupoSinFilasNoDibujaEncabezado() {
+        rule.setContent { KPKNTheme { NutrientsContent(NutrientsSheetState("2026-10-24", NutrientsSamples.state("complete").rows.filter { it.nutrient.group == NutrientGroup.CARBS }), emptySet(), {}, {}) } }
+        rule.onNodeWithTag("nutrient-group-CARBS").assertExists()
+        rule.onNodeWithTag("nutrient-group-FATS").assertDoesNotExist()
+    }
+    @Test fun elTopeDeLaGuiaSeMuestraYAvisaDelExceso() {
+        val food = LoggedFood(foodName = "Mucha grasa", calories = 2000.0, fatBreakdown = FatBreakdown(saturated = 30.0))
+        val state = buildNutrientsSheetState("2026-10-24", listOf(NutritionLog(date = "2026-10-24T12:00:00-03:00", foods = listOf(food))), NutrientsSamples.profile)
+        assertEquals(2000.0, state.energyKcal!!, 1e-9)
+        rule.setContent { KPKNTheme { NutrientsContent(state, emptySet(), {}, {}) } }
+        rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrient-SAT_FAT"))
+        rule.onNodeWithText("Tope de la guía: ${nutrientNumber(200.0 / 9.0)} g (10 % de 2000 kcal registradas) · OMS").assertExists()
+        rule.onNodeWithText("El total conocido supera el tope de la guía.").assertExists()
+    }
+    @Test fun sinKcalElTopeSeDiceEnPorcentajeDeLaEnergia() {
+        val state = NutrientsSheetState("2026-10-24", NutrientCoverage.summarize(emptyList()), NutrientsSamples.profile, null)
+        rule.setContent { KPKNTheme { NutrientsContent(state, emptySet(), {}, {}) } }
+        rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrient-SAT_FAT"))
+        rule.onAllNodesWithText("Tope de la guía: 10 % de la energía del día · OMS").onFirst().assertExists()
+    }
+    @Test fun laNiacinaTieneSuNotaYElPieCitaLasFuentes() {
+        show("complete")
+        rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrient-NIACIN"))
+        rule.onNodeWithText("Las fuentes dan niacina preformada; la referencia está en equivalentes (incluye la que el cuerpo forma del triptófano), así que tu total real suele ser mayor.").assertExists()
+        rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrients-sources"))
+        rule.onNodeWithTag("nutrients-sources").assertExists()
     }
 }

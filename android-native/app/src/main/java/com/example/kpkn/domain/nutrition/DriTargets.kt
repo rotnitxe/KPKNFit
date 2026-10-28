@@ -1,29 +1,44 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.domain.nutrition.nutrients.NutrientId
+
 /** Referencias adultas del CSV aprobado: NAM/IOM y NIH ODS, revisión de la ola 24-oct-2026.
  * Los 240 valores se contrastan con la copia íntegra del CSV en pruebas. No hay IO en dominio.
  */
-enum class NutrientKey(val csvName: String, val label: String, val unit: String, val inCatalog: Boolean) {
-    FIBER("fibra total", "Fibra", "g", true),
-    SODIUM("sodio", "Sodio", "mg", true),
-    POTASSIUM("potasio", "Potasio", "mg", true),
-    CALCIUM("calcio", "Calcio", "mg", true),
-    IRON("hierro", "Hierro", "mg", true),
-    MAGNESIUM("magnesio", "Magnesio", "mg", true),
-    ZINC("zinc", "Zinc", "mg", false),
-    SELENIUM("selenio", "Selenio", "µg", true),
-    IODINE("yodo", "Yodo", "µg", false),
-    VITAMIN_A("vitamina A", "Vitamina A", "µg RAE", true),
-    VITAMIN_C("vitamina C", "Vitamina C", "mg", false),
-    VITAMIN_D("vitamina D", "Vitamina D", "µg", false),
-    VITAMIN_E("vitamina E", "Vitamina E", "mg α-tocoferol", false),
-    VITAMIN_K("vitamina K", "Vitamina K", "µg", false),
-    VITAMIN_B6("vitamina B6", "Vitamina B6", "mg", false),
-    VITAMIN_B12("vitamina B12", "Vitamina B12", "µg", true),
-    FOLATE("folato", "Folato", "µg DFE", false),
-    THIAMIN("tiamina", "Tiamina", "mg", false),
-    RIBOFLAVIN("riboflavina", "Riboflavina", "mg", false),
-    NIACIN("niacina", "Niacina", "mg NE", false);
+enum class NutrientKey(val csvName: String, val label: String, val unit: String, val inCatalog: Boolean, val nutrientId: NutrientId) {
+    FIBER("fibra total", "Fibra", "g", true, NutrientId.FIBER),
+    SODIUM("sodio", "Sodio", "mg", true, NutrientId.SODIUM),
+    POTASSIUM("potasio", "Potasio", "mg", true, NutrientId.POTASSIUM),
+    CALCIUM("calcio", "Calcio", "mg", true, NutrientId.CALCIUM),
+    IRON("hierro", "Hierro", "mg", true, NutrientId.IRON),
+    MAGNESIUM("magnesio", "Magnesio", "mg", true, NutrientId.MAGNESIUM),
+    ZINC("zinc", "Zinc", "mg", false, NutrientId.ZINC),
+    SELENIUM("selenio", "Selenio", "µg", true, NutrientId.SELENIUM),
+    IODINE("yodo", "Yodo", "µg", false, NutrientId.IODINE),
+    VITAMIN_A("vitamina A", "Vitamina A", "µg RAE", true, NutrientId.VITAMIN_A_RAE),
+    VITAMIN_C("vitamina C", "Vitamina C", "mg", false, NutrientId.VITAMIN_C),
+    VITAMIN_D("vitamina D", "Vitamina D", "µg", false, NutrientId.VITAMIN_D),
+    VITAMIN_E("vitamina E", "Vitamina E", "mg α-tocoferol", false, NutrientId.VITAMIN_E),
+    VITAMIN_K("vitamina K", "Vitamina K", "µg", false, NutrientId.VITAMIN_K),
+    VITAMIN_B6("vitamina B6", "Vitamina B6", "mg", false, NutrientId.VITAMIN_B6),
+    VITAMIN_B12("vitamina B12", "Vitamina B12", "µg", true, NutrientId.VITAMIN_B12),
+    FOLATE("folato", "Folato", "µg DFE", false, NutrientId.FOLATE_DFE),
+    THIAMIN("tiamina", "Tiamina", "mg", false, NutrientId.THIAMIN),
+    RIBOFLAVIN("riboflavina", "Riboflavina", "mg", false, NutrientId.RIBOFLAVIN),
+    NIACIN("niacina", "Niacina", "mg NE", false, NutrientId.NIACIN),
+    SUGARS("azúcares totales", "Azúcares totales", "g", true, NutrientId.SUGARS),
+    ADDED_SUGARS("azúcares añadidos", "Azúcares añadidos", "g", true, NutrientId.ADDED_SUGARS),
+    SAT_FAT("grasa saturada", "Grasa saturada", "g", true, NutrientId.SAT_FAT),
+    MONO_FAT("grasa monoinsaturada", "Grasa monoinsaturada", "g", true, NutrientId.MONO_FAT),
+    POLY_FAT("grasa poliinsaturada", "Grasa poliinsaturada", "g", true, NutrientId.POLY_FAT),
+    TRANS_FAT("grasa trans", "Grasa trans", "g", true, NutrientId.TRANS_FAT),
+    CHOLESTEROL("colesterol", "Colesterol", "mg", true, NutrientId.CHOLESTEROL),
+    PHOSPHORUS("fósforo", "Fósforo", "mg", true, NutrientId.PHOSPHORUS),
+    CHOLINE("colina", "Colina", "mg", true, NutrientId.CHOLINE),
+    EPA_DHA("EPA + DHA", "Omega-3 EPA + DHA", "g", true, NutrientId.EPA_DHA),
+    ALA("ALA", "Omega-3 ALA", "g", true, NutrientId.ALA),
+    CAFFEINE("cafeína", "Cafeína", "mg", true, NutrientId.CAFFEINE),
+    ALCOHOL("alcohol", "Alcohol", "g", true, NutrientId.ALCOHOL);
 }
 
 enum class DriSex { MALE, FEMALE }
@@ -46,7 +61,13 @@ object DriTargets {
     /** Usa la referencia explícita del plan; nunca infiere sexo de identidad de género u hormonas. */
     fun profileFor(settings: com.example.kpkn.data.models.Settings, plan: com.example.kpkn.data.models.NutritionPlan?): DriProfile? {
         val age = settings.userVitals.age ?: settings.age ?: return null
-        if (age < 19 || settings.userVitals.pregnancyLactation != com.example.kpkn.data.models.PregnancyLactation.NONE) return null
+        if (age < 19) return null
+        // Las filas de embarazo y lactancia son una etapa de vida con tabla propia y se guardan bajo FEMALE.
+        when (settings.userVitals.pregnancyLactation) {
+            com.example.kpkn.data.models.PregnancyLactation.PREGNANT -> return DriProfile(age, DriSex.FEMALE, DriStage.PREGNANT)
+            com.example.kpkn.data.models.PregnancyLactation.LACTATING -> return DriProfile(age, DriSex.FEMALE, DriStage.LACTATING)
+            else -> Unit
+        }
         val sex = when (plan?.calculationSnapshot?.inputs?.get("sex")) {
             "MALE" -> DriSex.MALE
             "FEMALE" -> DriSex.FEMALE
@@ -66,7 +87,7 @@ object DriTargets {
     fun lookup(nutrient: NutrientKey, profile: DriProfile?): DriTarget? = profile?.let { lookup(nutrient, it.sex, it.age, it.stage) }
     private fun scope(key: NutrientKey): UpperLimitScope = when (key) {
         NutrientKey.CALCIUM, NutrientKey.IRON, NutrientKey.ZINC, NutrientKey.SELENIUM, NutrientKey.IODINE,
-        NutrientKey.VITAMIN_C, NutrientKey.VITAMIN_D, NutrientKey.VITAMIN_B6 -> UpperLimitScope.TOTAL
+        NutrientKey.PHOSPHORUS, NutrientKey.CHOLINE, NutrientKey.VITAMIN_C, NutrientKey.VITAMIN_D, NutrientKey.VITAMIN_B6 -> UpperLimitScope.TOTAL
         NutrientKey.MAGNESIUM, NutrientKey.FOLATE, NutrientKey.NIACIN, NutrientKey.VITAMIN_E -> UpperLimitScope.SUPPLEMENTS_ONLY
         NutrientKey.VITAMIN_A -> UpperLimitScope.PREFORMED_ONLY
         else -> UpperLimitScope.NONE
@@ -92,9 +113,12 @@ object DriTargets {
         NutrientKey.THIAMIN to "https://ods.od.nih.gov/factsheets/Thiamin-HealthProfessional/",
         NutrientKey.RIBOFLAVIN to "https://ods.od.nih.gov/factsheets/Riboflavin-HealthProfessional/",
         NutrientKey.NIACIN to "https://ods.od.nih.gov/factsheets/Niacin-HealthProfessional/",
+        NutrientKey.PHOSPHORUS to "https://ods.od.nih.gov/factsheets/Phosphorus-HealthProfessional/",
+        NutrientKey.CHOLINE to "https://ods.od.nih.gov/factsheets/Choline-HealthProfessional/",
+        NutrientKey.ALA to "https://ods.od.nih.gov/factsheets/Omega3FattyAcids-HealthProfessional/",
     )
     private val rows: List<Row> by lazy {
-        table.trimIndent().lineSequence().filter { it.isNotBlank() }.map { line ->
+        (table.trimIndent().lines() + f4Table.trimIndent().lines()).asSequence().filter { it.isNotBlank() }.map { line ->
             val c = line.split('|')
             val key = NutrientKey.valueOf(c[0])
             val ul = c[5].takeUnless { it == "ND" }
@@ -344,5 +368,44 @@ object DriTargets {
         NIACIN|FEMALE|31-50 (embarazo)|RDA|18|35 mg
         NIACIN|FEMALE|19-30 (lactancia)|RDA|17|35 mg
         NIACIN|FEMALE|31-50 (lactancia)|RDA|17|35 mg
+    """
+    // Filas F4 (NIH ODS): fósforo, colina y ALA. Aparte de `table` para no tocar los 240 valores contrastados con el CSV.
+    private val f4Table = """
+        PHOSPHORUS|MALE|19-30|RDA|700|4000 mg
+        PHOSPHORUS|MALE|31-50|RDA|700|4000 mg
+        PHOSPHORUS|MALE|51-70|RDA|700|4000 mg
+        PHOSPHORUS|MALE|> 70|RDA|700|3000 mg
+        PHOSPHORUS|FEMALE|19-30|RDA|700|4000 mg
+        PHOSPHORUS|FEMALE|31-50|RDA|700|4000 mg
+        PHOSPHORUS|FEMALE|51-70|RDA|700|4000 mg
+        PHOSPHORUS|FEMALE|> 70|RDA|700|3000 mg
+        PHOSPHORUS|FEMALE|19-30 (embarazo)|RDA|700|3500 mg
+        PHOSPHORUS|FEMALE|31-50 (embarazo)|RDA|700|3500 mg
+        PHOSPHORUS|FEMALE|19-30 (lactancia)|RDA|700|4000 mg
+        PHOSPHORUS|FEMALE|31-50 (lactancia)|RDA|700|4000 mg
+        CHOLINE|MALE|19-30|AI|550|3500 mg
+        CHOLINE|MALE|31-50|AI|550|3500 mg
+        CHOLINE|MALE|51-70|AI|550|3500 mg
+        CHOLINE|MALE|> 70|AI|550|3500 mg
+        CHOLINE|FEMALE|19-30|AI|425|3500 mg
+        CHOLINE|FEMALE|31-50|AI|425|3500 mg
+        CHOLINE|FEMALE|51-70|AI|425|3500 mg
+        CHOLINE|FEMALE|> 70|AI|425|3500 mg
+        CHOLINE|FEMALE|19-30 (embarazo)|AI|450|3500 mg
+        CHOLINE|FEMALE|31-50 (embarazo)|AI|450|3500 mg
+        CHOLINE|FEMALE|19-30 (lactancia)|AI|550|3500 mg
+        CHOLINE|FEMALE|31-50 (lactancia)|AI|550|3500 mg
+        ALA|MALE|19-30|AI|1.6|ND
+        ALA|MALE|31-50|AI|1.6|ND
+        ALA|MALE|51-70|AI|1.6|ND
+        ALA|MALE|> 70|AI|1.6|ND
+        ALA|FEMALE|19-30|AI|1.1|ND
+        ALA|FEMALE|31-50|AI|1.1|ND
+        ALA|FEMALE|51-70|AI|1.1|ND
+        ALA|FEMALE|> 70|AI|1.1|ND
+        ALA|FEMALE|19-30 (embarazo)|AI|1.4|ND
+        ALA|FEMALE|31-50 (embarazo)|AI|1.4|ND
+        ALA|FEMALE|19-30 (lactancia)|AI|1.3|ND
+        ALA|FEMALE|31-50 (lactancia)|AI|1.3|ND
     """
 }

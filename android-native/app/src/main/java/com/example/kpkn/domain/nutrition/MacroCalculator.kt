@@ -282,6 +282,7 @@ fun scaleFoodByPortion(
         portionPreset = effectivePortion,
         cookingMethod = cookingMethod,
         quantity = quantity,
+        catalogRecordId = com.example.kpkn.domain.nutrition.nutrients.CatalogRecordLink.recordIdFor(food),
     )
 }
 

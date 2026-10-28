@@ -1,0 +1,5 @@
+{"id": "X0001", "split": "dev", "text": "2 huevos y una taza de arroz", "mealType": "LUNCH", "region": "CL", "phenomena": ["F03", "F04"], "style": "telefono", "origin": "fixture"}
+{"id": "X0002", "split": "dev", "text": "150 g de pollo a la plancha", "mealType": "DINNER", "region": "CL", "phenomena": ["F02", "F06"], "style": "detallado", "origin": "fixture"}
+{"id": "X0003", "split": "dev", "text": "cafe sin azucar", "mealType": "BREAKFAST", "region": "AR", "phenomena": ["F10", "F13"], "style": "apurado", "origin": "fixture"}
+{"id": "X0004", "split": "dev", "text": "a cup of rice and 3 eggs", "mealType": "LUNCH", "region": "US", "phenomena": ["F18"], "style": "telefono", "origin": "fixture"}
+{"id": "X0005", "split": "dev", "text": "", "mealType": "SNACK", "region": "CL", "phenomena": ["F01"], "style": "telefono", "origin": "fixture"}
