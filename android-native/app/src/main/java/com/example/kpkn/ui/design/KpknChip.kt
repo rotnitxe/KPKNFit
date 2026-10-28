@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 
@@ -42,6 +43,8 @@ fun KpknChip(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     enabled: Boolean = true,
+    /** Alto visible de la píldora; 32 dp salvo que una pantalla pida otro (Programas usa 30 dp, como su lienzo). */
+    height: Dp = 32.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val fill by animateColorAsState(
@@ -67,7 +70,7 @@ fun KpknChip(
     ) {
         Row(
             modifier = Modifier
-                .height(32.dp)
+                .height(height)
                 .graphicsLayer { alpha = if (enabled) 1f else 0.38f }
                 .clip(KpknShape.pill)
                 .background(fill, KpknShape.pill)

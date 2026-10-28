@@ -168,6 +168,7 @@ internal fun ProgramCatalogPage(
                     ) {
                         LibraryProfileFilter.entries.forEach { profile ->
                             KpknChip(
+                                height = 30.dp,
                                 text = profile.label,
                                 selected = profile == profileFilter,
                                 onClick = { profileFilter = profile },
@@ -179,6 +180,7 @@ internal fun ProgramCatalogPage(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Cada chip lleva su icono y muestra su valor elegido («4 días», «8–12 semanas»); sin elegir, solo su nombre.
                         KpknChip(
+                            height = 30.dp,
                             text = daysFilter?.let(::pluralDias) ?: "Días",
                             selected = daysFilter != null,
                             leadingIcon = KpknLineIcons.Calendar,
@@ -188,6 +190,7 @@ internal fun ProgramCatalogPage(
                                 .testTag("catalog-days"),
                         )
                         KpknChip(
+                            height = 30.dp,
                             text = durationFilter?.let(::catalogDurationLabel) ?: "Duración",
                             selected = durationFilter != null,
                             leadingIcon = KpknLineIcons.Clock,
@@ -272,6 +275,7 @@ internal fun ProgramCatalogPage(
                     ) {
                         LibraryOriginFilter.entries.forEach { origin ->
                             KpknChip(
+                                height = 30.dp,
                                 text = origin.label,
                                 selected = origin == originFilter,
                                 onClick = { originFilter = origin },

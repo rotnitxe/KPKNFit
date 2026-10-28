@@ -32,6 +32,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanKind
 import com.example.kpkn.data.programs.PlanLabels
 import com.example.kpkn.data.programs.PlanOrigin
+import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
@@ -62,7 +63,7 @@ internal enum class LibraryOriginFilter(val label: String) {
  * - [title]: el nombre del plan (`displayName`).
  * - [provenance]: de dónde sale («Plan KPKN», «Versión KPKN del método de …», «Versión anterior»).
  * - [summary]: qué haces, para quién es y qué necesitas.
- * - [meta]: «4 días por semana · Semana que se repite · Intermedio».
+ * - [meta]: «4 días · 16 semanas · Fuerza» o, en una rutina que se repite, «4 días · Rutina · Músculo» (escena pr-catalog del lienzo).
  * - [attribution]: la línea de atribución de la ficha (autor, edición y «No afiliado a …»); sustituye a la
  *   antigua línea «autor · edición» de las fuentes de autor.
  */
@@ -70,8 +71,34 @@ internal class LibraryCardModel(entry: CatalogEntry) {
     val title: String = entry.displayName
     val provenance: String = PlanLabels.provenanceLabel(entry)
     val summary: String = entry.summary
-    val meta: String = PlanLabels.metaLine(entry)
+    val meta: String = libraryCardMeta(entry)
     val attribution: String? = entry.attributionLine?.takeIf { line -> line.isNotBlank() }
+}
+
+/**
+ * La línea de meta de una tarjeta del catálogo, como el lienzo: «{días} · {semanas} · {objetivo}», p. ej. «4 días · 16 semanas ·
+ * Fuerza»; en una semana que se repite, «4 días · Rutina · Músculo». El objetivo sale de las disciplinas de la ficha: «Fuerza y músculo»
+ * si es de powerbuilding (o de powerlifting e hipertrofia a la vez), «Fuerza» o «Músculo»; si no es ninguna, se omite. Sin nivel ni
+ * «por semana».
+ */
+internal fun libraryCardMeta(entry: CatalogEntry): String {
+    val range = entry.supportedFrequencies
+    val days = if (range.first == range.last) pluralDias(range.first) else "${range.first}–${range.last} días"
+    val weeks = PlanLabels.weeksOf(entry)
+    val span = when {
+        entry.duration == CatalogDuration.REPEATING_WEEK -> "Rutina"
+        entry.duration == CatalogDuration.REPEATING_CYCLE && weeks <= 1 -> "Rutina"
+        else -> pluralSemanas(weeks)
+    }
+    val strength = TrainingReference.POWERLIFTING in entry.references
+    val muscle = TrainingReference.HYPERTROPHY in entry.references
+    val goal = when {
+        TrainingReference.POWERBUILDING in entry.references || (strength && muscle) -> "Fuerza y músculo"
+        strength -> "Fuerza"
+        muscle -> "Músculo"
+        else -> null
+    }
+    return listOfNotNull(days, span, goal).joinToString(PlanLabels.SEPARATOR)
 }
 
 /**

@@ -242,6 +242,7 @@ private fun FlowRowOfModes(selected: ProgramMode, onSelect: (ProgramMode) -> Uni
     ) {
         BLANK_MODES.forEach { (value, label) ->
             KpknChip(
+                height = 30.dp,
                 text = label,
                 selected = value == selected,
                 onClick = { onSelect(value) },

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programs.importer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import androidx.compose.ui.unit.sp
@@ -104,6 +105,8 @@ fun ImportProgramScreen(
     val canSave = issues.isEmpty() && !weekdaysMissing
     // Sin programa leído, ni leyendo ni pegando, la pantalla es la hoja «Importar un programa» (pr-import), sin cabecera propia.
     val showSources = imported == null && !state.busy && !pasting && handoff == null
+    // Pegar no encierra: atrás (gesto o botón del sistema) vuelve a la hoja de fuentes para elegir un archivo o una foto.
+    BackHandler(enabled = imported == null && pasting && !state.busy) { pasting = false }
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         // Lo que se desplaza: bajo la barra de estado. Con la isla de abajo, el contenido deja sitio para ella; sin programa
         // leído, termina sobre la barra de navegación del sistema.
@@ -151,8 +154,6 @@ fun ImportProgramScreen(
                         onTextChange = { pasted = it },
                         onRead = { viewModel.importFromText(pasted) },
                     )
-                    // Pegar no encierra: se vuelve a la hoja para elegir un archivo o una foto.
-                    ImportTextAction(label = "Elegir otra forma", onClick = { pasting = false }, modifier = Modifier.testTag("import-other-way"))
                 }
             } else {
                 SetupFormTextField(
