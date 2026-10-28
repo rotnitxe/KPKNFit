@@ -328,8 +328,9 @@ object ClassicPlProtocols {
             weekRecipe(w, 0, "Conjugate", BlockGoal.INTENSIFICATION, listOf(
                 day("ME Lower", weekday = 1, slots = listOf(
                     slot("me", SlotRole.T1_MAIN, meLower[(w - 1) % meLower.size], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.SQUAT),
-                    // DUP-07: `REV_HYPER` es una máquina sin llave curada en el panel y nunca se podía acreditar; el hip thrust es el mismo patrón (extensión de cadera).
-                    kpknAssist("rev", CatalogIds.HIP, 3, 10, 90),
+                    // DUP-07: `REV_HYPER` es una máquina sin llave curada en el panel y nunca se podía acreditar; la hiperextensión a 45° es lo más
+                    // parecido (cadena posterior con la cadera como eje) y no repite la extensión de cadera del pull-through del mismo día.
+                    kpknAssist("rev", CatalogIds.HYPER_45, 3, 10, 90),
                     kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
                     kpknAssist("thru", CatalogIds.PULL_THRU, 3, 12, 60),
                     kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
