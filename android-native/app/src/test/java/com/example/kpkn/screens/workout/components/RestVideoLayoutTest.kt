@@ -107,7 +107,7 @@ class RestVideoLayoutTest {
                 } catch (failure: AssertionError) {
                     throw AssertionError("Fila no visible en superficie $kind al $fontScale: $result; marco $bounds; fila ${rule.onNodeWithTag(RestVideoLineTag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot}", failure)
                 }
-                assertEquals(48f * 3f, line.boundsInRoot.height, 0.01f)
+                assertEquals("Fila de vídeo en superficie $kind al $fontScale: $result", 48f * 3f, line.boundsInRoot.height, 0.01f)
                 val layouts = mutableListOf<TextLayoutResult>()
                 rule.onNodeWithTag(RestVideoTextTag, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
                 val layout = layouts.single()

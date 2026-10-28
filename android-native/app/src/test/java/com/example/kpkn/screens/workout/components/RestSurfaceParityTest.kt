@@ -2,13 +2,17 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -23,17 +27,19 @@ import com.example.kpkn.screens.workout.WorkoutRestModalState
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Las acciones del descanso son LAS MISMAS en la pantalla completa, en la tarjeta y dentro del minijuego (LV6): −15 s, +15 s, «Saltar»,
- * el descanso sugerido y «Saltar series restantes…» llaman a las mismas funciones. Las superficies no tienen lógica propia: solo
- * reciben lambdas (las del ViewModel, las mismas de la notificación y de la voz).
+ * El descanso comparte estado entre la pantalla completa, la tarjeta y el minijuego. La tarjeta tiene composición fija (sin scroll):
+ * −15 s, +15 s, pausa, descanso sugerido y expandir. Terminar el descanso y saltar el resto del ejercicio viven en la pantalla completa.
+ * Las superficies no tienen lógica propia: solo reciben lambdas (las del ViewModel, las mismas de la notificación y de la voz).
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -51,6 +57,7 @@ class RestSurfaceParityTest {
         var skipExercise = 0
         var minimize = 0
         var expand = 0
+        var pauses = 0
         var shapes = mutableListOf<RestClockShape>()
     }
 
@@ -91,10 +98,10 @@ class RestSurfaceParityTest {
         }
     }
 
-    private fun overlay(taps: Taps, playing: Boolean = false) = content {
+    private fun overlay(taps: Taps, playing: Boolean = false, paused: Boolean = false) = content {
         Box(Modifier.size(360.dp, 880.dp).background(Color.Black)) {
             RestTimerOverlay(
-                state = rest,
+                state = if (paused) rest.copy(pausedRemainingSeconds = 161) else rest,
                 remainingSeconds = 161,
                 hazeState = HazeState(),
                 pendingRestSuggestion = suggestion,
@@ -109,17 +116,19 @@ class RestSurfaceParityTest {
                 onShapeChange = { taps.shapes += it },
                 nextSet = next,
                 initiallyPlaying = playing,
+                isPaused = paused,
+                onTogglePause = { taps.pauses++ },
             )
         }
     }
 
-    private fun card(taps: Taps, playing: Boolean = false) = content {
+    private fun card(taps: Taps, playing: Boolean = false, paused: Boolean = false) = content {
         Box(Modifier.size(272.dp, 388.dp).background(Color.Black)) {
             RestLiveCard(
                 remainingSeconds = 161,
                 totalSeconds = 249,
                 sessionAccentColor = Color(0xFFF49A6E),
-                restState = rest,
+                restState = if (paused) rest.copy(pausedRemainingSeconds = 161) else rest,
                 pendingRestSuggestion = suggestion,
                 lastSetOutcome = null,
                 lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 6),
@@ -132,6 +141,8 @@ class RestSurfaceParityTest {
                 onSkipExercise = { taps.skipExercise++ },
                 nextSet = next,
                 initiallyPlaying = playing,
+                isPaused = paused,
+                onTogglePause = { taps.pauses++ },
             )
         }
     }
@@ -142,12 +153,14 @@ class RestSurfaceParityTest {
         overlay(taps)
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
-        rule.onNodeWithText("Saltar descanso").performClick()
+        rule.onNodeWithContentDescription("Pausar descanso").performClick()
+        rule.onNodeWithText("Terminar descanso").performScrollTo().performClick()
         rule.onNodeWithText("DESCANSO SUGERIDO").performScrollTo().performClick()
         rule.onNodeWithText("Saltar series restantes de Sentadilla trasera").performScrollTo().performClick()
         rule.onNodeWithContentDescription("Minimizar").performClick()
         assertEquals(1, taps.minus)
         assertEquals(1, taps.plus)
+        assertEquals(1, taps.pauses)
         assertEquals(1, taps.skip)
         assertEquals(1, taps.adaptive)
         assertEquals(1, taps.skipExercise)
@@ -155,21 +168,22 @@ class RestSurfaceParityTest {
     }
 
     @Test
-    fun theCardAdjustsSkipsAndSkipsTheRestOfTheExerciseWithTheSameCallbacks() {
+    fun theCardAdjustsTheClockAndSuggestionWithoutInternalScroll() {
         val taps = Taps()
         card(taps)
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
-        rule.onNodeWithText("Saltar").performClick()
-        rule.onNodeWithText("Descanso sugerido").performScrollTo().performClick()
-        rule.onNodeWithText("Saltar series restantes de Sentadilla trasera").performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Pausar descanso").performClick()
+        rule.onNodeWithText("Descanso sugerido").performClick()
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         assertEquals(1, taps.minus)
         assertEquals(1, taps.plus)
-        assertEquals(1, taps.skip)
+        assertEquals(1, taps.pauses)
         assertEquals(1, taps.adaptive)
-        assertEquals(1, taps.skipExercise)
         assertEquals(1, taps.expand)
+        // La tarjeta no desplaza contenido: saltar el descanso o el resto del ejercicio vive en la pantalla completa.
+        rule.onNodeWithText("Saltar descanso").assertDoesNotExist()
+        rule.onNodeWithText("Saltar series restantes de Sentadilla trasera").assertDoesNotExist()
     }
 
     @Test
@@ -246,6 +260,55 @@ class RestSurfaceParityTest {
         rule.onNodeWithText("de 4:09").assertExists()
         rule.onNodeWithText("Serie 2 · 95${nbsp}kg${nbsp}×${nbsp}4–6").assertExists()
         rule.onNodeWithText("RIR 2").assertExists()
+    }
+
+    @Test
+    fun bothRestSurfacesPauseAndResumeTheSameClock() {
+        val taps = Taps()
+        overlay(taps, paused = true)
+        rule.onNodeWithText("En pausa · de 4:09").assertExists()
+        rule.onNodeWithContentDescription("Continuar descanso").performClick()
+        rule.onNodeWithText("Descanso en pausa").assertExists()
+        assertEquals(1, taps.pauses)
+    }
+
+    @Test
+    fun theCardShowsThePausedClockWithoutLosingTheRemainingTime() {
+        card(Taps(), paused = true)
+        rule.onNodeWithText("2:41").assertExists()
+        rule.onNodeWithText("En pausa · de 4:09").assertExists()
+        rule.onNodeWithContentDescription("Continuar descanso").assertExists()
+    }
+
+    @Test
+    fun theCardKeepsEveryFixedPieceInsideTheViewportFrameAtLargeText() {
+        RuntimeEnvironment.setFontScale(1.3f)
+        try {
+            content {
+                Box(Modifier.size(312.dp, 394.dp).background(Color.Black).testTag("fixed-card")) {
+                    RestLiveCard(
+                        remainingSeconds = 161,
+                        totalSeconds = 249,
+                        sessionAccentColor = Color(0xFFF49A6E),
+                        restState = rest.copy(notificationsEnabled = false),
+                        pendingRestSuggestion = suggestion,
+                        lastSetOutcome = null,
+                        lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 6),
+                        onDecrease = {}, onIncrease = {}, onSkip = {}, onUseAdaptive = {},
+                        onExpand = {}, nextSet = next, clockActive = false,
+                        videoSlot = { Box(Modifier.fillMaxWidth().height(48.dp)) },
+                    )
+                }
+            }
+            val card = rule.onNodeWithTag("fixed-card", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            listOf("Descanso sugerido", "Sumar 15 segundos").forEach { label ->
+                val bounds = (if (label == "Sumar 15 segundos") rule.onNodeWithContentDescription(label)
+                    else rule.onNodeWithText(label)).fetchSemanticsNode().boundsInRoot
+                assertTrue("$label fuera de la tarjeta: $bounds vs $card", bounds.top >= card.top && bounds.bottom <= card.bottom)
+            }
+        } finally {
+            RuntimeEnvironment.setFontScale(1f)
+        }
     }
 
     private val overrun = RestOverrun(endedAtMs = 1_000L, totalSeconds = 249, kind = RestTimerKind.STANDARD)

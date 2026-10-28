@@ -75,6 +75,7 @@ class LiveOptionsVmTest {
 
         // Las opciones de una serie de «c» (por ejemplo, un miembro de superserie que no es el de turno) añaden la serie a «c».
         vm.addSetToCurrentExercise("c")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(3, vm.exercise("c").sets.size)
         assertEquals("el de turno no cambia", 2, vm.exercise("a").sets.size)
@@ -86,6 +87,7 @@ class LiveOptionsVmTest {
         assertEquals("lo guardado", 3, fixture!!.storedOngoing().session.allExercises().first { it.id == "c" }.sets.size)
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(2, vm.exercise("c").sets.size)
         assertTrue(vm.uiState.value.godModeUndoStack.isEmpty())
@@ -97,6 +99,7 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.addSetToCurrentExercise()
+        vm.awaitPendingLiveMutation()
 
         assertEquals(3, vm.exercise("a").sets.size)
         assertEquals(2, vm.exercise("b").sets.size)
@@ -109,12 +112,14 @@ class LiveOptionsVmTest {
         assertTrue(("a" to 0) in vm.workingSteps())
 
         vm.omitSet("a", 0)
+        vm.awaitPendingLiveMutation()
 
         assertFalse("la serie omitida ya no es un paso", ("a" to 0) in vm.workingSteps())
         assertTrue("las demás siguen", ("a" to 1) in vm.workingSteps())
         assertEquals(listOf("Omitir serie"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertTrue(("a" to 0) in vm.workingSteps())
         assertTrue(vm.uiState.value.omittedSetKeys.isEmpty())
@@ -126,6 +131,7 @@ class LiveOptionsVmTest {
         val before = vm.exercise("a").sets.map { it.id }
 
         vm.removeSetFromExercise("a", 1)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf(before.first()), vm.exercise("a").sets.map { it.id })
         assertEquals(listOf("a" to 0), vm.workingSteps().filter { it.first == "a" })
@@ -135,6 +141,7 @@ class LiveOptionsVmTest {
         assertEquals(1, fixture!!.storedOngoing().session.allExercises().first { it.id == "a" }.sets.size)
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(before, vm.exercise("a").sets.map { it.id })
         assertEquals(listOf("a" to 0, "a" to 1), vm.workingSteps().filter { it.first == "a" })
@@ -146,12 +153,14 @@ class LiveOptionsVmTest {
 
         // «Solo S2» con «Drop-set» (el alcance que arma la hoja con el nodo pulsado).
         vm.updatePlannedSeriesTechnique("a", 1, 1, SeriesTechnique.DROPSET, selectedIndices = setOf(1))
+        vm.awaitPendingLiveMutation()
 
         assertTrue(vm.exercise("a").sets[1].isDropSet)
         assertFalse(vm.exercise("a").sets[0].isDropSet)
         assertEquals(listOf("Convertir a dropset"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertFalse(vm.exercise("a").sets[1].isDropSet)
     }
@@ -165,6 +174,7 @@ class LiveOptionsVmTest {
 
         // Lo que hace el diálogo «Modo ultrarrápido» de las opciones del ejercicio.
         vm.updatePlannedSeriesTechnique("b", 0, b.sets.lastIndex, SeriesTechnique.REST_PAUSE)
+        vm.awaitPendingLiveMutation()
 
         val sets = vm.exercise("b").sets
         assertFalse("la primera serie no puede ser rest-pause", sets.first().isRestPause)
@@ -173,6 +183,7 @@ class LiveOptionsVmTest {
         assertEquals(listOf("Convertir a rest-pause"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
         assertTrue(vm.exercise("b").sets.none { it.isRestPause })
     }
 
@@ -181,11 +192,13 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(setOf("b"), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("Omitir ejercicio"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(emptySet<String>(), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("a", "b", "c", "d"), vm.stepExerciseOrder())
@@ -196,11 +209,13 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.removeExerciseFromSession("b")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("a", "c", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("Eliminar ejercicio"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("a", "b", "c", "d"), vm.uiState.value.liveOrder())
     }
@@ -227,11 +242,13 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.createLiveSuperset(listOf("b", "c"))
+        vm.awaitPendingLiveMutation()
 
         assertEquals(1, vm.uiState.value.session!!.allSupersetGroups().size)
         assertEquals(listOf("Crear superserie"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertTrue(vm.uiState.value.session!!.allSupersetGroups().isEmpty())
     }
@@ -241,11 +258,13 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.skipExercises(listOf("b", "c"))
+        vm.awaitPendingLiveMutation()
 
         assertEquals(setOf("b", "c"), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("Omitir ejercicios"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(emptySet<String>(), vm.uiState.value.skippedExerciseIds)
     }
@@ -255,11 +274,13 @@ class LiveOptionsVmTest {
         val vm = openFour()
 
         vm.removeExercisesFromSession(listOf("a", "c"))
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("b", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("Eliminar ejercicios"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("a", "b", "c", "d"), vm.uiState.value.liveOrder())
     }
@@ -273,12 +294,14 @@ class LiveOptionsVmTest {
             originalPartMap = vm.uiState.value.session!!.allExercises().associate { it.id to "Sesión principal" },
             isGlobal = false,
         )
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("d", "a", "b", "c"), vm.uiState.value.liveOrder())
         assertEquals(listOf("d", "a", "b", "c"), vm.stepExerciseOrder())
         assertEquals(listOf("Reordenar ejercicios"), vm.undoLabels())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("a", "b", "c", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("a", "b", "c", "d"), vm.stepExerciseOrder())

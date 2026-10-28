@@ -70,7 +70,7 @@ import org.robolectric.annotation.GraphicsMode
 
 /**
  * LV-C: las tarjetas de aproximación (H5) y movilidad (H6) en el marco real de la sesión en vivo. Cada control vive DENTRO de la
- * tarjeta de 312 × 425 dp, a 880 y a 740 dp de alto y con la letra al 100 % y al 130 %.
+ * tarjeta de 312 × 394 dp, a 880 y a 740 dp de alto y con la letra al 100 % y al 130 %.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -125,7 +125,7 @@ class PrepLiveCardsUiTest {
                             var headerPx by remember { mutableIntStateOf(0) }
                             val localDensity = LocalDensity.current
                             val header = with(localDensity) { headerPx.toDp() }
-                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
+                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
                             Box(
                                 Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                                     .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } },
@@ -141,7 +141,7 @@ class PrepLiveCardsUiTest {
                                 "Prepara la carga antes de tus series efectivas.", "prep", reduceMotionOverride = true,
                                 modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("prep-relator"),
                             )
-                            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
                                 LiveSessionCardFrame {
                                     Box(Modifier.fillMaxSize()) { card() }
                                 }
@@ -177,13 +177,13 @@ class PrepLiveCardsUiTest {
         assertTrue("$name mide al menos 48 dp de alto (${b.height / density})", b.height / density >= 47.5f)
     }
 
-    /** La tarjeta mide 312 × 425 dp, llena el marco y no hay nada pulsable entre el relator y ella ni entre ella y la línea. */
+    /** La tarjeta mide 312 × 394 dp, llena el marco y no hay nada pulsable entre el relator y ella ni entre ella y la línea. */
     private fun assertFrame(height: Int): Rect {
         val frame = bounds("live-card-frame")
         val card = bounds(PrepLiveCardTag)
         println("LV-C marco a $height dp: frame=$frame card=$card density=$density")
         assertEquals("ancho de la tarjeta a $height", 312f, frame.width / density, .5f)
-        assertEquals("alto de la tarjeta a $height", 425f, frame.height / density, .5f)
+        assertEquals("alto de la tarjeta a $height", 394f, frame.height / density, .5f)
         assertEquals(frame.width, card.width, 1.5f)
         assertEquals(frame.height, card.height, 1.5f)
         assertEquals(frame.left, card.left, 1.5f)

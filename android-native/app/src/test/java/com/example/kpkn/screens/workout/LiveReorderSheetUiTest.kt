@@ -242,7 +242,7 @@ class LiveReorderSheetUiTest {
 
         click("Seleccionar")
         click("Ejercicio D")
-        click("Ultrarrápido")
+        click("Aplicar técnica")
         assertEquals(listOf("d"), state.ultraFastTargetIds)
     }
 

@@ -7,6 +7,7 @@ import com.example.kpkn.data.media.pose.MediaPipePoseEstimators
 import com.example.kpkn.data.media.pose.PoseEstimator
 import com.example.kpkn.data.media.pose.PoseModel
 import com.example.kpkn.data.media.pose.RgbaFrame
+import com.example.kpkn.domain.biomechanics.framing.FramingCheckStatus
 import com.example.kpkn.domain.biomechanics.framing.FramingEvaluator
 import com.example.kpkn.domain.biomechanics.framing.FramingSpec
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
@@ -63,6 +64,11 @@ class FramingCheckController(
     )
     val verdict: StateFlow<FramingVerdict> = _verdict.asStateFlow()
 
+    private val _status = MutableStateFlow(FramingCheckStatus.CHECKING)
+
+    /** Diferencia «aún comprobando» de «no se pudo comprobar» sin inventar una aprobación. */
+    val status: StateFlow<FramingCheckStatus> = _status.asStateFlow()
+
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "vt-framing").apply { isDaemon = true }
     }
@@ -106,6 +112,7 @@ class FramingCheckController(
     fun start(bitmapProvider: () -> Bitmap?) {
         isSampling = true
         evaluator.reset()
+        _status.value = FramingCheckStatus.CHECKING
         samplingJob?.cancel()
         samplingJob = scope.launch(Dispatchers.Main) {
             while (isActive) {
@@ -173,7 +180,17 @@ class FramingCheckController(
             buffer.rewind()
 
             val estimator = getOrInitEstimator()
-            val detectedPoses = estimator?.estimate(RgbaFrame(w, h, buffer), 0L).orEmpty()
+            val detectedPoses = if (estimator == null) {
+                _status.value = FramingCheckStatus.UNAVAILABLE
+                return _verdict.value
+            } else {
+                runCatching {
+                    estimator.estimate(RgbaFrame(w, h, buffer), 0L)
+                }.getOrElse {
+                    _status.value = FramingCheckStatus.UNAVAILABLE
+                    return _verdict.value
+                }
+            }
 
             val mappedPoses = detectedPoses.map { toLandmarkMap(it) }
 
@@ -193,6 +210,7 @@ class FramingCheckController(
                 plateSeen = plateSeen,
             )
             _verdict.value = v
+            _status.value = FramingCheckStatus.EVALUATED
             return v
         } finally {
             if (needRecycle) {

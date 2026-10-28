@@ -390,12 +390,12 @@ private fun NoticeIcon(modifier: Modifier = Modifier) {
 }
 
 /**
- * «Saltar descanso» y «Guardar» (F2) o «Saltar» y «Guardar» en la tarjeta (F4). Sin descanso en marcha ([onSkipRest] nulo) queda solo
+ * «Ahora no» y «Guardar feedback» (Refinamiento 02) en la pantalla completa y en la tarjeta. Sin descanso ([onDefer] nulo) queda solo
  * «Guardar», a todo el ancho. «Guardar» es el «Registrar feedback» de siempre.
  */
 @Composable
 internal fun FeedbackActions(
-    onSkipRest: (() -> Unit)?,
+    onDefer: (() -> Unit)?,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
@@ -405,23 +405,23 @@ internal fun FeedbackActions(
         horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onSkipRest != null) {
+        if (onDefer != null) {
             FeedbackActionPill(
-                text = if (compact) "Saltar" else "Saltar descanso",
-                onClick = onSkipRest,
+                text = "Ahora no",
+                onClick = onDefer,
                 primary = false,
                 height = if (compact) 44.dp else 48.dp,
                 modifier = Modifier
                     .weight(1f)
-                    .semantics { contentDescription = "Saltar descanso" },
+                    .semantics { contentDescription = "Ahora no" },
             )
         }
         FeedbackActionPill(
-            text = "Guardar",
+            text = "Guardar feedback",
             onClick = onSave,
             primary = true,
             height = if (compact) 44.dp else 48.dp,
-            modifier = Modifier.weight(if (onSkipRest != null) 1.4f else 1f),
+            modifier = Modifier.weight(if (onDefer != null) 1.4f else 1f),
         )
     }
 }

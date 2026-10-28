@@ -101,7 +101,7 @@ class LiveSetModesUiTest {
         val scale = buildEffortScale(planned, if (m == TrainingMode.RM) null else planned,
             2.takeIf { planned == IntensityMode.RIR }, 8.0.takeIf { planned == IntensityMode.RPE })
         val index = scale.items.indexOfFirst { !it.isFailure && it.numericValue == if (planned == IntensityMode.RIR) 2.0 else 8.0 }
-        rule.onNodeWithTag(EffortSliderTag).performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(index.toFloat()) }
+        rule.onNodeWithTag(EffortSliderTag).scrollToIfScrollable().performSemanticsAction(SemanticsActions.SetProgress) { it(index.toFloat()) }
         rule.waitForIdle()
     }
     private fun record() { rule.onNodeWithTag("live-session-record").performClick(); rule.waitForIdle() }
@@ -118,20 +118,23 @@ class LiveSetModesUiTest {
             assertTrue("$next no se registra sin esfuerzo", records.isEmpty())
         }
     }
-    @Test fun allModesAndRomKeep312By425At880() = sameFrames(880, 1f)
-    @Test fun allModesAndRomKeep312By425At740And130PercentText() = sameFrames(740, 1.3f)
+    @Test fun allModesAndRomKeep312By394At880() = sameFrames(880, 1f)
+    @Test fun allModesAndRomKeep312By394At740And130PercentText() = sameFrames(740, 1.3f)
     private fun sameFrames(height: Int, font: Float) {
         show(TrainingMode.REPS, height, font)
         TrainingMode.entries.forEach { next -> for (track in listOf(false, true)) {
             rule.runOnIdle { mode.value = next; rom.value = track }
             val frame = rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot
             assertEquals("$next/$track ancho", 312f, frame.width / density, .5f)
-            assertEquals("$next/$track alto", 425f, frame.height / density, .5f)
+            assertEquals("$next/$track alto", 394f, frame.height / density, .5f)
             val actions = rule.onNodeWithTag("live-card-actions").fetchSemanticsNode().boundsInRoot
             assertEquals("$next/$track/$font acciones completas", 44f, actions.height / density, .5f)
             assertTrue("$next/$track acciones dentro", actions.left >= frame.left && actions.right <= frame.right && actions.bottom <= frame.bottom + 1f)
-            if (track) {
-                rule.onNodeWithTag("live-rom-slider").performScrollTo().assertIsDisplayed()
+            if (track && next in listOf(TrainingMode.REPS, TrainingMode.AMRAP)) {
+                // Refinamiento 02: en la tarjeta de reps el ROM vive en «Parciales, ayuda y ROM», que lo resume y lo abre fuera.
+                rule.onNodeWithTag("live-card-detail").assert(hasText("ROM", substring = true)).assertIsDisplayed()
+            } else if (track) {
+                rule.onNodeWithTag("live-rom-slider").scrollToIfScrollable().assertIsDisplayed()
                 assertEquals(44f, rule.onNodeWithTag("live-rom-slider").fetchSemanticsNode().boundsInRoot.height / density, .5f)
             }
         } }
@@ -219,8 +222,9 @@ class LiveSetModesUiTest {
         assertEquals("10", draft?.valueText)
         rule.onNodeWithText("10").assertIsDisplayed()
         rule.onNodeWithContentDescription("Cambiar tipo de carga").performClick()
-        rule.onNodeWithTag("quick_suggestion_menu_1").assertDoesNotExist()
-        rule.onNodeWithText("Carga").performClick()
+        rule.onNodeWithTag("quick_suggestion_menu-0").assertDoesNotExist()
+        rule.onNodeWithTag("live-load-mode-0").performClick()
+        rule.onNodeWithText("Listo").performClick()
         rule.onNodeWithText("11").performClick()
         mark(); record(); assertTrue(records.isEmpty())
         rule.onNodeWithTag("live-actual-load").performTextReplacement("12.5")
@@ -258,7 +262,7 @@ class LiveSetModesUiTest {
             rule.runOnIdle { mode.value = next }
             if (next == TrainingMode.RM) rule.onNodeWithTag("live-rm-edit").performClick() else quantity("40")
             rule.onNodeWithContentDescription("Cambiar tipo de carga").performScrollTo().performClick()
-            rule.onNodeWithTag("quick_suggestion_menu_1").performClick()
+            rule.onNodeWithTag("quick_suggestion_menu-1").performScrollTo().performClick()
             if (next == TrainingMode.RM) {
                 rule.onNodeWithTag("live-rm-percent").performScrollTo().assertTextEquals("70,4")
                 rule.onNodeWithText("Volver").performClick()
@@ -364,8 +368,12 @@ class LiveSetModesUiTest {
     }
     @Test fun cal3HasAResultSlotInsideTheAmrapCardWithoutChangingItsFrame() {
         show(TrainingMode.AMRAP, extension = true)
-        rule.onNodeWithTag("cal3-slot").performScrollTo().assertIsDisplayed()
-        assertEquals(425f, rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot.height / density, .5f)
+        rule.onNodeWithTag("cal3-slot").scrollToIfScrollable().assertIsDisplayed()
+        assertEquals(394f, rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot.height / density, .5f)
         mark(); record(); assertEquals(UnitModeV2.REPS, records.single().unit)
     }
 }
+
+/** La tarjeta del Refinamiento 02 no tiene scroll interno: solo desplaza si el nodo está dentro de una lista que lo tenga. */
+private fun androidx.compose.ui.test.SemanticsNodeInteraction.scrollToIfScrollable(): androidx.compose.ui.test.SemanticsNodeInteraction =
+    try { performScrollTo() } catch (_: AssertionError) { this }

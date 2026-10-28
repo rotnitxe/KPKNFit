@@ -26,6 +26,13 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.workout.components.HeaderSheet
 import com.example.kpkn.screens.workout.components.HeaderSheetAction
 import com.example.kpkn.screens.workout.components.HeaderSheetFrame
+import com.example.kpkn.screens.workout.components.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -229,26 +236,63 @@ internal fun WorkoutTagListOverlay(
     onCreateInline: ((String, TagSetupInput?) -> CreateTagResult)? = null,
     onManageTag: (String) -> Unit = {}, activeSubTagIds: List<String> = emptyList(),
     onToggleSubTag: (String) -> Unit = {},
+    exerciseName: String = "",
 ) {
     LaunchedEffect(Unit) { onOpened() }
     val showEducation = remember { showTagEducation(hasSeenEducation, rows.isEmpty()) }
-    HeaderSheet(onDismiss) { close ->
-        HeaderSheetFrame("Etiquetas", footer = { HeaderSheetAction("Listo", close, Modifier.fillMaxWidth(), primary = true) }) {
-            if (showEducation || rows.isEmpty()) Text(WORKOUT_TAG_EDUCATION_COPY, style = KpknType.caption, color = WizardColors.textMuted)
-            if (rows.isEmpty()) Text(WORKOUT_TAG_EMPTY_COPY, style = KpknType.caption, color = WizardColors.textMuted)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                rows.forEach { row -> HeaderTagChip(row, { onSelectTag(row.tag.id) }, { onManageTag(row.tag.id) }) }
+    var creating by remember { mutableStateOf(false) }
+    // Prototipo 02 (`tags`): contexto del ejercicio, una fila por etiqueta con su referencia, «Nueva etiqueta» y la nota de alcance.
+    LiveSheet(title = if (creating) "Nueva etiqueta" else "Etiquetas del ejercicio", onDismiss = onDismiss, tag = "live-tags-sheet",
+        footer = if (creating) null else { close -> LiveSheetPrimary("Listo", close) }) {
+        if (creating && onCreateInline != null) {
+            TagCreateForm(onCreateInline, exerciseName = exerciseName, onDone = { creating = false })
+            return@LiveSheet
+        }
+        Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
+            Text("ETIQUETAS DE ESTE EJERCICIO", style = KpknType.caption.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
+            if (exerciseName.isNotBlank()) Text(exerciseName, Modifier.padding(top = 4.dp), style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = WizardColors.text)
+            Text("Cada contexto conserva su referencia de carga.", Modifier.padding(top = 3.dp),
+                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 19.sp), color = LiveSheetTokens.Muted)
+        }
+        if (showEducation || rows.isEmpty()) LiveSheetShortCopy(WORKOUT_TAG_EDUCATION_COPY)
+        if (rows.isEmpty()) LiveSheetShortCopy(WORKOUT_TAG_EMPTY_COPY)
+        Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            rows.forEach { row -> LiveTagOptionRow(row, { onSelectTag(row.tag.id) }, { onManageTag(row.tag.id) }) }
+        }
+        val activeSubTags = rows.filter { it.isActive }.flatMap { it.tag.subTags }
+        if (activeSubTags.isNotEmpty()) {
+            LiveSheetSectionLabel("Subetiquetas")
+            LiveSheetChoiceRow(activeSubTags.map { it.id to it.name }, selected = { it in activeSubTagIds }, onSelect = onToggleSubTag,
+                tagPrefix = "live-subtag")
+        }
+        LiveSheetSecondary("Nueva etiqueta", { if (onCreateInline != null) creating = true else onCreateTag() },
+            Modifier.padding(top = 12.dp), icon = KpknLineIcons.Plus, tag = "live-tags-new")
+        LiveSheetShortCopy("Cambiar el contexto afecta a los próximos registros. Las series ya guardadas mantienen su etiqueta.")
+    }
+}
+
+/** `.v2-tag-option`: marca de selección, nombre y referencia; el lápiz abre su gestión. */
+@Composable
+private fun LiveTagOptionRow(row: WorkoutTagListRow, onClick: () -> Unit, onManage: () -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 70.dp).drawBehind {
+        drawLine(Color(0x12FFFFFF), androidx.compose.ui.geometry.Offset(0f, size.height), androidx.compose.ui.geometry.Offset(size.width, size.height), 1.dp.toPx())
+    }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.weight(1f).heightIn(min = 70.dp).clickable(role = Role.RadioButton, onClick = onClick)
+            .semantics(mergeDescendants = true) { selected = row.isActive }, verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(17.dp).clip(CircleShape).border(1.dp, if (row.isActive) WizardColors.text else Color(0x38FFFFFF), CircleShape)
+                .padding(4.dp)) {
+                if (row.isActive) Box(Modifier.fillMaxSize().clip(CircleShape).background(WizardColors.text))
             }
-            val activeSubTags = rows.filter { it.isActive }.flatMap { it.tag.subTags }
-            if (activeSubTags.isNotEmpty()) {
-                SheetLabel("Subetiquetas")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    activeSubTags.forEach { sub -> KpknChip(sub.name, sub.id in activeSubTagIds, { onToggleSubTag(sub.id) }) }
-                }
+            Column {
+                Text(row.title, style = KpknType.bodyStrong.copy(fontSize = 13.sp, lineHeight = 17.sp), color = WizardColors.text)
+                Text(row.lastLoadLabel + if (row.isActive) " · Activa" else "", Modifier.padding(top = 3.dp),
+                    style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp), color = LiveSheetTokens.Faint)
             }
-            Text("Mantén pulsada una etiqueta para gestionarla.", style = KpknType.caption, color = WizardColors.textMuted)
-            if (onCreateInline != null) TagCreateForm(onCreateInline)
-            else HeaderSheetAction("Crear etiqueta nueva", onCreateTag, Modifier.fillMaxWidth())
+        }
+        Box(Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onManage)
+            .semantics { contentDescription = "Editar etiqueta ${row.title}" }, contentAlignment = Alignment.Center) {
+            Icon(KpknLineIcons.Sliders, null, Modifier.size(16.dp), tint = LiveSheetTokens.Muted)
         }
     }
 }
@@ -269,39 +313,36 @@ private fun HeaderTagChip(row: WorkoutTagListRow, onClick: () -> Unit, onManage:
 }
 
 @Composable
-private fun TagCreateForm(onCreate: (String, TagSetupInput?) -> CreateTagResult) {
+private fun TagCreateForm(onCreate: (String, TagSetupInput?) -> CreateTagResult, exerciseName: String = "", onDone: () -> Unit = {}) {
     var name by remember { mutableStateOf("") }
     var machine by remember { mutableStateOf("") }
     var baseLoad by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            WorkoutTagFilledTextField(name, { name = it; error = null }, "Nombre de la etiqueta nueva", Modifier.weight(1f))
-            HeaderSheetAction("Crear", {
-                val setup = TagSetupInput(machineBrand = machine, baseLoadKg = baseLoad.replace(',', '.').toDoubleOrNull(), setupNotes = notes)
-                when (val result = onCreate(name, setup.takeIf { it.hasContent })) {
-                    is CreateTagResult.Created -> { name = ""; machine = ""; baseLoad = ""; notes = ""; error = null }
-                    is CreateTagResult.Duplicate -> error = "Ya existe una etiqueta con el nombre «${result.existingName}»."
-                    CreateTagResult.InvalidName -> error = "El nombre no es válido."
-                }
-            }, Modifier.width(82.dp), primary = true, enabled = name.isNotBlank() || machine.isNotBlank())
-        }
-        error?.let { Text(it, style = KpknType.caption, color = WizardColors.danger) }
-        HeaderSheetAction(if (expanded) "Set-up opcional · Ocultar" else "Set-up opcional · Mostrar", { expanded = !expanded }, Modifier.fillMaxWidth())
-        if (expanded) {
-            WorkoutTagFilledTextField(machine, { machine = it }, "Máquina o marca")
-            WorkoutTagFilledTextField(baseLoad, { baseLoad = it.filter { c -> c.isDigit() || c == '.' || c == ',' } }, "Carga base (kg)")
-            WorkoutTagFilledTextField(notes, { notes = it }, "Notas de set-up")
-        }
+    if (exerciseName.isNotBlank()) LiveSheetSubtitle(exerciseName)
+    LiveSheetLabeledField("Nombre", name, { name = it; error = null }, tag = "live-tag-new-name")
+    Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LiveSheetLabeledField("Equipo / marca", machine, { machine = it }, Modifier.weight(1f))
+        LiveSheetLabeledField("Carga base · kg", baseLoad, { baseLoad = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
+            Modifier.weight(1f), keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
     }
+    LiveSheetLabeledField("Notas de setup", notes, { notes = it }, Modifier.padding(top = 12.dp), multiline = true)
+    error?.let { LiveSheetShortCopy(it, error = true) }
+    LiveSheetPrimary("Guardar etiqueta", {
+        val setup = TagSetupInput(machineBrand = machine, baseLoadKg = baseLoad.replace(',', '.').toDoubleOrNull(), setupNotes = notes)
+        when (val result = onCreate(name, setup.takeIf { it.hasContent })) {
+            is CreateTagResult.Created -> { name = ""; machine = ""; baseLoad = ""; notes = ""; error = null; onDone() }
+            is CreateTagResult.Duplicate -> error = "Ya existe una etiqueta con el nombre «${result.existingName}»."
+            CreateTagResult.InvalidName -> error = "El nombre no es válido."
+        }
+    }, Modifier.padding(top = 16.dp), enabled = name.isNotBlank() || machine.isNotBlank(), tag = "live-tag-new-save")
+    LiveSheetTextAction("Volver a las etiquetas", onDone)
 }
 
 @Composable
 internal fun WorkoutCreateTagOverlay(onCreate: (String, TagSetupInput?) -> CreateTagResult, onDismiss: () -> Unit) {
-    HeaderSheet(onDismiss) { close ->
-        HeaderSheetFrame("Nueva etiqueta", footer = { HeaderSheetAction("Cancelar", close, Modifier.fillMaxWidth()) }) { TagCreateForm(onCreate) }
+    LiveSheet(title = "Nueva etiqueta", onDismiss = onDismiss, tag = "live-tag-new-sheet", footer = null) { close ->
+        TagCreateForm(onCreate, onDone = close)
     }
 }
 

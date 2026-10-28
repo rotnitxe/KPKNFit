@@ -79,6 +79,24 @@ object WorkoutVoiceCommandParser {
         "terminar entrenamiento", "acabar sesion", "sesion terminada",
         "guardar sesion", "guardar entrenamiento",
     )
+
+    /**
+     * Órdenes de captura de vídeo. Sólo se evalúan en contexto de grabador abierto y nunca
+     * comparten frases con «finalizar sesión»: apagar la captura no cierra la sesión.
+     */
+    private val START_VIDEO_CAPTURE_KEYWORDS = setOf(
+        "iniciar video", "inicia video", "empezar video", "empieza video",
+        "comenzar video", "comienza video", "grabar video", "graba video",
+        "iniciar grabacion", "inicia grabacion", "empezar grabacion", "empieza grabacion",
+        "comenzar grabacion", "comienza grabacion", "iniciar la grabacion", "comenzar la grabacion",
+    )
+
+    private val STOP_VIDEO_CAPTURE_KEYWORDS = setOf(
+        "detener video", "deten video", "parar video", "para video",
+        "terminar video", "termina video", "cortar video", "corta video",
+        "detener grabacion", "deten grabacion", "parar grabacion", "para grabacion",
+        "terminar grabacion", "termina grabacion", "finalizar grabacion", "finaliza grabacion",
+    )
     private val START_CARDIO_KEYWORDS = setOf("iniciar cardio", "empieza cardio", "comenzar cardio")
     private val FINISH_CARDIO_KEYWORDS = setOf("finalizar cardio", "terminar cardio", "acabar cardio")
     private val SKIP_CARDIO_BLOCK_KEYWORDS = setOf("saltar bloque", "siguiente bloque", "completar bloque", "bloque hecho")
@@ -303,6 +321,10 @@ object WorkoutVoiceCommandParser {
                 base += ADD_SET_PERMANENT_KEYWORDS
             }
         }
+        // Las órdenes de vídeo se mantienen en la gramática de todas las etapas: el grabador
+        // puede abrirse con una confirmación de serie pendiente y aun así debe poder detenerse.
+        base += START_VIDEO_CAPTURE_KEYWORDS
+        base += STOP_VIDEO_CAPTURE_KEYWORDS
         if (includeFeedback) {
             base += setOf(
                 "guardar", "guardar y terminar", "guardar entrenamiento", "guardar sesion",
@@ -403,6 +425,7 @@ object WorkoutVoiceCommandParser {
         allowCardioMetrics: Boolean = false,
         tagNames: Set<String> = emptySet(),
         isCardioTimerActive: Boolean = false,
+        captureActive: Boolean = false,
     ): VoiceSessionCommand {
         // Los mishearings también afectan a los keywords de comandos ("metro corporal",
         // "reir", "la varra"); corregir antes de clasificar evita Unknowns evitables.
@@ -410,6 +433,17 @@ object WorkoutVoiceCommandParser {
         // propio de comandos ("falta", "lado").
         val correctedTranscript = WorkoutVoiceMishearingCorrections.correctDeterministic(normalizeText(transcript))
         val lower = correctedTranscript
+
+        // La captura manda sobre cualquier espera: repetir «detener vídeo» nunca debe
+        // quedar atrapado en una confirmación de serie ni en un descanso activo.
+        if (captureActive) {
+            if (matchesAnyKeyword(lower, STOP_VIDEO_CAPTURE_KEYWORDS)) {
+                return VoiceSessionCommand.StopVideoCapture
+            }
+            if (matchesAnyKeyword(lower, START_VIDEO_CAPTURE_KEYWORDS)) {
+                return VoiceSessionCommand.StartVideoCapture
+            }
+        }
 
         if (pendingAddSetPersistence) {
             return parseAddSetPersistence(lower)

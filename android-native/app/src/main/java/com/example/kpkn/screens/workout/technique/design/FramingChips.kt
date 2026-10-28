@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.domain.biomechanics.framing.FramingCheckStatus
+import com.example.kpkn.domain.biomechanics.framing.FramingInstruction
 import com.example.kpkn.domain.biomechanics.framing.FramingIssue
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
 import com.example.kpkn.ui.design.KpknShape
@@ -25,7 +27,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 
 /**
  * Chip flotante que muestra el veredicto del encuadre en tiempo real (VT8a).
- * Muestra «✓ Encuadre» en verde cuando la racha de comprobaciones es correcta,
+ * Muestra «✓ Encuadre listo» en verde cuando la racha de comprobaciones es correcta,
  * o el primer problema detectado para corregir la posición antes de grabar.
  */
 @Composable
@@ -34,14 +36,17 @@ fun FramingChip(
     modifier: Modifier = Modifier,
     isFrontPreferred: Boolean = false,
     visualMode: Boolean = false,
+    status: FramingCheckStatus = FramingCheckStatus.EVALUATED,
 ) {
-    val isOk = verdict.ok
+    val isOk = verdict.ok && status == FramingCheckStatus.EVALUATED
     val primaryIssue = verdict.issues.firstOrNull()
 
     val text = when {
-        isOk -> "✓ Encuadre"
+        status == FramingCheckStatus.UNAVAILABLE -> FramingInstruction.UNAVAILABLE_SHORT
+        status == FramingCheckStatus.CHECKING -> FramingInstruction.CHECKING_SHORT
+        isOk -> "✓ ${FramingInstruction.READY}"
         primaryIssue != null -> framingIssueText(primaryIssue, isFrontPreferred)
-        else -> "Comprobando encuadre…"
+        else -> FramingInstruction.CHECKING_SHORT
     }
 
     val warningColor = if (visualMode) WizardColors.textMuted else Color(0xFFFFA726)
@@ -95,15 +100,5 @@ fun FramingChip(
 /**
  * Devuelve el texto descriptivo del problema de encuadre en español neutro.
  */
-fun framingIssueText(issue: FramingIssue, isFrontPreferred: Boolean = false): String = when (issue) {
-    FramingIssue.NO_PERSON -> "Ponte en cuadro"
-    FramingIssue.TWO_PEOPLE -> "Hay 2 personas"
-    FramingIssue.TOO_CLOSE -> "Demasiado cerca"
-    FramingIssue.FEET_OUT -> "Aléjate: no se ven los pies"
-    FramingIssue.HEAD_OUT -> "Aléjate: no se ve la cabeza"
-    FramingIssue.TOO_SMALL -> "Acércate más"
-    FramingIssue.WRONG_VIEW -> if (isFrontPreferred) "Gírate de frente" else "Gírate de lado"
-    FramingIssue.FACE_HIDDEN -> "Cara no visible"
-    FramingIssue.TILTED -> "Endereza el móvil"
-    FramingIssue.NO_PLATE -> "No veo el disco"
-}
+fun framingIssueText(issue: FramingIssue, isFrontPreferred: Boolean = false): String =
+    FramingInstruction.short(issue, isFrontPreferred)

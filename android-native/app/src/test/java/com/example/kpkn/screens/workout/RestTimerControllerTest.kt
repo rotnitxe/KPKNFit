@@ -85,6 +85,32 @@ class RestTimerControllerTest {
         assertTrue(alerts.naturalFinishIds.isEmpty())
     }
 
+    @Test
+    fun pauseFreezesTheRemainingTimeAndTheNaturalFinish() = runTest {
+        val alerts = FakeRestTimerAlerts(ids = ArrayDeque(listOf("paused")))
+        val controller = RestTimerController(this, alerts)
+        val start = 1_000_000L
+        controller.scheduleAndTick(
+            seconds = 9,
+            endMs = start + 9_000L,
+            restStartMs = start,
+            sessionName = "Sesión",
+            exerciseName = "Press",
+            preserveElapsed = false,
+            onNaturalFinish = { alerts.naturalFinishIds += it },
+        )
+
+        val frozen = controller.pause(nowMs = start + 1_000L)
+        advanceTimeBy(4_000L)
+        runCurrent()
+
+        assertEquals(8, frozen)
+        assertEquals(8, controller.remaining.value)
+        assertTrue(alerts.naturalFinishIds.isEmpty())
+        assertTrue(alerts.finishedIds.isEmpty())
+        assertEquals(null, controller.activeRestTimerId)
+    }
+
     private class FakeRestTimerAlerts(
         private val ids: ArrayDeque<String>,
     ) : RestTimerAlertSink {

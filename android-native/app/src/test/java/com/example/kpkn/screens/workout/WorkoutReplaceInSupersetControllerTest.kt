@@ -83,13 +83,17 @@ class WorkoutReplaceInSupersetControllerTest {
 
         val session = fixture.state.session!!
         val replaced = fixture.exercise("ex-b")
-        // El hueco: mismo grupo, mismos descansos y mismas tres rondas con su objetivo.
+        // El hueco: mismo grupo, mismos descansos y la ronda ya hecha queda archivada con el ejercicio anterior.
         assertEquals("Flexiones", replaced.name)
         assertEquals("g1", replaced.supersetGroupRef)
         assertEquals(45, replaced.supersetRestBetween)
         assertEquals(90, replaced.supersetRestAfter)
-        assertEquals(3, replaced.sets.size)
-        assertEquals(listOf(8.0, 8.0, 8.0), replaced.sets.map { it.targetRPE })
+        assertEquals(2, replaced.sets.size)
+        assertEquals(listOf(8.0, 8.0), replaced.sets.map { it.targetRPE })
+        assertEquals(
+            listOf("c0"),
+            fixture.state.archivedCompletedExercises.flatMap { it.sets }.map { it.id },
+        )
         // Lo del ejercicio anterior no pasa: ni la carga ni el lastre con el que se registró.
         assertTrue(replaced.sets.all { it.weight == null && it.loadModeV2 == LoadModeV2.BODYWEIGHT })
         assertTrue(fixture.state.persistedLoadModeBySet.isEmpty())

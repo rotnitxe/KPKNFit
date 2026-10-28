@@ -227,6 +227,15 @@ internal object RestClockMath {
      */
     fun shapeFor(restOrdinal: Int, chosen: RestClockShape?): RestClockShape =
         chosen ?: RestClockShape.entries[(restOrdinal - 1).coerceAtLeast(0) % RestClockShape.entries.size]
+
+    /**
+     * Segundos que quedan al aplicar un descanso sugerido: el tiempo ya transcurrido se conserva (no se reinicia) y el total pasa a
+     * ser el sugerido. Si el descanso ya superó la sugerencia, queda en 0.
+     */
+    fun remainingAfterSuggestion(totalSeconds: Int, remainingSeconds: Int, suggestedSeconds: Int): Int {
+        val elapsed = (totalSeconds - remainingSeconds).coerceAtLeast(0)
+        return (suggestedSeconds - elapsed).coerceAtLeast(0)
+    }
 }
 
 /** Total del descanso (con los ajustes de ±15 s) tal como lo guarda el estado del descanso. */

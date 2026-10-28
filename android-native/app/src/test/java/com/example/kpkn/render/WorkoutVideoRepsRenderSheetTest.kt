@@ -330,7 +330,7 @@ class WorkoutVideoRepsRenderSheetTest {
                         clockActive = false, videoSlot = slot)
                     1 -> RestFeedbackCard(remainingSeconds = 86, totalSeconds = 120, shape = RestClockShape.TOWER,
                         feedbackExercises = listOf(exercise), draft = draft, insights = FeedbackInsights.Empty,
-                        explainDiscomfort = { null }, linked = emptyList(), onSave = {}, onSkipRest = {}, onExpand = {},
+                        explainDiscomfort = { null }, linked = emptyList(), onSave = {}, onDefer = {}, onExpand = {},
                         clockActive = false, videoSlot = slot)
                     else -> RestTimerOverlay(state = rest, remainingSeconds = 86, hazeState = remember { HazeState() },
                         lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 8),

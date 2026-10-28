@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -395,7 +396,8 @@ class LiveSessionRelatorRenderSheetTest {
         val expectedText = when {
             isSilent -> ""
             forceWorkingProgress != null -> "El equipo está cargando los discos de 97,5\u00A0kg…"
-            forceSparkProgress != null -> "Listo: la serie 1 va con 97,5\u00A0kg. Si te arrepientes, vuelve a 95."
+            // Desde c97af14a3 la confirmación con kilos exige el acuse real del registro; el destello forzado no lo tiene.
+            forceSparkProgress != null -> "Carga ajustada."
             else -> text
         }
         val lineas = if (isSilent) 0 else lineasDeTexto(expectedText)
@@ -555,23 +557,20 @@ class LiveSessionRelatorRenderSheetTest {
         rule.waitForIdle()
         val density = 3f
         val asa = rule.onNodeWithContentDescription("Minimizar", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        val texto = rule.onNode(hasText(LINE_TWO), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        // El descanso a pantalla completa ya no lleva la frase del relator (franja retirada, D3): el aro va bajo el asa.
+        rule.onAllNodes(hasText(LINE_TWO), useUnmergedTree = true).assertCountEquals(0)
         val aro = rule.onNodeWithTag("lr1g-aro", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        val huecoAsa = (texto.top - asa.bottom) / density
-        val huecoAro = (aro.top - texto.bottom) / density
+        val huecoAsaAro = (aro.top - asa.bottom) / density
         val medidas = listOf(
             "escala_letra=$fontScale variante=descanso_overlay",
             "asa_inferior=${asa.bottom / density}",
-            "relator_superior=${texto.top / density} relator_inferior=${texto.bottom / density}",
             "aro_superior=${aro.top / density}",
-            "hueco_asa_relator=$huecoAsa",
-            "hueco_relator_aro=$huecoAro",
+            "hueco_asa_aro=$huecoAsaAro",
         )
         File(System.getenv("KPKN_RENDER_DIR")!!).mkdirs()
         File(System.getenv("KPKN_RENDER_DIR")!!, "medidas_$name.txt").writeText(medidas.joinToString("\n"))
         save(PHONE_TAG, name)
-        assertTrue("asa→relator $huecoAsa dp", kotlin.math.abs(huecoAsa - 12f) <= 2f)
-        assertTrue("relator→aro $huecoAro dp", kotlin.math.abs(huecoAro - 16f) <= 2f)
+        assertTrue("el aro empieza bajo el asa ($huecoAsaAro dp)", huecoAsaAro >= 0f)
     }
 
     /** Medidas en dp de la maqueta, con el texto medido en su caja de línea (sin contar el aire del Box). */

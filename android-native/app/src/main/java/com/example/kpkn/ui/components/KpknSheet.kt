@@ -86,6 +86,8 @@ fun KpknSheet(
     hazeState: HazeState? = null,
     /** Optional black veil drawn over the blur for a scoped contrast adjustment. */
     additionalGlassScrim: Color = Color.Transparent,
+    /** Velo detrás de la hoja (la sesión en vivo usa el negro al 60 % del prototipo 02). Transparente por defecto. */
+    backdropScrim: Color = Color.Transparent,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // A caller may own a local source (for example the workout overlay).  The
@@ -109,6 +111,7 @@ fun KpknSheet(
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = resolvedHaze,
             additionalGlassScrim = additionalGlassScrim,
+            backdropScrim = backdropScrim,
             content = content,
         )
     }
@@ -125,6 +128,7 @@ private fun KpknSheetBody(
     stableHeightFraction: Float?,
     hazeState: HazeState?,
     additionalGlassScrim: Color,
+    backdropScrim: Color,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val sheetShape = RoundedCornerShape(
@@ -270,6 +274,7 @@ private fun KpknSheetBody(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .then(if (backdropScrim.alpha > 0f) Modifier.background(backdropScrim) else Modifier)
                 .then(
                     if (dismissible) {
                         Modifier.clickable(

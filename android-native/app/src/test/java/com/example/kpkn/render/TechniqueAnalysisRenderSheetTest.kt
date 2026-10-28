@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.repository.CaptureOverrides
@@ -239,7 +241,7 @@ class TechniqueAnalysisRenderSheetTest {
                 player = player,
                 plateFrame = fotograma,
                 actions = TechniqueAnalysisActions.None,
-                videoSlot = { modificador -> VideoDeMentira(modificador, overlay, player) },
+                videoSlot = { modificador, _ -> VideoDeMentira(modificador, overlay, player) },
                 scroll = scroll,
                 viewportHeight = 800.dp,
                 magnifierEnabled = false,
@@ -272,10 +274,15 @@ class TechniqueAnalysisRenderSheetTest {
         estado: TechniqueAnalysisUiState,
         desplazamientosDp: List<Int>,
         fotograma: ImageBitmap? = null,
+        pestana: String? = null,
     ) {
         onlyWhenAsked()
         val scroll = ScrollState(0)
         montar(escala) { Pantalla(estado, scroll, fotograma) }
+        if (pestana != null) {
+            rule.onNodeWithText(pestana).performClick()
+            rule.waitForIdle()
+        }
         val densidad = 3f
         for ((i, desplazamiento) in desplazamientosDp.withIndex()) {
             rule.runOnUiThread { runBlocking { scroll.scrollTo((desplazamiento * densidad).toInt()) } }
@@ -286,6 +293,13 @@ class TechniqueAnalysisRenderSheetTest {
 
     @Test
     fun pantallaLista100() = pantalla("lista_100", 1f, estadoLista(), listOf(0, 1500))
+
+    @Test
+    fun pantallaListaMetricas100() = pantalla("lista_metricas_100", 1f, estadoLista(), listOf(0), pestana = "Métricas")
+
+    @Test
+    fun pantallaListaRepeticiones100() =
+        pantalla("lista_repeticiones_100", 1f, estadoLista(), listOf(0), pestana = "Repeticiones")
 
     @Test
     fun pantallaLista130() = pantalla("lista_130", 1.3f, estadoLista(), listOf(0, 1700))

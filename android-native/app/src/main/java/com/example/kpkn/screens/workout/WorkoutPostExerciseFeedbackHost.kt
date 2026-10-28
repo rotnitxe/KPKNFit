@@ -69,10 +69,10 @@ internal fun buildFeedbackExercisesForTarget(
 }
 
 /**
- * Lo que el panel del feedback puede hacer con el descanso que sigue corriendo (LV6, F2): saltarlo. La pantalla completa del descanso
- * lo da mientras corre; sin descanso (o con el panel suelto) es null y solo queda «Guardar».
+ * «Ahora no» del feedback (Refinamiento 02): el descanso sigue y el formulario queda pendiente para después. La pantalla completa y
+ * la tarjeta del descanso lo dan; sin descanso (o con el panel suelto) es null y solo queda «Guardar feedback».
  */
-internal val LocalFeedbackRestSkip = compositionLocalOf<(() -> Unit)?> { null }
+internal val LocalFeedbackDefer = compositionLocalOf<(() -> Unit)?> { null }
 
 /**
  * El panel va en la pantalla completa con el alto acotado: reparte el sitio (lo de en medio se desplaza) y deja «Saltar descanso» y
@@ -227,7 +227,7 @@ internal fun WorkoutPostExerciseFeedbackCard(
             canonicalKeyOf = { exercise -> viewModel.canonicalExerciseKey(exercise) },
             onSave = { payloads -> viewModel.savePostExerciseFeedbacks(payloads) },
         ),
-        onSkipRest = { viewModel.stopRestTimer() },
+        onDefer = { viewModel.deferPostExerciseSheet() },
         onExpand = { viewModel.toggleRestMinimized() },
         modifier = modifier,
         clockActive = clockActive,
@@ -258,7 +258,7 @@ internal fun PostExerciseFeedbackPanel(
     val liveDraft = draft ?: remember(feedbackExercises.map { it.id }) {
         PostExerciseFeedbackDraft.from(feedbackExercises, postExerciseFeedbackByExerciseId).also { it.query = initialDiscomfortQuery }
     }
-    val onSkipRest = LocalFeedbackRestSkip.current
+    val onDefer = LocalFeedbackDefer.current
     val bounded = LocalFeedbackBounded.current
     val linked = remember(feedbackExercises, postExerciseFeedbackByExerciseId) {
         linkedDiscomfortsFor(feedbackExercises, postExerciseFeedbackByExerciseId, ::feedbackArticulationsOf)
@@ -320,7 +320,7 @@ internal fun PostExerciseFeedbackPanel(
             ) {
                 body()
             }
-            FeedbackActions(onSkipRest = onSkipRest, onSave = save, modifier = Modifier.padding(top = 12.dp))
+            FeedbackActions(onDefer = onDefer, onSave = save, modifier = Modifier.padding(top = 12.dp))
         }
     } else {
         Column(
@@ -330,7 +330,7 @@ internal fun PostExerciseFeedbackPanel(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             body()
-            FeedbackActions(onSkipRest = onSkipRest, onSave = save)
+            FeedbackActions(onDefer = onDefer, onSave = save)
         }
     }
 

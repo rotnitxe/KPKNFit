@@ -236,8 +236,12 @@ class LiveQaLayoutTest {
         rule.waitForIdle()
         val title = rule.onNodeWithText(heading, useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         if (destination != LiveSessionDestination.PHOTOS) {
-            val header = rule.onNodeWithTag("live-session-sheet-heading", true).fetchSemanticsNode().boundsInRoot
-            assertTrue("El contenido empieza bajo la cabecera sin hueco ni cruce", title.top >= header.bottom && title.top - header.bottom < 32 * density)
+            // Refinamiento 02: el encabezado es el título de la hoja del prototipo; el cuerpo empieza justo debajo.
+            val sheet = "live-session-sheet-${destination.name.lowercase()}"
+            val header = rule.onNodeWithTag("$sheet-title", true).fetchSemanticsNode().boundsInRoot
+            val body = rule.onNodeWithTag("$sheet-body", true).fetchSemanticsNode().boundsInRoot
+            assertTrue("El título es el encabezado de la hoja", title == header)
+            assertTrue("El contenido empieza bajo la cabecera sin hueco ni cruce", body.top >= header.bottom && body.top - header.bottom < 32 * density)
             save("live-session-sheet-${destination.name.lowercase()}", "migrated-${destination.name.lowercase()}")
         } else {
             val actions = rule.onNodeWithTag("live-session-photo-actions", true).fetchSemanticsNode().boundsInRoot

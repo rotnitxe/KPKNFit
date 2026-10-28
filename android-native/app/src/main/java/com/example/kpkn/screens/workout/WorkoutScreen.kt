@@ -141,6 +141,7 @@ import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.UnilateralModeSelector
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.services.workout.PermissionGuideHelper
+import com.example.kpkn.services.workout.TechniqueCaptureVoiceLink
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
@@ -150,6 +151,7 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
+import com.example.kpkn.screens.workout.components.VoiceConversationSurface
 import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.cockpitVerticalGesture
@@ -202,6 +204,8 @@ fun WorkoutScreen(
     onCatalogResultConsumed: () -> Unit = {},
     onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
     onOpenTechniqueAnalysis: (String) -> Unit = {},
+    reviewedAnalysisResult: com.example.kpkn.screens.technique.analysis.ReviewedAnalysisDelivery? = null,
+    onReviewedAnalysisConsumed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     DisposableEffect(programId, sessionId) {
@@ -258,11 +262,18 @@ fun WorkoutScreen(
         onResult = viewModel::completeVoiceDiagnosticExport,
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val voiceHistory by viewModel.voiceHistory.collectAsStateWithLifecycle()
+    val voiceHistoryNotice by viewModel.voiceHistoryNotice.collectAsStateWithLifecycle()
     val sessionMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
     val mediaCaptureError by viewModel.mediaCapture.captureError.collectAsStateWithLifecycle()
     val showSessionAlbumSheet by viewModel.mediaCapture.showSessionAlbumSheet.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.wasCancelled) {
         if (uiState.wasCancelled) onBack()
+    }
+    LaunchedEffect(reviewedAnalysisResult) {
+        val result = reviewedAnalysisResult ?: return@LaunchedEffect
+        viewModel.applyReviewedAnalysis(result)
+        onReviewedAnalysisConsumed()
     }
     LaunchedEffect(uiState.session?.id, uiState.startTimeMs) {
         viewModel.syncLegacySessionPhotosIntoMedia()
@@ -283,6 +294,21 @@ fun WorkoutScreen(
             }
         }
     }
+    // El grabador de técnica no duplica el control de voz: pide el mismo flujo
+    // de permisos y selector que el botón del header.
+    val latestToggleVoice by rememberUpdatedState(onToggleVoice)
+    LaunchedEffect(Unit) {
+        TechniqueCaptureVoiceLink.voiceToggleRequests.collect { latestToggleVoice() }
+    }
+    LaunchedEffect(uiState.voiceSessionEnabled) {
+        TechniqueCaptureVoiceLink.setVoiceEnabled(uiState.voiceSessionEnabled)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            TechniqueCaptureVoiceLink.setVoiceEnabled(false)
+            TechniqueCaptureVoiceLink.clearGuideSpeech()
+        }
+    }
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val session = uiState.session
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
@@ -290,6 +316,17 @@ fun WorkoutScreen(
     val snackbarScope = rememberCoroutineScope()
     var showExitDialog by rememberSaveable { mutableStateOf(false) }
     var liveSessionDestination by rememberSaveable(programId, sessionId) { mutableStateOf<LiveSessionDestination?>(null) }
+    var showVoiceConversation by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
+    LaunchedEffect(uiState.session?.id, uiState.startTimeMs) {
+        if (uiState.session != null) viewModel.observeVoiceHistory()
+    }
+    LaunchedEffect(voiceHistoryNotice) {
+        if (voiceHistoryNotice != null) {
+            kotlinx.coroutines.delay(2500)
+            viewModel.consumeVoiceHistoryNotice()
+        }
+    }
+    var sessionTimeRequest by remember { mutableIntStateOf(0) }
     val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
     var storyFromHeader by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(uiState.showFinishSheet) { if (!uiState.showFinishSheet) storyFromHeader = false }
@@ -315,6 +352,8 @@ fun WorkoutScreen(
 
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
+    // Decisión 6: la vista es una preferencia global (Settings.liveSessionView); Tarjetas es la inicial.
+    val liveSessionView = LiveSessionView.entries.firstOrNull { it.name == settings.liveSessionView } ?: LiveSessionView.CARDS
     val allPrograms by com.example.kpkn.data.repository.ProgramRepository.getInstance().programs.collectAsStateWithLifecycle()
     val activeProgram = remember(allPrograms, programId) { allPrograms.firstOrNull { it.id == programId } }
     LaunchedEffect(settings.exerciseNicknames) {
@@ -915,7 +954,7 @@ fun WorkoutScreen(
             sessionAccentColor = sessionAccentColor,
             headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo, settings.exerciseNicknames).parentName } ?: session.name,
             headerExerciseChips = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo, settings.exerciseNicknames).chips }.orEmpty(),
-            headerSessionName = session.name,
+            headerSessionName = workoutHeaderSessionTitle(session.name, uiState.livePlanContext?.weekIndexInBlock),
             headerGroupName = headerGroup,
             headerStartTimeMs = uiState.startTimeMs,
             headerIsComplete = uiState.isComplete,
@@ -955,6 +994,11 @@ fun WorkoutScreen(
             },
             // «Editar» de las opciones de una serie: el ejercicio en el que se pulsó (en una superserie puede no ser el de turno).
             onEditExercise = { exerciseId -> structureSheets.editSheetExerciseId = exerciseId },
+            onOpenExerciseOptions = { exerciseId ->
+                structureSheets.exerciseContextForceMemberActions = false
+                structureSheets.exerciseContextExerciseId = exerciseId
+            },
+            onOpenSupersetSettings = { groupId -> structureSheets.supersetSettingsGroupId = groupId },
             onRequestCardioGps = { exerciseId, setIndex ->
                 if (viewModel.isCurrentCardioPageAction(exerciseId, setIndex) &&
                     CardioGpsTracker.hasLocationPermission(context)) {
@@ -978,7 +1022,7 @@ fun WorkoutScreen(
             catalogV2 = catalogV2,
             overlayHazeState = overlayHazeState,
             roadmapExpanded = false,
-            dockBottomClearance = dockBottomClearance,
+            dockBottomClearance = if (liveSessionView == LiveSessionView.LIST) 16.dp else dockBottomClearance,
             onCreateSuperset = {
                 currentExercise?.id?.let {
                     structureSheets.workoutSupersetSelectedExerciseId = it
@@ -1000,7 +1044,13 @@ fun WorkoutScreen(
             skipExerciseLabel = skipExerciseLabel,
             onSkipExercise = onSkipExerciseFromRest,
             onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
+            liveSessionView = liveSessionView,
+            sessionTimeRequest = sessionTimeRequest,
             )
+            if (liveSessionView == LiveSessionView.CARDS) {
+            val livePaceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+                sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            }
             LiveSessionLine(
                 exercises = visibleExercises,
                 currentExerciseId = currentExercise?.id,
@@ -1036,9 +1086,14 @@ fun WorkoutScreen(
                 undoStack = uiState.godModeUndoStack,
                 completedSets = uiState.completedSets,
                 onUndo = { index -> viewModel.revertGodModeChange(index) },
+                sessionCompletedCount = livePaceWork.completed,
+                sessionTotalCount = livePaceWork.total,
+                restActive = uiState.isRestTimerRunning,
+                onEndRest = { viewModel.stopRestTimer() },
                 modifier = Modifier.align(Alignment.BottomCenter).imePadding().navigationBarsPadding()
                     .padding(start = 16.dp, end = 16.dp, bottom = 8.dp).zIndex(5f),
             )
+            }
         }
     }
 
@@ -1068,6 +1123,15 @@ fun WorkoutScreen(
             structureSheets.addExerciseSearchQuery = ""
             structureSheets.addExerciseSelectedIds = emptySet()
         },
+        onSelectSet = { id, index ->
+            // La clave del paso lleva el lado en los unilaterales por lados; una clave que no existe se ignora.
+            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index))
+            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index, "left"))
+        },
+        onReorder = {
+            structureSheets.reorderSheetExerciseIds = visibleExercises.map { it.id }
+            structureSheets.showReorderSheet = true
+        },
         milestones = uiState.sessionMilestones,
         sessionNotes = uiState.sessionNotes,
         sessionSavedNotes = uiState.sessionSavedNotes,
@@ -1078,8 +1142,20 @@ fun WorkoutScreen(
         onToggleChecklistItem = viewModel::toggleSessionChecklistItem,
         onRemoveChecklistItem = viewModel::removeSessionChecklistItem,
         onOpenPhotos = { viewModel.mediaCapture.openAlbumSheet() },
+        onOpenVoice = { showVoiceConversation = true },
+        onOpenStory = { storyFromHeader = true; viewModel.showFinish() },
         timer = liveSessionTimer,
         sessionAccentColor = sessionAccentColor,
+        currentView = liveSessionView,
+        onSelectView = { viewModel.setLiveSessionViewPreference(it.name) },
+        sessionTitle = workoutHeaderSessionTitle(session.name, uiState.livePlanContext?.weekIndexInBlock),
+        sessionProgress = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            .let { "${it.completed} de ${it.total} series" },
+        onOpenReadiness = { readinessSheetDismissed = false },
+        onOpenSessionTime = { sessionTimeRequest++ },
+        onQuickRecord = { viewModel.openQuickRecording() },
+        onShortenSession = { viewModel.previewUltraFast() },
+        onFinishSession = { viewModel.showFinish() },
     )
 
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
@@ -1280,6 +1356,7 @@ fun WorkoutScreen(
         showExitDialog = showExitDialog,
         onShowExitDialogChange = { showExitDialog = it },
         onBack = onBack,
+        onUseHistoryWeight = { rmSelectedWeight.value = it },
     )
 
     WorkoutStructureSheetsHost(
@@ -1404,12 +1481,13 @@ fun WorkoutScreen(
             voiceStopFailed = !stopped
         }
         if (voiceStopFailed) {
-            KpknAlertDialog(
-                onDismissRequest = viewModel::hideVoiceCaptureModeDialog,
-                title = { Text("Preparar el micrófono") },
-                text = { Text("No se pudo cerrar la captura anterior. Puedes volver a intentarlo.") },
-                confirmButton = { TextButton(onClick = { voiceStopAttempt++ }) { Text("Reintentar") } },
-                dismissButton = { TextButton(onClick = viewModel::hideVoiceCaptureModeDialog) { Text("Volver") } },
+            com.example.kpkn.screens.workout.components.LiveAlert(
+                title = "Preparar el micrófono",
+                text = "No se pudo cerrar la captura anterior. Puedes volver a intentarlo.",
+                primaryLabel = "Reintentar", onPrimary = { voiceStopAttempt++ },
+                secondaryLabel = "Volver", onSecondary = viewModel::hideVoiceCaptureModeDialog,
+                onDismiss = viewModel::hideVoiceCaptureModeDialog,
+                icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Mic,
             )
         }
         if (voicePortReady) VoiceCaptureModeDialog(
@@ -1423,69 +1501,56 @@ fun WorkoutScreen(
     }
 
     uiState.pendingOngoingConflict?.let { existing ->
-        KpknAlertDialog(
-            onDismissRequest = {
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "Entrenamiento en curso",
+            text = "Ya hay un entrenamiento en curso: ${existing.session.name}. Si empiezas este, se perderá el anterior.",
+            primaryLabel = "Reanudar el que está en curso",
+            onPrimary = {
+                val existingProgramId = existing.programId
+                val existingSessionId = existing.session.id
+                viewModel.dismissOngoingConflict()
+                onOpenExistingWorkout(existingProgramId, existingSessionId)
+            },
+            secondaryLabel = "Descartar y empezar este",
+            onSecondary = { viewModel.confirmDiscardOngoingAndStart() },
+            dangerSecondary = true,
+            onDismiss = {
                 viewModel.dismissOngoingConflict()
                 onBack()
             },
-            title = { Text("Entrenamiento en curso", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    "Ya hay un entrenamiento en curso: ${existing.session.name}. " +
-                        "Si empiezas este, se perderá el anterior.",
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
-                    Text("Descartar y empezar este")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        val existingProgramId = existing.programId
-                        val existingSessionId = existing.session.id
-                        viewModel.dismissOngoingConflict()
-                        onOpenExistingWorkout(existingProgramId, existingSessionId)
-                    },
-                ) { Text("Reanudar el que está en curso") }
-            },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
         )
     }
 
     if (uiState.pendingOngoingCorrupt) {
-        KpknAlertDialog(
-            onDismissRequest = {
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "No se pudo leer el entrenamiento",
+            text = "No se pudo leer el entrenamiento en curso. Puedes reintentar o descartarlo.",
+            primaryLabel = "Volver",
+            onPrimary = {
                 viewModel.dismissOngoingCorrupt()
                 onBack()
             },
-            title = { Text("No se pudo leer el entrenamiento", fontWeight = FontWeight.Black) },
-            text = {
-                Text("No se pudo leer el entrenamiento en curso. Puedes reintentar o descartarlo.")
+            secondaryLabel = "Descartar y empezar este",
+            onSecondary = { viewModel.confirmDiscardOngoingAndStart() },
+            dangerSecondary = true,
+            onDismiss = {
+                viewModel.dismissOngoingCorrupt()
+                onBack()
             },
-            confirmButton = {
-                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
-                    Text("Descartar y empezar este")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissOngoingCorrupt()
-                        onBack()
-                    },
-                ) { Text("Volver") }
-            },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
         )
     }
 
     uiState.cancellationError?.let { error ->
-        KpknAlertDialog(
-            onDismissRequest = {},
+        com.example.kpkn.screens.workout.components.LiveAlert(
             title = "No se pudo cancelar el entreno",
             text = error,
-            confirmLabel = if (uiState.isCancellingWorkout) "Reintentando…" else "Reintentar",
-            onConfirm = { if (!uiState.isCancellingWorkout) viewModel.cancelWorkout() },
+            primaryLabel = if (uiState.isCancellingWorkout) "Reintentando…" else "Reintentar",
+            onPrimary = { if (!uiState.isCancellingWorkout) viewModel.cancelWorkout() },
+            primaryEnabled = !uiState.isCancellingWorkout,
+            onDismiss = {}, dismissible = false,
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
         )
     }
 
@@ -1494,12 +1559,40 @@ fun WorkoutScreen(
         uiState.pendingOngoingConflict == null &&
         !uiState.pendingOngoingCorrupt
     ) {
-        KpknAlertDialog(
-            onDismissRequest = {},
+        com.example.kpkn.screens.workout.components.LiveAlert(
             title = "No se pudo iniciar el entreno",
             text = "Tus datos se conservan. Puedes reintentar el inicio.",
-            confirmLabel = "Reintentar",
-            onConfirm = { viewModel.retryStartWorkout() },
+            primaryLabel = "Reintentar", onPrimary = { viewModel.retryStartWorkout() },
+            onDismiss = {}, dismissible = false,
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
+        )
+    }
+
+    if (showVoiceConversation) {
+        VoiceConversationSurface(
+            entries = voiceHistory,
+            voiceEnabled = uiState.voiceSessionEnabled,
+            captureModeLabel = when (settings.voiceCaptureMode) {
+                com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE -> "Manos libres"
+                com.example.kpkn.data.models.VoiceCaptureMode.MUSIC -> "Con música"
+            },
+            sessionName = session.name,
+            currentExerciseName = currentExercise?.let(::displayWorkoutExerciseName) ?: session.name,
+            currentSetLabel = "serie ${uiState.currentSetIdx + 1}",
+            notice = voiceHistoryNotice,
+            onClose = { showVoiceConversation = false },
+            onTogglePause = {
+                if (uiState.voiceSessionEnabled) viewModel.pauseVoiceConversation()
+                else viewModel.resumeVoiceConversation()
+            },
+            onDisable = {
+                viewModel.disableVoice()
+                showVoiceConversation = false
+            },
+            onListenExample = viewModel::speakVoiceExample,
+            onConfirmCorrection = { entryId, weight, reps, rir ->
+                viewModel.correctVoiceHistoryCapture(entryId, weight, reps, rir)
+            },
         )
     }
 }

@@ -242,6 +242,10 @@ sealed class VoiceSessionCommand {
     data object QueryCardioStatus : VoiceSessionCommand()
     data object StartTimedSet : VoiceSessionCommand()
     data object StopTimedSet : VoiceSessionCommand()
+    /** Inicia el vídeo de técnica; sólo se reconoce con el grabador abierto. */
+    data object StartVideoCapture : VoiceSessionCommand()
+    /** Detiene el vídeo de técnica; repetirla no crea otra captura. */
+    data object StopVideoCapture : VoiceSessionCommand()
     data object CompletePreparationStep : VoiceSessionCommand()
     data object StartMobilityTimer : VoiceSessionCommand()
     data object PauseMobilityTimer : VoiceSessionCommand()

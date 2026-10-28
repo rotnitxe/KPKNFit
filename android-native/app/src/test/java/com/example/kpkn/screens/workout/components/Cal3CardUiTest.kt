@@ -60,14 +60,7 @@ class Cal3CardUiTest {
         val applied = resolveCalibration(f.state, f.record.id, CalibrationStatus.APPLIED, 1_790_000_003_000L)
         state(f.copy(state = applied), "applied", 740, 1.3f)
         rule.onAllNodesWithContentDescription("calibrada", substring = true).assertCountEquals(3)
-        rule.onAllNodesWithText("calibrada", useUnmergedTree = true).assertCountEquals(3)
-        val labels = rule.onAllNodesWithText("calibrada", useUnmergedTree = true)
-        repeat(2) { i ->
-            val layouts = mutableListOf<TextLayoutResult>()
-            labels[i].performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-            val layout = layouts.single()
-            assertTrue(layout.getLineBottom(layout.lineCount - 1) <= labels[i].fetchSemanticsNode().boundsInRoot.height + 1)
-        }
+        // Iteración 04: en el raíl de series la carga calibrada es una marca melocotón en el punto; el texto vive en su descripción.
     }
     @Test fun aFailedDecisionIsVisibleInsideItsOwnCardAndCanBeRetried() {
         val f = cal3Fixture()

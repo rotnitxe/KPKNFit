@@ -90,7 +90,8 @@ class LiveQuickRecordFlowTest {
     }
 
     private fun submit() {
-        rule.runOnIdle { vm.previewUltraFast() }
+        // «Registro rápido de una serie» abre directamente su hoja (previewUltraFast abre «Acortar sesión»).
+        rule.runOnIdle { vm.openQuickRecording() }
         rule.onNodeWithTag("ultra-record-submit", true).assertIsNotEnabled()
         rule.onNodeWithContentDescription("RIR", useUnmergedTree = true).performTextReplacement("2")
         rule.onNodeWithTag("ultra-record-submit", true).assertIsEnabled().performClick()
@@ -104,9 +105,11 @@ class LiveQuickRecordFlowTest {
             rule.waitUntil(30_000) { vm.uiState.value.recordingSetKey == null }
             rule.runOnIdle { vm.stopRestTimer() }
             rule.onNodeWithTag("ultra-record-submit", true).assertDoesNotExist()
-            rule.waitUntil(10_000) { rule.onAllNodesWithText("${index + 1}/4 · 1 de 1 bloques", true).fetchSemanticsNodes().isNotEmpty() }
-            rule.onNodeWithText("✓S${index + 1}", useUnmergedTree = true).assertIsDisplayed()
-            rule.onNode(hasContentDescription("S${index + 2}") and isSelected(), true).assertIsDisplayed()
+            // Raíl de series del roadmap: la serie registrada queda «Completada» y la siguiente, en curso.
+            rule.waitUntil(10_000) {
+                rule.onAllNodes(hasContentDescription("S${index + 1}") and hasStateDescription("Completada")).fetchSemanticsNodes().isNotEmpty()
+            }
+            rule.onNode(hasContentDescription("S${index + 2}") and isSelected()).assertIsDisplayed()
             val stored = runBlocking { fixture!!.storedOngoing() }
             assertEquals(index + 1, stored.completedSets.size)
             assertEquals(4, stored.session.allExercises().single().sets.size)

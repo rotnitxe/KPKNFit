@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -139,29 +140,55 @@ internal fun LiveQuantityInput(
     }
 }
 
+/** Nombre del tipo de carga en la tarjeta y en la hoja «Modo de carga» (prototipo 02). */
+internal fun liveLoadModeLabel(mode: LoadModeV2): String = when (mode) {
+    LoadModeV2.LOAD -> "Externa"; LoadModeV2.BODYWEIGHT -> "Corporal"; LoadModeV2.LASTRE -> "Lastre"; LoadModeV2.ASSISTED -> "Asistida"
+}
+
+/**
+ * «Externa ⌄» y la hoja «Modo de carga» del prototipo 02: elegir cómo se expresa la carga, la carga utilizada, el peso corporal (que
+ * la asistida necesita) y las cargas rápidas (sugerida, anterior, incrementos). Sustituye al menú desplegable y al aviso del peso
+ * corporal que se insertaba en la tarjeta.
+ */
 @Composable
 internal fun LiveLoadModeButton(mode: LoadModeV2, expanded: Boolean, onOpen: () -> Unit, onDismiss: () -> Unit, onSelect: (LoadModeV2) -> Unit,
-    quickLoads: List<QuickLoadChipOption> = emptyList(), onQuickLoad: (QuickLoadChipOption) -> Unit = {}) {
-    Box {
-        TextButton(onClick = onOpen, modifier = Modifier.height(44.dp).semantics { contentDescription = "Cambiar tipo de carga" }, contentPadding = PaddingValues(horizontal = 4.dp)) {
-            Text(when (mode) { LoadModeV2.LOAD -> "Externa"; LoadModeV2.BODYWEIGHT -> "Corporal"; LoadModeV2.LASTRE -> "Lastre"; LoadModeV2.ASSISTED -> "Asistida" },
-                style = KpknType.caption.copy(fontSize = 10.sp), color = WizardColors.textMuted)
+    quickLoads: List<QuickLoadChipOption> = emptyList(), onQuickLoad: (QuickLoadChipOption) -> Unit = {},
+    weightText: String? = null, onWeight: (String) -> Unit = {},
+    bodyWeightText: String? = null, onBodyWeight: (String) -> Unit = {}, onSaveBodyWeight: (Double) -> Unit = {}) {
+    TextButton(onClick = onOpen, modifier = Modifier.height(44.dp).semantics { contentDescription = "Cambiar tipo de carga" },
+        contentPadding = PaddingValues(horizontal = 4.dp)) {
+        Text(liveLoadModeLabel(mode), style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp), color = WizardColors.textMuted)
+        Icon(KpknLineIcons.ChevronDown, null, Modifier.padding(start = 3.dp).size(12.dp), tint = WizardColors.textFaint)
+    }
+    if (!expanded) return
+    fun saveBodyWeight() { bodyWeightText?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0 }?.let(onSaveBodyWeight) }
+    LiveSheet(title = "Modo de carga", onDismiss = { saveBodyWeight(); onDismiss() }, tag = "live-load-mode-sheet",
+        footer = { close -> LiveSheetPrimary("Listo", { saveBodyWeight(); close() }) }) {
+        LiveSheetSubtitle("Elige cómo expresar la carga de esta serie.")
+        LiveSheetChoiceRow(listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED).map { it to liveLoadModeLabel(it) },
+            selected = { it == mode }, onSelect = onSelect, tagPrefix = "live-load-mode")
+        if (weightText != null && mode != LoadModeV2.BODYWEIGHT) {
+            LiveSheetLabeledField(when (mode) { LoadModeV2.ASSISTED -> "Ayuda externa · kg"; LoadModeV2.LASTRE -> "Lastre · kg"; else -> "Carga utilizada · kg" },
+                weightText, onWeight, keyboardType = KeyboardType.Decimal, placeholder = "—", tag = "live-load-mode-weight")
         }
-        KpknDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-            listOf(LoadModeV2.LOAD to "Carga", LoadModeV2.BODYWEIGHT to "Peso corporal", LoadModeV2.LASTRE to "Lastre", LoadModeV2.ASSISTED to "Asistido").forEach { (value, label) ->
-                DropdownMenuItem(text = { Text(label) }, onClick = { onSelect(value) })
+        if (bodyWeightText != null && mode != LoadModeV2.LOAD) {
+            Spacer(Modifier.height(12.dp))
+            LiveSheetLabeledField("Peso corporal · kg", bodyWeightText, onBodyWeight, keyboardType = KeyboardType.Decimal, placeholder = "—",
+                tag = "live-load-mode-bodyweight")
+            if (mode == LoadModeV2.ASSISTED && bodyWeightText.isBlank()) {
+                LiveSheetShortCopy("La carga asistida se calcula con tu peso corporal: añádelo para registrar la serie.", error = true)
             }
-            if (quickLoads.isNotEmpty()) {
-                HorizontalDivider()
-                ModeLabel("CARGAS RÁPIDAS", Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
-                quickLoads.forEachIndexed { index, option ->
-                    val known = option.weight.isFinite() && (option.weight > 0 || option.targetLoadMode == LoadModeV2.BODYWEIGHT)
-                    val label = if (option.isAuge) "Sugerida" else option.label
-                    val value = if (known) "${option.weight.toLiveNumberString()} kg" else "—"
-                    DropdownMenuItem(text = { Text("$label · $value") }, enabled = known,
-                        modifier = Modifier.testTag("quick_suggestion_menu_$index"), onClick = { onQuickLoad(option) })
+        }
+        if (quickLoads.isNotEmpty()) {
+            LiveSheetSectionLabel("Cargas rápidas")
+            val known = quickLoads.filter { option -> option.weight.isFinite() && (option.weight > 0 || option.targetLoadMode == LoadModeV2.BODYWEIGHT) }
+            LiveSheetChoiceRow(known.map { option ->
+                option to when {
+                    option.isAuge -> "Sugerida · ${option.weight.toLiveNumberString()} kg"
+                    option.label.startsWith("+") || option.label.startsWith("−") || option.label.startsWith("-") -> "${option.label} kg"
+                    else -> "${option.label} · ${option.weight.toLiveNumberString()} kg"
                 }
-            }
+            }, selected = { false }, onSelect = onQuickLoad, tagPrefix = "quick_suggestion_menu")
         }
     }
 }

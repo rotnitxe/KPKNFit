@@ -79,6 +79,7 @@ internal fun RestTimerOverlay(
     onUseAdaptive: (() -> Unit)? = null,
     onWarmupEffort: ((Double) -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
+    onDeferFeedback: (() -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
     feedbackTitle: String? = null,
     feedbackAfter: String? = null,
@@ -98,6 +99,8 @@ internal fun RestTimerOverlay(
     showIntro: Boolean = false,
     onIntroDone: () -> Unit = {},
     videoSlot: (@Composable () -> Unit)? = null,
+    isPaused: Boolean = false,
+    onTogglePause: () -> Unit = {},
 
 ) {
     // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
@@ -148,6 +151,7 @@ internal fun RestTimerOverlay(
                     onSkip = onSkip,
                     onUseAdaptive = onUseAdaptive,
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
+                    onDeferFeedback = onDeferFeedback,
                     feedbackExerciseCount = feedbackExerciseCount,
                     title = feedbackTitle ?: state.exerciseName,
                     after = feedbackAfter,
@@ -178,7 +182,7 @@ internal fun RestTimerOverlay(
                             onSkip = onSkip,
                             recordStore = recordStore,
                             engine = gameEngine,
-                            running = clockActive,
+                            running = clockActive && !isPaused,
                         )
                     } else {
                         NormalRestContent(
@@ -210,6 +214,8 @@ internal fun RestTimerOverlay(
                             onPlay = { playing = true },
                             clockActive = clockActive,
                             videoSlot = videoSlot,
+                            isPaused = isPaused,
+                            onTogglePause = onTogglePause,
                         )
                     }
                 }
@@ -231,6 +237,7 @@ private fun RestTimeReadout(
 ) {
     val safeRemaining = remainingSeconds.coerceAtLeast(0)
     val totalLabel = buildString {
+        if (state.pausedRemainingSeconds != null) append("En pausa · ")
         append("de ").append(formatRestClock(totalSeconds))
         when {
             isAdaptiveActive -> append(" · sugerido")
@@ -261,8 +268,8 @@ private fun RestTimeReadout(
 /**
  * El descanso cuando hay feedback pendiente (LV6, F2): arriba lo de siempre (el relator y el descanso sugerido), la cabecera con la
  * forma de RINGS pequeña («Sentadilla trasera», «Ejercicio terminado · Descanso 2:38 · después, la superserie») y, debajo, el panel
- * del feedback, que reparte el resto del alto y deja «Saltar descanso» y «Guardar» fijos abajo. Si la persona minimiza, la tarjeta del
- * descanso lleva el mismo feedback en compacto (B3).
+ * del feedback, que reparte el resto del alto y deja «Ahora no» y «Guardar feedback» fijos abajo, con «Terminar descanso» al pie del reloj.
+ * Si la persona minimiza, la tarjeta del descanso lleva el mismo feedback en compacto (B3).
  */
 @Composable
 private fun FeedbackContent(
@@ -275,6 +282,7 @@ private fun FeedbackContent(
     onSkip: () -> Unit,
     onUseAdaptive: (() -> Unit)?,
     postExerciseFeedbackContent: @Composable () -> Unit,
+    onDeferFeedback: (() -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
     title: String,
     after: String?,
@@ -352,10 +360,18 @@ private fun FeedbackContent(
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             CompositionLocalProvider(
                 LocalFeedbackBounded provides true,
-                LocalFeedbackRestSkip provides onSkip.takeIf { showTimerChrome },
+                LocalFeedbackDefer provides onDeferFeedback.takeIf { showTimerChrome },
             ) {
                 postExerciseFeedbackContent()
             }
+        }
+        if (showTimerChrome) {
+            Spacer(Modifier.height(10.dp))
+            RestSkipPill(
+                text = "Terminar descanso",
+                onClick = onSkip,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
@@ -449,6 +465,8 @@ private fun NormalRestContent(
     onPlay: () -> Unit,
     clockActive: Boolean,
     videoSlot: (@Composable () -> Unit)? = null,
+    isPaused: Boolean = false,
+    onTogglePause: () -> Unit = {},
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -545,7 +563,7 @@ private fun NormalRestContent(
 
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Ajustar tiempo",
+                    text = if (isPaused) "Descanso en pausa" else "Ajustar tiempo",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                 )
@@ -560,10 +578,9 @@ private fun NormalRestContent(
                         onClick = onDecrease,
                         modifier = Modifier.weight(1f),
                     )
-                    RestSkipPill(
-                        text = "Saltar descanso",
-                        onClick = onSkip,
-                        modifier = Modifier.weight(1.8f),
+                    RestPausePill(
+                        isPaused = isPaused,
+                        onClick = onTogglePause,
                     )
                     RestStepPill(
                         text = "+15 s",
@@ -572,6 +589,11 @@ private fun NormalRestContent(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                RestSkipPill(
+                    text = "Terminar descanso",
+                    onClick = onSkip,
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
             }
 

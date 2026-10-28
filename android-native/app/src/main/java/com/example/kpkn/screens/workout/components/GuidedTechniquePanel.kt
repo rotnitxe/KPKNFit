@@ -173,39 +173,19 @@ internal fun GuidedTechniquePanel(
     if (confirmSkipTechnique) {
         // El cuerpo de KpknAlertDialog reparte los dos botones en una sola fila: con «Seguir con la técnica», el de confirmar se aplastaba
         // hasta un círculo. Aquí la confirmación ocupa todo el ancho y «Seguir» va debajo, con los mismos textos y las mismas acciones.
-        KpknAlertDialog(
-            onDismissRequest = { confirmSkipTechnique = false },
-            confirmButton = {},
-            title = {
-                Text(
-                    "¿Terminar la técnica?",
-                    style = KpknType.dialogTitle,
-                    color = WizardColors.text,
-                )
+        // `guide-exit` del prototipo 02: «Guardar lo realizado» como acción principal y «Seguir con la técnica» debajo.
+        LiveAlert(
+            title = "¿Terminar la técnica?",
+            text = "Se conservarán la serie principal y los tramos ya realizados. Los tramos pendientes no se inventan.",
+            primaryLabel = "Guardar lo realizado",
+            onPrimary = {
+                confirmSkipTechnique = false
+                onSkipTechnique()
             },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Text(
-                        "Se conservarán la serie principal y las miniseries ya realizadas.",
-                        style = KpknType.body,
-                        color = WizardColors.textMuted,
-                    )
-                    KpknDangerPill(
-                        text = "Guardar lo realizado",
-                        onClick = {
-                            confirmSkipTechnique = false
-                            onSkipTechnique()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        KpknAlertDismissButton(
-                            text = "Seguir con la técnica",
-                            onClick = { confirmSkipTechnique = false },
-                        )
-                    }
-                }
-            },
+            secondaryLabel = "Seguir con la técnica",
+            onSecondary = { confirmSkipTechnique = false },
+            onDismiss = { confirmSkipTechnique = false },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Flag,
         )
     }
 }

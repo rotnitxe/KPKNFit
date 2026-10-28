@@ -61,7 +61,7 @@ class LvBfVisualRegressionTest {
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                             .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0L,
@@ -71,7 +71,7 @@ class LvBfVisualRegressionTest {
                         }
                         WorkoutLiveRelatorLine(phrase, "bf", reduceMotionOverride = true,
                             modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("bf-relator"))
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.single(), null,
                                     onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
@@ -97,10 +97,11 @@ class LvBfVisualRegressionTest {
         assertTrue("El relator termina antes de la tarjeta", narratorBounds.bottom <= frame.top)
         assertFalse("La frase del relator queda completa", layout.isLineEllipsized(layout.lineCount - 1))
         assertEquals(312f, frame.width / density, .5f)
-        assertEquals(425f, frame.height / density, .5f)
+        assertEquals(394f, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f)
         assertEquals(12f, (line.top - frame.bottom) / density, .5f)
-        listOf("workout-story-header", "workout-voice-header", "workout-more-header").forEach { tag ->
+        // Refinamiento 02: «Historia» vive en el menú «Tu sesión»; la cabecera conserva voz y ⋯.
+        listOf("workout-voice-header", "workout-more-header").forEach { tag ->
             val target = rule.onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             assertTrue("$tag conserva 44dp táctiles", target.width / density >= 43.5f && target.height / density >= 43.5f)
         }

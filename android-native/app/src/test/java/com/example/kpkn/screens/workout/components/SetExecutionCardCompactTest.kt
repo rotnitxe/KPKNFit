@@ -72,19 +72,20 @@ class SetExecutionCardCompactTest {
         sets = listOf(sampleSet),
     )
 
+
     /**
-     * LV3 punto 5.2: Los tres chips (Anterior · Sugerida · +2,5) en una fila horizontal,
-     * con el mismo ancho (weight(1f)), el mismo alto (<= 44 dp, nominal 38 dp) y 8 dp entre ellos.
+     * Refinamiento 02: los chips Anterior · Sugerida · +2,5 salen de la tarjeta; las cargas rápidas siguen disponibles en el menú
+     * «Externa ⌄» del tipo de carga, con la sugerida y su valor.
      */
     @Test
-    fun chipsCargaMismoAnchoYAlto() {
+    fun cargasRapidasVivenEnElMenuDelTipoDeCarga() {
         val densityFactor = 3f
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(densityFactor, 1f)) {
                 KPKNTheme {
                     MaterialTheme {
                         Box(Modifier.width(360.dp), contentAlignment = Alignment.TopCenter) {
-                            Box(Modifier.width(272.dp)) {
+                            Box(Modifier.width(312.dp)) {
                                 SetInputCardV2(
                                     exercise = sampleExercise,
                                     setIndex = 0,
@@ -106,34 +107,10 @@ class SetExecutionCardCompactTest {
             }
         }
         rule.waitForIdle()
-
-        val bounds0 = rule.onNodeWithTag("quick_suggestion_chip_0").fetchSemanticsNode().boundsInRoot
-        val bounds1 = rule.onNodeWithTag("quick_suggestion_chip_1").fetchSemanticsNode().boundsInRoot
-        val bounds2 = rule.onNodeWithTag("quick_suggestion_chip_2").fetchSemanticsNode().boundsInRoot
-
-        val height0Dp = bounds0.height / densityFactor
-        val height1Dp = bounds1.height / densityFactor
-        val height2Dp = bounds2.height / densityFactor
-
-        assertTrue("Alto del chip 0 debe ser <= 44 dp (es $height0Dp)", height0Dp <= 44f)
-        assertTrue("Alto del chip 1 debe ser <= 44 dp (es $height1Dp)", height1Dp <= 44f)
-        assertTrue("Alto del chip 2 debe ser <= 44 dp (es $height2Dp)", height2Dp <= 44f)
-
-        // Los tres chips tienen el mismo ancho (weight(1f)) con tolerancia de 1 px por redondeo de enteros
-        assertTrue(
-            "Los chips 0 y 1 deben tener el mismo ancho (${bounds0.width} vs ${bounds1.width})",
-            abs(bounds0.width - bounds1.width) <= 1.5f,
-        )
-        assertTrue(
-            "Los chips 1 y 2 deben tener el mismo ancho (${bounds1.width} vs ${bounds2.width})",
-            abs(bounds1.width - bounds2.width) <= 1.5f,
-        )
-
-        // Separación de 8 dp entre chips
-        val spacing01 = (bounds1.left - bounds0.right) / densityFactor
-        val spacing12 = (bounds2.left - bounds1.right) / densityFactor
-        assertTrue("Espaciado entre chips 0 y 1 debe ser ~8 dp (es $spacing01)", abs(spacing01 - 8f) <= 1f)
-        assertTrue("Espaciado entre chips 1 y 2 debe ser ~8 dp (es $spacing12)", abs(spacing12 - 8f) <= 1f)
+        rule.onNodeWithTag("quick_suggestion_chip_0").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Cambiar tipo de carga").performClick()
+        rule.onNodeWithText("CARGAS RÁPIDAS").assertExists()
+        rule.onNodeWithText("Sugerida · 98 kg").assertExists()
     }
 
     /**
@@ -218,10 +195,7 @@ class SetExecutionCardCompactTest {
         rule.onNode(hasSetTextAction() and hasText("102,5")).assertExists()
     }
 
-    /**
-     * V1 reemplaza las flechas por pasos y el registro integrado. Conserva destinos
-     * y objetivos táctiles de al menos 48 dp sin depender de controles ya desmontados.
-     */
+
     @Test
     fun pasosV1ConservanNavegacionYObjetivosTactiles() {
         val densityFactor = 3f
@@ -231,7 +205,7 @@ class SetExecutionCardCompactTest {
             CompositionLocalProvider(LocalDensity provides Density(densityFactor, 1f)) {
                 KPKNTheme {
                     MaterialTheme {
-                        Box(Modifier.size(360.dp, 200.dp)) {
+                        Box(Modifier.width(360.dp)) {
                             LiveSessionLine(
                                 exercises = listOf(sampleExercise.copy(sets = listOf(sampleSet, sampleSet.copy(id = "set-2")))),
                                 currentExerciseId = sampleExercise.id,
@@ -247,7 +221,7 @@ class SetExecutionCardCompactTest {
                                 onRecord = { records++ },
                                 recordVisible = true,
                                 recordEnabled = true,
-                                modifier = Modifier.width(328.dp),
+                                modifier = Modifier.width(340.dp),
                             )
                         }
                     }
@@ -255,20 +229,15 @@ class SetExecutionCardCompactTest {
             }
         }
         rule.waitForIdle()
-
-        val step = rule.onNodeWithContentDescription("S2")
+        val next = rule.onNodeWithContentDescription("Paso siguiente")
         val record = rule.onNodeWithTag("live-session-record")
-        rule.onNodeWithTag("live-session-steps").performScrollToNode(hasContentDescription("S2"))
-        val stepBounds = step.fetchSemanticsNode().boundsInRoot
-        val recordBounds = record.fetchSemanticsNode().boundsInRoot
-        assertTrue(stepBounds.width / densityFactor >= 48f)
-        assertEquals(56f, stepBounds.height / densityFactor, 1f)
-        assertEquals(52f, recordBounds.width / densityFactor, 1f)
-        assertEquals(52f, recordBounds.height / densityFactor, 1f)
-        step.performClick()
+        val nextBounds = next.fetchSemanticsNode().boundsInRoot
+        assertTrue(nextBounds.width / densityFactor >= 44f)
+        assertTrue(nextBounds.height / densityFactor >= 44f)
+        assertEquals(44f, record.fetchSemanticsNode().boundsInRoot.height / densityFactor, 1f)
+        next.performClick()
         record.performClick()
         rule.runOnIdle { assertEquals(1, selectedPage); assertEquals(1, records) }
-        rule.onNodeWithContentDescription("Serie anterior").assertDoesNotExist()
-        rule.onNodeWithContentDescription("Serie siguiente").assertDoesNotExist()
     }
+
 }

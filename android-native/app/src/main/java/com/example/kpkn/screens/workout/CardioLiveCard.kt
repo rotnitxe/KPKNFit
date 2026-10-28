@@ -347,8 +347,8 @@ internal fun CardioLiveCard(
         )
     }
     if (showRecordConfirmation) {
-        KpknAlertDialog(
-            onDismissRequest = {
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            onDismiss = {
                 if (!isSavingRecord) {
                     showRecordConfirmation = false
                     recordSaveFailed = false
@@ -356,16 +356,18 @@ internal fun CardioLiveCard(
                 }
             },
             title = "Confirmar cardio",
-            text = "Registrar ${formatCardioTime(durationSeconds)}" +
+            text = "¿Registrar ${formatCardioTime(durationSeconds)}" +
                 (recordedDistanceKm?.let { " · ${formatCardioDistance(it)}" } ?: "") +
                 " como resultado de esta sesión?" +
                 if (recordSaveFailed) "\nNo se pudo guardar. Puedes reintentar sin perder los datos." else "",
-            confirmLabel = when {
+            primaryLabel = when {
                 isSavingRecord -> "Guardando…"
                 recordSaveFailed -> "Reintentar"
                 else -> "Registrar"
             },
-            onConfirm = {
+            primaryEnabled = !isSavingRecord,
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Run,
+            onPrimary = {
                 if (!isSavingRecord) {
                     scope.launch {
                         isSavingRecord = true
@@ -386,8 +388,8 @@ internal fun CardioLiveCard(
                     }
                 }
             },
-            dismissLabel = if (isSavingRecord) null else "Cancelar",
-            onDismiss = {
+            secondaryLabel = if (isSavingRecord) null else "Cancelar",
+            onSecondary = {
                 if (!isSavingRecord) {
                     showRecordConfirmation = false
                     recordSaveFailed = false

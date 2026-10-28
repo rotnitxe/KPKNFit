@@ -16,6 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -38,7 +43,9 @@ import kotlinx.coroutines.delay
 
 /** KpknSheet owns entry/drag/Back. Explicit close actions also leave with an animation. */
 @Composable
-internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, dismissible: Boolean = true, stableHeightFraction: Float? = null, content: @Composable (close: () -> Unit) -> Unit) {
+internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, dismissible: Boolean = true, stableHeightFraction: Float? = null,
+    showDragHandle: Boolean = false, scrim: Color = LiveSheetTokens.Veil, panelTint: Color = LiveSheetTokens.Panel,
+    content: @Composable (close: () -> Unit) -> Unit) {
     var closing by remember { mutableStateOf(false) }
     val reduced = wizardReducedMotion()
     val exit by animateFloatAsState(if (closing) 1f else 0f, tween(if (reduced) 0 else 180), label = "header-sheet-exit")
@@ -46,37 +53,50 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
     LaunchedEffect(closing) {
         if (closing) { if (!reduced) delay(180); onDismiss() }
     }
-    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
+    KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, showDragHandle = showDragHandle,
+        backdropScrim = scrim, additionalGlassScrim = panelTint,
+        modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
         content { if (dismissible) closing = true }
     }
 }
 
-/** The footer stays available when the body needs to scroll, including at 130% font size. */
+/**
+ * Marco de las hojas de cabecera con el aspecto del prototipo 02 (como [LiveSheet]): asa, título en Syne 21, cuerpo desplazable y el
+ * pie fijo con su filete. El pie sigue a la vista aunque el cuerpo se desplace, también con letra al 130 %.
+ */
 @Composable
 internal fun HeaderSheetFrame(title: String, footer: @Composable ColumnScope.() -> Unit, body: @Composable ColumnScope.() -> Unit) {
     val scroll = rememberScrollState()
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(title, style = KpknType.title, color = WizardColors.text)
-        Column(Modifier.weight(1f, fill = false).fillMaxWidth().testTag("live-header-sheet-body").fadeBottomWhenScrollable(scroll).verticalScroll(scroll),
+    Column(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 4.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(width = 33.dp, height = 3.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x30FFFFFF)))
+        }
+        Text(title, Modifier.padding(start = 19.dp, end = 19.dp, top = 10.dp, bottom = 8.dp),
+            style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 24.sp,
+                letterSpacing = (-0.4).sp), color = WizardColors.text)
+        Column(Modifier.weight(1f, fill = false).fillMaxWidth().testTag("live-header-sheet-body").fadeBottomWhenScrollable(scroll).verticalScroll(scroll)
+            .padding(start = 19.dp, end = 19.dp, top = 6.dp, bottom = 15.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp), content = body)
-        Column(Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp), content = footer)
+        Column(Modifier.fillMaxWidth().liveSheetTopLine().padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp), content = footer)
     }
 }
 
-/** 36dp visual control within a 48dp touch target. */
+/** Acción de las hojas como los botones del prototipo: 46 dp de alto, píldora en tinta (principal) o con borde (secundaria). */
 @Composable
 internal fun HeaderSheetAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, primary: Boolean = false, enabled: Boolean = true, multiline: Boolean = false) {
-    val shape = RoundedCornerShape(20.dp)
-    val compactAutoSize = remember { TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = 13.sp, stepSize = .5.sp) }
+    val shape = RoundedCornerShape(23.dp)
+    val compactAutoSize = remember { TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 12.sp, stepSize = .5.sp) }
     Box(modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp).clickable(enabled = enabled, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
-        Box(Modifier.fillMaxWidth().height(if (multiline) 40.dp else 36.dp).clip(shape)
-            .background(if (primary) WizardColors.text.copy(alpha = if (enabled) 1f else .3f) else KpknSurface.inset)
-            .border(1.dp, WizardColors.textFaint.copy(alpha = .25f), shape).padding(horizontal = if (multiline) 8.dp else 12.dp), contentAlignment = Alignment.Center) {
-            val ink = if (primary) KpknSurface.canvas else if (enabled) WizardColors.text else WizardColors.textFaint
+        Box(Modifier.fillMaxWidth().heightIn(min = 46.dp).clip(shape)
+            .then(if (primary) Modifier.background(WizardColors.text.copy(alpha = if (enabled) 1f else .35f))
+                else Modifier.border(1.dp, Color(0x24FFFFFF), shape))
+            .padding(horizontal = if (multiline) 8.dp else 14.dp), contentAlignment = Alignment.Center) {
+            val ink = if (primary) Color(0xFF111111) else if (enabled) WizardColors.text else WizardColors.textFaint
             if (multiline) BasicText(text,
-                style = KpknType.action.copy(color = ink, lineHeight = TextUnit.Unspecified, textAlign = TextAlign.Center),
+                style = KpknType.action.copy(color = ink, fontWeight = FontWeight.SemiBold, lineHeight = TextUnit.Unspecified, textAlign = TextAlign.Center),
                 maxLines = 2, autoSize = compactAutoSize)
-            else Text(text, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp),
+            else Text(text, style = KpknType.action.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold),
                 color = ink, maxLines = 1, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
         }
     }
@@ -85,15 +105,19 @@ internal fun HeaderSheetAction(text: String, onClick: () -> Unit, modifier: Modi
 /** Proposal tabs: 30dp buttons inside the 38dp inset track, scoped to live-session sheets. */
 @Composable
 internal fun LiveCompactSegments(options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    Row(modifier.fillMaxWidth().clip(RoundedCornerShape(19.dp)).background(Color.Black).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    // `.segmented` del prototipo 02: pestañas subrayadas a todo el ancho (antes, una pista negra con la elegida en tinta).
+    Row(modifier.fillMaxWidth().drawBehind {
+        drawLine(LiveSheetTokens.Line, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+    }, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
         options.forEachIndexed { index, label ->
             val active = selectedIndex == index
-            Box(Modifier.weight(1f).height(30.dp).clip(RoundedCornerShape(15.dp))
-                .background(if (active) WizardColors.text else Color.Transparent)
+            Box(Modifier.weight(1f).heightIn(min = 40.dp)
                 .semantics { selected = active }
-                .clickable(enabled = enabled, role = Role.Tab) { onSelect(index) }, contentAlignment = Alignment.Center) {
-                Text(label, style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp),
-                    color = if (active) KpknSurface.canvas else WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                .clickable(enabled = enabled, role = Role.Tab) { onSelect(index) }
+                .drawBehind { if (active) drawLine(WizardColors.text, Offset(0f, size.height), Offset(size.width, size.height), 2.dp.toPx()) },
+                contentAlignment = Alignment.Center) {
+                Text(label, style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold),
+                    color = if (active) WizardColors.text else LiveSheetTokens.Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

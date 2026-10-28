@@ -84,13 +84,13 @@ class LiveExerciseOptionsUiTest {
             ExerciseOptionsSheet(title = "Sentadilla trasera", subtitle = "4 × 4–6 · 1/4 hecha", onDismiss = {}) {
                 ExerciseOptionsStrengthContent(
                     onReplace = calls.tap("Reemplazar"),
-                    onReorder = calls.tap("Reordenar"),
+                    onReorder = calls.tap("Orden"),
                     onCreateSuperset = calls.tap("Crear superserie"),
                     onHistory = calls.tap("Historial"),
-                    onUltraFast = calls.tap("Ultrarrápido"),
+                    onUltraFast = calls.tap("Aplicar técnica"),
                     onNotes = calls.tap("Notas"),
                     onTags = calls.tap("Etiquetas"),
-                    onEdit = calls.tap("Editar"),
+                    onEdit = calls.tap("Series"),
                     onAddOther = calls.tap("Agregar ejercicio"),
                     onSkip = calls.tap("Saltar ejercicio"),
                     onRemove = calls.tap("Quitar de la sesión"),
@@ -98,7 +98,7 @@ class LiveExerciseOptionsUiTest {
             }
         }
         val labels = listOf(
-            "Reemplazar", "Reordenar", "Crear superserie", "Historial", "Ultrarrápido", "Notas", "Etiquetas", "Editar", "Agregar ejercicio",
+            "Etiquetas", "Historial", "Reemplazar", "Series", "Orden", "Crear superserie", "Aplicar técnica", "Notas", "Agregar ejercicio",
             "Saltar ejercicio", "Quitar de la sesión",
         )
 

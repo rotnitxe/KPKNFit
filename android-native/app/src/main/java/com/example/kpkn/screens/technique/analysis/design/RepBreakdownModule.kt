@@ -52,17 +52,22 @@ import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.technique.analysis.ANALYSIS_REP_TOGGLE_TAG
+import com.example.kpkn.screens.technique.analysis.ANALYSIS_REVIEW_ORIGINAL_TAG
+import com.example.kpkn.screens.technique.analysis.AnalysisReviewUi
 import com.example.kpkn.screens.technique.analysis.RepBarUi
 import com.example.kpkn.screens.technique.analysis.RepBreakdownUi
 import com.example.kpkn.screens.technique.analysis.RepMetricKind
 import com.example.kpkn.screens.technique.analysis.RepMetricUi
 import com.example.kpkn.screens.technique.analysis.partialsDescriptionOf
+import com.example.kpkn.screens.technique.analysis.reviewLabel
 import com.example.kpkn.screens.workout.design.partialZoneText
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.ceil
 import kotlin.math.max
@@ -102,10 +107,27 @@ fun RepBreakdownModule(
     selectedRep: Int,
     onSelectRep: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    review: AnalysisReviewUi? = null,
+    onToggleKind: ((Int) -> Unit)? = null,
 ) {
     val metrics = breakdown.metrics
     if (metrics.isEmpty()) return
     val metric = metrics.firstOrNull { it.kind == selectedMetric } ?: metrics.first()
+    // La gráfica y la leyenda muestran la clasificación revisada; el detalle de la repetición conserva lo que observó el motor.
+    val shown = if (review == null) breakdown else breakdown.copy(
+        reps = breakdown.reps.mapIndexed { position, bar ->
+            val reviewed = review.kindAt(position) ?: bar.kind
+            if (reviewed == bar.kind) {
+                bar
+            } else {
+                bar.copy(
+                    kind = reviewed,
+                    zone = bar.zone.takeIf { reviewed == RepKind.PARTIAL },
+                    percent = bar.percent.takeIf { reviewed == RepKind.PARTIAL },
+                )
+            }
+        },
+    )
     KpknModule(modifier = modifier.testTag(ANALYSIS_BREAKDOWN_TAG)) {
         KpknModuleHeader("Por repetición")
         if (metrics.size > 1) {
@@ -118,7 +140,7 @@ fun RepBreakdownModule(
             )
             Spacer(Modifier.height(10.dp))
         }
-        RepBarChart(metric = metric, reps = breakdown.reps, selected = selectedRep, onSelect = onSelectRep)
+        RepBarChart(metric = metric, reps = shown.reps, selected = selectedRep, onSelect = onSelectRep)
         Spacer(Modifier.height(10.dp))
         val chosen = breakdown.reps.getOrNull(selectedRep)
         Text(
@@ -126,17 +148,42 @@ fun RepBreakdownModule(
             style = KpknType.caption,
             color = if (chosen != null) WizardColors.text else WizardColors.textMuted,
         )
-        if (breakdown.hasPartial || breakdown.hasFailed) {
+        if (chosen != null && review != null) {
+            val reviewed = review.kindAt(selectedRep)
+            if (review.isChangedAt(selectedRep)) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Original: ${chosen.kind.reviewLabel()} · Revisión: ${reviewed?.reviewLabel()}",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.testTag(ANALYSIS_REVIEW_ORIGINAL_TAG),
+                )
+            }
+            val toggleLabel = when (reviewed) {
+                RepKind.FULL -> "Marcar parcial"
+                RepKind.PARTIAL -> "Marcar completa"
+                RepKind.FAILED -> null
+                null -> null
+            }
+            if (toggleLabel != null && onToggleKind != null) {
+                KpknTextAction(
+                    text = toggleLabel,
+                    onClick = { onToggleKind(selectedRep) },
+                    modifier = Modifier.testTag(ANALYSIS_REP_TOGGLE_TAG),
+                )
+            }
+        }
+        if (shown.hasPartial || shown.hasFailed) {
             Spacer(Modifier.height(12.dp))
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(18.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 // Una entrada por zona de las parciales (M4); sin zona, la de siempre.
-                if (breakdown.hasPartial) breakdown.partialZones.forEach { zone ->
+                if (shown.hasPartial) shown.partialZones.forEach { zone ->
                     LegendItem(text = zone?.let { "Parcial ${partialZoneText(it)}" } ?: "Parcial", failed = false, tint = zone?.let(::zoneColor))
                 }
-                if (breakdown.hasFailed) LegendItem(text = "Fallida", failed = true)
+                if (shown.hasFailed) LegendItem(text = "Fallida", failed = true)
             }
         }
         metric.note?.let { note ->

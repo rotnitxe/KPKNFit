@@ -194,8 +194,10 @@ internal data class EffortLabelPlacement(val index: Int, val text: String, val s
 /**
  * Las etiquetas que puede llevar la escala: el plan (siempre que exista), «Fallo», el mínimo y el máximo. El plan que coincide con otra
  * de ellas la funde («2 · plan», «Fallo · plan»). Solo la primera y las que cambian de unidad llevan «RIR» o «RPE» delante.
+ *
+ * [cardLegend] es la leyenda de la tarjeta de Tarjetas (Refinamiento 02): mínimo, plan con su unidad («RIR 2 · plan») y «Fallo», sin el máximo.
  */
-internal fun effortLabelCandidates(scale: EffortScale): List<EffortLabelCandidate> {
+internal fun effortLabelCandidates(scale: EffortScale, cardLegend: Boolean = false): List<EffortLabelCandidate> {
     val items = scale.items
     if (items.isEmpty()) return emptyList()
     val failure = items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }
@@ -218,11 +220,11 @@ internal fun effortLabelCandidates(scale: EffortScale): List<EffortLabelCandidat
     val plan = scale.planIndex
     val byIndex = linkedMapOf<Int, EffortLabelCandidate>()
     byIndex[0] = EffortLabelCandidate(0, body(0, withUnit = true), priority = 2)
-    if (maxIndex != null && maxIndex != 0) byIndex[maxIndex] = EffortLabelCandidate(maxIndex, body(maxIndex, withUnit = false), priority = 1)
+    if (!cardLegend && maxIndex != null && maxIndex != 0) byIndex[maxIndex] = EffortLabelCandidate(maxIndex, body(maxIndex, withUnit = false), priority = 1)
     if (failure != null && failure != 0) byIndex[failure] = EffortLabelCandidate(failure, "Fallo", priority = 3)
     if (plan != null) {
         val existing = byIndex[plan]
-        val text = (existing?.text ?: body(plan, withUnit = false)) + " · plan"
+        val text = (existing?.text ?: body(plan, withUnit = cardLegend)) + " · plan"
         byIndex[plan] = EffortLabelCandidate(plan, text, priority = 4)
     }
     return byIndex.values.toList()

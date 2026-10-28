@@ -27,6 +27,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnySibling
@@ -181,10 +182,10 @@ class WorkoutEditSeriesSheetBoardTest {
         rule.runOnIdle { sheetState.editSheetExerciseId = exercise.id }
         rule.waitUntil(15_000) { rule.onAllNodesWithText("Confirmar cambios").fetchSemanticsNodes().isNotEmpty() }
 
-        rule.onNodeWithContentDescription("Aumentar pasos").performClick()
+        rule.onNodeWithContentDescription("Aumentar pasos").performScrollTo().performClick()
         rule.waitForIdle()
-        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true)
-            .performScrollTo().assertIsDisplayed()
+        // La celda numérica muestra el valor como texto y solo es campo editable mientras se edita.
+        rule.onAllNodesWithText("13", useUnmergedTree = true).onFirst().performScrollTo().assertIsDisplayed()
         confirm()
         rule.runOnIdle { assertNull(sheetState.editSheetExerciseId) }
         assertEquals(13.0, confirmedSession!!.exercises.single().sets[1].plannedTargetV2!!, 0.0)
@@ -193,8 +194,8 @@ class WorkoutEditSeriesSheetBoardTest {
         rule.waitUntil(15_000) {
             rule.onAllNodesWithText("Confirmar cambios").fetchSemanticsNodes().isNotEmpty()
         }
-        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true)
-            .performScrollTo().assertIsDisplayed()
+        // La celda numérica muestra el valor como texto y solo es campo editable mientras se edita.
+        rule.onAllNodesWithText("13", useUnmergedTree = true).onFirst().performScrollTo().assertIsDisplayed()
     }
 
     // ───────────────────────────── G1 · Editar series ─────────────────────────────

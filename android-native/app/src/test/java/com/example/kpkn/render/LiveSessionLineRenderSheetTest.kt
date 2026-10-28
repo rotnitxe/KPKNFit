@@ -62,19 +62,13 @@ class LiveSessionLineRenderSheetTest {
     private fun scene(height: Int, fontScale: Float, name: String) {
         content(fontScale, compact = height < 800) {
             Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("lv-a-scene")) {
-                var headerPx by remember { mutableIntStateOf(0) }
-                val localDensity = LocalDensity.current
-                val header = with(localDensity) { headerPx.toDp() }
-                val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
-                Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
+                Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp)) {
                     WorkoutHeaderBar("Sentadilla", sessionName = "Pierna A", groupName = "Principal", startTimeMs = 0L,
                         isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
                         onToggleVoice = {}, onStoryClick = {}, onMoreClick = {}, compactLayout = height < 800,
                         statusBarInsets = WindowInsets(0, 0, 0, 0))
                 }
-                WorkoutLiveRelatorLine("Tu última serie fue de 95 kg × 6. Conserva el ritmo.", "render",
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("lv-a-relator"))
-                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp + com.example.kpkn.screens.workout.LiveSessionLineHeight + 12.dp).width(312.dp)) {
                     LiveSessionCardFrame {
                         SetInputCardV2(exercise, 1, set, null, null,
                             onShowHistory = {}, onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
@@ -89,8 +83,8 @@ class LiveSessionLineRenderSheetTest {
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val island = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val rail = rule.onNodeWithTag("live-session-steps").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(312f * density, frame.width, 1f); assertEquals(425f * density, frame.height, 1f)
-        assertEquals(112f * density, island.height, 1f); assertEquals(56f * density, rail.height, 1f)
+        assertEquals(312f * density, frame.width, 1f); assertEquals(394f * density, frame.height, 1f)
+        assertEquals(com.example.kpkn.screens.workout.LiveSessionLineHeight.value * density, island.height, 1f); assertTrue(rail.height > 0f)
         val heading = rule.onNodeWithTag("live-session-header").fetchSemanticsNode().boundsInRoot
         assertTrue("La cabecera no invade la tarjeta", heading.bottom <= frame.top)
         assertTrue("La isla no invade la tarjeta", frame.bottom + 11f * density <= island.top)

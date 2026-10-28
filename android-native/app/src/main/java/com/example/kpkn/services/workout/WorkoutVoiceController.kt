@@ -1669,6 +1669,16 @@ class WorkoutVoiceController(
         )
         if (!WorkoutVoiceSessionGate.shouldAcceptFinalResult(s.stage)) return
 
+        // La propia guía hablada del grabador no puede convertirse en comando
+        // («Encuadre correcto…» contiene «correcto», que confirmaría una serie).
+        if (TechniqueCaptureVoiceLink.isGuideEcho(sanitized)) {
+            WorkoutVoiceDiagnosticLogger.event(
+                "guide_echo_ignored",
+                mapOf("transcript" to sanitized, "stage" to s.stage.name),
+            )
+            return
+        }
+
         if (isNoiseTranscript(sanitized)) {
             // [unk], ruido o una letra suelta no son comandos ni deben escalar fallback.
             WorkoutVoiceDiagnosticLogger.event("vosk_noise_discarded", mapOf("transcript" to text))
@@ -2301,6 +2311,7 @@ class WorkoutVoiceController(
             allowCardioMetrics = exerciseInfo?.exercise?.cardioDetails != null,
             tagNames = exerciseInfo?.tagNames.orEmpty(),
             isCardioTimerActive = cardioTimerActiveProvider?.invoke() == true,
+            captureActive = TechniqueCaptureVoiceLink.recorderOpen.value,
         ).let { cmd ->
             if (cmd is VoiceSessionCommand.RegisterSet && isUnilateral && cmd.interpretation.side == null) {
                 val side = exerciseInfo?.pendingUnilateralSide
@@ -2539,6 +2550,46 @@ class WorkoutVoiceController(
                     }
                 }
                 resumeListening()
+                return
+            }
+            is VoiceSessionCommand.StartVideoCapture -> {
+                val result = TechniqueCaptureVoiceLink.tryStart()
+                _state.update { it.copy(lastCommand = command) }
+                WorkoutVoiceDiagnosticLogger.event(
+                    "capture_voice_command",
+                    mapOf("action" to "start", "result" to result.name),
+                )
+                val message = when (result) {
+                    TechniqueCaptureStartResult.STARTED -> "Iniciando vídeo."
+                    TechniqueCaptureStartResult.ALREADY_RECORDING -> "Ya estoy grabando."
+                    TechniqueCaptureStartResult.CHECKING -> "Espera a que termine la comprobación del encuadre."
+                    TechniqueCaptureStartResult.NOT_READY -> "Ajusta el encuadre antes de grabar."
+                    TechniqueCaptureStartResult.BUSY -> "Espera a que termine la operación anterior."
+                    TechniqueCaptureStartResult.UNAVAILABLE -> "El grabador no está disponible."
+                }
+                runSpeakingOrSkip(
+                    onComplete = { resumeListening() },
+                    speak = { ttsManager.speak(message) },
+                )
+                return
+            }
+            is VoiceSessionCommand.StopVideoCapture -> {
+                val result = TechniqueCaptureVoiceLink.tryStop()
+                _state.update { it.copy(lastCommand = command) }
+                WorkoutVoiceDiagnosticLogger.event(
+                    "capture_voice_command",
+                    mapOf("action" to "stop", "result" to result.name),
+                )
+                val message = when (result) {
+                    TechniqueCaptureStopResult.STOPPED -> "Deteniendo vídeo."
+                    TechniqueCaptureStopResult.NOT_RECORDING -> "No estoy grabando."
+                    TechniqueCaptureStopResult.BUSY -> "Ya estoy deteniendo el vídeo."
+                    TechniqueCaptureStopResult.UNAVAILABLE -> "El grabador no está disponible."
+                }
+                runSpeakingOrSkip(
+                    onComplete = { resumeListening() },
+                    speak = { ttsManager.speak(message) },
+                )
                 return
             }
             else -> {

@@ -18,6 +18,8 @@ class WorkoutRestTimerOrchestrator(
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
 ) {
+    private var resumeAdvanceOnFinish: Boolean = false
+
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
         fun persistOngoingState()
@@ -43,6 +45,7 @@ class WorkoutRestTimerOrchestrator(
         kind: RestTimerKind = RestTimerKind.STANDARD,
     ) {
         if (seconds <= 0) return
+        resumeAdvanceOnFinish = advanceOnFinish
         val effectiveKind = if (preserveElapsed) getState().restModalState?.kind ?: kind else kind
         restTimer.cancelJob()
         if (!preserveElapsed) {
@@ -123,6 +126,7 @@ class WorkoutRestTimerOrchestrator(
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
                     startedAtMs = startedAtMs,
+                    pausedRemainingSeconds = null,
                 ) ?: WorkoutRestModalState(
                     exerciseId = if (preserveElapsed) it.restModalState?.exerciseId ?: overlayExercise?.id else overlayExercise?.id,
                     exerciseName = if (preserveElapsed) it.restModalState?.exerciseName ?: overlayName else overlayName,
@@ -187,6 +191,33 @@ class WorkoutRestTimerOrchestrator(
     }
 
     fun addTime(seconds: Int) {
+        val pausedState = getState()
+        val pausedRest = pausedState.restModalState
+        val pausedRemaining = pausedRest?.pausedRemainingSeconds
+        if (pausedRest != null && pausedRemaining != null) {
+            // Con el reloj en pausa, ±15 s congela el nuevo tiempo y reanuda, como en el prototipo.
+            val total = pausedRest.totalRestSeconds()
+            val newRemaining = (pausedRemaining + seconds).coerceAtLeast(0)
+            if (newRemaining <= 0) {
+                stop()
+                return
+            }
+            val newTotal = (total + seconds).coerceAtLeast(newRemaining)
+            updateState {
+                it.copy(
+                    restTimerTotal = newTotal,
+                    restModalState = it.restModalState?.withRestEventIdentity()?.copy(
+                        activeSeconds = newTotal,
+                        endsAtMs = it.restModalState.restEventStartedAtMs() + newTotal * 1000L,
+                        pausedRemainingSeconds = newRemaining,
+                        isManualOverride = true,
+                    )
+                )
+            }
+            ports.persistOngoingState()
+            resume()
+            return
+        }
         restTimer.cancelJob()
         val baseSeconds = if (restTimer.remaining.value > 0) {
             restTimer.remaining.value
@@ -220,6 +251,127 @@ class WorkoutRestTimerOrchestrator(
             advancedFeedback = restTimer.restReferenceAdvanced,
             preserveElapsed = true,
             kind = getState().restModalState?.kind ?: RestTimerKind.STANDARD,
+        )
+    }
+
+    /**
+     * Congela el descanso conservando sus segundos, su forma, la sugerencia y el borrador de feedback. La tarjeta y la pantalla
+     * completa leen el mismo estado: minimizar o expandir no reanuda ni reinicia nada.
+     */
+    fun pause() {
+        val state = getState()
+        if (!state.isRestTimerRunning) return
+        val rest = state.restModalState ?: return
+        if (rest.pausedRemainingSeconds != null) return
+        val remaining = restTimer.pause() ?: restTimer.remaining.value.coerceAtLeast(0)
+        updateState {
+            it.copy(
+                restModalState = it.restModalState?.withRestEventIdentity()?.copy(
+                    pausedRemainingSeconds = remaining,
+                )
+            )
+        }
+        ports.persistOngoingState()
+    }
+
+    fun resume() {
+        val state = getState()
+        if (!state.isRestTimerRunning) return
+        val rest = state.restModalState ?: return
+        val remaining = rest.pausedRemainingSeconds ?: return
+        val now = System.currentTimeMillis()
+        if (remaining <= 0) {
+            updateState { it.copy(restModalState = it.restModalState?.copy(pausedRemainingSeconds = null)) }
+            restTimer.setPausedRemaining(0)
+            restTimer.fireNaturalFinishIfIdleAtZero()
+            return
+        }
+        val total = rest.totalRestSeconds()
+        val elapsed = (total - remaining).coerceAtLeast(0)
+        val newStartedAt = now - elapsed * 1000L
+        val newEndsAt = now + remaining * 1000L
+        updateState {
+            it.copy(
+                restTimerTotal = total,
+                restModalState = it.restModalState?.copy(
+                    activeSeconds = total,
+                    endsAtMs = newEndsAt,
+                    startedAtMs = newStartedAt,
+                    pausedRemainingSeconds = null,
+                ),
+            )
+        }
+        ports.persistOngoingState()
+        reschedule(rest, remaining, newEndsAt, newStartedAt)
+    }
+
+    fun togglePause() {
+        if (getState().restModalState?.pausedRemainingSeconds != null) resume() else pause()
+    }
+
+    /**
+     * «Descanso sugerido»: el tiempo transcurrido no se reinicia. Si el descanso corre, sigue corriendo con el nuevo total; si
+     * está en pausa, sigue en pausa. [suggestedSeconds] es el total sugerido, no los segundos restantes.
+     */
+    fun applySuggestion(
+        suggestedSeconds: Int,
+        lastSet: CompletedSet? = null,
+        advancedFeedback: SetAdvancedFeedback? = null,
+    ) {
+        if (suggestedSeconds <= 0) return
+        val state = getState()
+        val rest = state.restModalState ?: return
+        val now = System.currentTimeMillis()
+        val pausedRemaining = rest.pausedRemainingSeconds
+        val elapsed = (rest.totalRestSeconds() - (pausedRemaining ?: restTimer.remainingAt(now))).coerceAtLeast(0)
+        val newRemaining = RestClockMath.remainingAfterSuggestion(
+            totalSeconds = rest.totalRestSeconds(),
+            remainingSeconds = pausedRemaining ?: restTimer.remainingAt(now),
+            suggestedSeconds = suggestedSeconds,
+        )
+        val newStartedAt = now - elapsed * 1000L
+        val newEndsAt = now + newRemaining * 1000L
+        restTimer.cancelJob()
+        if (lastSet != null) restTimer.setReferences(lastSet, advancedFeedback)
+        updateState {
+            it.copy(
+                restTimerTotal = suggestedSeconds,
+                pendingRestSuggestion = null,
+                restModalState = it.restModalState?.withRestEventIdentity()?.copy(
+                    activeSeconds = suggestedSeconds,
+                    endsAtMs = newEndsAt,
+                    startedAtMs = newStartedAt,
+                    isManualOverride = false,
+                    pausedRemainingSeconds = if (pausedRemaining != null) newRemaining else null,
+                ),
+            )
+        }
+        ports.persistOngoingState()
+        when {
+            pausedRemaining != null -> restTimer.setPausedRemaining(newRemaining)
+            newRemaining <= 0 -> {
+                restTimer.setPausedRemaining(0)
+                restTimer.fireNaturalFinishIfIdleAtZero()
+            }
+            else -> reschedule(rest, newRemaining, newEndsAt, newStartedAt)
+        }
+    }
+
+    private fun reschedule(
+        rest: WorkoutRestModalState,
+        remaining: Int,
+        endMs: Long,
+        restStartMs: Long,
+    ) {
+        val sessionName = getState().session?.name ?: "Entrenamiento"
+        restTimer.scheduleAndTick(
+            seconds = remaining,
+            endMs = endMs,
+            restStartMs = restStartMs,
+            sessionName = sessionName,
+            exerciseName = rest.exerciseName.ifBlank { "Siguiente serie" },
+            preserveElapsed = true,
+            onNaturalFinish = { handleNaturalFinish(resumeAdvanceOnFinish) },
         )
     }
 

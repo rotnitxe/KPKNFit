@@ -107,7 +107,7 @@ internal fun ExerciseAlbumSheet(
     }
     // Salir del álbum borra ya lo que seguía en espera: «Deshacer» solo vale mientras el álbum está abierto.
     DisposableEffect(deferred) { onDispose { deferred.flush() } }
-    KpknSheet(
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, 
         onDismissRequest = onDismiss,
         maxHeightFraction = 0.93f,
         stableHeightFraction = 0.93f,
@@ -155,7 +155,7 @@ internal fun ExerciseAlbumSheet(exerciseName: String, keys: List<String>, onDism
         loading = false
     }
     DisposableEffect(deferred) { onDispose { deferred.flush() } }
-    KpknSheet(onDismissRequest = onDismiss, maxHeightFraction = 0.93f, stableHeightFraction = 0.93f) {
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = onDismiss, maxHeightFraction = 0.93f, stableHeightFraction = 0.93f) {
         AlbumSheetContent(
             subject = exerciseName, items = items, loading = loading, effortFor = { efforts[it.id] },
             deferred = deferred, poseOverlayEnabled = false,

@@ -1515,13 +1515,40 @@ private fun KPKNNavGraph(
         }
         composable(
             route = KpknRoute.TechniqueAnalysis.route,
-            arguments = listOf(navArgument(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID) { type = NavType.StringType }),
+            arguments = listOf(
+                navArgument(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID) { type = NavType.StringType },
+                navArgument(KpknRoute.TechniqueAnalysis.ARG_DELIVER_TO_DRAFT) {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            ),
         ) { backStack ->
             val mediaId = backStack.arguments?.getString(KpknRoute.TechniqueAnalysis.ARG_MEDIA_ID).orEmpty()
+            val deliverToDraft =
+                backStack.arguments?.getBoolean(KpknRoute.TechniqueAnalysis.ARG_DELIVER_TO_DRAFT) == true
             com.example.kpkn.screens.technique.analysis.TechniqueAnalysisRoute(
                 mediaId = mediaId,
                 onBack = { navController.popBackStack() },
                 onOpenTrends = { key -> navController.navigate(KpknRoute.TechniqueTrends.create(key)) },
+                onUseReviewedResult = if (deliverToDraft) {
+                    { result: com.example.kpkn.screens.technique.analysis.ReviewedAnalysisResult ->
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            com.example.kpkn.screens.technique.analysis.TECHNIQUE_ANALYSIS_RESULT_KEY,
+                            Json.encodeToString(
+                                com.example.kpkn.screens.technique.analysis.ReviewedAnalysisDelivery(
+                                    mediaId = mediaId,
+                                    complete = result.completeReps,
+                                    partial = result.partialReps,
+                                    failed = result.failedReps,
+                                    corrections = result.corrections.mapValues { it.value.name },
+                                ),
+                            ),
+                        )
+                        navController.popBackStack()
+                    }
+                } else {
+                    null
+                },
             )
         }
         composable(
@@ -1738,6 +1765,17 @@ private fun KPKNNavGraph(
             val catalogResult = catalogResultJson?.let { encoded ->
                 runCatching { Json.decodeFromString<CatalogResult>(encoded) }.getOrNull()
             }
+            val analysisResultJson by backStack.savedStateHandle
+                .getStateFlow<String?>(
+                    com.example.kpkn.screens.technique.analysis.TECHNIQUE_ANALYSIS_RESULT_KEY,
+                    null,
+                )
+                .collectAsState()
+            val analysisResult = analysisResultJson?.let { encoded ->
+                runCatching {
+                    Json.decodeFromString<com.example.kpkn.screens.technique.analysis.ReviewedAnalysisDelivery>(encoded)
+                }.getOrNull()
+            }
             WorkoutScreen(
                 programId = programId,
                 sessionId = sessionId,
@@ -1758,7 +1796,15 @@ private fun KPKNNavGraph(
                 onCatalogResultConsumed = {
                     backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
                 },
-                onOpenTechniqueAnalysis = { mediaId -> navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId)) },
+                onOpenTechniqueAnalysis = { mediaId ->
+                    navController.navigate(KpknRoute.TechniqueAnalysis.create(mediaId, deliverToDraft = true))
+                },
+                reviewedAnalysisResult = analysisResult,
+                onReviewedAnalysisConsumed = {
+                    backStack.savedStateHandle.remove<String>(
+                        com.example.kpkn.screens.technique.analysis.TECHNIQUE_ANALYSIS_RESULT_KEY,
+                    )
+                },
                 onOpenExistingWorkout = { existingProgramId, existingSessionId ->
                     navController.navigate(KpknRoute.Workout.create(existingProgramId, existingSessionId)) {
                         popUpTo(KpknRoute.Workout.route) { inclusive = true }

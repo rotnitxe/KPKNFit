@@ -11,6 +11,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
@@ -29,7 +30,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -79,6 +87,7 @@ import com.example.kpkn.screens.workout.effortCenterPx
 import com.example.kpkn.screens.workout.effortFireLevel
 import com.example.kpkn.screens.workout.effortIndexAtX
 import com.example.kpkn.screens.workout.effortLabelCandidates
+import com.example.kpkn.screens.workout.effortNumberText
 import com.example.kpkn.screens.workout.effortParticleCount
 import com.example.kpkn.screens.workout.effortParticlePeriodSeconds
 import com.example.kpkn.screens.workout.effortSpokenDescription
@@ -175,6 +184,9 @@ internal fun EffortFireSlider(
     hapticsEnabled: Boolean = true,
     forcedFireSeconds: Float? = null,
     prominent: Boolean = false,
+    compact: Boolean = false,
+    /** «Dejar sin informar» de la hoja de esfuerzo: vuelve a «Sin marcar». */
+    onClear: (() -> Unit)? = null,
 ) {
     val items = scale.items
     if (items.isEmpty()) return
@@ -237,16 +249,32 @@ internal fun EffortFireSlider(
                 maxLines = 1,
             )
             Spacer(Modifier.width(8.dp))
+            var scaleMenuOpen by remember { mutableStateOf(false) }
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        // Tarjeta (Refinamiento 02): el valor abre la escala completa, como el «Sin marcar ⌄» del prototipo.
+                        if (compact && enabled) {
+                            Modifier
+                                .heightIn(min = 24.dp)
+                                .clickable(role = Role.Button, onClickLabel = "Elegir el esfuerzo realizado") { scaleMenuOpen = true }
+                        } else {
+                            Modifier
+                        },
+                    ),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (selectedItem == null) {
                     Text(
                         text = "Sin marcar",
-                        style = KpknType.action.copy(fontSize = if (prominent) 22.sp else 13.sp, lineHeight = if (prominent) 28.sp else 18.sp),
-                        color = WizardColors.textFaint,
+                        style = KpknType.action.copy(
+                            fontSize = if (prominent) 22.sp else if (compact) 12.sp else 13.sp,
+                            lineHeight = if (prominent) 28.sp else 18.sp,
+                            fontWeight = if (compact) FontWeight.Normal else FontWeight.SemiBold,
+                        ),
+                        color = if (compact) WizardColors.textMuted else WizardColors.textFaint,
                         maxLines = 1,
                     )
                 } else {
@@ -267,9 +295,21 @@ internal fun EffortFireSlider(
                         )
                     }
                 }
+                if (compact) {
+                    Icon(
+                        KpknLineIcons.ChevronDown,
+                        contentDescription = null,
+                        modifier = Modifier.padding(start = 4.dp).size(12.dp),
+                        tint = WizardColors.textFaint,
+                    )
+                    if (scaleMenuOpen) {
+                        EffortScaleSheet(scale = scale, selectedIndex = chosen, onSelect = { currentOnSelect(it) }, onClear = onClear,
+                            onDismiss = { scaleMenuOpen = false })
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(if (compact) 2.dp else 6.dp))
 
         // Zona táctil de 44 dp con pista de 18 dp, marca del plan y pulgar de 26 dp.
         BoxWithConstraints(
@@ -412,14 +452,17 @@ internal fun EffortFireSlider(
                     .offset { IntOffset((centerPx - ThumbSize.toPx() / 2f).roundToInt(), 0) }
                     .size(ThumbSize)
                     .shadow(4.dp, CircleShape, clip = false)
-                    .background(WizardColors.text, CircleShape),
+                    .background(WizardColors.text, CircleShape)
+                    // Tarjeta (prototipo 02): aro oscuro de 4 dp alrededor del pulgar.
+                    .then(if (compact) Modifier.border(4.dp, Color(0xFF1D1D1D), CircleShape) else Modifier),
             )
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(if (compact) 0.dp else 4.dp))
 
         // Etiquetas de la escala o, si hay que avisar, el aviso: las dos en el mismo alto reservado. El alto son las dos líneas del aviso (16 sp cada
         // una, convertidas igual que el texto: con la letra escalada la conversión no es lineal, así que no vale convertir 32 sp de golpe) y 2 dp más.
-        val slotHeight = with(density) { 16.sp.toDp() } * 2 + 2.dp
+        // En la tarjeta la leyenda ocupa una línea; el aviso, cuando sale, dispone de dos para leerse entero (también al 130 %).
+        val slotHeight = if (compact && hint == null) with(density) { 14.sp.toDp() } else with(density) { 16.sp.toDp() } * 2 + 2.dp
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -441,7 +484,7 @@ internal fun EffortFireSlider(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
-                    EffortScaleLabels(scale = scale, modifier = Modifier.fillMaxWidth())
+                    EffortScaleLabels(scale = scale, cardLegend = compact, modifier = Modifier.fillMaxWidth())
                 }
             }
         }
@@ -458,12 +501,12 @@ internal fun rememberEffortAnimationAllowed(isActive: Boolean): Boolean {
 
 /** Las etiquetas bajo la pista: el mínimo, el plan, el máximo y «Fallo», cada una bajo su marca y sin pisarse. */
 @Composable
-private fun EffortScaleLabels(scale: EffortScale, modifier: Modifier = Modifier) {
+private fun EffortScaleLabels(scale: EffortScale, modifier: Modifier = Modifier, cardLegend: Boolean = false) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val plain = KpknType.navLabel.copy(fontSize = 9.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium)
     val strong = plain.copy(fontWeight = FontWeight.SemiBold)
-    val candidates = remember(scale) { effortLabelCandidates(scale) }
+    val candidates = remember(scale, cardLegend) { effortLabelCandidates(scale, cardLegend) }
     BoxWithConstraints(modifier = modifier) {
         val trackPx = with(density) { maxWidth.toPx() }
         val insetPx = with(density) { ThumbInset.toPx() }
@@ -483,7 +526,10 @@ private fun EffortScaleLabels(scale: EffortScale, modifier: Modifier = Modifier)
             Text(
                 text = label.text,
                 style = if (isPlan || isFailure) strong else plain,
+                // En la tarjeta (prototipo 02) la leyenda es gris: el plan en gris medio y «Fallo» sin acento.
                 color = when {
+                    cardLegend && isPlan -> WizardColors.textMuted
+                    cardLegend -> WizardColors.textFaint
                     isPlan -> WizardColors.text
                     isFailure -> SymbolPalette.musculo
                     else -> WizardColors.textFaint
@@ -523,5 +569,34 @@ private fun DrawScope.drawFire(level: Float, seconds: Float, widthPx: Float, hei
         // Parpadeo del relleno en el fallo: un velo claro que late (el prototipo sube su brillo un 25 %).
         val pulse = 0.5f + 0.5f * sin((2.0 * PI * seconds / 0.9).toFloat())
         drawRect(Color.White.copy(alpha = 0.06f * pulse))
+    }
+}
+
+/**
+ * «Esfuerzo realizado» del prototipo 02: el plan es una referencia y no se preselecciona. Rejilla con la escala de esta serie (por
+ * unidad si mezcla RIR y RPE), «Llegué al fallo» y «Dejar sin informar».
+ */
+@Composable
+internal fun EffortScaleSheet(scale: EffortScale, selectedIndex: Int?, onSelect: (Int) -> Unit, onClear: (() -> Unit)?, onDismiss: () -> Unit) {
+    val items = scale.items
+    val modes = items.filter { !it.isFailure && it.numericValue != null }.map { it.mode }.distinct()
+    var mode by remember { mutableStateOf(selectedIndex?.let { items.getOrNull(it)?.mode } ?: scale.planIndex?.let { items.getOrNull(it)?.mode } ?: modes.firstOrNull()) }
+    val failure = items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }
+    LiveSheet(title = "Esfuerzo realizado", onDismiss = onDismiss, tag = "live-effort-sheet") { close ->
+        LiveSheetSubtitle("El objetivo del plan es una referencia. Selecciona lo que hiciste.")
+        if (modes.size > 1) {
+            LiveSheetSegmented(modes.map { it to (it?.name ?: "—") }, selected = mode ?: modes.first(), onSelect = { mode = it })
+        }
+        val cells = items.withIndex().filter { (_, item) -> !item.isFailure && item.numericValue != null && (modes.size <= 1 || item.mode == mode) }
+        (mode ?: modes.firstOrNull())?.let { m ->
+            LiveSheetSectionLabel(if (m.name == "RIR") "RIR · repeticiones en reserva" else "${m.name} · esfuerzo percibido")
+        }
+        LiveSheetNumberGrid(cells.map { (index, item) -> index to effortNumberText(item.numericValue!!) },
+            selected = { it == selectedIndex }, onSelect = { onSelect(it); close() }, tagPrefix = "live-effort-cell",
+            marked = { it == scale.planIndex })
+        failure?.let { index ->
+            LiveSheetSecondary("Llegué al fallo", { onSelect(index); close() }, Modifier.padding(top = 12.dp), tag = "live-effort-failure")
+        }
+        onClear?.let { clear -> LiveSheetTextAction("Dejar sin informar", { clear(); close() }, Modifier.padding(top = 4.dp)) }
     }
 }

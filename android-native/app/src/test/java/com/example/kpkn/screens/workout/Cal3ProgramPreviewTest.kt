@@ -39,10 +39,14 @@ class Cal3ProgramPreviewTest {
         val p = program(AutoregulationMode.AUTO)
         val result = preview(p)
         assertTrue(result.message.contains("al cerrar la semana"))
+        assertTrue(result.message.contains("Confirmación requerida"))
+        // AUTO también pide confirmación en el cierre semanal: queda pendiente y, al aceptarla, solo cambia el TM de su levantamiento.
         val channel = ProgramAutoregulationEngine.apply(p, null, result.proposals, recipe, emptySet(), CatalogCompositionTestSupport.metadata)
-        assertTrue(channel.applied)
-        assertEquals(result.afterTm!!, channel.program.powerliftingProfile!!.squatTM!!, .001)
-        assertEquals(80.0, channel.program.powerliftingProfile!!.benchTM!!, 0.0)
+        assertFalse(channel.applied)
+        assertEquals(100.0, channel.program.powerliftingProfile!!.squatTM!!, 0.0)
+        val accepted = ProgramAutoregulationEngine.resolvePending(channel.program, accept = true, metadata = CatalogCompositionTestSupport.metadata)
+        assertEquals(result.afterTm!!, accepted.powerliftingProfile!!.squatTM!!, .001)
+        assertEquals(80.0, accepted.powerliftingProfile!!.benchTM!!, 0.0)
         assertEquals(100.0, p.powerliftingProfile!!.squatTM!!, 0.0)
     }
     @Test fun noRuleMeansHistoryOnlyAndShortSetsUseTheActualMinimum() {

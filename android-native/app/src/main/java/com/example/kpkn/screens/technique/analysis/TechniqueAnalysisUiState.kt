@@ -200,11 +200,116 @@ data class RepBarUi(
     val detail: String,
     val zone: PartialZone? = null,
     val percent: Int? = null,
+    /** ROM medido de esta repetición, redondeado; `null` si el motor no lo dio. */
+    val romDeg: Int? = null,
+    /** En vista oblicua el ROM es una estimación y se pinta con «≈». */
+    val romApprox: Boolean = false,
 ) {
     /** Lo que TalkBack dice de una parcial: «parcial en estiramiento, ≈ 55 % del recorrido». `null` en las demás. */
     val partialSpoken: String?
         get() = if (kind != RepKind.PARTIAL) null else partialWords(zone, percent, joiner = ", ")
 }
+
+/**
+ * La revisión de una repetición (Refinamiento 02): la clasificación del motor ([originalKind]) y la que deja el usuario
+ * ([reviewedKind]). Solo se corrige entre completa y parcial; una fallida no se reclasifica aquí.
+ */
+@Immutable
+data class RepReviewUi(val position: Int, val originalKind: RepKind, val reviewedKind: RepKind) {
+    val changed: Boolean get() = originalKind != reviewedKind
+}
+
+/**
+ * El conteo propuesto tras revisar las repeticiones, con el original al lado: la corrección nunca borra lo que observó el motor.
+ * [complete], [partial] y [failed] son los revisados; [originalComplete], [originalPartial] y [originalFailed], los del informe.
+ */
+@Immutable
+data class AnalysisReviewUi(
+    val reps: List<RepReviewUi>,
+    val complete: Int,
+    val partial: Int,
+    val failed: Int,
+    val originalComplete: Int,
+    val originalPartial: Int,
+    val originalFailed: Int,
+) {
+    val changed: Boolean
+        get() = complete != originalComplete || partial != originalPartial || failed != originalFailed
+
+    /** «8 + 2» cuando hay parciales; solo la cifra de completas si no las hay. */
+    val proposal: String get() = if (partial > 0) "$complete + $partial" else complete.toString()
+
+    /** El conteo del informe, con la misma forma que [proposal], para no perder lo que observó el motor. */
+    val originalProposal: String
+        get() = if (originalPartial > 0) "$originalComplete + $originalPartial" else originalComplete.toString()
+
+    fun kindAt(position: Int): RepKind? = reps.getOrNull(position)?.reviewedKind
+
+    fun isChangedAt(position: Int): Boolean = reps.getOrNull(position)?.changed == true
+}
+
+/** «Completa», «Parcial», «Fallida»: la clasificación tal como se lee en la revisión. */
+internal fun RepKind.reviewLabel(): String = when (this) {
+    RepKind.FULL -> "Completa"
+    RepKind.PARTIAL -> "Parcial"
+    RepKind.FAILED -> "Fallida"
+}
+
+/**
+ * Cruza las repeticiones de la capa con las correcciones del usuario ([corrections] por posición en la capa). El conteo parte de lo
+ * que observó el motor y solo se mueve entre completas y parciales; las fallidas se quedan como están.
+ */
+internal fun buildReview(
+    reps: List<RepBarUi>,
+    corrections: Map<Int, RepKind>,
+): AnalysisReviewUi {
+    var complete = reps.count { it.kind == RepKind.FULL }
+    var partial = reps.count { it.kind == RepKind.PARTIAL }
+    val failed = reps.count { it.kind == RepKind.FAILED }
+    val items = reps.mapIndexed { position, rep ->
+        val original = rep.kind
+        val requested = corrections[position]
+        val reviewed = when {
+            original == RepKind.FULL && requested == RepKind.PARTIAL -> RepKind.PARTIAL
+            original == RepKind.PARTIAL && requested == RepKind.FULL -> RepKind.FULL
+            else -> original
+        }
+        if (reviewed != original) {
+            if (original == RepKind.FULL) {
+                complete--
+                partial++
+            } else if (original == RepKind.PARTIAL) {
+                partial--
+                complete++
+            }
+        }
+        RepReviewUi(position, original, reviewed)
+    }
+    return AnalysisReviewUi(
+        reps = items,
+        complete = complete,
+        partial = partial,
+        failed = failed,
+        originalComplete = reps.count { it.kind == RepKind.FULL },
+        originalPartial = reps.count { it.kind == RepKind.PARTIAL },
+        originalFailed = failed,
+    )
+}
+
+/** Las correcciones en una cadena para `rememberSaveable`: «0:FULL,2:PARTIAL». */
+internal fun encodeRepCorrections(corrections: Map<Int, RepKind>): String =
+    corrections.toSortedMap().entries.joinToString(",") { (position, kind) -> "$position:${kind.name}" }
+
+/** Vuelve a leer lo que guardó [encodeRepCorrections]; una entrada rota se descarta sin romper la revisión. */
+internal fun decodeRepCorrections(encoded: String): Map<Int, RepKind> =
+    encoded.split(',')
+        .mapNotNull { part ->
+            val position = part.substringBefore(':', "").toIntOrNull() ?: return@mapNotNull null
+            val name = part.substringAfter(':', "")
+            val kind = RepKind.entries.firstOrNull { it.name == name } ?: return@mapNotNull null
+            position to kind
+        }
+        .toMap()
 
 @Immutable
 data class RepBreakdownUi(val metrics: List<RepMetricUi>, val reps: List<RepBarUi>) {
@@ -600,7 +705,7 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
         )
     }
 
-    // Velocidad media: solo en m/s (disco calibrado) y siempre con «≈».
+    // Velocidad media: solo en m/s (disco calibrado) y siempre con «≈». Sin escala física validada el dato no existe: «—».
     if (report.velocityUnit == VelocityUnit.MPS) {
         val values = report.reps.filter { it.kind == RepKind.FULL }.mapNotNull { it.mcv?.takeIf { v -> v.isFinite() && v > 0.0 } }
         if (values.isNotEmpty()) {
@@ -615,7 +720,11 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
                     notes = if (best != null) listOf("Mejor repetición ≈ ${AnalysisFormat.decimal(best, 2)} m/s") else emptyList(),
                 ),
             )
+        } else {
+            tiles.add(missingVelocityTile())
         }
+    } else {
+        tiles.add(missingVelocityTile())
     }
 
     // Desvío de la barra: en cm con el disco calibrado (PATH_ABSOLUTE); si no, en % del recorrido y con «≈».
@@ -650,6 +759,14 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
 
     return AnalysisSummaryUi(noRepsMessage = null, tiles = tiles, depthLine = depthLine(report), partialsLine = partialsLine(report))
 }
+
+/** La celda de velocidad media cuando no hay m/s: un dato ausente se pinta «—», nunca un cero ni una unidad inventada. */
+private fun missingVelocityTile(): SummaryTileUi = SummaryTileUi(
+    id = SummaryTileId.VELOCITY_MEAN,
+    label = "Velocidad media",
+    value = "—",
+    notes = listOf("Sin escala física validada"),
+)
 
 /** La confianza del número de parciales; sin ella (un informe de antes del motor 9), la del conteo. */
 private fun SetTechniqueReport.partialConfidenceOrCount(): CountConfidence = partialConfidence ?: confidence
@@ -746,6 +863,8 @@ internal fun buildBreakdown(report: SetTechniqueReport, marks: List<TechniqueRep
             detail = repDetail(report, i + 1, mark, rep),
             zone = rep?.zone.takeIf { detailed },
             percent = rep?.takeIf { detailed }?.let(::partialPercentOf),
+            romDeg = rep?.romDeg?.takeIf { it.isFinite() && it > 0.0 }?.roundToInt(),
+            romApprox = report.isOblique(),
         )
     }
     return RepBreakdownUi(metrics, bars)

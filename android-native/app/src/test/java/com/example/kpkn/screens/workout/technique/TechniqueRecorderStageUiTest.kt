@@ -19,6 +19,9 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -27,6 +30,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.biomechanics.framing.FramingCheckStatus
 import com.example.kpkn.domain.biomechanics.framing.FramingIssue
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
@@ -65,7 +69,18 @@ class TechniqueRecorderStageUiTest {
     private var plate by mutableStateOf<Int?>(450)
     private var plateExpanded by mutableStateOf(false)
 
-    private fun show(scale: Float, recording: Boolean = false, permission: Boolean = true, warning: Boolean = false) {
+    private fun show(
+        scale: Float,
+        recording: Boolean = false,
+        permission: Boolean = true,
+        warning: Boolean = false,
+        status: FramingCheckStatus = FramingCheckStatus.EVALUATED,
+        canRecord: Boolean = true,
+        spokenGuideEnabled: Boolean = false,
+        voiceCommandsEnabled: Boolean = false,
+    ) {
+        var guideOn by mutableStateOf(spokenGuideEnabled)
+        var voiceOn by mutableStateOf(voiceCommandsEnabled)
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(3f, scale), LocalWizardReducedMotion provides true) {
                 KPKNTheme {
@@ -79,6 +94,16 @@ class TechniqueRecorderStageUiTest {
                                 onSelectPlateDiameterMm = { plate = it },
                                 profileId = AnalysisProfileId.SQUAT,
                                 verdict = FramingVerdict(!warning, if (warning) listOf(FramingIssue.FEET_OUT) else emptyList(), ViewKind.SIDE),
+                                framingStatus = status,
+                                canRecord = canRecord,
+                                spokenGuideEnabled = guideOn,
+                                onToggleSpokenGuide = { guideOn = it; actions += "guide:$it" },
+                                onRepeatGuide = { actions += "repeat" },
+                                voiceCommandsEnabled = voiceOn,
+                                onToggleVoiceCommands = {
+                                    voiceOn = !voiceOn
+                                    actions += "voice:$voiceOn"
+                                },
                                 hasPermission = permission,
                                 onRecord = { actions += "rec" },
                                 onSwitchToPhoto = { actions += "photo" },
@@ -142,6 +167,54 @@ class TechniqueRecorderStageUiTest {
         rule.onNodeWithText("Ver álbum").performClick()
         rule.onNodeWithTag("technique_record").performClick()
         assertEquals(listOf("photo", "ficha", "gallery", "album", "rec"), actions)
+    }
+
+    @Test fun la_guia_hablada_funciona_con_modo_voz_apagado() {
+        show(1f)
+        rule.onNodeWithText("Guía hablada de encuadre").assertExists()
+        rule.onNodeWithText("Funciona aunque Modo Voz esté apagado.").assertExists()
+        rule.onNodeWithTag("technique_guide_toggle").assertIsOff()
+        rule.onNodeWithTag("technique_voice_action").assertTextEquals("Activar Modo Voz")
+        rule.onNodeWithTag("technique_voice_hint", useUnmergedTree = true)
+            .assertTextEquals("Activa Modo Voz para controlar la grabación.")
+
+        rule.onNodeWithTag("technique_guide_toggle").performClick()
+        rule.onNodeWithTag("technique_guide_toggle").assertIsOn()
+        rule.onNodeWithContentDescription("Escuchar guía de ejemplo").assertExists()
+        rule.onNodeWithTag("technique_guide_repeat").performClick()
+        rule.onNodeWithTag("technique_voice_action").assertTextEquals("Activar Modo Voz")
+        rule.onNodeWithTag("technique_guide_toggle").assertIsOn()
+        rule.runOnIdle { assertEquals(listOf("guide:true", "repeat"), actions) }
+    }
+
+    @Test fun el_control_de_modo_voz_cambia_su_accion_sin_tocar_la_guia() {
+        show(1f)
+        rule.onNodeWithTag("technique_voice_action").performClick()
+        rule.onNodeWithTag("technique_voice_action").assertTextEquals("Desactivar comandos")
+        rule.onNodeWithTag("technique_voice_hint", useUnmergedTree = true)
+            .assertTextEquals("«Iniciar vídeo» · «Detener vídeo»")
+        rule.onNodeWithTag("technique_voice_command", useUnmergedTree = true)
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Comando disponible"))
+        rule.onNodeWithTag("technique_guide_toggle").assertIsOff()
+        rule.runOnIdle { assertEquals(listOf("voice:true"), actions) }
+    }
+
+    @Test fun mientras_comprueba_bloquea_la_grabacion_y_lo_explica() {
+        show(1f, status = FramingCheckStatus.CHECKING, canRecord = false)
+        rule.onNodeWithTag("technique_framing").assertExists()
+        rule.onNodeWithText("Comprobando encuadre…", useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("technique_capture_title").assertTextEquals("Comprobando encuadre")
+        rule.onNodeWithTag("technique_capture_hint").assertTextEquals("Espera el veredicto antes de grabar")
+        rule.onNodeWithTag("technique_record").assertIsNotEnabled()
+    }
+
+    @Test fun sin_veredicto_permite_grabar_con_error_explicito() {
+        show(1f, status = FramingCheckStatus.UNAVAILABLE, canRecord = true)
+        rule.onNodeWithText("No se pudo comprobar el encuadre", useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("technique_capture_title").assertTextEquals("Listo para grabar")
+        rule.onNodeWithTag("technique_capture_hint")
+            .assertTextEquals("No se pudo comprobar el encuadre; puedes grabar igualmente")
+        rule.onNodeWithTag("technique_record").assertIsEnabled()
     }
 
     @Test fun el_overlay_espera_finalize_al_recibir_la_orden_de_plegar() {

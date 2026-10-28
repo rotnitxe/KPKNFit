@@ -86,7 +86,10 @@ class TechniqueAnalysisUiStateTest {
     fun without_a_calibrated_disc_there_is_no_meters_per_second_anywhere() {
         val report = TechniqueSamples.analysisReportRelative
         val summary = buildSummary(report)
-        assertNull("sin disco no hay velocidad media", summary.tiles.firstOrNull { it.id == SummaryTileId.VELOCITY_MEAN })
+        // Sin escala física validada la velocidad media no se inventa: aparece como «—» y se explica por qué.
+        val mean = summary.tiles.first { it.id == SummaryTileId.VELOCITY_MEAN }
+        assertEquals("—", mean.value)
+        assertEquals(listOf("Sin escala física validada"), mean.notes)
         assertTrue(summary.tiles.none { it.unit == "m/s" || it.figure.contains("m/s") || it.notes.any { n -> n.contains("m/s") } })
 
         // Ni en las barras ni en el detalle de cada repetición.
@@ -156,7 +159,8 @@ class TechniqueAnalysisUiStateTest {
             barDeviation = null,
         )
         val ids = buildSummary(report).tiles.map { it.id }
-        assertEquals(listOf(SummaryTileId.REPS), ids)
+        // La velocidad media ausente se pinta «—»: es una celda del panel de métricas, no un dato inventado.
+        assertEquals(listOf(SummaryTileId.REPS, SummaryTileId.VELOCITY_MEAN), ids)
     }
 
     @Test
@@ -510,7 +514,7 @@ class TechniqueAnalysisUiStateTest {
         val originalAnchors = marksOf(source)
         assertEquals(originalAnchors, marks)
         assertNull("Coarse seek/loop intervals are not measured rep durations", buildBreakdown(report, marks))
-        assertEquals(listOf(SummaryTileId.REPS), buildSummary(report).tiles.map { it.id })
+        assertEquals(listOf(SummaryTileId.REPS, SummaryTileId.VELOCITY_MEAN), buildSummary(report).tiles.map { it.id })
         assertEquals(source.repCount, report.repCount)
         assertEquals(source.confidence, report.confidence)
         assertEquals(originalAnchors, marksOf(report)) // UI preparation must not rewrite navigation.
@@ -624,5 +628,45 @@ class TechniqueAnalysisUiStateTest {
         assertEquals(expected.reps, actual.reps)
         assertTrue(actual.reps.first().detail.contains("bajada 2,8 s"))
         assertTrue(actual.reps.first().detail.contains("subida 0,9 s"))
+    }
+
+    // ── Revisión del conteo ───────────────────────────────────────────────────
+
+    @Test
+    fun a_correction_moves_the_proposal_without_losing_the_original_count() {
+        val report = TechniqueSamples.analysisReport
+        val breakdown = buildBreakdown(report, marksOf(report))!!
+        val partialPosition = breakdown.reps.indexOfFirst { it.kind == RepKind.PARTIAL }
+        val review = buildReview(breakdown.reps, mapOf(partialPosition to RepKind.FULL))
+        assertEquals("9", review.proposal)
+        assertEquals("8 + 1", review.originalProposal)
+        assertTrue(review.changed)
+        assertEquals(RepKind.FULL, review.kindAt(partialPosition))
+        assertTrue(review.isChangedAt(partialPosition))
+        assertEquals(breakdown.reps.count { it.kind == RepKind.FULL } + 1, review.complete)
+        assertEquals(breakdown.reps.count { it.kind == RepKind.PARTIAL } - 1, review.partial)
+        assertEquals(1, review.failed)
+        assertEquals(1, review.originalFailed)
+    }
+
+    @Test
+    fun failed_reps_are_not_reclassified_and_an_empty_review_is_the_original() {
+        val report = TechniqueSamples.analysisReport
+        val breakdown = buildBreakdown(report, marksOf(report))!!
+        val failedPosition = breakdown.reps.indexOfFirst { it.kind == RepKind.FAILED }
+        val review = buildReview(breakdown.reps, mapOf(failedPosition to RepKind.PARTIAL))
+        assertEquals(RepKind.FAILED, review.kindAt(failedPosition))
+        assertFalse(review.changed)
+        assertEquals("8 + 1", review.proposal)
+        assertEquals(review.originalProposal, review.proposal)
+    }
+
+    @Test
+    fun corrections_travel_as_stable_sorted_text_and_broken_entries_are_dropped() {
+        val encoded = encodeRepCorrections(mapOf(5 to RepKind.PARTIAL, 2 to RepKind.FULL))
+        assertEquals("2:FULL,5:PARTIAL", encoded)
+        assertEquals(mapOf(2 to RepKind.FULL, 5 to RepKind.PARTIAL), decodeRepCorrections(encoded))
+        assertTrue(decodeRepCorrections("").isEmpty())
+        assertEquals(mapOf(3 to RepKind.PARTIAL), decodeRepCorrections("x:PARCIAL,3:PARTIAL,9:NOPE"))
     }
 }

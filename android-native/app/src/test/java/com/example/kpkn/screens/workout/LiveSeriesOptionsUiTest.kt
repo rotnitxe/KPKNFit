@@ -115,7 +115,7 @@ class LiveSeriesOptionsUiTest {
     fun theAddTileIsShortOnScreenButTheScreenReaderStillSaysAddSet() {
         showSeries(SeriesCalls())
 
-        rule.onNodeWithText("Añadir").assertExists()
+        rule.onNodeWithText("Añadir serie").assertExists()
         rule.onNodeWithContentDescription("Añadir serie").assertExists()
     }
 
@@ -124,10 +124,10 @@ class LiveSeriesOptionsUiTest {
         val calls = SeriesCalls()
         showSeries(calls)
 
-        click("Editar")
-        click("Añadir")
-        click("Saltar")
-        click("Borrar")
+        click("Configurar serie")
+        click("Añadir serie")
+        click("Omitir serie")
+        click("Quitar serie pendiente")
 
         assertEquals("Editar abre las series del ejercicio", 1, calls.edited)
         assertEquals("Añadir serie añade al ejercicio", 1, calls.added)
@@ -141,10 +141,10 @@ class LiveSeriesOptionsUiTest {
         val calls = SeriesCalls()
         showSeries(calls, completedSets = mapOf("a_1" to CompletedSet(id = "c", weight = 40.0, reps = 8)))
 
-        rule.onNodeWithText("Saltar").assertIsNotEnabled()
-        rule.onNodeWithText("Borrar").assertIsNotEnabled()
-        rule.onNodeWithText("Editar").assertIsEnabled()
-        rule.onNodeWithText("Añadir").assertIsEnabled()
+        rule.onNodeWithText("Omitir serie").assertIsNotEnabled()
+        rule.onNodeWithText("Quitar serie pendiente").assertIsNotEnabled()
+        rule.onNodeWithText("Configurar serie").assertIsEnabled()
+        rule.onNodeWithText("Añadir serie").assertIsEnabled()
         // La cabecera enseña lo que de verdad se hizo.
         rule.onNodeWithText("40 kg × 8").assertExists()
     }
@@ -155,7 +155,7 @@ class LiveSeriesOptionsUiTest {
         showSeries(calls)
 
         click("Drop-set")
-        click("Aplicar")
+        click("Aplicar técnica")
 
         val (target, technique) = calls.applied.single()
         assertEquals(SeriesTechnique.DROPSET, technique)
@@ -170,7 +170,7 @@ class LiveSeriesOptionsUiTest {
 
         click("Rest-pause")
         click("Desde S2 hasta el final")
-        click("Aplicar")
+        click("Aplicar técnica")
 
         val (target, technique) = calls.applied.single()
         assertEquals(SeriesTechnique.REST_PAUSE, technique)
@@ -189,7 +189,7 @@ class LiveSeriesOptionsUiTest {
         // El nodo de una serie hecha es la marca de «Completada» y no responde.
         rule.onNodeWithContentDescription("Completada").performClick()
         click("Drop-set")
-        click("Aplicar")
+        click("Aplicar técnica")
 
         assertEquals(setOf(1), calls.applied.single().first.selectedSetIndices)
     }

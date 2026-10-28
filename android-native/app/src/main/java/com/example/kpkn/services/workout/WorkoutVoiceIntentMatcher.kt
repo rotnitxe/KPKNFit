@@ -24,6 +24,7 @@ object WorkoutVoiceIntentMatcher {
         tagNames: Set<String> = emptySet(),
         isCardioTimerActive: Boolean = false,
         voiceFeedbackPromptActive: Boolean = false,
+        captureActive: Boolean = false,
     ): VoiceSessionCommand {
         if (showFinishSheet) {
             return WorkoutVoiceCommandParser.parseFinalFeedbackCommand(transcript)
@@ -52,6 +53,7 @@ object WorkoutVoiceIntentMatcher {
             allowCardioMetrics = allowCardioMetrics,
             tagNames = tagNames,
             isCardioTimerActive = isCardioTimerActive,
+            captureActive = captureActive,
         )
 
         return when (stage) {
@@ -63,6 +65,8 @@ object WorkoutVoiceIntentMatcher {
                 is VoiceSessionCommand.ApplyTag,
                 is VoiceSessionCommand.AddSetSessionOnly,
                 is VoiceSessionCommand.AddSetPermanent,
+                is VoiceSessionCommand.StartVideoCapture,
+                is VoiceSessionCommand.StopVideoCapture,
                 -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)
             }
@@ -100,6 +104,9 @@ object WorkoutVoiceIntentMatcher {
             }
             VoicePipelineStage.TTS_SPEAKING -> when (parsed) {
                 is VoiceSessionCommand.StopSpeaking -> parsed
+                is VoiceSessionCommand.StartVideoCapture,
+                is VoiceSessionCommand.StopVideoCapture,
+                -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)
             }
             VoicePipelineStage.MIC_BUSY,

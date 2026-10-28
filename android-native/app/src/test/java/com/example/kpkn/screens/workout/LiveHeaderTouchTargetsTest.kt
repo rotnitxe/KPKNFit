@@ -78,7 +78,7 @@ class LiveHeaderTouchTargetsTest {
                 }
             }
         }
-        listOf("workout-story-header", "workout-voice-header", "workout-more-header").forEach { tag ->
+        listOf("workout-voice-header", "workout-more-header").forEach { tag ->
             val node = rule.onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode()
             val layout = node.boundsInRoot
             val touch = node.touchBoundsInRoot
@@ -99,11 +99,11 @@ class LiveHeaderTouchTargetsTest {
             println("LV-C cabecera pulsable ${node.id} font=$font: layout=${node.boundsInRoot.height / density} dp, toque=${b.width / density} x ${b.height / density} dp")
             assertTrue("Objetivo de ${node.id} con alto táctil ${b.height / density} dp", b.height / density >= 47.5f)
         }
-        // La elipsis del título largo se conserva.
+        // Refinamiento 02: el título largo se parte en líneas bajo la cápsula y se lee entero, sin elipsis.
         val titleNode = rule.onNode(hasText(longTitle) and hasAnyAncestor(hasTestTag("live-session-header")), useUnmergedTree = true)
         val layouts = mutableListOf<TextLayoutResult>()
         titleNode.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val title = layouts.single()
-        assertTrue("El título largo acaba con elipsis", title.isLineEllipsized(0))
+        assertTrue("El título largo se lee entero", (0 until title.lineCount).none { title.isLineEllipsized(it) })
     }
 }

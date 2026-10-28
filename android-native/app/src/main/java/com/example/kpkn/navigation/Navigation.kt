@@ -227,9 +227,13 @@ sealed class KpknRoute(val route: String) {
     // ─── Video Technique ───────────────────────────────────────────────
     object TechniqueHub : KpknRoute("technique")
 
-    object TechniqueAnalysis : KpknRoute("technique/analysis/{mediaId}") {
+    object TechniqueAnalysis : KpknRoute("technique/analysis/{mediaId}?deliverToDraft={deliverToDraft}") {
         const val ARG_MEDIA_ID = "mediaId"
-        fun create(mediaId: String) = "technique/analysis/${Uri.encode(mediaId)}"
+        const val ARG_DELIVER_TO_DRAFT = "deliverToDraft"
+
+        /** Solo la sesión en vivo tiene un borrador donde incorporar el resultado revisado. */
+        fun create(mediaId: String, deliverToDraft: Boolean = false) =
+            "technique/analysis/${Uri.encode(mediaId)}?deliverToDraft=$deliverToDraft"
     }
 
     object TechniqueTrends : KpknRoute("technique/trends/{exerciseKey}") {

@@ -59,6 +59,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -610,29 +612,22 @@ internal fun WorkoutStructureSheetsHost(
             val doneSlots = named.sumOf {
                 WorkoutStepRules.completedRoadmapSlotsForExercise(it, uiState.completedSets, uiState.omittedSetKeys)
             }
-            KpknAlertDialog(
-                onDismissRequest = { state.pendingRemoveExerciseIds = emptyList() },
-                title = { Text("Quitar de la sesión", style = KpknType.dialogTitle, color = WizardColors.text) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(removeExercisesQuestion(named.map(::displayWorkoutExerciseName)), style = KpknType.body, color = WizardColors.text)
-                        removeExercisesWarning(doneSlots, named.size)?.let { warning ->
-                            Text(warning, style = KpknType.caption, color = WizardColors.danger)
-                        }
-                        Text("Puedes deshacerlo justo después.", style = KpknType.caption, color = WizardColors.textMuted)
+            com.example.kpkn.screens.workout.components.LiveAlert(
+                title = "Quitar de la sesión",
+                text = removeExercisesQuestion(named.map(::displayWorkoutExerciseName)) + " Puedes deshacerlo justo después.",
+                primaryLabel = "Quitar",
+                onPrimary = {
+                    if (ids.size == 1) viewModel.removeExerciseFromSession(ids.first()) else viewModel.removeExercisesFromSession(ids)
+                    state.pendingRemoveExerciseIds = emptyList()
+                },
+                secondaryLabel = "Cancelar",
+                onSecondary = { state.pendingRemoveExerciseIds = emptyList() },
+                onDismiss = { state.pendingRemoveExerciseIds = emptyList() },
+                icon = KpknLineIcons.Trash,
+                extra = {
+                    removeExercisesWarning(doneSlots, named.size)?.let { warning ->
+                        com.example.kpkn.screens.workout.components.LiveSheetShortCopy(warning, Modifier.padding(bottom = 16.dp), error = true)
                     }
-                },
-                confirmButton = {
-                    KpknDangerPill(
-                        text = "Quitar",
-                        onClick = {
-                            if (ids.size == 1) viewModel.removeExerciseFromSession(ids.first()) else viewModel.removeExercisesFromSession(ids)
-                            state.pendingRemoveExerciseIds = emptyList()
-                        },
-                    )
-                },
-                dismissButton = {
-                    KpknTextAction(text = "Cancelar", onClick = { state.pendingRemoveExerciseIds = emptyList() })
                 },
             )
         }
@@ -645,23 +640,13 @@ internal fun WorkoutStructureSheetsHost(
             viewModel.applyPendingSeriesTechnique(ids, technique)
             state.ultraFastTargetIds = emptyList()
         }
-        KpknGlassDialog(onDismissRequest = { state.ultraFastTargetIds = emptyList() }) {
-            Column(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Text("Técnica para series pendientes", style = KpknType.dialogTitle, color = WizardColors.text)
-                Text(
-                    if (ids.size == 1) "Convierte las series que faltan de este ejercicio." else "Convierte las series que faltan de estos ${ids.size} ejercicios.",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
-                KpknPrimaryPill(text = "Drop-set", onClick = { applyTechnique(SeriesTechnique.DROPSET) }, modifier = Modifier.fillMaxWidth())
-                KpknPrimaryPill(text = "Rest-pause", onClick = { applyTechnique(SeriesTechnique.REST_PAUSE) }, modifier = Modifier.fillMaxWidth())
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    KpknTextAction(text = "Cancelar", onClick = { state.ultraFastTargetIds = emptyList() })
-                }
-            }
+        com.example.kpkn.screens.workout.components.LiveSheet(title = "Técnica para lo pendiente",
+            onDismiss = { state.ultraFastTargetIds = emptyList() }, tag = "live-pending-technique", footer = null) { close ->
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                if (ids.size == 1) "Convierte las series que faltan de este ejercicio." else "Convierte las series que faltan de estos ${ids.size} ejercicios.")
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Drop-set", { applyTechnique(SeriesTechnique.DROPSET) }, icon = KpknLineIcons.TrendDown)
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Rest-pause", { applyTechnique(SeriesTechnique.REST_PAUSE) }, icon = KpknLineIcons.Pause)
+            com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
         }
     }
 
@@ -672,36 +657,19 @@ internal fun WorkoutStructureSheetsHost(
             LaunchedEffect(noteId) { state.exerciseNoteExerciseId = null }
         } else {
             var draft by remember(noteId) { mutableStateOf(uiState.exerciseNotes[noteId].orEmpty()) }
-            KpknAlertDialog(
-                onDismissRequest = { state.exerciseNoteExerciseId = null },
-                title = { Text("Nota del ejercicio", style = KpknType.dialogTitle, color = WizardColors.text) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(displayWorkoutExerciseName(noteExercise), style = KpknType.caption, color = WizardColors.textMuted)
-                        KpknTextField(
-                            value = draft,
-                            onValueChange = { draft = it },
-                            placeholder = "Escribe lo que quieras recordar de este ejercicio",
-                            singleLine = false,
-                            minLines = 3,
-                            maxLines = 6,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                },
-                confirmButton = {
-                    KpknPrimaryPill(
-                        text = "Guardar",
-                        onClick = {
-                            viewModel.setExerciseNote(noteId, draft, flush = true)
-                            state.exerciseNoteExerciseId = null
-                        },
-                    )
-                },
-                dismissButton = {
-                    KpknTextAction(text = "Cancelar", onClick = { state.exerciseNoteExerciseId = null })
-                },
-            )
+            com.example.kpkn.screens.workout.components.LiveSheet(title = "Nota del ejercicio",
+                onDismiss = { state.exerciseNoteExerciseId = null }, tag = "live-exercise-note",
+                footer = { close ->
+                    com.example.kpkn.screens.workout.components.LiveSheetPrimary("Guardar", {
+                        viewModel.setExerciseNote(noteId, draft, flush = true)
+                        state.exerciseNoteExerciseId = null
+                    })
+                    com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
+                }) {
+                com.example.kpkn.screens.workout.components.LiveSheetSubtitle(displayWorkoutExerciseName(noteExercise))
+                com.example.kpkn.screens.workout.components.LiveSheetLabeledField("Nota", draft, { draft = it }, multiline = true,
+                    placeholder = "Lo que quieras recordar de este ejercicio", tag = "live-exercise-note-field")
+            }
         }
     }
 
@@ -719,55 +687,30 @@ internal fun WorkoutStructureSheetsHost(
             var restAfterText by remember(groupId, group.restAfterSuperset) {
                 mutableStateOf(group.restAfterSuperset.toString())
             }
-            KpknAlertDialog(
-                onDismissRequest = { state.supersetSettingsGroupId = null },
-                title = { Text("Rondas y descansos", style = KpknType.dialogTitle, color = WizardColors.text) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        KpknTextField(
-                            value = roundsText,
-                            onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = "Rondas",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
+            // Prototipo 02 (`superset-settings`): rondas y los dos descansos en campos, con la nota de navegación A1 / A2.
+            com.example.kpkn.screens.workout.components.LiveSheet(title = "Configuración de superserie",
+                onDismiss = { state.supersetSettingsGroupId = null }, tag = "live-superset-settings",
+                footer = { close ->
+                    com.example.kpkn.screens.workout.components.LiveSheetPrimary("Guardar", {
+                        viewModel.updateLiveSupersetRest(
+                            groupId = groupId,
+                            restBetween = restBetweenText.toIntOrNull(),
+                            restAfter = restAfterText.toIntOrNull(),
+                            rounds = roundsText.toIntOrNull(),
                         )
-                        KpknTextField(
-                            value = restBetweenText,
-                            onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = "Descanso entre ejercicios (s)",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        KpknTextField(
-                            value = restAfterText,
-                            onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                            label = "Descanso post-ronda (s)",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                },
-                confirmButton = {
-                    KpknPrimaryPill(
-                        text = "Guardar",
-                        onClick = {
-                            viewModel.updateLiveSupersetRest(
-                                groupId = groupId,
-                                restBetween = restBetweenText.toIntOrNull(),
-                                restAfter = restAfterText.toIntOrNull(),
-                                rounds = roundsText.toIntOrNull(),
-                            )
-                            state.supersetSettingsGroupId = null
-                        },
-                    )
-                },
-                dismissButton = {
-                    KpknTextAction(text = "Cancelar", onClick = { state.supersetSettingsGroupId = null })
-                },
-            )
+                        state.supersetSettingsGroupId = null
+                    })
+                    com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
+                }) {
+                com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                    visibleExercises.filter { it.id in group.exerciseOrder }.joinToString(" + ", transform = ::displayWorkoutExerciseName))
+                com.example.kpkn.screens.workout.components.LiveSheetFormRow("Rondas", roundsText, { roundsText = it.filter(Char::isDigit).take(2) })
+                com.example.kpkn.screens.workout.components.LiveSheetFormRow("Entre ejercicios · s", restBetweenText,
+                    { restBetweenText = it.filter(Char::isDigit).take(4) })
+                com.example.kpkn.screens.workout.components.LiveSheetFormRow("Al terminar ronda · s", restAfterText,
+                    { restAfterText = it.filter(Char::isDigit).take(4) })
+                com.example.kpkn.screens.workout.components.LiveSheetShortCopy("La navegación alterna los ejercicios dentro de cada ronda.")
+            }
         }
     }
 
@@ -1045,39 +988,28 @@ internal fun WorkoutStructureSheetsHost(
 
     uiState.pendingReplacementPersistencePrompt?.let {
         val options = viewModel.replacementScopeOptions()
-        KpknAlertDialog(
-            onDismissRequest = {
-                viewModel.dismissPendingReplacementPersistencePrompt()
-            },
-            title = { Text("Persistencia de reemplazo", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("¿Cómo quieres guardar este cambio?", style = KpknType.body, color = WizardColors.text)
-                    options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
-                        KpknSecondaryPill(
-                            text = when (scope) {
-                                ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                ReplacementPersistenceScopeV2.PERMANENT -> "Reemplazar en todo el programa"
-                                ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
-                                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
-                            },
-                            onClick = {
-                                viewModel.commitPendingReplacementPersistence(scope)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                KpknTextAction(
-                    text = "Cancelar",
-                    onClick = {
-                        viewModel.dismissPendingReplacementPersistencePrompt()
+        // Refinamiento 02: el alcance del cambio se elige en filas de la hoja del prototipo, no en un diálogo de píldoras.
+        com.example.kpkn.screens.workout.components.LiveSheet(title = "Guardar el reemplazo",
+            onDismiss = { viewModel.dismissPendingReplacementPersistencePrompt() }, tag = "live-replace-scope", footer = null) { close ->
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle("¿Hasta dónde llega este cambio? Lo ya registrado se conserva.")
+            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
+                com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
+                    when (scope) {
+                        ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
+                        ReplacementPersistenceScopeV2.PERMANENT -> "Reemplazar en todo el programa"
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                        ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
+                    },
+                    { viewModel.commitPendingReplacementPersistence(scope) },
+                    icon = when (scope) {
+                        ReplacementPersistenceScopeV2.SESSION_ONLY -> KpknLineIcons.Clock
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> KpknLineIcons.Layers
+                        else -> KpknLineIcons.Calendar
                     },
                 )
-            },
-        )
+            }
+            com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
+        }
     }
 
     uiState.pendingStructuralPersistence?.let { change ->
@@ -1100,15 +1032,7 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.RemoveExercises -> "Eliminar ejercicios"
             is PendingStructuralChange.DissolveSuperset -> "Disolver superserie"
         }
-        KpknAlertDialog(
-            onDismissRequest = {
-                viewModel.clearPendingStructuralPersistence()
-            },
-            title = { Text(title, style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        when (change) {
+        val question = when (change) {
                             is PendingStructuralChange.AddSet -> {
                                 "Se añadió una serie a «${change.exerciseName}». ¿Cómo quieres guardar este cambio?"
                             }
@@ -1136,35 +1060,28 @@ internal fun WorkoutStructureSheetsHost(
                             is PendingStructuralChange.DissolveSuperset -> {
                                 "Se disolvió una superserie (${change.exerciseNames.size} ejercicios). ¿Cómo quieres guardar este cambio?"
                             }
-                        },
-                        style = KpknType.body,
-                        color = WizardColors.text,
-                    )
-                    options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
-                        KpknSecondaryPill(
-                            text = when (scope) {
-                                ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en esta semana"
-                                ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
-                                ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
-                            },
-                            onClick = {
-                                viewModel.commitStructuralPersistence(scope)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                KpknTextAction(
-                    text = "Cancelar",
-                    onClick = {
-                        viewModel.clearPendingStructuralPersistence()
+                        }
+        com.example.kpkn.screens.workout.components.LiveSheet(title = title,
+            onDismiss = { viewModel.clearPendingStructuralPersistence() }, tag = "live-structure-scope", footer = null) { close ->
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle(question)
+            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
+                com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
+                    when (scope) {
+                        ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
+                        ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en esta semana"
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                        ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
+                    },
+                    { viewModel.commitStructuralPersistence(scope) },
+                    icon = when (scope) {
+                        ReplacementPersistenceScopeV2.SESSION_ONLY -> KpknLineIcons.Clock
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> KpknLineIcons.Layers
+                        else -> KpknLineIcons.Calendar
                     },
                 )
-            },
-        )
+            }
+            com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
+        }
     }
 
     if (state.showReplaceCardioPicker && state.replaceCardioTargetExerciseId != null) {
@@ -1311,59 +1228,28 @@ internal fun WorkoutReorderSheets(
     }
 
     if (state.showReorderCrossBoundaryConfirm) {
-        KpknAlertDialog(
-            onDismissRequest = {
-                state.showReorderCrossBoundaryConfirm = false
-                state.reorderCrossBoundaryMessages = emptyList()
-                state.pendingGlobalReorderIds = emptyList()
+        val cancelCrossBoundary = {
+            state.showReorderCrossBoundaryConfirm = false
+            state.reorderCrossBoundaryMessages = emptyList()
+            state.pendingGlobalReorderIds = emptyList()
+        }
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "Cambio de grupo",
+            text = "Estos ejercicios saldrán del grupo en el que estaban y pasarán al grupo donde los colocaste.",
+            primaryLabel = "Guardar de todas formas",
+            onPrimary = {
+                onApplyReorder(state.pendingGlobalReorderIds, originalExercisePartMap, true)
+                closeReorderSheet()
             },
-            title = { Text("Cambio de grupo", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Los siguientes ejercicios se saldrán del grupo en el que estaban:",
-                        style = KpknType.body,
-                        color = WizardColors.text,
-                    )
-                    state.reorderCrossBoundaryMessages.forEach { message ->
-                        // Antes, un Surface errorContainer; ahora, un módulo con el aviso en `danger`.
-                        KpknModule(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                            accent = WizardColors.danger,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                        ) {
-                            Text(
-                                "⚠ $message",
-                                style = KpknType.body,
-                                color = WizardColors.danger,
-                            )
-                        }
-                    }
-                    Text(
-                        "¿Estás seguro de mantener este orden? Los ejercicios cambiarán al grupo donde fueron colocados.",
-                        style = KpknType.body,
-                        color = WizardColors.textMuted,
-                    )
+            secondaryLabel = "Cancelar",
+            onSecondary = cancelCrossBoundary,
+            onDismiss = cancelCrossBoundary,
+            icon = KpknLineIcons.Reorder,
+            extra = {
+                state.reorderCrossBoundaryMessages.forEach { message ->
+                    com.example.kpkn.screens.workout.components.LiveSheetShortCopy(message, error = true)
                 }
-            },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Guardar de todas formas",
-                    onClick = {
-                        onApplyReorder(state.pendingGlobalReorderIds, originalExercisePartMap, true)
-                        closeReorderSheet()
-                    },
-                )
-            },
-            dismissButton = {
-                KpknTextAction(
-                    text = "Cancelar",
-                    onClick = {
-                        state.showReorderCrossBoundaryConfirm = false
-                        state.reorderCrossBoundaryMessages = emptyList()
-                        state.pendingGlobalReorderIds = emptyList()
-                    },
-                )
+                Spacer(Modifier.height(16.dp))
             },
         )
     }
@@ -1465,113 +1351,70 @@ internal fun WorkoutSupersetCreatorSheet(
             state.showWorkoutSupersetCreator = false
             state.workoutSupersetSelectedExerciseId = null
         }
-        KpknAlertDialog(
-            onDismissRequest = { closeWorkoutSupersetCreator() },
-            title = {
-                Text(
-                    if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie",
-                    style = KpknType.dialogTitle,
-                    color = WizardColors.text,
+        // Refinamiento 02: hoja del prototipo. Ejercicios en filas con su marca, rondas y descansos en filas de formulario.
+        com.example.kpkn.screens.workout.components.LiveSheet(
+            title = if (supersetAnchorGroupId == null) "Crear superserie" else "Agregar a superserie",
+            onDismiss = { closeWorkoutSupersetCreator() },
+            tag = "live-superset-creator",
+            footer = { close ->
+                com.example.kpkn.screens.workout.components.LiveSheetPrimary(
+                    if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie",
+                    {
+                        onCreateSuperset(
+                            supersetSelectedIds,
+                            supersetAnchorPartId,
+                            restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
+                            restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
+                            roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
+                        )
+                        closeWorkoutSupersetCreator()
+                    },
+                    enabled = supersetSelectedIds.size >= 2,
                 )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "Selecciona ejercicios pendientes de la sesión. La superserie se aplicará solo a este entrenamiento.",
-                        style = KpknType.body,
-                        color = WizardColors.text,
-                    )
-                    Text(
-                        "Configuración inicial (puedes ajustarla antes de guardar)",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        KpknTextField(
-                            value = roundsText,
-                            onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
-                            label = "Rondas",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknTextField(
-                            value = restBetweenText,
-                            onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
-                            label = "Entre ejercicios (s)",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    KpknTextField(
-                        value = restAfterText,
-                        onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
-                        label = "Después de la ronda (s)",
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (supersetCandidateExercises.size < 2) {
-                        Text(
-                            "No hay otro ejercicio disponible en este grupo.",
-                            style = KpknType.body,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                    supersetCandidateExercises.forEach { ex ->
-                        val isSelected = ex.id in supersetSelectedIds
-                        val isAnchor = ex.id == supersetAnchorId
-                        // Casilla y renglón hacen lo mismo: el límite de 4 ejercicios se aplica a los dos.
-                        KpknCheckRow(
-                            checked = isSelected,
-                            title = ex.name,
-                            subtitle = if (isAnchor) "Origen" else null,
-                            onClick = {
-                                if (isAnchor) return@KpknCheckRow
-                                supersetSelectedIds = if (isSelected) {
-                                    supersetSelectedIds.filterNot { it == ex.id }
-                                } else {
-                                    if (supersetSelectedIds.size >= 4) return@KpknCheckRow
-                                    supersetSelectedIds + ex.id
-                                }
-                            },
-                        )
-                    }
+                if (hasCatalogAction) {
+                    com.example.kpkn.screens.workout.components.LiveSheetTextAction("Añadir desde el catálogo", {
+                        val anchor = supersetAnchorId
+                        closeWorkoutSupersetCreator()
+                        state.createSupersetFromCatalogAnchorId = anchor
+                    })
                 }
+                com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
             },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (hasCatalogAction) {
-                        KpknTextAction(
-                            text = "Desde catálogo",
-                            onClick = {
-                                val anchor = supersetAnchorId
-                                closeWorkoutSupersetCreator()
-                                state.createSupersetFromCatalogAnchorId = anchor
-                            },
-                        )
-                    }
-                    KpknPrimaryPill(
-                        text = if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie",
-                        onClick = {
-                            onCreateSuperset(
-                                supersetSelectedIds,
-                                supersetAnchorPartId,
-                                restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
-                                restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
-                                roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
-                            )
-                            closeWorkoutSupersetCreator()
-                        },
-                        enabled = supersetSelectedIds.size >= 2,
-                    )
-                }
-            },
-            dismissButton = {
-                KpknTextAction(text = "Cancelar", onClick = { closeWorkoutSupersetCreator() })
-            },
-        )
+        ) {
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                "Elige hasta 4 ejercicios pendientes. La superserie se aplica solo a este entrenamiento.")
+            if (supersetCandidateExercises.size < 2) {
+                com.example.kpkn.screens.workout.components.LiveSheetShortCopy("No hay otro ejercicio disponible en este grupo.")
+            }
+            supersetCandidateExercises.forEach { ex ->
+                val isSelected = ex.id in supersetSelectedIds
+                val isAnchor = ex.id == supersetAnchorId
+                com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
+                    displayWorkoutExerciseName(ex),
+                    {
+                        if (!isAnchor) {
+                            supersetSelectedIds = if (isSelected) {
+                                supersetSelectedIds.filterNot { it == ex.id }
+                            } else if (supersetSelectedIds.size < 4) {
+                                supersetSelectedIds + ex.id
+                            } else {
+                                supersetSelectedIds
+                            }
+                        }
+                    },
+                    Modifier.semantics { selected = isSelected },
+                    icon = if (isSelected) KpknLineIcons.Check else KpknLineIcons.Plus,
+                    small = if (isAnchor) "Origen" else null,
+                    chevron = false,
+                )
+            }
+            com.example.kpkn.screens.workout.components.LiveSheetSectionLabel("Rondas y descansos")
+            com.example.kpkn.screens.workout.components.LiveSheetFormRow("Rondas", roundsText, { roundsText = it.filter(Char::isDigit).take(2) })
+            com.example.kpkn.screens.workout.components.LiveSheetFormRow("Entre ejercicios · s", restBetweenText,
+                { restBetweenText = it.filter(Char::isDigit).take(4) })
+            com.example.kpkn.screens.workout.components.LiveSheetFormRow("Al terminar ronda · s", restAfterText,
+                { restAfterText = it.filter(Char::isDigit).take(4) })
+        }
     }
 }
 
@@ -1603,6 +1446,12 @@ internal fun WorkoutEditSeriesSheet(
             }
 
             var showSmartLoadDialog by remember { mutableStateOf(false) }
+            // Salir con cambios pide decidir: seguir editando o descartar la edición (Refinamiento 02). Lo registrado no se toca.
+            var showDiscardChangesDialog by remember { mutableStateOf(false) }
+            val dismissSheet = {
+                if (draftExercise != draftBaseline) showDiscardChangesDialog = true
+                else state.editSheetExerciseId = null
+            }
             var rmInputMode by remember(draftExercise.id) {
                 mutableStateOf(if (draftExercise.prFor1RM != null) "pr" else "direct")
             }
@@ -1630,7 +1479,7 @@ internal fun WorkoutEditSeriesSheet(
             }
             WorkoutDrawer(
                 title = if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series",
-                onDismiss = { state.editSheetExerciseId = null },
+                onDismiss = dismissSheet,
                 hazeState = bottomHazeState,
                 fullHeight = true,
                 footer = {
@@ -1696,6 +1545,20 @@ internal fun WorkoutEditSeriesSheet(
                         )
                     }
                 }
+            }
+            if (showDiscardChangesDialog) {
+                com.example.kpkn.screens.workout.components.LiveAlert(
+                    title = "Tienes cambios sin guardar",
+                    text = "Puedes volver a la edición o descartarla. Las series ya registradas no cambian.",
+                    primaryLabel = "Seguir editando",
+                    onPrimary = { showDiscardChangesDialog = false },
+                    secondaryLabel = "Descartar cambios",
+                    onSecondary = {
+                        showDiscardChangesDialog = false
+                        state.editSheetExerciseId = null
+                    },
+                    onDismiss = { showDiscardChangesDialog = false },
+                )
             }
         } else {
             LaunchedEffect(state.editSheetExerciseId) {

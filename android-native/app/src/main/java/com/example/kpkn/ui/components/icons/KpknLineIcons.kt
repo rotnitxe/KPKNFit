@@ -154,6 +154,20 @@ object KpknLineIcons {
         )
     }
 
+    /** Cronómetro: esfera con pulsador (`timer` del prototipo de sesión en vivo 02). */
+    val Timer: ImageVector by lazy {
+        icono(
+            "KpknLine.Timer",
+            listOf(
+                "M12 5a8 8 0 1 0 0 16a8 8 0 1 0 0-16z",
+                "M9 2h6",
+                "M12 2v3",
+                "M12 13V9",
+                "M12 13l3 2",
+            ),
+        )
+    }
+
     /** Calendario con dos anillas. */
     val Calendar: ImageVector by lazy {
         icono(

@@ -54,27 +54,39 @@ class LiveSessionLineTest {
         }
     }
     @Composable private fun Line(snapshot: LiveSetStepperSnapshot, onPage: (Int) -> Unit = {}, onRecord: () -> Unit = {},
-        onRoute: () -> Unit = {}, onAdd: () -> Unit = {}, onLong: ((Int) -> Unit)? = null, enabled: Boolean = true) {
+        onRoute: () -> Unit = {}, onAdjacent: ((Boolean) -> Unit)? = null, enabled: Boolean = true,
+        restActive: Boolean = false, onEndRest: (() -> Unit)? = null) {
         LiveSessionLine(listOf(exercise, row), exercise.id, snapshot, onRoute, onPage, {}, {}, onRecord,
-            recordVisible = true, recordEnabled = enabled, onAddSet = onAdd, onLongPressPage = onLong,
-            modifier = Modifier.width(328.dp))
+            recordVisible = true, recordEnabled = enabled, onNavigateAdjacentExercise = onAdjacent,
+            sessionCompletedCount = 2, sessionTotalCount = 15, restActive = restActive, onEndRest = onEndRest,
+            modifier = Modifier.width(340.dp))
     }
-    private fun assertLine(count: Int, active: Int, prep: Boolean) {
+
+    /** Roadmap del Refinamiento 02: alto fijo, resumen de la sesión, pista de fases y la fila ‹ registrar › dentro del vidrio. */
+    private fun assertDock(count: Int, active: Int, prep: Boolean) {
         content { Line(liveLineTestSnapshot(count, active, prep)) }
         val bounds = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(112f * density, bounds.height, 1f)
-        val rail = rule.onNodeWithTag("live-session-steps").fetchSemanticsNode().boundsInRoot
-        val selected = rule.onNode(isSelected() and hasAnyAncestor(hasTestTag("live-session-steps")))
-            .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals("El paso activo queda centrado, también en los extremos", rail.center.x, selected.center.x, 2f)
+        assertEquals(LiveSessionLineHeight.value * density, bounds.height, 1f)
+        rule.onNodeWithText("SERIES · 2 DE 15").assertIsDisplayed()
+        rule.onNodeWithText(" ${active + 1} / 14").assertIsDisplayed()
+        // Iteración 04: raíl de series; el punto en curso está seleccionado y el descanso solo aparece mientras dura.
+        assertTrue(rule.onAllNodes(isSelected()).fetchSemanticsNodes().isNotEmpty())
+        rule.onNodeWithTag("live-session-phase-rest").assertDoesNotExist()
+        if (prep) {
+            rule.onNodeWithTag("live-session-phase-mov").assertIsDisplayed()
+            rule.onNodeWithTag("live-session-phase-apr").assertIsDisplayed()
+        } else {
+            rule.onNodeWithTag("live-session-phase-mov").assertDoesNotExist()
+        }
         val record = rule.onNodeWithTag("live-session-record").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertTrue(bounds.contains(record.topLeft) && bounds.contains(record.bottomRight - androidx.compose.ui.geometry.Offset(1f, 1f)))
-        assertFalse(rail.overlaps(record))
+        val phases = rule.onNodeWithTag("live-session-steps").fetchSemanticsNode().boundsInRoot
+        assertFalse(phases.overlaps(record))
     }
-    @Test fun oneSeriesIsCenteredAndRecordLivesInsideTheIsland() = assertLine(1, 0, false)
-    @Test fun fourSeriesWithPreparationStayInTheSameIsland() = assertLine(4, 0, true)
-    @Test fun fourteenSeriesCompressDistantStepsAndCenterTheActiveOne() = assertLine(14, 7, true)
-    @Test fun lastOfFourteenSeriesIsCenteredToo() = assertLine(14, 13, false)
+    @Test fun oneSeriesShowsTheDockWithRecordInside() = assertDock(1, 0, false)
+    @Test fun preparationAddsMovAndAprPhases() = assertDock(4, 0, true)
+    @Test fun fourteenSeriesKeepTheSameDock() = assertDock(14, 7, true)
+    @Test fun lastOfFourteenSeriesShowsItsPosition() = assertDock(14, 13, false)
 
     @Test fun compressionKeepsAllOriginalIndicesExactlyOnce() {
         for (count in listOf(1, 4, 14, 30)) for (active in 0 until count) {
@@ -84,11 +96,9 @@ class LiveSessionLineTest {
             assertTrue(ranges.filter { it.compressed }.all { it.indices.count() > 0 })
         }
     }
-    @Test fun selectionFollowsTheSettledCardWhileAnotherPageIsRequested() {
+    @Test fun positionFollowsTheSettledCardWhileAnotherPageIsRequested() {
         content { Line(liveLineTestSnapshot(4, active = 3).copy(activePageIndex = 40)) }
-        rule.onNodeWithContentDescription("S1").assertIsSelected()
-        rule.onNodeWithTag("live-session-steps").performScrollToNode(hasContentDescription("S4"))
-        rule.onNodeWithContentDescription("S4").assertIsNotSelected()
+        rule.onNodeWithText(" 1 / 14").assertIsDisplayed()
     }
     @Test fun integratedCheckInvokesOnlyTheActiveRecordingAction() {
         var records = 0; var routes = 0
@@ -101,7 +111,7 @@ class LiveSessionLineTest {
         var recorded: Triple<Double, Int, Double?>? = null
         val set = ExerciseSet("recorded-set", weight = 95.0, targetReps = 6, targetRIR = 2, intensityMode = IntensityMode.RIR)
         content {
-            Column(Modifier.width(328.dp)) {
+            Column(Modifier.width(340.dp)) {
                 Box(Modifier.width(312.dp).height(425.dp)) {
                     SetInputCardV2(exercise.copy(sets = listOf(set)), 0, set, null,
                         onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
@@ -128,101 +138,58 @@ class LiveSessionLineTest {
         rule.onNodeWithTag("live-session-record").assertIsNotEnabled().performClick()
         rule.runOnIdle { assertEquals(0, records) }
     }
-    @Test fun addingAndLongPressKeepTheirOriginalPageDestinations() {
-        var adds = 0; var page: Int? = null
-        content { Line(liveLineTestSnapshot(4), onAdd = { adds++ }, onLong = { page = it }) }
-        rule.onNodeWithTag("live-session-steps").performScrollToNode(hasContentDescription("S2"))
-        rule.onNodeWithContentDescription("S2").performTouchInput { longClick() }
-        rule.onNodeWithContentDescription("Añadir serie").performClick()
-        rule.runOnIdle { assertEquals(41, page); assertEquals(1, adds) }
+    @Test fun previousAndNextKeepTheOriginalPageDestinations() {
+        val pages = mutableListOf<Int>()
+        content { Line(liveLineTestSnapshot(4, active = 1), onPage = { pages += it }) }
+        rule.onNodeWithContentDescription("Paso siguiente").performClick()
+        rule.onNodeWithContentDescription("Paso anterior").performClick()
+        rule.runOnIdle { assertEquals(listOf(42, 40), pages) }
     }
-    @Test fun preparationIconsKeepTheirNamesAndCallbacks() {
+    @Test fun preparationPhasesKeepTheirCallbacks() {
         var mobility = 0; var warmup = 0
         content { Line(liveLineTestSnapshot(4, preparation = true, mobility = { mobility++ }, warmup = { warmup++ })) }
-        rule.onNodeWithTag("live-session-steps").performScrollToNode(hasContentDescription("Movilidad"))
         rule.onNodeWithContentDescription("Movilidad").performClick()
-        rule.onNodeWithContentDescription("Aproximación").performClick()
+        rule.onNodeWithContentDescription("Aproximaciones").performClick()
         rule.runOnIdle { assertEquals(1, mobility); assertEquals(1, warmup) }
     }
-    @Test fun horizontalGestureStillChangesExercisesWhenThereIsOnlyOneSeries() {
+    @Test fun edgesOfTheExerciseChangeToTheAdjacentExercise() {
         val moves = mutableListOf<Boolean>()
-        content { LiveSessionLine(listOf(exercise), exercise.id, liveLineTestSnapshot(1), {}, {}, {}, {}, {}, true, true,
-            onNavigateAdjacentExercise = { moves += it }, modifier = Modifier.width(328.dp)) }
-        rule.onNodeWithTag("live-session-steps").performTouchInput { swipeLeft() }
-        rule.onNodeWithTag("live-session-steps").performTouchInput { swipeRight() }
+        content { Line(liveLineTestSnapshot(1), onAdjacent = { moves += it }) }
+        rule.onNodeWithContentDescription("Paso siguiente").performClick()
+        rule.onNodeWithContentDescription("Paso anterior").performClick()
         rule.runOnIdle { assertEquals(listOf(true, false), moves) }
     }
-    @Test fun reversingAnEdgeDragBackIntoTheRailDoesNotChangeExercises() {
-        val moves = mutableListOf<Boolean>()
-        content { LiveSessionLine(listOf(exercise), exercise.id, liveLineTestSnapshot(4), {}, {}, {}, {}, {}, true, true,
-            onNavigateAdjacentExercise = { moves += it }, modifier = Modifier.width(328.dp)) }
-        val rail = rule.onNodeWithTag("live-session-steps")
-        rail.performTouchInput {
-            down(center)
-            advanceEventTime(300)
-            moveBy(androidx.compose.ui.geometry.Offset(120f * density, 0f))
-            advanceEventTime(300)
-            moveBy(androidx.compose.ui.geometry.Offset(-60f * density, 0f))
-            advanceEventTime(300)
-            up()
-        }
-        val range = rail.fetchSemanticsNode().config[SemanticsProperties.HorizontalScrollAxisRange]
-        rule.runOnIdle {
-            assertTrue("El gesto vuelve al interior de la línea", range.value() > 0f && range.value() < range.maxValue())
-            assertTrue("El exceso anterior del borde no navega al soltar dentro", moves.isEmpty())
-        }
-    }
-    @Test fun transientUndoAndBothPendingActionsFitInsideTheIslandWithoutCoveringTheCard() {
+    @Test fun transientUndoAndBothPendingActionsStayVisibleWithoutCoveringTheRecord() {
         var stack by mutableStateOf(emptyList<GodModeUndoSnapshot>())
         var undone: Int? = null
         content(1.3f) { LiveSessionLine(listOf(exercise), exercise.id, liveLineTestSnapshot(1), {}, {}, {}, {}, {}, true, true,
-            onAddSet = {},
             pendingActions = listOf(RoadmapPendingAction("Estado previo") {}, RoadmapPendingAction("Terminar") {}),
-            undoStack = stack, onUndo = { undone = it; stack = emptyList() }, modifier = Modifier.width(328.dp)) }
+            undoStack = stack, onUndo = { undone = it; stack = emptyList() },
+            modifier = Modifier.padding(top = 80.dp).width(340.dp)) }
         rule.runOnIdle { stack = listOf(GodModeUndoSnapshot(label = "Añadir serie")) }
-        val island = rule.onNodeWithTag("live-session-line").fetchSemanticsNode().boundsInRoot
         val undo = rule.onNodeWithContentDescription("Deshacer añadir serie").assertIsDisplayed()
-        val bounds = undo.fetchSemanticsNode().boundsInRoot
-        assertTrue(bounds.top >= island.top && bounds.bottom <= island.bottom)
-        assertFalse(bounds.overlaps(rule.onNodeWithTag("live-session-record").fetchSemanticsNode().boundsInRoot))
-        rule.onNodeWithText("Estado previo").assertIsDisplayed()
-        rule.onNodeWithText("Terminar").assertIsDisplayed()
+        assertFalse(undo.fetchSemanticsNode().boundsInRoot.overlaps(rule.onNodeWithTag("live-session-record").fetchSemanticsNode().boundsInRoot))
         for (label in listOf("Estado previo", "Terminar")) {
             val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
-            rule.onNodeWithText(label, useUnmergedTree = true)
+            rule.onNodeWithText(label, useUnmergedTree = true).assertIsDisplayed()
                 .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
-            val layout = layouts.single()
-            assertFalse("$label no se recorta al 130 %: size=${layout.size}, lines=${layout.lineCount}, font=${layout.layoutInput.style.fontSize}", layout.hasVisualOverflow)
+            assertFalse("$label no se recorta al 130 %", layouts.single().hasVisualOverflow)
         }
-        rule.onNodeWithTag("live-session-add-set").assertIsDisplayed()
         undo.performClick()
         rule.runOnIdle { assertEquals(0, undone) }
     }
-    @Test fun compressedGapOpensEveryStepIncludingTheDistantDestination() {
-        var page: Int? = null
-        content { Line(liveLineTestSnapshot(14, 7, true), onPage = { page = it }) }
-        val gap = hasContentDescription("Ver 3 pasos lejanos")
-        rule.onNodeWithTag("live-session-steps").performScrollToNode(gap)
-        rule.onAllNodes(gap)[0].performClick()
-        rule.onNodeWithText("Todos los pasos").assertIsDisplayed()
-        rule.onNodeWithText("S12", useUnmergedTree = true).performScrollTo().performClick()
-        rule.runOnIdle { assertEquals(51, page) }
-    }
-    @Test fun sidesAndRoundsKeepSeparateDestinationsAndTechniqueState() {
-        var selected: Int? = null
+    @Test fun sidesAndRoundsKeepSeparateDestinations() {
+        val pages = mutableListOf<Int>()
         val snapshot = LiveSetStepperSnapshot(listOf(
             TimelineElement.RoundBadge(1, true, false, 17),
             TimelineElement.UnilateralSet(1, "S2", 17, WorkoutSetCardVisualState.ACTIVE,
                 21, WorkoutSetCardVisualState.FUTURE, volumeReplaced = true)), 1, 0, 2, null, false)
-        content { Line(snapshot, onPage = { selected = it }) }
-        rule.onNodeWithContentDescription("Ronda 2, S2, lado derecho").performClick()
-        rule.runOnIdle { assertEquals(21, selected) }
-        rule.onNodeWithContentDescription("Ronda 2, S2, lado izquierdo")
-            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Seleccionada, Técnica de volumen reemplazado"))
-        rule.onNodeWithContentDescription("Ronda 2").performClick()
-        rule.runOnIdle { assertEquals(17, selected) }
+        content { Line(snapshot, onPage = { pages += it }) }
+        rule.onNodeWithContentDescription("Paso siguiente").performClick()
+        rule.onNodeWithContentDescription("Paso anterior").performClick()
+        rule.runOnIdle { assertEquals(listOf(21, 17), pages) }
     }
-    @Test fun restKeepsItsOwnDestinationAndActivePositionInsideTheLine() {
+    @Test fun restPhaseIsActiveAndKeepsItsOwnDestination() {
         var selected: Int? = null
         val snapshot = LiveSetStepperSnapshot(listOf(
             TimelineElement.BilateralSet(pageIndex = 7, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
@@ -233,6 +200,12 @@ class LiveSessionLineTest {
         rule.onNodeWithContentDescription("Descanso").assertIsSelected().performClick()
         rule.runOnIdle { assertEquals(88, selected) }
     }
+    @Test fun runningRestTurnsThePrimaryIntoEndRest() {
+        var ended = 0; var records = 0
+        content { Line(liveLineTestSnapshot(4), onRecord = { records++ }, restActive = true, onEndRest = { ended++ }) }
+        rule.onNodeWithContentDescription("Terminar descanso").performClick()
+        rule.runOnIdle { assertEquals(1, ended); assertEquals(0, records) }
+    }
     @Test fun routeFromTheLineKeepsMetricsAndSelectsTheRealExercise() {
         var destination by mutableStateOf<LiveSessionDestination?>(null)
         var selected: String? = null
@@ -242,8 +215,9 @@ class LiveSessionLineTest {
                 onSelectExercise = { selected = it })
         }
         rule.onNodeWithContentDescription("Abrir ruta de la sesión").performClick()
-        rule.onNodeWithText("Tonelaje").assertIsDisplayed()
-        rule.onNodeWithText("RIR medio").assertIsDisplayed()
+        // Refinamiento 02: las métricas viven en «Resumen», al final del recorrido.
+        rule.onNodeWithText("TONELAJE").assertExists()
+        rule.onNodeWithText("RIR MEDIO").assertExists()
         rule.onNodeWithText("Remo").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(row.id, selected); assertNull(destination) }
     }
@@ -261,15 +235,14 @@ class LiveSessionLineTest {
         assertFalse(children[0].overlaps(children[1])); assertFalse(children[1].overlaps(children[2]))
         rule.runOnIdle { assertEquals(listOf("advanced", "visual", "history"), clicks) }
     }
-    @Test fun voiceStoryAndMoreAreHeaderActions() {
+    @Test fun voiceAndMoreAreHeaderActions() {
         val clicks = mutableListOf<String>()
         content { WorkoutHeaderBar("Sentadilla", sessionName = "Pierna", groupName = null, startTimeMs = 0L,
             isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
             onToggleVoice = { clicks += "voice" }, onStoryClick = { clicks += "story" }, onMoreClick = { clicks += "more" }) }
         rule.onNodeWithTag("workout-voice-header").assertIsDisplayed().performClick()
-        rule.onNodeWithContentDescription("Historia de la sesión").performClick()
         rule.onNodeWithContentDescription("Más opciones de sesión").performClick()
         rule.onNodeWithTag("workout-voice-fab").assertDoesNotExist()
-        rule.runOnIdle { assertEquals(listOf("voice", "story", "more"), clicks) }
+        rule.runOnIdle { assertEquals(listOf("voice", "more"), clicks) }
     }
 }

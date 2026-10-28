@@ -86,6 +86,7 @@ class RestTimerController private constructor(
 
     private var timerJob: Job? = null
     private var timerGeneration: Long = 0L
+    private var scheduledEndMs: Long = 0L
     var activeRestTimerId: String? = null
         private set
     var restStartedAtMs: Long? = null
@@ -125,11 +126,45 @@ class RestTimerController private constructor(
         timerGeneration += 1
         alertSink.cancelRestAlerts()
         activeRestTimerId = null
+        scheduledEndMs = 0L
         restReferenceSet = null
         restReferenceAdvanced = null
         restStartedAtMs = null
         _remaining.value = 0
         _recovery.value = null
+    }
+
+    /** Freezes the clock and the alert without losing the remaining time. Returns the frozen seconds. */
+    fun pause(nowMs: Long = System.currentTimeMillis()): Int? {
+        if (scheduledEndMs <= 0L) return null
+        val remaining = remainingAt(nowMs)
+        timerGeneration += 1
+        timerJob?.cancel()
+        timerJob = null
+        alertSink.cancelRestAlerts()
+        activeRestTimerId = null
+        scheduledEndMs = 0L
+        _remaining.value = remaining
+        return remaining
+    }
+
+    /** Remaining whole seconds of the running rest, including the same rounding as the tick loop. */
+    fun remainingAt(nowMs: Long = System.currentTimeMillis()): Int =
+        if (scheduledEndMs <= 0L) {
+            _remaining.value.coerceAtLeast(0)
+        } else {
+            ((scheduledEndMs - nowMs + 500L) / 1000L).toInt().coerceAtLeast(0)
+        }
+
+    /** Updates the frozen seconds after a suggestion is applied while the rest is paused. */
+    fun setPausedRemaining(seconds: Int) {
+        timerGeneration += 1
+        timerJob?.cancel()
+        timerJob = null
+        alertSink.cancelRestAlerts()
+        activeRestTimerId = null
+        scheduledEndMs = 0L
+        _remaining.value = seconds.coerceAtLeast(0)
     }
 
     fun cancelJob() {
@@ -155,6 +190,7 @@ class RestTimerController private constructor(
     }
 
     fun zeroRemaining() {
+        scheduledEndMs = 0L
         _remaining.value = 0
         _recovery.value = null
     }
@@ -180,6 +216,7 @@ class RestTimerController private constructor(
     ) {
         timerJob?.cancel()
         val generation = ++timerGeneration
+        scheduledEndMs = endMs
         val initialElapsed = ((System.currentTimeMillis() - restStartMs) / 1000L).toInt().coerceAtLeast(0)
         _recovery.value = WorkoutRestRecoveryModel.fromLastSet(
             elapsedSeconds = initialElapsed,
@@ -226,6 +263,7 @@ class RestTimerController private constructor(
             if (!ownsTimer(generation, scheduledId)) return@launch
             val finishedId = scheduledId
             activeRestTimerId = null
+            scheduledEndMs = 0L
             timerJob = null
             onNaturalFinish(finishedId ?: scheduledId)
         }

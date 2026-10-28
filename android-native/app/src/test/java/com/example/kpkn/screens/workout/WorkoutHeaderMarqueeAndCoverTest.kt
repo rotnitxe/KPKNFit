@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertFalse
@@ -99,7 +100,9 @@ class WorkoutHeaderMarqueeAndCoverTest {
             }
         }
         rule.waitForIdle()
-        rule.onNodeWithTag("workout_header_title_marquee").assertExists()
+        // Refinamiento 02: el nombre largo se lee entero en varias líneas bajo la cápsula, sin carrusel.
+        rule.onNodeWithTag("workout_header_title_marquee").assertDoesNotExist()
+        rule.onNodeWithText("Sentadilla Trasera con Barra Alta y Pausa Abajo en Cajón Profundo").assertExists()
     }
 
     @Test
@@ -155,7 +158,7 @@ class WorkoutHeaderMarqueeAndCoverTest {
     }
 
     @Test
-    fun conPortadaSeDibujaFondo() {
+    fun conPortadaTampocoSeDibujaFondo() {
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(3f, 1f)) {
                 MaterialTheme {
@@ -176,6 +179,7 @@ class WorkoutHeaderMarqueeAndCoverTest {
             }
         }
         rule.waitForIdle()
-        rule.onNodeWithTag("workout_header_cover_background").assertExists()
+        // Refinamiento 02: la cabecera no pinta la portada; solo queda la cápsula de vidrio.
+        rule.onNodeWithTag("workout_header_cover_background").assertDoesNotExist()
     }
 }

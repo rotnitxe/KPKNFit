@@ -71,7 +71,7 @@ fun WorkoutSessionAlbumSheet(
     }
     // Salir del álbum borra ya lo que seguía en espera: «Deshacer» solo vale mientras el álbum está abierto.
     DisposableEffect(deferred) { onDispose { deferred.flush() } }
-    KpknSheet(
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, 
         modifier = Modifier.testTag("live-session-album"),
         onDismissRequest = onDismiss,
         maxHeightFraction = 0.93f,

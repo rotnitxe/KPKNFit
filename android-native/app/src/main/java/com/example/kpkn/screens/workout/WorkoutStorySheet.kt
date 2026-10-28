@@ -163,7 +163,7 @@ internal fun WorkoutStorySheet(
             }
         }
     }
-    if(embedded)content()else KpknSheet(onDismissRequest={if(!busy)onDismiss()},stableHeightFraction=.95f,maxHeightFraction=.95f,hazeState=hazeState){content()}
+    if(embedded)content()else KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest={if(!busy)onDismiss()},stableHeightFraction=.95f,maxHeightFraction=.95f,hazeState=hazeState){content()}
     if(expanded&&image!=null)Dialog(onDismissRequest={expanded=false},properties=DialogProperties(usePlatformDefaultWidth=false)){
         Box(Modifier.fillMaxSize().background(Color.Black).clickable{expanded=false},contentAlignment=Alignment.Center){Image(image.asImageBitmap(),"Historia ${safeOptions.template.label}",Modifier.fillMaxSize().padding(16.dp),contentScale=ContentScale.Fit)}
     }

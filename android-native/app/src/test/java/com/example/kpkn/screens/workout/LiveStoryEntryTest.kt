@@ -52,10 +52,9 @@ class LiveStoryEntryTest {
                 LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides host) {
                 KPKNTheme {
                     Box(Modifier.requiredSize(360.dp, height.dp).padding(top = 45.dp, bottom = 24.dp).testTag("story-viewport")) {
-                        WorkoutHeaderBar("Sentadilla", sessionName = "Pierna A", groupName = null, startTimeMs = 0L,
-                            isComplete = false, background = null, sessionTimeRemainingSeconds = null,
-                            onAdjustTimeLimit = {}, onStoryClick = { open = true },
-                            statusBarInsets = WindowInsets(0, 0, 0, 0))
+                        // Refinamiento 02: «Historia» vive en «Tu sesión» (menú), no en la cabecera.
+                        var menu by remember { mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.MENU) }
+                        LiveSessionSheetsHost(menu, { menu = it }, onOpenStory = { menu = null; open = true })
                         if (open) RecordedSessionFinishSheet(name="Pierna A",completedExercises=emptyList(),durationMinutes=1,
                             initialNotes="",saving=false,onNotes={},onAlbum={},onConfirm={_,_->confirmed++},onDismiss={open=false})
 
@@ -64,7 +63,7 @@ class LiveStoryEntryTest {
                 }
             }
         }
-        rule.onNodeWithTag("workout-story-header").performClick()
+        rule.onNodeWithTag("workout-story-header").performScrollTo().performClick()
         rule.onNodeWithText("Preparar historia").performClick()
         rule.onNodeWithTag("story-sheet", useUnmergedTree = true).assertIsDisplayed()
         val viewport = rule.onNodeWithTag("story-viewport").fetchSemanticsNode().boundsInRoot
