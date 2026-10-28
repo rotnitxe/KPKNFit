@@ -169,9 +169,10 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         }
 
         val desiredForm = forcedForm ?: draft.form ?: concept.defaultForm
-        val variant = pickVariant(concept, desiredState, desiredForm)
+        val wantedState = portionState(concept, draft, desiredState) ?: desiredState
+        val variant = pickVariant(concept, wantedState, desiredForm)
         val record = catalog.record(variant?.recordId)
-        val state = if (variant != null) variant.state else desiredState
+        val state = if (variant != null) variant.state else wantedState
         val form = variant?.form ?: desiredForm
         val powder = form == FoodFormV2.POWDER_DRY
         val flags = Flags()
@@ -182,6 +183,25 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
             flags.formFallback = draft.form != null && !formSatisfied(draft.form, variant.form)
         }
         return Solved(variant, record, state, form, grams, kind, flags)
+    }
+
+    /**
+     * Estado que impone la porción: si el texto no dijo estado y la medida casera o el envase («un plato de avena») solo
+     * existe en el concepto con otro estado que el deseado [desired] (plato = avena cocida, la avena por defecto es cruda),
+     * la ficha sigue a la porción y no al revés. Null si no hay nada que cambiar.
+     */
+    private fun portionState(concept: ConceptV2, draft: MentionDraftV2, desired: FoodStateV2?): FoodStateV2? {
+        if (draft.state != null) return null
+        val label = when (val q = draft.quantity) {
+            is QuantityV2.Household -> q.label
+            is QuantityV2.Container -> if (q.netGrams == null && q.netMl == null) q.label else return null
+            else -> return null
+        }.let { normalize(it) }
+        val matching = concept.portions.filter { normalize(it.label) == label }
+        if (matching.isEmpty() || matching.any { it.state == desired || it.state == null }) return null
+        val state = matching.first().state ?: return null
+        val reachable = concept.variants.any { it.recordId != null && statesCompatible(it.state, state) }
+        return if (reachable) state else null
     }
 
     /** El estado pedido se cubre con el de la variante (los de cocción seca se tratan como equivalentes entre sí). */

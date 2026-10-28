@@ -377,7 +377,8 @@ fun FoodLoggerDrawer(
             val v2Tags = if (useParserV2) {
                 try {
                     NutritionParserV2Holder.parser(appContext)?.let { parserV2 ->
-                        ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.rawDescription), parserV2.catalog)
+                        // v2 se midió con el texto tal como se escribió y tiene su propio normalizador (rawDescription ya pasó por el de v1).
+                        ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.verbatimDescription.ifBlank { parsed.rawDescription }), parserV2.catalog)
                     }?.takeIf { candidate -> candidate.any { it.isResolved } }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
@@ -713,6 +714,11 @@ fun FoodLoggerDrawer(
     LaunchedEffect(Unit) {
         nutritionRepo.prepareSemanticDataset()
         nutritionRepo.initFoodIndex()
+    }
+
+    // Precarga el vocabulario del intérprete v2 (≈0,9 s la primera vez) al abrir el registro, no en el primer análisis.
+    LaunchedEffect(settings.nutritionParserV2) {
+        if (settings.nutritionParserV2) scope.launch { NutritionParserV2Holder.parser(appContext) }
     }
 
     // WP-U7 (C5): after process death the draft comes back from its seed without cards: interpret the last analyzed text

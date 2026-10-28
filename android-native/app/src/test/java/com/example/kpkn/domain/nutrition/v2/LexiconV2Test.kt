@@ -457,4 +457,90 @@ class LexiconV2Test {
         assertEquals(listOf<LexTag>(LexTag.Filler), spans("cada una")[0].tags)
         assertEquals(listOf<LexTag>(LexTag.Medium(MediumV2.WATER)), spans("en agua")[0].tags)
     }
+
+    // ─── Alias que empiezan con una medida o un envase ──────────────────
+
+    private val containerLexicon = LexiconV2.withModifiers(
+        listOf(
+            food("lata de atun", "atun_en_aceite"),
+            food("lata de atun", "atun_en_agua"),
+            food("atun", "atun_en_aceite"),
+            food("atun en aceite", "atun_en_aceite"),
+            food("atun en agua", "atun_en_agua"),
+            food("taza de chocolate", "chocolate_caliente"),
+            food("chocolate caliente", "chocolate_caliente"),
+            food("chocolate", "chocolate"),
+            food("vaso de leche con chocolate", "leche_con_chocolate"),
+            food("leche con chocolate", "leche_con_chocolate"),
+            food("trozo de pizza hawaiana", "pizza_hawaiana"),
+            food("pizza hawaiana", "pizza_hawaiana"),
+            food("pizza", "pizza"),
+        ),
+    )
+
+    private fun cSpans(text: String): List<TaggedSpan> = spans(text, containerLexicon)
+
+    @Test fun `media lata de atun en agua separa el envase y deja el alimento largo`() {
+        val result = cSpans("media lata de atun en agua")
+        val lata = result.single { s -> s.tags.any { it is LexTag.Container } }
+        assertEquals(1, lata.first)
+        assertEquals(1, lata.last)
+        assertTrue(lata.tags.contains(LexTag.Container("lata")))
+        val atun = result.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("atun_en_agua"), foodIds(atun))
+        assertEquals(3, atun.first)
+        assertEquals(5, atun.last)
+    }
+
+    @Test fun `una lata de atun en aceite separa el envase y deja el alimento largo`() {
+        val result = cSpans("una lata de atun en aceite")
+        val lata = result.single { s -> s.tags.any { it is LexTag.Container } }
+        assertEquals(1, lata.first)
+        assertEquals(1, lata.last)
+        val atun = result.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("atun_en_aceite"), foodIds(atun))
+        assertEquals(3, atun.first)
+        assertEquals(5, atun.last)
+    }
+
+    @Test fun `una taza de chocolate caliente separa la medida y deja el alimento largo`() {
+        val result = cSpans("una taza de chocolate caliente")
+        val taza = result.single { s -> s.tags.any { it is LexTag.Household } }
+        assertEquals(1, taza.first)
+        assertEquals(1, taza.last)
+        assertTrue(taza.tags.contains(LexTag.Household("taza")))
+        val choco = result.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("chocolate_caliente"), foodIds(choco))
+        assertEquals(3, choco.first)
+        assertEquals(4, choco.last)
+    }
+
+    @Test fun `si el alias interno termina en el mismo token se conserva el alias completo`() {
+        val vaso = cSpans("un vaso de leche con chocolate")
+        val food = vaso.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("leche_con_chocolate"), foodIds(food))
+        assertEquals(1, food.first)
+        assertEquals(5, food.last)
+        val pizza = cSpans("un trozo de pizza hawaiana")
+        val slice = pizza.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("pizza_hawaiana"), foodIds(slice))
+        assertEquals(1, slice.first)
+        assertEquals(4, slice.last)
+    }
+
+    @Test fun `una lata de atun sin alimento mas largo detras conserva el alias completo`() {
+        val result = cSpans("una lata de atun")
+        val food = result.single { s -> foodIds(s).isNotEmpty() }
+        assertEquals(listOf("atun_en_aceite", "atun_en_agua"), foodIds(food))
+        assertEquals(1, food.first)
+        assertEquals(3, food.last)
+    }
+
+    @Test fun `la anticipacion no toca alias que no empiezan con medida o envase`() {
+        val lex = LexiconV2.withModifiers(listOf(food("arroz con pollo", "arroz_pollo"), food("pollo asado", "pollo_asado")))
+        val result = spans("arroz con pollo asado", lex)
+        assertEquals(listOf("arroz_pollo"), foodIds(result[0]))
+        assertEquals(0, result[0].first)
+        assertEquals(2, result[0].last)
+    }
 }
