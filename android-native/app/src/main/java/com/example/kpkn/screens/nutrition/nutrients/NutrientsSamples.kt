@@ -7,7 +7,7 @@ import com.example.kpkn.domain.nutrition.*
 object NutrientsSamples {
     val profile = DriProfile(31, DriSex.FEMALE)
     private val declared = LoggedFood(foodName = "Alimento con ficha", amount = 200.0, calories = 600.0,
-        micronutrients = NutrientKey.entries.map { Micronutrient(it.label, DriTargets.lookup(it, profile)!!.value * 0.5, it.unit) })
+        micronutrients = NutrientKey.entries.mapNotNull { key -> DriTargets.lookup(key, profile)?.let { Micronutrient(key.label, it.value * 0.5, key.unit) } })
     fun state(name: String): NutrientsSheetState {
         val foods = when (name) {
             "complete" -> listOf(declared)
