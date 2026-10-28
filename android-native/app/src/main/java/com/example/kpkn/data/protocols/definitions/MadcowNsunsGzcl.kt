@@ -269,9 +269,9 @@ object GzclProtocols {
      * notación del autor) y del T2 (3 series de 10 al 65 %). Las etapas 2 (T1 6×2+, T2 3×8) y 3 (T1 10×1+, T2 3×6) llevan la MISMA
      * carga y las escribe `GzclpProgression` como receta efectiva del ciclo nuevo cuando no se completa el volumen base.
      */
-    private fun t1Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
+    private fun t1Stage(): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
 
-    private fun t2Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
+    private fun t2Stage(): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
 
     fun gzclpRecipe(): TrainingPlanRecipe {
         val days = listOf(
@@ -294,8 +294,8 @@ object GzclProtocols {
             weekRecipe(w, 0, "Etapa T1", BlockGoal.ACCUMULATION, days.mapIndexed { index, (main, t2id) ->
                 val (label, id, lift) = main
                 day(label, weekday = listOf(1, 2, 4, 5)[index], slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, id, t1Stage(w), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
-                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(w), 120, t2Lifts.getValue(t2id), supplementalOf = "t1"),
+                    slot("t1", SlotRole.T1_MAIN, id, t1Stage(), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
+                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(), 120, t2Lifts.getValue(t2id), supplementalOf = "t1"),
                     // L-09 (B.S6): `rpeSets` solo copia `repsMax`; el rango 15-20 del T3 pierde el mínimo si no se fija `repsMin`.
                     slot(
                         "t3a", SlotRole.T3_ACCESSORY, if (index % 2 == 0) CatalogIds.LAT else CatalogIds.PENDLAY,

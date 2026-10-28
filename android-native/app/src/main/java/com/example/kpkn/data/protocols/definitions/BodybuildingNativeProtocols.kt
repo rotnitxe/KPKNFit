@@ -262,7 +262,7 @@ object KpknNativeHypertrophyProtocols {
         id = "kpkn-rp-style",
         name = "Mesociclo RP-style KPKN",
         emoji = "📈",
-        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y los accesorios sumando una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
+        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y el primer accesorio de cada día suma una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
         author = "KPKN Fit",
         tags = listOf("culturismo", "hipertrofia", "avanzado", "4 días", "6 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 60, 80), ProtocolBlock("Descarga", 1, "Descarga", 50, 65)),
