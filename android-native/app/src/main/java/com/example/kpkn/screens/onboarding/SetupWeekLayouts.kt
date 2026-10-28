@@ -119,23 +119,33 @@ internal fun applyExerciseOverrides(program: Program, overrides: Map<String, Str
     if (overrides.isEmpty()) return program
     val index = GeneratorCatalog.of(catalog)
     // DUP-03: una sustitución cuyo destino (configuración, definición o familia) ya está en otro ejercicio de la sesión se ignora.
-    fun swapIn(session: Session): (Exercise) -> Exercise = { exercise ->
-        val configId = overrides[exercise.id]
-        val entry = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it) }
-        val others = session.allExercises().filter { it.id != exercise.id }
-        val collides = entry != null && others.any { other ->
-            other.catalogConfigurationId == entry.id ||
-                other.catalogDefinitionId == entry.definitionId ||
-                (SessionSlopRules.familyOf(entry.id) != null && SessionSlopRules.familyOf(other.catalogConfigurationId) == SessionSlopRules.familyOf(entry.id))
-        }
-        val info = entry?.takeUnless { collides }?.legacy
-        if (info == null) {
-            exercise
-        } else {
-            exercise.replacedWithCatalogExercise(info).copy(
-                loadReference = null,
-                loadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
-            )
+    // La comprobación es progresiva: los ejercicios se recorren en orden y cada uno se compara con la configuración VIGENTE de los
+    // demás (los ya cambiados, ya con su destino; los que aún no, con la original), así dos sustituciones hacia el mismo destino
+    // no pueden convivir y un destino que otro ejercicio de la sesión acaba de dejar libre sí se admite.
+    fun swapIn(session: Session): (Exercise) -> Exercise {
+        val current = session.allExercises().associateBy { it.id }.toMutableMap()
+        return { exercise ->
+            val configId = overrides[exercise.id]
+            val entry = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it) }
+            val targetFamily = entry?.let { SessionSlopRules.familyOf(it.id) }
+            val collides = entry != null && current.values.any { other ->
+                other.id != exercise.id && (
+                    other.catalogConfigurationId == entry.id ||
+                        other.catalogDefinitionId == entry.definitionId ||
+                        (targetFamily != null && SessionSlopRules.familyOf(other.catalogConfigurationId) == targetFamily)
+                    )
+            }
+            val info = entry?.takeUnless { collides }?.legacy
+            val result = if (info == null) {
+                exercise
+            } else {
+                exercise.replacedWithCatalogExercise(info).copy(
+                    loadReference = null,
+                    loadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+                )
+            }
+            current[exercise.id] = result
+            result
         }
     }
     return program.copy(

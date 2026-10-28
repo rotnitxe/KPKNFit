@@ -81,6 +81,8 @@ internal fun ExerciseCatalogScreen(
                 exercise = liveTarget,
                 availability = liveSwapAvailability(liveSession,livePrograms.firstOrNull { it.id == liveWorkout?.programId },liveSettings?.equipmentAvailability),
                 avoided = persistedSwapAvoided(livePrograms.firstOrNull { it.id == liveWorkout?.programId }),
+                excludedConfigurationIds = liveSession?.allExercises().orEmpty().filter { it.id != request.targetExerciseId }
+                    .mapNotNull { it.catalogConfigurationId }.toSet(),
             )
         }
     }

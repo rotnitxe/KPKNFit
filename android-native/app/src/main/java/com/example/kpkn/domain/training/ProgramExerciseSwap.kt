@@ -103,8 +103,11 @@ fun applyExerciseSwap(
     }
     return marked.copy(programDecisions = marked.programDecisions + ProgramDecision(
         "manual-swap:${program.runState?.runId}:$nowMs:$sessionId:$exerciseId:${target.configId}:$scope",nowMs,"MANUAL","Ejercicio cambiado",
-        "${source.name} → ${info.name} en ${changedRoots.size} sesiones ($changedExercises ejercicios)" +
-            (if (skippedSessions > 0) "; $skippedSessions sesiones conservan el ejercicio porque ya tenían «${info.name}»" else "") +
+        "${source.name} → ${info.name} en ${changedRoots.size} ${if (changedRoots.size == 1) "sesión" else "sesiones"} " +
+            "($changedExercises ${if (changedExercises == 1) "ejercicio" else "ejercicios"})" +
+            (if (skippedSessions > 0) {
+                "; $skippedSessions ${if (skippedSessions == 1) "sesión conserva" else "sesiones conservan"} el ejercicio porque ya tenía${if (skippedSessions == 1) "" else "n"} «${info.name}»"
+            } else "") +
             ". Repeticiones, RIR y descansos conservados; carga pendiente para la configuración nueva.",
         weekId = sourceLocation.week.id,blockId = sourceLocation.blockId))
 }

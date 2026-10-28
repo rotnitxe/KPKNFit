@@ -105,4 +105,22 @@ class ProgramExerciseSwapTest {
         assertTrue(decision.detail,decision.detail.contains("en 2 sesiones (2 ejercicios)"))
         assertTrue(decision.detail,decision.detail.contains("2 sesiones conservan el ejercicio porque ya tenían «"))
     }
+    @Test fun the_decision_text_uses_the_singular_when_a_count_is_one() {
+        // Una sola sesión afectada: «1 sesión (1 ejercicio)»; una sola conservada: «1 sesión conserva … porque ya tenía».
+        val single = apply(program(),SwapScope.THIS_SESSION).programDecisions.single()
+        assertTrue(single.detail,single.detail.contains("en 1 sesión (1 ejercicio)"))
+        assertTrue(single.detail,!single.detail.contains("el ejercicio porque ya tenía"))
+        val base = program()
+        val extra = Exercise("x2","Otro",catalogConfigurationId = CatalogIds.BP_PAUSE,catalogDefinitionId = "paused_bench_press",
+            sets = listOf(ExerciseSet("x2-set",targetReps = 8,targetRIR = 2)))
+        val p = base.copy(macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
+                week.copy(sessions = week.sessions.map { session ->
+                    if (session.id == "s2") session.copy(exercises = session.exercises + extra) else session
+                })
+            }) })
+        }) })
+        val detail = apply(p,SwapScope.WHOLE_PROGRAM).programDecisions.single().detail
+        assertTrue(detail,detail.contains("en 3 sesiones (3 ejercicios); 1 sesión conserva el ejercicio porque ya tenía «"))
+    }
 }
