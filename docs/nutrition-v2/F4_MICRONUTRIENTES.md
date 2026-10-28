@@ -57,7 +57,7 @@ y que la hoja de nutrientes del día lo muestre con cobertura honesta. **Sin cam
 |---|---|---|
 | F4-A1 | `NutrientId`, campos nuevos de `LoggedFood`, `LoggedFood.nutrientAmount(id)`, `CatalogRecordLink`, `scaleFoodByPortion` pone `catalogRecordId`, puerto de dominio `NutritionCatalogPort` | JVM — hecho (`3ccd1d70a`) |
 | F4-A2 | `NutrientKey` ampliado (azúcares, grasas por tipo, colesterol, fósforo, colina, EPA+DHA, ALA, cafeína, alcohol) y enlazado a `NutrientId`, `NutrientCoverage` lee primero la instantánea (ausente ≠ 0), `DriTargets` (embarazo/lactancia, filas nuevas), `GuideLimits` | JVM |
-| F4-B | `LoggedFood.withCatalogNutrients(port)` (dominio; base ml → g por densidad), lector del paquete (`OPEN_READONLY`), publicación (asset `.gz` → `filesDir`, sha256 + `quick_check`, puntero en `nutrition_catalog_publication`, borra la generación anterior), `NutritionCatalogHolder` y enriquecimiento en `NutritionRepository.saveNutritionLog`; paquete de muestra para tests (`make_fixture_pack.py`) | JVM + Android (Robolectric) |
+| F4-B | `LoggedFood.withCatalogNutrients(port)` (dominio; base ml → g por densidad), lector del paquete (`OPEN_READONLY`), publicación (asset `.gz` → `filesDir`, sha256 + `metadata.generation`; sin `quick_check` en el dispositivo, ver N33 de `DECISIONES_NOCHE.md`, puntero en `nutrition_catalog_publication`, borra la generación anterior), `NutritionCatalogHolder` y enriquecimiento en `NutritionRepository.saveNutritionLog`; paquete de muestra para tests (`make_fixture_pack.py`) | JVM + Android (Robolectric) |
 | F4-C | Hoja de nutrientes por grupos (macros detallados, minerales, vitaminas, otros) con cobertura | Android (compilar) + teléfono en F5 |
 
 ## 5. Aceptación

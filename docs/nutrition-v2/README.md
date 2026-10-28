@@ -7,15 +7,18 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 
 **F0 → F1a → F4 → F1b → F2 → F3 → F5.** Cada fase se acepta solo con el examen (`EXAMEN.md`).
 
+**Resultado final: [RESULTADO_V2.md](RESULTADO_V2.md)** (TEST sellado: M3 20,8 % → 49,1 %, M4 53,1 % → 24,6 %,
+ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOCHE.md).
+
 | Fase | Qué | Estado |
 |---|---|---|
-| F0 | Examen sellado + arnés A/B; línea base de master; veredicto master vs. Codex | en curso |
-| F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | paquete construido (`e0e53e842`); falta el lector en Android |
-| F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | en curso: contrato `F4_MICRONUTRIENTES.md`; F4-A1 hecho (`3ccd1d70a`); F4-A2 y F4-B en curso |
-| F1b | Conceptos y alias en español por lotes («IA en la fábrica») | en curso: contrato `F1B_CONCEPTOS.md`, herramientas `scripts/nutrition_v2/concepts/` (`932841268`); etapa 1 ola 1 (C01, C04, C06, C07, C12, C15) en `C:\kw\nutri-build\concepts\stage1\`; faltan C02, C03, C05, C08–C11, C13, C14, C16, C17 |
-| F2 | Parser v2 por léxico + gramática de enlaces, en sombra | en curso: contrato `F2_PARSER_V2.md`; F2-a (normalizador, vocabulario y trie) en curso |
-| F3 | Cantidad, estado y presentación (reconstitución) explícitos | pendiente |
-| F5 | Integración, rendimiento, teléfono, fuentes y licencias | pendiente |
+| F0 | Examen sellado + arnés A/B; línea base de master; veredicto master vs. Codex | hecho (`3126937de`, [BASELINE.md](BASELINE.md)): Codex empata con master |
+| F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | hecho: paquete (`e0e53e842`), lector y publicador en Android (F4-B `a401eafc7`); el APK lo lleva sin `.gz` (AGP descomprime los assets) |
+| F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | hecho: 33 nutrientes, «sin dato» ≠ 0, DRI de embarazo y lactancia, topes de guía (F4-A1/A2), instantánea al guardar (F4-B), hoja agrupada (F4-C) |
+| F1b | Conceptos y alias en español por lotes («IA en la fábrica») | hecho: 1.652 conceptos, 22.425 alias (es/en/faltas), 2.068 fichas; rondas de datos R1-D (`b4cc06fe6`) y R2-D (`f6de40a13`) |
+| F2 | Parser v2 por léxico + gramática de enlaces, en sombra | hecho (`fc6d7c94b` + ronda 1 `fa14c0558`, `c5edc22d9`) |
+| F3 | Cantidad, estado y presentación (reconstitución) explícitos | hecho en el resolutor (fracciones, envases, reconstitución, estado y forma por defecto, preguntas materiales); los chips nuevos en la tarjeta quedan pendientes |
+| F5 | Integración, rendimiento, teléfono, fuentes y licencias | hecho: adaptador con la misma compuerta (`c5348ee10`), interruptor (apagado), Fuentes y licencias, assets; la QA en el emulador encontró que el paquete no se publicaba en el dispositivo (arreglado, N33); falta recorrerlo en el teléfono |
 
 ## Decisiones
 
@@ -59,4 +62,6 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 
 | Fecha | Sistema | Commit | M3 | M4 | M7 | Nota |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — |
+| 2026-10-28 02:20 | master | `c4491bc83` | 20,8 % | 53,1 % | 34,4 % | línea base (BASELINE.md) |
+| 2026-10-28 02:27 | Codex + trabajo sin commitear | `16cf3c293` | 20,8 % | 53,3 % | 34,1 % | NO ACEPTA (empate) |
+| 2026-10-28 05:46 | **v2** (vocabulario `b43cc853…`) | `f6de40a13` | **49,1 %** | **24,6 %** | 49,1 % | **ACEPTA**: ΔM3 +28,3 pp [+25,4; +31,6], ΔM4 −28,6 pp [−32,8; −24,2]; única corrida de v2 en TEST |
