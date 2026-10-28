@@ -1810,6 +1810,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             sessionPlaceAvailability = availabilityAt(state.draft, place),
             catalog = catalog,
             avoided = state.draft.avoidedExercises,
+            // DUP-03: lo que ya está en la sesión no se ofrece como destino.
+            excludedConfigurationIds = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() -
+                setOfNotNull(exercise.catalogConfigurationId),
         )
     }
 

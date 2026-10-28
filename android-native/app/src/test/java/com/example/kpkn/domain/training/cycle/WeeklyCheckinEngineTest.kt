@@ -86,7 +86,13 @@ class WeeklyCheckinEngineTest {
         assertEquals(workCount(weeks(p).first().sessions.single()) + 1, workCount(weeks(result).first().sessions.single()))
         assertEquals(weeks(p)[1], weeks(result)[1])
         assertEquals("Ajuste semanal confirmado", result.programDecisions.last().title)
-        assertEquals(result, ProgramProgressEngine.applyWeeklyCheckin(result, answer(p), metadata))
+        // Responder otra vez ya no cambia la receta ni las respuestas, pero queda dicho que no se aplicó.
+        val again = ProgramProgressEngine.applyWeeklyCheckin(result, answer(p), metadata)
+        assertEquals(result.effectiveWeekRecipes, again.effectiveWeekRecipes)
+        assertEquals(result.weeklyCheckins, again.weeklyCheckins)
+        assertEquals(result.macrocycles, again.macrocycles)
+        assertEquals(UnappliedResponse.TITLE, again.programDecisions.last().title)
+        assertEquals("WEEKLY_CHECKIN", again.programDecisions.last().source)
     }
     @Test fun skipping_is_an_original_answer_with_no_effective_recipe() {
         val p = pending(program())
@@ -100,7 +106,16 @@ class WeeklyCheckinEngineTest {
         val p = pending(program())
         listOf(answer(p).copy(programRunId = "previous"), answer(p).copy(cycleNumber = 2),
             answer(p).copy(muscles = listOf(MuscleCheckin("CHEST", 8, 1)))).forEach {
-            assertSame(p, ProgramProgressEngine.applyWeeklyCheckin(p, it, metadata))
+            val result = ProgramProgressEngine.applyWeeklyCheckin(p, it, metadata)
+            // No cambia el plan ni se pierde la petición vigente, pero el motivo queda registrado y visible.
+            assertEquals(p.macrocycles, result.macrocycles)
+            assertEquals(p.effectiveWeekRecipes, result.effectiveWeekRecipes)
+            assertEquals(p.pendingWeeklyCheckin, result.pendingWeeklyCheckin)
+            assertTrue(result.weeklyCheckins.isEmpty())
+            assertEquals(p.programDecisions.size + 1, result.programDecisions.size)
+            assertEquals(UnappliedResponse.TITLE, result.programDecisions.last().title)
+            assertTrue(UnappliedResponse.reason(result.programDecisions.last())!!.isNotBlank())
+            assertEquals(UnappliedResponse.reason(result.programDecisions.last()), UnappliedResponse.newReason(p, result))
         }
         val author = p.copy(sourceRecipe = p.sourceRecipe!!.copy(compositionProfile = RecipeCompositionProfile.AUTHORED_EXACT))
         assertSame(author, ProgramProgressEngine.applyWeeklyCheckin(author, answer(author), metadata))
@@ -146,6 +161,25 @@ class WeeklyCheckinEngineTest {
         assertEquals(p.planningVolumeTargets, result.planningVolumeTargets)
         assertEquals(p.volumeRecommendations, result.volumeRecommendations)
         val invalid = p.copy(planningVolumeTargets = p.planningVolumeTargets + p.planningVolumeTargets)
-        assertSame(invalid, ProgramProgressEngine.applyWeeklyCheckin(invalid, answer(invalid), metadata))
+        val rejected = ProgramProgressEngine.applyWeeklyCheckin(invalid, answer(invalid), metadata)
+        assertEquals(invalid.macrocycles, rejected.macrocycles)
+        assertTrue(rejected.weeklyCheckins.isEmpty())
+        assertEquals(UnappliedResponse.TITLE, rejected.programDecisions.last().title)
+    }
+
+    @Test fun an_answer_without_a_pending_request_is_reported_and_a_matching_dead_request_is_cleared() {
+        val p = program()
+        val noRequest = ProgramProgressEngine.applyWeeklyCheckin(p, answer(pending(p)), metadata, nowMs = 5L)
+        assertEquals(p.macrocycles, noRequest.macrocycles)
+        assertEquals(UnappliedResponse.TITLE, noRequest.programDecisions.single().title)
+        assertTrue(noRequest.programDecisions.single().detail.contains("pendiente"))
+        // Petición de una semana que ya no existe en la receta: la respuesta no tiene salida, la petición se limpia.
+        val base = pending(p)
+        val gone = base.copy(pendingWeeklyCheckin = base.pendingWeeklyCheckin!!.copy(weekId = "gone"),
+            runState = base.runState!!.copy(weekId = "gone"))
+        val lost = ProgramProgressEngine.applyWeeklyCheckin(gone, answer(gone).copy(weekId = "gone"), metadata)
+        assertNull(lost.pendingWeeklyCheckin)
+        assertEquals(UnappliedResponse.TITLE, lost.programDecisions.last().title)
+        assertTrue(lost.weeklyCheckins.isEmpty())
     }
 }

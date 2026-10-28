@@ -20,8 +20,12 @@ object SeasonAdvisor {
 
     fun advise(input: SeasonInput): List<SeasonAdvice> = buildList {
         fun note(code: SeasonAdviceCode,title: String,detail: String,severity: Int = 1) { add(SeasonAdvice(code,title,detail,severity)) }
-        if (input.blockGoal in setOf(BlockGoal.PEAK,BlockGoal.TAPER,BlockGoal.REALIZATION) && input.direction == PlanDirection.DEFICIT)
+        val peakGoals = setOf(BlockGoal.PEAK,BlockGoal.TAPER,BlockGoal.REALIZATION)
+        if (input.blockGoal in peakGoals && input.direction == PlanDirection.DEFICIT)
             note(SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE,"Pico y déficit declarados","Tu programa está en pico/taper y tu plan nutricional indica déficit. Puedes revisar si prefieres mantenimiento durante esta fase; ningún objetivo se cambia aquí.",2)
+        else if (input.nextBlockGoal in peakGoals && input.direction == PlanDirection.DEFICIT)
+            // Aviso anticipado: llegar al pico en déficit se prepara en el bloque anterior, no al empezar el pico.
+            note(SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE,"Tu próximo bloque es de pico","Tu próximo bloque es de pico: conviene llegar en mantenimiento. Tu plan nutricional indica déficit; ningún objetivo se cambia aquí.")
         if (input.daysToCompetition in 0..14 && input.direction == PlanDirection.DEFICIT &&
             (input.targetBodyweightKg == null || input.currentBodyweightKg?.let { it <= input.targetBodyweightKg } == true))
             note(SeasonAdviceCode.MEET_NEEDS_MAINTENANCE,"Competición próxima","Tu plan indica déficit a dos semanas o menos de competir. Revisa la dirección nutricional frente a tu objetivo; la elección sigue siendo tuya.",2)
@@ -34,7 +38,10 @@ object SeasonAdvisor {
         val days = input.daysToCompetition?.takeIf { it >= 0 }
         if (current != null && target != null && days != null) {
             val forecast = WeighInPlanner.forecast(current,target,input.weeklyWeightRateKg,days)
-            if (!forecast.makesWeight) note(SeasonAdviceCode.WEIGHT_CLASS_RISK,"Comparación con el objetivo de peso",forecast.message,2)
+            // Sin tendencia de peso no hay evidencia de riesgo: se pide registrar el peso, con severidad baja.
+            val noTrend = days > 0 && input.weeklyWeightRateKg?.takeIf { it.isFinite() } == null
+            if (noTrend) note(SeasonAdviceCode.WEIGHT_CLASS_RISK,"Comparación con el objetivo de peso","Registra tu peso para saber si llegas a tu categoría",1)
+            else if (!forecast.makesWeight) note(SeasonAdviceCode.WEIGHT_CLASS_RISK,"Comparación con el objetivo de peso",forecast.message,2)
         }
         if (input.direction == null) note(SeasonAdviceCode.NO_NUTRITION_PLAN,"Sin dirección nutricional disponible","Puedes consultar tu plan de nutrición para añadir contexto a esta temporada. El entrenamiento mantiene su planificación independiente.")
     }

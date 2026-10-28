@@ -567,8 +567,14 @@ object PlanAdaptationResolver {
     ): DayAdaptation {
         val essential = day.minimumDose?.essentialSlotIds.orEmpty().toSet()
         val kept = mutableListOf<SlotRecipe>()
-        for (slot in day.slots) {
+        for ((index, slot) in day.slots.withIndex()) {
             val originalId = slot.lift.configurationId
+            // DUP-02: configuraciones ya presentes en el día (mantenidas o sustituidas)
+            // más las originales de los slots aún no procesados, excluido el actual.
+            val taken: Set<String> = buildSet {
+                kept.forEach { add(it.lift.configurationId) }
+                day.slots.drop(index + 1).forEach { add(it.lift.configurationId) }
+            }
             when (val availability = configurationAvailability(originalId, request)) {
                 ConfigurationAvailability.Unresolved -> return DayAdaptation(
                     day = null,
@@ -636,7 +642,7 @@ object PlanAdaptationResolver {
                             ),
                         )
                     }
-                    when (val pick = pickCandidate(slot, availability, request)) {
+                    when (val pick = pickCandidate(slot, availability, request, taken)) {
                         is Pick.Substituted -> {
                             val adaptedSlot = applySubstitution(slot, pick, request)
                             changes += DayChange(day.label, changeFor(slot, adaptedSlot, pick, request))
@@ -667,15 +673,24 @@ object PlanAdaptationResolver {
      * (tier 2) → reserva material-libre (tier 3). El primer candidato con todo
      * el material acreditado gana; si no hay alternativa cruzada curada el
      * motivo es [PlanAdaptationReason.NO_VALID_SUBSTITUTION].
+     *
+     * DUP-02: las candidatas cuya configuración (o definición) ya está en
+     * [taken] (el resto del día) se descartan; si todas las alternativas
+     * viables están tomadas, el fallo es `NO_VALID_SUBSTITUTION` con el
+     * detalle «todas las alternativas ya están en el día».
      */
     private fun pickCandidate(
         slot: SlotRecipe,
         missing: ConfigurationAvailability.Missing,
         request: PlanAdaptationRequest,
+        taken: Set<String> = emptySet(),
     ): Pick {
         val originalId = slot.lift.configurationId
         val definitionId = originalId.substringBefore("__")
         val curated = CURATED_SUBSTITUTIONS[definitionId].orEmpty()
+        val takenDefinitions = taken.map { it.substringBefore("__") }.toSet()
+        fun CuratedCandidate.isTaken(): Boolean =
+            configurationId in taken || configurationId.substringBefore("__") in takenDefinitions
         val tier1 = (curated.filter { it.tier == 1 } + sameDefinitionCandidates(definitionId, originalId, request.catalog))
             .distinctBy { it.configurationId }
             .filter { it.configurationId != originalId }
@@ -683,12 +698,28 @@ object PlanAdaptationResolver {
         val tier3 = curated.filter { it.tier == 3 }
         val note = CATALOG_GAP_NOTES[definitionId]
 
+        var sawAvailableButTaken = false
         listOf(tier1, tier2, tier3).forEachIndexed { index, candidates ->
             candidates.forEach { candidate ->
                 if (configurationAvailability(candidate.configurationId, request) is ConfigurationAvailability.Available) {
-                    return Pick.Substituted(candidate, index + 1)
+                    if (candidate.isTaken()) {
+                        sawAvailableButTaken = true
+                    } else {
+                        return Pick.Substituted(candidate, index + 1)
+                    }
                 }
             }
+        }
+        if (sawAvailableButTaken) {
+            return Pick.Failed(
+                NotViable(
+                    PlanAdaptationReason.NO_VALID_SUBSTITUTION,
+                    slotId = slot.id,
+                    configurationId = originalId,
+                    detail = "Sin alternativa viable para '$originalId': todas las alternativas ya están en el día.",
+                    missingRequirements = missing.missing,
+                ),
+            )
         }
 
         val missingKinds = missing.missing.joinToString()

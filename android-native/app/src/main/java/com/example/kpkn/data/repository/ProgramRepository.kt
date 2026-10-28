@@ -1271,6 +1271,20 @@ class ProgramRepository private constructor(
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
         _history.value.filter { it.programId == programId }
 
+    /**
+     * Al abrir el detalle: si la persona no registra la última sesión obligatoria (inactividad o semana ya terminada por
+     * calendario), pide la decisión de sesiones perdidas para que el cursor no quede detenido sin salida.
+     */
+    suspend fun requestStalledMissedSessions(programId: String, today: java.time.LocalDate, zone: java.time.ZoneId): Boolean {
+        val active = _activeProgramState.value
+        if (active == null || active.programId != programId || active.status != ProgramStatus.ACTIVE) return false
+        return mutateProgramNow(programId) { current ->
+            val next = com.example.kpkn.domain.training.schedule.MissedSessionPolicy.requestIfStalled(
+                current, getLogsForProgram(programId), today, zone, System.currentTimeMillis())
+            if (next == current) null else next
+        }
+    }
+
     fun getLogsForSession(sessionId: String): List<WorkoutLog> =
         _history.value.filter { it.sessionId == sessionId }
 
@@ -1571,8 +1585,10 @@ class ProgramRepository private constructor(
         val avoided = program.avoidedExerciseGroups.mapNotNull { name ->
             com.example.kpkn.domain.onboarding.AvoidGroup.entries.firstOrNull { it.name == name }
         }.toSet()
-        val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided)
-            else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided)
+        // DUP-03: lo que ya está en la sesión de origen no se ofrece como destino.
+        val others = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() - setOfNotNull(exercise.catalogConfigurationId)
+        val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided,excludedConfigurationIds = others)
+            else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided,excludedConfigurationIds = others)
         return ExerciseSwapRequest(program,settings,sessionId,exerciseId,exercise.name,options,availability == null,catalog)
     }
 
