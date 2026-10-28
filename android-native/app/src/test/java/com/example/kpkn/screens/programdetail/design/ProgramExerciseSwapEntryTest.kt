@@ -31,7 +31,7 @@ class ProgramExerciseSwapEntryTest {
         val day = ProgramDetailSamples.day(1,"Lunes","Lun",listOf(ProgramDetailSamples.sessionUi(session)))
         var selected: Pair<String,String>? = null
         rule.setContent {
-            ProgramDayModule(day,true,{}, {}, {}, {}, {}, {}, { _,_ -> },{}, { _,_ -> },null,null,false,
+            ProgramDayModule(day,setOf("session"),{}, {}, {}, {}, {}, {}, { _,_ -> },{}, { _,_ -> },null,null,false,
                 {},{ _,_ -> },{},{ _,_ -> },{},{},onSwapExercise = { sessionId,exerciseId -> selected = sessionId to exerciseId })
         }
         rule.mainClock.advanceTimeBy(1_000L)

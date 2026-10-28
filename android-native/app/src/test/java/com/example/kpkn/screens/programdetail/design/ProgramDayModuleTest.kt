@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.data.models.Block
@@ -36,8 +37,9 @@ import org.robolectric.annotation.Config
 import java.time.LocalDate
 
 /**
- * El módulo de un día de la pestaña Semana (P2), en Robolectric: se despliega y muestra sus ejercicios; «Empezar» llama a la acción; los
- * minutos salen del estimador y no de series × 3; y el menú de una sesión personalizada ofrece «Restaurar…».
+ * El día de la agenda de la pestaña Semana (P2), en Robolectric: cada sesión se despliega en su sitio y muestra sus ejercicios; «Empezar»
+ * llama a la acción; los minutos salen del estimador y no de series × 3; el menú de una sesión editada ofrece «Restaurar…»; el índice
+ * «1 DE 2» sale cuando el día tiene varias sesiones; y la sesión de hoy que no está hecha lleva su botón «Empezar».
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
@@ -48,19 +50,13 @@ class ProgramDayModuleTest {
 
     private val todayWeekday: Int = LocalDate.now().dayOfWeek.value
 
-    /** El módulo del día de Torso A, desplegado o no, con sus acciones de prueba. */
-    private fun setTorsoDay(expanded: Boolean, onStart: (Session) -> Unit = {}) {
-        val day = ProgramDetailSamples.day(
-            id = 1,
-            name = "Lunes",
-            short = "Lun",
-            sessions = listOf(ProgramDetailSamples.sessionUi(ProgramDetailSamples.torsoA)),
-        )
+    /** El módulo de un día con sus acciones de prueba; [expanded] son las sesiones desplegadas. */
+    private fun setDay(day: ProgramDayUi, expanded: Set<String> = emptySet(), onStart: (Session) -> Unit = {}) {
         composeRule.setContent {
             ProgramDayModule(
                 day = day,
-                expanded = expanded,
-                onToggleExpanded = {},
+                expandedSessionIds = expanded,
+                onToggleSession = {},
                 onLongPressDay = {},
                 onEditDate = {},
                 onAddSession = {},
@@ -82,9 +78,20 @@ class ProgramDayModuleTest {
         }
     }
 
+    /** El día de Torso A, con su sesión plegada o desplegada según [expanded], y sus acciones de prueba. */
+    private fun setTorsoDay(expanded: Boolean, onStart: (Session) -> Unit = {}) {
+        val day = ProgramDetailSamples.day(
+            id = 1,
+            name = "Lunes",
+            short = "Lun",
+            sessions = listOf(ProgramDetailSamples.sessionUi(ProgramDetailSamples.torsoA)),
+        )
+        setDay(day, expanded = if (expanded) setOf(ProgramDetailSamples.torsoA.id) else emptySet(), onStart = onStart)
+    }
+
     @Test
     fun desplegarMuestraLosEjercicios() {
-        var expanded by mutableStateOf(false)
+        var expandedIds by mutableStateOf(emptySet<String>())
         val day = ProgramDetailSamples.day(
             id = 1,
             name = "Lunes",
@@ -94,8 +101,8 @@ class ProgramDayModuleTest {
         composeRule.setContent {
             ProgramDayModule(
                 day = day,
-                expanded = expanded,
-                onToggleExpanded = { expanded = !expanded },
+                expandedSessionIds = expandedIds,
+                onToggleSession = { id -> expandedIds = if (id in expandedIds) expandedIds - id else expandedIds + id },
                 onLongPressDay = {},
                 onEditDate = {},
                 onAddSession = {},
@@ -139,40 +146,21 @@ class ProgramDayModuleTest {
             short = "Mié",
             sessions = listOf(ProgramDetailSamples.sessionUi(session)),
         )
-        composeRule.setContent {
-            ProgramDayModule(
-                day = day,
-                expanded = false,
-                onToggleExpanded = {},
-                onLongPressDay = {},
-                onEditDate = {},
-                onAddSession = {},
-                onStartSession = {},
-                onEditSession = {},
-                onMoreSession = { _, _ -> },
-                onRestoreSession = {},
-                onToggleOptional = { _, _ -> },
-                draggingSessionId = null,
-                insertIndex = null,
-                anchorFirstSession = false,
-                onDayBounds = {},
-                onSessionBounds = { _, _ -> },
-                onSessionDragStart = {},
-                onSessionDrag = { _, _ -> },
-                onSessionDragEnd = {},
-                onSessionDragCancel = {},
-            )
-        }
+        setDay(day)
         composeRule.onNodeWithText("≈ $estimated min", substring = true).assertIsDisplayed()
     }
 
     @Test
-    fun laRestauracionVaEnLineaYNoSeRepiteEnElMenu() {
+    fun elMenuDeLaSesionOfreceRestaurarSoloSiEstaEditada() {
         setDayView(manualProgram())
-        // Una sola acción de restaurar: la de la sesión personalizada con receta fuente (la otra sesión no tiene marca).
+        // Las sesiones empiezan plegadas: la editada se despliega tocándola y muestra su restauración en línea, una sola vez.
+        composeRule.onNodeWithText("Sesión editada").performClick()
         assertEquals(1, composeRule.onAllNodesWithText(RESTORE_LABEL).fetchSemanticsNodes().size)
-        // El menú de la sesión solo lleva lo destructivo: abrirlo no añade otra restauración.
+        // Su menú ofrece editar, mover, restaurar y eliminar; la restauración en línea no se repite en el menú.
         composeRule.onAllNodesWithContentDescription("Más opciones de la sesión")[0].performClick()
+        composeRule.onNodeWithText("Editar sesión").assertIsDisplayed()
+        composeRule.onNodeWithText("Mover a otro día").assertIsDisplayed()
+        composeRule.onNodeWithText("Restaurar desde el plan").assertIsDisplayed()
         composeRule.onNodeWithText("Eliminar sesión").assertIsDisplayed()
         assertEquals(1, composeRule.onAllNodesWithText(RESTORE_LABEL).fetchSemanticsNodes().size)
     }
@@ -180,8 +168,40 @@ class ProgramDayModuleTest {
     @Test
     fun laRestauracionEnLineaAbreLaConfirmacion() {
         setDayView(manualProgram())
+        composeRule.onNodeWithText("Sesión editada").performClick()
         composeRule.onNodeWithText(RESTORE_LABEL).performClick()
         composeRule.onNodeWithText("Restaurar sesión").assertIsDisplayed()
+    }
+
+    @Test
+    fun diaConDosSesionesMuestraElIndice() {
+        val day = ProgramDetailSamples.day(
+            id = 1,
+            name = "Lunes",
+            short = "Lun",
+            sessions = listOf(
+                ProgramDetailSamples.sessionUi(ProgramDetailSamples.torsoA),
+                ProgramDetailSamples.sessionUi(ProgramDetailSamples.piernaA),
+            ),
+        )
+        setDay(day)
+        composeRule.onNodeWithText("1 DE 2").assertIsDisplayed()
+        composeRule.onNodeWithText("2 DE 2").assertIsDisplayed()
+    }
+
+    @Test
+    fun laSesionDeHoyNoHechaLlevaElBotonEmpezar() {
+        var started: Session? = null
+        val day = ProgramDetailSamples.day(
+            id = 1,
+            name = "Lunes",
+            short = "Lun",
+            sessions = listOf(ProgramDetailSamples.sessionUi(ProgramDetailSamples.torsoA)),
+            today = true,
+        )
+        setDay(day, onStart = { started = it })
+        composeRule.onNodeWithContentDescription("Empezar Torso A").performClick()
+        assertEquals("Torso A", started?.name)
     }
 
     /** La vista de días con un programa de dos sesiones de hoy: la editada (con receta fuente) y una sin marca. */
