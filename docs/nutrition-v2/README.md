@@ -36,12 +36,13 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 | Pieza | Ruta | Estado |
 |---|---|---|
 | Contrato del examen | `docs/nutrition-v2/EXAMEN.md` | hecho |
-| Lectores de fuentes (copiados de Codex) | `scripts/nutrition_v2/sources/` | pendiente |
-| Índice de referencias | `scripts/nutrition_v2/exam/refindex.py` | pendiente |
-| Puntuador + bootstrap | `scripts/nutrition_v2/exam/score.py` | pendiente |
-| Generación y curación | `scripts/nutrition_v2/exam/generate.py`, `curate.py` | pendiente |
-| Etiquetado y acuerdo | `scripts/nutrition_v2/exam/label.py`, `agree.py` | pendiente |
-| Predicciones de master | `android-native/app/src/test/java/com/example/kpkn/domain/nutrition/exam/` | pendiente |
+| Lectores de fuentes (copiados de Codex) | `scripts/nutrition_v2/sources/` | hecho (`a6dd982fc`) |
+| Índice de referencias (16.541 fichas) | `scripts/nutrition_v2/exam/refindex.py` | hecho (`3214b91a5`) |
+| Generación de textos | 8 agentes Sonnet → `C:\kw\nutri-examen\raw\G1…G8.jsonl` (guía en `spec\GENERACION.md`) | hecho: 1.154 textos; por fenómeno exacto; estilo `telefono` 47 % (meta 40 %), SNACK 22 % (meta 15 %) |
+| Puntuador + bootstrap | `scripts/nutrition_v2/exam/score.py` | en curso |
+| Curación, oro y acuerdo | `scripts/nutrition_v2/exam/curate.py`, `gold_build.py`, `agree.py` | en curso |
+| Etiquetado | agentes Sonnet con `spec\ETIQUETADO.md` (convenciones de porciones) | pendiente |
+| Predicciones de master | `android-native/app/src/test/java/com/example/kpkn/domain/nutrition/exam/` | en curso |
 
 ## Registro de corridas de TEST
 
