@@ -1359,6 +1359,64 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
+    fun power_templates_never_repeat_an_exercise_in_a_day() {
+        // F-14 (DUP-06, SLOP-02, SLOP-03): el bloque de fuerza hacía banca inclinada como T1 y como suplementario el mismo día; el
+        // peso muerto con déficit caía tres días por semana en el bloque 1; y la semana de test metía singles al 90/95 % el viernes y
+        // el sábado tras los tests. A nivel de receta: ningún día repite configuración, ninguna bisagra (slots del patrón DEADLIFT)
+        // cae más de dos días por semana y la semana de test solo tiene singles en los días de test (los que llegan al 100 %).
+        listOf("power-16-4", "power-20-5").forEach { id ->
+            val recipe = templateRecipe(id)
+            recipe.weeks.forEach { week ->
+                week.days.forEach { day ->
+                    val configurations = day.slots.map { it.lift.configurationId }
+                    assertEquals("$id semana ${week.weekNumber}/${day.label}: configuración repetida en $configurations", configurations.toSet().size, configurations.size)
+                }
+                val hingeDays = week.days.flatMap { day ->
+                    day.slots.filter { it.lift.liftSlot == LiftSlot.DEADLIFT }.map { it.lift.configurationId }.toSet().map { it to day.label }
+                }.groupBy({ it.first }, { it.second })
+                hingeDays.forEach { (configuration, days) ->
+                    assertTrue("$id semana ${week.weekNumber}: $configuration en ${days.size} días ($days)", days.size <= 2)
+                }
+            }
+            val testWeek = recipe.weeks.last()
+            assertEquals("$id: la última semana es la de test", BlockGoal.TAPER, testWeek.blockGoal)
+            testWeek.days.forEach { day ->
+                val work = day.slots.flatMap { workSets(it) }
+                val isTestDay = work.any { (it.percent ?: 0.0) >= 100.0 }
+                if (!isTestDay) {
+                    assertTrue("$id semana ${testWeek.weekNumber}/${day.label}: singles fuera de un día de test", work.none { it.reps == 1 })
+                }
+            }
+            val lightFriday = testWeek.days.first { it.weekday == 5 }
+            assertEquals("Banca ligera", lightFriday.label)
+            assertEquals(CatalogIds.BP, lightFriday.slots.first { it.role == SlotRole.T1_MAIN }.lift.configurationId)
+            assertTrue(workSets(lightFriday.slots.first { it.role == SlotRole.T1_MAIN }).all { it.percent == 60.0 && it.reps == 6 })
+        }
+        // El bloque de fuerza/intensidad vuelve a la banca de competición con la inclinada solo como suplementario.
+        listOf("power-16-4" to 6, "power-20-5" to 7).forEach { (id, weekNumber) ->
+            val tuesday = templateRecipe(id).weeks.first { it.weekNumber == weekNumber }.days.first { it.weekday == 2 }
+            assertEquals("$id semana $weekNumber: T1 de banca", CatalogIds.BP, tuesday.slots.first { it.id == "bp" }.lift.configurationId)
+            assertEquals("$id semana $weekNumber: suplementario", CatalogIds.BP_INC, tuesday.slots.first { it.id == "inc" }.lift.configurationId)
+        }
+        // Bloque 0: el jueves ya es déficit, así que el lunes hace RDL; el sábado técnico de power-20-5 hace piernas rígidas.
+        listOf("power-16-4", "power-20-5").forEach { id ->
+            val week1 = templateRecipe(id).weeks.first { it.weekNumber == 1 }
+            assertEquals("$id: bisagra del lunes", CatalogIds.RDL, week1.days.first { it.weekday == 1 }.slots.first { it.id == "dl-def" }.lift.configurationId)
+            assertEquals("$id: T1 del jueves", CatalogIds.DL_DEF, week1.days.first { it.weekday == 4 }.slots.first { it.id == "dl" }.lift.configurationId)
+        }
+        val advanced = templateRecipe("power-20-5")
+        listOf(1, 7, 16).forEach { weekNumber ->
+            val saturday = advanced.weeks.first { it.weekNumber == weekNumber }.days.first { it.weekday == 6 }
+            assertEquals("power-20-5 semana $weekNumber: bisagra del sábado", CatalogIds.SLDL, saturday.slots.first { it.id == "dl-def" }.lift.configurationId)
+        }
+        val lightSaturday = advanced.weeks.last().days.first { it.weekday == 6 }
+        assertEquals("Sentadilla técnica ligera", lightSaturday.label)
+        assertTrue(workSets(lightSaturday.slots.first { it.id == "sq" }).all { it.percent == 60.0 && it.reps == 3 })
+        assertEquals("power-16-4", 4, templateRecipe("power-16-4").contentVersion)
+        assertEquals("power-20-5", 4, templateRecipe("power-20-5").contentVersion)
+    }
+
+    @Test
     fun kpkn_sbd4_taper_is_at_80_percent_and_the_last_heavy_day_is_seven_days_before_the_test() {
         // Decisión (c): el taper al 85 % de la parte 1 hacía «pesada» el lunes de la semana 11 y la última pesada quedaba a 4 días del test
         // (C7 lo inventariaba). Al 80 % la última pesada es la banca del viernes de la semana 10 (100 % del TM), a 7 días.
@@ -1434,7 +1492,8 @@ class ProtocolRecipeFidelityTest {
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
             val expected = when {
-                it.id == "power-12-3" -> 4
+                // F-14: power-16-4 y power-20-5 cambian de contenido (banca de competición, bisagras repartidas, semana de test ligera).
+                it.id in setOf("power-12-3", "power-16-4", "power-20-5") -> 4
                 it.id.startsWith("power-") || it.id in setOf("powerbuild-16-4","body-16-4","body-20-5") -> 3
                 else -> 2
             }

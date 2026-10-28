@@ -21,6 +21,8 @@ object DayArchetypes {
         t1Id: String = "sq",
         t1ConfigurationId: String = Id.SQ_LOW,
         t1Technique: TechniqueModifier? = null,
+        /** F-14: bisagra suplementaria del slot `dl-def` (déficit por defecto; RDL o piernas rígidas cuando el T1 de la semana ya es déficit). */
+        t2HingeId: String = Id.DL_DEF,
     ): DayRecipe = day(
         label = label,
         archetype = DaySlotTemplate.PL_SQUAT,
@@ -33,7 +35,7 @@ object DayArchetypes {
                 technique = t1Technique,
             ).let { if (t1Top) it.copy(sets = it.sets.mapIndexed { i, s -> s.copy(isTopSet = !s.isWarmup && i == it.sets.lastIndex) }) else it },
             slot(
-                "dl-def", SlotRole.T2_SUPPLEMENTAL, Id.DL_DEF,
+                "dl-def", SlotRole.T2_SUPPLEMENTAL, t2HingeId,
                 repeatPercentSets(3, 5, deficitPercent, 180),
                 restSeconds = 180, liftSlot = LiftSlot.DEADLIFT, source = kpkn,
             ),
