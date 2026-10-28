@@ -64,3 +64,16 @@ scene({tab:'historias',id:'h-nutri-sheet',title:'Nutrición · compartir',after:
 scene({tab:'historias',id:'h-nutri-week',title:'Nutrición · Semana',after:ph=>{animateIn(ph)},html:()=>fullStory(storyNutriWeek),notes:{p:['El anillo de la media con los macros como arcos y siete barras, en acento el día que te pasaste.']}});
 scene({tab:'historias',id:'h-nutri-macros',title:'Nutrición · Macros',after:drawAfter,html:()=>fullStory(storyNutriMacros),notes:{p:['Tres barras finas con el objetivo como fondo y la proteína como titular.']}});
 scene({tab:'historias',id:'h-nutri-streak',title:'Nutrición · Racha',after:drawAfter,html:()=>fullStory(storyNutriStreak),notes:{p:['La espiral cuenta las semanas de la racha.']}});
+
+/* --- v2: historias de otras disciplinas --- */
+const storyRace=(o={})=>storyShell({art:coverSvg('ondas','noche',{seed:3}),artBottom:'50%',top:'42%',end:true,ey:'Media maratón de Valencia',title:'1:38:12',sub:'21,1 km · 4:39 /km · puesto 1.204',w:o.w,foot:'Mi carrera',
+  inner:`<div class="st-lifts">${[['Marca personal','−3:41'],['Último kilómetro','4:21'],['Categoría M35','187.º']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`});
+const storyStage=(o={})=>storyShell({photo:true,art:coverSvg('bruma','carbon',{seed:4,clear:true}),artBottom:'52%',top:'60%',ey:'Regional · Men’s Physique',title:'2.º puesto',w:o.w,foot:'Mi competencia',
+  extra:`<div class="st-medal" style="width:28%;top:48%;left:80%">${medalSvg('plata')}</div>`,
+  inner:`<div class="st-inline"><span>14<small>competidores</small></span><i></i><span>9<small>semanas de prep</small></span></div>`});
+const storyCombat=(o={})=>storyShell({art:coverSvg('campo','carbon',{seed:7}),artBottom:'50%',top:'42%',end:true,ey:'Open de BJJ · -82,3 kg',title:'Plata · 3–1',sub:'Azul · adulto',w:o.w,foot:'Mi competencia',
+  inner:`<div class="st-lifts">${[['Octavos','Puntos 6–2'],['Cuartos','Sumisión'],['Semifinal','Ventaja'],['Final','0–2']].map(l=>`<div><span>${l[0]}</span><b style="font-size:4.6cqw">${l[1]}</b></div>`).join('')}</div>`});
+Object.assign(STORIES,{race:storyRace,stage:storyStage,combat:storyCombat});
+scene({tab:'historias',id:'h-race',title:'Carrera · tiempo',after:drawAfter,html:()=>fullStory(storyRace),notes:{tags:[['new','Contra el reloj']],p:['El tiempo como titular, distancia, ritmo y puesto; abajo la marca personal y el kilómetro más rápido. Igual para trail (con desnivel), ciclismo, natación, remo y triatlón (con segmentos).']}});
+scene({tab:'historias',id:'h-stage',title:'Culturismo · tarima',after:drawAfter,html:()=>fullStory(storyStage),notes:{tags:[['new','Jueceo']],p:['Tu foto de tarima a pantalla completa con la medalla y el puesto. Sin peso corporal salvo que lo actives.']}});
+scene({tab:'historias',id:'h-combat',title:'Combate · cuadro',after:drawAfter,html:()=>fullStory(storyCombat),notes:{tags:[['new','Combates']],p:['Medalla y balance como titular y el camino ronda a ronda. Sirve para todas las disciplinas de combate y para armwrestling.']}});

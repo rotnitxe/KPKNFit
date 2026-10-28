@@ -93,3 +93,34 @@ scene({tab:'comida',id:'f-error',title:'Si algo falla',html:()=>`<div class="lg"
   <div class="mod" style="margin-top:12px;border-color:#f7cf7333"><div class="ey" style="color:var(--ene)">${ic('info',14)} Lo leí a medias</div><p class="body" style="margin:8px 0 10px">Reconocí las lentejas y el chorizo, pero no las cantidades. Las dejé en una ración normal: revísalas antes de guardar.</p><div style="display:flex;gap:8px"><button class="pill sec sm">Volver a analizar</button><button class="pill sec sm">Buscar a mano</button></div></div>
   ${foodCard({n:'Lentejas guisadas',q:'1 plato · 300 g',k:342,p:20,c:44,f:8,ic:'bowl',approx:true},0)}${foodCard({n:'Chorizo',q:'40 g',k:182,p:10,c:1,f:15,ic:'pan',approx:true},1)}</div>${saveBar(524)}`,
  notes:{tags:[['fix','Sin jerga técnica']],p:['Los cuatro avisos de error de hoy hablan de «dataset de porciones no cargado» o muestran el nombre de la excepción. Ahora dicen qué se reconoció, qué se supuso y qué puedes hacer, con un icono de aviso (no de información). El detalle técnico queda solo en los registros de la app.']}});
+
+/* --- v2: registrador rápido en Inicio, sin salir de la pantalla --- */
+function homeBase(k=1240,{bump=false}={}){return `<div class="home"><div class="cap" style="letter-spacing:1.4px;font-weight:600">MIÉRCOLES 29</div><div class="ptitle" style="margin-top:4px">Hola, Matías</div>
+  <div class="mod" style="margin-top:14px"><div class="mod-h"><span class="ey">Hoy en tu entreno</span><span class="cap">Tirón · 48 min</span></div><button class="pill pri sm" style="width:100%;margin-top:10px">${ic('play',16)}Empezar Tirón</button></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Nutrición de hoy</span><span class="cap">objetivo 2.300</span></div><div class="hm-ring ${bump?'bump':''}" style="margin-top:8px">${ringSvg(k,2300)}<div class="mac">${[['Proteína',bump?92:67,'p',.4],['Carbos',bump?150:104,'c',.45],['Grasa',bump?52:38,'f',.5]].map(m=>`<div>${m[0]}<i style="--w:${Math.round(m[3]*100)}%;--c:${MACC[m[2]]}"></i><b>${m[1]} g</b></div>`).join('')}</div></div></div>
+  <div class="mod tight"><div class="rowx"><div class="tx"><strong>Desayuno</strong><span>Avena con plátano · 412 kcal</span></div></div><div class="rowx"><div class="tx"><strong>Almuerzo</strong><span>${bump?'Pollo con arroz y ensalada · 652 kcal':'Sin registrar'}</span></div></div></div></div>`}
+const qbar=(t='',on=false)=>`<div class="qbar glass"><span class="t ${on?'on':''}">${t||'¿Qué comiste? Escríbelo aquí'}</span><button class="ib fill" aria-label="Dictar">${ic('mic')}</button>${on?`<button class="go" style="height:44px;border-radius:22px;background:var(--ink);color:#111;padding:0 16px;font-weight:600">Analizar</button>`:''}</div>`;
+const HOME_FOODS=[{n:'Pechuga de pollo',q:'180 g · a la plancha',k:297,p:56,c:0,f:7,ic:'pan'},{n:'Arroz blanco',q:'1 plato · 200 g cocido',k:260,p:5,c:57,f:1,ic:'bowl',ask:'raw'},{n:'Ensalada mixta',q:'1 bol · con aceite',k:95,p:2,c:6,f:7,ic:'avo'}];
+function homeCard(f,i){const q=f.ask;return `<div class="food ${q?'ask':''}" style="animation-delay:${120+i*120}ms"><div class="food-h"><span class="fi">${ic(f.ic,20)}</span><div class="tx"><strong>${f.n}</strong><span>${f.q}</span></div><div class="k"><b>${f.k}</b><span>kcal</span></div></div>${q?`<div class="q"><p><i></i>¿Los 200 g eran en crudo o cocidos?</p><div class="qopts"><span>En crudo</span><span class="on">Cocidos</span></div></div>`:''}</div>`}
+
+scene({tab:'comida',id:'f-home',title:'Inicio · escribir sin salir',html:()=>`${homeBase()}${qbar()}${navbar(0)}`,
+ notes:{tags:[['new','Registrador en Inicio'],['keep','El mismo motor']],
+  p:['En Inicio aparece una barra de vidrio flotante «¿Qué comiste?» justo encima de la barra de navegación. Escribes o dictas ahí mismo: <b>no se abre otra pantalla</b>. Hoy el icono «Registrar comida» de Inicio lleva a la hoja completa de Nutrición.',
+     'La barra solo aparece si hay plan de nutrición; la comida se elige sola por la hora (almuerzo a las 14:10) y se puede cambiar en la hoja.']}});
+
+scene({tab:'comida',id:'f-home-type',title:'Inicio · escrito',html:()=>`${homeBase()}${qbar('Pollo a la plancha con arroz y ensalada<span class="caret"></span>',true)}${navbar(0)}`,
+ notes:{p:['El texto crece en la propia barra (hasta tres líneas). «Analizar» con el botón o con Enter.']}});
+
+scene({tab:'comida',id:'f-home-ana',title:'Inicio · analizando',after:ph=>animateIn(ph),html:()=>`${homeBase()}<div class="scrim" style="background:#0007"></div><div class="qsheet"><div class="grab"></div>
+  <div class="lg-head" style="margin:0 -6px 6px"><div class="t"><strong style="font-size:calc(16px*var(--fs))">Almuerzo · 14:10</strong><span>Pollo a la plancha con arroz y ensalada</span></div></div>
+  <div class="ana" style="height:210px;margin-top:4px">${plateAnim()}<div class="msg">Encontré pollo, arroz y ensalada<small>Estimando cantidades…</small></div></div></div>`,
+ notes:{tags:[['new','Media hoja sobre Inicio']],p:['Al analizar, una media hoja sube desde la barra con la misma animación del plato. Inicio sigue visible arriba, atenuado.']}});
+
+scene({tab:'comida',id:'f-home-res',title:'Inicio · revisar y guardar',after:drawAfter,html:()=>`${homeBase()}<div class="scrim" style="background:#0007"></div><div class="qsheet" style="max-height:82%"><div class="grab"></div>
+  <div class="lg-head" style="margin:0 -6px 2px"><div class="t"><strong style="font-size:calc(16px*var(--fs))">Almuerzo · 14:10</strong><span>3 alimentos · 1 duda</span></div><button class="act faint">Abrir completo${ic('fwd',14)}</button></div>
+  ${HOME_FOODS.map(homeCard).join('')}
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="pill sec" style="flex:0 0 auto">${ic('plus',18)}</button><button class="pill pri" style="flex:1">Guardar · 652 kcal</button></div></div>`,
+ notes:{tags:[['keep','Mismas tarjetas y dudas']],p:['Las mismas tarjetas del registro completo, más compactas, con sus dudas dentro. Tocar una tarjeta abre su hoja de ajuste encima. «Abrir completo» pasa al registro de Nutrición con todo lo escrito, por si quieres buscar o añadir más.','«+» añade otro alimento escribiéndolo en la misma hoja.']}});
+
+scene({tab:'comida',id:'f-home-done',title:'Inicio · guardado',after:ph=>animateIn(ph),html:()=>`${homeBase(1892,{bump:true})}<div class="toast glass" style="bottom:160px">${ic('check',18)}Almuerzo guardado · 652 kcal<button class="act">Deshacer</button></div>${qbar()}${navbar(0)}`,
+ notes:{tags:[['new','Se queda en Inicio']],p:['La hoja baja, el anillo de Nutrición de hoy cuenta hasta el nuevo total con un pequeño rebote y el almuerzo aparece en la lista. Un aviso con «Deshacer» durante 4 s. No has salido de Inicio en ningún momento.']}});

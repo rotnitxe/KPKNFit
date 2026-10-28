@@ -512,6 +512,46 @@ svg{display:block;flex-shrink:0}
 .story .st-score span{height:12cqw;border-radius:3cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 4.4cqw Syne;color:#f2eee6;border:1px solid #ffffff22}
 .story .st-score span.ok{background:#f2eee6;color:#111;border-color:transparent}.story .st-score span.no{color:#5f5c57;text-decoration:line-through}
 .story .st-score span em{font:600 2.4cqw Inter;font-style:normal;color:inherit;opacity:.7;margin-top:.6cqw;text-decoration:none}
+/* v2: el asistente de bienvenida reutilizado (página larga, sin tarjetas, vidrio solo en cabecera y botón) */
+.wzpage{padding:118px 22px 150px}
+.wzh{position:absolute;top:36px;left:10px;right:10px;height:56px;border-radius:28px;z-index:30;display:flex;align-items:center;gap:6px;padding:0 6px}
+.wzh .t strong{display:block;font-size:calc(14px*var(--fs));font-weight:600}.wzh .t span{font-size:calc(11.5px*var(--fs));color:var(--faint)}
+.wzp{position:absolute;top:98px;left:22px;right:22px;height:3px;border-radius:2px;background:#ffffff26;z-index:30}.wzp i{display:block;height:100%;border-radius:2px;background:#fff}
+.wzlead{font-size:calc(14px*var(--fs));color:var(--muted);line-height:1.45;margin:0 0 6px}
+.wzsums{margin:4px 0 6px}
+.wzsum{display:flex;align-items:center;gap:10px;min-height:48px;border-bottom:1px solid #ffffff14;color:var(--faint)}
+.wzsum .k{font-size:calc(12px*var(--fs));width:116px;flex-shrink:0}.wzsum .v{flex:1;font-size:calc(14px*var(--fs));color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wzstep{padding:26px 0 6px}.wzstep h2{font:700 calc(26px*var(--fs))/1.1 Syne;letter-spacing:-.7px;margin:0 0 6px;text-align:left;text-wrap:balance}
+.wzstep p{margin:0 0 14px;font-size:calc(14px*var(--fs));color:var(--muted);line-height:1.45}
+.wzstep.peek{opacity:.32}
+.wzopt{display:flex;align-items:center;gap:16px;width:100%;text-align:left;min-height:68px;border-bottom:1px solid #ffffff14;color:var(--muted)}
+.wzopt .sym{width:48px;height:48px;display:flex;align-items:center;justify-content:center;opacity:.45}.wzopt .tx{flex:1;min-width:0}.wzopt strong{display:block;font-size:calc(16px*var(--fs));font-weight:500}.wzopt .tx span{display:block;font-size:calc(12px*var(--fs));color:var(--faint);margin-top:2px}
+.wzopt .rad{width:24px;height:24px;border-radius:50%;border:1.5px solid #ffffff40;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wzopt.on{color:var(--ink)}.wzopt.on .sym{opacity:1}.wzopt.on strong{font-weight:600}.wzopt.on .rad{background:#fff;border-color:#fff;color:#111}
+.wzgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;margin-top:6px}
+.wzsym{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink);opacity:.38;font-size:calc(11.5px*var(--fs));text-align:center;line-height:1.2}.wzsym.on{opacity:1}
+.wzlbl{font-size:calc(11px*var(--fs));letter-spacing:1.3px;font-weight:600;color:var(--faint);text-transform:uppercase;margin:18px 0 10px}
+.wzbtn{position:absolute;left:12px;right:12px;bottom:18px;z-index:30;border-radius:34px;padding:6px}
+.wzweek{display:flex;flex-direction:column}.wzday{display:flex;align-items:center;gap:14px;min-height:50px;border-bottom:1px solid #ffffff14}
+.wzday small{width:40px;font-size:calc(11px*var(--fs));letter-spacing:1px;font-weight:600;color:var(--faint)}.wzday span{flex:1;font-weight:600}.wzday em{flex:1;font-style:normal;color:var(--dim)}
+/* v2: competencias de todas las disciplinas */
+.disc{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px;margin-top:8px}
+.disc button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(11px*var(--fs));color:var(--muted);text-align:center;line-height:1.15}
+.disc button span.ic{width:52px;height:52px;border-radius:50%;background:#ffffff0a;border:1px solid #ffffff14;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.disc button.on span.ic{background:var(--ink);color:#111}.disc button.on{color:var(--ink);font-weight:600}
+.splits{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:10px}.splits i{flex:1;border-radius:3px;background:#f2eee6;opacity:.8;display:block}.splits i.f{background:var(--mus);opacity:1}
+.bout{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--div)}.bout:first-of-type{border-top:0}
+.bout .r{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 calc(13px*var(--fs)) Syne;flex-shrink:0}
+.bout .r.w{background:#43d18c22;color:var(--done)}.bout .r.l{background:#ff9b921a;color:var(--danger)}
+.bout .tx{flex:1;min-width:0}.bout strong{display:block;font-size:calc(14px*var(--fs));font-weight:600}.bout span{font-size:calc(12px*var(--fs));color:var(--faint)}
+/* v2: registrador rápido en Inicio */
+.home{position:absolute;inset:0;overflow:hidden;padding:44px 16px 0}
+.hm-ring{display:flex;gap:16px;align-items:center}
+.qbar{position:absolute;left:12px;right:12px;bottom:92px;z-index:46;min-height:56px;border-radius:28px;display:flex;align-items:center;gap:8px;padding:6px 6px 6px 18px;font-size:calc(14.5px*var(--fs))}
+.qbar .t{flex:1;color:var(--dim)}.qbar .t.on{color:var(--ink)}
+.qsheet{position:absolute;left:0;right:0;bottom:0;z-index:61;border-radius:28px 28px 0 0;padding:10px 16px 20px;background:linear-gradient(170deg,#262626ee,#121212f5);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-top:1px solid #ffffff1d;max-height:78%;overflow:hidden}
+.qsheet .food{margin-top:6px;padding:10px 12px}.qsheet .food-h .fi{width:34px;height:34px;border-radius:11px}
+.bump{animation:bump .8s cubic-bezier(.3,1.6,.5,1)}@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
 </style>
 <div id="lab">
   <header class="lab-head"><span class="wordmark">KPKN<span>FIT</span></span><span class="edition">ESTUDIO DE REGISTROS · V1 · PROPUESTA PARA APROBAR</span></header>
@@ -682,9 +722,9 @@ const NUTRI={days:[['L',96],['M',102],['X',88],['J',99],['V',104],['S',121],['D'
 <script>// Laboratorio: pestañas → estados → teléfono + notas. Las escenas se registran en scenes.js con scene({...}).
 const TABS=[
   {id:'decisiones',label:'Decisiones',title:'Cómo lo vamos a gestionar',intro:'Decisiones de producto para aprobar antes del detalle: qué tipo de registro de competencia, cómo se crea un programa a medida, qué cambia en el registro de comida y qué se comparte en historias. Cada fila dice qué pasa con lo que existe hoy.'},
-  {id:'competencias',label:'Competencias',title:'Competencias: un registro liviano y alegre',intro:'Una sola ficha que vive tres momentos: próxima (la preparas), hoy (compites) y resultado (lo celebras). Registrar el resultado son tres toques por levantamiento.'},
-  {id:'crear',label:'Crear programa',title:'Crear un programa, todas sus formas',intro:'Cuatro caminos desde «Nuevo». «A tu medida» es una pantalla completa propia: cinco capítulos cortos, una propuesta con su porqué y la semana lista antes de activar.'},
-  {id:'comida',label:'Registro · Describir',title:'Registrar comida describiéndola',intro:'Escribes como hablas; al analizar, las palabras se convierten en alimentos con una animación de platos de líneas. Las dudas se resuelven en la propia tarjeta, todas a la vista.'},
+  {id:'competencias',label:'Competencias',title:'Competencias de todas tus disciplinas',intro:'Una sola ficha que vive tres momentos: próxima, hoy y resultado. Cubre todas las disciplinas que KPKN entrena con seis formas de resultado: intentos, pruebas con marca, contra el reloj, tarima, combates y partidos.'},
+  {id:'crear',label:'Crear programa',title:'Crear un programa, todas sus formas',intro:'Cuatro caminos desde «Nuevo». «A tu medida» reutiliza el asistente de bienvenida tal cual, en una instancia «Nuevo programa»: lo que ya sabemos plegado arriba, las mismas preguntas y un cierre para elegir cuándo empieza.'},
+  {id:'comida',label:'Registro · Describir',title:'Registrar comida describiéndola',intro:'Escribes como hablas; al analizar, las palabras se convierten en alimentos con una animación de platos de líneas. Las dudas se resuelven en la propia tarjeta. Al final, el registrador rápido de Inicio, sin salir de la pantalla.'},
   {id:'busqueda',label:'Registro · Buscar',title:'Buscar, escanear y los menús del registro',intro:'Antes de escribir ya ves lo reciente y tus favoritos. Cada resultado se añade con un toque o se abre en su ficha. Todas las hojas del registro con la misma piel.'},
   {id:'historias',label:'Historias',title:'Historias: competencia, cuerpo y nutrición',intro:'El mismo lenguaje que las historias aprobadas del programa: arte de líneas arriba, cifras grandes abajo, un solo acento. La de competencia se exporta también como vídeo corto con la celebración.'},
 ];
@@ -837,7 +877,7 @@ scene({tab:'decisiones',id:'d-all',title:'Decisiones',doc:()=>`
 <div><div class="verdict">Por qué así</div><h3>Liviano y alegre</h3><p>El resultado son tres toques por levantamiento porque los pesos ya vienen del plan. Sin podio también hay celebración (tus marcas). El diario se queda en una escala de caras y dos líneas opcionales: lo justo para recordarlo sin que pese.</p></div></div>
 ${T([
  ['Archivo en Perfil + ruta muerta + aviso en Inicio + módulo en el programa',tg('new','Página «Competencias»')+' con próxima arriba e historial debajo','Un solo sitio; se llega desde Perfil, Inicio y la portada del programa'],
- ['Solo powerlifting','Powerlifting, '+tg('new','un solo levantamiento')+' y '+tg('new','otra disciplina')+' con resultado libre','El asistente de bienvenida ya pregunta «¿Compites?» en seis disciplinas'],
+ ['Solo powerlifting',tg('new','Todas las disciplinas de KPKN')+' (las 29 del modelo de deportes) con seis formas de resultado','KPKN entrena fuerza, resistencia, combate y más: cada uno compite a su manera'],
  ['Registro con 100 kg de relleno y ciclo de 4 estados','Pesos desde el plan o tus marcas; un toque alterna válido/nulo','Dos toques por intento era lo más lento del flujo'],
  ['Planificar intentos y modo competición dentro del programa',tg('move','Pasan a la competencia'),'Son de la competencia; el programa enlaza con ella'],
  ['Puesto obligatorio; «4+» se muestra como «4.º»','Opcional; puesto exacto; trofeos como extras','Fallo de presentación y bloqueo innecesario'],
@@ -848,11 +888,21 @@ ${T([
  ['Fotos que quedan huérfanas al quitarlas','Se borran con la foto o la competencia','Espacio del teléfono'],
  ['Sin compartir',tg('new','Historias + vídeo de 6 s'),'Lo pediste'],
 ])}
+<p><b>Seis formas de resultado para todas las disciplinas.</b> Cada deporte se registra como se vive, con una de estas plantillas. Todas comparten la ficha (próxima → hoy → resultado), el puesto, las fotos, el diario, la celebración y las historias. Room no cambia: la competencia ya se guarda como JSON completo en su fila.</p>
+${T([
+ ['Intentos de carga','Powerlifting, un solo levantamiento, halterofilia (Sinclair), street lifting de calistenia','Tabla de intentos válido/nulo, total y puntos'],
+ ['Pruebas con marca','Strongman, CrossFit, Hyrox','Lista de pruebas con su unidad (tiempo, kg, reps, metros) y puntos'],
+ ['Contra el reloj','Carrera (5K a maratón), trail, ciclismo, natación, remo, triatlón, velocidad, saltos','Tiempo o marca, ritmo, posiciones, parciales, marca personal; la próxima trae objetivo y plan de ritmos'],
+ ['Jueceo en tarima','Culturismo, calistenia freestyle','Categoría, rondas, puesto o puntuación, fotos de tarima; la próxima cuenta la preparación hasta la peak week'],
+ ['Combates','Boxeo, kickboxing, muay thai, BJJ, lucha, judo, MMA, armwrestling','Combate a combate: ronda, ganado o perdido y método; balance y medalla'],
+ ['Partidos y tops','Tenis, pádel, deportes de equipo, escalada','Partidos con marcador y ronda alcanzada; en escalada, tops y zonas'],
+],['Forma','Disciplinas','Qué se registra'])}
 <h2>2 · Crear un programa</h2>
 ${T([
  ['Inicio abre otra hoja (biblioteca vieja, sin «A tu medida»)','Inicio abre la misma hoja «Nuevo» de cuatro caminos','Dos entradas distintas para lo mismo'],
- ['«A tu medida» reutiliza el asistente de bienvenida en modo solo entreno',tg('new','Pantalla completa propia')+': cinco capítulos, propuesta con su porqué y activación','Mismo motor y mismas preguntas: no hay lógica nueva'],
- ['Pide género y % de grasa aunque no haya nutrición','«Ya sabemos» muestra lo conocido; solo pregunta lo que falte para entrenar','Esos datos solo sirven para la nutrición'],
+ ['«A tu medida» reutiliza el asistente de bienvenida en modo solo entreno',tg('keep','Se reutiliza el asistente')+' con una instancia «Nuevo programa»: cabecera propia, lo conocido plegado arriba y cierre «Listo para empezar»','Tu decisión (v2): el asistente ya es la mejor pieza; solo se adapta a esta entrada'],
+ ['Pide género y % de grasa aunque no haya nutrición','No se piden en esta instancia si faltan','Esos datos solo sirven para la nutrición'],
+ ['Al terminar vuelve a Inicio','Vuelve a Programas con el programa nuevo abierto','Llegaste desde Programas'],
  ['Cada camino activa distinto (uno sin preguntar)',tg('new','Una sola pantalla «Listo para empezar»')+': ahora, en cola o guardar','Nada se activa sin que lo decidas'],
  ['«Configurar este plan» lleva al asistente entero','Abre «A tu medida» con objetivo y días ya puestos','Menos preguntas repetidas'],
  ['Calibración y ficha de protocolo inalcanzables en Programas e Inicio',tg('out','Se retira el código muerto'),'Ya decidido en el lienzo anterior (sale «Calibrar»)'],
@@ -861,6 +911,7 @@ ${T([
 <h2>3 · Registro de comida</h2>
 <p>El motor es local y sin conexión, y se queda así. Lo que cambia es cómo se ve y se toca: una animación al analizar que muestra lo que de verdad pasa, tarjetas por alimento con sus dudas dentro, ajustes en la unidad natural y ningún texto técnico.</p>
 ${T([
+ ['El icono «Registrar comida» de Inicio abre la hoja completa de Nutrición',tg('new','Registrador en Inicio')+': barra «¿Qué comiste?» y media hoja que analiza, revisa y guarda sin salir de Inicio','Registrar en segundos desde donde estás'],
  ['«Interpretar comida» / «Actualizar y buscar» (que no busca)','Un solo botón «Analizar» («Volver a analizar» si cambias el texto)','Verbo engañoso'],
  ['Puntos y frases rotatorias genéricas',tg('new','Plato de líneas + palabras que se subrayan al reconocerse'),'Se ve qué está entendiendo'],
  ['Solo se ve la primera duda; chips nunca marcados','Todas las dudas en su tarjeta; respuesta marcada; respuesta por defecto','Dudas ocultas y sin estado'],
@@ -902,25 +953,25 @@ scene({tab:'competencias',id:'c-hub',title:'Competencias',after:drawAfter,html:(
     <div class="syne" style="font:700 calc(21px*var(--fs))/1.15 Syne;margin-top:6px">${NEXT.name}</div><div class="cap" style="margin-top:4px">${NEXT.date} · ${NEXT.city} · ${NEXT.fed} · ${NEXT.cls}</div>
     <div class="openers">${[['S','192,5'],['B','130'],['D','210']].map(o=>`<div><small>${LIFTN[o[0]].toUpperCase()}</small><b>${o[1]}</b><span>1.er intento</span></div>`).join('')}</div>
     <div style="display:flex;gap:8px;margin-top:14px"><button class="pill pri sm" style="flex:1">Ver plan del día</button><button class="pill sec sm" style="flex:1">${ic('scale',16)}Pesaje: 82,4 kg</button></div></div></div>
-  <div class="group-l">Tu historial<span style="text-transform:none;letter-spacing:0">3 competencias</span></div>
+  <div class="group-l">Tu historial<span style="text-transform:none;letter-spacing:0">4 · 2 disciplinas</span></div>
   <div class="mod"><div class="lbl">Total en competición</div>${totalsChart()}<div class="cap" style="margin-top:4px">+47,5 kg en un año · mejor IPF GL 79,4</div></div>
-  <div class="mod tight">${MEETS.slice(1).map(meetRow).join('')}</div>
+  <div class="mod tight"><div class="meet"><span class="medal none" style="--ms:46px">${ic('heart',22)}</span><div class="tx"><strong>Media maratón de Valencia<span class="prc">MP</span></strong><span>26 oct 2026 · 21,1 km</span></div><div class="tot"><b>1:38:12</b><em>4:39 /km</em></div></div>${MEETS.slice(1).map(meetRow).join('')}</div>
   <button class="pill sec" style="width:100%">${ic('plus',18)}Registrar una competencia</button></div>`,
  notes:{tags:[['new','Página propia'],['move','Sale de Perfil › Archivo'],['fix','Separa próxima e historial']],
   p:['<b>Una página «Competencias»</b> que reúne lo que hoy está repartido: el archivo de Perfil, el aviso de Inicio, el módulo del programa y la ruta muerta <code>competitions</code>. Se llega desde Perfil, desde la cuenta atrás de Inicio y desde la portada del programa.',
      'Arriba, <b>la próxima</b> con cuenta atrás que cuenta al abrir, portada de líneas «Órbitas» y los tres primeros intentos. Debajo, <b>tu historial</b>: la línea de tu total a lo largo de las competencias y cada una con su medalla, total, puntos y la marca «Récord» si superó a la anterior.',
      'Arregla el texto del recorrido («las próximas y las pasadas»), que hoy no se cumple: la lista mezclaba planificadas y hechas.']}});
 
-scene({tab:'competencias',id:'c-new',title:'Nueva competencia',html:()=>`<div class="scroll" style="padding-top:52px"><div class="ptitle">Competencias</div></div>${sheet(`<h3>Nueva competencia</h3><div class="sub">Dos formas de empezar. Puedes cambiar de una a otra cuando quieras.</div>
-  <div class="opt-grid"><button class="opt"><span class="ic">${ic('cal')}</span><strong>Voy a competir</strong><span>La apuntas, preparas intentos y pesaje, y te avisamos</span></button>
-  <button class="opt"><span class="ic">${ic('trophy')}</span><strong>Ya competí</strong><span>Registras el resultado en un minuto</span></button></div>
-  <div class="mgroup">Disciplina</div>${chips(['Powerlifting','Solo press banca','Solo peso muerto','Otra disciplina'],0)}
-  <div class="cap" style="margin-top:10px">«Otra disciplina» (halterofilia, strongman, culturismo, calistenia, armwrestling…) guarda un resultado libre: marca, puesto y fotos.</div>
+scene({tab:'competencias',id:'c-new',title:'Nueva competencia: la disciplina',html:()=>`<div class="scroll" style="padding-top:52px"><div class="ptitle">Competencias</div></div>${sheet(`<h3>Nueva competencia</h3>
+  <div class="seg" style="margin:4px 0 12px"><button class="on">Voy a competir</button><button>Ya competí</button></div>
+  <div class="mgroup">Fuerza</div><div class="disc">${[['dumb','Powerlifting',1],['bolt','Halterofilia'],['tower','Strongman'],['flag','Calistenia'],['grip','Armwrestling'],['eye','Culturismo']].map(d=>`<button class="${d[2]?'on':''}"><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
+  <div class="mgroup">Resistencia</div><div class="disc">${[['heart','Carrera'],['pin','Trail'],['repeat','Ciclismo'],['drop','Natación'],['swap','Remo'],['target','Triatlón'],['fire','Hyrox'],['bolt','CrossFit']].map(d=>`<button><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
+  <div class="mgroup">Combate</div><div class="disc">${['Boxeo','Kickboxing','Muay thai','BJJ','Lucha','Judo','MMA'].map(d=>`<button><span class="ic">${ic('users',22)}</span>${d}</button>`).join('')}</div>
+  <div class="mgroup">Más</div><div class="disc">${[['flag','Escalada'],['bolt','Velocidad'],['up','Saltos'],['target','Tenis'],['target','Pádel'],['users','Equipo'],['plus','Otra']].map(d=>`<button><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
   <button class="pill pri" style="width:100%;margin-top:18px">Continuar</button>`)}`,
- notes:{tags:[['new','Dos momentos'],['new','Más disciplinas']],
-  p:['Hoy solo existe «Registrar powerlifting», que crea directamente el resultado con 100 kg de relleno en cada intento. Ahora hay dos puertas: <b>«Voy a competir»</b> (próxima) y <b>«Ya competí»</b> (resultado). Es la misma ficha: una próxima se convierte en resultado el día de la competencia.',
-     '<b>Disciplinas</b>: powerlifting completo (sentadilla, banca y peso muerto), competencias de un solo levantamiento (muy comunes en press banca y peso muerto) y «Otra disciplina» con resultado libre. El asistente de bienvenida ya pregunta «¿Compites?» en esas seis disciplinas: aquí les damos dónde registrar.']}});
-
+ notes:{tags:[['new','Todas las disciplinas de KPKN'],['new','Dos momentos']],
+  p:['«Voy a competir» (próxima) o «Ya competí» (resultado) y la disciplina. Están <b>todas las que KPKN entrena</b> (las 29 del modelo de deportes), agrupadas. Arriba salen primero las de tus programas.',
+     'Cada disciplina usa una de <b>seis formas de resultado</b> (pestaña Decisiones): intentos de carga, pruebas con marca, contra el reloj, jueceo en tarima, combates y partidos. Así cada deporte se registra como se vive, sin una pantalla distinta para cada uno.']}});
 scene({tab:'competencias',id:'c-next',title:'Próxima: los datos del día',html:()=>`<div class="scroll" style="padding-top:52px">${back('Voy a competir')}
   <div class="steps"><i class="on"></i><i></i><i></i></div>
   <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">¿Dónde compites?</div>
@@ -1048,124 +1099,140 @@ scene({tab:'competencias',id:'c-compare',title:'Comparar dos competencias',html:
   <div class="cap">Toca una competencia de arriba para cambiarla.</div></div>`,
  notes:{tags:[['keep','Comparativa de hoy']],p:['La comparativa existente, en una página con las dos fichas arriba y las cifras alineadas.']}});
 
-scene({tab:'competencias',id:'c-other',title:'Otra disciplina',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
-  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Strongman · Copa local</div>
-  <div class="mgroup">Pruebas</div>
-  ${[['Yoke','20 m','11,8 s'],['Log press','Máximo','110 kg'],['Peso muerto eje','Repeticiones','9 reps']].map(p=>`<div class="rowx"><div class="tx"><strong>${p[0]}</strong><span>${p[1]}</span></div><b class="syne">${p[2]}</b></div>`).join('')}
-  <button class="act" style="margin-top:4px">${ic('plus',16)}Añadir prueba</button>
-  <div class="mgroup">Puesto</div><div class="medals">${['oro','plata','bronce'].map((m,i)=>`<button class="${i===1?'on':''}">${medal(m,48)}${MEDAL[m].n}</button>`).join('')}</div>
-  <button class="pill pri" style="width:100%;margin-top:18px">Continuar</button></div>`,
- notes:{tags:[['new','Resultado libre']],p:['Para halterofilia, strongman, culturismo, calistenia o armwrestling: pruebas con su marca y unidad (kg, s, m, reps o puesto), medalla, fotos y diario. Usa los campos que el modelo ya tiene (marca, tiempo, distancia, unidad) y que hoy no tienen pantalla.']}});
+scene({tab:'competencias',id:'c-run-next',title:'Carrera · próxima (maratón)',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:52px">${back('Voy a competir')}
+  <div class="next-card" style="margin-top:4px"><div class="art">${coverSvg('ondas','noche',{seed:3})}</div><div class="in" style="padding-top:120px">
+   <div class="lbl" style="color:var(--mus)">Maratón de Valencia · 6 dic</div><div class="cd" style="margin-top:6px"><b>38</b><span>días</span></div></div></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Tu objetivo</span><button class="act">Cambiar</button></div><div class="big" style="font-size:calc(40px*var(--fs));margin-top:6px">3:29:00</div><div class="cap" style="margin-top:4px">Ritmo 4:57 /km · tu media maratón (1:38:12) predice 3:24–3:31</div></div>
+  <div class="mod"><div class="ey">Plan de ritmos</div>${[['0–10 km','5:02 /km','Empieza contenido'],['10–30 km','4:56 /km','Ritmo objetivo'],['30–42,2 km','4:52 /km','Si vas bien']].map(r=>`<div class="ratio" style="grid-template-columns:1fr auto;align-items:center"><span>${r[0]}<span class="cap" style="display:block">${r[2]}</span></span><b class="syne tn">${r[1]}</b></div>`).join('')}</div>
+  <div class="mod tight"><div class="rowx"><div class="tx"><strong>Avisos</strong><span>1 semana · 48 h · salida a las 8:15</span></div><span class="toggle on"></span></div></div></div>`,
+ notes:{tags:[['new','Contra el reloj']],p:['Para carrera, trail, ciclismo, natación, remo y triatlón. La próxima guarda distancia, objetivo de tiempo y un plan de ritmos por tramos. La predicción usa tu última marca registrada en una distancia parecida (el seguimiento de deportes ya guarda sesiones de carrera).','En trail se suma el desnivel; en triatlón, los tres segmentos y las transiciones.']}});
 
-/* ================= CREAR PROGRAMA ================= */
-const CHAPS=['Tú','Dónde y con qué','Qué buscas','Tu semana','Afinar'];
-function wzTop(step,half=false){return `<div class="wz-top"><button class="ib fill" aria-label="Atrás">${ic('back')}</button><div class="prog">${CHAPS.map((c,i)=>`<i class="${i<step?'on':i===step&&half?'half':''}"></i>`).join('')}</div><button class="ib" aria-label="Cerrar">${ic('close')}</button></div>`}
-const choice=(sym,t,s,on)=>`<button class="choice ${on?'on':''}"><span class="sym">${ic(sym,44)}</span><span class="tx"><strong>${t}</strong>${s?`<span>${s}</span>`:''}</span>${on?`<span class="mark ok">${ic('check',16)}</span>`:''}</button>`;
-const wzFoot=(pri='Continuar',sec='')=>`<div class="wz-foot">${sec?`<button class="pill sec" style="flex:0 0 auto">${sec}</button>`:''}<button class="pill pri" style="flex:1">${pri}</button></div>`;
+scene({tab:'competencias',id:'c-run',title:'Carrera · resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Media maratón de Valencia</div><div class="cap" style="margin-top:4px">26 oct · 21,1 km</div>
+  <div class="mgroup">Tu tiempo</div><div class="stepper" style="justify-content:center"><b style="font-size:calc(40px*var(--fs))">1:38:12</b></div>
+  <div class="kpis"><div class="kpi"><small>Ritmo</small><b>4:39</b><span>/km</span></div><div class="kpi"><small>General</small><b>1.204</b><span>de 9.880</span></div><div class="kpi"><small>Categoría</small><b>187</b><span>M35</span></div></div>
+  <div class="mod" style="margin-top:12px"><div class="mod-h"><span class="ey">Por kilómetro</span><span class="cap">del reloj o a mano</span></div><div class="splits">${[4.52,4.45,4.41,4.40,4.38,4.39,4.37,4.36,4.40,4.38,4.41,4.39,4.36,4.35,4.38,4.42,4.40,4.37,4.33,4.30,4.21].map((v,i)=>`<i class="${i===20?'f':''}" style="height:${Math.round((5-v)/0.8*100)}%"></i>`).join('')}</div><div class="cap" style="margin-top:6px">Último km el más rápido: 4:21</div></div>
+  <div class="tot-bar" style="margin-top:0"><div><div class="lbl">Marca personal</div><div class="syne" style="font:800 calc(22px*var(--fs)) Syne">−3:41</div></div><span class="pchip">${ic('spark',12)}Nueva MP</span></div>
+  <button class="pill pri" style="width:100%;margin-top:14px">Continuar</button></div>`,
+ notes:{tags:[['new','Contra el reloj']],p:['Tiempo (rueda de horas, minutos y segundos), ritmo calculado, posiciones general y por categoría y, si quieres, los parciales por kilómetro (importados del reloj si la sesión está en KPKN, o a mano). Marca personal por distancia automática.','Después: el mismo puesto opcional, fotos, diario y la celebración.']}});
+
+scene({tab:'competencias',id:'c-bb',title:'Culturismo · preparación y resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Regional · Men’s Physique')}
+  <div class="next-card" style="margin-top:4px"><div class="art">${coverSvg('bruma','noche',{seed:4})}</div><div class="in" style="padding-top:110px"><div class="lbl" style="color:var(--mus)">Faltan</div><div class="cd" style="margin-top:6px"><b>9</b><span>semanas · peak week en la 9</span></div></div></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Hacia la tarima</span><span class="cap">de tu pestaña Cuerpo</span></div><div style="display:flex;gap:16px;margin-top:8px"><div><div class="num">78,6<small>kg</small></div><div class="cap">hoy</div></div><div><div class="num" style="color:var(--muted)">75<small>kg</small></div><div class="cap">en tarima</div></div><div><div class="num up" style="font-size:calc(20px*var(--fs))">−0,4<small>kg/sem</small></div><div class="cap">ritmo necesario</div></div></div></div>
+  <div class="group-l">Resultado</div>
+  <div class="mod tight">${[['Categoría','Men’s Physique · -178 cm'],['Rondas','Prejuicio y final'],['Puesto','2.º de 14']].map(r=>`<div class="ratio"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>
+  <div class="photos"><i></i><i style="background:linear-gradient(150deg,#2b3340,#121417)"></i><i class="add">${ic('camera',22)}</i></div></div>`,
+ notes:{tags:[['new','Jueceo en tarima']],p:['Culturismo y calistenia freestyle. La próxima cuenta las semanas de preparación hasta la peak week y enlaza con tu peso de la pestaña Cuerpo (ritmo de pérdida necesario hasta el peso de tarima). El resultado es categoría, rondas, puesto (o puntuación de jueces en calistenia) y fotos de tarima, protagonistas de su historia.','Las fotos de tarima son de la competencia, no del registro corporal (sigue abierta la pregunta sobre fotos de progreso).']}});
+
+scene({tab:'competencias',id:'c-combat',title:'Combate · resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Open de BJJ · -82,3 kg</div><div class="cap" style="margin-top:4px">Azul · adulto · pesaje 81,9 kg</div>
+  <div class="mgroup">Combates</div><div class="mod tight">${[['w','Octavos','Puntos 6–2'],['w','Cuartos','Sumisión · mataleón · 3:12'],['w','Semifinal','Ventaja'],['l','Final','Puntos 0–2']].map(b=>`<div class="bout"><span class="r ${b[0]}">${b[0]==='w'?'G':'P'}</span><div class="tx"><strong>${b[1]}</strong><span>${b[2]}</span></div>${ic('fwd',16)}</div>`).join('')}</div>
+  <button class="act" style="margin-top:4px">${ic('plus',16)}Añadir combate</button>
+  <div class="tot-bar"><div><div class="lbl">Balance</div><div class="big" style="font-size:calc(40px*var(--fs))">3–1</div></div>${medal('plata',54)}</div>
+  <button class="pill pri" style="width:100%;margin-top:14px">Continuar</button></div>`,
+ notes:{tags:[['new','Combates']],p:['Boxeo, kickboxing, muay thai, BJJ, lucha, judo, MMA y armwrestling. Cada combate: ronda, ganado o perdido, método (puntos, KO, sumisión, decisión…) y, si quieres, rival y asalto. En armwrestling se añade el brazo. El balance y la medalla salen solos.','La próxima guarda categoría de peso y pesaje, igual que en powerlifting.']}});
+
+scene({tab:'competencias',id:'c-mixed',title:'Hyrox · pruebas con marca',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Hyrox Madrid · Open</div>
+  <div class="mgroup">Tiempo total</div><div class="big" style="font-size:calc(44px*var(--fs))">1:12:48</div>
+  <div class="mod" style="margin-top:12px">${[['8 × 1 km','36:10'],['SkiErg','4:21'],['Sled push','3:48'],['Sled pull','5:02'],['Burpee broad jump','4:40'],['Remo','4:35'],['Farmers carry','1:52'],['Sandbag lunges','4:11'],['Wall balls','5:39']].map(r=>`<div class="ratio" style="grid-template-columns:1fr auto;align-items:center"><span>${r[0]}</span><b class="syne tn">${r[1]}</b></div>`).join('')}</div>
+  <div class="cap">Strongman y CrossFit usan este mismo formato: cada prueba con su marca (tiempo, kg, repeticiones o metros) y, si hay, sus puntos.</div></div>`,
+ notes:{tags:[['new','Pruebas con marca']],p:['Hyrox, CrossFit y strongman: una lista de pruebas, cada una con su unidad. Para Hyrox la plantilla trae las ocho estaciones y los ocho kilómetros; para CrossFit, los WODs del evento; para strongman, las pruebas que añadas.']}});
+
+scene({tab:'competencias',id:'c-lift',title:'Halterofilia y calistenia lastrada',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Copa de halterofilia</div><div class="cap" style="margin-top:4px">-81 kg · Sinclair</div>
+  ${['Arrancada','Dos tiempos'].map((l,j)=>`<div class="att" style="grid-template-columns:96px repeat(3,1fr)"><span class="ln">${l}</span>${(j?[[130,'ok'],[136,'ok'],[140,'no']]:[[100,'ok'],[105,'no'],[105,'ok']]).map(a=>`<button class="ab ${a[1]}"><b>${a[0]}</b><small>${a[1]==='ok'?'Válido':'Nulo'}</small></button>`).join('')}</div>`).join('')}
+  <div class="tot-bar"><div><div class="lbl">Total</div><div class="big" style="font-size:calc(44px*var(--fs))">241<small>kg</small></div></div><div style="text-align:right"><div class="cap">Sinclair</div><b class="syne" style="font-size:calc(20px*var(--fs))">318,6</b></div></div></div>`,
+ notes:{tags:[['new','Intentos de carga']],p:['La misma tabla de intentos de powerlifting sirve para halterofilia (arrancada y dos tiempos, Sinclair), competencias de un solo levantamiento y street lifting de calistenia (dominada y fondo lastrados, muscle-up).']}});
+
+scene({tab:'competencias',id:'c-match',title:'Partidos y escalada',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Torneo de pádel del club</div><div class="cap" style="margin-top:4px">Con Álex · 2.ª categoría</div>
+  <div class="mgroup">Partidos</div><div class="mod tight">${[['w','Grupo','6–3 6–4'],['w','Cuartos','7–5 6–2'],['l','Semifinal','4–6 6–7']].map(b=>`<div class="bout"><span class="r ${b[0]}">${b[0]==='w'?'G':'P'}</span><div class="tx"><strong>${b[1]}</strong><span class="tn">${b[2]}</span></div></div>`).join('')}</div>
+  <div class="group-l">Escalada · bloque</div><div class="mod tight"><div class="ratio"><span>Tops</span><b>4 / 5</b></div><div class="ratio"><span>Zonas</span><b>5 / 5</b></div><div class="ratio"><span>Puesto</span><b>3.º de 22</b></div></div></div>`,
+ notes:{tags:[['new','Partidos y tops']],p:['Tenis, pádel y deportes de equipo: partidos con marcador y ronda alcanzada. Escalada: tops, zonas e intentos por bloque o vía, y puesto. Saltos y velocidad usan «contra el reloj» con marca en metros o segundos.']}});
+
+/* ================= CREAR PROGRAMA (v2: el asistente de bienvenida, adaptado) ================= */
 const programsBehind=()=>`<div class="scroll" style="padding-top:52px"><div style="display:flex;justify-content:space-between;align-items:center"><div class="ptitle">Programas</div><button class="pill pri sm">${ic('plus',16)}Nuevo</button></div></div>`;
+// El asistente real: una página larga, negra y continua; lo confirmado se pliega en filas-resumen editables; vidrio solo
+// bajo la cabecera y el botón; progreso blanco sobre gris; símbolos de línea sin caja de tarjeta.
+function wzHead(done,total=9){return `<div class="wzh glass"><button class="ib" aria-label="Cerrar">${ic('close')}</button><div class="t"><strong>Nuevo programa</strong><span>Solo entreno · ${done} de ${total}</span></div></div><div class="wzp"><i style="width:${Math.round(done/total*100)}%"></i></div>`}
+const sumRow=(k,v,id)=>`<div class="wzsum" data-tag="setup-summary-${id}"><span class="k">${k}</span><span class="v">${v}</span>${ic('edit',16)}</div>`;
+const symRow=(sym,t,s,on)=>`<button class="wzopt ${on?'on':''}"><span class="sym">${ic(sym,40)}</span><span class="tx"><strong>${t}</strong>${s?`<span>${s}</span>`:''}</span><span class="rad">${on?ic('check',16):''}</span></button>`;
+const wzStep=(t,sub,body)=>`<section class="wzstep"><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}${body}</section>`;
+const wzBtn=(t='Continuar',dis=false)=>`<div class="wzbtn glass"><button class="pill pri" style="width:100%;${dis?'opacity:.35':''}">${t}</button></div>`;
+const peek=(t)=>`<section class="wzstep peek"><h2>${t}</h2></section>`;
+const KNOWN=[['Alias','Matías','alias'],['Edad','34 años','age'],['Altura','1,78 m','height'],['Peso','80,4 kg','weight']];
 
 scene({tab:'crear',id:'cr-new',title:'Nuevo programa (ya aprobado)',html:()=>`${programsBehind()}${sheet(`<h3>Nuevo programa</h3><div class="sub">Elige cómo empezar.</div>
   <div class="opt-grid"><button class="opt wide" style="background:linear-gradient(135deg,#f49a6e22,#ffffff06);border-color:#f49a6e40"><span class="ic" style="color:var(--mus)">${ic('spark')}</span><span class="tx"><strong>A tu medida</strong><span style="display:block">KPKN lo arma con tu material, tus días y tu objetivo</span></span>${ic('fwd',18)}</button>
   <button class="opt"><span class="ic">${ic('book')}</span><strong>Del catálogo</strong><span>Planes conocidos y planes KPKN</span></button><button class="opt"><span class="ic">${ic('upload')}</span><strong>Importar</strong><span>Excel, Word, PDF, texto o una foto</span></button>
   <button class="opt wide"><span class="ic">${ic('plus')}</span><span class="tx"><strong>Desde cero</strong><span style="display:block">Le pones nombre y armas las sesiones tú</span></span>${ic('fwd',18)}</button></div>`)}`,
  notes:{tags:[['keep','Aprobada e implementada'],['fix','La misma hoja en Inicio']],
-  p:['La hoja aprobada en el lienzo anterior y ya implementada. Lo nuevo: <b>Inicio abre esta misma hoja</b>. Hoy Inicio abre otra distinta (la biblioteca vieja, sin «A tu medida» y con un «Desde cero» que no pide nombre).',
-     'Y la pestaña Entreno, con un programa activo, abre ese programa: «Nuevo» queda a un toque en la lista de Programas (atrás desde el programa) y en el ⋯ de la lista.']}});
+  p:['La hoja aprobada en el lienzo anterior y ya implementada. «A tu medida» abre <b>el asistente de bienvenida</b> en su modo «solo entreno» (siguientes escenas). Inicio abre esta misma hoja (hoy abre otra distinta).']}});
 
-scene({tab:'crear',id:'cr-intro',title:'A tu medida · inicio',after:drawAfter,html:()=>`<div class="wz">${wzTop(0)}
-  <div style="height:170px;margin:4px -20px 0;position:relative;overflow:hidden">${coverSvg('ondas','carbon',{seed:2})}<div style="position:absolute;inset:0;background:linear-gradient(#0000 40%,#000)"></div></div>
-  <h1>Tu programa a medida</h1><p class="lead">Cinco preguntas cortas y KPKN arma tu programa con tu material, tus días y tu objetivo. Unos dos minutos.</p>
-  <div class="summary">${CHAPS.map((c,i)=>`<div class="rowx"><span class="mark" style="background:#ffffff0c;color:var(--muted);font:700 12px Syne">${i+1}</span><div class="tx"><strong>${c}</strong><span>${['Experiencia','Lugar y material','Objetivo y si compites','Días, tiempo y energía','Músculos, marcas y cardio · opcional'][i]}</span></div></div>`).join('')}</div>
-  <div class="mod" style="margin-top:12px"><div class="mod-h"><span class="ey">Ya sabemos</span><button class="act">Cambiar</button></div><div class="cap" style="margin-top:6px;font-size:calc(13px*var(--fs))">34 años · 1,78 m · 80,4 kg</div></div>
-  ${wzFoot('Empezar')}</div>`,
- notes:{tags:[['new','Pantalla completa propia'],['fix','No pide datos de nutrición']],
-  p:['«A tu medida» deja de ser el asistente de bienvenida recortado: es una <b>pantalla completa propia</b> con cinco capítulos y una barra de progreso por capítulo. Usa el mismo motor y las mismas preguntas (grafo de pasos, evaluador, generador), así que no hay lógica nueva.',
-     'Los datos básicos que ya tenemos <b>no se vuelven a preguntar</b>: se muestran en «Ya sabemos». Hoy, en modo solo entreno, se pide el género y el % de grasa como obligatorios aunque solo sirven para nutrición.',
-     'Si dejas el flujo a medias, al volver retoma donde estabas (ya existe el borrador por alcance).']}});
+scene({tab:'crear',id:'cr-wz1',title:'A tu medida · el asistente, adaptado',html:()=>`<div class="wz wzpage">${wzHead(1)}
+  <div class="wzlead">Arma tu programa con las mismas preguntas que al empezar en KPKN. Lo que ya sabemos está arriba, plegado.</div>
+  <div class="wzsums">${KNOWN.map(k=>sumRow(k[0],k[1],k[2])).join('')}</div>
+  ${wzStep('¿Cuánta experiencia tienes?','Decide cuánto volumen y cuánta variedad tendrá tu programa.',symRow('spark','Estoy empezando','',false)+symRow('repeat','Estoy volviendo','',false)+symRow('cal','Ya entreno con constancia','',true)+symRow('trophy','Tengo experiencia','',false))}
+  ${peek('¿Dónde entrenas?')}${wzBtn()}</div>`,
+ notes:{tags:[['keep','Es el asistente de bienvenida'],['new','Instancia «Nuevo programa»']],
+  p:['Se reutiliza <b>el asistente de bienvenida tal cual</b>: la misma página larga negra y continua, los mismos pasos, los mismos símbolos animados sin caja, el vidrio solo bajo la cabecera y el botón, y el progreso blanco sobre gris. Lo que cambia es la instancia:',
+     '<b>Cabecera propia</b>: «Nuevo programa · Solo entreno» con la X para salir (el borrador queda guardado y al volver retoma donde estabas; ya existe por alcance). <b>Lo que ya sabemos</b> (alias, edad, altura, peso) aparece plegado arriba como filas-resumen editables, igual que lo confirmado en el asistente, en vez de preguntarse otra vez.',
+     'Sin bienvenida, sin prólogo, sin nutrición y sin hito final de alta.'],
+  listTitle:'Qué se salta en esta instancia',list:['Género y % de grasa: hoy son obligatorios en «solo entreno» aunque solo sirven para la nutrición. Si faltan, no se piden.','Los pasos de alta (bienvenida, prólogo, intro) que ya no existen en modo solo entreno.','El cierre «Revisión y activación» del alta: lo sustituye «Listo para empezar» (última escena).']}});
 
-scene({tab:'crear',id:'cr-exp',title:'Capítulo 1 · Tú',html:()=>`<div class="wz">${wzTop(0,true)}<div class="chap">1 · Tú</div><h1>¿Cuánta experiencia tienes?</h1><p class="lead">Decide cuánto volumen y cuánta variedad tendrá tu programa.</p>
-  ${choice('spark','Estoy empezando','Menos de 6 meses o nunca con un plan',false)}${choice('repeat','Estoy volviendo','Entrené antes y lo dejé un tiempo',false)}${choice('cal','Ya entreno con constancia','Más de un año con regularidad',true)}${choice('trophy','Tengo experiencia','Varios años, sé lo que me funciona',false)}
-  ${wzFoot()}</div>`,
- notes:{tags:[['keep','Mismas cuatro respuestas']],p:['Cada opción con su símbolo animado (los del asistente de bienvenida, sin caja de tarjeta en el producto real) y una línea que dice qué significa. Las preguntas de técnica, constancia, fuerza y movilidad siguen en este capítulo, una por pantalla, con sus tres niveles.']}});
+scene({tab:'crear',id:'cr-wz2',title:'A tu medida · material',html:()=>`<div class="wz wzpage">${wzHead(3)}
+  <div class="wzsums">${sumRow('Lo que ya sabemos','Matías · 34 años · 80,4 kg','basics')}${sumRow('Experiencia','Ya entreno con constancia','exp')}${sumRow('Dónde','Gimnasio','place')}</div>
+  ${wzStep('¿Con qué material entrenas?','Marcamos lo típico de un gimnasio. Quita lo que no tengas.',`<div class="wzgrid">${[['dumb','Barra y discos',1],['dumb','Mancuernas',1],['tower','Rack',1],['grip','Poleas',1],['target','Máquinas',1],['link','Bandas',0],['flag','Barra de dominadas',1],['heart','Cardio',1]].map(m=>`<button class="wzsym ${m[2]?'on':''}">${ic(m[0],38)}<span>${m[1]}</span></button>`).join('')}</div>`)}
+  ${peek('¿Cuál es tu objetivo?')}${wzBtn()}</div>`,
+ notes:{tags:[['keep','Mismo paso del asistente']],p:['Las respuestas confirmadas se pliegan arriba; los datos conocidos se juntan en una sola fila. El material son los símbolos de línea del asistente (barra, mancuerna, rack…) sobre la superficie negra, sin tarjetas: el elegido en tinta, el resto atenuado.']}});
 
-scene({tab:'crear',id:'cr-where',title:'Capítulo 2 · Dónde y con qué',html:()=>`<div class="wz">${wzTop(1,true)}<div class="chap">2 · Dónde y con qué</div><h1>¿Con qué material entrenas?</h1><p class="lead">Marcamos lo típico de un gimnasio. Quita lo que no tengas.</p>
-  ${chips(['Gimnasio','En casa','Al aire libre'],0,40)}
-  <div class="opt-grid" style="margin-top:14px">${[['dumb','Barra y discos',1],['dumb','Mancuernas',1],['tower','Rack',1],['grip','Poleas',1],['target','Máquinas',1],['link','Bandas',0],['flag','Dominadas',1],['heart','Cardio',1]].map(m=>`<button class="opt" style="min-height:88px;${m[2]?'border-color:#f2eee688;background:#f2eee60c':''}"><span class="ic">${ic(m[0])}</span><strong>${m[1]}</strong><span>${m[2]?'Lo tengo':'No'}</span></button>`).join('')}</div>
-  ${wzFoot()}</div>`,
- notes:{tags:[['keep','Mismo material']],p:['Lugar y material en una sola pantalla: el lugar preselecciona el material típico y tú quitas lo que falte. El motor sigue usando el «material efectivo» de hoy.']}});
+scene({tab:'crear',id:'cr-wz3',title:'A tu medida · objetivo y competencia',html:()=>`<div class="wz wzpage">${wzHead(4)}
+  <div class="wzsums">${sumRow('Lo que ya sabemos','Matías · 34 años · 80,4 kg','basics')}${sumRow('Experiencia','Ya entreno con constancia','exp')}${sumRow('Material','Gimnasio completo','gear')}</div>
+  ${wzStep('¿Cuál es tu objetivo?','',symRow('dumb','Fuerza y masa muscular','',false)+symRow('heart','Fuerza y cardio','',false)+symRow('spark','Funcional y saludable','',false)+`<div class="wzlbl">Una disciplina</div>`+chips(['Powerlifting','Powerbuilding','Culturismo','Calistenia','Halterofilia','Strongman','Armwrestling'],0,38))}
+  ${wzStep('¿Compites en tu disciplina?','',symRow('cal','Sí, tengo fecha','16 nov · Open regional',true)+symRow('trophy','Sí, sin fecha','',false)+symRow('close','No compito','',false))}
+  ${wzBtn()}</div>`,
+ notes:{tags:[['keep','Mismos pasos'],['new','Crea la competencia']],p:['Igual que en el alta. Lo único nuevo: si compites con fecha, además de armar el programa hacia ese día (pico y puesta a punto, como hoy), se crea la competencia como «próxima» en Competencias.']}});
 
-scene({tab:'crear',id:'cr-goal',title:'Capítulo 3 · Qué buscas',html:()=>`<div class="wz">${wzTop(2,true)}<div class="chap">3 · Qué buscas</div><h1>¿Cuál es tu objetivo?</h1>
-  <div class="mgroup">Para todos</div>${choice('dumb','Fuerza y masa muscular','',false)}${choice('heart','Fuerza y cardio','',false)}${choice('spark','Funcional y saludable','',false)}
-  <div class="mgroup">Una disciplina</div>${chips(['Powerlifting','Powerbuilding','Culturismo','Calistenia','Halterofilia','Strongman','Armwrestling'],0,38)}
-  <div class="mod" style="margin-top:16px;border-color:#f49a6e44"><div class="ey" style="color:var(--mus)">¿Compites?</div>${chips(['Sí, con fecha','Sí, sin fecha','No compito'],0,38)}<div class="field"><small>Fecha y nombre</small><div>16 nov · Open regional</div></div><div class="cap" style="margin-top:8px">Crea también la competencia en «Competencias» y el programa termina con puesta a punto ese día.</div></div>
-  ${wzFoot()}</div>`,
- notes:{tags:[['keep','Mismos objetivos'],['new','Enlaza con Competencias']],p:['Objetivo general o disciplina. Si compites con fecha, el programa se arma hacia ese día (pico y puesta a punto, como hoy) y además se crea la competencia como «próxima», con su cuenta atrás.']}});
+scene({tab:'crear',id:'cr-wz-plan',title:'A tu medida · tu programa',after:drawAfter,html:()=>`<div class="wz wzpage">${wzHead(8)}
+  <div class="wzsums">${sumRow('Tu semana','5 días · 60 min · L M X V S','week')}</div>
+  ${wzStep('Tu programa a medida','',`<div class="offer pick" style="margin-top:6px"><div class="art">${cover('','perfil','carbon')}<span class="badge" style="position:absolute;left:12px;top:12px">${ic('spark',13)}Para ti</span></div><div class="in">
+   <strong class="syne" style="font-size:calc(21px*var(--fs));letter-spacing:-.5px">Fuerza y músculo · 6 semanas</strong><div class="meta" style="margin-top:4px">3 bloques · 5 días · ≈ 60 min</div>
+   ${['Bloques de 6 semanas: ya entrenas con constancia','Tren inferior dos veces: priorizaste glúteos'].map(w=>`<div class="why"><i></i>${w}</div>`).join('')}
+   <div style="display:flex;gap:8px;margin-top:14px"><button class="pill sec sm" style="flex:1">Ver detalles</button><button class="pill sec sm" style="flex:1">Otra versión</button></div></div></div>
+   <div class="wzlbl">También encaja</div>${['Rutina · 1 semana base','Periodizado · 12 semanas'].map(o=>`<div class="wzsum"><span class="v" style="flex:1;color:var(--ink)">${o}</span>${ic('fwd',16)}</div>`).join('')}`)}
+  ${wzBtn('Elegir este programa')}</div>`,
+ notes:{tags:[['keep','Paso PLAN del asistente']],p:['Es el paso PLAN de hoy («Tu programa a medida» o «Elige tu programa» en disciplinas), con sus mismas acciones: «Ver detalles», «Otra versión», elegir o dejarlo para luego.','Dos mejoras que valen también para el alta: la portada de líneas del programa y dos razones que salen de tus respuestas (el evaluador ya sabe por qué elige).']}});
 
-scene({tab:'crear',id:'cr-week',title:'Capítulo 4 · Tu semana',html:()=>`<div class="wz">${wzTop(3,true)}<div class="chap">4 · Tu semana</div><h1>¿Qué días puedes entrenar?</h1>
-  <div class="dayp">${['L','M','X','J','V','S','D'].map((d,i)=>`<span class="${[0,1,2,4,5].includes(i)?'on':''}">${d}</span>`).join('')}</div><div class="cap" style="margin-top:8px">5 días · puedes cambiarlo luego en la semana</div>
-  <div class="mgroup">Tiempo por sesión</div><div class="stepper"><button aria-label="Menos">−</button><b>60<small>min</small></b><button aria-label="Más">+</button></div>
-  <div class="mgroup">¿Qué día llegas con más energía?</div>${chips(['Lunes','Martes','Miércoles','Viernes','Sábado'],0,38)}
-  ${wzFoot()}</div>`,
- notes:{tags:[['keep','Mismas preguntas'],['fix','1 a 7 días en todos los caminos']],p:['Días, minutos y día con más energía en una pantalla. Arregla una incoherencia: el paso dice «entre 1 y 7» pero desde el catálogo solo se admitía de 1 a 6.']}});
+scene({tab:'crear',id:'cr-wz-week',title:'A tu medida · así queda tu semana',html:()=>`<div class="wz wzpage">${wzHead(9)}
+  <div class="wzsums">${sumRow('Programa','Fuerza y músculo · 6 semanas','plan')}</div>
+  ${wzStep('Así queda tu semana','Mantén pulsada una sesión para moverla de día.',`<div class="wzweek">${[['LUN','Pierna A'],['MAR','Empuje'],['MIÉ','Tirón'],['JUE',''],['VIE','Pierna B'],['SÁB','Torso'],['DOM','']].map(d=>`<div class="wzday"><small>${d[0]}</small>${d[1]?`<span>${d[1]}</span>`:'<em>Descanso</em>'}</div>`).join('')}</div>`)}
+  ${wzBtn('Continuar')}</div>`,
+ notes:{tags:[['keep','Mismo paso']],p:['El paso «Así queda tu semana» de hoy, con su aviso de material por día si aplica.']}});
 
-scene({tab:'crear',id:'cr-fine',title:'Capítulo 5 · Afinar (opcional)',html:()=>`<div class="wz">${wzTop(4,true)}<div class="chap">5 · Afinar · opcional</div><h1>¿Algo que priorizar?</h1>
-  <div class="mgroup">Músculos (hasta 5)</div>${chips(['Glúteos','Espalda','Hombros','Pecho','Brazos','Pantorrillas','Core'],[0,1])}
-  <div class="mgroup">Tus marcas, si las sabes</div>${[['Sentadilla','140 × 5'],['Press banca','100 × 5'],['Peso muerto','—']].map(r=>`<div class="rowx"><div class="tx"><strong>${r[0]}</strong><span>${r[1]==='—'?'Sin dato':'Mejor serie reciente'}</span></div><b class="syne">${r[1]}</b></div>`).join('')}
-  ${wzFoot('Ver mi programa','Saltar')}</div>`,
- notes:{tags:[['keep','Mismas preguntas']],p:['Lo que hoy son pasos sueltos al final (músculos, ejercicios a evitar, estilo de armwrestling, variantes, marcas, cardio) se agrupa en un capítulo opcional que se puede saltar entero. Solo aparecen las preguntas que tocan según tus respuestas.']}});
-
-scene({tab:'crear',id:'cr-gen',title:'Armando tu programa',after:drawAfter,html:()=>`<div class="wz" style="display:flex;flex-direction:column;justify-content:center">
-  <div style="height:330px;margin:0 -20px;position:relative">${coverSvg('perfil','carbon',{vol:[.55,.62,.7,.8,.66,.4],now:-1})}</div>
-  <h1 style="text-align:center">Armando tu programa</h1>
-  <div class="wr-p" style="text-align:center;margin:0 auto;max-width:none">${['Eligiendo el reparto para 5 días','Ajustando el volumen a tu experiencia','Comprobando tu material'].map((t,i)=>`<div class="rise" style="opacity:0;animation-delay:${.3+i*.7}s;margin-top:6px">${i<2?ic('check',14):''} ${t}</div>`).join('')}</div></div>`,
- notes:{tags:[['new','Espera con sentido']],p:['Mientras el motor evalúa candidatos (hoy es casi instantáneo, pero con el catálogo grande tarda), la portada del programa se dibuja con la carga de sus semanas y tres frases dicen qué se está decidiendo. Mínimo 1,5 s para que se lea; con movimiento reducido, solo las frases.']}});
-
-scene({tab:'crear',id:'cr-offer',title:'La propuesta',after:drawAfter,html:()=>`<div class="wz">${wzTop(5)}<h1 style="margin-top:8px">Tu programa</h1>
-  <div class="offer pick"><div class="art">${cover('','perfil','carbon')}<span class="badge" style="position:absolute;left:12px;top:12px">${ic('spark',13)}Para ti</span></div><div class="in">
-   <strong class="syne" style="font-size:calc(22px*var(--fs));letter-spacing:-.5px">Fuerza y músculo · 6 semanas</strong><div class="meta" style="margin-top:4px">3 bloques · 5 días · ≈ 60 min</div>
-   ${['Bloques de 6 semanas: ya entrenas con constancia','Tren inferior dos veces: priorizaste glúteos','Sin máquinas de femoral: usamos peso muerto rumano'].map(w=>`<div class="why"><i></i>${w}</div>`).join('')}
-   <div class="split7">${[['L','Pierna A'],['M','Empuje'],['X','Tirón'],['J',''],['V','Pierna B'],['S','Torso'],['D','']].map(d=>`<div><small>${d[0]}</small><i class="${d[1]?'on':''}"></i><span>${d[1]||'—'}</span></div>`).join('')}</div>
-   <div style="display:flex;gap:8px;margin-top:14px"><button class="pill sec sm" style="flex:1">${ic('eye',16)}Ver detalles</button><button class="pill sec sm" style="flex:1">${ic('repeat',16)}Otra versión</button></div></div></div>
-  <div class="group-l">También encaja</div>
-  ${[['Rutina · Fuerza y músculo','1 semana base · 5 días','ondas'],['Periodizado · 12 semanas','4 bloques · 5 días','espiral']].map(o=>`<div class="pcard">${cover('',o[2],'carbon')}<div class="tx"><strong>${o[0]}</strong><span>${o[1]}</span></div>${ic('fwd',18)}</div>`).join('')}
-  <button class="act faint" style="width:100%;justify-content:center">Ver programas del catálogo (14)</button>
-  ${wzFoot('Elegir este programa','Lo haré luego')}</div>`,
- notes:{tags:[['keep','Mismo motor y acciones'],['new','El porqué, a la vista']],
-  p:['La propuesta «Para ti» con su portada de líneas, el reparto de la semana y <b>tres razones</b> que salen de tus respuestas (el evaluador ya sabe por qué elige). Debajo, las otras formas que encajan (rutina, bloques, periodizado) y el acceso al catálogo filtrado.',
-     'Mismas acciones que hoy: «Ver detalles» (hoja «Cómo funciona»), «Otra versión», «Elegir este programa» y «Lo haré luego».']}});
-
-scene({tab:'crear',id:'cr-activate',title:'Activar',html:()=>`<div class="wz">${wzTop(5)}<h1 style="margin-top:8px">Listo para empezar</h1><p class="lead">Ya tienes «Motor y fuerza» en curso (semana 4 de 6). ¿Qué hacemos con el nuevo?</p>
-  ${opt('Empezar ahora','Pausa «Motor y fuerza»; podrás reanudarlo',false)}${opt('Ponerlo en cola','Empieza solo cuando termine el actual',true)}${opt('Guardarlo sin activar','Queda en «Tus programas»',false)}
-  <div class="mod" style="margin-top:14px"><div class="mod-h"><span class="ey">Máximos de entrenamiento</span><span class="cap">opcional</span></div><div class="cap" style="margin-top:6px">El programa usa porcentajes. Precargados con tu historial: sentadilla 144, banca 101, peso muerto 171.</div><button class="act" style="margin-top:4px">Revisar máximos</button></div>
-  ${wzFoot('Guardar y poner en cola')}</div>`,
- notes:{tags:[['new','Una sola forma de activar'],['fix','Nada se activa sin preguntar']],
-  p:['Hoy cada camino activa distinto: el asistente activa siempre (pide «Confirmo la activación» si hay otro), una estructura del catálogo <b>se activa sin preguntar</b>, y «Desde cero», importar y protocolos no activan. Ahora todos terminan aquí: empezar ahora, en cola o guardar.',
-     'Si ya no hay programa en curso, la opción por defecto es «Empezar ahora» y el texto lo dice. Los máximos aparecen solo si el programa los usa.']}});
+scene({tab:'crear',id:'cr-wz-end',title:'A tu medida · listo para empezar',html:()=>`<div class="wz wzpage">${wzHead(9,9)}
+  <div class="wzsums">${sumRow('Programa','Fuerza y músculo · 6 semanas','plan')}${sumRow('Semana','5 días · 60 min','week')}</div>
+  ${wzStep('Listo para empezar','Ya tienes «Motor y fuerza» en curso (semana 4 de 6). ¿Qué hacemos con el nuevo?',symRow('play','Empezar ahora','Pausa «Motor y fuerza»; podrás reanudarlo',false)+symRow('repeat','Ponerlo en cola','Empieza cuando termine el actual',true)+symRow('book','Guardarlo sin activar','Queda en «Tus programas»',false))}
+  ${wzBtn('Guardar y poner en cola')}</div>`,
+ notes:{tags:[['new','Cierre propio de esta instancia'],['fix','Nada se activa sin preguntar']],
+  p:['Sustituye a «Revisión y activación» del alta (con su «Activar y entrar a KPKN»). Mismo patrón de filas del asistente. Todos los caminos de creación (asistente, catálogo, importar, desde cero) terminan con esta elección: hoy una estructura del catálogo se activa sin preguntar y el resto no activa.','Si no hay programa en curso, la opción por defecto es «Empezar ahora». Al terminar vuelve a Programas (no a Inicio) con el programa nuevo abierto.']}});
 
 scene({tab:'crear',id:'cr-info',title:'Catálogo › Cómo funciona',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:0;padding-left:0;padding-right:0"><div style="height:200px;position:relative;overflow:hidden">${cover('big','eco','grafito',{num:'16'})}<div style="position:absolute;inset:0;background:linear-gradient(#0000 40%,#000)"></div><div style="position:absolute;top:44px;left:10px"><button class="fb glass" aria-label="Atrás">${ic('back')}</button></div></div>
   <div style="padding:0 16px"><div class="lbl">Jim Wendler · Original fiel</div><div class="ptitle" style="margin-top:6px">5/3/1 Boring But Big</div><div class="meta">4 días · 16 semanas · Fuerza</div>
   <div class="group-l">Qué haces</div><p class="body" style="margin:0">Un básico pesado con la onda 5/3/1 y después 5 × 10 del mismo levantamiento al 50–60 %. Ciclos de 4 semanas con descarga.</p>
   <div class="group-l">Tu semana tipo</div><div class="split7" style="margin-top:0">${[['L','Press militar'],['M','Peso muerto'],['X',''],['J','Press banca'],['V','Sentadilla'],['S',''],['D','']].map(d=>`<div><small>${d[0]}</small><i class="${d[1]?'on':''}"></i><span>${d[1]||'—'}</span></div>`).join('')}</div>
   <div class="group-l">Necesitas</div>${chips(['Barra y discos','Rack','Banco'],[])}
-  <div class="group-l">Fuente</div><p class="cap" style="margin:0">Basado en «5/3/1 Forever» (2017). No afiliado al autor.</p>
   <button class="pill pri" style="width:100%;margin-top:20px">Configurar este plan</button></div></div>`,
- notes:{tags:[['keep','Mismo contenido'],['new','Página, no hoja']],p:['«Cómo funciona» pasa de hoja a página con portada: qué haces, semana tipo dibujada, material y fuente (notas del método y glosario debajo, plegados).','«Configurar este plan» abre «A tu medida» con el objetivo y los días ya puestos: solo pregunta lo que el plan necesita (capítulos 2, 4 y 5).']}});
+ notes:{tags:[['keep','Mismo contenido']],p:['«Configurar este plan» abre el mismo asistente adaptado con el objetivo y los días ya preseleccionados (como hoy con <code>planId</code>), y el plan elegido en el paso PLAN.']}});
 
 scene({tab:'crear',id:'cr-import',title:'Importar',html:()=>`${programsBehind()}${sheet(`<h3>Importar un programa</h3><div class="sub">KPKN lo lee y te deja revisarlo antes de guardarlo.</div>
-  ${mi('upload','Elegir archivo','Excel, CSV, Word, texto o PDF')}${mi('paste','Pegar texto','Ej.: Día 1 — Pierna / Sentadilla 4x6 @120kg')}${mi('camera','Foto de tu rutina','Hacer una foto o elegirla de la galería')}
-  <div class="pending" style="color:var(--muted);background:#ffffff06;border-color:#ffffff12">${ic('info',16)}Si se parece a un plan del catálogo te lo diremos, por si prefieres la versión de KPKN.</div>`)}`,
- notes:{tags:[['keep','Mismas tres fuentes']],p:['Igual que hoy. Al terminar la revisión, el programa importado pasa por la misma pantalla «Listo para empezar» (hoy se guarda sin activar y sin decirlo).']}});
+  ${mi('upload','Elegir archivo','Excel, CSV, Word, texto o PDF')}${mi('paste','Pegar texto','Ej.: Día 1 — Pierna / Sentadilla 4x6 @120kg')}${mi('camera','Foto de tu rutina','Hacer una foto o elegirla de la galería')}`)}`,
+ notes:{tags:[['keep','Mismas tres fuentes']],p:['Igual que hoy; al terminar la revisión pasa por «Listo para empezar».']}});
 
-scene({tab:'crear',id:'cr-tm',title:'Máximos de entrenamiento',html:()=>`<div class="wz">${wzTop(5)}<h1 style="margin-top:8px">Tus máximos</h1><p class="lead">Escribe tu 1RM; el máximo de entrenamiento es el 90 % y con él salen las cargas.</p>
-  ${[['Sentadilla','160','144'],['Press banca','112,5','101'],['Peso muerto','190','171'],['Press militar · opcional','','—']].map(r=>`<div class="ratio" style="grid-template-columns:1fr 96px 64px;align-items:center;min-height:58px"><span>${r[0]}</span><div class="field" style="margin:0;padding:8px 12px"><div class="tn" style="margin:0">${r[1]||'<span class="cap">kg</span>'}</div></div><span class="cap tn" style="text-align:right">TM ${r[2]}</span></div>`).join('')}
-  <button class="act" style="margin-top:6px">${ic('history',16)}Calcular desde mi historial</button>
-  ${wzFoot('Aplicar','Crear sin TM')}</div>`,
- notes:{tags:[['keep','Mismo paso'],['keep','«Crear sin TM» (ya hecho)']],p:['Cada marca muestra su TM en la misma fila. «Crear sin TM» ya se implementó en el paquete anterior.']}});
-
-scene({tab:'crear',id:'cr-reject',title:'Cuando un plan no encaja',html:()=>`<div class="wz">${wzTop(5)}<h1 style="margin-top:8px">Este plan necesita algo que no tienes</h1><p class="lead">«5/3/1 Boring But Big» usa rack y banco, y marcaste que entrenas en casa sin ellos.</p>
-  ${mi('check','Confirmar material','Sí tengo rack y banco')}${mi('swap','Ver alternativas','3 planes parecidos con tu material')}${mi('target','Cambiar objetivo','')}${mi('cal','Ajustar a 45 min','Tus sesiones son más cortas que las del plan')}
-  ${wzFoot('Ver alternativas')}</div>`,
- notes:{tags:[['keep','Mismos arreglos']],p:['Los avisos del evaluador de hoy («Ya no está entre los planes que corresponden a tus respuestas», «Este plan necesita material que dijiste que no tienes») con el motivo concreto y los mismos arreglos como filas de acción.']}});
+scene({tab:'crear',id:'cr-tm',title:'Máximos de entrenamiento',html:()=>`<div class="wz wzpage">${wzHead(9,9)}${wzStep('Tus máximos','Escribe tu 1RM; el máximo de entrenamiento es el 90 % y con él salen las cargas.',
+  [['Sentadilla','160','144'],['Press banca','112,5','101'],['Peso muerto','190','171'],['Press militar · opcional','','—']].map(r=>`<div class="ratio" style="grid-template-columns:1fr 96px 64px;align-items:center;min-height:58px"><span>${r[0]}</span><div class="field" style="margin:0;padding:8px 12px"><div class="tn" style="margin:0">${r[1]||'<span class="cap">kg</span>'}</div></div><span class="cap tn" style="text-align:right">TM ${r[2]}</span></div>`).join('')+`<button class="act" style="margin-top:6px">${ic('history',16)}Calcular desde mi historial</button>`)}
+  <div class="wzbtn glass" style="display:flex;gap:8px"><button class="pill sec">Crear sin TM</button><button class="pill pri" style="flex:1">Aplicar</button></div></div>`,
+ notes:{tags:[['keep','Mismo paso']],p:['Si el programa elegido usa porcentajes, este paso entra en la misma página antes de «Listo para empezar».']}});
 
 /* ================= REGISTRO DE COMIDA · DESCRIBIR ================= */
 const MACC={p:'var(--mus)',c:'var(--ene)',f:'var(--col)'};
@@ -1262,6 +1329,37 @@ scene({tab:'comida',id:'f-error',title:'Si algo falla',html:()=>`<div class="lg"
   <div class="mod" style="margin-top:12px;border-color:#f7cf7333"><div class="ey" style="color:var(--ene)">${ic('info',14)} Lo leí a medias</div><p class="body" style="margin:8px 0 10px">Reconocí las lentejas y el chorizo, pero no las cantidades. Las dejé en una ración normal: revísalas antes de guardar.</p><div style="display:flex;gap:8px"><button class="pill sec sm">Volver a analizar</button><button class="pill sec sm">Buscar a mano</button></div></div>
   ${foodCard({n:'Lentejas guisadas',q:'1 plato · 300 g',k:342,p:20,c:44,f:8,ic:'bowl',approx:true},0)}${foodCard({n:'Chorizo',q:'40 g',k:182,p:10,c:1,f:15,ic:'pan',approx:true},1)}</div>${saveBar(524)}`,
  notes:{tags:[['fix','Sin jerga técnica']],p:['Los cuatro avisos de error de hoy hablan de «dataset de porciones no cargado» o muestran el nombre de la excepción. Ahora dicen qué se reconoció, qué se supuso y qué puedes hacer, con un icono de aviso (no de información). El detalle técnico queda solo en los registros de la app.']}});
+
+/* --- v2: registrador rápido en Inicio, sin salir de la pantalla --- */
+function homeBase(k=1240,{bump=false}={}){return `<div class="home"><div class="cap" style="letter-spacing:1.4px;font-weight:600">MIÉRCOLES 29</div><div class="ptitle" style="margin-top:4px">Hola, Matías</div>
+  <div class="mod" style="margin-top:14px"><div class="mod-h"><span class="ey">Hoy en tu entreno</span><span class="cap">Tirón · 48 min</span></div><button class="pill pri sm" style="width:100%;margin-top:10px">${ic('play',16)}Empezar Tirón</button></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Nutrición de hoy</span><span class="cap">objetivo 2.300</span></div><div class="hm-ring ${bump?'bump':''}" style="margin-top:8px">${ringSvg(k,2300)}<div class="mac">${[['Proteína',bump?92:67,'p',.4],['Carbos',bump?150:104,'c',.45],['Grasa',bump?52:38,'f',.5]].map(m=>`<div>${m[0]}<i style="--w:${Math.round(m[3]*100)}%;--c:${MACC[m[2]]}"></i><b>${m[1]} g</b></div>`).join('')}</div></div></div>
+  <div class="mod tight"><div class="rowx"><div class="tx"><strong>Desayuno</strong><span>Avena con plátano · 412 kcal</span></div></div><div class="rowx"><div class="tx"><strong>Almuerzo</strong><span>${bump?'Pollo con arroz y ensalada · 652 kcal':'Sin registrar'}</span></div></div></div></div>`}
+const qbar=(t='',on=false)=>`<div class="qbar glass"><span class="t ${on?'on':''}">${t||'¿Qué comiste? Escríbelo aquí'}</span><button class="ib fill" aria-label="Dictar">${ic('mic')}</button>${on?`<button class="go" style="height:44px;border-radius:22px;background:var(--ink);color:#111;padding:0 16px;font-weight:600">Analizar</button>`:''}</div>`;
+const HOME_FOODS=[{n:'Pechuga de pollo',q:'180 g · a la plancha',k:297,p:56,c:0,f:7,ic:'pan'},{n:'Arroz blanco',q:'1 plato · 200 g cocido',k:260,p:5,c:57,f:1,ic:'bowl',ask:'raw'},{n:'Ensalada mixta',q:'1 bol · con aceite',k:95,p:2,c:6,f:7,ic:'avo'}];
+function homeCard(f,i){const q=f.ask;return `<div class="food ${q?'ask':''}" style="animation-delay:${120+i*120}ms"><div class="food-h"><span class="fi">${ic(f.ic,20)}</span><div class="tx"><strong>${f.n}</strong><span>${f.q}</span></div><div class="k"><b>${f.k}</b><span>kcal</span></div></div>${q?`<div class="q"><p><i></i>¿Los 200 g eran en crudo o cocidos?</p><div class="qopts"><span>En crudo</span><span class="on">Cocidos</span></div></div>`:''}</div>`}
+
+scene({tab:'comida',id:'f-home',title:'Inicio · escribir sin salir',html:()=>`${homeBase()}${qbar()}${navbar(0)}`,
+ notes:{tags:[['new','Registrador en Inicio'],['keep','El mismo motor']],
+  p:['En Inicio aparece una barra de vidrio flotante «¿Qué comiste?» justo encima de la barra de navegación. Escribes o dictas ahí mismo: <b>no se abre otra pantalla</b>. Hoy el icono «Registrar comida» de Inicio lleva a la hoja completa de Nutrición.',
+     'La barra solo aparece si hay plan de nutrición; la comida se elige sola por la hora (almuerzo a las 14:10) y se puede cambiar en la hoja.']}});
+
+scene({tab:'comida',id:'f-home-type',title:'Inicio · escrito',html:()=>`${homeBase()}${qbar('Pollo a la plancha con arroz y ensalada<span class="caret"></span>',true)}${navbar(0)}`,
+ notes:{p:['El texto crece en la propia barra (hasta tres líneas). «Analizar» con el botón o con Enter.']}});
+
+scene({tab:'comida',id:'f-home-ana',title:'Inicio · analizando',after:ph=>animateIn(ph),html:()=>`${homeBase()}<div class="scrim" style="background:#0007"></div><div class="qsheet"><div class="grab"></div>
+  <div class="lg-head" style="margin:0 -6px 6px"><div class="t"><strong style="font-size:calc(16px*var(--fs))">Almuerzo · 14:10</strong><span>Pollo a la plancha con arroz y ensalada</span></div></div>
+  <div class="ana" style="height:210px;margin-top:4px">${plateAnim()}<div class="msg">Encontré pollo, arroz y ensalada<small>Estimando cantidades…</small></div></div></div>`,
+ notes:{tags:[['new','Media hoja sobre Inicio']],p:['Al analizar, una media hoja sube desde la barra con la misma animación del plato. Inicio sigue visible arriba, atenuado.']}});
+
+scene({tab:'comida',id:'f-home-res',title:'Inicio · revisar y guardar',after:drawAfter,html:()=>`${homeBase()}<div class="scrim" style="background:#0007"></div><div class="qsheet" style="max-height:82%"><div class="grab"></div>
+  <div class="lg-head" style="margin:0 -6px 2px"><div class="t"><strong style="font-size:calc(16px*var(--fs))">Almuerzo · 14:10</strong><span>3 alimentos · 1 duda</span></div><button class="act faint">Abrir completo${ic('fwd',14)}</button></div>
+  ${HOME_FOODS.map(homeCard).join('')}
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="pill sec" style="flex:0 0 auto">${ic('plus',18)}</button><button class="pill pri" style="flex:1">Guardar · 652 kcal</button></div></div>`,
+ notes:{tags:[['keep','Mismas tarjetas y dudas']],p:['Las mismas tarjetas del registro completo, más compactas, con sus dudas dentro. Tocar una tarjeta abre su hoja de ajuste encima. «Abrir completo» pasa al registro de Nutrición con todo lo escrito, por si quieres buscar o añadir más.','«+» añade otro alimento escribiéndolo en la misma hoja.']}});
+
+scene({tab:'comida',id:'f-home-done',title:'Inicio · guardado',after:ph=>animateIn(ph),html:()=>`${homeBase(1892,{bump:true})}<div class="toast glass" style="bottom:160px">${ic('check',18)}Almuerzo guardado · 652 kcal<button class="act">Deshacer</button></div>${qbar()}${navbar(0)}`,
+ notes:{tags:[['new','Se queda en Inicio']],p:['La hoja baja, el anillo de Nutrición de hoy cuenta hasta el nuevo total con un pequeño rebote y el almuerzo aparece en la lista. Un aviso con «Deshacer» durante 4 s. No has salido de Inicio en ningún momento.']}});
 
 /* ================= REGISTRO DE COMIDA · BUSCAR Y MENÚS ================= */
 const sfield=(t='',ph='Busca un alimento')=>`<div class="searchf">${ic('search',18)}<span class="t">${t||`<span style="color:var(--dim)">${ph}</span>`}${t?'<span class="caret"></span>':''}</span><button class="ib" aria-label="Escanear código">${ic('barcode')}</button></div>`;
@@ -1406,6 +1504,19 @@ scene({tab:'historias',id:'h-nutri-sheet',title:'Nutrición · compartir',after:
 scene({tab:'historias',id:'h-nutri-week',title:'Nutrición · Semana',after:ph=>{animateIn(ph)},html:()=>fullStory(storyNutriWeek),notes:{p:['El anillo de la media con los macros como arcos y siete barras, en acento el día que te pasaste.']}});
 scene({tab:'historias',id:'h-nutri-macros',title:'Nutrición · Macros',after:drawAfter,html:()=>fullStory(storyNutriMacros),notes:{p:['Tres barras finas con el objetivo como fondo y la proteína como titular.']}});
 scene({tab:'historias',id:'h-nutri-streak',title:'Nutrición · Racha',after:drawAfter,html:()=>fullStory(storyNutriStreak),notes:{p:['La espiral cuenta las semanas de la racha.']}});
+
+/* --- v2: historias de otras disciplinas --- */
+const storyRace=(o={})=>storyShell({art:coverSvg('ondas','noche',{seed:3}),artBottom:'50%',top:'42%',end:true,ey:'Media maratón de Valencia',title:'1:38:12',sub:'21,1 km · 4:39 /km · puesto 1.204',w:o.w,foot:'Mi carrera',
+  inner:`<div class="st-lifts">${[['Marca personal','−3:41'],['Último kilómetro','4:21'],['Categoría M35','187.º']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`});
+const storyStage=(o={})=>storyShell({photo:true,art:coverSvg('bruma','carbon',{seed:4,clear:true}),artBottom:'52%',top:'60%',ey:'Regional · Men’s Physique',title:'2.º puesto',w:o.w,foot:'Mi competencia',
+  extra:`<div class="st-medal" style="width:28%;top:48%;left:80%">${medalSvg('plata')}</div>`,
+  inner:`<div class="st-inline"><span>14<small>competidores</small></span><i></i><span>9<small>semanas de prep</small></span></div>`});
+const storyCombat=(o={})=>storyShell({art:coverSvg('campo','carbon',{seed:7}),artBottom:'50%',top:'42%',end:true,ey:'Open de BJJ · -82,3 kg',title:'Plata · 3–1',sub:'Azul · adulto',w:o.w,foot:'Mi competencia',
+  inner:`<div class="st-lifts">${[['Octavos','Puntos 6–2'],['Cuartos','Sumisión'],['Semifinal','Ventaja'],['Final','0–2']].map(l=>`<div><span>${l[0]}</span><b style="font-size:4.6cqw">${l[1]}</b></div>`).join('')}</div>`});
+Object.assign(STORIES,{race:storyRace,stage:storyStage,combat:storyCombat});
+scene({tab:'historias',id:'h-race',title:'Carrera · tiempo',after:drawAfter,html:()=>fullStory(storyRace),notes:{tags:[['new','Contra el reloj']],p:['El tiempo como titular, distancia, ritmo y puesto; abajo la marca personal y el kilómetro más rápido. Igual para trail (con desnivel), ciclismo, natación, remo y triatlón (con segmentos).']}});
+scene({tab:'historias',id:'h-stage',title:'Culturismo · tarima',after:drawAfter,html:()=>fullStory(storyStage),notes:{tags:[['new','Jueceo']],p:['Tu foto de tarima a pantalla completa con la medalla y el puesto. Sin peso corporal salvo que lo actives.']}});
+scene({tab:'historias',id:'h-combat',title:'Combate · cuadro',after:drawAfter,html:()=>fullStory(storyCombat),notes:{tags:[['new','Combates']],p:['Medalla y balance como titular y el camino ronda a ronda. Sirve para todas las disciplinas de combate y para armwrestling.']}});
 </script>
 
 </body>

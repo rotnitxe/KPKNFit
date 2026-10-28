@@ -15,25 +15,25 @@ scene({tab:'competencias',id:'c-hub',title:'Competencias',after:drawAfter,html:(
     <div class="syne" style="font:700 calc(21px*var(--fs))/1.15 Syne;margin-top:6px">${NEXT.name}</div><div class="cap" style="margin-top:4px">${NEXT.date} · ${NEXT.city} · ${NEXT.fed} · ${NEXT.cls}</div>
     <div class="openers">${[['S','192,5'],['B','130'],['D','210']].map(o=>`<div><small>${LIFTN[o[0]].toUpperCase()}</small><b>${o[1]}</b><span>1.er intento</span></div>`).join('')}</div>
     <div style="display:flex;gap:8px;margin-top:14px"><button class="pill pri sm" style="flex:1">Ver plan del día</button><button class="pill sec sm" style="flex:1">${ic('scale',16)}Pesaje: 82,4 kg</button></div></div></div>
-  <div class="group-l">Tu historial<span style="text-transform:none;letter-spacing:0">3 competencias</span></div>
+  <div class="group-l">Tu historial<span style="text-transform:none;letter-spacing:0">4 · 2 disciplinas</span></div>
   <div class="mod"><div class="lbl">Total en competición</div>${totalsChart()}<div class="cap" style="margin-top:4px">+47,5 kg en un año · mejor IPF GL 79,4</div></div>
-  <div class="mod tight">${MEETS.slice(1).map(meetRow).join('')}</div>
+  <div class="mod tight"><div class="meet"><span class="medal none" style="--ms:46px">${ic('heart',22)}</span><div class="tx"><strong>Media maratón de Valencia<span class="prc">MP</span></strong><span>26 oct 2026 · 21,1 km</span></div><div class="tot"><b>1:38:12</b><em>4:39 /km</em></div></div>${MEETS.slice(1).map(meetRow).join('')}</div>
   <button class="pill sec" style="width:100%">${ic('plus',18)}Registrar una competencia</button></div>`,
  notes:{tags:[['new','Página propia'],['move','Sale de Perfil › Archivo'],['fix','Separa próxima e historial']],
   p:['<b>Una página «Competencias»</b> que reúne lo que hoy está repartido: el archivo de Perfil, el aviso de Inicio, el módulo del programa y la ruta muerta <code>competitions</code>. Se llega desde Perfil, desde la cuenta atrás de Inicio y desde la portada del programa.',
      'Arriba, <b>la próxima</b> con cuenta atrás que cuenta al abrir, portada de líneas «Órbitas» y los tres primeros intentos. Debajo, <b>tu historial</b>: la línea de tu total a lo largo de las competencias y cada una con su medalla, total, puntos y la marca «Récord» si superó a la anterior.',
      'Arregla el texto del recorrido («las próximas y las pasadas»), que hoy no se cumple: la lista mezclaba planificadas y hechas.']}});
 
-scene({tab:'competencias',id:'c-new',title:'Nueva competencia',html:()=>`<div class="scroll" style="padding-top:52px"><div class="ptitle">Competencias</div></div>${sheet(`<h3>Nueva competencia</h3><div class="sub">Dos formas de empezar. Puedes cambiar de una a otra cuando quieras.</div>
-  <div class="opt-grid"><button class="opt"><span class="ic">${ic('cal')}</span><strong>Voy a competir</strong><span>La apuntas, preparas intentos y pesaje, y te avisamos</span></button>
-  <button class="opt"><span class="ic">${ic('trophy')}</span><strong>Ya competí</strong><span>Registras el resultado en un minuto</span></button></div>
-  <div class="mgroup">Disciplina</div>${chips(['Powerlifting','Solo press banca','Solo peso muerto','Otra disciplina'],0)}
-  <div class="cap" style="margin-top:10px">«Otra disciplina» (halterofilia, strongman, culturismo, calistenia, armwrestling…) guarda un resultado libre: marca, puesto y fotos.</div>
+scene({tab:'competencias',id:'c-new',title:'Nueva competencia: la disciplina',html:()=>`<div class="scroll" style="padding-top:52px"><div class="ptitle">Competencias</div></div>${sheet(`<h3>Nueva competencia</h3>
+  <div class="seg" style="margin:4px 0 12px"><button class="on">Voy a competir</button><button>Ya competí</button></div>
+  <div class="mgroup">Fuerza</div><div class="disc">${[['dumb','Powerlifting',1],['bolt','Halterofilia'],['tower','Strongman'],['flag','Calistenia'],['grip','Armwrestling'],['eye','Culturismo']].map(d=>`<button class="${d[2]?'on':''}"><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
+  <div class="mgroup">Resistencia</div><div class="disc">${[['heart','Carrera'],['pin','Trail'],['repeat','Ciclismo'],['drop','Natación'],['swap','Remo'],['target','Triatlón'],['fire','Hyrox'],['bolt','CrossFit']].map(d=>`<button><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
+  <div class="mgroup">Combate</div><div class="disc">${['Boxeo','Kickboxing','Muay thai','BJJ','Lucha','Judo','MMA'].map(d=>`<button><span class="ic">${ic('users',22)}</span>${d}</button>`).join('')}</div>
+  <div class="mgroup">Más</div><div class="disc">${[['flag','Escalada'],['bolt','Velocidad'],['up','Saltos'],['target','Tenis'],['target','Pádel'],['users','Equipo'],['plus','Otra']].map(d=>`<button><span class="ic">${ic(d[0],22)}</span>${d[1]}</button>`).join('')}</div>
   <button class="pill pri" style="width:100%;margin-top:18px">Continuar</button>`)}`,
- notes:{tags:[['new','Dos momentos'],['new','Más disciplinas']],
-  p:['Hoy solo existe «Registrar powerlifting», que crea directamente el resultado con 100 kg de relleno en cada intento. Ahora hay dos puertas: <b>«Voy a competir»</b> (próxima) y <b>«Ya competí»</b> (resultado). Es la misma ficha: una próxima se convierte en resultado el día de la competencia.',
-     '<b>Disciplinas</b>: powerlifting completo (sentadilla, banca y peso muerto), competencias de un solo levantamiento (muy comunes en press banca y peso muerto) y «Otra disciplina» con resultado libre. El asistente de bienvenida ya pregunta «¿Compites?» en esas seis disciplinas: aquí les damos dónde registrar.']}});
-
+ notes:{tags:[['new','Todas las disciplinas de KPKN'],['new','Dos momentos']],
+  p:['«Voy a competir» (próxima) o «Ya competí» (resultado) y la disciplina. Están <b>todas las que KPKN entrena</b> (las 29 del modelo de deportes), agrupadas. Arriba salen primero las de tus programas.',
+     'Cada disciplina usa una de <b>seis formas de resultado</b> (pestaña Decisiones): intentos de carga, pruebas con marca, contra el reloj, jueceo en tarima, combates y partidos. Así cada deporte se registra como se vive, sin una pantalla distinta para cada uno.']}});
 scene({tab:'competencias',id:'c-next',title:'Próxima: los datos del día',html:()=>`<div class="scroll" style="padding-top:52px">${back('Voy a competir')}
   <div class="steps"><i class="on"></i><i></i><i></i></div>
   <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">¿Dónde compites?</div>
@@ -161,11 +161,54 @@ scene({tab:'competencias',id:'c-compare',title:'Comparar dos competencias',html:
   <div class="cap">Toca una competencia de arriba para cambiarla.</div></div>`,
  notes:{tags:[['keep','Comparativa de hoy']],p:['La comparativa existente, en una página con las dos fichas arriba y las cifras alineadas.']}});
 
-scene({tab:'competencias',id:'c-other',title:'Otra disciplina',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
-  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Strongman · Copa local</div>
-  <div class="mgroup">Pruebas</div>
-  ${[['Yoke','20 m','11,8 s'],['Log press','Máximo','110 kg'],['Peso muerto eje','Repeticiones','9 reps']].map(p=>`<div class="rowx"><div class="tx"><strong>${p[0]}</strong><span>${p[1]}</span></div><b class="syne">${p[2]}</b></div>`).join('')}
-  <button class="act" style="margin-top:4px">${ic('plus',16)}Añadir prueba</button>
-  <div class="mgroup">Puesto</div><div class="medals">${['oro','plata','bronce'].map((m,i)=>`<button class="${i===1?'on':''}">${medal(m,48)}${MEDAL[m].n}</button>`).join('')}</div>
-  <button class="pill pri" style="width:100%;margin-top:18px">Continuar</button></div>`,
- notes:{tags:[['new','Resultado libre']],p:['Para halterofilia, strongman, culturismo, calistenia o armwrestling: pruebas con su marca y unidad (kg, s, m, reps o puesto), medalla, fotos y diario. Usa los campos que el modelo ya tiene (marca, tiempo, distancia, unidad) y que hoy no tienen pantalla.']}});
+scene({tab:'competencias',id:'c-run-next',title:'Carrera · próxima (maratón)',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:52px">${back('Voy a competir')}
+  <div class="next-card" style="margin-top:4px"><div class="art">${coverSvg('ondas','noche',{seed:3})}</div><div class="in" style="padding-top:120px">
+   <div class="lbl" style="color:var(--mus)">Maratón de Valencia · 6 dic</div><div class="cd" style="margin-top:6px"><b>38</b><span>días</span></div></div></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Tu objetivo</span><button class="act">Cambiar</button></div><div class="big" style="font-size:calc(40px*var(--fs));margin-top:6px">3:29:00</div><div class="cap" style="margin-top:4px">Ritmo 4:57 /km · tu media maratón (1:38:12) predice 3:24–3:31</div></div>
+  <div class="mod"><div class="ey">Plan de ritmos</div>${[['0–10 km','5:02 /km','Empieza contenido'],['10–30 km','4:56 /km','Ritmo objetivo'],['30–42,2 km','4:52 /km','Si vas bien']].map(r=>`<div class="ratio" style="grid-template-columns:1fr auto;align-items:center"><span>${r[0]}<span class="cap" style="display:block">${r[2]}</span></span><b class="syne tn">${r[1]}</b></div>`).join('')}</div>
+  <div class="mod tight"><div class="rowx"><div class="tx"><strong>Avisos</strong><span>1 semana · 48 h · salida a las 8:15</span></div><span class="toggle on"></span></div></div></div>`,
+ notes:{tags:[['new','Contra el reloj']],p:['Para carrera, trail, ciclismo, natación, remo y triatlón. La próxima guarda distancia, objetivo de tiempo y un plan de ritmos por tramos. La predicción usa tu última marca registrada en una distancia parecida (el seguimiento de deportes ya guarda sesiones de carrera).','En trail se suma el desnivel; en triatlón, los tres segmentos y las transiciones.']}});
+
+scene({tab:'competencias',id:'c-run',title:'Carrera · resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Media maratón de Valencia</div><div class="cap" style="margin-top:4px">26 oct · 21,1 km</div>
+  <div class="mgroup">Tu tiempo</div><div class="stepper" style="justify-content:center"><b style="font-size:calc(40px*var(--fs))">1:38:12</b></div>
+  <div class="kpis"><div class="kpi"><small>Ritmo</small><b>4:39</b><span>/km</span></div><div class="kpi"><small>General</small><b>1.204</b><span>de 9.880</span></div><div class="kpi"><small>Categoría</small><b>187</b><span>M35</span></div></div>
+  <div class="mod" style="margin-top:12px"><div class="mod-h"><span class="ey">Por kilómetro</span><span class="cap">del reloj o a mano</span></div><div class="splits">${[4.52,4.45,4.41,4.40,4.38,4.39,4.37,4.36,4.40,4.38,4.41,4.39,4.36,4.35,4.38,4.42,4.40,4.37,4.33,4.30,4.21].map((v,i)=>`<i class="${i===20?'f':''}" style="height:${Math.round((5-v)/0.8*100)}%"></i>`).join('')}</div><div class="cap" style="margin-top:6px">Último km el más rápido: 4:21</div></div>
+  <div class="tot-bar" style="margin-top:0"><div><div class="lbl">Marca personal</div><div class="syne" style="font:800 calc(22px*var(--fs)) Syne">−3:41</div></div><span class="pchip">${ic('spark',12)}Nueva MP</span></div>
+  <button class="pill pri" style="width:100%;margin-top:14px">Continuar</button></div>`,
+ notes:{tags:[['new','Contra el reloj']],p:['Tiempo (rueda de horas, minutos y segundos), ritmo calculado, posiciones general y por categoría y, si quieres, los parciales por kilómetro (importados del reloj si la sesión está en KPKN, o a mano). Marca personal por distancia automática.','Después: el mismo puesto opcional, fotos, diario y la celebración.']}});
+
+scene({tab:'competencias',id:'c-bb',title:'Culturismo · preparación y resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Regional · Men’s Physique')}
+  <div class="next-card" style="margin-top:4px"><div class="art">${coverSvg('bruma','noche',{seed:4})}</div><div class="in" style="padding-top:110px"><div class="lbl" style="color:var(--mus)">Faltan</div><div class="cd" style="margin-top:6px"><b>9</b><span>semanas · peak week en la 9</span></div></div></div>
+  <div class="mod"><div class="mod-h"><span class="ey">Hacia la tarima</span><span class="cap">de tu pestaña Cuerpo</span></div><div style="display:flex;gap:16px;margin-top:8px"><div><div class="num">78,6<small>kg</small></div><div class="cap">hoy</div></div><div><div class="num" style="color:var(--muted)">75<small>kg</small></div><div class="cap">en tarima</div></div><div><div class="num up" style="font-size:calc(20px*var(--fs))">−0,4<small>kg/sem</small></div><div class="cap">ritmo necesario</div></div></div></div>
+  <div class="group-l">Resultado</div>
+  <div class="mod tight">${[['Categoría','Men’s Physique · -178 cm'],['Rondas','Prejuicio y final'],['Puesto','2.º de 14']].map(r=>`<div class="ratio"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>
+  <div class="photos"><i></i><i style="background:linear-gradient(150deg,#2b3340,#121417)"></i><i class="add">${ic('camera',22)}</i></div></div>`,
+ notes:{tags:[['new','Jueceo en tarima']],p:['Culturismo y calistenia freestyle. La próxima cuenta las semanas de preparación hasta la peak week y enlaza con tu peso de la pestaña Cuerpo (ritmo de pérdida necesario hasta el peso de tarima). El resultado es categoría, rondas, puesto (o puntuación de jueces en calistenia) y fotos de tarima, protagonistas de su historia.','Las fotos de tarima son de la competencia, no del registro corporal (sigue abierta la pregunta sobre fotos de progreso).']}});
+
+scene({tab:'competencias',id:'c-combat',title:'Combate · resultado',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Open de BJJ · -82,3 kg</div><div class="cap" style="margin-top:4px">Azul · adulto · pesaje 81,9 kg</div>
+  <div class="mgroup">Combates</div><div class="mod tight">${[['w','Octavos','Puntos 6–2'],['w','Cuartos','Sumisión · mataleón · 3:12'],['w','Semifinal','Ventaja'],['l','Final','Puntos 0–2']].map(b=>`<div class="bout"><span class="r ${b[0]}">${b[0]==='w'?'G':'P'}</span><div class="tx"><strong>${b[1]}</strong><span>${b[2]}</span></div>${ic('fwd',16)}</div>`).join('')}</div>
+  <button class="act" style="margin-top:4px">${ic('plus',16)}Añadir combate</button>
+  <div class="tot-bar"><div><div class="lbl">Balance</div><div class="big" style="font-size:calc(40px*var(--fs))">3–1</div></div>${medal('plata',54)}</div>
+  <button class="pill pri" style="width:100%;margin-top:14px">Continuar</button></div>`,
+ notes:{tags:[['new','Combates']],p:['Boxeo, kickboxing, muay thai, BJJ, lucha, judo, MMA y armwrestling. Cada combate: ronda, ganado o perdido, método (puntos, KO, sumisión, decisión…) y, si quieres, rival y asalto. En armwrestling se añade el brazo. El balance y la medalla salen solos.','La próxima guarda categoría de peso y pesaje, igual que en powerlifting.']}});
+
+scene({tab:'competencias',id:'c-mixed',title:'Hyrox · pruebas con marca',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Hyrox Madrid · Open</div>
+  <div class="mgroup">Tiempo total</div><div class="big" style="font-size:calc(44px*var(--fs))">1:12:48</div>
+  <div class="mod" style="margin-top:12px">${[['8 × 1 km','36:10'],['SkiErg','4:21'],['Sled push','3:48'],['Sled pull','5:02'],['Burpee broad jump','4:40'],['Remo','4:35'],['Farmers carry','1:52'],['Sandbag lunges','4:11'],['Wall balls','5:39']].map(r=>`<div class="ratio" style="grid-template-columns:1fr auto;align-items:center"><span>${r[0]}</span><b class="syne tn">${r[1]}</b></div>`).join('')}</div>
+  <div class="cap">Strongman y CrossFit usan este mismo formato: cada prueba con su marca (tiempo, kg, repeticiones o metros) y, si hay, sus puntos.</div></div>`,
+ notes:{tags:[['new','Pruebas con marca']],p:['Hyrox, CrossFit y strongman: una lista de pruebas, cada una con su unidad. Para Hyrox la plantilla trae las ocho estaciones y los ocho kilómetros; para CrossFit, los WODs del evento; para strongman, las pruebas que añadas.']}});
+
+scene({tab:'competencias',id:'c-lift',title:'Halterofilia y calistenia lastrada',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Copa de halterofilia</div><div class="cap" style="margin-top:4px">-81 kg · Sinclair</div>
+  ${['Arrancada','Dos tiempos'].map((l,j)=>`<div class="att" style="grid-template-columns:96px repeat(3,1fr)"><span class="ln">${l}</span>${(j?[[130,'ok'],[136,'ok'],[140,'no']]:[[100,'ok'],[105,'no'],[105,'ok']]).map(a=>`<button class="ab ${a[1]}"><b>${a[0]}</b><small>${a[1]==='ok'?'Válido':'Nulo'}</small></button>`).join('')}</div>`).join('')}
+  <div class="tot-bar"><div><div class="lbl">Total</div><div class="big" style="font-size:calc(44px*var(--fs))">241<small>kg</small></div></div><div style="text-align:right"><div class="cap">Sinclair</div><b class="syne" style="font-size:calc(20px*var(--fs))">318,6</b></div></div></div>`,
+ notes:{tags:[['new','Intentos de carga']],p:['La misma tabla de intentos de powerlifting sirve para halterofilia (arrancada y dos tiempos, Sinclair), competencias de un solo levantamiento y street lifting de calistenia (dominada y fondo lastrados, muscle-up).']}});
+
+scene({tab:'competencias',id:'c-match',title:'Partidos y escalada',html:()=>`<div class="scroll" style="padding-top:52px">${back('Ya competí')}
+  <div class="syne" style="font:800 calc(26px*var(--fs))/1.05 Syne;letter-spacing:-.8px">Torneo de pádel del club</div><div class="cap" style="margin-top:4px">Con Álex · 2.ª categoría</div>
+  <div class="mgroup">Partidos</div><div class="mod tight">${[['w','Grupo','6–3 6–4'],['w','Cuartos','7–5 6–2'],['l','Semifinal','4–6 6–7']].map(b=>`<div class="bout"><span class="r ${b[0]}">${b[0]==='w'?'G':'P'}</span><div class="tx"><strong>${b[1]}</strong><span class="tn">${b[2]}</span></div></div>`).join('')}</div>
+  <div class="group-l">Escalada · bloque</div><div class="mod tight"><div class="ratio"><span>Tops</span><b>4 / 5</b></div><div class="ratio"><span>Zonas</span><b>5 / 5</b></div><div class="ratio"><span>Puesto</span><b>3.º de 22</b></div></div></div>`,
+ notes:{tags:[['new','Partidos y tops']],p:['Tenis, pádel y deportes de equipo: partidos con marcador y ronda alcanzada. Escalada: tops, zonas e intentos por bloque o vía, y puesto. Saltos y velocidad usan «contra el reloj» con marca en metros o segundos.']}});

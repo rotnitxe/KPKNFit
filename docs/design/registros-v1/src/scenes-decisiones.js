@@ -7,7 +7,7 @@ scene({tab:'decisiones',id:'d-all',title:'Decisiones',doc:()=>`
 <div><div class="verdict">Por qué así</div><h3>Liviano y alegre</h3><p>El resultado son tres toques por levantamiento porque los pesos ya vienen del plan. Sin podio también hay celebración (tus marcas). El diario se queda en una escala de caras y dos líneas opcionales: lo justo para recordarlo sin que pese.</p></div></div>
 ${T([
  ['Archivo en Perfil + ruta muerta + aviso en Inicio + módulo en el programa',tg('new','Página «Competencias»')+' con próxima arriba e historial debajo','Un solo sitio; se llega desde Perfil, Inicio y la portada del programa'],
- ['Solo powerlifting','Powerlifting, '+tg('new','un solo levantamiento')+' y '+tg('new','otra disciplina')+' con resultado libre','El asistente de bienvenida ya pregunta «¿Compites?» en seis disciplinas'],
+ ['Solo powerlifting',tg('new','Todas las disciplinas de KPKN')+' (las 29 del modelo de deportes) con seis formas de resultado','KPKN entrena fuerza, resistencia, combate y más: cada uno compite a su manera'],
  ['Registro con 100 kg de relleno y ciclo de 4 estados','Pesos desde el plan o tus marcas; un toque alterna válido/nulo','Dos toques por intento era lo más lento del flujo'],
  ['Planificar intentos y modo competición dentro del programa',tg('move','Pasan a la competencia'),'Son de la competencia; el programa enlaza con ella'],
  ['Puesto obligatorio; «4+» se muestra como «4.º»','Opcional; puesto exacto; trofeos como extras','Fallo de presentación y bloqueo innecesario'],
@@ -18,11 +18,21 @@ ${T([
  ['Fotos que quedan huérfanas al quitarlas','Se borran con la foto o la competencia','Espacio del teléfono'],
  ['Sin compartir',tg('new','Historias + vídeo de 6 s'),'Lo pediste'],
 ])}
+<p><b>Seis formas de resultado para todas las disciplinas.</b> Cada deporte se registra como se vive, con una de estas plantillas. Todas comparten la ficha (próxima → hoy → resultado), el puesto, las fotos, el diario, la celebración y las historias. Room no cambia: la competencia ya se guarda como JSON completo en su fila.</p>
+${T([
+ ['Intentos de carga','Powerlifting, un solo levantamiento, halterofilia (Sinclair), street lifting de calistenia','Tabla de intentos válido/nulo, total y puntos'],
+ ['Pruebas con marca','Strongman, CrossFit, Hyrox','Lista de pruebas con su unidad (tiempo, kg, reps, metros) y puntos'],
+ ['Contra el reloj','Carrera (5K a maratón), trail, ciclismo, natación, remo, triatlón, velocidad, saltos','Tiempo o marca, ritmo, posiciones, parciales, marca personal; la próxima trae objetivo y plan de ritmos'],
+ ['Jueceo en tarima','Culturismo, calistenia freestyle','Categoría, rondas, puesto o puntuación, fotos de tarima; la próxima cuenta la preparación hasta la peak week'],
+ ['Combates','Boxeo, kickboxing, muay thai, BJJ, lucha, judo, MMA, armwrestling','Combate a combate: ronda, ganado o perdido y método; balance y medalla'],
+ ['Partidos y tops','Tenis, pádel, deportes de equipo, escalada','Partidos con marcador y ronda alcanzada; en escalada, tops y zonas'],
+],['Forma','Disciplinas','Qué se registra'])}
 <h2>2 · Crear un programa</h2>
 ${T([
  ['Inicio abre otra hoja (biblioteca vieja, sin «A tu medida»)','Inicio abre la misma hoja «Nuevo» de cuatro caminos','Dos entradas distintas para lo mismo'],
- ['«A tu medida» reutiliza el asistente de bienvenida en modo solo entreno',tg('new','Pantalla completa propia')+': cinco capítulos, propuesta con su porqué y activación','Mismo motor y mismas preguntas: no hay lógica nueva'],
- ['Pide género y % de grasa aunque no haya nutrición','«Ya sabemos» muestra lo conocido; solo pregunta lo que falte para entrenar','Esos datos solo sirven para la nutrición'],
+ ['«A tu medida» reutiliza el asistente de bienvenida en modo solo entreno',tg('keep','Se reutiliza el asistente')+' con una instancia «Nuevo programa»: cabecera propia, lo conocido plegado arriba y cierre «Listo para empezar»','Tu decisión (v2): el asistente ya es la mejor pieza; solo se adapta a esta entrada'],
+ ['Pide género y % de grasa aunque no haya nutrición','No se piden en esta instancia si faltan','Esos datos solo sirven para la nutrición'],
+ ['Al terminar vuelve a Inicio','Vuelve a Programas con el programa nuevo abierto','Llegaste desde Programas'],
  ['Cada camino activa distinto (uno sin preguntar)',tg('new','Una sola pantalla «Listo para empezar»')+': ahora, en cola o guardar','Nada se activa sin que lo decidas'],
  ['«Configurar este plan» lleva al asistente entero','Abre «A tu medida» con objetivo y días ya puestos','Menos preguntas repetidas'],
  ['Calibración y ficha de protocolo inalcanzables en Programas e Inicio',tg('out','Se retira el código muerto'),'Ya decidido en el lienzo anterior (sale «Calibrar»)'],
@@ -31,6 +41,7 @@ ${T([
 <h2>3 · Registro de comida</h2>
 <p>El motor es local y sin conexión, y se queda así. Lo que cambia es cómo se ve y se toca: una animación al analizar que muestra lo que de verdad pasa, tarjetas por alimento con sus dudas dentro, ajustes en la unidad natural y ningún texto técnico.</p>
 ${T([
+ ['El icono «Registrar comida» de Inicio abre la hoja completa de Nutrición',tg('new','Registrador en Inicio')+': barra «¿Qué comiste?» y media hoja que analiza, revisa y guarda sin salir de Inicio','Registrar en segundos desde donde estás'],
  ['«Interpretar comida» / «Actualizar y buscar» (que no busca)','Un solo botón «Analizar» («Volver a analizar» si cambias el texto)','Verbo engañoso'],
  ['Puntos y frases rotatorias genéricas',tg('new','Plato de líneas + palabras que se subrayan al reconocerse'),'Se ve qué está entendiendo'],
  ['Solo se ve la primera duda; chips nunca marcados','Todas las dudas en su tarjeta; respuesta marcada; respuesta por defecto','Dudas ocultas y sin estado'],
