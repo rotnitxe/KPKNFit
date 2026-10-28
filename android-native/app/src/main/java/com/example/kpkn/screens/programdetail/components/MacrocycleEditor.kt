@@ -2,17 +2,18 @@ package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
-import com.example.kpkn.domain.training.ProgramAnalyticsReport
+import com.example.kpkn.data.programs.ProgramTemplateOption
+import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.domain.training.ProgramSnapshot
 
 /**
- * Stable entry point for the program-detail macrocycle editor.
- *
- * The implementation lives under `components/editor/` while this façade keeps
- * Navigation and the existing ProgramDetailScreen contract unchanged.
+ * Punto de entrada de la pestaña Estructura de Program Detail. La implementación vive en `components/editor/`; esta fachada mantiene el
+ * contrato con ProgramDetailScreen.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -22,12 +23,10 @@ fun MacrocycleEditor(
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
-    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, _ ->
-        onApplyProgramTemplate(template)
-    },
-    onApplyProtocol: (com.example.kpkn.data.protocols.Protocol, Boolean) -> Unit = { _, _ -> },
-    programSnapshots: List<com.example.kpkn.domain.training.ProgramSnapshot> = emptyList(),
+    onWeekLongPress: (weekId: String, anchor: Rect) -> Unit = { _, _ -> },
+    onApplyProgramTemplateOverwrite: (ProgramTemplateOption, Boolean) -> Unit = { _, _ -> },
+    onApplyProtocol: (Protocol, Boolean) -> Unit = { _, _ -> },
+    programSnapshots: List<ProgramSnapshot> = emptyList(),
     onRestoreProgramSnapshot: (String) -> Unit = {},
     onRefreshProgramSnapshots: () -> Unit = {},
     showSimpleCalendarizationSheet: Boolean = false,
@@ -44,32 +43,17 @@ fun MacrocycleEditor(
     onCalendarizeSimpleCycle: () -> Unit = {},
     onRecoverCyclicProgram: () -> Unit = {},
     onStartFreshCyclicProgram: () -> Unit = {},
-    macrocycleRoadmapExpanded: Boolean? = null,
-    onMacrocycleRoadmapExpandedChange: (Boolean) -> Unit = {},
     macrocycleKeyDatesSheetOpen: Boolean? = null,
     onMacrocycleKeyDatesSheetOpenChange: (Boolean) -> Unit = {},
     macrocycleLibrarySheetOpen: Boolean? = null,
     onMacrocycleLibrarySheetOpenChange: (Boolean) -> Unit = {},
     macrocycleLoopsSheetOpen: Boolean? = null,
     onMacrocycleLoopsSheetOpenChange: (Boolean) -> Unit = {},
-    macrocycleTimelineStartDate: String? = null,
-    onMacrocycleTimelineStartDateChange: (String) -> Unit = {},
-    macrocycleManualEndDate: String? = null,
-    onMacrocycleManualEndDateChange: (String) -> Unit = {},
-    macrocycleCompetitionDate: String? = null,
-    onMacrocycleCompetitionDateChange: (String) -> Unit = {},
-    selectedWeekId: String? = null,
-    copiedWeekId: String? = null,
-    onCopyWeek: (weekId: String) -> Unit = {},
-    onPasteWeek: (weekId: String) -> Unit = {},
     onUpdateBlock: (blockId: String, name: String, description: String?, goal: BlockGoal?, progressionScheme: BlockProgressionScheme?) -> Unit =
         { _, _, _, _, _ -> },
     blockProgressionPreview: (blockId: String) -> String? = { null },
     onDeleteBlock: (blockId: String) -> Unit = {},
-    onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
-    onDeleteWeek: (weekId: String) -> Unit = {},
     onAddSimpleWeek: () -> Unit = {},
-    analyticsReport: ProgramAnalyticsReport? = null,
     onOpenTrainingMaxes: (() -> Unit)? = null,
     trainingMaxSummary: String? = null,
     modifier: Modifier = Modifier,
@@ -80,7 +64,7 @@ fun MacrocycleEditor(
         onAddProgramCopy = onAddProgramCopy,
         onCompetitionKeyDateSaved = onCompetitionKeyDateSaved,
         onFocusWeek = onFocusWeek,
-        onApplyProgramTemplate = onApplyProgramTemplate,
+        onWeekLongPress = onWeekLongPress,
         onApplyProgramTemplateOverwrite = onApplyProgramTemplateOverwrite,
         onApplyProtocol = onApplyProtocol,
         programSnapshots = programSnapshots,
@@ -100,31 +84,16 @@ fun MacrocycleEditor(
         onCalendarizeSimpleCycle = onCalendarizeSimpleCycle,
         onRecoverCyclicProgram = onRecoverCyclicProgram,
         onStartFreshCyclicProgram = onStartFreshCyclicProgram,
-        macrocycleRoadmapExpanded = macrocycleRoadmapExpanded,
-        onMacrocycleRoadmapExpandedChange = onMacrocycleRoadmapExpandedChange,
         macrocycleKeyDatesSheetOpen = macrocycleKeyDatesSheetOpen,
         onMacrocycleKeyDatesSheetOpenChange = onMacrocycleKeyDatesSheetOpenChange,
         macrocycleLibrarySheetOpen = macrocycleLibrarySheetOpen,
         onMacrocycleLibrarySheetOpenChange = onMacrocycleLibrarySheetOpenChange,
         macrocycleLoopsSheetOpen = macrocycleLoopsSheetOpen,
         onMacrocycleLoopsSheetOpenChange = onMacrocycleLoopsSheetOpenChange,
-        macrocycleTimelineStartDate = macrocycleTimelineStartDate,
-        onMacrocycleTimelineStartDateChange = onMacrocycleTimelineStartDateChange,
-        macrocycleManualEndDate = macrocycleManualEndDate,
-        onMacrocycleManualEndDateChange = onMacrocycleManualEndDateChange,
-        macrocycleCompetitionDate = macrocycleCompetitionDate,
-        onMacrocycleCompetitionDateChange = onMacrocycleCompetitionDateChange,
-        selectedWeekId = selectedWeekId,
-        copiedWeekId = copiedWeekId,
-        onCopyWeek = onCopyWeek,
-        onPasteWeek = onPasteWeek,
         onUpdateBlock = onUpdateBlock,
         blockProgressionPreview = blockProgressionPreview,
         onDeleteBlock = onDeleteBlock,
-        onUpdateWeek = onUpdateWeek,
-        onDeleteWeek = onDeleteWeek,
         onAddSimpleWeek = onAddSimpleWeek,
-        analyticsReport = analyticsReport,
         onOpenTrainingMaxes = onOpenTrainingMaxes,
         trainingMaxSummary = trainingMaxSummary,
         modifier = modifier,

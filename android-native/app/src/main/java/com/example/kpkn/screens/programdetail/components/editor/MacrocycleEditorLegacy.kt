@@ -1,15 +1,17 @@
 package com.example.kpkn.screens.programdetail.components
 /**
- * Macrocycle editor implementation (legacy monolito).
- * Edición de Block.goal / progressionScheme y preview de progresión viven en
- * la hoja de bloque ([ProgramBlockSheet], P3b); esta fachada no duplica esa
- * lógica (plan 2026-08-20 Fase C).
+ * La pestaña Estructura de Program Detail, pieza a pieza como el lienzo v6: e-map (programa por bloques y programa simple con fechas) y
+ * e-cycles (rutina que se repite), con sus hojas e-block, e-dates, e-library y e-history. Las hojas sin escena (mesociclo, fecha clave,
+ * ciclos, calendarizar una rutina) siguen el patrón de e-block y e-dates.
  */
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,84 +20,85 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.isSimpleTemporalProgram
-import com.example.kpkn.data.models.buildSimpleCalendarWeeks
-import com.example.kpkn.data.models.nextSimpleCalendarStart
-import com.example.kpkn.data.repository.CompetitionRepository
-import com.example.kpkn.domain.training.ProgramKeyDateEngine
-import com.example.kpkn.domain.training.ProgramTemplateEngine
 import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.convertSimpleCalendarizedToAdvanced
+import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.validateTemporalStructure
-import com.example.kpkn.data.models.primaryLoopCadenceCycles
-import com.example.kpkn.data.models.primaryLoopLengthWeeks
-import com.example.kpkn.data.models.simpleCycleWeeks
-import com.example.kpkn.data.models.suggestCalendarTrainingDays
-import com.example.kpkn.data.models.totalBlockCount
-import com.example.kpkn.data.models.totalMesocycleCount
-import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.training.ProgramCalendarEngine
-import com.example.kpkn.domain.training.ProgramAnalyticsReport
+import com.example.kpkn.domain.training.ProgramCalendarProjection
 import com.example.kpkn.domain.training.ProgramEndDateStatus
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import java.util.Locale
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
+import com.example.kpkn.domain.training.ProgramSnapshot
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.screens.programdetail.components.editor.CalendarSection
-import com.example.kpkn.screens.programdetail.components.editor.KeyDateDialog
-import com.example.kpkn.screens.programdetail.components.editor.KeyDatesSection
-import com.example.kpkn.screens.programdetail.components.editor.LibrarySection
 import com.example.kpkn.screens.programdetail.components.editor.CyclesSection
-import com.example.kpkn.screens.programdetail.components.editor.RouteSection
-import com.example.kpkn.screens.programdetail.parseIsoDateExact
-import com.example.kpkn.screens.programdetail.programCurrentWeekId
-import com.example.kpkn.screens.programdetail.programTrainingWeekdays
-import com.example.kpkn.screens.programdetail.design.programProgressLabel
+import com.example.kpkn.screens.programdetail.components.editor.KeyDateDialog
+import com.example.kpkn.screens.programdetail.components.editor.LibrarySection
+import com.example.kpkn.screens.programdetail.components.editor.applyCycleAction
+import com.example.kpkn.screens.programdetail.components.editor.programCycleLoops
+import com.example.kpkn.screens.programdetail.components.editor.saveCycleDraft
 import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
-import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBaseWeekModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockList
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
-import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramConvertBlocksDialog
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleAction
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleDeleteDialog
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleEditorSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleLoop
 import com.example.kpkn.screens.programdetail.design.structure.ProgramDeleteDialog
-import com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet
-import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoSheet
-import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
-import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplateConfirmSheet
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
 import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramItem
 import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramMapModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
+import com.example.kpkn.screens.programdetail.design.structure.StructureGroupLabel
+import com.example.kpkn.screens.programdetail.design.structure.StructureSecondarySmallPill
+import com.example.kpkn.screens.programdetail.design.structure.baseWeekHeadline
+import com.example.kpkn.screens.programdetail.design.structure.blockSheetSubtitle
+import com.example.kpkn.screens.programdetail.design.structure.programBlockUis
+import com.example.kpkn.screens.programdetail.design.structure.programCycleRows
+import com.example.kpkn.screens.programdetail.design.structure.programLatestCopyLine
 import com.example.kpkn.screens.programdetail.design.structure.programMapDateLabel
 import com.example.kpkn.screens.programdetail.design.structure.programMapNowLabel
 import com.example.kpkn.screens.programdetail.design.structure.programMapSegments
-import com.example.kpkn.screens.programdetail.design.structure.programBlockUis
-import com.example.kpkn.data.models.BlockGoal
-import com.example.kpkn.data.models.BlockProgressionScheme
-import androidx.compose.ui.geometry.Rect
-import com.example.kpkn.ui.design.kpknEntrance
-import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.programdetail.formatDateRange
+import com.example.kpkn.screens.programdetail.parseIsoDateExact
+import com.example.kpkn.screens.programdetail.programCurrentWeekId
+import com.example.kpkn.screens.programdetail.programTrainingWeekdays
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.kpknEntrance
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import java.time.LocalDate
+import java.util.UUID
+
+/** Qué página dibuja la pestaña: e-map con bloques, e-map de un programa simple con fechas, o e-cycles de una rutina. */
+private enum class StructurePage { BLOCKS, CALENDARIZED, ROUTINE }
+
+private const val ENTRANCE = "programdetail.estructura"
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -105,12 +108,10 @@ fun MacrocycleEditorLegacy(
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
-    onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
-    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, overwrite ->
-        if (overwrite) onApplyProgramTemplate(template) else onApplyProgramTemplate(template)
-    },
+    onWeekLongPress: (weekId: String, anchor: Rect) -> Unit = { _, _ -> },
+    onApplyProgramTemplateOverwrite: (ProgramTemplateOption, Boolean) -> Unit = { _, _ -> },
     onApplyProtocol: (Protocol, Boolean) -> Unit = { _, _ -> },
-    programSnapshots: List<com.example.kpkn.domain.training.ProgramSnapshot> = emptyList(),
+    programSnapshots: List<ProgramSnapshot> = emptyList(),
     onRestoreProgramSnapshot: (String) -> Unit = {},
     onRefreshProgramSnapshots: () -> Unit = {},
     showSimpleCalendarizationSheet: Boolean = false,
@@ -127,96 +128,42 @@ fun MacrocycleEditorLegacy(
     onCalendarizeSimpleCycle: () -> Unit = {},
     onRecoverCyclicProgram: () -> Unit = {},
     onStartFreshCyclicProgram: () -> Unit = {},
-    macrocycleRoadmapExpanded: Boolean? = null,
-    onMacrocycleRoadmapExpandedChange: (Boolean) -> Unit = {},
     macrocycleKeyDatesSheetOpen: Boolean? = null,
     onMacrocycleKeyDatesSheetOpenChange: (Boolean) -> Unit = {},
     macrocycleLibrarySheetOpen: Boolean? = null,
     onMacrocycleLibrarySheetOpenChange: (Boolean) -> Unit = {},
     macrocycleLoopsSheetOpen: Boolean? = null,
     onMacrocycleLoopsSheetOpenChange: (Boolean) -> Unit = {},
-    macrocycleTimelineStartDate: String? = null,
-    onMacrocycleTimelineStartDateChange: (String) -> Unit = {},
-    macrocycleManualEndDate: String? = null,
-    onMacrocycleManualEndDateChange: (String) -> Unit = {},
-    macrocycleCompetitionDate: String? = null,
-    onMacrocycleCompetitionDateChange: (String) -> Unit = {},
-    // Bloques (P3b): la semana elegida y la copiada, y las acciones que el ViewModel ya tiene para bloques y semanas.
-    selectedWeekId: String? = null,
-    copiedWeekId: String? = null,
-    onCopyWeek: (weekId: String) -> Unit = {},
-    onPasteWeek: (weekId: String) -> Unit = {},
     onUpdateBlock: (blockId: String, name: String, description: String?, goal: BlockGoal?, progressionScheme: BlockProgressionScheme?) -> Unit =
         { _, _, _, _, _ -> },
     blockProgressionPreview: (blockId: String) -> String? = { null },
     onDeleteBlock: (blockId: String) -> Unit = {},
-    onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
-    onDeleteWeek: (weekId: String) -> Unit = {},
     onAddSimpleWeek: () -> Unit = {},
-    analyticsReport: ProgramAnalyticsReport? = null,
     onOpenTrainingMaxes: (() -> Unit)? = null,
     trainingMaxSummary: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    // Bloques (P3b): la hoja de bloque, los menús de bloque y de semana, y el borrador de la semana que se edita.
     var blockSheet by remember { mutableStateOf<BlockSheetTarget?>(null) }
     var blockMenu by remember { mutableStateOf<AnchoredTarget?>(null) }
-    var weekMenu by remember { mutableStateOf<AnchoredTarget?>(null) }
-    var weekEdit by remember { mutableStateOf<WeekEditTarget?>(null) }
     var editingKeyDate by remember { mutableStateOf<ProgramKeyDate?>(null) }
     var pendingDelete by remember { mutableStateOf<DeleteTarget?>(null) }
     var pendingSimpleToAdvanced by remember { mutableStateOf(false) }
-    var localEditingTimelineStartDate by remember(program.timelineStartDate) { mutableStateOf(program.timelineStartDate ?: "") }
-    var localEditingManualEndDate by remember(program.calendarization?.manualEndDate) { mutableStateOf(program.calendarization?.manualEndDate ?: "") }
-    var localEditingCompetitionDate by remember(program.keyDates) {
-        val competition = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
-        mutableStateOf((competition?.eventDate ?: competition?.startDate).orEmpty())
-    }
-    var localShowKeyDatesSheet by remember { mutableStateOf(false) }
-    // La ruta es una hoja que abre la herramienta «Ruta» (P3c): empieza cerrada, nunca se abre sola.
-    var localShowRouteSheet by remember(program.id) { mutableStateOf(false) }
+    var localShowDatesSheet by remember { mutableStateOf(false) }
     var localShowLibrarySheet by remember { mutableStateOf(false) }
     var localShowLoopsSheet by remember { mutableStateOf(false) }
     var editingMeso by remember { mutableStateOf<EditingMesoTarget?>(null) }
-    var pendingTemplate by remember { mutableStateOf<ProgramTemplateOption?>(null) }
-    var pendingProtocol by remember { mutableStateOf<Protocol?>(null) }
+    var editingCycle by remember { mutableStateOf<ProgramCycleLoop?>(null) }
+    var pendingCycleDelete by remember { mutableStateOf<ProgramCycleLoop?>(null) }
     var showSnapshots by remember { mutableStateOf(false) }
     var pendingCompetitionKeyDateDelete by remember { mutableStateOf<String?>(null) }
-    // La baldosa «Fechas clave» abre la hoja del calendario con la lista de fechas clave a la vista (P3a).
-    var keyDatesFocusList by remember { mutableStateOf(false) }
 
-    val editingTimelineStartDate = macrocycleTimelineStartDate ?: localEditingTimelineStartDate
-    val editingManualEndDate = macrocycleManualEndDate ?: localEditingManualEndDate
-    val editingCompetitionDate = macrocycleCompetitionDate ?: localEditingCompetitionDate
-    val showKeyDatesSheet = macrocycleKeyDatesSheetOpen ?: localShowKeyDatesSheet
-    val showRouteSheet = macrocycleRoadmapExpanded ?: localShowRouteSheet
+    val showDatesSheet = macrocycleKeyDatesSheetOpen ?: localShowDatesSheet
     val showLibrarySheet = macrocycleLibrarySheetOpen ?: localShowLibrarySheet
     val showLoopsSheet = macrocycleLoopsSheetOpen ?: localShowLoopsSheet
 
-    fun setTimelineStartDate(value: String) {
-        onMacrocycleTimelineStartDateChange(value)
-        if (macrocycleTimelineStartDate == null) localEditingTimelineStartDate = value
-    }
-
-    fun setManualEndDate(value: String) {
-        onMacrocycleManualEndDateChange(value)
-        if (macrocycleManualEndDate == null) localEditingManualEndDate = value
-    }
-
-    fun setCompetitionDate(value: String) {
-        onMacrocycleCompetitionDateChange(value)
-        if (macrocycleCompetitionDate == null) localEditingCompetitionDate = value
-    }
-
-    fun setKeyDatesSheetOpen(value: Boolean) {
+    fun setDatesSheetOpen(value: Boolean) {
         onMacrocycleKeyDatesSheetOpenChange(value)
-        if (macrocycleKeyDatesSheetOpen == null) localShowKeyDatesSheet = value
-    }
-
-    // Abre o cierra la hoja de la ruta (antes, la sección desplegable de la página).
-    fun setRoadmapExpanded(value: Boolean) {
-        onMacrocycleRoadmapExpandedChange(value)
-        if (macrocycleRoadmapExpanded == null) localShowRouteSheet = value
+        if (macrocycleKeyDatesSheetOpen == null) localShowDatesSheet = value
     }
 
     fun setLibrarySheetOpen(value: Boolean) {
@@ -229,26 +176,85 @@ fun MacrocycleEditorLegacy(
         if (macrocycleLoopsSheetOpen == null) localShowLoopsSheet = value
     }
 
-    fun adjustBlockWeeks(blockId: String, deltaWeeks: Int) {
-        val updated = if (deltaWeeks > 0) {
-            ProgramKeyDateEngine.addWeeksToBlock(program, blockId, deltaWeeks)
+    // Una sola lectura del reloj para toda la pestaña: las fechas relativas dependen de ella.
+    val today = remember { LocalDate.now() }
+    val simpleCalendarizationHazeState = remember { HazeState() }
+    val isSimple = program.isSimpleTemporalProgram
+    val page = when {
+        !isSimple -> StructurePage.BLOCKS
+        program.simpleProgramKind == SimpleProgramKind.CALENDARIZED -> StructurePage.CALENDARIZED
+        else -> StructurePage.ROUTINE
+    }
+    val temporalIssues = remember(program) { program.validateTemporalStructure() }
+    // Lo que se pinta sale de lo GUARDADO: la hoja «Fechas» guarda cada cambio al elegirlo.
+    val savedCompetition = ProgramKeyDateEngine.competitionKeyDate(program)
+    val savedCompetitionDate = savedCompetition?.let { it.eventDate ?: it.startDate }.orEmpty()
+    val savedPreview = remember(program, today) {
+        buildCalendarPreview(
+            program = program,
+            timelineStartDate = program.timelineStartDate.orEmpty(),
+            competitionDate = savedCompetitionDate,
+            manualEndDate = program.calendarization?.manualEndDate.orEmpty(),
+        )
+    }
+    val simpleProjection = remember(program) { ProgramCalendarEngine.project(program) }
+    // Las fechas de cada bloque (subtítulo de e-block): un programa por bloques con inicio y sin calendario se proyecta con el de siempre.
+    val datesProjection = remember(program) {
+        if (program.calendarization == null && !program.timelineStartDate.isNullOrBlank()) {
+            ProgramCalendarEngine.project(program.copy(calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization()))
         } else {
-            ProgramKeyDateEngine.removeWeeksFromBlock(program, blockId, -deltaWeeks)
+            simpleProjection
         }
-        onUpdateProgram(updated.alignTemporalMetadata())
+    }
+    val currentWeekId = remember(program) { programCurrentWeekId(program) }
+    val trainingDays = remember(program, currentWeekId) { programTrainingWeekdays(program, currentWeekId) }
+    val cycle = program.runState?.cycleNumber ?: program.loopState?.currentCycle?.takeIf { it > 0 }
+    val blockUis = remember(program, currentWeekId, cycle) { programBlockUis(program, currentWeekId, cycle) }
+    // e-map: el bloque de la semana en curso empieza desplegado, con la progresión de ese bloque.
+    var expandedBlockId by remember(program.id) {
+        mutableStateOf(blockUis.firstOrNull { block -> block.weeks.any { it.isCurrent } }?.id)
+    }
+    val canDeleteBlock = blockUis.size > 1
+
+    // Añadir una semana: en un programa simple la crea el ViewModel, con sus fechas; en uno por bloques, al final del bloque.
+    fun addWeekTo(block: ProgramBlockUi) {
+        if (isSimple) {
+            onAddSimpleWeek()
+            return
+        }
+        onUpdateProgram(ProgramKeyDateEngine.addWeeksToBlock(program, block.id, 1).alignTemporalMetadata())
     }
 
-    fun applyAdvancedCalendarSave() {
+    fun removeLastWeekFrom(block: ProgramBlockUi) {
+        onUpdateProgram(ProgramKeyDateEngine.removeWeeksFromBlock(program, block.id, 1).alignTemporalMetadata())
+    }
+
+    fun addMesoTo(block: ProgramBlockUi) {
+        editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex = null, meso = null, isAdd = true, blockName = block.name)
+    }
+
+    fun editMeso(block: ProgramBlockUi, mesoIndex: Int) {
+        val meso = program.macrocycles
+            .getOrNull(block.macroIndex)?.blocks?.getOrNull(block.blockIndex)?.mesocycles?.getOrNull(mesoIndex)
+            ?: return
+        editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex, meso, isAdd = false, blockName = block.name)
+    }
+
+    fun openDates() {
+        if (page == StructurePage.BLOCKS) setDatesSheetOpen(true) else onShowSimpleCalendarizationSheetChange(true)
+    }
+
+    // e-dates guarda cada cambio al elegirlo, con las otras dos fechas como están guardadas.
+    fun saveDates(start: String, competition: String, end: String) {
         val result = ProgramKeyDateEngine.applyAdvancedCalendarSave(
             program = program,
-            timelineStartDate = editingTimelineStartDate,
-            competitionDate = editingCompetitionDate,
-            manualEndDate = editingManualEndDate,
+            timelineStartDate = start,
+            competitionDate = competition,
+            manualEndDate = end,
             competitionRepository = CompetitionRepository.getInstance(),
         )
         onUpdateProgram(result.program)
         result.competitionKeyDate?.let { onCompetitionKeyDateSaved(result.program, it) }
-        setKeyDatesSheetOpen(false)
     }
 
     fun removeCompetitionKeyDate(keyDateId: String, mode: ProgramKeyDateEngine.KeyDateDeleteMode) {
@@ -260,67 +266,57 @@ fun MacrocycleEditorLegacy(
         )
         val result = ProgramKeyDateEngine.applyAdvancedCalendarSave(
             program = updated,
-            timelineStartDate = editingTimelineStartDate,
+            timelineStartDate = program.timelineStartDate.orEmpty(),
             competitionDate = "",
-            manualEndDate = editingManualEndDate,
+            manualEndDate = program.calendarization?.manualEndDate.orEmpty(),
             competitionRepository = CompetitionRepository.getInstance(),
         )
         onUpdateProgram(result.program)
-        setCompetitionDate("")
-        setKeyDatesSheetOpen(false)
         editingKeyDate = null
     }
 
-    val temporalInsight = remember(program) { program.toTemporalInsight() }
-    val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
-    val simpleCalendarizationHazeState = remember { HazeState() }
-    // Una sola lectura del reloj para toda la pestaña Estructura: las fechas relativas y la hoja de render dependen de ella (P3a).
-    val today = remember { LocalDate.now() }
-
-    // Qué herramientas y qué calendario muestra cada tipo de programa (P3a).
-    val toolsKind = when {
-        !temporalInsight.isSimple -> ProgramToolsKind.BLOCKS
-        program.simpleProgramKind == SimpleProgramKind.CALENDARIZED -> ProgramToolsKind.CALENDARIZED
-        else -> ProgramToolsKind.CYCLIC
-    }
-    val temporalIssues = remember(program) { program.validateTemporalStructure() }
-    // Lo que el módulo de calendario muestra sale de lo GUARDADO, no de los borradores de las hojas.
-    val savedCompetition = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
-    val savedPreview = remember(program, today) {
-        buildCalendarPreview(
-            program = program,
-            timelineStartDate = program.timelineStartDate.orEmpty(),
-            competitionDate = savedCompetition?.let { it.eventDate ?: it.startDate }.orEmpty(),
-            manualEndDate = program.calendarization?.manualEndDate.orEmpty(),
-            today = today,
-        )
-    }
-    val simpleProjection = remember(program) { ProgramCalendarEngine.project(program) }
-    val currentWeekId = remember(program) { programCurrentWeekId(program) }
-    val trainingDays = remember(program, currentWeekId) { programTrainingWeekdays(program, currentWeekId) }
-
-    // Bloques (P3b): el modelo de cada módulo sale del programa; la semana en curso ya está calculada arriba.
-    val cycle = program.runState?.cycleNumber ?: program.loopState?.currentCycle?.takeIf { it > 0 }
-    val blockUis = remember(program, currentWeekId, cycle) { programBlockUis(program, currentWeekId, cycle) }
-    val canDeleteBlock = blockUis.size > 1
-    val canDeleteWeek = program.totalProgramWeeks > 1
-
-    // Añadir una semana (P3b): en un programa simple la crea el ViewModel, con sus fechas; en uno por bloques, al final del bloque.
-    fun addWeekTo(block: ProgramBlockUi) {
-        if (temporalInsight.isSimple) {
-            onAddSimpleWeek()
-            return
+    // Quitar una fecha clave de competición: con sesiones o registros vinculados, la confirmación decide qué hacer con ellos.
+    fun requestCompetitionRemoval(keyDateId: String) {
+        if (ProgramKeyDateEngine.hasLinkedCompetitionEntities(program, keyDateId, CompetitionRepository.getInstance())) {
+            pendingCompetitionKeyDateDelete = keyDateId
+        } else {
+            removeCompetitionKeyDate(keyDateId, ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION)
         }
-        val weekName = "Semana ${program.countWeeksBeforeAppendingToBlock(block.macroIndex, block.blockIndex) + 1}"
-        onUpdateProgram(program.addWeekToBlock(block.macroIndex, block.blockIndex, weekName).alignTemporalMetadata())
     }
 
-    // Editar un mesociclo (P3b): abre su hoja con el mesociclo elegido.
-    fun editMeso(block: ProgramBlockUi, mesoIndex: Int) {
-        val meso = program.macrocycles
-            .getOrNull(block.macroIndex)?.blocks?.getOrNull(block.blockIndex)?.mesocycles?.getOrNull(mesoIndex)
-            ?: return
-        editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex, meso, isAdd = false)
+    val fromProgram = buildList {
+        if (onOpenTrainingMaxes != null) {
+            add(
+                ProgramFromProgramItem(
+                    title = "Cargas de referencia (TM)",
+                    detail = trainingMaxSummary,
+                    icon = KpknLineIcons.Target,
+                    tag = "estructura_tm",
+                    onClick = onOpenTrainingMaxes,
+                ),
+            )
+        }
+        add(
+            ProgramFromProgramItem(
+                title = "Aplicar plantilla o método",
+                detail = "Rellena semanas con una plantilla de la biblioteca",
+                icon = KpknLineIcons.Book,
+                tag = "estructura_plantillas",
+                onClick = { setLibrarySheetOpen(true) },
+            ),
+        )
+        add(
+            ProgramFromProgramItem(
+                title = "Versiones guardadas",
+                detail = programLatestCopyLine(programSnapshots, today),
+                icon = KpknLineIcons.History,
+                tag = "estructura_versiones",
+                onClick = {
+                    onRefreshProgramSnapshots()
+                    showSnapshots = true
+                },
+            ),
+        )
     }
 
     Column(
@@ -328,194 +324,99 @@ fun MacrocycleEditorLegacy(
             .fillMaxWidth()
             .hazeSource(state = simpleCalendarizationHazeState)
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Estructura empieza por el mapa del programa, que sustituye a «Herramientas»: los bloques como tramos, la semana en curso y las fechas.
-        val mapStart = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.startDate else simpleProjection.startDate
-        val mapEnd = if (toolsKind == ProgramToolsKind.BLOCKS) {
-            savedPreview.manualEndDate ?: savedPreview.programEnd
+        if (page == StructurePage.ROUTINE) {
+            RoutinePage(
+                program = program,
+                trainingDays = trainingDays,
+                cycleLabel = cycle?.let { "Ciclo $it" },
+                temporalIssues = temporalIssues.map { it.message },
+                onEditBaseWeek = {
+                    val block = blockUis.firstOrNull()
+                    val week = block?.weeks?.firstOrNull()
+                    if (block != null && week != null) onFocusWeek(block.id, week.id)
+                },
+                onEditCycle = { loopId -> editingCycle = programCycleLoops(program).firstOrNull { it.id == loopId } },
+                onAddCycle = { setLoopsSheetOpen(true) },
+                block = blockUis.firstOrNull(),
+                onEditMeso = { mesoIndex -> blockUis.firstOrNull()?.let { editMeso(it, mesoIndex) } },
+                onAddMeso = { blockUis.firstOrNull()?.let { addMesoTo(it) } },
+                onAddWeek = onAddSimpleWeek,
+                onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
+                onConvert = { pendingSimpleToAdvanced = true },
+                fromProgram = fromProgram,
+            )
         } else {
-            simpleProjection.effectiveEndDate
-        }
-        ProgramMapModule(
-            segments = remember(blockUis) { programMapSegments(blockUis) },
-            startLabel = programMapDateLabel(mapStart),
-            nowLabel = programMapNowLabel(blockUis),
-            endLabel = programMapDateLabel(mapEnd),
-            onDates = {
-                if (toolsKind == ProgramToolsKind.BLOCKS) {
-                    keyDatesFocusList = false
-                    setKeyDatesSheetOpen(true)
-                } else {
-                    onShowSimpleCalendarizationSheetChange(true)
-                }
-            },
-            modifier = Modifier.kpknEntrance("programdetail.estructura", 0),
-        )
-        ProgramCalendarModule(
-            kind = toolsKind,
-            today = today,
-            startDate = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.startDate else simpleProjection.startDate,
-            endDate = if (toolsKind == ProgramToolsKind.BLOCKS) {
+            val mapStart = if (page == StructurePage.BLOCKS) savedPreview.startDate else simpleProjection.startDate
+            val mapEnd = if (page == StructurePage.BLOCKS) {
                 savedPreview.manualEndDate ?: savedPreview.programEnd
             } else {
                 simpleProjection.effectiveEndDate
-            },
-            endIsEstimate = if (toolsKind == ProgramToolsKind.BLOCKS) {
-                savedPreview.manualEndDate == null
+            }
+            ProgramMapModule(
+                segments = remember(blockUis) { programMapSegments(blockUis) },
+                startLabel = programMapDateLabel(mapStart),
+                nowLabel = programMapNowLabel(blockUis),
+                endLabel = programMapDateLabel(mapEnd),
+                onDates = ::openDates,
+                modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 0),
+            )
+            if (temporalIssues.isNotEmpty()) {
+                ProgramStructureNotice(
+                    messages = temporalIssues.map { it.message },
+                    modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 1),
+                )
+            }
+            StructureGroupLabel(text = "Bloques")
+            ProgramBlockList(
+                blocks = blockUis,
+                expandedBlockId = expandedBlockId,
+                progressionOf = blockProgressionPreview,
+                onToggleBlock = { blockId -> expandedBlockId = if (expandedBlockId == blockId) null else blockId },
+                onFocusWeek = onFocusWeek,
+                onWeekLongPress = { _, weekId, anchor -> onWeekLongPress(weekId, anchor) },
+                onBlockMore = { blockId, anchor -> blockMenu = AnchoredTarget(blockId, anchor) },
+                onAddWeekToBlock = { blockId -> blockUis.blockAt(blockId)?.let { addWeekTo(it) } },
+                entranceFirst = 2,
+            )
+            if (page == StructurePage.BLOCKS) {
+                StructureSecondarySmallPill(
+                    text = "Añadir bloque",
+                    onClick = { blockSheet = BlockSheetTarget.Add },
+                    icon = KpknLineIcons.Plus,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             } else {
-                simpleProjection.manualEndDate == null
-            },
-            competitionDate = savedPreview.competitionDate,
-            trainingDays = trainingDays,
-            repeatingWeekLabel = programProgressLabel(
-                weekIndex = null,
-                weekCount = null,
-                phase = null,
-                repeatingWeek = true,
-                cycle = program.runState?.cycleNumber,
-            ) ?: "Semana que se repite",
-            durationWeeks = simpleProjection.weeks.size,
-            messages = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.messages else emptyList(),
-            onEdit = {
-                if (toolsKind == ProgramToolsKind.BLOCKS) {
-                    keyDatesFocusList = false
-                    setKeyDatesSheetOpen(true)
-                } else {
-                    onShowSimpleCalendarizationSheetChange(true)
-                }
-            },
-            onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
-            modifier = Modifier.kpknEntrance("programdetail.estructura", 1),
-        )
-        if (temporalIssues.isNotEmpty()) {
-            ProgramStructureNotice(
-                messages = temporalIssues.map { it.message },
-                modifier = Modifier.kpknEntrance("programdetail.estructura", 2),
-            )
-        }
-        // Bloques (P3b): un módulo por bloque, en el orden del programa, con sus mesociclos y sus semanas en círculos. Las hojas y los
-        // menús se abren desde aquí y se pintan al final de la pantalla.
-        ProgramBlockList(
-            blocks = blockUis,
-            isSimple = temporalInsight.isSimple,
-            selectedWeekId = selectedWeekId,
-            onFocusWeek = { blockId, weekId -> onFocusWeek(blockId, weekId) },
-            onWeekLongPress = { _, weekId, anchor -> weekMenu = AnchoredTarget(weekId, anchor) },
-            onBlockMore = { blockId, anchor -> blockMenu = AnchoredTarget(blockId, anchor) },
-            onEditMeso = { blockId, mesoIndex -> blockUis.blockAt(blockId)?.let { editMeso(it, mesoIndex) } },
-            onAddWeekToBlock = { blockId -> blockUis.blockAt(blockId)?.let { addWeekTo(it) } },
-            onAddMesoToBlock = { blockId ->
-                blockUis.blockAt(blockId)?.let { block ->
-                    editingMeso = EditingMesoTarget(block.macroIndex, block.blockIndex, mesoIndex = null, meso = null, isAdd = true)
-                }
-            },
-            onAddBlock = { blockSheet = BlockSheetTarget.Add },
-            onConvert = { pendingSimpleToAdvanced = true },
-        )
-
-        ProgramFromProgramModule(
-            items = buildList<ProgramFromProgramItem> {
-                if (onOpenTrainingMaxes != null) {
-                    add(
+                ProgramFromProgramModule(
+                    label = null,
+                    items = listOf(
                         ProgramFromProgramItem(
-                            title = "Cargas de referencia (TM)",
-                            detail = trainingMaxSummary ?: "Máximos de entrenamiento de los básicos",
-                            icon = KpknLineIcons.Target,
-                            tag = "estructura_tm",
-                            onClick = onOpenTrainingMaxes,
+                            title = "Pasar a programa por bloques",
+                            detail = null,
+                            icon = KpknLineIcons.Training,
+                            tag = "estructura_convertir",
+                            onClick = { pendingSimpleToAdvanced = true },
                         ),
-                    )
-                }
-                add(
-                    ProgramFromProgramItem(
-                        title = "Aplicar plantilla o método",
-                        detail = "Rellena semanas con una plantilla de la biblioteca",
-                        icon = KpknLineIcons.Layers,
-                        tag = "estructura_plantillas",
-                        onClick = { setLibrarySheetOpen(true) },
                     ),
                 )
-                add(
-                    ProgramFromProgramItem(
-                        title = "Versiones guardadas",
-                        detail = when (programSnapshots.size) {
-                            0 -> "Aún no hay versiones guardadas"
-                            1 -> "1 versión · restaurar una copia"
-                            else -> "${programSnapshots.size} versiones · restaurar una copia"
-                        },
-                        icon = KpknLineIcons.History,
-                        tag = "estructura_versiones",
-                        enabled = programSnapshots.isNotEmpty(),
-                        onClick = {
-                            onRefreshProgramSnapshots()
-                            showSnapshots = true
-                        },
-                    ),
-                )
-                if (toolsKind == ProgramToolsKind.BLOCKS) {
-                    add(
-                        ProgramFromProgramItem(
-                            title = "Ruta y semanas por bloque",
-                            detail = "Cuántas semanas tiene cada bloque y cómo encaja con la competición",
-                            icon = KpknLineIcons.Route,
-                            tag = "estructura_ruta",
-                            onClick = { setRoadmapExpanded(true) },
-                        ),
-                    )
-                    val keyDateCount = program.keyDates.count { it.type != KeyDateType.COMPETITION }
-                    add(
-                        ProgramFromProgramItem(
-                            title = "Fechas clave",
-                            detail = when (keyDateCount) {
-                                0 -> "Descargas, tests y otras fechas del programa"
-                                1 -> "1 fecha clave"
-                                else -> "$keyDateCount fechas clave"
-                            },
-                            icon = KpknLineIcons.Flag,
-                            tag = "estructura_fechas_clave",
-                            onClick = {
-                                keyDatesFocusList = true
-                                setKeyDatesSheetOpen(true)
-                            },
-                        ),
-                    )
-                }
-                if (toolsKind == ProgramToolsKind.CYCLIC) {
-                    add(
-                        ProgramFromProgramItem(
-                            title = "Ciclos",
-                            detail = "Descargas, tests y competiciones que se repiten",
-                            icon = KpknLineIcons.Repeat,
-                            tag = "estructura_ciclos",
-                            onClick = { setLoopsSheetOpen(true) },
-                        ),
-                    )
-                }
-            },
-            modifier = Modifier.kpknEntrance("programdetail.estructura", 3),
-        )
-        if (analyticsReport != null) {
-            Text(
-                text = "REVISIÓN DEL PLAN",
-                style = KpknType.eyebrow,
-                color = WizardColors.textFaint,
-                modifier = Modifier.padding(start = 2.dp, top = 4.dp),
-            )
-            VolumeAnalyticsCard(report = analyticsReport)
+            }
+            ProgramFromProgramModule(items = fromProgram)
         }
         Spacer(Modifier.height(120.dp))
     }
 
-    // Hoja de bloque (P3b): un bloque nuevo, o uno existente con la vista previa de su progresión. Un bloque nuevo se crea en una sola
-    // escritura, con su objetivo y su esquema.
+    // e-block: un bloque nuevo, o uno existente con su subtítulo de semanas y fechas, la vista previa de su progresión y «Eliminar bloque».
     blockSheet?.let { target ->
         val editing = (target as? BlockSheetTarget.Edit)?.let { edit ->
             program.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == edit.blockId }
         }
+        val editingUi = editing?.let { blockUis.blockAt(it.id) }
         if (target is BlockSheetTarget.Add || editing != null) {
             ProgramBlockSheet(
                 block = editing,
+                subtitle = editingUi?.let { ui ->
+                    blockSheetSubtitle(ui.weeks.map { it.number }, blockDatesLabel(datesProjection, ui.id))
+                },
                 suggestedName = "Bloque ${blockUis.size + 1}",
                 preview = editing?.let { blockProgressionPreview(it.id) },
                 onSave = { name, description, goal, scheme ->
@@ -530,28 +431,16 @@ fun MacrocycleEditorLegacy(
                     blockSheet = null
                 },
                 onDismiss = { blockSheet = null },
+                onDelete = if (editing != null && canDeleteBlock && page == StructurePage.BLOCKS) {
+                    {
+                        pendingDelete = DeleteTarget.Block(editing.id)
+                        blockSheet = null
+                    }
+                } else {
+                    null
+                },
             )
         }
-    }
-
-    // Hoja de la semana (P3b): la de Semana, con «Eliminar semana» si el programa tiene más de una.
-    weekEdit?.let { draft ->
-        val onDeleteDraft: () -> Unit = {
-            pendingDelete = DeleteTarget.Week(draft.weekId)
-            weekEdit = null
-        }
-        ProgramWeekEditSheet(
-            name = draft.name,
-            description = draft.description,
-            onNameChange = { weekEdit = draft.copy(name = it) },
-            onDescriptionChange = { weekEdit = draft.copy(description = it) },
-            onSave = {
-                onUpdateWeek(draft.weekId, draft.name.trim(), draft.description.trim().ifBlank { null })
-                weekEdit = null
-            },
-            onDismiss = { weekEdit = null },
-            onDelete = if (canDeleteWeek) onDeleteDraft else null,
-        )
     }
 
     editingMeso?.let { target ->
@@ -559,6 +448,7 @@ fun MacrocycleEditorLegacy(
             ?: emptyList()
         ProgramMesoSheet(
             meso = if (target.isAdd) null else target.meso,
+            subtitle = target.blockName,
             suggestedName = "Mesociclo ${mesocycles.size + 1}",
             canDelete = !target.isAdd && mesocycles.size > 1,
             onSave = { name, goal ->
@@ -578,73 +468,81 @@ fun MacrocycleEditorLegacy(
         )
     }
 
-    // Menú del bloque (P3b, P7): «Añadir semana», «Añadir mesociclo», «Editar bloque» y, si hay más de uno, «Eliminar bloque».
+    // ⋯ del bloque: editar (nombre, objetivo, progresión y eliminar), «+ / −» semanas (lo que hacía «Ruta») y sus mesociclos.
     blockMenu?.let { menu ->
-        ProgramItemMenu(
-            items = buildList<ProgramAnchoredMenuItem> {
-                add(ProgramAnchoredMenuItem(label = "Añadir semana", onClick = { blockUis.blockAt(menu.id)?.let { addWeekTo(it) } }))
-                add(
-                    ProgramAnchoredMenuItem(
-                        label = "Añadir mesociclo",
-                        onClick = {
-                            blockUis.blockAt(menu.id)?.let { block ->
-                                editingMeso = EditingMesoTarget(
-                                    block.macroIndex,
-                                    block.blockIndex,
-                                    mesoIndex = null,
-                                    meso = null,
-                                    isAdd = true,
-                                )
-                            }
-                        },
-                    ),
-                )
-                add(ProgramAnchoredMenuItem(label = "Editar bloque", onClick = { blockSheet = BlockSheetTarget.Edit(menu.id) }))
-                if (canDeleteBlock) {
-                    add(
-                        ProgramAnchoredMenuItem(
-                            label = "Eliminar bloque",
-                            onClick = { pendingDelete = DeleteTarget.Block(menu.id) },
-                            destructive = true,
-                        ),
-                    )
-                }
-            },
-            anchor = menu.anchor,
-            onDismiss = { blockMenu = null },
-        )
-    }
-
-    // Menú de la semana (P3b): editar, copiar, pegar aquí (con una semana copiada) y eliminar.
-    weekMenu?.let { menu ->
-        val week = program.findProgramWeek(menu.id)
-        if (week != null) {
+        val block = blockUis.blockAt(menu.id)
+        if (block != null) {
             ProgramItemMenu(
-                items = buildList<ProgramAnchoredMenuItem> {
-                    add(
-                        ProgramAnchoredMenuItem(
-                            label = "Editar semana",
-                            onClick = { weekEdit = WeekEditTarget(menu.id, week.name, week.description.orEmpty()) },
-                        ),
-                    )
-                    add(ProgramAnchoredMenuItem(label = "Copiar semana", onClick = { onCopyWeek(menu.id) }))
-                    if (copiedWeekId != null && copiedWeekId != menu.id) {
-                        add(ProgramAnchoredMenuItem(label = "Pegar aquí", onClick = { onPasteWeek(menu.id) }))
+                items = buildList {
+                    if (page == StructurePage.BLOCKS) {
+                        add(ProgramAnchoredMenuItem(label = "Editar bloque", onClick = { blockSheet = BlockSheetTarget.Edit(menu.id) }))
                     }
-                    if (canDeleteWeek) {
+                    add(ProgramAnchoredMenuItem(label = "Añadir una semana", onClick = { addWeekTo(block) }))
+                    if (block.weeks.size > 1 && !isSimple) {
+                        add(ProgramAnchoredMenuItem(label = "Quitar la última semana", onClick = { removeLastWeekFrom(block) }))
+                    }
+                    add(ProgramAnchoredMenuItem(label = "Añadir mesociclo", onClick = { addMesoTo(block) }))
+                    if (block.mesocycles.size > 1) {
+                        block.mesocycles.forEachIndexed { index, meso ->
+                            add(ProgramAnchoredMenuItem(label = "Editar «${meso.name}»", onClick = { editMeso(block, index) }))
+                        }
+                    }
+                    if (canDeleteBlock && page == StructurePage.BLOCKS) {
                         add(
                             ProgramAnchoredMenuItem(
-                                label = "Eliminar semana",
-                                onClick = { pendingDelete = DeleteTarget.Week(menu.id) },
+                                label = "Eliminar bloque",
+                                onClick = { pendingDelete = DeleteTarget.Block(menu.id) },
                                 destructive = true,
                             ),
                         )
                     }
                 },
                 anchor = menu.anchor,
-                onDismiss = { weekMenu = null },
+                onDismiss = { blockMenu = null },
             )
         }
+    }
+
+    // e-dates: «Fechas» de un programa por bloques. Se oculta mientras se edita una fecha clave y vuelve al guardarla.
+    if (page == StructurePage.BLOCKS && showDatesSheet && editingKeyDate == null) {
+        val competitionDate = parseIsoDateExact(savedCompetitionDate)
+        ProgramCalendarSheet(
+            today = today,
+            start = savedPreview.startDate,
+            manualEnd = savedPreview.manualEndDate,
+            projectedEnd = savedPreview.programEnd,
+            competition = competitionDate,
+            competitionTitle = savedCompetition?.title,
+            otherKeyDates = program.keyDates.filter { it.type != KeyDateType.COMPETITION },
+            trainingDays = trainingDays,
+            messages = savedPreview.messages,
+            onStartChange = { start ->
+                saveDates(start?.toString().orEmpty(), savedCompetitionDate, program.calendarization?.manualEndDate.orEmpty())
+            },
+            onEndChange = { end ->
+                saveDates(program.timelineStartDate.orEmpty(), savedCompetitionDate, end?.toString().orEmpty())
+            },
+            onCompetitionChange = { date ->
+                if (date == null) {
+                    savedCompetition?.let { requestCompetitionRemoval(it.id) }
+                } else {
+                    saveDates(program.timelineStartDate.orEmpty(), date.toString(), program.calendarization?.manualEndDate.orEmpty())
+                }
+            },
+            onAddKeyDate = {
+                editingKeyDate = ProgramKeyDate(
+                    id = "key_${System.nanoTime()}",
+                    title = "",
+                    type = KeyDateType.EXAMS,
+                    startDate = today.toString(),
+                )
+            },
+            onEditKeyDate = { keyDate -> editingKeyDate = keyDate },
+            onAddPause = {
+                onUpdateProgram(program.insertPauseWeekAfter(currentWeekId).alignTemporalMetadata())
+            },
+            onDismiss = { setDatesSheetOpen(false) },
+        )
     }
 
     editingKeyDate?.let { keyDate ->
@@ -663,30 +561,20 @@ fun MacrocycleEditorLegacy(
                 }
                 onUpdateProgram(updated)
                 editingKeyDate = null
-                setKeyDatesSheetOpen(true)
             },
             onDelete = {
-                if (keyDate.type == KeyDateType.COMPETITION &&
-                    ProgramKeyDateEngine.hasLinkedCompetitionEntities(
-                        program,
-                        keyDate.id,
-                        CompetitionRepository.getInstance(),
-                    )
-                ) {
-                    pendingCompetitionKeyDateDelete = keyDate.id
+                if (keyDate.type == KeyDateType.COMPETITION) {
                     editingKeyDate = null
+                    requestCompetitionRemoval(keyDate.id)
                 } else {
-                    val updated = ProgramKeyDateEngine.deleteKeyDate(
-                        program = program,
-                        keyDateId = keyDate.id,
-                        competitionRepository = CompetitionRepository.getInstance(),
+                    onUpdateProgram(
+                        ProgramKeyDateEngine.deleteKeyDate(
+                            program = program,
+                            keyDateId = keyDate.id,
+                            competitionRepository = CompetitionRepository.getInstance(),
+                        ),
                     )
-                    onUpdateProgram(updated)
-                    if (keyDate.type == KeyDateType.COMPETITION) {
-                        setCompetitionDate("")
-                    }
                     editingKeyDate = null
-                    setKeyDatesSheetOpen(true)
                 }
             },
             onDismiss = { editingKeyDate = null },
@@ -698,7 +586,6 @@ fun MacrocycleEditorLegacy(
             text = when (target) {
                 is DeleteTarget.Block -> "Eliminar este bloque puede cambiar la lógica temporal del programa."
                 is DeleteTarget.Meso -> "Eliminar este mesociclo quitará sus semanas y sesiones."
-                is DeleteTarget.Week -> "Eliminar esta semana quitará sus sesiones."
             },
             onConfirm = {
                 when (target) {
@@ -706,7 +593,6 @@ fun MacrocycleEditorLegacy(
                     is DeleteTarget.Meso -> onUpdateProgram(
                         program.removeMesocycle(target.macroIndex, target.blockIndex, target.mesoIndex).alignTemporalMetadata(),
                     )
-                    is DeleteTarget.Week -> onDeleteWeek(target.weekId)
                 }
                 pendingDelete = null
             },
@@ -725,16 +611,13 @@ fun MacrocycleEditorLegacy(
                         if (linkedSessions > 0) {
                             "Hay $linkedSessions sesión(es) vinculada(s). Elige si desvincularlas (quedan como sesiones normales) o archivarlas junto con su registro de competición."
                         } else {
-                            "Se eliminará la fecha clave de competición del calendario del programa."
+                            "Se eliminará la fecha clave de competición del programa."
                         },
                     )
                     if (linkedSessions > 0) {
                         OutlinedButton(
                             onClick = {
-                                removeCompetitionKeyDate(
-                                    keyDateId,
-                                    ProgramKeyDateEngine.KeyDateDeleteMode.ARCHIVE_SESSION_AND_RECORD,
-                                )
+                                removeCompetitionKeyDate(keyDateId, ProgramKeyDateEngine.KeyDateDeleteMode.ARCHIVE_SESSION_AND_RECORD)
                                 pendingCompetitionKeyDateDelete = null
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -747,10 +630,7 @@ fun MacrocycleEditorLegacy(
             confirmButton = {
                 Button(
                     onClick = {
-                        removeCompetitionKeyDate(
-                            keyDateId,
-                            ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
-                        )
+                        removeCompetitionKeyDate(keyDateId, ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION)
                         pendingCompetitionKeyDateDelete = null
                     },
                 ) {
@@ -778,132 +658,63 @@ fun MacrocycleEditorLegacy(
         )
     }
 
-    if (!temporalInsight.isSimple && showKeyDatesSheet && editingKeyDate == null) {
-        KeyDatesSection(
-            program = program,
-            today = today,
-            focusKeyDates = keyDatesFocusList,
-            timelineStartDate = editingTimelineStartDate,
-            competitionDate = editingCompetitionDate,
-            manualEndDate = editingManualEndDate,
-            onTimelineStartDateChange = ::setTimelineStartDate,
-            onCompetitionDateChange = ::setCompetitionDate,
-            onManualEndDateChange = ::setManualEndDate,
-            otherKeyDates = program.keyDates.filter { it.type != KeyDateType.COMPETITION },
-            onAddOtherKeyDate = {
-                editingKeyDate = ProgramKeyDate(
-                    id = "key_${System.nanoTime()}",
-                    title = "",
-                    type = KeyDateType.EXAMS,
-                    startDate = LocalDate.now().toString(),
-                )
-                setKeyDatesSheetOpen(false)
-            },
-            onEditOtherKeyDate = { keyDate ->
-                editingKeyDate = keyDate
-                setKeyDatesSheetOpen(false)
-            },
-            onDeleteOtherKeyDate = { keyDateId ->
-                val keyDate = program.keyDates.firstOrNull { it.id == keyDateId }
-                if (keyDate?.type == KeyDateType.COMPETITION &&
-                    ProgramKeyDateEngine.hasLinkedCompetitionEntities(
-                        program,
-                        keyDateId,
-                        CompetitionRepository.getInstance(),
-                    )
-                ) {
-                    pendingCompetitionKeyDateDelete = keyDateId
-                } else {
-                    val updated = ProgramKeyDateEngine.deleteKeyDate(
-                        program = program,
-                        keyDateId = keyDateId,
-                        mode = ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
-                        competitionRepository = CompetitionRepository.getInstance(),
-                    )
-                    onUpdateProgram(updated)
-                }
-            },
-            onSave = {
-                val existingCompetition = ProgramKeyDateEngine.competitionKeyDate(program)
-                if (existingCompetition != null && editingCompetitionDate.isBlank()) {
-                    if (ProgramKeyDateEngine.hasLinkedCompetitionEntities(
-                            program,
-                            existingCompetition.id,
-                            CompetitionRepository.getInstance(),
-                        )
-                    ) {
-                        pendingCompetitionKeyDateDelete = existingCompetition.id
-                    } else {
-                        removeCompetitionKeyDate(
-                            existingCompetition.id,
-                            ProgramKeyDateEngine.KeyDateDeleteMode.UNLINK_SESSION,
-                        )
-                    }
-                } else {
-                    applyAdvancedCalendarSave()
-                }
-            },
-            onDismiss = { setKeyDatesSheetOpen(false) },
-        )
-    }
-
     if (showLibrarySheet) {
         LibrarySection(
-            onApplyTemplate = { template ->
-                setLibrarySheetOpen(false)
-                pendingTemplate = template
-            },
-            onApplyProtocol = { protocol ->
-                setLibrarySheetOpen(false)
-                pendingProtocol = protocol
-            },
+            onApplyTemplate = { template, replace -> onApplyProgramTemplateOverwrite(template, replace) },
+            onApplyProtocol = { protocol, replace -> onApplyProtocol(protocol, replace) },
             onDismiss = { setLibrarySheetOpen(false) },
-        )
-    }
-
-    pendingProtocol?.let { protocol ->
-        com.example.kpkn.screens.programs.ProtocolDetailSheet(
-            protocol = protocol,
-            onDismiss = { pendingProtocol = null },
-            continueLabel = "Reemplazar plan",
-            onContinue = {
-                onApplyProtocol(protocol, true)
-                pendingProtocol = null
-                setLibrarySheetOpen(false)
-            },
-            onCreateCopy = {
-                onApplyProtocol(protocol, false)
-                pendingProtocol = null
-                setLibrarySheetOpen(false)
-            },
-        )
-    }
-
-    pendingTemplate?.let { template ->
-        ProgramTemplateConfirmSheet(
-            template = template,
-            hasSessions = ProgramTemplateEngine.hasSessionContent(program),
-            onConfirm = { overwrite ->
-                onApplyProgramTemplateOverwrite(template, overwrite)
-                pendingTemplate = null
-                setLibrarySheetOpen(false)
-            },
-            onDismiss = { pendingTemplate = null },
         )
     }
 
     if (showSnapshots) {
         ProgramHistorySheet(
             snapshots = programSnapshots,
+            today = today,
             onRestore = { snapshotId ->
                 onRestoreProgramSnapshot(snapshotId)
                 showSnapshots = false
+            },
+            onSaveCopy = {
+                showSnapshots = false
+                onAddProgramCopy(program.copy(id = UUID.randomUUID().toString(), name = "${program.name} (copia)", isDraft = true))
             },
             onDismiss = { showSnapshots = false },
         )
     }
 
-    if (temporalInsight.isSimple && program.simpleProgramKind == SimpleProgramKind.CYCLIC && showLoopsSheet) {
+    // e-cycles: la fila de un ciclo abre su editor, con posponer, cancelar, reactivar y eliminar (este, tras confirmar).
+    editingCycle?.let { loop ->
+        ProgramCycleEditorSheet(
+            loop = loop,
+            existing = programCycleLoops(program),
+            onSave = { draft ->
+                onUpdateProgram(saveCycleDraft(program, draft))
+                editingCycle = null
+            },
+            onAction = { action ->
+                if (action == ProgramCycleAction.DELETE) {
+                    pendingCycleDelete = loop
+                } else {
+                    onUpdateProgram(applyCycleAction(program, loop.id, action))
+                    editingCycle = null
+                }
+            },
+            onDismiss = { editingCycle = null },
+        )
+    }
+
+    pendingCycleDelete?.let { loop ->
+        ProgramCycleDeleteDialog(
+            onConfirm = {
+                onUpdateProgram(applyCycleAction(program, loop.id, ProgramCycleAction.DELETE))
+                pendingCycleDelete = null
+                editingCycle = null
+            },
+            onDismiss = { pendingCycleDelete = null },
+        )
+    }
+
+    if (page == StructurePage.ROUTINE && showLoopsSheet) {
         CyclesSection(
             program = program,
             onUpdateProgram = onUpdateProgram,
@@ -915,21 +726,7 @@ fun MacrocycleEditorLegacy(
         )
     }
 
-    if (!temporalInsight.isSimple && showRouteSheet) {
-        RouteSection(
-            program = program,
-            roadmap = advancedRoadmap,
-            today = today,
-            onFocusWeek = { blockId, weekId ->
-                setRoadmapExpanded(false)
-                onFocusWeek(blockId, weekId)
-            },
-            onAdjustBlockWeeks = { blockId, deltaWeeks -> adjustBlockWeeks(blockId, deltaWeeks) },
-            onDismiss = { setRoadmapExpanded(false) },
-        )
-    }
-
-    if (temporalInsight.isSimple && showSimpleCalendarizationSheet) {
+    if (isSimple && showSimpleCalendarizationSheet) {
         CalendarSection(
             program = program,
             today = today,
@@ -951,49 +748,115 @@ fun MacrocycleEditorLegacy(
     }
 }
 
-internal data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
+/**
+ * e-cycles, la Estructura de una rutina: «Semana base» (sus sesiones, su duración y sus días), el aviso de la estructura si lo hay, el
+ * grupo «Ciclos» con «Añadir ciclo», el módulo del pie con los mesociclos, añadir una semana al ciclo, calendarizar y «Pasar a programa por
+ * bloques», y «Del programa».
+ */
+@Composable
+private fun RoutinePage(
+    program: Program,
+    trainingDays: Set<Int>,
+    cycleLabel: String?,
+    temporalIssues: List<String>,
+    onEditBaseWeek: () -> Unit,
+    onEditCycle: (loopId: String) -> Unit,
+    onAddCycle: () -> Unit,
+    block: ProgramBlockUi?,
+    onEditMeso: (mesoIndex: Int) -> Unit,
+    onAddMeso: () -> Unit,
+    onAddWeek: () -> Unit,
+    onCalendarize: () -> Unit,
+    onConvert: () -> Unit,
+    fromProgram: List<ProgramFromProgramItem>,
+) {
+    val baseWeek = remember(program) {
+        program.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+    }
+    val headline = remember(baseWeek) {
+        val sessions = baseWeek?.sessions.orEmpty()
+        baseWeekHeadline(sessions.size, sessions.sumOf { SessionDurationEstimator.estimate(it).totalMinutes })
+    }
+    val cycleRows = remember(program) { programCycleRows(program) }
 
-internal data class CalendarPreview(
-    val startDate: LocalDate?,
-    val programEnd: LocalDate?,
-    val manualEndDate: LocalDate?,
-    val endDateStatus: ProgramEndDateStatus,
-    val competitionDate: LocalDate?,
-    val competitionWeekRange: Pair<LocalDate, LocalDate>?,
-    val daysUntilCompetition: Long?,
-    val blockStarts: List<BlockStartPreview>,
-    val messages: List<String>,
-)
+    ProgramBaseWeekModule(
+        headline = headline,
+        trainingDays = trainingDays,
+        cycleLabel = cycleLabel,
+        onEdit = onEditBaseWeek,
+        modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 0),
+    )
+    if (temporalIssues.isNotEmpty()) {
+        ProgramStructureNotice(messages = temporalIssues, modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 1))
+    }
+    ProgramFromProgramModule(
+        label = "Ciclos",
+        items = cycleRows.map { row ->
+            ProgramFromProgramItem(
+                title = row.title,
+                detail = row.detail,
+                icon = row.icon,
+                tag = "estructura_ciclo_${row.loopId}",
+                onClick = { onEditCycle(row.loopId) },
+            )
+        } + ProgramFromProgramItem(
+            title = "Añadir ciclo",
+            detail = null,
+            icon = KpknLineIcons.Plus,
+            tag = "estructura_ciclos",
+            onClick = onAddCycle,
+        ),
+        modifier = Modifier.padding(bottom = 12.dp),
+    )
+    ProgramFromProgramModule(
+        label = null,
+        items = buildList {
+            val mesocycles = block?.mesocycles.orEmpty()
+            if (mesocycles.size > 1) {
+                mesocycles.forEachIndexed { index, meso ->
+                    add(
+                        ProgramFromProgramItem(
+                            title = meso.name,
+                            detail = meso.goalLabel,
+                            icon = KpknLineIcons.Layers,
+                            tag = "estructura_meso_$index",
+                            onClick = { onEditMeso(index) },
+                        ),
+                    )
+                }
+            }
+            add(ProgramFromProgramItem("Añadir mesociclo", null, KpknLineIcons.Layers, "estructura_meso_nuevo", onAddMeso))
+            add(ProgramFromProgramItem("Añadir una semana al ciclo", null, KpknLineIcons.Plus, "estructura_semana_nueva", onAddWeek))
+            add(
+                ProgramFromProgramItem(
+                    "Calendarizar el ciclo",
+                    "Fechas reales o una pausa",
+                    KpknLineIcons.Calendar,
+                    "estructura_calendarizar",
+                    onCalendarize,
+                ),
+            )
+            add(ProgramFromProgramItem("Pasar a programa por bloques", null, KpknLineIcons.Training, "estructura_convertir", onConvert))
+        },
+    )
+    ProgramFromProgramModule(items = fromProgram)
+}
 
-internal data class BlockStartPreview(
-    val blockName: String,
-    val startDate: LocalDate,
-    val endDate: LocalDate,
-    val weeks: Int,
-)
+/** «29 oct – 9 nov»: las fechas de un bloque si el programa tiene fechas; null si no. */
+private fun blockDatesLabel(projection: ProgramCalendarProjection, blockId: String): String? {
+    val weeks = projection.weeks.filter { it.blockId == blockId }
+    val first = weeks.firstOrNull() ?: return null
+    return formatDateRange(first.startDate, weeks.last().endDate)
+}
 
-internal data class TemporalInsight(
-    val isSimple: Boolean,
-    val cycleWeeks: Int?,
-    val loopCadenceCycles: Int?,
-    val loopLengthWeeks: Int?,
-    val blocks: Int,
-    val mesocycles: Int,
-    val weeks: Int,
-    val hadLoopsOrEvents: Boolean,
-)
-
-/** Lo que se edita en la hoja de bloque (P3b): un bloque nuevo, o uno existente por su id. */
+/** Lo que se edita en la hoja de bloque: un bloque nuevo, o uno existente por su id. */
 private sealed class BlockSheetTarget {
     object Add : BlockSheetTarget()
     data class Edit(val blockId: String) : BlockSheetTarget()
 }
 
-/** Un menú anclado a un bloque o a una semana (P3b): su id y dónde está su ancla en la ventana. */
+/** El ⋯ de un bloque: su id y dónde está su ancla en la ventana. */
 private data class AnchoredTarget(val id: String, val anchor: Rect)
-
-/** Borrador de la hoja «Editar semana» (P3b): la semana que se edita y lo escrito. */
-private data class WeekEditTarget(val weekId: String, val name: String, val description: String)
 
 private data class EditingMesoTarget(
     val macroIndex: Int,
@@ -1001,39 +864,59 @@ private data class EditingMesoTarget(
     val mesoIndex: Int?,
     val meso: Mesocycle?,
     val isAdd: Boolean,
+    val blockName: String?,
 )
 
-/** Lo que se borra tras confirmar (P3b): un bloque y una semana por su id; un mesociclo, por su posición. */
+/** Lo que se borra tras confirmar: un bloque por su id; un mesociclo, por su posición. */
 private sealed class DeleteTarget {
     data class Block(val blockId: String) : DeleteTarget()
     data class Meso(val macroIndex: Int, val blockIndex: Int, val mesoIndex: Int) : DeleteTarget()
-    data class Week(val weekId: String) : DeleteTarget()
 }
 
-private fun Program.toProgramStats(): ProgramStats {
-    val sessions = macrocycles.sumOf { macro ->
-        macro.blocks.sumOf { block ->
-            block.mesocycles.sumOf { meso -> meso.weeks.sumOf { it.sessions.size } }
-        }
-    }
-    return ProgramStats(
-        weeks = totalProgramWeeks,
-        sessions = sessions,
-        mesos = totalMesocycleCount,
-        blocks = totalBlockCount,
-    )
-}
+/** Las fechas guardadas del programa para el mapa y la hoja «Fechas», con los avisos del motor. */
+internal data class CalendarPreview(
+    val startDate: LocalDate?,
+    val programEnd: LocalDate?,
+    val manualEndDate: LocalDate?,
+    val messages: List<String>,
+)
 
-private fun Program.toTemporalInsight(): TemporalInsight {
-    return TemporalInsight(
-        isSimple = isSimpleTemporalProgram,
-        cycleWeeks = simpleCycleWeeks,
-        loopCadenceCycles = primaryLoopCadenceCycles,
-        loopLengthWeeks = primaryLoopLengthWeeks,
-        blocks = totalBlockCount,
-        mesocycles = totalMesocycleCount,
-        weeks = totalProgramWeeks,
-        hadLoopsOrEvents = loops.isNotEmpty() || events.isNotEmpty(),
+/**
+ * Inserta una semana vacía «Pausa» después de [afterWeekId] (la semana en curso), en su mismo mesociclo: las semanas siguientes se corren
+ * una. Sin semana en curso, la pausa va al principio del programa. Pura.
+ */
+internal fun Program.insertPauseWeekAfter(afterWeekId: String?, pauseId: String = "week_${System.nanoTime()}"): Program {
+    val pause = ProgramWeek(id = pauseId, name = "Pausa")
+    val hasTarget = afterWeekId != null &&
+        macrocycles.any { macro -> macro.blocks.any { block -> block.mesocycles.any { meso -> meso.weeks.any { it.id == afterWeekId } } } }
+    var inserted = false
+    return copy(
+        macrocycles = macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            when {
+                                inserted -> meso
+                                hasTarget -> {
+                                    val index = meso.weeks.indexOfFirst { it.id == afterWeekId }
+                                    if (index < 0) {
+                                        meso
+                                    } else {
+                                        inserted = true
+                                        meso.copy(weeks = meso.weeks.take(index + 1) + pause + meso.weeks.drop(index + 1))
+                                    }
+                                }
+                                else -> {
+                                    inserted = true
+                                    meso.copy(weeks = listOf(pause) + meso.weeks)
+                                }
+                            }
+                        },
+                    )
+                },
+            )
+        },
     )
 }
 
@@ -1045,8 +928,8 @@ private fun Program.ensureMacrocycle(): Program {
                 id = "macro_${System.nanoTime()}",
                 name = "Macrociclo 1",
                 blocks = listOf(defaultBlock("Bloque 1")),
-            )
-        )
+            ),
+        ),
     )
 }
 
@@ -1074,12 +957,8 @@ private fun defaultMesocycle(
         id = "meso_${System.nanoTime()}",
         name = name,
         goal = goal,
-        weeks = listOf(defaultWeek("Semana 1")),
+        weeks = listOf(ProgramWeek(id = "week_${System.nanoTime()}", name = "Semana 1")),
     )
-}
-
-private fun defaultWeek(name: String): ProgramWeek {
-    return ProgramWeek(id = "week_${System.nanoTime()}", name = name)
 }
 
 private fun Program.addBlockToMacro(
@@ -1093,16 +972,12 @@ private fun Program.addBlockToMacro(
         macrocycles = macrocycles.mapIndexed { index, macro ->
             if (index != macroIndex) macro
             else macro.copy(blocks = macro.blocks + defaultBlock(blockName, description, goal, progressionScheme))
-        }
+        },
     )
 }
 
-/** El bloque del módulo con ese id (P3b). */
+/** El bloque de la tarjeta con ese id. */
 private fun List<ProgramBlockUi>.blockAt(blockId: String): ProgramBlockUi? = firstOrNull { it.id == blockId }
-
-/** La semana con ese id, esté en el bloque o el mesociclo que esté (P3b). */
-private fun Program.findProgramWeek(weekId: String): ProgramWeek? =
-    macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.firstOrNull { it.id == weekId }
 
 private fun Program.addMesocycle(macroIndex: Int, blockIndex: Int, name: String, goal: MesocycleGoal): Program {
     val mesocycle = defaultMesocycle(name = name, goal = goal)
@@ -1113,9 +988,9 @@ private fun Program.addMesocycle(macroIndex: Int, blockIndex: Int, name: String,
                 blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
                     if (currentBlockIndex != blockIndex) block
                     else block.copy(mesocycles = block.mesocycles + mesocycle)
-                }
+                },
             )
-        }
+        },
     )
 }
 
@@ -1135,64 +1010,12 @@ private fun Program.renameMesocycle(
                     else block.copy(
                         mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
                             if (currentMesoIndex == mesoIndex) meso.copy(name = name, goal = goal) else meso
-                        }
+                        },
                     )
-                }
+                },
             )
-        }
+        },
     )
-}
-
-private fun Program.addWeekToBlock(macroIndex: Int, blockIndex: Int, name: String): Program {
-    val week = if (
-        isSimpleTemporalProgram &&
-        simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
-        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-    ) {
-        buildSimpleCalendarWeeks(
-            startDate = nextSimpleCalendarStart(),
-            weekCount = 1,
-            startDayOfWeek = startDay ?: 1,
-            trainingDays = suggestCalendarTrainingDays(),
-        ).first()
-    } else {
-        defaultWeek(name)
-    }
-    return copy(
-        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-            if (currentMacroIndex != macroIndex) macro
-            else macro.copy(
-                blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
-                    if (currentBlockIndex != blockIndex) block
-                    else {
-                        val lastMesoIndex = block.mesocycles.lastIndex
-                        if (lastMesoIndex < 0) {
-                            block.copy(mesocycles = listOf(defaultMesocycle().copy(weeks = listOf(week))))
-                        } else {
-                            block.copy(
-                                mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                                    if (currentMesoIndex != lastMesoIndex) meso
-                                    else meso.copy(weeks = meso.weeks + week)
-                                }
-                            )
-                        }
-                    }
-                }
-            )
-        }
-    )
-}
-
-private fun Program.countWeeksBeforeAppendingToBlock(targetMacroIndex: Int, targetBlockIndex: Int): Int {
-    var count = 0
-    macrocycles.forEachIndexed { macroIndex, macro ->
-        if (macroIndex > targetMacroIndex) return count
-        macro.blocks.forEachIndexed { blockIndex, block ->
-            if (macroIndex == targetMacroIndex && blockIndex > targetBlockIndex) return count
-            count += block.mesocycles.sumOf { it.weeks.size }
-        }
-    }
-    return count
 }
 
 private fun Program.removeMesocycle(macroIndex: Int, blockIndex: Int, mesoIndex: Int): Program {
@@ -1203,123 +1026,25 @@ private fun Program.removeMesocycle(macroIndex: Int, blockIndex: Int, mesoIndex:
                 blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
                     if (currentBlockIndex != blockIndex) block
                     else block.copy(mesocycles = block.mesocycles.filterIndexed { index, _ -> index != mesoIndex })
-                }
+                },
             )
-        }
-    )
-}
-
-internal data class AdvancedRoadmap(
-    val startDate: LocalDate?,
-    val weekSlots: List<AdvancedWeekSlot>,
-    val competitionDate: LocalDate? = null,
-)
-
-internal data class AdvancedWeekSlot(
-    val blockId: String,
-    val blockName: String,
-    val weekId: String,
-    val weekName: String,
-    val weekStart: LocalDate,
-    val weekEnd: LocalDate,
-    val marks: List<KeyDateMark>,
-) {
-    val dateRangeLabel: String
-        get() = "${formatFullDate(weekStart)} → ${formatFullDate(weekEnd)}"
-}
-
-internal data class KeyDateMark(
-    val keyDateId: String,
-    val title: String,
-    val type: KeyDateType,
-    val kind: KeyDateMarkKind,
-    val eventDate: LocalDate?,
-) {
-    val isActionable: Boolean
-        get() = true
-
-    val ctaLabel: String
-        get() = when (type) {
-            KeyDateType.COMPETITION -> "Ver semana"
-            KeyDateType.EXAMS -> "Crear sesión ligera"
-            KeyDateType.VACATION -> "Crear sesión ajuste"
-            KeyDateType.TRAVEL -> "Crear sesión viaje"
-            KeyDateType.CUSTOM -> "Crear sesión"
-        }
-
-    val preferredDayOfWeek: Int
-        get() = preferredDayOfWeek(type)
-}
-
-internal enum class KeyDateMarkKind { SPECIAL_WEEK, SPECIAL_SESSION }
-
-private fun buildAdvancedRoadmap(program: Program): AdvancedRoadmap {
-    if (program.isSimpleTemporalProgram) return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
-    val projection = ProgramCalendarEngine.project(
-        if (program.calendarization == null && !program.timelineStartDate.isNullOrBlank()) {
-            program.copy(calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization())
-        } else {
-            program
-        }
-    )
-    val startDate = projection.startDate ?: return AdvancedRoadmap(startDate = null, weekSlots = emptyList())
-    val slots = projection.weeks.map { week ->
-        AdvancedWeekSlot(
-            blockId = week.blockId,
-            blockName = week.blockName,
-            weekId = week.weekId,
-            weekName = week.weekName,
-            weekStart = week.startDate,
-            weekEnd = week.endDate,
-            marks = week.keyDates.mapNotNull { keyDate ->
-                buildKeyDateMark(keyDate, week.startDate, week.endDate)
-            },
-        )
-    }
-
-    return AdvancedRoadmap(
-        startDate = startDate,
-        weekSlots = slots,
-        competitionDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }?.let { keyDate ->
-            parseIsoDateExact(keyDate.eventDate) ?: parseIsoDateExact(keyDate.startDate)
         },
     )
 }
 
-private fun buildKeyDateMark(
-    keyDate: ProgramKeyDate,
-    weekStart: LocalDate,
-    weekEnd: LocalDate,
-): KeyDateMark? {
-    val eventDate = parseIsoDateExact(keyDate.eventDate)
-    val start = parseIsoDateExact(keyDate.startDate) ?: eventDate ?: return null
-    val end = parseIsoDateExact(keyDate.endDate) ?: start
-    if (end < weekStart || start > weekEnd) return null
-    val kind = KeyDateMarkKind.SPECIAL_WEEK
-    return KeyDateMark(
-        keyDateId = keyDate.id,
-        title = keyDate.title,
-        type = keyDate.type,
-        kind = kind,
-        eventDate = eventDate ?: start,
-    )
-}
-
 /**
- * Vista previa del calendario: los bloques proyectados desde [timelineStartDate], la semana de la competición y los avisos del motor.
- * [today] cuenta la cuenta atrás; lo recibe de la pantalla para que la vista sea determinista.
+ * Las fechas guardadas del programa proyectadas desde [timelineStartDate], con los avisos del motor: competición sin inicio o fuera de
+ * las semanas, y una fecha de fin que no cuadra con las semanas.
  */
 internal fun buildCalendarPreview(
     program: Program,
     timelineStartDate: String,
     competitionDate: String,
     manualEndDate: String,
-    today: LocalDate,
 ): CalendarPreview {
     val start = parseIsoDateExact(timelineStartDate)
     val competition = parseIsoDateExact(competitionDate)
     val manualEnd = parseIsoDateExact(manualEndDate)
-    val blockStarts = mutableListOf<BlockStartPreview>()
     val messages = mutableListOf<String>()
 
     val projectedProgram = program.copy(
@@ -1329,33 +1054,12 @@ internal fun buildCalendarPreview(
         ),
     )
     val projection = ProgramCalendarEngine.project(projectedProgram)
-    val programEnd = projection.projectedEndDate
-
-    projection.weeks
-        .groupBy { it.blockId }
-        .values
-        .forEach { weeks ->
-            val first = weeks.firstOrNull() ?: return@forEach
-            val last = weeks.last()
-            blockStarts += BlockStartPreview(
-                blockName = first.blockName,
-                startDate = first.startDate,
-                endDate = last.endDate,
-                weeks = weeks.size,
-            )
-    }
-
-    val competitionWeekRange = competition?.let { findProgramWeekRange(projectedProgram, it) }
-    val daysUntilCompetition = competition?.let { ChronoUnit.DAYS.between(today, it) }
 
     if (competition != null && start == null) {
-        messages += "Selecciona inicio estimado para asignar la competición a una semana del programa."
+        messages += "Elige cuándo empieza el programa para asignar la competición a una de sus semanas."
     }
-    if (competition != null && start != null && competitionWeekRange == null) {
-        messages += "La competición cae fuera de las semanas del programa. Mueve la fecha o agrega semanas."
-    }
-    if (competitionWeekRange != null) {
-        messages += "La semana completa de competición se marcará como especial en el roadmap y en los puntos superiores."
+    if (competition != null && start != null && projection.weekForDate(competition) == null) {
+        messages += "La competición cae fuera de las semanas del programa. Mueve la fecha o añade semanas."
     }
     when (projection.endDateStatus) {
         ProgramEndDateStatus.BEFORE_PROJECTED ->
@@ -1369,53 +1073,8 @@ internal fun buildCalendarPreview(
 
     return CalendarPreview(
         startDate = start,
-        programEnd = programEnd,
+        programEnd = projection.projectedEndDate,
         manualEndDate = manualEnd,
-        endDateStatus = projection.endDateStatus,
-        competitionDate = competition,
-        competitionWeekRange = competitionWeekRange,
-        daysUntilCompetition = daysUntilCompetition,
-        blockStarts = blockStarts,
         messages = messages,
     )
-}
-
-private fun findProgramWeekRange(program: Program, targetDate: LocalDate): Pair<LocalDate, LocalDate>? {
-    val projection = ProgramCalendarEngine.project(program)
-    if (projection.enabled) {
-        return projection.weekForDate(targetDate)?.let { it.startDate to it.endDate }
-    }
-    var cursor = parseIsoDateExact(program.timelineStartDate) ?: return null
-    program.macrocycles.forEach { macro ->
-        macro.blocks.forEach { block ->
-            block.mesocycles.forEach { meso ->
-                meso.weeks.forEach { _ ->
-                    val weekStart = cursor
-                    val weekEnd = cursor.plusDays(6)
-                    if (targetDate in weekStart..weekEnd) return weekStart to weekEnd
-                    cursor = cursor.plusWeeks(1)
-                }
-            }
-        }
-    }
-    return null
-}
-
-private fun formatFullDate(date: LocalDate): String {
-    return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-CL")))
-}
-
-private fun preferredDayOfWeek(type: KeyDateType): Int {
-    return when (type) {
-        KeyDateType.COMPETITION -> 6
-        KeyDateType.EXAMS -> 1
-        KeyDateType.VACATION -> 3
-        KeyDateType.TRAVEL -> 2
-        KeyDateType.CUSTOM -> 1
-    }
-}
-
-private fun inclusiveCalendarWeekCount(startDate: LocalDate, endDate: LocalDate): Int {
-    val inclusiveDays = ChronoUnit.DAYS.between(startDate, endDate).coerceAtLeast(0) + 1
-    return ((inclusiveDays + 6) / 7).toInt().coerceAtLeast(1)
 }

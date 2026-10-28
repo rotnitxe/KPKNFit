@@ -38,13 +38,15 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.programdetail.ProgramStructureSamples
 import com.example.kpkn.screens.programdetail.design.structure.CALENDAR_ROW_START
-import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBaseWeekModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramItem
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramKeyDateSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMapModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramSimpleCalendarSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
+import com.example.kpkn.screens.programdetail.design.structure.programMapSegments
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
@@ -61,10 +63,9 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 
 /**
- * HOJA DE DIBUJO de la pestaña Estructura (P3a): las herramientas de un programa por bloques, de uno simple cíclico y de uno calendarizado;
- * el calendario con competición a 41 días, sin inicio y con avisos del motor; la hoja del calendario con una fila desplegada y dos fechas
- * clave; la fecha clave nueva y al editar; la calendarización simple en sus dos estados; el aviso de estructura temporal; y los cuatro
- * iconos nuevos a 48 dp. No comprueba nada: escribe PNG a 360 dp, al 100 % y al 130 % de letra, sin movimiento. Sin `KPKN_RENDER_DIR`, se salta.
+ * HOJA DE DIBUJO de la pestaña Estructura (lienzo v6): el mapa (e-map); la hoja «Fechas» (e-dates) con «Empieza» desplegado y dos fechas
+ * clave; la fecha clave nueva y al editar; la calendarización de una rutina en sus dos estados; el aviso de estructura temporal; «Semana
+ * base» y «Ciclos» de una rutina (e-cycles); y los iconos de Estructura a 48 dp. No comprueba nada: escribe PNG a 360 dp, al 100 % y al 130 % de letra, sin movimiento. Sin `KPKN_RENDER_DIR`, se salta.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -88,11 +89,10 @@ class ProgramStructureTopRenderSheetTest {
 
     /** Los casos de la hoja, en orden. */
     private val cases = listOf(
-        "toolsBlocks", "toolsCyclic", "toolsCalendarized",
-        "calendarCompetition", "sheetCalendar",
+        "map", "sheetDates",
         "keyDateNew", "keyDateEdit",
         "simpleCyclic", "simpleCalendarized",
-        "notice", "icons",
+        "notice", "routine", "icons",
     )
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
@@ -123,15 +123,13 @@ class ProgramStructureTopRenderSheetTest {
 
     /** Alto de la caja de cada caso: lo justo para que el contenido de la hoja quepa. */
     private fun heightOf(name: String): Int = when (name) {
-        "toolsBlocks" -> 520
-        "toolsCyclic" -> 340
-        "toolsCalendarized" -> 300
-        "calendarCompetition" -> 620
-        "sheetCalendar" -> 1600
+        "map" -> 200
+        "sheetDates" -> 1500
         "keyDateNew", "keyDateEdit" -> 820
         "simpleCyclic" -> 900
-        "simpleCalendarized" -> 520
+        "simpleCalendarized" -> 420
         "notice" -> 200
+        "routine" -> 620
         else -> 160
     }
 
@@ -140,67 +138,32 @@ class ProgramStructureTopRenderSheetTest {
     private fun Sheet(name: String) {
         val today = ProgramStructureSamples.today
         val noop: () -> Unit = {}
-        val competitionIn41Days = today.plusDays(41)
         when (name) {
-            "toolsBlocks" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                ProgramToolsModule(
-                    kind = ProgramToolsKind.BLOCKS, blockCount = 4, weekCount = 11, sessionCount = 44,
-                    keyDateCount = 2, historyCount = 1,
-                    onCalendar = noop, onKeyDates = noop, onRoute = noop, onCycles = noop,
-                    onTemplates = noop, onHistory = noop, onCalendarize = noop,
+            "map" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                ProgramMapModule(
+                    segments = programMapSegments(ProgramStructureSamples.programaCuatroBloques),
+                    startLabel = "6 oct",
+                    nowLabel = "Hoy · semana 4",
+                    endLabel = "16 nov",
+                    onDates = noop,
                 )
             }
-            "toolsCyclic" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                ProgramToolsModule(
-                    kind = ProgramToolsKind.CYCLIC, blockCount = 1, weekCount = 3, sessionCount = 9,
-                    keyDateCount = 0, historyCount = 0,
-                    onCalendar = noop, onKeyDates = noop, onRoute = noop, onCycles = noop,
-                    onTemplates = noop, onHistory = noop, onCalendarize = noop,
-                )
-            }
-            "toolsCalendarized" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                ProgramToolsModule(
-                    kind = ProgramToolsKind.CALENDARIZED, blockCount = 1, weekCount = 12, sessionCount = 36,
-                    keyDateCount = 0, historyCount = 2,
-                    onCalendar = noop, onKeyDates = noop, onRoute = noop, onCycles = noop,
-                    onTemplates = noop, onHistory = noop, onCalendarize = noop,
-                )
-            }
-            "calendarCompetition" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                ProgramCalendarModule(
-                    kind = ProgramToolsKind.BLOCKS,
-                    today = today,
-                    startDate = null,
-                    endDate = null,
-                    endIsEstimate = false,
-                    competitionDate = competitionIn41Days,
-                    trainingDays = setOf(1, 3, 5),
-                    repeatingWeekLabel = "",
-                    durationWeeks = 0,
-                    messages = ProgramStructureSamples.engineMessages,
-                    onEdit = noop,
-                    onCalendarize = noop,
-                )
-            }
-            "sheetCalendar" -> ProgramCalendarSheet(
+            "sheetDates" -> ProgramCalendarSheet(
                 today = today,
-                timelineStartDate = "2026-10-06",
-                competitionDate = "2026-11-23",
-                manualEndDate = "",
-                projectedEnd = LocalDate.of(2027, 1, 25),
-                blockRanges = ProgramStructureSamples.blockRanges,
-                messages = emptyList(),
+                start = LocalDate.of(2026, 10, 6),
+                manualEnd = null,
+                projectedEnd = LocalDate.of(2026, 11, 16),
+                competition = LocalDate.of(2026, 11, 16),
+                competitionTitle = "Open regional",
                 otherKeyDates = ProgramStructureSamples.keyDates,
-                focusKeyDates = false,
-                canSave = true,
-                hasRequiredStart = true,
-                onTimelineStartDateChange = {},
-                onCompetitionDateChange = {},
-                onManualEndDateChange = {},
-                onAddOtherKeyDate = noop,
-                onEditOtherKeyDate = {},
-                onDeleteOtherKeyDate = {},
-                onSave = noop,
+                trainingDays = setOf(1, 2, 3, 5),
+                messages = emptyList(),
+                onStartChange = {},
+                onEndChange = {},
+                onCompetitionChange = {},
+                onAddKeyDate = noop,
+                onEditKeyDate = {},
+                onAddPause = noop,
                 onDismiss = noop,
                 initialOpenRow = CALENDAR_ROW_START,
             )
@@ -266,12 +229,23 @@ class ProgramStructureTopRenderSheetTest {
             "notice" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 ProgramStructureNotice(messages = ProgramStructureSamples.engineMessages)
             }
+            "routine" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                ProgramBaseWeekModule(headline = "4 sesiones · ≈ 3 h 10", trainingDays = setOf(1, 2, 3, 5), cycleLabel = null, onEdit = noop)
+                ProgramFromProgramModule(
+                    label = "Ciclos",
+                    items = listOf(
+                        ProgramFromProgramItem("Descarga cada 4 semanas", "Próxima: semana 8", KpknLineIcons.Repeat, "c1", noop),
+                        ProgramFromProgramItem("Test de 1RM cada 8 semanas", "Próximo: semana 8", KpknLineIcons.Target, "c2", noop),
+                        ProgramFromProgramItem("Añadir ciclo", null, KpknLineIcons.Plus, "c3", noop),
+                    ),
+                )
+            }
             "icons" -> Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    NewIcon(KpknLineIcons.Route, "Ruta")
-                    NewIcon(KpknLineIcons.Layers, "Plantillas")
-                    NewIcon(KpknLineIcons.History, "Historial")
-                    NewIcon(KpknLineIcons.Trash, "Eliminar")
+                    NewIcon(KpknLineIcons.Book, "Plantillas")
+                    NewIcon(KpknLineIcons.History, "Versiones")
+                    NewIcon(KpknLineIcons.Pause, "Pausa")
+                    NewIcon(KpknLineIcons.Flag, "Fecha clave")
                 }
             }
         }

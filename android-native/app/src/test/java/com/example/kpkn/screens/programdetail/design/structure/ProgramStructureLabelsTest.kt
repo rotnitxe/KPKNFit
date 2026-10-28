@@ -3,6 +3,7 @@ package com.example.kpkn.screens.programdetail.design.structure
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.MesocycleGoal
+import com.example.kpkn.data.programs.CatalogDuration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -51,5 +52,12 @@ class ProgramStructureLabelsTest {
         }
         val english = setOf("Taper", "Custom", "Peak", "Deload", "None", "Linear", "Undulating")
         assertTrue(labels.none { it in english })
+    }
+
+    @Test
+    fun las_duraciones_de_la_biblioteca_tienen_sus_tres_nombres() {
+        assertEquals("Semana que se repite", catalogDurationLabel(CatalogDuration.REPEATING_WEEK))
+        assertEquals("Ciclo que se repite", catalogDurationLabel(CatalogDuration.REPEATING_CYCLE))
+        assertEquals("Ciclo que termina", catalogDurationLabel(CatalogDuration.FINITE_CYCLE))
     }
 }

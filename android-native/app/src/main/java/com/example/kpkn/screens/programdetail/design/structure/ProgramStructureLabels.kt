@@ -3,6 +3,7 @@ package com.example.kpkn.screens.programdetail.design.structure
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.MesocycleGoal
+import com.example.kpkn.data.programs.CatalogDuration
 
 /*
  * Etiquetas en español neutro de los objetivos y esquemas de la pestaña Estructura (P3b). Funciones puras y exhaustivas: ningún nombre
@@ -69,4 +70,11 @@ internal fun mesocycleGoalLabel(goal: MesocycleGoal): String = when (goal) {
     MesocycleGoal.REALIZATION -> "Realización"
     MesocycleGoal.DELOAD -> "Descarga"
     MesocycleGoal.CUSTOM -> "Personalizado"
+}
+
+/** Cómo se nombra cada duración en la biblioteca de Programas y su filtro. Es la única fuente. */
+internal fun catalogDurationLabel(duration: CatalogDuration): String = when (duration) {
+    CatalogDuration.REPEATING_WEEK -> "Semana que se repite"
+    CatalogDuration.REPEATING_CYCLE -> "Ciclo que se repite"
+    CatalogDuration.FINITE_CYCLE -> "Ciclo que termina"
 }

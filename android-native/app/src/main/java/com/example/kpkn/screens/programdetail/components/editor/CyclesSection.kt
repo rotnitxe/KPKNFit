@@ -60,7 +60,6 @@ internal fun CyclesSection(
     onDismiss: () -> Unit,
 ) {
     val currentCycle = LoopEngine.getCurrentCycle(program)
-    val cancelledSet = remember(program) { (program.loopState?.cancelled ?: emptyList()).toSet() }
     val legacyEvents = remember(program) { program.events.filter { it.repeatEveryXCycles != null } }
     val hasLegacy = legacyEvents.isNotEmpty() && program.loops.isEmpty()
     val normalizedProgram = remember(program) {
@@ -78,18 +77,10 @@ internal fun CyclesSection(
             ),
         )
     }
-    val model = remember(program, currentCycle, cancelledSet, legacyEvents, hasLegacy, actionableOccurrences, loopCollisions) {
+    val model = remember(program, currentCycle, legacyEvents, hasLegacy, actionableOccurrences, loopCollisions) {
         ProgramCyclesModel(
             currentCycle = currentCycle,
-            loops = program.loops.map { loop ->
-                ProgramCycleLoop(
-                    id = loop.id,
-                    title = loop.title,
-                    type = loop.type,
-                    cadence = loop.repeatEveryXLoops,
-                    cancelled = loop.id in cancelledSet,
-                )
-            },
+            loops = programCycleLoops(program),
             weeks = actionableOccurrences.map { occurrence ->
                 ProgramCycleWeek(
                     occurrenceId = program.loopOccurrences
@@ -118,38 +109,50 @@ internal fun CyclesSection(
     ProgramCyclesSheet(
         model = model,
         onDismiss = onDismiss,
-        onSaveLoop = { draft: ProgramCycleDraft ->
-            val base = draft.loopId?.let { id -> program.loops.firstOrNull { it.id == id } }
-                ?: Loop(
-                    id = "loop_${System.nanoTime()}",
-                    title = "",
-                    type = LoopType.CUSTOM,
-                    repeatEveryXLoops = 4,
-                    durationType = DurationType.WEEK,
-                )
-            val loop = base.copy(
-                title = draft.title,
-                type = draft.type,
-                repeatEveryXLoops = draft.cadence.coerceAtLeast(1),
-            )
-            onUpdateProgram(LoopEngine.upsertLoop(program, loop))
-        },
-        onLoopAction = { loopId: String, action: ProgramCycleAction ->
-            onUpdateProgram(
-                when (action) {
-                    ProgramCycleAction.POSTPONE_NEXT -> LoopEngine.postponeNextOccurrence(program, loopId)
-                    ProgramCycleAction.CANCEL -> LoopEngine.cancelLoop(program, loopId)
-                    ProgramCycleAction.REACTIVATE -> LoopEngine.reactivateLoop(program, loopId)
-                    ProgramCycleAction.DELETE -> LoopEngine.deleteLoop(program, loopId)
-                },
-            )
-        },
+        onSaveLoop = { draft: ProgramCycleDraft -> onUpdateProgram(saveCycleDraft(program, draft)) },
+        onLoopAction = { loopId: String, action: ProgramCycleAction -> onUpdateProgram(applyCycleAction(program, loopId, action)) },
         onAddTemplate = { templateId: String -> addCycleTemplate(program, templateId, onUpdateProgram) },
         onMigrateLegacy = { onUpdateProgram(LoopEngine.migrateEventsToLoops(program)) },
         onPostponeWeek = { occurrenceId: String -> onUpdateProgram(LoopEngine.postponeOccurrence(program, occurrenceId)) },
         onCancelWeek = { occurrenceId: String -> onUpdateProgram(LoopEngine.cancelOccurrence(program, occurrenceId)) },
         onViewWeek = onFocusWeek,
     )
+}
+
+/** Los ciclos de [program] como los pinta el editor: nombre, tipo, cadencia y si están cancelados. */
+internal fun programCycleLoops(program: Program): List<ProgramCycleLoop> {
+    val cancelled = (program.loopState?.cancelled ?: emptyList()).toSet()
+    return program.loops.map { loop ->
+        ProgramCycleLoop(
+            id = loop.id,
+            title = loop.title,
+            type = loop.type,
+            cadence = loop.repeatEveryXLoops,
+            cancelled = loop.id in cancelled,
+        )
+    }
+}
+
+/** Guarda lo que devuelve el editor de un ciclo: lo crea si es nuevo o le cambia nombre, tipo y cadencia. Pura. */
+internal fun saveCycleDraft(program: Program, draft: ProgramCycleDraft): Program {
+    val base = draft.loopId?.let { id -> program.loops.firstOrNull { it.id == id } }
+        ?: Loop(
+            id = "loop_${System.nanoTime()}",
+            title = "",
+            type = LoopType.CUSTOM,
+            repeatEveryXLoops = 4,
+            durationType = DurationType.WEEK,
+        )
+    val loop = base.copy(title = draft.title, type = draft.type, repeatEveryXLoops = draft.cadence.coerceAtLeast(1))
+    return LoopEngine.upsertLoop(program, loop)
+}
+
+/** Aplica una acción del editor de un ciclo con la función del motor de siempre. Pura. */
+internal fun applyCycleAction(program: Program, loopId: String, action: ProgramCycleAction): Program = when (action) {
+    ProgramCycleAction.POSTPONE_NEXT -> LoopEngine.postponeNextOccurrence(program, loopId)
+    ProgramCycleAction.CANCEL -> LoopEngine.cancelLoop(program, loopId)
+    ProgramCycleAction.REACTIVATE -> LoopEngine.reactivateLoop(program, loopId)
+    ProgramCycleAction.DELETE -> LoopEngine.deleteLoop(program, loopId)
 }
 
 /** Añade los ciclos de una plantilla. Un ciclo cuya cadencia ya usa otro se omite, como siempre. */

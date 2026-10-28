@@ -26,10 +26,7 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.ProgramStructureSheetSamples
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesContent
 import com.example.kpkn.screens.programdetail.design.structure.ProgramHistoryContent
-import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteContent
-import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplateConfirmContent
 import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplatesContent
-import com.example.kpkn.screens.programdetail.design.structure.templateSummaryLine
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -72,9 +69,7 @@ class ProgramStructureSheetsRenderSheetTest {
     /** Los casos de la hoja, en orden. */
     private val cases = listOf(
         "ciclos",
-        "ruta",
         "plantillas",
-        "confirmarPlantilla",
         "historial",
         "historialVacio",
     )
@@ -108,11 +103,9 @@ class ProgramStructureSheetsRenderSheetTest {
 
     /** Alto del lienzo de cada caso, en dp: el contenido más largo cabe sin recortarse. */
     private fun heightOf(name: String): Int = when (name) {
-        "ciclos" -> 2400
-        "ruta" -> 2000
-        "plantillas" -> 2400
-        "confirmarPlantilla" -> 1400
-        "historial" -> 1100
+        "ciclos" -> 2000
+        "plantillas" -> 1000
+        "historial" -> 800
         else -> 800
     }
 
@@ -131,27 +124,16 @@ class ProgramStructureSheetsRenderSheetTest {
                 onCancelWeek = {},
                 onViewWeek = { _, _ -> },
             )
-            "ruta" -> ProgramRouteContent(
-                model = samples.route,
-                onFocusWeek = { _, _ -> },
-                onAdjustBlockWeeks = { _, _ -> },
-            )
             "plantillas" -> ProgramTemplatesContent(
-                templates = samples.templateCards,
-                protocols = samples.protocolCards,
+                templates = samples.templates,
+                methods = samples.methods,
+                replace = false,
+                onReplaceChange = {},
                 onPickTemplate = {},
-                onPickProtocol = {},
+                onPickMethod = {},
             )
-            "confirmarPlantilla" -> ProgramTemplateConfirmContent(
-                name = samples.template.name,
-                summary = templateSummaryLine(samples.template),
-                description = samples.template.description,
-                hasSessions = true,
-                onConfirm = {},
-                onCancel = {},
-            )
-            "historial" -> ProgramHistoryContent(snapshots = samples.copies, onRestore = {})
-            "historialVacio" -> ProgramHistoryContent(snapshots = emptyList(), onRestore = {})
+            "historial" -> ProgramHistoryContent(snapshots = samples.copies, today = samples.today, onRestore = {}, onSaveCopy = {})
+            "historialVacio" -> ProgramHistoryContent(snapshots = emptyList(), today = samples.today, onRestore = {}, onSaveCopy = {})
         }
     }
 

@@ -38,26 +38,14 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programHeadlineMeta
 import com.example.kpkn.screens.programdetail.design.programModeLabel
-import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockRange
 import com.example.kpkn.data.models.LoopType
-import com.example.kpkn.data.programs.CatalogDuration
-import com.example.kpkn.data.programs.ProgramTemplateOption
-import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramSnapshot
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleLoop
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleWeek
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesModel
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryCard
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryProfile
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryTraits
+import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryItem
 import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoUi
-import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteBlock
-import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteKeyDate
-import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteModel
-import com.example.kpkn.screens.programdetail.design.structure.ProgramRouteWeek
-import com.example.kpkn.screens.programdetail.design.structure.programBlocksAndWeeksLine
-import com.example.kpkn.screens.programs.LibraryOriginFilter
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -321,14 +309,6 @@ internal object ProgramStructureSamples {
     /** El día de hoy de los ejemplos. */
     val today: LocalDate = LocalDate.of(2026, 10, 13)
 
-    /** Cuatro bloques proyectados desde el 6 de octubre. */
-    val blockRanges: List<ProgramBlockRange> = listOf(
-        ProgramBlockRange("Bloque 1", LocalDate.of(2026, 10, 6), LocalDate.of(2026, 11, 2)),
-        ProgramBlockRange("Bloque 2", LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 30)),
-        ProgramBlockRange("Bloque 3", LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 28)),
-        ProgramBlockRange("Bloque 4", LocalDate.of(2026, 12, 29), LocalDate.of(2027, 1, 25)),
-    )
-
     /** Dos fechas clave que no son la competición. */
     val keyDates: List<ProgramKeyDate> = listOf(
         ProgramKeyDate(
@@ -349,7 +329,7 @@ internal object ProgramStructureSamples {
 
     /** Avisos del motor de ejemplo: la competición cae fuera de las semanas y el término manual queda antes del proyectado. */
     val engineMessages: List<String> = listOf(
-        "La competición cae fuera de las semanas del programa. Mueve la fecha o agrega semanas.",
+        "La competición cae fuera de las semanas del programa. Mueve la fecha o añade semanas.",
         "La fecha de fin que pusiste llega antes de que acabe el programa. Quita semanas o mueve la fecha.",
     )
 
@@ -372,14 +352,14 @@ internal object ProgramStructureSamples {
         name = "Acumulación 1",
         macroIndex = 0,
         blockIndex = 0,
-        eyebrow = "Acumulación",
+        phaseLabel = "Acumulación",
         phase = ProgramPhase.ACCUMULATION,
         mesocycles = listOf(
             ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Acumulación"),
             ProgramMesoUi(name = "Mesociclo 2", goalLabel = "Realización"),
         ),
         weeks = (1..6).map { blockWeek(number = it, current = 4) },
-        sessionCount = 18,
+        schemeLabel = "Carga lineal",
     )
 
     /** Intensificación de cuatro semanas, con un solo mesociclo (no tiene fila propia). */
@@ -388,11 +368,11 @@ internal object ProgramStructureSamples {
         name = "Intensificación",
         macroIndex = 0,
         blockIndex = 1,
-        eyebrow = "Intensificación",
+        phaseLabel = "Intensificación",
         phase = ProgramPhase.INTENSIFICATION,
         mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Intensificación")),
         weeks = (7..10).map { blockWeek(number = it, current = 4) },
-        sessionCount = 12,
+        schemeLabel = "Top set + back-off",
     )
 
     /** Realización de tres semanas con una de ciclo: lleva la marca de repetición. */
@@ -401,11 +381,10 @@ internal object ProgramStructureSamples {
         name = "Realización",
         macroIndex = 0,
         blockIndex = 2,
-        eyebrow = "Realización",
+        phaseLabel = "Realización",
         phase = ProgramPhase.REALIZATION,
         mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Realización")),
         weeks = listOf(blockWeek(11, 4), blockWeek(12, 4, loop = true), blockWeek(13, 4)),
-        sessionCount = 9,
     )
 
     /** Bloque de competición de dos semanas: la segunda es la competición y lleva bandera. */
@@ -414,11 +393,10 @@ internal object ProgramStructureSamples {
         name = "Puesta a punto",
         macroIndex = 0,
         blockIndex = 3,
-        eyebrow = "Competición",
+        phaseLabel = "Competición",
         phase = ProgramPhase.COMPETITION,
         mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Descarga")),
         weeks = listOf(blockWeek(14, 4), blockWeek(15, 4, competition = true)),
-        sessionCount = 4,
     )
 
     /** Los cuatro bloques del programa de ejemplo, en su orden. */
@@ -430,11 +408,10 @@ internal object ProgramStructureSamples {
         name = "Bloque 1",
         macroIndex = 0,
         blockIndex = 0,
-        eyebrow = "Semana que se repite",
+        phaseLabel = null,
         phase = null,
         mesocycles = listOf(ProgramMesoUi(name = "Mesociclo 1", goalLabel = "Acumulación")),
         weeks = listOf(blockWeek(1, 2), blockWeek(2, 2, loop = true), blockWeek(3, 2)),
-        sessionCount = 9,
         cycleLabel = "Ciclo 5",
     )
 
@@ -511,144 +488,17 @@ internal object ProgramStructureSheetSamples {
         collisionLines = emptyList(),
     )
 
-    /** Un programa de 12 semanas en 4 bloques desde el 6 de octubre. */
-    private val routeStart: LocalDate = LocalDate.of(2026, 10, 6)
-
-    /** Las 12 semanas, de tres en tres por bloque. Sin semana de competición: la competición cae después del final. */
-    val routeWeeks: List<ProgramRouteWeek> = (0 until 12).map { index ->
-        val start = routeStart.plusWeeks(index.toLong())
-        ProgramRouteWeek(
-            index = index,
-            blockId = "block-${index / 3 + 1}",
-            weekId = "week-${index + 1}",
-            start = start,
-            end = start.plusDays(6),
-            isCompetition = false,
-        )
-    }
-
-    /** Los cuatro bloques con su fase: acumulación, intensificación, realización y descarga. */
-    val routeBlocks: List<ProgramRouteBlock> = listOf(
-        ProgramPhase.ACCUMULATION,
-        ProgramPhase.INTENSIFICATION,
-        ProgramPhase.REALIZATION,
-        ProgramPhase.DELOAD,
-    ).mapIndexed { index, phase ->
-        ProgramRouteBlock(
-            id = "block-${index + 1}",
-            name = "Bloque ${index + 1}",
-            firstWeekIndex = index * 3,
-            weeks = 3,
-            start = routeStart.plusWeeks((index * 3).toLong()),
-            firstWeekId = "week-${index * 3 + 1}",
-            color = phase.color,
-            phaseLabel = phase.label,
-        )
-    }
-
-    /** La ruta: dos fechas clave dentro del programa y la competición el 10 de enero, dos semanas después del final. */
-    val route: ProgramRouteModel = ProgramRouteModel(
-        today = today,
-        weeks = routeWeeks,
-        blocks = routeBlocks,
-        keyDates = listOf(
-            ProgramRouteKeyDate(
-                title = "Examen de química",
-                typeLabel = "Exámenes",
-                date = LocalDate.of(2026, 10, 20),
-                weekIndex = 2,
-            ),
-            ProgramRouteKeyDate(
-                title = "Vacaciones de invierno",
-                typeLabel = "Vacaciones",
-                date = LocalDate.of(2026, 12, 21),
-                weekIndex = 10,
-            ),
-        ),
-        competitionDate = LocalDate.of(2027, 1, 10),
-        competitionWeekIndex = null,
-        fitStatus = ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS,
-        fitWeeks = 2,
+    /** Tres plantillas de la biblioteca, con sus días por semana. */
+    val templates: List<ProgramLibraryItem> = listOf(
+        ProgramLibraryItem(key = "fuerza-4", name = "Fuerza 4 días", detail = "4 sesiones por semana"),
+        ProgramLibraryItem(key = "torso-pierna", name = "Torso y pierna", detail = "De 3 a 4 sesiones por semana"),
+        ProgramLibraryItem(key = "competicion-16", name = "Competición a 16 semanas", detail = "De 3 a 5 sesiones por semana"),
     )
 
-    /** Tres plantillas y dos protocolos de ejemplo, con sus filtros. */
-    val templateCards: List<ProgramLibraryCard> = listOf(
-        ProgramLibraryCard(
-            key = "fuerza-4",
-            name = "Fuerza 4 días",
-            description = "Cuatro días por semana con acumulación, intensificación y realización, y una semana de descarga.",
-            caption = programBlocksAndWeeksLine(3, 12),
-            traits = ProgramLibraryTraits(
-                profiles = setOf(ProgramLibraryProfile.STRENGTH),
-                frequencies = 4..4,
-                duration = CatalogDuration.REPEATING_WEEK,
-                origins = setOf(LibraryOriginFilter.ORIGINAL),
-            ),
-        ),
-        ProgramLibraryCard(
-            key = "torso-pierna",
-            name = "Torso y pierna",
-            description = "Dos días de torso y dos de pierna con repetición semanal. Pensado para empezar sin prisa.",
-            caption = programBlocksAndWeeksLine(0, 8),
-            traits = ProgramLibraryTraits(
-                profiles = setOf(ProgramLibraryProfile.MUSCLE),
-                frequencies = 3..4,
-                duration = CatalogDuration.REPEATING_WEEK,
-                origins = setOf(LibraryOriginFilter.KPKN),
-            ),
-        ),
-        ProgramLibraryCard(
-            key = "competicion-16",
-            name = "Competición a 16 semanas",
-            description = "Ciclo que termina con su pico y su puesta a punto para llegar a una competición con la forma justa.",
-            caption = programBlocksAndWeeksLine(4, 16),
-            traits = ProgramLibraryTraits(
-                profiles = setOf(ProgramLibraryProfile.STRENGTH_MUSCLE),
-                frequencies = 3..5,
-                duration = CatalogDuration.FINITE_CYCLE,
-                origins = setOf(LibraryOriginFilter.ADAPTED),
-            ),
-        ),
-    )
-
-    /** Dos protocolos de la biblioteca: se abren con su ficha, no con la confirmación. */
-    val protocolCards: List<ProgramLibraryCard> = listOf(
-        ProgramLibraryCard(
-            key = "protocolo-sbd",
-            name = "Protocolo de fuerza SBD",
-            description = "Sentadilla, banca y peso muerto con cargas por porcentaje del máximo.",
-            caption = programBlocksAndWeeksLine(3, 9),
-            traits = ProgramLibraryTraits(
-                profiles = setOf(ProgramLibraryProfile.STRENGTH),
-                frequencies = 3..4,
-                duration = CatalogDuration.FINITE_CYCLE,
-                origins = setOf(LibraryOriginFilter.KPKN),
-            ),
-        ),
-        ProgramLibraryCard(
-            key = "protocolo-hipertrofia",
-            name = "Hipertrofia por bloques",
-            description = "Acumulación de volumen, después intensificación y una descarga corta.",
-            caption = programBlocksAndWeeksLine(4, 16),
-            traits = ProgramLibraryTraits(
-                profiles = setOf(ProgramLibraryProfile.MUSCLE),
-                frequencies = 4..5,
-                duration = CatalogDuration.REPEATING_CYCLE,
-                origins = setOf(LibraryOriginFilter.LEGACY),
-            ),
-        ),
-    )
-
-    /** La plantilla que se confirma en la hoja de render: con sesiones, así salen las dos opciones. */
-    val template: ProgramTemplateOption = ProgramTemplateOption(
-        id = "fuerza-4",
-        name = "Fuerza 4 días",
-        description = "Cuatro días por semana con acumulación, intensificación y realización, y una semana de descarga.",
-        emoji = "",
-        type = com.example.kpkn.data.models.ProgramStructure.COMPLEX,
-        weeks = 12,
-        trackLabel = "Fuerza",
-        blockNames = listOf("Acumulación", "Intensificación", "Realización"),
+    /** Dos métodos de progresión, con la primera frase de su descripción. */
+    val methods: List<ProgramLibraryItem> = listOf(
+        ProgramLibraryItem(key = "protocolo-sbd", name = "Protocolo de fuerza SBD", detail = "Sentadilla, banca y peso muerto con cargas por porcentaje del máximo"),
+        ProgramLibraryItem(key = "protocolo-hipertrofia", name = "Hipertrofia por bloques", detail = "Acumulación de volumen, después intensificación y una descarga corta"),
     )
 
     /** Una hora de copia en la zona del móvil: así «mar 13 oct · 10:42» sale igual en cualquier zona. */

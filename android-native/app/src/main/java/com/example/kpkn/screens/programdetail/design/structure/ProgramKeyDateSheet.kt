@@ -1,21 +1,19 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.KeyDateType
@@ -24,27 +22,21 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.programdetail.keyDateTypeLabel
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSegmentedSize
-import com.example.kpkn.ui.design.KpknTextField
-import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
 
-/** Los tipos que se eligen en la hoja, en su orden. La competición no se elige aquí: se edita desde el calendario. */
+/** Los tipos que se eligen en la hoja, en su orden. La competición no se elige aquí: se fija en la hoja «Fechas». */
 private val KEY_DATE_TYPES = listOf(KeyDateType.EXAMS, KeyDateType.VACATION, KeyDateType.TRAVEL, KeyDateType.CUSTOM)
 
-/** Filas de fecha de la hoja. Solo una puede estar desplegada a la vez. */
+/** Campos de fecha de la hoja. Solo uno puede estar desplegado a la vez. */
 private const val ROW_START = "empieza"
 private const val ROW_END = "termina"
 
 /**
- * Hoja «Nueva fecha clave» o «Editar fecha clave» (P3a, sustituye al diálogo con fechas ISO escritas a mano): nombre, notas, tipo y las
- * dos fechas con el calendario de mes. «Termina» no puede ser anterior a «Empieza». Guardar devuelve la fecha con sus cambios; Eliminar
- * solo aparece al editar. No hay «Cancelar»: la hoja se cierra con el asa o atrás.
- *
- * Una fecha de competición no se cambia aquí (su texto lo dice), pero sí se puede eliminar desde esta hoja.
+ * Hoja «Nueva fecha clave» o la de una fecha ya puesta, con el patrón de e-dates y e-block (el lienzo no la dibuja): «Nombre» y «Nota»,
+ * «Tipo» con chips, «Empieza» y «Termina» como campos con el calendario de mes, «Guardar» y, al editar, «Eliminar fecha clave» en
+ * `--danger`. «Termina» no puede ser anterior a «Empieza». Una fecha de competición no se cambia aquí (su texto lo dice), pero sí se elimina.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ProgramKeyDateSheet(
     keyDate: ProgramKeyDate,
@@ -64,57 +56,41 @@ internal fun ProgramKeyDateSheet(
     val isCompetition = keyDate.type == KeyDateType.COMPETITION
     val endBeforeStart = end?.isBefore(start) == true
     val canSave = title.isNotBlank() && !isCompetition && !endBeforeStart
-    val clearEnd: (() -> Unit)? = if (end != null) ({ end = null }) else null
 
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(StructureSheetPadding),
         ) {
-            Text(
-                text = if (isNew) "Nueva fecha clave" else "Editar fecha clave",
-                style = KpknType.title,
-                color = WizardColors.text,
+            StructureSheetHeader(
+                title = if (isNew) "Nueva fecha clave" else keyDate.title.ifBlank { "Fecha clave" },
+                subtitle = if (isCompetition) "La competición se fija en «Fechas». Aquí solo puedes eliminarla." else null,
             )
-            Spacer(Modifier.height(16.dp))
-            KpknTextField(
+            StructureTextField(
+                label = "Nombre",
                 value = title,
                 onValueChange = { title = it },
-                label = "Nombre",
                 placeholder = "Por ejemplo, examen de química",
-                singleLine = true,
                 enabled = !isCompetition,
             )
-            Spacer(Modifier.height(12.dp))
-            KpknTextField(
+            StructureTextField(
+                label = "Nota",
                 value = notes,
                 onValueChange = { notes = it },
-                label = "Notas",
                 placeholder = "Opcional",
                 singleLine = false,
-                minLines = 2,
                 enabled = !isCompetition,
             )
-            Spacer(Modifier.height(18.dp))
-            if (isCompetition) {
-                Text(
-                    text = "La fecha de competición se edita desde «Calendario del programa». Aquí solo puedes eliminarla.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            } else {
-                ProgramSectionLabel(text = "Tipo")
-                Spacer(Modifier.height(8.dp))
-                KpknSegmentedControl(
-                    options = KEY_DATE_TYPES.map(::keyDateTypeLabel),
-                    selectedIndex = KEY_DATE_TYPES.indexOf(type).coerceAtLeast(0),
-                    onSelect = { index -> type = KEY_DATE_TYPES[index] },
-                    size = KpknSegmentedSize.Compact,
-                )
+            if (!isCompetition) {
+                StructureSheetGroup(text = "Tipo")
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    KEY_DATE_TYPES.forEach { option ->
+                        StructureChip(text = keyDateTypeLabel(option), selected = type == option, onClick = { type = option })
+                    }
+                }
             }
-            Spacer(Modifier.height(18.dp))
             ProgramDateRow(
                 label = "Empieza",
                 selected = start,
@@ -127,7 +103,7 @@ internal fun ProgramKeyDateSheet(
                 },
             )
             ProgramDateRow(
-                label = "Termina (opcional)",
+                label = "Termina",
                 selected = end,
                 today = today,
                 expanded = openRow == ROW_END,
@@ -137,42 +113,38 @@ internal fun ProgramKeyDateSheet(
                     openRow = null
                 },
                 minDate = start,
-                emptyValue = "Sin fecha de fin",
-                onClear = clearEnd,
+                emptyValue = "Opcional",
+                onClear = if (end != null) ({ end = null }) else null,
             )
             if (endBeforeStart) {
-                Spacer(Modifier.height(6.dp))
-                Text(
+                StructureCaption(
                     text = "La fecha de fin no puede ser anterior al inicio.",
-                    style = KpknType.caption,
                     color = WizardColors.danger,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
-            Spacer(Modifier.height(22.dp))
-            // «Guardar» a todo el ancho; «Eliminar», si la fecha ya existe, es una acción de texto en peligro debajo.
-            KpknPrimaryPill(
-                text = "Guardar",
-                onClick = {
-                    onSave(
-                        keyDate.copy(
-                            title = title.trim(),
-                            type = type,
-                            startDate = start.toString(),
-                            endDate = end?.toString(),
-                            eventDate = if (type == KeyDateType.COMPETITION) start.toString() else keyDate.eventDate,
-                            notes = notes.trim().ifBlank { null },
-                        ),
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = canSave,
-            )
-            if (!isNew) {
-                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
-                    ProgramDangerAction(text = "Eliminar", onClick = onDelete)
-                }
+            if (!isCompetition) {
+                StructurePrimaryPill(
+                    text = "Guardar",
+                    onClick = {
+                        onSave(
+                            keyDate.copy(
+                                title = title.trim(),
+                                type = type,
+                                startDate = start.toString(),
+                                endDate = end?.toString(),
+                                eventDate = if (type == KeyDateType.COMPETITION) start.toString() else keyDate.eventDate,
+                                notes = notes.trim().ifBlank { null },
+                            ),
+                        )
+                    },
+                    enabled = canSave,
+                    modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+                )
             }
-            Spacer(Modifier.height(16.dp))
+            if (!isNew) {
+                StructureDangerAction(text = "Eliminar fecha clave", onClick = onDelete)
+            }
         }
     }
 }

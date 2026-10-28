@@ -5,9 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.example.kpkn.domain.training.ProgramSnapshot
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import com.example.kpkn.screens.programdetail.ProgramStructureSheetSamples
@@ -19,9 +19,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Las hojas de Estructura de P3c en Robolectric. Las pruebas de interacción se montan sobre las filas y las piezas sueltas, porque los
- * toques dentro de una `KpknSheet` o de un `KpknAlertDialog` no llegan (lo monta `KpknPortal`). De las hojas solo se comprueba que componen
- * con sus datos.
+ * Las hojas de Estructura (e-library, e-history y la de ciclos) en Robolectric. Las pruebas de interacción se montan sobre el contenido y
+ * las piezas sueltas, porque los toques dentro de una `KpknSheet` o de un `KpknAlertDialog` no llegan (lo monta `KpknPortal`). De las
+ * hojas solo se comprueba que componen con sus datos.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
@@ -37,6 +37,7 @@ class ProgramStructureSheetsTest {
             MaterialTheme {
                 ProgramHistoryRows(
                     copies = ProgramStructureSheetSamples.copies,
+                    today = ProgramStructureSheetSamples.today,
                     onRequestRestore = { copy -> requested += copy.id },
                 )
             }
@@ -62,42 +63,63 @@ class ProgramStructureSheetsTest {
     }
 
     @Test
-    fun en_plantillas_elegir_crear_una_copia_aplica_sin_reemplazar() {
-        val confirmed = mutableListOf<Boolean>()
-        val template = ProgramStructureSheetSamples.template
+    fun guardar_una_copia_llama_a_su_accion() {
+        var saved = 0
         composeRule.setContent {
             MaterialTheme {
-                ProgramTemplateConfirmContent(
-                    name = template.name,
-                    summary = templateSummaryLine(template),
-                    description = template.description,
-                    hasSessions = true,
-                    onConfirm = { overwrite -> confirmed += overwrite },
-                    onCancel = {},
+                ProgramHistoryContent(
+                    snapshots = ProgramStructureSheetSamples.copies,
+                    today = ProgramStructureSheetSamples.today,
+                    onRestore = {},
+                    onSaveCopy = { saved++ },
                 )
             }
         }
-        composeRule.onNodeWithText("Reemplazar todo").assertExists()
-        composeRule.onNodeWithText("Crear una copia en borrador").performClick()
-        composeRule.onNodeWithText("Aplicar plantilla").performClick()
-        assertEquals(listOf(false), confirmed)
+        composeRule.onNodeWithText("Versiones guardadas").assertExists()
+        composeRule.onNodeWithText("Guardar una copia como programa nuevo").performClick()
+        assertEquals(1, saved)
     }
 
     @Test
-    fun en_la_ruta_el_mas_de_un_bloque_llama_a_ajustar_con_mas_uno() {
-        val adjusted = mutableListOf<Int>()
-        val block = ProgramStructureSheetSamples.routeBlocks[1]
+    fun en_la_biblioteca_tocar_una_plantilla_o_un_metodo_lo_elige() {
+        val picked = mutableListOf<String>()
         composeRule.setContent {
             MaterialTheme {
-                ProgramRouteBlockRow(
-                    block = block,
-                    onFocus = {},
-                    onAdjust = { delta -> adjusted += delta },
+                ProgramTemplatesContent(
+                    templates = ProgramStructureSheetSamples.templates,
+                    methods = ProgramStructureSheetSamples.methods,
+                    replace = false,
+                    onReplaceChange = {},
+                    onPickTemplate = { key -> picked += "plantilla:$key" },
+                    onPickMethod = { key -> picked += "metodo:$key" },
                 )
             }
         }
-        composeRule.onNodeWithContentDescription("Añadir una semana a Bloque 2").performClick()
-        assertEquals(listOf(1), adjusted)
+        composeRule.onNodeWithText("Aplicar plantilla o método").assertExists()
+        composeRule.onNodeWithText("PLANTILLAS").assertExists()
+        composeRule.onNodeWithText("MÉTODOS DE PROGRESIÓN").assertExists()
+        composeRule.onNodeWithText("Fuerza 4 días").performScrollTo().performClick()
+        composeRule.onNodeWithText("Hipertrofia por bloques").performScrollTo().performClick()
+        assertEquals(listOf("plantilla:fuerza-4", "metodo:protocolo-hipertrofia"), picked)
+    }
+
+    @Test
+    fun en_la_biblioteca_el_interruptor_cambia_sustituir() {
+        val changes = mutableListOf<Boolean>()
+        composeRule.setContent {
+            MaterialTheme {
+                ProgramTemplatesContent(
+                    templates = ProgramStructureSheetSamples.templates,
+                    methods = ProgramStructureSheetSamples.methods,
+                    replace = false,
+                    onReplaceChange = { changes += it },
+                    onPickTemplate = {},
+                    onPickMethod = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Sustituir semanas con sesiones").performScrollTo().performClick()
+        assertEquals(listOf(true), changes)
     }
 
     @Test
@@ -122,51 +144,19 @@ class ProgramStructureSheetsTest {
     }
 
     @Test
-    fun la_hoja_de_la_ruta_compone_con_sus_datos() {
-        composeRule.setContent {
-            MaterialTheme {
-                ProgramRouteSheet(
-                    model = ProgramStructureSheetSamples.route,
-                    onFocusWeek = { _, _ -> },
-                    onAdjustBlockWeeks = { _, _ -> },
-                    onDismiss = {},
-                )
-            }
-        }
-        composeRule.onNodeWithText("Ruta del programa").assertExists()
-        composeRule.onNodeWithText("Bloque 2 · empieza el mar 27 oct").assertExists()
-    }
-
-    @Test
-    fun la_hoja_de_plantillas_compone_con_sus_grupos() {
-        composeRule.setContent {
-            MaterialTheme {
-                ProgramTemplatesSheet(
-                    templates = ProgramStructureSheetSamples.templateCards,
-                    protocols = ProgramStructureSheetSamples.protocolCards,
-                    onPickTemplate = {},
-                    onPickProtocol = {},
-                    onDismiss = {},
-                )
-            }
-        }
-        composeRule.onNodeWithText("PLANTILLAS").assertExists()
-        composeRule.onNodeWithText("PROTOCOLOS").assertExists()
-        composeRule.onNodeWithText("Fuerza 4 días").assertExists()
-    }
-
-    @Test
     fun la_hoja_de_historial_compone_con_sus_copias() {
         composeRule.setContent {
             MaterialTheme {
                 ProgramHistorySheet(
                     snapshots = ProgramStructureSheetSamples.copies,
+                    today = ProgramStructureSheetSamples.today,
                     onRestore = {},
+                    onSaveCopy = {},
                     onDismiss = {},
                 )
             }
         }
-        composeRule.onNodeWithText("Historial del programa").assertExists()
+        composeRule.onNodeWithText("Versiones guardadas").assertExists()
         composeRule.onAllNodesWithText("Restaurar").onFirst().assertExists()
     }
 
