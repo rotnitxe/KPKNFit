@@ -179,7 +179,8 @@ class CurateTests(unittest.TestCase):
             out = Path(tmp) / "out"
             spec_path = Path(tmp) / "matriz.json"
             spec_path.write_text(json.dumps(spec_for({"F01": 10, "F02": 10})), encoding="utf-8")
-            self.assertEqual(curate.main(["--raw", str(raw), "--spec", str(spec_path), "--out", str(out)]), 0)
+            self.assertEqual(curate.main(["--raw", str(raw), "--spec", str(spec_path), "--out", str(out),
+                                          "--raw-glob", "*.jsonl"]), 0)
             all_cases = read_lines(out / "cases" / "all.jsonl")
             dev = read_lines(out / "cases" / "dev.jsonl")
             test = read_lines(out / "cases" / "test.jsonl")
@@ -187,7 +188,8 @@ class CurateTests(unittest.TestCase):
             self.assertEqual(len(dev) + len(test), 20)
             self.assertEqual({c["id"] for c in dev} | {c["id"] for c in test}, {c["id"] for c in all_cases})
             self.assertEqual(list(all_cases[0].keys()),
-                             ["id", "split", "text", "mealType", "region", "phenomena", "style", "origin"])
+                             ["id", "split", "text", "mealType", "region", "phenomena", "style", "origin",
+                              "lang", "group"])
             self.assertEqual(len(read_lines(out / "work" / "reserve.jsonl")), 40)
             report = json.loads((out / "work" / "curation-report.json").read_text(encoding="utf-8"))
             self.assertEqual(report["split"], {"dev": 8, "test": 12})
@@ -545,6 +547,208 @@ class RealIndexIntegrationTest(unittest.TestCase):
         self.assertEqual(mention["reference"]["source"], real.source)
         self.assertEqual(mention["eaten"], refindex.eaten(real, 150))
         self.assertEqual(rows[0]["mealEaten"]["kcal"], mention["eaten"]["kcal"])
+
+
+# =========================================================================== curate: anexo modulo B
+
+def spec_b(targets, enums=None, dev_share=0.4):
+    spec = spec_for({"F01": 100})
+    spec["moduloB"] = {"dev_share": dev_share,
+                       "groups": {g: {"target": t} for g, t in targets.items()}}
+    if enums is not None:
+        spec["enums"] = enums
+    return spec
+
+
+def synthetic_b_raw(raw_dir, per_group, seed=11, lang_of=None, region_of=None, extra=None):
+    """B<g>.jsonl con textos al azar; mitad de las lineas en la primera region."""
+    rng = random.Random(seed)
+    for group, count in per_group.items():
+        rows = []
+        for k in range(count):
+            region = (region_of or {}).get(group, ("CL", "AR"))[k % 2]
+            rows.append({
+                "tmpId": "%s-%03d" % (group, k + 1),
+                "text": "%s %s %s" % (random_word(rng), random_word(rng), random_word(rng)),
+                "mealType": curate.MEAL_TYPES[k % 4], "region": region, "style": "telefono",
+                "persona": "x", "phenomena": ["F01"],
+                "lang": (lang_of or {}).get(group, "es"), "group": group,
+            })
+        if extra and group in extra:
+            rows.extend(extra[group])
+        write_lines(Path(raw_dir) / ("%s.jsonl" % group), rows)
+
+
+def build_module_a(tmp, per_code=None, targets=None):
+    """Genera un modulo A (cases/, work/) en <tmp>/out y devuelve (out, ids_textos)."""
+    raw_a = Path(tmp) / "rawA"
+    synthetic_raw(raw_a, per_code or {"F01": 30, "F02": 30}, seed=3)
+    out = Path(tmp) / "out"
+    result = curate.curate(str(raw_a), spec_for(targets or {"F01": 10, "F02": 10}))
+    curate.write_outputs(result, str(out))
+    return out, result
+
+
+def read_bytes(path):
+    return Path(path).read_bytes()
+
+
+class AppendModuleBTests(unittest.TestCase):
+    def test_normal_mode_ignores_b_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw_plain = Path(tmp) / "plain"
+            raw_mixed = Path(tmp) / "mixed"
+            for raw in (raw_plain, raw_mixed):
+                synthetic_raw(raw, {"F01": 30, "F02": 30}, seed=3)
+                for code in ("F01", "F02"):
+                    os.rename(str(raw / ("%s.jsonl" % code)), str(raw / ("G-%s.jsonl" % code)))
+            synthetic_b_raw(raw_mixed, {"B1": 15, "B2": 15})
+            spec = spec_for({"F01": 10, "F02": 10})
+            plain = curate.curate(str(raw_plain), spec, raw_glob="G*.jsonl")
+            mixed = curate.curate(str(raw_mixed), spec, raw_glob="G*.jsonl")
+            self.assertEqual(plain["cases"], mixed["cases"])
+            self.assertEqual(plain["reserve"], mixed["reserve"])
+            self.assertEqual(plain["report"]["discards"], mixed["report"]["discards"])
+            self.assertEqual(len(plain["cases"]), 20)
+            # el CLI usa G*.jsonl por defecto
+            spec_path = Path(tmp) / "matriz.json"
+            spec_path.write_text(json.dumps(spec), encoding="utf-8")
+            out_a = Path(tmp) / "outA"
+            out_b = Path(tmp) / "outB"
+            self.assertEqual(curate.main(["--raw", str(raw_plain), "--spec", str(spec_path),
+                                          "--out", str(out_a)]), 0)
+            self.assertEqual(curate.main(["--raw", str(raw_mixed), "--spec", str(spec_path),
+                                          "--out", str(out_b)]), 0)
+            self.assertEqual(read_bytes(out_a / "cases" / "all.jsonl"), read_bytes(out_b / "cases" / "all.jsonl"))
+
+    def test_append_keeps_previous_lines_and_adds_at_end(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out, _ = build_module_a(tmp)
+            before = {name: read_bytes(out / "cases" / ("%s.jsonl" % name)) for name in ("all", "dev", "test")}
+            raw_b = Path(tmp) / "rawB"
+            synthetic_b_raw(raw_b, {"B1": 20, "B2": 15})
+            spec_path = Path(tmp) / "matriz.json"
+            spec_path.write_text(json.dumps(spec_b({"B1": 10, "B2": 5})), encoding="utf-8")
+            self.assertEqual(curate.main(["--raw", str(raw_b), "--spec", str(spec_path), "--out", str(out),
+                                          "--raw-glob", "B*.jsonl", "--append-module", "B"]), 0)
+            for name, old in before.items():
+                new = read_bytes(out / "cases" / ("%s.jsonl" % name))
+                self.assertTrue(new.startswith(old), name)
+                self.assertGreater(len(new), len(old), name)
+            all_cases = read_lines(out / "cases" / "all.jsonl")
+            added = all_cases[20:]
+            self.assertEqual(len(all_cases), 35)
+            self.assertEqual([c["group"] for c in added], ["B1"] * 10 + ["B2"] * 5)
+            dev_added = read_lines(out / "cases" / "dev.jsonl")[8:]
+            test_added = read_lines(out / "cases" / "test.jsonl")[12:]
+            self.assertEqual({c["id"] for c in dev_added} | {c["id"] for c in test_added},
+                             {c["id"] for c in added})
+            self.assertEqual(len(read_lines(out / "work" / "reserve-B.jsonl")), 20)
+            report = json.loads((out / "work" / "curation-report-B.json").read_text(encoding="utf-8"))
+            self.assertEqual(report["total"], 15)
+            self.assertEqual(report["byLang"], {"es": 15})
+            self.assertEqual(report["byGroup"]["B1"]["selected"], 10)
+            self.assertEqual(report["split"], {"dev": 6, "test": 9})
+            # misma entrada y semilla: mismo resultado
+            out2, _ = build_module_a(Path(tmp) / "again")
+            self.assertEqual(curate.main(["--raw", str(raw_b), "--spec", str(spec_path), "--out", str(out2),
+                                          "--raw-glob", "B*.jsonl", "--append-module", "B"]), 0)
+            self.assertEqual(read_bytes(out / "cases" / "all.jsonl"), read_bytes(out2 / "cases" / "all.jsonl"))
+
+    def test_append_requires_existing_all(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw_b = Path(tmp) / "rawB"
+            synthetic_b_raw(raw_b, {"B1": 5})
+            with self.assertRaises(SystemExit):
+                curate.append_module(str(raw_b), spec_b({"B1": 3}), str(Path(tmp) / "vacio"))
+
+    def test_ids_continue_from_maximum(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out, result = build_module_a(tmp)
+            self.assertEqual(result["cases"][-1]["id"], "E0020")
+            # un hueco en el medio no importa: se continua desde el mayor
+            rows = read_lines(out / "cases" / "all.jsonl")
+            rows[-1]["id"] = "E0099"
+            write_lines(out / "cases" / "all.jsonl", rows)
+            raw_b = Path(tmp) / "rawB"
+            synthetic_b_raw(raw_b, {"B2": 8, "B1": 8})
+            appended = curate.append_module(str(raw_b), spec_b({"B1": 4, "B2": 4}), str(out))
+            ids = [c["id"] for c in appended["cases"]]
+            self.assertEqual(ids, ["E%04d" % n for n in range(100, 108)])
+            self.assertEqual([c["group"] for c in appended["cases"]], ["B1"] * 4 + ["B2"] * 4)
+            origins = [c["origin"] for c in appended["cases"][:4]]
+            self.assertEqual(origins, sorted(origins, key=curate.natural_key))
+
+    def test_duplicate_of_module_a_is_discarded_with_reason(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out, result = build_module_a(tmp)
+            a_case = result["cases"][3]
+            raw_b = Path(tmp) / "rawB"
+            row = {"tmpId": "B1-900", "text": a_case["text"].upper(), "mealType": "LUNCH", "region": "CL",
+                   "style": "telefono", "persona": "x", "phenomena": ["F01"], "lang": "es", "group": "B1"}
+            near = dict(row, tmpId="B1-901", text=a_case["text"] + "s")
+            synthetic_b_raw(raw_b, {"B1": 6}, extra={"B1": [row, near]})
+            appended = curate.append_module(str(raw_b), spec_b({"B1": 6}), str(out))
+            reasons = {d["tmpId"]: d["reason"] for d in appended["report"]["discards"]}
+            self.assertEqual(reasons["B1-900"], "duplicado exacto de %s" % a_case["id"])
+            self.assertEqual(reasons["B1-901"], "casi duplicado de %s" % a_case["id"])
+            self.assertNotIn(a_case["text"].upper(), [c["text"] for c in appended["cases"]])
+            self.assertEqual(appended["report"]["discardReasons"], {"casi duplicado": 1, "duplicado exacto": 1})
+
+    def test_split_40_60_per_group(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out, _ = build_module_a(tmp)
+            raw_b = Path(tmp) / "rawB"
+            synthetic_b_raw(raw_b, {"B1": 40, "B3": 60, "B5": 55})
+            appended = curate.append_module(str(raw_b), spec_b({"B1": 30, "B3": 50, "B5": 20}), str(out))
+            by_group = appended["report"]["byGroup"]
+            self.assertEqual((by_group["B1"]["dev"], by_group["B1"]["test"]), (12, 18))
+            self.assertEqual((by_group["B3"]["dev"], by_group["B3"]["test"]), (20, 30))
+            self.assertEqual((by_group["B5"]["dev"], by_group["B5"]["test"]), (8, 12))
+            self.assertEqual(appended["report"]["split"], {"dev": 40, "test": 60})
+            dev_b1 = [c for c in appended["cases"] if c["group"] == "B1" and c["split"] == "dev"]
+            self.assertTrue(any(c["region"] == "AR" for c in dev_b1))  # estratificado por region
+            self.assertEqual(len(appended["reserve"]), 10 + 10 + 35)
+
+    def test_matrix_enums_extend_validation(self):
+        enums = {"regions": ["CL", "VE", "US"], "styles": ["telefono", "extenso"],
+                 "langs": ["es", "en", "mix"], "phenomena": ["F01", "F17", "F18"]}
+        base = {"tmpId": "B1-001", "text": "two eggs and toast", "mealType": "BREAKFAST", "region": "VE",
+                "style": "extenso", "phenomena": ["F18"], "lang": "en", "group": "B1"}
+        record, reason = curate.validate(base, enums)
+        self.assertIsNone(reason)
+        self.assertEqual((record["region"], record["style"], record["lang"], record["phenomena"]),
+                         ("VE", "extenso", "en", ["F18"]))
+        # sin enums de la matriz rige la lista actual
+        self.assertIn("region", curate.validate(base)[1])
+        for field, bad in (("region", "AR"), ("style", "formal"), ("lang", "fr"), ("phenomena", ["F02"])):
+            with self.subTest(field):
+                _, why = curate.validate(dict(base, **{field: bad}), enums)
+                self.assertIsNotNone(why)
+        _, why = curate.validate(dict(base, group=7), enums)
+        self.assertIn("group", why)
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "raw"
+            write_lines(raw / "B1.jsonl", [base, dict(base, tmpId="B1-002", text="otro huevo", region="AR")])
+            records, discards = curate.load_raw(str(raw), enums, "B*.jsonl")
+            self.assertEqual([r["tmpId"] for r in records], ["B1-001"])
+            self.assertIn("region", discards[0]["reason"])
+
+    def test_lang_defaults_to_es_and_group_to_none(self):
+        item = {"tmpId": "G1-001", "text": "pan con palta", "mealType": "LUNCH", "region": "CL",
+                "style": "telefono", "phenomena": ["F01"]}
+        record, reason = curate.validate(item)
+        self.assertIsNone(reason)
+        self.assertEqual(record["lang"], "es")
+        self.assertIsNone(record["group"])
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "raw"
+            rows = [dict(item, tmpId="G1-%03d" % n, text="comida %s" % random_word(random.Random(n)))
+                    for n in range(1, 6)]
+            write_lines(raw / "G1.jsonl", rows)
+            result = curate.curate(str(raw), spec_for({"F01": 5}), raw_glob="G*.jsonl")
+            self.assertTrue(all(c["lang"] == "es" and c["group"] is None for c in result["cases"]))
+            self.assertEqual(list(result["cases"][0].keys())[-2:], ["lang", "group"])
 
 
 if __name__ == "__main__":
