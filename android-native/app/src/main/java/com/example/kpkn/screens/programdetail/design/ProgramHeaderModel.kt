@@ -103,6 +103,28 @@ internal fun programMetaLine(weekCount: Int, repeatingWeek: Boolean, daysPerWeek
     ).joinToString(" · ")
 
 /**
+ * La meta de la cabecera: «Fuerza · 12 semanas · 3 bloques»; en una rutina, «Fuerza · Rutina · 4 días». El modo va primero y lo que no
+ * se sabe se omite. Un programa de una sola semana dice «1 semana» y solo cuenta bloques si hay más de uno.
+ */
+internal fun programHeadlineMeta(
+    goalLabel: String?,
+    weekCount: Int,
+    blockCount: Int,
+    isRoutine: Boolean,
+    daysPerWeek: Int?,
+): String {
+    val parts = mutableListOf<String?>(goalLabel?.takeIf { it.isNotBlank() })
+    if (isRoutine) {
+        parts += "Rutina"
+        parts += daysPerWeek?.takeIf { it > 0 }?.let { numberWithUnit(SpanishPlurals.days(it)) }
+    } else {
+        parts += weekCount.takeIf { it > 0 }?.let { numberWithUnit(SpanishPlurals.weeks(it)) }
+        parts += blockCount.takeIf { it > 1 }?.let { numberWithUnit(SpanishPlurals.blocks(it)) }
+    }
+    return parts.filterNotNull().joinToString(" · ")
+}
+
+/**
  * Une la cifra con su unidad con un espacio sin corte («12 semanas», «4 días»): la cifra nunca queda al final de una línea sin su
  * palabra.
  */
@@ -112,8 +134,7 @@ internal fun numberWithUnit(text: String): String = text.replaceFirst(' ', NBSP)
 private const val NBSP = ' '
 
 /**
- * «Semana 3 de 12 · Acumulación»; en un programa de semana repetida, «Semana que se repite · ciclo 5». Null si no se sabe en qué
- * semana va.
+ * «Semana 3 de 12 · Acumulación»; en un programa de semana repetida, «Semana 5» (su ciclo). Null si no se sabe en qué semana va.
  */
 internal fun programProgressLabel(
     weekIndex: Int?,
@@ -122,7 +143,7 @@ internal fun programProgressLabel(
     repeatingWeek: Boolean,
     cycle: Int?,
 ): String? {
-    if (repeatingWeek) return cycle?.let { "Semana que se repite · ciclo" + NBSP + it }
+    if (repeatingWeek) return cycle?.let { "Semana $it" }
     if (weekIndex == null || weekCount == null) return null
     val week = "Semana $weekIndex de $weekCount"
     return shortPhaseOf(phase)?.let { "$week · $it" } ?: week
@@ -178,3 +199,6 @@ internal fun repeatingWeekSubtitle(sessionMinutes: List<Int>): String? {
     val timed = sessionMinutes.filter { it > 0 }
     return if (timed.isEmpty()) sessions else "$sessions · ≈ ${timed.average().roundToInt()} min de media"
 }
+
+/** La línea «Hoy también» bajo la fila de acciones: otra sesión de hoy y su duración estimada. */
+internal fun programTodayAlsoLine(sessionName: String, minutes: Int): String = "Hoy también: $sessionName · ≈ $minutes min"

@@ -282,10 +282,7 @@ private fun ProgramTrailingButtons(actions: ProgramHeaderActions) {
     ProgramPendingBell(count = actions.pendingCount, onClick = actions.onPending)
 }
 
-/**
- * «Compartir en historias»: círculo de 52 dp en `inset` con el icono de cámara. KpknLineIcons no trae un icono de compartir; la cámara es
- * lo más parecido a «historias».
- */
+/** «Compartir en historias»: círculo de 52 dp en `inset` con el icono de compartir ([ProgramShareIcon]). */
 @Composable
 private fun ProgramShareButton(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
@@ -308,7 +305,7 @@ private fun ProgramShareButton(onClick: () -> Unit) {
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(imageVector = KpknLineIcons.Camera, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
+        Icon(imageVector = ProgramShareIcon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
     }
 }
 

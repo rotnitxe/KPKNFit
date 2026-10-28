@@ -56,17 +56,9 @@ internal fun ProgramPhaseRibbon(
 }
 
 /**
- * El color de una fase en la cinta: los `--ph-*` del prototipo. Sin fase conocida, `textFaint`. No es [ProgramPhase.color], que usa
- * otra paleta para descarga y realización.
+ * El color de una fase en la cinta: el de [ProgramPhase], la misma paleta de toda la app. Sin fase conocida, `textFaint`.
  */
-internal fun programPhaseColor(phase: ProgramPhase?): Color = when (phase) {
-    ProgramPhase.ACCUMULATION -> Color(0xFFF49A6E)
-    ProgramPhase.INTENSIFICATION -> Color(0xFFF7CF73)
-    ProgramPhase.REALIZATION -> Color(0xFF8FB2FF)
-    ProgramPhase.DELOAD -> Color(0xFF7FCFA4)
-    ProgramPhase.COMPETITION -> Color(0xFFFF9B92)
-    null -> WizardColors.textFaint
-}
+internal fun programPhaseColor(phase: ProgramPhase?): Color = phase?.color ?: WizardColors.textFaint
 
 /** Un segmento: 6 dp, o 10 dp si es la actual. Con [onSelectWeek], su zona táctil mide 24 dp de alto como mínimo. */
 @Composable
