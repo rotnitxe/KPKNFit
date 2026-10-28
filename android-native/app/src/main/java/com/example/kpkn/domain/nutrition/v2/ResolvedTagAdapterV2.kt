@@ -13,6 +13,7 @@ import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
 import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.domain.nutrition.VariantChoice
 import com.example.kpkn.domain.nutrition.nutrients.CatalogRecordLink
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -32,6 +33,7 @@ import kotlin.math.roundToInt
 object ResolvedTagAdapterV2 {
     private const val MAX_REVIEW_CANDIDATES = 4
     private const val MAX_PORTION_OPTIONS = 4
+    private const val MAX_VARIANT_CHOICES = 4
     private const val REQUEST_IDENTITY = "identity"
     private const val REQUEST_STATE = "state"
     private const val REQUEST_FORM = "form"
@@ -61,7 +63,7 @@ object ResolvedTagAdapterV2 {
 
         val concept = mention.conceptId?.let(catalog::concept)
         val baseName = mention.conceptName ?: catalog.record(recordId)?.name ?: mention.text
-        val name = preparedName(baseName, mention, concept)
+        val name = preparedName(baseName, mention.form, concept)
         val foodState = foodStateOf(mention.state)
         val food = buildFood(recordId, name, concept?.category, per100g, foodState, catalog.generation)
         val logged = buildLoggedFood(food, grams, recordId, per100g, catalog.generation)
@@ -100,6 +102,7 @@ object ResolvedTagAdapterV2 {
             resolutionStatus = status,
             nutritionSource = sourceOf(recordId),
             resolutionConfidence = mention.confidence,
+            variantChoices = variantChoices(mention, concept, baseName, food, catalog),
         )
         return tag.copy(interpretationV2 = interpreter.interpretResolved(tag, requests))
     }
@@ -114,12 +117,55 @@ object ResolvedTagAdapterV2 {
         label.split(" ").joinToString(" ") { PORTION_WORDS[it] ?: it }
 
     /** Polvo preparado (RECONSTITUTED de un concepto en polvo seco): el nombre lo dice, con género. */
-    private fun preparedName(name: String, mention: MentionV2, concept: ConceptV2?): String {
-        if (mention.form != FoodFormV2.RECONSTITUTED || concept?.defaultForm != FoodFormV2.POWDER_DRY) return name
+    private fun preparedName(name: String, form: FoodFormV2, concept: ConceptV2?): String {
+        if (form != FoodFormV2.RECONSTITUTED || concept?.defaultForm != FoodFormV2.POWDER_DRY) return name
         if (name.contains("prepar", ignoreCase = true)) return name
         val first = name.trim().substringBefore(' ').lowercase()
         val feminine = first == "leche" || (first.endsWith("a") && first != "bcaa")
         return name + if (feminine) " (preparada)" else " (preparado)"
+    }
+
+    /**
+     * Chips de estado y forma de la fila (F3, N50): por dimensión, la elección actual primero (con el mismo `food` de la
+     * etiqueta) y luego una ficha por valor distinto entre las variantes con ficha del concepto, máx. 4. Misma selección que
+     * [variantCandidates]. Una dimensión con menos de 2 fichas distintas, o sin valor actual, no aporta nada.
+     */
+    private fun variantChoices(
+        mention: MentionV2,
+        concept: ConceptV2?,
+        baseName: String,
+        food: FoodItem,
+        catalog: ConceptCatalogV2,
+    ): List<VariantChoice> {
+        if (mention.excluded || concept == null) return emptyList()
+        val currentState = mention.state ?: concept.variants.firstOrNull { it.recordId == food.id }?.state
+        fun choicesFor(byState: Boolean): List<VariantChoice> {
+            val dimension = if (byState) REQUEST_STATE else REQUEST_FORM
+            val currentKey: Any = (if (byState) currentState else mention.form) ?: return emptyList()
+            fun keyOf(variant: ConceptVariantV2): Any? = if (byState) variant.state else variant.form
+            fun labelOf(state: FoodStateV2?, form: FoodFormV2): String =
+                (if (byState) stateName(state) else formName(form)).replaceFirstChar { it.uppercase() }
+            val others = concept.variants
+                .filter { it.recordId != null && catalog.record(it.recordId) != null }
+                .filter { keyOf(it) != null && keyOf(it) != currentKey && it.recordId != food.id }
+                .groupBy { keyOf(it) }
+                .values
+                .mapNotNull { group ->
+                    val preferred = if (byState) group.firstOrNull { it.form == mention.form } else group.firstOrNull { it.state == currentState }
+                    val variant = preferred ?: group.first()
+                    val record = catalog.record(variant.recordId) ?: return@mapNotNull null
+                    val variantFood = buildFood(
+                        record.id, preparedName(baseName, variant.form, concept), concept.category, record.per100g,
+                        foodStateOf(variant.state), catalog.generation,
+                    )
+                    VariantChoice(dimension, labelOf(variant.state, variant.form), variantFood)
+                }
+            val choices = (listOf(VariantChoice(dimension, labelOf(currentState, mention.form), food)) + others)
+                .distinctBy { it.food.id }
+                .take(MAX_VARIANT_CHOICES)
+            return if (choices.size >= 2) choices else emptyList()
+        }
+        return choicesFor(byState = true) + choicesFor(byState = false)
     }
 
     private class Candidate(val food: FoodItem, val label: String)

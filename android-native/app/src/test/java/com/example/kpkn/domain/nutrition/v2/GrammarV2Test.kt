@@ -36,6 +36,13 @@ class GrammarV2Test {
         food("tostada", "tostada"),
         food("tostadas", "tostada"),
         food("avena", "avena"),
+        food("galletas", "galleta"),
+        food("galletas soda", "galleta_soda"),
+        food("pizza", "pizza"),
+        food("tinto", "vino_tinto"),
+        food("vino tinto", "vino_tinto"),
+        food("arepa", "arepa"),
+        food("cafe negro", "cafe_negro"),
         // Falta de ortografía conocida.
         food("palto", "palta", AliasKind.TYPO),
         // Alias ambiguo: el mismo texto nombra dos conceptos.
@@ -655,5 +662,85 @@ class GrammarV2Test {
         )
         assertEquals(listOf(null, 0, 0), parse("pan con queso y palta", lex, catalog).map { it.attachedTo })
         assertEquals(listOf(null, 0, null), parse("pan con queso y manzana", lex, catalog).map { it.attachedTo })
+    }
+
+    // ─── Ronda N49: cantidad después del alimento, mitad del envase, «no,» y «tinto» ──────────────
+
+    @Test fun `un numero desnudo pegado al alimento es su cantidad`() {
+        assertEquals(QuantityV2.Count(2.0), single("huevos 2").quantity)
+        assertEquals(QuantityV2.Count(1.0), single("pan 1").quantity)
+        // Con una preposición de por medio no es un conteo, y el prefijo gana al sufijo.
+        val prefixed = parse("2 huevos 3 tostadas")
+        assertEquals(listOf(QuantityV2.Count(2.0), QuantityV2.Count(3.0)), prefixed.map { it.quantity })
+        // Los alimentos que no se cuentan por unidades no toman el número («leche 2 %»).
+        val milk = ConceptV2(
+            id = "leche", name = "leche", kind = ConceptKindV2.DRINK, category = "LACTEOS", aliasesEs = emptyList(),
+            aliasesEn = emptyList(), typos = emptyList(), defaultState = null, defaultForm = FoodFormV2.NA,
+            variants = emptyList(), countable = false, unit = null, portions = emptyList(), defaultGrams = 200.0,
+            densityGPerMl = null, reconstitution = null, components = null,
+        )
+        val drafts = parse("leche 2", catalog = ConceptCatalogV2("t", listOf(milk), emptyMap()))
+        assertNull(drafts.single().quantity)
+    }
+
+    @Test fun `una cantidad dicha aparte se pega a la mencion sin cantidad de la clausula anterior`() {
+        assertEquals(QuantityV2.Household(3.0, "trozo"), single("pizza, 3 pedazos").quantity)
+        assertEquals(QuantityV2.Count(3.0), single("tostadas, como 3").quantity)
+        assertEquals(QuantityV2.Mass(150.0), single("pollo, 150 g").quantity)
+        // Una mención que ya tiene cantidad no se toca, ni una cantidad que no es de la cláusula anterior.
+        assertEquals(QuantityV2.Mass(100.0), parse("pollo 100 g, 150 g")[0].quantity)
+        val far = parse("pizza, arroz 100 g, 3 pedazos")
+        assertNull(far[0].quantity)
+        // Solo tras una coma: un punto abre otra frase, que no habla de la mención anterior.
+        assertNull(parse("pizza. 3 pedazos")[0].quantity)
+    }
+
+    @Test fun `una correccion de tamano cambia el tamano de la cantidad`() {
+        val d = single("pizza, un pedazo grande, no, uno mediano")
+        assertEquals(QuantityV2.Household(1.0, "trozo", SizeV2.M), d.quantity)
+    }
+
+    @Test fun `la mitad del envase reduce la cantidad ya dicha`() {
+        assertEquals(QuantityV2.Container(0.5, "lata"), single("una lata de atún, la mitad de la lata").quantity)
+        assertEquals(
+            QuantityV2.Container(0.5, "lata"),
+            single("un tarro de yogur para el postre, la mitad del tarro").quantity,
+        )
+        // Otra medida o sin «mitad»: no cambia.
+        assertEquals(QuantityV2.Container(1.0, "lata"), single("una lata de atún, media botella").quantity)
+        assertEquals(QuantityV2.Container(1.0, "lata"), single("una lata de atún, un cuarto de lata").quantity)
+    }
+
+    @Test fun `un no solo entre comas anuncia la correccion`() {
+        val chained = parse("pollo 100 g, eran 150 g, no, 200")
+        assertEquals(1, chained.size)
+        assertEquals(QuantityV2.Mass(200.0), chained[0].quantity)
+        val interjection = parse("2 huevos, ah no, 3")
+        assertEquals(QuantityV2.Count(3.0), interjection[0].quantity)
+        // Sin corrección previa ni «no» solo, una cantidad suelta no cambia nada.
+        assertEquals(QuantityV2.Mass(100.0), parse("pollo 100 g, no 200")[0].quantity)
+    }
+
+    @Test fun `la correccion con el alimento mas corto conserva el concepto especifico`() {
+        val drafts = parse("2 galletas soda, 3 galletas mejor")
+        assertEquals(listOf(listOf("galleta_soda")), ids(drafts))
+        assertEquals(QuantityV2.Count(3.0), drafts[0].quantity)
+    }
+
+    @Test fun `un tinto solo es cafe si el resto del texto es colombiano`() {
+        fun concept(id: String) = ConceptV2(
+            id = id, name = id, kind = ConceptKindV2.FOOD, category = "TEST", aliasesEs = emptyList(), aliasesEn = emptyList(),
+            typos = emptyList(), defaultState = null, defaultForm = FoodFormV2.NA, variants = emptyList(),
+            countable = true, unit = null, portions = emptyList(), defaultGrams = 100.0, densityGPerMl = null,
+            reconstitution = null, components = null,
+        )
+        val catalog = ConceptCatalogV2("t", listOf("vino_tinto", "cafe_negro", "arepa", "pan").map { concept(it) }, emptyMap())
+        assertEquals(listOf("arepa"), parse("arepa y un tinto", catalog = catalog)[0].conceptIds)
+        assertEquals(listOf("cafe_negro"), parse("arepa y un tinto", catalog = catalog)[1].conceptIds)
+        assertEquals(listOf("cafe_negro"), parse("un tinto con pan de bono", catalog = catalog)[0].conceptIds)
+        assertEquals(listOf("vino_tinto"), parse("un tinto", catalog = catalog).single().conceptIds)
+        assertEquals(listOf("vino_tinto"), parse("arepa con vino tinto", catalog = catalog)[1].conceptIds)
+        // Sin catálogo (o sin el café en él) no se cambia nada.
+        assertEquals(listOf("vino_tinto"), parse("arepa y un tinto")[1].conceptIds)
     }
 }

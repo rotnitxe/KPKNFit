@@ -366,17 +366,36 @@ fun FoodLoggerDrawer(
 
     }
 
-    suspend fun resolveTags(parsed: ParsedMealDescription) {
+    /**
+     * Resuelve [description] a etiquetas y devuelve quién respondió: "v2" o "v1" (respaldo interno).
+     * El intérprete anterior (`parseMealDescription`) solo corre, una vez, cuando hace falta: respaldo de v2 o enriquecer
+     * etiquetas conservadas del análisis anterior. [onParsed] recibe los ms que tardó ese parse (la etapa de traza "parse").
+     */
+    suspend fun resolveTags(
+        description: String,
+        retrieval: SemanticPortionRetriever.RetrievalResult? = null,
+        onParsed: (durationMs: Long) -> Unit = {},
+    ): String {
         // WP-N1: resolution, merge and enrichment run off the main thread. The inputs of resolveAll
         // are read before the hop and every Compose state write happens after withContext returns.
         val contextBefore = detectedContext
         val currentMealType = mealType
+        var parseDurationMs: Long? = null
+        var interpreter = "v2"
         val (resolvedContext, mergedTags) = withContext(Dispatchers.Default) {
+            var parsedCache: ParsedMealDescription? = null
+            fun parsed(): ParsedMealDescription = parsedCache ?: run {
+                val startedAtMs = System.currentTimeMillis()
+                parseMealDescription(description, retrieval).also {
+                    parseDurationMs = System.currentTimeMillis() - startedAtMs
+                    parsedCache = it
+                }
+            }
             // El intérprete v2 es el sistema; el anterior solo responde si v2 no reconoce ninguna mención o falla (respaldo interno).
             val v2Tags = try {
                 NutritionParserV2Holder.parser(appContext)?.let { parserV2 ->
-                    // v2 se midió con el texto tal como se escribió y tiene su propio normalizador (rawDescription ya pasó por el de v1).
-                    ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.verbatimDescription.ifBlank { parsed.rawDescription }), parserV2.catalog)
+                    // v2 se midió con el texto tal como se escribió (trim, igual que verbatimDescription de v1) y tiene su propio normalizador.
+                    ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(description.trim()), parserV2.catalog)
                 }?.takeIf { candidate -> candidate.any { it.isResolved } }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -385,7 +404,10 @@ fun FoodLoggerDrawer(
                 null
             }
             val result = if (v2Tags != null) v2Tags to contextBefore
-            else createTagResolver().resolveAll(parsed, contextBefore, currentMealType)
+            else {
+                interpreter = "v1"
+                createTagResolver().resolveAll(parsed(), contextBefore, currentMealType)
+            }
             val newTags = result.first
             // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
             // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.
@@ -393,7 +415,7 @@ fun FoodLoggerDrawer(
             // are not part of the text, so they survive every re-analysis.
             val previousTags = tags
             val isSameRequest = lastAnalyzedDescription.isNotBlank() &&
-                FoodIdentity.normalize(parsed.rawDescription) == FoodIdentity.normalize(lastAnalyzedDescription)
+                FoodIdentity.normalize(description) == FoodIdentity.normalize(lastAnalyzedDescription)
             val merged = mergeReanalyzedTags(previousTags, newTags, isSameRequest)
             // resolveAll already enriched every tag it returned (TagResolution.kt), and enriching again
             // is a no-op for them, so only the tags kept from the previous list (manual edits) are
@@ -401,7 +423,7 @@ fun FoodLoggerDrawer(
             // parse (and were enriched when they were created), so they stay as they are.
             val freshIds = newTags.mapTo(HashSet()) { it.id }
             result.second to merged.map {
-                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed)
+                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed())
             }
         }
         detectedContext = resolvedContext
@@ -410,6 +432,8 @@ fun FoodLoggerDrawer(
             values.sumOf { it.caloriesMin }.toInt() to values.sumOf { it.caloriesMax }.toInt()
         }
         reviewRequired = tags.any { it.hasMaterialQuestion() }
+        parseDurationMs?.let(onParsed)
+        return interpreter
     }
 
     /** D7: aviso no-silencioso cuando el dataset de porciones no cargó. */
@@ -575,23 +599,12 @@ fun FoodLoggerDrawer(
                     ?.takeIf { descriptionRetrieval.confidence >= 0.35 }
                     ?.let { kotlin.math.round(it.kcalMin).toInt() to kotlin.math.round(it.kcalMax).toInt() }
                     ?.takeIf { it.second - it.first >= 30 }
-                val parseMealType = mealType
-                detectedContext = withContext(Dispatchers.Default) {
-                    ContextDetector.detect(descriptionSnapshot, parseMealType)
-                }
-                NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
-                val parseStartedAtMs = System.currentTimeMillis()
-                val parsed = withContext(Dispatchers.Default) {
-                    parseMealDescription(descriptionSnapshot, descriptionRetrieval)
-                }
-                analysisTrace.stageEnded(
-                    name = "parse",
-                    durationMs = System.currentTimeMillis() - parseStartedAtMs,
-                    ok = true,
-                )
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "resolve_tags")
-                analysisTrace.stage("resolve_tags") {
-                    resolveTags(parsed)
+                // El intérprete anterior solo corre dentro de resolveTags si v2 no responde (etapa "parse" solo entonces).
+                val interpreter = analysisTrace.stage("resolve_tags") {
+                    resolveTags(descriptionSnapshot, descriptionRetrieval) { parseMs ->
+                        analysisTrace.stageEnded(name = "parse", durationMs = parseMs, ok = true)
+                    }
                 }
                 // CRI-AUDIT (P2): si el parseo local devolvió 0 alimentos para un texto
                 // no-vacío, NUNCA dejar tags vacíos en silencio: caemos al último nivel
@@ -605,7 +618,8 @@ fun FoodLoggerDrawer(
                 endTraceOnce(
                     "completed",
                     mapOf(
-                        "items" to parsed.items.size,
+                        "items" to tags.count { !it.origin.isPinned },
+                        "interpreter" to interpreter,
                         "tags" to tags.size,
                         "resolved" to tags.count { it.isResolved },
                         "kcalRangeKnown" to (analysisKcalRange != null),
@@ -631,13 +645,7 @@ fun FoodLoggerDrawer(
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "salvage")
                 val (salvageDetail, salvaged) = try {
                     analysisTrace.stage("salvage_parse") {
-                        val fallbackParsed = withContext(Dispatchers.Default) {
-                            parseMealDescription(
-                                descriptionSnapshot,
-                                SemanticPortionRetriever.retrieve(descriptionSnapshot),
-                            )
-                        }
-                        resolveTags(fallbackParsed)
+                        resolveTags(descriptionSnapshot)
                     }
                     // CRI-ANALYSIS: el éxito del salvage NO depende de la telemetría
                     // (stage ya no puede lanzar por emisión). LastAnalyzed solo tras éxito.
@@ -962,6 +970,14 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id != tagId) tag else NutritionInterpretationBridge.acceptEstimate(tag)
         }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
+    }
+
+    /** Accept the central estimate of every card that asks for confirmation, in one step. */
+    fun useEstimateForAll() {
+        val acceptedCount = tags.count { NutritionInterpretationBridge.canAcceptEstimate(it) }
+        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "unsure_all", "count" to acceptedCount))
+        tags = NutritionInterpretationBridge.acceptAllEstimates(tags)
         reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
@@ -1511,7 +1527,7 @@ fun FoodLoggerDrawer(
                     when {
                         id == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID -> confirmComposition(tag.id)
                         requestId == "cut" -> updateTagCutClarification(tag.id, id)
-                        else -> ((tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id } ?: findStaticFoodById(id))
+                        else -> ((tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id } ?: findStaticFoodById(id))
                             ?.let { resolveFood(tag.id, it, null) }
                     }
                 },
@@ -1633,6 +1649,14 @@ fun FoodLoggerDrawer(
                                     style = KpknType.body,
                                     color = WizardColors.text,
                                 )
+                                val estimableCount = tags.count { NutritionInterpretationBridge.canAcceptEstimate(it) }
+                                if (estimableCount >= 2) {
+                                    KpknTextAction(
+                                        text = "Usar lo estimado en todo ($estimableCount)",
+                                        onClick = { useEstimateForAll() },
+                                        leadingIcon = KpknLineIcons.Check,
+                                    )
+                                }
                             }
                         }
 

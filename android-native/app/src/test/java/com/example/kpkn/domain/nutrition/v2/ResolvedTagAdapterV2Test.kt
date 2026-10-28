@@ -473,4 +473,72 @@ class ResolvedTagAdapterV2Test {
             }
         }
     }
+
+    // ---- Chips de estado y forma de la fila (F3, N50) ----
+
+    private val variantCatalog = ConceptCatalogV2(
+        generation = "gen-variants",
+        conceptList = listOf(
+            concept("arroz", "Arroz", "ciqual_200", FoodStateV2.COOKED).copy(
+                variants = listOf(
+                    ConceptVariantV2(FoodStateV2.COOKED, FoodFormV2.NA, "ciqual_200"),
+                    ConceptVariantV2(FoodStateV2.RAW, FoodFormV2.NA, "ciqual_201"),
+                ),
+            ),
+            concept("leche_polvo", "Leche en polvo", "usda_900", null).copy(
+                defaultState = null,
+                defaultForm = FoodFormV2.POWDER_DRY,
+                variants = listOf(
+                    ConceptVariantV2(null, FoodFormV2.POWDER_DRY, "usda_900"),
+                    ConceptVariantV2(null, FoodFormV2.RECONSTITUTED, "usda_901"),
+                ),
+            ),
+            concept("pollo", "Pollo frito", "usda_100", FoodStateV2.FRIED),
+        ),
+        records = mapOf(
+            "ciqual_200" to RecordV2("ciqual_200", "Riz cuit", ricePer100),
+            "ciqual_201" to RecordV2("ciqual_201", "Riz cru", mapOf("energy" to 350.0, "protein" to 7.0, "fat" to 0.6, "carbs" to 78.0)),
+            "usda_900" to RecordV2("usda_900", "Milk powder", mapOf("energy" to 496.0, "protein" to 26.0, "fat" to 27.0, "carbs" to 38.0)),
+            "usda_901" to RecordV2("usda_901", "Milk reconstituted", mapOf("energy" to 62.0, "protein" to 3.3, "fat" to 3.4, "carbs" to 4.7)),
+            "usda_100" to RecordV2("usda_100", "Chicken fried", chickenPer100),
+        ),
+    )
+
+    private fun adaptVariants(mention: MentionV2) =
+        ResolvedTagAdapterV2.toResolvedTags(MealParseV2("texto", listOf(mention)), variantCatalog).single()
+
+    @Test
+    fun riceOffersCookedAndRawAsStateChipsWithTheCurrentOneFirst() {
+        val tag = adaptVariants(
+            mention(text = "arroz", conceptId = "arroz", conceptName = "Arroz", recordId = "ciqual_200", state = FoodStateV2.COOKED, per100g = ricePer100),
+        )
+        assertEquals(listOf("state", "state"), tag.variantChoices.map { it.dimension })
+        assertEquals(listOf("Cocido", "Crudo"), tag.variantChoices.map { it.label })
+        assertEquals(listOf("ciqual_200", "ciqual_201"), tag.variantChoices.map { it.food.id })
+        assertEquals(tag.foodItem!!.id, tag.variantChoices.first().food.id)
+        assertEquals(tag.foodItem, tag.variantChoices.first().food)
+        assertTrue(tag.reviewCandidates.isEmpty())
+    }
+
+    @Test
+    fun reconstitutedPowderOffersFormChipsAndOnlyThePreparedNameGetsTheSuffix() {
+        val tag = adaptVariants(
+            mention(text = "leche en polvo", conceptId = "leche_polvo", conceptName = "Leche en polvo", recordId = "usda_901", state = null, per100g = mapOf("energy" to 62.0))
+                .copy(form = FoodFormV2.RECONSTITUTED),
+        )
+        assertEquals(listOf("form", "form"), tag.variantChoices.map { it.dimension })
+        assertEquals(listOf("Preparado", "En polvo"), tag.variantChoices.map { it.label })
+        assertEquals(listOf("Leche en polvo (preparada)", "Leche en polvo"), tag.variantChoices.map { it.food.name })
+        assertEquals(tag.foodItem, tag.variantChoices.first().food)
+        assertEquals("Leche en polvo (preparada)", tag.foodItem!!.name)
+    }
+
+    @Test
+    fun singleVariantConceptOrExcludedMentionHasNoVariantChoices() {
+        assertTrue(adaptVariants(mention()).variantChoices.isEmpty())
+        val excluded = adaptVariants(
+            mention(text = "arroz", conceptId = "arroz", conceptName = "Arroz", recordId = "ciqual_200", state = FoodStateV2.COOKED, per100g = ricePer100, excluded = true),
+        )
+        assertTrue(excluded.variantChoices.isEmpty())
+    }
 }

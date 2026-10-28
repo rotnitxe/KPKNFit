@@ -146,6 +146,13 @@ class ConceptSearchV2Test {
     }
 
     @Test
+    fun publicMatchLevelHandlesPluralsAndPrefixes() {
+        // stem("huevos") = "huevo" y stem("papas") = "papa" (FoodSearchRanker.stem): coinciden por la raíz.
+        assertEquals(0, ConceptSearchV2.matchLevel(listOf("huevos"), listOf("huevo")))
+        assertEquals(1, ConceptSearchV2.matchLevel(listOf("papas"), listOf("papa", "frita")))
+    }
+
+    @Test
     fun searchTokensDropPunctuationAndAccents() {
         assertEquals(listOf("pure", "de", "papa"), ConceptSearchV2.searchTokens("Puré de papa."))
     }

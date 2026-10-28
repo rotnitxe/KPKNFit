@@ -154,4 +154,29 @@ class NutritionParserV2Test {
         assertEquals(1, r.mentions.size)
         assertEquals(150.0, r.mentions.single().grams!!, 1e-6)
     }
+
+    @Test fun quantityAfterTheNounAndCommaClauses() {
+        val spaced = parser.parse("huevos 2")
+        assertEquals(100.0, spaced.mentions.single().grams!!, 1e-6)
+        val comma = parser.parse("arroz, una taza")
+        assertEquals(160.0, comma.mentions.single().grams!!, 1e-6)
+        val chained = parser.parse("pollo 100 g, eran 150 g, no, 200")
+        assertEquals(200.0, chained.mentions.single().grams!!, 1e-6)
+    }
+
+    @Test fun halfTheContainerHalvesTheQuantity() {
+        val tin = ConceptCatalogV2(
+            "t",
+            listOf(
+                concept(
+                    "atun_t", "Atún de prueba", listOf("atun"), listOf("tuna"),
+                    listOf(ConceptVariantV2(null, FoodFormV2.NA, "t_atun")),
+                    portions = listOf(ConceptPortionV2("lata", 120.0)),
+                ),
+            ),
+            mapOf("t_atun" to record("t_atun", "Tuna (test)", 130.0, 26.0, 3.0, 0.0)),
+        )
+        val m = NutritionParserV2(tin).parse("una lata de atún para la cena, la mitad de la lata").mentions.single()
+        assertEquals(60.0, m.grams!!, 1e-6)
+    }
 }

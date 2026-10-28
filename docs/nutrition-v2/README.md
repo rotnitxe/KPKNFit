@@ -8,7 +8,7 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 **F0 → F1a → F4 → F1b → F2 → F3 → F5.** Cada fase se acepta solo con el examen (`EXAMEN.md`).
 
 **Resultado final: [RESULTADO_V2.md](RESULTADO_V2.md)** (TEST sellado: M3 20,8 % → 49,1 %, M4 53,1 % → 24,6 %,
-ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOCHE.md).
+ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOCHE.md); lo pendiente de RESULTADO_V2 se cerró en N49–N53 (28-oct, tarde).
 
 | Fase | Qué | Estado |
 |---|---|---|
@@ -17,7 +17,7 @@ ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOC
 | F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | hecho: 33 nutrientes, «sin dato» ≠ 0, DRI de embarazo y lactancia, topes de guía (F4-A1/A2), instantánea al guardar (F4-B), hoja agrupada (F4-C) |
 | F1b | Conceptos y alias en español por lotes («IA en la fábrica») | hecho: 1.652 conceptos, 22.425 alias (es/en/faltas), 2.068 fichas; rondas de datos R1-D (`b4cc06fe6`) y R2-D (`f6de40a13`) |
 | F2 | Parser v2 por léxico + gramática de enlaces, en sombra | hecho (`fc6d7c94b` + ronda 1 `fa14c0558`, `c5edc22d9`) |
-| F3 | Cantidad, estado y presentación (reconstitución) explícitos | hecho en el resolutor (fracciones, envases, reconstitución, estado y forma por defecto, preguntas materiales); los chips nuevos en la tarjeta quedan pendientes |
+| F3 | Cantidad, estado y presentación (reconstitución) explícitos | hecho en el resolutor (fracciones, envases, reconstitución, estado y forma por defecto, preguntas materiales) y en la fila del alimento: chips de estado y forma (N50) |
 | F5 | Integración, rendimiento, teléfono, fuentes y licencias | hecho: adaptador con la misma compuerta (`c5348ee10`), Fuentes y licencias, assets; la QA en el emulador encontró que el paquete no se publicaba en el dispositivo (arreglado, N33); QA en el Flip5 con arreglos N35–N44; desde el 28-oct v2 es el sistema, sin interruptor (N45), y «Buscar» usa v2 y el paquete (N46–N48, sin compilar todavía) |
 
 ## Decisiones

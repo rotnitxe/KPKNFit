@@ -510,4 +510,49 @@ class ResolverV2Test {
         assertEquals("r_arroz_crudo", m.recordId)
         assertEquals(250.0, m.grams!!, 1e-9)
     }
+
+    // ─── Ronda N49: fracción de pieza por tamaño y snack de bolsa ──────────────────────────────
+
+    private fun plainConcept(
+        id: String,
+        unit: CountUnitV2? = null,
+        portions: List<ConceptPortionV2> = emptyList(),
+        defaultGrams: Double = 100.0,
+    ) = ConceptV2(
+        id = id, name = id, kind = ConceptKindV2.FOOD, category = "TEST", aliasesEs = emptyList(), aliasesEn = emptyList(),
+        typos = emptyList(), defaultState = null, defaultForm = FoodFormV2.NA, variants = emptyList(),
+        countable = unit != null, unit = unit, portions = portions, defaultGrams = defaultGrams, densityGPerMl = null,
+        reconstitution = null, components = null,
+    )
+
+    @Test fun fractionOfAWholeItemFollowsTheSize() {
+        val pie = plainConcept(
+            "tarta_t",
+            unit = CountUnitV2(listOf("trozo", "porcion"), mapOf(SizeV2.S to 90.0, SizeV2.M to 110.0, SizeV2.L to 135.0)),
+            portions = listOf(
+                ConceptPortionV2("trozo", 110.0), ConceptPortionV2("tarta individual", 330.0),
+                ConceptPortionV2("tarta mediana", 770.0), ConceptPortionV2("tarta familiar", 1100.0),
+            ),
+        )
+        val r = ResolverV2(ConceptCatalogV2("t", listOf(pie), emptyMap()))
+        // Sin tamaño: la mediana. «Familiar» o «grande»: la mayor. «Chica»: la individual.
+        assertGrams(192.5, draft("tarta_t", quantity = QuantityV2.Count(0.25)), r)
+        assertGrams(275.0, draft("tarta_t", quantity = QuantityV2.Count(0.25, SizeV2.L)), r)
+        assertGrams(82.5, draft("tarta_t", quantity = QuantityV2.Count(0.25, SizeV2.S)), r)
+        assertGrams(385.0, draft("tarta_t", quantity = QuantityV2.Count(0.5, SizeV2.M)), r)
+        // Un conteo entero sigue siendo trozos.
+        assertGrams(180.0, draft("tarta_t", quantity = QuantityV2.Count(2.0, SizeV2.S)), r)
+    }
+
+    @Test fun aPackOfFriesIsTheBaggedSnack() {
+        val homemade = plainConcept("papas_fritas_caseras", portions = listOf(ConceptPortionV2("paquete", 150.0)), defaultGrams = 150.0)
+        val bagged = plainConcept("papas_fritas_bolsa", portions = listOf(ConceptPortionV2("paquete", 150.0)), defaultGrams = 30.0)
+        val r = ResolverV2(ConceptCatalogV2("t", listOf(homemade, bagged), emptyMap()))
+        assertEquals("papas_fritas_bolsa", one(draft("papas_fritas_caseras", quantity = QuantityV2.Container(0.5, "paquete")), r).conceptId)
+        assertEquals("papas_fritas_caseras", one(draft("papas_fritas_caseras", quantity = QuantityV2.Household(1.0, "plato")), r).conceptId)
+        assertEquals("papas_fritas_caseras", one(draft("papas_fritas_caseras"), r).conceptId)
+        // Sin el hermano envasado en el catálogo no se cambia nada.
+        val alone = ResolverV2(ConceptCatalogV2("t", listOf(homemade), emptyMap()))
+        assertEquals("papas_fritas_caseras", one(draft("papas_fritas_caseras", quantity = QuantityV2.Container(0.5, "paquete")), alone).conceptId)
+    }
 }

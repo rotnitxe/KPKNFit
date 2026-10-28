@@ -13,13 +13,25 @@ import kotlin.math.abs
  */
 class ResolverV2(private val catalog: ConceptCatalogV2) {
 
-    fun resolve(text: String, drafts: List<MentionDraftV2>): List<MentionV2> {
+    fun resolve(text: String, rawDrafts: List<MentionDraftV2>): List<MentionV2> {
+        val drafts = rawDrafts.map { packagedSibling(it) }
         val resolved = drafts.map { resolveOne(text, it) }
         // «un plato de X con Y»: la medida del plato es de TODO lo que lleva; lo «colgado» sin cantidad sale de ella.
         return resolved.mapIndexed { i, m ->
             val plate = plateGrams(m, drafts, resolved, i)
             if (plate == null) m else resolveOne(text, drafts[i], plate)
         }
+    }
+
+    /**
+     * «medio paquete de papas fritas» es el snack de bolsa, no las papas fritas de plato: si la medida es un envase que el
+     * concepto del texto no vende y su hermano envasado sí (tabla [PACKAGED_SIBLING]), la mención pasa al hermano.
+     */
+    private fun packagedSibling(draft: MentionDraftV2): MentionDraftV2 {
+        val container = draft.quantity as? QuantityV2.Container ?: return draft
+        val id = draft.conceptIds.firstOrNull() ?: return draft
+        val sibling = PACKAGED_SIBLING[id to normalize(container.label)] ?: return draft
+        return if (catalog.concept(sibling) == null) draft else draft.copy(conceptIds = listOf(sibling) + draft.conceptIds.drop(1))
     }
 
     /** Gramos del plato menos lo que le cuelga sin cantidad; null si la mención no es una medida de plato con compañía. */
@@ -305,7 +317,7 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
     private fun countGrams(concept: ConceptV2, n: Double, size: SizeV2?, flags: Flags): Double {
         if (n > 0.0 && n < 1.0) {
             // Fracción de la pieza entera cuando la unidad del concepto es una porción de ella («un cuarto de pizza»).
-            wholeItemGrams(concept)?.let {
+            wholeItemGrams(concept, size)?.let {
                 flags.assumedWhole = true
                 return n * it
             }
@@ -323,15 +335,20 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
 
     /**
      * Peso de la pieza entera cuando la unidad del concepto es una porción de ella (trozo, porción, pedazo): la mediana de
-     * las porciones del concepto que pesan al menos [WHOLE_MIN_RATIO] veces la unidad. Null si no hay tal porción.
+     * las porciones del concepto que pesan al menos [WHOLE_MIN_RATIO] veces la unidad. Con [size] dicho, la más chica
+     * («pizza chica», la individual) o la más grande («pizza grande» o «familiar»); mediana si no. Null si no hay tal porción.
      */
-    private fun wholeItemGrams(concept: ConceptV2): Double? {
+    private fun wholeItemGrams(concept: ConceptV2, size: SizeV2? = null): Double? {
         val unit = concept.unit ?: return null
         val names = unit.names.map { normalize(it) }
         if (names.none { it in SLICE_UNIT_NAMES } || "unidad" in names) return null
         val unitM = unit.grams[SizeV2.M] ?: return null
         val whole = concept.portions.map { it.grams }.filter { it >= WHOLE_MIN_RATIO * unitM }.sorted()
-        return whole.getOrNull((whole.size - 1) / 2)
+        return when (size) {
+            SizeV2.S -> whole.firstOrNull()
+            SizeV2.L -> whole.lastOrNull()
+            else -> whole.getOrNull((whole.size - 1) / 2)
+        }
     }
 
     private fun householdGrams(
@@ -587,6 +604,9 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         const val PLATE_MIN_SHARE = 0.5
 
         val COUNT_LABELS = listOf("unidad", "pieza", "trozo", "porcion")
+
+        /** (concepto del plato, envase) → concepto del producto envasado: «paquete de papas fritas» son papas de bolsa. */
+        val PACKAGED_SIBLING = mapOf(("papas_fritas_caseras" to "paquete") to "papas_fritas_bolsa")
         val SMALL_PORTION_LABELS = setOf("cucharada", "rebanada", "lamina", "porcion")
 
         val DRINK_HOUSEHOLD_ML = mapOf("taza" to 240.0, "vaso" to 200.0, "copa" to 150.0)

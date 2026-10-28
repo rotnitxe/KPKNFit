@@ -173,24 +173,38 @@ mañana y después el de los arreglos. Las decisiones están en
 
 ## Lo que queda pendiente o flojo
 
-1. **Compilar y probar N45–N48:** se escribieron sin Gradle, como pediste. Falta compilar, correr
-   `ConceptSearchV2Test`, `LoggerSearchV2Test` y `CatalogRecordLinkTest`, y repetir en el Flip5 «Buscar» («palta»,
-   «marraqueta», «huevos», «arroz», «leche en polvo»), una estrella de favorito y una corrección de tarjeta.
-2. **Botón «Usar lo estimado en todo»:** v2 ya es el sistema (N45) y sigue pidiendo 1,67 confirmaciones por comida.
-   Recomendé ese botón junto con activar v2, y todavía no está hecho.
-3. **Chips de estado y forma en la tarjeta** (parte visual de F3): la pregunta llega como las tarjetas de aclaración
-   de hoy, sin chips nuevos.
-4. **Micronutrientes tras editar:** resuelto con N47. Un alimento de CIQUAL o un plato `kpkn_` corregido conserva el
-   enlace a su ficha y guarda la instantánea completa (sin compilar todavía).
+Actualizado el 28-oct por la tarde: lo pendiente se cerró en N49–N53 (`DECISIONES_NOCHE.md`, sección «Tarde del 28-oct
+(3)»).
+
+1. **N45–N48 compilados y probados:** compila, y pasan 14 clases Android (119 pruebas) y 270 pruebas v2 en JVM, todas
+   en verde. **Falta repetirlo en el Flip5**: «Buscar» («palta», «marraqueta», «huevos», «arroz», «leche en polvo»), una
+   estrella de favorito, una corrección de tarjeta, los chips de estado y forma y «Usar lo estimado en todo». La
+   depuración inalámbrica no estaba activa.
+2. **«Usar lo estimado en todo»:** hecho (N52).
+3. **Chips de estado y forma en la tarjeta:** hechos (N50).
+4. **Micronutrientes tras editar:** resuelto con N47, ya compilado y probado.
 5. **Vocabulario:** la meta del plan era 8.000 conceptos y 40.000 alias; quedaron 1.652 y 22.425 (N5: conceptos
    completos antes que alias sueltos). La cola larga se encuentra por el buscador de siempre.
-6. **Familias que aún fallan:** fracciones y tamaños de pizza, «la mitad del tarro», números con faltas («3 pedasos»),
-   el número después del sustantivo, papas fritas de bolsa frente a las de plato, «un tinto» colombiano (café) y
-   correcciones encadenadas (F12, 37,5 %).
-7. v2 omite 29 de 1.299 menciones en TEST (master 8): a veces junta dos alimentos en uno.
-8. **Latencia:** en el Flip5, la primera interpretación tarda 0,36–0,41 s, y de eso la etapa de análisis se lleva
-   250–290 ms. El plan pedía ≤ 150 ms (p95) para análisis y resolución. Falta medir en caliente y separar lo que
-   tarda el intérprete actual, que sigue corriendo antes de v2, de lo que tarda v2.
+6. **Familias:** N49 arregló, medido en DEV (M3 55,6 → 57,0 %, M4 18,8 → 18,3 %):
+   - el número después del sustantivo y la cantidad dicha tras una coma («3 pedasos»);
+   - «la mitad del tarro»;
+   - las correcciones con un «no» suelto;
+   - «un tinto» colombiano;
+   - las pizzas por tamaño;
+   - las papas fritas de bolsa.
+
+   Lo que sigue fallando necesita datos del vocabulario:
+   - alias que faltan («tacos de pastor», «un as», «cheese roll»);
+   - faltas sin alias («hamon», «quezo»);
+   - platos por variante («pizza de champiñón», «completo con todo»);
+   - envases sin unidad («una botella de 500»);
+   - porciones por tamaño de pizza y de pastel de choclo.
+7. v2 omite 29 de 1.299 menciones en TEST (master 8): a veces junta dos alimentos en uno. En DEV quedan 5 de 852.
+8. **Latencia:** v2 ya no espera al intérprete anterior (N51).
+   - En JVM caliente, v2 tarda 0,27 ms en el p95.
+   - El intérprete anterior, que antes corría siempre, tardaba 12,4 ms en el p95.
+   - «Buscar» tarda 3,4 ms por consulta en el p95 (N53).
+   - Falta medir en el Flip5 la primera interpretación tras abrir la app (antes 0,36–0,41 s).
 9. **Fuera de esta ola, ya resuelto:** las 5 pruebas que estaban en rojo en master desde antes de esta ola las arregló
    otra sesión el 28-oct (`0ecc980b0`, `9a7a25650` y `bf4dca903`). La restauración de copias la arreglé yo (N34):
    con Room 37 estaba rota para toda copia nueva.

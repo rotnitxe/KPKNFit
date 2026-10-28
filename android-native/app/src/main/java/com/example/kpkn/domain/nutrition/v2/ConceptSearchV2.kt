@@ -21,7 +21,7 @@ data class ConceptHitV2(
  */
 class ConceptSearchV2(val catalog: ConceptCatalogV2) {
     /** Una frase buscable de un concepto; [kind]: 0 = nombre, 1 = alias en español, 2 = alias en inglés, 3 = falta típica. */
-    private class Entry(val concept: ConceptV2, val phrase: String, val tokens: List<String>, val kind: Int)
+    private class Entry(val concept: ConceptV2, val phrase: String, val tokens: List<String>, val stems: List<String>, val kind: Int)
 
     /** La mejor frase de un concepto para una consulta. */
     private class Best(val entry: Entry, val level: Int)
@@ -63,7 +63,7 @@ class ConceptSearchV2(val catalog: ConceptCatalogV2) {
             fun add(phrase: String, kind: Int) {
                 val tokens = searchTokens(phrase)
                 if (tokens.isEmpty() || !seen.add(tokens)) return
-                out.add(Entry(concept, phrase, tokens, kind))
+                out.add(Entry(concept, phrase, tokens, tokens.map(FoodSearchRanker::stem), kind))
             }
             add(concept.name, 0)
             concept.aliasesEs.forEach { add(it, 1) }
@@ -76,10 +76,11 @@ class ConceptSearchV2(val catalog: ConceptCatalogV2) {
     fun search(query: String, limit: Int = DEFAULT_LIMIT): List<ConceptHitV2> {
         val q = searchTokens(query)
         if (q.isEmpty() || limit <= 0) return emptyList()
+        val qs = q.map(FoodSearchRanker::stem)
 
         val bestByConcept = LinkedHashMap<String, Best>()
         for (entry in index) {
-            val level = matchLevel(q, entry.tokens) ?: continue
+            val level = matchLevel(q, qs, entry.tokens, entry.stems) ?: continue
             val candidate = Best(entry, level)
             val current = bestByConcept[entry.concept.id]
             if (current == null || entryOrder.compare(candidate, current) < 0) bestByConcept[entry.concept.id] = candidate
@@ -140,21 +141,23 @@ class ConceptSearchV2(val catalog: ConceptCatalogV2) {
             NormalizerV2.tokenize(text).filter { it.isWord || it.isNumber }.map { it.norm }
 
         /** Nivel de coincidencia de [query] con [alias] (ver [ConceptHitV2.level]); null si no coincide. */
-        fun matchLevel(query: List<String>, alias: List<String>): Int? {
+        fun matchLevel(query: List<String>, alias: List<String>): Int? =
+            matchLevel(query, query.map(FoodSearchRanker::stem), alias, alias.map(FoodSearchRanker::stem))
+
+        /** Lo mismo que [matchLevel] con las raíces ([FoodSearchRanker.stem]) de [query] y [alias] ya calculadas, en el mismo orden. */
+        private fun matchLevel(query: List<String>, queryStems: List<String>, alias: List<String>, aliasStems: List<String>): Int? {
             if (query.isEmpty() || alias.isEmpty()) return null
-            if (query.size == alias.size && query.indices.all { same(query[it], alias[it]) }) return 0
+            fun same(i: Int, j: Int): Boolean = query[i] == alias[j] || queryStems[i] == aliasStems[j]
+            fun starts(i: Int, j: Int): Boolean = same(i, j) || alias[j].startsWith(query[i])
+            if (query.size == alias.size && query.indices.all { same(it, it) }) return 0
             if (query.size <= alias.size &&
-                (0 until query.size - 1).all { same(query[it], alias[it]) } &&
-                starts(query.last(), alias[query.size - 1])
+                (0 until query.size - 1).all { same(it, it) } &&
+                starts(query.size - 1, query.size - 1)
             ) {
                 return 1
             }
-            if (query.all { word -> alias.any { starts(word, it) } }) return 2
+            if (query.indices.all { i -> alias.indices.any { j -> starts(i, j) } }) return 2
             return null
         }
-
-        private fun same(x: String, y: String): Boolean = x == y || FoodSearchRanker.stem(x) == FoodSearchRanker.stem(y)
-
-        private fun starts(x: String, y: String): Boolean = same(x, y) || y.startsWith(x)
     }
 }
