@@ -33,14 +33,13 @@ import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramCalendarEngine
-import com.example.kpkn.domain.training.ScheduleIssue
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.WeekWithMeta
 import com.example.kpkn.screens.programdetail.design.AgendaRow
 import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
-import com.example.kpkn.screens.programdetail.design.ProgramDayDateDialog
+import com.example.kpkn.screens.programdetail.design.ProgramDayDateSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDayModule
 import com.example.kpkn.screens.programdetail.design.ProgramDayUi
 import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
@@ -50,7 +49,10 @@ import com.example.kpkn.screens.programdetail.design.ProgramRestoreSessionDialog
 import com.example.kpkn.screens.programdetail.design.ProgramSessionDragCard
 import com.example.kpkn.screens.programdetail.design.ProgramSessionUi
 import com.example.kpkn.screens.programdetail.design.ProgramStartDayDialog
+import com.example.kpkn.screens.programdetail.design.ScheduleCopy
 import com.example.kpkn.screens.programdetail.design.agendaRows
+import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
+import com.example.kpkn.screens.programdetail.design.scheduleCopy
 import com.example.kpkn.screens.programdetail.design.sessionFocus
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -170,7 +172,7 @@ fun DayView(
     val dayBounds = remember { mutableStateMapOf<Int, Rect>() }
     var rootBounds by remember { mutableStateOf<Rect?>(null) }
     var pendingStartDay by remember { mutableStateOf<Int?>(null) }
-    var pendingOffScheduleSession by remember { mutableStateOf<Pair<Session, String>?>(null) }
+    var pendingOffScheduleSession by remember { mutableStateOf<Pair<Session, ScheduleCopy>?>(null) }
     var editingDayDate by remember { mutableStateOf<Pair<Int, String>?>(null) }
     var startDayScope by remember { mutableStateOf(StartDayTemporalScope.ALL_WEEKS) }
     var startDaySessionMode by remember { mutableStateOf(StartDaySessionMode.KEEP_DAYS) }
@@ -266,13 +268,13 @@ fun DayView(
     }
 
     fun startSession(session: Session, isOutsideProgram: Boolean, scheduledDate: String?) {
-        val issue = ProgramCalendarEngine.scheduleIssueFor(
-            program = program,
-            weekId = selectedWeekId,
-            session = session,
-        )?.let { scheduleIssueMessage(it) }
-            ?: calendarStartWarning(isOutsideProgram, scheduledDate)
-        if (issue != null) pendingOffScheduleSession = session to issue
+        val copy = scheduleCopy(
+            issue = ProgramCalendarEngine.scheduleIssueFor(program = program, weekId = selectedWeekId, session = session),
+            isOutsideProgram = isOutsideProgram,
+            scheduledDate = scheduledDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+            today = LocalDate.now(),
+        )
+        if (copy != null) pendingOffScheduleSession = session to copy
         else onStartWorkout(session)
     }
 
@@ -517,9 +519,10 @@ fun DayView(
         }
     }
 
-    pendingOffScheduleSession?.let { (session, message) ->
+    pendingOffScheduleSession?.let { (session, copy) ->
         ProgramOffScheduleDialog(
-            message = message,
+            title = copy.title,
+            message = copy.message,
             onConfirm = {
                 pendingOffScheduleSession = null
                 onStartWorkout(session)
@@ -539,14 +542,12 @@ fun DayView(
     }
 
     editingDayDate?.let { (dayId, currentIso) ->
-        var draft by remember(dayId, currentIso) { mutableStateOf(currentIso) }
-        ProgramDayDateDialog(
-            draft = draft,
-            onDraftChange = { draft = it },
-            onSave = {
-                selectedWeekId?.let { weekId ->
-                    onUpdateTrainingDayDate(weekId, dayId, draft.trim().ifBlank { null })
-                }
+        ProgramDayDateSheet(
+            title = dayDateSheetTitle(days.firstOrNull { it.id == dayId }?.name ?: "día"),
+            selected = runCatching { LocalDate.parse(currentIso) }.getOrNull(),
+            today = LocalDate.now(),
+            onSave = { date ->
+                selectedWeekId?.let { weekId -> onUpdateTrainingDayDate(weekId, dayId, date?.toString()) }
                 editingDayDate = null
             },
             onDismiss = { editingDayDate = null },
@@ -559,27 +560,6 @@ private fun dayNumberOf(raw: String): String? = try {
     LocalDate.parse(raw).dayOfMonth.toString()
 } catch (_: DateTimeParseException) {
     null
-}
-
-private fun scheduleIssueMessage(issue: ScheduleIssue): String = when (issue) {
-    is ScheduleIssue.WrongDate ->
-        "Esta sesión está planificada para ${issue.plannedDate}. Hoy es ${issue.actualDate}. Puedes continuar; KPKN registrará la desviación."
-    is ScheduleIssue.OutsideProgram ->
-        "Hoy (${issue.actualDate}) está fuera del rango del programa (${issue.startDate} → ${issue.endDate})."
-    is ScheduleIssue.OutsideProgramDay ->
-        "Hoy (${issue.actualDate}) no es un día de entrenamiento del plan calendarizado."
-}
-
-private fun calendarStartWarning(isOutsideProgram: Boolean, scheduledDate: String?): String? {
-    if (isOutsideProgram) return "Este día está fuera del programa calendarizado. Entrenar aquí se registrará como desviación del plan."
-    val scheduled = try {
-        scheduledDate?.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
-    } catch (_: DateTimeParseException) {
-        null
-    } ?: return null
-    val today = LocalDate.now()
-    if (scheduled == today) return null
-    return "Esta sesión corresponde al ${scheduled}. Hoy es ${today}. Puedes entrenar igual, pero KPKN guardará la diferencia de calendario."
 }
 
 /** La tarjeta que se levanta al arrastrar una sesión: su nombre y su resumen, con sombra suave. */
