@@ -25,7 +25,8 @@ class InactivityDetectorTest {
         assertEquals(1,one.level)
         assertEquals(2,two.level)
         assertEquals(21,two.daysSinceLastLog)
-        assertEquals("Llevas 21 días sin entrenar: te recomendamos repetir la semana con una vuelta suave antes de seguir.",two.message)
+        assertEquals("Último registro de este programa hace 21 días. Esto no indica si entrenaste fuera de KPKN. Tras tanto tiempo, te recomendamos repetir la semana con una vuelta suave antes de seguir.",two.message)
+        assertTrue("el nivel 2 tampoco afirma que no entrenaste",two.message.contains("no indica si entrenaste"))
         assertNotEquals(one.message,two.message)
         assertTrue(one.message.contains("15 días"))
     }
