@@ -141,3 +141,11 @@ al importar deja el programa guardado sin activar; «Desde cero» solo pasa por 
 plantilla ya no activa. Pendiente fuera de zona: comentario de PlanGoalMatcher.kt que nombra la hoja vieja.
 Lanzados R-M (vitaminas; entrega NutrientFootprint para los huecos de R-FS) y R-H (historias; entrega
 CompetitionStoryShareSheet para el onShare de R-C) desde 7340c4e1c. Disco: 244 GB libres.
+
+### Ola 1 — PB Progreso (fusionado, de63aca2b; código 8fcb097d6)
+Compila en su rama; 10 clases / 58 pruebas en verde. Orden: alcance → resumen → Fuerza · e1RM → series duras → trabajo
+acumulado → series por músculo → cumplimiento → esfuerzo → molestias → decisiones → resúmenes mensuales (citados por el
+lienzo). Módulo sin datos no se pinta; g-empty solo resumen y fuerza. Volumen sigue los chips (sale el selector propio),
+indirectas ½ fijas, 9 músculos del lienzo siempre. «Calibrar» → «Revisar mis respuestas». No hecho: ejercicios por rol (no
+existen: los 5 con más sesiones), franja de rangos solo con perfil calibrado, «Semana 5» en chips, artículo en la frase.
+Limpieza: VM programDiscomforts, exerciseDiscomfortAssociations, calibrationAnswers sin uso (tras PD).
