@@ -52,7 +52,7 @@ class ProtocolRecipeFidelityTest {
         val offSeason = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.offSeason20()
         assertEquals(firstAccessory(offSeason,1,0) + 1,firstAccessory(offSeason,9,0))
         assertEquals(firstAccessory(offSeason,1,2) + 1,firstAccessory(offSeason,13,2))
-        assertEquals(3,offSeason.contentVersion)
+        assertEquals(4,offSeason.contentVersion)
         assertEquals(2,com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.hypertrophyUl12().contentVersion)
     }
 
@@ -100,6 +100,91 @@ class ProtocolRecipeFidelityTest {
         unavailable.forEach { println("[F-16] no materializa · $it") }
         assertTrue("no se materializó ninguna receta", materialized > 0)
         assertEquals("Apariciones repetidas sin identidad propia (${failures.size}):\n${failures.take(40).joinToString("\n")}", emptyList<String>(), failures)
+    }
+
+    // ─── F-31 · relleno de KPKN: como mucho 2 días por semana ───────────────────────────────
+
+    /** Las recetas publicadas: protocolos visibles, plantillas con receta y las autoradas. */
+    private fun f31Recipes(): List<TrainingPlanRecipe> =
+        visible().mapNotNull { it.recipe } + PROGRAM_TEMPLATES.mapNotNull { it.recipe } + AuthoredPhulPhatRecipes.all
+
+    @Test
+    fun every_recipe_respects_the_filler_cap() {
+        val offenders = f31Recipes().flatMap { recipe ->
+            RecipeContractPolicy.evaluate(recipe, metadata)
+                .filter { it.rule == RecipeContractPolicy.C12_FILLER_REPEAT }
+                .map { "${recipe.id} · ${it.scope} · ${it.message}" }
+        }
+        assertEquals("Relleno de KPKN en más de 2 días por semana (${offenders.size}):\n${offenders.take(40).joinToString("\n")}", emptyList<String>(), offenders)
+    }
+
+    @Test
+    fun a_rotated_filler_never_shares_configuration_or_definition_with_another_exercise_of_its_day() {
+        val failures = ArrayList<String>()
+        f31Recipes().forEach { recipe ->
+            recipe.weeks.forEach { week ->
+                week.days.forEach { day ->
+                    day.slots.filter { it.role == SlotRole.T3_ACCESSORY && it.source == SlotSource.KPKN_DEFAULT }.forEach { filler ->
+                        val definition = filler.lift.configurationId.substringBefore("__")
+                        day.slots.filter { it !== filler && it.supplementalOf == null && filler.supplementalOf == null }.forEach { other ->
+                            val sameConfiguration = other.lift.configurationId == filler.lift.configurationId
+                            val sameDefinition = other.lift.configurationId.substringBefore("__") == definition
+                            if ((sameConfiguration || sameDefinition) && other.occurrenceLabel == null && filler.occurrenceLabel == null) {
+                                failures += "${recipe.id} · w${week.weekNumber} · ${day.label} · ${filler.id} (${filler.lift.configurationId}) repite ${other.id} (${other.lift.configurationId})"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals("Relleno que repite ejercicio en su día (${failures.size}):\n${failures.take(40).joinToString("\n")}", emptyList<String>(), failures)
+    }
+
+    @Test
+    fun rotate_kpkn_fillers_moves_the_third_appearance_to_the_first_valid_alternative_and_keeps_sets_and_ids() {
+        fun filler(configuration: String, source: SlotSource = SlotSource.KPKN_DEFAULT) =
+            slot("core", SlotRole.T3_ACCESSORY, configuration, rpeSets(3, 10, 8.0), 60, source = source)
+        fun main(id: String) = slot("t1", SlotRole.T1_MAIN, id, rpeSets(3, 5, 8.0), 180)
+        // Cuatro días con Pallof; el 3.º ya trae la rueda (autor), así que la primera alternativa válida es la plancha.
+        val week = weekRecipe(
+            1, 0, "Bloque", BlockGoal.ACCUMULATION,
+            listOf(
+                day("A", listOf(main(CatalogIds.BP), filler(CatalogIds.PALLOF)), weekday = 1),
+                day("B", listOf(main(CatalogIds.SQ_LOW), filler(CatalogIds.PALLOF)), weekday = 2),
+                day("C", listOf(main(CatalogIds.DL), filler(CatalogIds.PALLOF), filler(CatalogIds.WHEEL, SlotSource.AUTHOR).copy(id = "wheel")), weekday = 4),
+                day("D", listOf(main(CatalogIds.OHP), filler(CatalogIds.PALLOF)), weekday = 5),
+            ),
+        )
+        val rotated = listOf(week).rotateKpknFillers().single()
+        fun fillerOf(index: Int) = rotated.days[index].slots.first { it.id == "core" }
+        assertEquals(CatalogIds.PALLOF, fillerOf(0).lift.configurationId)
+        assertEquals(CatalogIds.PALLOF, fillerOf(1).lift.configurationId)
+        assertEquals("el día C ya tiene la rueda del autor", CatalogIds.PLANCHA, fillerOf(2).lift.configurationId)
+        assertEquals("el día D toma la rueda, que aún no llegó a 2 días de relleno", CatalogIds.WHEEL, fillerOf(3).lift.configurationId)
+        assertEquals(week.days[2].slots.first { it.id == "core" }.sets, fillerOf(2).sets)
+        assertEquals(week.days[2].slots.first { it.id == "core" }.restSeconds, fillerOf(2).restSeconds)
+        assertEquals(week.days.map { d -> d.slots.map { it.id } }, rotated.days.map { d -> d.slots.map { it.id } })
+        val contract = RecipeContractPolicy.evaluate(
+            TrainingPlanRecipe(id = "synthetic", weeks = listOf(rotated), trainingMaxPercent = 0.90, claimedDaysPerWeek = 4),
+            metadata,
+        )
+        assertTrue(contract.none { it.rule == RecipeContractPolicy.C12_FILLER_REPEAT })
+    }
+
+    @Test
+    fun rotate_kpkn_fillers_leaves_a_week_alone_when_no_filler_exceeds_two_days_or_there_is_no_alternative() {
+        fun filler(configuration: String) = slot("acc", SlotRole.T3_ACCESSORY, configuration, rpeSets(3, 10, 8.0), 60, source = SlotSource.KPKN_DEFAULT)
+        val twoDays = weekRecipe(
+            1, 0, "Bloque", BlockGoal.ACCUMULATION,
+            listOf(day("A", listOf(filler(CatalogIds.PALLOF)), weekday = 1), day("B", listOf(filler(CatalogIds.PALLOF)), weekday = 3)),
+        )
+        assertEquals(listOf(twoDays), listOf(twoDays).rotateKpknFillers())
+        // Sin alternativas declaradas para la configuración, la tercera aparición se queda (C12 la seguirá señalando).
+        val threeDays = weekRecipe(
+            1, 0, "Bloque", BlockGoal.ACCUMULATION,
+            listOf("A", "B", "C").mapIndexed { i, label -> day(label, listOf(filler(CatalogIds.PALLOF)), weekday = i + 1) },
+        )
+        assertEquals(listOf(threeDays), listOf(threeDays).rotateKpknFillers(emptyMap()))
     }
 
     companion object {
@@ -1463,7 +1548,7 @@ class ProtocolRecipeFidelityTest {
         assertEquals("Sentadilla técnica ligera", lightSaturday.label)
         assertTrue(workSets(lightSaturday.slots.first { it.id == "sq" }).all { it.percent == 60.0 && it.reps == 3 })
         assertEquals("power-16-4", 4, templateRecipe("power-16-4").contentVersion)
-        assertEquals("power-20-5", 4, templateRecipe("power-20-5").contentVersion)
+        assertEquals("power-20-5", 5, templateRecipe("power-20-5").contentVersion)
     }
 
     @Test
@@ -1527,29 +1612,33 @@ class ProtocolRecipeFidelityTest {
         // CAL5: 5/3/1 (reinicio), nSuns (press militar con su 1+), Juggernaut (reps sobre el estándar), GZCLP (etapas), Cube y Lilliebridge (AMRAP de
         // registro explícito) pasan a la versión 3, The Rippler a la 2 y las tres plantillas `power-*` a la 3 (AMRAP calibrador).
         val bumped = listOf(
-            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
-            "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "gzcl-jt-2", "westside-conjugate", "korte-3x3",
+            "madcow-5x5", "texas-method-3d", "kpkn-native-sbd-4",
+            "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6",
+            "tsa-9",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "lilliebridge", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
-            // F-15: la segunda tanda de Sheiko lleva rótulo propio.
-            "sheiko-29-32",
+            "nsuns-531-lp-4d", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
+            // F-31: el relleno de KPKN rota a partir del tercer día de la semana (C12) y estas recetas pasan de la versión 2 a la 3.
+            "texas-method-4d", "gzcl-uhf-9", "gzcl-jt-2", "gzcl-rippler", "smolov", "smolov-jr", "westside-conjugate", "korte-3x3",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
+        // F-31: Lilliebridge, GZCLP, Juggernaut y Sheiko (la segunda tanda lleva rótulo propio desde F-15) pasan de la versión 3 a la 4.
+        listOf("lilliebridge", "gzclp", "juggernaut-2", "sheiko-29-32").forEach { id -> assertEquals("$id: contentVersion", 4, recipeOf(id).contentVersion) }
         // F-15: el volumen BBB y la serie FSL de 5/3/1 llevan rótulo propio (v4); la velocidad de Coan y PHAT también (v2).
         listOf("wendler-531-bbb", "wendler-531-fsl").forEach { id -> assertEquals("$id: contentVersion", 4, recipeOf(id).contentVersion) }
         listOf("coan-phillipi-dl", "phat-verified").forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
-        assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
         listOf("phul-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
             val expected = when {
                 // F-14: power-16-4 y power-20-5 cambian de contenido (banca de competición, bisagras repartidas, semana de test ligera).
-                it.id in setOf("power-12-3", "power-16-4", "power-20-5") -> 4
-                it.id.startsWith("power-") || it.id in setOf("powerbuild-16-4","body-16-4","body-20-5") -> 3
+                it.id in setOf("power-12-3", "power-16-4") -> 4
+                // F-31: el relleno de KPKN rota a partir del tercer día (power-20-5 pasa a 5, body-20-5 a 4).
+                it.id == "power-20-5" -> 5
+                it.id == "body-20-5" -> 4
+                it.id.startsWith("power-") || it.id in setOf("powerbuild-16-4","body-16-4") -> 3
                 else -> 2
             }
             assertEquals("${it.id}: contentVersion",expected,it.contentVersion)

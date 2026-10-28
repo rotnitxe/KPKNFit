@@ -24,6 +24,7 @@ import com.example.kpkn.data.protocols.amrapAsRecord
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.dropT3
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.withMinRir
 import com.example.kpkn.data.protocols.asKpknSuggested
 import com.example.kpkn.data.protocols.rangeRirSets
@@ -87,7 +88,7 @@ object ClassicPlProtocols {
             blocks = listOf(ProtocolBlock("Fase I", 4, "Acumulación", 58, 64, 1.4), ProtocolBlock("Fase II", 4, "Intensificación", 60, 95, 0.7)),
             defaultSplit = "korte_3x3", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Korte 3x3", "https://www.powerliftingtowin.com/korte-3x3/", "Stephan Korte"),
-            recipe = TrainingPlanRecipe("korte-3x3", weeks, 1.0, sbdSlots(), ProgressionRule.None, exemptions, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2),
+            recipe = TrainingPlanRecipe("korte-3x3", weeks.rotateKpknFillers(), 1.0, sbdSlots(), ProgressionRule.None, exemptions, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 3),
             fidelitySpec = ProtocolFidelitySpec(8, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("fase1" to listOf(58.0))),
             exemptions = exemptions,
         )
@@ -310,7 +311,7 @@ object ClassicPlProtocols {
             ),
             // B.S4 (hallazgo): con `TopSetPr` el plan propondría +2,5 kg por cada semana pesada; Lilliebridge sube por semana según su
             // tabla de porcentajes, no por récord del top set, así que no lleva regla de subida (`None`).
-            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 3),
+            recipe = TrainingPlanRecipe("lilliebridge", weeks.rotateKpknFillers(), 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 4),
             fidelitySpec = ProtocolFidelitySpec(10, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w1_sq" to listOf(87.0))),
         )
     }
@@ -366,7 +367,7 @@ object ClassicPlProtocols {
             // L-14 (B.S6): `RepMaxAutoregulated` solo lee la serie al máximo del levantamiento de competición y los máximos de
             // Westside son variantes (cajón, buenos días, press con cadenas), que no cuentan: la regla nunca actuaba. Sin regla.
             recipe = TrainingPlanRecipe(
-                "westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+                "westside-conjugate", weeks.rotateKpknFillers(), 0.90, sbdSlots(), ProgressionRule.None,
                 // H-09 (B.S6 parte 2b): los tirones rápidos de peso muerto (`sdl`) cuelgan de la sentadilla rápida al cajón (`de`): son
                 // dos levantamientos de competición con su propio `liftSlot` en el mismo día. El enlace `supplementalOf` es anterior al
                 // contrato (la política exime de H2, H4, H5a y H7 a los slots colgados) y no se borra: C8 lo marca por ser de otro grupo de
@@ -378,7 +379,7 @@ object ClassicPlProtocols {
                         "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method",
                     ),
                 ),
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true, contentVersion = 2,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true, contentVersion = 3, // F-31: face pull de KPKN rotado
             ),
             fidelitySpec = ProtocolFidelitySpec(3, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
         )

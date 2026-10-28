@@ -279,8 +279,8 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; F-15 (identidad propia de las apariciones de autor) lo baja más. La ola 5 debe dejarlo en 0. */
-        const val CEILING = 1280
+        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; F-15 (identidad propia de las apariciones de autor) lo baja más; F-31 (relleno de KPKN rotado, FILLER_OVER_WEEKLY_CAP = 0) lo deja en 108 = INTERNAL_NAME del cardio nativo (F-48). La ola 5 debe dejarlo en 0. */
+        const val CEILING = 108
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40

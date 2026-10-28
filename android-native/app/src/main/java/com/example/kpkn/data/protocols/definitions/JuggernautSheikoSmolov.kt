@@ -23,6 +23,7 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.rangeRirSets
@@ -151,7 +152,7 @@ object JuggernautProtocol {
         }
         return TrainingPlanRecipe(
             id = "juggernaut-2",
-            weeks = weeks,
+            weeks = weeks.rotateKpknFillers(),
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // CAL5 (RES1 §5.2): Juggernaut no sube el TM un salto fijo por ola: el TM nuevo es TM + (reps del AMRAP de realización − estándar)
@@ -171,7 +172,8 @@ object JuggernautProtocol {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
-            contentVersion = 3,
+            // F-31: el relleno de KPKN (Pallof, GHR) rota a partir del tercer día (versión 4).
+            contentVersion = 4,
         )
     }
 
@@ -436,7 +438,7 @@ object RemainingVerifiedProtocols {
             "sheiko_3day",
             attributed("Sheiko programs #29-32", "https://www.powerliftingtowin.com/sheiko/", "Boris Sheiko"),
             TrainingPlanRecipe(
-                "sheiko-29-32", weeks, 1.0, sbdSlots(), ProgressionRule.None,
+                "sheiko-29-32", weeks.rotateKpknFillers(), 1.0, sbdSlots(), ProgressionRule.None,
                 // B.S6 parte 2b: C1 por slot (la banca de la sesión de sentadilla y banca con 9 y 10 series en #29 a #31, la sentadilla con 9 en
                 // la semana 5 a 7 y el peso muerto hasta la rodilla con 9 en la 5) y C5 (la 16 es la competición). Todo por diseño de la tabla.
                 exemptions = listOf(
@@ -461,7 +463,7 @@ object RemainingVerifiedProtocols {
                         SHEIKO_URL,
                     ),
                 ),
-                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 3,
+                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 4, // F-31: abdominal de KPKN rotado
             ),
             ProtocolFidelitySpec(
                 16, 3, requiresPercent = true, claimedLevel = "avanzado",
@@ -632,9 +634,9 @@ object RemainingVerifiedProtocols {
             "smolov_base",
             attributed("Smolov squat cycle", "https://www.powerliftingtowin.com/smolov/", "Sergey Smolov"),
             TrainingPlanRecipe(
-                "smolov", weeks, 1.0, mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
+                "smolov", weeks.rotateKpknFillers(), 1.0, mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
                 ProgressionRule.WeeklyKg(mapOf(4 to 10.0, 5 to 15.0)), exemptions,
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 2,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 3, // F-31: dorsal y face pull de KPKN rotados
             ),
             ProtocolFidelitySpec(
                 13, 4, requiresPercent = true, claimedLevel = "avanzado",
@@ -689,7 +691,7 @@ object RemainingVerifiedProtocols {
                         )
                     },
                 )
-            },
+            }.rotateKpknFillers(),
             trainingMaxPercent = 1.0,
             liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
             progression = ProgressionRule.WeeklyKg(mapOf(2 to 5.0, 3 to 10.0)),
@@ -698,7 +700,8 @@ object RemainingVerifiedProtocols {
             exemptions = smolovJrExemptions,
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
-            contentVersion = 2,
+            // F-31: dorsal y face pull de KPKN rotados a partir del tercer día (versión 3).
+            contentVersion = 3,
         ),
         fidelitySpec = ProtocolFidelitySpec(
             3, 4, requiresPercent = true, claimedLevel = "avanzado",
