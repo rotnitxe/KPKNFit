@@ -32,6 +32,7 @@ import com.example.kpkn.domain.training.periodization.Horizon
 import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.domain.training.periodization.RoutinePeriodizer
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -106,6 +107,9 @@ class ProgramSessionSlopAuditTest {
             "Violaciones de slop en sesiones: total $total > techo $CEILING (ver build/reports/session-slop/report.txt)",
             total <= CEILING,
         )
+        // F-48: ningún programa muestra nombres internos de ejercicio (el cardio sale con su rótulo en español).
+        val internalNames = audit.findings.filter { it.rule == SlopRule.INTERNAL_NAME.name }
+        assertEquals("Nombres internos visibles: ${internalNames.take(3)}", 0, internalNames.size)
     }
 
     /**
@@ -280,7 +284,7 @@ class ProgramSessionSlopAuditTest {
 
     private companion object {
         /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; F-15 (identidad propia de las apariciones de autor) lo baja más. La ola 5 debe dejarlo en 0. */
-        const val CEILING = 486
+        const val CEILING = 162
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40

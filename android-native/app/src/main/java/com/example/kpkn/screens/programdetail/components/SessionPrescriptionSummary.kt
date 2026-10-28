@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.programdetail.components
 
-import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -11,6 +10,7 @@ import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.resolveUnitModeV2
 import com.example.kpkn.data.models.toUnitModeV2
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.domain.training.CardioTypeLabels
 import com.example.kpkn.domain.training.NativeProgressionText
 import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -27,7 +27,7 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
         val minutes = cardio.effectiveDurationSeconds().takeIf { it > 0 }?.let { "${(it + 59) / 60} min" }
         val intensity = cardio.intensityLevel?.let { " · intensidad $it/10" }.orEmpty()
         val intervals = if (cardio.intervalBlocks.isNotEmpty()) " · intervalos ${cardio.intervalRounds}×" else ""
-        return listOfNotNull(cardioTypeLabel(cardio.type), minutes).joinToString(" · ") + intensity + intervals
+        return listOfNotNull(CardioTypeLabels.label(cardio.type), minutes).joinToString(" · ") + intensity + intervals
     }
 
     val sets = exercise.sets.filterNot { it.isEmptySlot }
@@ -154,19 +154,4 @@ private fun conventionLabel(convention: LoadQuantityConvention): String = when (
     LoadQuantityConvention.PER_IMPLEMENT -> " por implemento"
     LoadQuantityConvention.ADDITIONAL_BODYWEIGHT -> " de lastre"
     LoadQuantityConvention.ASSISTANCE -> " de asistencia"
-}
-
-private fun cardioTypeLabel(type: CardioType): String = when (type) {
-    CardioType.TREADMILL -> "Cinta"
-    CardioType.ELLIPTICAL -> "Elíptica"
-    CardioType.ROW_MACHINE -> "Remo"
-    CardioType.BIKE_STATIONARY -> "Bicicleta estática"
-    CardioType.RUN_OUTDOOR -> "Carrera exterior"
-    CardioType.BIKE_OUTDOOR -> "Ciclismo exterior"
-    CardioType.WALK -> "Caminata"
-    CardioType.STAIR_CLIMBER -> "Escaladora"
-    CardioType.AIR_BIKE -> "Air bike"
-    CardioType.SKI_ERG -> "SkiErg"
-    CardioType.CURVED_TREADMILL -> "Cinta curva"
-    CardioType.SLED -> "Trineo"
 }

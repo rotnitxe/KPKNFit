@@ -1019,7 +1019,7 @@ object PlanMaterializer {
             }
             Exercise(
                 id = stableExerciseId ?: idProvider.newId(),
-                name = block.details.type.name.lowercase().replace('_', ' '),
+                name = CardioTypeLabels.label(block.details.type),
                 cardioDetails = block.details,
                 recipeDayId = day.id,
                 recipeSlotId = block.id.takeIf { day.id != null },
