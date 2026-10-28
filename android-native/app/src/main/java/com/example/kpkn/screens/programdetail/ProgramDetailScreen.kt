@@ -151,6 +151,17 @@ import com.example.kpkn.screens.programdetail.design.progress.rangesOriginOf
 import com.example.kpkn.screens.programdetail.design.progress.ProgressSummaryModule
 import com.example.kpkn.screens.programdetail.design.progress.ProgressWorkModule
 import com.example.kpkn.screens.programdetail.design.progress.buildProgramProgress
+import com.example.kpkn.screens.programdetail.design.progress.ProgramAllLiftsSheet
+import com.example.kpkn.screens.programdetail.design.progress.ProgramLiftDetailSheet
+import com.example.kpkn.screens.programdetail.design.progress.ProgressAdherenceModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressDecisionsModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressDiscomfortModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressEffortModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressTotalsModule
+import com.example.kpkn.screens.programdetail.design.progress.RangesOrigin
+import com.example.kpkn.screens.programdetail.design.progress.progressDecisionRows
+import com.example.kpkn.screens.programdetail.design.progress.progressWeeksOf
+import com.example.kpkn.screens.progress.LocalExerciseProgressOpener
 import androidx.compose.ui.geometry.Rect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -240,13 +251,11 @@ fun ProgramDetailScreen(
         viewModel.consumePendingOpenProgram()
         onOpenProgram(id)
     }
-    var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
     // Semana copiada (para pegarla en otra): común a las pestañas, que AnimatedContent recrea al cambiar.
     val copiedWeekState = rememberSaveable(program?.id) { mutableStateOf<String?>(null) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
-    var showVolumeSheet by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
     // «Versiones guardadas» (⋯): la hoja de copias del programa, la misma que abre Estructura.
@@ -285,10 +294,6 @@ fun ProgramDetailScreen(
 
     val bundledCover = rememberProgramCover(programCoverEntryIdOf(p.coverImage), with(density) { 88.dp.roundToPx() })
 
-    // Token de la hoja de calibración del volumen: ningún aviso lo sube desde que la fila «Rangos» abre su hoja.
-    LaunchedEffect(openVolumeSheetToken) {
-        if (openVolumeSheetToken > 0) showVolumeSheet = true
-    }
     // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado (visto = el controlador no arranca).
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
@@ -605,24 +610,6 @@ fun ProgramDetailScreen(
         ) { KpknSnackbar(it) }
     }
 
-    if (showVolumeSheet) {
-        VolumeCalibrationSheet(
-            currentMode = p.mode,
-            onDismiss = { showVolumeSheet = false },
-            onSave = { result ->
-                viewModel.updateProgram(
-                    p.copy(
-                        mode = result.mode,
-                        volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                        athleteProfileScore = result.score,
-                        volumeRecommendations = result.recommendations,
-                    ),
-                )
-                viewModel.saveVolumeCalibrationOriginals(result)
-                showVolumeSheet = false
-            },
-        )
-    }
     if (showPlanSheet) {
         ProgramPlanSheet(
             summary = planSummary,
@@ -819,9 +806,17 @@ fun ProgramDetailScreen(
     if (showVersions) {
         com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet(
             snapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
+            today = java.time.LocalDate.now(),
             onRestore = { snapshotId ->
                 viewModel.restoreProgramSnapshot(snapshotId)
                 showVersions = false
+            },
+            // Compila con la firma nueva de la hoja (llegó rota en 1f45107f3): «Guardar una copia», como en Estructura.
+            onSaveCopy = {
+                showVersions = false
+                val copy = p.copy(id = java.util.UUID.randomUUID().toString(), name = "${p.name} (copia)", isDraft = true)
+                viewModel.addProgramCopy(copy)
+                onOpenProgram(copy.id)
             },
             onDismiss = { showVersions = false },
         )
@@ -962,7 +957,6 @@ private fun TrainingPanel(
     val volumeEvidence by viewModel.volumeEvidence.collectAsStateWithLifecycle()
     val closedCycleEvidence by viewModel.closedCycleEvidence.collectAsStateWithLifecycle()
     val volumeProfileResponses by viewModel.volumeProfileResponses.collectAsStateWithLifecycle()
-    val calibrationAnswers by viewModel.calibrationAnswers.collectAsStateWithLifecycle()
     val planningVolumeTargetBusy by viewModel.planningVolumeTargetBusy.collectAsStateWithLifecycle()
     val planningRangeProposals by viewModel.planningRangeProposals.collectAsStateWithLifecycle()
     val planningRangePreview by viewModel.planningRangePreview.collectAsStateWithLifecycle()
@@ -1356,10 +1350,12 @@ private fun TrainingPanel(
             )
             }
             StructureSubTab.VOLUMEN -> {
+                // Pestaña Progreso (lienzo v6, escenas g-*), de arriba abajo: alcance, resumen, fuerza, series duras, trabajo acumulado,
+                // series por músculo, cumplimiento, esfuerzo, molestias, decisiones y resúmenes mensuales. Un módulo sin datos no se pinta;
+                // sin tendencia todavía (g-empty), solo el resumen y la fuerza de la parte de progreso.
                 val progLogs by viewModel.programLogs.collectAsState()
                 val isActiveProg by viewModel.isActiveProgram.collectAsState()
-                val discomforts by viewModel.programDiscomforts.collectAsState()
-                val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
+                val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
                 val hasCreatedSessions = remember(program) {
                     program.macrocycles
                         .flatMap { it.blocks }
@@ -1367,14 +1363,13 @@ private fun TrainingPanel(
                         .flatMap { it.weeks }
                         .any { it.sessions.isNotEmpty() }
                 }
-                // Pestaña Progreso: resumen, fuerza y trabajo por semana, con el alcance elegido. Debajo, el volumen por músculo con la fila «Rangos» (sustituye a «Calibrar»).
                 var progressScope by rememberSaveable { mutableStateOf(ProgressScope.PROGRAM) }
-                var showAllLifts by rememberSaveable { mutableStateOf(false) }
                 val blockPosition = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
                 val blockLabel = if (roadmapBlocks.size >= 2 && blockPosition >= 0) "Bloque ${blockPosition + 1}" else null
                 val weekPosition = allProgramWeeks.indexOfFirst { it.id == selectedWeekId }
                 val weekLabel = if (weekPosition >= 0) "Semana ${weekPosition + 1}" else null
-                val progressUi = remember(program, progLogs, progressScope, selectedBlockId, selectedWeekId, activeWeekId, showAllLifts) {
+                val today = remember { java.time.LocalDate.now() }
+                val progressUi = remember(program, progLogs, progressScope, selectedBlockId, selectedWeekId, activeWeekId, today) {
                     buildProgramProgress(
                         program = program,
                         logs = progLogs,
@@ -1382,9 +1377,32 @@ private fun TrainingPanel(
                         selectedBlockId = selectedBlockId,
                         selectedWeekId = selectedWeekId,
                         currentWeekId = activeWeekId,
-                        maxLifts = if (showAllLifts) Int.MAX_VALUE else 5,
+                        today = today,
                     )
                 }
+                val decisionRows = remember(progressReport, today) { progressDecisionRows(progressReport?.decisions.orEmpty(), today) }
+                // El volumen cuenta las semanas del mismo alcance: el programa y el bloque, en promedio semanal; la semana, exacta.
+                val volumeWeeks = remember(program, progressScope, selectedBlockId, selectedWeekId) {
+                    val ids = progressWeeksOf(program).filter { week ->
+                        when (progressScope) {
+                            ProgressScope.PROGRAM -> true
+                            ProgressScope.BLOCK -> week.blockId == selectedBlockId
+                            ProgressScope.WEEK -> week.id == selectedWeekId
+                        }
+                    }.mapTo(HashSet()) { it.id }
+                    program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.filter { it.id in ids }
+                }
+                val rangesOrigin = rangesOriginOf(
+                    ownRangesCount = program.planningVolumeTargets.size,
+                    hasProfile = program.athleteProfileScore != null && program.volumeRecommendations.isNotEmpty(),
+                )
+                var openLiftKey by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
+                var showAllLifts by rememberSaveable(program.id) { mutableStateOf(false) }
+                var showDecisionsSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+                var showRangesSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+                var showCalibrationSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+                val progressContext = LocalContext.current.applicationContext
+                val openExerciseProgress = LocalExerciseProgressOpener.current
                 Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
                     ProgressScopeChips(
                         selected = progressScope,
@@ -1398,18 +1416,66 @@ private fun TrainingPanel(
                     if (progressUi.lifts.isNotEmpty()) {
                         ProgressLiftsModule(
                             rows = progressUi.lifts,
-                            allCount = progressUi.allLiftsCount,
+                            early = progressUi.early,
                             onSeeAll = { showAllLifts = true },
+                            onOpenLift = { openLiftKey = it.key },
                         )
                         Spacer(Modifier.height(12.dp))
                     }
-                    ProgressWorkModule(
-                        weeks = progressUi.weeks,
-                        setsDone = progressUi.kpis.setsDone,
-                        setsPlanned = progressUi.kpis.setsPlanned,
-                        note = progressUi.weekNote,
+                    if (!progressUi.early && progressUi.weeks.isNotEmpty()) {
+                        ProgressWorkModule(
+                            weeks = progressUi.weeks,
+                            setsDone = progressUi.kpis.setsDone,
+                            setsPlanned = progressUi.kpis.setsPlanned,
+                            note = progressUi.weekNote,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    if (!progressUi.early && progressUi.totals.sessions > 0) {
+                        ProgressTotalsModule(progressUi.totals)
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    VolumeView(
+                        program = program,
+                        weeks = volumeWeeks,
+                        averageByWeek = progressScope != ProgressScope.WEEK,
+                        isProgramActive = isActiveProg,
+                        hasCreatedSessions = hasCreatedSessions,
+                        onActivateProgram = { viewModel.activateOrResume() },
+                        onGoCreateSession = {
+                            val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
+                            val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+                            if (firstBlock != null && firstWeek != null) {
+                                viewModel.selectBlock(firstBlock.id)
+                                viewModel.selectWeek(firstWeek.id)
+                                viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                            } else {
+                                viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
+                            }
+                        },
+                        programLogs = progLogs,
+                        rangesOrigin = rangesOrigin,
+                        onOpenRanges = { showRangesSheet = true },
                     )
                     Spacer(Modifier.height(12.dp))
+                    if (!progressUi.early) {
+                        progressUi.adherence?.let {
+                            ProgressAdherenceModule(it)
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        progressUi.effort?.let {
+                            ProgressEffortModule(it)
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                    progressUi.discomforts?.let {
+                        ProgressDiscomfortModule(it)
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    if (decisionRows.isNotEmpty()) {
+                        ProgressDecisionsModule(rows = decisionRows, onSeeAll = { showDecisionsSheet = true })
+                        Spacer(Modifier.height(12.dp))
+                    }
                     // Resúmenes mensuales (P8c-2): los meses con resumen; cada fila abre su pantalla completa, con su hoja de compartir.
                     val summaryMonthList = remember(progLogs, program.id) { summaryMonths(progLogs, program.id, java.time.LocalDate.now()) }
                     var openSummaryMonth by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
@@ -1445,61 +1511,92 @@ private fun TrainingPanel(
                         }
                     }
                 }
-                // Rangos: la fila del volumen abre su hoja; «Revisar mis respuestas» sube el token que abre la calibración de siempre.
-                var showRangesSheet by rememberSaveable { mutableStateOf(false) }
-                var answersToken by remember { mutableIntStateOf(0) }
-                val rangesOrigin = rangesOriginOf(
-                    ownRangesCount = program.planningVolumeTargets.size,
-                    hasProfile = volumeProfileResponses != null || program.athleteProfileScore != null,
-                )
-                CompositionLocalProvider(
-                    com.example.kpkn.screens.programdetail.components.LocalVolumeCalibrationSaved provides viewModel::saveVolumeCalibrationOriginals,
-                ) {
-                VolumeView(
-                    program = program,
-                    isProgramActive = isActiveProg,
-                    hasCreatedSessions = hasCreatedSessions,
-                    onActivateProgram = { viewModel.activateOrResume() },
-                    onGoCreateSession = {
-                        val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
-                        val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
-                        if (firstBlock != null && firstWeek != null) {
-                            viewModel.selectBlock(firstBlock.id)
-                            viewModel.selectWeek(firstWeek.id)
-                            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                        } else {
-                            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                        }
-                    },
-                    onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
-                        viewModel.updateProgram(
-                            program.copy(
-                                mode = mode,
-                                volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                                athleteProfileScore = athleteScore,
-                                volumeRecommendations = recommendations,
-                            )
+                openLiftKey?.let { key ->
+                    progressUi.liftDetails[key]?.let { detail ->
+                        ProgramLiftDetailSheet(
+                            detail = detail,
+                            onOpenHistory = {
+                                openLiftKey = null
+                                openExerciseProgress(key)
+                            },
+                            onSwap = detail.swapTarget?.let { target ->
+                                {
+                                    openLiftKey = null
+                                    viewModel.openExerciseSwap(target.sessionId, target.exerciseId) {
+                                        com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(progressContext).catalog
+                                    }
+                                }
+                            },
+                            onDismiss = { openLiftKey = null },
                         )
-                    },
-                    programDiscomforts = discomforts,
-                    exerciseDiscomfortAssociations = exDiscomfortAssoc,
-                    programLogs = progLogs,
-                    rangesOrigin = rangesOrigin,
-                    onOpenRanges = { showRangesSheet = true },
-                    openAnswersToken = answersToken,
-                )
+                    }
                 }
+                if (showAllLifts) {
+                    ProgramAllLiftsSheet(
+                        lifts = progressUi.allLifts,
+                        onOpenLift = { row ->
+                            showAllLifts = false
+                            openLiftKey = row.key
+                        },
+                        onDismiss = { showAllLifts = false },
+                    )
+                }
+                if (showDecisionsSheet) {
+                    ProgramDecisionsSheet(decisions = progressReport?.decisions.orEmpty(), onDismiss = { showDecisionsSheet = false })
+                }
+                // Rangos: la fila del volumen abre su hoja; «Revisar mis respuestas» abre la hoja de las mismas preguntas del asistente.
                 if (showRangesSheet) {
                     ProgramRangesSheet(
                         origin = rangesOrigin,
                         ownRangesCount = program.planningVolumeTargets.size,
                         proposalsCount = planningRangeProposals.size,
                         proposalsCycle = planningRangeProposals.maxOfOrNull { it.cycleNumber },
+                        proposalsAnsweredWeeks = planningRangeProposals.flatMap { it.feedbackWeekIds }.distinct().size,
                         onChooseOwn = { showRangesSheet = false; showPlanningVolumeTargets = true },
-                        onReviewAnswers = { showRangesSheet = false; answersToken++ },
+                        onReviewAnswers = { showRangesSheet = false; showCalibrationSheet = true },
                         onReviewProposals = { showRangesSheet = false; viewModel.reviewPlanningRanges() },
+                        onUseGeneral = if (rangesOrigin != RangesOrigin.GENERAL_REFERENCE) {
+                            {
+                                showRangesSheet = false
+                                val now = System.currentTimeMillis()
+                                viewModel.updateProgram(
+                                    program.copy(
+                                        planningVolumeTargets = emptyList(),
+                                        athleteProfileScore = null,
+                                        volumeRecommendations = emptyList(),
+                                        programDecisions = program.programDecisions + com.example.kpkn.data.models.ProgramDecision(
+                                            id = "rangos-referencia-$now",
+                                            atMs = now,
+                                            source = "MANUAL",
+                                            title = "Rangos: referencia general",
+                                            detail = "Este programa deja de usar el perfil del asistente y tus rangos propios.",
+                                        ),
+                                    ),
+                                )
+                            }
+                        } else {
+                            null
+                        },
                         onDismiss = { showRangesSheet = false },
-                        answers = calibrationAnswers,
+                    )
+                }
+                if (showCalibrationSheet) {
+                    VolumeCalibrationSheet(
+                        currentMode = program.mode,
+                        initialScore = program.athleteProfileScore,
+                        onDismiss = { showCalibrationSheet = false },
+                        onSave = { result ->
+                            viewModel.updateProgram(
+                                program.copy(
+                                    mode = result.mode,
+                                    volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
+                                    athleteProfileScore = result.score,
+                                    volumeRecommendations = result.recommendations,
+                                ),
+                            )
+                            viewModel.saveVolumeCalibrationOriginals(result)
+                            showCalibrationSheet = false
+                        },
                     )
                 }
             }

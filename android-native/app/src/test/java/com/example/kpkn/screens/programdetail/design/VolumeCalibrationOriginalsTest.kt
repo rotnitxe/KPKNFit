@@ -46,7 +46,7 @@ class VolumeCalibrationOriginalsTest {
         rule.onNodeWithText("Notas opcionales", useUnmergedTree = true).assertExists()
         rule.onNode(hasSetTextAction(), useUnmergedTree = true).performScrollTo().performTextReplacement("Mi nota original")
         rule.runOnIdle { assertNull(legacy); assertNull(originals) }
-        rule.onNodeWithText("Guardar calibración", useUnmergedTree = true).performScrollTo().performClick()
+        rule.onNodeWithText("Guardar respuestas", useUnmergedTree = true).performScrollTo().performClick()
         rule.runOnIdle {
             assertEquals(listOf("legacy", "originals"), order)
             assertEquals("Mi nota original", originals!!.notes)

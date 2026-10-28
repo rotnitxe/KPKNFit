@@ -3,10 +3,7 @@ package com.example.kpkn.screens.programdetail.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AthleteProfileLevel
@@ -28,16 +24,19 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.VolumeCalibrationEngine
-import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.programdetail.design.progress.ProgressRatioRow
+import com.example.kpkn.screens.programdetail.design.progress.ProgressRatioStyle
+import com.example.kpkn.screens.programdetail.design.progress.ProgressRatioValueStyle
+import com.example.kpkn.screens.programdetail.design.structure.StructureAction
+import com.example.kpkn.screens.programdetail.design.structure.StructureCaption
+import com.example.kpkn.screens.programdetail.design.structure.StructureChip
+import com.example.kpkn.screens.programdetail.design.structure.StructureInk
+import com.example.kpkn.screens.programdetail.design.structure.StructurePrimaryPill
+import com.example.kpkn.screens.programdetail.design.structure.StructureSheetGroup
+import com.example.kpkn.screens.programdetail.design.structure.StructureSheetHeader
+import com.example.kpkn.screens.programdetail.design.structure.StructureSheetPadding
+import com.example.kpkn.screens.programdetail.design.structure.StructureTextField
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknRadioRow
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknTextField
-import com.example.kpkn.ui.design.KpknType
 
 data class VolumeCalibrationResult(
     val mode: ProgramMode,
@@ -50,22 +49,24 @@ data class VolumeCalibrationResult(
 internal val LocalVolumeCalibrationSaved = staticCompositionLocalOf<(VolumeCalibrationResult) -> Unit> { {} }
 
 /**
- * Hoja «Calibrar volumen» (P4): las opciones como píldoras `KpknChip` y filas `KpknRadioRow`, el campo de notas como `KpknTextField`, el
- * resumen en un módulo KPKN y la acción principal en `KpknPrimaryPill`. La lógica (estilo, puntajes y recomendaciones) no cambia; la usan
- * también Home y Programas.
+ * Hoja «Revisar mis respuestas» (la abre «Rangos de volumen»; sin escena en el lienzo, con su lenguaje): cada pregunta del asistente
+ * como `.mgroup` con sus `.chip` y, debajo, qué significa la elegida; las notas en un `.field`; el resultado en filas `.ratio`; «Guardar
+ * respuestas» en `.pill.pri` y «Cancelar» en `.act.faint`. Empieza con las respuestas guardadas en [initialScore], si las hay. La lógica
+ * (estilo, puntajes y recomendaciones) no cambia.
  */
 @Composable
 fun VolumeCalibrationSheet(
     currentMode: ProgramMode,
     onDismiss: () -> Unit,
     onSave: (VolumeCalibrationResult) -> Unit,
+    initialScore: AthleteProfileScore? = null,
 ) {
     val onOriginalsSaved = LocalVolumeCalibrationSaved.current
-    var selectedStyle by rememberSaveable { mutableStateOf(currentMode.toTrainingStyle()) }
-    var technique by rememberSaveable { mutableIntStateOf(2) }
-    var consistency by rememberSaveable { mutableIntStateOf(2) }
-    var strength by rememberSaveable { mutableIntStateOf(2) }
-    var mobility by rememberSaveable { mutableIntStateOf(2) }
+    var selectedStyle by rememberSaveable { mutableStateOf(initialScore?.trainingStyle ?: currentMode.toTrainingStyle()) }
+    var technique by rememberSaveable { mutableIntStateOf(initialScore?.technicalScore?.coerceIn(1, 3) ?: 2) }
+    var consistency by rememberSaveable { mutableIntStateOf(initialScore?.consistencyScore?.coerceIn(1, 3) ?: 2) }
+    var strength by rememberSaveable { mutableIntStateOf(initialScore?.strengthScore?.coerceIn(1, 3) ?: 2) }
+    var mobility by rememberSaveable { mutableIntStateOf(initialScore?.mobilityScore?.coerceIn(1, 3) ?: 2) }
     var notes by rememberSaveable { mutableStateOf("") }
 
     val preview = remember(selectedStyle, technique, consistency, strength, mobility) {
@@ -83,163 +84,66 @@ fun VolumeCalibrationSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
+                .padding(StructureSheetPadding),
         ) {
-            Text("Calibrar volumen", style = KpknType.title, color = WizardColors.text)
-            Text(
-                "Tus respuestas son autovaloraciones guardadas. Los rangos de series son referencias de planificación y este resultado también elige el enfoque del programa.",
-                style = KpknType.body,
-                color = WizardColors.textMuted,
+            StructureSheetHeader(
+                title = "Revisar mis respuestas",
+                subtitle = "Las mismas preguntas del asistente. Al guardar cambian el enfoque y los rangos de este programa, y el perfil de todos tus programas.",
             )
-
-            ChoiceSection(
-                title = "Objetivo principal",
-                helper = "Esto cambia el enfoque del programa y la base de recomendaciones.",
-                options = trainingStyleOptions,
-                selectedValue = selectedStyle,
-                onSelect = { selectedStyle = it },
-            )
-
-            ScoreSection(
-                title = "Técnica",
-                helper = "Qué tan sólida sientes tu ejecución en ejercicios clave.",
-                selectedValue = technique,
-                options = techniqueOptions,
-                onSelect = { technique = it },
-            )
-
-            ScoreSection(
-                title = "Consistencia",
-                helper = "Qué tan estable ha sido tu entrenamiento últimamente.",
-                selectedValue = consistency,
-                options = consistencyOptions,
-                onSelect = { consistency = it },
-            )
-
-            ScoreSection(
-                title = "Fuerza",
-                helper = "Cómo percibes tu nivel actual de fuerza respecto a tu experiencia.",
-                selectedValue = strength,
-                options = strengthOptions,
-                onSelect = { strength = it },
-            )
-
-            ScoreSection(
-                title = "Movilidad",
-                helper = "Tu libertad para moverte y entrenar sin rigidez importante.",
-                selectedValue = mobility,
-                options = mobilityOptions,
-                onSelect = { mobility = it },
-            )
-
-            KpknTextField(
+            ChoiceGroup("Objetivo principal", trainingStyleOptions, selectedStyle) { selectedStyle = it }
+            ChoiceGroup("Técnica", techniqueOptions, technique) { technique = it }
+            ChoiceGroup("Consistencia", consistencyOptions, consistency) { consistency = it }
+            ChoiceGroup("Fuerza", strengthOptions, strength) { strength = it }
+            ChoiceGroup("Movilidad", mobilityOptions, mobility) { mobility = it }
+            StructureTextField(
+                label = "Notas opcionales",
                 value = notes,
                 onValueChange = { notes = it },
-                label = "Notas opcionales",
                 placeholder = "Ej: compito pronto, tolero alta frecuencia, priorizo banca…",
                 singleLine = false,
-                minLines = 2,
+                modifier = Modifier.padding(top = 8.dp),
             )
-
-            KpknModule {
-                KpknModuleHeader(label = "Resumen KPKN")
-                Spacer(Modifier.height(10.dp))
-                val modeLabel = when (preview.mode) {
-                    ProgramMode.POWERLIFTING -> "Powerlifting"
-                    ProgramMode.POWERBUILDING -> "Powerbuilding"
-                    ProgramMode.HYPERTROPHY -> "Hipertrofia"
-                }
-                Text(
-                    "Enfoque: $modeLabel",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                )
-                Text(
-                    "Perfil: ${preview.score.profileLevel.label()} · Puntaje ${preview.score.totalScore}/12",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-                Spacer(Modifier.height(10.dp))
-                preview.recommendations.take(6).forEach { recommendation ->
-                    Text(
-                        "${recommendation.muscleGroup}: ${recommendation.minEffectiveVolume}-${recommendation.maxRecoverableVolume} series/sem",
-                        style = KpknType.body,
-                        color = WizardColors.text,
-                    )
-                }
+            StructureSheetGroup(text = "Resultado")
+            ResultRow("Enfoque", preview.mode.label())
+            ResultRow("Perfil", "${preview.score.profileLevel.label()} · ${preview.score.totalScore}/12")
+            preview.recommendations.take(6).forEach { recommendation ->
+                ResultRow(recommendation.muscleGroup, "${recommendation.minEffectiveVolume}–${recommendation.maxRecoverableVolume}")
             }
-
-            KpknPrimaryPill(
-                text = "Guardar calibración",
+            StructureCaption(text = "Series semanales por músculo: mínimo útil y máximo recuperable.", modifier = Modifier.padding(top = 6.dp))
+            StructurePrimaryPill(
+                text = "Guardar respuestas",
                 onClick = {
                     val result = preview.copy(notes = notes.trim())
                     onSave(result)
                     onOriginalsSaved(result)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                KpknTextAction(text = "Cancelar", onClick = onDismiss)
-            }
-
-            Spacer(Modifier.height(24.dp))
+            StructureAction(text = "Cancelar", onClick = onDismiss, faint = true, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
         }
     }
 }
 
-/** Elección de una sola opción de texto (objetivo principal) en píldoras `KpknChip`, con su ayuda debajo del título. */
+/** Una pregunta: el `.mgroup`, sus opciones en `.chip` (6 dp de hueco) y qué significa la elegida. */
 @Composable
-private fun ChoiceSection(
-    title: String,
-    helper: String,
-    options: List<ChoiceOption<TrainingStyle>>,
-    selectedValue: TrainingStyle,
-    onSelect: (TrainingStyle) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
-        Text(helper, style = KpknType.caption, color = WizardColors.textMuted)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option ->
-                KpknChip(
-                    text = option.label,
-                    selected = option.value == selectedValue,
-                    onClick = { onSelect(option.value) },
-                )
-            }
-        }
-        // Qué significa la opción elegida, como el detalle de las filas de puntaje.
-        options.firstOrNull { it.value == selectedValue }?.let { chosen ->
-            Text(chosen.detail, style = KpknType.caption, color = WizardColors.textMuted)
-        }
-    }
-}
-
-/** Puntaje de 1 a 3 en filas de radio: cada nivel dice qué significa en su detalle. */
-@Composable
-private fun ScoreSection(
-    title: String,
-    helper: String,
-    selectedValue: Int,
-    options: List<ChoiceOption<Int>>,
-    onSelect: (Int) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
-        Text(helper, style = KpknType.caption, color = WizardColors.textMuted)
+private fun <T> ChoiceGroup(title: String, options: List<ChoiceOption<T>>, selected: T, onSelect: (T) -> Unit) {
+    StructureSheetGroup(text = title)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         options.forEach { option ->
-            KpknRadioRow(
-                selected = option.value == selectedValue,
-                title = option.label,
-                subtitle = option.detail,
-                onClick = { onSelect(option.value) },
-            )
+            StructureChip(text = option.label, selected = option.value == selected, onClick = { onSelect(option.value) })
         }
+    }
+    options.firstOrNull { it.value == selected }?.let { chosen ->
+        StructureCaption(text = chosen.detail, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/** Una fila del resultado: el rótulo y la cifra en Syne 700 14. */
+@Composable
+private fun ResultRow(label: String, value: String) {
+    ProgressRatioRow {
+        Text(text = label, style = ProgressRatioStyle, color = StructureInk, modifier = Modifier.weight(1f))
+        Text(text = value, style = ProgressRatioValueStyle, color = StructureInk)
     }
 }
 
