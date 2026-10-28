@@ -51,6 +51,7 @@ ${T([
  ['Favoritos, recetas y plantillas apilados sobre las pestañas',tg('move','«Repetir» y atajos de Buscar'),'El campo vuelve a ser lo primero'],
  ['Búsqueda con botón, sin carga ni errores; dos líneas por resultado','Busca al escribir, filas de carga, una línea por resultado, filtros','Más rápido y legible'],
  ['Sin ficha de alimento',tg('new','Ficha')+' con cantidad, macros y nutrientes','Hoy solo se veían tras añadir'],
+ ['Vitaminas y minerales (Nutrición v2) solo en la hoja «Nutrientes del día», seis líneas de texto por nutriente',tg('new','Huella de nutrientes')+' en la ficha, el registro, la hoja de ajuste y el día; una fila por nutriente; hoja propia por nutriente; «sin dato» nunca es 0','38 nutrientes a la vista donde se decide qué comer'],
  ['«Olvidar lo aprendido» borra la comida en curso sin preguntar',tg('fix','Confirmación; no toca el borrador'),'Pérdida de datos'],
  ['Hora como texto «HH:mm»; elegir día reinicia la hora','Atajos, calendario y rueda de hora','Defecto de entrada'],
  ['Avisos con «dataset» y nombres de excepción; icono de información en errores',tg('fix','Qué se entendió y qué hacer'),'Jerga técnica'],

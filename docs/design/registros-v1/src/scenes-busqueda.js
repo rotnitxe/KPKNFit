@@ -25,9 +25,10 @@ scene({tab:'busqueda',id:'s-detail',title:'Ficha de un alimento',html:()=>`<div 
   <div class="mgroup">Cuánto</div><div class="stepper"><button aria-label="Menos">−</button><b>1<small>envase · 125 g</small></b><button aria-label="Más">+</button></div>
   <div class="units">${chips(['Envases','Gramos','Cucharadas'],0,34)}</div>
   <div style="margin-top:14px">${sumCard(146)}</div>
-  <div class="mgroup">Más nutrientes</div><div class="ratio"><span>Fibra</span><b>0 g</b></div><div class="ratio"><span>Azúcares</span><b>4,6 g</b></div><div class="ratio"><span>Sodio</span><b>55 mg</b></div>
-  <div style="display:flex;gap:8px;margin-top:16px"><button class="pill sec" style="flex:0 0 auto;color:var(--ene)">${ic('starOn',18)}</button><button class="pill pri" style="flex:1">Añadir al desayuno</button></div>`)}`,
- notes:{tags:[['new','La ficha que faltaba']],p:['Hoy no hay ficha: los nutrientes solo se ven al «Ajustar» un alimento ya añadido. Ahora la ficha tiene cantidad en la unidad natural, el anillo de macros, fibra, azúcares y sodio, favorito y «Añadir al desayuno».']}});
+  ${microHead()}${huella(foodRows(NF.yogur),{h:74})}${highlights(foodRows(NF.yogur))}
+  <div class="ncov"><span>${NF.yogur.cnt} de 38 nutrientes con dato</span><span style="flex:1"></span><button class="act" style="margin:0">Ver todos${ic('fwd',14)}</button></div>
+  <div style="display:flex;gap:8px;margin-top:16px"><button class="pill sec" style="flex:0 0 auto;color:var(--ene)">${ic('starOn',18)}</button><button class="pill pri" style="flex:1">Añadir al desayuno</button></div>`)}`,after:drawAfter,
+ notes:{tags:[['new','La ficha que faltaba'],['new','Vitaminas y minerales (v4)']],p:['Hoy no hay ficha: los nutrientes solo se ven al «Ajustar» un alimento ya añadido. Ahora la ficha tiene cantidad en la unidad natural, el anillo de macros, la huella de vitaminas y minerales con lo que más aporta, favorito y «Añadir al desayuno».','La pestaña «Vitaminas y minerales» enseña la ficha completa, los grupos, el «sin dato» y los topes.']}});
 
 scene({tab:'busqueda',id:'s-none',title:'Sin resultados',html:()=>`<div class="lg">${lgHead()}${seg2(1)}${sfield('arepa de choclo')}
   <div style="text-align:center;padding:40px 10px 10px"><svg class="draw go" viewBox="0 0 120 80" width="160" aria-hidden="true"><path class="ln" pathLength="1" d="M10 60 Q60 10 110 60" fill="none" stroke="#f2eee6" stroke-width="1.4" opacity=".6"/><circle class="ln" pathLength="1" cx="60" cy="48" r="16" fill="none" stroke="#f49a6e" stroke-width="1.6"/></svg>
