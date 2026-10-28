@@ -21,7 +21,7 @@ import java.nio.file.Files
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest=Config.NONE,sdk=[34],application=Application::class)
 class TrainingMigrationRoomValidationTest {
-    @Test fun populated28_29_30_32OpenWithFullRoom36IdentityAndPreserveUsefulData() = runBlocking {
+    @Test fun populated28_29_30_32OpenWithFullRoom37IdentityAndPreserveUsefulData() = runBlocking {
         for(version in listOf(28,29,30,32,33,34)) {
             val dir=Files.createTempDirectory("post-rings-synthetic-").toFile()
             val context=object: ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
@@ -81,10 +81,10 @@ class TrainingMigrationRoomValidationTest {
                 old.version=version
             }
             val db=Room.databaseBuilder(context,KpknDatabase::class.java,"test.db").allowMainThreadQueries()
-                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33,RETIRE_PENDING_TRAINING_PROPOSALS_33_34,*COMBINED_NUTRITION_TRAINING_35,NUTRITION_CATALOG_35_36).build()
+                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33,RETIRE_PENDING_TRAINING_PROPOSALS_33_34,*COMBINED_NUTRITION_TRAINING_35,NUTRITION_CATALOG_35_36,WORKOUT_VOICE_HISTORY_36_37).build()
             try {
                 val sqlite=db.openHelper.writableDatabase // Full Room delegate validates the final schema, not only SQL execution.
-                assertEquals(36,sqlite.version)
+                assertEquals(37,sqlite.version)
                 sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'auge_%'").use { assertEquals(0,it.count) }
                 sqlite.query("SELECT data FROM programs WHERE id='program'").use { c ->
                     assertTrue(c.moveToFirst());val program=JSONObject(c.getString(0))

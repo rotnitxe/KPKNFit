@@ -68,17 +68,12 @@ private val TRAINING_CONCEPT_EDITORIAL_APPENDICES: Map<String, String> = mapOf(
     "especificidad" to "La especificidad guía el equilibrio entre construir capacidades y expresarlas. Una variante puede aumentar músculo o fuerza general sin parecerse a la prueba, mientras que otra practica la coordinación exacta. Alternarlas por fases evita tanto entrenar solo el gesto final como perder la transferencia que realmente buscas.",
 )
 
-private fun enrichTrainingConceptDescription(id: String, description: String): String =
-    TRAINING_CONCEPT_EDITORIAL_APPENDICES[id]
-        ?.let { "$description\n\n$it" }
-        ?: description
-
 /**
- * Training Concepts Database — "Conceptos Clave" del entrenamiento.
+ * Training Concepts Database — "Conceptos Clave": la enciclopedia de KPKN.
  *
- * The rich educational body is used by Conceptos Clave. The compact
- * [shortDescription] remains available for legacy compact surfaces and is
- * deliberately separate from canonical exercise muscle/joint/pattern intros.
+ * [description] es el cuerpo completo: los párrafos y, al final, el apartado práctico ([practice]). El texto puede
+ * llevar enlaces de wiki `[[id|texto]]` a otros conceptos (`ConceptosClaveIndex` los interpreta). El [shortDescription]
+ * compacto sigue sirviendo a superficies como Home y es distinto de las intros canónicas de músculos y patrones.
  */
 data class TrainingConcept(
     val id: String,
@@ -86,28 +81,60 @@ data class TrainingConcept(
     val category: ConceptCategory,
     var description: String,
     val shortDescription: String = TRAINING_CONCEPT_SHORT_DESCRIPTIONS[id].orEmpty(),
+    /** Apartado «En la práctica»: va también al final de [description]. */
+    val practice: String = TRAINING_CONCEPT_EDITORIAL_APPENDICES[id].orEmpty(),
+    /** Sinónimos, siglas y nombres en inglés que también encuentra el buscador. */
+    val aliases: List<String> = emptyList(),
+    /** Ids de «Ver también», en orden de relevancia. */
+    val related: List<String> = emptyList(),
 ) {
     init {
-        description = enrichTrainingConceptDescription(id, description)
+        if (practice.isNotBlank()) description = "$description\n\n$practice"
     }
 }
 
+/** Las grandes secciones de la enciclopedia; agrupan los temas en la portada. */
+enum class ConceptArea(val label: String) {
+    TRAINING("Entrenamiento"),
+    BODY("Cuerpo"),
+    NUTRITION("Nutrición"),
+    HEALTH("Salud"),
+    SCIENCE("Ciencia"),
+}
+
+/**
+ * Temas de la enciclopedia, en orden pedagógico (el orden de declaración ordena la biblioteca). [color] es un tono
+ * apagado de la identidad de KPKN: solo se usa en detalles (punto y glifo del tema). [icon] nombra el glifo de línea.
+ */
 enum class ConceptCategory(
     val label: String,
     val color: Color,
     val icon: String,
+    val area: ConceptArea,
 ) {
-    LOAD_MANAGEMENT("Gestión de Carga", Color(0xFFE53935), "barbell"),
-    INTENSITY("Intensidad y Esfuerzo", Color(0xFFFF8F00), "flame"),
-    FATIGUE("Fatiga y Recuperación", Color(0xFF9C27B0), "recovery"),
-    HYPERTROPHY("Mecanismos de Hipertrofia", Color(0xFF1E88E5), "muscle"),
-    MOVEMENT("Mecánica del Movimiento", Color(0xFF43A047), "movement"),
-    EQUIPMENT("Equipamiento y Medios", Color(0xFF00897B), "equipment"),
-    QUALITIES("Cualidades Físicas", Color(0xFF5C6BC0), "qualities"),
-    PERIODIZATION("Periodización", Color(0xFF795548), "calendar"),
+    LOAD_MANAGEMENT("Gestión de carga", Color(0xFFF49A6E), "barbell", ConceptArea.TRAINING),
+    INTENSITY("Intensidad y esfuerzo", Color(0xFFE9736C), "flame", ConceptArea.TRAINING),
+    METHODS("Métodos y técnicas", Color(0xFFE8A07A), "layers", ConceptArea.TRAINING),
+    PERIODIZATION("Periodización", Color(0xFF9CB0BD), "calendar", ConceptArea.TRAINING),
+    QUALITIES("Cualidades físicas", Color(0xFFCDBB8F), "qualities", ConceptArea.TRAINING),
+    CARDIO("Cardio y resistencia", Color(0xFFD98C8C), "heart", ConceptArea.TRAINING),
+    EQUIPMENT("Equipamiento y medios", Color(0xFF7FC4BC), "equipment", ConceptArea.TRAINING),
+    HYPERTROPHY("Mecanismos de hipertrofia", Color(0xFF8FB3E0), "muscle", ConceptArea.BODY),
+    MUSCLES("Músculos", Color(0xFFA9B8E8), "body", ConceptArea.BODY),
+    BODY_STRUCTURES("Estructuras y fisiología", Color(0xFF9FC6D6), "cell", ConceptArea.BODY),
+    MOVEMENT("Mecánica del movimiento", Color(0xFF87C9A5), "movement", ConceptArea.BODY),
+    PATTERNS("Patrones de movimiento", Color(0xFFA3CF9B), "pattern", ConceptArea.BODY),
+    NUTRITION("Alimentación", Color(0xFFC9C27A), "food", ConceptArea.NUTRITION),
+    SUPPLEMENTS("Suplementos", Color(0xFFD6B48A), "capsule", ConceptArea.NUTRITION),
+    FATIGUE("Fatiga y recuperación", Color(0xFFB49AD8), "recovery", ConceptArea.HEALTH),
+    INJURIES("Lesiones y dolor", Color(0xFFE39A9A), "bandage", ConceptArea.HEALTH),
+    STUDIES("Estudios clave", Color(0xFFB8B1A6), "paper", ConceptArea.SCIENCE),
+    SCIENCE_LITERACY("Leer la ciencia", Color(0xFFC2BDB4), "lens", ConceptArea.SCIENCE),
 }
 
-val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
+val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = CORE_TRAINING_CONCEPTS + ENCYCLOPEDIA_CONCEPTS
+
+private val CORE_TRAINING_CONCEPTS: List<TrainingConcept> get() = listOf(
     TrainingConcept(
         id = "volumen-entrenamiento",
         name = "Volumen de entrenamiento",

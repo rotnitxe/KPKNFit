@@ -1,0 +1,322 @@
+[
+  {
+    "id": "hipertrofia-muscular",
+    "name": "Hipertrofia muscular",
+    "category": "HYPERTROPHY",
+    "short": "Aumento del tamaño de las fibras y del músculo como respuesta al entrenamiento de resistencia",
+    "aliases": ["crecimiento muscular", "muscle hypertrophy"],
+    "body": [
+      "La hipertrofia muscular es el aumento del tamaño de las fibras y, con ello, del músculo, como respuesta al entrenamiento de resistencia repetido en el tiempo. Una revisión de 2010 sostenía que la tensión mecánica, el daño muscular y el estrés metabólico pueden contribuir al crecimiento. Una revisión de 2025 coincide en que la tensión mecánica es el estímulo principal, pero considera que el papel del estrés metabólico, de las hormonas agudas o de la hinchazón celular no está bien respaldado. El enfoque mecánico es hoy el más respaldado, aunque los matices sobre los demás factores siguen en discusión.",
+      "El volumen, es decir, el número de series semanales por músculo, es otra variable clave. Una revisión sistemática con metarregresión de 2017, que reunió 15 estudios, encontró una relación dosis-respuesta: cuantas más series semanales, mayor ganancia de masa muscular, en una relación gradual. Ese patrón ayuda a decidir cuánto trabajo añadir, aunque no fija una cifra única válida para todas las personas."
+    ],
+    "practice": "En la práctica, valora el progreso con las mismas medidas repetidas durante semanas, no con una sola sesión, y ajusta el volumen a lo que puedas repetir con buena técnica. Si quieres profundizar en la relación entre volumen y crecimiento, consulta el [[estudio-volumen-hipertrofia|estudio sobre volumen semanal e hipertrofia]]. Si una molestia aparece o empeora con el entrenamiento, consulta con un profesional sanitario.",
+    "related": ["tension-mecanica", "volumen-entrenamiento", "dano-muscular"],
+    "sources": [
+      {"title": "The mechanisms of muscle hypertrophy and their application to resistance training", "publisher": "Journal of Strength and Conditioning Research · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20847704/"},
+      {"title": "Load-induced human skeletal muscle hypertrophy: Mechanisms, myths, and misconceptions", "publisher": "Journal of Sport and Health Science · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/41276164/"},
+      {"title": "Dose-response relationship between weekly resistance training volume and increases in muscle mass: A systematic review and meta-analysis", "publisher": "Journal of Sports Sciences · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/27433992/"}
+    ]
+  },
+  {
+    "id": "sintesis-proteica-muscular",
+    "name": "Síntesis de proteína muscular",
+    "category": "HYPERTROPHY",
+    "short": "Ritmo con el que el músculo fabrica nuevas proteínas contráctiles tras el entrenamiento y la alimentación",
+    "aliases": ["MPS", "muscle protein synthesis"],
+    "body": [
+      "La síntesis de proteína muscular es la velocidad a la que el músculo fabrica nuevas proteínas, en especial las miofibrilares que forman la parte contráctil de la fibra. Una revisión de 2019 describe la vía mTORC1 como un mecanismo clave, aunque no el único, por el que el ejercicio de resistencia impulsa la hipertrofia. Es una pieza del proceso, pero por sí sola no basta para predecir cuánto crecerá el músculo.",
+      "En un estudio de 2016 con diez hombres jóvenes, que midió con biopsias la síntesis de proteína miofibrilar durante diez semanas de entrenamiento, la respuesta fue mayor en la primera semana, cuando también el daño muscular era máximo, pero no se relacionó con el crecimiento. Lo que sí se asoció con la hipertrofia fue la síntesis medida en las semanas tres y diez, cuando el daño ya había disminuido. Los autores concluyen que el crecimiento surge de la acumulación de respuestas intermitentes y no de un pico aislado."
+    ],
+    "practice": "En la práctica, conviene repartir la proteína a lo largo del día en lugar de concentrarla en una sola comida. Una opinión de consenso de 2011 proponía entre 1,3 y 1,8 gramos por kilo al día, en tres o cuatro comidas, para maximizar la síntesis en personas que entrenan con fuerza. Revisa tu [[proteina-diaria|ingesta diaria de proteína]] y el [[distribucion-proteina|reparto de proteína]] a lo largo de la jornada para comprobar si encajas en esas cifras.",
+    "related": ["proteina-diaria", "distribucion-proteina", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "Resistance training-induced changes in integrated myofibrillar protein synthesis are related to hypertrophy only after attenuation of muscle damage", "publisher": "The Journal of Physiology · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27219125/"},
+      {"title": "Stimuli and sensors that initiate skeletal muscle hypertrophy following resistance exercise", "publisher": "Journal of Applied Physiology · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/30335577/"},
+      {"title": "Dietary protein for athletes: from requirements to optimum adaptation", "publisher": "Journal of Sports Sciences · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/22150425/"}
+    ]
+  },
+  {
+    "id": "celulas-satelite",
+    "name": "Células satélite y mionúcleos",
+    "category": "HYPERTROPHY",
+    "short": "Células madre del músculo que pueden aportar núcleos nuevos a las fibras durante el crecimiento",
+    "aliases": ["satellite cells", "myonuclei"],
+    "body": [
+      "Las células satélite son células madre del músculo que aumentan en número tras el ejercicio. En un estudio de 2015 con biopsias, su número subió a las 24 y 48 horas tras una sesión de fuerza. En la hipertrofia por sobrecarga se asocian con la incorporación de mionúcleos nuevos a las fibras. Los mionúcleos son los núcleos de la fibra muscular, y durante años su acumulación se consideró una parte central del modelo de crecimiento.",
+      "El debate actual es si las células satélite son imprescindibles. Una revisión de 2018 recoge estudios en ratones: en adultos ya crecidos, la hipertrofia ocurrió sin ellas y su depleción no impidió recuperar masa tras una atrofia, mientras que en ratones jóvenes en crecimiento sí eran necesarias. La revisión añade que también participan en la remodelación de la matriz extracelular durante la hipertrofia. Así, la acumulación de núcleos parece importante en algunos contextos, aunque no es la única vía."
+    ],
+    "practice": "En la práctica, lo que sí parece sostenerse es que el crecimiento depende de estímulos suficientes y repetidos, porque la respuesta del músculo se acumula entre sesiones. Si ya tuviste masa antes, la [[memoria-muscular|memoria muscular]] puede ayudarte a recuperarla con más rapidez. Si quieres ver cómo se reparte el trabajo a lo largo de la semana, revisa el [[estudio-frecuencia-hipertrofia|estudio sobre frecuencia e hipertrofia]].",
+    "related": ["hipertrofia-muscular", "memoria-muscular", "tipos-fibra"],
+    "sources": [
+      {"title": "Starring or Supporting Role? Satellite Cells and Skeletal Muscle Fiber Size Regulation", "publisher": "Physiology · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29212890/"},
+      {"title": "Myonuclei acquired by overload exercise precede hypertrophy and are not lost on detraining", "publisher": "Proceedings of the National Academy of Sciences of the United States of America · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20713720/"},
+      {"title": "Post-exercise cold water immersion attenuates acute anabolic signalling and long-term adaptations in muscle to strength training", "publisher": "The Journal of Physiology · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26174323/"}
+    ]
+  },
+  {
+    "id": "memoria-muscular",
+    "name": "Memoria muscular",
+    "category": "HYPERTROPHY",
+    "short": "Ventaja que tiene un músculo ya entrenado para recuperar masa más deprisa tras una pausa",
+    "aliases": ["muscle memory", "reentrenamiento"],
+    "body": [
+      "La memoria muscular describe la ventaja de un músculo que ya creció antes: al volver a entrenar, recupera masa con más rapidez que uno sin esa experiencia. Durante años se atribuyó sobre todo al sistema nervioso, pero en un estudio con animales de 2010 los mionúcleos añadidos antes del aumento de tamaño se mantuvieron durante una atrofia severa provocada por denervación. Esos núcleos podrían funcionar como base celular de esa memoria.",
+      "En músculo humano, un estudio de 2018 encontró una memoria epigenética: tras un ciclo de carga, descarga y nueva carga, algunos genes conservaron un patrón de metilación asociado al crecimiento previo, y los genes con más memoria mostraron los mayores aumentos de masa al volver a cargar. Una revisión de 2016 propone que los mionúcleos podrían durar muchos años en humanos y que su reclutamiento resulta más difícil en personas mayores. Esa idea depende de confirmar que la memoria también existe en humanos."
+    ],
+    "practice": "En la práctica, retomar el entrenamiento tras una pausa tiene ventajas según estos datos, aunque no es una garantía. Al reentrenar notarás que recuperas con más facilidad lo que ya tenías, pero conviene subir la carga de forma progresiva. Para entender las bases celulares, consulta [[celulas-satelite|las células satélite y los mionúcleos]].",
+    "related": ["celulas-satelite", "hipertrofia-muscular", "sobrecarga-progresiva"],
+    "sources": [
+      {"title": "Myonuclei acquired by overload exercise precede hypertrophy and are not lost on detraining", "publisher": "Proceedings of the National Academy of Sciences of the United States of America · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20713720/"},
+      {"title": "Human Skeletal Muscle Possesses an Epigenetic Memory of Hypertrophy", "publisher": "Scientific Reports · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29382913/"},
+      {"title": "Muscle memory and a new cellular model for muscle atrophy and hypertrophy", "publisher": "The Journal of Experimental Biology · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26792335/"}
+    ]
+  },
+  {
+    "id": "longitud-muscular",
+    "name": "Entrenar en longitudes musculares largas",
+    "category": "HYPERTROPHY",
+    "short": "Trabajar el músculo en la fase del recorrido en la que está más estirado, bajo carga",
+    "aliases": ["lengthened partials", "training at long muscle lengths"],
+    "body": [
+      "Entrenar en longitudes musculares largas significa cargar el músculo cuando está más estirado, por ejemplo en la parte inicial de una elevación de gemelos. Un estudio de 2023 con 42 mujeres jóvenes, que entrenaron durante ocho semanas, encontró que esa mitad inicial del recorrido aumentó más el gastrocnemio medial que el recorrido completo o la mitad final. Otro estudio de 2025, con 23 personas entrenadas, comparó isometría en longitudes largas con rango completo y halló una hipertrofia del cuádriceps parecida, con una posible ventaja en la zona proximal del muslo que no es concluyente.",
+      "Una revisión sistemática y metaanálisis de 2025, con doce estudios de adultos jóvenes, no encontró diferencias relevantes entre entrenar con longitudes musculares medias más largas o más cortas. Los propios autores advierten de que las diferencias de longitud entre grupos fueron pequeñas, así que conviene interpretar con cautela. Con la evidencia disponible, trabajar en longitudes largas parece una opción válida dentro de un programa, pero no una condición imprescindible."
+    ],
+    "practice": "En la práctica, si quieres probar este enfoque, elige un ejercicio que cargue el músculo en su posición más estirada con control, y compara el recorrido parcial en longitudes largas con el completo durante varias semanas. Mide en los mismos puntos y con el mismo método. Si aparece dolor al estirar, reduce el rango y consulta con un profesional sanitario. Para ver el contexto regional, revisa la [[hipertrofia-regional|hipertrofia regional]].",
+    "related": ["hipertrofia-regional", "rom", "tension-mecanica"],
+    "sources": [
+      {"title": "Greater Gastrocnemius Muscle Hypertrophy After Partial Range of Motion Training Performed at Long Muscle Lengths", "publisher": "Journal of Strength and Conditioning Research · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/37015016/"},
+      {"title": "Does Muscle Length Influence Regional Hypertrophy? A Systematic Review and Meta-Analysis", "publisher": "International Journal of Sports Medicine · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40570881/"},
+      {"title": "The effects of long muscle length isometric versus full range of motion isotonic training on regional quadriceps femoris hypertrophy in resistance-trained individuals", "publisher": "Applied Physiology, Nutrition, and Metabolism · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40911904/"}
+    ]
+  },
+  {
+    "id": "hipertrofia-regional",
+    "name": "Hipertrofia regional",
+    "category": "HYPERTROPHY",
+    "short": "Crecimiento que puede variar entre las distintas zonas de un mismo músculo",
+    "aliases": ["regional hypertrophy", "localized hypertrophy"],
+    "body": [
+      "La hipertrofia regional describe el crecimiento distinto que puede darse en las partes de un mismo músculo, por ejemplo entre la zona proximal, la media y la distal. En los estudios se mide en puntos concretos del músculo, así que el resultado depende en parte de dónde se mide. Un metaanálisis de 2025 con doce estudios de adultos jóvenes encontró efectos muy pequeños de la longitud muscular en esas tres zonas, con una leve tendencia de proximal a distal y, en la mayoría de los casos, sin diferencias de relevancia práctica.",
+      "Por ahora, la evidencia no muestra que una variante concreta permita dirigir el crecimiento hacia una zona determinada. En un estudio de 2025 con quince hombres jóvenes, cambiar la posición del hombro al flexionar el codo produjo aumentos similares en las zonas proximal, media y distal del bíceps. Por eso, los datos actuales sugieren que el crecimiento tiende a ser bastante homogéneo a lo largo del músculo."
+    ],
+    "practice": "En la práctica, no conviene dar por hecho que un ejercicio concreto hará crecer una zona determinada. Entrena el músculo completo con ejercicios que varíen el recorrido y la posición, y valora el progreso con medidas repetidas en los mismos puntos. Si quieres entender el papel del recorrido, revisa el concepto de [[rom|rango de movimiento]].",
+    "related": ["longitud-muscular", "rom", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "Does Muscle Length Influence Regional Hypertrophy? A Systematic Review and Meta-Analysis", "publisher": "International Journal of Sports Medicine · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40570881/"},
+      {"title": "Comparison Between Shoulder Flexed and Extended Positions in Elbow Flexion Resistance Training on Regional Hypertrophy and Maximum Strength", "publisher": "European Journal of Sport Science · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40082069/"}
+    ]
+  },
+  {
+    "id": "sueno",
+    "name": "Sueño y rendimiento",
+    "category": "FATIGUE",
+    "short": "Efecto del descanso nocturno sobre el rendimiento físico, la función cognitiva y la recuperación",
+    "aliases": ["sleep", "privación de sueño"],
+    "body": [
+      "El sueño influye en el rendimiento porque repercute en el físico, en la cognición y en la recuperación. Una revisión de 2015 señaló que la falta de sueño suele empeorar el rendimiento, aunque los resultados no son uniformes: algunos esfuerzos máximos se mantienen, pero en deportistas se observan descensos del rendimiento específico. Dormir poco podría alterar el sistema nervioso autónomo, aumentar las citocinas proinflamatorias y enlentecer la respuesta cognitiva.",
+      "Un consenso reciente sobre sueño en deportistas, basado en una revisión narrativa, indica que los atletas de élite son especialmente propensos a dormir menos de siete horas de forma habitual y que una noche sin dormir reduce el rendimiento. Advierte además de que una recomendación única, como siete a nueve horas, es poco ideal, y propone individualizarla. En un estudio pequeño con once jugadores universitarios de baloncesto, alargar el sueño durante varias semanas mejoró el tiempo de sprint, la precisión de tiro y redujo la somnolencia diurna."
+    ],
+    "practice": "En la práctica, revisa cuántas horas duermes de verdad y cómo te sientes al levantarte, sobre todo en semanas de carga alta, viajes o competiciones, que suelen alterar el sueño. Si puedes, alarga el descanso antes de una fecha importante, sin perseguir una cifra única. El [[estres-recuperacion|estrés de la vida diaria]] también pesa en el sueño. Si el insomnio, los ronquidos o la somnolencia diurna persisten, consulta con un profesional sanitario.",
+    "related": ["fatiga-sistemica", "sobreentrenamiento", "estres-recuperacion"],
+    "sources": [
+      {"title": "Sleep and athletic performance", "publisher": "Sports Medicine · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/25315456/"},
+      {"title": "Sleep and the athlete: narrative review and 2021 expert consensus recommendations", "publisher": "British Journal of Sports Medicine · 2020", "url": "https://pubmed.ncbi.nlm.nih.gov/33144349/"},
+      {"title": "The effects of sleep extension on the athletic performance of collegiate basketball players", "publisher": "Sleep · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21731144/"}
+    ]
+  },
+  {
+    "id": "sobreentrenamiento",
+    "name": "Sobreentrenamiento y overreaching",
+    "category": "FATIGUE",
+    "short": "Fatiga que aparece cuando la carga supera a la recuperación, con distintos grados de gravedad",
+    "aliases": ["overtraining", "OTS", "síndrome de sobreentrenamiento"],
+    "body": [
+      "El overreaching es una caída temporal del rendimiento que aparece tras un período de entrenamiento intensificado y que suele mejorar después de la recuperación. Según una revisión de 2004, esa recuperación suele tardar unas dos semanas y puede ir seguida de una mejora. El síndrome de sobreentrenamiento, en cambio, es una alteración más prolongada, que puede durar meses o incluso años. Una declaración de consenso de 2013 advierte de que distinguir el sobreesfuerzo no funcional del síndrome es muy difícil, porque los signos suelen ser parecidos.",
+      "Lo que sí parece claro es que la carga y la recuperación deben equilibrarse. La existencia del síndrome cuenta con apoyo científico y anecdótico, pero, según la revisión de 2004, aún faltan estudios bien controlados para confirmarla con certeza. Ningún marcador, ya sea hormonal, de rendimiento, psicológico o inmunitario, cumple por sí solo los criterios para usarse de forma general, según el consenso de 2013."
+    ],
+    "practice": "En la práctica, vigila la tendencia de tu rendimiento, tu sueño, tu ánimo y tu recuperación durante varias semanas, no solo un día malo. Una bajada aislada suele responder a reducir la carga durante un tiempo; si la caída de rendimiento, la fatiga o los cambios de ánimo persisten varias semanas, consulta con un profesional sanitario para descartar otras causas. Si quieres repasar qué se entiende por desgaste general, consulta la [[fatiga-sistemica|fatiga sistémica]].",
+    "related": ["fatiga-sistemica", "deload", "estres-recuperacion"],
+    "sources": [
+      {"title": "Prevention, diagnosis, and treatment of the overtraining syndrome", "publisher": "Medicine and Science in Sports and Exercise · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23247672/"},
+      {"title": "Does overtraining exist? An analysis of overreaching and overtraining research", "publisher": "Sports Medicine · 2004", "url": "https://pubmed.ncbi.nlm.nih.gov/15571428/"}
+    ]
+  },
+  {
+    "id": "estres-recuperacion",
+    "name": "Estrés vital y recuperación",
+    "category": "FATIGUE",
+    "short": "Cómo las exigencias de la vida diaria se suman a la carga de entrenamiento y afectan a la recuperación",
+    "aliases": ["life stress", "balance estrés-recuperación"],
+    "body": [
+      "La recuperación no depende solo del entrenamiento, porque el trabajo, los estudios, la familia y otras preocupaciones también cuentan como estrés. Una declaración de consenso de 2018 sobre recuperación y rendimiento sitúa el rendimiento en el equilibrio entre estrés y recuperación, e incluye en el estrés total las demandas de la vida diaria. Además, las respuestas varían bastante entre personas, así que dos deportistas con la misma carga pueden recuperarse de forma distinta.",
+      "Hay indicios de que el estrés vital tiene efectos medibles. En 101 futbolistas júniors de élite, seguidos durante diez semanas, las contrariedades cotidianas y su cambio se asociaron con la aparición de lesiones. En un estudio de 2000 con 121 deportistas, el estrés por cambios vitales se relacionó con el tiempo perdido por lesión, y el optimismo y la dureza mental parecían amortiguar ese efecto. Son estudios observacionales, así que muestran asociaciones y no causas."
+    ],
+    "practice": "En la práctica, registra no solo tus sesiones, sino también el estrés de la semana, el [[sueno|sueño]] y la sensación de recuperación, y compara la tendencia de varias semanas. Si una semana de mucha presión coincide con peor descanso o molestias, valora reducir la carga de forma temporal en lugar de mantener el plan intacto. Si el estrés es alto o persistente, habla con un profesional sanitario o de la salud mental.",
+    "related": ["sobreentrenamiento", "sueno", "dolor-y-entrenamiento"],
+    "sources": [
+      {"title": "Recovery and Performance in Sport: Consensus Statement", "publisher": "International Journal of Sports Physiology and Performance · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29345524/"},
+      {"title": "Psychosocial stress as a predictor of injury in elite junior soccer", "publisher": "Journal of Science and Medicine in Sport · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24262336/"},
+      {"title": "An examination of psychosocial variables moderating the relationship between life stress and injury time-loss among athletes of a high standard", "publisher": "Journal of Sports Sciences · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/10855676/"}
+    ]
+  },
+  {
+    "id": "variabilidad-cardiaca",
+    "name": "Variabilidad de la frecuencia cardiaca (VFC)",
+    "category": "FATIGUE",
+    "short": "Variación del tiempo entre latidos que refleja la actividad del sistema nervioso autónomo",
+    "aliases": ["HRV", "heart rate variability"],
+    "body": [
+      "La variabilidad de la frecuencia cardiaca mide cuánto cambia el tiempo entre un latido y el siguiente, y refleja sobre todo la actividad vagal, es decir, la parte parasimpática del sistema nervioso autónomo. Se propuso como herramienta para seguir la adaptación al entrenamiento y la fatiga. Sin embargo, en deportistas de élite la relación no es sencilla: tanto subidas como bajadas de la VFC se han asociado con mala adaptación, y a veces la VFC baja mientras la forma física mejora.",
+      "La clave práctica está en la tendencia individual y en el método. Una revisión de 2016 con metaanálisis observó que, cuando hay una adaptación positiva, aumentan los índices vagales en reposo y tras el ejercicio, mientras que el sobreesfuerzo apenas cambia la VFC en reposo, aunque sí eleva algunos índices tras el ejercicio. Buchheit, en 2014, atribuye muchas contradicciones a métodos inconsistentes y propone registros cortos y repetidos, interpretados con el margen de error de la medición."
+    ],
+    "practice": "En la práctica, mide en condiciones parecidas y mira la tendencia de varias semanas más que un valor aislado. Buchheit propone registros de unos cinco minutos, casi a diario, y conviene interpretar cada variación teniendo en cuenta el error de tu método. Si la VFC baja de forma sostenida junto con peor sueño o rendimiento, valora reducir la carga y consulta con un profesional sanitario si los síntomas persisten. Para el contexto, repasa la [[fatiga-sistemica|fatiga sistémica]].",
+    "related": ["sobreentrenamiento", "fatiga-sistemica", "zonas-cardiacas"],
+    "sources": [
+      {"title": "Monitoring Athletic Training Status Through Autonomic Heart Rate Regulation", "publisher": "Sports Medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26888648/"},
+      {"title": "Monitoring training status with HR measures: do all roads lead to Rome?", "publisher": "Frontiers in Physiology · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24578692/"},
+      {"title": "Training adaptation and heart rate variability in elite endurance athletes", "publisher": "Sports Medicine · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23852425/"}
+    ]
+  },
+  {
+    "id": "crioterapia",
+    "name": "Frío y baños de hielo",
+    "category": "FATIGUE",
+    "short": "Inmersión en agua muy fría o hielo como técnica de recuperación tras el ejercicio",
+    "aliases": ["cold water immersion", "CWI", "ice bath"],
+    "body": [
+      "La inmersión en agua fría después del entrenamiento se usa mucho para acelerar la recuperación y aliviar molestias. En un estudio de 2014 con 30 hombres que hicieron sprints de alta intensidad, el agua fría y una inmersión placebo en agua templada produjeron una recuperación de la fuerza parecida durante las 48 horas siguientes, y ambas superaron a la inmersión control en agua templada. Eso sugiere que parte del beneficio percibido puede deberse al efecto placebo.",
+      "El punto más delicado es la hipertrofia. En un estudio de 2015 con 21 hombres activos que entrenaron fuerza durante 12 semanas, la inmersión de 10 minutos tras cada sesión redujo las ganancias de fuerza y de masa muscular frente a la recuperación activa. Un estudio de 2019 con 16 hombres, con 15 minutos a 10 °C tras cada sesión, confirmó la menor hipertrofia de las fibras tipo II, aunque sin diferencias en la fuerza máxima. Sus autores recomiendan evitar la inmersión si se busca hipertrofia, aunque son estudios pequeños."
+    ],
+    "practice": "En la práctica, si tu prioridad es la hipertrofia, los estudios con pesas sugieren no usar el agua fría de forma habitual justo después de entrenar, y elegir una recuperación activa suave en su lugar. Si la usas para recuperar fuerza a corto plazo, ten en cuenta que el alivio percibido no siempre refleja un beneficio real. Ante un dolor que no mejora, consulta con un [[senales-alarma|profesional sanitario]].",
+    "related": ["masaje-rodillo", "hipertrofia-muscular", "sintesis-proteica-muscular"],
+    "sources": [
+      {"title": "Post-exercise cold water immersion attenuates acute anabolic signalling and long-term adaptations in muscle to strength training", "publisher": "The Journal of Physiology · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26174323/"},
+      {"title": "Cold water immersion attenuates anabolic signaling and skeletal muscle fiber hypertrophy, but not strength gain, following whole-body resistance training", "publisher": "Journal of Applied Physiology · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31513450/"},
+      {"title": "Postexercise cold water immersion benefits are not greater than the placebo effect", "publisher": "Medicine and Science in Sports and Exercise · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24674975/"}
+    ]
+  },
+  {
+    "id": "masaje-rodillo",
+    "name": "Masaje y rodillo de espuma",
+    "category": "FATIGUE",
+    "short": "Presión manual o con rodillo sobre el músculo, usada para aliviar molestias tras el entrenamiento",
+    "aliases": ["foam rolling", "massage"],
+    "body": [
+      "El masaje y el rodillo de espuma se usan para aliviar las agujetas y la sensación de fatiga. Un metaanálisis de 2018 con 99 estudios encontró que el masaje fue la técnica con mayor efecto sobre el dolor muscular tardío y la fatiga percibida. Además, observó una reducción moderada de la creatina quinasa y pequeña de la interleucina 6 y de la proteína C reactiva, que son marcadores de inflamación.",
+      "El rodillo de espuma tiene efectos más modestos. Un metaanálisis de 2019 con 21 estudios concluyó que sus efectos sobre el rendimiento y la recuperación son pequeños, a veces casi nulos. Aplicado antes del ejercicio mejora algo la velocidad de sprint y la flexibilidad, y tras el ejercicio reduce ligeramente la percepción de dolor. Sus autores sugieren que se justifica más como calentamiento que como herramienta de recuperación."
+    ],
+    "practice": "En la práctica, el rodillo tiene sentido como parte del calentamiento para ganar un poco de movilidad, y el masaje puede ayudarte a sentirte mejor tras una sesión dura sin esperar que acelere la recuperación real. Ajusta la presión a lo que tolera el tejido; si aparecen moretones, un dolor intenso o un dolor que no cede, consulta con un profesional sanitario. Para entender el origen de las molestias, revisa el [[dano-muscular|daño muscular]].",
+    "related": ["crioterapia", "estres-recuperacion", "dano-muscular"],
+    "sources": [
+      {"title": "An Evidence-Based Approach for Choosing Post-exercise Recovery Techniques to Reduce Markers of Muscle Damage, Soreness, Fatigue, and Inflammation", "publisher": "Frontiers in Physiology · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29755363/"},
+      {"title": "A Meta-Analysis of the Effects of Foam Rolling on Performance and Recovery", "publisher": "Frontiers in Physiology · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31024339/"}
+    ]
+  },
+  {
+    "id": "zonas-cardiacas",
+    "name": "Zonas de frecuencia cardiaca",
+    "category": "CARDIO",
+    "short": "Rangos de frecuencia cardiaca que sirven para dosificar la intensidad del entrenamiento aeróbico",
+    "aliases": ["heart rate zones", "zonas de pulsaciones"],
+    "body": [
+      "Las zonas de frecuencia cardiaca dividen la intensidad del ejercicio aeróbico en tramos de pulsaciones que sirven para dosificar el trabajo. Se calculan a partir de la frecuencia cardiaca máxima o de umbrales medidos en una prueba, y los estudios que comparan distribuciones de entrenamiento suelen clasificar el tiempo por zonas. Como el cálculo parte de una frecuencia máxima estimada, una misma cifra de pulsaciones puede corresponder a intensidades distintas en dos personas.",
+      "La frecuencia máxima suele estimarse con fórmulas por edad, y la clásica de 220 menos la edad se usa mucho. Un estudio de 2001 que reunió 351 trabajos propuso 208 menos 0,7 por la edad, y señaló que la fórmula clásica tiende a subestimar la frecuencia máxima en adultos mayores. Son ecuaciones de grupo, así que pueden fallar en una persona concreta."
+    ],
+    "practice": "En la práctica, usa las zonas como guía y no como verdad exacta: contrasta las pulsaciones con la percepción del esfuerzo y, si lo tienes medido, con el [[umbral-lactato|umbral de lactato]]. Si entrenas por zonas, revisa cómo se reparte el tiempo entre ellas a lo largo de la semana, porque los estudios de distribución comparan precisamente ese reparto. Para la referencia de intensidad aeróbica suave, consulta la [[zona-2|zona 2]].",
+    "related": ["zona-2", "umbral-lactato", "vo2max"],
+    "sources": [
+      {"title": "Age-predicted maximal heart rate revisited", "publisher": "Journal of the American College of Cardiology · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11153730/"},
+      {"title": "Which Training Intensity Distribution Intervention will Produce the Greatest Improvements in Maximal Oxygen Uptake and Time-Trial Performance in Endurance Athletes?", "publisher": "Sports Medicine · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/39888556/"},
+      {"title": "Lactate threshold concepts: how valid are they?", "publisher": "Sports Medicine · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/19453206/"}
+    ]
+  },
+  {
+    "id": "zona-2",
+    "name": "Entrenamiento en zona 2",
+    "category": "CARDIO",
+    "short": "Intensidad aeróbica suave, justo por debajo del primer umbral de lactato o ventilatorio",
+    "aliases": ["zone 2", "entrenamiento de baja intensidad"],
+    "body": [
+      "La zona 2 es un trabajo aeróbico continuo de intensidad suave, que se realiza justo por debajo del primer umbral de lactato o ventilatorio. Un panel de 14 expertos publicado en 2025 llegó a un consenso sobre esa definición y admitió que puede hacerse en sesiones continuas, variables o a intervalos. Los mismos expertos señalaron que muchas de las adaptaciones esperadas podrían darse también con esfuerzos algo más altos o más bajos, así que no serían exclusivas de esa intensidad.",
+      "Gran parte del interés por la zona 2 se basa en datos de atletas de élite que hacen mucho volumen a esa intensidad. Una revisión narrativa de 2025 concluye que la evidencia actual no la identifica como la intensidad óptima para mejorar la capacidad mitocondrial o la oxidación de grasa. Según esa revisión, en la población general dar prioridad a intensidades más altas parece importante para la salud cardiometabólica, sobre todo cuando el volumen de entrenamiento es bajo."
+    ],
+    "practice": "En la práctica, define la zona 2 con una referencia medida, como el primer umbral de lactato o ventilatorio, y no solo con una cifra de pulsaciones de una aplicación. En atletas de élite, un análisis de 2010 describió unas 80 % de sesiones de baja intensidad y unas 20 % de alta, un reparto descriptivo y no una receta. Puedes ver cómo se combina con el [[hiit|trabajo de alta intensidad]].",
+    "related": ["zonas-cardiacas", "umbral-lactato", "hiit"],
+    "sources": [
+      {"title": "What Is \"Zone 2 Training\"?", "publisher": "International Journal of Sports Physiology and Performance · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40010355/"},
+      {"title": "Much Ado About Zone 2", "publisher": "Sports Medicine · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40560504/"},
+      {"title": "What is best practice for training intensity and duration distribution in endurance athletes?", "publisher": "International Journal of Sports Physiology and Performance · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20861519/"}
+    ]
+  },
+  {
+    "id": "hiit",
+    "name": "Intervalos de alta intensidad (HIIT)",
+    "category": "CARDIO",
+    "short": "Series repetidas de esfuerzo intenso separadas por pausas o trabajo suave, en sesiones cortas",
+    "aliases": ["high-intensity interval training", "HIT"],
+    "body": [
+      "El HIIT consiste en repetir esfuerzos de alta intensidad separados por pausas o trabajo suave. Según una revisión de 2012 sobre entrenamiento de bajo volumen, este tipo de sesiones puede generar adaptaciones fisiológicas parecidas a las del entrenamiento continuo moderado, con mucho menos tiempo total, y en algunos casos superiores cuando se compara a igual trabajo. Entre los mecanismos se incluyen mejoras del metabolismo muscular y cambios en la función cardiovascular.",
+      "En cuanto al VO2 máx, un metaanálisis de 2015 con 28 estudios en adultos sanos encontró que el HIIT produjo mejoras algo mayores que el entrenamiento de resistencia continuo, con un efecto algo más marcado en personas con menor forma física de partida. En atletas bien entrenados, un estudio de 2014 con 48 corredores, ciclistas, triatletas y esquiadores de fondo mostró que el mayor avance llegó con un reparto que combinaba mucho trabajo suave con algo de intensidad alta, mientras que el grupo de HIIT no igualó esa mejora."
+    ],
+    "practice": "En la práctica, el HIIT es una opción eficiente cuando el tiempo es limitado, pero no sustituye por completo al trabajo suave. Si lo incorporas, deja margen de recuperación entre sesiones intensas y vigila el sueño y la fatiga. Para ver cómo complementarlo, repasa la [[zona-2|zona 2]].",
+    "related": ["vo2max", "zona-2", "entrenamiento-concurrente"],
+    "sources": [
+      {"title": "Effectiveness of High-Intensity Interval Training (HIT) and Continuous Endurance Training for VO2max Improvements", "publisher": "Sports Medicine · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26243014/"},
+      {"title": "Physiological adaptations to low-volume, high-intensity interval training in health and disease", "publisher": "The Journal of Physiology · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/22289907/"},
+      {"title": "Polarized training has greater impact on key endurance variables than threshold, high intensity, or high volume training", "publisher": "Frontiers in Physiology · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24550842/"}
+    ]
+  },
+  {
+    "id": "vo2max",
+    "name": "VO2 máx",
+    "category": "CARDIO",
+    "short": "Cantidad máxima de oxígeno que el cuerpo puede usar por minuto durante un esfuerzo intenso",
+    "aliases": ["VO2max", "consumo máximo de oxígeno", "VO2peak"],
+    "body": [
+      "El VO2 máx es la mayor cantidad de oxígeno que una persona puede consumir por minuto durante un ejercicio con grandes grupos musculares, como correr o pedalear. Se considera una medida de referencia de la capacidad cardiorrespiratoria. Según una revisión de 2000, su límite lo impone sobre todo la capacidad del sistema cardiovascular para llevar oxígeno a los músculos, más que la capacidad de estos para extraerlo, y su aumento con el entrenamiento se debe sobre todo al mayor gasto cardiaco máximo.",
+      "Su medición tiene matices. Un artículo de 2017 advierte de que muchas pruebas incrementales no alcanzan una meseta clara y que, si se usan criterios secundarios como la frecuencia cardiaca o el lactato, el valor puede estimarse de forma muy imprecisa. Propone confirmarlo con una prueba adicional a carga constante. Además, el VO2 máx marca un techo, pero el rendimiento también depende de la fracción de ese valor que puedes sostener y de la economía de movimiento, como señalan revisiones de 2000 y 2008."
+    ],
+    "practice": "En la práctica, si quieres conocer tu VO2 máx con fiabilidad, pide una prueba que compruebe que alcanzas el máximo, porque un valor estimado sin comprobarlo puede ser muy impreciso. Mira también tu [[umbral-lactato|umbral de lactato]] y tu economía de movimiento, que influyen en el rendimiento junto con el techo. Si tienes una condición cardiaca o factores de riesgo, consulta con un profesional sanitario antes de hacer una prueba máxima.",
+    "related": ["umbral-lactato", "zonas-cardiacas", "hiit"],
+    "sources": [
+      {"title": "Limiting factors for maximum oxygen uptake and determinants of endurance performance", "publisher": "Medicine and Science in Sports and Exercise · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/10647532/"},
+      {"title": "Measurement of the maximum oxygen uptake: VO2peak is no longer acceptable", "publisher": "Journal of Applied Physiology · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28153947/"},
+      {"title": "Endurance exercise performance: the physiology of champions", "publisher": "The Journal of Physiology · 2008", "url": "https://pubmed.ncbi.nlm.nih.gov/17901124/"}
+    ]
+  },
+  {
+    "id": "umbral-lactato",
+    "name": "Umbral de lactato",
+    "category": "CARDIO",
+    "short": "Intensidad a partir de la cual el lactato en sangre empieza a subir por encima de sus niveles de reposo",
+    "aliases": ["lactate threshold", "LT"],
+    "body": [
+      "El umbral de lactato es la intensidad a partir de la cual el lactato en sangre empieza a subir por encima de sus niveles de reposo. Se usa para estimar la capacidad de resistencia y para prescribir intensidades de entrenamiento continuo. Sin embargo, no hay una única definición: una revisión de 2009 recoge 25 conceptos distintos, que se agrupan en valores fijos de lactato, en el primer aumento por encima del reposo y en el estado estable máximo de lactato.",
+      "Según esa revisión, un umbral se considera válido sobre todo si se relaciona bien con el rendimiento en pruebas de resistencia y si se aproxima al estado estable máximo; la mayoría de los estudios encontró correlaciones fuertes, sobre todo en carrera. Una revisión de 2003 añade que cada método tiene un error propio según protocolo y criterio, y que el nombre de la prueba debe reflejar la intensidad que realmente mide. Por eso conviene saber qué método se usó antes de comparar cifras."
+    ],
+    "practice": "En la práctica, mantén el mismo protocolo y el mismo criterio de umbral si quieres comparar resultados, porque cambiar uno de los dos puede modificar la cifra. Úsalo como guía para dosificar el trabajo continuo, sin olvidar que es una estimación con cierto error. Para trasladarlo a tus sesiones, compáralo con tus [[zonas-cardiacas|zonas de frecuencia cardiaca]] y con la [[zona-2|zona 2]].",
+    "related": ["vo2max", "zona-2", "zonas-cardiacas"],
+    "sources": [
+      {"title": "Lactate threshold concepts: how valid are they?", "publisher": "Sports Medicine · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/19453206/"},
+      {"title": "Anaerobic threshold: the concept and methods of measurement", "publisher": "Canadian Journal of Applied Physiology · 2003", "url": "https://pubmed.ncbi.nlm.nih.gov/12825337/"}
+    ]
+  },
+  {
+    "id": "entrenamiento-concurrente",
+    "name": "Entrenamiento concurrente",
+    "category": "CARDIO",
+    "short": "Combinar en un mismo programa entrenamiento de fuerza y de resistencia aeróbica",
+    "aliases": ["concurrent training", "interference effect"],
+    "body": [
+      "El entrenamiento concurrente combina fuerza y resistencia aeróbica dentro del mismo programa. Se ha descrito un efecto de interferencia, es decir, que el trabajo de resistencia podría frenar las ganancias de fuerza y de músculo. Un metaanálisis de 2012 encontró que esa interferencia depende sobre todo de la modalidad, la frecuencia y la duración del trabajo aeróbico, y que correr, pero no pedalear, se asoció con peores resultados de hipertrofia y fuerza.",
+      "Revisiones más recientes matizan ese panorama. Un metaanálisis de 2022 con 43 estudios encontró que combinar aeróbico y fuerza no compromete la hipertrofia ni la fuerza máxima, aunque puede atenuar la fuerza explosiva, sobre todo si ambos trabajos se hacen en la misma sesión. Otro metaanálisis de 2022 halló un efecto negativo pequeño en el tamaño de las fibras, más marcado en las fibras tipo I cuando el aeróbico era de carrera y no de ciclismo."
+    ],
+    "practice": "En la práctica, si combinas ambos, separar las sesiones al menos tres horas parece atenuar menos la fuerza explosiva que hacerlas en la misma sesión, según el análisis de 2022. Si tu objetivo es el músculo, cuida la frecuencia y la duración del trabajo aeróbico, y ten en cuenta que la carrera parece interferir más que el ciclismo. Para el contexto completo, consulta el [[estudio-concurrente|estudio sobre cardio y pesas]].",
+    "related": ["hipertrofia-muscular", "hiit", "fuerza"],
+    "sources": [
+      {"title": "Concurrent training: a meta-analysis examining interference of aerobic and resistance exercises", "publisher": "Journal of Strength and Conditioning Research · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/22002517/"},
+      {"title": "Compatibility of Concurrent Aerobic and Strength Training for Skeletal Muscle Size and Function", "publisher": "Sports Medicine · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/34757594/"},
+      {"title": "The Effects of Concurrent Aerobic and Strength Training on Muscle Fiber Hypertrophy", "publisher": "Sports Medicine · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/35476184/"}
+    ]
+  }
+]
