@@ -65,8 +65,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NutritionCheckInEntity::class,
         NutritionCatalogPublicationEntity::class,
         NutritionFoodUsageEntity::class,
+        // Historial de capturas de voz de la sesión en vivo (v37)
+        WorkoutVoiceHistoryEntity::class,
     ],
-    version = 36,
+    version = 37,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -93,6 +95,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
     abstract fun videoAnalysisDao(): VideoAnalysisDao
     abstract fun calibrationDecisionDao(): CalibrationDecisionDao
+    abstract fun workoutVoiceHistoryDao(): WorkoutVoiceHistoryDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -793,6 +796,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     RETIRE_PENDING_TRAINING_PROPOSALS_33_34,
                     *COMBINED_NUTRITION_TRAINING_35,
                     NUTRITION_CATALOG_35_36,
+                    WORKOUT_VOICE_HISTORY_36_37,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .apply { source?.let { createFromFile(it) } }
