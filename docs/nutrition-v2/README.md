@@ -12,8 +12,8 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 | F0 | Examen sellado + arnés A/B; línea base de master; veredicto master vs. Codex | en curso |
 | F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | paquete construido (`e0e53e842`); falta el lector en Android |
 | F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | en curso: contrato `F4_MICRONUTRIENTES.md`; F4-A1 hecho (`3ccd1d70a`); F4-A2 y F4-B en curso |
-| F1b | Conceptos y alias en español por lotes («IA en la fábrica») | pendiente |
-| F2 | Parser v2 por léxico + gramática de enlaces, en sombra | pendiente |
+| F1b | Conceptos y alias en español por lotes («IA en la fábrica») | en curso: contrato `F1B_CONCEPTOS.md`, herramientas `scripts/nutrition_v2/concepts/` (`932841268`); etapa 1 ola 1 (C01, C04, C06, C07, C12, C15) en `C:\kw\nutri-build\concepts\stage1\`; faltan C02, C03, C05, C08–C11, C13, C14, C16, C17 |
+| F2 | Parser v2 por léxico + gramática de enlaces, en sombra | en curso: contrato `F2_PARSER_V2.md`; F2-a (normalizador, vocabulario y trie) en curso |
 | F3 | Cantidad, estado y presentación (reconstitución) explícitos | pendiente |
 | F5 | Integración, rendimiento, teléfono, fuentes y licencias | pendiente |
 
