@@ -55,6 +55,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -64,6 +65,7 @@ import com.example.kpkn.domain.onboarding.CapabilitySkill
 import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.screens.onboarding.design.ActivationOverlay
 import com.example.kpkn.screens.onboarding.design.KpknModule
@@ -84,6 +86,7 @@ import com.example.kpkn.screens.onboarding.design.WizardPageItem
 import com.example.kpkn.screens.onboarding.design.WizardPageMetrics
 import com.example.kpkn.screens.onboarding.design.WizardPageMode
 import com.example.kpkn.screens.onboarding.design.WizardPageScroll
+import com.example.kpkn.screens.onboarding.design.WizardSummaryRow
 import com.example.kpkn.screens.onboarding.design.WizardPrologueOverlay
 import com.example.kpkn.screens.onboarding.design.WizardProgressSegment
 import com.example.kpkn.screens.onboarding.design.WizardScrollLock
@@ -92,6 +95,10 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTopScrim
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.programs.ProgramReadyCopy
+import com.example.kpkn.screens.programs.ProgramReadyPage
+import com.example.kpkn.screens.programs.ProgramReadyRow
+import com.example.kpkn.screens.programs.programReadyFacts
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.first
@@ -128,6 +135,10 @@ fun SetupWizardScreen(
     onDone: () -> Unit,
     onCancel: () -> Unit,
     viewModel: SetupWizardViewModel = viewModel(),
+    /**
+     * Instancia «Nuevo programa»: al confirmar «Listo para empezar» abre el programa guardado (en Programas). Null = [onDone].
+     */
+    onProgramCreated: ((String) -> Unit)? = null,
     /** La pantalla de arranque (sin nada completado) antes de la primera pregunta de un borrador nuevo. */
     showIntro: Boolean = true,
 ) {
@@ -210,7 +221,12 @@ fun SetupWizardScreen(
                                 notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             }
                             navigatedAfterCommit = true
-                            onDone()
+                            val created = viewModel.state.value.committedProgramId
+                            if (created != null && onProgramCreated != null && viewModel.state.value.draft.newProgramInstance) {
+                                onProgramCreated(created)
+                            } else {
+                                onDone()
+                            }
                         }
                     }
                 },
@@ -258,6 +274,11 @@ private fun WizardLongPage(
     val pages = wizardPresentationSteps(route)
     val currentPage = wizardCurrentPage(step, route)
     val currentIndex = pages.indexOf(currentPage).coerceAtLeast(0)
+    // Instancia «Nuevo programa» (cr-wz01): Datos básicos va plegado arriba en «Lo que ya sabemos», una fila-resumen más
+    // antes de la primera página; con el lápiz (o si falta un vital) sus páginas vuelven y la fila desaparece.
+    val instance = state.draft.newProgramInstance
+    val knownRow = instance && SetupStepId.NAME !in route
+    val metricIndex = currentIndex + if (knownRow) 1 else 0
     // Un hito es el overlay de «bloque completado» sobre la última página del bloque, ya confirmada.
     val milestoneModule = if (SetupStepGraph.isMilestone(step)) SetupStepGraph.blockOf(step).toKpknModule() else null
 
@@ -289,9 +310,9 @@ private fun WizardLongPage(
     val heights = remember { mutableStateMapOf<SetupStepId, Int>() }
     val summaries = remember(state.draft.draftId) { HashMap<SetupStepId, SetupStepSummary>() }
     val staleSummaries = remember(state.draft.draftId) { HashSet<SetupStepId>() }
-    val targetPx = WizardPageMetrics.target(currentIndex, chipPx, gapPx)
+    val targetPx = WizardPageMetrics.target(metricIndex, chipPx, gapPx)
     val lockMaxPx = WizardPageMetrics.lockMax(
-        index = currentIndex,
+        index = metricIndex,
         headerBottomPx = headerBottomPx,
         chipPx = chipPx,
         gapPx = gapPx,
@@ -304,7 +325,7 @@ private fun WizardLongPage(
     // El paso siguiente asoma hasta el borde inferior de la pantalla, no a media altura.
     val peekWindowPx = WizardPageMetrics.peekWindow(
         viewportPx = viewportPx,
-        focusLinePx = WizardPageMetrics.focusLine(currentIndex, headerBottomPx, chipPx, gapPx),
+        focusLinePx = WizardPageMetrics.focusLine(metricIndex, headerBottomPx, chipPx, gapPx),
         activeHeightPx = heights[currentPage] ?: 0,
         minPeekPx = peekPx,
     )
@@ -326,7 +347,7 @@ private fun WizardLongPage(
         0
     } else {
         WizardPageMetrics.openExtra(
-            focusLinePx = WizardPageMetrics.focusLine(currentIndex, headerBottomPx, chipPx, gapPx),
+            focusLinePx = WizardPageMetrics.focusLine(metricIndex, headerBottomPx, chipPx, gapPx),
             activeHeightPx = heights[currentPage] ?: 0,
             clearancePx = clearancePx,
             viewportPx = viewportPx,
@@ -339,7 +360,7 @@ private fun WizardLongPage(
     // arranca arriba). Después: cada cambio de paso desliza hasta el nuevo, sea hacia delante
     // (check) o hacia atrás (atrás o tocar una fila-resumen), con la misma duración que el plegado.
     var restored by remember { mutableStateOf(false) }
-    LaunchedEffect(currentIndex) {
+    LaunchedEffect(metricIndex) {
         // Dónde dejó la página este efecto la última vez: si la persona la movió, ya no se toca.
         var pinnedAt: Int
         if (!restored) {
@@ -402,6 +423,20 @@ private fun WizardLongPage(
                             .verticalScroll(scroll),
                     ) {
                         Spacer(Modifier.height(statusTopDp + WizardHeaderBlockHeight))
+                        if (knownRow) {
+                            WizardSummaryRow(
+                                label = KNOWN_BASICS_LABEL,
+                                value = knownBasicsSummary(
+                                    name = state.draft.name,
+                                    ageYears = state.draft.ageYears,
+                                    heightCm = state.draft.heightCm,
+                                    weightKg = state.draft.weightKg,
+                                    weightUnit = state.draft.weightUnit,
+                                ),
+                                onClick = { viewModel.editKnownBasics() },
+                                modifier = Modifier.testTag("setup-summary-known-basics"),
+                            )
+                        }
                         pages.take(currentIndex + 2).forEachIndexed { index, page ->
                             key(page) {
                                 val pageMode = when {
@@ -437,7 +472,7 @@ private fun WizardLongPage(
                                 }
                                 WizardPageItem(
                                     mode = pageMode,
-                                    eyebrow = wizardEyebrow(page, pages),
+                                    eyebrow = wizardEyebrow(page, pages, instance),
                                     title = copy.title,
                                     subtitle = copy.subtitle,
                                     summaryLabel = summary.label,
@@ -473,8 +508,11 @@ private fun WizardLongPage(
         )
         WizardPageHeader(
             haze = hazeState,
-            label = wizardHeaderLabel(currentPage, pages).uppercase(),
-            segments = wizardBlockProgress(pages, confirmedCount = currentIndex + if (milestoneModule != null) 1 else 0).map { (_, fraction) ->
+            label = wizardHeaderLabel(currentPage, pages, instance).uppercase(),
+            segments = (if (instance) ::newProgramBlockProgress else ::wizardBlockProgress)(
+                pages,
+                currentIndex + if (milestoneModule != null) 1 else 0,
+            ).map { (_, fraction) ->
                 WizardProgressSegment(fill = fraction)
             },
             onBack = { if (viewModel.canGoBack()) viewModel.goBack() else onLeave() },
@@ -564,7 +602,32 @@ private fun WizardLongPage(
 
         // La revisión y activación (K9): el overlay con el resumen de cada bloque y el botón «Activar y entrar a KPKN», que llama
         // al mismo `onActivate` del dock. Con el cursor en REVIEW_ACTIVATE; la página de debajo queda vacía.
-        if (step == SetupStepId.REVIEW_ACTIVATE) {
+        if (step == SetupStepId.REVIEW_ACTIVATE && instance) {
+            // Instancia «Nuevo programa»: el cierre «Listo para empezar» (cr-listo) en lugar de «Revisión y activación».
+            Box(Modifier.fillMaxSize().background(WizardColors.background))
+            NewProgramReadyStep(
+                state = state,
+                viewModel = viewModel,
+                route = route,
+                headerLabel = wizardHeaderLabel(currentPage, pages, instance = true),
+                segments = newProgramBlockProgress(pages, currentIndex).map { (_, fraction) -> WizardProgressSegment(fill = fraction) },
+                confirmEnabled = checkEnabled,
+                onConfirm = onActivate,
+                onLeave = onLeave,
+            )
+            if (floatingErrors.isNotEmpty()) {
+                WizardInlineErrors(
+                    errors = floatingErrors,
+                    onDismiss = viewModel::clearError,
+                    retryFor = viewModel::retryOperationForError,
+                    onRetry = { operation -> viewModel.retryFailedOperation(operation) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                        .padding(bottom = 132.dp),
+                )
+            }
+        } else if (step == SetupStepId.REVIEW_ACTIVATE) {
             // Fondo opaco bajo la revisión: la página de debajo (cabecera, resumen y filas) queda tapada. Con el velo del diálogo al 52 %
             // (cuando el sistema dice que hay desenfoque) el texto de atrás se leía a media intensidad, encima del del overlay.
             Box(Modifier.fillMaxSize().background(WizardColors.background))
@@ -605,6 +668,54 @@ private fun WizardLongPage(
             )
         }
     }
+}
+
+/**
+ * «Listo para empezar» de la instancia «Nuevo programa» (cr-listo): las filas plegadas «Programa» y «Tu semana» con su lápiz
+ * (vuelven al paso del plan y al de la semana), las tres opciones y el botón redondo, que guarda con la opción elegida.
+ */
+@Composable
+private fun NewProgramReadyStep(
+    state: SetupWizardState,
+    viewModel: SetupWizardViewModel,
+    route: List<SetupStepId>,
+    headerLabel: String,
+    segments: List<WizardProgressSegment>,
+    confirmEnabled: Boolean,
+    onConfirm: () -> Unit,
+    onLeave: () -> Unit,
+) {
+    val current = remember(state.draft.draftId) { viewModel.readyCurrentProgram() }
+    val choice = state.draft.readyChoice ?: ProgramReadyCopy.defaultChoice(current)
+    val facts = remember(state.programPreview) { state.programPreview?.let(::programReadyFacts) }
+    val planStep = SetupStepId.PLAN.takeIf { it in route } ?: route.firstOrNull { SetupStepGraph.blockOf(it) == SetupWizardBlock.TRAINING }
+    val weekStep = SetupStepId.WEEK_LAYOUT.takeIf { it in route } ?: SetupStepId.WEEKDAYS.takeIf { it in route }
+    val rows = facts?.let {
+        listOf(
+            ProgramReadyRow(
+                ProgramReadyCopy.PROGRAM_LABEL,
+                ProgramReadyCopy.programValue(it.name, it.weeks),
+                planStep?.let { target -> { viewModel.editStep(target) } },
+            ),
+            ProgramReadyRow(
+                ProgramReadyCopy.WEEK_LABEL,
+                ProgramReadyCopy.weekValue(it.days, state.draft.minutesPerSession ?: it.minutes, it.startDay),
+                weekStep?.let { target -> { viewModel.editStep(target) } },
+            ),
+        )
+    }.orEmpty()
+    ProgramReadyPage(
+        headerLabel = headerLabel,
+        segments = segments,
+        rows = rows,
+        current = current,
+        choice = choice,
+        onChoice = viewModel::setReadyChoice,
+        confirmEnabled = confirmEnabled,
+        onConfirm = onConfirm,
+        onBack = { viewModel.goBack() },
+        onExit = onLeave,
+    )
 }
 
 /**

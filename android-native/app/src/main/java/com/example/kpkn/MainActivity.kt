@@ -1026,7 +1026,12 @@ private fun KPKNNavGraph(
             val openCreateProgram = {
                 val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
                 if (onboardingCompleted) {
-                    homeViewModel.openCreateProgramSheet()
+                    // Registros v4 (cr-new): Inicio abre la misma hoja «Nuevo programa» de cuatro caminos, la de Programas.
+                    ProgramCreationRequests.openSheet = true
+                    navController.navigate(KpknRoute.Training.route) {
+                        popUpTo(KpknRoute.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 } else {
                     createProgramAndOpen(navController)
                 }
@@ -1362,6 +1367,8 @@ private fun KPKNNavGraph(
                     }
                 },
                 onCancel = { navController.popBackStack() },
+                // Instancia «Nuevo programa»: tras «Listo para empezar», Programas con el programa nuevo abierto.
+                onProgramCreated = { programId -> openCreatedProgram(navController, programId) },
             )
         }
         composable(KpknRoute.BodyProgress.route) {
@@ -1855,6 +1862,15 @@ private fun openLibraryPlanInWizard(navController: androidx.navigation.NavHostCo
     navController.navigate(
         com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute(onboardingCompleted, planId),
     ) { launchSingleTop = true }
+}
+
+/** Al terminar de crear un programa: Programas y, encima, el programa nuevo abierto (atrás vuelve a Programas). */
+private fun openCreatedProgram(navController: androidx.navigation.NavHostController, programId: String) {
+    navController.navigate(KpknRoute.Training.route) {
+        popUpTo(KpknRoute.Home.route) { inclusive = false }
+        launchSingleTop = true
+    }
+    navController.navigate(KpknRoute.ProgramDetail.create(programId)) { launchSingleTop = true }
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {

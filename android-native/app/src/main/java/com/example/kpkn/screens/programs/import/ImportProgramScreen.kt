@@ -55,6 +55,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.entreno.EntrenoPlanNotice
+import com.example.kpkn.screens.programs.ProgramReadyOverlay
 import com.example.kpkn.screens.programs.pluralDias
 import com.example.kpkn.screens.programs.pluralSesiones
 import com.example.kpkn.ui.entitlements.LocalPlan
@@ -82,6 +83,8 @@ fun ImportProgramScreen(
     var warningsReveal by rememberSaveable { mutableStateOf(0) }
     // «Añadir ejercicio» de la isla de abajo: el catálogo contextual del importador, sobre la pantalla.
     var addingExercise by rememberSaveable { mutableStateOf(false) }
+    // cr-imp8: el programa ya guardado espera en «Listo para empezar»; null = aún en la revisión.
+    var savedProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
     val pickFile = rememberImportFilePicker { uri -> viewModel.importFromPicked(uri) }
     // Lo que la persona eligió en la hoja «Importar» de Programas: se recoge una vez al abrirse y arranca la lectura.
@@ -233,7 +236,7 @@ fun ImportProgramScreen(
             ImportBottomIsland(
                 canSave = canSave,
                 onAddExercise = { addingExercise = true },
-                onSave = { scope.launch { viewModel.save(level)?.let(onSaved) } },
+                onSave = { scope.launch { viewModel.save(level)?.let { savedProgramId = it } } },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
             if (addingExercise) {
@@ -248,6 +251,14 @@ fun ImportProgramScreen(
                 )
             }
         }
+    }
+    // «Listo para empezar» (cr-listo): ya guardado, sin activar; atrás lo deja guardado y abre el programa igual.
+    savedProgramId?.let { programId ->
+        ProgramReadyOverlay(
+            programId = programId,
+            onDone = { id -> savedProgramId = null; onSaved(id) },
+            onBack = { savedProgramId = null; onSaved(programId) },
+        )
     }
 }
 

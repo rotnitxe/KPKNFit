@@ -156,7 +156,9 @@ internal fun wizardBlockPosition(page: SetupStepId, pages: List<SetupStepId>): W
 }
 
 /** Etiqueta pequeña sobre el título de la sección: «Paso 2 de 5 · Datos básicos». */
-internal fun wizardEyebrow(page: SetupStepId, pages: List<SetupStepId>): String = when {
+internal fun wizardEyebrow(page: SetupStepId, pages: List<SetupStepId>, instance: Boolean = false): String = when {
+    // «Listo para empezar» de la instancia «Nuevo programa»: «Último paso · Entreno» (cr-listo).
+    instance && SetupStepGraph.blockOf(page) == SetupWizardBlock.REVIEW -> NEW_PROGRAM_LAST_STEP
     SetupStepGraph.blockOf(page) == SetupWizardBlock.REVIEW -> "Último paso"
     else -> {
         val position = wizardBlockPosition(page, pages)
@@ -165,7 +167,14 @@ internal fun wizardEyebrow(page: SetupStepId, pages: List<SetupStepId>): String 
 }
 
 /** Texto del centro de la cabecera: el bloque y cuánto llevas, sin repetir la pregunta. */
-internal fun wizardHeaderLabel(page: SetupStepId, pages: List<SetupStepId>): String {
+internal fun wizardHeaderLabel(page: SetupStepId, pages: List<SetupStepId>, instance: Boolean = false): String {
+    // Instancia «Nuevo programa» (cr-wz*, CR-D1): «Nuevo programa · n/m», contando los pasos de su ruta efectiva sin Datos
+    // básicos (el cierre «Listo para empezar» incluido). Con el lápiz de «Lo que ya sabemos», esas páginas dicen su bloque.
+    if (instance && SetupStepGraph.blockOf(page) != SetupWizardBlock.BASICS) {
+        val own = pages.filter { SetupStepGraph.blockOf(it) != SetupWizardBlock.BASICS }
+        val number = own.indexOf(page).let { if (it < 0) own.size else it + 1 }
+        return "$NEW_PROGRAM_HEADER · $number/${own.size}"
+    }
     val position = wizardBlockPosition(page, pages)
     val name = SetupStepDefinitions.blockTitle(position.block)
     return when {
@@ -188,6 +197,46 @@ internal fun wizardBlockProgress(
         val fraction = questions.count { (index, _) -> index < confirmedCount }.toFloat() / questions.size
         block to fraction
     }
+
+/**
+ * La barra de la cabecera de la instancia «Nuevo programa»: Datos básicos ya está completo («Lo que ya sabemos»), así que su
+ * tramo va lleno aunque sus páginas no estén en la ruta; Entreno y el cierre, como siempre.
+ */
+internal fun newProgramBlockProgress(
+    pages: List<SetupStepId>,
+    confirmedCount: Int,
+): List<Pair<SetupWizardBlock, Float>> {
+    val progress = wizardBlockProgress(pages, confirmedCount)
+    return if (progress.any { it.first == SetupWizardBlock.BASICS }) progress else listOf(SetupWizardBlock.BASICS to 1f) + progress
+}
+
+/** Cabecera de la instancia «Nuevo programa» y etiqueta del cierre. */
+internal const val NEW_PROGRAM_HEADER = "Nuevo programa"
+internal const val NEW_PROGRAM_LAST_STEP = "Último paso · Entreno"
+
+/** La fila plegada de la instancia: «Lo que ya sabemos». */
+internal const val KNOWN_BASICS_LABEL = "Lo que ya sabemos"
+
+/**
+ * El valor de «Lo que ya sabemos»: «Matías · 34 años · 1,78 m · 80,4 kg». Lo que falta no se dice; el peso va en la unidad
+ * de la persona (kg o lb) con un decimal y coma.
+ */
+internal fun knownBasicsSummary(
+    name: String?,
+    ageYears: Int?,
+    heightCm: Double?,
+    weightKg: Double?,
+    weightUnit: String = "kg",
+): String = buildList {
+    name?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+    ageYears?.takeIf { it > 0 }?.let { add(if (it == 1) "1 año" else "$it años") }
+    heightCm?.takeIf { it > 0 }?.let { add(String.format(java.util.Locale.ROOT, "%.2f", it / 100.0).replace('.', ',') + " m") }
+    weightKg?.takeIf { it > 0 }?.let { kg ->
+        val lb = weightUnit == "lb"
+        val value = if (lb) kg / 0.45359237 else kg
+        add(String.format(java.util.Locale.ROOT, "%.1f", value).replace('.', ',') + if (lb) " lb" else " kg")
+    }
+}.joinToString(" · ")
 
 /** Animación del overlay del hito del bloque [this]; la revisión no tiene hito. */
 internal fun SetupWizardBlock.toKpknModule(): KpknModule? = when (this) {

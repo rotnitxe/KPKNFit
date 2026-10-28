@@ -98,7 +98,7 @@ object DeepLinkRouter {
         val cleanDraftId = draftId?.trim()?.takeIf { it.isNotEmpty() }
         if (com.example.kpkn.data.compatibility.LegacyTrainingImport.isRetiredSetupMode(normalizedMode)) return ResolvedRoute(KpknRoute.Home.route)
         return when (normalizedMode) {
-            "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.ProgramEditor.create())
+            "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.SetupWizard.create(mode = PostDischargeRouting.MODE_NEW_PROGRAM))
             "NUTRITION_ONLY" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
             "RESUME" -> ResolvedRoute(
                 KpknRoute.SetupWizard.create(mode = "RESUME", draftId = cleanDraftId),
