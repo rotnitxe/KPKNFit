@@ -77,17 +77,8 @@ internal val StructureDivider = Color(0x0FFFFFFF)
 /** Texto negro sobre tinta (`#111`). */
 internal val StructureOnInk = Color(0xFF111111)
 
-/**
- * Color de cada fase en el lienzo (`--ph-acc`, `--ph-int`, `--ph-rea`, `--ph-del`, `--ph-com`). Realización es `--col` y descarga, `#7fcfa4`.
- */
-internal fun structurePhaseColor(phase: ProgramPhase?): Color = when (phase) {
-    ProgramPhase.ACCUMULATION -> Color(0xFFF49A6E)
-    ProgramPhase.INTENSIFICATION -> Color(0xFFF7CF73)
-    ProgramPhase.REALIZATION -> Color(0xFF8FB2FF)
-    ProgramPhase.DELOAD -> Color(0xFF7FCFA4)
-    ProgramPhase.COMPETITION -> Color(0xFFFF9B92)
-    null -> StructureFaint
-}
+/** Color de cada fase en el lienzo (`--ph-*`): el mismo de [ProgramPhase] en todas las pestañas; sin fase, faint. */
+internal fun structurePhaseColor(phase: ProgramPhase?): Color = phase?.color ?: StructureFaint
 
 // ── Tipografía del lienzo ────────────────────────────────────────────────────────────────────────────────────────────────────────
 

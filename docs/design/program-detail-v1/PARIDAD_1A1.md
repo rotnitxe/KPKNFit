@@ -73,3 +73,39 @@ Ola 1 en paralelo, cada uno SOLO en su zona y, dentro de `ProgramDetailScreen.kt
 - PE Programas (screens/programs/*).
 Ola 2: PD Hojas y menús, tras fusionar la ola 1. Después: borrar módulos muertos y hojas de render obsoletas, fusionar master,
 verificación lado a lado, integrar y push. Luego Registros v4.
+
+## Mensaje del usuario (28-oct, durante la ola 1)
+
+> «Como puedes ver en la vista del programa, hay como 4 bloques de tarjetas de progreso del programa, temporada, próxima
+> semana y sobre este programa que son relleno visual y empujan LO QUE SÍ IMPORTA HACIA ABAJO. ESTO JAMÁS DEBE PASAR.»
+
+La captura era del APK «KPKN Nutricion v2» (20477bae7, 13:03), que NO trae el rediseño (df3a190b5). En el código actual no
+se llaman, pero la regla queda: entre la portada y la semana no hay NADA salvo lo del lienzo (acción del día + campana;
+Competición compacta solo en p-comp). Encargado a PA: borrar ProgramAbout/Progress/Season/PlannedLoadModule (+ prueba y
+hojas de render), una sola línea de alcance en la portada, avisos solo en la campana.
+
+Encargo de la ola 2 (PD) redactado y listo: scratchpad de la sesión `encargo_PD.md` (decisiones H-D1 confirmación en hoja corta, H-D2 m-split entra, H-D3 una fila por tipo con «y N más").
+
+### Ola 1 — PE Programas (28-oct)
+Hecho en `worktree-agent-a43fe949e6aee9390` 7c7847ac5 (compila; 247 pruebas de programs.* en verde). Pedidos 3 ajustes: meta del catálogo «D días · N semanas · Objetivo» (sin nivel), quitar «Elegir otra forma», KpknChip con altura opcional (30 dp en Programas). Mínimo 13 sp de KpknType se mantiene (regla vigente): única diferencia consciente con las líneas de 11-12 px del lienzo.
+PE fusionado en la rama (fast-forward a bce3d60a6, ajustes hechos: meta catálogo, sin «Elegir otra forma», chips 30 dp).
+
+Integración: por TURNO de master (C:\kw\tools\INTEGRACION_GUIA.md, coordina «Mejoras sistema búsqueda y nutrientes Nutrición»); al final borrar la rama y los worktrees agent-* y avisarle.
+
+### Ola 1 — PA Cabecera y Semana (28-oct)
+Hecho en `worktree-agent-aef4b1cd1636ff1fa` 47e7b955f, fusionado en la rama (347d74eaf). Compila; 11 clases de prueba en
+verde. Borrados ProgramAbout/Progress/Season/PlannedLoadModule + ProgramWeekRuler, sus pruebas y las hojas de render
+Header/Closure; fuera seasonState y plannedLoadProjection del ViewModel. Decisiones: W-D2 la casilla de confirmar la
+opcional SALE (toggleOptionalSessionConfirmation queda sin interfaz; afecta a la previsión de nutrición) — decirlo en el
+informe final; W-D3 días fuera de programa salen salvo los que tienen sesión; C-D1 rutina sin cinta en la portada.
+Pendiente de verificación visual lado a lado.
+
+### Ola 1 — PC Estructura (28-oct)
+Hecho en `worktree-agent-aa26247470af2d5d6` efcdc6c10; fusionado (13dc446b6; conflictos solo en pruebas: hoja Closure queda
+borrada, imports de ProgramDetailSamples). Compila en su rama; 10 clases en verde. Borrados ProgramAnalyticsCards
+(revisión del plan), RouteSection, KeyDatesSection, ProgramRoute*, ProgramCalendarModule, ProgramToolsModule, etc.
+Decisiones: «Ruta» → ⋯ del bloque; fechas clave y calendario → hoja «Fechas»; biblioteca aplica al tocar (interruptor
+«Sustituir semanas con sesiones»); rutina con módulo de acciones al pie (mesociclos, añadir semana, calendarizar, pasar a
+bloques) para no perder funciones. structurePhaseColor ahora usa ProgramPhase.color (eran iguales).
+Limpieza pendiente (tras PB): imports sin uso en ProgramDetailScreen (ProgramAnalyticsEngine, exerciseCatalogSnapshot),
+setMacrocycleRoadmapExpanded y borradores de timeline del VM, exerciseTrainingMaxSummary/Missing.
