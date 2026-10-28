@@ -35,9 +35,12 @@ class RoutinePeriodizerTest {
         val accumulation = lift(BlockGoal.ACCUMULATION)
         assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_HIGH,accumulation.catalogConfigurationId)
         assertEquals(accumulation.catalogConfigurationId,accumulation.exerciseDbId)
-        assertNull(accumulation.reference1RM)
+        // F-22: la barra alta no hereda los 200 kg de la barra baja como marca propia; lleva una estimación (×0,95) visible.
+        assertEquals(190.0,accumulation.reference1RM!!,1e-9)
+        assertEquals(0.95,accumulation.loadEstimate!!.factor,1e-9)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_LOW,accumulation.loadEstimate!!.sourceConfigurationId)
         assertNull(accumulation.referenceTrainingMax)
-        assertTrue(accumulation.sets.all { it.weight == null && it.targetPercentageRM == null })
+        assertTrue(accumulation.sets.all { (it.weight ?: 0.0) > 0.0 && it.targetPercentageRM != null })
         val intensification = lift(BlockGoal.INTENSIFICATION)
         // F-10: solo rota hacia un ejercicio que NO está ya en la sesión; si la sesión base ya lleva la sentadilla con pausa
         // (como configuración o como definición), el principal conserva su configuración.
@@ -50,9 +53,28 @@ class RoutinePeriodizerTest {
             if (pausedAlreadyThere) com.example.kpkn.data.protocols.CatalogIds.SQ_LOW else pausedId,
             intensification.catalogConfigurationId,
         )
+        if (!pausedAlreadyThere) {
+            assertEquals(170.0,intensification.reference1RM!!,1e-9)
+            assertEquals(0.85,intensification.loadEstimate!!.factor,1e-9)
+        }
         val specific = lift(blocks.first { it.goal in setOf(BlockGoal.REALIZATION,BlockGoal.PEAK) }.goal!!)
         assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_LOW,specific.catalogConfigurationId)
         assertEquals(200.0,specific.reference1RM!!,0.0)
+        assertNull("el básico lleva su marca declarada, no una estimación",specific.loadEstimate)
+    }
+
+    @Test fun rotated_variants_without_a_mark_for_their_basic_stay_without_kilos_and_without_estimate() {
+        val request = s.request(s.gym,RoutineMode.CUSTOM_POWERLIFTING,RoutineLevel.INTERMEDIATE,dayCount = 3,minutes = 60)
+            .copy(liftVariants = mapOf(LiftMark.SQUAT to com.example.kpkn.data.protocols.CatalogIds.SQ_LOW))
+        val base = RoutineGenerator.generate(request).program
+        val result = RoutinePeriodizer.build(request,base,ProgramVariant.PERIODIZED,Horizon.Weeks(12)).program
+        val rotated = sessionsOf(result).flatMap { it.allExercises() }.filter { it.catalogConfigurationId == com.example.kpkn.data.protocols.CatalogIds.SQ_HIGH }
+        assertTrue(rotated.isNotEmpty())
+        rotated.forEach { exercise ->
+            assertNull(exercise.loadEstimate)
+            assertNull(exercise.reference1RM)
+            assertTrue(exercise.sets.all { it.weight == null })
+        }
     }
 
     private val s = RoutineTestSupport
