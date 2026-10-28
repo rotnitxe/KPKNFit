@@ -109,3 +109,14 @@ Decisiones: «Ruta» → ⋯ del bloque; fechas clave y calendario → hoja «Fe
 bloques) para no perder funciones. structurePhaseColor ahora usa ProgramPhase.color (eran iguales).
 Limpieza pendiente (tras PB): imports sin uso en ProgramDetailScreen (ProgramAnalyticsEngine, exerciseCatalogSnapshot),
 setMacrocycleRoadmapExpanded y borradores de timeline del VM, exerciseTrainingMaxSummary/Missing.
+
+### 28-oct (noche) — PB colgado y relanzado; PD en paralelo
+El primer PB se quedó 5 h colgado abriendo el navegador (artifact.html) sin tocar ningún archivo: detenido, su worktree
+vacío y su rama borrados. Relanzados PB (Progreso) y PD (Hojas y menús) EN PARALELO desde 1f45107f3, sin navegador; PB no
+toca hojas salvo Calibrar, PD no toca Progreso ni Calibrar. Encargos en el scratchpad de la sesión (`encargo_PB.md`,
+`encargo_PD.md`). En paralelo, inventario de Registros v4 (solo lectura, contra origin/master) →
+`docs/design/registros-v1/INVENTARIO_PARIDAD.md`. Comida/búsqueda/micro chocan con la sesión de Nutrición: implementar
+tras integrar Program Detail y coordinando con ella.
+Limpieza lista para hacer tras fusionar: import ProgramAnalyticsEngine (ProgramDetailScreen.kt:34),
+setMacrocycleRoadmapExpanded + macrocycleRoadmapExpanded (VM:949/101), exerciseTrainingMaxSummary/Missing
+(ExerciseTrainingMaxPanel.kt:34/42); exerciseCatalogSnapshot sí se usa en data/ (no tocar).
