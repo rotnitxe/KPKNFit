@@ -46,6 +46,21 @@ class CatalogRecordLinkTest {
     }
 
     @Test
+    fun v2SourceLinksCiqualAndKpknRecords() {
+        assertEquals("ciqual_20047", CatalogRecordLink.recordIdFor(FoodItem(id = "ciqual_20047", source = CatalogRecordLink.V2_SOURCE)))
+        assertEquals(
+            "kpkn_pastel_de_choclo",
+            CatalogRecordLink.recordIdFor(FoodItem(id = "kpkn_pastel_de_choclo", source = CatalogRecordLink.V2_SOURCE)),
+        )
+    }
+
+    @Test
+    fun packPrefixWithoutV2SourceIsNotLinked() {
+        assertNull(CatalogRecordLink.recordIdFor(FoodItem(id = "ciqual_20047", source = "CIQUAL")))
+        assertNull(CatalogRecordLink.recordIdFor(FoodItem(id = "kpkn_", source = CatalogRecordLink.V2_SOURCE)))
+    }
+
+    @Test
     fun recipeIsNull() {
         val recipe = FoodItem(
             id = "usda_1",

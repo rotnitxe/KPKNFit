@@ -13,6 +13,7 @@ import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
 import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.domain.nutrition.nutrients.CatalogRecordLink
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -242,8 +243,11 @@ object ResolvedTagAdapterV2 {
         return ClarificationRequest.Portion(REQUEST_QUANTITY, listOf(estimated) + portions)
     }
 
-    /** FoodItem por 100 g; clave ausente = sin dato (sin desglose de carbohidratos ni micronutriente inventado). */
-    private fun buildFood(
+    /**
+     * FoodItem por 100 g; clave ausente = sin dato (sin desglose de carbohidratos ni micronutriente inventado).
+     * También lo usa la búsqueda manual (LoggerSearchV2).
+     */
+    internal fun buildFood(
         recordId: String,
         name: String,
         category: String?,
@@ -270,7 +274,7 @@ object ResolvedTagAdapterV2 {
             fats = per100g["fat"] ?: 0.0,
             carbBreakdown = if (fiber == null && sugars == null) null else CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugars ?: 0.0),
             micronutrients = micronutrients,
-            source = "KPKN catálogo v2",
+            source = CatalogRecordLink.V2_SOURCE,
             sourceRecordId = recordId,
             nutritionBasis = if (foodState == FoodState.COOKED) "PER_100G_COOKED" else "PER_100G_AS_SOLD",
             foodState = foodState.name,
@@ -310,7 +314,7 @@ object ResolvedTagAdapterV2 {
         )
     }
 
-    private fun foodStateOf(state: FoodStateV2?): FoodState = when (state) {
+    internal fun foodStateOf(state: FoodStateV2?): FoodState = when (state) {
         null -> FoodState.UNKNOWN
         FoodStateV2.RAW -> FoodState.RAW
         FoodStateV2.COOKED, FoodStateV2.FRIED, FoodStateV2.GRILLED, FoodStateV2.BAKED, FoodStateV2.STEAMED -> FoodState.COOKED
@@ -332,7 +336,7 @@ object ResolvedTagAdapterV2 {
         else -> "cantidad"
     }
 
-    private fun stateName(state: FoodStateV2?): String = when (state) {
+    internal fun stateName(state: FoodStateV2?): String = when (state) {
         null -> "sin especificar"
         FoodStateV2.RAW -> "crudo"
         FoodStateV2.COOKED -> "cocido"
@@ -342,7 +346,7 @@ object ResolvedTagAdapterV2 {
         FoodStateV2.STEAMED -> "al vapor"
     }
 
-    private fun formName(form: FoodFormV2): String = when (form) {
+    internal fun formName(form: FoodFormV2): String = when (form) {
         FoodFormV2.NA -> "natural"
         FoodFormV2.POWDER_DRY -> "en polvo"
         FoodFormV2.RECONSTITUTED -> "preparado"

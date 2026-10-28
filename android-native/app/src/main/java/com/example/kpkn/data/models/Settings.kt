@@ -178,8 +178,6 @@ data class Settings(
     val techniqueVideo: TechniqueVideoSettings = TechniqueVideoSettings(),
     /** Inicio de descansos al registrar. true conserva el comportamiento previo; restTimerAutoStart permanece como legado sin reinterpretar backups. */
     val autoStartRestAfterRecording: Boolean = true,
-    /** Intérprete de comidas v2 (beta, modo sombra): el registrador lo usa primero y vuelve al actual si no reconoce nada. */
-    val nutritionParserV2: Boolean = false,
 ) {
     /**
      * Stock efectivo para alcanzar cargas: el inventario explícito manda,
