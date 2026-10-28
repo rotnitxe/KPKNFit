@@ -162,7 +162,7 @@ mañana y después el de los arreglos. Las decisiones están en
 | «un vaso de leche en polvo» | «Leche en polvo entera · 206 g»: parecía polvo seco. | «Leche en polvo entera (preparada) · 206 g», 157 kcal (N41). |
 | Chips de porción | Sin tilde: «porcion (100 g)». | «porción (100 g)». Las demás etiquetas del vocabulario también llevan tilde (N41). |
 | Hoja «Nutrientes del día» | «Completo · 2 de 3 alimentos con dato declarado». | «Casi completo · 5 de 6 alimentos con dato declarado» (N40). |
-| Micronutrientes del café con leche | Ninguno: el plato no estaba en el paquete. Con N39 sola, seguía sin vitamina D. | El plato enlaza a su ficha del paquete y al guardar toma su vector completo (N39, N44). Está verificado en las pruebas. En el teléfono falta verlo, porque estaba plegado cuando llegó el APK. |
+| Micronutrientes del café con leche | Ninguno: el plato no estaba en el paquete. Con N39 sola, seguía sin vitamina D. | El plato enlaza a su ficha del paquete y al guardar toma su vector completo (N39, N44). Un café con leche nuevo aporta 0,55 µg de vitamina D en «Nutrientes del día». Los dos guardados antes del arreglo siguen sin el dato, porque el historial no se recalcula (D7). |
 | Primera interpretación tras abrir la app | 1,4 s; 0,9 s eran la carga del vocabulario. | 0,36–0,41 s, porque el vocabulario se carga al abrir el registro (N38). |
 | Atajo `kpkn://nutrition/action/log` con la app cerrada | Una vez no abrió el registro. | Lo abrió en los 3 arranques en frío siguientes. No se repitió. |
 | Búsqueda manual («Buscar» en el registro) | Usa el buscador de siempre, sin el vocabulario de v2 ni el índice del paquete. | Sin cambios: espera tu decisión. |
