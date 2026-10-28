@@ -279,8 +279,8 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11. La ola 5 debe dejarlo en 0. */
-        const val CEILING = 1280
+        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07. La ola 5 debe dejarlo en 0. */
+        const val CEILING = 908
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40
