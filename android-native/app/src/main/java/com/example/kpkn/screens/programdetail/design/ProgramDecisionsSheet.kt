@@ -20,7 +20,7 @@ import java.util.Locale
 internal fun ProgramDecisionsSheet(decisions: List<DecisionLine>, onDismiss: () -> Unit) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.85f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Decisiones del sistema", style = KpknType.bodyStrong, color = WizardColors.text)
+            ProgramSheetHeader(title = "Decisiones del sistema", subtitle = "Lo que KPKN propuso o cambió en este programa, y por qué.")
             if (decisions.isEmpty()) Text("Todavía no hay decisiones registradas", style = KpknType.body, color = WizardColors.textMuted)
             decisions.forEach { line ->
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

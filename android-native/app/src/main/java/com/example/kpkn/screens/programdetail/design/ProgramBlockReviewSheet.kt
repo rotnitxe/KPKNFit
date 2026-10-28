@@ -11,7 +11,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 
 @Composable
@@ -28,8 +29,7 @@ internal fun ProgramBlockReviewSheet(
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() }, stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Revisión de bloque", style = KpknType.bodyStrong, color = WizardColors.text)
-            Text(review.summary, style = KpknType.body, color = WizardColors.text)
+            ProgramSheetHeader(title = "Revisión de bloque", eyebrow = "Bloque terminado", subtitle = review.summary)
             Text("${review.feedbackWeeks} semanas con respuestas originales atribuibles al bloque.", style = KpknType.caption, color = WizardColors.textMuted)
             review.muscleSets.forEach { muscle ->
                 Text("${muscle.muscleName}: ${number(muscle.plannedPerWeek)} series previstas y ${number(muscle.recordedPerWeek)} registradas por semana.",
@@ -51,8 +51,8 @@ internal fun ProgramBlockReviewSheet(
                     style = KpknType.body, color = WizardColors.text)
             }
             if (!busy) {
-                KpknCompactPill("Confirmar",onConfirm,fullWidth = true)
-                KpknCompactPill("Volver",onDismiss,filled = false,fullWidth = true)
+                KpknPrimaryPill(text = "Confirmar", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             } else Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
         }
     }

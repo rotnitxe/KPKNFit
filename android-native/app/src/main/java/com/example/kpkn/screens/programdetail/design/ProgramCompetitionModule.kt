@@ -98,8 +98,7 @@ internal fun CompetitionPlanSheet(state: ProgramCompetitionState,busy: Boolean,
     val valid = !partial && !descending && category.length <= 80 && (targetText.isBlank() || target != null)
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Planificar competición",style = KpknType.bodyStrong,color = WizardColors.text)
-            Text("Pesos editables, redondeados a 2,5 kg al proponerlos. Revisa el material y las reglas de tu evento. No son resultados registrados.",style = KpknType.body,color = WizardColors.text)
+            ProgramSheetHeader(title = "Planificar competición", subtitle = "Pesos editables, redondeados a 2,5 kg al proponerlos. Revisa el material y las reglas de tu evento. No son resultados registrados.")
             if (!reviewing) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(AttemptStrategy.CONSERVATIVE to "Conservadora",AttemptStrategy.TARGET to "Objetivo",AttemptStrategy.AMBITIOUS to "Ambiciosa").forEach { (value,label) ->
@@ -121,18 +120,18 @@ internal fun CompetitionPlanSheet(state: ProgramCompetitionState,busy: Boolean,
                 OutlinedTextField(value = targetText,onValueChange = { targetText = it },enabled = !busy,label = { Text("Peso objetivo para el pesaje, kg (opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),modifier = Modifier.fillMaxWidth().testTag("meet-target-bodyweight"))
                 if (!valid) Text("Completa los tres intentos de cada levantamiento elegido en orden no decreciente y revisa el peso objetivo.",style = KpknType.body,color = WizardColors.text)
-                if (valid && !busy) KpknCompactPill("Revisar planificación",{ reviewing = true },fullWidth = true)
+                if (valid && !busy) KpknPrimaryPill(text = "Revisar planificación", onClick = { reviewing = true }, modifier = Modifier.fillMaxWidth())
             } else {
                 if (attempts.isEmpty()) Text("Se guardará la competición sin intentos planificados.",style = KpknType.body,color = WizardColors.text)
                 attempts.forEach { Text("${competitionLiftLabel(it.movementType)} ${it.attemptNumber}: ${it.weightKg} kg · ${it.basis}",style = KpknType.body,color = WizardColors.text) }
                 Text("Categoría: ${category.ifBlank { "sin objetivo" }} · peso objetivo: ${target?.let { "$it kg" } ?: "sin objetivo"}",style = KpknType.body,color = WizardColors.text)
                 if (!busy) {
-                    KpknCompactPill("Guardar planificación",{ onSave(attempts,category.takeIf { it.isNotBlank() },target) },fullWidth = true)
-                    KpknCompactPill("Editar planificación",{ reviewing = false },filled = false,fullWidth = true)
+                    KpknPrimaryPill(text = "Guardar planificación", onClick = { onSave(attempts,category.takeIf { it.isNotBlank() },target) }, modifier = Modifier.fillMaxWidth())
+                    KpknSecondaryPill(text = "Editar planificación", onClick = { reviewing = false }, modifier = Modifier.fillMaxWidth())
                 }
             }
             if (busy) Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
-            else KpknCompactPill("Volver",onDismiss,filled = false,fullWidth = true)
+            else KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -144,8 +143,7 @@ internal fun MeetDaySheet(attempts: List<PlannedAttempt>,onDismiss: () -> Unit) 
     val outcomes = remember(attempts) { mutableStateMapOf<Pair<CompetitionMovementType,Int>,CompetitionAttemptResult>() }
     KpknSheet(onDismissRequest = onDismiss,stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Modo competición",style = KpknType.bodyStrong,color = WizardColors.text)
-            Text("Consulta y simulación local. Al cerrar no se guardan estos resultados; usa el asistente de competición para registrar los reales.",style = KpknType.body,color = WizardColors.text)
+            ProgramSheetHeader(title = "Modo competición", subtitle = "Consulta y simulación local. Al cerrar no se guardan estos resultados; usa el asistente de competición para registrar los reales.")
             plans.forEach { plan ->
                 Text(competitionLiftLabel(plan.movement),style = KpknType.bodyStrong,color = WizardColors.text)
                 Text("Calentamiento orientativo: " + plan.warmups.joinToString(" · ") { "${it.weightKg} kg × ${it.reps}" },style = KpknType.body,color = WizardColors.text)
@@ -163,7 +161,7 @@ internal fun MeetDaySheet(attempts: List<PlannedAttempt>,onDismiss: () -> Unit) 
                         ?: "Fin de los intentos planificados para este levantamiento.",style = KpknType.body,color = WizardColors.text)
                 }
             }
-            KpknCompactPill("Cerrar simulación",onDismiss,fullWidth = true)
+            KpknPrimaryPill(text = "Cerrar simulación", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -172,15 +170,14 @@ internal fun MeetDaySheet(attempts: List<PlannedAttempt>,onDismiss: () -> Unit) 
 internal fun MeetResultReviewSheet(preview: ProgramRepository.MeetResultPreview,busy: Boolean,onConfirm: () -> Unit,onDismiss: () -> Unit) {
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.85f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Revisar marcas de competición",style = KpknType.bodyStrong,color = WizardColors.text)
-            Text(preview.summary,style = KpknType.body,color = WizardColors.text)
+            ProgramSheetHeader(title = "Revisar marcas de competición", subtitle = preview.summary)
             val before = preview.original.powerliftingProfile
             val after = preview.result.powerliftingProfile
             Text("Sentadilla: ${before?.squat1RM ?: "sin marca"} → ${after?.squat1RM ?: "sin marca"} kg\nBanca: ${before?.bench1RM ?: "sin marca"} → ${after?.bench1RM ?: "sin marca"} kg\nPeso muerto: ${before?.deadlift1RM ?: "sin marca"} → ${after?.deadlift1RM ?: "sin marca"} kg",style = KpknType.body,color = WizardColors.text)
             Text("Se recalculan las referencias y semanas pendientes de la receta. Las sesiones iniciadas, registradas y manuales se conservan, junto con el resultado original.",style = KpknType.body,color = WizardColors.text)
             if (!busy) {
-                KpknCompactPill("Confirmar marcas",onConfirm,fullWidth = true)
-                KpknCompactPill("Ahora no",onDismiss,filled = false,fullWidth = true)
+                KpknPrimaryPill(text = "Confirmar marcas", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                KpknSecondaryPill(text = "Ahora no", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             } else Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
         }
     }
