@@ -60,7 +60,7 @@ class VolumeCalibrationEngineTest {
     }
 
     @Test
-    fun suggestedCalibrationUsesTheStyleOfTheModeWithTwoOfThreeEverywhere() {
+    fun suggestedCalibrationUsesTheStyleOfTheModeWithTheStandardDose() {
         val expected = mapOf(
             ProgramMode.POWERLIFTING to TrainingStyle.POWERLIFTER,
             ProgramMode.POWERBUILDING to TrainingStyle.POWERBUILDER,
@@ -70,10 +70,22 @@ class VolumeCalibrationEngineTest {
             val suggested = VolumeCalibrationEngine.suggested(mode)
             assertEquals(expected.getValue(mode), suggested.score.trainingStyle)
             assertEquals(mode, suggested.mode)
-            assertEquals(listOf(2, 2, 2, 2), with(suggested.score) { listOf(technicalScore, consistencyScore, strengthScore, mobilityScore) })
-            assertEquals(8, suggested.score.totalScore)
+            assertEquals(listOf(2, 2, 1, 2), with(suggested.score) { listOf(technicalScore, consistencyScore, strengthScore, mobilityScore) })
+            assertEquals(7, suggested.score.totalScore)
+            assertEquals(com.example.kpkn.data.models.AthleteProfileLevel.BEGINNER, suggested.score.profileLevel)
             assertTrue(suggested.recommendations.isNotEmpty())
-            assertEquals(VolumeCalibrationEngine.calculate(expected.getValue(mode), 2, 2, 2, 2), suggested)
+            assertEquals(VolumeCalibrationEngine.calculate(expected.getValue(mode), 2, 2, 1, 2), suggested)
         }
+    }
+
+    @Test
+    fun suggestedBodybuildingIsTheBaseDoseNotTheAdvancedOne() {
+        val suggested = VolumeCalibrationEngine.suggested(ProgramMode.HYPERTROPHY)
+        val advanced = VolumeCalibrationEngine.calculate(TrainingStyle.BODYBUILDER, 2, 2, 2, 2)
+        val pecs = { output: VolumeCalibrationOutput -> output.recommendations.first { it.muscleGroup == "Pectorales" } }
+        // Escala 1,0 (15 series): la dosis base de la tabla; la avanzada (18) la supera.
+        assertEquals(8, pecs(suggested).minEffectiveVolume)
+        assertEquals(12, pecs(suggested).maxAdaptiveVolume)
+        assertTrue(pecs(advanced).maxAdaptiveVolume > pecs(suggested).maxAdaptiveVolume)
     }
 }

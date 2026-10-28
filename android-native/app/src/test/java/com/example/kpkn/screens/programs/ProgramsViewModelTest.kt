@@ -159,8 +159,8 @@ class ProgramsViewModelTest {
         assertNotNull(id)
         val created = ProgramRepository.getInstance().getProgramById(id!!)!!
         assertNotNull(created.sourceRecipe)
-        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN (2 de 3 en todo, estilo del método).
-        assertEquals(listOf(2, 2, 2, 2), created.athleteProfileScore!!.let { listOf(it.technicalScore, it.consistencyScore, it.strengthScore, it.mobilityScore) })
+        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN (2 de 3 salvo fuerza 1: dosis estándar, estilo del método).
+        assertEquals(listOf(2, 2, 1, 2), created.athleteProfileScore!!.let { listOf(it.technicalScore, it.consistencyScore, it.strengthScore, it.mobilityScore) })
         assertTrue(created.volumeRecommendations.isNotEmpty())
         assertEquals(
             com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED,

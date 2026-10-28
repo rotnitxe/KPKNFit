@@ -32,11 +32,13 @@ object VolumeCalibrationEngine {
     }
 
     /**
-     * La calibración que KPKN sugiere cuando la persona no aportó respuestas (IMP-03): un 2 de 3 en técnica, constancia, fuerza y
-     * movilidad con el estilo de [mode]. Quien la aplica la marca como SUGGESTED; nunca es una declaración de la persona.
+     * La calibración que KPKN sugiere cuando la persona no aportó respuestas (IMP-03): técnica 2, constancia 2, fuerza 1 y
+     * movilidad 2 con el estilo de [mode]. Sin marcas declaradas KPKN no supone fuerza alta; suma 7 = dosis estándar, nunca
+     * la avanzada (con 8 o más el nivel pasa a ADVANCED y el volumen sube). Quien la aplica la marca como SUGGESTED; nunca es
+     * una declaración de la persona.
      */
     fun suggested(mode: ProgramMode): VolumeCalibrationOutput =
-        calculate(style = styleFor(mode), technique = 2, consistency = 2, strength = 2, mobility = 2)
+        calculate(style = styleFor(mode), technique = 2, consistency = 2, strength = 1, mobility = 2)
 
     fun calculate(
         style: TrainingStyle,
