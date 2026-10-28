@@ -15,6 +15,7 @@ import com.example.kpkn.data.protocols.RecipeCompositionProfile
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.SlotSource
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
@@ -60,6 +61,7 @@ object RecipeContractPolicy {
     const val C9_REDUNDANT_TECHNIQUE = "C9_REDUNDANT_TECHNIQUE"
     const val C10_IDENTICAL_WEEKS = "C10_IDENTICAL_WEEKS"
     const val C11_VOLUME_OVER_MRV = "C11_VOLUME_OVER_MRV"
+    const val C12_FILLER_REPEAT = "C12_FILLER_REPEAT"
 
     /** Ámbito de los hallazgos que cuelgan de la receta entera. */
     const val RECIPE_SCOPE = "recipe"
@@ -77,6 +79,7 @@ object RecipeContractPolicy {
         C9_REDUNDANT_TECHNIQUE,
         C10_IDENTICAL_WEEKS,
         C11_VOLUME_OVER_MRV,
+        C12_FILLER_REPEAT,
     )
 
     /** Reglas que el plan deja siempre como aviso (SOFT) aunque el resto pase a HARD. */
@@ -87,6 +90,7 @@ object RecipeContractPolicy {
     private const val MAX_SPEED_SETS = 12
     private const val DELOAD_REQUIRED_FROM_WEEKS = 8
     private const val IDENTICAL_WEEKS_RUN = 3
+    private const val MAX_FILLER_DAYS_PER_WEEK = 2
 
     /**
      * Hallazgos del contrato de [recipe], sin filtrar por exenciones. Con [severity] distinto de
@@ -108,6 +112,7 @@ object RecipeContractPolicy {
         findings += checkRedundantTechnique(recipe)
         findings += checkIdenticalWeeks(recipe)
         findings += checkWeeklyVolume(recipe, metadata)
+        findings += checkFillerRepeat(recipe)
         return findings.map { it.copy(severity = severityOf(it.rule, severity)) }
     }
 
@@ -150,6 +155,40 @@ object RecipeContractPolicy {
                     "Semana ${week.weekNumber}: ${volumeGroupLabel(group)} suma $count series equivalentes planificadas, por encima de la referencia editorial de $reference. La receta se mantiene.")
             }
         }
+
+    /**
+     * C12 (HARD): el relleno que añade KPKN (accesorios T3 con `source == KPKN_DEFAULT`) no se repite
+     * en más de 2 días distintos de la misma semana con la misma configuración. Los slots del autor y
+     * las recetas `AUTHORED_EXACT` no cuentan: ahí la repetición es decisión del método. El ámbito es
+     * el de la semana (`w{n}`).
+     */
+    private fun checkFillerRepeat(recipe: TrainingPlanRecipe): List<CompositionFinding> {
+        if (recipe.compositionProfile == RecipeCompositionProfile.AUTHORED_EXACT) return emptyList()
+        val findings = mutableListOf<CompositionFinding>()
+        recipe.weeks.forEach { week ->
+            val daysByConfiguration = LinkedHashMap<String, MutableSet<Int>>()
+            week.days.forEachIndexed { dayIndex, day ->
+                day.slots.forEach { slot ->
+                    if (slot.role == SlotRole.T3_ACCESSORY && slot.source == SlotSource.KPKN_DEFAULT) {
+                        val configuration = slot.lift.configurationId.trim().lowercase()
+                        if (configuration.isNotEmpty()) {
+                            daysByConfiguration.getOrPut(configuration) { HashSet() }.add(dayIndex)
+                        }
+                    }
+                }
+            }
+            daysByConfiguration.forEach { (configuration, days) ->
+                if (days.size > MAX_FILLER_DAYS_PER_WEEK) {
+                    findings += finding(
+                        C12_FILLER_REPEAT,
+                        weekScope(week),
+                        "$configuration aparece en ${days.size} días de la semana; el relleno de KPKN va como mucho $MAX_FILLER_DAYS_PER_WEEK",
+                    )
+                }
+            }
+        }
+        return findings
+    }
 
     internal fun volumeGroupLabel(group: KpknMuscleGroup): String = when (group) {
         KpknMuscleGroup.CHEST -> "pectorales"
