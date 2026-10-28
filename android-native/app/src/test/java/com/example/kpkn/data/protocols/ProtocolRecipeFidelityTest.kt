@@ -3,13 +3,17 @@ package com.example.kpkn.data.protocols
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
+import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.PercentBasis
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.ProgramRecipeValidator
 import com.example.kpkn.domain.training.RecipeContractPolicy
 import com.example.kpkn.domain.training.SessionCompositionPolicy
+import com.example.kpkn.domain.training.quality.SessionSlopRules
+import com.example.kpkn.domain.training.quality.SlopRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -50,6 +54,52 @@ class ProtocolRecipeFidelityTest {
         assertEquals(firstAccessory(offSeason,1,2) + 1,firstAccessory(offSeason,13,2))
         assertEquals(3,offSeason.contentVersion)
         assertEquals(2,com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.hypertrophyUl12().contentVersion)
+    }
+
+    /**
+     * F-16 · DUP-05: ninguna receta de autor publicada repite un ejercicio en una sesión sin identidad propia (rótulo y enlace,
+     * F-15). Se materializan TODAS con el material que lo tiene todo (`everything`) y se revisan todas las semanas.
+     * El relleno repetido y los nombres de cardio son de otras tareas y no se afirman aquí.
+     */
+    @Test
+    fun f16_no_author_recipe_repeats_an_exercise_without_its_own_identity() {
+        val rules = setOf(SlopRule.DUPLICATE_CONFIGURATION, SlopRule.DUPLICATE_DEFINITION, SlopRule.SAME_MOVEMENT_FAMILY)
+        val failures = ArrayList<String>()
+        val unavailable = ArrayList<String>()
+        var materialized = 0
+        PersonalizedPlanCatalog.entries().filter { it.recipe != null }.forEach { entry ->
+            val program = try {
+                AuthoredPlanFixtures.prepare(entry.id, AuthoredPlanFixtures.everything)
+            } catch (t: Throwable) {
+                val detail = (t as? com.example.kpkn.domain.onboarding.PlanMaterializationException)
+                    ?.let { " [faltan: ${it.missingRequirements}; slots: ${it.affectedSlots}]" }.orEmpty()
+                // Sin materializar no hay sesión que revisar: se revisa la receta (mismo ejercicio dos veces en un día sin rótulo, técnica ni enlace).
+                requireNotNull(entry.recipe).weeks.forEach { week ->
+                    week.days.forEach { day ->
+                        day.slots.filter { it.occurrenceLabel == null && it.technique == null && it.supplementalOf == null }
+                            .groupBy { it.lift.configurationId.substringBefore("__") }
+                            .filterValues { it.size > 1 }
+                            .forEach { (definition, slots) ->
+                                failures += "${entry.id} · semana ${week.weekNumber} · ${day.label} · receta: $definition ×${slots.size} sin rótulo"
+                            }
+                    }
+                }
+                unavailable += "${entry.id}: ${t.javaClass.simpleName}: ${t.message?.lineSequence()?.firstOrNull().orEmpty().take(200)}$detail"
+                return@forEach
+            }
+            materialized++
+            AuthoredPlanFixtures.weeksOf(program).forEachIndexed { index, week ->
+                week.sessions.forEach { session ->
+                    SessionSlopRules.violations(session).filter { it.rule in rules }.forEach {
+                        failures += "${entry.id} · semana ${index + 1} · ${it.sessionName} · ${it.rule}: ${it.detail}"
+                    }
+                }
+            }
+        }
+        println("[F-16] recetas de autor materializadas: $materialized; no materializan con todo el material: ${unavailable.size}")
+        unavailable.forEach { println("[F-16] no materializa · $it") }
+        assertTrue("no se materializó ninguna receta", materialized > 0)
+        assertEquals("Apariciones repetidas sin identidad propia (${failures.size}):\n${failures.take(40).joinToString("\n")}", emptyList<String>(), failures)
     }
 
     companion object {
