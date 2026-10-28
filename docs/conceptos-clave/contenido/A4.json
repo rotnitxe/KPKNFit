@@ -1,0 +1,352 @@
+[
+  {
+    "id": "tipos-fibra",
+    "name": "Tipos de fibra muscular",
+    "category": "BODY_STRUCTURES",
+    "short": "Clasificación de las fibras musculares según su velocidad de contracción y su metabolismo",
+    "aliases": ["fibras tipo I y tipo II", "fibras de contracción lenta y rápida", "slow-twitch fibers", "fast-twitch fibers", "cadena pesada de miosina"],
+    "body": [
+      "Las fibras musculares esqueléticas se clasifican según la isoforma de cadena pesada de miosina que contienen. Las fibras tipo I son de contracción lenta, resisten mejor la fatiga y dependen sobre todo del metabolismo oxidativo. Las de tipo IIa son rápidas, con buena capacidad oxidativa, y las de tipo IIx son las más rápidas y las que más dependen de la glucólisis. Casi todos los músculos son una mezcla de estos tipos, y su proporción varía entre músculos y entre personas.",
+      "Conocer el tipo de fibra ayuda a entender la respuesta de un músculo, pero no define por sí solo tu fuerza ni tu potencia, porque también cuentan el tamaño de cada fibra, la arquitectura y el [[unidad-motora|reclutamiento]] neural. Un mito frecuente dice que las fibras lentas solo sirven para resistir, pero las unidades lentas se reclutan primero, también en esfuerzos moderados. En mujeres entrenadas con cargas pesadas se describieron conversiones entre subtipos rápidos junto a la [[hipertrofia-muscular|hipertrofia]], así que no conviene esperar que el entrenamiento cambie por completo tu perfil."
+    ],
+    "practice": "Al entrenar no necesitas medir tus fibras. Varía rangos de repetición, cargas y velocidades de ejecución, para que el músculo trabaje con demandas distintas. Las series pesadas con técnica estable sostienen la fuerza, y el trabajo ligero hecho con intención de acelerar entrena la [[explosividad|capacidad explosiva]].",
+    "related": ["sarcomero", "unidad-motora", "adaptacion-neural"],
+    "sources": [
+      {"title": "Fiber types in mammalian skeletal muscles", "publisher": "Physiological reviews · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/22013216/"},
+      {"title": "Muscle hypertrophy and fast fiber type conversions in heavy resistance-trained women", "publisher": "European journal of applied physiology and occupational physiology · 1990", "url": "https://pubmed.ncbi.nlm.nih.gov/2311599/"}
+    ]
+  },
+  {
+    "id": "unidad-motora",
+    "name": "Unidades motoras y reclutamiento",
+    "category": "BODY_STRUCTURES",
+    "short": "Una motoneurona y todas las fibras musculares que inerva, activadas según la demanda de fuerza",
+    "aliases": ["motor unit", "reclutamiento motor", "principio del tamaño", "principio de Henneman", "motor unit recruitment"],
+    "body": [
+      "Una unidad motora es una motoneurona de la médula espinal junto con todas las fibras musculares que inerva. Cuando esa neurona se activa, todas sus fibras se contraen a la vez. Cada músculo contiene muchas unidades de distinto tamaño, y el sistema nervioso decide cuántas activar y con qué frecuencia descargan según la fuerza que pide la tarea.",
+      "El reclutamiento sigue en general un orden por tamaño: primero se activan las unidades pequeñas, lentas y resistentes a la fatiga, y solo al aumentar la demanda entran las grandes, más rápidas y más fatigables. Este orden se describió en humanos durante contracciones voluntarias isométricas. Por eso, una serie con carga ligera llevada cerca del [[fallo-muscular|fallo]] puede reclutar también unidades de alto umbral. En un metaanálisis, las cargas bajas (≤60% de 1RM) llevadas hasta el fallo produjeron hipertrofia similar a las altas, aunque la fuerza máxima mejoró más con cargas pesadas."
+    ],
+    "practice": "En el gimnasio no necesitas cargas máximas en cada serie, pero el trabajo pesado es el que más favorece la fuerza máxima. Combina series pesadas con series moderadas y deja la última repetición cerca del límite, registrando el esfuerzo con [[rir|RIR]]. Mantén una técnica estable, porque una repetición forzada con compensaciones no refleja bien el esfuerzo que quieres medir.",
+    "related": ["adaptacion-neural", "fallo-muscular", "intensidad"],
+    "sources": [
+      {"title": "Motor unit", "publisher": "Comprehensive physiology · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/23720261/"},
+      {"title": "The orderly recruitment of human motor units during voluntary isometric contractions", "publisher": "The Journal of physiology · 1973", "url": "https://pubmed.ncbi.nlm.nih.gov/4350770/"},
+      {"title": "Strength and Hypertrophy Adaptations Between Low- vs. High-Load Resistance Training: A Systematic Review and Meta-analysis", "publisher": "Journal of strength and conditioning research · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28834797/"}
+    ]
+  },
+  {
+    "id": "sarcomero",
+    "name": "Sarcómero y contracción muscular",
+    "category": "BODY_STRUCTURES",
+    "short": "La unidad contráctil de la miofibrilla, donde la actina y la miosina se deslizan entre sí",
+    "aliases": ["sarcomere", "filamentos deslizantes", "teoría de los filamentos deslizantes", "puentes cruzados", "cross-bridge cycling"],
+    "body": [
+      "El sarcómero es la unidad de repetición de la miofibrilla, delimitada por las líneas Z. Dentro de él, la miosina y la actina se deslizan unas sobre otras: las cabezas de miosina se unen a la actina, la empujan en un ciclo de puentes cruzados que consume ATP y se separan para repetirlo. Por eso la fuerza depende de cuántos puentes cruzados pueden formarse, y eso cambia con la longitud.",
+      "La relación entre longitud y fuerza muestra que el músculo genera más fuerza isométrica en una longitud intermedia que en los extremos de su rango. Con el entrenamiento también cambia la arquitectura, es decir, la longitud de los fascículos y el ángulo de las fibras. Una revisión narrativa concluye que estos parámetros responden a distintos estímulos, como el entrenamiento, la inmovilización y las lesiones. Un mito frecuente es que estirar crea sarcómeros nuevos de forma rápida, pero la evidencia en humanos sobre esos cambios es heterogénea."
+    ],
+    "practice": "En el gimnasio el sarcómero no se entrena de forma directa, pero puedes elegir variantes que carguen el músculo estirado, como la extensión de [[musculo-cuadriceps|cuádriceps]] con la rodilla flexionada o el curl femoral sentado, y usar un [[rom|rango]] completo y controlado. Progresa la carga solo si mantienes ese rango sin tirones ni dolor. Si la molestia aparece al estirar, reduce el recorrido y consulta si persiste.",
+    "related": ["longitud-muscular", "rom", "tension-mecanica"],
+    "sources": [
+      {"title": "The variation in isometric tension with sarcomere length in vertebrate muscle fibres", "publisher": "The Journal of physiology · 1966", "url": "https://pubmed.ncbi.nlm.nih.gov/5921536/"},
+      {"title": "Functional and clinical significance of skeletal muscle architecture", "publisher": "Muscle & nerve · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/11054744/"},
+      {"title": "Architectural adaptations of muscle to training and injury", "publisher": "British journal of sports medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26817705/"}
+    ]
+  },
+  {
+    "id": "tendon",
+    "name": "Tendón",
+    "category": "BODY_STRUCTURES",
+    "short": "Tejido conectivo que une el músculo al hueso y transmite la fuerza de la contracción",
+    "aliases": ["tejido tendinoso", "tendinous tissue", "rigidez del tendón", "tendon stiffness"],
+    "body": [
+      "El tendón une el músculo al hueso y transmite la fuerza que genera la contracción. Está formado sobre todo por colágeno de tipo I dispuesto en haces, con pocas células que mantienen su matriz extracelular. Su rigidez, es decir, cuánta fuerza necesita para alargarse, influye en cómo almacena y devuelve [[elasticidad|energía elástica]] en saltos y carreras.",
+      "El tendón responde a la carga mecánica, y el tipo de estímulo cambia la propiedad que se modifica. Un estudio de doce semanas con once personas comparó entrenamiento [[pliometria|pliométrico]] e [[isometria|isométrico]]: el isométrico aumentó la rigidez del tendón, mientras que el pliométrico aumentó la rigidez muscular activa y el alargamiento del tendón por encima de 100 N en contracciones balísticas. Un modelo teórico de Wren y colaboradores describe cómo el aumento o la disminución de carga modifican el área, la rigidez y la resistencia de tendones y ligamentos, y encaja con estudios de ejercicio e inmovilización. Un mito frecuente es que el tendón es una estructura pasiva que no se adapta."
+    ],
+    "practice": "En el gimnasio, aumenta la carga y el volumen de forma escalonada y observa cómo responde el tendón, por ejemplo con molestias durante el ejercicio o al día siguiente. Si el dolor tendinoso aparece o empeora al cargar, reduce temporalmente la demanda y consulta a un profesional sanitario, porque la [[tendinopatia|tendinopatía]] necesita valoración y un plan específico. Una [[sobrecarga-progresiva|progresión]] gradual suele ser la base de un plan prudente.",
+    "related": ["tendinopatia", "elasticidad", "sobrecarga-progresiva"],
+    "sources": [
+      {"title": "Role of extracellular matrix in adaptation of tendon and skeletal muscle to mechanical loading", "publisher": "Physiological reviews · 2004", "url": "https://pubmed.ncbi.nlm.nih.gov/15044685/"},
+      {"title": "Effects of plyometric and isometric training on muscle and tendon stiffness in vivo", "publisher": "Physiological reports · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28801518/"},
+      {"title": "Tendon and ligament adaptation to exercise, immobilization, and remobilization", "publisher": "Journal of rehabilitation research and development · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/10850828/"}
+    ]
+  },
+  {
+    "id": "ligamento",
+    "name": "Ligamento",
+    "category": "BODY_STRUCTURES",
+    "short": "Tejido conectivo que une hueso con hueso y estabiliza la articulación guiando su movimiento",
+    "aliases": ["ligament", "ligamentos articulares", "tejido ligamentoso"],
+    "body": [
+      "Un ligamento es un tejido conectivo denso que une hueso con hueso y guía el movimiento de una articulación, limitando desplazamientos excesivos. Como el tendón, está formado sobre todo por colágeno, pero su función es estabilizar la articulación, no transmitir la fuerza de un músculo al hueso. Un ejemplo es el ligamento cruzado posterior de la rodilla, que restringe las fuerzas de cizalla que aparecen durante la [[patron-sentadilla|sentadilla]].",
+      "Los ligamentos responden a la carga mecánica igual que los tendones: el modelo de Wren y colaboradores predice cambios en su área, su módulo y su resistencia según aumente o disminuya la carga, y esas predicciones concuerdan con estudios de ejercicio e inmovilización. Por eso la falta de carga también es un estímulo que cambia el tejido. Un mito frecuente es que el ligamento es un componente pasivo e inerte que no se adapta; en realidad responde a la carga."
+    ],
+    "practice": "En el gimnasio, la estabilidad de una articulación se trabaja con fuerza y control del [[rom|rango]], progresando de forma gradual con los músculos que la rodean. Tras una torsión, como en un [[esguince-tobillo|esguince de tobillo]], si aparecen hinchazón, inestabilidad o dolor que no mejora, no conviene forzar la carga: consulta a un profesional sanitario, porque las lesiones ligamentosas necesitan valoración. Antes de volver a entrenar, repasa las [[senales-alarma|señales de alarma]].",
+    "related": ["esguince-tobillo", "volver-tras-lesion", "senales-alarma"],
+    "sources": [
+      {"title": "Tendon and ligament adaptation to exercise, immobilization, and remobilization", "publisher": "Journal of rehabilitation research and development · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/10850828/"},
+      {"title": "Knee biomechanics of the dynamic squat exercise", "publisher": "Medicine and science in sports and exercise · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11194098/"}
+    ]
+  },
+  {
+    "id": "fascia",
+    "name": "Fascia",
+    "category": "BODY_STRUCTURES",
+    "short": "Tejido conectivo que envuelve músculos y órganos y transmite parte de la fuerza muscular",
+    "aliases": ["tejido fascial", "fascial tissue", "sistema miofascial", "myofascial"],
+    "body": [
+      "La fascia es un tejido conectivo que envuelve músculos, grupos musculares y órganos, formando láminas y tabiques que se continúan entre sí. Está formada sobre todo por colágeno y una matriz, y se describe con nombres distintos según la disciplina. Esa falta de unidad terminológica obliga a comprobar, al leer un estudio, qué estructura considera su autor como fascia.",
+      "Parte de la fuerza que genera un músculo se transmite a través de estas láminas hacia los músculos vecinos, no solo hacia su [[tendon|tendón]]. Estudios experimentales muestran que esta transmisión extramuscular también ocurre entre músculos sinérgicos y antagonistas. Así se aclara un mito frecuente: la fascia no es un envoltorio pasivo sin función mecánica. Aun así, su contribución en humanos sigue en estudio, y la evidencia sobre cómo la modifica el entrenamiento es escasa."
+    ],
+    "practice": "Al entrenar, lo que aporta trabajar la fascia son los rangos amplios y las posiciones estiradas hechas con control, no liberar un punto concreto. Si usas [[masaje-rodillo|rodillo de espuma]] o masaje, tómalos como ayuda para la sensación y el [[rom|rango]], sin prometer que liberan la fascia. Si notas adormecimiento, dolor irradiado o una pérdida de rango que no mejora, consulta a un profesional sanitario.",
+    "related": ["tension-mecanica", "masaje-rodillo", "rom"],
+    "sources": [
+      {"title": "What is 'fascia'? A review of different nomenclatures", "publisher": "Journal of bodywork and movement therapies · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/23036881/"},
+      {"title": "Extramuscular myofascial force transmission also occurs between synergistic muscles and antagonistic muscles", "publisher": "Journal of electromyography and kinesiology · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/17383898/"}
+    ]
+  },
+  {
+    "id": "cartilago-articular",
+    "name": "Cartílago articular",
+    "category": "BODY_STRUCTURES",
+    "short": "Tejido liso y sin vasos que recubre los huesos en las articulaciones y reduce la fricción",
+    "aliases": ["cartílago hialino", "hyaline cartilage", "articular cartilage", "condrocitos"],
+    "body": [
+      "El cartílago articular es un tejido liso y resistente que recubre los extremos de los huesos en las articulaciones sinoviales y facilita su deslizamiento. Está formado sobre todo por agua, colágeno y proteoglicanos, con pocas células, los condrocitos. No tiene vasos sanguíneos propios, y por eso su capacidad de regeneración es limitada, a diferencia del hueso.",
+      "El cartílago se deforma poco durante la actividad humana y, en estudios de imagen, recupera en menos de 90 minutos tras la carga. La falta de carga produce adelgazamiento, pero una carga mayor no se asocia de forma clara con un espesor medio más grande, ni siquiera en atletas de élite, y su morfología parece tener una fuerte contribución genética. Un mito frecuente es que correr desgasta el cartílago de forma inevitable. Una revisión sistemática de 2017 concluyó que la evidencia es contradictoria y no permite determinar el papel de correr en la artrosis de rodilla."
+    ],
+    "practice": "En el gimnasio, progresa las cargas de impacto de forma gradual y deja días de recuperación entre estímulos intensos, sobre todo al empezar a correr o a [[pliometria|saltar]]. Observa el dolor articular durante el ejercicio y al día siguiente: una molestia que se repite o aumenta merece revisión. Si hay hinchazón, bloqueo o dolor que no mejora, consulta a un profesional sanitario, sobre todo si afecta a la [[dolor-femoropatelar|parte delantera de la rodilla]].",
+    "related": ["dolor-femoropatelar", "sobrecarga-progresiva", "hueso-densidad"],
+    "sources": [
+      {"title": "The effects of exercise on human articular cartilage", "publisher": "Journal of anatomy · 2006", "url": "https://pubmed.ncbi.nlm.nih.gov/16637874/"},
+      {"title": "Unlike bone, cartilage regeneration remains elusive", "publisher": "Science · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/23161992/"},
+      {"title": "Running and Knee Osteoarthritis: A Systematic Review and Meta-analysis", "publisher": "The American journal of sports medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/27519678/"}
+    ]
+  },
+  {
+    "id": "hueso-densidad",
+    "name": "Hueso y densidad ósea",
+    "category": "BODY_STRUCTURES",
+    "short": "Tejido vivo que se remodela según la carga mecánica que recibe y que regula su densidad",
+    "aliases": ["densidad mineral ósea", "bone mineral density", "remodelado óseo", "mecanostato", "BMD"],
+    "body": [
+      "El hueso es un tejido vivo que se remodela de forma continua: los osteoclastos reabsorben tejido viejo y los osteoblastos forman hueso nuevo. Según el modelo del mecanostato de Frost, el hueso responde a la carga mecánica: cuando las deformaciones superan un umbral, predomina la formación, y cuando el estímulo es insuficiente durante mucho tiempo, predomina la pérdida.",
+      "La actividad de alto impacto se asocia con la salud ósea, y un análisis de una cohorte que siguió a personas desde la adolescencia tardía hasta los 23 años examinó si el volumen de actividad de baja intensidad también importa. Por ser cambios lentos, la constancia pesa más que una sesión aislada. El entrenamiento con cargas aplica el estímulo mecánico que describe el modelo, y el hueso se adapta sobre todo a las cargas que recibe cada zona."
+    ],
+    "practice": "Al entrenar, combina ejercicios de fuerza con cargas progresivas y algo de [[pliometria|impacto]], como saltos o carrera en intervalos cortos, según tu tolerancia, y sube la exigencia por etapas. Si tienes osteoporosis, fracturas previas o dolor óseo que no cede, consulta antes con un profesional sanitario para adaptar el plan.",
+    "related": ["pliometria", "carga-axial", "sobrecarga-progresiva"],
+    "sources": [
+      {"title": "Bone's mechanostat: a 2003 update", "publisher": "The anatomical record. Part A, Discoveries in molecular, cellular, and evolutionary biology · 2003", "url": "https://pubmed.ncbi.nlm.nih.gov/14613308/"},
+      {"title": "Physical Activity for Bone Health: How Much and/or How Hard?", "publisher": "Medicine and science in sports and exercise · 2020", "url": "https://pubmed.ncbi.nlm.nih.gov/32453172/"}
+    ]
+  },
+  {
+    "id": "adaptacion-neural",
+    "name": "Adaptaciones neurales",
+    "category": "BODY_STRUCTURES",
+    "short": "Cambios en la forma en que el sistema nervioso activa los músculos al entrenar la fuerza",
+    "aliases": ["neural adaptations", "adaptaciones neuromusculares", "coordinación intermuscular", "intermuscular coordination"],
+    "body": [
+      "Las adaptaciones neurales son cambios en la forma en que el sistema nervioso activa los músculos: pueden incluir más [[unidad-motora|unidades motoras]] reclutadas, mayor frecuencia de descarga y mejor coordinación entre músculos sinérgicos y antagonistas. Son especialmente visibles en las primeras semanas de entrenamiento de fuerza, cuando la ganancia de fuerza suele superar el aumento medible del tamaño muscular.",
+      "Un estudio de estimulación magnética transcraneal mostró que una sola sesión de entrenamiento de fuerza ya desplaza la respuesta del sistema nervioso hacia la dirección entrenada, algo que los autores interpretan como un paso previo a adaptaciones más duraderas. Estas adaptaciones son en parte específicas de la tarea, de modo que mejoran sobre todo los patrones y las cargas que practicas. Con el tiempo, el crecimiento y la arquitectura del músculo aportan una parte creciente de la fuerza. Un mito frecuente es que toda la fuerza inicial es músculo nuevo, cuando una parte importante se explica por el sistema nervioso."
+    ],
+    "practice": "Para aplicarlo, ten en cuenta que la fuerza que sube en las primeras semanas no demuestra por sí sola que hayas ganado músculo. Anota la carga, las repeticiones y el [[rir|RIR]] en la misma variante para que el progreso sea comparable. Si cambias de ejercicio con frecuencia, espera que parte de la ganancia sea [[especificidad|específica]] de cada tarea y progresa de forma gradual en la nueva variante.",
+    "related": ["unidad-motora", "especificidad", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "The adaptations to strength training: morphological and neurological contributions to increased strength", "publisher": "Sports medicine · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/17241104/"},
+      {"title": "Neural adaptations to resistive exercise: mechanisms and recommendations for training practices", "publisher": "Sports medicine · 2006", "url": "https://pubmed.ncbi.nlm.nih.gov/16464122/"},
+      {"title": "Early neural responses to strength training", "publisher": "Journal of applied physiology · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21551014/"}
+    ]
+  },
+  {
+    "id": "sistemas-energeticos",
+    "name": "Sistemas energéticos",
+    "category": "BODY_STRUCTURES",
+    "short": "Vías que resintetizan el ATP del músculo: fosfágenos, glucólisis y oxidación",
+    "aliases": ["energy systems", "sistema de fosfágenos", "sistema glucolítico", "sistema oxidativo", "ATP-PC"],
+    "body": [
+      "El músculo necesita ATP para contraerse y lo resintetiza por tres vías que trabajan a la vez. El sistema de fosfágenos, con ATP y fosfocreatina, aporta energía casi inmediata pero en poca cantidad. La glucólisis produce ATP con rapidez sin depender del oxígeno, y genera protones y lactato como subproductos. El sistema oxidativo, en la mitocondria, aporta la mayor parte de la energía en los esfuerzos prolongados.",
+      "Las tres vías se solapan, y su peso relativo cambia con la intensidad y la duración: los esfuerzos muy intensos y breves dependen más de los fosfágenos y la glucólisis, mientras que los esfuerzos suaves se apoyan en el oxidativo. Cómo se reparte la energía en esfuerzos máximos, y en carreras de 200 a 1500 metros, se ha estudiado en detalle. Un mito frecuente atribuye la acidez y la fatiga al lactato, pero una revisión concluye que el lactato retrasa la acidosis más que causarla, y que la acidez surge sobre todo de otras reacciones, como la liberación de protones al hidrolizar el ATP."
+    ],
+    "practice": "En el gimnasio, entrena cada vía según tu objetivo: series de pocas repeticiones con descanso suficiente para fuerza y potencia, [[hiit|intervalos de alta intensidad]] para tolerar esfuerzos repetidos, y trabajo continuo suave, como en la [[zona-2|zona 2]], para la base aeróbica. Ajusta la duración de tus series a lo que buscas, porque el peso de cada vía depende de cuánto dura el esfuerzo.",
+    "related": ["resistencia-muscular", "hiit", "umbral-lactato"],
+    "sources": [
+      {"title": "Energy system interaction and relative contribution during maximal exercise", "publisher": "Sports medicine · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11547894/"},
+      {"title": "Biochemistry of exercise-induced metabolic acidosis", "publisher": "American journal of physiology. Regulatory, integrative and comparative physiology · 2004", "url": "https://pubmed.ncbi.nlm.nih.gov/15308499/"},
+      {"title": "Energy system contribution during 200- to 1500-m running in highly trained athletes", "publisher": "Medicine and science in sports and exercise · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11194103/"}
+    ]
+  },
+  {
+    "id": "hormonas-entrenamiento",
+    "name": "Hormonas y entrenamiento",
+    "category": "BODY_STRUCTURES",
+    "short": "Respuesta hormonal aguda al entrenamiento de fuerza y su relación limitada con el crecimiento",
+    "aliases": ["testosterona", "cortisol", "hormona del crecimiento", "respuesta hormonal aguda", "anabolic hormones"],
+    "body": [
+      "El entrenamiento de fuerza eleva de forma aguda hormonas como la hormona del crecimiento, la testosterona y el cortisol. La magnitud de esa respuesta depende de variables como el volumen, la intensidad, el descanso y la masa muscular implicada, y es transitoria. Por eso una subida en sangre tras una sesión describe una respuesta al estrés del ejercicio, pero no mide por sí sola el crecimiento que vendrá.",
+      "La evidencia de que estas subidas expliquen la [[hipertrofia-muscular|hipertrofia]] es limitada. En un estudio con 56 hombres jóvenes y un programa de 12 semanas de entrenamiento de piernas, los picos de hormona de crecimiento, testosterona libre e IGF-1 no se correlacionaron con las ganancias de masa magra ni de fuerza en prensa. El cortisol y la hormona de crecimiento sí se relacionaron de forma débil con cambios en masa magra o en el área de las fibras, pero no con la fuerza. Un mito frecuente es que el pico hormonal de la sesión es lo que hace crecer el músculo."
+    ],
+    "practice": "Al entrenar no necesitas medir hormonas ni buscar un pico concreto. Dedica la atención a una [[sobrecarga-progresiva|progresión de cargas]] legible, a series suficientemente exigentes y a un descanso que te permita rendir. Si [[sueno|duermes poco]] o comes muy por debajo de lo que necesitas, observa primero tu rendimiento y tu recuperación, que son mejores guías para decidir cambios.",
+    "related": ["hipertrofia-muscular", "sueno", "fatiga-sistemica"],
+    "sources": [
+      {"title": "Hormonal responses and adaptations to resistance exercise and training", "publisher": "Sports medicine · 2005", "url": "https://pubmed.ncbi.nlm.nih.gov/15831061/"},
+      {"title": "Associations of exercise-induced hormone profiles and gains in strength and hypertrophy in a large cohort after weight training", "publisher": "European journal of applied physiology · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/22105707/"}
+    ]
+  },
+  {
+    "id": "patron-sentadilla",
+    "name": "Patrón de sentadilla",
+    "category": "PATTERNS",
+    "short": "Movimiento dominante de rodilla en el que el centro de masa baja y vuelve a subir",
+    "aliases": ["squat", "sentadilla trasera", "patrón dominante de rodilla", "knee-dominant pattern"],
+    "body": [
+      "El patrón de sentadilla es un movimiento dominante de rodilla en el que el centro de masa desciende y vuelve a subir. La rodilla flexiona y extiende con la cadera y el tobillo colaborando, y el cuádriceps es el principal extensor. Los ligamentos de la rodilla limitan las fuerzas de cizalla, y el tronco mantiene una posición estable.",
+      "Las variantes cambian la demanda. Según un análisis biomecánico, la sentadilla trasera genera más fuerza de compresión y momento extensor en la rodilla que la frontal, con una activación muscular global parecida, así que la frontal puede ser útil si la rodilla te limita. Otra revisión concluyó que la sentadilla profunda no aumenta por sí sola el riesgo para los tejidos pasivos, y que la presión retropatelar es máxima hacia los 90 grados de flexión."
+    ],
+    "practice": "Al entrenar, mantén el peso repartido en todo el pie, las rodillas en la dirección de los pies y el tronco estable durante el recorrido. Errores frecuentes son que el talón se levante, que la rodilla se cierre hacia dentro o que la espalda se redondee al bajar. Según la revisión, la sentadilla profunda es eficaz si la técnica se aprende bien con supervisión y las [[sobrecarga-progresiva|cargas progresan]]; progresa con variantes que domines, como la sentadilla frontal o a caja. Si la rodilla duele al bajar, reduce el [[rom|rango]] y consulta a un profesional sanitario.",
+    "related": ["patron-bisagra", "carga-axial", "rom"],
+    "sources": [
+      {"title": "Knee biomechanics of the dynamic squat exercise", "publisher": "Medicine and science in sports and exercise · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11194098/"},
+      {"title": "A biomechanical comparison of back and front squats in healthy trained individuals", "publisher": "Journal of strength and conditioning research · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/19002072/"},
+      {"title": "Analysis of the load on the knee joint and vertebral column with changes in squatting depth and weight load", "publisher": "Sports medicine · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23821469/"}
+    ]
+  },
+  {
+    "id": "patron-bisagra",
+    "name": "Bisagra de cadera",
+    "category": "PATTERNS",
+    "short": "Movimiento de cadera con la pelvis que se desplaza atrás y la columna estable",
+    "aliases": ["hip hinge", "peso muerto", "deadlift", "patrón dominante de cadera"],
+    "body": [
+      "La bisagra de cadera es un patrón dominante de cadera: la pelvis se desplaza hacia atrás mientras el tronco se inclina, la columna se mantiene estable y la rodilla flexiona de forma moderada. El movimiento nace en la cadera. Los extensores de cadera, como el glúteo mayor y los isquiosurales, son los motores principales, y la musculatura erectora de la columna trabaja para mantener la postura.",
+      "Las variantes cambian la postura y el reparto de la carga. Según análisis biomecánicos, el peso muerto sumo, con una postura más ancha y el tronco más vertical, mantiene los muslos más horizontales y extiende menos rodillas y caderas que el convencional. Con la sumo se activan además más el vasto medial, el vasto lateral y el tibial anterior."
+    ],
+    "practice": "Para aprender el patrón, empieza sin carga, con un palo a lo largo de la espalda o con la mano en el tronco, y nota la cadera yendo atrás sin redondear la columna. Errores frecuentes son bajar el tronco como si fuera una sentadilla, alejar la barra del cuerpo o perder la [[bracing-valsalva|tensión abdominal]]. Cuando lo domines, sube la carga con mancuernas o barra pegadas al cuerpo. En un estudio de diez semanas, la extensión de cadera y el curl nórdico alargaron los fascículos del [[musculo-isquiosurales|bíceps femoral]].",
+    "related": ["patron-sentadilla", "bracing-valsalva", "brazo-momento"],
+    "sources": [
+      {"title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts", "publisher": "Medicine and science in sports and exercise · 2000", "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"},
+      {"title": "An electromyographic analysis of sumo and conventional style deadlifts", "publisher": "Medicine and science in sports and exercise · 2002", "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"},
+      {"title": "Impact of the Nordic hamstring and hip extension exercises on hamstring architecture and morphology: implications for injury prevention", "publisher": "British journal of sports medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/27660368/"}
+    ]
+  },
+  {
+    "id": "patron-zancada",
+    "name": "Zancada y trabajo a una pierna",
+    "category": "PATTERNS",
+    "short": "Patrón unilateral del tren inferior en el que una pierna soporta la mayor parte de la carga",
+    "aliases": ["lunge", "split squat", "estocada", "Bulgarian split squat", "entrenamiento unilateral de pierna"],
+    "body": [
+      "La zancada es un patrón unilateral del tren inferior en el que una pierna soporta la mayor parte de la carga mientras la otra avanza, se apoya o sirve de soporte. Combina flexión y extensión de rodilla con control de cadera y tronco, y exige estabilidad en cadera, rodilla y tobillo. En un estudio con electromiografía, la zancada de pie y el step-up lateral superaron el 45% de la contracción voluntaria máxima en el vasto medial oblicuo, un músculo que el estudio sugiere como útil para fortalecer.",
+      "Entrenar una pierna por separado permite detectar diferencias entre lados y practicar el control con una base de apoyo distinta. El efecto cruzado está bien estudiado: el entrenamiento unilateral aumenta la fuerza de la pierna no entrenada, y un consenso de expertos reconoció que varios aspectos siguen siendo controvertidos. Por eso el trabajo [[unilateral|unilateral]] complementa al bilateral en lugar de sustituirlo."
+    ],
+    "practice": "Para empezar, usa zancadas estáticas o con el pie trasero apoyado, y progresa hacia el paso caminando o con carga. Errores frecuentes son un paso demasiado corto que lleva la rodilla por delante del pie de forma brusca, el tronco que se inclina hacia delante o una rodilla trasera que golpea el suelo. Si la rodilla delantera duele, reduce el [[rom|rango]] y consulta a un profesional sanitario. Registra la carga de cada pierna por separado para detectar diferencias.",
+    "related": ["unilateral", "patron-sentadilla", "patron-bisagra"],
+    "sources": [
+      {"title": "Electromyographic analysis of core trunk, hip, and thigh muscles during 9 rehabilitation exercises", "publisher": "The Journal of orthopaedic and sports physical therapy · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/18560185/"},
+      {"title": "Contralateral effects of unilateral strength training: evidence and possible mechanisms", "publisher": "Journal of applied physiology · 2006", "url": "https://pubmed.ncbi.nlm.nih.gov/17043329/"},
+      {"title": "Contralateral Effects of Unilateral Strength and Skill Training: Modified Delphi Consensus to Establish Key Aspects of Cross-Education", "publisher": "Sports medicine · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/33175329/"}
+    ]
+  },
+  {
+    "id": "patron-empuje-horizontal",
+    "name": "Empuje horizontal",
+    "category": "PATTERNS",
+    "short": "Empujar la carga hacia delante en el plano horizontal, como en el press de banca",
+    "aliases": ["bench press", "press de banca", "chest press", "press de pecho"],
+    "body": [
+      "El empuje horizontal aleja la carga del torso en el plano horizontal. Combina extensión de codo, aducción horizontal del hombro y, según la variante, movimiento de la escápula. El [[musculo-pectoral|pectoral]] mayor y el [[musculo-deltoides|deltoides]] anterior son los motores principales, y el [[musculo-triceps|tríceps]] extiende el codo. El patrón incluye el press de banca, el press con mancuernas, el inclinado y el press en máquina, que cambian la demanda de estabilidad.",
+      "Las variantes también cambian la activación. En un estudio con 28 personas, un agarre ancho aumentó la actividad del bíceps y redujo la del tríceps frente a un agarre estrecho, mientras que la mayoría de los demás músculos se activó de forma parecida. Otro estudio comparó la actividad muscular y la fuerza máxima de tres variantes de press de pecho con distinto nivel de estabilidad, así que la estabilidad necesaria forma parte de la elección."
+    ],
+    "practice": "Al entrenar, elige el agarre y la variante que te permitan un recorrido controlado y sin dolor en hombro o codo. Errores frecuentes son rebotar la barra en el pecho, separar las escápulas del banco o doblar las muñecas bajo carga. Progresa con mancuernas controladas y después con barra, sumando carga o repeticiones, y registra la variante para que el progreso sea comparable. Si aparece [[dolor-hombro|dolor de hombro]], reduce la carga y consulta a un profesional sanitario.",
+    "related": ["pesos-libres", "patron-empuje-vertical", "manguito-rotador"],
+    "sources": [
+      {"title": "A comparison of muscle activity and 1-RM strength of three chest-press exercises with different stability requirements", "publisher": "Journal of sports sciences · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21225489/"},
+      {"title": "The Effect of Grip Width on Muscle Strength and Electromyographic Activity in Bench Press among Novice- and Resistance-Trained Men", "publisher": "International journal of environmental research and public health · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34198674/"}
+    ]
+  },
+  {
+    "id": "patron-empuje-vertical",
+    "name": "Empuje vertical",
+    "category": "PATTERNS",
+    "short": "Llevar la carga por encima de la cabeza con control del tronco, como en el press militar",
+    "aliases": ["overhead press", "press militar", "press de hombro", "shoulder press"],
+    "body": [
+      "El empuje vertical lleva la carga por encima de la cabeza mediante flexión de hombro, extensión de codo y una rotación coordinada de la escápula. Los [[musculo-deltoides|deltoides]] y el [[musculo-triceps|tríceps]] son los motores principales, mientras que el [[musculo-trapecio|trapecio]], el serrato anterior y los [[musculo-erectores|erectores espinales]] estabilizan la escápula y el tronco. Es un patrón que exige control del tronco mientras la resistencia asciende, y su rango depende de la movilidad de cada persona.",
+      "El peso y el tipo de equipo son las variables que compara un estudio piloto con 20 personas: la pesa rusa y la mancuerna con la misma carga no mostraron diferencias significativas, aunque la actividad fue algo mayor con la pesa rusa en casi todos los músculos del hombro y la espalda, salvo el trapecio superior. Los autores sugieren que la posición del centro de gravedad del equipo puede aumentar la actividad del hombro. Son resultados preliminares que necesitan confirmación."
+    ],
+    "practice": "En el gimnasio, empieza con un rango que controles sin arquear la zona lumbar, aprieta glúteos y abdomen para proteger el tronco, y sube la carga por delante de la cara sin perder la línea. Errores frecuentes son arquear la lumbar al subir, encogerse de hombros o empujar con impulso de piernas. Si aparece dolor al subir por encima de la cabeza, reduce el rango y la carga, y consulta a un profesional sanitario. Progresa con una variante estable y mantén las mismas condiciones para comparar.",
+    "related": ["patron-empuje-horizontal", "dolor-hombro", "manguito-rotador"],
+    "sources": [
+      {"title": "The Effect of the Weight and Type of Equipment on Shoulder and Back Muscle Activity in Surface Electromyography during the Overhead Press-Preliminary Report", "publisher": "Sensors · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/36560129/"}
+    ]
+  },
+  {
+    "id": "patron-tiron-horizontal",
+    "name": "Tirón horizontal",
+    "category": "PATTERNS",
+    "short": "Acercar la carga al torso en el plano horizontal, como en el remo o el remo invertido",
+    "aliases": ["row", "remo", "remo invertido", "inverted row", "seated row"],
+    "body": [
+      "El tirón horizontal acerca la carga hacia el torso en el plano horizontal. Combina retracción escapular, extensión o abducción horizontal del hombro y flexión de codo. En el remo invertido, el [[musculo-dorsal-ancho|dorsal ancho]], el [[musculo-biceps|bíceps]], el deltoides posterior y el [[musculo-trapecio|trapecio]] inferior alcanzan una activación muy alta, según estudios de electromiografía.",
+      "Las variantes cambian el reparto. En el remo invertido, el agarre supino frente al prono modificó la activación del dorsal ancho con los dos pies apoyados, y la del trapecio superior con un solo pie; el número de apoyos no cambió la activación de forma significativa. Otro estudio de remo invertido midió el longísimo torácico y el multífido, entre 54% y 66% de la contracción isométrica máxima. En un remo sentado con agarre ancho, un biofeedback redujo alrededor de un 10% la activación excesiva del trapecio superior en ocho hombres."
+    ],
+    "practice": "En el gimnasio, mantén la espalda neutra, lleva los codos hacia atrás junto al cuerpo y junta las escápulas al final del tirón sin encoger los hombros. Errores frecuentes son usar impulso con el torso, tirar solo con los brazos o dejar caer los hombros al bajar. Progresa variando el agarre y el ángulo del cuerpo, y registra repeticiones y [[rir|RIR]]. Si la [[lumbalgia|zona lumbar]] molesta, reduce el ángulo del cuerpo y consulta a un profesional sanitario.",
+    "related": ["patron-tiron-vertical", "musculo-dorsal-ancho", "musculo-trapecio"],
+    "sources": [
+      {"title": "Activation of Spinal Stabilizers and Shoulder Complex Muscles During an Inverted Row Using a Portable Pull-up Device and Body Weight Resistance", "publisher": "Journal of strength and conditioning research · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26422610/"},
+      {"title": "Scapular muscle balance and spinal stabilizer recruitment during an inverted row", "publisher": "Physiotherapy theory and practice · 2020", "url": "https://pubmed.ncbi.nlm.nih.gov/29944029/"},
+      {"title": "Assessing the Feasibility of EMG Biofeedback to Reduce the Upper Trapezius Muscle Excitation during a Seated Row Exercise, a Non-randomized Comparative Study", "publisher": "Applied psychophysiology and biofeedback · 2024", "url": "https://pubmed.ncbi.nlm.nih.gov/39177899/"}
+    ]
+  },
+  {
+    "id": "patron-tiron-vertical",
+    "name": "Tirón vertical",
+    "category": "PATTERNS",
+    "short": "Llevar el cuerpo hacia una barra o la carga hacia el torso desde arriba, como en la dominada",
+    "aliases": ["pull-up", "dominadas", "jalón al pecho", "lat pulldown", "chin-up"],
+    "body": [
+      "El tirón vertical lleva el cuerpo hacia una barra o la carga hacia el torso desde arriba. Combina depresión escapular, aducción o extensión del hombro y flexión de codo. El [[musculo-dorsal-ancho|dorsal ancho]] es el motor principal, con el [[musculo-biceps|bíceps]] y el pectoral mayor como colaboradores; el infraespinoso participa con activación alta y el trapecio inferior con activación moderada. En un estudio de electromiografía, el dorsal ancho alcanzó entre 117% y 130% de la contracción isométrica máxima en las tres variantes de dominada.",
+      "Las variantes cambian la activación. En el mismo estudio, la dominada supina aumentó la actividad del pectoral y del bíceps frente a la dominada prona, mientras que el trapecio inferior fue más activo en la dominada. Un ejercicio rotacional con asas no mostró mejoras frente a las versiones clásicas. En el jalón al pecho, el ancho de agarre y la orientación del antebrazo modifican la activación muscular, según dos estudios."
+    ],
+    "practice": "Al entrenar, empieza cada repetición deprimiendo las escápulas antes de flexionar el codo, baja con control y evita balancearte. Si no llegas a una dominada completa, usa jalón o dominada asistida y progresa aumentando el [[rom|rango]]. Errores frecuentes son tirar solo con los brazos, acortar el recorrido o encoger los hombros. Varía el agarre de forma moderada y anota qué cambia en tu sensación de cada músculo.",
+    "related": ["patron-tiron-horizontal", "musculo-dorsal-ancho", "musculo-biceps"],
+    "sources": [
+      {"title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup rotational exercise", "publisher": "Journal of strength and conditioning research · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/21068680/"},
+      {"title": "Effects of grip width on muscle strength and activation in the lat pull-down", "publisher": "Journal of strength and conditioning research · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24662157/"},
+      {"title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down", "publisher": "Journal of strength and conditioning research · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20543740/"}
+    ]
+  },
+  {
+    "id": "patron-acarreo",
+    "name": "Acarreos y cargas",
+    "category": "PATTERNS",
+    "short": "Sostener una carga mientras caminas o te mantienes erguido, como el paseo del granjero",
+    "aliases": ["carry", "farmer walk", "paseo del granjero", "suitcase carry", "loaded carry"],
+    "body": [
+      "El patrón de acarreo consiste en sostener una carga mientras caminas o te mantienes erguido. Transmite fuerza a través del agarre, el tronco y la pelvis durante el desplazamiento, por lo que combina prensión, estabilidad del tronco y coordinación de la marcha. Sus variantes más comunes son el paseo del granjero, con carga en ambas manos, y la maleta, con carga en una sola mano.",
+      "Un estudio con electromiografía comparó el paseo del granjero y la maleta con sus versiones de sostener sin caminar. El paseo del granjero activó más de forma bilateral el [[musculo-erectores|longísimo]] torácico, el multífido, el recto abdominal y el oblicuo externo que la versión sin caminar. La maleta activó más el longísimo y el multífido en ambos lados, y en el lado de la carga también el recto abdominal y el oblicuo externo. La musculatura del tronco trabaja mucho en los acarreos, sobre todo cuando la carga es asimétrica."
+    ],
+    "practice": "En el gimnasio, empieza con un peso que permita caminar sin balanceo y con la postura erguida, hombros abajo y paso regular. Alterna carga bilateral y unilateral para trabajar la musculatura lateral del tronco, y aumenta distancia o tiempo antes que el peso. Errores frecuentes son inclinarse hacia el lado de la carga, encoger los hombros o acortar mucho el paso. Si el [[musculo-antebrazo|agarre]] se agota antes que el resto, descansa y registra el tiempo.",
+    "related": ["patron-core", "musculo-antebrazo", "bracing-valsalva"],
+    "sources": [
+      {"title": "The Quantification of Muscle Activation During the Loaded Carry Movement Pattern", "publisher": "International journal of exercise science · 2024", "url": "https://pubmed.ncbi.nlm.nih.gov/38665162/"}
+    ]
+  },
+  {
+    "id": "patron-core",
+    "name": "Antiextensión y antirrotación",
+    "category": "PATTERNS",
+    "short": "Resistir la extensión lumbar o el giro del tronco frente a una fuerza externa",
+    "aliases": ["anti-extension", "anti-rotation", "press Pallof", "Pallof press", "roll-out"],
+    "body": [
+      "La antiextensión es la capacidad del tronco para resistir una extensión lumbar que separaría costillas y pelvis, como ocurre en el roll-out o en la plancha. La antirrotación consiste en resistir el giro que produce una carga asimétrica, como en el press Pallof. En ambos casos el tronco se mantiene quieto frente a una fuerza externa, con participación de los [[musculo-abdominales|abdominales]], los oblicuos y los [[musculo-erectores|erectores espinales]].",
+      "Los ejercicios cambian la activación de cada músculo. En un estudio con ocho ejercicios en balón suizo y dos abdominales tradicionales, el roll-out y el pike activaron más el recto abdominal, los oblicuos y el dorsal ancho que la mayoría de los demás ejercicios, minimizando la actividad de los erectores lumbares. En otro estudio, la plancha lateral podría fortalecer el glúteo medio y el oblicuo externo, y las variantes del press Pallof cambian el reto de control postural según la postura y la superficie."
+    ],
+    "practice": "Al entrenar, empieza con antiextensión a baja dificultad, como una plancha con la pelvis neutra o un roll-out corto, y progresa aumentando la duración o el [[rom|rango]] sin arquear la zona lumbar. Para la antirrotación, practica el press Pallof sin girar el tronco, respira sin perder la posición y cambia la postura o la base para subir la dificultad. Errores frecuentes son arquear la lumbar, contener la respiración o girar la pelvis. Si el [[lumbalgia|dolor lumbar]] aparece o empeora, consulta a un profesional sanitario.",
+    "related": ["bracing-valsalva", "patron-acarreo", "lumbalgia"],
+    "sources": [
+      {"title": "Core muscle activation during Swiss ball and traditional abdominal exercises", "publisher": "The Journal of orthopaedic and sports physical therapy · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20436242/"},
+      {"title": "Electromyographic analysis of core trunk, hip, and thigh muscles during 9 rehabilitation exercises", "publisher": "The Journal of orthopaedic and sports physical therapy · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/18560185/"},
+      {"title": "Effect of Body Position and Support Surface on the Postural Control Challenge During the Pallof Press Exercise: A Smartphone Accelerometer-Based Study", "publisher": "Medicina · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40005429/"}
+    ]
+  }
+]

@@ -4,7 +4,8 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.DailyGoalSnapshot
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
@@ -62,35 +63,35 @@ class NutritionCalendarForecastCoordinatorTest {
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
 
-    private fun fridaySession(weight: Double): Session {
-        val set = ExerciseSet(id = "fri_s", weight = weight, targetReps = 8, targetRPE = 8.0)
-        return Session(
+    // Sesiones de cardio: desde POST-RINGS (2ba0e901f) sólo el cardio completo
+    // tiene gasto estimable; la fuerza queda «no estimable» y no movería el reparto.
+    private fun cardioExercise(id: String, minutes: Int): Exercise = Exercise(
+        id = id,
+        name = "Carrera",
+        cardioDetails = CardioDetails(CardioType.RUN_OUTDOOR, targetDurationSeconds = minutes * 60),
+    )
+
+    private fun fridaySession(minutes: Int): Session =
+        Session(
             id = "fri",
             name = "Viernes",
             dayOfWeek = 5,
-            exercises = listOf(
-                Exercise(id = "fri_e", name = "Press banca", restTime = 90, sets = listOf(set)),
-            ),
+            exercises = listOf(cardioExercise("fri_e", minutes)),
         )
-    }
 
     /** Sesión OPCIONAL del sábado (futura): sólo cuenta si se confirma. */
-    private fun optionalSaturdaySession(): Session {
-        val set = ExerciseSet(id = "opt_sat_s", weight = 100.0, targetReps = 8, targetRPE = 8.0)
-        return Session(
+    private fun optionalSaturdaySession(): Session =
+        Session(
             id = "opt-sat",
             name = "Opcional sábado",
             dayOfWeek = 6,
             requirement = SessionRequirement.OPTIONAL,
-            exercises = listOf(
-                Exercise(id = "opt_sat_e", name = "Press banca", restTime = 90, sets = listOf(set)),
-            ),
+            exercises = listOf(cardioExercise("opt_sat_e", 40)),
         )
-    }
 
-    /** Programa calendarizado (ancla 2026-09-21) con sesión el viernes y una
+    /** Programa calendarizado (ancla 2026-09-21) con cardio el viernes y una
      *  opcional el sábado (sin confirmar por defecto: no aporta gasto). */
-    private fun program(weight: Double): Program =
+    private fun program(minutes: Int): Program =
         Program(
             id = "prog-cal",
             name = "Calendarizado",
@@ -122,7 +123,7 @@ class NutritionCalendarForecastCoordinatorTest {
                                         ProgramWeek(
                                             id = "w1",
                                             name = "Semana 1",
-                                            sessions = listOf(fridaySession(weight), optionalSaturdaySession()),
+                                            sessions = listOf(fridaySession(minutes), optionalSaturdaySession()),
                                         ),
                                     ),
                                 ),
@@ -206,7 +207,7 @@ class NutritionCalendarForecastCoordinatorTest {
     @Test
     fun `program edit persists a reforecast without opening the editor`() = runBlocking {
         val store = FakeStore(planWithForecast())
-        val programs = MutableStateFlow(listOf(program(weight = 100.0)))
+        val programs = MutableStateFlow(listOf(program(minutes = 40)))
         val coordinator = coordinator(store, programs, scope = this)
 
         // Primera pasada: la previsión se alinea con el gasto real del programa
@@ -219,9 +220,9 @@ class NutritionCalendarForecastCoordinatorTest {
         assertFalse(coordinator.reforecastNow())
         assertEquals(1, store.writes)
 
-        // Cambio real de prescripción (más carga el viernes): se re-reparte la
+        // Cambio real de prescripción (cardio más largo el viernes): se re-reparte la
         // parte futura del periodo y se persiste la revisión siguiente.
-        programs.value = listOf(program(weight = 140.0))
+        programs.value = listOf(program(minutes = 60))
         assertTrue(coordinator.reforecastNow())
         assertEquals(2, store.writes)
 
@@ -241,14 +242,14 @@ class NutritionCalendarForecastCoordinatorTest {
     @Test
     fun `collection reacts once to a program edit and never loops on its own writes`() = runBlocking {
         val store = FakeStore(planWithForecast())
-        val programs = MutableStateFlow(listOf(program(weight = 100.0)))
+        val programs = MutableStateFlow(listOf(program(minutes = 40)))
         val scope = CoroutineScope(Dispatchers.Default)
         val coordinator = coordinator(store, programs, scope = scope)
         try {
             coordinator.start()
             awaitWrites(store, 1)
 
-            programs.value = listOf(program(weight = 140.0))
+            programs.value = listOf(program(minutes = 60))
             awaitWrites(store, 2)
 
             // Las propias escrituras reactivan la colección, pero la firma no
@@ -264,7 +265,7 @@ class NutritionCalendarForecastCoordinatorTest {
     @Test
     fun `switching to another plan with the same calendar and day reforecasts it`() = runBlocking {
         val store = FakeStore(planWithForecast())
-        val programs = MutableStateFlow(listOf(program(weight = 100.0)))
+        val programs = MutableStateFlow(listOf(program(minutes = 40)))
         val coordinator = coordinator(store, programs, scope = this)
 
         assertTrue(coordinator.reforecastNow())
@@ -300,7 +301,7 @@ class NutritionCalendarForecastCoordinatorTest {
     @Test
     fun `confirming a future optional reforecasts from tomorrow keeping today and the exact budget`() = runBlocking {
         val store = FakeStore(planWithForecast())
-        val programs = MutableStateFlow(listOf(program(100.0)))
+        val programs = MutableStateFlow(listOf(program(minutes = 40)))
         val coordinator = coordinator(store, programs, scope = this)
 
         assertTrue(coordinator.reforecastNow())
@@ -311,7 +312,7 @@ class NutritionCalendarForecastCoordinatorTest {
         // Confirmación manual del calendario escrita en el programa (sábado futuro).
         val saturday = monday.plusDays(5)
         programs.value = listOf(
-            program(100.0).copy(
+            program(minutes = 40).copy(
                 optionalSessionConfirmations = listOf(
                     OptionalSessionConfirmation(dayIso = saturday.toString(), sessionId = "opt-sat"),
                 ),
@@ -336,7 +337,7 @@ class NutritionCalendarForecastCoordinatorTest {
         assertEquals(before.revision + 1, confirmed.revision)
 
         // Quitar la confirmación: sólo esa entrada desaparece y se re-reparte.
-        programs.value = listOf(program(100.0))
+        programs.value = listOf(program(minutes = 40))
         assertTrue(coordinator.reforecastNow())
         assertEquals(3, store.writes)
         val undone = decodeWeeklyForecastDocument(forecastPayloadOf(store))!!
@@ -352,7 +353,7 @@ class NutritionCalendarForecastCoordinatorTest {
     @Test
     fun `without an active plan nothing is written`() = runBlocking {
         val store = FakeStore(null)
-        val programs = MutableStateFlow(listOf(program(weight = 100.0)))
+        val programs = MutableStateFlow(listOf(program(minutes = 40)))
         val coordinator = coordinator(store, programs, scope = this)
         assertFalse(coordinator.reforecastNow())
         assertEquals(0, store.writes)

@@ -37,6 +37,35 @@ class ProgramHeaderModelTest {
     }
 
     @Test
+    fun headlineSaysModeWeeksAndBlocksInSpanish() {
+        // El modo va primero; la cifra va pegada a su unidad, y los bloques solo se cuentan si hay más de uno.
+        assertEquals(
+            "Fuerza · 12 semanas · 3 bloques",
+            programHeadlineMeta(goalLabel = "Fuerza", weekCount = 12, blockCount = 3, isRoutine = false, daysPerWeek = 4),
+        )
+        assertEquals(
+            "1 semana",
+            programHeadlineMeta(goalLabel = null, weekCount = 1, blockCount = 1, isRoutine = false, daysPerWeek = null),
+        )
+    }
+
+    @Test
+    fun headlineOfARoutineSaysRutinaAndItsDays() {
+        assertEquals(
+            "Músculo · Rutina · 3 días",
+            programHeadlineMeta(goalLabel = "Músculo", weekCount = 1, blockCount = 1, isRoutine = true, daysPerWeek = 3),
+        )
+        assertEquals("Rutina", programHeadlineMeta(goalLabel = null, weekCount = 1, blockCount = 1, isRoutine = true, daysPerWeek = null))
+        // Lo que no se sabe se omite: nada de «0 semanas» ni de «—».
+        assertEquals("", programHeadlineMeta(goalLabel = null, weekCount = 0, blockCount = 0, isRoutine = false, daysPerWeek = null))
+    }
+
+    @Test
+    fun todayAlsoNamesTheOtherSessionAndItsMinutes() {
+        assertEquals("Hoy también: Cardio y potencia · ≈ 32 min", programTodayAlsoLine("Cardio y potencia", 32))
+    }
+
+    @Test
     fun primaryActionIsStartWhenTodayHasASession() {
         val primary = programHeaderPrimaryOf(isActive = true, sessionName = "Torso A", sessionOngoing = false)
         assertEquals(ProgramHeaderPrimary.Start("Torso A"), primary)
@@ -71,7 +100,7 @@ class ProgramHeaderModelTest {
             programProgressLabel(weekIndex = 3, weekCount = 12, phase = "Fase de acumulación", repeatingWeek = false, cycle = null),
         )
         assertEquals(
-            "Semana que se repite · ciclo 5",
+            "Semana 5",
             programProgressLabel(weekIndex = 1, weekCount = 1, phase = null, repeatingWeek = true, cycle = 5),
         )
         assertEquals(

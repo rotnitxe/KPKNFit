@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail.design
 
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
@@ -17,6 +18,7 @@ import com.example.kpkn.screens.programdetail.components.heroCoverKind
  * @property cover el `coverImage` que se guardará: la foto propia, una portada de estudio o la de siempre.
  * @property style el estilo elegido en el estudio; aunque haya foto, es lo que aplica «Usar portada KPKN».
  * @property palette la paleta elegida en el estudio, con la misma regla.
+ * @property mode la modalidad elegida: Hipertrofia, Powerbuilding o Powerlifting.
  */
 internal data class ProgramEditDraft(
     val name: String,
@@ -24,6 +26,7 @@ internal data class ProgramEditDraft(
     val cover: String?,
     val style: CoverStudioStyle,
     val palette: CoverPaletteKind,
+    val mode: ProgramMode = ProgramMode.HYPERTROPHY,
 ) {
     val trimmedName: String get() = name.trim()
 
@@ -49,14 +52,17 @@ internal data class ProgramEditDraft(
     /** Hay algo que guardar y el nombre no está vacío. */
     fun canSave(program: Program): Boolean = trimmedName.isNotEmpty() && isChangedFrom(program)
 
-    /** Nombre, descripción o portada distintos de los del programa. */
+    /** Nombre, descripción, modalidad o portada distintos de los del programa. */
     fun isChangedFrom(program: Program): Boolean =
         trimmedName != program.name ||
             trimmedDescription != program.description?.trim()?.takeIf { it.isNotEmpty() } ||
+            mode != program.mode ||
             cover != program.coverImage
 }
 
-/** El borrador inicial de [program]: su nombre, su descripción, su portada y el estilo y la paleta que pinta hoy. */
+/**
+ * El borrador inicial de [program]: su nombre, su descripción, su modalidad, su portada y el estilo y la paleta que pinta hoy.
+ */
 internal fun programEditDraftOf(program: Program): ProgramEditDraft {
     val identity = coverIdentityForProgram(program)
     return ProgramEditDraft(
@@ -65,6 +71,7 @@ internal fun programEditDraftOf(program: Program): ProgramEditDraft {
         cover = program.coverImage,
         style = identity.style,
         palette = identity.palette,
+        mode = program.mode,
     )
 }
 
@@ -88,3 +95,17 @@ internal fun coverPaletteLabel(palette: CoverPaletteKind): String = when (palett
     CoverPaletteKind.TINTA -> "Tinta"
     CoverPaletteKind.PAPEL -> "Papel"
 }
+
+/** Nombre en español de cada modalidad del programa. */
+internal fun programModeLabel(mode: ProgramMode): String = when (mode) {
+    ProgramMode.HYPERTROPHY -> "Hipertrofia"
+    ProgramMode.POWERBUILDING -> "Powerbuilding"
+    ProgramMode.POWERLIFTING -> "Powerlifting"
+}
+
+/** Las modalidades que se eligen en «Editar programa», en el orden en que se muestran. */
+internal val editableProgramModes: List<ProgramMode> = listOf(
+    ProgramMode.HYPERTROPHY,
+    ProgramMode.POWERBUILDING,
+    ProgramMode.POWERLIFTING,
+)

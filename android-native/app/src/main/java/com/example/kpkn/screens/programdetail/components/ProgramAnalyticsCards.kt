@@ -98,6 +98,9 @@ private fun AnalyticsCard(
     }
 }
 
+/** Caracteres a partir de los que el valor de una métrica va en su propia línea, bajo el nombre. */
+private const val LONG_METRIC_VALUE = 12
+
 @Composable
 private fun AnalyticsMetricRow(
     label: String,
@@ -105,9 +108,16 @@ private fun AnalyticsMetricRow(
     detail: String,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(label, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
-            Text(value, style = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1"), color = WizardColors.textMuted)
+        val valueStyle = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1")
+        if (value.length > LONG_METRIC_VALUE) {
+            // Un valor largo («37,8 / sec 14,0 / estab 2,0») va debajo: al lado aplastaba el nombre y lo partía letra a letra.
+            Text(label, style = KpknType.bodyStrong, color = WizardColors.text)
+            Text(value, style = valueStyle, color = WizardColors.textMuted)
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(label, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+                Text(value, style = valueStyle, color = WizardColors.textMuted)
+            }
         }
         Text(detail, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
@@ -147,4 +157,4 @@ private fun CompactDirectIndirectList(title: String, metrics: List<com.example.k
 private fun ratioLabel(left: Double, right: Double): String =
     "${left.format1()} / ${right.format1()}"
 
-private fun Double.format1(): String = String.format("%.1f", this)
+private fun Double.format1(): String = String.format(Locale.forLanguageTag("es"), "%.1f", this)

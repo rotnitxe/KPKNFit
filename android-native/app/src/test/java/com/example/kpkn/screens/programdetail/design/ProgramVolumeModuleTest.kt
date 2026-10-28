@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
+import com.example.kpkn.screens.programdetail.design.progress.ProgramRangesRow
+import com.example.kpkn.screens.programdetail.design.progress.RangesOrigin
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,7 +34,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Módulo «Volumen de la semana» y sus vacíos (P4), en Robolectric: desplegar una fila, calibrar y los textos honestos.
+ * Módulo «Volumen de la semana» y sus vacíos (P4), en Robolectric: desplegar una fila, la fila de rangos y los textos honestos.
  * Se pintan con movimiento reducido: la entrada animada del módulo no debe mover los nodos mientras se prueban.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -63,7 +65,6 @@ class ProgramVolumeModuleTest {
                 expandedMuscle = "Pectorales",
                 onToggleMuscle = {},
                 breakdown = ProgramDetailSamples.volumeBreakdownPectorales,
-                onCalibrate = {},
             )
         }
         composeRule.onNodeWithText("Press banca").assertExists()
@@ -82,7 +83,6 @@ class ProgramVolumeModuleTest {
                 expandedMuscle = null,
                 onToggleMuscle = { requested = it },
                 breakdown = null,
-                onCalibrate = {},
             )
         }
         // La fila es un botón con acción de clic: se activa por su acción semántica, la misma que usa TalkBack.
@@ -93,8 +93,8 @@ class ProgramVolumeModuleTest {
     }
 
     @Test
-    fun calibrarLlamaALaAccion() {
-        var calibrated = false
+    fun laFilaDeRangosVaBajoLaCabeceraYLlamaASuAccion() {
+        var opened = false
         setAtRest {
             ProgramVolumeModule(
                 muscles = ProgramDetailSamples.volumeWeek,
@@ -105,11 +105,13 @@ class ProgramVolumeModuleTest {
                 expandedMuscle = null,
                 onToggleMuscle = {},
                 breakdown = null,
-                onCalibrate = { calibrated = true },
+                header = { ProgramRangesRow(origin = RangesOrigin.GENERAL_REFERENCE, onClick = { opened = true }) },
             )
         }
-        composeRule.onNodeWithText("Calibrar").performClick()
-        assertTrue(calibrated)
+        composeRule.onNodeWithText("Calibrar").assertDoesNotExist()
+        composeRule.onNodeWithText("Rangos: Referencia general").assertExists()
+        composeRule.onNodeWithTag("progreso_rangos").performClick()
+        assertTrue(opened)
     }
 
     @Test
@@ -142,7 +144,7 @@ class ProgramVolumeModuleTest {
                 muscles = listOf(muscle),
                 scope = ProgramDetailSamples.volumeScopeWeek,
                 onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
-                expandedMuscle = null, onToggleMuscle = {}, breakdown = null, onCalibrate = {},
+                expandedMuscle = null, onToggleMuscle = {}, breakdown = null,
                 unassignedCount = 2,
             )
         }
@@ -160,7 +162,7 @@ class ProgramVolumeModuleTest {
                     ProgramVolumeModule(
                         muscles = listOf(muscle), scope = scope,
                         onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
-                        expandedMuscle = null, onToggleMuscle = {}, breakdown = null, onCalibrate = {},
+                        expandedMuscle = null, onToggleMuscle = {}, breakdown = null,
                         totalVolume = totalVolume,
                     )
                 }

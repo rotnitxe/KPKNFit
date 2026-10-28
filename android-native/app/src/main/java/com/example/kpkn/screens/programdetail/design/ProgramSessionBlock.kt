@@ -68,7 +68,8 @@ internal fun ProgramSessionBlock(
     val exerciseLookup = remember { catalogExerciseIndex() }
     val exercises = remember(session) { session.allExercises() }
     var moreBounds by remember { mutableStateOf(Rect.Zero) }
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 12.dp).testTag("programsession-${session.id}")) {
+    // Dentro de la tarjeta de la agenda (sin nombre) no lleva padding vertical: lo pone la tarjeta.
+    Column(modifier = modifier.fillMaxWidth().padding(vertical = if (showName) 12.dp else 0.dp).testTag("programsession-${session.id}")) {
         if (showName) {
             Text(
                 text = session.name,

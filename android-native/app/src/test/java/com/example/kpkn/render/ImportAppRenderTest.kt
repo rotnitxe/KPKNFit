@@ -330,8 +330,8 @@ class ImportAppRenderTest {
             Sheet(width = 360.dp, fontScale = fontScale) {
                 ProgramDayModule(
                     day = day,
-                    expanded = true,
-                    onToggleExpanded = {},
+                    expandedSessionIds = day.sessions.map { it.session.id }.toSet(),
+                    onToggleSession = {},
                     onLongPressDay = {},
                     onEditDate = {},
                     onAddSession = {},

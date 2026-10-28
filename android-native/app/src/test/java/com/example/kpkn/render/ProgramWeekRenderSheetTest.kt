@@ -33,10 +33,12 @@ import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
 import com.example.kpkn.screens.programdetail.design.ProgramDayModule
 import com.example.kpkn.screens.programdetail.design.ProgramDayUi
+import com.example.kpkn.screens.programdetail.design.ProgramPhase
 import com.example.kpkn.screens.programdetail.design.ProgramPhasesModule
 import com.example.kpkn.screens.programdetail.design.ProgramTransitionModule
 import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
 import com.example.kpkn.screens.programdetail.design.ProgramWeekHeader
+import com.example.kpkn.screens.programdetail.design.ProgramWeekStats
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -167,8 +169,8 @@ class ProgramWeekRenderSheetTest {
     private fun DayCase(day: ProgramDayUi, expanded: Boolean) {
         ProgramDayModule(
             day = day,
-            expanded = expanded,
-            onToggleExpanded = {},
+            expandedSessionIds = if (expanded) day.sessions.map { it.session.id }.toSet() else emptySet(),
+            onToggleSession = {},
             onLongPressDay = {},
             onEditDate = {},
             onAddSession = {},
@@ -206,9 +208,15 @@ class ProgramWeekRenderSheetTest {
             "simple" -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 Spacer(Modifier.height(12.dp))
                 ProgramWeekHeader(
-                    title = "Semana que se repite",
-                    onEdit = {},
-                    onChangeSplit = {},
+                    title = "Semana 4",
+                    subtitle = "Intensificación · 29 oct – 2 nov",
+                    phaseColor = ProgramPhase.INTENSIFICATION.color,
+                    stats = ProgramWeekStats(sessionsDone = 2, sessionsTotal = 5, setsDone = 26, setsTotal = 60, minutes = 276),
+                    canPrev = true,
+                    canNext = true,
+                    onPrev = {},
+                    onNext = {},
+                    onOpenWeeks = {},
                 )
                 Spacer(Modifier.height(12.dp))
                 DayCase(day = torsoDay, expanded = true)

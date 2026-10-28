@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail.components
 
 import com.example.kpkn.data.programs.PROGRAM_COVER_SCHEME
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LINE_COVER_SCHEME
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.PROGRAM_STUDIO_SCHEME
 
 /*
@@ -14,13 +15,13 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.PROGRAM_STU
 internal enum class HeroCoverKind { BUNDLED, GRADIENT, STUDIO, REMOTE }
 
 /**
- * `kpkn-cover://<id>` usa la portada empaquetada si existe ([hasBundledCover]) y, si no, el degradado Ember. `kpkn-studio://` es la
- * portada de estudio del motor, nunca una foto. `gradient://…` o un valor vacío usan el degradado. Cualquier otro valor (URL,
+ * `kpkn-cover://<id>` usa la portada empaquetada si existe ([hasBundledCover]) y, si no, el degradado Ember. `kpkn-studio://` y `kpkn-lines://` son
+ * portadas del motor, nunca una foto. `gradient://…` o un valor vacío usan el degradado. Cualquier otro valor (URL,
  * `content://`, `file://`) es una foto remota que carga Coil, como antes.
  */
 internal fun heroCoverKind(coverValue: String?, hasBundledCover: Boolean): HeroCoverKind {
     if (coverValue.isNullOrBlank() || coverValue.startsWith("gradient://")) return HeroCoverKind.GRADIENT
-    if (coverValue.startsWith(PROGRAM_STUDIO_SCHEME)) return HeroCoverKind.STUDIO
+    if (coverValue.startsWith(PROGRAM_STUDIO_SCHEME) || coverValue.startsWith(LINE_COVER_SCHEME)) return HeroCoverKind.STUDIO
     if (coverValue.startsWith(PROGRAM_COVER_SCHEME)) {
         return if (hasBundledCover) HeroCoverKind.BUNDLED else HeroCoverKind.GRADIENT
     }

@@ -49,6 +49,7 @@ import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.ProgramEndDateStatus
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -81,12 +82,20 @@ import com.example.kpkn.screens.programdetail.design.structure.ProgramMesoSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramStructureNotice
 import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplateConfirmSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramItem
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMapModule
+import com.example.kpkn.screens.programdetail.design.structure.programMapDateLabel
+import com.example.kpkn.screens.programdetail.design.structure.programMapNowLabel
+import com.example.kpkn.screens.programdetail.design.structure.programMapSegments
 import com.example.kpkn.screens.programdetail.design.structure.programBlockUis
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import androidx.compose.ui.geometry.Rect
 import com.example.kpkn.ui.design.kpknEntrance
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknType
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -144,6 +153,9 @@ fun MacrocycleEditorLegacy(
     onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
     onDeleteWeek: (weekId: String) -> Unit = {},
     onAddSimpleWeek: () -> Unit = {},
+    analyticsReport: ProgramAnalyticsReport? = null,
+    onOpenTrainingMaxes: (() -> Unit)? = null,
+    trainingMaxSummary: String? = null,
     modifier: Modifier = Modifier,
 ) {
     // Bloques (P3b): la hoja de bloque, los menús de bloque y de semana, y el borrador de la semana que se edita.
@@ -260,7 +272,6 @@ fun MacrocycleEditorLegacy(
     }
 
     val temporalInsight = remember(program) { program.toTemporalInsight() }
-    val stats = remember(program) { program.toProgramStats() }
     val advancedRoadmap = remember(program) { buildAdvancedRoadmap(program) }
     val simpleCalendarizationHazeState = remember { HazeState() }
     // Una sola lectura del reloj para toda la pestaña Estructura: las fechas relativas y la hoja de render dependen de ella (P3a).
@@ -319,29 +330,26 @@ fun MacrocycleEditorLegacy(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ProgramToolsModule(
-            kind = toolsKind,
-            blockCount = stats.blocks,
-            weekCount = stats.weeks,
-            sessionCount = stats.sessions,
-            keyDateCount = program.keyDates.count { it.type != KeyDateType.COMPETITION },
-            historyCount = programSnapshots.size,
-            onCalendar = {
-                keyDatesFocusList = false
-                setKeyDatesSheetOpen(true)
+        // Estructura empieza por el mapa del programa, que sustituye a «Herramientas»: los bloques como tramos, la semana en curso y las fechas.
+        val mapStart = if (toolsKind == ProgramToolsKind.BLOCKS) savedPreview.startDate else simpleProjection.startDate
+        val mapEnd = if (toolsKind == ProgramToolsKind.BLOCKS) {
+            savedPreview.manualEndDate ?: savedPreview.programEnd
+        } else {
+            simpleProjection.effectiveEndDate
+        }
+        ProgramMapModule(
+            segments = remember(blockUis) { programMapSegments(blockUis) },
+            startLabel = programMapDateLabel(mapStart),
+            nowLabel = programMapNowLabel(blockUis),
+            endLabel = programMapDateLabel(mapEnd),
+            onDates = {
+                if (toolsKind == ProgramToolsKind.BLOCKS) {
+                    keyDatesFocusList = false
+                    setKeyDatesSheetOpen(true)
+                } else {
+                    onShowSimpleCalendarizationSheetChange(true)
+                }
             },
-            onKeyDates = {
-                keyDatesFocusList = true
-                setKeyDatesSheetOpen(true)
-            },
-            onRoute = { setRoadmapExpanded(true) },
-            onCycles = { setLoopsSheetOpen(true) },
-            onTemplates = { setLibrarySheetOpen(true) },
-            onHistory = {
-                onRefreshProgramSnapshots()
-                showSnapshots = true
-            },
-            onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
             modifier = Modifier.kpknEntrance("programdetail.estructura", 0),
         )
         ProgramCalendarModule(
@@ -406,6 +414,96 @@ fun MacrocycleEditorLegacy(
             onConvert = { pendingSimpleToAdvanced = true },
         )
 
+        ProgramFromProgramModule(
+            items = buildList<ProgramFromProgramItem> {
+                if (onOpenTrainingMaxes != null) {
+                    add(
+                        ProgramFromProgramItem(
+                            title = "Cargas de referencia (TM)",
+                            detail = trainingMaxSummary ?: "Máximos de entrenamiento de los básicos",
+                            icon = KpknLineIcons.Target,
+                            tag = "estructura_tm",
+                            onClick = onOpenTrainingMaxes,
+                        ),
+                    )
+                }
+                add(
+                    ProgramFromProgramItem(
+                        title = "Aplicar plantilla o método",
+                        detail = "Rellena semanas con una plantilla de la biblioteca",
+                        icon = KpknLineIcons.Layers,
+                        tag = "estructura_plantillas",
+                        onClick = { setLibrarySheetOpen(true) },
+                    ),
+                )
+                add(
+                    ProgramFromProgramItem(
+                        title = "Versiones guardadas",
+                        detail = when (programSnapshots.size) {
+                            0 -> "Aún no hay versiones guardadas"
+                            1 -> "1 versión · restaurar una copia"
+                            else -> "${programSnapshots.size} versiones · restaurar una copia"
+                        },
+                        icon = KpknLineIcons.History,
+                        tag = "estructura_versiones",
+                        enabled = programSnapshots.isNotEmpty(),
+                        onClick = {
+                            onRefreshProgramSnapshots()
+                            showSnapshots = true
+                        },
+                    ),
+                )
+                if (toolsKind == ProgramToolsKind.BLOCKS) {
+                    add(
+                        ProgramFromProgramItem(
+                            title = "Ruta y semanas por bloque",
+                            detail = "Cuántas semanas tiene cada bloque y cómo encaja con la competición",
+                            icon = KpknLineIcons.Route,
+                            tag = "estructura_ruta",
+                            onClick = { setRoadmapExpanded(true) },
+                        ),
+                    )
+                    val keyDateCount = program.keyDates.count { it.type != KeyDateType.COMPETITION }
+                    add(
+                        ProgramFromProgramItem(
+                            title = "Fechas clave",
+                            detail = when (keyDateCount) {
+                                0 -> "Descargas, tests y otras fechas del programa"
+                                1 -> "1 fecha clave"
+                                else -> "$keyDateCount fechas clave"
+                            },
+                            icon = KpknLineIcons.Flag,
+                            tag = "estructura_fechas_clave",
+                            onClick = {
+                                keyDatesFocusList = true
+                                setKeyDatesSheetOpen(true)
+                            },
+                        ),
+                    )
+                }
+                if (toolsKind == ProgramToolsKind.CYCLIC) {
+                    add(
+                        ProgramFromProgramItem(
+                            title = "Ciclos",
+                            detail = "Descargas, tests y competiciones que se repiten",
+                            icon = KpknLineIcons.Repeat,
+                            tag = "estructura_ciclos",
+                            onClick = { setLoopsSheetOpen(true) },
+                        ),
+                    )
+                }
+            },
+            modifier = Modifier.kpknEntrance("programdetail.estructura", 3),
+        )
+        if (analyticsReport != null) {
+            Text(
+                text = "REVISIÓN DEL PLAN",
+                style = KpknType.eyebrow,
+                color = WizardColors.textFaint,
+                modifier = Modifier.padding(start = 2.dp, top = 4.dp),
+            )
+            VolumeAnalyticsCard(report = analyticsReport)
+        }
         Spacer(Modifier.height(120.dp))
     }
 

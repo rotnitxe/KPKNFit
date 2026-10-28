@@ -187,8 +187,8 @@ class ProgramDetailClosureRenderSheetTest {
     @Composable
     private fun dayModule(day: ProgramDayUi, expanded: Boolean) = ProgramDayModule(
         day = day,
-        expanded = expanded,
-        onToggleExpanded = {},
+        expandedSessionIds = if (expanded) day.sessions.map { it.session.id }.toSet() else emptySet(),
+        onToggleSession = {},
         onLongPressDay = {},
         onEditDate = {},
         onAddSession = {},
@@ -388,7 +388,6 @@ class ProgramDetailClosureRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                    onCalibrate = {},
                     controls = controls,
                 )
                 ProgramVolumeSummaryModule(

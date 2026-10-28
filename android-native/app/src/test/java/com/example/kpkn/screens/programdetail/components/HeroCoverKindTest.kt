@@ -32,6 +32,8 @@ class HeroCoverKindTest {
     @Test
     fun studioCoverIsTheEngineCoverNeverARemotePhoto() {
         assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://PLATES/NOCHE", hasBundledCover = false))
+        // Las portadas de líneas también las dibuja el motor: nunca se piden a Coil como foto.
+        assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-lines://PERFIL/CARBON", hasBundledCover = false))
         assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://PLATES/NOCHE", hasBundledCover = true))
         assertEquals(HeroCoverKind.STUDIO, heroCoverKind("kpkn-studio://FOO/BAR", hasBundledCover = false))
     }

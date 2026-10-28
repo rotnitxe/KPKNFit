@@ -1022,6 +1022,11 @@ class ProgramDetailViewModel(
         if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
     }
 
+    /** Aviso puntual de la pantalla (el mismo canal que el resto de mensajes). */
+    fun showMessage(message: String) {
+        _uiState.update { it.copy(snackbarMessage = message) }
+    }
+
     fun consumeSnackbarMessage() {
         _uiState.update { it.copy(snackbarMessage = null) }
     }

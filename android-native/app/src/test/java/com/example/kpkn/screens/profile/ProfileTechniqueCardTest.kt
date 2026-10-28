@@ -55,7 +55,7 @@ class ProfileTechniqueCardTest {
         )
         rule.setContent {
             KPKNTheme {
-                conclusionColor = MaterialTheme.colorScheme.onSurface
+                conclusionColor = com.example.kpkn.screens.onboarding.design.WizardColors.text
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f), LocalWizardReducedMotion provides true) {
                     Box(Modifier.padding(16.dp)) { ProfileTechniqueCard(state, {}, { opened = it }) }

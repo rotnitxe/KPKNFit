@@ -11,7 +11,8 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 
 @Composable
@@ -21,15 +22,17 @@ internal fun ProgramBlockReviewSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val review = preview.original.pendingBlockReview?.review ?: return
+    val review = preview.original.pendingBlockReview?.review ?: run {
+        ProgramUnavailableSheet("Bloque terminado", "Esta revisión ya no está pendiente. Vuelve a abrirla desde «Pendiente».", onDismiss)
+        return
+    }
     val previous = ProgramHierarchyIndex(preview.original).orderedWeeks().flatMap { it.week.sessions }.associateBy { it.id }
     val changed = ProgramHierarchyIndex(preview.result).orderedWeeks().flatMap { it.week.sessions }.filter { previous[it.id] != it }
     fun number(value: Double) = String.format(java.util.Locale.forLanguageTag("es-CL"), "%.1f", value)
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() }, stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Revisión de bloque", style = KpknType.bodyStrong, color = WizardColors.text)
-            Text(review.summary, style = KpknType.body, color = WizardColors.text)
+            ProgramSheetHeader(title = "Revisión de bloque", eyebrow = "Bloque terminado", subtitle = review.summary)
             Text("${review.feedbackWeeks} semanas con respuestas originales atribuibles al bloque.", style = KpknType.caption, color = WizardColors.textMuted)
             review.muscleSets.forEach { muscle ->
                 Text("${muscle.muscleName}: ${number(muscle.plannedPerWeek)} series previstas y ${number(muscle.recordedPerWeek)} registradas por semana.",
@@ -51,8 +54,8 @@ internal fun ProgramBlockReviewSheet(
                     style = KpknType.body, color = WizardColors.text)
             }
             if (!busy) {
-                KpknCompactPill("Confirmar",onConfirm,fullWidth = true)
-                KpknCompactPill("Volver",onDismiss,filled = false,fullWidth = true)
+                KpknPrimaryPill(text = "Confirmar", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             } else Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
         }
     }

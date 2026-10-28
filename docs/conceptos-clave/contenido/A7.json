@@ -1,0 +1,197 @@
+[
+  {
+    "id": "dolor-y-entrenamiento",
+    "name": "Dolor y entrenamiento",
+    "category": "INJURIES",
+    "short": "Qué significan las molestias al entrenar y cómo usarlas sin confundir dolor con daño",
+    "aliases": ["dolor durante el ejercicio", "monitorización del dolor", "pain monitoring"],
+    "body": [
+      "Las molestias al entrenar no siempre significan lesión, porque el dolor no mide directamente el daño del tejido. Es una experiencia que el sistema nervioso construye integrando señales de los tejidos con el contexto, el sueño, el estrés y tus expectativas. En el dolor lumbar, la evidencia reciente destaca el papel de los mecanismos centrales del dolor y de las creencias sobre el dolor en la evolución hacia un cuadro persistente.",
+      "Por eso suele usarse un enfoque de tolerancia de la carga: el tejido admite un estímulo que puede crecer con el tiempo, y el dolor orienta sobre si la demanda supera esa capacidad. Las tendinopatías ilustran esa variedad: con cargas diversas, los tendones presentan grados muy distintos de dolor y capacidad funcional. En un ensayo con pacientes de tendinopatía de Aquiles, quienes siguieron corriendo y saltando guiándose por el dolor mejoraron de forma similar a quienes pararon esas actividades durante seis semanas. Aun así, un solo ensayo no basta para generalizar."
+    ],
+    "practice": "En la práctica, registra el dolor durante el ejercicio y al día siguiente en una escala de 0 a 10 y compáralo con tu referencia habitual. Un dolor leve o moderado que se mantiene estable sugiere que la carga es tolerable; si aumenta de una sesión a otra, reduce la carga un paso. Si no cede o aparecen otros síntomas, consulta a un profesional sanitario; las [[senales-alarma|señales para consultar]] recogen los signos generales.",
+    "related": ["sobrecarga-progresiva", "dano-muscular", "senales-alarma"],
+    "sources": [
+      {"title": "Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy", "publisher": "The American journal of sports medicine · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/17307888/"},
+      {"title": "Is tendon pathology a continuum? A pathology model to explain the clinical presentation of load-induced tendinopathy", "publisher": "British journal of sports medicine · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/18812414/"},
+      {"title": "What low back pain is and why we need to pay attention", "publisher": "Lancet (London, England) · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29573870/"}
+    ]
+  },
+  {
+    "id": "tendinopatia",
+    "name": "Tendinopatía",
+    "category": "INJURIES",
+    "short": "Dolor y pérdida de capacidad en un tendón sometido a carga, que puede mejorar con carga progresiva",
+    "aliases": ["tendinitis", "tendinopathy", "tendinosis"],
+    "body": [
+      "La tendinopatía es una alteración del tendón relacionada con la carga, que suele manifestarse como dolor al cargarlo; afecta sobre todo al tendón de Aquiles y al rotuliano. Las descripciones antiguas hablaban de degeneración o de fallo de cicatrización, pero ninguna explica por sí sola la variedad de cuadros. Algunos [[tendon|tendones]] se recuperan con intervenciones sencillas y otros resisten a todos los tratamientos, por lo que el pronóstico es muy variable.",
+      "Las personas con tendones sometidos a cargas distintas presentan grados diferentes de dolor, irritabilidad y capacidad funcional. Un modelo de continuo propone colocar cada caso en un punto de ese recorrido y elegir el tipo de carga según ese punto. En tendones de Aquiles, la carga pesada y lenta y los ejercicios excéntricos mejoraron de forma parecida, con menos grosor tendinoso y menos dolor durante la actividad, y una revisión señala que la evidencia comparativa entre programas de carga es limitada y en parte contradictoria."
+    ],
+    "practice": "En la práctica, ajusta la carga del tendón por pasos y observa la respuesta del día siguiente, sin cambiar varias variables a la vez. Un dolor leve y estable durante la actividad puede ser compatible con seguir cargando, pero si aumenta de una sesión a otra o no mejora con las semanas, reduce la carga y consulta a un profesional sanitario, que valorará el punto de partida. Las [[senales-alarma|señales para consultar]] recogen los signos generales.",
+    "related": ["tendon", "fase-excentrica", "dolor-y-entrenamiento"],
+    "sources": [
+      {"title": "Heavy Slow Resistance Versus Eccentric Training as Treatment for Achilles Tendinopathy", "publisher": "The American journal of sports medicine · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26018970/"},
+      {"title": "Achilles and patellar tendinopathy loading programmes", "publisher": "Sports medicine (Auckland, N.Z.) · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23494258/"},
+      {"title": "Is tendon pathology a continuum? A pathology model to explain the clinical presentation of load-induced tendinopathy", "publisher": "British journal of sports medicine · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/18812414/"}
+    ]
+  },
+  {
+    "id": "lumbalgia",
+    "name": "Dolor lumbar",
+    "category": "INJURIES",
+    "short": "Dolor en la zona baja de la espalda que casi siempre no tiene una causa específica identificable",
+    "aliases": ["lumbalgia", "low back pain", "dolor de espalda baja"],
+    "body": [
+      "El dolor lumbar es la principal causa de discapacidad en el mundo, y en casi todas las personas no se puede identificar una causa específica. Las causas graves, como una fractura vertebral, un tumor o una infección, son poco frecuentes. La mayoría de los episodios nuevos se recupera con rapidez, pero las recaídas son comunes y, en una minoría, el dolor se vuelve persistente y discapacitante.",
+      "Entre los factores que aumentan el riesgo de que el dolor se vuelva persistente figuran la intensidad inicial del dolor, el malestar psicológico, el dolor en varias zonas del cuerpo y las creencias sobre el dolor. Las guías de la American College of Physicians recomiendan para el dolor crónico empezar por tratamientos no farmacológicos, como el ejercicio, el yoga o la terapia cognitivo-conductual. El ejercicio es una opción recomendada, aunque no garantiza que el dolor desaparezca."
+    ],
+    "practice": "En la práctica, mantente activo con una carga que toleres y auméntala poco a poco, sin esperar a que el dolor desaparezca del todo. Observa qué movimientos te molestan y no dejes que las creencias sobre el dolor te aparten del ejercicio. Busca atención urgente si aparece debilidad nueva en las piernas, pérdida de sensibilidad en la zona genital o perineal, o alteraciones de la vejiga o del intestino, porque en esos casos se recomienda una resonancia urgente; las [[senales-alarma|señales para consultar]] recogen el resto.",
+    "related": ["hernia-discal", "senales-alarma", "musculo-erectores"],
+    "sources": [
+      {"title": "Noninvasive Treatments for Acute, Subacute, and Chronic Low Back Pain", "publisher": "Annals of internal medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28192789/"},
+      {"title": "What low back pain is and why we need to pay attention", "publisher": "Lancet (London, England) · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29573870/"},
+      {"title": "Assessment and early investigation of cauda equina syndrome", "publisher": "European spine journal · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40000448/"}
+    ]
+  },
+  {
+    "id": "dolor-hombro",
+    "name": "Dolor de hombro",
+    "category": "INJURIES",
+    "short": "Dolor en la articulación del hombro, a menudo ligado al manguito rotador y a la zona subacromial",
+    "aliases": ["pinzamiento subacromial", "shoulder impingement", "síndrome subacromial"],
+    "body": [
+      "El dolor de hombro es frecuente, y uno de sus cuadros más habituales es el pinzamiento subacromial, en el que el dolor aparece sobre todo al elevar el brazo y puede limitar la función. Los ensayos sobre este cuadro suelen medir el dolor, la función, el rango de movimiento y la fuerza. Las revisiones muestran que el manejo conservador influye sobre todo en el dolor y en la función, más que en la movilidad o la fuerza, así que la mejoría clínica se mide sobre todo en esos dos aspectos.",
+      "Las revisiones sistemáticas encontraron que el ejercicio reduce el dolor frente a no hacer ejercicio, y que los ejercicios específicos superan a los genéricos. La terapia manual, combinada con el ejercicio, aporta una ventaja limitada y solo en el seguimiento más corto. Además, en una revisión sobre el pinzamiento, el ejercicio supervisado no fue distinto del programa en casa, aunque muchos ensayos tenían limitaciones metodológicas."
+    ],
+    "practice": "En la práctica, el ejercicio específico es la intervención que respaldan estas revisiones, y conviene darle tiempo antes de juzgarlo. Lleva un registro sencillo del dolor al elevar el brazo, de la función en tareas cotidianas y del sueño, y no tomes la movilidad como único criterio de mejoría. Si el dolor es intenso, notas debilidad o no mejora con el tiempo, consulta con un profesional sanitario; las [[senales-alarma|señales para consultar]] describen los signos generales.",
+    "related": ["manguito-rotador", "musculo-deltoides", "tendinopatia"],
+    "sources": [
+      {"title": "Effectiveness of conservative interventions including exercise, manual therapy and medical management in adults with shoulder impingement", "publisher": "British journal of sports medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28630217/"},
+      {"title": "Exercise in the treatment of rotator cuff impingement", "publisher": "Journal of shoulder and elbow surgery · 2009", "url": "https://pubmed.ncbi.nlm.nih.gov/18835532/"}
+    ]
+  },
+  {
+    "id": "dolor-femoropatelar",
+    "name": "Dolor en la parte delantera de la rodilla",
+    "category": "INJURIES",
+    "short": "Dolor alrededor de la rótula, frecuente desde la adolescencia hasta la edad adulta",
+    "aliases": ["síndrome femoropatelar", "patellofemoral pain", "PFPS"],
+    "body": [
+      "El dolor femoropatelar es el dolor alrededor o por detrás de la rótula, y afecta a una proporción importante de la población, desde adolescentes hasta adultos mayores. Es un cuadro frecuente, y su manejo busca sobre todo mejorar el dolor y la función, como recoge el consenso internacional de 2018.",
+      "Ese consenso recomienda el ejercicio terapéutico, sobre todo la combinación de ejercicios centrados en la cadera y en la rodilla, junto con las intervenciones combinadas y las ortesis plantares, para mejorar el dolor o la función. No recomienda las movilizaciones aisladas de la rótula, de la rodilla o de la zona lumbar, ni los agentes electrofísicos. Quedan dudas sobre el vendaje o la rodillera, las agujas secas, la terapia manual de tejidos blandos, la restricción del flujo sanguíneo y la reeducación de la marcha."
+    ],
+    "practice": "En la práctica, un programa de ejercicio que trabaje la cadera y la rodilla es lo que respalda el consenso, y conviene darle constancia y tiempo antes de juzgarlo. Anota qué actividades te molestan más, como subir escaleras o correr, y sube la carga poco a poco en lugar de cambiar todo a la vez. Si el dolor no mejora con el tiempo o aparecen las señales descritas en [[senales-alarma|señales para consultar]], consulta a un profesional sanitario.",
+    "related": ["musculo-cuadriceps", "musculo-gluteos", "dolor-y-entrenamiento"],
+    "sources": [
+      {"title": "2018 Consensus statement on exercise therapy and physical interventions (orthoses, taping and manual therapy) to treat patellofemoral pain", "publisher": "British journal of sports medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29925502/"}
+    ]
+  },
+  {
+    "id": "lesion-muscular",
+    "name": "Distensión y rotura fibrilar",
+    "category": "INJURIES",
+    "short": "Lesión de las fibras musculares por estiramiento o sobrecarga, desde la alteración funcional hasta la rotura",
+    "aliases": ["desgarro muscular", "muscle strain", "tirón muscular"],
+    "body": [
+      "Una lesión muscular aguda puede ser un trastorno funcional, sin rotura visible de fibras, o una lesión estructural con rotura parcial o total. El consenso de Múnich distingue cuatro tipos y busca unificar la terminología para comunicar mejor el diagnóstico y el tratamiento. En el fútbol profesional europeo, la lesión de isquiosurales es la más frecuente.",
+      "En un ensayo con futbolistas suecos de élite, un protocolo con ejercicios de alargamiento muscular redujo el tiempo de vuelta frente a un protocolo convencional, y las lesiones por estiramiento tardaron más en recuperarse que las de sprint. Una revisión clínica de Heiderscheit y colaboradores señala que cerca de un tercio de estas lesiones recidiva en el primer año tras volver al deporte, y que los criterios habituales de retorno pueden no detectar déficits de fuerza, extensibilidad o patrón de movimiento. Por eso el alta no debería basarse solo en la falta de dolor."
+    ],
+    "practice": "En la práctica, la vuelta a la carga debe avanzar por fases, con criterios de fuerza, rango y control del movimiento, y no solo por los días transcurridos. Los ejercicios de alargamiento bajo control pueden formar parte de la rehabilitación, siempre con progresión y revisando la respuesta del día siguiente. Si el dolor es intenso o no puedes apoyar la pierna, consulta cuanto antes; las [[senales-alarma|señales para consultar]] recogen los signos generales.",
+    "related": ["musculo-isquiosurales", "fase-excentrica", "volver-tras-lesion"],
+    "sources": [
+      {"title": "Terminology and classification of muscle injuries in sport", "publisher": "British journal of sports medicine · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23080315/"},
+      {"title": "Acute hamstring injuries in Swedish elite football", "publisher": "British journal of sports medicine · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23536466/"},
+      {"title": "Hamstring strain injuries: recommendations for diagnosis, rehabilitation, and injury prevention", "publisher": "The Journal of orthopaedic and sports physical therapy · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20118524/"}
+    ]
+  },
+  {
+    "id": "esguince-tobillo",
+    "name": "Esguince de tobillo",
+    "category": "INJURIES",
+    "short": "Lesión de los ligamentos del tobillo, más a menudo por el lado externo y muy frecuente en el deporte",
+    "aliases": ["torcedura de tobillo", "ankle sprain", "esguince lateral de tobillo"],
+    "body": [
+      "El esguince de tobillo es una de las lesiones musculoesqueléticas más comunes, y en la mayoría de los casos afecta a los ligamentos del lado externo. Según una revisión sistemática con metanálisis, el riesgo es mayor en mujeres, en niños frente a adolescentes y adultos, y en deportes de interior; el esguince lateral es el tipo más observado. Suele acompañarse de dolor e hinchazón.",
+      "Tras un primer esguince, el riesgo de recidiva es alto y algunas personas desarrollan inestabilidad crónica del tobillo. Una revisión de revisiones de 2017 encontró evidencia sólida a favor de la movilización temprana y evidencia moderada a favor del ejercicio y de la terapia manual para el dolor, la hinchazón y la función en el esguince agudo. Para prevenir recidivas, esa revisión apoya el ejercicio terapéutico y el uso de soportes; en el tratamiento agudo, la evidencia sobre cirugía y acupuntura es contradictoria."
+    ],
+    "practice": "En la práctica, tras un esguince conviene recuperar movilidad y apoyo pronto, según tolere el dolor, y después añadir ejercicio terapéutico, que tiene respaldo para evitar recaídas, sobre todo si ya has tenido esguinces. Si no puedes apoyar el pie o el dolor se concentra sobre el hueso, consulta cuanto antes: las reglas de Ottawa, validadas en urgencias, sirven para decidir si hace falta una radiografía y no dejaron pasar ninguna fractura en su validación. Las [[senales-alarma|señales para consultar]] recogen los signos generales.",
+    "related": ["ligamento", "volver-tras-lesion", "senales-alarma"],
+    "sources": [
+      {"title": "The incidence and prevalence of ankle sprain injury", "publisher": "Sports medicine (Auckland, N.Z.) · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24105612/"},
+      {"title": "Treatment and prevention of acute and recurrent ankle sprain", "publisher": "British journal of sports medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28053200/"},
+      {"title": "Decision rules for the use of radiography in acute ankle injuries", "publisher": "JAMA · 1993", "url": "https://pubmed.ncbi.nlm.nih.gov/8433468/"}
+    ]
+  },
+  {
+    "id": "hernia-discal",
+    "name": "Hernia discal",
+    "category": "INJURIES",
+    "short": "Desplazamiento del disco entre vértebras que puede irritar un nervio y causar dolor que baja por la pierna",
+    "aliases": ["hernia de disco", "disc herniation", "radiculopatía lumbar"],
+    "body": [
+      "Una hernia discal es el desplazamiento del material interno de un disco intervertebral, que puede comprimir o irritar una raíz nerviosa. En la zona lumbar puede causar dolor que baja por la pierna, lo que se llama radiculopatía. La mayoría de las personas con radiculopatía por hernia mejora sin cirugía, aunque la evolución varía y el dolor puede durar meses.",
+      "En algunas personas los síntomas bajan en una o dos semanas, mientras que en otras el dolor puede prolongarse durante muchos meses o años. Las hernias pueden desaparecer, sobre todo las migradas, y los cambios en la resonancia suelen ir por detrás de la mejoría del dolor, lo que indica que la imagen no siempre refleja el curso clínico. Las decisiones sobre cirugía dependen del caso y deben tomarse con un especialista."
+    ],
+    "practice": "En la práctica, registra cómo evoluciona el dolor que baja por la pierna semana a semana y qué posturas o movimientos lo despiertan, y mantente activo dentro de lo que toleres en lugar de reposar del todo. Busca atención urgente si aparece debilidad nueva en la pierna, pérdida de sensibilidad en la zona genital o perineal, o alteraciones de la vejiga o del intestino, porque la sospecha de síndrome de cola de caballo requiere una resonancia urgente; las [[senales-alarma|señales para consultar]] recogen el resto.",
+    "related": ["lumbalgia", "senales-alarma", "musculo-erectores"],
+    "sources": [
+      {"title": "The natural history of lumbar disc herniation and radiculopathy", "publisher": "Joint bone spine · 2002", "url": "https://pubmed.ncbi.nlm.nih.gov/12027305/"},
+      {"title": "The natural history of herniated nucleus pulposus with radiculopathy", "publisher": "Spine · 1996", "url": "https://pubmed.ncbi.nlm.nih.gov/8720408/"},
+      {"title": "Assessment and early investigation of cauda equina syndrome", "publisher": "European spine journal · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40000448/"}
+    ]
+  },
+  {
+    "id": "epicondilalgia",
+    "name": "Codo de tenista y de golfista",
+    "category": "INJURIES",
+    "short": "Dolor en la zona del epicóndilo del codo, en el lado externo (tenista) o interno (golfista)",
+    "aliases": ["epicondilitis", "tennis elbow", "golfer's elbow"],
+    "body": [
+      "La epicondilalgia es el dolor en la zona del epicóndilo del codo. La forma lateral, o codo de tenista, afecta a la cara externa del codo, y la medial, o codo de golfista, a la interna. La literatura describe este cuadro con términos muy distintos: una revisión de revisiones de 2022 encontró diez denominaciones y doce pruebas clínicas diferentes, lo que dificulta comparar estudios.",
+      "Un ensayo de 2013 con 165 personas comparó infiltraciones de corticoides frente a placebo, y fisioterapia frente a no recibirla: a un año, la infiltración dio peores resultados y la fisioterapia no mostró diferencias significativas. Una revisión de 2010 sobre infiltraciones en tendinopatías señala que los corticoides alivian a corto plazo, pero que la respuesta varía según la localización, así que no conviene generalizar. La revisión de 2022 describe el enfoque conservador multimodal, con ejercicios excéntricos y terapia manual, como el más citado en los estudios."
+    ],
+    "practice": "En la práctica, anota qué gestos o agarres despiertan el dolor y cómo responde al día siguiente, y ajusta la carga por pasos en lugar de dejar de usar el brazo por completo. Los corticoides pueden aliviar a corto plazo, pero frente a placebo empeoraron los resultados al año, así que una infiltración debe valorarse con un profesional. Si hay debilidad, entumecimiento o dolor que no mejora con las semanas, consulta; las [[senales-alarma|señales para consultar]] recogen los signos generales.",
+    "related": ["tendon", "tendinopatia", "fase-excentrica"],
+    "sources": [
+      {"title": "Efficacy and safety of corticosteroid injections and other injections for management of tendinopathy", "publisher": "Lancet (London, England) · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20970844/"},
+      {"title": "Effect of corticosteroid injection, physiotherapy, or both on clinical outcomes in patients with unilateral lateral epicondylalgia", "publisher": "JAMA · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23385272/"},
+      {"title": "Treatment, Diagnostic Criteria and Variability of Terminology for Lateral Elbow Pain", "publisher": "Healthcare (Basel, Switzerland) · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/35742152/"}
+    ]
+  },
+  {
+    "id": "volver-tras-lesion",
+    "name": "Volver a entrenar tras una lesión",
+    "category": "INJURIES",
+    "short": "Proceso por fases para recuperar la carga y el rendimiento, con criterios además del paso del tiempo",
+    "aliases": ["retorno al deporte", "return to sport", "return to play"],
+    "body": [
+      "Volver a entrenar tras una lesión es una decisión de gestión del riesgo, no un día fijo en el calendario. El consenso de Bern de 2016 sobre el retorno al deporte la describe como una decisión compleja y multifactorial, que idealmente se toma de forma colaborativa. Los modelos biopsicosociales ayudan a tener en cuenta factores físicos, psicológicos y sociales, pero la evidencia que respalda cada criterio es escasa.",
+      "Un punto debatido es cómo medir la carga. Gabbett propuso que los aumentos excesivos y rápidos de la carga probablemente explican una gran parte de las lesiones de tejidos blandos sin contacto, y que una carga crónica alta y bien graduada puede proteger frente a lesiones. Sin embargo, una revisión conceptual de 2020 concluye que no hay evidencia que respalde usar la relación entre carga aguda y crónica para reducir el riesgo. Conviene, por tanto, combinar varios criterios, como fuerza y rango, en lugar de confiar en un único índice."
+    ],
+    "practice": "En la práctica, lleva un registro de carga, dolor y sensaciones al día siguiente, y sube la carga por pasos pequeños para no provocar picos que el tejido no tolere. Antes de competir, revisa fuerza, rango y tolerancia en tareas cada vez más parecidas al deporte, no solo los días transcurridos. Si los síntomas reaparecen al subir la carga, reduce el paso y consulta; las [[senales-alarma|señales para consultar]] recogen las pautas generales.",
+    "related": ["sobrecarga-progresiva", "lesion-muscular", "dolor-y-entrenamiento"],
+    "sources": [
+      {"title": "2016 Consensus statement on return to sport from the First World Congress in Sports Physical Therapy, Bern", "publisher": "British journal of sports medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27226389/"},
+      {"title": "The training-injury prevention paradox: should athletes be training smarter and harder?", "publisher": "British journal of sports medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26758673/"},
+      {"title": "Acute:Chronic Workload Ratio: Conceptual Issues and Fundamental Pitfalls", "publisher": "International journal of sports physiology and performance · 2020", "url": "https://pubmed.ncbi.nlm.nih.gov/32502973/"}
+    ]
+  },
+  {
+    "id": "senales-alarma",
+    "name": "Señales para consultar",
+    "category": "INJURIES",
+    "short": "Signos generales que indican que conviene consultar a un profesional sanitario sin demora",
+    "aliases": ["señales de alarma", "red flags", "signos de alarma"],
+    "body": [
+      "Las señales de alarma, o red flags, son signos que pueden indicar una causa seria del dolor, como un tumor, una fractura, una infección o un síndrome de cola de caballo. Se usan para decidir cuándo consultar, pero una revisión de las guías de dolor lumbar encontró 46 señales distintas en 16 guías, y rara vez se aportaban datos de precisión diagnóstica. Sirven para orientar la urgencia de la consulta, no para sustituir una exploración.",
+      "Entre las señales más citadas están el dolor nocturno o en reposo, los antecedentes de cáncer, la pérdida de peso no explicada, un traumatismo importante y el uso de corticoides o inmunosupresores. En la infección espinal, la revisión de 2019 describe como cuadro más citado la tríada de dolor de espalda, fiebre y alteraciones neurológicas. El síndrome de cola de caballo, una urgencia, se asocia con alteraciones de la vejiga o del intestino, pérdida de sensibilidad perineal y, en varias propuestas, debilidad motora nueva."
+    ],
+    "practice": "En el [[lumbalgia|dolor lumbar]], consulta sin demora si aparece fiebre junto al dolor de espalda, dolor que despierta por la noche o no cede en reposo, pérdida de peso sin explicación o un traumatismo importante. Busca atención urgente si hay debilidad nueva en las piernas, pérdida de sensibilidad en la zona genital o cambios en el control de la vejiga o el intestino. Si los síntomas no mejoran con el tiempo, también conviene una valoración.",
+    "related": ["lumbalgia", "hernia-discal", "dolor-y-entrenamiento"],
+    "sources": [
+      {"title": "Red flags presented in current low back pain guidelines: a review", "publisher": "European spine journal · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27376890/"},
+      {"title": "Red flags for the early detection of spinal infection in back pain patients", "publisher": "BMC musculoskeletal disorders · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31836000/"},
+      {"title": "Assessment and early investigation of cauda equina syndrome", "publisher": "European spine journal · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40000448/"}
+    ]
+  }
+]

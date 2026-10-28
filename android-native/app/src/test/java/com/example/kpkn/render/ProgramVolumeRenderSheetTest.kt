@@ -147,7 +147,6 @@ class ProgramVolumeRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                    onCalibrate = {},
                     controls = controls,
                 )
             }
@@ -162,7 +161,6 @@ class ProgramVolumeRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                    onCalibrate = {},
                     controls = controls,
                 )
             }
@@ -178,7 +176,6 @@ class ProgramVolumeRenderSheetTest {
                     expandedMuscle = "Pectorales",
                     onToggleMuscle = {},
                     breakdown = ProgramDetailSamples.volumeBreakdownPectorales,
-                    onCalibrate = {},
                     controls = controls,
                 )
             }

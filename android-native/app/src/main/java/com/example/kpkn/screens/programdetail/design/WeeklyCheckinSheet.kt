@@ -16,7 +16,8 @@ import com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest
 import com.example.kpkn.domain.training.cycle.kpknMuscleGroupLabel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -47,14 +48,13 @@ internal fun WeeklyCheckinSheet(
     )
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() }, stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("¿Cómo fue la semana pasada?", style = KpknType.bodyStrong, color = WizardColors.text)
-            Text("Tus respuestas quedan guardadas. Puedes revisar una propuesta para los accesorios de la nueva semana antes de confirmarla.", style = KpknType.body, color = WizardColors.textMuted)
+            ProgramSheetHeader(title = "¿Cómo fue la semana pasada?", subtitle = "Tus respuestas quedan guardadas. Puedes revisar una propuesta para los accesorios de la nueva semana antes de confirmarla.")
             if (previewDetail != null) {
                 Text("Revisar propuesta", style = KpknType.bodyStrong, color = WizardColors.text)
                 Text(previewDetail, style = KpknType.body, color = WizardColors.text)
                 if (!busy) {
-                    KpknCompactPill(text = "Confirmar", onClick = onConfirm, fullWidth = true)
-                    KpknCompactPill(text = "Editar respuestas", onClick = onEdit, filled = false, fullWidth = true)
+                    KpknPrimaryPill(text = "Confirmar", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                    KpknSecondaryPill(text = "Editar respuestas", onClick = onEdit, modifier = Modifier.fillMaxWidth())
                 }
             } else {
                 groups.forEach { group ->
@@ -75,8 +75,8 @@ internal fun WeeklyCheckinSheet(
                     }
                 }
                 if (!busy && groups.all { performance[it] != null && soreness[it] != null })
-                    KpknCompactPill(text = "Revisar propuesta", onClick = { onPreview(answer()) }, fullWidth = true)
-                if (!busy) KpknCompactPill(text = "Omitir esta semana", onClick = { onOmit(answer(skipped = true)) }, filled = false, fullWidth = true)
+                    KpknPrimaryPill(text = "Revisar propuesta", onClick = { onPreview(answer()) }, modifier = Modifier.fillMaxWidth())
+                if (!busy) KpknSecondaryPill(text = "Omitir esta semana", onClick = { onOmit(answer(skipped = true)) }, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("No volver a preguntar", Modifier.weight(1f), style = KpknType.body, color = WizardColors.text)
                     Switch(checked = false, enabled = !busy, onCheckedChange = { if (it) onDisable() })

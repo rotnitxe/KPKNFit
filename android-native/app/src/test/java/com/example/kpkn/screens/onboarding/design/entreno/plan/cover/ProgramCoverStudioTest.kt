@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding.design.entreno.plan.cover
 
 import com.example.kpkn.data.models.Program
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -46,9 +47,19 @@ class ProgramCoverStudioTest {
 
     @Test
     fun aMissingOrInvalidStudioValueGivesTheIdentityOfToday() {
+        // contrato v1 de portadas de líneas (27-oct): sin portada o con gradient://, la identidad lleva líneas (Perfil u Ondas) y
+        // conserva el estilo, la paleta y la semilla de hoy; un valor de estudio inválido sigue dando la identidad de hoy.
         val base = coverIdentityFor(program.id, null)
-        assertEquals(base, coverIdentityForProgram(program))
+        val noCover = coverIdentityForProgram(program)
+        assertEquals(base.style, noCover.style)
+        assertEquals(base.palette, noCover.palette)
+        assertEquals(base.seed, noCover.seed)
+        assertNotNull(noCover.lines)
+        val lagoon = coverIdentityForProgram(program.copy(coverImage = "gradient://lagoon"))
+        assertEquals(base.style, lagoon.style)
+        assertEquals(base.palette, lagoon.palette)
+        assertEquals(base.seed, lagoon.seed)
+        assertNotNull(lagoon.lines)
         assertEquals(base, coverIdentityForProgram(program.copy(coverImage = "kpkn-studio://FOO/BAR")))
-        assertEquals(base, coverIdentityForProgram(program.copy(coverImage = "gradient://lagoon")))
     }
 }

@@ -50,6 +50,8 @@ fun ProgramVolumeBar(
     markColor: Color,
     modifier: Modifier = Modifier,
     animateIn: Boolean = false,
+    /** Series planificadas: en la vista «Hecho» se marcan con un trazo blanco sobre la pista; null = sin trazo. */
+    planTick: Double? = null,
 ) {
     val reduced = wizardReducedMotion()
     val scale = scaleMax.coerceAtLeast(1.0)
@@ -99,6 +101,17 @@ fun ProgramVolumeBar(
                 color = WizardColors.textMuted,
                 topLeft = Offset(adaptiveX - NotchWidth.toPx() / 2f, top - NotchOverhang.toPx()),
                 size = Size(NotchWidth.toPx(), track + NotchOverhang.toPx() * 2f),
+            )
+        }
+
+        // Trazo del plan (vista «Hecho»): blanco, más alto que la pista, para comparar lo hecho con lo planificado.
+        planTick?.let { plan ->
+            val tickX = width * (plan / scale).toFloat().coerceIn(0f, 1f)
+            val tickW = NotchWidth.toPx()
+            drawRect(
+                color = WizardColors.text.copy(alpha = 0.75f),
+                topLeft = Offset((tickX - tickW / 2f).coerceIn(0f, width - tickW), 0f),
+                size = Size(tickW, size.height),
             )
         }
 

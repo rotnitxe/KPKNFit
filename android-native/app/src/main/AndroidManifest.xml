@@ -38,6 +38,8 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- Historias: saber si Instagram está instalado para ofrecer «Compartir en Instagram». -->
+        <package android:name="com.instagram.android" />
     </queries>
 
     <application

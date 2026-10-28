@@ -1,0 +1,196 @@
+[
+  {
+    "id": "estudio-volumen-hipertrofia",
+    "name": "Volumen semanal e hipertrofia (Schoenfeld y col., 2017)",
+    "category": "STUDIES",
+    "short": "Metaanálisis que relaciona más series semanales por músculo con más crecimiento muscular",
+    "aliases": ["Schoenfeld 2017", "dose-response volume hypertrophy"],
+    "body": [
+      "Schoenfeld, Ogborn y Krieger publicaron en 2017, en el Journal of Sports Sciences, una revisión sistemática con metarregresión sobre cuánto [[volumen-entrenamiento|volumen]] semanal de fuerza se asocia con más masa muscular. Reunieron 15 estudios con 34 grupos de tratamiento y relacionaron el número de series semanales con el crecimiento medio de cada grupo, así que describe una tendencia entre estudios y no compara personas concretas.",
+      "El hallazgo principal es una relación dosis-respuesta: cada serie semanal adicional se asoció con un 0,37 % más de ganancia muscular relativa, y, al comparar dentro de cada estudio, los grupos con más volumen superaron a los de menos en una diferencia de 3,9 %. El análisis por categorías (menos de 5, de 5 a 9 y 10 o más series por músculo) no alcanzó significación. El resumen no indica en qué punto la curva deja de subir ni aborda la [[fatiga-sistemica|fatiga]] que genera cada nivel de volumen."
+    ],
+    "practice": "En la práctica, cuenta series de trabajo efectivo por grupo muscular a la semana y deja fuera los [[series-aproximacion|calentamientos]]. Compara tu progreso en fuerza y en medidas corporales a lo largo de varias semanas antes de cambiar el volumen. Si los resultados se estancan y tu recuperación lo permite, sube el volumen en pasos pequeños en lugar de duplicarlo de golpe, para saber qué cambio produjo la mejora.",
+    "related": ["volumen-entrenamiento", "frecuencia", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "Dose-response relationship between weekly resistance training volume and increases in muscle mass", "publisher": "Journal of Sports Sciences · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/27433992/"}
+    ]
+  },
+  {
+    "id": "estudio-frecuencia-hipertrofia",
+    "name": "Frecuencia e hipertrofia (Schoenfeld y col., 2016)",
+    "category": "STUDIES",
+    "short": "Metaanálisis que compara entrenar un músculo una vez o dos veces por semana con volumen igual",
+    "aliases": ["Schoenfeld 2016", "training frequency and hypertrophy"],
+    "body": [
+      "Schoenfeld, Ogborn y Krieger publicaron en 2016, en Sports Medicine, una revisión sistemática con metaanálisis sobre la [[frecuencia|frecuencia de entrenamiento]] de cada grupo muscular. Incluyeron 10 ensayos experimentales de al menos cuatro semanas que comparaban frecuencias distintas, y midieron el crecimiento muscular con imagen, biopsia, perímetro o densitometría.",
+      "El resultado principal fue que la frecuencia alta se asoció con un [[tamano-efecto|tamaño del efecto]] de 0,49 frente a 0,30 en la baja (p = 0,002). Con 1 a 3 días por semana y volumen igual, dos sesiones por grupo superaron a una, y los autores sugieren al menos dos estímulos semanales para los grupos grandes. El resumen no permite saber si tres sesiones superan a dos, y la muestra era pequeña para analizar el caso de grupos igualados por frecuencia muscular."
+    ],
+    "practice": "En la práctica, si tu volumen semanal ya está fijado, repartirlo en dos sesiones por grupo muscular es una forma razonable de comprobar si mejora tu progreso. Observa si las series de la segunda sesión mantienen la técnica y las repeticiones, porque un día extra solo aporta si el trabajo sigue siendo de calidad. Si solo puedes entrenar un día a la semana, vigila que las últimas series no pierdan calidad por cansancio.",
+    "related": ["frecuencia", "volumen-entrenamiento", "mev-mrv"],
+    "sources": [
+      {"title": "Effects of Resistance Training Frequency on Measures of Muscle Hypertrophy", "publisher": "Sports Medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27102172/"}
+    ]
+  },
+  {
+    "id": "estudio-cargas",
+    "name": "Cargas altas frente a bajas (Schoenfeld y col., 2017)",
+    "category": "STUDIES",
+    "short": "Metaanálisis que compara cargas altas y bajas trabajadas hasta el fallo en fuerza e hipertrofia",
+    "aliases": ["low-load vs high-load training", "heavy vs light loads"],
+    "body": [
+      "Schoenfeld, Grgic, Ogborn y Krieger publicaron en 2017, en el Journal of Strength and Conditioning Research, una revisión sistemática con metaanálisis sobre si entrenar con [[intensidad|cargas]] altas o bajas cambia el resultado. Incluyeron 21 estudios de al menos seis semanas, con cargas bajas de un 60 % de 1RM o menos y altas de más del 60 %.",
+      "En fuerza máxima, las cargas altas produjeron más ganancia de 1RM que las bajas, y la fuerza isométrica no cambió; en hipertrofia, los dos enfoques fueron comparables. La conclusión tiene una condición: todas las series de los estudios incluidos llegaban al fallo muscular momentáneo, así que no demuestra que las cargas ligeras sin llegar al fallo produzcan el mismo crecimiento. El resumen no informa de tamaños del efecto ni de participantes."
+    ],
+    "practice": "En la práctica, si tu objetivo es hipertrofia, puedes usar cargas moderadas llevando las series hasta el fallo muscular, que es la condición en la que se midió este resultado. Si buscas fuerza máxima, las cargas altas siguen siendo la opción que el análisis respalda con más claridad. Registra la carga, las repeticiones y lo cerca que quedó cada serie del [[fallo-muscular|fallo]] para comprobar qué te funciona en tu caso.",
+    "related": ["intensidad", "fallo-muscular", "rm-tm"],
+    "sources": [
+      {"title": "Strength and Hypertrophy Adaptations Between Low- vs. High-Load Resistance Training", "publisher": "Journal of Strength and Conditioning Research · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28834797/"}
+    ]
+  },
+  {
+    "id": "estudio-proteina",
+    "name": "Proteína y ganancias con pesas (Morton y col., 2018)",
+    "category": "STUDIES",
+    "short": "Metaanálisis de ensayos que suman proteína a la dieta durante el entrenamiento de fuerza",
+    "aliases": ["Morton 2018", "protein supplementation meta-analysis"],
+    "body": [
+      "Morton y colaboradores publicaron en 2018, en el British Journal of Sports Medicine, una revisión sistemática con metaanálisis y metarregresión sobre la [[proteina-polvo|proteína en polvo]] en el entrenamiento de fuerza. Reunieron 49 ensayos aleatorizados con 1863 participantes sanos, todos con al menos seis semanas de entrenamiento de resistencia. Al comparar grupos asignados al azar con y sin suplemento, el diseño permite atribuir las diferencias al suplemento.",
+      "Los suplementos aumentaron la fuerza de 1RM (2,49 kg de media) y la masa libre de grasa (0,30 kg), con mejoras modestas. El beneficio fue menor con la edad. Para tu dieta, el dato más práctico es el umbral: según un análisis de punto de quiebre, la proteína total por encima de 1,62 g por kilo al día no añadió más masa libre de grasa. El resumen no menciona limitaciones."
+    ],
+    "practice": "En la práctica, calcula primero tu [[proteina-diaria|proteína total]] del día con la dieta, antes de pensar en un suplemento. Si ya te acercas a 1,6 g por kilo, un polvo de proteína añadirá poco en masa magra; si quedas lejos, puede ser una forma cómoda de llegar a esa cifra. Si tienes una enfermedad previa o tomas medicación, consulta con un profesional sanitario antes de ajustar tu ingesta.",
+    "related": ["proteina-diaria", "sintesis-proteica-muscular", "proteina-polvo"],
+    "sources": [
+      {"title": "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults", "publisher": "British Journal of Sports Medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/28698222/"}
+    ]
+  },
+  {
+    "id": "estudio-proximidad-fallo",
+    "name": "Cercanía al fallo e hipertrofia (Refalo y col., 2023)",
+    "category": "STUDIES",
+    "short": "Metaanálisis sobre si acercarse al fallo muscular en cada serie aumenta la hipertrofia",
+    "aliases": ["Refalo 2023", "proximity to failure hypertrophy"],
+    "body": [
+      "Refalo y colaboradores publicaron en 2023, en Sports Medicine, una revisión sistemática con metaanálisis sobre si entrenar más cerca del [[fallo-muscular|fallo muscular]] produce más hipertrofia. Reunieron 15 estudios con adultos sanos y compararon series llevadas hasta el fallo, o hasta un fallo definido de otra forma, con series que se detenían antes. La definición del fallo variaba entre estudios.",
+      "El resultado principal fue pequeño: llevar la serie hasta el fallo dio una ventaja de tamaño del efecto de 0,19, con un intervalo de confianza que empieza en cero (0,00 a 0,37), que los autores describen como «trivial». Cuando el análisis se limitó al fallo muscular momentáneo, la diferencia desapareció (0,12), y los cortes de pérdida de velocidad tampoco marcaron diferencias. Los autores no encuentran evidencia de que el fallo momentáneo sea superior y sugieren una relación posiblemente no lineal."
+    ],
+    "practice": "En la práctica, esta revisión sugiere que no hace falta llevar cada serie al fallo para ganar hipertrofia. Puedes dejar margen en muchas series y reservar el esfuerzo máximo para algunas, sobre todo en ejercicios técnicamente exigentes. Registra el [[rir|RIR]] de cada serie para comprobar si tu esfuerzo real coincide con el que pretendías, porque esa estimación guía el margen.",
+    "related": ["fallo-muscular", "rir", "rpe"],
+    "sources": [
+      {"title": "Influence of Resistance Training Proximity-to-Failure on Skeletal Muscle Hypertrophy", "publisher": "Sports Medicine · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/36334240/"}
+    ]
+  },
+  {
+    "id": "estudio-rom",
+    "name": "Rango completo frente a parcial (Pallarés y col., 2021)",
+    "category": "STUDIES",
+    "short": "Metaanálisis que compara entrenar con rango completo o parcial de movimiento",
+    "aliases": ["Pallarés 2021", "full vs partial range of motion"],
+    "body": [
+      "Pallarés y colaboradores publicaron en 2021, en la Scandinavian Journal of Medicine and Science in Sports, una revisión sistemática con metaanálisis sobre el [[rom|rango de movimiento]]: si entrenar con el recorrido completo de un ejercicio aporta más que hacerlo con uno parcial. Incluyeron 16 estudios y registraron el protocolo de antemano en PROSPERO, lo que fija los criterios antes de ver los resultados.",
+      "Los resultados favorecieron el recorrido completo en fuerza (tamaño del efecto de 0,56; p = 0,004) y en hipertrofia de miembro inferior (0,88; p = 0,027). El rendimiento funcional tendió hacia el completo sin significación, y la arquitectura muscular no mostró diferencias. El resumen no informa intervalos de confianza ni cuántos estudios aportan a cada resultado, así que la diferencia en hipertrofia debe leerse con cautela. Una revisión posterior (Kassiano y col., 2023), sin metaanálisis, sugiere que algunos músculos crecen mejor en [[longitud-muscular|longitudes musculares largas]]."
+    ],
+    "practice": "En la práctica, usa un recorrido completo que puedas controlar como base de tus series y anota la profundidad o la posición de la articulación en cada ejercicio para comparar semanas. Si añades recorridos parciales, colócalos en la parte del movimiento donde el músculo está más largo, como complemento y no como sustituto. Este análisis no dice que el recorrido completo sea obligatorio, pero sí que superó al parcial en fuerza y en hipertrofia de miembro inferior.",
+    "related": ["rom", "longitud-muscular", "parciales-alargadas"],
+    "sources": [
+      {"title": "Effects of range of motion on resistance training adaptations", "publisher": "Scandinavian Journal of Medicine and Science in Sports · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34170576/"},
+      {"title": "Which ROMs Lead to Rome? A Systematic Review of the Effects of Range of Motion on Muscle Hypertrophy", "publisher": "Journal of Strength and Conditioning Research · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/36662126/"}
+    ]
+  },
+  {
+    "id": "estudio-concurrente",
+    "name": "Cardio y pesas: la interferencia (Wilson y col., 2012)",
+    "category": "STUDIES",
+    "short": "Metaanálisis sobre cómo el cardio interfiere con la fuerza y la hipertrofia",
+    "aliases": ["Wilson 2012", "interference effect"],
+    "body": [
+      "Wilson y colaboradores publicaron en 2012, en el Journal of Strength and Conditioning Research, un metaanálisis sobre la [[entrenamiento-concurrente|interferencia]] que produce combinar fuerza y resistencia aeróbica. Incluyeron 21 estudios y 422 tamaños del efecto, y compararon entrenar solo fuerza, solo resistencia y ambas cosas, midiendo hipertrofia, fuerza y potencia.",
+      "En hipertrofia, el tamaño del efecto fue de 1,23 con solo fuerza, de 0,27 con solo resistencia y de 0,85 combinado: el cardio añadido redujo la ganancia frente a solo pesas, aunque sin anularla. La carrera junto al entrenamiento de fuerza redujo la hipertrofia y la fuerza, a diferencia de la bicicleta. La frecuencia y la duración del cardio se relacionaron de forma inversa con los resultados, aunque se trata de correlaciones entre estudios, que no demuestran por sí solas la causa."
+    ],
+    "practice": "En la práctica, si combinas pesas y cardio con el objetivo de hipertrofia, ajusta la frecuencia y la duración de las sesiones aeróbicas a lo que tu salud o tu rendimiento necesiten, porque ambas se relacionaron con menos ganancias. Si incluyes carrera, este análisis sugiere que la bicicleta interfiere menos, aunque es un análisis entre estudios. Revisa cada pocas semanas tus marcas de fuerza y tus medidas corporales para ver si la interferencia afecta a tu caso.",
+    "related": ["entrenamiento-concurrente", "vo2max", "zona-2"],
+    "sources": [
+      {"title": "Concurrent training: a meta-analysis examining interference of aerobic and resistance exercises", "publisher": "Journal of Strength and Conditioning Research · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/22002517/"}
+    ]
+  },
+  {
+    "id": "estudio-creatina",
+    "name": "Postura de la ISSN sobre la creatina (Kreider y col., 2017)",
+    "category": "STUDIES",
+    "short": "Postura de la Sociedad Internacional de Nutrición Deportiva sobre la seguridad y eficacia de la creatina",
+    "aliases": ["Kreider 2017", "ISSN creatine position stand"],
+    "body": [
+      "Kreider y colaboradores publicaron en 2017, en el Journal of the International Society of Sports Nutrition, una postura de la Sociedad Internacional de Nutrición Deportiva sobre la [[creatina|creatina]] en el ejercicio, el deporte y la medicina. Una postura es un documento de consenso que interpreta la literatura, no un ensayo nuevo. La creatina eleva las reservas de creatina del músculo, lo que, según los autores, podría explicar un mejor rendimiento en ejercicio intenso.",
+      "Los autores consideran que la suplementación es segura y bien tolerada en personas sanas, a corto y largo plazo. El resumen menciona posibles beneficios para la recuperación, la prevención de lesiones y varias condiciones clínicas, pero no detalla la fuerza de la evidencia en cada una ni incluye una sección de limitaciones."
+    ],
+    "practice": "En la práctica, la creatina puede ser un complemento útil dentro de un entrenamiento de fuerza regular, pero no sustituye a la dieta ni al programa. Elige productos con controles de calidad de terceros (véase [[seguridad-suplementos|sellos de calidad]]) y consulta a un profesional sanitario antes de empezar, sobre todo si tienes una condición de salud o tomas medicación. Anota las semanas en que la tomas para comparar tu progreso en fuerza con las semanas sin ella.",
+    "related": ["creatina", "seguridad-suplementos", "cafeina"],
+    "sources": [
+      {"title": "International Society of Sports Nutrition position stand: safety and efficacy of creatine supplementation in exercise, sport, and medicine", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28615996/"}
+    ]
+  },
+  {
+    "id": "estudio-cafeina",
+    "name": "Postura de la ISSN sobre la cafeína (Guest y col., 2021)",
+    "category": "STUDIES",
+    "short": "Postura de la Sociedad Internacional de Nutrición Deportiva sobre la cafeína y el rendimiento",
+    "aliases": ["Guest 2021", "ISSN caffeine position stand"],
+    "body": [
+      "Guest y colaboradores publicaron en 2021, en el Journal of the International Society of Sports Nutrition, una postura de la Sociedad Internacional de Nutrición Deportiva sobre la [[cafeina|cafeína]] y el rendimiento físico. Enuncia once afirmaciones basadas en una revisión crítica de la literatura. Según la postura, la cafeína mejora el rendimiento en muchos estudios, aunque no en todos, con beneficios de pequeños a moderados y más fiables en la resistencia aeróbica.",
+      "La postura considera que la mejora es fiable con 3 a 6 mg por kilo de peso corporal, y que dosis muy altas, como 9 mg por kilo, se asocian a más efectos secundarios sin parecer necesarias. La práctica más habitual es tomarla unos 60 minutos antes del ejercicio. Las respuestas individuales varían según factores genéticos y el consumo habitual, y los efectos secundarios incluyen peor sueño y más ansiedad. Varios autores y la propia sociedad declaran vínculos con empresas de suplementos y de café."
+    ],
+    "practice": "En la práctica, calcula la dosis según tu peso dentro del rango de 3 a 6 mg por kilo y pruébala primero en entrenamientos antes de usarla en un día importante. Si tienes problemas de sueño o de ansiedad, o tomas medicación, consulta antes con un profesional sanitario.",
+    "related": ["cafeina", "seguridad-suplementos", "sueno"],
+    "sources": [
+      {"title": "International society of sports nutrition position stand: caffeine and exercise performance", "publisher": "Journal of the International Society of Sports Nutrition · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/33388079/"}
+    ]
+  },
+  {
+    "id": "estudio-reparto-proteina",
+    "name": "Reparto de la proteína en el día (Schoenfeld y Aragon, 2018)",
+    "category": "STUDIES",
+    "short": "Revisión sobre cuánta proteína puede aprovechar el músculo en una comida y cómo repartirla",
+    "aliases": ["Schoenfeld y Aragon 2018", "protein per meal"],
+    "body": [
+      "Schoenfeld y Aragon publicaron en 2018, en el Journal of the International Society of Sports Nutrition, una revisión de la literatura sin metaanálisis sobre cuánta [[proteina-diaria|proteína]] puede aprovechar el músculo en una comida y cómo repartirla a lo largo del día. Es un trabajo de interpretación que lee estudios a corto y largo plazo en función de lo que ocurre con los aminoácidos de cada comida.",
+      "Una propuesta anterior sostiene que la síntesis proteica se maximiza con unos 20 a 25 gramos por comida, cifra que los autores matizan. La mayoría de las pruebas indican que dosis superiores a 20 gramos aumentan la oxidación de aminoácidos, aunque no todos se queman. Proponen unos 0,4 g por kilo en cada comida, en al menos cuatro comidas, para llegar a 1,6 g por kilo al día. Sus límites: esa cifra se refiere a proteína de digestión rápida sin otros macronutrientes, y el tema sigue siendo controvertido. El autor principal declara una relación de asesoría con Dymatize Nutrition."
+    ],
+    "practice": "En la práctica, puedes repartir tu proteína diaria en al menos cuatro comidas, con unos 0,4 g por kilo en cada una, como referencia para planificar. No es un umbral que haya que cumplir con exactitud, porque el propio tema sigue en debate. Si una condición de salud condiciona tu alimentación, consulta a un profesional sanitario.",
+    "related": ["distribucion-proteina", "proteina-diaria", "sintesis-proteica-muscular"],
+    "sources": [
+      {"title": "How much protein can the body use in a single meal for muscle-building? Implications for daily protein distribution", "publisher": "Journal of the International Society of Sports Nutrition · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29497353/"}
+    ]
+  },
+  {
+    "id": "estudio-periodizacion",
+    "name": "Periodización, fuerza e hipertrofia (Moesgaard y col., 2022)",
+    "category": "STUDIES",
+    "short": "Metaanálisis que compara periodizar o no la carga con volumen igualado en fuerza e hipertrofia",
+    "aliases": ["Moesgaard 2022", "periodization meta-analysis"],
+    "body": [
+      "Moesgaard y colaboradores publicaron en 2022, en Sports Medicine, una revisión sistemática con metaanálisis sobre la [[periodizacion-lineal|periodización]] del entrenamiento de fuerza: si variar de forma planificada el volumen y la intensidad mejora la fuerza máxima y la hipertrofia. Incluyeron 35 estudios con el volumen igualado entre grupos y analizaron por separado a personas entrenadas y no entrenadas.",
+      "La periodización produjo más ganancia de 1RM que no periodizar (tamaño del efecto de 0,31), pero no hubo diferencia en hipertrofia (0,13). Entre la periodización lineal y la ondulante, la ondulante ganó en 1RM, y esa ventaja apareció solo en personas entrenadas. En hipertrofia no hubo diferencias en ninguna comparación. Los autores proponen que el efecto en fuerza podría estar ligado a adaptaciones neurofisiológicas, reconocen que algunas comparaciones tenían muy pocos estudios y que la conclusión sobre hipertrofia se refiere a diseños antes y después con volumen igualado."
+    ],
+    "practice": "En la práctica, si tu objetivo principal es la fuerza máxima, este análisis sugiere que variar la carga y el volumen de una sesión a otra, como en la [[ondulacion-diaria|ondulación diaria]], puede aportar algo más, sobre todo si ya entrenas de forma regular. Para la hipertrofia, no encontró que un formato superara a otro cuando el volumen está igualado, así que elige el que mejor te permita registrar y progresar.",
+    "related": ["periodizacion-lineal", "periodizacion-bloques", "ondulacion-diaria"],
+    "sources": [
+      {"title": "Effects of Periodization on Strength and Muscle Hypertrophy in Volume-Equated Resistance Training Programs", "publisher": "Sports Medicine · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/35044672/"}
+    ]
+  },
+  {
+    "id": "estudio-descanso",
+    "name": "Descansos cortos frente a largos (Singer y col., 2024)",
+    "category": "STUDIES",
+    "short": "Metaanálisis bayesiano sobre descansos cortos y largos entre series y su efecto en hipertrofia",
+    "aliases": ["Singer 2024", "inter-set rest meta-analysis"],
+    "body": [
+      "Singer y colaboradores publicaron en 2024, en Frontiers in Sports and Active Living, una revisión sistemática con metaanálisis bayesiano sobre el [[descanso-entre-series|descanso entre series]] y la hipertrofia. Reunieron 9 estudios aleatorizados con 19 mediciones en adultos sanos. Con tan pocos estudios, y con modelos bayesianos que ofrecen intervalos de credibilidad en lugar de confianza, sus conclusiones son provisionales.",
+      "El resultado principal es un beneficio pequeño a favor de descansos de más de 60 segundos. En la comparación directa, el valor central se inclinó hacia los largos en brazo (0,13) y en muslo (0,17), pero los intervalos incluían el cero. Los autores proponen que el efecto podría deberse a una menor carga de volumen con descansos cortos, y no encontraron diferencias apreciables con descansos de más de 90 segundos. La heterogeneidad entre estudios fue sustancial. Una revisión de 2017 (Grgic y col.), con seis estudios y sin metaanálisis, ya sugería que ambos enfoques pueden ayudar."
+    ],
+    "practice": "En la práctica, si buscas hipertrofia, los descansos de más de 60 segundos parecen una opción razonable, sin que este análisis encontrara una ventaja adicional al alargarlos más de 90 segundos. Los descansos cortos también produjeron ganancias, con un solapamiento amplio entre grupos, así que la elección puede depender de tu tiempo disponible y de la calidad de cada serie. Anota el tiempo entre series para poder comparar.",
+    "related": ["descanso-entre-series", "volumen-entrenamiento", "superseries"],
+    "sources": [
+      {"title": "Give it a rest: a systematic review with Bayesian meta-analysis on the effect of inter-set rest interval duration on muscle hypertrophy", "publisher": "Frontiers in Sports and Active Living · 2024", "url": "https://pubmed.ncbi.nlm.nih.gov/39205815/"},
+      {"title": "The effects of short versus long inter-set rest intervals in resistance training on measures of muscle hypertrophy", "publisher": "European Journal of Sport Science · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28641044/"}
+    ]
+  }
+]

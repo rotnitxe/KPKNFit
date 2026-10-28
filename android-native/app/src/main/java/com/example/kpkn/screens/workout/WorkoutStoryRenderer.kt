@@ -16,7 +16,10 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
+import com.example.kpkn.screens.stories.renderWorkoutStoryBitmap
+import com.example.kpkn.screens.stories.workoutStoryFrom
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import com.example.kpkn.data.programs.ProgramCoverRepository
@@ -54,8 +57,23 @@ internal data class WorkoutStoryData(
     val defaultExerciseId: String? get() = (lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 } ?: lifts.firstOrNull())?.exerciseId
 }
 
-/** Composición nativa 360×640 a 3× para vista previa, MediaStore y el selector. Sin HTML ni datos inventados. */
+/**
+ * Historia del entreno de 1080 × 1920 (P7d, lienzo v6): Sesión, Ejercicio y Fotos con las piezas de las historias del programa y del
+ * mes (`screens/stories/WorkoutStory.kt`). Las opciones de la hoja (mejoras, duración, esfuerzo) deciden qué cifras entran. En Fotos,
+ * la primera foto de la sesión a pantalla completa; si no se puede leer, la portada de líneas.
+ */
 internal suspend fun renderWorkoutStory(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions): Bitmap = withContext(Dispatchers.Default) {
+    val story = workoutStoryFrom(data, options)
+    val photo = if (options.template == WorkoutStoryTemplate.PHOTOS) story.photoPath?.let { loadStoryImage(context, it, 1080) } else null
+    try {
+        renderWorkoutStoryBitmap(context, story, options.template, photo?.asImageBitmap())
+    } finally {
+        photo?.recycle()
+    }
+}
+
+/** Composición nativa 360×640 a 3× (la de antes del lienzo v6). Se conserva como alternativa; la hoja usa [renderWorkoutStory]. */
+internal suspend fun renderWorkoutStoryClassic(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions): Bitmap = withContext(Dispatchers.Default) {
     val background = storyBackground(context, data, options.template)
     val bitmap = Bitmap.createBitmap(1080, 1920, Bitmap.Config.ARGB_8888)
     try {
