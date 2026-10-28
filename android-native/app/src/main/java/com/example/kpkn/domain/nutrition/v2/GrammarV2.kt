@@ -26,6 +26,24 @@ object GrammarV2 {
 
     private val POSSESSIVES = setOf("mi", "su", "tu")
 
+    private const val TINTO_WINE_ID = "vino_tinto"
+    private const val TINTO_COFFEE_ID = "cafe_negro"
+
+    /** Comidas y platos típicamente colombianos (sin tildes): delatan que «un tinto» es el café. */
+    private val COLOMBIAN_CUES = setOf(
+        "arepa", "arepas", "pandebono", "pandebonos", "bunuelo", "bunuelos", "almojabana", "almojabanas", "pericos",
+        "perico", "calentado", "changua", "aguapanela", "santafereno", "ajiaco", "mondongo",
+    )
+
+    /** Mayor número desnudo que se lee como conteo tras el alimento («huevos 2»); más arriba suelen ser gramos. */
+    private const val MAX_BARE_COUNT = 30.0
+
+    /** Palabras sueltas que preceden a una cantidad dicha aparte: «galletas, como 4», «tacos, serían 3». */
+    private val LOOSE_LEAD_WORDS = setOf("como", "tipo", "casi", "serian", "fueron", "fue", "son", "about", "like", "around")
+
+    /** Interjecciones que acompañan a un «no» de corrección: «ah no», «eh, no». */
+    private val INTERJECTIONS = setOf("ah", "eh", "ay", "uy", "em", "mm", "ahh")
+
     /** Frutas que se usan de acompañamiento o aliño (no se comen aparte): primer tramo del id del concepto. */
     private val TOPPING_FRUITS = setOf("palta", "aguacate", "limon", "lima", "aceituna", "aceitunas", "coco")
 
@@ -85,10 +103,31 @@ object GrammarV2 {
      */
     fun parse(tokens: List<TokenV2>, spans: List<TaggedSpan>, catalog: ConceptCatalogV2? = null): List<MentionDraftV2> {
         if (tokens.isEmpty() || spans.isEmpty()) return emptyList()
-        val items = spans
+        val items = colombianTinto(tokens, spans, catalog)
             .filter { it.first in tokens.indices && it.last in tokens.indices && it.first <= it.last }
             .mapNotNull { classify(it, tokens) }
         return Parser(tokens, catalog).run(items)
+    }
+
+    /**
+     * «un tinto» suelto es un café negro en Colombia y vino tinto en el resto. El texto no trae el país, pero lo delatan
+     * las comidas colombianas que lo acompañan («arepa con queso y un tinto», «un tinto con pan de bono»): con alguna de
+     * ellas, el tramo «tinto» (una sola palabra; «vino tinto» y «tinto de verano» son tramos más largos) pasa al café negro.
+     */
+    private fun colombianTinto(tokens: List<TokenV2>, spans: List<TaggedSpan>, catalog: ConceptCatalogV2?): List<TaggedSpan> {
+        val coffee = catalog?.concept(TINTO_COFFEE_ID) ?: return spans
+        val isTinto = { s: TaggedSpan ->
+            s.first == s.last && tokens.getOrNull(s.first)?.norm == "tinto" &&
+                s.tags.any { it is LexTag.Food && it.conceptId == TINTO_WINE_ID }
+        }
+        if (spans.none(isTinto)) return spans
+        val norms = tokens.map { it.norm }
+        val colombian = norms.any { it in COLOMBIAN_CUES } ||
+            (0 until norms.size - 2).any { norms[it] == "pan" && norms[it + 1] == "de" && norms[it + 2] == "bono" }
+        if (!colombian) return spans
+        return spans.map { s ->
+            if (isTinto(s)) TaggedSpan(s.first, s.last, listOf(LexTag.Food(coffee.id, AliasKind.ES)), s.fuzzy) else s
+        }
     }
 
     // ─── Elementos ──────────────────────────────────────────────────────
@@ -118,7 +157,7 @@ object GrammarV2 {
 
     private class Parsed(val item: Item, val next: Int)
 
-    private class Builder(val index: Int, val food: Item) {
+    private class Builder(val index: Int, var food: Item) {
         var quantity: QuantityV2? = null
         var state: FoodStateV2? = null
         var form: FoodFormV2? = null
@@ -217,8 +256,23 @@ object GrammarV2 {
         var lastBase: Int? = null
         var pendingCorrection = false
 
+        /** Número de la cláusula en curso y de la que fijó [lastBase]: una cantidad suelta solo se pega a la cláusula anterior. */
+        var clauseNo = 0
+        var lastBaseClause = -1
+
+        /** Cuántas menciones base (no colgadas) tenía la cláusula de [lastBase]; una cantidad suelta solo vale si era una. */
+        var lastBaseCount = 0
+
+        /** Separador que abrió cada cláusula («,», «;», «.», «and», «cut»; vacío en la primera), en el orden de [splitClauses]. */
+        val clauseSeps = ArrayList<String>()
+        var currentSep = ""
+
         fun run(items: List<Item>): List<MentionDraftV2> {
-            for (clause in splitClauses(items)) processClause(clause)
+            for ((i, clause) in splitClauses(items).withIndex()) {
+                clauseNo++
+                currentSep = clauseSeps.getOrElse(i) { "" }
+                processClause(clause)
+            }
             if (out.none { it.dropped }) return out.map { it.toDraft(tokens) }
             val newIndex = HashMap<Int, Int>()
             for (b in out) if (!b.dropped) newIndex[b.index] = newIndex.size
@@ -232,24 +286,31 @@ object GrammarV2 {
 
         private fun splitClauses(items: List<Item>): List<List<Item>> {
             val clauses = ArrayList<List<Item>>()
+            clauseSeps.clear()
             var current = ArrayList<Item>()
             var chain = false
-            fun flush() {
-                if (current.isNotEmpty()) clauses += current
+            var openedBy = ""
+            fun flush(next: String) {
+                if (current.isNotEmpty()) {
+                    clauses += current
+                    clauseSeps += openedBy
+                }
                 current = ArrayList()
                 chain = false
+                openedBy = next
             }
             for ((k, item) in items.withIndex()) {
                 when (item.kind) {
-                    Kind.COMMA, Kind.CUT -> flush()
-                    Kind.AND -> if (opensMention(items, k, chain)) flush() else current.add(item)
+                    Kind.COMMA -> flush((item.tag as? LexTag.Punct)?.symbol ?: ",")
+                    Kind.CUT -> flush("cut")
+                    Kind.AND -> if (opensMention(items, k, chain)) flush("and") else current.add(item)
                     else -> {
                         if (item.kind == Kind.WITH) chain = true
                         current.add(item)
                     }
                 }
             }
-            flush()
+            flush("")
             return clauses
         }
 
@@ -416,7 +477,7 @@ object GrammarV2 {
             val elems = parseQuantities(raw)
             val foodAt = elems.indices.filter { elems[it].kind == Kind.FOOD }
             if (foodAt.isEmpty()) {
-                applyCorrection(elems)
+                if (!applyCorrection(elems)) attachLooseQuantity(elems)
                 return
             }
             val corrected = pendingCorrection || elems.any { it.kind == Kind.CORR }
@@ -503,6 +564,7 @@ object GrammarV2 {
             // 4. Relaciones: «X con Y», «y Z» dentro de una cadena y distribución.
             var previousAny = -1
             var previous: Builder? = null
+            var basesHere = 0
             for (idx in foodAt) {
                 val b = builders[idx]
                 if (b == null || b.excluded) {
@@ -526,7 +588,12 @@ object GrammarV2 {
                     withAt >= 0 && before != null -> b.attachedTo = before.attachedTo ?: before.index
                     withAt < 0 && hasAnd && before?.attachedTo != null && !standsAlone(b) -> b.attachedTo = before.attachedTo
                 }
-                if (b.attachedTo == null) lastBase = b.index
+                if (b.attachedTo == null) {
+                    lastBase = b.index
+                    lastBaseClause = clauseNo
+                    basesHere++
+                    lastBaseCount = basesHere
+                }
                 previousAny = idx
                 previous = b
             }
@@ -554,10 +621,24 @@ object GrammarV2 {
          */
         private fun replaceCorrected(clause: List<Builder>) {
             val prev = lastBase?.let { out[it] } ?: return
-            if (prev.dropped || clause.none { b -> prev.food.ids.any { it in b.food.ids } }) return
+            if (prev.dropped) return
+            if (clause.none { b -> prev.food.ids.any { it in b.food.ids } }) {
+                // «2 galletas soda, 3 galletas mejor»: la corrección dice el alimento más corto y es el mismo de antes.
+                val generic = clause.firstOrNull { b -> !b.excluded && isShorterRepeat(b.food, prev.food) } ?: return
+                val f = generic.food
+                generic.food = Item(f.kind, f.first, f.last, f.tag, prev.food.ids, f.fuzzy, f.q, f.word)
+            }
             prev.dropped = true
             for (b in out) if (b.attachedTo == prev.index) b.dropped = true
             lastBase = null
+        }
+
+        /** Las palabras de [short] (sin plural) son un subconjunto propio de las de [long]: «galletas» frente a «galletas soda». */
+        private fun isShorterRepeat(short: Item, long: Item): Boolean {
+            fun words(item: Item) = (item.first..item.last).map { tokens[it].norm.removeSuffix("es").removeSuffix("s") }.toSet()
+            val a = words(short)
+            val b = words(long)
+            return a.size < b.size && b.containsAll(a)
         }
 
         private fun isSuffixShaped(q: QuantityV2): Boolean =
@@ -719,7 +800,8 @@ object GrammarV2 {
                     else -> null
                 }
                 is QuantityV2.Household -> if (current == null) q else null
-                is QuantityV2.Count -> if (current == null && !qd.bare) q else null
+                // «huevos 2», «pan 1»: el número desnudo que sigue pegado al alimento contable es su cantidad.
+                is QuantityV2.Count -> if (current == null && (!qd.bare || bareCountAfterFood(qd, q, b, hasPrep))) q else null
                 else -> null
             }
             if (merged != null) {
@@ -728,6 +810,14 @@ object GrammarV2 {
                 b.used += e.first..e.last
             }
         }
+
+        /** Número desnudo (no un artículo) de 1 a [MAX_BARE_COUNT], sin preposición de por medio, tras un alimento contable. */
+        private fun bareCountAfterFood(qd: Qd, q: QuantityV2.Count, b: Builder, hasPrep: Boolean): Boolean =
+            !qd.weak && !hasPrep && q.n >= 1.0 && q.n <= MAX_BARE_COUNT && countable(b.food.ids)
+
+        /** Sin catálogo no se sabe y se acepta; con catálogo, algún concepto del tramo debe contarse por unidades. */
+        private fun countable(ids: List<String>): Boolean =
+            catalog == null || ids.any { catalog.concept(it)?.countable == true }
 
         /** Marca de distribución justo antes de «con»: artículo débil suelto («una con…») u «otra/otro/the other». */
         private fun isMarker(elems: List<Item>, gapStart: Int, withAt: Int, claimed: Set<Item>): Boolean {
@@ -750,9 +840,13 @@ object GrammarV2 {
          * Cláusula sin alimentos: si lleva una marca de corrección (o la cláusula anterior era solo la marca), la
          * cantidad y los modificadores que dice sustituyen los de la última mención base. «no N» suelto se ignora.
          */
-        private fun applyCorrection(elems: List<Item>) {
+        private fun applyCorrection(elems: List<Item>): Boolean {
             val corr = elems.indexOfFirst { it.kind == Kind.CORR }
-            if (corr < 0 && !pendingCorrection) return
+            if (corr < 0 && !pendingCorrection) {
+                // «eran 150, no, 200»: un «no» solo, entre comas, anuncia que lo que sigue corrige lo anterior.
+                if (lastBase != null && isLoneNo(elems)) pendingCorrection = true
+                return false
+            }
             val from = if (corr >= 0) corr + 1 else 0
             val target = (lastBase ?: out.lastIndex.takeIf { it >= 0 })?.let { out[it] }
             var applied = false
@@ -768,11 +862,76 @@ object GrammarV2 {
                         is LexTag.State -> { target.state = tag.state; applied = true }
                         is LexTag.Form -> { target.form = tag.form; applied = true }
                         is LexTag.Medium -> { target.medium = tag.medium; applied = true }
+                        // «un trozo grande, no, uno mediano»: el tamaño nuevo cambia el de la cantidad.
+                        is LexTag.Size -> {
+                            when (val cur = target.quantity) {
+                                is QuantityV2.Count -> target.quantity = cur.copy(size = tag.size)
+                                is QuantityV2.Household -> target.quantity = cur.copy(size = tag.size)
+                                else -> target.size = tag.size
+                            }
+                            applied = true
+                        }
                         else -> {}
                     }
                 }
             }
             pendingCorrection = corr >= 0 && !applied
+            return true
+        }
+
+        /** Cláusula de un «no» solo (con a lo sumo una interjección): «eran 150, no, 200». */
+        private fun isLoneNo(elems: List<Item>): Boolean =
+            elems.isNotEmpty() && elems.any { it.kind == Kind.NEG && it.word == "no" } &&
+                elems.all { (it.kind == Kind.NEG && it.word == "no") || (it.kind == Kind.UNKNOWN && it.word in INTERJECTIONS) }
+
+        /**
+         * Cláusula sin alimento ni corrección que solo trae una cantidad, justo después de la cláusula de una mención sin
+         * cantidad: «pizza de pepperoni, 3 pedazos», «tacos al pastor con cebolla, cuatro», «galletas, como 4». También
+         * «un tarro de leche condensada, la mitad del tarro»: la fracción de la misma medida reduce la cantidad dicha.
+         */
+        private fun attachLooseQuantity(elems: List<Item>) {
+            val base = lastBase ?: return
+            if (lastBaseClause != clauseNo - 1 || currentSep != "," || lastBaseCount != 1) return
+            val target = out[base]
+            if (target.dropped || target.excluded) return
+            val rest = elems.filter { !(it.kind == Kind.UNKNOWN && it.word in LOOSE_LEAD_WORDS) }
+            val q = rest.singleOrNull { it.kind == Kind.Q } ?: return
+            if (rest.any { it.kind != Kind.Q && it.kind != Kind.SIZE }) return
+            val qd = q.q!!
+            val current = target.quantity
+            val merged: QuantityV2? = when {
+                current != null -> if (isHalfPhrase(q)) fractionOf(current, qd.quantity) else null
+                qd.weak -> null
+                else -> when (val x = qd.quantity) {
+                    is QuantityV2.Count -> {
+                        val plain = x.n >= 1.0 && x.n <= MAX_BARE_COUNT
+                        val half = x.n > 0.0 && x.n < 1.0 && isHalfPhrase(q)
+                        if (!qd.bare || ((plain || half) && countable(target.food.ids))) x else null
+                    }
+                    is QuantityV2.Household, is QuantityV2.Container, is QuantityV2.Mass, is QuantityV2.Volume -> x
+                    else -> null
+                }
+            }
+            if (merged == null) return
+            target.quantity = merged
+            target.used += q.first..q.last
+            for (s in rest) {
+                if (s.kind == Kind.SIZE && target.size == null) target.size = (s.tag as LexTag.Size).size
+            }
+        }
+
+        /** ¿La frase de cantidad dice «la mitad», «mitad», «half»? */
+        private fun isHalfPhrase(q: Item): Boolean =
+            (q.first..q.last).any { tokens[it].norm == "mitad" || tokens[it].norm == "half" }
+
+        /** Fracción [part] (menor que 1) de la misma medida que [current]; null si no son la misma medida. */
+        private fun fractionOf(current: QuantityV2, part: QuantityV2): QuantityV2? = when {
+            current is QuantityV2.Container && part is QuantityV2.Container && part.label == current.label && part.n < 1.0 ->
+                current.copy(n = current.n * part.n)
+            current is QuantityV2.Household && part is QuantityV2.Household && part.label == current.label && part.n < 1.0 ->
+                current.copy(n = current.n * part.n)
+            current is QuantityV2.Count && part is QuantityV2.Count && part.n < 1.0 -> current.copy(n = current.n * part.n)
+            else -> null
         }
 
         /** Un número desnudo («perdón, 150») hereda la unidad de la cantidad anterior. */

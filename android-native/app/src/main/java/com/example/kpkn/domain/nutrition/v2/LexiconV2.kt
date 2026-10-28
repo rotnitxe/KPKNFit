@@ -119,6 +119,38 @@ class LexiconV2(entries: List<LexEntry>) {
         byPhonetic = fuzzyWords.sorted().groupBy { phoneticKey(it) }
     }
 
+    /** Coincidencia del trie: último token ([end], incluido) y etiquetas del tramo. */
+    private class Match(val end: Int, val tags: List<LexTag>)
+
+    /** Coincidencia más larga que empieza en [start] y termina en [maxEnd] o antes, o null si no hay ninguna. */
+    private fun longestMatch(norms: List<String>, start: Int, maxEnd: Int): Match? {
+        var node = root
+        var j = start
+        var best: Match? = null
+        while (j <= maxEnd) {
+            node = node.children[norms[j]] ?: break
+            node.tags?.let { best = Match(j, it) }
+            j++
+        }
+        return best
+    }
+
+    /**
+     * Anticipación de un paso para alias de alimento que empiezan con una medida o un envase («lata de atun»): si la
+     * coincidencia [match] desde [i] se come el comienzo de un alimento más largo que sigue («atun en agua»), devuelve el
+     * menor token k donde empieza ese alimento, para cortar ahí la medida. Si no, -1 (se conserva la coincidencia larga).
+     */
+    private fun anticipatedCut(norms: List<String>, i: Int, match: Match): Int {
+        if (match.end <= i || match.tags.none { it is LexTag.Food }) return -1
+        val first = root.children[norms[i]]?.tags ?: return -1
+        if (first.none { it is LexTag.Household || it is LexTag.Container }) return -1
+        for (k in (i + 1)..match.end) {
+            val inner = longestMatch(norms, k, norms.size - 1) ?: continue
+            if (inner.end > match.end && inner.tags.any { it is LexTag.Food }) return k
+        }
+        return -1
+    }
+
     /** Etiqueta [tokens]: coincidencia más larga en cada posición; lo desconocido queda sin etiquetas. */
     fun tag(tokens: List<TokenV2>): List<TaggedSpan> {
         if (tokens.isEmpty()) return emptyList()
@@ -132,19 +164,16 @@ class LexiconV2(entries: List<LexEntry>) {
         val spans = ArrayList<TaggedSpan>(tokens.size)
         var i = 0
         while (i < norms.size) {
-            var node = root
-            var j = i
-            var bestEnd = -1
-            var bestTags: List<LexTag>? = null
-            while (j < norms.size) {
-                node = node.children[norms[j]] ?: break
-                node.tags?.let { bestEnd = j; bestTags = it }
-                j++
+            var match = longestMatch(norms, i, norms.size - 1)
+            if (match != null) {
+                val cut = anticipatedCut(norms, i, match)
+                if (cut >= 0) match = longestMatch(norms, i, cut - 1)
             }
-            if (bestEnd >= 0) {
+            if (match != null) {
+                val bestEnd = match.end
                 var fuzzy = false
                 for (k in i..bestEnd) if (corrected[k]) fuzzy = true
-                val tags = withSingleTokenTags(bestTags!!, tokens[i], i == bestEnd)
+                val tags = withSingleTokenTags(match.tags, tokens[i], i == bestEnd)
                 spans += TaggedSpan(i, bestEnd, tags, fuzzy)
                 i = bestEnd + 1
             } else {

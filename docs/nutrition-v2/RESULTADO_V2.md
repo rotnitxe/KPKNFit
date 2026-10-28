@@ -17,16 +17,22 @@ Decisiones tomadas sin consultarte durante la noche: [DECISIONES_NOCHE.md](DECIS
   topes de la OMS.
 - **El precio:** v2 pide confirmar más. Bloquea el guardado en 1,67 menciones por comida hasta que tocas
   «Lo estimado» o eliges otra porción; master solo en 0,19. Es la regla de confianza (N23); se puede aflojar.
-- **En la app queda detrás de un interruptor, apagado** (Ajustes › Nutrición › «Intérprete de comidas v2
-  (beta)»). El predeterminado no cambia sin tu visto bueno (D4, N19).
+- **En la app, v2 es el sistema** (tu decisión del 28-oct, N45). El registrador usa v2 siempre y el intérprete
+  anterior solo responde si v2 no reconoce nada. Ya no hay interruptor en Ajustes. «Buscar» también usa el
+  vocabulario v2 y el paquete del catálogo (N46–N48).
+- **Probado en tu Flip5 (28-oct).** De 10 hallazgos, 8 quedaron arreglados (N35–N41 y N44). Los que tocan el
+  intérprete se midieron en DEV y no empeoran. Otro no se repitió. La búsqueda manual se conectó después (N46–N48).
+- **Sin compilar todavía:** N45–N48 se escribieron y revisaron a mano, sin Gradle, porque pediste no saturar la
+  máquina. Falta compilarlos, correr sus pruebas y repetir «Buscar» en el teléfono cuando me lo pidas.
 
 ## Qué cambia en la app
 
 | Dónde | Qué |
 |---|---|
-| Ajustes › Nutrición | Interruptor «Intérprete de comidas v2 (beta)» (apagado). Con él encendido, el registrador usa v2 y vuelve al intérprete actual si v2 no reconoce nada (4 de 1.350 descripciones del examen). |
+| Registrar comida | v2 es el sistema y no hay interruptor (N45). Si v2 no reconoce ninguna mención o falla, responde el intérprete anterior (4 de 1.350 descripciones del examen). |
 | Ajustes › Nutrición | «Fuentes y licencias de los datos»: USDA FoodData Central (CC0), ANSES-Ciqual 2025 (Licence Ouverte 2.0) y Open Food Facts (ODbL/DbCL), con su texto completo. |
-| Registrar comida | Con v2: tarjetas con la ficha elegida y sus gramos; si algo no es seguro, la tarjeta pide confirmar con un toque («Lo estimado (N g)», otra porción o elegir la ficha). |
+| Registrar comida | Tarjetas con la ficha elegida y sus gramos; si algo no es seguro, la tarjeta pide confirmar con un toque («Lo estimado (N g)», otra porción o elegir la ficha). |
+| Registrar comida › Buscar | Primero lo aprendido y tus alimentos. Luego los conceptos del vocabulario v2, encontrados por nombre, alias en español e inglés y faltas típicas, con una fila por estado o forma («Arroz blanco (cocido)», «Arroz blanco (crudo)»). Después, el buscador anterior. Al final, productos del paquete con nombre en español. Las sugerencias al corregir una tarjeta funcionan igual (N46). Toda ficha v2, incluidas las de CIQUAL y los platos `kpkn_`, guarda la instantánea completa de micronutrientes (N47), y los favoritos de esas filas aparecen en Favoritos (N48). |
 | Hoja «Nutrientes del día» | 33 nutrientes en 5 grupos (carbohidratos, grasas, vitaminas, minerales, otros), metas DRI, topes de guía (grasa saturada < 10 % y trans < 1 % de la energía, azúcares añadidos < 10 %, cafeína ≤ 400 mg), nota de la niacina y pie de fuentes. «Sin dato» nunca se cuenta como 0. |
 | Guardado | Cada registro guarda una instantánea de sus nutrientes desde el paquete del catálogo (F4-B); el historial no se recalcula (D7). |
 
@@ -50,7 +56,7 @@ fenómeno con ≥ 30 menciones cae más de 3 pp. **Veredicto: ACEPTA** (las tres
 | Menciones de más por comida | 1,29 | 0,80 | −0,49 | [−0,59; −0,38] |
 | Latencia p50 / p95 (PC) | 128 / 975 ms | 0,12 / 3,4 ms | | |
 
-La app con el interruptor encendido (v2 y, si no reconoce nada, el actual) da lo mismo: M3 49,1 % y M4 24,7 %.
+La app tal como queda (v2 y, si no reconoce nada, el intérprete anterior) da lo mismo: M3 49,1 % y M4 24,7 %.
 
 ### Por fenómeno (TEST, M3)
 
@@ -123,8 +129,8 @@ avisos de cocción que no bloquean, así que no se compara con esta tabla.
   determinista y en `domain/nutrition/v2/` (Kotlin puro, 212 tests).
 - **Micronutrientes** (F4): 33 claves con «sin dato» ≠ 0, cobertura por energía, DRI de embarazo y lactancia, topes
   de guía y la hoja agrupada.
-- **Integración** (F5): adaptador a las tarjetas actuales con la misma compuerta que el examen, interruptor, fuentes y
-  licencias, y paquete y vocabulario dentro del APK.
+- **Integración** (F5): adaptador a las tarjetas actuales con la misma compuerta que el examen, fuentes y licencias, y
+  paquete y vocabulario dentro del APK. El interruptor de la primera entrega se quitó el 28-oct (N45).
 - **Tamaño:** el APK crece unos 9,7 MB (paquete de catálogo 9,2 MB comprimido, vocabulario 0,5 MB y licencias). En el
   teléfono, el paquete ocupa 33 MB del almacenamiento interno, una sola generación (D2); se copia en segundo plano al
   primer arranque (unos 4 s en el emulador).
@@ -137,7 +143,7 @@ Emulador Pixel 9 Pro XL con renderizado por software y APK de depuración KPKN D
 |---|---|
 | Instalación y primer arranque | El APK (unos 520 MB) se instala y arranca; el asistente de alta funciona. |
 | Publicación del paquete de catálogo | **Fallaba en el dispositivo**: `PRAGMA quick_check` revisa la tabla FTS4 de alias y Android la rechaza en solo lectura («attempt to write a readonly database»). Sin paquete, los registros se guardaban sin micronutrientes. Robolectric no lo mostraba. Arreglado (N33) y verificado con el APK corregido: 4 s después de abrir la app el paquete queda en `files/nutrition_catalog/bd5319a45f529dbe.sqlite` (33 MB), sin advertencias. |
-| Ajustes, registro con v2 y hoja de nutrientes en pantalla | **Sin recorrer.** El emulador se cierra solo poco después de abrir la app (8 intentos, casi siempre a los 15–75 s), sin volcado de fallo ni pánico del kernel y con memoria y disco de sobra; otra sesión lo vio el 27-oct. Lo cubren las pruebas de Robolectric: interruptor y Fuentes y licencias (F5-b), hoja agrupada (F4-C), carga del vocabulario desde el asset real y guardado con instantánea de nutrientes (F4-B). |
+| Ajustes, registro con v2 y hoja de nutrientes en pantalla | **Sin recorrer.** El emulador se cierra solo poco después de abrir la app (8 intentos, casi siempre a los 15–75 s), sin volcado de fallo ni pánico del kernel y con memoria y disco de sobra; otra sesión lo vio el 27-oct. Lo cubren las pruebas de Robolectric: Fuentes y licencias (F5-b), hoja agrupada (F4-C), carga del vocabulario desde el asset real y guardado con instantánea de nutrientes (F4-B). |
 
 ## Pruebas automáticas al cerrar (28-oct, 07:30–08:00)
 
@@ -147,27 +153,61 @@ Emulador Pixel 9 Pro XL con renderizado por software y APK de depuración KPKN D
 | Las tres pruebas de restauración de copias, con el arreglo N34 | En verde: `NutritionDayStateBackupTest`, `DatabaseBackupHelperSnapshotTest` y `TrainingSnapshotRestoreTest` (5 de 5, incluido que la copia externa no cambia; esta última seguía esperando la versión 36 y la actualicé a 37). |
 | Otras dos pruebas de la base | Siguen en rojo por la subida de master a Room 37, sin relación con esta ola. `GlobalFoodsFtsTriggerHygieneTest` espera la versión 36. `TrainingMigrationRoomValidationTest` arma Room con su propia lista de migraciones, que no trae la 36→37 (la app sí la tiene). |
 
+## QA en tu Flip5 (28-oct)
+
+KPKN Dev (`com.example.kpkn.dbg`) en tu Galaxy Z Flip5, con el interruptor v2 encendido. Primero usé el APK de la
+mañana y después el de los arreglos. Las decisiones están en
+[DECISIONES_NOCHE.md](DECISIONES_NOCHE.md#tarde-del-28-oct-qa-en-el-flip5-y-arreglos) (N35–N44).
+
+| Qué probé | Con el APK de la mañana | Con los arreglos |
+|---|---|---|
+| «media lata de atun en agua» | Proponía atún en aceite. | «Atún en agua (lata) · aprox. 60 g», 54 kcal; pide confirmar la porción (N35). |
+| «a bowl of oatmeal with banana» | Aceptaba sin preguntar 132 g de avena cruda (unas 500 kcal), y la tarjeta decía «Platano». | Avena cocida: 132 g y 84 kcal. La tarjeta se titula «Banana», como lo escribiste (N36, N37). |
+| «un vaso de leche en polvo» | «Leche en polvo entera · 206 g»: parecía polvo seco. | «Leche en polvo entera (preparada) · 206 g», 157 kcal (N41). |
+| Chips de porción | Sin tilde: «porcion (100 g)». | «porción (100 g)». Las demás etiquetas del vocabulario también llevan tilde (N41). |
+| Hoja «Nutrientes del día» | «Completo · 2 de 3 alimentos con dato declarado». | «Casi completo · 5 de 6 alimentos con dato declarado» (N40). |
+| Micronutrientes del café con leche | Ninguno: el plato no estaba en el paquete. Con N39 sola, seguía sin vitamina D. | El plato enlaza a su ficha del paquete y al guardar toma su vector completo (N39, N44). Un café con leche nuevo aporta 0,55 µg de vitamina D en «Nutrientes del día». Los dos guardados antes del arreglo siguen sin el dato, porque el historial no se recalcula (D7). |
+| Primera interpretación tras abrir la app | 1,4 s; 0,9 s eran la carga del vocabulario. | 0,36–0,41 s, porque el vocabulario se carga al abrir el registro (N38). |
+| Atajo `kpkn://nutrition/action/log` con la app cerrada | Una vez no abrió el registro. | Lo abrió en los 3 arranques en frío siguientes. No se repitió. |
+| Búsqueda manual («Buscar» en el registro) | Usa el buscador de siempre, sin el vocabulario de v2 ni el índice del paquete. | Conectada después de la QA (N46–N48). Todavía no está compilada ni probada en el teléfono. |
+
 ## Lo que queda pendiente o flojo
 
-1. **Probar en tu teléfono.** La QA de esta noche fue en el emulador (orden tuya): encontró y arregló un fallo grave (N33), pero el
-   emulador no aguantó lo suficiente para recorrer en pantalla «registrar con v2 → guardar → Nutrientes del día». Falta hacerlo
-   en el Flip5 con tus registros.
-2. **Activar v2 por defecto** es tu decisión. Lo recomiendo, junto con el botón «Usar lo estimado en todo».
-3. **Chips de estado y forma en la tarjeta** (parte visual de F3): la pregunta llega como las tarjetas de aclaración
-   de hoy, sin chips nuevos.
-4. **Micronutrientes tras editar:** `CatalogRecordLink` solo reconoce fichas `usda_` y `off_`. Al corregir gramos o
-   ficha en un alimento de CIQUAL o en un plato derivado (`kpkn_`), el registro conserva macros pero pierde la
-   instantánea de micronutrientes.
+Actualizado el 28-oct por la tarde: lo pendiente se cerró en N49–N53 (`DECISIONES_NOCHE.md`, sección «Tarde del 28-oct
+(3)»).
+
+1. **N45–N48 compilados y probados:** compila, y pasan 14 clases Android (119 pruebas) y 270 pruebas v2 en JVM, todas
+   en verde. **Falta repetirlo en el Flip5**: «Buscar» («palta», «marraqueta», «huevos», «arroz», «leche en polvo»), una
+   estrella de favorito, una corrección de tarjeta, los chips de estado y forma y «Usar lo estimado en todo». La
+   depuración inalámbrica no estaba activa.
+2. **«Usar lo estimado en todo»:** hecho (N52).
+3. **Chips de estado y forma en la tarjeta:** hechos (N50).
+4. **Micronutrientes tras editar:** resuelto con N47, ya compilado y probado.
 5. **Vocabulario:** la meta del plan era 8.000 conceptos y 40.000 alias; quedaron 1.652 y 22.425 (N5: conceptos
    completos antes que alias sueltos). La cola larga se encuentra por el buscador de siempre.
-6. **Familias que aún fallan:** fracciones y tamaños de pizza, «la mitad del tarro», números con faltas («3 pedasos»),
-   el número después del sustantivo, papas fritas de bolsa frente a las de plato, «un tinto» colombiano (café) y
-   correcciones encadenadas (F12, 37,5 %).
-7. v2 omite 29 de 1.299 menciones en TEST (master 8): a veces junta dos alimentos en uno.
-8. **Fuera de esta ola:** master tiene 5 pruebas en rojo desde antes de esta ola: 3 de
-   `NutritionCalendarForecastCoordinatorTest` (las del recálculo del pronóstico al editar un programa) y las 2 de la base
-   fijadas a Room 36. No las investigué. La restauración de copias sí la arreglé (N34): con Room 37 estaba rota para
-   toda copia nueva.
+6. **Familias:** N49 arregló, medido en DEV (M3 55,6 → 57,0 %, M4 18,8 → 18,3 %):
+   - el número después del sustantivo y la cantidad dicha tras una coma («3 pedasos»);
+   - «la mitad del tarro»;
+   - las correcciones con un «no» suelto;
+   - «un tinto» colombiano;
+   - las pizzas por tamaño;
+   - las papas fritas de bolsa.
+
+   Lo que sigue fallando necesita datos del vocabulario:
+   - alias que faltan («tacos de pastor», «un as», «cheese roll»);
+   - faltas sin alias («hamon», «quezo»);
+   - platos por variante («pizza de champiñón», «completo con todo»);
+   - envases sin unidad («una botella de 500»);
+   - porciones por tamaño de pizza y de pastel de choclo.
+7. v2 omite 29 de 1.299 menciones en TEST (master 8): a veces junta dos alimentos en uno. En DEV quedan 5 de 852.
+8. **Latencia:** v2 ya no espera al intérprete anterior (N51).
+   - En JVM caliente, v2 tarda 0,27 ms en el p95.
+   - El intérprete anterior, que antes corría siempre, tardaba 12,4 ms en el p95.
+   - «Buscar» tarda 3,4 ms por consulta en el p95 (N53).
+   - Falta medir en el Flip5 la primera interpretación tras abrir la app (antes 0,36–0,41 s).
+9. **Fuera de esta ola, ya resuelto:** las 5 pruebas que estaban en rojo en master desde antes de esta ola las arregló
+   otra sesión el 28-oct (`0ecc980b0`, `9a7a25650` y `bf4dca903`). La restauración de copias la arreglé yo (N34):
+   con Room 37 estaba rota para toda copia nueva.
 
 ## Cómo reproducir
 

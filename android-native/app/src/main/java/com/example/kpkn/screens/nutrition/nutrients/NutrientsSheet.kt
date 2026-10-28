@@ -77,7 +77,7 @@ fun NutrientsContent(state: NutrientsSheetState, expanded: Set<NutrientKey>, onT
 
 internal fun nutrientNumber(value: Double): String = DecimalFormat("0.##", DecimalFormatSymbols(Locale.forLanguageTag("es"))).format(value)
 internal fun nutrientStatus(row: NutrientDayTotal): String = when (row.state) {
-    NutrientCoverageState.COMPLETE -> "Completo"
+    NutrientCoverageState.COMPLETE -> if (row.estimatedCount + row.missingCount == 0) "Completo" else "Casi completo"
     NutrientCoverageState.PARTIAL -> "Parcial"
     NutrientCoverageState.NO_DATA -> "Sin datos"
 }

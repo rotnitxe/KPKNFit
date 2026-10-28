@@ -13,6 +13,7 @@ import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.staticFoodForAlias
+import com.example.kpkn.data.food.v2.NutritionParserV2Holder
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
 import com.example.kpkn.domain.nutrition.FoodKnowledge
@@ -32,6 +33,9 @@ import com.example.kpkn.domain.nutrition.TextKeys
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.nutrients.withCatalogNutrients
+import com.example.kpkn.domain.nutrition.v2.ConceptCatalogV2
+import com.example.kpkn.domain.nutrition.v2.ConceptSearchV2
+import com.example.kpkn.domain.nutrition.v2.LoggerSearchV2
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import com.example.kpkn.domain.nutrition.expenditure.DayMark
@@ -555,6 +559,38 @@ class NutritionRepository private constructor(
             loggerFilter = loggerFilter,
         )
     }
+
+    /**
+     * «Buscar» del registro y sugerencias al corregir una tarjeta: el vocabulario v2 es el sistema. Mezcla lo aprendido y lo
+     * propio, los conceptos v2, el buscador anterior ([searchFoodCandidates] con su filtro del registro) y los productos del
+     * paquete de catálogo ([LoggerSearchV2.merge]). Sin vocabulario o sin paquete, esas partes quedan vacías y responde el resto.
+     */
+    suspend fun searchLoggerCandidates(query: String, limit: Int = 20): List<FoodCandidate> = withContext(Dispatchers.IO) {
+        val normalizedQuery = TextKeys.normalize(query)
+        if (normalizedQuery.isBlank() || limit <= 0) return@withContext emptyList()
+        val legacy = searchFoodCandidates(query, limit = limit, loggerFilter = true)
+        val concepts = NutritionParserV2Holder.parser(appContext)?.catalog?.let { catalog ->
+            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.conceptCandidates(conceptSearchFor(catalog), query) }
+        }.orEmpty()
+        val pack = NutritionCatalogHolder.current?.let { port ->
+            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.packCandidates(port, query) }
+        }.orEmpty()
+        LoggerSearchV2.merge(legacy, concepts, pack, limit, _foodQueryLearning.value[normalizedQuery]?.foodId)
+    }
+
+    /** Carga el vocabulario v2 y arma el índice de «Buscar»; el registro lo llama al abrirse para que la primera búsqueda no espere. */
+    suspend fun prepareLoggerSearch() {
+        withContext(Dispatchers.IO) {
+            NutritionParserV2Holder.parser(appContext)?.catalog?.let { conceptSearchFor(it) }
+        }
+    }
+
+    /** Índice de búsqueda del vocabulario v2; se rehace solo si cambia el catálogo cargado. */
+    @Volatile
+    private var conceptSearchCache: ConceptSearchV2? = null
+
+    private fun conceptSearchFor(catalog: ConceptCatalogV2): ConceptSearchV2 =
+        conceptSearchCache?.takeIf { it.catalog === catalog } ?: ConceptSearchV2(catalog).also { conceptSearchCache = it }
 
     /** The static catalog and user foods, normalized once per published catalog (see [localSearchPool]). */
     private class SearchPool(val source: List<FoodItem>, val foods: List<FoodItem>)
@@ -1220,7 +1256,17 @@ class NutritionRepository private constructor(
         } else {
             null
         }
-        cached ?: global
+        cached ?: global ?: v2FoodById(foodId)
+    }
+
+    /** Ficha del vocabulario v2 o del paquete por su id (favoritos y lo aprendido desde «Buscar»); null si no está. */
+    private suspend fun v2FoodById(foodId: String): FoodItem? {
+        if (V2_RECORD_PREFIXES.none { foodId.startsWith(it) }) return null
+        NutritionParserV2Holder.parser(appContext)?.catalog?.let { catalog ->
+            conceptSearchFor(catalog).hitForRecord(foodId)?.let { hit -> return LoggerSearchV2.conceptFood(hit, catalog.generation) }
+        }
+        val port = NutritionCatalogHolder.current ?: return null
+        return searchRead<FoodItem?>(null) { LoggerSearchV2.packFoodById(port, foodId) }
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
@@ -1616,6 +1662,9 @@ class NutritionRepository private constructor(
         private const val SEARCH_TERM_LIMIT = 60
         private const val SEARCH_CUSTOM_LIMIT = 120
         private const val MAX_SEARCH_TERMS = 4
+
+        /** Prefijos de id de las fichas del vocabulario v2 y del paquete de catálogo. */
+        private val V2_RECORD_PREFIXES = listOf("usda_", "off_", "ciqual_", "kpkn_")
 
         @Volatile private var INSTANCE: NutritionRepository? = null
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {

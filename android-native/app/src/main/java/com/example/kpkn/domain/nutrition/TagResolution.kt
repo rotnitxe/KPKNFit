@@ -81,7 +81,12 @@ data class ResolvedTag(
     val nutritionEstimate: NutritionEstimateEvidence? = null,
     /** WP-U9: quién creó el tag; decide si un nuevo análisis de la descripción lo conserva ([TagOrigin.isPinned]). */
     val origin: TagOrigin = TagOrigin.DESCRIPTION,
+    /** Variantes del mismo concepto que la fila ofrece como chips de estado y forma (F3, N50); vacío si no aplica. */
+    val variantChoices: List<VariantChoice> = emptyList(),
 )
+
+/** Variante del mismo concepto que la fila ofrece como chip (F3, N50): [dimension] = "state" | "form". */
+data class VariantChoice(val dimension: String, val label: String, val food: FoodItem)
 
 /**
  * De dónde salió un tag del logger (WP-U9, C7). Decide qué hace un nuevo análisis de la descripción con él

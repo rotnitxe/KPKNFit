@@ -83,6 +83,8 @@ object ModifierVocabularyV2 {
         SizeV2.M to listOf("mediano", "mediana", "medianos", "medianas", "medium", "regular"),
         SizeV2.L to listOf(
             "grande", "grandes", "grandote", "grandota", "gigante", "extra grande", "extra large", "xl", "jumbo", "large", "big",
+            // «pizza familiar», «cuarto de pizza familiar»: el tamaño más grande de la carta.
+            "familiar", "familiares",
         ),
     )
 
