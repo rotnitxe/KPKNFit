@@ -19,6 +19,8 @@ Decisiones tomadas sin consultarte durante la noche: [DECISIONES_NOCHE.md](DECIS
   «Lo estimado» o eliges otra porción; master solo en 0,19. Es la regla de confianza (N23); se puede aflojar.
 - **En la app queda detrás de un interruptor, apagado** (Ajustes › Nutrición › «Intérprete de comidas v2
   (beta)»). El predeterminado no cambia sin tu visto bueno (D4, N19).
+- **Probado en tu Flip5 (28-oct).** De 10 hallazgos, 8 quedaron arreglados (N35–N41 y N44). Los que tocan el
+  intérprete se midieron en DEV y no empeoran. Otro no se repitió, y la búsqueda manual queda para tu decisión.
 
 ## Qué cambia en la app
 
@@ -147,11 +149,29 @@ Emulador Pixel 9 Pro XL con renderizado por software y APK de depuración KPKN D
 | Las tres pruebas de restauración de copias, con el arreglo N34 | En verde: `NutritionDayStateBackupTest`, `DatabaseBackupHelperSnapshotTest` y `TrainingSnapshotRestoreTest` (5 de 5, incluido que la copia externa no cambia; esta última seguía esperando la versión 36 y la actualicé a 37). |
 | Otras dos pruebas de la base | Siguen en rojo por la subida de master a Room 37, sin relación con esta ola. `GlobalFoodsFtsTriggerHygieneTest` espera la versión 36. `TrainingMigrationRoomValidationTest` arma Room con su propia lista de migraciones, que no trae la 36→37 (la app sí la tiene). |
 
+## QA en tu Flip5 (28-oct)
+
+KPKN Dev (`com.example.kpkn.dbg`) en tu Galaxy Z Flip5, con el interruptor v2 encendido. Primero usé el APK de la
+mañana y después el de los arreglos. Las decisiones están en
+[DECISIONES_NOCHE.md](DECISIONES_NOCHE.md#tarde-del-28-oct-qa-en-el-flip5-y-arreglos) (N35–N44).
+
+| Qué probé | Con el APK de la mañana | Con los arreglos |
+|---|---|---|
+| «media lata de atun en agua» | Proponía atún en aceite. | «Atún en agua (lata) · aprox. 60 g», 54 kcal; pide confirmar la porción (N35). |
+| «a bowl of oatmeal with banana» | Aceptaba sin preguntar 132 g de avena cruda (unas 500 kcal), y la tarjeta decía «Platano». | Avena cocida: 132 g y 84 kcal. La tarjeta se titula «Banana», como lo escribiste (N36, N37). |
+| «un vaso de leche en polvo» | «Leche en polvo entera · 206 g»: parecía polvo seco. | «Leche en polvo entera (preparada) · 206 g», 157 kcal (N41). |
+| Chips de porción | Sin tilde: «porcion (100 g)». | «porción (100 g)». Las demás etiquetas del vocabulario también llevan tilde (N41). |
+| Hoja «Nutrientes del día» | «Completo · 2 de 3 alimentos con dato declarado». | «Casi completo · 5 de 6 alimentos con dato declarado» (N40). |
+| Micronutrientes del café con leche | Ninguno: el plato no estaba en el paquete. Con N39 sola, seguía sin vitamina D. | El plato enlaza a su ficha del paquete y al guardar toma su vector completo (N39, N44). Está verificado en las pruebas. En el teléfono falta verlo, porque estaba plegado cuando llegó el APK. |
+| Primera interpretación tras abrir la app | 1,4 s; 0,9 s eran la carga del vocabulario. | 0,36–0,41 s, porque el vocabulario se carga al abrir el registro (N38). |
+| Atajo `kpkn://nutrition/action/log` con la app cerrada | Una vez no abrió el registro. | Lo abrió en los 3 arranques en frío siguientes. No se repitió. |
+| Búsqueda manual («Buscar» en el registro) | Usa el buscador de siempre, sin el vocabulario de v2 ni el índice del paquete. | Sin cambios: espera tu decisión. |
+
 ## Lo que queda pendiente o flojo
 
-1. **Probar en tu teléfono.** La QA de esta noche fue en el emulador (orden tuya): encontró y arregló un fallo grave (N33), pero el
-   emulador no aguantó lo suficiente para recorrer en pantalla «registrar con v2 → guardar → Nutrientes del día». Falta hacerlo
-   en el Flip5 con tus registros.
+1. **Búsqueda manual:** la pestaña «Buscar» del registro sigue con el buscador de siempre. No usa los 22.425 alias
+   en español de v2 ni el índice del paquete, así que encuentra menos de lo que v2 entiende al describir. Conectarla
+   es el siguiente paso natural y espera tu visto bueno.
 2. **Activar v2 por defecto** es tu decisión. Lo recomiendo, junto con el botón «Usar lo estimado en todo».
 3. **Chips de estado y forma en la tarjeta** (parte visual de F3): la pregunta llega como las tarjetas de aclaración
    de hoy, sin chips nuevos.
@@ -164,10 +184,12 @@ Emulador Pixel 9 Pro XL con renderizado por software y APK de depuración KPKN D
    el número después del sustantivo, papas fritas de bolsa frente a las de plato, «un tinto» colombiano (café) y
    correcciones encadenadas (F12, 37,5 %).
 7. v2 omite 29 de 1.299 menciones en TEST (master 8): a veces junta dos alimentos en uno.
-8. **Fuera de esta ola:** master tiene 5 pruebas en rojo desde antes de esta ola: 3 de
-   `NutritionCalendarForecastCoordinatorTest` (las del recálculo del pronóstico al editar un programa) y las 2 de la base
-   fijadas a Room 36. No las investigué. La restauración de copias sí la arreglé (N34): con Room 37 estaba rota para
-   toda copia nueva.
+8. **Latencia:** en el Flip5, la primera interpretación tarda 0,36–0,41 s, y de eso la etapa de análisis se lleva
+   250–290 ms. El plan pedía ≤ 150 ms (p95) para análisis y resolución. Falta medir en caliente y separar lo que
+   tarda el intérprete actual, que sigue corriendo antes de v2, de lo que tarda v2.
+9. **Fuera de esta ola, ya resuelto:** las 5 pruebas que estaban en rojo en master desde antes de esta ola las arregló
+   otra sesión el 28-oct (`0ecc980b0`, `9a7a25650` y `bf4dca903`). La restauración de copias la arreglé yo (N34):
+   con Room 37 estaba rota para toda copia nueva.
 
 ## Cómo reproducir
 

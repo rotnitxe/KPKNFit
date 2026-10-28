@@ -468,4 +468,46 @@ class ResolverV2Test {
         // Un poco de algo.
         assertEquals(QuestionDimensionV2.QUANTITY, one(draft("arroz_blanco", quantity = QuantityV2.Vague)).questions.single().dimension)
     }
+
+    // ─── La ficha sigue a la porción cuando el texto no dice el estado ─────
+
+    /** Arroz como la avena: crudo por defecto; «taza» y «cucharada» crudas; «plato» y «tazon» solo cocidos. */
+    private fun oatLike() = catalogWith("arroz_blanco") {
+        it.copy(
+            defaultState = FoodStateV2.RAW,
+            portions = listOf(
+                ConceptPortionV2("cucharada", 7.0, FoodStateV2.RAW),
+                ConceptPortionV2("taza", 90.0, FoodStateV2.RAW),
+                ConceptPortionV2("taza", 234.0, FoodStateV2.COOKED),
+                ConceptPortionV2("plato", 250.0, FoodStateV2.COOKED),
+            ),
+        )
+    }
+
+    @Test fun portionState_plateOnlyCookedAdoptsCooked() {
+        val r = ResolverV2(oatLike())
+        val m = one(draft("arroz_blanco", quantity = QuantityV2.Household(1.0, "plato")), r)
+        assertEquals(FoodStateV2.COOKED, m.state)
+        assertEquals("r_arroz_cocido", m.recordId)
+        assertEquals(250.0, m.grams!!, 1e-9)
+        assertEquals(325.0, m.eatenKcal!!, 1e-6)
+        // Un envase sin contenido neto sigue la misma regla.
+        val c = one(draft("arroz_blanco", quantity = QuantityV2.Container(1.0, "plato")), r)
+        assertEquals(FoodStateV2.COOKED, c.state)
+    }
+
+    @Test fun portionState_cupWithRawPortionKeepsRaw() {
+        val m = one(draft("arroz_blanco", quantity = QuantityV2.Household(1.0, "taza")), ResolverV2(oatLike()))
+        assertEquals(FoodStateV2.RAW, m.state)
+        assertEquals("r_arroz_crudo", m.recordId)
+        assertEquals(90.0, m.grams!!, 1e-9)
+    }
+
+    @Test fun portionState_statedStateIsNeverChanged() {
+        val r = ResolverV2(oatLike())
+        val m = one(draft("arroz_blanco", quantity = QuantityV2.Household(1.0, "plato"), state = FoodStateV2.RAW), r)
+        assertEquals(FoodStateV2.RAW, m.state)
+        assertEquals("r_arroz_crudo", m.recordId)
+        assertEquals(250.0, m.grams!!, 1e-9)
+    }
 }

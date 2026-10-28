@@ -35,7 +35,11 @@ object ResolvedTagAdapterV2 {
     private const val REQUEST_STATE = "state"
     private const val REQUEST_FORM = "form"
     private const val REQUEST_QUANTITY = "quantity"
-    private val CATALOG_PREFIXES = listOf("usda_", "ciqual_", "off_")
+    /** Fichas que están en el paquete de catálogo; el guardado les pone la instantánea completa. */
+    private val PACK_PREFIXES = listOf("usda_", "ciqual_", "off_", "kpkn_")
+
+    /** Fuentes públicas verificadas; los platos `kpkn_` (derivados de sus ingredientes, N39) siguen siendo CURATED_LOCAL. */
+    private val VERIFIED_PREFIXES = listOf("usda_", "ciqual_", "off_")
     private val interpreter = FoodInterpretationV2Engine()
 
     fun toResolvedTags(parse: MealParseV2, catalog: ConceptCatalogV2): List<ResolvedTag> =
@@ -55,7 +59,8 @@ object ResolvedTagAdapterV2 {
         }
 
         val concept = mention.conceptId?.let(catalog::concept)
-        val name = mention.conceptName ?: catalog.record(recordId)?.name ?: mention.text
+        val baseName = mention.conceptName ?: catalog.record(recordId)?.name ?: mention.text
+        val name = preparedName(baseName, mention, concept)
         val foodState = foodStateOf(mention.state)
         val food = buildFood(recordId, name, concept?.category, per100g, foodState, catalog.generation)
         val logged = buildLoggedFood(food, grams, recordId, per100g, catalog.generation)
@@ -96,6 +101,24 @@ object ResolvedTagAdapterV2 {
             resolutionConfidence = mention.confidence,
         )
         return tag.copy(interpretationV2 = interpreter.interpretResolved(tag, requests))
+    }
+
+    private val PORTION_WORDS = mapOf(
+        "porcion" to "porción", "tazon" to "tazón", "punado" to "puñado", "lamina" to "lámina", "laminas" to "láminas",
+        "cucharon" to "cucharón", "capsula" to "cápsula", "botellin" to "botellín", "balon" to "balón",
+    )
+
+    /** Etiquetas del vocabulario (ASCII) con tildes para el texto mostrado; solo palabras completas. */
+    private fun portionLabel(label: String): String =
+        label.split(" ").joinToString(" ") { PORTION_WORDS[it] ?: it }
+
+    /** Polvo preparado (RECONSTITUTED de un concepto en polvo seco): el nombre lo dice, con género. */
+    private fun preparedName(name: String, mention: MentionV2, concept: ConceptV2?): String {
+        if (mention.form != FoodFormV2.RECONSTITUTED || concept?.defaultForm != FoodFormV2.POWDER_DRY) return name
+        if (name.contains("prepar", ignoreCase = true)) return name
+        val first = name.trim().substringBefore(' ').lowercase()
+        val feminine = first == "leche" || (first.endsWith("a") && first != "bcaa")
+        return name + if (feminine) " (preparada)" else " (preparado)"
     }
 
     private class Candidate(val food: FoodItem, val label: String)
@@ -215,7 +238,7 @@ object ResolvedTagAdapterV2 {
             .sortedBy { if (it.state == null || it.state == mention.state) 0 else 1 }
             .distinctBy { it.label }
             .take(MAX_PORTION_OPTIONS)
-            .map { PortionOption("${it.label} (${it.grams.roundToInt()} g)", it.grams) }
+            .map { PortionOption("${portionLabel(it.label)} (${it.grams.roundToInt()} g)", it.grams) }
         return ClarificationRequest.Portion(REQUEST_QUANTITY, listOf(estimated) + portions)
     }
 
@@ -258,14 +281,14 @@ object ResolvedTagAdapterV2 {
     /**
      * Se arma a mano (sin `scaleFoodByPortion`): éste redondea las kcal al entero y los macros a 0,1 g, y aquí el escalado
      * debe ser exacto (per100g × gramos / 100). Los campos sin dato quedan en 0.0 por el tipo; la ausencia real viaja en
-     * [LoggedFood.nutrientsPer100g]. Con ficha del paquete, esa instantánea se deja vacía: la pone completa (todos los
-     * nutrientes, no solo los macros del vocabulario) `withCatalogNutrients` al guardar; solo los platos derivados `kpkn_`,
-     * que no están en el paquete, llevan aquí la suya.
+     * [LoggedFood.nutrientsPer100g]. Con ficha del paquete (incluidos los platos `kpkn_`, que desde N39 están en él), esa
+     * instantánea se deja vacía: la pone completa (todos los nutrientes, no solo los macros del vocabulario)
+     * `withCatalogNutrients` al guardar; solo una ficha sin prefijo del paquete lleva aquí la del vocabulario.
      */
     private fun buildLoggedFood(food: FoodItem, grams: Double, recordId: String, per100g: Map<String, Double>, generation: String): LoggedFood {
         val ratio = grams / 100.0
         fun scaled(key: String) = (per100g[key] ?: 0.0) * ratio
-        val catalogId = recordId.takeIf { id -> CATALOG_PREFIXES.any { id.startsWith(it) } }
+        val catalogId = recordId.takeIf { id -> PACK_PREFIXES.any { id.startsWith(it) } }
         return LoggedFood(
             id = UUID.randomUUID().toString(),
             foodName = food.name,
@@ -300,7 +323,7 @@ object ResolvedTagAdapterV2 {
     }
 
     private fun sourceOf(recordId: String): NutritionSourceKind =
-        if (CATALOG_PREFIXES.any { recordId.startsWith(it) }) NutritionSourceKind.VERIFIED_GLOBAL else NutritionSourceKind.CURATED_LOCAL
+        if (VERIFIED_PREFIXES.any { recordId.startsWith(it) }) NutritionSourceKind.VERIFIED_GLOBAL else NutritionSourceKind.CURATED_LOCAL
 
     private fun requestName(requestId: String): String = when (requestId) {
         REQUEST_IDENTITY -> "identidad"

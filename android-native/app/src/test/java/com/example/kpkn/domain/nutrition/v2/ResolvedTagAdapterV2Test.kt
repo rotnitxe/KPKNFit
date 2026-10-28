@@ -146,10 +146,10 @@ class ResolvedTagAdapterV2Test {
     }
 
     @Test
-    fun kpknRecordHasNoCatalogLinkAndUnknownState() {
+    fun kpknRecordLinksToPackButStaysCurated() {
         val tag = adapt(mention(text = "pastel", conceptId = "pastel", conceptName = "Pastel de choclo", recordId = "kpkn_pastel_de_choclo", state = null, per100g = pastelPer100)).single()
-        assertNull(tag.loggedFood!!.catalogRecordId)
-        assertEquals(pastelPer100, tag.loggedFood!!.nutrientsPer100g)
+        assertEquals("kpkn_pastel_de_choclo", tag.loggedFood!!.catalogRecordId)
+        assertNull(tag.loggedFood!!.nutrientsPer100g)
         assertEquals(FoodState.UNKNOWN, tag.foodState)
         assertEquals(NutritionSourceKind.CURATED_LOCAL, tag.nutritionSource)
     }
@@ -170,7 +170,18 @@ class ResolvedTagAdapterV2Test {
         // Sin "fiber" ni "sugars" en la ficha: el FoodItem no tiene desglose y la instantánea no trae la clave.
         assertNull(tag.foodItem!!.carbBreakdown)
         val derived = adapt(mention(recordId = "kpkn_pollo")).single()
-        assertFalse(derived.loggedFood!!.nutrientsPer100g!!.containsKey("fiber"))
+        val port = object : NutritionCatalogPort {
+            override val generation = "gen-pack"
+            override fun record(id: String) = CatalogRecord(id, "KPKN_DERIVED", "pollo", "Pollo", null, null, null, "PREPARED", "NA", 100.0, "g", null)
+                .takeIf { id == "kpkn_pollo" }
+            override fun nutrientsPer100(id: String) =
+                if (id == "kpkn_pollo") mapOf(NutrientId.ENERGY to 165.0, NutrientId.PROTEIN to 31.0) else emptyMap()
+            override fun portions(id: String) = emptyList<CatalogPortion>()
+            override fun byGtin(gtin: String): CatalogRecord? = null
+            override fun search(queryNorm: String, limit: Int) = emptyList<CatalogRecord>()
+            override fun recordFor(source: String, sourceRecordId: String): CatalogRecord? = null
+        }
+        assertFalse(derived.loggedFood!!.withCatalogNutrients(port).nutrientsPer100g!!.containsKey("fiber"))
         // LoggedFood.fiber es Double no nulo: el tipo no permite «sin dato», queda 0.0; la ausencia real viaja en nutrientsPer100g.
         assertEquals(0.0, tag.loggedFood!!.fiber, 0.0)
 
@@ -283,6 +294,26 @@ class ResolvedTagAdapterV2Test {
         assertEquals("gen-pack", saved.catalogGeneration)
     }
 
+    @Test
+    fun kpknDishGetsTheFullSnapshotWhenSaved() {
+        val logged = adapt(mention(text = "pastel", conceptId = "pastel", conceptName = "Pastel de choclo", recordId = "kpkn_pastel_de_choclo", grams = 150.0, state = null, per100g = pastelPer100)).single().loggedFood!!
+        val port = object : NutritionCatalogPort {
+            override val generation = "gen-pack"
+            override fun record(id: String) = CatalogRecord(id, "KPKN_DERIVED", "pastel_de_choclo", "Pastel de choclo", null, null, null, "PREPARED", "NA", 100.0, "g", null)
+                .takeIf { id == "kpkn_pastel_de_choclo" }
+            override fun nutrientsPer100(id: String) =
+                if (id == "kpkn_pastel_de_choclo") mapOf(NutrientId.ENERGY to 150.5, NutrientId.CALCIUM to 40.0, NutrientId.VITAMIN_D to 0.3) else emptyMap()
+            override fun portions(id: String) = emptyList<CatalogPortion>()
+            override fun byGtin(gtin: String): CatalogRecord? = null
+            override fun search(queryNorm: String, limit: Int) = emptyList<CatalogRecord>()
+            override fun recordFor(source: String, sourceRecordId: String): CatalogRecord? = null
+        }
+        val saved = logged.withCatalogNutrients(port)
+        assertEquals(40.0 * 1.5, saved.nutrientAmount(NutrientId.CALCIUM)!!, 1e-9)
+        assertEquals(0.3 * 1.5, saved.nutrientAmount(NutrientId.VITAMIN_D)!!, 1e-9)
+        assertEquals("gen-pack", saved.catalogGeneration)
+    }
+
     private fun papa(
         state: FoodStateV2 = FoodStateV2.RAW,
         questions: List<QuestionV2> = emptyList(),
@@ -361,6 +392,45 @@ class ResolvedTagAdapterV2Test {
         assertEquals(listOf("Lo estimado (150 g)", "1 unidad mediana (150 g)", "1 taza (200 g)"), request.options.map { it.label })
         assertEquals(listOf(150.0, 150.0, 200.0), request.options.map { it.grams })
         assertEquals("Revisar: cantidad", tag.statusText)
+    }
+
+    @Test
+    fun portionChipsShowAccentedLabelsWithoutChangingGrams() {
+        val base = catalog.concept("papa")!!
+        val withPortions = base.copy(portions = listOf(ConceptPortionV2("porcion", 120.0), ConceptPortionV2("tazon", 250.0), ConceptPortionV2("media porcion", 60.0)))
+        val cat = ConceptCatalogV2(catalog.generation, catalog.concepts.values.map { if (it.id == "papa") withPortions else it }, catalog.records)
+        val tag = ResolvedTagAdapterV2.toResolvedTags(
+            MealParseV2("papa", listOf(papa(questions = listOf(QuestionV2(QuestionDimensionV2.QUANTITY, emptyList()))))), cat,
+        ).single()
+        val request = tag.interpretationV2!!.pendingQuestions.single() as ClarificationRequest.Portion
+        assertEquals(listOf("Lo estimado (150 g)", "porción (120 g)", "tazón (250 g)", "media porción (60 g)"), request.options.map { it.label })
+        assertEquals(listOf(150.0, 120.0, 250.0, 60.0), request.options.map { it.grams })
+    }
+
+    private fun powderCatalog(): ConceptCatalogV2 {
+        val leche = concept("leche_polvo", "Leche en polvo entera", "usda_900").copy(defaultForm = FoodFormV2.POWDER_DRY)
+        return ConceptCatalogV2(
+            catalog.generation,
+            catalog.concepts.values + leche,
+            catalog.records + ("usda_900" to RecordV2("usda_900", "Milk powder", mapOf("energy" to 496.0))),
+        )
+    }
+
+    private fun powderMention(form: FoodFormV2) = mention(
+        text = "leche en polvo", conceptId = "leche_polvo", conceptName = "Leche en polvo entera", recordId = "usda_900",
+        state = null, per100g = mapOf("energy" to 496.0),
+    ).copy(form = form)
+
+    @Test
+    fun reconstitutedPowderNameGetsPreparedSuffix() {
+        val tag = ResolvedTagAdapterV2.toResolvedTags(MealParseV2("x", listOf(powderMention(FoodFormV2.RECONSTITUTED))), powderCatalog()).single()
+        assertEquals("Leche en polvo entera (preparada)", tag.foodItem!!.name)
+    }
+
+    @Test
+    fun dryPowderNameHasNoSuffix() {
+        val tag = ResolvedTagAdapterV2.toResolvedTags(MealParseV2("x", listOf(powderMention(FoodFormV2.POWDER_DRY))), powderCatalog()).single()
+        assertEquals("Leche en polvo entera", tag.foodItem!!.name)
     }
 
     @Test
