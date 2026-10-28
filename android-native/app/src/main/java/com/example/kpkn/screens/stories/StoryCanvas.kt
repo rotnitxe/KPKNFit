@@ -40,6 +40,7 @@ import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.drawLineCover
 import java.util.Locale
+import kotlin.math.floor
 import kotlin.math.max
 
 /**
@@ -164,7 +165,8 @@ internal fun TextMeasurer.storyText(
 
 /**
  * Fondo de la historia: #0A0A0A en todo el lienzo, la portada [cover] en el rectángulo de arriba (0, 0)–(1080, [artBottom]) y un
- * degradado que la funde con el negro desde el 55 % de esa altura. [progress] es el avance de la portada (1 = completa).
+ * degradado que la funde con el negro desde el 55 % de esa altura. Los últimos 24 px son negro sólido, y el arte se recorta 2 px por
+ * encima de [artBottom] para que no se cuele ninguna línea en el borde. [progress] es el avance de la portada (1 = completa).
  */
 internal fun DrawScope.drawStoryBackdrop(
     cover: LineCoverSpec,
@@ -175,21 +177,24 @@ internal fun DrawScope.drawStoryBackdrop(
     val width = StoryCanvas.WIDTH.toFloat()
     drawRect(StoryCanvas.Background, topLeft = Offset.Zero, size = Size(width, StoryCanvas.HEIGHT.toFloat()))
     // El inset deja el DrawScope de (1080 × artBottom), tanto en el lienzo real como en la vista previa escalada.
-    clipRect(0f, 0f, width, artBottom) {
+    clipRect(0f, 0f, width, artBottom - 2f) {
         inset(left = 0f, top = 0f, right = size.width - width, bottom = size.height - artBottom) {
             drawLineCover(cover, measurer, progress)
         }
     }
     val fadeTop = artBottom * 0.55f
+    // La frontera cae en un píxel entero: con una fraccionaria, la fila de la costura dejaba pasar luz de la portada.
+    val solidTop = floor(artBottom - 24f)
     drawRect(
         brush = Brush.verticalGradient(
             colors = listOf(StoryCanvas.Background.copy(alpha = 0f), StoryCanvas.Background),
             startY = fadeTop,
-            endY = artBottom,
+            endY = solidTop,
         ),
         topLeft = Offset(0f, fadeTop),
-        size = Size(width, artBottom - fadeTop),
+        size = Size(width, solidTop - fadeTop),
     )
+    drawRect(StoryCanvas.Background, topLeft = Offset(0f, solidTop), size = Size(width, artBottom - solidTop))
 }
 
 /**
