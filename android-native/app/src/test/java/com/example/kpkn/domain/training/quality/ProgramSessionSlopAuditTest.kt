@@ -1,0 +1,233 @@
+package com.example.kpkn.domain.training.quality
+
+import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.programs.CatalogLevel
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.TrainingFocus
+import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.SlotSource
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.definitions.NativeProfileCalendars
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
+import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
+import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
+import com.example.kpkn.domain.training.CardioPreference
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.PersonalizerInput
+import com.example.kpkn.domain.training.SimpleCyclePersonalizer
+import com.example.kpkn.domain.training.TrainingOptions
+import com.example.kpkn.domain.training.generator.RoutineGenerator
+import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.domain.training.generator.RoutineTestSupport
+import com.example.kpkn.domain.training.periodization.Horizon
+import com.example.kpkn.domain.training.periodization.ProgramVariant
+import com.example.kpkn.domain.training.periodization.RoutinePeriodizer
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import java.io.File
+import java.util.TreeMap
+
+/**
+ * F-02 · Red de «slop» en sesiones: cada sesión de cada semana de cada programa que la app puede producir pasa por
+ * [SessionSlopRules.violations]; además, a nivel receta, cuenta los accesorios de relleno repetidos más de 2 días por semana.
+ *
+ * El techo [CEILING] es la LÍNEA BASE medida en master el 27-oct (ola 0); cada ola lo baja y la ola 5 lo deja en 0.
+ * Informe: `build/reports/session-slop/report.txt` (directorio de trabajo del test).
+ */
+class ProgramSessionSlopAuditTest {
+
+    private data class Finding(val rule: String, val program: String, val week: String, val session: String, val detail: String)
+
+    private class Audit {
+        val findings = ArrayList<Finding>()
+        val unavailable = ArrayList<String>()
+        var programs = 0
+        var sessions = 0
+
+        fun weeksOf(program: Program): List<ProgramWeek> = AuthoredPlanFixtures.weeksOf(program)
+
+        fun audit(label: String, program: Program) {
+            programs++
+            weeksOf(program).forEachIndexed { index, week ->
+                val weekLabel = week.name.ifBlank { "Semana ${index + 1}" }
+                week.sessions.forEach { session ->
+                    sessions++
+                    SessionSlopRules.violations(session).forEach { v ->
+                        findings += Finding(v.rule.name, label, weekLabel, v.sessionName, v.detail)
+                    }
+                }
+            }
+        }
+
+        fun auditFiller(label: String, recipe: TrainingPlanRecipe) {
+            recipe.weeks.forEach { week ->
+                val daysByConfiguration = LinkedHashMap<String, MutableSet<String>>()
+                week.days.forEachIndexed { dayIndex, day ->
+                    day.slots
+                        .filter { it.role == SlotRole.T3_ACCESSORY && it.source == SlotSource.KPKN_DEFAULT }
+                        .forEach { slot -> daysByConfiguration.getOrPut(slot.lift.configurationId) { LinkedHashSet() } += day.id ?: "${dayIndex + 1}:${day.label}" }
+                }
+                daysByConfiguration.filterValues { it.size > FILLER_WEEKLY_CAP }.forEach { (configuration, days) ->
+                    findings += Finding(
+                        FILLER_OVER_WEEKLY_CAP,
+                        label,
+                        week.weekName.ifBlank { "Semana ${week.weekNumber}" },
+                        "receta",
+                        "$configuration en ${days.size} días: $days",
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `ninguna sesion de ningun programa tiene slop`() {
+        val audit = Audit()
+        auditAuthoredPlans(audit)
+        auditNativePlans(audit)
+        auditRoutines(audit)
+        val report = render(audit)
+        val dir = File("build/reports/session-slop").apply { mkdirs() }
+        File(dir, "report.txt").writeText(report)
+        println(report.lineSequence().take(60).joinToString("\n"))
+        assertEquals(
+            "Violaciones de slop en sesiones (ver build/reports/session-slop/report.txt)",
+            CEILING,
+            audit.findings.size,
+        )
+    }
+
+    // ─── 1 + 4 · Planes de autor, propios con receta y plantillas ──────────────────────────────
+
+    private fun auditAuthoredPlans(audit: Audit) {
+        val gears = listOf(AuthoredPlanFixtures.fullGym, AuthoredPlanFixtures.dumbbellsAndBench, AuthoredPlanFixtures.gymWithoutRack)
+        PersonalizedPlanCatalog.entries().filter { it.recipe != null }.forEach { entry ->
+            audit.auditFiller("receta ${entry.id}", requireNotNull(entry.recipe))
+            gears.forEach { gear ->
+                val label = "${entry.id} · ${gear.label}"
+                val program = try {
+                    AuthoredPlanFixtures.prepare(entry.id, gear)
+                } catch (t: Throwable) {
+                    audit.unavailable += "$label: ${t.javaClass.simpleName}: ${t.message?.lineSequence()?.firstOrNull().orEmpty().take(160)}"
+                    return@forEach
+                }
+                audit.audit(label, program)
+            }
+        }
+    }
+
+    // ─── 2 · Planes propios nativos (misma llamada que CoverageFixtures.materializer, sin screens.onboarding) ───
+
+    private fun auditNativePlans(audit: Audit) {
+        val personalizer = SimpleCyclePersonalizer(
+            InMemoryExerciseCatalogRepositoryV2(CatalogCompositionTestSupport.catalog).also { runBlocking { it.load() } },
+        )
+        val gears = listOf(AuthoredPlanFixtures.fullGym, AuthoredPlanFixtures.dumbbellsAndBench)
+        NativeProfileKind.entries.forEach { kind ->
+            CatalogLevel.entries.forEach { level ->
+                (2..6).forEach { days ->
+                    gears.forEach { gear ->
+                        val label = "${kind.entryId} · ${level.name.lowercase()} · $days d · ${gear.label}"
+                        val result = try {
+                            personalizer.personalize(
+                                programId = "slop-${kind.name.lowercase()}-${level.name.lowercase()}-$days-${gear.label}",
+                                input = PersonalizerInput(
+                                    catalogEntryId = kind.entryId,
+                                    focus = TrainingFocus.FULL_BODY,
+                                    frequency = days,
+                                    weekdays = NativeProfileCalendars.DEFAULT_WEEKDAYS.getValue(days),
+                                    equipment = emptySet(),
+                                    level = level,
+                                    availableMinutes = NATIVE_MINUTES,
+                                    cardio = if (kind == NativeProfileKind.COMPLETE_ATHLETE) CardioPreference(CardioType.WALK, 10) else null,
+                                ),
+                                options = TrainingOptions(availability = gear.availability),
+                            )
+                        } catch (t: Throwable) {
+                            audit.unavailable += "$label: ${t.javaClass.simpleName}: ${t.message?.lineSequence()?.firstOrNull().orEmpty().take(160)}"
+                            return@forEach
+                        }
+                        val program = result.program
+                        if (program == null) {
+                            audit.unavailable += "$label: ${result.report.reasonCode}: ${result.report.limitations.joinToString("; ").take(160)}"
+                            return@forEach
+                        }
+                        audit.audit(label, program)
+                    }
+                }
+            }
+        }
+    }
+
+    // ─── 3 · Programas a medida: semana base y periodizador ────────────────────────────────────
+
+    private fun auditRoutines(audit: Audit) {
+        RoutineTestSupport.profiles.forEach { profile ->
+            RoutineMode.entries.forEach { mode ->
+                RoutineTestSupport.levels.forEach { level ->
+                    ROUTINE_DAYS.forEach { days ->
+                        ROUTINE_MINUTES.forEach { minutes ->
+                            val request = RoutineTestSupport.request(profile, mode, level, days, minutes)
+                            val label = "a medida · ${profile.id} · ${mode.name} · ${level.name} · $days d · $minutes min"
+                            val routine = try {
+                                RoutineGenerator.generate(request)
+                            } catch (t: Throwable) {
+                                return@forEach // la semana base que lanza ya la vigila RoutineGeneratorSweepTest
+                            }
+                            audit.audit(label, routine.program)
+                            listOf(ProgramVariant.BLOCKS to 6, ProgramVariant.PERIODIZED to 12).forEach { (variant, weeks) ->
+                                val periodized = try {
+                                    RoutinePeriodizer.build(request, routine.program, variant, Horizon.Weeks(weeks))
+                                } catch (t: Throwable) {
+                                    audit.unavailable += "$label · ${variant.name} $weeks sem: ${t.javaClass.simpleName}: ${t.message?.lineSequence()?.firstOrNull().orEmpty().take(160)}"
+                                    return@forEach
+                                }
+                                audit.audit("$label · ${variant.name} $weeks sem", periodized.program)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ─── Informe ───────────────────────────────────────────────────────────────────────────────
+
+    private fun render(audit: Audit): String {
+        val byRule = TreeMap<String, Int>()
+        audit.findings.forEach { byRule[it.rule] = (byRule[it.rule] ?: 0) + 1 }
+        return buildString {
+            appendLine("[session-slop] programas revisados: ${audit.programs}; sesiones revisadas: ${audit.sessions}")
+            appendLine("[session-slop] violaciones totales: ${audit.findings.size} (techo actual: $CEILING)")
+            appendLine("[session-slop] por regla:")
+            (SlopRule.entries.map { it.name } + FILLER_OVER_WEEKLY_CAP).forEach { rule -> appendLine("[session-slop]   $rule: ${byRule[rule] ?: 0}") }
+            appendLine("[session-slop] primeras ${REPORT_SAMPLE} violaciones (regla · programa · semana · sesión · detalle):")
+            audit.findings.take(REPORT_SAMPLE).forEach { f -> appendLine("  ${f.rule} · ${f.program} · ${f.week} · ${f.session} · ${f.detail}") }
+            appendLine("[session-slop] muestra por regla (hasta $RULE_SAMPLE cada una):")
+            audit.findings.groupBy { it.rule }.toSortedMap().forEach { (rule, list) ->
+                list.take(RULE_SAMPLE).forEach { f -> appendLine("  $rule · ${f.program} · ${f.week} · ${f.session} · ${f.detail}") }
+            }
+            appendLine("[session-slop] programas por programa (violaciones):")
+            audit.findings.groupingBy { it.program }.eachCount().entries.sortedByDescending { it.value }.take(REPORT_SAMPLE)
+                .forEach { (program, count) -> appendLine("  $count · $program") }
+            appendLine("[session-slop] planes no disponibles (${audit.unavailable.size}):")
+            audit.unavailable.forEach { appendLine("  $it") }
+        }
+    }
+
+    private companion object {
+        /** LÍNEA BASE medida en master (27-oct-2026). La ola 5 debe dejarlo en 0. */
+        const val CEILING = 2238
+        const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
+        const val FILLER_WEEKLY_CAP = 2
+        const val REPORT_SAMPLE = 40
+        const val RULE_SAMPLE = 10
+        const val NATIVE_MINUTES = 75
+        val ROUTINE_DAYS = (2..6).toList()
+        val ROUTINE_MINUTES = listOf(45, 75)
+    }
+}
