@@ -90,6 +90,20 @@ internal fun monthStoryTemplates(story: MonthStory): List<MonthStoryTemplate> = 
 }
 
 /**
+ * Tiempo entrenado en texto: «45 min» por debajo de una hora, «2 h» en horas exactas y «12 h 40 min» o «1 h 5 min» en el resto, con los
+ * minutos sin cero delante.
+ */
+internal fun trainingTimeText(minutes: Int): String {
+    val hours = minutes / 60
+    val rest = minutes % 60
+    return when {
+        minutes < 60 -> "$minutes min"
+        rest == 0 -> "$hours h"
+        else -> "$hours h $rest min"
+    }
+}
+
+/**
  * Historia del mes a partir del [report] del mes. [programName] null = todos los programas; [planPct] null = sin plan, así que el
  * cuarto dato son las series del mes.
  */
@@ -123,7 +137,7 @@ internal fun monthStoryFrom(report: MonthlyReport, programName: String?, planPct
         trainedDays = report.trainedDays.toSet(),
         markDay = best?.date?.dayOfMonth,
         sessions = report.sessions,
-        consistencyMeta = "$hours h ${twoDigits(minutesLeft)} min entrenando" + (planPct?.let { " · $it % del plan" } ?: ""),
+        consistencyMeta = "${trainingTimeText(report.minutes)} entrenando" + (planPct?.let { " · $it % del plan" } ?: ""),
         longestStreak = report.longestStreak,
         lifts = report.gains.take(3).map { MonthLift(it.exerciseName, it.points, "+${kgText(it.deltaKg)} kg") },
         totalSets = report.hardSets,

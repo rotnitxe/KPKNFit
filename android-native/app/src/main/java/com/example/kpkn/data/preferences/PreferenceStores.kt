@@ -42,6 +42,9 @@ class SharedPreferencesKeyValueStore(
 object PreferenceFiles {
     const val PROGRAM_SNAPSHOTS = "program_structure_snapshots"
     const val VARIANT_PREFERENCES = "variant_preferences"
+
+    /** Resúmenes del mes ya vistos. NO cambiar jamás: con otro nombre, los avisos ya vistos volverían a salir. */
+    const val MONTHLY_SUMMARY = "monthly_summary"
 }
 
 /** Copias recuperables del programa sobre `SharedPreferences` (archivo [PreferenceFiles.PROGRAM_SNAPSHOTS]). */
@@ -51,6 +54,10 @@ fun programSnapshotStore(context: Context): ProgramSnapshotStore =
 /** Preferencias de variante sobre `SharedPreferences` (archivo [PreferenceFiles.VARIANT_PREFERENCES]). */
 fun variantPreferenceStore(context: Context): VariantPreferenceStore =
     VariantPreferenceStore(SharedPreferencesKeyValueStore(context, PreferenceFiles.VARIANT_PREFERENCES))
+
+/** Resúmenes del mes ya vistos sobre `SharedPreferences` (archivo [PreferenceFiles.MONTHLY_SUMMARY]). */
+fun monthlySummaryStore(context: Context): MonthlySummaryStore =
+    MonthlySummaryStore(SharedPreferencesKeyValueStore(context, PreferenceFiles.MONTHLY_SUMMARY))
 
 /** Instancia compartida de la app (misma semántica que el antiguo `getInstance`). */
 object PreferenceStores {

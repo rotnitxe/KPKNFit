@@ -56,10 +56,13 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
+import com.example.kpkn.domain.training.progress.MonthlyReport
+import com.example.kpkn.domain.training.progress.MonthlyReportEngine
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.preferences.monthlySummaryStore
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
@@ -70,6 +73,13 @@ import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.programs.ProtocolDetailSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
+import com.example.kpkn.screens.monthsummary.MonthlySummaryNotice
+import com.example.kpkn.screens.monthsummary.MonthlySummaryScreen
+import com.example.kpkn.screens.monthsummary.homeNoticeMonth
+import com.example.kpkn.screens.monthsummary.monthlyNoticeLine
+import com.example.kpkn.screens.monthsummary.monthlyNoticeTitle
+import com.example.kpkn.screens.monthsummary.summaryKey
+import com.example.kpkn.screens.stories.MonthShareSheet
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.KpknModalTracker
@@ -84,6 +94,7 @@ import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
@@ -112,10 +123,13 @@ import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.math.roundToInt
 
 typealias HomeGlassOverlay = @Composable (HazeState) -> Unit
@@ -639,6 +653,34 @@ private fun HomeWithProgram(
     val nutritionToday = remember(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal) {
         homeNutritionState(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal)
     }
+    // Resumen del mes anterior del programa activo (P8c-1): el aviso «Tu <mes> está listo» en los días 1 a 10 y su pantalla completa.
+    // El informe se calcula fuera del hilo principal. Visto (al abrirlo) o descartado, el mes no vuelve a salir (SharedPreferences).
+    val context = LocalContext.current
+    val summaryStore = remember(context) { monthlySummaryStore(context) }
+    var seenKeys by remember { mutableStateOf(summaryStore.seenKeys()) }
+    val history by ProgramRepository.getInstance().history.collectAsState()
+    val noticeToday = remember { LocalDate.now() }
+    val prevReport by produceState<MonthlyReport?>(initialValue = null, history, activeProgramId) {
+        value = activeProgramId?.let { id ->
+            withContext(Dispatchers.Default) { MonthlyReportEngine.build(history, YearMonth.from(noticeToday).minusMonths(1), id) }
+        }
+    }
+    // Aviso: el mes con su informe, o null si hoy no toca avisar (ver homeNoticeMonth).
+    val notice = remember(prevReport, seenKeys, activeProgramId, noticeToday) {
+        val report = prevReport
+        val id = activeProgramId
+        if (report == null || id == null) {
+            null
+        } else {
+            homeNoticeMonth(noticeToday, if (report.eligible) listOf(report.month) else emptyList(), seenKeys, id)?.let { it to report }
+        }
+    }
+    var showSummary by rememberSaveable { mutableStateOf(false) }
+    // Marca el resumen de [month] del programa [programId] como visto: ya no vuelve a salir.
+    fun markSummarySeen(programId: String, month: YearMonth) {
+        summaryStore.markSeen(summaryKey(programId, month))
+        seenKeys = summaryStore.seenKeys()
+    }
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
@@ -656,6 +698,19 @@ private fun HomeWithProgram(
                 modifier = Modifier
                     .homeEntrance(0)
                     .onGloballyPositioned { onMastheadPositionChanged(it.positionInRoot().y + it.size.height) },
+            )
+        }
+        // Aviso «Tu <mes> está listo»: entre la cabecera y «Esta semana»; solo los días 1 a 10 y mientras no se haya visto o descartado.
+        if (notice != null) item(key = "monthly-summary") {
+            MonthlySummaryNotice(
+                title = monthlyNoticeTitle(notice.first),
+                line = monthlyNoticeLine(notice.second),
+                onOpen = {
+                    activeProgramId?.let { markSummarySeen(it, notice.first) }
+                    showSummary = true
+                },
+                onDismiss = { activeProgramId?.let { markSummarySeen(it, notice.first) } },
+                modifier = Modifier.homeGapAbove(HomePageGap).padding(horizontal = 16.dp),
             )
         }
         // «Esta semana» y la sesión del día son un solo módulo (I10a): la semana arriba y, separada por un filete, la sesión.
@@ -765,6 +820,36 @@ private fun HomeWithProgram(
         item(key = "wikilab") {
             Box(Modifier.homeGapAbove(HomeGroupGap).homeEntrance(8)) {
                 HomeWikiLabSection(onNavigate = onNavigate)
+            }
+        }
+    }
+    // Resumen del mes en pantalla completa (P8c-1) y, encima, su hoja de compartir (P8c-2).
+    var showSummaryShare by remember { mutableStateOf(false) }
+    if (showSummary) {
+        val report = prevReport
+        val id = activeProgramId
+        if (report != null && id != null) {
+            KpknPortal {
+                MonthlySummaryScreen(
+                    report = report,
+                    programName = programs.firstOrNull { it.id == id }?.name,
+                    onShare = { showSummaryShare = true },
+                    onOpenProgress = {
+                        showSummary = false
+                        onNavigateToProgram(id)
+                    },
+                    onClose = {
+                        markSummarySeen(id, report.month)
+                        showSummary = false
+                    },
+                )
+            }
+            if (showSummaryShare) {
+                MonthShareSheet(
+                    report = report,
+                    programName = programs.firstOrNull { it.id == id }?.name,
+                    onDismiss = { showSummaryShare = false },
+                )
             }
         }
     }

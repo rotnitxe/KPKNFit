@@ -31,6 +31,7 @@ class PreferenceStoreNamesTest {
     fun theFileNamesAreTheOnesUsersAlreadyHave() {
         assertEquals("program_structure_snapshots", PreferenceFiles.PROGRAM_SNAPSHOTS)
         assertEquals("variant_preferences", PreferenceFiles.VARIANT_PREFERENCES)
+        assertEquals("monthly_summary", PreferenceFiles.MONTHLY_SUMMARY)
     }
 
     @Test
