@@ -305,6 +305,7 @@ fun HomeScreen(
              consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
             onRegisterCompetition = onRegisterCompetition,
+            onOpenCompetitionProgram = onNavigateToProgram,
             onCreateProgram = openCreate,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
@@ -793,6 +794,8 @@ internal fun HomeTopBar(
     onBottomPositionChanged: (Float) -> Unit,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
+    /** Abre el programa enlazado a la competición (id del programa): la acción principal de la barra el día del meet. */
+    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     // Histéresis (§3): aparece en ≥ 0,55 y se va en ≤ 0,45; entre ambos conserva lo que tenía.
     val shownState = remember { mutableStateOf(false) }
@@ -928,6 +931,7 @@ internal fun HomeTopBar(
                                         onStartWorkout = onStartWorkout,
                                         onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
+                                        onOpenCompetitionProgram = onOpenCompetitionProgram,
                                     )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
@@ -1142,9 +1146,12 @@ private fun MiniSessionCard(
     onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     val registerPhase = homeCompetition?.phase in setOf(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER,
         com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
+    // IMP-08: el día del meet todavía no hay resultado que registrar; la acción principal es abrir el modo competición.
+    val meetDay = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1167,12 +1174,31 @@ private fun MiniSessionCard(
                 maxLines = 1,
                 modifier = Modifier.weight(1f).semantics { heading() },
             )
-            TextButton(
-                onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                modifier = Modifier.heightIn(min = 48.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
-            ) {
-                Text("Registrar", style = HomeTypography.barLabel)
+            if (meetDay) {
+                TextButton(
+                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
+                    modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Registrar resultado" },
+                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.textMuted),
+                ) {
+                    Text("Registrar", style = HomeTypography.barLabel)
+                }
+                Button(
+                    onClick = { onOpenCompetitionProgram(homeCompetition.programId) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
+                ) {
+                    Text("Modo competición", style = HomeTypography.barLabel, maxLines = 1)
+                }
+            } else {
+                TextButton(
+                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
+                ) {
+                    Text("Registrar", style = HomeTypography.barLabel)
+                }
             }
         } else if (isRestDay || primarySession == null) {
             Text(
