@@ -819,9 +819,16 @@ fun ProgramDetailScreen(
     if (showVersions) {
         com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet(
             snapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
+            today = java.time.LocalDate.now(),
             onRestore = { snapshotId ->
                 viewModel.restoreProgramSnapshot(snapshotId)
                 showVersions = false
+            },
+            onSaveCopy = {
+                showVersions = false
+                val copy = p.copy(id = java.util.UUID.randomUUID().toString(), name = "${p.name} (copia)", isDraft = true)
+                viewModel.addProgramCopy(copy)
+                onOpenProgram(copy.id)
             },
             onDismiss = { showVersions = false },
         )
