@@ -1227,9 +1227,8 @@ class ProgramRepository private constructor(
     }
 
     /**
-     * Builds the transition evidence from persisted workout history plus a live
-     * AUGE readiness snapshot (wellbeing, batteries, feedback). Readiness stays
-     * null only when AUGE cannot be computed.
+     * Construye el contexto de transición con los ajustes del programa. Desde la retirada de AUGE
+     * (24-oct) el contexto solo lleva los ajustes; las reglas de fatiga del motor quedan inactivas.
      */
     private suspend fun buildTransitionContext(
         program: Program,

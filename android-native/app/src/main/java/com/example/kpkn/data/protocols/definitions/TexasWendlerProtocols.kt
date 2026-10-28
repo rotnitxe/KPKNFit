@@ -23,6 +23,7 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.repeatPercentSets
@@ -306,7 +307,7 @@ object TexasMethodFourDay {
                 ),
                 weekName = "Semana $w",
             )
-        },
+        }.rotateKpknFillers(),
         // D7 (B.S6): el TM es el 87 % del 1RM (≈ 5RM) como en el Texas de 3 días. El top set 1×5 al 100 % del TM es el 87 %
         // del 1RM (Epley admite 5 repeticiones) y el volumen 5×5 al 90 % del TM, el 78 % del 1RM.
         trainingMaxPercent = 0.87,
@@ -331,7 +332,8 @@ object TexasMethodFourDay {
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,
-        contentVersion = 2,
+        // F-31: el relleno de KPKN (remo Pendlay, GHR, Pallof) rota a partir del tercer día de la semana (versión 3).
+        contentVersion = 3,
     )
 
     val definition = Protocol(

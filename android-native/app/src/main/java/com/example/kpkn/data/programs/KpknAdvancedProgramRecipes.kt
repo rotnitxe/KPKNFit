@@ -20,6 +20,7 @@ import com.example.kpkn.data.protocols.addT3Sets
 import com.example.kpkn.data.protocols.PlanLoadReference
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.replaceT1Work
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.topSetAndBackoff
 import com.example.kpkn.data.protocols.weekRecipe
 
@@ -244,7 +245,7 @@ object KpknAdvancedProgramRecipes {
             weekRecipe(w, spec.block, spec.name, spec.goal, days.inPeakOneRm(spec.goal))
         }
         // F-14: banca de competición en intensidad, bisagras repartidas (RDL / piernas rígidas) y fin de semana ligero en la semana de test.
-        return TrainingPlanRecipe("power-20-5", weeks, 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = POWER_CONTENT_VERSION + 1)
+        return TrainingPlanRecipe("power-20-5", weeks.rotateKpknFillers(), 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = POWER_CONTENT_VERSION + 2)
     }
 
     fun powerbuilding16(): TrainingPlanRecipe {
@@ -293,7 +294,7 @@ object KpknAdvancedProgramRecipes {
             val days = listOf(
                 DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                 DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
+                DayArchetypes.bbTorsoB(rir).copy(weekday = 4, label = "Torso B"),
                 // L-25 (B.S6): la pierna B baja un RIR pero nunca a 0 en los compuestos (antes: RIR 0 en la semana 5 y de la 7 a la 11).
                 DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1), hipDominant = true, label = "Pierna B", weekday = 5),
             ).map { day -> if (mapped.third == BlockGoal.DELOAD) day.asDeload() else day }
@@ -302,7 +303,7 @@ object KpknAdvancedProgramRecipes {
                 kind = if (mapped.third == BlockGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
             )
         }
-        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION + 1)
     }
 
     fun ppl16(): TrainingPlanRecipe {
@@ -393,7 +394,7 @@ object KpknAdvancedProgramRecipes {
             // son descargas reales (`kind = DELOAD`, series recortadas y RIR ≥ 4). Ninguna es la primera de su bloque.
             deloadOrTraining(w, mapped.first, mapped.second, mapped.third, days, deload = w % 6 == 0)
         }
-        return TrainingPlanRecipe("body-20-5", weeks, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION + 1)
+        return TrainingPlanRecipe("body-20-5", weeks.rotateKpknFillers(), claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION + 2)
     }
 
     /** Las variantes nuevas piden su propia referencia; no usan por LiftSlot la marca del básico de competición. */

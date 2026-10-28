@@ -340,8 +340,8 @@ class ProgramSessionSlopAuditTest {
                 .filter { (_, list) -> list.size > 1 }
                 .map { (text, list) -> text to list }
 
-        /** Techo (trinquete): 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07; 162 tras F-15 y F-48 (solo queda el relleno); I-2 añade DUPLICATE_DISPLAY_NAME e INTERNAL_DISPLAY_CHIP, que valen 0 sin techo. La ola 5 debe dejarlo en 0. */
-        const val CEILING = 162
+        /** Techo (trinquete): 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07; 162 tras F-15 y F-48 (solo queda el relleno); 0 tras F-31 (relleno de KPKN rotado). I-2 añade DUPLICATE_DISPLAY_NAME e INTERNAL_DISPLAY_CHIP, que también valen 0. */
+        const val CEILING = 0
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val DUPLICATE_DISPLAY_NAME = "DUPLICATE_DISPLAY_NAME"
         const val INTERNAL_DISPLAY_CHIP = "INTERNAL_DISPLAY_CHIP"

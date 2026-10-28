@@ -262,7 +262,7 @@ object KpknNativeHypertrophyProtocols {
         id = "kpkn-rp-style",
         name = "Mesociclo RP-style KPKN",
         emoji = "📈",
-        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y los accesorios sumando una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
+        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y el primer accesorio de cada día suma una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
         author = "KPKN Fit",
         tags = listOf("culturismo", "hipertrofia", "avanzado", "4 días", "6 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 60, 80), ProtocolBlock("Descarga", 1, "Descarga", 50, 65)),
@@ -284,7 +284,7 @@ object KpknNativeHypertrophyProtocols {
                     listOf(
                         DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                         DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                        DayArchetypes.bbPull(rir).copy(weekday = 4, label = "Torso B"),
+                        DayArchetypes.bbTorsoB(rir).copy(weekday = 4, label = "Torso B"),
                         DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
                     ).map { day ->
                         if (deload) {
@@ -307,7 +307,8 @@ object KpknNativeHypertrophyProtocols {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-            contentVersion = 3,
+            // F-41: «Torso B» pasa a ser un torso de verdad (antes solo tirón), versión 4.
+            contentVersion = 4,
         ),
         fidelitySpec = ProtocolFidelitySpec(6, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )

@@ -1085,14 +1085,14 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
-        // El texto describe la receta de hoy (los accesorios suman una serie cada semana: rampa al estilo RP).
+        // El texto describe la receta de hoy (el primer accesorio de cada día suma una serie cada semana: rampa al estilo RP).
         add(
             "protocol:kpkn-rp-style",
             own(
                 displayName = "Mesociclo de músculo (estilo RP)",
                 summary = "6 semanas, 4 días por semana (torso A, pierna A, torso B y pierna B). Cada dos semanas " +
                     "te acercas más al fallo, de 3 repeticiones en reserva a 1; la segunda pierna va un punto " +
-                    "más cerca, sin bajar nunca de 1, y los accesorios suman una serie cada semana. La sexta " +
+                    "más cerca, sin bajar nunca de 1, y el primer accesorio de cada día suma una serie cada semana. La sexta " +
                     "semana es de descarga, con cerca de la mitad de las series. Plan propio inspirado en Renaissance " +
                     "Periodization.",
                 rank = 341,
@@ -1102,16 +1102,14 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
-        // El texto describe la receta de hoy (solo la sentadilla va por serie pesada a esfuerzo).
-        // Si D3 fase 2 lleva el método a series pesadas por esfuerzo en los tres levantamientos,
-        // usar la alternativa de §2.8 del diseño editorial.
         add(
             "protocol:kpkn-rts-style",
             own(
                 displayName = "Fuerza por esfuerzo (estilo RTS)",
                 summary = "8 semanas, 4 días: sentadilla, banca, peso muerto y banca de volumen. En las semanas " +
-                    "de trabajo, la sentadilla combina una serie pesada a esfuerzo 8 de 10 (9 al final) con " +
-                    "series más ligeras; el resto usa porcentajes del máximo que levantas una sola vez. " +
+                    "de trabajo, sentadilla, banca y peso muerto combinan una serie pesada a esfuerzo 8 de 10 " +
+                    "(9 al final) con series más ligeras; la banca de volumen usa porcentajes del máximo que " +
+                    "levantas una sola vez. " +
                     "La semana 5 es de descarga, con menos series. Plan propio inspirado en Reactive Training Systems.",
                 rank = 342,
                 levels = ONLY_ADVANCED,

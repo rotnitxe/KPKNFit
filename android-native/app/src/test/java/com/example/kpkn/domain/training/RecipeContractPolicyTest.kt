@@ -20,6 +20,7 @@ import com.example.kpkn.data.protocols.RecipeCompositionProfile
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.SlotSource
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
@@ -93,6 +94,7 @@ class RecipeContractPolicyTest {
         technique: TechniqueModifier? = null,
         supplementalOf: String? = null,
         rest: Int = 180,
+        source: SlotSource = SlotSource.AUTHOR,
     ): SlotRecipe = slot(
         id = id,
         role = role,
@@ -102,6 +104,7 @@ class RecipeContractPolicyTest {
         liftSlot = liftSlot,
         technique = technique,
         supplementalOf = supplementalOf,
+        source = source,
     )
 
     /** [count] series de trabajo de [reps] repeticiones al [percent] % del TM. */
@@ -339,6 +342,92 @@ class RecipeContractPolicyTest {
             ),
         )
         assertNone("misma configuración en días distintos", contract(recipe, RecipeContractPolicy.C2_DUP_CONFIG))
+    }
+
+    // ─── C12 · relleno de KPKN repetido en la semana ──────────────────────────────
+
+    /** Una semana de [labels].size días, cada uno con un accesorio [configurationId] de la [source] dada. */
+    private fun fillerWeek(
+        labels: List<String>,
+        configurationId: String = CatalogIds.PALLOF,
+        source: SlotSource = SlotSource.KPKN_DEFAULT,
+        profile: RecipeCompositionProfile = RecipeCompositionProfile.LEGACY_STANDARD,
+        number: Int = 1,
+    ): TrainingPlanRecipe = recipeOf(
+        listOf(
+            weekOf(
+                labels.mapIndexed { index, label ->
+                    dayOf(listOf(slotOf("acc", SlotRole.T3_ACCESSORY, configurationId, sets(3, 12), source = source)), label, index + 1)
+                },
+                number = number,
+            ),
+        ),
+        profile = profile,
+    )
+
+    @Test
+    fun c12_flags_a_kpkn_filler_that_appears_on_three_days_of_a_week() {
+        val findings = contract(fillerWeek(listOf("A", "B", "C")), RecipeContractPolicy.C12_FILLER_REPEAT)
+        assertEquals(1, findings.size)
+        assertEquals("w1", findings.single().scope)
+        assertEquals(
+            "${CatalogIds.PALLOF} aparece en 3 días de la semana; el relleno de KPKN va como mucho 2",
+            findings.single().message,
+        )
+        val hard = RecipeContractPolicy.evaluate(fillerWeek(listOf("A", "B", "C")), metadata, CompositionSeverity.HARD)
+            .single { it.rule == RecipeContractPolicy.C12_FILLER_REPEAT }
+        assertEquals(CompositionSeverity.HARD, hard.severity)
+    }
+
+    @Test
+    fun c12_accepts_a_kpkn_filler_on_two_days_and_authored_slots_repeated_on_four() {
+        assertNone("relleno en 2 días", contract(fillerWeek(listOf("A", "B")), RecipeContractPolicy.C12_FILLER_REPEAT))
+        assertNone(
+            "slot de autor en 4 días",
+            contract(fillerWeek(listOf("A", "B", "C", "D"), source = SlotSource.AUTHOR), RecipeContractPolicy.C12_FILLER_REPEAT),
+        )
+        assertNone(
+            "receta de autor exacta",
+            contract(
+                fillerWeek(listOf("A", "B", "C"), profile = RecipeCompositionProfile.AUTHORED_EXACT),
+                RecipeContractPolicy.C12_FILLER_REPEAT,
+            ),
+        )
+    }
+
+    @Test
+    fun c12_counts_distinct_days_per_configuration_and_per_week() {
+        // Dos slots de la misma configuración en un mismo día cuentan como un día.
+        val sameDay = recipeOf(
+            listOf(
+                weekOf(
+                    listOf(
+                        dayOf(
+                            listOf(
+                                slotOf("a", SlotRole.T3_ACCESSORY, CatalogIds.PALLOF, sets(3, 12), source = SlotSource.KPKN_DEFAULT),
+                                slotOf("b", SlotRole.T3_ACCESSORY, CatalogIds.PALLOF, sets(3, 12), source = SlotSource.KPKN_DEFAULT),
+                            ),
+                            "A", 1,
+                        ),
+                        dayOf(listOf(slotOf("a", SlotRole.T3_ACCESSORY, CatalogIds.PALLOF, sets(3, 12), source = SlotSource.KPKN_DEFAULT)), "B", 2),
+                    ),
+                ),
+            ),
+        )
+        assertNone("dos días distintos", contract(sameDay, RecipeContractPolicy.C12_FILLER_REPEAT))
+
+        // El tope es por semana: tres semanas con el relleno en 2 días no suman 6.
+        val perWeek = recipeOf(
+            (1..3).map { n ->
+                weekOf(
+                    listOf("A", "B").mapIndexed { i, label ->
+                        dayOf(listOf(slotOf("acc", SlotRole.T3_ACCESSORY, CatalogIds.PALLOF, sets(3, 12), source = SlotSource.KPKN_DEFAULT)), label, i + 1)
+                    },
+                    number = n,
+                )
+            },
+        )
+        assertNone("tres semanas con 2 días", contract(perWeek, RecipeContractPolicy.C12_FILLER_REPEAT))
     }
 
     // ─── C3 · series vacías ───────────────────────────────────────────────────────
