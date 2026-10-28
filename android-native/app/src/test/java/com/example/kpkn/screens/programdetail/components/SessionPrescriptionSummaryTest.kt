@@ -45,6 +45,14 @@ class SessionPrescriptionSummaryTest {
     }
 
     @Test
+    fun unaCargaEstimadaTerminaConElRotuloCargaEstimada() {
+        val estimada = ejercicio(ExerciseSet(id = "s1", targetReps = 8), descanso = 195).copy(
+            loadEstimate = com.example.kpkn.domain.training.VariantLoadEstimate("base", 200.0, 0.85, 170.0),
+        )
+        assertEquals("1 × 8 · 3:15 · carga estimada", formatExercisePrescription(estimada))
+    }
+
+    @Test
     fun descansoDeMenosDeUnMinutoVaConSuUnidadConEspacioInseparable() {
         val ej = ejercicio(ExerciseSet(id = "s1", targetReps = 8), descanso = 45)
         assertEquals("1 × 8 · 45${nbsp}s", formatExercisePrescription(ej))

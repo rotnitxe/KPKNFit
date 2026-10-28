@@ -1,0 +1,341 @@
+{
+  "drop": {
+    "arroz_con_leche": "arroz_con_leche_postre",
+    "costillar_de_cerdo": "costillar_cerdo"
+  },
+  "dropVariants": [
+    {
+      "id": "te_negro",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "te_verde",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "te_rojo",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "infusion_hierbas",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "yerba_mate",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "cafe_negro",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "americano",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "cafe_con_leche",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "mate_cocido_leche",
+      "state": null,
+      "form": "LIQUID"
+    },
+    {
+      "id": "crema_chantilly",
+      "state": null,
+      "form": "LIGHT"
+    }
+  ],
+  "dropAliases": {
+    "mousse_chocolate": [
+      "mousse de frutilla",
+      "mousse de limon"
+    ],
+    "mousse_lacteo": [
+      "chocolate mousse",
+      "mouse de chocolate",
+      "mus de chocolate"
+    ],
+    "pimenton_y_ajo_en_polvo": [
+      "pimenton",
+      "pimentom"
+    ],
+    "papas_fritas_bolsa": [
+      "papas fritas"
+    ],
+    "papas_fritas_caseras": [
+      "chips"
+    ],
+    "vienesa": [
+      "hot dog"
+    ],
+    "lasana_laminas": [
+      "lasana",
+      "lasagna",
+      "lazana"
+    ],
+    "licor_menta": [
+      "menta",
+      "peppermint"
+    ],
+    "pastillas_menta": [
+      "menta",
+      "pastillas"
+    ],
+    "choclo": [
+      "chocho"
+    ],
+    "matcha_latte": [
+      "macha"
+    ],
+    "galleta_champana": [
+      "champana"
+    ],
+    "pepino_dulce": [
+      "pepino"
+    ],
+    "bistec": [
+      "milanesa",
+      "milanesa de carne",
+      "milanesa de vacuno"
+    ],
+    "corazon_vacuno": [
+      "anticucho"
+    ],
+    "papas_fritas_light": [
+      "papas al horno",
+      "papas horneadas"
+    ],
+    "pepperoni": [
+      "pizza pepperoni"
+    ],
+    "bunuelo": [
+      "bola de berlin"
+    ],
+    "lomito_italiano": [
+      "lomito de cerdo"
+    ],
+    "pad_thai": [
+      "pad thai noodles"
+    ],
+    "salsa_de_tomate": [
+      "tomatican"
+    ],
+    "salsa_aji_verde": [
+      "aji peruano"
+    ],
+    "churrasco_corte": [
+      "churrasco",
+      "churasco",
+      "churrazco"
+    ],
+    "hamburguesa_casera": [
+      "amburguesa",
+      "hamburgesa"
+    ],
+    "alitas_pollo": [
+      "alitas",
+      "alitas de pollo",
+      "alitas de polo",
+      "alitas de poyo",
+      "chicken wings"
+    ],
+    "avena_bebida": [
+      "avena",
+      "abena",
+      "avena cocida",
+      "avena con leche",
+      "avena cocida con leche",
+      "abena con leche",
+      "oat drink"
+    ],
+    "croquetas_jamon": [
+      "croquetas de pollo",
+      "chicken croquettes"
+    ],
+    "croquetas_pollo": [
+      "croquetas de jamon",
+      "ham croquettes",
+      "croquetas",
+      "croquetas caseras",
+      "croquettes"
+    ],
+    "ravioles_salsa": [
+      "ravioles de carne",
+      "ravioles de queso",
+      "ravioles de ricota",
+      "cheese ravioli",
+      "meat ravioli"
+    ],
+    "ravioles_carne": [
+      "ravioles",
+      "ravioli",
+      "raviolis",
+      "rabioles",
+      "raviolez"
+    ],
+    "noquis_papa": [
+      "noquis",
+      "nioquis",
+      "gnocchi"
+    ],
+    "noquis_salsa": [
+      "noquis de papa",
+      "potato gnocchi"
+    ],
+    "chips_nori": [
+      "nori tostado"
+    ],
+    "habas_fritas": [
+      "habas tostadas",
+      "habones"
+    ],
+    "tortilla_enrollada_picante": [
+      "rolls"
+    ],
+    "poroto_rojo": [
+      "kidney"
+    ],
+    "mix_sopa": [
+      "sofrito de verduras"
+    ],
+    "pollo_frito_presa": [
+      "presa de pollo"
+    ],
+    "chayote": [
+      "papa del aire",
+      "cidra"
+    ],
+    "marraqueta": [
+      "pancito"
+    ],
+    "tostadas_biscotte": [
+      "tostadas",
+      "toasted bread slices"
+    ],
+    "aceite_mct": [
+      "mct en polvo",
+      "MCT powder"
+    ],
+    "omelette_queso": [
+      "tortilla de queso",
+      "tortilla de jamon y queso"
+    ],
+    "asado_tira": [
+      "asado"
+    ],
+    "mantequilla_almendra": [
+      "pasta de almendras"
+    ],
+    "chancaca": [
+      "jarabe de chancaca"
+    ],
+    "caramelo_duro": [
+      "dulce",
+      "dulces"
+    ],
+    "pain_au_chocolat": [
+      "napolitana"
+    ],
+    "mermelada": [
+      "jalea de fruta"
+    ],
+    "mate_cocido_leche": [
+      "cocido",
+      "mate cocido",
+      "mate cocido en bolsita",
+      "mate cocido paraguayo"
+    ],
+    "amaretto": [
+      "almendrado"
+    ],
+    "pisco_sour": [
+      "sour"
+    ],
+    "polvo_hornear": [
+      "royal"
+    ],
+    "salsa_alfredo": [
+      "alfredo"
+    ],
+    "gazpacho": [
+      "salmorejo"
+    ],
+    "pancakes": [
+      "tortitas"
+    ],
+    "vino_blanco": [
+      "blanco"
+    ],
+    "molida_8": [
+      "molida"
+    ],
+    "queso_cremoso": [
+      "cremoso"
+    ],
+    "torta_mexicana": [
+      "torta"
+    ],
+    "salsa_roja": [
+      "salsa"
+    ]
+  },
+  "keepFrom": {
+    "pure_instantaneo": "C13.jsonl"
+  },
+  "setVariants": [
+    {
+      "id": "quesillo",
+      "state": null,
+      "form": "NA",
+      "ref": "off_7802930004362",
+      "note": "Revision cruzada: quesillo chileno real (OFF Chile, 148 kcal) en vez de queso fresco USDA (298 kcal)."
+    },
+    {
+      "id": "quesillo",
+      "state": null,
+      "form": "LIGHT",
+      "ref": "off_7802920001135",
+      "note": "Revision cruzada: quesillo light chileno (OFF Chile, 83 kcal)."
+    },
+    {
+      "id": "bonito",
+      "state": "RAW",
+      "form": "NA",
+      "ref": "ciqual_26101",
+      "note": "Revision cruzada: bonito (Sarda) es graso; CIQUAL 161 kcal en vez de atun listado."
+    },
+    {
+      "id": "bonito",
+      "state": "COOKED",
+      "form": "NA",
+      "ref": "ciqual_26101",
+      "proxy": true,
+      "note": "Revision cruzada: sin ficha cocida de bonito; la cruda subestima ~20 % (antes atun listado cocido, -34 %)."
+    }
+  ],
+  "addAliases": {
+    "torta_crema": {
+      "aliasesEs": [
+        "torta",
+        "tortas",
+        "trozo de torta",
+        "pedazo de torta"
+      ]
+    },
+    "salsa_de_tomate": {
+      "aliasesEs": [
+        "salsa"
+      ]
+    }
+  }
+}

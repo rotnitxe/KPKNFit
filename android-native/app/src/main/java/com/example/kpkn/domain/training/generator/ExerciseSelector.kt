@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training.generator
 import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.AvoidGroups
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 
 /** Un ejercicio elegido para un hueco, con todo lo que la prescripción y el ensamblado necesitan. */
 internal data class Candidate(
@@ -26,6 +27,14 @@ internal class SessionUse {
     val configs: HashSet<String> = HashSet()
     val definitions: HashSet<String> = HashSet()
 
+    /** Familias de movimiento ya usadas ([SessionSlopRules.familyOf]): barra baja y barra alta son la misma sentadilla trasera. */
+    val families: HashSet<String> = HashSet()
+
+    /** ¿Ya está usado este ejercicio en la sesión (su configuración, su definición o su familia de movimiento)? */
+    fun contains(entry: CatalogEntry): Boolean =
+        entry.id in configs || entry.definitionId in definitions ||
+            SessionSlopRules.familyOf(entry.id)?.let { it in families } == true
+
     /** Escaleras de peso corporal ya usadas: la misma escalera no da dos ejercicios en una sesión (flexión y flexión con rodillas). */
     val ladders: HashSet<String> = HashSet()
 
@@ -35,6 +44,7 @@ internal class SessionUse {
     fun add(candidate: Candidate) {
         configs += candidate.entry.id
         definitions += candidate.entry.definitionId
+        SessionSlopRules.familyOf(candidate.entry.id)?.let { families += it }
         candidate.ladderKey?.let { ladders += it }
         candidate.mark?.let { mark -> marks[mark] = (marks[mark] ?: 0) + 1 }
     }
@@ -210,7 +220,7 @@ internal object ExerciseSelector {
                 if (!ctx.tierAllowed(entry)) return@mapNotNull null
                 if (!levelAllows(ctx.level, poolEntry.minLevel)) return@mapNotNull null
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY && !poolEntry.basic) return@mapNotNull null
-                if (entry.id in use.configs || entry.definitionId in use.definitions) return@mapNotNull null
+                if (use.contains(entry)) return@mapNotNull null
                 if (!equipment.allows(entry, poolEntry.requires)) return@mapNotNull null
                 if (avoidedGroupOf(avoided, entry.definitionId, poolEntry.kind) != null) return@mapNotNull null
                 poolEntry to entry
@@ -306,7 +316,7 @@ internal object ExerciseSelector {
                 if (!ctx.tierAllowed(entry)) continue
                 if (!levelAllows(ctx.level, rung.minLevel)) continue
                 if (novice && entry.difficulty > NOVICE_MAX_DIFFICULTY) continue
-                if (entry.id in use.configs || entry.definitionId in use.definitions) continue
+                if (use.contains(entry)) continue
                 if (!equipment.allows(entry, rung.requires)) continue
                 if (avoidedGroupOf(avoided, entry.definitionId, rung.kind) != null) continue
                 val base = ladderRank(ladder, tier, ctx.rankProfile) + offset + (if (firstInTier) 0.0 else 0.15) +

@@ -12,6 +12,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.EFFECTIVE_EQUIPMENT_KEYS
 import com.example.kpkn.domain.training.EffectiveEquipmentResult
+import com.example.kpkn.domain.training.SYMBOL_EQUIPMENT_KEYS
 import com.example.kpkn.domain.training.EquipmentKeys
 import com.example.kpkn.domain.training.IdProvider
 import com.example.kpkn.domain.training.TrainingOptions
@@ -52,6 +53,27 @@ internal object AuthoredPlanFixtures {
             categories = EquipmentCategory.entries.toSet(),
             apparatus = confirmedStations,
             supports = confirmedSupports,
+        ),
+    )
+
+    /**
+     * Todo el material que la app sabe acreditar: todas las categorías, todos los aparatos curados (máquinas y poleas), todos los
+     * soportes y los extras de símbolo (GHD, rueda abdominal, banco declinado, cajón…), todo PRESENT. Sirve para materializar CADA
+     * receta de autor sin que el material la deje fuera (el `fullGym` no confirma ni GHD ni rueda abdominal).
+     */
+    val everything = Gear(
+        "E7-todo-el-material",
+        EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            apparatus = EFFECTIVE_EQUIPMENT_KEYS
+                .filter { it.category in setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.SMITH_MACHINE) }
+                .associate { it.key to ApparatusPresence.PRESENT },
+            supports = EFFECTIVE_EQUIPMENT_KEYS
+                .filter { it.category !in setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.SMITH_MACHINE) }
+                .associate { it.key to ApparatusPresence.PRESENT } +
+                SYMBOL_EQUIPMENT_KEYS.associate { it.key to ApparatusPresence.PRESENT },
+            // «Máquinas» como sala completa: ninguna receta se queda fuera por una máquina que el panel no cura.
+            machinesAsCategory = true,
         ),
     )
 

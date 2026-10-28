@@ -44,9 +44,12 @@ class ProgramExerciseSwapTest {
         val p = program()
         val result = apply(p,SwapScope.THIS_SESSION)
         val exercise = weeks(result).first().sessions.single().allExercises().single()
-        assertNull(exercise.reference1RM)
-        assertNull(exercise.referenceTrainingMax)
-        assertNull(exercise.sets.single().weight)
+        // F-22: ya no hereda la marca de otra configuración, pero BP → BP con pausa (tabla de factores) lleva una estimación visible.
+        assertEquals(95.0,exercise.reference1RM!!,1e-9)
+        assertEquals(85.5,exercise.referenceTrainingMax!!,1e-9)
+        assertEquals(0.95,exercise.loadEstimate!!.factor,1e-9)
+        assertEquals(CatalogIds.BP,exercise.loadEstimate!!.sourceConfigurationId)
+        assertNull("la carga de trabajo de otra variante no se hereda",exercise.sets.single().weight)
         assertEquals(5,exercise.sets.single().targetReps)
         assertEquals(2,exercise.sets.single().targetRIR)
         assertEquals(180,exercise.sets.single().restAfterSeconds)
@@ -54,6 +57,30 @@ class ProgramExerciseSwapTest {
         assertEquals(CatalogIds.BP_PAUSE,exercise.canonicalExerciseId)
         assertNotNull(exercise.performanceProfileId)
         assertEquals(weeks(p).drop(1),weeks(result).drop(1))
+    }
+    @Test fun a_swap_without_an_estimable_pair_or_without_equivalence_keeps_the_old_no_kilos_behaviour() {
+        val p = program()
+        val samePattern = applyExerciseSwap(p,"s1","e1",target.copy(kind = SwapKind.SAME_PATTERN),SwapScope.THIS_SESSION,CatalogCompositionTestSupport.catalog)
+        val a = weeks(samePattern).first().sessions.single().allExercises().single()
+        assertNull(a.reference1RM); assertNull(a.referenceTrainingMax); assertNull(a.loadEstimate)
+        val notInTable = applyExerciseSwap(p,"s1","e1",target.copy(configId = CatalogIds.BP_DB),SwapScope.THIS_SESSION,CatalogCompositionTestSupport.catalog)
+        val b = weeks(notInTable).first().sessions.single().allExercises().single()
+        assertNull(b.reference1RM); assertNull(b.loadEstimate)
+        val withoutMark = program().let { base -> base.copy(macrocycles = base.macrocycles.map { m -> m.copy(blocks = m.blocks.map { bl ->
+            bl.copy(mesocycles = bl.mesocycles.map { me -> me.copy(weeks = me.weeks.map { w -> w.copy(sessions = w.sessions.map { s ->
+                s.copy(exercises = s.exercises.map { it.copy(reference1RM = null,referenceTrainingMax = null) }) }) }) }) }) }) }
+        val c = weeks(apply(withoutMark,SwapScope.THIS_SESSION)).first().sessions.single().allExercises().single()
+        assertNull(c.reference1RM); assertNull(c.loadEstimate)
+    }
+    @Test fun percent_based_sets_get_estimated_kilos_after_an_equivalent_swap() {
+        val base = program()
+        val p = base.copy(macrocycles = base.macrocycles.map { m -> m.copy(blocks = m.blocks.map { bl ->
+            bl.copy(mesocycles = bl.mesocycles.map { me -> me.copy(weeks = me.weeks.map { w -> w.copy(sessions = w.sessions.map { s ->
+                s.copy(exercises = s.exercises.map { it.copy(sets = it.sets.map { set -> set.copy(targetPercentageRM = 80.0,
+                    loadBasis = com.example.kpkn.data.protocols.LoadBasis.PERCENT_1RM) }) }) }) }) }) }) })
+        val exercise = weeks(apply(p,SwapScope.THIS_SESSION)).first().sessions.single().allExercises().single()
+        // 80 % de 95 kg = 76 kg, redondeado a 2,5 kg = 75 kg.
+        assertEquals(75.0,exercise.sets.single().weight!!,1e-9)
     }
     @Test fun started_source_sessions_and_invalid_catalog_choices_are_no_ops() {
         val p = program()
@@ -80,5 +107,47 @@ class ProgramExerciseSwapTest {
         assertEquals(LoadQuantityConvention.PER_IMPLEMENT,exercise.loadQuantityConvention)
         assertEquals(LoadQuantityConvention.PER_IMPLEMENT,exercise.sets.single().loadQuantityConvention)
         assertNull(exercise.sets.single().weight)
+    }
+    @Test fun sessions_that_already_have_the_target_keep_their_exercise_and_the_decision_counts_them() {
+        // DUP-03 (F-13): s2 ya tiene la configuración destino y s3 su definición: ninguna se cambia.
+        val base = program()
+        fun extra(id: String, config: String, definition: String) = Exercise(id,"Otro",catalogConfigurationId = config,catalogDefinitionId = definition,
+            sets = listOf(ExerciseSet("$id-set",targetReps = 8,targetRIR = 2)))
+        val p = base.copy(macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
+                week.copy(sessions = week.sessions.map { session -> when (session.id) {
+                    "s2" -> session.copy(exercises = session.exercises + extra("x2",CatalogIds.BP_PAUSE,"paused_bench_press"))
+                    "s3" -> session.copy(exercises = session.exercises + extra("x3","paused_bench_press__dumbbells","paused_bench_press"))
+                    else -> session
+                } })
+            }) })
+        }) })
+        val result = apply(p,SwapScope.WHOLE_PROGRAM)
+        assertEquals(listOf(CatalogIds.BP_PAUSE,CatalogIds.BP,CatalogIds.BP,CatalogIds.BP_PAUSE),
+            weeks(result).map { it.sessions.single().allExercises().first().catalogConfigurationId })
+        assertEquals(weeks(p)[1],weeks(result)[1])
+        assertEquals(weeks(p)[2],weeks(result)[2])
+        assertEquals(2,result.manualSessionOverrides.size)
+        val decision = result.programDecisions.single()
+        assertTrue(decision.detail,decision.detail.contains("en 2 sesiones (2 ejercicios)"))
+        assertTrue(decision.detail,decision.detail.contains("2 sesiones conservan el ejercicio porque ya tenían «"))
+    }
+    @Test fun the_decision_text_uses_the_singular_when_a_count_is_one() {
+        // Una sola sesión afectada: «1 sesión (1 ejercicio)»; una sola conservada: «1 sesión conserva … porque ya tenía».
+        val single = apply(program(),SwapScope.THIS_SESSION).programDecisions.single()
+        assertTrue(single.detail,single.detail.contains("en 1 sesión (1 ejercicio)"))
+        assertTrue(single.detail,!single.detail.contains("el ejercicio porque ya tenía"))
+        val base = program()
+        val extra = Exercise("x2","Otro",catalogConfigurationId = CatalogIds.BP_PAUSE,catalogDefinitionId = "paused_bench_press",
+            sets = listOf(ExerciseSet("x2-set",targetReps = 8,targetRIR = 2)))
+        val p = base.copy(macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
+                week.copy(sessions = week.sessions.map { session ->
+                    if (session.id == "s2") session.copy(exercises = session.exercises + extra) else session
+                })
+            }) })
+        }) })
+        val detail = apply(p,SwapScope.WHOLE_PROGRAM).programDecisions.single().detail
+        assertTrue(detail,detail.contains("en 3 sesiones (3 ejercicios); 1 sesión conserva el ejercicio porque ya tenía «"))
     }
 }

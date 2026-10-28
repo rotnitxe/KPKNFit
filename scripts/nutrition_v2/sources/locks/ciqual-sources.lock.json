@@ -1,0 +1,69 @@
+{
+  "datasetVersion": "1.0",
+  "doi": "10.57745/RDMHWY",
+  "files": {
+    "Table Ciqual 2025 doc FR_2025_11_19.pdf": {
+      "bytes": 4236848,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "d174cac6f44ca7fca83f5aa4b0b75840"
+      },
+      "sha256": "b95704eb6bb775e73e6f5824eca8bebed1634bb3b3d9631dae1987828e5a95d5",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666748"
+    },
+    "alim_2025_11_03.xml": {
+      "bytes": 1581031,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "8e1171d63cee4b6010cfce25dd29243d"
+      },
+      "sha256": "e0b1de25b3039028205e9d54a96892e403e1b313c2efeb41180fabe132627478",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666252"
+    },
+    "alim_grp_2025_11_03.xml": {
+      "bytes": 80421,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "c31aeea90349c3aab86f98ef5f4f10da"
+      },
+      "sha256": "e216928be1001aed15ba1b120405b70a98145da2a1a76026d6e33542bd5e39dc",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666250"
+    },
+    "compo_2025_11_03.xml": {
+      "bytes": 69243149,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "2da725585946434df320d8041631998b"
+      },
+      "sha256": "8c46a9032ece4eab4ffccc9dfcb0c490ec2f416aa664cc1ee013b241c6bdd4af",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666249"
+    },
+    "const_2025_11_03.xml": {
+      "bytes": 17955,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "d8f2f25fdacb887bc993a6eeaf80f203"
+      },
+      "sha256": "3a231ea3e9836e4ac0b6ff94511e010210b2523d1b8b486c6b29e211066ba3f3",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666246"
+    },
+    "sources_2025_11_03.xml": {
+      "bytes": 871783,
+      "officialChecksum": {
+        "type": "MD5",
+        "value": "5469598d6b4811672b65e1644dfc6485"
+      },
+      "sha256": "73e6a0c573f88c23f23b4670a016c616edea806b3d92340942cdbdb9b4323137",
+      "url": "https://entrepot.recherche.data.gouv.fr/api/access/datafile/666248"
+    }
+  },
+  "license": "Etalab-2.0",
+  "licenseMetadata": {
+    "iconUri": "https://entrepot.recherche.data.gouv.fr/assets/licence-ouverte.png",
+    "name": "etalab 2.0",
+    "uri": "https://spdx.org/licenses/etalab-2.0.html"
+  },
+  "metadataUrl": "https://entrepot.recherche.data.gouv.fr/api/datasets/:persistentId/versions/1.0?persistentId=doi:10.57745/RDMHWY",
+  "release": "2025-11-03",
+  "source": "ANSES_CIQUAL"
+}

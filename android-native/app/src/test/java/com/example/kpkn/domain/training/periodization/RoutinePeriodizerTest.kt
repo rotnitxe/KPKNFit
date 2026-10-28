@@ -13,6 +13,7 @@ import com.example.kpkn.domain.training.generator.RoutineLevel
 import com.example.kpkn.domain.training.generator.RoutineMode
 import com.example.kpkn.domain.training.generator.RoutineRequest
 import com.example.kpkn.domain.training.generator.RoutineTestSupport
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -34,14 +35,46 @@ class RoutinePeriodizerTest {
         val accumulation = lift(BlockGoal.ACCUMULATION)
         assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_HIGH,accumulation.catalogConfigurationId)
         assertEquals(accumulation.catalogConfigurationId,accumulation.exerciseDbId)
-        assertNull(accumulation.reference1RM)
+        // F-22: la barra alta no hereda los 200 kg de la barra baja como marca propia; lleva una estimación (×0,95) visible.
+        assertEquals(190.0,accumulation.reference1RM!!,1e-9)
+        assertEquals(0.95,accumulation.loadEstimate!!.factor,1e-9)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_LOW,accumulation.loadEstimate!!.sourceConfigurationId)
         assertNull(accumulation.referenceTrainingMax)
-        assertTrue(accumulation.sets.all { it.weight == null && it.targetPercentageRM == null })
+        assertTrue(accumulation.sets.all { (it.weight ?: 0.0) > 0.0 && it.targetPercentageRM != null })
         val intensification = lift(BlockGoal.INTENSIFICATION)
-        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_PAUSED,intensification.catalogConfigurationId)
+        // F-10: solo rota hacia un ejercicio que NO está ya en la sesión; si la sesión base ya lleva la sentadilla con pausa
+        // (como configuración o como definición), el principal conserva su configuración.
+        val pausedId = com.example.kpkn.data.protocols.CatalogIds.SQ_PAUSED
+        val pausedDefinition = com.example.kpkn.domain.training.generator.GeneratorCatalog.of(RoutineTestSupport.catalog).entry(pausedId)!!.definitionId
+        val others = sessionsOf(base).first { session -> session.allExercises().any { it.id == source.id } }
+            .allExercises().filter { it.id != source.id }
+        val pausedAlreadyThere = others.any { it.catalogConfigurationId == pausedId || it.catalogDefinitionId == pausedDefinition }
+        assertEquals(
+            if (pausedAlreadyThere) com.example.kpkn.data.protocols.CatalogIds.SQ_LOW else pausedId,
+            intensification.catalogConfigurationId,
+        )
+        if (!pausedAlreadyThere) {
+            assertEquals(170.0,intensification.reference1RM!!,1e-9)
+            assertEquals(0.85,intensification.loadEstimate!!.factor,1e-9)
+        }
         val specific = lift(blocks.first { it.goal in setOf(BlockGoal.REALIZATION,BlockGoal.PEAK) }.goal!!)
         assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_LOW,specific.catalogConfigurationId)
         assertEquals(200.0,specific.reference1RM!!,0.0)
+        assertNull("el básico lleva su marca declarada, no una estimación",specific.loadEstimate)
+    }
+
+    @Test fun rotated_variants_without_a_mark_for_their_basic_stay_without_kilos_and_without_estimate() {
+        val request = s.request(s.gym,RoutineMode.CUSTOM_POWERLIFTING,RoutineLevel.INTERMEDIATE,dayCount = 3,minutes = 60)
+            .copy(liftVariants = mapOf(LiftMark.SQUAT to com.example.kpkn.data.protocols.CatalogIds.SQ_LOW))
+        val base = RoutineGenerator.generate(request).program
+        val result = RoutinePeriodizer.build(request,base,ProgramVariant.PERIODIZED,Horizon.Weeks(12)).program
+        val rotated = sessionsOf(result).flatMap { it.allExercises() }.filter { it.catalogConfigurationId == com.example.kpkn.data.protocols.CatalogIds.SQ_HIGH }
+        assertTrue(rotated.isNotEmpty())
+        rotated.forEach { exercise ->
+            assertNull(exercise.loadEstimate)
+            assertNull(exercise.reference1RM)
+            assertTrue(exercise.sets.all { it.weight == null })
+        }
     }
 
     private val s = RoutineTestSupport
@@ -220,5 +253,55 @@ class RoutinePeriodizerTest {
             "Hay 2 sesiones fuera de 51–66 min: el material y los techos de volumen no dejan ajustarlas sin quitar básicos.",
             RoutinePeriodizer.outOfWindowNote(2, 51..66),
         )
+    }
+
+    // ─── F-10 · rotación sin colisiones · F-16 · unicidad permanente ───────────────────────────────────────
+
+    private val weekSuffix = Regex("""-w\d+$""")
+
+    /** Violaciones de slop de TODAS las sesiones de TODAS las semanas de [program], con etiqueta. */
+    private fun slopOf(label: String, program: Program): List<String> = weeksOf(program).flatMap { week ->
+        week.sessions.flatMap { session ->
+            SessionSlopRules.violations(session).map { "$label · ${week.id} · ${session.name}: ${it.rule} ${it.detail}" }
+        }
+    }
+
+    @Test
+    fun rotation_never_turns_a_session_into_a_duplicate_for_powerlifting_novice_and_weightlifting() {
+        listOf(
+            Triple(RoutineMode.CUSTOM_POWERLIFTING, RoutineLevel.INTERMEDIATE, 3),
+            Triple(RoutineMode.CUSTOM_POWERLIFTING, RoutineLevel.NOVICE, 3),
+            Triple(RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE, RoutineLevel.INTERMEDIATE, 3),
+        ).forEach { (mode, level, days) ->
+            val request = s.request(s.gym, mode, level, dayCount = days, minutes = 75)
+            val base = RoutineGenerator.generate(request).program
+            val baseConfig = sessionsOf(base).flatMap { it.allExercises() }.associate { it.id to it.catalogConfigurationId }
+            val program = RoutinePeriodizer.build(request, base, ProgramVariant.PERIODIZED, Horizon.Weeks(12)).program
+            val label = "$mode $level"
+            assertEquals(label, emptyList<String>(), slopOf(label, program))
+            // Solo rota el primer básico de cada familia por sesión: un único ejercicio cambiado por familia.
+            weeksOf(program).flatMap { it.sessions }.forEach { session ->
+                val changed = session.allExercises().filter { exercise ->
+                    baseConfig[exercise.id.replace(weekSuffix, "")] != exercise.catalogConfigurationId
+                }
+                val families = changed.mapNotNull { exercise -> exercise.catalogConfigurationId?.let { BlockVariantRotation.familyOf(it) } }
+                assertEquals("$label ${session.id}: ${changed.map { it.catalogConfigurationId }}", families.size, families.distinct().size)
+            }
+        }
+    }
+
+    @Test
+    fun no_week_of_a_heavy_mode_has_repeated_exercises_or_movement_families() {
+        val horizons = listOf(ProgramVariant.BLOCKS to Horizon.Weeks(6), ProgramVariant.PERIODIZED to Horizon.Weeks(12))
+        val problems = RoutinePeriodizer.HEAVY_MODES.flatMap { mode ->
+            listOf(RoutineLevel.NOVICE, RoutineLevel.INTERMEDIATE).flatMap { level ->
+                val request = s.request(s.gym, mode, level, dayCount = 3, minutes = 75)
+                val base = RoutineGenerator.generate(request).program
+                horizons.flatMap { (variant, horizon) ->
+                    slopOf("$mode $level $variant", RoutinePeriodizer.build(request, base, variant, horizon).program)
+                }
+            }
+        }
+        assertEquals(emptyList<String>(), problems)
     }
 }

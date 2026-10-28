@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.domain.training.calibration.ResolvedCalibrationAnswer
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -107,6 +108,8 @@ internal fun ProgramRangesSheet(
     onReviewAnswers: () -> Unit,
     onReviewProposals: () -> Unit,
     onDismiss: () -> Unit,
+    /** Las respuestas de la calibración con su origen (dadas por ti o deducidas de tus registros); se listan bajo el origen. */
+    answers: List<ResolvedCalibrationAnswer> = emptyList(),
 ) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.85f) {
         Column(
@@ -128,6 +131,14 @@ internal fun ProgramRangesSheet(
                     title = rangesOriginLabel(origin),
                     detail = rangesOriginDetail(origin, ownRangesCount),
                 )
+                answers.forEach { answer ->
+                    Text(
+                        "${answer.trait.label}: ${answer.label()}",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.padding(start = 54.dp, top = 2.dp),
+                    )
+                }
             }
             RangesGroup("Cambiarlos") {
                 RangesRow(

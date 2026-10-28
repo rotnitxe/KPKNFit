@@ -809,6 +809,8 @@ public struct Exercise: Identifiable, Codable {
     public let mobilitySeries: [MobilitySeries]
     public let timeStrategy: TimeStrategy?
     public let targetDurationMinutes: Int?
+    /// Rótulo de una aparición repetida por diseño del autor (p. ej. «Volumen BBB 5×10»).
+    public let occurrenceLabel: String?
     public let opaqueFields: [String: JSONValue]
     public init(
         id: String,
@@ -860,6 +862,7 @@ public struct Exercise: Identifiable, Codable {
         mobilitySeries: [MobilitySeries] = [],
         timeStrategy: TimeStrategy? = nil,
         targetDurationMinutes: Int? = nil,
+        occurrenceLabel: String? = nil,
         opaqueFields: [String: JSONValue] = [:]
     ) {
         self.id = id
@@ -911,6 +914,7 @@ public struct Exercise: Identifiable, Codable {
         self.mobilitySeries = mobilitySeries
         self.timeStrategy = timeStrategy
         self.targetDurationMinutes = targetDurationMinutes
+        self.occurrenceLabel = occurrenceLabel
         self.opaqueFields = opaqueFields
     }
 
@@ -922,7 +926,7 @@ public struct Exercise: Identifiable, Codable {
         "selectedMovementPattern", "prFor1RM", "consolidatedWeight", "brandEquivalencies", "isUnilateral", "unilateralMode",
         "unilateralSideOrder", "unilateralIntensityMode", "restBetweenSidesSeconds", "isCalibratorAmrap", "goal1RM", "goalPr",
         "calculated1RM", "damageProfile", "isCompetitionLift", "setupCues", "executionCues", "contextProfilesV3",
-        "defaultContextProfileIdV3", "mobilitySeries", "timeStrategy", "targetDurationMinutes",
+        "defaultContextProfileIdV3", "mobilitySeries", "timeStrategy", "targetDurationMinutes", "occurrenceLabel",
     ]
 
     public init(from decoder: Decoder) throws {
@@ -976,6 +980,7 @@ public struct Exercise: Identifiable, Codable {
         mobilitySeries = try c.decode([MobilitySeries].self, "mobilitySeries", default: [])
         timeStrategy = try c.decodeOptional(TimeStrategy.self, "timeStrategy")
         targetDurationMinutes = try c.decodeOptional(Int.self, "targetDurationMinutes")
+        occurrenceLabel = try c.decodeOptional(String.self, "occurrenceLabel")
         opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
     }
 
@@ -1030,6 +1035,7 @@ public struct Exercise: Identifiable, Codable {
         try c.encode(mobilitySeries, forKey: DynamicCodingKey("mobilitySeries"))
         try c.encodeIfPresent(timeStrategy, forKey: DynamicCodingKey("timeStrategy"))
         try c.encodeIfPresent(targetDurationMinutes, forKey: DynamicCodingKey("targetDurationMinutes"))
+        try c.encodeIfPresent(occurrenceLabel, forKey: DynamicCodingKey("occurrenceLabel"))
         try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 }

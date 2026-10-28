@@ -68,8 +68,6 @@ import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
 import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
-import com.example.kpkn.data.models.ProgramMode
-import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.programs.ProtocolDetailSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
@@ -172,9 +170,6 @@ fun HomeScreen(
     val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
     val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
-    val pendingVolumeTemplateId by viewModel.pendingVolumeTemplateId.collectAsState()
-    val pendingVolumeProtocol by viewModel.pendingVolumeProtocol.collectAsState()
-    val pendingVolumeProfile by viewModel.pendingVolumeProfile.collectAsState()
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
@@ -319,6 +314,7 @@ fun HomeScreen(
              consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
             onRegisterCompetition = onRegisterCompetition,
+            onOpenCompetitionProgram = onNavigateToProgram,
             onCreateProgram = openCreate,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
@@ -430,8 +426,6 @@ fun HomeScreen(
                                 viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
                                 onNavigateToProgram(outcome.programId)
                             }
-                            ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
-                                templateError = "No se pudo crear el programa. Revisa la plantilla elegida."
                         }
                     }
                 },
@@ -497,74 +491,6 @@ fun HomeScreen(
                 text = { Text(message) },
                 confirmButton = {
                     TextButton(onClick = { templateError = null }) { Text("Entendido") }
-                },
-            )
-        }
-        pendingVolumeTemplateId?.let { templateId ->
-            VolumeCalibrationSheet(
-                currentMode = ProgramMode.HYPERTROPHY,
-                onDismiss = {
-                    val tid = templateId
-                    viewModel.dismissVolumeCalibrationRequest()
-                    createScope.launch {
-                        when (val outcome = programsVm.createProgramFromTemplateGated(tid, skipCalibration = true)) {
-                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
-                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
-                                onNavigateToProgram(outcome.programId)
-                            }
-                            else -> {}
-                        }
-                    }
-                },
-                onSave = { result ->
-                    viewModel.dismissVolumeCalibrationRequest()
-                    createScope.launch {
-                        programsVm.applyCalibrationToLatestDraft(result)
-                        when (val outcome = programsVm.createProgramFromTemplateGated(templateId)) {
-                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
-                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
-                                onNavigateToProgram(outcome.programId)
-                            }
-                            ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
-                                templateError = "No se pudo crear el programa ni con calibración."
-                        }
-                    }
-                },
-            )
-        }
-        pendingVolumeProtocol?.let { protocol ->
-            VolumeCalibrationSheet(
-                currentMode = ProgramMode.POWERLIFTING,
-                onDismiss = {
-                    val prot = protocol
-                    val prof = pendingVolumeProfile
-                    val name = pendingProgramName
-                    viewModel.dismissVolumeCalibrationRequest()
-                    val id = programsVm.createProgramFromProtocol(
-                        prot.id,
-                        prof,
-                        name,
-                        skipCalibration = true,
-                    )
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    }
-                },
-                onSave = { result ->
-                    viewModel.dismissVolumeCalibrationRequest()
-                    val id = programsVm.createProgramFromProtocol(
-                        protocol.id,
-                        pendingVolumeProfile,
-                        pendingProgramName,
-                        calibration = result,
-                    )
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    } else {
-                        templateError = "No se pudo crear el programa ni con calibración."
-                    }
                 },
             )
         }
@@ -878,6 +804,8 @@ internal fun HomeTopBar(
     onBottomPositionChanged: (Float) -> Unit,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
+    /** Abre el programa enlazado a la competición (id del programa): la acción principal de la barra el día del meet. */
+    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     // Histéresis (§3): aparece en ≥ 0,55 y se va en ≤ 0,45; entre ambos conserva lo que tenía.
     val shownState = remember { mutableStateOf(false) }
@@ -1013,6 +941,7 @@ internal fun HomeTopBar(
                                         onStartWorkout = onStartWorkout,
                                         onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
+                                        onOpenCompetitionProgram = onOpenCompetitionProgram,
                                     )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
@@ -1227,9 +1156,12 @@ private fun MiniSessionCard(
     onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     val registerPhase = homeCompetition?.phase in setOf(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER,
         com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
+    // IMP-08: el día del meet todavía no hay resultado que registrar; la acción principal es abrir el modo competición.
+    val meetDay = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1252,12 +1184,31 @@ private fun MiniSessionCard(
                 maxLines = 1,
                 modifier = Modifier.weight(1f).semantics { heading() },
             )
-            TextButton(
-                onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                modifier = Modifier.heightIn(min = 48.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
-            ) {
-                Text("Registrar", style = HomeTypography.barLabel)
+            if (meetDay) {
+                TextButton(
+                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
+                    modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Registrar resultado" },
+                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.textMuted),
+                ) {
+                    Text("Registrar", style = HomeTypography.barLabel)
+                }
+                Button(
+                    onClick = { onOpenCompetitionProgram(homeCompetition.programId) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
+                ) {
+                    Text("Modo competición", style = HomeTypography.barLabel, maxLines = 1)
+                }
+            } else {
+                TextButton(
+                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
+                ) {
+                    Text("Registrar", style = HomeTypography.barLabel)
+                }
             }
         } else if (isRestDay || primarySession == null) {
             Text(

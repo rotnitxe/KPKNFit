@@ -10,6 +10,7 @@ import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.onboarding.SessionPlaceFit
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import com.example.kpkn.domain.training.split.AuthoredPlans
 import com.example.kpkn.domain.training.split.ExerciseTraitResolver
 import com.example.kpkn.domain.training.split.ProgramWeeks
@@ -117,16 +118,34 @@ internal fun applyLayout(
 internal fun applyExerciseOverrides(program: Program, overrides: Map<String, String>, catalog: ExerciseCatalogV2): Program {
     if (overrides.isEmpty()) return program
     val index = GeneratorCatalog.of(catalog)
-    val swap: (Exercise) -> Exercise = { exercise ->
-        val configId = overrides[exercise.id]
-        val info = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it)?.legacy }
-        if (info == null) {
-            exercise
-        } else {
-            exercise.replacedWithCatalogExercise(info).copy(
-                loadReference = null,
-                loadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
-            )
+    // DUP-03: una sustitución cuyo destino (configuración, definición o familia) ya está en otro ejercicio de la sesión se ignora.
+    // La comprobación es progresiva: los ejercicios se recorren en orden y cada uno se compara con la configuración VIGENTE de los
+    // demás (los ya cambiados, ya con su destino; los que aún no, con la original), así dos sustituciones hacia el mismo destino
+    // no pueden convivir y un destino que otro ejercicio de la sesión acaba de dejar libre sí se admite.
+    fun swapIn(session: Session): (Exercise) -> Exercise {
+        val current = session.allExercises().associateBy { it.id }.toMutableMap()
+        return { exercise ->
+            val configId = overrides[exercise.id]
+            val entry = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it) }
+            val targetFamily = entry?.let { SessionSlopRules.familyOf(it.id) }
+            val collides = entry != null && current.values.any { other ->
+                other.id != exercise.id && (
+                    other.catalogConfigurationId == entry.id ||
+                        other.catalogDefinitionId == entry.definitionId ||
+                        (targetFamily != null && SessionSlopRules.familyOf(other.catalogConfigurationId) == targetFamily)
+                    )
+            }
+            val info = entry?.takeUnless { collides }?.legacy
+            val result = if (info == null) {
+                exercise
+            } else {
+                exercise.replacedWithCatalogExercise(info).copy(
+                    loadReference = null,
+                    loadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+                )
+            }
+            current[exercise.id] = result
+            result
         }
     }
     return program.copy(
@@ -137,7 +156,7 @@ internal fun applyExerciseOverrides(program: Program, overrides: Map<String, Str
                         mesocycles = block.mesocycles.map { meso ->
                             meso.copy(
                                 weeks = meso.weeks.map { week ->
-                                    week.copy(sessions = week.sessions.map { session -> session.withExercises(swap) })
+                                    week.copy(sessions = week.sessions.map { session -> session.withExercises(swapIn(session)) })
                                 },
                             )
                         },

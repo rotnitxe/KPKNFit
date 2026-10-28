@@ -1,0 +1,132 @@
+package com.example.kpkn.domain.nutrition.exam
+
+import android.app.Application
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assume
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/**
+ * Corredor de predicciones del examen de nutricion (docs/nutrition-v2/EXAMEN.md, secciones 2 y 6) para la rama de Codex
+ * (nutrition-local-ai, 16cf3c293 + cambios sin commitear). Misma interfaz que [NutritionExamPredictionRunnerTest].
+ *
+ * Lee casos JSONL, ejecuta la cadena real de la app de Codex ([CodexExamPipeline]) y escribe un JSONL de predicciones.
+ * Entradas (propiedad de sistema o variable de entorno):
+ *  - `kpkn.exam.cases` / `KPKN_EXAM_CASES`   (por defecto `C:/kw/nutri-examen/cases/all.jsonl`)
+ *  - `kpkn.exam.out` / `KPKN_EXAM_OUT`       (por defecto `C:/kw/nutri-examen/predictions`)
+ *  - `kpkn.exam.system` / `KPKN_EXAM_SYSTEM` (por defecto `codex@16cf3c293+wip`); el archivo es `<sistema>-<yyyyMMdd-HHmm>.jsonl`.
+ *
+ * Run: `./gradlew :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.nutrition.exam.CodexExamPredictionRunnerTest"`
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [34], application = Application::class)
+class CodexExamPredictionRunnerTest {
+
+    private val json = Json {
+        encodeDefaults = true
+        explicitNulls = true
+        ignoreUnknownKeys = true
+    }
+
+    private val context: Context get() = ApplicationProvider.getApplicationContext()
+
+    private fun setting(property: String, env: String, default: String): String =
+        System.getProperty(property) ?: System.getenv(env) ?: default
+
+    private fun readCases(file: File): List<ExamCase> =
+        file.readLines(Charsets.UTF_8).filter { it.isNotBlank() }.map { json.decodeFromString<ExamCase>(it) }
+
+    private fun readPredictions(file: File): List<ExamPrediction> =
+        file.readLines(Charsets.UTF_8).filter { it.isNotBlank() }.map { json.decodeFromString<ExamPrediction>(it) }
+
+    private fun writePredictions(file: File, predictions: List<ExamPrediction>) {
+        file.parentFile?.mkdirs()
+        file.writeText(predictions.joinToString("") { json.encodeToString(it) + "\n" }, Charsets.UTF_8)
+    }
+
+    private suspend fun runAll(pipeline: CodexExamPipeline, cases: List<ExamCase>): List<ExamPrediction> {
+        // Calentamiento: el primer caso paga la carga perezosa de clases y no debe contar contra el limite de 5 s.
+        pipeline.predict(ExamCase(id = "WARMUP", text = "2 huevos revueltos con pan", mealType = "BREAKFAST"))
+        return cases.map { pipeline.predict(it) }
+    }
+
+    private fun catalogLine(p: CodexExamPipeline): String =
+        "global_foods=${p.globalFoods} usda=${p.usdaRows} off=${p.offRows} index=${p.indexSize} dataset_docs=${p.datasetDocuments}"
+
+    @Test
+    fun `fixture cases produce one prediction per case`() = runBlocking {
+        val stream = checkNotNull(javaClass.classLoader.getResourceAsStream("nutrition_exam/fixture_cases.jsonl")) {
+            "falta el recurso nutrition_exam/fixture_cases.jsonl"
+        }
+        val cases = stream.bufferedReader(Charsets.UTF_8).use { reader ->
+            reader.readLines().filter { it.isNotBlank() }.map { json.decodeFromString<ExamCase>(it) }
+        }
+        assertEquals(6, cases.size)
+
+        val pipeline = CodexExamPipeline.create(context, "codex-fixture")
+        try {
+            println("EXAM-CATALOG ${catalogLine(pipeline)}")
+            File("build/nutrition-exam").mkdirs()
+            File("build/nutrition-exam/catalog-size.txt").writeText("${catalogLine(pipeline)}\n")
+
+            val predictions = runAll(pipeline, cases)
+            val out = File("build/nutrition-exam/codex-fixture-predictions.jsonl")
+            writePredictions(out, predictions)
+
+            val lines = out.readLines(Charsets.UTF_8).filter { it.isNotBlank() }
+            assertEquals(cases.size, lines.size)
+            assertEquals(cases.map { it.id }, predictions.map { it.id })
+            assertEquals(cases.map { it.id }, readPredictions(out).map { it.id })
+
+            val withFood = predictions.count { p ->
+                p.mentions.any { m ->
+                    !m.excluded && m.eaten.kcal.let { it != null && it.isFinite() && it >= 0.0 }
+                }
+            }
+            assertTrue("al menos 4 casos con una mencion con kcal finitas >= 0 (hubo $withFood): $predictions", withFood >= 4)
+            assertTrue("ninguna prediccion con error: ${predictions.filter { it.error != null }}", predictions.all { it.error == null })
+
+            // El archivo se vuelve a leer con las mismas data classes y conserva el contenido.
+            assertEquals(predictions, readPredictions(out))
+        } finally {
+            pipeline.close()
+        }
+    }
+
+    @Test
+    fun `exam run writes all predictions`() = runBlocking {
+        val casesPath = setting("kpkn.exam.cases", "KPKN_EXAM_CASES", "C:/kw/nutri-examen/cases/all.jsonl")
+        val casesFile = File(casesPath)
+        Assume.assumeTrue("no existe el archivo de casos $casesPath", casesFile.exists())
+        val outDir = File(setting("kpkn.exam.out", "KPKN_EXAM_OUT", "C:/kw/nutri-examen/predictions"))
+        val system = setting("kpkn.exam.system", "KPKN_EXAM_SYSTEM", "codex@16cf3c293+wip")
+        val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.ROOT).format(Date())
+        val outFile = File(outDir, "$system-$stamp.jsonl")
+
+        val cases = readCases(casesFile)
+        val pipeline = CodexExamPipeline.create(context, system)
+        try {
+            println("EXAM-CATALOG ${catalogLine(pipeline)}")
+            val predictions = runAll(pipeline, cases)
+            writePredictions(outFile, predictions)
+
+            val lines = outFile.readLines(Charsets.UTF_8).filter { it.isNotBlank() }
+            println("EXAM-OUT ${outFile.absolutePath} lines=${lines.size} errors=${predictions.count { it.error != null }}")
+            assertEquals(cases.size, lines.size)
+        } finally {
+            pipeline.close()
+        }
+    }
+}

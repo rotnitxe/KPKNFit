@@ -130,7 +130,7 @@ object BodybuildingProtocols {
         "Power Upper",
         weekday = 1,
         slots = listOf(
-            slot("speed", SlotRole.SPEED, CatalogIds.BP, repeatPercentSets(6, 3, 68.0, 60), 60, LiftSlot.BENCH, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED, supplementalOf = "bp"),
+            slot("speed", SlotRole.SPEED, CatalogIds.BP, repeatPercentSets(6, 3, 68.0, 60), 60, LiftSlot.BENCH, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED, supplementalOf = "bp", occurrenceLabel = "Velocidad"),
             slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, repeatPercentSets(3, 3, 82.0, 240), 240, LiftSlot.BENCH, isCompetitionLift = true),
             slot("row", SlotRole.T2_SUPPLEMENTAL, CatalogIds.PENDLAY, rpeSets(3, 5, 8.0), 150),
             slot("ohp", SlotRole.T3_ACCESSORY, CatalogIds.OHP, rpeSets(3, 6, 8.0), 120),
@@ -144,7 +144,7 @@ object BodybuildingProtocols {
         "Power Lower",
         weekday = 2,
         slots = listOf(
-            slot("speed", SlotRole.SPEED, CatalogIds.SQ_BOX, repeatPercentSets(6, 3, 68.0, 60), 60, LiftSlot.SQUAT, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED, supplementalOf = "sq"),
+            slot("speed", SlotRole.SPEED, CatalogIds.SQ_BOX, repeatPercentSets(6, 3, 68.0, 60), 60, LiftSlot.SQUAT, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED, supplementalOf = "sq", occurrenceLabel = "Velocidad (cajón)"),
             slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, repeatPercentSets(3, 3, 82.0, 240), 240, LiftSlot.SQUAT, isCompetitionLift = true),
             slot("hack", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_HACK, rpeSets(2, 6, 8.0), 120, supplementalOf = "sq"),
             slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.LEG_EXT, rpeSets(1, 12, 8.0), 60),
@@ -196,6 +196,7 @@ object BodybuildingProtocols {
             claimedDaysPerWeek = 5,
             claimedLevel = "avanzado",
             repeats = true,
+            contentVersion = 2,
         ),
         fidelitySpec = ProtocolFidelitySpec(4, 5, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("power" to listOf(82.0), "speed" to listOf(68.0))),
         exemptions = phatExemptions,
@@ -261,7 +262,7 @@ object KpknNativeHypertrophyProtocols {
         id = "kpkn-rp-style",
         name = "Mesociclo RP-style KPKN",
         emoji = "📈",
-        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y los accesorios sumando una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
+        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y el primer accesorio de cada día suma una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
         author = "KPKN Fit",
         tags = listOf("culturismo", "hipertrofia", "avanzado", "4 días", "6 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 60, 80), ProtocolBlock("Descarga", 1, "Descarga", 50, 65)),
@@ -283,7 +284,7 @@ object KpknNativeHypertrophyProtocols {
                     listOf(
                         DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                         DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                        DayArchetypes.bbPull(rir).copy(weekday = 4, label = "Torso B"),
+                        DayArchetypes.bbTorsoB(rir).copy(weekday = 4, label = "Torso B"),
                         DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
                     ).map { day ->
                         if (deload) {
@@ -306,7 +307,8 @@ object KpknNativeHypertrophyProtocols {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-            contentVersion = 3,
+            // F-41: «Torso B» pasa a ser un torso de verdad (antes solo tirón), versión 4.
+            contentVersion = 4,
         ),
         fidelitySpec = ProtocolFidelitySpec(6, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )

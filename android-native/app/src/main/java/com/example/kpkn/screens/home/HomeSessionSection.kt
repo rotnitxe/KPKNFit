@@ -119,6 +119,10 @@ fun HomeSessionSection(
             onChooseProgram = onChooseProgram,
             onCreateProgram = onCreateProgram,
             onRegister = { homeCompetition?.let { onRegisterCompetition(it.recordId) } },
+            // El día del meet el héroe ofrece «Modo competición» (abre el programa enlazado), como la barra superior.
+            onOpenCompetition = homeCompetition
+                ?.takeIf { it.phase == CompetitionHomePhase.MEET_DAY }
+                ?.let { competition -> { onNavigateToProgram(competition.programId) } },
         )
     }
 

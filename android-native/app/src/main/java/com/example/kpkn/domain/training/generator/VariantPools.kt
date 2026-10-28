@@ -105,7 +105,7 @@ internal object VariantPools {
         val entry = ctx.catalog.entry(configId) ?: return null
         val pool = entryById[configId]
         val kind = pool?.kind ?: ExKind.HEAVY
-        if (!ctx.tierAllowed(entry) || entry.id in use.configs || entry.definitionId in use.definitions) return null
+        if (!ctx.tierAllowed(entry) || use.contains(entry)) return null
         if (ctx.level.ordinal < (pool?.minLevel ?: CREATED_MIN_LEVEL).ordinal) return null
         if (ExerciseSelector.avoidedGroupOf(avoided, entry.definitionId, kind) != null) return null
         // Lo que pide el generador además del filtro compartido: el mismo criterio que la oferta de `LiftVariants`.

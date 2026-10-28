@@ -195,4 +195,56 @@ class ExerciseOverridesTest {
         // Los demás ejercicios siguen como estaban.
         assertTrue(byDay.values.flatten().filter { it.instanceId != exercise.id }.all { it.swappedConfigId == null })
     }
+
+    /** Los ejercicios de fuerza de la lista principal de la primera sesión que tenga al menos dos (el orden en que los recorre el aplicador). */
+    private fun sessionWithTwoStrengthExercises(program: Program): Pair<Session, List<Exercise>> {
+        for (session in sessionsOf(program)) {
+            val strength = session.exercises.filter { it.catalogConfigurationId != null && it.cardioDetails == null && it.sets.isNotEmpty() }
+            if (strength.size >= 2) return session to strength
+        }
+        error("el programa generado no tiene ninguna sesión con dos ejercicios de fuerza")
+    }
+
+    private fun definitionOf(configId: String): String? = com.example.kpkn.domain.training.generator.GeneratorCatalog.of(catalog).entry(configId)?.definitionId
+
+    @Test
+    fun twoSwapsTowardTheSameDestinationInOneSessionOnlyApplyTheFirst() {
+        // DUP-03 (F-13b): la colisión se mide contra las configuraciones vigentes, no contra la sesión original.
+        val program = programFor(draft(setOf(1, 3, 5)))
+        val (session, strength) = sessionWithTwoStrengthExercises(program)
+        val a = strength[0]
+        val b = strength[1]
+        val others = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() - setOfNotNull(a.catalogConfigurationId)
+        val destination = requireNotNull(ExerciseSwapOptions.optionsFor(a, gym(), catalog, excludedConfigurationIds = others).firstOrNull()).configId
+
+        val result = applyExerciseOverrides(program, mapOf(a.id to destination, b.id to destination), catalog)
+
+        val after = sessionsOf(result).first { it.id == session.id }
+        assertEquals(1, after.allExercises().count { it.catalogConfigurationId == destination })
+        assertEquals(destination, exerciseById(result, a.id).catalogConfigurationId)
+        assertEquals(b.catalogConfigurationId, exerciseById(result, b.id).catalogConfigurationId)
+    }
+
+    @Test
+    fun aDestinationThatAnotherExerciseOfTheSessionAlreadyLeftIsAccepted() {
+        // DUP-03 (F-13b): el primer ejercicio cambia a otra cosa y el segundo toma su configuración original (ya libre).
+        val program = programFor(draft(setOf(1, 3, 5)))
+        val (session, strength) = sessionWithTwoStrengthExercises(program)
+        val first = strength[0]
+        val second = strength[1]
+        val firstConfig = requireNotNull(first.catalogConfigurationId)
+        val others = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() - firstConfig
+        // Un destino para el primero que no choque, por definición ni por familia, con su propia configuración original.
+        val away = ExerciseSwapOptions.optionsFor(first, gym(), catalog, excludedConfigurationIds = others).firstOrNull {
+            definitionOf(it.configId) != definitionOf(firstConfig) &&
+                com.example.kpkn.domain.training.quality.SessionSlopRules.familyOf(it.configId) !=
+                com.example.kpkn.domain.training.quality.SessionSlopRules.familyOf(firstConfig)
+        }
+        if (away == null) return // ese catálogo no ofrece una alternativa sin choque: no hay nada que comprobar
+
+        val result = applyExerciseOverrides(program, mapOf(first.id to away.configId, second.id to firstConfig), catalog)
+
+        assertEquals(away.configId, exerciseById(result, first.id).catalogConfigurationId)
+        assertEquals(firstConfig, exerciseById(result, second.id).catalogConfigurationId)
+    }
 }

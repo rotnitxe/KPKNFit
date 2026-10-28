@@ -244,7 +244,6 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
 
     sealed interface TemplateApplyOutcome {
         data class Created(val programId: String) : TemplateApplyOutcome
-        data object RequiresCalibration : TemplateApplyOutcome
     }
 
     suspend fun createProgramFromTemplate(
@@ -255,15 +254,14 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         runCatching {
             when (val outcome = createProgramFromTemplateGated(templateId, skipCalibration, calibration)) {
                 is TemplateApplyOutcome.Created -> outcome.programId
-                TemplateApplyOutcome.RequiresCalibration ->
-                    error("REQUIRES_CALIBRATION")
             }
         }
     }
 
     /**
-     * Crea con la dosis editorial y aplica sólo las respuestas aportadas expresamente.
-     * [skipCalibration] se conserva por compatibilidad; el cuestionario ya no bloquea crear.
+     * Crea con la dosis editorial. Con respuestas aportadas expresamente ([calibration]) escala con ellas; sin ellas, con la
+     * calibración sugerida por KPKN (IMP-03, [suggestedCalibrationFor]). [skipCalibration] se conserva por compatibilidad;
+     * el cuestionario ya no bloquea crear.
      */
     suspend fun createProgramFromTemplateGated(
         templateId: String,
@@ -273,27 +271,28 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         withContext(Dispatchers.Default) {
             val template = resolveProgramTemplate(templateId)
             val programId = UUID.randomUUID().toString()
-            val pending = calibration ?: pendingCalibrationForCreate
+            val pending = calibration
             // C.P6: la plantilla se llama como su ficha de la biblioteca (nunca el nombre crudo de la plantilla) y,
             // si no declara una pista, toma el modo de la disciplina de la entrada.
             val entry = PersonalizedPlanCatalog.find("template:${template.id}")
+            val templateMode = pending?.mode ?: when (template.trackLabel) {
+                "Powerlifting" -> ProgramMode.POWERLIFTING
+                "Powerbuilding" -> ProgramMode.POWERBUILDING
+                else -> entry?.let(::programModeFor) ?: ProgramMode.HYPERTROPHY
+            }
+            // IMP-03: sin respuestas propias el programa nace con la calibración sugerida, así que `scaleToCalibratedVolume` escala.
+            val suggested = if (pending == null) suggestedCalibrationFor(templateMode) else null
             val base = Program(
                 id = programId,
                 name = entry?.let(::programNameFor) ?: template.name,
                 coverImage = "gradient://ember",
                 structure = template.type,
-                mode = pending?.mode ?: when (template.trackLabel) {
-                    "Powerlifting" -> ProgramMode.POWERLIFTING
-                    "Powerbuilding" -> ProgramMode.POWERBUILDING
-                    else -> entry?.let(::programModeFor) ?: ProgramMode.HYPERTROPHY
-                },
-                volumeRecommendations = pending?.recommendations.orEmpty(),
-                athleteProfileScore = pending?.score,
-                volumeSystem = if (pending != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+                mode = templateMode,
+                volumeRecommendations = pending?.recommendations ?: suggested?.recommendations.orEmpty(),
+                athleteProfileScore = pending?.score ?: suggested?.score,
+                volumeSystem = if (pending != null || suggested != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
                 volumeCalibrationNotes = pending?.notes.orEmpty(),
             )
-            // Crear conserva la dosis editorial sin exigir autovaloraciones ni fabricar una puntuación.
-            pendingCalibrationForCreate = null
             val result = ProgramTemplateEngine.applyTemplate(
                 current = base,
                 template = template,
@@ -311,8 +310,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         }
 
     /**
-     * Materializa el protocolo con sus referencias declaradas. [skipCalibration] se conserva
-     * por compatibilidad; la ausencia de autovaloraciones no bloquea la creación.
+     * Materializa el protocolo con sus referencias declaradas. Sin [calibration] propia usa la sugerida por KPKN
+     * (IMP-03, [suggestedCalibrationFor]). [skipCalibration] se conserva por compatibilidad; la ausencia de
+     * autovaloraciones no bloquea la creación.
      */
     fun createProgramFromProtocolGated(
         protocolId: String,
@@ -326,17 +326,20 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         // C.P6: el nombre que la persona escribió sigue mandando; si no, el de la ficha de la biblioteca. El modo
         // sale de la disciplina de la entrada (antes TODOS los métodos salían como powerlifting, también PHUL).
         val entry = PersonalizedPlanCatalog.find("protocol:${protocol.id}")
+        val protocolMode = entry?.let(::programModeFor) ?: ProgramMode.POWERLIFTING
+        // IMP-03: sin respuestas propias, la calibración sugerida (el estilo sale del modo del método).
+        val suggested = if (calibration == null) suggestedCalibrationFor(protocolMode) else null
         val base = Program(
             id = programId,
             name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: entry?.let(::programNameFor) ?: protocol.name,
             coverImage = "gradient://ember",
             structure = ProgramStructure.SIMPLE,
-            mode = entry?.let(::programModeFor) ?: ProgramMode.POWERLIFTING,
+            mode = protocolMode,
             powerliftingProfile = profile,
             selectedSplitId = protocol.defaultSplit,
-            volumeRecommendations = calibration?.recommendations.orEmpty(),
-            athleteProfileScore = calibration?.score,
-            volumeSystem = if (calibration != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+            volumeRecommendations = calibration?.recommendations ?: suggested?.recommendations.orEmpty(),
+            athleteProfileScore = calibration?.score ?: suggested?.score,
+            volumeSystem = if (calibration != null || suggested != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
             volumeCalibrationNotes = calibration?.notes.orEmpty(),
         )
         // La falta de cuestionario no bloquea una receta de autor ni modifica su dosis.
@@ -383,17 +386,29 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
     ): String? = createProgramFromProtocolGated(protocolId, profile, preferredName, calibration, skipCalibration)
 
     /**
-     * La calibración del sheet previo a crear programa no tiene programa aún:
-     * se guarda como borrador pendiente que el siguiente create consume. Como
-     * el base de create* parte de Program() vacío, aquí se registra en
-     * memoria para que el reintento la aplique al materializar+escalar.
+     * IMP-03: la calibración que recibe un programa creado sin respuestas propias: (2, 2, 2, 2) con el estilo del modo
+     * ([VolumeCalibrationEngine.suggested]). Si la persona aún no tiene un perfil global, se estrena con esta sugerencia en
+     * estado SUGGESTED para que la tarjeta «Tu volumen» diga de dónde sale; un perfil ya declarado nunca se pisa.
      */
-    private var pendingCalibrationForCreate: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null
-
-    fun applyCalibrationToLatestDraft(
-        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult,
-    ) {
-        pendingCalibrationForCreate = calibration
+    private fun suggestedCalibrationFor(mode: ProgramMode): com.example.kpkn.domain.training.VolumeCalibrationOutput {
+        val suggested = com.example.kpkn.domain.training.VolumeCalibrationEngine.suggested(mode)
+        repository.updateSettings { settings ->
+            if (settings.volumeCalibrationProfile != null) settings else settings.copy(
+                volumeCalibrationProfile = com.example.kpkn.data.models.VolumeCalibrationProfile(
+                    trainingStyle = suggested.score.trainingStyle,
+                    athleteProfileScore = suggested.score,
+                    responses = com.example.kpkn.data.models.VolumeCalibrationResponses(
+                        suggested.score.technicalScore, suggested.score.consistencyScore,
+                        suggested.score.strengthScore, suggested.score.mobilityScore,
+                        com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED,
+                    ),
+                    recommendations = suggested.recommendations,
+                    calibratedAtMs = System.currentTimeMillis(),
+                    calculatorRevision = com.example.kpkn.domain.training.VolumeCalibrationEngine.REVISION,
+                ),
+            )
+        }
+        return suggested
     }
 
     fun addToQueue(programId: String) {

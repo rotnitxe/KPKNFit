@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.domain.workout.isMyoReps
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
@@ -2011,9 +2012,12 @@ internal fun SetInputCardV2(
                                 previous.rir?.let { append(" · RIR $it") }
                             }
                         } ?: "Sin historial anterior"
-                    },
+                    } + (if (!bodyLoad && exercise.loadEstimate != null) " · ${VariantLoadEstimates.PRESCRIPTION_LABEL}" else ""),
                     modifier = Modifier.weight(1f)
                         .then(if (missingBodyWeight) Modifier.clickable(role = Role.Button) { loadModeMenuExpanded = true } else Modifier)
+                        .then(exercise.loadEstimate?.takeIf { !bodyLoad }?.let { estimate ->
+                            Modifier.semantics { contentDescription = VariantLoadEstimates.accessibilityLabel(estimate, null) }
+                        } ?: Modifier)
                         .testTag("live-card-load-reference"),
                     style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
                     color = if (missingBodyWeight) WizardColors.text else WizardColors.textFaint,

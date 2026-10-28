@@ -80,6 +80,8 @@ internal data class HomeHeroActions(
     val onChooseProgram: () -> Unit = {},
     val onCreateProgram: () -> Unit = {},
     val onRegister: () -> Unit = {},
+    /** Abre el programa de la competición. Solo el día del meet (MEET_DAY): ahí es la acción principal y registrar queda secundaria. */
+    val onOpenCompetition: (() -> Unit)? = null,
 )
 
 /** Días de la semana en español, de lunes a domingo, en minúscula (para «Siguiente: jueves»). */
@@ -399,7 +401,13 @@ private fun heroButtons(mode: HomeHeroMode, actions: HomeHeroActions): List<Hero
         HeroButton("Elige tu programa", "home-hero-start", HeroButtonKind.PRIMARY, actions.onChooseProgram),
         HeroButton("Crear o importar", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onCreateProgram),
     )
-    HomeHeroMode.REGISTER -> listOf(
+    HomeHeroMode.REGISTER -> actions.onOpenCompetition?.let { openCompetition ->
+        // Día del meet (coherente con la barra, F-45): todavía no hay resultados que registrar.
+        listOf(
+            HeroButton("Modo competición", "home-hero-start", HeroButtonKind.PRIMARY, openCompetition),
+            HeroButton("Registrar", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onRegister),
+        )
+    } ?: listOf(
         HeroButton("Registrar resultados", "home-hero-start", HeroButtonKind.PRIMARY, actions.onRegister),
     )
 }

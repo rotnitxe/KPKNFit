@@ -41,15 +41,16 @@ fun exerciseDisplayParts(
         nicknameKey = exercise.nicknameKey(),
         nicknames = nicknames,
     )
+    val occurrenceChip = occurrenceChipOf(exercise)
     val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
             parentName = parentName,
-            chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
+            chips = dedupeChips(listOfNotNull(occurrenceChip) + v2Chips).filterNot(::isDisplayNoiseChip),
         )
     }
     if (!exercise.catalogConfigurationId.isNullOrBlank()) {
-        return ExerciseDisplayParts(parentName = parentName)
+        return ExerciseDisplayParts(parentName = parentName, chips = listOfNotNull(occurrenceChip))
     }
     val technique = recipeTechniqueLabel(exercise)
     val selected = exercise.selectedAspects.orEmpty()
@@ -64,10 +65,18 @@ fun exerciseDisplayParts(
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
         parentName = parentName,
-        chips = dedupeChips(listOfNotNull(technique) + options.map { it.name } + listOfNotNull(legacyVariant))
+        chips = dedupeChips(listOfNotNull(occurrenceChip, technique) + options.map { it.name } + listOfNotNull(legacyVariant))
             .filterNot(::isDisplayNoiseChip),
     )
 }
+
+/**
+ * Rótulo de una aparición repetida por el autor («Volumen BBB 5×10», «Velocidad», «Potencia»), como primer chip. También lo
+ * pinta una variación con nombre propio (`VARIATION` enlazada): el materializador solo le pone rótulo si el autor lo declaró
+ * (p. ej. «Sentadilla Trasera con Barra Alta · Potencia» junto a «Sentadilla Trasera con Barra Baja»).
+ */
+private fun occurrenceChipOf(exercise: Exercise): String? =
+    exercise.occurrenceLabel?.trim()?.takeIf { it.isNotBlank() }
 
 /**
  * Recipe technique label for display chips. Only recipe fields are read:

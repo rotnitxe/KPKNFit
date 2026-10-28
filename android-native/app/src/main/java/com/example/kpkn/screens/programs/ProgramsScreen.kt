@@ -61,9 +61,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.programCoverEntryIdOf
@@ -75,7 +73,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.programdetail.components.HeroCoverKind
-import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseRibbon
 import com.example.kpkn.screens.stories.ProgramShareSheet
@@ -132,13 +129,6 @@ fun ProgramsScreen(
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
-    var pendingCalibrationTemplateId by remember { mutableStateOf<String?>(null) }
-    var pendingCalibrationProtocol by remember {
-        mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(
-            null,
-        )
-    }
-    var pendingCalibrationProfile by remember { mutableStateOf<PowerliftingProfile?>(null) }
     val createScope = rememberCoroutineScope()
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
@@ -337,10 +327,6 @@ fun ProgramsScreen(
                             showCatalog = false
                             onNavigateToProgram(outcome.programId)
                         }
-                        ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration -> {
-                            showCatalog = false
-                            pendingCalibrationTemplateId = template.id
-                        }
                     }
                 }
             },
@@ -409,69 +395,6 @@ fun ProgramsScreen(
                     onNavigateToProgram(id)
                 } else {
                     templateError = "No se pudo crear el programa. Revisa la receta elegida."
-                }
-            },
-        )
-    }
-    pendingCalibrationTemplateId?.let { templateId ->
-        VolumeCalibrationSheet(
-            currentMode = ProgramMode.HYPERTROPHY,
-            onDismiss = {
-                val tid = templateId
-                pendingCalibrationTemplateId = null
-                createScope.launch {
-                    when (val outcome = viewModel.createProgramFromTemplateGated(tid, skipCalibration = true)) {
-                        is ProgramsViewModel.TemplateApplyOutcome.Created ->
-                            onNavigateToProgram(outcome.programId)
-                        else -> {}
-                    }
-                }
-            },
-            onSave = { result ->
-                pendingCalibrationTemplateId = null
-                createScope.launch {
-                    viewModel.applyCalibrationToLatestDraft(result)
-                    when (val outcome = viewModel.createProgramFromTemplateGated(templateId)) {
-                        is ProgramsViewModel.TemplateApplyOutcome.Created ->
-                            onNavigateToProgram(outcome.programId)
-                        ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
-                            pendingCalibrationTemplateId = templateId
-                    }
-                }
-            },
-        )
-    }
-    val pendingProtocol = pendingCalibrationProtocol
-    if (pendingProtocol != null) {
-        val pendingProfile = pendingCalibrationProfile
-        VolumeCalibrationSheet(
-            currentMode = ProgramMode.POWERLIFTING,
-            onDismiss = {
-                val prot = pendingProtocol
-                val prof = pendingProfile
-                pendingCalibrationProtocol = null
-                pendingCalibrationProfile = null
-                val id = viewModel.createProgramFromProtocol(
-                    prot.id,
-                    prof,
-                    skipCalibration = true,
-                )
-                if (id != null) {
-                    onNavigateToProgram(id)
-                }
-            },
-            onSave = { result ->
-                pendingCalibrationProtocol = null
-                pendingCalibrationProfile = null
-                val id = viewModel.createProgramFromProtocol(
-                    pendingProtocol.id,
-                    pendingProfile,
-                    calibration = result,
-                )
-                if (id != null) {
-                    onNavigateToProgram(id)
-                } else {
-                    templateError = "No se pudo crear el programa ni con calibración."
                 }
             },
         )
