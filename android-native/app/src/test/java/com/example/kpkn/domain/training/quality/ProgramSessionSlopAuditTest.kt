@@ -1,7 +1,9 @@
 package com.example.kpkn.domain.training.quality
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.programs.CatalogLevel
@@ -16,7 +18,11 @@ import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogReposi
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.training.CardioPreference
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.EFFECTIVE_EQUIPMENT_KEYS
+import com.example.kpkn.domain.training.EquipmentKeys
 import com.example.kpkn.domain.training.PersonalizerInput
+import com.example.kpkn.domain.training.SYMBOL_EQUIPMENT_KEYS
+import com.example.kpkn.domain.training.SymbolEquipmentKeys
 import com.example.kpkn.domain.training.SimpleCyclePersonalizer
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.generator.RoutineGenerator
@@ -26,7 +32,7 @@ import com.example.kpkn.domain.training.periodization.Horizon
 import com.example.kpkn.domain.training.periodization.ProgramVariant
 import com.example.kpkn.domain.training.periodization.RoutinePeriodizer
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.util.TreeMap
@@ -35,7 +41,8 @@ import java.util.TreeMap
  * F-02 · Red de «slop» en sesiones: cada sesión de cada semana de cada programa que la app puede producir pasa por
  * [SessionSlopRules.violations]; además, a nivel receta, cuenta los accesorios de relleno repetidos más de 2 días por semana.
  *
- * El techo [CEILING] es la LÍNEA BASE medida en master el 27-oct (ola 0); cada ola lo baja y la ola 5 lo deja en 0.
+ * El techo [CEILING] es un trinquete (`total <= CEILING`): la línea base se midió en master el 27-oct (ola 0); cada ola
+ * lo baja al total real y la ola 5 lo deja en 0.
  * Informe: `build/reports/session-slop/report.txt` (directorio de trabajo del test).
  */
 class ProgramSessionSlopAuditTest {
@@ -94,17 +101,36 @@ class ProgramSessionSlopAuditTest {
         val dir = File("build/reports/session-slop").apply { mkdirs() }
         File(dir, "report.txt").writeText(report)
         println(report.lineSequence().take(60).joinToString("\n"))
-        assertEquals(
-            "Violaciones de slop en sesiones (ver build/reports/session-slop/report.txt)",
-            CEILING,
-            audit.findings.size,
+        val total = audit.findings.size
+        assertTrue(
+            "Violaciones de slop en sesiones: total $total > techo $CEILING (ver build/reports/session-slop/report.txt)",
+            total <= CEILING,
         )
     }
+
+    /**
+     * E7: TODO el material confirmado (categorías, todas las llaves del subpanel y todas las de símbolo, GHD y rueda
+     * abdominal incluidas). Es el material con el que toda receta `protocol:*` debe materializarse.
+     */
+    private val everything = AuthoredPlanFixtures.Gear(
+        "E7-todo-el-material",
+        EquipmentAvailability(
+            categories = EquipmentCategory.entries.toSet(),
+            apparatus = (EFFECTIVE_EQUIPMENT_KEYS.map { it.key } + SYMBOL_EQUIPMENT_KEYS.map { it.key })
+                .associateWith { ApparatusPresence.PRESENT },
+            supports = listOf(
+                EquipmentKeys.BENCH_FLAT, EquipmentKeys.BENCH_ADJUSTABLE, EquipmentKeys.SQUAT_RACK, EquipmentKeys.PREACHER_BENCH,
+                EquipmentKeys.PULLUP_BAR, EquipmentKeys.DIP_BARS, EquipmentKeys.LOW_BAR_SUPPORT, EquipmentKeys.EZ_BAR,
+                SymbolEquipmentKeys.GHD, SymbolEquipmentKeys.AB_WHEEL, SymbolEquipmentKeys.RINGS, SymbolEquipmentKeys.PLYO_BOX,
+                SymbolEquipmentKeys.DECLINE_BENCH, SymbolEquipmentKeys.HYPEREXTENSION_BENCH,
+            ).associateWith { ApparatusPresence.PRESENT },
+        ),
+    )
 
     // ─── 1 + 4 · Planes de autor, propios con receta y plantillas ──────────────────────────────
 
     private fun auditAuthoredPlans(audit: Audit) {
-        val gears = listOf(AuthoredPlanFixtures.fullGym, AuthoredPlanFixtures.dumbbellsAndBench, AuthoredPlanFixtures.gymWithoutRack)
+        val gears = listOf(AuthoredPlanFixtures.fullGym, AuthoredPlanFixtures.dumbbellsAndBench, AuthoredPlanFixtures.gymWithoutRack, everything)
         PersonalizedPlanCatalog.entries().filter { it.recipe != null }.forEach { entry ->
             audit.auditFiller("receta ${entry.id}", requireNotNull(entry.recipe))
             gears.forEach { gear ->
@@ -220,8 +246,8 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** LÍNEA BASE medida en master (27-oct-2026). La ola 5 debe dejarlo en 0. */
-        const val CEILING = 2238
+        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7 (todo el material). La ola 5 debe dejarlo en 0. */
+        const val CEILING = 2464
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40
