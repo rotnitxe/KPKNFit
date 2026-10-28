@@ -865,6 +865,13 @@ class ProgramDetailViewModel(
     // ─── Init: Auto-select + Tour ─────────────────────────────────────────
 
     init {
+        // Sin salida si nunca se registra la última sesión obligatoria: al abrir el detalle se pide la decisión (F-43).
+        viewModelScope.launch {
+            try {
+                val zone = java.time.ZoneId.systemDefault()
+                repository.requestStalledMissedSessions(programId, appClock.today(zone), zone)
+            } catch (error: Exception) { if (error is CancellationException) throw error }
+        }
         // Auto-select active/first block when activeProgramState, program, or roadmapBlocks changes
         viewModelScope.launch {
             combine(activeProgramState, program, roadmapBlocks) { active, p, blocks ->

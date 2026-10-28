@@ -3,6 +3,8 @@ package com.example.kpkn.domain.training.schedule
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.training.*
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import java.time.ZoneId
 
 @Serializable enum class MissedSessionChoice { SKIP, DO_THIS_WEEK, SOFT_RETURN }
 @Serializable data class MissedSessionsRequest(val weekId: String,val weekInstanceId: String,val sessionIds: List<String>,
@@ -76,6 +78,46 @@ object MissedSessionPolicy {
         val old = p.pendingMissedSessions
         if (old?.let { it.copy(createdAtMs = nowMs) == request } == true) return result
         return result.copy(program = p.copy(pendingMissedSessions = request))
+    }
+
+    /**
+     * Salida si la persona nunca registra la última sesión obligatoria: `afterAdvance` sólo pregunta al registrar algo,
+     * así que sin registros el cursor quedaba detenido sin petición. Pide la misma decisión (saltar, hacerlas esta semana
+     * o vuelta suave) cuando la semana del cursor tiene sesiones requeridas sin registro ni salto y hay inactividad
+     * (nivel ≥ 1 de [InactivityDetector]) o, en un programa fechado, la semana del cursor ya terminó por calendario.
+     * Si el cursor está en la última semana del bloque, también mira las semanas anteriores del bloque. Pura: el reloj
+     * llega por [today] y [nowMs].
+     */
+    fun requestIfStalled(program: Program,logs: List<WorkoutLog>,today: LocalDate,zone: ZoneId,nowMs: Long = 0L): Program {
+        val run = program.runState ?: return program
+        if (run.status != ProgramRunStatus.ACTIVE || run.pendingAction != null) return program
+        val existing = program.pendingMissedSessions
+        if (existing != null && existing.programRunId == run.runId && existing.cycleNumber == run.cycleNumber) return program
+        val index = ProgramHierarchyIndex(program)
+        if (index.duplicateIds.isNotEmpty()) return program
+        val activeId = run.weekId?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it } ?: return program
+        val current = index.locateWeek(activeId) ?: return program
+        val cycle = run.cycleNumber
+        val stalled = InactivityDetector.detect(logs,program.id,today,zone)?.let { it.level >= 1 } == true ||
+            calendarWeekEnded(program,current.week.id,today)
+        if (!stalled) return program
+        val candidates = when {
+            missing(program,current.week,logs,ProgramProgressEngine.instanceIdFor(cycle,current.week.id),cycle,run.runId).isNotEmpty() -> listOf(current)
+            BlockTransitionEngine.isLastWeekOfBlock(current.block,current.week.id) -> index.orderedWeeks().filter { it.blockId == current.blockId }
+            else -> return program
+        }
+        val candidate = candidates.firstOrNull { missing(program,it.week,logs,
+            ProgramProgressEngine.instanceIdFor(cycle,it.week.id),cycle,run.runId).isNotEmpty() } ?: return program
+        val candidateInstance = ProgramProgressEngine.instanceIdFor(cycle,candidate.week.id)
+        val ids = missing(program,candidate.week,logs,candidateInstance,cycle,run.runId)
+        return program.copy(pendingMissedSessions = MissedSessionsRequest(candidate.week.id,candidateInstance,ids,nowMs,run.runId,cycle))
+    }
+
+    /** Sólo en un programa fechado y con la semana sin ambigüedad (una sola ocurrencia en el calendario). */
+    private fun calendarWeekEnded(program: Program,weekId: String,today: LocalDate): Boolean {
+        if (!ProgramCalendarEngine.isCalendarized(program)) return false
+        val occurrences = ProgramCalendarEngine.project(program,includeOccurrenceOverlays = false).weeks.filter { it.weekId == weekId }
+        return occurrences.singleOrNull()?.let { today.isAfter(it.endDate) } == true
     }
 
     fun resolve(program: Program,choice: MissedSessionChoice,metadata: ExerciseCompositionMetadataProvider?,

@@ -101,6 +101,52 @@ class MissedSessionPolicyTest {
         assertFalse(ProgramProgressEngine.isWeekInstanceComplete(week,emptyList(),"p","w1",2,"r:1",listOf(key)))
         assertFalse(ProgramProgressEngine.isWeekInstanceComplete(week,emptyList(),"p","w1",1,"r:2",listOf(key)))
     }
+    private val stalledToday = java.time.LocalDate.of(2026,10,9)
+    private val stalledZone = java.time.ZoneId.of("UTC")
+    private fun twoSessionWeek(timelineStart: String? = null,weeks: Int = 1): Program {
+        fun session(id: String) = Session(id,id,exercises = listOf(Exercise("e-$id","Banca",sets = listOf(ExerciseSet("set-$id",targetReps = 5)))))
+        return Program("p","Plan",structure = ProgramStructure.COMPLEX,timelineStartDate = timelineStart,
+            calendarization = if (timelineStart != null) ProgramCalendarEngine.defaultCompetitionCalendarization() else null,
+            macrocycles = listOf(Macrocycle("macro","Macro",listOf(
+                Block("b1","Bloque 1",goal = BlockGoal.ACCUMULATION,mesocycles = listOf(Mesocycle("m1","Meso",weeks = (1..weeks).map {
+                    ProgramWeek("w$it","w$it",sessions = listOf(session("a$it"),session("b$it")))
+                })))))),
+            runState = ProgramRunState("run",weekId = "w1",weekInstanceId = "w1",blockId = "b1"))
+    }
+    private fun stalledLog(sessionId: String,date: String) = WorkoutLog("log-$sessionId","p",sessionId,sessionId,date,30,
+        weekId = "w1",weekInstanceId = "w1",cycleNumber = 1,programRunId = "run")
+    @Test fun stalledWeekWithTheLastRequiredSessionUnloggedAndEightIdleDaysRequestsADecision() {
+        val p = twoSessionWeek()
+        val logs = listOf(stalledLog("a1","2026-10-01T10:00:00Z"))
+        val result = MissedSessionPolicy.requestIfStalled(p,logs,stalledToday,stalledZone,nowMs = 42)
+        val request = result.pendingMissedSessions!!
+        assertEquals("w1",request.weekId)
+        assertEquals(listOf("b1"),request.sessionIds)
+        assertEquals("run",request.programRunId)
+        assertEquals(42L,request.createdAtMs)
+        // Idempotente: con la petición ya creada no cambia nada.
+        assertEquals(result,MissedSessionPolicy.requestIfStalled(result,logs,stalledToday,stalledZone,nowMs = 99))
+        // Y la petición se puede resolver como cualquier otra.
+        val skipped = ProgramProgressEngine.resolveMissedSessions(result,MissedSessionChoice.SKIP,null,logs,nowMs = 50)
+        assertEquals(1,skipped.skippedSessionKeys.size)
+        assertNull(skipped.pendingMissedSessions)
+    }
+    @Test fun stalledPolicyAsksNothingWithoutIdlenessOrWhenNothingIsMissing() {
+        val p = twoSessionWeek()
+        val recent = listOf(stalledLog("a1","2026-10-07T10:00:00Z"))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,recent,stalledToday,stalledZone))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,emptyList(),stalledToday,stalledZone))
+        val done = listOf(stalledLog("a1","2026-10-01T10:00:00Z"),stalledLog("b1","2026-10-01T11:00:00Z"))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,done,stalledToday,stalledZone))
+    }
+    @Test fun datedProgramWhoseCursorWeekEndedByCalendarRequestsADecisionWithoutAnyLog() {
+        val p = twoSessionWeek(timelineStart = "2026-10-05",weeks = 2)
+        assertTrue(ProgramCalendarEngine.isCalendarized(p))
+        val ended = MissedSessionPolicy.requestIfStalled(p,emptyList(),java.time.LocalDate.of(2026,10,13),stalledZone,nowMs = 7)
+        assertEquals("w1",ended.pendingMissedSessions?.weekId)
+        assertEquals(listOf("a1","b1"),ended.pendingMissedSessions?.sessionIds)
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,emptyList(),java.time.LocalDate.of(2026,10,8),stalledZone))
+    }
     private fun ownRecipe(): Program {
         val recipe = TrainingPlanRecipe("return",listOf(WeekRecipe(1,0,days = listOf(1,3).map { day -> DayRecipe("Día $day",weekday = day,
             slots = listOf(SlotRecipe("bench",SlotRole.T3_ACCESSORY,LiftRef(CatalogIds.BP),List(4) { SetRecipe(reps = 8,rir = 2,percent = 70.0) },90))) })))
