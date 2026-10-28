@@ -2,10 +2,7 @@ package com.example.kpkn.screens.programdetail.design.structure
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -23,9 +19,6 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknDangerPill
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -42,7 +35,7 @@ private val CYCLE_INFO_LINES = listOf(
 internal class ProgramCycleEditing(val loop: ProgramCycleLoop?)
 
 /**
- * Hoja «Ciclos» (P3c, sustituye a `LoopsView` y a su hoja de siempre): la envoltura de [ProgramCyclesContent] en una `KpknSheet`.
+ * Hoja «Ciclos» («Añadir ciclo» de e-cycles): la envoltura de [ProgramCyclesContent] en una `KpknSheet`.
  */
 @Composable
 internal fun ProgramCyclesSheet(
@@ -71,8 +64,9 @@ internal fun ProgramCyclesSheet(
 }
 
 /**
- * El contenido de la hoja de Ciclos, sin la hoja: el resumen y la explicación, los avisos (eventos antiguos y choques), los ciclos, las
- * semanas de ciclo próximas con sus acciones de hoy y las cuatro plantillas. Crear y editar pasan por el editor anidado; borrar, por una
+ * El contenido de la hoja de Ciclos, sin la hoja, con las piezas del lienzo (e-cycles): el título y el resumen, los avisos (eventos
+ * antiguos y choques), «Tus ciclos» con «Nuevo ciclo», las semanas de ciclo próximas con sus acciones de hoy, las cuatro plantillas y
+ * «Para qué sirven los ciclos». Crear y editar pasan por el editor anidado; borrar, por una
  * confirmación. Toda acción llega como lambda: el contenido no toca el programa.
  */
 @Composable
@@ -96,76 +90,47 @@ internal fun ProgramCyclesContent(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(StructureSheetPadding),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Ciclos", style = KpknType.title, color = WizardColors.text)
-                Text(
-                    text = cycleSummaryLine(activeCount, model.currentCycle),
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-            KpknIconButton(
-                icon = KpknLineIcons.Info,
-                contentDescription = "Para qué sirven los ciclos",
-                onClick = { showInfo = true },
-            )
-        }
-        Spacer(Modifier.height(16.dp))
+        StructureSheetHeader(title = "Ciclos", subtitle = cycleSummaryLine(activeCount, model.currentCycle))
         if (model.legacyEventCount > 0) {
-            ProgramCycleLegacyNotice(count = model.legacyEventCount, onMigrate = onMigrateLegacy)
-            Spacer(Modifier.height(12.dp))
+            ProgramCycleLegacyNotice(count = model.legacyEventCount, onMigrate = onMigrateLegacy, modifier = Modifier.padding(bottom = 12.dp))
         }
         if (model.collisionLines.isNotEmpty()) {
-            ProgramCycleCollisionNotice(lines = model.collisionLines)
-            Spacer(Modifier.height(12.dp))
+            ProgramCycleCollisionNotice(lines = model.collisionLines, modifier = Modifier.padding(bottom = 12.dp))
         }
-        KpknModule {
-            KpknModuleHeader(
-                label = "Tus ciclos",
-                action = {
-                    KpknTextAction(
-                        text = "Nuevo ciclo",
-                        onClick = { editing = ProgramCycleEditing(null) },
-                        icon = KpknLineIcons.Plus,
-                    )
-                },
-            )
-            Spacer(Modifier.height(4.dp))
-            if (model.loops.isEmpty()) {
-                Text(
-                    text = "Aún no tienes ciclos. Añade uno o empieza con una plantilla.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            } else {
-                model.loops.forEachIndexed { index, loop ->
-                    if (index > 0) ProgramRowDivider()
-                    ProgramCycleRow(loop = loop, onClick = { editing = ProgramCycleEditing(loop) })
-                }
-            }
+        StructureSheetGroup(text = "Tus ciclos")
+        model.loops.forEachIndexed { index, loop ->
+            ProgramCycleRow(loop = loop, divider = index > 0, onClick = { editing = ProgramCycleEditing(loop) })
         }
+        StructureMenuRow(
+            icon = KpknLineIcons.Plus,
+            title = "Nuevo ciclo",
+            detail = if (model.loops.isEmpty()) "Aún no tienes ciclos. Añade uno o empieza con una plantilla." else null,
+            divider = model.loops.isNotEmpty(),
+            onClick = { editing = ProgramCycleEditing(null) },
+        )
         if (model.weeks.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            KpknModule {
-                KpknModuleHeader(label = "Semanas de ciclo")
-                model.weeks.forEachIndexed { index, week ->
-                    if (index > 0) ProgramRowDivider()
-                    ProgramCycleWeekRow(
-                        week = week,
-                        onView = { onViewWeek(week.blockId, week.weekId) },
-                        onPostpone = { onPostponeWeek(week.occurrenceId) },
-                        onCancel = { onCancelWeek(week.occurrenceId) },
-                    )
-                }
+            StructureSheetGroup(text = "Semanas de ciclo")
+            model.weeks.forEachIndexed { index, week ->
+                ProgramCycleWeekRow(
+                    week = week,
+                    divider = index > 0,
+                    onView = { onViewWeek(week.blockId, week.weekId) },
+                    onPostpone = { onPostponeWeek(week.occurrenceId) },
+                    onCancel = { onCancelWeek(week.occurrenceId) },
+                )
             }
         }
-        Spacer(Modifier.height(20.dp))
-        ProgramSectionLabel(text = "Plantillas de ciclo")
-        Spacer(Modifier.height(8.dp))
-        ProgramCycleTemplatesModule(templates = programCycleTemplates, onAdd = onAddTemplate)
+        StructureSheetGroup(text = "Plantillas de ciclo")
+        ProgramCycleTemplatesModule(templates = programCycleTemplates, onAdd = onAddTemplate, modifier = Modifier.padding(top = 4.dp))
+        StructureAction(
+            text = "Para qué sirven los ciclos",
+            onClick = { showInfo = true },
+            leadingIcon = KpknLineIcons.Info,
+            faint = true,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
     }
 
     editing?.let { target ->
@@ -207,27 +172,25 @@ internal fun ProgramCyclesContent(
     }
 
     pendingDelete?.let { loop ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(text = "¿Eliminar este ciclo?", style = KpknType.title, color = WizardColors.text) },
-            text = {
-                Text(
-                    text = "Sus semanas de ciclo dejan de programarse.",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
+        ProgramCycleDeleteDialog(
+            onConfirm = {
+                onLoopAction(loop.id, ProgramCycleAction.DELETE)
+                pendingDelete = null
+                editing = null
             },
-            confirmButton = {
-                KpknDangerPill(
-                    text = "Eliminar",
-                    onClick = {
-                        onLoopAction(loop.id, ProgramCycleAction.DELETE)
-                        pendingDelete = null
-                        editing = null
-                    },
-                )
-            },
-            dismissButton = { KpknTextAction(text = "Cancelar", onClick = { pendingDelete = null }) },
+            onDismiss = { pendingDelete = null },
         )
     }
+}
+
+/** La confirmación de borrar un ciclo: sus semanas de ciclo dejan de programarse. */
+@Composable
+internal fun ProgramCycleDeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "¿Eliminar este ciclo?", style = KpknType.title, color = WizardColors.text) },
+        text = { Text(text = "Sus semanas de ciclo dejan de programarse.", style = KpknType.body, color = WizardColors.textMuted) },
+        confirmButton = { KpknDangerPill(text = "Eliminar", onClick = onConfirm) },
+        dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
+    )
 }

@@ -1,250 +1,56 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.programdetail.formatDateRange
 import com.example.kpkn.screens.programdetail.formatDayMonth
-import com.example.kpkn.screens.programdetail.formatShortDate
 import com.example.kpkn.screens.programdetail.keyDateTypeLabel
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknShape
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknMonthCalendar
 import java.time.LocalDate
-import kotlin.math.roundToInt
 
-/** Un bloque de la vista previa: su nombre y su rango de fechas proyectado. */
-internal data class ProgramBlockRange(val name: String, val start: LocalDate, val end: LocalDate)
-
-/** Claves de las filas de fecha de la hoja. Solo una puede estar desplegada a la vez; la hoja de render abre una de salida. */
+/** Claves de lo que se despliega en la hoja. Solo una cosa está desplegada a la vez; la hoja de render abre una de salida. */
 internal const val CALENDAR_ROW_START = "inicio"
 internal const val CALENDAR_ROW_COMPETITION = "competicion"
 internal const val CALENDAR_ROW_END = "fin"
 
-/** Posición aún no medida de la lista de fechas clave. */
-private const val NO_POSITION = Int.MIN_VALUE
+/** Nombre de cada día ISO (1 = lunes), con mayúscula: empieza la fecha larga de los campos. */
+private val WEEKDAY_NAMES = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
-/**
- * Hoja «Calendario del programa» (P3a, sustituye a la hoja de fechas con `OutlinedTextField`): inicio, día de la competición y fin, cada
- * uno con el calendario de mes propio; la vista previa de los bloques y los avisos del motor; las otras fechas clave, y «Guardar».
- *
- * Los textos de guardado no cambian: la hoja solo presenta. Con [focusKeyDates], la hoja baja hasta la lista de fechas clave al abrirse
- * (lo pide la baldosa «Fechas clave»). [canSave] y [hasRequiredStart] llegan ya calculados por la pantalla.
- */
-@Composable
-internal fun ProgramCalendarSheet(
-    today: LocalDate,
-    timelineStartDate: String,
-    competitionDate: String,
-    manualEndDate: String,
-    projectedEnd: LocalDate?,
-    blockRanges: List<ProgramBlockRange>,
-    messages: List<String>,
-    otherKeyDates: List<ProgramKeyDate>,
-    focusKeyDates: Boolean,
-    canSave: Boolean,
-    hasRequiredStart: Boolean,
-    onTimelineStartDateChange: (String) -> Unit,
-    onCompetitionDateChange: (String) -> Unit,
-    onManualEndDateChange: (String) -> Unit,
-    onAddOtherKeyDate: () -> Unit,
-    onEditOtherKeyDate: (ProgramKeyDate) -> Unit,
-    onDeleteOtherKeyDate: (String) -> Unit,
-    onSave: () -> Unit,
-    onDismiss: () -> Unit,
-    initialOpenRow: String? = null,
-) {
-    val start = parseIsoDateExact(timelineStartDate)
-    val competition = parseIsoDateExact(competitionDate)
-    val manualEnd = parseIsoDateExact(manualEndDate)
-    val reduced = wizardReducedMotion()
-    val scroll = rememberScrollState()
-    var openRow by rememberSaveable { mutableStateOf(initialOpenRow) }
-    // Posiciones en la raíz de la ventana. La altura de la lista dentro del contenido es su posición menos la del contenedor, más el
-    // desplazamiento actual: así no hace falta `positionInParent`.
-    var containerTop by remember { mutableIntStateOf(0) }
-    var keyDatesRootTop by remember { mutableIntStateOf(NO_POSITION) }
-    var focused by remember { mutableStateOf(false) }
+/** «Lunes 6 oct 2026»: la fecha de un campo de la hoja Fechas. Pura. */
+internal fun datesFieldLabel(date: LocalDate): String =
+    "${WEEKDAY_NAMES[date.dayOfWeek.value - 1]} ${formatDayMonth(date)} ${date.year}"
 
-    LaunchedEffect(focusKeyDates, keyDatesRootTop, containerTop) {
-        if (focusKeyDates && !focused && keyDatesRootTop != NO_POSITION) {
-            focused = true
-            val target = (keyDatesRootTop - containerTop + scroll.value).coerceAtLeast(0)
-            if (reduced) scroll.scrollTo(target) else scroll.animateScrollTo(target)
-        }
-    }
-
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scroll)
-                .onGloballyPositioned { containerTop = it.positionInRoot().y.roundToInt() }
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-        ) {
-            Text(text = "Calendario del programa", style = KpknType.title, color = WizardColors.text)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "La competición marca su semana entera en el programa.",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
-            Spacer(Modifier.height(14.dp))
-
-            ProgramDateRow(
-                label = "Inicio del programa",
-                selected = start,
-                today = today,
-                expanded = openRow == CALENDAR_ROW_START,
-                onToggle = { openRow = toggledRow(openRow, CALENDAR_ROW_START) },
-                onPick = { picked ->
-                    onTimelineStartDateChange(picked.toString())
-                    openRow = null
-                },
-                onClear = clearAction(start != null) { onTimelineStartDateChange("") },
-            )
-            ProgramDateRow(
-                label = "Día de la competición",
-                selected = competition,
-                today = today,
-                expanded = openRow == CALENDAR_ROW_COMPETITION,
-                onToggle = { openRow = toggledRow(openRow, CALENDAR_ROW_COMPETITION) },
-                onPick = { picked ->
-                    onCompetitionDateChange(picked.toString())
-                    openRow = null
-                },
-                minDate = today,
-                onClear = clearAction(competition != null) { onCompetitionDateChange("") },
-            )
-            ProgramDateRow(
-                label = "Fin del programa",
-                selected = manualEnd,
-                today = today,
-                expanded = openRow == CALENDAR_ROW_END,
-                onToggle = { openRow = toggledRow(openRow, CALENDAR_ROW_END) },
-                onPick = { picked ->
-                    onManualEndDateChange(picked.toString())
-                    openRow = null
-                },
-                estimate = projectedEnd?.let { "≈ ${formatShortDate(it)}" },
-                emptyValue = "Sin fecha",
-                onClear = clearAction(manualEnd != null) { onManualEndDateChange("") },
-            )
-
-            Spacer(Modifier.height(20.dp))
-            ProgramSectionLabel(text = "Vista previa")
-            Spacer(Modifier.height(6.dp))
-            if (blockRanges.isEmpty()) {
-                Text(
-                    text = if (start == null) {
-                        "Elige el inicio para ver cuándo empieza cada bloque."
-                    } else {
-                        "El programa aún no tiene semanas suficientes para proyectar bloques."
-                    },
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-            blockRanges.forEach { block ->
-                Text(
-                    text = "${block.name} · ${formatDateRange(block.start, block.end)}",
-                    style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                    color = WizardColors.text,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-            messages.forEach { message -> ProgramEngineMessage(text = message) }
-
-            Spacer(Modifier.height(22.dp))
-            Column(
-                modifier = Modifier.onGloballyPositioned { keyDatesRootTop = it.positionInRoot().y.roundToInt() },
-            ) {
-                ProgramSectionLabel(text = "Otras fechas clave")
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "Exámenes, vacaciones o viajes que cambian tu semana.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-                Spacer(Modifier.height(4.dp))
-                otherKeyDates.forEach { keyDate ->
-                    OtherKeyDateRow(
-                        keyDate = keyDate,
-                        onEdit = { onEditOtherKeyDate(keyDate) },
-                        onDelete = { onDeleteOtherKeyDate(keyDate.id) },
-                    )
-                }
-                KpknTextAction(text = "Añadir fecha clave", onClick = onAddOtherKeyDate)
-            }
-
-            Spacer(Modifier.height(20.dp))
-            KpknPrimaryPill(
-                text = "Guardar calendario",
-                onClick = onSave,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = canSave,
-            )
-            if (!hasRequiredStart) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = "Para fijar una competición, elige primero el inicio del programa.",
-                    style = KpknType.caption,
-                    color = WizardColors.danger,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
+/** «Open regional · 16 nov»: la fila de la competición; sin fecha, lo que hace falta para fijarla. Pura. */
+internal fun competitionRowDetail(date: LocalDate?, title: String?, hasStart: Boolean): String = when {
+    date != null -> listOfNotNull(title?.takeIf { it.isNotBlank() && it != "Competición" }, formatDayMonth(date)).joinToString(" · ")
+    !hasStart -> "Elige antes cuándo empieza el programa"
+    else -> "Sin fecha"
 }
 
-/** Fila desplegada: si [row] ya estaba abierta se pliega; si no, se despliega esta y se pliega la otra. */
-private fun toggledRow(current: String?, row: String): String? = if (current == row) null else row
-
-/** «Quitar» solo cuando hay fecha que quitar; sin fecha, no hay acción. */
-private fun clearAction(hasDate: Boolean, onClear: () -> Unit): (() -> Unit)? = if (hasDate) onClear else null
-
-/**
- * Fila de otra fecha clave (56 dp): título en `bodyStrong`, rango en `caption` tabular y el tipo como píldora pequeña. Tocarla edita la
- * fecha; el icono de papelera la elimina.
- */
-@Composable
-private fun OtherKeyDateRow(keyDate: ProgramKeyDate, onEdit: () -> Unit, onDelete: () -> Unit) {
+/** «20 – 24 oct · Viaje»: la fila de otra fecha clave. Pura. */
+internal fun otherKeyDateDetail(keyDate: ProgramKeyDate): String {
     val start = parseIsoDateExact(keyDate.startDate)
     val end = parseIsoDateExact(keyDate.endDate)
     val range = when {
@@ -252,55 +58,179 @@ private fun OtherKeyDateRow(keyDate: ProgramKeyDate, onEdit: () -> Unit, onDelet
         end == null || end == start -> formatDayMonth(start)
         else -> formatDateRange(start, end)
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 56.dp)
-            .clickable(role = Role.Button, onClick = onEdit)
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = keyDate.title.ifBlank { "Sin nombre" },
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+    return "$range · ${keyDateTypeLabel(keyDate.type)}"
+}
+
+/**
+ * e-dates, hoja «Fechas»: «Empieza» y «Termina» (con «· calculado» si el fin sale de las semanas) como campos que despliegan el calendario
+ * de mes; los avisos del motor; «Fechas clave» con la competición, las otras fechas y «Añadir fecha clave»; los días de entreno, y
+ * «Añadir una pausa». Cada cambio se guarda al elegirlo: la hoja no tiene «Guardar». Sin estado salvo qué está desplegado.
+ */
+@Composable
+internal fun ProgramCalendarSheet(
+    today: LocalDate,
+    start: LocalDate?,
+    manualEnd: LocalDate?,
+    projectedEnd: LocalDate?,
+    competition: LocalDate?,
+    competitionTitle: String?,
+    otherKeyDates: List<ProgramKeyDate>,
+    trainingDays: Set<Int>,
+    messages: List<String>,
+    onStartChange: (LocalDate?) -> Unit,
+    onEndChange: (LocalDate?) -> Unit,
+    onCompetitionChange: (LocalDate?) -> Unit,
+    onAddKeyDate: () -> Unit,
+    onEditKeyDate: (ProgramKeyDate) -> Unit,
+    onAddPause: () -> Unit,
+    onDismiss: () -> Unit,
+    initialOpenRow: String? = null,
+) {
+    var openRow by rememberSaveable { mutableStateOf(initialOpenRow) }
+    fun toggle(row: String) {
+        openRow = if (openRow == row) null else row
+    }
+
+    KpknSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(StructureSheetPadding),
+        ) {
+            StructureSheetHeader(
+                title = "Fechas",
+                subtitle = "Con fechas, cada día de la Semana lleva su número y Inicio sabe qué toca hoy.",
             )
-            // El tipo va debajo del rango, no en la misma fila: así no se estrecha ni se corta a 130 % de letra.
-            Text(
-                text = range,
-                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            StructureField(
+                label = "Empieza",
+                onClick = { toggle(CALENDAR_ROW_START) },
+                modifier = Modifier.semantics { stateDescription = if (openRow == CALENDAR_ROW_START) "Desplegado" else "Plegado" },
+            ) {
+                DateValue(text = start?.let(::datesFieldLabel), empty = "Sin fecha")
+            }
+            if (openRow == CALENDAR_ROW_START) {
+                DatePicker(
+                    selected = start,
+                    today = today,
+                    minDate = null,
+                    // Con competición, el inicio no se puede quitar: la competición necesita una semana en la que caer.
+                    onClear = if (start != null && competition == null) ({ onStartChange(null) }) else null,
+                    onPick = { picked ->
+                        onStartChange(picked)
+                        openRow = null
+                    },
+                )
+            }
+            StructureField(
+                label = "Termina",
+                onClick = { toggle(CALENDAR_ROW_END) },
+                modifier = Modifier.semantics { stateDescription = if (openRow == CALENDAR_ROW_END) "Desplegado" else "Plegado" },
+            ) {
+                when {
+                    manualEnd != null -> DateValue(text = datesFieldLabel(manualEnd), empty = "")
+                    projectedEnd != null -> Text(
+                        text = buildAnnotatedString {
+                            append(datesFieldLabel(projectedEnd))
+                            withStyle(StructureCaptionStyle.toSpanStyle().copy(color = StructureFaint)) { append(" · calculado") }
+                        },
+                        style = StructureFieldValueStyle.tabular(),
+                        color = StructureInk,
+                    )
+                    else -> DateValue(text = null, empty = "Sin fecha")
+                }
+            }
+            if (openRow == CALENDAR_ROW_END) {
+                DatePicker(
+                    selected = manualEnd,
+                    today = today,
+                    minDate = start,
+                    onClear = if (manualEnd != null) ({ onEndChange(null) }) else null,
+                    onPick = { picked ->
+                        onEndChange(picked)
+                        openRow = null
+                    },
+                )
+            }
+            messages.forEach { message ->
+                StructureCaption(text = message, color = WizardColors.danger, modifier = Modifier.padding(top = 8.dp))
+            }
+
+            StructureSheetGroup(text = "Fechas clave")
+            StructureMenuRow(
+                icon = KpknLineIcons.Flag,
+                title = "Competición",
+                detail = competitionRowDetail(competition, competitionTitle, hasStart = start != null),
+                divider = false,
+                enabled = start != null,
+                onClick = { toggle(CALENDAR_ROW_COMPETITION) },
             )
-            Spacer(Modifier.height(4.dp))
-            KeyDateTypePill(type = keyDate.type)
+            if (openRow == CALENDAR_ROW_COMPETITION && start != null) {
+                DatePicker(
+                    selected = competition,
+                    today = today,
+                    minDate = today,
+                    onClear = if (competition != null) ({ onCompetitionChange(null) }) else null,
+                    onPick = { picked ->
+                        onCompetitionChange(picked)
+                        openRow = null
+                    },
+                )
+            }
+            otherKeyDates.forEach { keyDate ->
+                StructureMenuRow(
+                    icon = KpknLineIcons.Flag,
+                    title = keyDate.title.ifBlank { "Sin nombre" },
+                    detail = otherKeyDateDetail(keyDate),
+                    onClick = { onEditKeyDate(keyDate) },
+                )
+            }
+            StructureMenuRow(
+                icon = KpknLineIcons.Plus,
+                title = "Añadir fecha clave",
+                detail = "Test, viaje, vacaciones",
+                onClick = onAddKeyDate,
+            )
+
+            StructureSheetGroup(text = "Días de entreno")
+            StructureWeekdayRow(trainingDays = trainingDays)
+
+            StructureSheetGroup(text = "Pausas")
+            StructureMenuRow(
+                icon = KpknLineIcons.Pause,
+                title = "Añadir una pausa",
+                detail = "Las semanas siguientes se corren",
+                onClick = onAddPause,
+            )
         }
-        KpknIconButton(
-            icon = KpknLineIcons.Trash,
-            contentDescription = "Eliminar",
-            onClick = onDelete,
-            tint = WizardColors.danger,
-        )
     }
 }
 
-/** Píldora pequeña con el tipo de la fecha clave: solo lectura, con el aspecto del chip de la app. */
+/** El valor de un campo de fecha: la fecha en tinta, con cifras tabulares, o [empty] en `--faint`. */
 @Composable
-private fun KeyDateTypePill(type: KeyDateType) {
-    Box(
-        modifier = Modifier
-            .background(KpknSurface.inset, KpknShape.pill)
-            .padding(horizontal = 10.dp, vertical = 3.dp),
-    ) {
-        Text(
-            text = keyDateTypeLabel(type),
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-        )
+private fun DateValue(text: String?, empty: String) {
+    Text(
+        text = text ?: empty,
+        style = StructureFieldValueStyle.tabular(),
+        color = if (text != null) StructureInk else StructureFaint,
+    )
+}
+
+/** El calendario de mes bajo un campo y, si hay fecha que quitar, «Quitar» a la derecha. */
+@Composable
+private fun DatePicker(
+    selected: LocalDate?,
+    today: LocalDate,
+    minDate: LocalDate?,
+    onClear: (() -> Unit)?,
+    onPick: (LocalDate) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        KpknMonthCalendar(selected = selected, onSelect = onPick, today = today, minDate = minDate)
+        if (onClear != null) {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                StructureAction(text = "Quitar", onClick = onClear, faint = true, modifier = Modifier.fillMaxWidth())
+            }
+        }
     }
 }

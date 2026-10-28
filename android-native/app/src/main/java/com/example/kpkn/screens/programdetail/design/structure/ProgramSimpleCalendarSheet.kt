@@ -2,14 +2,14 @@ package com.example.kpkn.screens.programdetail.design.structure
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,18 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.text.SpanishPlurals
-import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.programdetail.calendarWeekCount
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import com.example.kpkn.screens.programdetail.weekdayInitial
 import com.example.kpkn.screens.programdetail.design.numberWithUnit
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSecondaryPill
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSegmentedSize
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 
@@ -84,32 +77,25 @@ internal fun ProgramSimpleCalendarSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(scroll)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(StructureSheetPadding),
         ) {
             if (isCalendarized) {
-                Text(text = "Ciclo calendarizado", style = KpknType.title, color = WizardColors.text)
-                Spacer(Modifier.height(6.dp))
-                Text(text = CALENDARIZADO_TEXTO, style = KpknType.caption, color = WizardColors.textMuted)
-                Spacer(Modifier.height(18.dp))
-                KpknPrimaryPill(
+                StructureSheetHeader(title = "Ciclo calendarizado", subtitle = CALENDARIZADO_TEXTO)
+                StructurePrimaryPill(
                     text = "Recuperar el ciclo guardado",
                     onClick = onRecoverCycle,
-                    modifier = Modifier.fillMaxWidth(),
                     enabled = hasSavedCycle,
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                 )
-                Spacer(Modifier.height(10.dp))
-                KpknSecondaryPill(
+                StructureSecondarySmallPill(
                     text = "Empezar un ciclo nuevo",
                     onClick = onStartFreshCycle,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             } else {
-                Text(text = "Calendarizar el ciclo", style = KpknType.title, color = WizardColors.text)
-                Spacer(Modifier.height(6.dp))
-                Text(text = SIN_CALENDARIZAR_TEXTO, style = KpknType.caption, color = WizardColors.textMuted)
-                Spacer(Modifier.height(14.dp))
+                StructureSheetHeader(title = "Calendarizar el ciclo", subtitle = SIN_CALENDARIZAR_TEXTO)
                 ProgramDateRow(
-                    label = "Inicio",
+                    label = "Empieza",
                     selected = start,
                     today = today,
                     expanded = openRow == ROW_START,
@@ -121,7 +107,7 @@ internal fun ProgramSimpleCalendarSheet(
                     onClear = if (start != null) ({ onStartDateChange("") }) else null,
                 )
                 ProgramDateRow(
-                    label = "Fin (opcional)",
+                    label = "Termina",
                     selected = end,
                     today = today,
                     expanded = openRow == ROW_END,
@@ -131,29 +117,19 @@ internal fun ProgramSimpleCalendarSheet(
                         openRow = null
                     },
                     minDate = start,
-                    emptyValue = "Sin fecha de fin",
+                    emptyValue = "Opcional",
                     onClear = if (end != null) ({ onEndDateChange("") }) else null,
                 )
                 if (weeks > 0) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
+                    StructureCaption(
                         text = numberWithUnit(SpanishPlurals.weeks(weeks)),
-                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                        color = WizardColors.textMuted,
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
-                Spacer(Modifier.height(16.dp))
-                ProgramSectionLabel(text = "La semana empieza el")
-                Spacer(Modifier.height(8.dp))
-                KpknSegmentedControl(
-                    options = (1..7).map(::weekdayInitial),
-                    selectedIndex = (startDayOfWeek - 1).coerceIn(0, 6),
-                    onSelect = { index -> onStartDayOfWeekChange(index + 1) },
-                    size = KpknSegmentedSize.Compact,
-                )
-                Spacer(Modifier.height(16.dp))
-                ProgramSectionLabel(text = "Días de entreno")
-                Spacer(Modifier.height(8.dp))
+                StructureSheetGroup(text = "La semana empieza el")
+                StartDayChips(selected = startDayOfWeek, onSelect = onStartDayOfWeekChange)
+                StructureSheetGroup(text = "Días de entreno")
+                Spacer(Modifier.height(4.dp))
                 ProgramWeekdayToggles(
                     trainingDays = trainingDays,
                     startDay = startDayOfWeek,
@@ -161,26 +137,38 @@ internal fun ProgramSimpleCalendarSheet(
                         onTrainingDaysChange(if (day in trainingDays) trainingDays - day else trainingDays + day)
                     },
                 )
-                Spacer(Modifier.height(18.dp))
-                KpknPrimaryPill(
+                StructurePrimaryPill(
                     text = "Calendarizar ciclo actual",
                     onClick = onCalendarizeCycle,
-                    modifier = Modifier.fillMaxWidth(),
                     enabled = start != null && trainingDays.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
                 )
-                Spacer(Modifier.height(10.dp))
-                KpknSecondaryPill(
-                    text = "Crear pausa calendarizada",
-                    onClick = onStartBreak,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = start != null && end != null && end.isAfter(start) && trainingDays.isNotEmpty(),
-                )
+                if (start != null && end != null && end.isAfter(start) && trainingDays.isNotEmpty()) {
+                    StructureSecondarySmallPill(
+                        text = "Crear pausa calendarizada",
+                        onClick = onStartBreak,
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    )
+                } else {
+                    StructureCaption(
+                        text = "Para crear una pausa calendarizada, elige cuándo empieza y cuándo termina.",
+                        center = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    )
+                }
             }
-            Spacer(Modifier.height(10.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                KpknTextAction(text = "Cerrar", onClick = onDismiss)
-            }
-            Spacer(Modifier.height(12.dp))
+            StructureAction(text = "Cerrar", onClick = onDismiss, faint = true, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+        }
+    }
+}
+
+/** «La semana empieza el»: una chip por día (L M X J V S D) y la elegida en tinta. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StartDayChips(selected: Int, onSelect: (Int) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        (1..7).forEach { day ->
+            StructureChip(text = weekdayInitial(day), selected = selected == day, onClick = { onSelect(day) })
         }
     }
 }

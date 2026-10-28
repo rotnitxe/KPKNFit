@@ -1244,20 +1244,12 @@ private fun TrainingPanel(
                 }
             }
             StructureSubTab.MACROCICLO -> {
-                // «Revisión del plan» (antes al pie de Volumen) vive ahora al pie de Estructura: el mismo informe del motor.
-                val structureLogs by viewModel.programLogs.collectAsState()
-                val structureAnalyticsReport = remember(program, structureLogs) {
-                    ProgramAnalyticsEngine.analyze(program = program, logs = structureLogs, exerciseCatalog = exerciseCatalogSnapshot())
-                }
                 MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
-                // Bloques (P3b): las acciones de bloque, semana y copia, con las mismas llamadas al ViewModel de siempre.
-                selectedWeekId = selectedWeekId,
-                copiedWeekId = copiedRoadmapWeekId,
-                onCopyWeek = { copiedRoadmapWeekId = it },
-                onPasteWeek = ::pasteWeek,
+                // Pulsación larga de una semana: el mismo menú que en la Semana (copiar, pegar, editar y borrar).
+                onWeekLongPress = { weekId, anchor -> weekMenu = weekId to anchor },
                 onUpdateBlock = { blockId, name, description, goal, scheme ->
                     viewModel.updateBlockMetadata(
                         blockId = blockId,
@@ -1269,10 +1261,7 @@ private fun TrainingPanel(
                 },
                 blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
                 onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
-                onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
-                onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
                 onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-                onApplyProgramTemplate = { viewModel.applyProgramTemplate(it) },
                 onApplyProgramTemplateOverwrite = { template, overwrite ->
                     viewModel.applyProgramTemplate(template, overwrite)
                 },
@@ -1296,27 +1285,21 @@ private fun TrainingPanel(
                 onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
                 onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
                 onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
-                macrocycleRoadmapExpanded = editorUiState.macrocycleRoadmapExpanded,
-                onMacrocycleRoadmapExpandedChange = { viewModel.setMacrocycleRoadmapExpanded(it) },
                 macrocycleKeyDatesSheetOpen = editorUiState.macrocycleKeyDatesSheetOpen,
                 onMacrocycleKeyDatesSheetOpenChange = { viewModel.setMacrocycleKeyDatesSheetOpen(it) },
                 macrocycleLibrarySheetOpen = editorUiState.macrocycleLibrarySheetOpen,
                 onMacrocycleLibrarySheetOpenChange = { viewModel.setMacrocycleLibrarySheetOpen(it) },
                 macrocycleLoopsSheetOpen = editorUiState.macrocycleLoopsSheetOpen,
                 onMacrocycleLoopsSheetOpenChange = { viewModel.setMacrocycleLoopsSheetOpen(it) },
-                macrocycleTimelineStartDate = editorUiState.macrocycleTimelineStartDate,
-                onMacrocycleTimelineStartDateChange = { viewModel.setMacrocycleTimelineStartDate(it) },
-                macrocycleManualEndDate = editorUiState.macrocycleManualEndDate,
-                onMacrocycleManualEndDateChange = { viewModel.setMacrocycleManualEndDate(it) },
-                macrocycleCompetitionDate = editorUiState.macrocycleCompetitionDate,
-                onMacrocycleCompetitionDateChange = { viewModel.setMacrocycleCompetitionDate(it) },
                 onAddProgramCopy = { copy ->
                     viewModel.addProgramCopy(copy)
                     onOpenProgram(copy.id)
                 },
-                analyticsReport = structureAnalyticsReport,
                 onOpenTrainingMaxes = if (exerciseTmTargets.isNotEmpty()) ({ showExerciseTmSheet = true }) else null,
-                trainingMaxSummary = exerciseTrainingMaxSummary(exerciseTmTargets.size, exerciseTrainingMaxMissing(program, exerciseTmTargets)),
+                trainingMaxSummary = com.example.kpkn.screens.programdetail.design.structure.trainingMaxRowLine(
+                    exerciseTmTargets.size,
+                    com.example.kpkn.screens.programdetail.design.structure.trainingMaxMissingNames(program, exerciseTmTargets),
+                ),
             )
             }
             StructureSubTab.VOLUMEN -> {

@@ -61,10 +61,14 @@ import com.example.kpkn.screens.programdetail.design.programDetailTabsOptions
 import com.example.kpkn.screens.programdetail.design.programHeaderDotColor
 import com.example.kpkn.screens.programdetail.design.split.SplitCatalogMode
 import com.example.kpkn.screens.programdetail.design.split.SplitCatalogScreen
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBaseWeekModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockList
-import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarModule
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsKind
-import com.example.kpkn.screens.programdetail.design.structure.ProgramToolsModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramItem
+import com.example.kpkn.screens.programdetail.design.structure.ProgramFromProgramModule
+import com.example.kpkn.screens.programdetail.design.structure.ProgramMapModule
+import com.example.kpkn.screens.programdetail.design.structure.StructureGroupLabel
+import com.example.kpkn.screens.programdetail.design.structure.StructureSecondarySmallPill
+import com.example.kpkn.screens.programdetail.design.structure.programMapSegments
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -299,80 +303,49 @@ class ProgramDetailClosureRenderSheetTest {
                 header(activeState)
                 about()
                 tabs(1)
-                ProgramToolsModule(
-                    kind = ProgramToolsKind.BLOCKS,
-                    blockCount = 4,
-                    weekCount = 12,
-                    sessionCount = 48,
-                    keyDateCount = 2,
-                    historyCount = 3,
-                    onCalendar = {},
-                    onKeyDates = {},
-                    onRoute = {},
-                    onCycles = {},
-                    onTemplates = {},
-                    onHistory = {},
-                    onCalendarize = {},
+                ProgramMapModule(
+                    segments = programMapSegments(ProgramStructureSamples.programaCuatroBloques),
+                    startLabel = "6 oct",
+                    nowLabel = "Hoy · semana 4",
+                    endLabel = "16 nov",
+                    onDates = {},
                 )
-                ProgramCalendarModule(
-                    kind = ProgramToolsKind.BLOCKS,
-                    today = LocalDate.of(2026, 10, 13),
-                    startDate = LocalDate.of(2026, 10, 5),
-                    endDate = LocalDate.of(2027, 3, 1),
-                    endIsEstimate = true,
-                    competitionDate = LocalDate.of(2027, 3, 14),
-                    trainingDays = setOf(1, 3, 5),
-                    repeatingWeekLabel = "",
-                    durationWeeks = 21,
-                    messages = emptyList(),
-                    onEdit = {},
-                    onCalendarize = {},
-                )
+                StructureGroupLabel(text = "Bloques")
                 ProgramBlockList(
                     blocks = ProgramStructureSamples.programaCuatroBloques,
-                    isSimple = false,
-                    selectedWeekId = "s4",
+                    expandedBlockId = ProgramStructureSamples.intensificacion.id,
+                    progressionOf = { "Top set a RPE 8 y dos series de back-off al 90 %. Sube 2,5 kg cuando el top set sale a RPE 7 o menos." },
+                    onToggleBlock = {},
                     onFocusWeek = { _, _ -> },
                     onWeekLongPress = { _, _, _ -> },
                     onBlockMore = { _, _ -> },
-                    onEditMeso = { _, _ -> },
                     onAddWeekToBlock = { _ -> },
-                    onAddMesoToBlock = { _ -> },
-                    onAddBlock = {},
-                    onConvert = {},
+                )
+                StructureSecondarySmallPill(text = "Añadir bloque", onClick = {}, icon = KpknLineIcons.Plus, modifier = Modifier.fillMaxWidth())
+                ProgramFromProgramModule(
+                    items = listOf(
+                        ProgramFromProgramItem("Cargas de referencia (TM)", "4 ejercicios · falta press militar", KpknLineIcons.Target, "tm", {}),
+                        ProgramFromProgramItem("Aplicar plantilla o método", "Rellena semanas con una plantilla de la biblioteca", KpknLineIcons.Book, "pl", {}),
+                        ProgramFromProgramItem("Versiones guardadas", "Última: hoy 08:12, antes de aplicar la propuesta", KpknLineIcons.History, "ve", {}),
+                    ),
                 )
             }
             "estructuraSimple" -> column {
                 header(simpleState)
                 about()
                 tabs(1)
-                ProgramToolsModule(
-                    kind = ProgramToolsKind.CYCLIC,
-                    blockCount = 1,
-                    weekCount = 1,
-                    sessionCount = 3,
-                    keyDateCount = 0,
-                    historyCount = 0,
-                    onCalendar = {},
-                    onKeyDates = {},
-                    onRoute = {},
-                    onCycles = {},
-                    onTemplates = {},
-                    onHistory = {},
-                    onCalendarize = {},
+                ProgramBaseWeekModule(headline = "4 sesiones · ≈ 3 h 10", trainingDays = setOf(1, 2, 3, 5), cycleLabel = null, onEdit = {})
+                ProgramFromProgramModule(
+                    label = "Ciclos",
+                    items = listOf(
+                        ProgramFromProgramItem("Descarga cada 4 semanas", "Próxima: semana 8", KpknLineIcons.Repeat, "c1", {}),
+                        ProgramFromProgramItem("Test de 1RM cada 8 semanas", "Próximo: semana 8", KpknLineIcons.Target, "c2", {}),
+                        ProgramFromProgramItem("Añadir ciclo", null, KpknLineIcons.Plus, "c3", {}),
+                    ),
                 )
-                ProgramBlockList(
-                    blocks = listOf(ProgramStructureSamples.simpleCiclo),
-                    isSimple = true,
-                    selectedWeekId = null,
-                    onFocusWeek = { _, _ -> },
-                    onWeekLongPress = { _, _, _ -> },
-                    onBlockMore = { _, _ -> },
-                    onEditMeso = { _, _ -> },
-                    onAddWeekToBlock = { _ -> },
-                    onAddMesoToBlock = { _ -> },
-                    onAddBlock = {},
-                    onConvert = {},
+                ProgramFromProgramModule(
+                    label = null,
+                    items = listOf(ProgramFromProgramItem("Pasar a programa por bloques", null, KpknLineIcons.Training, "pa", {})),
                 )
             }
             "volumen" -> column {
