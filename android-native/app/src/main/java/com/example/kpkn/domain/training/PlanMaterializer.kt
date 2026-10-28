@@ -1189,10 +1189,29 @@ object PlanMaterializer {
         // 1RM desde un TM. Una referencia declarada de trabajo observado/lastre es la base de todas las series.
         fun readsOneRm(basis: LoadBasis): Boolean =
             basis == LoadBasis.PERCENT_1RM || basis == LoadBasis.PERCENT_DESIRED_MAX
-        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg)
         val hasCapacityReference = oneRmReference != null || tmReference != null
+        // F-21 (decisión 2): una variante con referencia de capacidad PENDIENTE y sin marca declarada recibe una estimación visible
+        // desde la marca del básico de competición de su familia. La referencia sigue pendiente: nunca se guarda como declarada.
+        val variantEstimate: VariantLoadEstimate? = if (
+            hasCapacityReference &&
+            oneRmReference?.let(::referenceBaseKg) == null && tmReference?.let(::referenceBaseKg) == null &&
+            listOfNotNull(oneRmReference, tmReference).any { it.state == PlanLoadReferenceState.PENDING }
+        ) {
+            slot.lift.liftSlot?.let { liftSlot ->
+                val sourceConfigurationId = recipe.liftSlots[liftSlot]
+                val sourceOneRm = TrainingMaxResolver.oneRm(profile, liftSlot)
+                if (sourceConfigurationId != null && sourceOneRm != null && sourceConfigurationId != slot.lift.configurationId) {
+                    VariantLoadEstimates.estimate(sourceConfigurationId, sourceOneRm, slot.lift.configurationId)
+                } else {
+                    null
+                }
+            }
+        } else {
+            null
+        }
+        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg) ?: variantEstimate?.estimatedOneRmKg
         val declaredTmKg: Double? = when {
-            tmReference != null -> referenceBaseKg(tmReference)
+            tmReference != null -> referenceBaseKg(tmReference) ?: variantEstimate?.let { it.estimatedOneRmKg * recipeTmFraction }
             declaredOneRmKg != null -> declaredOneRmKg * recipeTmFraction
             explicit == null -> tm
             else -> null
@@ -1336,7 +1355,7 @@ object PlanMaterializer {
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
             reference1RM = if (hasCapacityReference) declaredOneRmKg else if (explicit == null) oneRm else null,
             referenceTrainingMax = when {
-                tmReference != null -> referenceBaseKg(tmReference)
+                tmReference != null -> referenceBaseKg(tmReference) ?: declaredTmKg.takeIf { variantEstimate != null }
                 oneRmReference != null -> declaredTmKg.takeIf { working.any { it.percent != null && !readsOneRm(it.loadBasis) } }
                 explicit == null -> tm
                 else -> null
@@ -1364,6 +1383,7 @@ object PlanMaterializer {
             recipeDayId = recipeDayId,
             recipeSlotId = slot.id.takeIf { recipeDayId != null },
             nativeProgressionManaged = nativeProgressionManaged,
+            loadEstimate = variantEstimate,
         )
         val apre = resolveLiveApreBlock(materializedExercise, recipe.id, recipe.progression is ProgressionRule.ApreXrm)
         val marked = if (apre == null) materializedExercise else materializedExercise.copy(

@@ -37,9 +37,19 @@ class ProtocolRecipeFidelityTest {
             recipe,CatalogCompositionTestSupport.metadata,strict = false)
         val first = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions.first().allExercises()
             .first { it.catalogConfigurationId == CatalogIds.SQ_HIGH }
-        assertNull(first.reference1RM)
-        assertNull(first.referenceTrainingMax)
-        assertTrue(first.sets.all { it.weight == null })
+        // F-21: con la marca del básico (200 kg de barra baja) la barra alta lleva kilos estimados (×0,95) y sigue marcada como pendiente.
+        assertEquals(190.0, first.reference1RM ?: -1.0, 0.001)
+        assertEquals(0.95, first.loadEstimate?.factor ?: -1.0, 1e-9)
+        assertEquals(PlanLoadReferenceState.PENDING, first.loadReference?.state)
+        assertTrue(first.sets.all { (it.weight ?: 0.0) > 0.0 })
+        val withoutProfile = com.example.kpkn.domain.training.PlanMaterializer.materialize(
+            com.example.kpkn.data.models.Program("rotation-reference-none","Plan"),
+            recipe,CatalogCompositionTestSupport.metadata,strict = false)
+        val bare = withoutProfile.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions.first().allExercises()
+            .first { it.catalogConfigurationId == CatalogIds.SQ_HIGH }
+        assertNull(bare.reference1RM)
+        assertNull(bare.loadEstimate)
+        assertTrue(bare.sets.all { it.weight == null })
     }
 
     @Test fun later_bodybuilding_blocks_add_accessories_and_use_the_declared_leg_emphasis() {

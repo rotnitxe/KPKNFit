@@ -889,6 +889,45 @@ class PlanMaterializerTest {
     }
 
     @Test
+    fun powerbuilding_16_week_1_squat_variant_gets_estimated_kilos_from_the_competition_squat_mark() {
+        // F-21 (decisión 2): la barra alta de la semana 1 no tiene marca propia; se estima desde los 200 kg de barra baja (×0,95 = 190 kg).
+        val recipe = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.powerbuilding16()
+        val program = PlanMaterializer.materialize(
+            Program(id = "pb", name = "T"), recipe, CatalogCompositionTestSupport.metadata, SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0), strict = false,
+        )
+        val squat = weeksOf(program).first().sessions.flatMap { it.allExercises() }
+            .first { it.catalogConfigurationId == CatalogIds.SQ_HIGH && it.slotRole == SlotRole.T1_MAIN }
+        val estimate = squat.loadEstimate!!
+        assertEquals(0.95, estimate.factor, 1e-9)
+        assertEquals(190.0, estimate.estimatedOneRmKg, 1e-9)
+        assertEquals(CatalogIds.SQ_LOW, estimate.sourceConfigurationId)
+        assertTrue(squat.sets.isNotEmpty() && squat.sets.all { (it.weight ?: 0.0) > 0.0 })
+        val first = squat.sets.first()
+        val base = if (first.loadBasis == LoadBasis.PERCENT_TM) 190.0 * 0.90 else 190.0
+        assertEquals(base * (first.targetPercentageRM ?: 0.0) / 100.0, first.weight ?: -1.0, 0.01)
+        assertEquals(com.example.kpkn.data.protocols.PlanLoadReferenceState.PENDING, squat.loadReference?.state)
+        // El básico de competición no lleva estimación.
+        val bench = weeksOf(program).first().sessions.flatMap { it.allExercises() }
+            .first { it.catalogConfigurationId == CatalogIds.BP_SPOTO && it.slotRole == SlotRole.T1_MAIN }
+        assertEquals(0.92, bench.loadEstimate?.factor ?: -1.0, 1e-9)
+        assertEquals(null, program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+            .flatMap { it.allExercises() }.firstOrNull { it.catalogConfigurationId == CatalogIds.DL }?.loadEstimate)
+    }
+
+    @Test
+    fun a_variant_without_any_profile_mark_stays_without_kilos_and_without_estimate() {
+        val recipe = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.powerbuilding16()
+        val program = PlanMaterializer.materialize(
+            Program(id = "pb0", name = "T"), recipe, CatalogCompositionTestSupport.metadata, SeqIds(), strict = false,
+        )
+        val squat = weeksOf(program).first().sessions.flatMap { it.allExercises() }
+            .first { it.catalogConfigurationId == CatalogIds.SQ_HIGH && it.slotRole == SlotRole.T1_MAIN }
+        assertEquals(null, squat.loadEstimate)
+        assertTrue(squat.sets.all { it.weight == null })
+    }
+
+    @Test
     fun lilliebridge_heavy_deadlift_resolves_to_170_174_180_and_184_kg_with_a_200_kg_one_rm() {
         // L-07: el lunes de las semanas pares es un peso muerto pesado de 2 singles al 85, 87, 90 y 92 %, y Lilliebridge pesa sobre el 1RM
         // (TM al 100 %): con un 1RM de 200 kg son 170, 174, 180 y 184 kg. Las semanas impares llevan la sentadilla pesada el lunes.
