@@ -40,11 +40,8 @@ internal fun ProgramPlanSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
-            Text(text = "Plan y procedencia", style = KpknType.title, color = WizardColors.text)
-            Spacer(Modifier.height(14.dp))
-            Text(text = summary.planName, style = KpknType.bodyStrong, color = WizardColors.text)
+            ProgramSheetHeader(title = summary.planName, eyebrow = "Sobre el programa", subtitle = summary.provenanceLabel)
             Spacer(Modifier.height(4.dp))
-            Text(text = summary.provenanceLabel, style = KpknType.caption, color = WizardColors.textMuted)
             summary.sourceLine?.let { line ->
                 Text(text = line, style = KpknType.caption, color = WizardColors.textMuted)
             }

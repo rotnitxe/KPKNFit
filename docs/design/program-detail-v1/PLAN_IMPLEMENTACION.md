@@ -111,7 +111,47 @@ Sin push. Commit por paquete con PASS.
 | P7a dibujo de las historias del programa (1080 × 1920) | hecho · 6 pruebas; PNG en render-android/historia_*.png, ±3 px del lienzo | d13f09c6f |
 | P7b hoja de compartir del programa y datos desde el programa | hecho · 8 pruebas; conectada en portada, ⋯ y lista (351 pruebas) | be6a2ea83, 6659a370f |
 | P7c historias del mes (Resumen, Constancia, Fuerza, Músculos) | hecho · 10 pruebas; PNG en render-android/mes_*.png | 65a36828a |
-| P7d historias del entreno (Sesión, Ejercicio, Fotos) | pendiente de fusionar master (zona de la sesión en vivo) | |
+| P7d historias del entreno (Sesión, Ejercicio, Fotos) | en curso tras fusionar master (557af5fe2) | |
 | P4a modelo y piezas de Progreso (resumen, fuerza, trabajo por semana) | hecho · 20 pruebas; sin cablear | 6919ac012 |
 | P4b cablear resumen, fuerza y trabajo en la pestaña Progreso (con alcance) | hecho · 413 pruebas de programdetail | 94d0ea039 |
-| P4c volumen por músculo, Rangos y salida de «Calibrar» | pendiente de P4b | |
+| P4c volumen por músculo, Rangos, Hecho/Plan, modalidad y salida de «Calibrar» | hecho; verificación en la cola | 9f1cbe372 |
+| P5a mapa del programa y «Del programa» en Estructura (TM, plantillas, versiones, ruta, fechas, ciclos, revisión del plan) | hecho; verificación en la cola | 9f1cbe372 |
+| P8 resumen del mes: modelo, pantalla animada, aviso en Inicio, hoja «Compartir <mes>», «Resúmenes mensuales» en Progreso | hecho; verificación en la cola | 8951b5fa2 |
+| Fusión con master (sesión en vivo Ref02, Room 37) | hecho, sin conflictos | 557af5fe2 |
+| P9 hojas con piel KPKN y fallos de Decisiones | en curso | |
+
+## Decisiones de la noche del 27 al 28 de octubre (sin el usuario, por su orden)
+
+El usuario se fue a dormir con la orden de no parar ni preguntar y de decidir lo mejor para el proyecto. Lo decidido:
+
+- **«Calibrar» sale y queda «Rangos».** El aviso automático al abrir el programa y la invitación «Sin calibrar» se quitan, como
+  aprobó en el lienzo. La calibración no se pierde: la hoja «Rangos» ofrece «Revisar mis respuestas», que abre la misma hoja de
+  siempre con el mismo cálculo (refinar, no quitar).
+- **«Hecho / Plan» por defecto en «Hecho» solo si hay registros.** Sin registros, «Hecho» enseñaría todo a cero: el conmutador no
+  aparece y se ve el plan. La escala de la barra incluye lo hecho para que no se corte si se hizo más de lo planificado.
+- **Cargas de referencia en una hoja.** El panel de TM por ejercicio salía siempre en la Semana; pasa a Estructura › «Del programa» ›
+  «Cargas de referencia (TM)», con la cuenta de ejercicios y de los que faltan. La fila solo aparece si el programa tiene ejercicios
+  con TM. El asistente de TM de los básicos sigue abriéndose desde las propuestas de progresión.
+- **Revisión del plan al pie de Estructura.** Mismo informe del motor (`ProgramAnalyticsEngine`), calculado con los registros del
+  programa; Volumen deja de pintarla.
+- **«Herramientas» se sustituye por el mapa y «Del programa».** Ninguna acción se pierde: calendarizar va en «Fechas» del mapa;
+  fechas clave, ruta, ciclos, plantillas y versiones son filas de «Del programa».
+- **Resumen del mes, visto al abrirlo.** Abrir el resumen desde Inicio o desde Progreso lo marca como visto; descartar el aviso
+  también. Compartir abre la hoja del mes encima de la pantalla del resumen (mismo patrón de capas que la del programa).
+- **Fusión de master antes de verificar.** Master solo traía la sesión en vivo (Ref02, Room 37) sin archivos en común; fusionar
+  antes de la corrida ahorra una vuelta completa de la cola (cada vuelta tarda de 30 a 90 min esta noche).
+- **P9 y P7d en un worktree aparte (`C:\kw\pd-p9`), sin Gradle.** Así un error a medias no rompe las verificaciones que esperan
+  turno; se copian aquí y se verifican juntas.
+- **Cola de Gradle v11.** `tree_sig` hacía un `stat` por archivo sin seguimiento (40 min con la ranura tomada en el repo principal);
+  ahora uno por lotes (5,5 min allí, 9,5 s aquí). Nota en `C:\kw\tools\GRADLE_GUIA.md`.
+
+- **Fallos de Decisiones (P9b, 630562e52).** Arreglados: lo copiado de una semana se pierde al cambiar de pestaña; la hoja de
+  pegar no recibe el destino; «Eliminar sesión» sin bloque o semana cierra sin avisar; revisión de bloque y continuación en blanco
+  con la propuesta vacía; las descripciones de los estilos de la calibración no se pintan; un programa activado desde la cola salía
+  también en «En cola». Ya estaban bien: nombre repetido de «Nuevo programa N», programa en cola duplicado en «Tus programas»,
+  borrar deslizando (no hay deslizar; ⋯ › «Eliminar» confirma), notas de la calibración (sí se guardan) y archivados (la fila
+  «Archivados · N» sale bajo el módulo de primer programa y deja restaurar).
+- **No se tocan esta noche (con motivo).** «Añadir una semana a…» de la Ruta numera por bloque («Semana 3») mientras «Añadir
+  semana» numera en todo el programa («Semana 7»): unificarlo cambia `ProgramKeyDateEngine` y sus pruebas de dominio, y el nombre
+  se edita en la hoja; queda para una pasada con el usuario. Las dos hojas de calibración de Programas e Inicio que nunca se abren
+  (`pendingCalibrationTemplateId`, `pendingCalibrationProtocol`) son código muerto inofensivo; quitarlas es limpieza, no arreglo.
