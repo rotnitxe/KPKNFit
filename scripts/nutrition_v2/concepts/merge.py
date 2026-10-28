@@ -33,7 +33,8 @@ def _fold_aliases(dest, gone):
 
 def apply_curation(raw, curation):
     """raw: {id: (loc, concepto)}; aplica la curacion en sitio. Devuelve el informe 'curation'."""
-    rep = {"dropped": 0, "aliasesMoved": 0, "variantsDropped": 0, "aliasesDropped": 0, "warnings": []}
+    rep = {"dropped": 0, "aliasesMoved": 0, "variantsDropped": 0, "variantsSet": 0, "aliasesDropped": 0,
+           "warnings": []}
     curation = curation or {}
     for cid, target in (curation.get("drop") or {}).items():
         if cid not in raw:
@@ -60,6 +61,30 @@ def apply_curation(raw, curation):
         else:
             rep["variantsDropped"] += len(vs) - len(kept)
             c["variants"] = kept
+    # setVariants: cambia la ficha de una variante (revision cruzada); deja de ser noMatch y, salvo que se diga, de ser proxy
+    for spec in curation.get("setVariants") or []:
+        cid = spec.get("id")
+        if cid not in raw:
+            rep["warnings"].append("setVariants: id inexistente %s" % cid)
+            continue
+        hit = [v for v in raw[cid][1].get("variants") or [] if isinstance(v, dict) and _variant_matches(v, spec)]
+        if not hit:
+            rep["warnings"].append("setVariants: %s sin variante %s/%s" % (cid, spec.get("state"), spec.get("form")))
+            continue
+        for v in hit:
+            v["ref"] = spec.get("ref")
+            v.pop("noMatch", None)
+            v["proxy"] = bool(spec.get("proxy", False))
+            if spec.get("note"):
+                v["note"] = spec["note"]
+        rep["variantsSet"] += len(hit)
+    # addAliases: {id: {"aliasesEs": [...], "aliasesEn": [...], "typos": [...]}}; antes de dropAliases para que
+    # un alias movido de un concepto a otro se pueda quitar del primero en la misma curacion
+    for cid, by_key in (curation.get("addAliases") or {}).items():
+        if cid not in raw:
+            rep["warnings"].append("addAliases: id inexistente %s" % cid)
+            continue
+        rep["aliasesAdded"] = rep.get("aliasesAdded", 0) + _fold_aliases(raw[cid][1], by_key)
     for cid, aliases in (curation.get("dropAliases") or {}).items():
         if cid not in raw:
             rep["warnings"].append("dropAliases: id inexistente %s" % cid)

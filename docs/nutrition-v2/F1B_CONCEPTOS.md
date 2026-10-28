@@ -92,3 +92,19 @@ concepto) se busca por nombre de ficha en el paquete y por marca/código de barr
 componentes; `record.name_es` de cada ficha enlazada pasa a ser el nombre del concepto + estado/forma.
 Para el carril JVM se exporta lo mismo a `concepts_export.json` (conceptos + vector por 100 g y
 porciones de las fichas enlazadas), así el parser y el resolutor v2 se prueban sin Android.
+
+**Cómo quedó (28-oct, N8, N12–N14):** el paquete SQLite no lleva tablas de conceptos; el vocabulario sale
+como JSON con el mismo cargador en la app, el examen y los tests. Entradas versionadas en
+`scripts/nutrition_v2/concepts/data/` (`stage3/*.jsonl` de los 20 lotes + `curation.json`). Para
+reproducir (necesita el paquete F1a, `nutrition_catalog_v0.sqlite`, generación `bd5319a45f529dbe`):
+
+```
+python -I scripts/nutrition_v2/concepts/merge.py --in-dir scripts/nutrition_v2/concepts/data/stage3 --curation scripts/nutrition_v2/concepts/data/curation.json --out concepts.jsonl --ambiguous ambiguous.jsonl --report report.json
+python -I scripts/nutrition_v2/concepts/export.py --concepts concepts.jsonl --ambiguous ambiguous.jsonl --pack nutrition_catalog_v0.sqlite --out concepts_export.json
+python -I scripts/nutrition_v2/concepts/export.py --concepts concepts.jsonl --ambiguous ambiguous.jsonl --pack nutrition_catalog_v0.sqlite --out concepts_app.json.gz --macros-only --gzip
+```
+
+Resultado: 1.629 conceptos, 2.046 fichas (274 derivadas de platos por componentes), 12.798 alias es,
+4.541 en, 4.725 faltas y 96 ambigüedades legítimas. Revisión cruzada del 10 % por lote (171 conceptos):
+15 % con algún hallazgo alto o medio antes de corregir; casi todos eran alias genéricos (ya curados) y
+4 fichas (quesillo, bonito) se cambiaron con `setVariants`.

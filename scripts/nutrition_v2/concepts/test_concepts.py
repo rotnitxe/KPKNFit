@@ -306,6 +306,24 @@ class CurationTest(Base):
         self.assertEqual(m["aliasesEs"], ["leche en polvo"])
         self.assertEqual((rep["variantsDropped"], rep["aliasesDropped"], len(rep["warnings"])), (1, 1, 2))
 
+    def test_set_variants_and_add_aliases(self):
+        raw = self.raw()
+        raw["leche_polvo"][1]["variants"][0].update({"ref": None, "noMatch": True})
+        spec = dict(raw["leche_polvo"][1]["variants"][0], id="leche_polvo", ref="usda_9", note="mejor")
+        rep = merge.apply_curation(raw, {
+            "setVariants": [spec, {"id": "leche_polvo", "state": "RAW", "form": "NA", "ref": "x"}],
+            "addAliases": {"arroz_blanco": {"aliasesEs": ["arroz graneado", "ARROZ"], "typos": ["arros"]}},
+            "dropAliases": {"arroz_con_leche": ["arroz"]}})
+        v = raw["leche_polvo"][1]["variants"][0]
+        self.assertEqual((v["ref"], v["proxy"], v["note"]), ("usda_9", False, "mejor"))
+        self.assertNotIn("noMatch", v)
+        self.assertEqual(rep["variantsSet"], 1)
+        self.assertEqual(raw["arroz_blanco"][1]["aliasesEs"], ["arroz", "Arroz blanco", "arroz graneado"])
+        self.assertIn("arros", raw["arroz_blanco"][1]["typos"])
+        self.assertEqual(rep["aliasesAdded"], 2)
+        self.assertEqual(raw["arroz_con_leche"][1]["aliasesEs"], ["arroz con leche"])
+        self.assertEqual(len(rep["warnings"]), 1)
+
     def test_merge_with_curation_in_report(self):
         d = self.p("in"); os.mkdir(d)
         b = stage3(rice()); b["id"] = "arroz_2"; b["aliasesEs"] = ["arroz dos"]
