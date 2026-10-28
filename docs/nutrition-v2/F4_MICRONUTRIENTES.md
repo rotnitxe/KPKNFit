@@ -14,8 +14,11 @@ y que la hoja de nutrientes del día lo muestre con cobertura honesta. **Sin cam
 | F4-3 | El enlace alimento → ficha del paquete lo decide el dominio al construir el registro (`scaleFoodByPortion` pone `catalogRecordId`); el vector lo pone la capa de datos al guardar (`NutritionRepository`), leyendo el paquete. Si el paquete no está publicado, se guarda sin vector y no pasa nada más. |
 | F4-4 | Registros viejos y entradas rápidas: sin vector → la cobertura usa los campos de siempre (fibra, sodio, potasio, lista `micronutrients`) con la regla vieja; nunca se inventan ceros. |
 | F4-5 | `NutrientId` (dominio, sin Android) replica 1:1 la tabla `NUTRIENTS` de `scripts/nutrition_v2/catalog/nutrients.py` (id numérico estable, clave, unidad). |
-| F4-6 | Metas: DRI donde existe (RDA/AI y UL); límites de guía solo donde son de ingesta total (sodio ≤ 2.300 mg; grasa saturada < 10 % de la energía; cafeína ≤ 400 mg); sin referencia para colesterol, azúcares totales, trans, EPA+DHA y alcohol (se muestra el total y la cobertura). |
-| F4-7 | Embarazo y lactancia (19–50 años) usan sus filas DRI en vez de quedarse sin referencia. |
+| F4-6 | Metas: DRI donde existe (RDA/AI y UL; filas nuevas de fósforo, colina y ALA según NIH ODS, aparte de las 240 del CSV aprobado). Límites de guía (`GuideLimits`) solo donde son de ingesta total: sodio ≤ 2.300 mg (CDRR, ya en `DriTarget`); grasa saturada < 10 % y trans < 1 % de la energía (OMS 2023); azúcares añadidos < 10 % de la energía (OMS 2015, azúcares libres); cafeína ≤ 400 mg, ≤ 200 mg en embarazo y lactancia (FDA, EFSA 2015), solo con perfil adulto. Sin referencia para colesterol, azúcares totales, grasas mono y poli, EPA+DHA y alcohol (se muestra el total y la cobertura). |
+| F4-7 | Embarazo y lactancia (19–50 años) usan sus filas DRI en vez de quedarse sin referencia: son una etapa de vida con tabla propia, guardada bajo FEMALE, sin mirar el sexo del plan. |
+| F4-8 | Niacina: las fuentes dan niacina preformada; la meta DRI está en equivalentes (NE, incluye triptófano). El total es una cota inferior y la hoja lo dice. |
+| F4-9 | Coherencia: si la energía de la instantánea × gramos difiere de las kcal del registro en más de 15 % y 25 kcal (aceite absorbido, conversión de estado, modificadores), los nutrientes de esa instantánea cuentan como estimados, no declarados. |
+| F4-10 | Asset estable `food_data/nutrition_catalog.sqlite.gz` + manifiesto `food_data/nutrition_catalog.json` (generación, sha256 del archivo sin comprimir, bytes, formatVersion, fichas calculables). Sin asset la publicación no hace nada. El paquete real entra al APK una sola vez, en F5, ya con el vocabulario de F1b (no se versionan dos binarios de 8 MB). |
 
 ## 2. Nutrientes (`NutrientId`)
 
@@ -52,9 +55,9 @@ y que la hoja de nutrientes del día lo muestre con cobertura honesta. **Sin cam
 
 | Paquete | Qué | Carril |
 |---|---|---|
-| F4-A1 | `NutrientId`, campos nuevos de `LoggedFood`, `LoggedFood.nutrientAmount(id)`, `CatalogRecordLink`, `scaleFoodByPortion` pone `catalogRecordId`, puerto de dominio `NutritionCatalogPort` | JVM |
-| F4-A2 | `NutrientKey` ampliado (azúcares, grasas por tipo, colesterol, fósforo, colina, EPA+DHA, ALA, cafeína, alcohol), `NutrientCoverage` lee primero la instantánea (ausente ≠ 0), `DriTargets` (embarazo/lactancia, filas nuevas) | JVM |
-| F4-B | Lector del paquete (`OPEN_READONLY`), publicación (asset `.gz` → `filesDir`, sha256 + `quick_check`, puntero en `nutrition_catalog_publication`, borra la generación anterior) y enriquecimiento al guardar en `NutritionRepository` | Android (Robolectric) |
+| F4-A1 | `NutrientId`, campos nuevos de `LoggedFood`, `LoggedFood.nutrientAmount(id)`, `CatalogRecordLink`, `scaleFoodByPortion` pone `catalogRecordId`, puerto de dominio `NutritionCatalogPort` | JVM — hecho (`3ccd1d70a`) |
+| F4-A2 | `NutrientKey` ampliado (azúcares, grasas por tipo, colesterol, fósforo, colina, EPA+DHA, ALA, cafeína, alcohol) y enlazado a `NutrientId`, `NutrientCoverage` lee primero la instantánea (ausente ≠ 0), `DriTargets` (embarazo/lactancia, filas nuevas), `GuideLimits` | JVM |
+| F4-B | `LoggedFood.withCatalogNutrients(port)` (dominio; base ml → g por densidad), lector del paquete (`OPEN_READONLY`), publicación (asset `.gz` → `filesDir`, sha256 + `quick_check`, puntero en `nutrition_catalog_publication`, borra la generación anterior), `NutritionCatalogHolder` y enriquecimiento en `NutritionRepository.saveNutritionLog`; paquete de muestra para tests (`make_fixture_pack.py`) | JVM + Android (Robolectric) |
 | F4-C | Hoja de nutrientes por grupos (macros detallados, minerales, vitaminas, otros) con cobertura | Android (compilar) + teléfono en F5 |
 
 ## 5. Aceptación

@@ -11,7 +11,7 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 |---|---|---|
 | F0 | Examen sellado + arnés A/B; línea base de master; veredicto master vs. Codex | en curso |
 | F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | paquete construido (`e0e53e842`); falta el lector en Android |
-| F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | pendiente |
+| F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | en curso: contrato `F4_MICRONUTRIENTES.md`; F4-A1 hecho (`3ccd1d70a`); F4-A2 y F4-B en curso |
 | F1b | Conceptos y alias en español por lotes («IA en la fábrica») | pendiente |
 | F2 | Parser v2 por léxico + gramática de enlaces, en sombra | pendiente |
 | F3 | Cantidad, estado y presentación (reconstitución) explícitos | pendiente |
