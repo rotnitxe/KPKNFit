@@ -71,6 +71,13 @@ class WorkoutFeedbackController(
         advanceAfterPostExerciseFeedback()
     }
 
+    /** «Ahora no»: deja el feedback pendiente para después sin tocar el descanso ni borrar el borrador (Refinamiento 02). */
+    fun deferPostExerciseSheet() {
+        if (!getState().showPostExerciseSheet) return
+        updateState { it.copy(showPostExerciseSheet = false) }
+        ports.persistOngoingState()
+    }
+
     fun dismissPostExerciseSheet() {
         val state = getState()
         val visible = ports.visibleExercises(state)

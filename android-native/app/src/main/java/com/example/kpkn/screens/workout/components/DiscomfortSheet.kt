@@ -56,7 +56,7 @@ internal fun DiscomfortSheet(
     modifier: Modifier = Modifier,
     animated: Boolean = true,
 ) {
-    KpknSheet(onDismissRequest = onDismiss, modifier = modifier, maxHeightFraction = 0.96f) {
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = onDismiss, modifier = modifier, maxHeightFraction = 0.96f) {
         DiscomfortSheetBody(
             knowledge = knowledge,
             selected = selected,

@@ -129,6 +129,22 @@ class CompletedSetPatchTest {
     }
 
     @Test
+    fun voice_history_correction_can_edit_seconds_without_touching_reps() {
+        val previous = set()
+        val timed = previous.copy(reps = 0, timeSeconds = 30,
+            recordedPayloadV3 = previous.recordedPayloadV3!!.copy(
+                unitMode = UnitModeV2.TIME, durationSeconds = 30, completedReps = null))
+        val corrected = applyCompletedSetPatch(
+            timed,
+            CompletedSetPatch(VoiceSetEditPatch(metricValue = 45), allowNonRepMetric = true),
+        )
+        assertEquals(45, corrected.timeSeconds)
+        assertEquals(45, corrected.recordedPayloadV3!!.durationSeconds)
+        assertEquals(45.0, corrected.recordedPayloadV3!!.actualValue ?: 0.0, 0.0)
+        assertEquals(0, corrected.reps)
+    }
+
+    @Test
     fun zero_without_partials_does_not_replace_a_valid_record() {
         val previous = set()
         assertSame(previous, applyCompletedSetPatch(previous, CompletedSetPatch(VoiceSetEditPatch(metricValue = 0), partialReps = 0)))

@@ -43,6 +43,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -149,295 +153,109 @@ internal fun SeriesOptionsSheet(
         anchorIdx = idx
     }
 
-    BackHandler(onBack = onDismiss)
-
-    val cardShape = RoundedCornerShape(24.dp)
-    KpknPortal {
-    BoxWithConstraints(modifier = modifier.fillMaxSize().zIndex(20f)) {
-        // La tarjeta nunca sube más allá de lo que cabe sobre la barra: si no cabe (letra grande), se desplaza.
-        val clearance = bottomClearance.coerceAtLeast(78.dp)
-        val cardMaxHeight = (maxHeight - clearance - 24.dp).coerceAtLeast(0.dp)
-        // El velo cubre la sesión pero no la barra inferior, que queda por encima (la barra vive fuera de este cuerpo).
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = SERIES_OPTIONS_SCRIM_ALPHA))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onDismiss,
-                ),
-        )
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(start = 16.dp, end = 16.dp, bottom = clearance + 8.dp)
-                .fillMaxWidth()
-                .heightIn(max = cardMaxHeight)
-                .shadow(elevation = 16.dp, shape = cardShape, clip = false)
-                .clip(cardShape)
-                .background(KpknSurface.inset, cardShape)
-                .border(1.dp, WizardColors.text.copy(alpha = 0.10f), cardShape)
-                // Tocar la tarjeta no cierra: el velo de detrás es el que cierra.
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {})
-                .verticalScroll(rememberScrollState())
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (exercise.supersetGroupRefOrLegacyId() != null) {
-                // En una superserie cada ronda tiene varios ejercicios: se dice de cuál es la serie.
-                Text(
-                    text = exercise.name,
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = summary.title,
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                )
-                Text(
-                    text = summary.detail,
-                    modifier = Modifier.weight(1f),
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    textAlign = TextAlign.End,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                LiveOptionTile(
-                    label = "Editar",
-                    icon = KpknLineIcons.Edit,
-                    onClick = {
-                        onEdit()
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-                LiveOptionTile(
-                    label = "Añadir",
-                    contentDescription = "Añadir serie",
-                    icon = KpknLineIcons.Plus,
-                    onClick = {
-                        onAddSet()
-                        onDismiss()
-                    },
-                    enabled = availability.canAdd,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-                LiveOptionTile(
-                    label = "Saltar",
-                    icon = LiveOptionIcons.Skip,
-                    onClick = {
-                        onSkipSet(focusIdx)
-                        onDismiss()
-                    },
-                    enabled = availability.canSkip,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-                LiveOptionTile(
-                    label = "Borrar",
-                    icon = KpknLineIcons.Trash,
-                    onClick = {
-                        onDeleteSet(focusIdx)
-                        onDismiss()
-                    },
-                    enabled = availability.canDelete,
-                    danger = true,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                )
-            }
-
-            Text(
-                text = "Tipo de serie".uppercase(),
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-            )
-            val onlyFirstSetSelected = selectedIndices.size == 1 && selectedIndices.contains(0)
-            // Las píldoras llevan su ancho natural y, si no caben (letra grande), pasan a otra línea entera: nunca se parte una palabra.
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SeriesChoiceChip(
-                    text = "Normal",
-                    selected = selectedTechnique == SeriesTechnique.NORMAL,
-                    onClick = { selectedTechnique = SeriesTechnique.NORMAL },
-                )
-                SeriesChoiceChip(
-                    text = "Drop-set",
-                    selected = selectedTechnique == SeriesTechnique.DROPSET && !onlyFirstSetSelected,
-                    onClick = { selectedTechnique = SeriesTechnique.DROPSET },
-                    enabled = !onlyFirstSetSelected,
-                )
-                SeriesChoiceChip(
-                    text = "Rest-pause",
-                    selected = selectedTechnique == SeriesTechnique.REST_PAUSE && !onlyFirstSetSelected,
-                    onClick = { selectedTechnique = SeriesTechnique.REST_PAUSE },
-                    enabled = !onlyFirstSetSelected,
-                )
-            }
-            Text(
-                text = when {
-                    onlyFirstSetSelected -> "La Serie 1 no puede ser Drop-set ni Rest-pause (requiere descanso previo completo de cambio de ejercicio)."
-                    selectedTechnique == SeriesTechnique.NORMAL -> "Serie estándar. Quita drop-set o rest-pause y el descanso especial."
-                    selectedTechnique == SeriesTechnique.DROPSET -> "Entre las series marcadas: sin descanso y −5 kg en la siguiente."
-                    selectedTechnique == SeriesTechnique.REST_PAUSE -> "Entre las series marcadas: 15 s de descanso y el mismo peso."
-                    else -> ""
-                },
-                style = KpknType.caption,
-                color = if (onlyFirstSetSelected) WizardColors.danger else WizardColors.textMuted,
-            )
-
-            Text(
-                text = "Elige qué series cambiar. Las completadas no se tocan. Mantén pulsado un nodo para marcar varias.",
-                style = KpknType.caption,
-                color = WizardColors.textFaint,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                exercise.sets.forEachIndexed { idx, set ->
-                    val isCompleted = idx in completedSetIndices
-                    val isSelected = idx in selectedIndices
-                    val label = "S${idx + 1}"
-                    val fill = when {
-                        isCompleted -> WizardColors.done
-                        isSelected -> WizardColors.text
-                        else -> Color.Transparent
-                    }
-                    val edge = when {
-                        isCompleted || isSelected -> Color.Transparent
-                        set.isDropSet || set.isRestPause -> WizardColors.text.copy(alpha = 0.40f)
-                        else -> Color.White.copy(alpha = 0.12f)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(STEPPER_CHROME_SIZE_DP.dp)
-                            .clip(CircleShape)
-                            .background(fill, CircleShape)
-                            .border(1.dp, edge, CircleShape)
-                            .combinedClickable(
-                                enabled = !isCompleted,
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {
-                                    if (multiMarkStarted) {
-                                        toggleIndex(idx)
-                                    } else {
-                                        selectedIndices = setOf(idx)
-                                        anchorIdx = idx
-                                        includeAllFollowing = false
-                                    }
-                                },
-                                onLongClick = { toggleIndex(idx) },
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (isCompleted) {
-                            Icon(
-                                KpknLineIcons.Check,
-                                contentDescription = "Completada",
-                                modifier = Modifier.size(14.dp),
-                                tint = WizardColors.ctaContent,
-                            )
-                        } else {
-                            Text(
-                                text = label,
-                                style = KpknType.chip,
-                                color = if (isSelected) WizardColors.ctaContent else WizardColors.text.copy(alpha = 0.9f),
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SeriesChoiceChip(
-                    text = "Solo S${anchorIdx + 1}",
-                    selected = soloChipSelected,
-                    onClick = {
-                        includeAllFollowing = false
-                        multiMarkStarted = false
-                        selectedIndices = setOf(anchorIdx)
-                    },
-                )
-                SeriesChoiceChip(
-                    text = "Desde S${anchorIdx + 1} hasta el final",
-                    selected = rangeChipSelected,
-                    onClick = {
-                        includeAllFollowing = true
-                        multiMarkStarted = true
-                        selectedIndices = fromEndSet
-                    },
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                KpknCompactPill(
-                    text = "Cancelar",
-                    onClick = onDismiss,
-                    filled = false,
-                    fullWidth = true,
-                    modifier = Modifier.weight(1f),
-                )
-                KpknCompactPill(
-                    text = "Aplicar",
-                    onClick = {
-                        val rawIndices = selectedIndices.filter { it in exercise.sets.indices }.toSet()
-                        val indices = if (selectedTechnique != SeriesTechnique.NORMAL) {
-                            rawIndices.filter { it > 0 }.toSet()
-                        } else {
-                            rawIndices
-                        }
-                        if (indices.isNotEmpty()) {
-                            val from = indices.minOrNull() ?: anchorIdx
-                            val to = indices.maxOrNull() ?: from
-                            onApply(
-                                SeriesTypeTarget(
-                                    exerciseId = exercise.id,
-                                    fromSetIdx = from,
-                                    toSetIdx = to,
-                                    selectedSetIndices = indices,
-                                ),
-                                selectedTechnique,
-                            )
-                        } else {
-                            onDismiss()
-                        }
-                    },
-                    fullWidth = true,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+    val onlyFirstSetSelected = selectedIndices.size == 1 && selectedIndices.contains(0)
+    fun apply() {
+        val rawIndices = selectedIndices.filter { it in exercise.sets.indices }.toSet()
+        val indices = if (selectedTechnique != SeriesTechnique.NORMAL) rawIndices.filter { it > 0 }.toSet() else rawIndices
+        if (indices.isNotEmpty()) {
+            val from = indices.minOrNull() ?: anchorIdx
+            val to = indices.maxOrNull() ?: from
+            onApply(SeriesTypeTarget(exerciseId = exercise.id, fromSetIdx = from, toSetIdx = to, selectedSetIndices = indices), selectedTechnique)
+        } else {
+            onDismiss()
         }
     }
+
+    // Prototipo 02 (`series`): resumen grande de la serie, rejilla de acciones, filas para añadir, omitir y quitar, y la técnica con
+    // su alcance en secciones; «Aplicar» en el pie.
+    LiveSheet(
+        title = "Opciones de la serie",
+        onDismiss = onDismiss,
+        modifier = modifier,
+        tag = "series-options-sheet",
+        footer = { close ->
+            LiveSheetPrimary("Aplicar técnica", { apply() }, tag = "series-options-apply")
+            LiveSheetTextAction("Cancelar", close)
+        },
+    ) { close ->
+        if (exercise.supersetGroupRefOrLegacyId() != null) {
+            LiveSheetSubtitle(exercise.name)
+        }
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(summary.title, style = KpknType.caption.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+            Text(summary.detail, Modifier.weight(1f), style = KpknType.title.copy(fontSize = 22.sp, lineHeight = 26.sp), color = WizardColors.text)
+        }
+        ExerciseOptionsGrid(listOf(
+            ExerciseOption("Configurar serie", KpknLineIcons.Sliders, { onEdit(); onDismiss() }),
+            ExerciseOption("Añadir serie", KpknLineIcons.Plus, { onAddSet(); onDismiss() }, enabled = availability.canAdd),
+        ))
+        LiveSheetMenuRow("Omitir serie", { onSkipSet(focusIdx); onDismiss() }, icon = LiveOptionIcons.Skip, chevron = false,
+            enabled = availability.canSkip)
+        LiveSheetMenuRow("Quitar serie pendiente", { onDeleteSet(focusIdx); onDismiss() }, icon = KpknLineIcons.Trash, danger = true,
+            chevron = false, enabled = availability.canDelete)
+
+        LiveSheetSectionLabel("Técnica de la serie")
+        LiveSheetChoiceRow(
+            listOf(SeriesTechnique.NORMAL to "Normal", SeriesTechnique.DROPSET to "Drop-set", SeriesTechnique.REST_PAUSE to "Rest-pause"),
+            selected = { it == selectedTechnique && !(onlyFirstSetSelected && it != SeriesTechnique.NORMAL) },
+            onSelect = { technique -> if (!(onlyFirstSetSelected && technique != SeriesTechnique.NORMAL)) selectedTechnique = technique },
+            tagPrefix = "series-technique",
+        )
+        LiveSheetShortCopy(when {
+            onlyFirstSetSelected -> "La serie 1 no puede ser drop-set ni rest-pause: necesita el descanso completo previo."
+            selectedTechnique == SeriesTechnique.NORMAL -> "Serie estándar. Quita drop-set o rest-pause y el descanso especial."
+            selectedTechnique == SeriesTechnique.DROPSET -> "Entre las series marcadas: sin descanso y −5 kg en la siguiente."
+            else -> "Entre las series marcadas: 15 s de descanso y el mismo peso."
+        }, error = onlyFirstSetSelected)
+
+        LiveSheetSectionLabel("Aplicar a")
+        FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            exercise.sets.forEachIndexed { idx, set ->
+                val isCompleted = idx in completedSetIndices
+                val isSelected = idx in selectedIndices
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected && !isCompleted) WizardColors.text else LiveSheetTokens.ChipFill)
+                        .border(1.dp, when {
+                            isSelected && !isCompleted -> WizardColors.text
+                            set.isDropSet || set.isRestPause -> WizardColors.text.copy(alpha = .40f)
+                            else -> LiveSheetTokens.Line
+                        }, RoundedCornerShape(12.dp))
+                        .combinedClickable(
+                            enabled = !isCompleted,
+                            role = Role.Checkbox,
+                            onClick = {
+                                if (multiMarkStarted) toggleIndex(idx)
+                                else { selectedIndices = setOf(idx); anchorIdx = idx; includeAllFollowing = false }
+                            },
+                            onLongClick = { toggleIndex(idx) },
+                        )
+                        .semantics {
+                            contentDescription = "Serie ${idx + 1}"
+                            stateDescription = when { isCompleted -> "Completada"; isSelected -> "Marcada"; else -> "Sin marcar" }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isCompleted) Icon(KpknLineIcons.Check, "Completada", Modifier.size(14.dp), tint = WizardColors.done)
+                    else Text("S${idx + 1}", style = KpknType.chip.copy(fontSize = 12.sp),
+                        color = if (isSelected) Color(0xFF111111) else WizardColors.text)
+                }
+            }
+        }
+        LiveSheetChoiceRow(
+            listOf(false to "Solo S${anchorIdx + 1}", true to "Desde S${anchorIdx + 1} hasta el final"),
+            selected = { all -> if (all) rangeChipSelected else soloChipSelected },
+            onSelect = { all ->
+                if (all) { includeAllFollowing = true; multiMarkStarted = true; selectedIndices = fromEndSet }
+                else { includeAllFollowing = false; multiMarkStarted = false; selectedIndices = setOf(anchorIdx) }
+            },
+            tagPrefix = "series-scope",
+        )
+        LiveSheetShortCopy("Las series completadas no se tocan. Mantén pulsada una serie para marcar varias.")
     }
 }
 

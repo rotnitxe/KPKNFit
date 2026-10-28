@@ -60,25 +60,25 @@ class RelatorAssistPreviewTest {
 }
 
 class WorkoutUnilateralToggleRemapTest {
+    // Cambiar la lateralidad del plan no es evidencia de haber hecho el otro lado: lo registrado se conserva tal cual.
     @Test
-    fun bilateralCopiesToBothSides() {
+    fun bilateralToUnilateralKeepsTheRecordedSetUntouched() {
         val completed = mapOf(
             workoutSetKey("ex", 0) to CompletedSet(id = "c0", weight = 20.0, reps = 10),
         )
         val remapped = remapCompletedSetsForUnilateralToggle("ex", 1, completed, toUnilateral = true)
-        assertEquals("c0", remapped[workoutSetKey("ex", 0, "left")]?.id)
-        assertEquals("c0", remapped[workoutSetKey("ex", 0, "right")]?.id)
-        assertTrue(workoutSetKey("ex", 0) !in remapped)
+        assertEquals(completed, remapped)
+        assertTrue(workoutSetKey("ex", 0, "left") !in remapped)
     }
 
     @Test
-    fun unilateralCollapsesToDominantSide() {
+    fun unilateralToBilateralKeepsBothSidesUntouched() {
         val completed = mapOf(
             workoutSetKey("ex", 0, "left") to CompletedSet(id = "L", weight = 10.0, reps = 8),
             workoutSetKey("ex", 0, "right") to CompletedSet(id = "R", weight = 20.0, reps = 8),
         )
         val remapped = remapCompletedSetsForUnilateralToggle("ex", 1, completed, toUnilateral = false)
-        assertEquals("R", remapped[workoutSetKey("ex", 0)]?.id)
-        assertTrue(workoutSetKey("ex", 0, "left") !in remapped)
+        assertEquals(completed, remapped)
+        assertTrue(workoutSetKey("ex", 0) !in remapped)
     }
 }

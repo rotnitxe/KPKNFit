@@ -91,7 +91,7 @@ internal fun ExerciseRmSheet(
     val ranges = remember(exercise, currentSets) { exerciseRmSessionRanges(exercise, currentSets) }
     val rows = remember(reference, ranges) { buildExerciseRmRows(reference, ranges) }
     val ink = Color(0xFFF2EEE6)
-    KpknSheet(onDismissRequest = onDismiss, hazeState = hazeState, stableHeightFraction = .9f, modifier = Modifier.testTag("exercise-rm-sheet")) {
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = onDismiss, hazeState = hazeState, stableHeightFraction = .9f, modifier = Modifier.testTag("exercise-rm-sheet")) {
         Column(Modifier.fillMaxSize().padding(horizontal = 18.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Consulta de RM", style = KpknType.title, color = ink, modifier = Modifier.weight(1f))

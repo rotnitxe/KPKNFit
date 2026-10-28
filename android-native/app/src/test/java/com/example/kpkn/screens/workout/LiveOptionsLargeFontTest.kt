@@ -124,7 +124,8 @@ class LiveOptionsLargeFontTest {
     fun theSeriesOptionsKeepEveryWordWholeAtOneHundredAndThirtyPercent() {
         showSeriesOptions(1.3f)
 
-        listOf("Editar", "Añadir", "Saltar", "Borrar", "Normal", "Drop-set", "Rest-pause", "Solo S2", "Cancelar", "Aplicar").forEach { assertWhole(it) }
+        listOf("Configurar serie", "Añadir serie", "Omitir serie", "Quitar serie pendiente", "Normal", "Drop-set", "Rest-pause", "Solo S2",
+            "Cancelar", "Aplicar técnica").forEach { assertWhole(it) }
         assertWhole("Desde S2 hasta el final")
         listOf("Drop-set", "Rest-pause", "Desde S2 hasta el final").forEach { assertInsideScreen(it) }
     }
@@ -152,7 +153,7 @@ class LiveOptionsLargeFontTest {
     fun theStrengthOptionsKeepEveryLabelWholeAtOneHundredAndThirtyPercent() {
         showStrengthOptions(1.3f)
 
-        listOf("Reemplazar", "Reordenar", "Historial", "Ultrarrápido", "Notas", "Etiquetas", "Editar").forEach { assertWhole(it) }
+        listOf("Reemplazar", "Orden", "Historial", "Aplicar técnica", "Notas", "Etiquetas", "Series").forEach { assertWhole(it) }
         listOf("Crear superserie", "Agregar ejercicio").forEach { assertWhole(it, maxLines = 2) }
         assertWhole("Saltar ejercicio")
         assertWhole("Quitar de la sesión")
@@ -162,19 +163,21 @@ class LiveOptionsLargeFontTest {
     fun withLargeLetterTheTilesGoTwoPerRowAndTheFooterPillsStack() {
         showStrengthOptions(1.3f)
 
-        // Dos columnas: «Reordenar» va al lado de «Reemplazar» y «Crear superserie» baja a la fila siguiente.
-        assertEquals(topOf("Reemplazar"), topOf("Reordenar"), 1f)
-        assertTrue(topOf("Crear superserie") > topOf("Reemplazar"))
-        // Las dos píldoras del pie, una sobre otra.
+        // Prototipo 02: dos columnas («Historial» al lado de «Etiquetas»; «Reemplazar» en la fila siguiente).
+        assertEquals(topOf("Etiquetas"), topOf("Historial"), 1f)
+        assertTrue(topOf("Reemplazar") > topOf("Etiquetas"))
+        // «Saltar» y «Quitar» son filas, una sobre otra.
         assertTrue(topOf("Quitar de la sesión") > topOf("Saltar ejercicio"))
     }
 
     @Test
-    fun atNormalSizeTheTilesGoThreePerRowAndTheFooterPillsShareALine() {
+    fun atNormalSizeTheTilesGoTwoPerRowAndTheFooterRowsStack() {
         showStrengthOptions(1f)
 
-        assertEquals(topOf("Reemplazar"), topOf("Crear superserie"), 1f)
-        assertEquals(topOf("Saltar ejercicio"), topOf("Quitar de la sesión"), 1f)
+        // Prototipo 02: la rejilla tiene dos columnas también a tamaño normal; «Saltar» y «Quitar» son filas.
+        assertEquals(topOf("Etiquetas"), topOf("Historial"), 1f)
+        assertEquals(topOf("Reemplazar"), topOf("Series"), 1f)
+        assertTrue(topOf("Quitar de la sesión") > topOf("Saltar ejercicio"))
     }
 
     @Test
@@ -235,13 +238,13 @@ class LiveOptionsLargeFontTest {
         rule.onNodeWithText("Seleccionar").performClick()
         rule.waitForIdle()
 
-        listOf("Superserie", "Omitir", "Quitar", "Ultrarrápido").forEach {
+        listOf("Superserie", "Omitir", "Quitar", "Aplicar técnica").forEach {
             assertWhole(it)
             assertInsideScreen(it)
         }
-        // De dos en dos: «Quitar» y «Ultrarrápido» en la segunda fila.
+        // De dos en dos: «Quitar» y «Aplicar técnica» en la segunda fila.
         assertEquals(topOf("Superserie"), topOf("Omitir"), 1f)
-        assertEquals(topOf("Quitar"), topOf("Ultrarrápido"), 1f)
+        assertEquals(topOf("Quitar"), topOf("Aplicar técnica"), 1f)
         assertTrue(topOf("Quitar") > topOf("Superserie"))
     }
 }

@@ -144,6 +144,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.updateExerciseDefinition("a") { it.copy(sets = it.sets + ExerciseSet(id = "a-nueva", targetReps = 5)) }
+        vm.awaitPendingLiveMutation()
 
         assertEquals(3, vm.exercise("a").sets.size)
         assertEquals(3, vm.workingSteps().count { it.first == "a" })
@@ -158,6 +159,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.addExerciseAfter("b", ExerciseMuscleInfo(id = "remo_mancuerna", name = "Remo con mancuerna"))
+        vm.awaitPendingLiveMutation()
 
         val order = vm.uiState.value.liveOrder()
         assertEquals(5, order.size)
@@ -179,6 +181,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.createLiveSuperset(listOf("b", "c"), partId = null, restBetween = 45, restAfter = 90, rounds = null)
+        vm.awaitPendingLiveMutation()
 
         val session = vm.uiState.value.session!!
         val group = session.allSupersetGroups().single()
@@ -202,6 +205,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.skipExercise("a")
+        vm.awaitPendingLiveMutation()
 
         var state = vm.uiState.value
         assertEquals(setOf("a"), state.skippedExerciseIds)
@@ -212,6 +216,7 @@ class LiveExerciseOptionsAuditTest {
         assertEquals("Omitir ejercicio", state.godModeUndoStack.last().label)
 
         vm.revertGodModeChange(state.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
         state = vm.uiState.value
         assertEquals(emptySet<String>(), state.skippedExerciseIds)
         assertEquals(listOf("a", "b", "c", "d"), vm.stepExerciseOrder())
@@ -223,6 +228,7 @@ class LiveExerciseOptionsAuditTest {
         vm.selectExercise(1)
 
         vm.skipExercise("a")
+        vm.awaitPendingLiveMutation()
 
         val state = vm.uiState.value
         assertEquals("b", state.visibleOrder()[state.currentExerciseIdx])
@@ -234,6 +240,7 @@ class LiveExerciseOptionsAuditTest {
     private suspend fun openWithSuperset(): WorkoutViewModel {
         val vm = openFour()
         vm.createLiveSuperset(listOf("b", "c"), partId = null, restBetween = 45, restAfter = 90, rounds = null)
+        vm.awaitPendingLiveMutation()
         vm.clearPendingStructuralPersistence()
         vm.selectExercise(0)
         return vm
@@ -257,6 +264,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openWithSuperset()
 
         vm.updateLiveSupersetRest(vm.groupId(), restBetween = 30, restAfter = 80, rounds = 3)
+        vm.awaitPendingLiveMutation()
 
         val group = vm.uiState.value.session!!.allSupersetGroups().single()
         assertEquals(30, group.restBetweenExercises)
@@ -272,6 +280,7 @@ class LiveExerciseOptionsAuditTest {
 
         // «Agregar de sesión» abre el creador con el ejercicio de origen y «Actualizar superserie» crea el grupo ampliado.
         vm.createLiveSuperset(listOf("b", "c", "d"), partId = null, restBetween = 45, restAfter = 90, rounds = null)
+        vm.awaitPendingLiveMutation()
 
         val group = vm.uiState.value.session!!.allSupersetGroups().single()
         assertEquals(listOf("b", "c", "d"), group.exerciseOrder)
@@ -283,6 +292,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openWithSuperset()
 
         vm.addCatalogExerciseToLiveSuperset(vm.groupId(), ExerciseMuscleInfo(id = "curl_barra", name = "Curl con barra"))
+        vm.awaitPendingLiveMutation()
 
         val group = vm.uiState.value.session!!.allSupersetGroups().single()
         assertEquals(3, group.exerciseOrder.size)
@@ -298,6 +308,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openWithSuperset()
 
         vm.dissolveLiveSuperset(vm.groupId(), preferredExerciseId = "b")
+        vm.awaitPendingLiveMutation()
 
         val session = vm.uiState.value.session!!
         assertTrue(session.allSupersetGroups().isEmpty())
@@ -342,6 +353,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openWithCardio()
 
         vm.updateExerciseDefinition("run") { it.copy(cardioDetails = it.cardioDetails!!.copy(targetDurationSeconds = 600)) }
+        vm.awaitPendingLiveMutation()
 
         assertEquals(600, vm.exercise("run").cardioDetails?.targetDurationSeconds)
         vm.flushOngoingForBackgroundAndAwait()
@@ -353,6 +365,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openWithCardio()
 
         vm.skipExercise("run")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(setOf("run"), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("a", "b"), vm.stepExerciseOrder())
@@ -365,6 +378,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.removeExerciseFromSession("c")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("a", "b", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("a", "b", "d"), vm.stepExerciseOrder())
@@ -373,6 +387,7 @@ class LiveExerciseOptionsAuditTest {
         assertEquals(listOf("a", "b", "d"), fixture!!.storedOrder())
 
         vm.revertGodModeChange(vm.uiState.value.godModeUndoStack.lastIndex)
+        vm.awaitPendingLiveMutation()
         assertEquals(listOf("a", "b", "c", "d"), vm.uiState.value.liveOrder())
     }
 
@@ -391,6 +406,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFourInACyclicProgram()
 
         vm.removeExerciseFromSession("c")
+        vm.awaitPendingLiveMutation()
         assertTrue(vm.uiState.value.pendingStructuralPersistence is PendingStructuralChange.RemoveExercise)
         val liveWeekId = vm.uiState.value.weekId
         vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
@@ -407,6 +423,7 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFourInACyclicProgram()
 
         vm.createLiveSuperset(listOf("a", "b"))
+        vm.awaitPendingLiveMutation()
         assertTrue(vm.uiState.value.pendingStructuralPersistence is PendingStructuralChange.AddSuperset)
         val liveWeekId = vm.uiState.value.weekId
         vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
@@ -425,9 +442,13 @@ class LiveExerciseOptionsAuditTest {
         vm.removeSetFromExercise("a", 7)
         vm.removeExercisesFromSession(listOf("a", "b", "c", "d"))
         vm.omitSet("a", 0)
+        vm.awaitPendingLiveMutation()
         vm.omitSet("a", 0)
+        vm.awaitPendingLiveMutation()
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
 
         assertEquals(
             "solo lo que de verdad cambió deja su «Deshacer»",
@@ -441,10 +462,12 @@ class LiveExerciseOptionsAuditTest {
         val vm = openFour()
 
         vm.skipExercises(listOf("b", "c"))
+        vm.awaitPendingLiveMutation()
         assertEquals(setOf("b", "c"), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("a", "d"), vm.stepExerciseOrder())
 
         vm.removeExercisesFromSession(listOf("d"))
+        vm.awaitPendingLiveMutation()
         assertEquals(listOf("a", "b", "c"), vm.uiState.value.liveOrder())
         assertEquals("lo omitido sigue omitido", setOf("b", "c"), vm.uiState.value.skippedExerciseIds)
         assertEquals(listOf("a"), vm.stepExerciseOrder())
@@ -458,6 +481,7 @@ class LiveExerciseOptionsAuditTest {
         for (id in listOf("b", "c")) {
             val exercise = vm.exercise(id)
             vm.updatePlannedSeriesTechnique(id, 0, exercise.sets.lastIndex, SeriesTechnique.DROPSET)
+            vm.awaitPendingLiveMutation()
         }
 
         for (id in listOf("b", "c")) {
@@ -476,14 +500,16 @@ class LiveExerciseOptionsAuditTest {
         val before = vm.uiState.value.session!!.allExercises().map { it.id to it.sets.map { set -> set.id } }
 
         vm.previewUltraFast()
-        assertTrue(vm.uiState.value.showUltraFastSheet)
+        assertTrue("primero se ofrece acortar la sesión", vm.uiState.value.showShortenSessionSheet)
         assertNotNull(vm.uiState.value.ultraFastPreview)
 
         vm.applyUltraFast()
-        assertFalse(vm.uiState.value.showUltraFastSheet)
+        vm.awaitPendingLiveMutation()
+        assertFalse(vm.uiState.value.showShortenSessionSheet)
         assertTrue(vm.uiState.value.ultraFastApplied)
 
         vm.revertUltraFast()
+        vm.awaitPendingLiveMutation()
         assertFalse(vm.uiState.value.ultraFastApplied)
         assertEquals(before, vm.uiState.value.session!!.allExercises().map { it.id to it.sets.map { set -> set.id } })
     }

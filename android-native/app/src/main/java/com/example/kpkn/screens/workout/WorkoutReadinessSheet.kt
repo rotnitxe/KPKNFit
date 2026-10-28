@@ -70,6 +70,7 @@ internal fun WorkoutReadinessSheet(
     weekLabel: String?,
     initial: DailyWellbeingLog?,
     previousDiscomforts: List<String> = emptyList(),
+    hazeState: HazeState? = null,
     onDismiss: () -> Unit,
     onConfirm: (DailyWellbeingLog) -> Unit,
     saving: Boolean = false,
@@ -104,7 +105,7 @@ internal fun WorkoutReadinessSheet(
         dismissible = !saving,
         stableHeightFraction = 0.94f,
         maxHeightFraction = 0.94f,
-        hazeState = remember { HazeState() },
+        hazeState = hazeState,
     ) {
         Column(
             Modifier

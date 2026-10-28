@@ -15,6 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -46,46 +52,24 @@ internal fun ExerciseOptionsSheet(
     subtitle: String?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    hazeState: HazeState? = null,
+    @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
     thumbnail: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    KpknSheet(onDismissRequest = onDismiss, modifier = modifier, hazeState = hazeState) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                thumbnail?.invoke()
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        style = KpknType.bodyStrong,
-                        color = WizardColors.text,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (!subtitle.isNullOrBlank()) {
-                        Text(
-                            text = subtitle,
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                    }
+    // Prototipo 02 (`exercise`): hoja «Opciones del ejercicio» con la cabecera de contexto y la rejilla de dos columnas.
+    LiveSheet(title = "Opciones del ejercicio", onDismiss = onDismiss, modifier = modifier, tag = "exercise-options-sheet", footer = null) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            thumbnail?.invoke()
+            Column(Modifier.weight(1f)) {
+                Text(title, style = KpknType.bodyStrong.copy(fontSize = 14.sp, lineHeight = 19.sp), color = WizardColors.text)
+                if (!subtitle.isNullOrBlank()) {
+                    Text(subtitle, Modifier.padding(top = 3.dp), style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 19.sp),
+                        color = LiveSheetTokens.Muted)
                 }
             }
-            content()
         }
+        content()
     }
 }
 
@@ -105,17 +89,14 @@ internal data class ExerciseOption(
 @Composable
 internal fun ExerciseOptionsGrid(
     options: List<ExerciseOption>,
-    columns: Int = 0,
+    @Suppress("UNUSED_PARAMETER") columns: Int = 0,
 ) {
-    val columnCount = columns.takeIf { it > 0 } ?: if (largeLiveFont()) 2 else 3
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.chunked(columnCount).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+    // Prototipo 02: siempre dos columnas; con la letra grande cada rótulo sigue entero porque la fila crece en alto.
+    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        options.chunked(2).forEach { row ->
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 row.forEach { option -> ExerciseOptionTile(option) }
-                repeat(columnCount - row.size) { Spacer(Modifier.weight(1f)) }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -123,18 +104,15 @@ internal fun ExerciseOptionsGrid(
 
 @Composable
 private fun RowScope.ExerciseOptionTile(option: ExerciseOption) {
-    LiveOptionTile(
-        label = option.label,
-        icon = option.icon,
-        onClick = option.onClick,
-        enabled = option.enabled,
-        danger = option.danger,
-        minHeight = 72.dp,
-        corner = 18.dp,
-        background = KpknSurface.modulePressed,
-        iconSize = 20.dp,
-        modifier = Modifier.weight(1f).fillMaxHeight(),
-    )
+    val color = if (option.danger) LiveSheetTokens.Danger else LiveSheetTokens.Muted
+    Row(Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp).liveSheetTopLine()
+        .clickable(enabled = option.enabled, role = Role.Button, onClick = option.onClick)
+        .semantics(mergeDescendants = true) { contentDescription = option.label }
+        .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Icon(option.icon, null, Modifier.size(20.dp), tint = color.copy(alpha = if (option.enabled) 1f else .4f))
+        Text(option.label, style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp),
+            color = color.copy(alpha = if (option.enabled) 1f else .4f))
+    }
 }
 
 /**
@@ -160,14 +138,14 @@ internal fun ColumnScope.ExerciseOptionsStrengthContent(
 ) {
     ExerciseOptionsGrid(
         options = listOf(
-            ExerciseOption("Reemplazar", KpknLineIcons.Swap, onReplace),
-            ExerciseOption("Reordenar", KpknLineIcons.Reorder, onReorder),
-            ExerciseOption("Crear superserie", KpknLineIcons.Link, onCreateSuperset),
+            ExerciseOption("Etiquetas", KpknLineIcons.Tag, onTags),
             ExerciseOption("Historial", KpknLineIcons.History, onHistory),
+            ExerciseOption("Reemplazar", KpknLineIcons.Swap, onReplace),
+            ExerciseOption("Series", KpknLineIcons.Sliders, onEdit),
+            ExerciseOption("Orden", KpknLineIcons.Reorder, onReorder),
+            ExerciseOption("Crear superserie", KpknLineIcons.Link, onCreateSuperset),
             ExerciseOption("Aplicar técnica", LiveOptionIcons.Bolt, onUltraFast),
             ExerciseOption("Notas", LiveOptionIcons.Note, onNotes),
-            ExerciseOption("Etiquetas", KpknLineIcons.Tag, onTags),
-            ExerciseOption("Editar", KpknLineIcons.Edit, onEdit),
             ExerciseOption("Agregar ejercicio", KpknLineIcons.Plus, onAddOther),
         ) + listOfNotNull(onRM?.let { ExerciseOption("Calculadora RM", KpknLineIcons.TrendUp, it) }),
     )
@@ -218,52 +196,20 @@ internal fun ColumnScope.ExerciseOptionsSupersetContent(
         ),
     )
     if (members.isNotEmpty()) {
-        Text("Miembros".uppercase(), style = KpknType.eyebrow, color = WizardColors.textMuted)
+        LiveSheetSectionLabel("Miembros")
         ExerciseOptionsGrid(
             options = members.map { member -> ExerciseOption(member.name, KpknLineIcons.Link, { onOpenMember(member.id) }) },
             columns = 2,
         )
     }
-    LiveOutlinePill(
-        text = "Disolver superserie",
-        onClick = onDissolve,
-        danger = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
+    LiveSheetMenuRow("Disolver superserie", onDissolve, icon = KpknLineIcons.Unlink, danger = true, chevron = false)
 }
 
-/** Las dos píldoras del pie: lado a lado y, con la letra por encima del 115 %, una sobre otra (cada una con su rótulo entero). */
+/** Pie del prototipo 02: «Saltar ejercicio» y «Quitar de la sesión» como filas; la segunda en rojo. */
 @Composable
 private fun ExerciseOptionsFooter(onSkip: () -> Unit, onRemove: () -> Unit, canRemove: Boolean) {
-    if (largeLiveFont()) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            LiveOutlinePill(text = "Saltar ejercicio", onClick = onSkip, modifier = Modifier.fillMaxWidth())
-            LiveOutlinePill(
-                text = "Quitar de la sesión",
-                onClick = onRemove,
-                danger = true,
-                enabled = canRemove,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    } else {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            LiveOutlinePill(text = "Saltar ejercicio", onClick = onSkip, modifier = Modifier.weight(1f))
-            LiveOutlinePill(
-                text = "Quitar de la sesión",
-                onClick = onRemove,
-                danger = true,
-                enabled = canRemove,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
+    LiveSheetMenuRow("Saltar ejercicio", onSkip, icon = KpknLineIcons.FrameForward, chevron = false)
+    LiveSheetMenuRow("Quitar de la sesión", onRemove, icon = KpknLineIcons.Trash, danger = true, chevron = false, enabled = canRemove)
 }
 
 /** La miniatura de una superserie (que no tiene una ilustración propia): su icono de línea sobre `inset`, del mismo tamaño que la de un ejercicio. */

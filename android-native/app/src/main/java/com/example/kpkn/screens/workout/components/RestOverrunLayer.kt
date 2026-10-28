@@ -95,6 +95,7 @@ internal fun RestNextBox(
     nextSet: RestNextSetSummary,
     modifier: Modifier = Modifier,
     background: androidx.compose.ui.graphics.Color = KpknSurface.inset,
+    dense: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -102,7 +103,7 @@ internal fun RestNextBox(
             .clip(RoundedCornerShape(18.dp))
             .background(background, RoundedCornerShape(18.dp))
             .semantics(mergeDescendants = true) { contentDescription = nextSet.spoken() }
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = if (dense) 6.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

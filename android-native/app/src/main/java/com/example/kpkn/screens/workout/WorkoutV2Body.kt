@@ -22,6 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -35,6 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import androidx.compose.ui.zIndex
 import kotlin.math.absoluteValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -121,6 +127,10 @@ internal fun WorkoutV2Body(
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
     onOpenTechniqueAnalysis: (String) -> Unit = {},
+    liveSessionView: LiveSessionView = LiveSessionView.CARDS,
+    onOpenExerciseOptions: (exerciseId: String) -> Unit = {},
+    onOpenSupersetSettings: (groupId: String) -> Unit = {},
+    sessionTimeRequest: Int = 0,
 ) {
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
     val videoThumbBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
@@ -239,30 +249,20 @@ internal fun WorkoutV2Body(
         val compactHeaderLayout = maxHeight < 800.dp
 
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
-        val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
         val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
         val navigationBottom = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
         val imeBottom = with(density) { WindowInsets.ime.getBottom(this).toDp() }
         val stageBottomClearance = maxOf(navigationBottom, imeBottom) + dockBottomClearance
-        val relatorBandHeight = liveSessionRelatorBandHeight(
-            maxHeight.value, with(density) { headerHeightPx.toDp().value },
-            (maxWidth.value - 48f).coerceIn(240f, 358f) / LiveCardWidthToHeight,
-            stageBottomClearance.value,
-        ).dp
-        // La banda se oculta solo bajo un overlay a pantalla completa (descanso o feedback), que trae su propio relator.
-        // El chip del descanso ocupa el sitio de la banda mientras se ve (LV6, F5), y «Descanso cumplido» a pantalla completa también la cubre.
-        // Con el feedback en la tarjeta del descanso (B3) la banda del relator se ve: F4 pone ahí «Ejercicio terminado: …».
+        // La franja permanente del Relator se retiró (Refinamiento 02, D3). La asistencia contextual
+        // sigue disponible en las sugerencias de la tarjeta y en el descanso.
         val feedbackOnCard = feedbackLivesOnCard(
             feedbackShowing = uiState.showPostExerciseSheet,
             isRestTimerRunning = uiState.isRestTimerRunning,
             isRestMinimized = uiState.isRestMinimized,
             restKind = uiState.restModalState?.kind,
         )
-        val relatorBandCovered = (uiState.showPostExerciseSheet && !feedbackOnCard) ||
-            (workingRestActive && !uiState.isRestMinimized) ||
-            (uiState.restOverrun != null && !uiState.isRestMinimized)
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -304,6 +304,7 @@ internal fun WorkoutV2Body(
                 sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
                 completedWorkingSetCount = paceWork.completed,
                 totalWorkingSetCount = paceWork.total,
+                totalExerciseCount = visibleExercises.size,
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
@@ -343,6 +344,8 @@ internal fun WorkoutV2Body(
                 },
                 onCreateSupersetClick = onCreateSuperset,
                 bodyHazeState = cardsHazeState,
+                sessionTimeRequest = sessionTimeRequest,
+                showExerciseContext = liveSessionView != LiveSessionView.LIST,
             )
             }
             Spacer(Modifier.height(0.dp))
@@ -479,6 +482,7 @@ internal fun WorkoutV2Body(
                     onSelectTag = { tagId ->
                         viewModel.selectMainTag(currentExercise.id, tagId)
                     },
+                    exerciseName = displayWorkoutExerciseName(currentExercise),
                     onCreateTag = {
                         showTagListOverlay = false
                         showCreateTagDialog = true
@@ -525,16 +529,51 @@ internal fun WorkoutV2Body(
                 )
             }
 
-            Spacer(Modifier.height(relatorBandHeight))
             val stageScrollState = rememberScrollState()
             Column(
                 modifier = Modifier.fillMaxSize().then(
-                    if (currentExercise?.isCardio != true && !showingPostExerciseCard)
+                    if (currentExercise?.isCardio != true && !showingPostExerciseCard && liveSessionView != LiveSessionView.LIST)
                         Modifier.verticalScroll(stageScrollState) else Modifier,
                 ),
             ) {
 
-            if (currentExercise != null && (
+            if (liveSessionView == LiveSessionView.LIST) {
+                // La Lista registra desde cada serie: el FAB del roadmap no aplica aquí.
+                SideEffect {
+                    recordFabHolder.visible = false
+                    recordFabHolder.isUpdateMode = false
+                    liveSetStepperHolder.snapshot = null
+                }
+                LiveSessionListView(
+                    uiState = uiState,
+                    exercises = visibleExercises,
+                    currentExerciseId = currentExercise?.id,
+                    accentColor = sessionAccentColor,
+                    warmupWorkingWeight = warmupWorkingWeight,
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize().padding(bottom = dockBottomClearance),
+                    // El contexto del ejercicio en curso encabeza la lista y se desplaza con ella (prototipo 02).
+                    contextHeader = {
+                        WorkoutExerciseContextBlock(
+                            exerciseName = headerExerciseName,
+                            exerciseChips = headerExerciseChips,
+                            ultraFastApplied = uiState.ultraFastApplied,
+                            onUltraFastClick = { viewModel.previewUltraFast() },
+                            isSuperset = currentExercise?.supersetGroupRefOrLegacyId()
+                                ?.let { groupId -> visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1 } == true,
+                            activeMainTags = currentExerciseActiveMainTags,
+                            activeMainTagLabels = currentExerciseActiveTagLabels,
+                            activeSubTags = currentExerciseActiveSubTags,
+                            onTagClick = { tagId -> tagManagerTagId = tagId },
+                            onOpenTagList = { showTagListOverlay = true },
+                            onToggleVoice = onToggleVoice,
+                            voiceSessionEnabled = uiState.voiceSessionEnabled,
+                        )
+                    },
+                    onOpenExerciseOptions = onOpenExerciseOptions,
+                    onOpenSupersetSettings = onOpenSupersetSettings,
+                )
+            } else if (currentExercise != null && (
                     currentSet != null ||
                         currentExercise.isCardio ||
                         currentExercise.mobilitySeries.isNotEmpty() ||
@@ -1594,6 +1633,7 @@ internal fun WorkoutV2Body(
                             .fillMaxWidth(),
                     ) {
                         val availableWidth = maxWidth
+                        val liveCardStackEnabled = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= LiveCardStackMinScreenHeightDp
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
                         val peekPadding = 24.dp
                         Column(
@@ -1625,12 +1665,13 @@ internal fun WorkoutV2Body(
                                             )
                                         }
                                     },
-                            contentPadding = PaddingValues(horizontal = peekPadding),
+                            // Iteración 04 (variante B): las dos tarjetas siguientes asoman apiladas bajo la actual; el relleno inferior
+                            // deja sitio a la pila dentro del carrusel.
+                            contentPadding = PaddingValues(start = peekPadding, end = peekPadding,
+                                bottom = if (liveCardStackEnabled) LiveCardStackRoom else 0.dp),
                             verticalAlignment = Alignment.Top,
-                            // Keep the side peeks symmetric, with a small extra
-                            // breathing gap between cards (~20% over the old 12.dp).
                             pageSpacing = 14.dp,
-                            beyondViewportPageCount = 1,
+                            beyondViewportPageCount = 2,
                             key = { index ->
                                 val page = setPagerPages.getOrNull(index)
                                 val pageExerciseId = page?.exerciseId ?: currentExercise.id
@@ -1655,17 +1696,44 @@ internal fun WorkoutV2Body(
                                     fallbackExerciseId = currentExercise.id,
                                     supersetGroupId = currentSupersetGroupId,
                                 )
-                                val pageOffset = (
-                                    (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                                ).absoluteValue.coerceIn(0f, 1f)
-                                // Soft secondary peeks — alpha only so card size stays fixed mid-swipe.
-                                val pageAlpha = (1f - pageOffset * 0.58f).coerceIn(0.38f, 1f)
+                                // Posición de la página respecto de la actual: > 0 las siguientes (en la pila), < 0 las anteriores.
+                                val stackOffset = (page - pagerState.currentPage) - pagerState.currentPageOffsetFraction
+                                val stackExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
+                                val stackLabel = liveCardStackLabel(pageSpec, stackExercise)
+                                val stackMeasurer = rememberTextMeasurer()
+                                val stackLabelStyle = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, color = WizardColors.textFaint)
+                                val pageStride = with(LocalDensity.current) { (availableWidth - peekPadding * 2 + 14.dp).toPx() }
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .zIndex(liveCardStackZ(stackOffset))
                                         .graphicsLayer {
-                                            alpha = pageAlpha
+                                            val stack = liveCardStackTransform(stackOffset, pageStride, this.density, liveCardStackEnabled)
+                                            translationX = stack.translationX
+                                            translationY = stack.translationY
+                                            scaleX = stack.scale
+                                            scaleY = stack.scale
+                                            rotationZ = stack.rotation
+                                            alpha = stack.alpha
+                                            transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
                                             clip = false
+                                        }
+                                        .drawWithContent {
+                                            drawContent()
+                                            // En la pila: la tarjeta se oscurece y su borde inferior dice qué serie es.
+                                            val depth = if (liveCardStackEnabled) stackOffset.coerceIn(0f, 1f) else 0f
+                                            if (depth > 0f) {
+                                                drawRect(Color.Black.copy(alpha = .45f * depth))
+                                                val strip = 30.dp.toPx()
+                                                val radius = 24.dp.toPx()
+                                                drawRoundRect(Color(0xFF151515).copy(alpha = depth),
+                                                    topLeft = Offset(0f, size.height - strip - radius),
+                                                    size = androidx.compose.ui.geometry.Size(size.width, strip + radius),
+                                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius))
+                                                val text = stackMeasurer.measure(stackLabel, stackLabelStyle)
+                                                drawText(text, alpha = depth, topLeft = Offset((size.width - text.size.width) / 2f,
+                                                    size.height - strip + (strip - text.size.height) / 2f))
+                                            }
                                         },
                                 ) {
                         LiveSessionCardFrame {
@@ -1992,6 +2060,8 @@ internal fun WorkoutV2Body(
                                         lastCompletedCustomUnit = restAnchorExercise.customUnit,
                                         clockActive = isActivePage,
                                         videoSlot = restVideoSlot,
+                                        isPaused = restState?.pausedRemainingSeconds != null,
+                                        onTogglePause = { viewModel.toggleRestPause() },
                                     )
                                 }
                             }
@@ -2227,6 +2297,7 @@ internal fun WorkoutV2Body(
                                     onShowHistory = {
                                         viewModel.showHistoryForExercise(targetExercise)
                                     },
+                                    onConfigureSet = { viewModel.showSeriesTypeSheet(targetExercise.id, activeSetIndex, activeSetIndex) },
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
                                     onExecutionError = { effort ->
@@ -2351,25 +2422,34 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if ((!relatorResolution.text.isNullOrBlank() || relatorResolution.silentAnimation != RelatorSilentAnimation.NONE) && headerHeightPx > 0 && !relatorBandCovered) {
-            WorkoutLiveRelatorLine(
-                text = relatorResolution.text,
-                phaseKey = relatorResolution.phaseKey,
-                actions = relatorResolution.actions,
-                onAction = { viewModel.performRelatorAssist(it) },
-                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState, currentExercise), viewModel::performRelatorAssistAndAwait),
-                accentColor = sessionAccentColor,
-                silentAnimation = relatorResolution.silentAnimation,
-                onLoadPop = { viewModel.triggerRelatorLoadPop() },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(relatorBandHeight)
-                    .offset(y = with(density) { headerHeightPx.toDp() })
-                    .testTag("live-session-relator")
-                    .zIndex(12f),
+    // ── «Configurar serie» (prototipo 02): objetivos de una serie, con alcance a las pendientes del ejercicio ──────────────────
+    var setConfigTarget by remember { mutableStateOf<SeriesTypeTarget?>(null) }
+    setConfigTarget?.let { target ->
+        val ex = visibleExercises.firstOrNull { it.id == target.exerciseId }
+        if (ex == null) {
+            setConfigTarget = null
+        } else {
+            val pending = ex.sets.indices.filter { index ->
+                uiState.completedSets.keys.none { it == "${ex.id}_$index" || it.startsWith("${ex.id}_${index}_") }
+            }.toSet()
+            com.example.kpkn.screens.workout.components.LiveSetConfigSheet(
+                exercise = ex,
+                setIndex = target.fromSetIdx,
+                pendingIndices = pending,
+                onSave = { updated ->
+                    viewModel.updateExerciseDefinition(ex.id) { current ->
+                        current.copy(sets = current.sets.mapIndexed { index, set -> updated[index] ?: set })
+                    }
+                },
+                onOpenTechnique = {
+                    setConfigTarget = null
+                    viewModel.showSeriesTypeSheet(ex.id, target.fromSetIdx, target.toSetIdx)
+                },
+                onOpenAllSeries = { setConfigTarget = null; onEditExercise(ex.id) },
+                onDismiss = { setConfigTarget = null },
             )
         }
+    }
 
     // ── Opciones de la serie (LV11, A1): pulsación larga en un paso de la serie ───────────────────────────────────────────────
     uiState.seriesTypeTarget?.let { target ->
@@ -2394,7 +2474,7 @@ internal fun WorkoutV2Body(
                     )
                     viewModel.hideSeriesTypeSheet()
                 },
-                onEdit = { onEditExercise(ex.id) },
+                onEdit = { setConfigTarget = target },
                 onAddSet = { viewModel.addSetToCurrentExercise(ex.id) },
                 onSkipSet = { setIndex -> viewModel.omitSet(ex.id, setIndex) },
                 onDeleteSet = { setIndex -> viewModel.removeSetFromExercise(ex.id, setIndex) },
@@ -2402,32 +2482,39 @@ internal fun WorkoutV2Body(
         }
     }
     if (uiState.showShortenSessionSheet) {
-        com.example.kpkn.ui.components.KpknSheet(onDismissRequest = viewModel::hideShortenSessionSheet) {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Acortar sesión", style = MaterialTheme.typography.titleLarge)
-                Text("Revisa los cambios del trabajo pendiente. Lo realizado se conserva.")
-                uiState.ultraFastPreview?.let { preview ->
-                    Text("Duración prevista: " + preview.beforeSeconds / 60 + " → " + preview.afterSeconds / 60 + " min")
-                    preview.perExercise.forEach { change ->
-                        Text(change.exerciseName + ": " + change.beforeSets + " → " + change.afterSets + " series · " + change.afterTechnique)
+        // Prototipo 02 (`shorten`): actual frente a propuesta en cifras grandes, el cambio por ejercicio y la confirmación.
+        com.example.kpkn.screens.workout.components.LiveSheet(title = "Acortar sesión", onDismiss = viewModel::hideShortenSessionSheet,
+            tag = "live-shorten-sheet", footer = null) { close ->
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle("Revisa una propuesta para el trabajo pendiente. Lo registrado se conserva.")
+            uiState.ultraFastPreview?.let { preview ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    listOf("Actual" to preview.beforeSeconds / 60, "Propuesta" to preview.afterSeconds / 60).forEach { (label, minutes) ->
+                        Column(Modifier.weight(1f)) {
+                            Text(label.uppercase(), style = KpknType.caption.copy(fontSize = 10.sp, letterSpacing = .6.sp),
+                                color = WizardColors.textFaint)
+                            Text("$minutes min", Modifier.padding(top = 6.dp),
+                                style = KpknType.display.copy(fontSize = 27.sp, lineHeight = 31.sp), color = WizardColors.text)
+                        }
                     }
-                    com.example.kpkn.ui.design.KpknPrimaryPill(text = "Confirmar cambios", onClick = { viewModel.applyUltraFast() },
-                        enabled = uiState.recordingSetKey == null)
                 }
-                TextButton(onClick = viewModel::openQuickRecording) { Text("Registro rápido de una serie") }
-                TextButton(onClick = viewModel::hideShortenSessionSheet) { Text("Cancelar") }
+                preview.perExercise.forEach { change ->
+                    com.example.kpkn.screens.workout.components.LiveSheetInlineNote(
+                        change.exerciseName + ": " + change.beforeSets + " → " + change.afterSets + " series · " + change.afterTechnique)
+                }
+                com.example.kpkn.screens.workout.components.LiveSheetPrimary("Aplicar propuesta", { viewModel.applyUltraFast() },
+                    Modifier.padding(top = 8.dp), enabled = uiState.recordingSetKey == null)
             }
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Registro rápido de una serie", viewModel::openQuickRecording,
+                Modifier.padding(top = 12.dp), icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Check)
+            com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
         }
     }
     if (uiState.showUltraFastSheet) {
         val quickExercise = currentExercise
         if (quickExercise == null || isWarmupActive || isMobilityActive) {
-            com.example.kpkn.ui.components.KpknSheet(onDismissRequest = viewModel::hideUltraFastSheet) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Ultrarrápido", style = MaterialTheme.typography.titleLarge)
-                    Text("Termina la preparación en su tarjeta antes de registrar la serie de trabajo.")
-                    TextButton(onClick = viewModel::hideUltraFastSheet) { Text("Volver a la sesión") }
-                }
+            com.example.kpkn.screens.workout.components.LiveSheet(title = "Registro rápido", onDismiss = viewModel::hideUltraFastSheet,
+                tag = "live-quick-blocked", footer = { close -> com.example.kpkn.screens.workout.components.LiveSheetPrimary("Volver a la sesión", close) }) {
+                com.example.kpkn.screens.workout.components.LiveSheetSubtitle("Termina la preparación en su tarjeta antes de registrar la serie de trabajo.")
             }
         } else {
             val quickSetIndex = uiState.currentSetIdx
@@ -2488,30 +2575,25 @@ internal fun WorkoutV2Body(
     }
 
     pendingUpdateAction?.let { pending ->
-        KpknAlertDialog(
-            onDismissRequest = {
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "Actualizar serie",
+            text = "Esta serie ya estaba registrada. ¿Quieres actualizarla?",
+            primaryLabel = "Actualizar",
+            onPrimary = {
+                val action = pendingUpdateAction?.first
+                pendingUpdateAction = null
+                action?.invoke()
+            },
+            secondaryLabel = "Cancelar",
+            onSecondary = {
                 pendingUpdateAction = null
                 pending.second()
             },
-            title = { Text("Actualizar serie") },
-            text = { Text("Esta serie ya estaba registrada. ¿Quieres actualizarla?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val action = pendingUpdateAction?.first
-                        pendingUpdateAction = null
-                        action?.invoke()
-                    }
-                ) { Text("Actualizar") }
+            onDismiss = {
+                pendingUpdateAction = null
+                pending.second()
             },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        pendingUpdateAction = null
-                        pending.second()
-                    },
-                ) { Text("Cancelar") }
-            },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Repeat,
         )
     }
 

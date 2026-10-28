@@ -33,7 +33,7 @@ internal fun TrainingMaxPreparation(missing: List<ExerciseTrainingMax.Missing>, 
     var open by remember(first.exercise.id) { mutableStateOf(false) }
     LaunchedEffect(enabled, first.exercise.id) { if (enabled && !dismissed) open = true }
     if (!enabled) return
-    if (open) KpknSheet(onDismissRequest = { open = false; dismissed = true }) {
+    if (open) KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = { open = false; dismissed = true }) {
         TrainingMaxEntryBody(first.exercise.name, first.suggestedKg, first.fraction,
             onConfirm = { onConfirm(first.exercise.id, it) },
             onDismiss = { open = false; dismissed = true }, missing = true)

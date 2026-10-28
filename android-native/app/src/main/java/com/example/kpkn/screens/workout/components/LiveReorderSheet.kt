@@ -196,6 +196,9 @@ internal fun LiveReorderSheet(
         maxHeightFraction = 0.88f,
         stableHeightFraction = 0.88f,
         hazeState = hazeState,
+        showDragHandle = false,
+        backdropScrim = LiveSheetTokens.Veil,
+        additionalGlassScrim = LiveSheetTokens.Panel,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Atrás sale primero de la selección y después cierra la hoja. Va dentro del contenido de la hoja para registrarse DESPUÉS
@@ -207,23 +210,20 @@ internal fun LiveReorderSheet(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    .padding(start = 19.dp, end = 19.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Orden de la sesión",
-                        style = KpknType.dialogTitle,
-                        color = WizardColors.text,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 2,
-                    )
-                    KpknCompactPill(text = "Listo", onClick = onDone, height = 32.dp)
+                // Cabecera de las hojas del prototipo 02: asa y título en Syne. «Listo» pasa al pie, como en el resto de hojas.
+                Box(Modifier.fillMaxWidth().padding(top = 9.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(width = 33.dp, height = 3.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x30FFFFFF)))
                 }
+                Text(
+                    text = "Orden de la sesión",
+                    style = androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 21.sp, lineHeight = 24.sp),
+                    color = WizardColors.text,
+                    maxLines = 2,
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -342,11 +342,8 @@ internal fun LiveReorderSheet(
                         },
                     )
                 } else {
-                    Text(
-                        text = "Lo hecho y lo que está en curso queda fijo. El orden nuevo se ve en el carrusel y en «Siguiente».",
-                        style = KpknType.caption,
-                        color = WizardColors.textFaint,
-                    )
+                    LiveSheetShortCopy("Lo hecho y lo que está en curso queda fijo. El orden nuevo se ve en el carrusel y en «Siguiente».")
+                    LiveSheetPrimary("Listo", onDone, tag = "live-reorder-done")
                 }
             }
             // «Deshacer» de lo que se acaba de hacer aquí dentro: la hoja tapa la píldora de la sesión.

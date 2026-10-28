@@ -247,6 +247,7 @@ class PlannedIntensityPolicyTest {
         assertTrue(recorded.isPartial)
         assertEquals(2, recorded.partialReps)
         assertEquals(1, recorded.assistedReps)
-        assertEquals(9.0, recorded.effectiveRepEquivalent(), 0.001)
+        // Desde ed6cee4d6 las parciales y la ayuda se conservan en el registro pero no suman repeticiones equivalentes.
+        assertEquals(8.0, recorded.effectiveRepEquivalent(), 0.001)
     }
 }

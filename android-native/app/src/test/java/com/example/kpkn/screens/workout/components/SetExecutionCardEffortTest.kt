@@ -596,7 +596,9 @@ class SetExecutionCardEffortTest {
     fun elAsistidoSinPesoCorporalLoPideEncimaDeLaTarjeta() {
         mostrar(Caso("asistidoSinPeso", ejercicio(serieAsistida()), serieAsistida(), pesoCorporal = null))
 
-        rule.onNodeWithText("Peso corporal (kg)", useUnmergedTree = true).assertExists()
+        // Refinamiento 02: la tarjeta lo dice en su línea de contexto y lo pide en la hoja «Modo de carga».
+        rule.onNodeWithText("Asistida · añade tu peso corporal", useUnmergedTree = true).assertExists().performClick()
+        rule.onNodeWithText("Peso corporal · kg", useUnmergedTree = true).assertExists()
     }
 
     @Test

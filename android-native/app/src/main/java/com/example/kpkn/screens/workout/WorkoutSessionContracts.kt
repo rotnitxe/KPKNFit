@@ -121,6 +121,11 @@ data class WorkoutRestModalState(
      * que el reloj no vuelva a cero al ajustarlo (LV6). 0 en lo guardado antes de este campo: entonces vale [activeSeconds].
      */
     val startedAtMs: Long = 0L,
+    /**
+     * Segundos congelados por la pausa (Refinamiento 02). Null = el reloj corre. La pausa es del descanso, no de la sesión:
+     * el descanso sigue existiendo y conserva sugerencia, forma y borrador de feedback.
+     */
+    val pausedRemainingSeconds: Int? = null,
 )
 
 internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null): String = when (side) {

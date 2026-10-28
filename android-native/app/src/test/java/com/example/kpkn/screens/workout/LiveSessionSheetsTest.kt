@@ -40,12 +40,32 @@ class LiveSessionSheetsTest {
     @Test fun menuKeepsEveryMigratedDestinationAndPhotosUsesTheExistingAlbum() {
         var selected by mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.MENU)
         var photos = 0
-        content { LiveSessionSheetsHost(selected, { selected = it }, onOpenPhotos = { photos++ }) }
+        var voice = 0
+        content { LiveSessionSheetsHost(selected, { selected = it }, onOpenPhotos = { photos++ }, onOpenVoice = { voice++ }) }
         LiveSessionDestination.entries.filter { it != LiveSessionDestination.MENU }.forEach { item ->
             rule.onNodeWithTag("live-session-menu-${item.name.lowercase()}").performScrollTo().assertIsDisplayed().performClick()
-            if (item == LiveSessionDestination.PHOTOS) rule.runOnIdle { assertEquals(1, photos); assertNull(selected) }
-            else rule.onNodeWithTag("live-session-sheet-${item.name.lowercase()}", true).assertIsDisplayed()
+            when (item) {
+                LiveSessionDestination.PHOTOS -> rule.runOnIdle { assertEquals(1, photos); assertNull(selected) }
+                // La conversación de voz es una superficie completa, no una hoja del host.
+                LiveSessionDestination.VOICE -> rule.runOnIdle { assertEquals(1, voice); assertNull(selected) }
+                else -> rule.onNodeWithTag("live-session-sheet-${item.name.lowercase()}", true).assertIsDisplayed()
+            }
             rule.runOnIdle { selected = LiveSessionDestination.MENU }
+        }
+    }
+    @Test fun viewSelectorSwitchesCardsAndListWithoutLeavingTheSession() {
+        var selected by mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.VIEW)
+        var view by mutableStateOf(LiveSessionView.CARDS)
+        var chosen: LiveSessionView? = null
+        content { LiveSessionSheetsHost(selected, { selected = it }, currentView = view,
+            onSelectView = { view = it; chosen = it }) }
+        rule.onNodeWithText("Tarjetas y Lista comparten el mismo borrador. Cambiar de vista no registra ni borra nada.")
+            .assertIsDisplayed()
+        rule.onNodeWithTag("live-session-view-list").performClick()
+        rule.runOnIdle {
+            assertEquals(LiveSessionView.LIST, chosen)
+            assertEquals(LiveSessionView.LIST, view)
+            assertNull(selected)
         }
     }
     @Test fun timerStartsPausesAndResetsAndSurvivesClosingTheSheet() {
@@ -162,7 +182,7 @@ class LiveSessionSheetsTest {
         val group = SupersetGroup(id = "super", exerciseOrder = listOf(first.id, second.id), rounds = 3)
         content { LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, exercises = listOf(first, second),
             supersetGroups = listOf(group), onSelectSuperset = { selected = it }, onOpenSupersetOptions = { options = it }) }
-        rule.onNodeWithText("Ruta de la sesión").assertIsDisplayed()
+        rule.onNodeWithText("Recorrido de la sesión").assertIsDisplayed()
         rule.onNodeWithContentDescription("Opciones de Zancada + Curl").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(first.id, options) }
         rule.onNodeWithText("Zancada + Curl").performScrollTo().performClick()

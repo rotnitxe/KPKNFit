@@ -37,7 +37,7 @@ import com.example.kpkn.domain.discomfort.DiscomfortEvidenceKind
 import com.example.kpkn.domain.discomfort.DiscomfortInsight
 import com.example.kpkn.screens.workout.FeedbackInsights
 import com.example.kpkn.screens.workout.LocalFeedbackBounded
-import com.example.kpkn.screens.workout.LocalFeedbackRestSkip
+import com.example.kpkn.screens.workout.LocalFeedbackDefer
 import com.example.kpkn.screens.workout.PostExerciseFeedbackDraft
 import com.example.kpkn.screens.workout.PostExerciseFeedbackPanel
 import com.example.kpkn.screens.workout.ReportedDiscomfort
@@ -95,9 +95,9 @@ class FeedbackSurfacesUiTest {
         draft: PostExerciseFeedbackDraft? = null,
         insights: FeedbackInsights = FeedbackInsights.Empty,
         explain: suspend (String) -> DiscomfortInsight? = { null },
-        onSkipRest: (() -> Unit)? = null,
+        onDefer: (() -> Unit)? = null,
     ) = content {
-        CompositionLocalProvider(LocalFeedbackBounded provides true, LocalFeedbackRestSkip provides onSkipRest) {
+        CompositionLocalProvider(LocalFeedbackBounded provides true, LocalFeedbackDefer provides onDefer) {
             Box(Modifier.size(360.dp, 840.dp).background(Color.Black).padding(horizontal = 16.dp)) {
                 PostExerciseFeedbackPanel(
                     feedbackExercises = listOf(squat),
@@ -139,7 +139,7 @@ class FeedbackSurfacesUiTest {
         rule.onNodeWithText("¿Cómo te salió?").assertExists()
         rule.onNodeWithText("CALIDAD TÉCNICA").assertExists()
         rule.onNodeWithText("¿ALGUNA MOLESTIA?").assertExists()
-        rule.onNodeWithText("Guardar").assertExists()
+        rule.onNodeWithText("Guardar feedback").assertExists()
         // Sin planificar intensidad el panel de antes preguntaba esto; ahora el RIR/RPE se anota en cada serie.
         rule.onAllNodesWithText("Qué tan intenso fue", ignoreCase = true).assertCountEquals(0)
         rule.onAllNodesWithText("Fallo").assertCountEquals(0)
@@ -155,7 +155,7 @@ class FeedbackSurfacesUiTest {
             .performSemanticsAction(SemanticsActions.SetProgress) { it(5f) }
         rule.waitForIdle()
         rule.onNodeWithText("/ 10 · aceptable").assertExists()
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Guardar feedback").performClick()
         val feedback = saved.single().single()
         assertEquals("sq", feedback.exerciseId)
         assertEquals(5, feedback.technicalQuality)
@@ -207,19 +207,19 @@ class FeedbackSurfacesUiTest {
     }
 
     @Test
-    fun skipRestShowsOnlyWhileTheRestRuns() {
-        var skips = 0
-        panel(onSkipRest = { skips++ })
-        rule.onNodeWithText("Saltar descanso").performClick()
-        assertEquals(1, skips)
-        rule.onNodeWithText("Guardar").assertExists()
+    fun leaveForLaterShowsOnlyWhileTheRestRuns() {
+        var deferred = 0
+        panel(onDefer = { deferred++ })
+        rule.onNodeWithText("Ahora no").performClick()
+        assertEquals(1, deferred)
+        rule.onNodeWithText("Guardar feedback").assertExists()
     }
 
     @Test
-    fun withoutARestRunningThereIsNoSkipRest() {
-        panel(onSkipRest = null)
-        rule.onAllNodesWithText("Saltar descanso").assertCountEquals(0)
-        rule.onNodeWithText("Guardar").assertExists()
+    fun withoutARestRunningThereIsNoLeaveForLater() {
+        panel(onDefer = null)
+        rule.onAllNodesWithText("Ahora no").assertCountEquals(0)
+        rule.onNodeWithText("Guardar feedback").assertExists()
     }
 
     // ── B2: la ficha de la molestia, desde un chip ──
@@ -238,7 +238,7 @@ class FeedbackSurfacesUiTest {
         rule.onNodeWithText("Reportar molestia").performClick()
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Quitar").assertExists()
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Guardar feedback").performClick()
         val feedback=saved.single().single()
         assertEquals(listOf("knee_patellar"),feedback.discomfortIds)
         assertEquals(listOf("knee_patellar"),feedback.stillPresentDiscomfortIds)
@@ -281,7 +281,7 @@ class FeedbackSurfacesUiTest {
         draft: PostExerciseFeedbackDraft,
         save: () -> Unit,
         insights: FeedbackInsights = FeedbackInsights.Empty,
-        onSkip: () -> Unit = {},
+        onDefer: () -> Unit = {},
         onExpand: (() -> Unit)? = {},
     ): @Composable () -> Unit = {
         Box(Modifier.size(272.dp, 388.dp).background(Color.Black)) {
@@ -295,7 +295,7 @@ class FeedbackSurfacesUiTest {
                 explainDiscomfort = { null },
                 linked = emptyList(),
                 onSave = save,
-                onSkipRest = onSkip,
+                onDefer = onDefer,
                 onExpand = onExpand,
                 clockActive = false,
                 nowMs = nowMs,
@@ -317,7 +317,7 @@ class FeedbackSurfacesUiTest {
                     reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
                     
                 ),
-                onSkip = { skips++ },
+                onDefer = { skips++ },
                 onExpand = { expands++ },
             ),
         )
@@ -330,8 +330,8 @@ class FeedbackSurfacesUiTest {
         rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
         rule.onAllNodesWithText("Frecuentes en", substring = true).assertCountEquals(0)
         rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
-        rule.onNodeWithText("Guardar").assertExists()
-        rule.onNodeWithText("Saltar").performClick()
+        rule.onNodeWithText("Guardar feedback").assertExists()
+        rule.onNodeWithText("Ahora no").performClick()
         assertEquals(1, skips)
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         assertEquals(1, expands)
@@ -378,7 +378,7 @@ class FeedbackSurfacesUiTest {
         rule.onAllNodesWithText("4 / 10 · irregular").assertCountEquals(1)
         rule.onAllNodesWithText("Lumbar").assertCountEquals(2)
         // «Guardar» de la tarjeta y «Guardar» de la pantalla completa guardan exactamente lo mismo.
-        val buttons = rule.onAllNodesWithText("Guardar")
+        val buttons = rule.onAllNodesWithText("Guardar feedback")
         buttons[0].performClick()
         buttons[1].performClick()
         assertEquals(2, saved.size)

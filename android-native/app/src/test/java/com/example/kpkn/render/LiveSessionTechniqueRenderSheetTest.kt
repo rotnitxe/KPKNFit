@@ -235,7 +235,7 @@ class LiveSessionTechniqueRenderSheetTest {
             1f,
             420,
             accion = {
-                rule.onNodeWithText("Saltar técnica y registrar solo la serie").performClick()
+                rule.onNodeWithText("Terminar técnica con lo realizado").performClick()
                 rule.waitForIdle()
             },
         ) {

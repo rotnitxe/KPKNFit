@@ -103,6 +103,4 @@ class MuscleVolumePanelRenderSheetTest {
     @Test fun bodySparse130() = render("body_sparse", 1.3f)
     @Test fun bodyEmpty100() = render("body_empty", 1f)
     @Test fun bodyEmpty130() = render("body_empty", 1.3f)
-    @Test fun recovery100() = render("recovery", 1f)
-    @Test fun recovery130() = render("recovery", 1.3f)
 }

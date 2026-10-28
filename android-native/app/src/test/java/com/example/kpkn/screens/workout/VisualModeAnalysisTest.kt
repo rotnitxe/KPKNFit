@@ -401,7 +401,9 @@ class VisualModeAnalysisFlowTest {
     private lateinit var analysis: VideoAnalysisRepository
     private lateinit var media: WorkoutMediaRepository
     private val completed = MutableStateFlow<Map<String, CompletedSet>>(emptyMap())
-    private val exercises = MutableStateFlow(listOf(Exercise("exercise", "Sentadilla")))
+    // Desde ed6cee4d6 una captura sin referencia estable solo se asocia a la serie si coincide la configuración del ejercicio.
+    private val exercises = MutableStateFlow(listOf(Exercise("exercise", "Sentadilla", catalogConfigurationId = "test-config",
+        sets = listOf(com.example.kpkn.data.models.ExerciseSet("s0")))))
 
     @Before fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -421,7 +423,7 @@ class VisualModeAnalysisFlowTest {
 
     private suspend fun row(id: String, status: VideoAnalysisStatus) {
         TechniqueWorkTestKit.insertVideo(db, store, id) {
-            it.copy(exerciseId = "exercise", setIndex = 0, sessionKey = "S1")
+            it.copy(exerciseId = "exercise", catalogConfigurationId = "test-config", setIndex = 0, sessionKey = "S1")
         }
         analysis.markState(id, status, progressPct = 42, errorCode = "ERR_CODEC")
     }

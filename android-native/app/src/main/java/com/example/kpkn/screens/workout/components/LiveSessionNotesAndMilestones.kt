@@ -1,9 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
@@ -39,11 +37,9 @@ internal fun LiveSessionMilestonesContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LiveSessionSectionTitle(icon = Icons.Default.EmojiEvents, title = "Hitos de la sesión")
         if (orderedMilestones.isEmpty()) {
             Text(
                 "Todavía no hay hitos. Aparecen con PRs reales vs historial o meta estrella.",
@@ -149,11 +145,9 @@ internal fun LiveSessionNotesContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LiveSessionSectionTitle(icon = Icons.AutoMirrored.Filled.Notes, title = "Notas de sesión")
         WorkoutSoftField(
             value = sessionNotes,
             onValueChange = onSessionNotesChange,

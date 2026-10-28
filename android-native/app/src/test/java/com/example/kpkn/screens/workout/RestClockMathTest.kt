@@ -295,4 +295,14 @@ class RestClockMathTest {
         assertEquals("Descanso: quedan 45 segundos", RestClockMath.spokenRemaining(45))
         assertEquals("Descanso: quedan 0 segundos", RestClockMath.spokenRemaining(-3))
     }
+
+    @Test
+    fun applyingTheSuggestedRestKeepsTheElapsedTimeInsteadOfRestartingIt() {
+        // 2:00 de descanso con 1:28 transcurridos y una sugerencia de 3:00: quedan 1:32, no 3:00.
+        assertEquals(92, RestClockMath.remainingAfterSuggestion(totalSeconds = 120, remainingSeconds = 32, suggestedSeconds = 180))
+        // Aplicar una sugerencia más corta que lo ya transcurrido deja el descanso en 0, sin negativos.
+        assertEquals(0, RestClockMath.remainingAfterSuggestion(totalSeconds = 120, remainingSeconds = 20, suggestedSeconds = 60))
+        // El caso del prototipo: el total pasa a ser el sugerido y el reloj conserva lo ya hecho.
+        assertEquals(92, RestClockMath.remainingAfterSuggestion(totalSeconds = 120, remainingSeconds = 32, suggestedSeconds = 180))
+    }
 }

@@ -91,7 +91,7 @@ class WorkoutRestFeedbackDeviceTest {
                                     explainDiscomfort = { null },
                                     linked = emptyList(),
                                     onSave = feedbackSave(listOf(squat), draft, emptyMap(), emptyList(), { it.id }) { saved = it },
-                                    onSkipRest = {},
+                                    onDefer = {},
                                     onExpand = { compact = false },
                                     clockActive = false,
                                 )

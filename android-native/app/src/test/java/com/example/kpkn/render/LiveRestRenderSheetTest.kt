@@ -582,7 +582,7 @@ class LiveRestRenderSheetTest {
                         explainDiscomfort = { null },
                         linked = linked,
                         onSave = {},
-                        onSkipRest = {},
+                        onDefer = {},
                         onExpand = {},
                         clockActive = false,
                         nowMs = feedbackNow,

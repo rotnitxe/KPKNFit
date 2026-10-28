@@ -32,6 +32,7 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.PartialZone
+import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.technique.TechniqueSamples
@@ -385,8 +387,9 @@ class TechniqueAnalysisScreenTest {
         val saved = ArrayList<Pair<PlateSeed, Int>>()
         val confirmed = ArrayList<Int>()
         var back = 0
+        var used: ReviewedAnalysisResult? = null
 
-        fun actions() = TechniqueAnalysisActions(
+        fun actions(deliver: Boolean = false) = TechniqueAnalysisActions(
             onBack = { back++ },
             onOpenTrends = { trends += it },
             onReanalyze = { reanalyzed++ },
@@ -396,13 +399,14 @@ class TechniqueAnalysisScreenTest {
             onSavePlate = { seed, mm -> saved += seed to mm },
             onDismissNotice = {},
             onRequestPlateFrame = {},
+            onUseReviewedResult = if (deliver) ({ result: ReviewedAnalysisResult -> used = result }) else null,
         )
     }
 
     private lateinit var player: TechniquePlayerState
     private val scroll = ScrollState(0)
 
-    private fun screen(state: TechniqueAnalysisUiState, calls: Calls, frame: ImageBitmap? = null) {
+    private fun screen(state: TechniqueAnalysisUiState, calls: Calls, frame: ImageBitmap? = null, deliver: Boolean = false) {
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
                 player = remember { TechniquePlayerState(initialPositionUs = TechniqueSamples.analysisPositionUs, initialRep = -1) }
@@ -414,8 +418,8 @@ class TechniqueAnalysisScreenTest {
                     state = state,
                     player = player,
                     plateFrame = frame,
-                    actions = calls.actions(),
-                    videoSlot = { modifier -> Box(modifier.size(10.dp)) },
+                    actions = calls.actions(deliver),
+                    videoSlot = { modifier, _ -> Box(modifier.size(10.dp)) },
                     scroll = scroll,
                     viewportHeight = 800.dp,
                     magnifierEnabled = false,
@@ -435,9 +439,17 @@ class TechniqueAnalysisScreenTest {
 
         rule.onNodeWithText("Sentadilla trasera").assertIsDisplayed()
         rule.onNodeWithText("Serie 3 · 80 kg × 8 · 13 oct").assertIsDisplayed()
-        for (tag in listOf(ANALYSIS_SUMMARY_TAG, ANALYSIS_BREAKDOWN_TAG, ANALYSIS_OBSERVATIONS_TAG, ANALYSIS_TIPS_TAG)) {
+        // Trayectoria es la pestaña inicial: capas y repetición elegida con su ROM; el reproductor sigue arriba.
+        rule.onNodeWithText("Trayectoria de barra").assertIsDisplayed()
+        rule.onNodeWithText("Articulaciones").assertIsDisplayed()
+        rule.onNodeWithText("ROM ESTIMADO").assertIsDisplayed()
+        rule.onNodeWithText("Métricas").performClick()
+        for (tag in listOf(ANALYSIS_SUMMARY_TAG, ANALYSIS_OBSERVATIONS_TAG, ANALYSIS_TIPS_TAG)) {
             rule.onNodeWithTag(tag).assertExists()
         }
+        // La primera «Repeticiones» es la pestaña; la otra es la tarjeta del resumen.
+        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
+        rule.onNodeWithTag(ANALYSIS_BREAKDOWN_TAG).assertExists()
         // Hecho el análisis, el módulo de estado no pinta nada.
         rule.onNodeWithTag(ANALYSIS_STATUS_TAG).assertDoesNotExist()
 
@@ -459,6 +471,8 @@ class TechniqueAnalysisScreenTest {
         rule.onNodeWithText("Reanalizar").performClick()
         assertEquals(1, calls.reanalyzed)
 
+        // La tendencia del pie vive en «Métricas», junto al resto de métricas del análisis.
+        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_TRENDS_TAG).performScrollTo().performClick()
         assertEquals(listOf("back_squat"), calls.trends)
     }
@@ -479,6 +493,7 @@ class TechniqueAnalysisScreenTest {
     fun see_on_an_observation_chooses_its_rep_and_brings_the_video_back_into_view() {
         val calls = Calls()
         screen(TechniqueSamples.analysisUiState(), calls)
+        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(analysisObservationSeeTag(0)).performScrollTo().performClick()
         rule.waitForIdle()
         // La 1.ª observación es de la repetición 9 (posición 8) y la pantalla sube hasta el reproductor.
@@ -490,9 +505,29 @@ class TechniqueAnalysisScreenTest {
     fun a_bar_of_the_chart_chooses_the_rep_in_the_player() {
         val calls = Calls()
         screen(TechniqueSamples.analysisUiState(), calls)
+        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
         val chart = rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG).performScrollTo()
         chart.performTouchInput { click(Offset(width * 0.35f, height / 2f)) }
         assertEquals(3, player.selectedRep)
+    }
+
+    @Test
+    fun the_review_corrects_a_partial_and_delivers_the_result_without_registering_the_set() {
+        val calls = Calls()
+        screen(TechniqueSamples.analysisUiState(), calls, deliver = true)
+        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
+        // La tercera repetición del ejemplo es parcial: se corrige a completa y el pie lo cuenta.
+        rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG).performTouchInput { click(Offset(width * 0.25f, height / 2f)) }
+        rule.onNodeWithTag(ANALYSIS_REP_TOGGLE_TAG).performScrollTo().performClick()
+        rule.onNodeWithText("9 reps").assertIsDisplayed()
+        rule.onNodeWithText("Original: 8 + 1 reps", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag(TECHNIQUE_ANALYSIS_USE_TAG).performClick()
+
+        val result = calls.used!!
+        assertEquals(9, result.completeReps)
+        assertEquals(0, result.partialReps)
+        assertEquals(1, result.failedReps)
+        assertEquals(mapOf(2 to RepKind.FULL), result.corrections)
     }
 
     @Test
@@ -520,7 +555,7 @@ class TechniqueAnalysisScreenTest {
                     actions = TechniqueAnalysisActions(
                         {}, {}, {}, {}, {}, {}, { _, _ -> }, { dismissed++ }, {},
                     ),
-                    videoSlot = { modifier -> Box(modifier.size(10.dp)) },
+                    videoSlot = { modifier, _ -> Box(modifier.size(10.dp)) },
                     viewportHeight = 800.dp,
                 )
             }
@@ -546,6 +581,7 @@ class TechniqueAnalysisScreenTest {
     fun confirming_the_found_disc_uses_the_chosen_diameter() {
         val calls = Calls()
         screen(suggestedState(), calls, frame = blankFrame())
+        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithText("40").performScrollTo().performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_CONFIRM_TAG).performScrollTo().performClick()
         assertEquals(listOf(400), calls.confirmed)
@@ -559,6 +595,7 @@ class TechniqueAnalysisScreenTest {
         val seed = plate.circle!!
         screen(state, calls, frame = blankFrame())
 
+        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_OPEN_TAG).performScrollTo().performClick()
         rule.onNodeWithTag(PLATE_DIALOG_TAG).assertIsDisplayed()
         rule.onNodeWithText("Marca el disco").assertIsDisplayed()
@@ -585,6 +622,7 @@ class TechniqueAnalysisScreenTest {
     fun an_invalid_custom_diameter_cannot_be_accepted_and_closing_saves_nothing() {
         val calls = Calls()
         screen(suggestedState(), calls, frame = blankFrame())
+        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_OPEN_TAG).performScrollTo().performClick()
         rule.onAllNodesWithText("Otro").onLast().performClick()
         rule.onNode(hasSetTextAction()).performTextReplacement("5")

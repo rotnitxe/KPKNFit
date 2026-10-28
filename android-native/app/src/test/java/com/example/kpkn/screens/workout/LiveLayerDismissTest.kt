@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -258,7 +259,7 @@ class LiveLayerDismissTest {
     @Test
     fun theTagListClosesAndLeavesTheSessionUntouched() {
         open = true
-        assertClosesWithBackAndWithATapOutside("Etiquetas", "Etiquetas") {
+        assertClosesWithBackAndWithATapOutside("Etiquetas del ejercicio", "Etiquetas del ejercicio") {
             WorkoutTagListOverlay(
                 rows = emptyList(),
                 onSelectTag = {},
@@ -296,7 +297,9 @@ class LiveLayerDismissTest {
         show { if (open) SummarySheet(onNotesDraft = { kept = it }) }
 
         rule.waitForIdle()
-        // La nota rápida pertenece a la sección Notas y conserva el borrador.
+        // La nota rápida pertenece a la pestaña Anotaciones y conserva el borrador.
+        rule.onNodeWithText("Anotaciones").performClick()
+        rule.waitForIdle()
         rule.onNodeWithTag("finish-notes", useUnmergedTree = true).performTextReplacement("Me sentí fuerte")
         pressBack()
 
@@ -392,13 +395,14 @@ class LiveLayerDismissTest {
         rule.setContent {
             KPKNTheme {
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
-                    LiveSessionLine(exercises, null, null, {}, {}, {}, {}, {}, recordVisible = false, recordEnabled = false)
+                    // Refinamiento 02: el roadmap ya no lleva carrusel; el orden de la sesión se ve en la ruta, que abre el resumen.
+                    LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, exercises = exercises)
                 }
             }
         }
         rule.waitForIdle()
-        val lefts = names.map { name -> rule.onNodeWithContentDescription("Ir a $name").fetchSemanticsNode().boundsInRoot.left }
-        assertEquals("de izquierda a derecha, como la lista", lefts.sorted(), lefts)
+        val tops = names.map { name -> rule.onNodeWithText(name, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.top }
+        assertEquals("de arriba abajo, en el orden de la sesión", tops.sorted(), tops)
     }
 
     // ── Hojas de estructura de la sesión, con la bandera de su estado ──────────────────────────────────────────────────────────
@@ -606,7 +610,7 @@ class LiveLayerDismissTest {
         rule.onNodeWithText("Ejercicio C (Grupo 2 → Grupo 1)", substring = true).assertExists()
         assertEquals("hasta confirmar no se aplica nada", null, applied)
 
-        rule.onNodeWithText("Guardar de todas formas").performClick()
+        rule.onNodeWithText("Guardar de todas formas").performScrollTo().performClick()
         rule.waitForIdle()
         assertEquals(listOf("c", "a", "b", "d"), applied)
         assertEquals(true, appliedGlobally)

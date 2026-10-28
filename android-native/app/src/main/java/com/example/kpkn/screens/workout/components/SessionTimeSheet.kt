@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -38,12 +40,10 @@ internal fun SessionTimeSheet(
     ultraFastApplied: Boolean, ultraFastSavedSeconds: Int,
     onUltraFastPreview: (() -> Unit)?, onRevertUltraFast: (() -> Unit)?, onDismiss: () -> Unit,
 ) {
-    HeaderSheet(onDismiss) { close ->
-        HeaderSheetFrame("Tiempo de sesión", footer = { HeaderSheetAction("Listo", close, Modifier.fillMaxWidth(), primary = true) }) {
-            SessionTimeSheetContent(elapsedSeconds, startTimeMs, targetMinutes, accent, completedWorkingSets, totalWorkingSets,
-                selectedMinutes, pendingDescription, onProposeMinutes, onAssignTime, onClear, onApplyPending,
-                alertMode, onAlertMode, ultraFastApplied, ultraFastSavedSeconds, onUltraFastPreview, onRevertUltraFast)
-        }
+    LiveSheet(title = "Tiempo de sesión", onDismiss = onDismiss, tag = "session-time-sheet") {
+        SessionTimeSheetContent(elapsedSeconds, startTimeMs, targetMinutes, accent, completedWorkingSets, totalWorkingSets,
+            selectedMinutes, pendingDescription, onProposeMinutes, onAssignTime, onClear, onApplyPending,
+            alertMode, onAlertMode, ultraFastApplied, ultraFastSavedSeconds, onUltraFastPreview, onRevertUltraFast)
     }
 }
 
@@ -59,58 +59,43 @@ internal fun SessionTimeSheetContent(
     ultraFastApplied: Boolean, ultraFastSavedSeconds: Int,
     onUltraFastPreview: (() -> Unit)?, onRevertUltraFast: (() -> Unit)?,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (ultraFastApplied) {
-            Text("Ultrarrápido activo", style = KpknType.bodyStrong, color = WizardColors.text)
-            onRevertUltraFast?.let { HeaderSheetAction("Deshacer recorte", it, Modifier.fillMaxWidth()) }
-        } else {
-            onUltraFastPreview?.let { HeaderSheetAction("Acortar sesión", it, Modifier.fillMaxWidth().testTag("session-time-ultra"), primary = true) }
+    // Prototipo 02 (`time`): el tiempo grande en Syne, el objetivo y acortar lo pendiente; la app conserva su proyección de ritmo,
+    // los objetivos rápidos, aplicar solo hoy o siempre y los avisos.
+    Column(Modifier.fillMaxWidth()) {
+        Text(KpknSetFormat.rest(elapsedSeconds), Modifier.fillMaxWidth().padding(vertical = 18.dp),
+            style = KpknType.display.copy(fontSize = 52.sp, lineHeight = 58.sp, fontFeatureSettings = "'tnum' 1"),
+            color = WizardColors.text, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        LiveSheetSubtitle(targetMinutes?.let { "Tiempo transcurrido · objetivo $it min" } ?: "Tiempo transcurrido de la sesión")
+        projectSessionPace(elapsedSeconds.toLong(), completedWorkingSets, totalWorkingSets, targetMinutes)?.let {
+            Box(Modifier.padding(bottom = 6.dp)) { PaceProjectionLines(it, startTimeMs) }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Box(Modifier.size(if (androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.2f) 118.dp else 132.dp), contentAlignment = Alignment.Center) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val pad = 6.dp.toPx()
-                    val arc = Size(size.width - 2 * pad, size.height - 2 * pad)
-                    val stroke = Stroke(6.dp.toPx(), cap = StrokeCap.Round)
-                    drawArc(WizardColors.textFaint.copy(alpha = .2f), -90f, 360f, false, Offset(pad, pad), arc, style = stroke)
-                    val fraction = targetMinutes?.takeIf { it > 0 }?.let { (elapsedSeconds / (it * 60f)).coerceIn(0f, 1f) } ?: 0f
-                    if (fraction > 0f) drawArc(accent, -90f, 360f * fraction, false, Offset(pad, pad), arc, style = stroke)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(KpknSetFormat.rest(elapsedSeconds), style = KpknType.metricM, color = accent)
-                    Text(targetMinutes?.let { "de $it min" } ?: "Sin objetivo", style = KpknType.caption, color = WizardColors.textMuted)
-                }
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("En marcha", style = KpknType.caption, color = WizardColors.textMuted)
-                projectSessionPace(elapsedSeconds.toLong(), completedWorkingSets, totalWorkingSets, targetMinutes)?.let { PaceProjectionLines(it, startTimeMs) }
-            }
-        }
-        Text("DURACIÓN OBJETIVO", style = KpknType.eyebrow, color = WizardColors.textMuted)
+        LiveSheetSectionLabel("Objetivo")
         val goals = listOf(30, 45, 60, 90)
-        LiveCompactSegments(goals.map { "$it min" }, goals.indexOf(selectedMinutes), { onProposeMinutes(goals[it]) })
-        HeaderSheetAction("Asignar tiempo", onAssignTime, Modifier.fillMaxWidth())
+        LiveSheetChoiceRow(goals.map { it to "$it min" } + listOf(-1 to "Otro…"), selected = { it == selectedMinutes },
+            onSelect = { if (it < 0) onAssignTime() else onProposeMinutes(it) }, tagPrefix = "session-time-goal")
         if (targetMinutes != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(-5, 5, 15).forEach { delta ->
-                    HeaderSheetAction("${if (delta > 0) "+" else "−"}${kotlin.math.abs(delta)} min",
-                        { onProposeMinutes(((selectedMinutes ?: targetMinutes) + delta).coerceAtLeast(5)) }, Modifier.weight(1f))
-                }
-            }
-            HeaderSheetAction("Quitar", onClear, Modifier.fillMaxWidth())
+            LiveSheetChoiceRow(listOf(-5, 5, 15).map { it to "${if (it > 0) "+" else "−"}${kotlin.math.abs(it)} min" }, selected = { false },
+                onSelect = { delta -> onProposeMinutes(((selectedMinutes ?: targetMinutes) + delta).coerceAtLeast(5)) }, tagPrefix = "session-time-delta")
+            LiveSheetTextAction("Quitar objetivo", onClear, wide = false)
         }
         if (pendingDescription != null) {
-            Text(pendingDescription, style = KpknType.caption, color = WizardColors.text)
+            LiveSheetInlineNote(pendingDescription)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeaderSheetAction("Solo esta vez", { onApplyPending(false) }, Modifier.weight(1f))
-                HeaderSheetAction("Permanente", { onApplyPending(true) }, Modifier.weight(1f), primary = true)
+                LiveSheetSecondary("Solo esta vez", { onApplyPending(false) }, Modifier.weight(1f))
+                LiveSheetPrimary("Siempre", { onApplyPending(true) }, Modifier.weight(1f))
             }
         }
-        Text("AVISOS", style = KpknType.eyebrow, color = WizardColors.textMuted)
+        LiveSheetSectionLabel("Avisos")
         val modes = listOf(PacingAlertMode.OFF, PacingAlertMode.FINAL, PacingAlertMode.SOFT, PacingAlertMode.STRICT)
-        LiveCompactSegments(listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio"), modes.indexOf(alertMode),
-            { onAlertMode(modes[it]) })
-
+        LiveSheetChoiceRow(modes.zip(listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio")), selected = { it == alertMode },
+            onSelect = onAlertMode, tagPrefix = "session-time-alert")
+        if (ultraFastApplied) {
+            onRevertUltraFast?.let { LiveSheetMenuRow("Deshacer el recorte de la sesión", it, icon = KpknLineIcons.Repeat,
+                small = if (ultraFastSavedSeconds > 0) "−${ultraFastSavedSeconds / 60} min" else null) }
+        } else {
+            onUltraFastPreview?.let { LiveSheetMenuRow("Revisar cómo acortar lo pendiente", it, icon = KpknLineIcons.Sliders,
+                modifier = Modifier.testTag("session-time-ultra")) }
+        }
     }
 }
 

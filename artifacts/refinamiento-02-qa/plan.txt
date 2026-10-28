@@ -1,0 +1,173 @@
+@C:/Users/valen/Desktop/KPKN-sesion-iteracion-02 Aplica este plan # KPKN · Sesión en vivo · Refinamiento 02
+
+**26 de octubre de 2026. Tarjetas y Lista aprobadas como direcciones. Foco descartada.**
+Esta entrega refina los prototipos y el plan. No implementa cambios en Android. Los nuevos detalles se presentan para revisión; aprobar las dos vistas no equivale a aprobar automáticamente cada decisión de esta iteración.
+
+## Artefactos que respaldan el plan
+
+- [Comparar Tarjetas y Lista](prototipos.html?view=compare).
+- [Tarjetas](prototipos.html?view=cards&scene=strength).
+- [Lista con registro por serie](prototipos.html?view=list&scene=strength).
+- [Galería de esta iteración](GALERIA.html).
+- [Descanso en tarjeta](prototipos.html?view=cards&scene=rest-card) / [pantalla completa](prototipos.html?view=cards&scene=rest).
+- [Feedback durante el descanso](prototipos.html?view=cards&scene=rest-feedback).
+- [Superseries](prototipos.html?view=list&scene=superset).
+- [Movilidad compacta](prototipos.html?view=list&scene=mobility) / [aproximaciones](prototipos.html?view=list&scene=warmup).
+- [Análisis detallado](prototipos.html?view=cards&scene=video-detail).
+- [Encuadre y voz](prototipos.html?view=cards&scene=framing).
+- [Selector de voz](prototipos.html?view=cards&scene=voice-picker) / [conversación y correcciones](prototipos.html?view=cards&scene=voice-conversation).
+
+El selector **Estado** ofrece 62 situaciones. Las dos vistas comparten el mismo borrador. Cambiar de escenario o recargar reinicia los datos de demostración. El HTML es autocontenido; no necesita servidor ni internet para revisar las interacciones. La síntesis de voz del navegador puede depender de las voces instaladas y de su configuración.
+
+## Contratos de diseño
+
+| Elemento | Regla de esta iteración | Evidencia revisable |
+|---|---|---|
+| Tarjetas | Mismo ancho y alto entre todos los estados de un tamaño de pantalla. Sin scroll interno, sin campos ocultos detrás del pie. | Registro, técnicas, movilidad, aproximaciones, visual, cardio, calibración, error, descanso y feedback. |
+| Densidad | Lo esencial permanece visible. Notas, configuración y detalle largo se abren fuera del marco. Las aproximaciones adicionales se paginan dentro del mismo marco. | Avanzado muestra un tramo cada vez; una hoja presenta la cadena completa. |
+| Header | Cápsula gris translúcida, blur real, reflejo de borde y sombra. Contexto del ejercicio separado. | Lista desplazándose por debajo del header. |
+| Roadmap | Gris glass y flotante, con acción y recorrido de sesión. Conservado en Tarjetas. | Contraste y lectura con contenido detrás, sin tapar los controles de la tarjeta. |
+| Lista | Una fila por serie y un acordeón activo. Registro accesible desde esa serie. | Sin roadmap por defecto en este refinamiento; el inspector permite compararlo con la variante que lo conserva. |
+| Identidad | Negro, carbón, crema y grises; Syne e Inter reales de KPKN; detalles de color contenidos. | Sin textos amarillos ni apariencia por defecto de Material/Compose. |
+| Accesibilidad | No confiar solamente en color. Áreas táctiles nativas, foco, etiquetas y movimiento reducido deben verificarse al implementar. | El prototipo permite 100 % y 130 % de texto; esto no sustituye QA nativo. |
+
+El marco se adapta al tamaño disponible de la pantalla, **no al contenido ni al estado**. En el artefacto mide 312 × 394 en 360 × 740; 345 × 470 en 393 × 852; y aproximadamente 363 × 488 en 412 × 1007. Es un contrato por viewport, no la obligación de usar una medida física idéntica en teléfonos diferentes. Con teclado, las operaciones extensas pertenecen a una superficie de edición externa; el marco de la tarjeta no se expande ni incorpora scroll.
+
+## Descanso: dos presentaciones del mismo estado
+
+**Pantalla completa y tarjeta estándar.** Minimizar devuelve al marco de sesión. Expandir conserva tiempo restante, pausa, sugerencia y borrador de feedback. No se propone una isla como tercera presentación del descanso.
+
+El anillo tiene un borde iluminado que progresa, un punto de luz y una corona tenue, con efecto de eclipse. El tiempo sigue siendo lo principal; el efecto admite movimiento reducido. Los controles de pausa y ±15 segundos son visibles. Al terminar aparece tiempo extra y la posibilidad de continuar.
+
+La sugerencia presenta tiempo planificado, sugerido y transcurrido. Aplicarla conserva el tiempo ya consumido. La duración del ejemplo es sintética y no se presenta como una medición de recuperación física.
+
+**Feedback del ejercicio terminado.** Comparte el reloj con el descanso y puede aparecer en ambos formatos: calidad técnica 1–10, molestias, y seguimiento de una molestia previa cuando exista. La selección de zonas se abre fuera de la tarjeta. Guardar o dejar para después son acciones explícitas. Si acaba el tiempo mientras se responde, el formulario permanece; el borrador no desaparece.
+
+**Tres minijuegos existentes, refinados y jugables:**
+
+| Juego | Propuesta de interacción |
+|---|---|
+| Salta las mancuernas | Saltos, mancuernas y huecos, suplementos de salto, tres vidas y racha. El escenario se desplaza y responde a los aciertos. |
+| Entre las pesas | Impulsos para cruzar huecos; recompensa por el centro del paso, tres vidas y racha. |
+| Escuadrón retro | Nave arrastrable o con flechas, disparo automático, oleadas y esquiva. |
+
+El juego tiene su propio estado. Reiniciar una partida no reinicia el descanso. Pausar el descanso congela el juego; el reloj conserva prioridad al llegar a cero. Estas mecánicas son exploración de diseño y no sustituyen automáticamente los motores nativos.
+
+## Lista, preparación y superseries
+
+Movilidad se presenta en tres filas breves: orden, nombre y completado. El movimiento y las articulaciones se consultan fuera del listado principal. Aproximaciones utiliza filas con A1/A2, porcentaje, carga × reps y completado. Conserva un encabezado pequeño de preparación y su avance; no repite una tarjeta grande por aproximación.
+
+En esta propuesta el roadmap inferior se retira de Lista porque el registro ya pertenece a cada serie. El botón pequeño de la fila abre o valida el registro; el acordeón muestra la acción completa. El esfuerzo planificado nunca se transforma automáticamente en esfuerzo realizado. El inspector permite probar la variante con roadmap antes de decidir.
+
+Las superseries se agrupan por **ronda → A1/A2**, dentro de un contenedor continuo. No son dos ejercicios desconectados. El prototipo alterna entre ambos y diferencia el descanso entre ejercicios del descanso después de la ronda. Configuración propia: número de rondas y ambos tiempos. En Android deben conservarse los identificadores reales del grupo y de cada ejecución; añadir, omitir o reemplazar un miembro no puede reconstruir identidades ni alterar lo registrado.
+
+## Etiquetas, configuración, reemplazos y avisos
+
+**Etiquetas por ejercicio.** Cada contexto muestra su referencia previa y permite editar nombre, equipo/marca, carga base y notas de setup. Cambiar de contexto presenta qué se renovará del borrador pendiente; los registros ya hechos conservan su contexto. Reiniciar una referencia tiene confirmación específica. No es un sistema de etiquetas globales nuevo.
+
+**Configurar serie.** Objetivo, carga y detalle se editan por pestañas. El alcance distingue esta serie de las pendientes. Guardar objetivos no cambia los valores realizados. Salir con cambios requiere decidir si conservar la edición o descartarla.
+
+**Reemplazar.** Primero se elige, después se revisa: se conserva el plan permitido —cantidad de series, objetivos, intensidad, propósito y descanso—, y se busca el contexto del nuevo ejercicio. Cargas, historial/PR, etiquetas, técnicas, lados y ROM no se heredan a ciegas. Lo ya registrado permanece en el ejercicio original.
+
+**Avisos.** Falta de esfuerzo junto al campo; molestia histórica con contexto y acceso a opciones; error de guardado con reintento y borrador conservado; sesión en curso con reanudar y revisión del descarte. Se evita convertir información orientativa en una alarma. El artefacto simula estas decisiones y no produce cambios persistentes.
+
+## Modo visual y analizador
+
+La captura es la entrada a una vista de revisión completa:
+
+1. Reproductor persistente y línea de tiempo que permiten buscar un instante y una repetición.
+2. **Trayectoria:** capas de barra y articulaciones, estado de la repetición y ROM estimado.
+3. **Métricas:** completas + parciales, TUT, tempo, ROM, pérdida de velocidad y velocidad media cuando sea válida.
+4. **Repeticiones:** comparación por velocidad relativa, ROM o tiempo, selección individual y corrección completa/parcial.
+5. Resultado revisado que se incorpora al borrador; todavía requiere registrar la serie.
+
+Las pestañas reemplazan una columna interminable. El jugador queda visible mientras se consulta cada panel. Las unidades y la confianza proceden del resultado real: un dato ausente aparece como «—»; una estimación lleva «≈»; no se muestran m/s sin escala física validada. Cualquier corrección conserva la observación original y su revisión.
+
+**Límite del artefacto:** reproductor y trayectorias son una figura ilustrada y datos sintéticos. Permiten evaluar distribución e interacción; no demuestran seguimiento de vídeo, precisión biomecánica ni calidad de un análisis real.
+
+## Encuadre y control de grabación
+
+La cámara presenta un marco con margen, vista requerida y **una instrucción prioritaria cada vez**. La guía se adapta al perfil del ejercicio, usando FramingSpec; no impone vista lateral para todos los movimientos. El ejemplo es una sentadilla lateral y dispone de una guía breve de colocación.
+
+Estados a implementar desde los veredictos existentes: persona ausente, más de una persona, demasiado cerca, pies/cabeza fuera, atleta pequeño, vista incorrecta, cara oculta cuando sea necesaria, móvil inclinado y disco ausente cuando el perfil lo requiera. Debe existir también un estado «comprobando» y otro «no se pudo comprobar», sin inventar una aprobación.
+
+**Dos controles independientes:**
+
+- **Modo Voz:** habilita comandos de captura. Propuesta principal: «Iniciar vídeo» / «Detener vídeo», con alias acordados como «Comenzar grabación» y «Detener grabación». La orden se reconoce únicamente en el contexto de captura; la orden de finalizar sesión es distinta. Repetir una orden no duplica la captura.
+- **Guía hablada de encuadre:** interruptor propio, subtítulo equivalente y botón para repetir. Funciona con Modo Voz apagado. Da instrucciones concretas, por ejemplo «Aléjate: no se ven los pies» o «Endereza el móvil». «Encuadre listo» confirma visibilidad, no técnica correcta.
+
+Antes de grabar se espera un veredicto estable. Una sola evaluación favorable no basta. La voz guía debe deduplicar mensajes, limitar frecuencia y priorizar problemas para no hablar continuamente. Al grabar no interrumpe una serie por una oscilación del detector; avisa de forma breve cuando corresponda y conserva la captura para revisión.
+
+**Hallazgo técnico relevante:** FramingCheckController actualmente evalúa la vista previa y congela esa evaluación durante la grabación. La guía continua durante captura requiere trabajo adicional y medición de rendimiento; no se declara ya existente. Una política inicial puede guiar antes de grabar y silenciar instrucciones no urgentes mientras se ejecuta la serie. La versión final de esa política queda para revisión.
+
+Los botones con comillas del prototipo **simulan** reconocimiento de comandos. La guía puede usar la síntesis del navegador al pulsarla, pero no se abre el micrófono ni se realiza reconocimiento de voz real.
+
+## Modo Voz: elegir, verificar, conversar y corregir
+
+Se conserva el concepto actual de selector **Música / Manos libres** y su prueba «Listo» antes de activar. La hoja es más compacta. La implementación debe mantener verificación de ruta, permisos, tiempo de espera, liberación del micrófono y transiciones del controlador existentes.
+
+La nueva vista muestra escucha/pausa, frase original, interpretación estructurada, ejercicio/serie vinculados y estado del registro. Se separa «registrada» de «por revisar». Una captura ambigua no se registra como si fuera segura. Editar abre un borrador; cancelar no modifica el original. Confirmar actualiza esa identidad y muestra el cambio anterior, sin crear otra serie.
+
+La conversación debe permitir recuperar errores de reconocimiento, campos pendientes, correcciones, confirmaciones, fallos y reintentos. Al implementar se recomienda mantener identificadores de evento, comando y ejecución, con versión, origen y hora. No se propone guardar audio crudo por defecto.
+
+## Relator: recomendación, pendiente de decisión
+
+Recomiendo **retirar la franja permanente de narración genérica**. Repite contexto y compite con ejercicio, registro y descanso. Su aporte potencial está en explicar decisiones concretas: de dónde sale una carga sugerida, qué implica cambiar una etiqueta o por qué una captura requiere revisión.
+
+El artefacto demuestra esa alternativa mediante asistencia contextual, sugerencias desplegables y conversación de voz. No se recomienda eliminar sus acciones útiles ni los datos que las sustentan. Su desaparición como franja fija es una propuesta para revisar, no una eliminación ya aprobada. No hay mediciones de uso que prueben que una opción gana; la recomendación se basa en jerarquía y coste de atención.
+
+## Readiness y completar sesión
+
+Se respeta el trabajo previo identificado en **b3a057e13**, en post-rings-v3 / .worktrees/post-rings, sobre WorkoutReadinessSheet y RecordedSessionFinishSheet. Su presencia en la rama de implementación debe verificarse nuevamente. Las referencias HTML no son capturas nativas ni una autorización para sustituirlos.
+
+Se conservan estructura, campos y contratos. Cualquier sugerencia de espaciado, jerarquía o continuidad visual se revisará sobre esa versión real. No se mezcla esfuerzo de una serie con esfuerzo opcional de sesión.
+
+## Plan de implementación después de revisar los refinamientos
+
+| Etapa | Trabajo concreto | Evidencia de salida |
+|---|---|---|
+| 0 · Fijar decisiones | Registrar capturas aprobadas, Lista con/sin roadmap, comportamiento inicial de acordeones, relato contextual y política de guía hablada. | Matriz de decisiones; Tarjetas y Lista ya están elegidas, Foco queda fuera. |
+| 1 · Reconciliar base | Revisar rama, WIP y versión efectiva de readiness/cierre. Identificar cambios concurrentes de sesión, técnica y voz. | Base verificable, diferencias preservadas, sin integración automática. |
+| 2 · Estado compartido | Borrador único por ejecución/ejercicio/serie/lado; eventos de edición, registro, corrección y deshacer. Preservar cadenas vacías/decimales, campos opcionales y progreso técnico. | Pruebas focalizadas de identidad, cambio de vista y actualización sin duplicados. |
+| 3 · Tarjetas y glass | Composición fija para todas las variantes; detalle externo; superficies propias KPKN con degradación controlada del blur. | Matriz nativa de tamaños, texto, teclado e insets; ninguna tarjeta requiere scroll interno ni cambia de tamaño. |
+| 4 · Lista y superseries | Filas y acordeones con estado compartido; preparación compacta; rondas A1/A2 y descansos diferenciados. | Registro/corrección, navegación, añadir/omitir, reemplazar y restaurar posición sin perder borradores. |
+| 5 · Descanso y contexto | Dos hosts del mismo temporizador, sugerencias, eclipse, feedback compartido y juegos. Etiquetas, objetivos, reemplazos y avisos. | Expandir/minimizar no reinicia nada; tiempo cero no descarta feedback; reiniciar juego no cambia el reloj. |
+| 6 · Análisis | Conectar reproductor, overlays y resultados reales a pestañas y selección por repetición. Persistir correcciones según contratos existentes. | Vídeos de referencia, unidades/confianza, conteos parciales, ausencias y retorno al borrador. |
+| 7 · Voz y encuadre | Refinar selector; conversación/correcciones; enrutamiento de comandos de vídeo; guía TTS independiente y mensajes priorizados desde FramingSpec. | Pruebas de comandos duplicados/ambiguos, errores, permisos, rutas de audio, guía con voz apagada y ciclo de grabación. |
+| 8 · QA nativo | Pruebas focalizadas, compilación, emulador y dispositivo autorizado; fidelidad contra artefactos. | Informar por separado tests, build, instalación, runtime y aceptación visual. |
+
+### Puntos técnicos de integración a revalidar
+
+- Tarjetas y recorrido: SetExecutionCard, LiveSessionCardFrame, LiveSessionLine, WorkoutSetDraft y WorkoutSetExecutionRef.
+- Descanso: RestExperience, RestLiveCard, RestFeedbackCard, WorkoutRestOverlay y WorkoutPostExerciseFeedbackHost.
+- Juegos: RestArcade y RestGameEngine. Conservar separación entre motor de juego y temporizador de descanso.
+- Contexto: WorkoutTagsContextController, WorkoutReplacementRules, WorkoutEditSeriesDraft y WorkoutStructureSheetsHost.
+- Análisis: TechniqueAnalysisUiState, TechniqueOverlayData y TechniqueOverlay.
+- Captura: TechniqueRecorderStage, FramingCheckController, FramingSpec y FramingEvaluator.
+- Voz: VoiceCaptureModeDialog y controladores de services/workout.
+
+Arquitectura: MVVM, flujo unidireccional, dominio Kotlin puro, IO fuera del hilo principal y StateFlow de sólo lectura. Las vistas emiten eventos; no escriben Room directamente. El rediseño por sí solo no justifica una migración. Si el historial de voz necesita persistencia nueva, primero se define el contrato y su retención; cualquier cambio de esquema sigue las reglas actuales del repositorio y conserva las historias publicadas.
+
+### Voz, grabación y audio: condiciones de implementación
+
+La prueba de voz debe liberar su captura antes de entregar el micrófono al controlador de sesión. Definir un único dueño de la grabación y arbitrar reconocimiento, audio del vídeo, música y TTS. Una frase de la propia guía no puede disparar un comando; la estrategia debe validarse con altavoz, auriculares y Bluetooth. Evitar que silenciar el reconocimiento durante TTS deje al usuario sin poder detener la captura. La interfaz conserva un control manual de detener siempre disponible.
+
+El inicio/parada debe modelarse como estados explícitos: preparado, iniciando, grabando, deteniendo, guardando, error. No mostrar una confirmación antes de que el grabador confirme el cambio. Pausar/desactivar Modo Voz cancela su escucha; no borra la conversación ni modifica la preferencia independiente de guía hablada.
+
+### Criterios de aceptación
+
+- Mismo marco por viewport para todas las tarjetas, sin recorte de información ni desplazamiento interno; no solucionar overflow simplemente ocultándolo.
+- Lista conserva datos y posición al abrir detalles; registrar nunca usa RIR/RPE planificado como realizado.
+- Superserie conserva grupo, orden y ronda, con descanso correcto en cada transición.
+- Descanso y feedback sobreviven al cambio de presentación, navegación y restauración.
+- Etiquetas y reemplazos no reescriben registros históricos ni importan cargas incompatibles.
+- Analizador muestra confianza/unidades reales, permite corregir y no registra automáticamente al cerrar.
+- Captura requiere encuadre válido o un tratamiento explícito del error según la política acordada; órdenes repetidas no crean vídeos duplicados.
+- Guía hablada disponible con Modo Voz apagado; instrucciones y subtítulos coinciden; no se activan comandos a partir de TTS.
+- Permisos denegados, desconexión de auriculares, interrupciones, retorno del fondo y muerte del proceso tienen salidas recuperables.
+- TalkBack, áreas táctiles, texto aumentado, movimiento reducido, contraste y coste del blur comprobados nativamente.
+- Readiness/cierre mantienen campos, semántica y trabajo del agente anterior.
+
+Validación Android futura mediante wrappers del repositorio. En Z Flip, sólo KPKN Dev / com.example.kpkn.dbg, con phone_run y phone.lock, certificado y compatibilidad de datos verificados antes de actualizar. No implica crear variantes, publicar, integrar ni enviar una entrega.
+
+Revisa también la carpeta. Quiero una implementación que respete a raja tabla los prototipos y todas las decisiones. Si tienes una duda de implementación, pregúntamela y no asumas nada, a menos que yo te pida exprésamente que tomes decisiones autónomas por mi. Trabajarás en la rama Master principal, sin worktrees.

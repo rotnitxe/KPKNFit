@@ -163,6 +163,7 @@ internal fun RecordedSessionFinishSheet(
                         lifts = lifts,
                         onPrepareStory = { showStory = true },
                         onAlbum = onAlbum,
+                        calibrationLines = calibrationSummaryLines(calibrationDecisions),
                     )
                     1 -> ProgressTab(
                         name = name,
@@ -252,6 +253,7 @@ private fun SummaryTab(
     lifts: List<FinishLiftProgress>,
     onPrepareStory: () -> Unit,
     onAlbum: () -> Unit,
+    calibrationLines: List<String> = emptyList(),
 ) {
     val tonnage = sessionTonnage(completedExercises)
     val previous = presentation.history.filter { it.sessionName == name }.maxByOrNull { it.date }
@@ -278,6 +280,16 @@ private fun SummaryTab(
         MetricCell("DURACIÓN", "$durationMinutes min", Modifier.weight(1f))
         MetricCell("sRPE", sessionRpe?.let { finishNumber(it) } ?: "—", Modifier.weight(1f))
     }
+
+    // Calibraciones resueltas en la sesión (aplicada, conservada…), una línea por decisión vigente.
+    if (calibrationLines.isNotEmpty()) {
+        SectionRule()
+        Text("CALIBRACIÓN", style = KpknType.eyebrow.copy(fontSize = 12.sp), color = FinishFaint)
+        Spacer(Modifier.height(6.dp))
+        calibrationLines.forEach { line ->
+            Text(line, Modifier.padding(vertical = 3.dp).testTag("finish-calibration-line"),
+                style = KpknType.body.copy(fontSize = 14.sp), color = SheetCream)
+        }
 
     if (total.isNotEmpty()) {
         SectionRule()
@@ -325,6 +337,8 @@ private fun SummaryTab(
         }
         Spacer(Modifier.height(6.dp))
         progress.forEach { lift -> LiftRow(lift) }
+    }
+
     }
 
     SectionRule()

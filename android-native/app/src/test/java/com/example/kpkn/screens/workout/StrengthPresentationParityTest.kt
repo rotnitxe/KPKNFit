@@ -40,7 +40,12 @@ class StrengthPresentationParityTest {
 
     @Test
     fun `el cierre y la tabla RM usan el esfuerzo historico`() {
-        assertEquals(120.0, buildFinishLiftProgress(listOf(completed), listOf(log)).single().previous!!.estimated1Rm, 0.0)
+        // El cierre solo compara con series del mismo contexto (etiqueta y modo de carga) y con registro V3.
+        val comparable = set.copy(contextKey = "press|externa", recordedPayloadV3 = com.example.kpkn.data.models.RecordedSetPayload(
+            exerciseId = "press", actualIntensityMode = com.example.kpkn.data.models.IntensityMode.RIR, actualIntensityValue = 2.0))
+        val comparableExercise = completed.copy(sets = listOf(comparable))
+        assertEquals(120.0, buildFinishLiftProgress(listOf(comparableExercise), listOf(log.copy(completedExercises = listOf(comparableExercise))))
+            .single().previous!!.estimated1Rm, 0.0)
         assertEquals(120.0, buildExerciseRmReference(emptyList(), listOf(set))!!.estimated1RM, 0.0)
         assertEquals(120.0, sessionBestPreviousE1rm(WorkoutUiState(completedSets = mapOf("press_0" to set)), "press", 1, null, false), 0.0)
     }

@@ -12,13 +12,33 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisualHeightPx
 import com.example.kpkn.screens.workout.components.publishLivePagerWorkingSetVisualHeight
 
-/** Original G2 outer frame, narrowed by the user's later 24 dp gutter amendment. */
-internal const val LiveCardWidthToHeight = 312f / 425f
+/** Fixed frame per approved viewport: 312×394, 345×470 and 364×488. */
+internal fun liveSessionCardWidthDp(screenWidthDp: Int): Dp =
+    (screenWidthDp - 48).coerceIn(240, 364).dp
+
+/**
+ * The height comes from the viewport, never from the content: 360×740 → 394 dp,
+ * 393×852 → 470 dp, 412×1007 → 488 dp. Keeping it independent of the card width
+ * prevents the frame from changing when text scaling or the keyboard alter the
+ * available space.
+ */
+internal fun liveSessionCardHeightDp(screenWidthDp: Int): Dp = when {
+    screenWidthDp <= 380 -> 394.dp
+    screenWidthDp <= 405 -> 470.dp
+    else -> 488.dp
+}
+
 private val LocalLiveSessionCardHeight = staticCompositionLocalOf { 0.dp }
 internal val LocalLiveSessionCompactLayout = staticCompositionLocalOf { false }
 
-/** The narrator takes the remainder; the card and the integrated line keep their approved dimensions. */
-internal fun liveSessionRelatorBandHeight(viewportHeightDp: Float, headerHeightDp: Float, cardHeightDp: Float, bottomReservedDp: Float): Float =
+/** @deprecated La franja permanente del Relator se retiró (Refinamiento 02). Se conserva para el andamiaje de pruebas. */
+@Deprecated("La franja del Relator se retiró en Refinamiento 02")
+/**
+ * Altura de la banda del relator en vivo para un viewport dado. Compartido por el
+ * layout de producción y los contratos visuales (CAL-3/QA) de `sharedTest`, cuyo
+ * compilación no ve internals de main; por eso es público además de puro.
+ */
+fun liveSessionRelatorBandHeight(viewportHeightDp: Float, headerHeightDp: Float, cardHeightDp: Float, bottomReservedDp: Float): Float =
     (viewportHeightDp - headerHeightDp - cardHeightDp - bottomReservedDp - 12f).coerceAtLeast(0f)
 
 @Composable
@@ -26,9 +46,8 @@ internal fun liveSessionCardHeight(): Dp {
     val supplied = LocalLiveSessionCardHeight.current
     if (supplied > 0.dp) return supplied
     val configuration = LocalConfiguration.current
-    // Width survives IME resize; keyboard and narrator never change the frame's proportions.
     return remember(configuration.screenWidthDp) {
-        (configuration.screenWidthDp - 48).coerceIn(240, 358).dp / LiveCardWidthToHeight
+        liveSessionCardHeightDp(configuration.screenWidthDp)
     }
 }
 
@@ -36,15 +55,15 @@ internal fun liveSessionCardHeight(): Dp {
 @Composable
 internal fun LiveSessionCardFrame(content: @Composable BoxScope.() -> Unit) {
     val measuredHeight = LocalLivePagerWorkingSetVisualHeightPx.current
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val frameWidth = liveSessionCardWidthDp(screenWidthDp)
+    val frameHeight = liveSessionCardHeightDp(screenWidthDp)
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-        BoxWithConstraints(Modifier.widthIn(max = 358.dp).fillMaxWidth()) {
-            val frameHeight = maxWidth / LiveCardWidthToHeight
-            Box(
-                Modifier.fillMaxWidth().height(frameHeight).testTag("live-card-frame")
-                    .onSizeChanged { publishLivePagerWorkingSetVisualHeight(measuredHeight, it.height) },
-            ) {
-                CompositionLocalProvider(LocalLiveSessionCardHeight provides frameHeight) { content() }
-            }
+        Box(
+            Modifier.width(frameWidth).height(frameHeight).testTag("live-card-frame")
+                .onSizeChanged { publishLivePagerWorkingSetVisualHeight(measuredHeight, it.height) },
+        ) {
+            CompositionLocalProvider(LocalLiveSessionCardHeight provides frameHeight) { content() }
         }
     }
 }

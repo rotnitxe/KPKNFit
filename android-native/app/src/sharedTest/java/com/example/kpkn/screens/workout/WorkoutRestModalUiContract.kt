@@ -93,10 +93,10 @@ abstract class WorkoutRestModalUiContract {
         composeRule.onNodeWithText("de 1:45 · manual").assertIsDisplayed()
         composeRule.onNodeWithText("DESCANSO SUGERIDO").assertExists()
         composeRule.onNodeWithText("Ajustar tiempo").assertExists()
-        composeRule.onNodeWithText("Saltar descanso").assertExists()
+        composeRule.onNodeWithText("Terminar descanso").assertExists()
         composeRule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         composeRule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
-        composeRule.onNodeWithText("Saltar descanso").performClick()
+        composeRule.onNodeWithText("Terminar descanso").performClick()
         composeRule.runOnIdle { assertEquals(1, decreases); assertEquals(1, increases); assertEquals(1, skips) }
     }
 

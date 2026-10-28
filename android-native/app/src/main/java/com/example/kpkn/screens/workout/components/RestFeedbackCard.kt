@@ -63,7 +63,7 @@ internal fun RestFeedbackCard(
     explainDiscomfort: suspend (String) -> DiscomfortInsight?,
     linked: List<LinkedDiscomfort>,
     onSave: () -> Unit,
-    onSkipRest: () -> Unit,
+    onDefer: () -> Unit,
     onExpand: (() -> Unit)?,
     modifier: Modifier = Modifier,
     clockActive: Boolean = true,
@@ -168,7 +168,7 @@ internal fun RestFeedbackCard(
             }
 
             FeedbackActions(
-                onSkipRest = onSkipRest,
+                onDefer = onDefer,
                 onSave = onSave,
                 compact = true,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),

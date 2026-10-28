@@ -6,7 +6,9 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -105,6 +107,8 @@ class LiveFinishCloseVmTest {
     fun anExerciseSkippedBeforeTheSummaryStaysSkippedWhenTheSummaryIsClosed() = runBlocking {
         val vm = open("a", "b", "c", "d")
         vm.skipExercise("b")
+        // La omisión va por el carril único de escritura: se espera a que quede guardada, como hace la persona antes de terminar.
+        withTimeout(10_000) { vm.uiState.first { "b" in it.skippedExerciseIds && it.recordingSetKey == null } }
 
         vm.finishUpToCurrentPoint()
         vm.hideFinish()
@@ -116,7 +120,15 @@ class LiveFinishCloseVmTest {
     @Test
     fun theSummaryOpenedByTheLastSetClosesBackToTheSessionAndItsFinishButtonOpensItAgain() = runBlocking {
         val vm = open("a", "b")
-        for (exerciseId in listOf("a", "b")) for (setIdx in 0 until 2) vm.omitSet(exerciseId, setIdx)
+        for (exerciseId in listOf("a", "b")) for (setIdx in 0 until 2) {
+            val previous = vm.uiState.value.omittedSetKeys
+            vm.omitSet(exerciseId, setIdx)
+            // Las omisiones comparten un único carril de escritura: la siguiente espera a la anterior.
+            withTimeout(10_000) {
+                vm.uiState.first { it.omittedSetKeys.size > previous.size && it.recordingSetKey == null }
+            }
+        }
+        withTimeout(10_000) { vm.uiState.first { it.showFinishSheet } }
         assertTrue("al no quedar series, el resumen se abre solo", vm.uiState.value.showFinishSheet)
 
         vm.hideFinish()
@@ -167,7 +179,10 @@ class LiveFinishCloseVmTest {
     fun skippingEveryExerciseAndClosingTheSummaryDoesNotLeaveAnEmptySession() = runBlocking {
         val vm = open("a", "b")
         vm.skipExercise("a")
+        withTimeout(10_000) { vm.uiState.first { "a" in it.skippedExerciseIds } }
         vm.skipExercise("b")
+        withTimeout(10_000) { vm.uiState.first { "b" in it.skippedExerciseIds } }
+        withTimeout(10_000) { vm.uiState.first { it.showFinishSheet } }
         assertTrue("sin ejercicios por hacer, el resumen se abre solo", vm.uiState.value.showFinishSheet)
 
         vm.hideFinish()

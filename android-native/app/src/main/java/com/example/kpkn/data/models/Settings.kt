@@ -65,6 +65,11 @@ data class Settings(
     val voiceTutorialVersionSeen: Int = 0,
     /** Modo de captura de voz: auriculares (manos libres) vs mic del teléfono (música intacta). */
     val voiceCaptureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
+    /**
+     * Vista de registro de la sesión en vivo (Refinamiento 02, decisión 6): «CARDS» (Tarjetas, la inicial) o «LIST» (Lista). Es una
+     * preferencia: la última elegida se usa en las sesiones siguientes. Va en el JSON de ajustes, sin migración.
+     */
+    val liveSessionView: String = "CARDS",
     /** Falso hasta que el usuario elige modo por primera vez (diálogo obligatorio). */
     val hasChosenVoiceCaptureMode: Boolean = false,
     /** Intención de pre-activar voz al entrar a la próxima sesión (tarjeta de hoy). */

@@ -12,6 +12,8 @@ internal data class CompletedSetPatch(
     val edit: VoiceSetEditPatch = VoiceSetEditPatch(),
     val partialReps: Int? = null,
     val reachedFailure: Boolean? = null,
+    /** La corrección de historial de voz edita segundos/distancia; el registro manual sólo reps. */
+    val allowNonRepMetric: Boolean = false,
 )
 
 /** Valor lógico usado por el registro y la deuda de repeticiones. */
@@ -30,14 +32,15 @@ internal fun applyCompletedSetPatch(current: CompletedSet, patch: CompletedSetPa
         else -> UnitModeV2.REPS
     }
     val canEditReps = unit == UnitModeV2.REPS
-    val requestedFull = patch.edit.metricValue?.takeIf { canEditReps && it >= 0 }
+    val requestedMetric = patch.edit.metricValue?.takeIf { (canEditReps || patch.allowNonRepMetric) && it >= 0 }
+    val requestedFull = requestedMetric.takeIf { canEditReps }
     val editPartials = canEditReps && patch.partialReps != null
     val hasRepEdit = requestedFull != null || editPartials
     val full = requestedFull ?: current.reps
     val partials = (if (editPartials) patch.partialReps else current.partialReps)?.coerceAtLeast(0)
     // Cero completas con parciales es válido; una corrección vacía conserva el registro original.
     if (hasRepEdit && full <= 0 && (partials ?: 0) == 0) return current
-    val edit = patch.edit.copy(metricValue = requestedFull?.takeIf { it > 0 })
+    val edit = patch.edit.copy(metricValue = requestedMetric?.takeIf { it > 0 })
     var next = applyVoiceEditPatch(current, edit)
     if (hasRepEdit) {
         val isPartial = (partials ?: 0) > 0

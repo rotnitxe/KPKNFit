@@ -57,6 +57,8 @@ internal fun WorkoutSessionOverlaysHost(
     showExitDialog: Boolean,
     onShowExitDialogChange: (Boolean) -> Unit,
     onBack: () -> Unit,
+    /** «Usar» del historial: lleva esa carga al borrador de la serie activa. */
+    onUseHistoryWeight: (Double) -> Unit = {},
 ) {
     // Las molestias que quedaron presentes la sesión anterior, con el día en que se anotaron («Rodilla anterior · lunes»).
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
@@ -71,6 +73,7 @@ internal fun WorkoutSessionOverlaysHost(
             weekLabel = null,
             initial = uiState.todayWellbeing,
             previousDiscomforts = uiState.previousSessionDiscomforts,
+            hazeState = readinessHaze,
             onDismiss = onReadinessDismissed,
             saving = readinessSaving,
             error = readinessError,
@@ -136,100 +139,42 @@ internal fun WorkoutSessionOverlaysHost(
                 viewModel.getExerciseHistory(historyDbId, preferredTag = historyTag)
             }
         }
-        WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }, hazeState = bottomHazeState) {
-            if (historyTag != null) {
-                // Chip informativo: muestra qué etiqueta sale primero; tocarlo no hace nada.
-                KpknChip(
-                    text = "Mostrando primero: $historyTag",
-                    selected = true,
-                    onClick = {},
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-            }
-            ExerciseHistoryContent(history = history, activeTag = historyTag)
-        }
+        // Prototipo 02 (`history`): hoja «Historial del ejercicio» con la gráfica, una línea por sesión y «Usar».
+        LiveExerciseHistorySheet(
+            exerciseName = historyExercise?.let(::displayWorkoutExerciseName) ?: "Ejercicio",
+            activeTag = historyTag,
+            history = history,
+            onUseWeight = onUseHistoryWeight,
+            onDismiss = { viewModel.hideHistorySheet() },
+        )
     }
 
     if (showExitDialog) {
-        KpknGlassDialog(
-            onDismissRequest = { onShowExitDialogChange(false) },
-            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+        // Refinamiento 02: la salida es una hoja del prototipo. Seguir entrenando es la acción principal; terminar, pausar y
+        // abandonar son filas, la última en rojo.
+        com.example.kpkn.screens.workout.components.LiveSheet(
+            title = "Salir de la sesión",
+            onDismiss = { onShowExitDialogChange(false) },
+            tag = "live-exit-sheet",
+            footer = { close -> com.example.kpkn.screens.workout.components.LiveSheetPrimary("Continuar entrenando", close) },
         ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Text(
-                        "¿Qué deseas hacer?",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        "Puedes pausar y continuar más tarde, terminar hasta acá, o abandonar sin guardar.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Button(
-                            onClick = { onShowExitDialogChange(false) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            ),
-                        ) {
-                            Text("Continuar entrenando")
-                        }
-                        Button(
-                            onClick = {
-                                viewModel.finishUpToCurrentPoint()
-                                onShowExitDialogChange(false)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            ),
-                        ) {
-                            Text("Terminar hasta acá")
-                        }
-                        Button(
-                            onClick = {
-                                val exitRequestId = RepairBenchmarkTrace.workoutExitRequested("pause_exit")
-                                viewModel.stopRestTimer()
-                                onBack()
-                                RepairBenchmarkTrace.workoutExitNavigationCommitted(exitRequestId)
-                                onShowExitDialogChange(false)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ),
-                        ) {
-                            Text("Pausar y salir")
-                        }
-                        Button(
-                            onClick = {
-                                onShowExitDialogChange(false)
-                                viewModel.cancelWorkout()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                            ),
-                        ) {
-                            Text("Abandonar sin guardar")
-                        }
-                    }
-                }
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                "Puedes pausar y continuar más tarde, terminar hasta acá o abandonar sin guardar.")
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Terminar hasta acá", {
+                viewModel.finishUpToCurrentPoint()
+                onShowExitDialogChange(false)
+            }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Flag, small = "Guarda lo registrado")
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Pausar y salir", {
+                val exitRequestId = RepairBenchmarkTrace.workoutExitRequested("pause_exit")
+                viewModel.stopRestTimer()
+                onBack()
+                RepairBenchmarkTrace.workoutExitNavigationCommitted(exitRequestId)
+                onShowExitDialogChange(false)
+            }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Pause, small = "Sigue en curso")
+            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Abandonar sin guardar", {
+                onShowExitDialogChange(false)
+                viewModel.cancelWorkout()
+            }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Trash, danger = true)
         }
     }
 
@@ -251,37 +196,14 @@ internal fun WorkoutSessionOverlaysHost(
 
     if (showPersistentDiscomfortAlert && currentExerciseForAlert != null) {
         val discomfortLabel = persistentHit?.label.orEmpty()
-        KpknGlassDialog(
-            onDismissRequest = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
-            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    "Aviso preventivo",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    "En este ejercicio reportaste $discomfortLabel. " +
-                        "Preocúpate por hacer una correcta técnica y manejar cargas adecuadas para ti. " +
-                        "Si la molestia persiste en el tiempo, te recomendamos que cambies de ejercicio y " +
-                        "que te asesores con un kinesiólogo.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-                Button(
-                    onClick = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Entendido, continuar")
-                }
-            }
-        }
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "Molestia reportada antes",
+            text = "En este ejercicio reportaste $discomfortLabel. Cuida la técnica y usa cargas adecuadas para ti. " +
+                "Si la molestia persiste, cambia de ejercicio y consulta con un kinesiólogo.",
+            primaryLabel = "Entendido",
+            onPrimary = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+            onDismiss = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
+        )
     }
 }

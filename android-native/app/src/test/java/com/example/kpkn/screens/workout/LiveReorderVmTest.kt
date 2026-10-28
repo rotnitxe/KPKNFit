@@ -83,6 +83,7 @@ class LiveReorderVmTest {
         val vm = fx.open()
 
         vm.applyReorderAndPromptPersistence(listOf("c", "a", "b", "d"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         val expected = listOf("c", "a", "b", "d")
         assertEquals("la sesión (lo que pinta el carrusel)", expected, vm.uiState.value.liveOrder())
@@ -102,6 +103,7 @@ class LiveReorderVmTest {
         val vm = fx.open()
 
         vm.applyReorderAndPromptPersistence(listOf("b", "a", "c", "d"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("b", "a", "c", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("b", "a"), vm.uiState.value.session!!.parts[0].exercises.map { it.id })
@@ -115,6 +117,7 @@ class LiveReorderVmTest {
 
         // Lo que hace el cajón con «Guardar» cuando nada se ve sobrepuesto entre dos del mismo grupo.
         vm.applyReorderAndPromptPersistence(listOf("c", "a", "b", "d"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("c", "a", "b", "d"), vm.uiState.value.liveOrder())
         assertEquals(listOf("c", "a", "b", "d"), vm.stepExerciseOrder())
@@ -128,6 +131,7 @@ class LiveReorderVmTest {
         val vm = fx.open()
 
         vm.applyReorderAndPromptPersistence(listOf("b", "c", "d", "a"), partMapOf(vm), isGlobal = true)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("b", "c", "d", "a"), vm.uiState.value.liveOrder())
         assertEquals(listOf("b", "c", "d", "a"), vm.stepExerciseOrder())
@@ -138,9 +142,11 @@ class LiveReorderVmTest {
         val fx = fixtureFor(loose("a", "b", "c", "d"))
         val vm = fx.open()
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
         assertEquals(listOf("a", "c", "d"), vm.uiState.value.visibleOrder())
 
         vm.applyReorderAndPromptPersistence(listOf("c", "a", "d"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         val state = vm.uiState.value
         assertEquals("sigue en la sesión", setOf("a", "b", "c", "d"), state.liveOrder().toSet())
@@ -154,8 +160,10 @@ class LiveReorderVmTest {
         val fx = fixtureFor(inParts(listOf(listOf("a", "b"), listOf("c"))))
         val vm = fx.open()
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
 
         vm.applyReorderAndPromptPersistence(listOf("c", "a"), partMapOf(vm), isGlobal = true)
+        vm.awaitPendingLiveMutation()
 
         val state = vm.uiState.value
         assertEquals(setOf("a", "b", "c"), state.liveOrder().toSet())
@@ -181,6 +189,7 @@ class LiveReorderVmTest {
         assertEquals(listOf("x", "m1", "m2", "y"), vm.stepExerciseOrder())
 
         vm.applyReorderAndPromptPersistence(listOf("x", "m2", "m1", "y"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         assertEquals(listOf("x", "m2", "m1", "y"), vm.uiState.value.liveOrder())
         assertEquals(listOf("x", "m2", "m1", "y"), vm.stepExerciseOrder())
@@ -203,6 +212,7 @@ class LiveReorderVmTest {
         val vm = fx.open()
 
         vm.applyReorderAndPromptPersistence(listOf("m1", "x", "m2"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
 
         assertEquals("la superserie sigue junta", listOf("m1", "m2", "x"), vm.uiState.value.liveOrder())
         assertEquals(listOf("m1", "m2", "x"), vm.stepExerciseOrder())
@@ -213,7 +223,9 @@ class LiveReorderVmTest {
         val fx = fixtureFor(loose("a", "b", "c", "d"), simpleCyclic = true)
         val vm = fx.open()
         vm.skipExercise("b")
+        vm.awaitPendingLiveMutation()
         vm.applyReorderAndPromptPersistence(listOf("c", "a", "d"), partMapOf(vm), isGlobal = false)
+        vm.awaitPendingLiveMutation()
         assertTrue("hay un cambio por guardar", vm.uiState.value.pendingStructuralPersistence is PendingStructuralChange.ReorderExercises)
         // En un programa simple cíclico la sesión en vivo trabaja con el id de la INSTANCIA de la semana, no con el de su plantilla.
         val liveWeekId = vm.uiState.value.weekId

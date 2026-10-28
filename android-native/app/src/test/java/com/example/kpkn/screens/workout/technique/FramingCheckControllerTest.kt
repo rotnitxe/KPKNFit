@@ -5,6 +5,7 @@ import com.example.kpkn.data.media.pose.DetectedPose
 import com.example.kpkn.domain.biomechanics.pose.PoseEngineInfo
 import com.example.kpkn.data.media.pose.PoseEstimator
 import com.example.kpkn.data.media.pose.RgbaFrame
+import com.example.kpkn.domain.biomechanics.framing.FramingCheckStatus
 import com.example.kpkn.domain.biomechanics.framing.FramingSpec
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.pose.LandmarkSample
@@ -63,6 +64,13 @@ class FramingCheckControllerTest {
         override fun close() {}
     }
 
+    private class ThrowingPoseEstimator : PoseEstimator {
+        override val engine: PoseEngineInfo = PoseEngineInfo("fake", "test", "CPU")
+        override fun estimate(frame: RgbaFrame, timestampMs: Long): List<DetectedPose> =
+            throw IllegalStateException("estimator failed")
+        override fun close() {}
+    }
+
     @Test
     fun framingCheckThreeOkStreakProducesOkVerdict() = runTest {
         val testScope = TestScope(testScheduler)
@@ -78,10 +86,13 @@ class FramingCheckControllerTest {
         val testBitmap = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888)
 
         try {
+            assertEquals("Antes de evaluar debe estar comprobando", FramingCheckStatus.CHECKING, controller.status.value)
+
             // Evaluación 1: sin problemas, racha 1 < 3 -> ok = false
             val v1 = controller.processBitmap(testBitmap)
             assertTrue("v1 no debería tener problemas", v1.issues.isEmpty())
             assertFalse("1er OK aún no debe poner ok=true", v1.ok)
+            assertEquals(FramingCheckStatus.EVALUATED, controller.status.value)
 
             // Evaluación 2: sin problemas, racha 2 < 3 -> ok = false
             val v2 = controller.processBitmap(testBitmap)
@@ -93,6 +104,32 @@ class FramingCheckControllerTest {
             assertTrue("v3 no debería tener problemas", v3.issues.isEmpty())
             assertTrue("3er OK consecutivo debe poner ok=true", v3.ok)
             assertEquals("StateFlow debe reflejar el veredicto OK", true, controller.verdict.value.ok)
+        } finally {
+            testBitmap.recycle()
+            controller.close()
+        }
+    }
+
+    @Test
+    fun estimatorFailureIsDeclaredUnavailable() = runTest {
+        val testScope = TestScope(testScheduler)
+        val controller = FramingCheckController(
+            scope = testScope,
+            spec = sideSpec,
+            gravityRollProvider = { 0f },
+            externalEstimator = ThrowingPoseEstimator(),
+        )
+
+        val testBitmap = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888)
+
+        try {
+            val verdict = controller.processBitmap(testBitmap)
+            assertFalse("Un fallo no puede inventar una aprobación", verdict.ok)
+            assertEquals(
+                "El fallo del estimador debe distinguirse de «comprobando»",
+                FramingCheckStatus.UNAVAILABLE,
+                controller.status.value,
+            )
         } finally {
             testBitmap.recycle()
             controller.close()

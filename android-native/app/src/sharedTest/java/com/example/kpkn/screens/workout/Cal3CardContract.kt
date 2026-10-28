@@ -63,7 +63,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0,
                                 isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
@@ -72,7 +72,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
                         }
                         WorkoutLiveRelatorLine(if(done == null) "Haz al menos 6. Cuenta todas las que completes." else "Resultado registrado. Revisa lo que sigue.",
                             "cal3", modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band))
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.first(), null, sessionCompletedSet = done,
                                     onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 75.0,
@@ -109,8 +109,8 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
     fun assertFrame() {
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(312f, frame.width / density, .5f); assertEquals(425f, frame.height / density, .5f)
-        assertEquals(112f, line.height / density, .5f); assertEquals(12f, (line.top - frame.bottom) / density, .5f)
+        assertEquals(312f, frame.width / density, .5f); assertEquals(394f, frame.height / density, .5f)
+        assertEquals(LiveSessionLineHeight.value, line.height / density, .5f); assertEquals(12f, (line.top - frame.bottom) / density, .5f)
         listOf("calibration-apply", "calibration-keep", "calibration-revert", "calibration-continue", "calibration-edit").forEach { tag ->
             rule.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach { node ->
                 val b = node.boundsInRoot
@@ -124,7 +124,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
         show(height = height, before = true)
         rule.onNodeWithTag("amrap-purpose-badge").assertTextEquals("Mínimo 6 · Calibrador")
         assertFrame(); output?.let { save(it, "v7-$height-before") }
-        rule.onNodeWithTag(EffortSliderTag).performScrollTo()
+        rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed()
         val range = rule.onNodeWithTag(EffortSliderTag).fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo]
         rule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(range.range.endInclusive) }
         rule.onNodeWithTag("live-session-record").performClick()
@@ -141,7 +141,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
         assertEquals(CalibrationStatus.REVERTED, state.value.calibrationDecisions.last().status)
         assertTrue(state.value.calibrationDecisions.last().decision.affectedSets.all { it.beforeKg == 60.0 })
         rule.onNodeWithTag("calibration-edit").performClick()
-        rule.onNodeWithTag(EffortSliderTag).performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(range.range.endInclusive - 2) }
+        rule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(range.range.endInclusive - 2) }
         rule.onNodeWithTag("live-session-record").performClick()
         assertEquals(2, recordCount)
         assertEquals(CalibrationStatus.SUPERSEDED, state.value.calibrationDecisions.first().status)

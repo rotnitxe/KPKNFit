@@ -499,22 +499,9 @@ internal fun WorkoutExerciseSetupContent(
 
     if (showNewProfileDialog) {
         var newLabel by remember { mutableStateOf("") }
-        KpknAlertDialog(
-            onDismissRequest = { showNewProfileDialog = false },
-            title = { Text("Nuevo Setup", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                KpknTextField(
-                    value = newLabel,
-                    onValueChange = { newLabel = it },
-                    label = "Nombre del setup (ej. Maquina SmartFit)",
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = {
+        com.example.kpkn.screens.workout.components.LiveSheet(title = "Nuevo setup", onDismiss = { showNewProfileDialog = false },
+            tag = "live-new-setup", footer = { close ->
+                com.example.kpkn.screens.workout.components.LiveSheetPrimary("Guardar", {
                         val sessionBase = com.example.kpkn.domain.workout.BaseLoadPolicy.resolvedForDisplay(
                             profile = null,
                             exercise = exercise,
@@ -535,14 +522,12 @@ internal fun WorkoutExerciseSetupContent(
                             )
                         )
                         showNewProfileDialog = false
-                    },
-                    enabled = newLabel.isNotBlank(),
-                )
-            },
-            dismissButton = {
-                KpknTextAction(text = "Cancelar", onClick = { showNewProfileDialog = false })
-            },
-        )
+                }, enabled = newLabel.isNotBlank())
+                com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
+            }) {
+            com.example.kpkn.screens.workout.components.LiveSheetLabeledField("Nombre del setup", newLabel, { newLabel = it },
+                placeholder = "Ej.: máquina del gimnasio", tag = "live-new-setup-name")
+        }
     }
 }
 

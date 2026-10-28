@@ -69,24 +69,12 @@ class LiveSetModesRenderSheetTest {
                 LocalLiveSessionCompactLayout provides (height < 800)) {
                 KPKNTheme { MaterialTheme {
                     Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("lv-b-scene")) {
-                        var headerPx by remember { mutableIntStateOf(0) }
-                        val localDensity = LocalDensity.current
-                        val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
-                        Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
+                        Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp)) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0L,
                                 isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
                                 onToggleVoice = {}, onStoryClick = {}, onMoreClick = {}, compactLayout = height < 800,
                                 statusBarInsets = WindowInsets(0, 0, 0, 0))
                         }
-                        WorkoutLiveRelatorLine(when (mode) {
-                            TrainingMode.RM -> "Tu referencia: 125 kg de 1RM. Plan: 80 %."
-                            TrainingMode.SOLO_RPE -> "Elige la carga que te permita alcanzar RPE 8."
-                            TrainingMode.TIME -> "Mantén la posición durante un minuto."
-                            TrainingMode.DISTANCE -> "Acumula metros con la carga del plan."
-                            TrainingMode.CUSTOM -> "Cuenta cada brazada completa."
-                            else -> "Registra cómo se sintió tu serie."
-                        }, "lv-b", modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band))
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.single(), null,
@@ -112,12 +100,13 @@ class LiveSetModesRenderSheetTest {
         if (editRm) rule.onNodeWithTag(EffortSliderTag).performScrollTo()
         val touch = rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val track = rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        assertEquals(312f, frame.width / density, .5f); assertEquals(425f, frame.height / density, .5f)
+        assertEquals(312f, frame.width / density, .5f); assertEquals(394f, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f); assertEquals(44f, touch.height / density, .5f)
         assertEquals(18f, track.height / density, .5f); assertEquals(112f, island.height / density, .5f)
         assertTrue(actions.bottom <= frame.bottom + 1f)
         assertEquals(12f, (island.top - frame.bottom) / density, .5f)
-        if (rom) rule.onNodeWithTag("live-rom-slider").assertIsDisplayed()
+        // Refinamiento 02: en la tarjeta de repeticiones el ROM vive en «Detalle del registro»; la fila de detalle lo resume.
+        if (rom) rule.onNodeWithText("ROM", substring = true, useUnmergedTree = true).assertExists()
         if (editRm) rule.onNodeWithTag("live-rm-percent").performScrollTo()
         val folder = File(checkNotNull(System.getenv("KPKN_RENDER_DIR"))).apply { mkdirs() }
         File(folder, "$name-medidas.txt").writeText("viewport=360x$height dp; status=45 dp; navigation=24 dp\n" +

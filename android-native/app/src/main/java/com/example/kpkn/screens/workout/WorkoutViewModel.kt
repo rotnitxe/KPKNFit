@@ -11,6 +11,7 @@ import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.WorkoutVoiceHistoryRepository
 import com.example.kpkn.data.repository.withConfirmedExerciseReferences
 import com.example.kpkn.data.repository.rematerializeExerciseReferences
 import com.example.kpkn.domain.training.ExerciseTrainingMax
@@ -30,6 +31,7 @@ import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.screens.sessioneditor.SessionEditorMoveEngine
 import com.example.kpkn.screens.sessioneditor.SessionEditorMoveRequest
+import com.example.kpkn.screens.technique.analysis.ReviewedAnalysisDelivery
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -47,6 +49,9 @@ import com.example.kpkn.domain.workout.WarmupEffort
 import com.example.kpkn.domain.workout.WarmupEffortReport
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.VoiceHistoryEntry
+import com.example.kpkn.domain.workout.VoiceHistoryStatus
+import com.example.kpkn.domain.workout.VoiceHistoryValues
 import com.example.kpkn.domain.workout.expectedSidesForSet
 import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.domain.workout.isSetDoneWithSides
@@ -75,6 +80,7 @@ import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutTtsManager
 import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceSessionState
+import com.example.kpkn.services.workout.VoiceSetEditPatch
 import com.example.kpkn.services.workout.VoicePipelineStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -210,6 +216,14 @@ class WorkoutViewModel(
     val liveMutationResult: StateFlow<WorkoutMutationResult?> = _liveMutationResult.asStateFlow()
 
     private var lastLiveMutation: kotlinx.coroutines.Deferred<WorkoutMutationResult>? = null
+
+    /**
+     * Espera a que el cambio estructural en curso quede publicado. La UI no debe asumir que una
+     * mutación ya se aplicó hasta que Room confirma; las pruebas y los comandos encadenados
+     * esperan aquí. Devuelve null si no hay mutación o si no termina a tiempo.
+     */
+    internal suspend fun awaitPendingLiveMutation(timeoutMs: Long = 10_000L): WorkoutMutationResult? =
+        withTimeoutOrNull(timeoutMs) { lastLiveMutation?.await() }
 
     private fun commitLiveMutation(base: WorkoutUiState, proposed: WorkoutUiState, afterCommit: () -> Unit = {}): kotlinx.coroutines.Deferred<WorkoutMutationResult> {
         val completion = kotlinx.coroutines.CompletableDeferred<WorkoutMutationResult>()
@@ -1849,6 +1863,13 @@ class WorkoutViewModel(
         }
         val afterCount = _uiState.value.completedSets.size
         if (result.succeeded) {
+            (expectedExerciseId ?: exercise?.id)?.let { recordedExerciseId ->
+                markVoiceHistoryRegistered(
+                    recordedExerciseId,
+                    expectedSetIdx ?: _uiState.value.currentSetIdx,
+                    expectedSide ?: side,
+                )
+            }
             KpknDiagnosticLogger.event(
                 namespace = "workout",
                 name = "set_recorded",
@@ -2083,6 +2104,30 @@ class WorkoutViewModel(
         ).maxByOrNull { it.updatedAtMs }
     }
 
+    /**
+     * Aplica el resultado revisado del analizador al borrador de la serie pendiente de ese vídeo. No registra la serie: eso sigue
+     * siendo un paso aparte, y una serie ya registrada no se reescribe desde aquí.
+     */
+    fun applyReviewedAnalysis(delivery: ReviewedAnalysisDelivery) {
+        val key = videoAnalysisBySetKey.value.entries
+            .firstOrNull { it.value.mediaId == delivery.mediaId }
+            ?.key ?: return
+        if (_uiState.value.completedSets.containsKey(key)) return
+        val parsed = parseCompletedSetKey(key) ?: return
+        val current = getSetDraft(parsed.exerciseId, parsed.setIdx, parsed.side) ?: WorkoutSetDraft()
+        updateSetDraft(
+            exerciseId = parsed.exerciseId,
+            setIdx = parsed.setIdx,
+            side = parsed.side,
+            draft = current.copy(
+                valueText = delivery.complete.toString(),
+                partialReps = delivery.partial.coerceAtLeast(0),
+                isDirty = true,
+            ),
+        )
+        showWorkoutToast("Resultado incorporado al borrador. Aún no registra la serie.")
+    }
+
     fun beginEditingSet(
         exerciseId: String,
         setIdx: Int,
@@ -2163,7 +2208,187 @@ class WorkoutViewModel(
         side: String?,
         isTimeMode: Boolean,
         baseIntensityMode: IntensityMode?,
-    ) = voiceCommandHandler.confirmVoiceInput(exerciseId, setIdx, side, isTimeMode, baseIntensityMode)
+    ) {
+        val confirmation = _uiState.value.voiceUiState as? WorkoutVoiceUiState.Confirmation
+        voiceCommandHandler.confirmVoiceInput(exerciseId, setIdx, side, isTimeMode, baseIntensityMode)
+        val applied = _uiState.value.voiceUiState as? WorkoutVoiceUiState.Applied
+        if (confirmation != null && applied != null &&
+            applied.exerciseId == exerciseId && applied.setIdx == setIdx &&
+            confirmation.interpretation.transcript.isNotBlank()
+        ) {
+            recordVoiceCapture(confirmation.interpretation, exerciseId, setIdx, applied.side ?: side)
+        }
+    }
+
+
+    private val voiceHistoryRepository by lazy {
+        WorkoutVoiceHistoryRepository.forDatabase(
+            appContext,
+            com.example.kpkn.data.db.KpknDatabase.getInstance(appContext),
+        )
+    }
+    private val _voiceHistory = MutableStateFlow<List<VoiceHistoryEntry>>(emptyList())
+    /** Capturas de voz confirmadas de la sesión en curso; nunca audio. */
+    val voiceHistory: StateFlow<List<VoiceHistoryEntry>> = _voiceHistory.asStateFlow()
+    private val _voiceHistoryNotice = MutableStateFlow<String?>(null)
+    val voiceHistoryNotice: StateFlow<String?> = _voiceHistoryNotice.asStateFlow()
+    private var voiceHistoryJob: Job? = null
+    private var voiceHistoryKey: String? = null
+
+    fun observeVoiceHistory() {
+        val key = currentVoiceHistoryKey() ?: return
+        if (voiceHistoryJob?.isActive == true && voiceHistoryKey == key) return
+        voiceHistoryJob?.cancel()
+        voiceHistoryKey = key
+        voiceHistoryJob = viewModelScope.launch {
+            voiceHistoryRepository.observe(key).collect { _voiceHistory.value = it }
+        }
+    }
+
+    fun consumeVoiceHistoryNotice() {
+        _voiceHistoryNotice.value = null
+    }
+
+    fun speakVoiceExample() {
+        if (!_uiState.value.voiceSessionEnabled) return
+        voiceController.speakAnnouncement("Registrar cien kilos, ocho repeticiones, RIR dos.")
+    }
+
+    fun pauseVoiceConversation() = disableVoice()
+
+    fun resumeVoiceConversation() = enableVoice()
+
+    /**
+     * Confirma una captura «Por revisar»: registra la serie con los valores corregidos.
+     * El registro pasa por el mismo camino que cualquier serie; la captura no se duplica.
+     */
+    fun confirmVoiceHistoryCapture(entryId: String, weightKg: Double, reps: Int, rir: Double?) {
+        val entry = _voiceHistory.value.firstOrNull { it.id == entryId }
+        if (entry == null) {
+            _voiceHistoryNotice.value = "La serie ya no está disponible."
+            return
+        }
+        viewModelScope.launch {
+            val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == entry.exerciseId }
+            val unitMode = exercise?.sets?.getOrNull(entry.setIdx)
+                ?.let { inferUnitMode(exercise, it) }
+                ?: UnitModeV2.REPS
+            val result = recordSetV2(
+                weight = weightKg,
+                value = reps.toDouble(),
+                intensity = rir,
+                unitMode = unitMode,
+                side = entry.side,
+                expectedExerciseId = entry.exerciseId,
+                expectedSetIdx = entry.setIdx,
+                expectedSide = entry.side,
+            )
+            if (!result.succeeded) {
+                _voiceHistoryNotice.value = "La serie ya no está disponible."
+                return@launch
+            }
+            val now = System.currentTimeMillis()
+            val values = entry.values.copy(weightKg = weightKg, reps = reps, intensityValue = rir)
+            voiceHistoryRepository.correct(entry.id, values, now)
+            voiceHistoryRepository.markRegistered(entry.sessionKey, entry.exerciseId, entry.setIdx, entry.side, now)
+            _voiceHistoryNotice.value = "Registro confirmado. Se actualiza la misma serie."
+        }
+    }
+
+    /** Corrige una captura ya registrada; actualiza la misma serie y conserva la auditoría. */
+    fun correctVoiceHistoryCapture(entryId: String, weightKg: Double, reps: Int, rir: Double?) {
+        val entry = _voiceHistory.value.firstOrNull { it.id == entryId }
+        if (entry == null) {
+            _voiceHistoryNotice.value = "La serie ya no está disponible."
+            return
+        }
+        if (entry.status == VoiceHistoryStatus.REVIEW) {
+            confirmVoiceHistoryCapture(entryId, weightKg, reps, rir)
+            return
+        }
+        viewModelScope.launch {
+            val result = voiceSetMutations.patchAt(
+                workoutSetKey(entry.exerciseId, entry.setIdx, entry.side),
+                CompletedSetPatch(
+                    edit = VoiceSetEditPatch(weightKg = weightKg, metricValue = reps, intensityValue = rir),
+                    allowNonRepMetric = true,
+                ),
+            )
+            if (!result.isCommitted) {
+                _voiceHistoryNotice.value = "La serie ya no está disponible."
+                return@launch
+            }
+            val now = System.currentTimeMillis()
+            voiceHistoryRepository.correct(
+                entry.id,
+                entry.values.copy(weightKg = weightKg, reps = reps, intensityValue = rir),
+                now,
+            )
+            _voiceHistoryNotice.value = "Registro confirmado. Se actualiza la misma serie."
+        }
+    }
+
+    private fun currentVoiceHistoryKey(): String? {
+        val state = _uiState.value
+        val session = state.session ?: return null
+        return WorkoutMediaCaptureController.sessionKey(state.programId, session.id, state.startTimeMs)
+    }
+
+    private fun voiceHistorySide(side: String?): String? = when (side?.lowercase()) {
+        "l", "left", "izquierda" -> "left"
+        "r", "right", "derecha" -> "right"
+        else -> null
+    }
+
+    private fun recordVoiceCapture(
+        interpretation: WorkoutVoiceInterpretation,
+        exerciseId: String,
+        setIdx: Int,
+        side: String?,
+    ) {
+        val key = currentVoiceHistoryKey() ?: return
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId }
+        val unitMode = exercise?.sets?.getOrNull(setIdx)?.let { inferUnitMode(exercise, it) }
+        val metric = interpretation.resolvedMetricValue
+        val now = System.currentTimeMillis()
+        val entry = VoiceHistoryEntry(
+            id = UUID.randomUUID().toString(),
+            sessionKey = key,
+            exerciseId = exerciseId,
+            exerciseName = exercise?.name ?: exerciseId,
+            setIdx = setIdx,
+            side = voiceHistorySide(side),
+            transcript = interpretation.transcript,
+            values = VoiceHistoryValues(
+                weightKg = interpretation.weightKg,
+                reps = if (unitMode == UnitModeV2.REPS) metric?.roundToInt() else null,
+                seconds = if (unitMode == UnitModeV2.TIME) metric?.roundToInt() else null,
+                distanceKm = interpretation.distanceKm,
+                averageHeartRate = interpretation.averageHeartRate,
+                intensityValue = interpretation.intensityValue,
+                intensityKind = interpretation.intensityKind?.name,
+                reachedFailure = interpretation.reachedFailure,
+                isFailedSet = interpretation.isFailedSet,
+                helpedReps = interpretation.helpedReps,
+            ),
+            createdAtEpochMs = now,
+            updatedAtEpochMs = now,
+        )
+        viewModelScope.launch {
+            runCatching { voiceHistoryRepository.record(entry) }
+        }
+    }
+
+    private fun markVoiceHistoryRegistered(exerciseId: String, setIdx: Int, side: String?) {
+        val key = voiceHistoryKey ?: currentVoiceHistoryKey() ?: return
+        viewModelScope.launch {
+            runCatching {
+                voiceHistoryRepository.markRegistered(
+                    key, exerciseId, setIdx, voiceHistorySide(side), System.currentTimeMillis(),
+                )
+            }
+        }
+    }
 
 
     fun toggleVoiceSession() {
@@ -2196,6 +2421,11 @@ class WorkoutViewModel(
     }
 
     /** Elige modo de captura (diálogo obligatorio / header / tarjeta) y lo aplica en caliente. */
+    /** Guarda la vista de registro elegida (Tarjetas o Lista) como preferencia para las próximas sesiones. */
+    fun setLiveSessionViewPreference(view: String) {
+        repository.updateSettings { if (it.liveSessionView == view) it else it.copy(liveSessionView = view) }
+    }
+
     fun setVoiceCaptureMode(mode: VoiceCaptureMode) {
         WorkoutVoiceDiagnosticLogger.event(
             "voice_mode_dialog_chosen",
@@ -3205,29 +3435,35 @@ class WorkoutViewModel(
         if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
+        val ids = orderedExerciseIds.distinct()
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            LiveSessionReorder.plan(modeSession, ids).session
+        }
+        if (updatedSession == base) return
         val snapshot = captureGodModeUndoSnapshot("Reordenar ejercicios")
-        reorderLive(orderedExerciseIds)
-        if (_uiState.value.session == base) return
-        val activeSession = _uiState.value.session?.let { sessionForActiveMode(it, _uiState.value.activeMode) }
-        val orderedCanonicalKeys = activeSession?.allExercises()?.map { it.resolvedCanonicalExerciseId() }.orEmpty()
+        val activeSession = sessionForActiveMode(updatedSession, state.activeMode)
+        val orderedCanonicalKeys = activeSession.allExercises().map { it.resolvedCanonicalExerciseId() }
         // Nombre de la parte de cada ejercicio, en el mismo orden que las claves de arriba (null = suelto).
-        val orderedPartKeys = activeSession?.let { session ->
-            session.allExercises().map { exercise ->
-                session.parts.firstOrNull { part -> part.exercises.any { it.id == exercise.id } }?.name
-            }
-        }.orEmpty()
-        updateUiState {
-            it.copy(
+        val orderedPartKeys = activeSession.allExercises().map { exercise ->
+            activeSession.parts.firstOrNull { part -> part.exercises.any { it.id == exercise.id } }?.name
+        }
+        val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        // El «Deshacer» y la pregunta de guardado viajan en el candidato: el commit publica después y no debe pisarlos (LV4).
+        structuralPersistence.applySessionMutation(
+            updatedSession,
+            preferredExerciseId = currentExerciseId,
+            persistToProgram = false,
+            candidateTransform = { it.copy(
                 godModeUndoStack = it.godModeUndoStack + snapshot,
                 pendingStructuralPersistence = PendingStructuralChange.ReorderExercises(
-                    orderedExerciseIds = orderedExerciseIds.distinct(),
+                    orderedExerciseIds = ids,
                     originalPartMap = originalPartMap,
                     isGlobal = isGlobal,
                     orderedExerciseCanonicalKeys = orderedCanonicalKeys,
                     orderedExercisePartKeys = orderedPartKeys,
                 ),
-            )
-        }
+            ) },
+        )
     }
 
     fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = false, transform: (Exercise) -> Exercise) {
@@ -3835,7 +4071,11 @@ class WorkoutViewModel(
         if (!canMutateLivePlan()) return
         val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
         if (setIdx !in exercise.sets.indices) return
-        requestOmissions(setKeys = setOf(WorkoutStepRules.omittedSetKey(exerciseId, setIdx)))
+        val key = WorkoutStepRules.omittedSetKey(exerciseId, setIdx)
+        // Una serie ya omitida no se omite dos veces ni deja otra entrada de «Deshacer» (LV4, 10.2).
+        if (key in _uiState.value.omittedSetKeys) return
+        pushGodModeUndo("Omitir serie")
+        requestOmissions(setKeys = setOf(key))
     }
 
     internal fun performRelatorAssist(action: RelatorAssistAction) {
@@ -5794,21 +6034,10 @@ class WorkoutViewModel(
 
     fun resolvePendingRestSuggestion(useAdaptive: Boolean) {
         val pending = _uiState.value.pendingRestSuggestion ?: return
-        updateUiState {
-            it.copy(
-                pendingRestSuggestion = null,
-                restModalState = it.restModalState?.copy(
-                    activeSeconds = if (useAdaptive) pending.adaptiveSeconds else pending.plannedSeconds,
-                    isManualOverride = false,
-                )
-            )
-        }
-        startRestTimer(
-            seconds = if (useAdaptive) pending.adaptiveSeconds else pending.plannedSeconds,
-            advanceOnFinish = false,
+        restOrchestrator.applySuggestion(
+            suggestedSeconds = if (useAdaptive) pending.adaptiveSeconds else pending.plannedSeconds,
             lastSet = pending.lastSet,
             advancedFeedback = pending.advancedFeedback,
-            kind = _uiState.value.restModalState?.kind ?: RestTimerKind.STANDARD,
         )
     }
 
@@ -5929,6 +6158,12 @@ class WorkoutViewModel(
     }
 
     fun addRestTime(seconds: Int) = restOrchestrator.addTime(seconds)
+
+    fun pauseRestTimer() = restOrchestrator.pause()
+
+    fun resumeRestTimer() = restOrchestrator.resume()
+
+    fun toggleRestPause() = restOrchestrator.togglePause()
 
     fun stopRestTimer() = restOrchestrator.stop()
 
@@ -6424,6 +6659,11 @@ class WorkoutViewModel(
 
     fun dismissExecutionErrorDiscomfortSheet(discomfortIds: List<String>) =
         feedbackController.dismissExecutionErrorDiscomfortSheet(discomfortIds)
+
+    /** «Ahora no»: el descanso sigue y el borrador se conserva para cuando vuelva el formulario. */
+    fun deferPostExerciseSheet() {
+        feedbackController.deferPostExerciseSheet()
+    }
 
     fun dismissPostExerciseSheet() {
         feedbackController.dismissPostExerciseSheet()

@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.OrientationEventListener
@@ -21,15 +22,19 @@ import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -50,6 +55,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -59,7 +65,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.media.technique.ExerciseRefResolver
 import com.example.kpkn.data.work.AnalysisGate
+import com.example.kpkn.domain.biomechanics.framing.FramingCheckStatus
+import com.example.kpkn.domain.biomechanics.framing.FramingInstruction
 import com.example.kpkn.domain.biomechanics.framing.FramingSpec
+import com.example.kpkn.domain.biomechanics.framing.SpokenFramingGuidePolicy
+import com.example.kpkn.domain.biomechanics.framing.allowsCapture
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileResolver
@@ -74,7 +84,12 @@ import com.example.kpkn.screens.workout.technique.design.FramingChip
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
 import com.example.kpkn.screens.workout.technique.design.RecTimerPill
 import com.example.kpkn.screens.workout.technique.design.RecordButton
+import com.example.kpkn.services.workout.TechniqueCaptureStartResult
+import com.example.kpkn.services.workout.TechniqueCaptureStopResult
+import com.example.kpkn.services.workout.TechniqueCaptureVoiceLink
+import com.example.kpkn.services.workout.WorkoutTtsManager
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -104,6 +119,7 @@ import com.example.kpkn.screens.workout.technique.design.PlateDiameterBadge
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknSegmentedControl
 import com.example.kpkn.ui.design.KpknSegmentedSize
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.flow.StateFlow
@@ -123,6 +139,8 @@ data class TechniqueRecorderRequest(
 
 
 private const val TAG = "KpknRecorder"
+private const val WORKOUT_PREFS = "workout_prefs"
+internal const val SpokenFramingGuidePrefKey = "technique_spoken_framing_guide"
 
 internal const val TechniqueRecorderStageTag = "technique_recorder_stage"
 internal val TechniqueRecorderRequestKey = SemanticsPropertyKey<WorkoutMediaCaptureRequest>("TechniqueRecorderRequest")
@@ -317,6 +335,57 @@ internal fun TechniqueRecorderStage(
         if (view != null && activeSession != null) framingController.start { view.bitmap }
     }
     val framingVerdict by framingController.verdict.collectAsStateWithLifecycle()
+    val framingStatus by framingController.status.collectAsStateWithLifecycle()
+
+    // La guía hablada es independiente de Modo Voz: su preferencia vive en la app,
+    // arranca apagada como el prototipo y nunca enciende el micrófono.
+    val guidePreferences = remember(context) {
+        context.getSharedPreferences(WORKOUT_PREFS, Context.MODE_PRIVATE)
+    }
+    var spokenGuideEnabled by remember {
+        mutableStateOf(guidePreferences.getBoolean(SpokenFramingGuidePrefKey, false))
+    }
+    val guidePolicy = remember { SpokenFramingGuidePolicy() }
+    val guideTts = remember(context) { WorkoutTtsManager(context) }
+    DisposableEffect(guideTts) {
+        guideTts.initialize()
+        onDispose { guideTts.shutdown() }
+    }
+    val voiceCommandsEnabled by TechniqueCaptureVoiceLink.voiceEnabled.collectAsStateWithLifecycle()
+
+    // Política inicial aprobada: guía antes de grabar; durante la serie el evaluador
+    // congela el veredicto, así que no se interrumpe por oscilaciones del detector.
+    LaunchedEffect(spokenGuideEnabled, framingStatus, framingVerdict, isRecordingState, preferredView) {
+        if (!spokenGuideEnabled || isRecordingState) return@LaunchedEffect
+        val now = SystemClock.elapsedRealtime()
+        val text = guidePolicy.onEvaluation(framingStatus, framingVerdict, preferredView, now)
+            ?: return@LaunchedEffect
+        TechniqueCaptureVoiceLink.noteGuideSpoken(text, now)
+        guideTts.speak(text, queueFlush = true)
+    }
+
+    fun setSpokenGuide(enabled: Boolean) {
+        spokenGuideEnabled = enabled
+        guidePreferences.edit().putBoolean(SpokenFramingGuidePrefKey, enabled).apply()
+        if (enabled) {
+            guidePolicy.reset()
+        } else {
+            guideTts.stop()
+            TechniqueCaptureVoiceLink.clearGuideSpeech()
+        }
+    }
+
+    fun repeatGuide() {
+        val text = if (isRecordingState) {
+            FramingInstruction.RECORDING_CAPTION
+        } else {
+            FramingInstruction.spoken(framingVerdict, framingStatus, preferredView)
+        }
+        val now = SystemClock.elapsedRealtime()
+        guidePolicy.noteSpoken(text, now)
+        TechniqueCaptureVoiceLink.noteGuideSpoken(text, now)
+        guideTts.speak(text, queueFlush = true)
+    }
 
     var cameraPermissionGranted by remember {
         mutableStateOf(
@@ -347,7 +416,11 @@ internal fun TechniqueRecorderStage(
     var cameraRetryGeneration by remember { mutableIntStateOf(0) }
 
     val isCameraUnavailable = cameraPermissionGranted && hasCheckedCameras && (!hasAvailableCamera || cameraBindFailed)
-    val canRecord = profileResolution != null && cameraPermissionGranted && !isCameraUnavailable && activeSession != null && mediaCapture != null
+    // «No se pudo comprobar» es un error explícito y permite grabar; «comprobando» espera
+    // el veredicto estable y un veredicto negativo exige corregir el encuadre.
+    val framingReady = framingStatus.allowsCapture(framingVerdict)
+    val canRecord = profileResolution != null && cameraPermissionGranted && !isCameraUnavailable &&
+        activeSession != null && mediaCapture != null && framingReady
 
     var audioPermissionGranted by remember {
         mutableStateOf(
@@ -366,10 +439,16 @@ internal fun TechniqueRecorderStage(
     val originalOrientation = remember { activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
     var isStopping by remember { mutableStateOf(false) }
 
-    fun startRecording() {
-        if (!canRecord || isStopping || mediaCapture?.isRecording?.value == true) return
-        val capture = mediaCapture ?: return
-        val session = activeSession ?: return
+    fun startRecording(): TechniqueCaptureStartResult {
+        val capture = mediaCapture ?: return TechniqueCaptureStartResult.UNAVAILABLE
+        if (isStopping || completion.pending) return TechniqueCaptureStartResult.BUSY
+        if (capture.isRecording.value) return TechniqueCaptureStartResult.ALREADY_RECORDING
+        if (!cameraPermissionGranted || isCameraUnavailable || profileResolution == null) {
+            return TechniqueCaptureStartResult.UNAVAILABLE
+        }
+        val session = activeSession ?: return TechniqueCaptureStartResult.UNAVAILABLE
+        if (framingStatus == FramingCheckStatus.CHECKING) return TechniqueCaptureStartResult.CHECKING
+        if (!framingReady) return TechniqueCaptureStartResult.NOT_READY
         completion.start(
             onResult = {
                 activity?.requestedOrientation = originalOrientation
@@ -395,18 +474,35 @@ internal fun TechniqueRecorderStage(
                 )
             },
         )
+        return TechniqueCaptureStartResult.STARTED
     }
 
-    fun stopRecording() {
-        if (isStopping) return
+    fun stopRecording(): TechniqueCaptureStopResult {
+        val capture = mediaCapture ?: return TechniqueCaptureStopResult.UNAVAILABLE
+        if (isStopping || completion.pending) return TechniqueCaptureStopResult.BUSY
+        if (!capture.isRecording.value) {
+            activity?.requestedOrientation = originalOrientation
+            return TechniqueCaptureStopResult.NOT_RECORDING
+        }
         isStopping = true
         framingController.isRecording = false
-        if (mediaCapture?.isRecording?.value == true) {
-            mediaCapture.stopVideo()
-        } else {
-            isStopping = false
-            activity?.requestedOrientation = originalOrientation
-        }
+        capture.stopVideo()
+        return TechniqueCaptureStopResult.STOPPED
+    }
+
+    // Enlace de proceso con Modo Voz: sólo con el grabador abierto se reconocen
+    // «Iniciar/Detener vídeo»; las órdenes repetidas no crean otra captura.
+    val latestStartRecording = rememberUpdatedState<(()->TechniqueCaptureStartResult)>({ startRecording() })
+    val latestStopRecording = rememberUpdatedState<(()->TechniqueCaptureStopResult)>({ stopRecording() })
+    val voiceLinkHandlers = remember {
+        TechniqueCaptureVoiceLink.Handlers(
+            start = { latestStartRecording.value() },
+            stop = { latestStopRecording.value() },
+        )
+    }
+    DisposableEffect(voiceLinkHandlers) {
+        TechniqueCaptureVoiceLink.attach(voiceLinkHandlers)
+        onDispose { TechniqueCaptureVoiceLink.detach(voiceLinkHandlers) }
     }
 
     // Detener grabación al salir o desmontarse el composable
@@ -544,6 +640,12 @@ internal fun TechniqueRecorderStage(
         preferredView = preferredView,
         profileId = resolvedProfile?.id,
         verdict = framingVerdict,
+        framingStatus = framingStatus,
+        spokenGuideEnabled = spokenGuideEnabled,
+        onToggleSpokenGuide = { enabled -> setSpokenGuide(enabled) },
+        onRepeatGuide = { repeatGuide() },
+        voiceCommandsEnabled = voiceCommandsEnabled,
+        onToggleVoiceCommands = TechniqueCaptureVoiceLink::requestVoiceToggle,
         hasPermission = cameraPermissionGranted,
         hasCamera = !isCameraUnavailable && mediaCapture != null,
         isPermanentlyDenied = isPermanentlyDenied,
@@ -593,6 +695,12 @@ internal fun TechniqueRecorderStageContent(
     preferredView: ViewKind = ViewKind.SIDE,
     profileId: AnalysisProfileId? = null,
     verdict: FramingVerdict = FramingVerdict(ok = false, issues = emptyList(), view = null),
+    framingStatus: FramingCheckStatus = FramingCheckStatus.EVALUATED,
+    spokenGuideEnabled: Boolean = false,
+    onToggleSpokenGuide: (Boolean) -> Unit = {},
+    onRepeatGuide: () -> Unit = {},
+    voiceCommandsEnabled: Boolean = false,
+    onToggleVoiceCommands: () -> Unit = {},
     hasPermission: Boolean = true,
     hasCamera: Boolean = true,
     isPermanentlyDenied: Boolean = false,
@@ -611,6 +719,24 @@ internal fun TechniqueRecorderStageContent(
     isProcessing: Boolean = false,
 ) {
     val available = hasPermission && hasCamera
+    val framingReady = framingStatus.allowsCapture(verdict)
+    val captureTitle = when {
+        isRecording -> "Grabación en curso"
+        framingStatus == FramingCheckStatus.CHECKING -> "Comprobando encuadre"
+        framingReady -> "Listo para grabar"
+        else -> "Ajusta el encuadre"
+    }
+    val captureHint = when {
+        isRecording -> "Toca para detener"
+        framingStatus == FramingCheckStatus.CHECKING -> "Espera el veredicto antes de grabar"
+        framingStatus == FramingCheckStatus.UNAVAILABLE -> "No se pudo comprobar el encuadre; puedes grabar igualmente"
+        else -> "El encuadre se revisa antes de comenzar"
+    }
+    val guideCaption = if (isRecording) {
+        FramingInstruction.RECORDING_CAPTION
+    } else {
+        FramingInstruction.spoken(verdict, framingStatus, preferredView)
+    }
     Box(
         modifier = modifier.fillMaxSize().testTag(TechniqueRecorderStageTag)
             .clip(RoundedCornerShape(24.dp)).background(KpknSurface.inset),
@@ -631,23 +757,7 @@ internal fun TechniqueRecorderStageContent(
                     description = "Ficha del ejercicio", onClick = onOpenFicha,
                 ) { Text("Ficha", style = KpknType.chip, color = WizardColors.text) }
             }
-            if (is60FpsGranted || showsPlateBadge) Row(
-                Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
-                verticalAlignment = Alignment.Top,
-            ) {
-                if (is60FpsGranted) Box(Modifier.height(48.dp), contentAlignment = Alignment.Center) { FpsBadge() }
-                if (showsPlateBadge) PlateDiameterBadge(
-                    diameterMm = plateDiameterMm, expanded = plateBadgeExpanded,
-                    onToggleExpanded = onTogglePlateExpanded,
-                    onSelectDiameterMm = onSelectPlateDiameterMm,
-                    visualMode = true,
-                )
-            }
-            if (available && !isRecording) FramingChip(
-                verdict = verdict, isFrontPreferred = preferredView == ViewKind.FRONT, visualMode = true,
-                modifier = Modifier.align(Alignment.CenterHorizontally).testTag("technique_framing"),
-            )
-            Box(Modifier.weight(1f).fillMaxWidth().testTag("technique_guide_area")) {
+            Box(Modifier.weight(1f).fillMaxWidth().testTag("technique_guide_area").zIndex(1f)) {
                 when {
                     !hasPermission -> RecorderNoticeCard(
                         title = "Permite la cámara para grabar",
@@ -659,32 +769,221 @@ internal fun TechniqueRecorderStageContent(
                     )
                     else -> FramingGuideOverlay(
                         preferredView = preferredView, hasBarbell = showsPlateBadge, profileId = profileId,
-                        expandedScene = true, showSilhouette = !isRecording,
+                        expandedScene = true, showSilhouette = !isRecording, showGuideText = false,
                     )
                 }
-            }
-            if (captureError != null) Text(captureError, style = KpknType.caption, color = WizardColors.danger)
-            Row(
-                Modifier.fillMaxWidth().testTag("technique_controls"),
-                verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    if (onOpenGallery != null) KpknTextAction("Galería", onOpenGallery)
+                if (available && !isRecording) Row(
+                    Modifier.align(Alignment.TopStart).fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    FramingChip(
+                        verdict = verdict, isFrontPreferred = preferredView == ViewKind.FRONT, visualMode = true,
+                        status = framingStatus,
+                        modifier = Modifier.weight(1f).testTag("technique_framing"),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        if (is60FpsGranted) Box(Modifier.height(48.dp), contentAlignment = Alignment.Center) { FpsBadge() }
+                        if (showsPlateBadge) PlateDiameterBadge(
+                            diameterMm = plateDiameterMm, expanded = plateBadgeExpanded,
+                            onToggleExpanded = onTogglePlateExpanded,
+                            onSelectDiameterMm = onSelectPlateDiameterMm,
+                            visualMode = true,
+                        )
+                    }
+                }
+                if (available && isRecording) RecTimerPill(
+                    elapsedSeconds = elapsedSeconds, animate = false,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                )
+                if (available && (onOpenGallery != null || onOpenAlbum != null)) Row(
+                    Modifier.align(Alignment.BottomStart).padding(4.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (onOpenGallery != null) MediaOverlayPill("Abrir galería", onOpenGallery) {
+                        Text("Galería", style = KpknType.chip, color = WizardColors.text)
+                    }
                     if (onOpenAlbum != null) MediaAlbumPill(onOpenAlbum)
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (isRecording) RecTimerPill(elapsedSeconds = elapsedSeconds, animate = false)
-                    RecordButton(
-                        isRecording = isRecording, onClick = onRecord,
-                        modifier = Modifier.testTag("technique_record").semantics {
-                            if (isProcessing) stateDescription = "Procesando vídeo"
-                        },
-                        enabled = available && !isProcessing && (isRecording || canRecord), visualMode = true,
-                        recordColor = RecordRed,
+            }
+            if (available) {
+                CaptureGuidePanel(
+                    caption = guideCaption,
+                    spokenGuideEnabled = spokenGuideEnabled,
+                    onToggleSpokenGuide = onToggleSpokenGuide,
+                    onRepeatGuide = onRepeatGuide,
+                    voiceCommandsEnabled = voiceCommandsEnabled,
+                    onToggleVoiceCommands = onToggleVoiceCommands,
+                )
+            }
+            if (captureError != null) Text(captureError, style = KpknType.caption, color = WizardColors.danger)
+            // Una sola fila de acciones como el prototipo: REC, estado y comando.
+            Row(
+                Modifier.fillMaxWidth().testTag("technique_controls"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                RecordButton(
+                    isRecording = isRecording, onClick = onRecord,
+                    modifier = Modifier.testTag("technique_record").semantics {
+                        if (isProcessing) stateDescription = "Procesando vídeo"
+                    },
+                    enabled = available && !isProcessing && (isRecording || canRecord), visualMode = true,
+                    recordColor = RecordRed,
+                )
+                Column(Modifier.weight(1f).testTag("technique_capture_state")) {
+                    Text(
+                        text = captureTitle,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
+                        modifier = Modifier.testTag("technique_capture_title"),
+                    )
+                    Text(
+                        text = captureHint,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.testTag("technique_capture_hint"),
                     )
                 }
+                CaptureCommandPill(
+                    text = if (isRecording) "«Detener vídeo»" else "«Iniciar vídeo»",
+                    enabled = voiceCommandsEnabled,
+                    modifier = Modifier.testTag("technique_voice_command"),
+                )
             }
         }
+    }
+}
+
+/**
+ * Guía hablada y comandos de captura, dos controles independientes. La guía
+ * funciona con Modo Voz apagado; el comando sólo se reconoce con el grabador abierto.
+ */
+@Composable
+private fun CaptureGuidePanel(
+    caption: String,
+    spokenGuideEnabled: Boolean,
+    onToggleSpokenGuide: (Boolean) -> Unit,
+    onRepeatGuide: () -> Unit,
+    voiceCommandsEnabled: Boolean,
+    onToggleVoiceCommands: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(KpknSurface.module.copy(alpha = 0.86f))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Guía hablada de encuadre", style = KpknType.bodyStrong, color = WizardColors.text)
+                Text(
+                    text = "Funciona aunque Modo Voz esté apagado.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
+            KpknSwitch(
+                checked = spokenGuideEnabled,
+                onCheckedChange = onToggleSpokenGuide,
+                modifier = Modifier
+                    .testTag("technique_guide_toggle")
+                    .semantics { contentDescription = "Guía hablada de encuadre" },
+            )
+        }
+        Row(
+            Modifier.fillMaxWidth().testTag("technique_guide_text"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = caption,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+                modifier = Modifier.weight(1f).testTag("technique_spoken_caption"),
+            )
+            Spacer(Modifier.width(4.dp))
+            RecorderTextAction(
+                text = "Escuchar",
+                onClick = onRepeatGuide,
+                modifier = Modifier
+                    .testTag("technique_guide_repeat")
+                    .semantics { contentDescription = "Escuchar guía de ejemplo" },
+            )
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Comandos de voz",
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(4.dp))
+            RecorderTextAction(
+                text = if (voiceCommandsEnabled) "Desactivar comandos" else "Activar Modo Voz",
+                onClick = onToggleVoiceCommands,
+                modifier = Modifier.testTag("technique_voice_action"),
+            )
+        }
+        Text(
+            text = if (voiceCommandsEnabled) {
+                "«Iniciar vídeo» · «Detener vídeo»"
+            } else {
+                "Activa Modo Voz para controlar la grabación."
+            },
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+            modifier = Modifier.testTag("technique_voice_hint"),
+        )
+    }
+}
+
+/** Acción de texto con zona táctil de 48 dp y sin recorte de texto. */
+@Composable
+private fun RecorderTextAction(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = WizardColors.text,
+) {
+    Text(
+        text = text,
+        style = KpknType.action,
+        color = color,
+        modifier = modifier
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 4.dp),
+    )
+}
+
+/** Píldora informativa del comando; nunca duplica el control de grabación. */
+@Composable
+private fun CaptureCommandPill(
+    text: String,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.semantics {
+            stateDescription = if (enabled) "Comando disponible" else "Activa Modo Voz"
+        },
+        shape = KpknShape.pill,
+        color = KpknSurface.module.copy(alpha = if (enabled) 0.92f else 0.55f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = if (enabled) 0.28f else 0.12f)),
+    ) {
+        Text(
+            text = text,
+            style = KpknType.chip,
+            color = if (enabled) WizardColors.text else WizardColors.textFaint,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+        )
     }
 }
 

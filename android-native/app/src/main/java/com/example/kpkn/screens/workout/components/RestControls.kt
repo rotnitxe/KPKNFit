@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
@@ -91,7 +93,48 @@ internal fun RestStepPill(
 }
 
 /**
- * La acción principal del descanso («Saltar descanso», «Saltar», «Empezar la serie 2»): píldora de tinta de [height] (44 dp) con texto
+ * «Pausar/Continuar descanso» (Refinamiento 02): círculo de 44 dp entre −15 s y +15 s, dentro de una zona táctil de 48 dp.
+ * Pausa el reloj y el juego; no cierra el descanso ni toca la sugerencia o el borrador de feedback.
+ */
+@Composable
+internal fun RestPausePill(
+    isPaused: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val label = if (isPaused) "Continuar descanso" else "Pausar descanso"
+    Box(
+        modifier = modifier
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .semantics { contentDescription = label }
+            .testTag("rest-pause")
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(KpknShape.pill)
+                .background(KpknSurface.inset, KpknShape.pill),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = if (isPaused) KpknLineIcons.Play else KpknLineIcons.Pause,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = WizardColors.text,
+            )
+        }
+    }
+}
+
+/**
  * negro y, si se pide, un icono delante. El texto encoge hasta que cabe en una línea (de 14 a 11 sp), también con la letra al 130 %.
  */
 @Composable

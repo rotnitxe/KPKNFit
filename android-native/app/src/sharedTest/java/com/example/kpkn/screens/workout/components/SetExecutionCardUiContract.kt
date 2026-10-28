@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.DropSetData
+import com.example.kpkn.data.models.RecordedTechniqueStatus
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
@@ -103,10 +104,10 @@ abstract class SetExecutionCardUiContract {
         }
 
         composeRule.onNodeWithText("Carga sugerida").assertDoesNotExist()
-        composeRule.onNodeWithTag("quick_suggestion_chip_1").assertIsDisplayed()
-            .assertTextContains("Sugerida").assertTextContains("82,5")
-        composeRule.onNodeWithText("82,5").assertExists()
-        composeRule.onNodeWithTag("quick_suggestion_chip_1").performClick()
+        // Refinamiento 02: la sugerida ya no es un chip suelto; se elige en el menú «Externa ⌄» del tipo de carga.
+        composeRule.onNodeWithTag("quick_suggestion_chip_1").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Cambiar tipo de carga").performClick()
+        composeRule.onNodeWithText("Sugerida · 82,5 kg").assertExists().performClick()
         composeRule.runOnIdle { assertEquals(82.5, requireNotNull(lastDraft?.weightText).replace(',', '.').toDouble(), 0.0) }
     }
 
@@ -312,7 +313,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.onNodeWithContentDescription("Avanzado").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Modo visual").assertIsDisplayed()
         composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
-        composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
+        composeRule.onNodeWithText("Terminar técnica con lo realizado").assertDoesNotExist()
     }
 
     @Test
@@ -328,7 +329,7 @@ abstract class SetExecutionCardUiContract {
             dropWeightText = "12.5",
             repsText = "6",
             currentSet = guidedDropSet(),
-            expected = guidedExpectedFeedback(dropSets = finalRows),
+            expected = guidedExpectedFeedback(dropSets = finalRows, techniqueStatus = RecordedTechniqueStatus.COMPLETED),
         )
     }
 
@@ -349,12 +350,12 @@ abstract class SetExecutionCardUiContract {
             dropWeightText = "",
             repsText = "6",
             currentSet = guidedRestPauseSet(),
-            expected = guidedExpectedFeedback(restPauses = finalRows),
+            expected = guidedExpectedFeedback(restPauses = finalRows, techniqueStatus = RecordedTechniqueStatus.COMPLETED),
         )
     }
 
     @Test
-    fun guidedSkipRetryKeepsExplicitEmptyCommitSeparateFromEnteredRows() {
+    fun guidedTerminationKeepsPerformedSubSetsAndRetriesTheSameCommit() {
         val partialRows = listOf(DropSetData(weight = 15.0, reps = 8))
         assertGuidedCommitRetry(
             kind = WorkoutTechniqueDraftKind.GUIDED_DROP,
@@ -365,9 +366,8 @@ abstract class SetExecutionCardUiContract {
             dropWeightText = "12.5",
             repsText = "6",
             currentSet = guidedDropSet(),
-            expected = guidedExpectedFeedback(),
+            expected = guidedExpectedFeedback(dropSets = partialRows, techniqueStatus = RecordedTechniqueStatus.COMPLETED),
             skipOnFirstAttempt = true,
-            expectedFormDropRows = partialRows,
         )
     }
 
@@ -382,7 +382,7 @@ abstract class SetExecutionCardUiContract {
             dropWeightText = "",
             repsText = "5",
             currentSet = guidedRestPauseSet(),
-            expected = guidedExpectedFeedback(),
+            expected = guidedExpectedFeedback(techniqueStatus = RecordedTechniqueStatus.SKIPPED),
             skipOnFirstAttempt = true,
             restRemainingSeconds = 17,
         )
@@ -463,10 +463,10 @@ abstract class SetExecutionCardUiContract {
         }
         composeRule.waitForIdle()
         if (skipOnFirstAttempt) {
-            // Skipping discards the sub-sets, so the panel asks for an explicit
-            // confirmation before the empty commit is submitted.
-            composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").performClick()
-            composeRule.onNodeWithText("Sí, solo la serie").performClick()
+            // Terminar la técnica conserva lo ya realizado, así que el panel
+            // pide una confirmación explícita antes de enviar ese commit.
+            composeRule.onNodeWithText("Terminar técnica con lo realizado").performClick()
+            composeRule.onNodeWithText("Guardar lo realizado").performClick()
         } else {
             composeRule.runOnIdle { holder.action?.invoke() }
         }
@@ -553,9 +553,11 @@ abstract class SetExecutionCardUiContract {
     private fun guidedExpectedFeedback(
         dropSets: List<DropSetData> = emptyList(),
         restPauses: List<RestPauseData> = emptyList(),
+        techniqueStatus: RecordedTechniqueStatus? = null,
     ) = SetAdvancedFeedback(
         dropSets = dropSets,
         restPauses = restPauses,
+        techniqueStatus = techniqueStatus,
         actualIntensityMode = IntensityMode.RPE,
         actualIntensityValue = 8.0,
         // CAL1: ordinary strength reps are not an AMRAP minimum. LV-B: reps are not seconds.

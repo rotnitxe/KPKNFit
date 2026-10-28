@@ -89,129 +89,18 @@ internal fun WorkoutDrawer(
     footer: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    var showContent by remember { mutableStateOf(false) }
-    var panelHeightPx by remember { mutableStateOf(0) }
-    val density = LocalDensity.current
-    LaunchedEffect(Unit) { showContent = true }
-
-    fun handleDismiss() {
-        showContent = false
-        onDismiss()
-    }
-
-    BackHandler(enabled = dismissible) { handleDismiss() }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = showContent,
-            enter = fadeIn(animationSpec = tween(250)),
-            exit = fadeOut(animationSpec = tween(250)),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        onClick = { handleDismiss() }
-                    )
-            )
-        }
-
-        // Keep dismissal available above the panel, but limit the visible veil
-        // to the panel's measured footprint. The old full-screen scrim made the
-        // hero/header look blurred even though it was not underneath the sheet.
-        if (panelHeightPx > 0) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(with(density) { panelHeightPx.toDp() })
-                    .background(KpknGlass.FallbackScrim),
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showContent,
-            enter = slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { it },
-                animationSpec = tween(250)
-            ),
-            modifier = Modifier.align(Alignment.BottomCenter),
-        ) {
-            val panelShape = RoundedCornerShape(
-                topStart = KpknGlass.SheetCornerRadius,
-                topEnd = KpknGlass.SheetCornerRadius,
-            )
-            val panelInteraction = remember { MutableInteractionSource() }
-            // DarkMica panel — sibling of the scrim (not nested in hazeSource).
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (fullHeight) Modifier.fillMaxHeight().statusBarsPadding().padding(top = 8.dp) else Modifier.wrapContentHeight(),
-                    )
-                    .navigationBarsPadding()
-                    .onSizeChanged { panelHeightPx = it.height }
-                    .kpknGlassOrFallback(hazeState = hazeState, shape = panelShape)
-                    .clickable(
-                        interactionSource = panelInteraction,
-                        indication = null,
-                        onClick = {},
-                    ),
-            ) {
-              Column(
-                modifier = Modifier.fillMaxWidth().then(if (fullHeight) Modifier.fillMaxHeight() else Modifier.wrapContentHeight()),
-              ) {
-                if (fullHeight) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .size(width = 36.dp, height = 4.dp)
-                            .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(2.dp)),
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            title,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White
-                        )
-                        if (showCloseButton) {
-                            IconButton(
-                                onClick = { handleDismiss() },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = Color.White.copy(alpha = 0.08f),
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                            }
-                        }
-                    }
-                    content()
-                    Spacer(Modifier.height(if (footer != null) 8.dp else 24.dp))
-                }
-                footer?.invoke(this)
-              }
-            }
-        }
+    // Refinamiento 02: todos los cajones de la sesión usan la hoja del prototipo (asa, título en Syne, ✕, panel y velo). [hazeState]
+    // queda por compatibilidad: el panel ya no es de vidrio. Sin [footer] no se añade «Listo»: cada cajón trae sus acciones.
+    @Suppress("UNUSED_VARIABLE") val unusedHaze = hazeState
+    com.example.kpkn.screens.workout.components.LiveSheet(
+        title = title,
+        onDismiss = { if (dismissible) onDismiss() },
+        tag = "workout-drawer",
+        stableHeightFraction = if (fullHeight) .92f else null,
+        footer = if (footer == null) null else { _ -> footer(this) },
+        showClose = showCloseButton,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) { content() }
     }
 }
 
@@ -225,7 +114,7 @@ internal fun QuickExecutionErrorDiscomfortSheet(
     onSave: (discomfortIds: List<String>) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    KpknSheet(
+    KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, 
         onDismissRequest = {},
         dismissible = false,
     ) {

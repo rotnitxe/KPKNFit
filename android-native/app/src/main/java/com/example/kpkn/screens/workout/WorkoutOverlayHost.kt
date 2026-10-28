@@ -158,6 +158,7 @@ internal fun WorkoutRestOverlayHost(
                 onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
                 onWarmupEffort = null,
                 postExerciseFeedbackContent = postExerciseFeedbackContent,
+                onDeferFeedback = { viewModel.deferPostExerciseSheet() },
                 feedbackExerciseCount = feedbackExerciseCount,
                 feedbackTitle = headline.title.ifBlank { restState.exerciseName },
                 feedbackAfter = feedbackAfter,
@@ -173,6 +174,8 @@ internal fun WorkoutRestOverlayHost(
                 showIntro = isRestTimerRunning && restIntroSeen == false && !introAcknowledged,
                 onIntroDone = { introAcknowledged = true },
                 videoSlot = videoSlot,
+                isPaused = restState.pausedRemainingSeconds != null,
+                onTogglePause = { viewModel.toggleRestPause() },
 
             )
             }

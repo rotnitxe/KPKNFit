@@ -3,7 +3,10 @@ package com.example.kpkn.screens.workout
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
@@ -24,6 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.*
 import androidx.compose.ui.input.pointer.pointerInput
@@ -48,6 +56,8 @@ import com.example.kpkn.screens.workout.components.LiveUndoPillHost
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.abs
+import kotlinx.coroutines.launch
+import androidx.compose.animation.togetherWith
 
 internal val LiveSessionLineHeight = 112.dp
 
@@ -70,9 +80,6 @@ internal fun liveSessionLineRanges(count: Int, active: Int, preparation: Set<Int
     }
 }
 
-private data class FoldedLiveExercise(val key: String, val members: List<Exercise>, val ordinal: Int) {
-    val title get() = members.joinToString(" + ", transform = ::displayWorkoutExerciseName)
-}
 
 /** V1: one island owns the route, preparation, series, folded exercises and the recording action. */
 @OptIn(ExperimentalFoundationApi::class)
@@ -98,212 +105,245 @@ internal fun LiveSessionLine(
     undoStack: List<GodModeUndoSnapshot> = emptyList(),
     completedSets: Map<String, CompletedSet> = emptyMap(),
     onUndo: (Int) -> Unit = {},
+    sessionCompletedCount: Int? = null,
+    sessionTotalCount: Int? = null,
+    restActive: Boolean = false,
+    onEndRest: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val ink = WizardColors.text
-    val reduced = wizardReducedMotion()
     val clouds = snapshot?.let { state -> liveSessionLineSteps(state, state.activePageIndex).map { step ->
         state.calibratedPageLoads[step.pageIndex]?.let { load ->
             step.copy(calibratedLoad = load, description = "${step.description}, calibrada ${finishNumber(load)} kg")
         } ?: step
     } }.orEmpty()
     val selected = clouds.indexOfFirst { it.active }.coerceAtLeast(0)
-    val preparation = clouds.indices.filter { clouds[it].preparationSelect != null }.toSet()
-    val ranges = liveSessionLineRanges(clouds.size, selected, preparation)
-    var showAllSteps by remember { mutableStateOf(false) }
-    val groups = remember(exercises, supersetGroups) {
-        val memberGroups = buildMap {
-            supersetGroups.forEach { group -> group.exerciseOrder.forEach { put(it, group.id) } }
-            exercises.forEach { ex -> ex.supersetGroupRefOrLegacyId()?.let { put(ex.id, it) } }
-        }
-        val emitted = mutableSetOf<String>()
-        exercises.mapNotNull { ex ->
-            val group = memberGroups[ex.id]
-            val key = group ?: ex.id
-            if (!emitted.add(key)) null else FoldedLiveExercise(key,
-                if (group == null) listOf(ex) else {
-                    val members = exercises.filter { memberGroups[it.id] == group }
-                    val order = supersetGroups.firstOrNull { it.id == group }?.exerciseOrder.orEmpty()
-                    members.sortedBy { order.indexOf(it.id).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
-                }, emitted.size)
-        }
-    }
-    val currentGroup = groups.indexOfFirst { group -> group.members.any { it.id == currentExerciseId } }
-    val before = groups.take(currentGroup.coerceAtLeast(0))
-    val after = if (currentGroup >= 0) groups.drop(currentGroup + 1) else groups
-    val list = rememberLazyListState()
-    val density = LocalDensity.current
-    var overscroll by remember { mutableFloatStateOf(0f) }
     val adjacent by rememberUpdatedState(onNavigateAdjacentExercise)
-    val gesture = remember(density) {
-        object : NestedScrollConnection {
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                if (source == NestedScrollSource.UserInput) overscroll += available.x
-                return Offset.Zero
-            }
-            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                val forward = overscroll < 0
-                val atEdge = if (forward) !list.canScrollForward else !list.canScrollBackward
-                if (atEdge && abs(overscroll) >= with(density) { 56.dp.toPx() }) adjacent?.invoke(forward)
-                overscroll = 0f
-                return Velocity.Zero
-            }
-        }
-    }
-    val activeRailIndex = before.size + ranges.indexOfFirst { selected in it.indices }.coerceAtLeast(0)
-    val railItemCount = before.size + ranges.size + after.size + if (clouds.isEmpty() && currentGroup >= 0) 1 else 0
-    val railGesture = if (railItemCount <= 1 && adjacent != null) Modifier.pointerInput(Unit) {
-        var drag = 0f
-        detectHorizontalDragGestures(onDragStart = { drag = 0f }, onDragCancel = { drag = 0f },
-            onHorizontalDrag = { _, delta -> drag += delta }, onDragEnd = {
-                if (abs(drag) >= 56.dp.toPx()) adjacent?.invoke(drag < 0f)
-                drag = 0f
-            })
-    } else Modifier.nestedScroll(gesture)
-    LaunchedEffect(clouds.map { it.key }, activeRailIndex, groups.map { it.key }) {
-        if (groups.isNotEmpty()) {
-            list.scrollToItem(activeRailIndex)
-            val info = list.layoutInfo
-            info.visibleItemsInfo.firstOrNull { it.index == activeRailIndex }?.let { item ->
-                val center = (info.viewportStartOffset + info.viewportEndOffset) / 2f
-                val delta = item.offset + item.size / 2f - center
-                if (abs(delta) > 1f) {
-                    if (reduced) list.scroll { scrollBy(delta) } else list.animateScrollBy(delta)
-                }
-            }
-        }
-    }
     fun selectCloud(cloud: LiveSessionLineStep) {
         if (cloud.preparationSelect != null) cloud.preparationSelect.invoke()
         else cloud.pageIndex?.let(onSelectPage)
     }
-    fun selectGroup(group: FoldedLiveExercise) {
-        if (group.members.size > 1) onSelectSuperset(group.key) else onSelectExercise(group.members.first().id)
+    // Roadmap del Refinamiento 02 (captura 01): vidrio gris flotante con el resumen de la sesión, la pista de fases del ejercicio
+    // (MOV · APR · SER · REST) y la fila ‹ registrar ›. Las series sueltas se eligen con ‹ › o desde la ruta (toque en el resumen).
+    val activeCloud = clouds.getOrNull(selected)
+    val currentExercise = exercises.firstOrNull { it.id == currentExerciseId }
+    val glass = RoundedCornerShape(25.dp)
+    val nextExercise = currentExercise?.let { current -> exercises.getOrNull(exercises.indexOfFirst { it.id == current.id } + 1) }
+    val railNodes = liveRailNodes(clouds, restActive,
+        nextExerciseLabel = nextExercise?.let { displayWorkoutExerciseName(it).substringBefore(' ').take(7) },
+        onSelect = ::selectCloud, onNext = adjacent?.let { go -> { go(true) } })
+    var scrubbed by remember { mutableStateOf<LiveRailNode?>(null) }
+    val reduced = wizardReducedMotion()
+    // Barrido verde del botón al registrar: confirma el gesto aunque la tarjeta cambie a la vez.
+    val wipe = remember { androidx.compose.animation.core.Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    fun step(forward: Boolean) {
+        val target = clouds.getOrNull(selected + if (forward) 1 else -1)
+        if (target != null) selectCloud(target) else adjacent?.invoke(forward)
     }
-    Column(modifier.fillMaxWidth().height(LiveSessionLineHeight).testTag("live-session-line")
-        .clip(RoundedCornerShape(26.dp)).background(androidx.compose.ui.graphics.Color(0xE6161616))
-        .border(1.dp, ink.copy(alpha = .10f), RoundedCornerShape(26.dp)).padding(6.dp)) {
-        Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(20.dp))
-                .combinedClickable(role = Role.Button, onClick = onOpenRoute,
-                    onLongClick = currentExerciseId?.let { id -> { onOpenExerciseOptions(id) } })
-                .semantics { contentDescription = "Abrir ruta de la sesión" }.testTag("live-session-route"),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(KpknLineIcons.Route, null, Modifier.size(20.dp), tint = ink)
-                Column(Modifier.weight(1f)) {
-                    Text(groups.getOrNull(currentGroup)?.title ?: "Ruta de la sesión", style = KpknType.chip,
-                        color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(buildString {
-                        snapshot?.let { append("${it.completedCount}/${it.totalCount} · ") }
-                        if (groups.isEmpty()) append("Sin ejercicios")
-                        else append("${(currentGroup + 1).coerceAtLeast(1)} de ${groups.size} bloques")
-                    }, style = KpknType.caption.copy(fontSize = 11.sp), color = WizardColors.textMuted, maxLines = 1)
-                }
-                Icon(KpknLineIcons.ChevronRight, null, Modifier.size(16.dp), tint = ink)
-            }
-            LiveUndoPillHost(undoStack, completedSets, onUndo, compact = true)
-            pendingActions.forEach { pending ->
-                HeaderSheetAction(pending.label, pending.onClick, Modifier.width(88.dp), multiline = true)
-            }
-            if (snapshot?.canAddSet == true && onAddSet != null) {
-                SessionLinePill("+", "Añadir serie", false, onAddSet, tag = "live-session-add-set")
-            }
-        }
-        Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
-                LazyRow(state = list, userScrollEnabled = railItemCount > 1,
-                    modifier = Modifier.fillMaxSize().then(railGesture).testTag("live-session-steps")
-                    .drawBehind { drawLine(ink.copy(alpha = .14f), Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 1.dp.toPx()) },
-                    contentPadding = PaddingValues(horizontal = ((maxWidth - 48.dp) / 2).coerceAtLeast(0.dp)),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    items(before, key = { "exercise-${it.key}" }) { group ->
-                        SessionLinePill("· ${group.ordinal}", "Ir a ${group.title}", false,
-                            { selectGroup(group) }, { onOpenExerciseOptions(group.members.first().id) })
+    Box(modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().height(LiveSessionLineHeight).testTag("live-session-line")
+            .shadow(18.dp, glass, clip = false)
+            .clip(glass)
+            .background(Brush.linearGradient(listOf(Color(0xC2333333), Color(0xB3212121))))
+            .border(1.dp, Brush.linearGradient(listOf(Color(0x3DFFFFFF), Color(0x14FFFFFF), Color(0x24FFFFFF))), glass)
+            .padding(start = 11.dp, end = 11.dp, top = 8.dp, bottom = 9.dp)) {
+            Row(Modifier.fillMaxWidth().height(22.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.clip(RoundedCornerShape(10.dp))
+                    .combinedClickable(role = Role.Button, onClick = onOpenRoute,
+                        onLongClick = currentExerciseId?.let { id -> { onOpenExerciseOptions(id) } })
+                    .semantics { contentDescription = "Abrir ruta de la sesión" }.testTag("live-session-route")
+                    .padding(horizontal = 2.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    // El número de series registradas rueda hacia arriba al cambiar.
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = liveSessionDockSummary(sessionCompletedCount ?: snapshot?.completedCount,
+                            sessionTotalCount ?: snapshot?.totalCount, short = pendingActions.isNotEmpty()),
+                        transitionSpec = {
+                            if (reduced) {
+                                androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                            } else {
+                                (androidx.compose.animation.slideInVertically { it } + androidx.compose.animation.fadeIn()) togetherWith
+                                    (androidx.compose.animation.slideOutVertically { -it } + androidx.compose.animation.fadeOut())
+                            }
+                        },
+                        label = "dock-count",
+                    ) { summary ->
+                        Text(summary, style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, letterSpacing = 0.5.sp),
+                            color = WizardColors.textMuted, maxLines = 1)
                     }
-                    items(ranges, key = { "range-${clouds[it.indices.first].key}" }) { range ->
-                        if (range.compressed) SessionLinePill("…${range.indices.count()}", "Ver ${range.indices.count()} pasos lejanos", false, { showAllSteps = true })
-                        else {
-                            val cloud = clouds[range.indices.first]
-                            SessionLinePill(cloud.label, cloud.description, cloud.active, { selectCloud(cloud) },
-                                cloud.pageIndex?.let { page -> onLongPressPage?.let { open -> { open(page) } } }, cloud)
+                    Icon(KpknLineIcons.ChevronDown, null, Modifier.size(11.dp), tint = WizardColors.textFaint)
+                }
+                Spacer(Modifier.weight(1f))
+                // Las acciones pendientes se leen enteras: con la letra grande se ajusta su tamaño en vez de cortarlas.
+                pendingActions.forEach { pending ->
+                    BasicText(pending.label, Modifier.weight(1f, fill = false).clip(RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button, onClick = pending.onClick).padding(horizontal = 6.dp, vertical = 4.dp),
+                        style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold,
+                            color = WizardColors.text),
+                        maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 7.sp, maxFontSize = 10.sp, stepSize = .5.sp))
+                }
+                val scrubNode = scrubbed
+                if (scrubNode != null) {
+                    // Mientras se arrastra por el raíl, la cabecera dice dónde se va a soltar.
+                    Text(scrubNode.description, Modifier.weight(1f, fill = false).padding(start = 8.dp),
+                        style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.SemiBold),
+                        color = Color(0xFFF49A6E), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                } else if (pendingActions.isEmpty() && currentExercise != null && activeCloud != null) {
+                    // El nombre cede espacio (va completo en la cabecera); la posición «3 / 4» se ve siempre.
+                    val positionStyle = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp)
+                    Text(displayWorkoutExerciseName(currentExercise),
+                        modifier = Modifier.weight(1f, fill = false).padding(start = 8.dp),
+                        style = positionStyle, color = WizardColors.textFaint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(" " + liveSessionDockPosition(activeCloud, currentExercise), style = positionStyle,
+                        color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                }
+                val doneCount = (sessionCompletedCount ?: snapshot?.completedCount ?: 0).toFloat()
+                val totalCount = (sessionTotalCount ?: snapshot?.totalCount ?: 0).toFloat()
+                SessionProgressRing(if (totalCount > 0f) (doneCount / totalCount).coerceIn(0f, 1f) else 0f, reduced,
+                    Modifier.padding(start = 8.dp).size(18.dp))
+            }
+            LiveSessionRail(railNodes, onLongPress = onLongPressPage, onScrub = { scrubbed = it }, modifier = Modifier.padding(top = 2.dp))
+            Spacer(Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DockNavButton(KpknLineIcons.ChevronLeft, "Paso anterior") { step(false) }
+                val endsRest = restActive && onEndRest != null
+                val label = when {
+                    endsRest -> "Terminar descanso"
+                    isUpdateMode -> "Actualizar serie"
+                    else -> "Registrar serie"
+                }
+                val primaryVisible = endsRest || recordVisible
+                val primaryEnabled = endsRest || recordEnabled
+                Row(
+                    Modifier.weight(1f).fillMaxHeight()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(if (primaryVisible) ink.copy(alpha = if (primaryEnabled) 1f else .38f) else Color.Transparent)
+                        .drawBehind {
+                            val sweep = wipe.value
+                            if (sweep > 0f) {
+                                val fade = 1f - ((sweep - .7f) / .3f).coerceIn(0f, 1f)
+                                drawRect(Color(0xFF87C9A5).copy(alpha = .9f * fade),
+                                    size = size.copy(width = size.width * (sweep / .7f).coerceIn(0f, 1f)))
+                            }
                         }
-                    }
-                    if (clouds.isEmpty() && currentGroup >= 0) item(key = "current-exercise") {
-                        val group = groups[currentGroup]
-                        SessionLinePill("· ${group.ordinal}", "Ir a ${group.title}", true,
-                            { selectGroup(group) }, { onOpenExerciseOptions(group.members.first().id) })
-                    }
-                    items(after, key = { "exercise-${it.key}" }) { group ->
-                        SessionLinePill("· ${group.ordinal}", "Ir a ${group.title}", false,
-                            { selectGroup(group) }, { onOpenExerciseOptions(group.members.first().id) })
+                        .combinedClickable(enabled = primaryVisible && primaryEnabled, role = Role.Button,
+                            onClick = {
+                                if (endsRest) {
+                                    onEndRest?.invoke()
+                                } else {
+                                    if (!reduced) scope.launch {
+                                        wipe.snapTo(0f)
+                                        wipe.animateTo(1f, androidx.compose.animation.core.tween(550))
+                                        wipe.snapTo(0f)
+                                    }
+                                    onRecord()
+                                }
+                            })
+                        .semantics(mergeDescendants = true) { contentDescription = label }
+                        .testTag("live-session-record")
+                        .padding(horizontal = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    if (primaryVisible) {
+                        Icon(when {
+                            endsRest -> KpknLineIcons.Play
+                            isUpdateMode -> Icons.Default.Update
+                            else -> KpknLineIcons.Check
+                        }, null, Modifier.size(16.dp), tint = WizardColors.ctaContent)
+                        Spacer(Modifier.width(7.dp))
+                        Text(label, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp), color = WizardColors.ctaContent, maxLines = 1)
                     }
                 }
-            }
-            if (recordVisible) Box(Modifier.size(52.dp).clip(RoundedCornerShape(26.dp))
-                .background(androidx.compose.ui.graphics.Color(0xFFF49A6E).copy(alpha = if (recordEnabled) 1f else .38f))
-                .combinedClickable(enabled = recordEnabled, role = Role.Button, onClick = onRecord)
-                .semantics { contentDescription = if (isUpdateMode) "Actualizar serie" else "Registrar serie" }
-                .testTag("live-session-record"), contentAlignment = Alignment.Center) {
-                Icon(if (isUpdateMode) Icons.Default.Update else KpknLineIcons.Check, null, Modifier.size(25.dp), tint = androidx.compose.ui.graphics.Color.Black)
+                DockNavButton(KpknLineIcons.ChevronRight, "Paso siguiente") { step(true) }
             }
         }
+        LiveUndoPillHost(undoStack, completedSets, onUndo, compact = true,
+            modifier = Modifier.align(Alignment.TopCenter).offset(y = (-52).dp))
     }
-    if (showAllSteps) HeaderSheet(onDismiss = { showAllSteps = false }) { close ->
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Todos los pasos", style = KpknType.title, color = ink)
-            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
-                clouds.forEach { cloud ->
-                    HeaderSheetAction(cloud.description, { selectCloud(cloud); close() }, Modifier.fillMaxWidth())
-                }
-            }
-            HeaderSheetAction("Volver", close, Modifier.fillMaxWidth())
+}
+
+/** Anillo del avance de la sesión (series registradas sobre el total), que crece animado al registrar. */
+@Composable
+private fun SessionProgressRing(progress: Float, reduced: Boolean, modifier: Modifier) {
+    val animated by androidx.compose.animation.core.animateFloatAsState(progress,
+        if (reduced) androidx.compose.animation.core.tween(0) else androidx.compose.animation.core.tween(700), label = "dock-ring")
+    val ink = WizardColors.text
+    androidx.compose.foundation.Canvas(modifier.semantics { contentDescription = "Avance de la sesión ${(progress * 100).toInt()} %" }) {
+        val stroke = 2.2.dp.toPx()
+        drawCircle(ink.copy(alpha = .1f), radius = size.minDimension / 2 - stroke / 2,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+        drawArc(ink, -90f, 360f * animated, false, topLeft = Offset(stroke / 2, stroke / 2),
+            size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+    }
+}
+
+/** Botón ‹ › del roadmap: círculo de 38 dp con relleno blanco al 5 %, en una zona táctil de 44 dp. */
+@Composable
+private fun DockNavButton(icon: ImageVector, description: String, onClick: () -> Unit) {
+    Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).clickable(role = Role.Button, onClick = onClick)
+        .semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
+        Box(Modifier.size(38.dp).clip(RoundedCornerShape(19.dp)).background(WizardColors.text.copy(alpha = .05f)),
+            contentAlignment = Alignment.Center) {
+            Icon(icon, null, Modifier.size(17.dp), tint = WizardColors.textMuted)
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun SessionLinePill(label: String, description: String, active: Boolean, onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null, cloud: LiveSessionLineStep? = null, tag: String? = null) {
-    val shape = RoundedCornerShape(if (cloud?.calibratedLoad != null) 12.dp else 18.dp)
-    val ink = when {
-        active -> androidx.compose.ui.graphics.Color.Black
-        cloud?.completed == true -> SymbolPalette.ok
-        else -> WizardColors.text
+/** Una fase de la pista del roadmap (MOV, APR, SER, REST) del ejercicio en curso. */
+internal data class LiveSessionDockPhase(
+    val key: String,
+    val label: String,
+    val description: String,
+    val active: Boolean,
+    val done: Boolean,
+    val select: (() -> Unit)? = null,
+    val page: Int? = null,
+)
+
+/**
+ * Fases del ejercicio en curso a partir de sus pasos: MOV y APR solo si existen; SER y REST siempre, como en el prototipo. REST está
+ * activa mientras dura un descanso.
+ */
+internal fun liveSessionDockPhases(steps: List<LiveSessionLineStep>, restActive: Boolean): List<LiveSessionDockPhase> {
+    val active = steps.firstOrNull { it.active }
+    val mobility = steps.filter { it.description == "Movilidad" }
+    val warmup = steps.filter { it.description == "Aproximación" }
+    val rest = steps.filter { it.description == "Descanso" }
+    val sets = steps.filter { it.preparationSelect == null && it.description != "Descanso" }
+    val restOn = restActive || active?.description == "Descanso"
+    return buildList {
+        if (mobility.isNotEmpty()) add(LiveSessionDockPhase("mov", "MOV", "Movilidad", !restOn && mobility.any { it.active },
+            mobility.all { it.completed }, select = mobility.first().preparationSelect))
+        if (warmup.isNotEmpty()) add(LiveSessionDockPhase("apr", "APR", "Aproximaciones", !restOn && warmup.any { it.active },
+            warmup.all { it.completed }, select = warmup.first().preparationSelect))
+        val nextSet = sets.firstOrNull { !it.completed && !it.skipped } ?: sets.firstOrNull()
+        add(LiveSessionDockPhase("ser", "SER", "Series", !restOn && (active == null || sets.any { it.active }),
+            sets.isNotEmpty() && sets.all { it.completed || it.skipped }, page = nextSet?.pageIndex))
+        add(LiveSessionDockPhase("rest", "REST", "Descanso", restOn, false,
+            page = rest.firstOrNull { it.active }?.pageIndex ?: rest.firstOrNull()?.pageIndex))
     }
-    Box(Modifier.size(48.dp, 56.dp).combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick)
-        .semantics(mergeDescendants = true) {
-            contentDescription = description
-            selected = active
-            stateDescription = buildList {
-                if (active) add("Seleccionada")
-                if (cloud?.completed == true) add("Completada")
-                if (cloud?.skipped == true) add("Omitida")
-                cloud?.preparationProgress?.takeIf { !cloud.completed }?.let { add("${(it.coerceIn(0f, 1f) * 100).toInt()} por ciento") }
-                if (cloud?.volumeReplaced == true) add("Técnica de volumen reemplazado")
-                if (cloud?.calibratedLoad != null) add("calibrada")
-            }.joinToString(", ")
-        }.testTag(tag ?: "live-session-step-${cloud?.key ?: description}"), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(Modifier.size(44.dp, if (active || cloud?.calibratedLoad != null) 44.dp else 34.dp).clip(shape)
-            .background(if (active) WizardColors.text else androidx.compose.ui.graphics.Color(0xFF202020))
-            .border(1.dp, if (cloud?.volumeReplaced == true) VolumeReplacedStepperTint else WizardColors.text.copy(alpha = .10f), shape),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            when (cloud?.description) {
-                "Movilidad" -> Icon(Icons.Default.AccessibilityNew, null, Modifier.size(20.dp), tint = ink)
-                "Aproximación" -> Icon(Icons.Default.FitnessCenter, null, Modifier.size(20.dp), tint = ink)
-                else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text((if (cloud?.completed == true) "✓" else "") + label,
-                        style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp), color = ink.copy(alpha = if (cloud?.skipped == true) .4f else 1f), maxLines = 1)
-                    cloud?.calibratedLoad?.let {
-                        Text("${finishNumber(it)} kg", fontSize = 9.sp, lineHeight = 10.sp, color = ink)
-                    }
-                }
-            }
-        }
-        if (cloud?.calibratedLoad != null) Text("calibrada", fontSize = 7.sp, lineHeight = 8.sp,
-            color = WizardColors.textMuted, maxLines = 1)
-        }
+}
+
+/** «SERIES · 2 DE 9»: series registradas de la sesión. [short] («2 DE 9») deja sitio a las acciones pendientes sin cortarlas. */
+internal fun liveSessionDockSummary(completed: Int?, total: Int?, short: Boolean = false): String = when {
+    completed == null || total == null -> if (short) "RUTA" else "RUTA DE LA SESIÓN"
+    short -> "$completed DE $total"
+    else -> "SERIES · $completed DE $total"
+}
+
+/** La posición tras el nombre del ejercicio («Sentadilla 3 / 4»): la serie de turno sobre sus series, o la fase de preparación. */
+internal fun liveSessionDockPosition(step: LiveSessionLineStep, exercise: Exercise): String {
+    val total = exercise.sets.count { !it.isEmptySlot }
+    val label = step.label.removePrefix("S").trim()
+    return when (step.description) {
+        "Movilidad" -> "· movilidad"
+        "Aproximación" -> "· aproximaciones"
+        "Descanso" -> "· descanso"
+        else -> "$label / $total"
     }
 }

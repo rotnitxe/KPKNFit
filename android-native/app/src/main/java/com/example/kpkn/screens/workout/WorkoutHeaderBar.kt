@@ -5,11 +5,13 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
@@ -22,7 +24,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,6 +44,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.isActive
 import com.example.kpkn.data.models.SessionBackground
@@ -47,6 +54,7 @@ import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.ui.components.kpknCoverGlass
+import com.example.kpkn.ui.components.kpknCoverGlassOrFallback
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
@@ -225,16 +233,9 @@ internal fun WorkoutChronometer(
         } else {
             60
         }
-    val targetSeconds = (resolvedTargetMinutes * 60).coerceAtLeast(1)
-    val ringProgress = if (hasLimit) {
-        (displayRemaining.coerceAtLeast(0).toFloat() / targetSeconds.toFloat()).coerceIn(0f, 1f)
-    } else {
-        0f
-    }
 
     val text = buildString {
         append("%d:%02d".format(java.util.Locale.getDefault(), elapsedSeconds / 60, elapsedSeconds % 60))
-        if (hasLimit) append(" / " + (liveTargetMinutes ?: resolvedTargetMinutes) + "′")
     }
 
     val accent = sessionTimeChipAccent(isExceeded = isExceeded, coachPaceAlert = coachPaceAlert)
@@ -277,41 +278,33 @@ internal fun WorkoutChronometer(
     val pendingMinutes = (pendingChange as? PendingSessionTimeChange.SetMinutes)?.minutes
     val selectedPreset = pendingMinutes ?: liveTargetMinutes
 
+    // `.timer-pill` del prototipo 02: 40 dp de alto, radio 19, blanco al 3 %, relleno 9, icono de cronómetro de 15 dp y el tiempo
+    // transcurrido en tinta (11 sp, 600). El objetivo, el ritmo y los avisos viven en la hoja «Tiempo de sesión»; la píldora solo
+    // tiñe el icono cuando el ritmo pide atención (excedido, retrasado o adelantado).
     Row(
         modifier = modifier
-            .clip(KpknShape.pill)
-            .background(KpknSurface.inset)
-            .clickable { showAdjustDialog = true }
-            .height(27.dp)
-            .padding(horizontal = 9.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
+            .clip(RoundedCornerShape(19.dp))
+            .background(Color(0x07FFFFFF))
+            .clickable(onClickLabel = "Tiempo de la sesión") { showAdjustDialog = true }
+            .semantics { contentDescription = "Tiempo de la sesión: $text" + if (hasLimit) " de ${liveTargetMinutes ?: resolvedTargetMinutes} minutos" else "" }
+            .height(40.dp)
+            .padding(horizontal = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp * headerCompactScale()),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(18.dp * headerCompactScale())) {
-            if (hasLimit) {
-                CircularProgressIndicator(
-                    progress = { ringProgress },
-                    modifier = Modifier.size(18.dp * headerCompactScale()),
-                    color = accent,
-                    trackColor = WizardColors.textFaint.copy(alpha = 0.30f),
-                    strokeWidth = 1.6.dp * headerCompactScale(),
-                )
-            }
-            Icon(
-                imageVector = Icons.Default.Timer,
-                contentDescription = null,
-                modifier = Modifier.size(11.dp * headerCompactScale()),
-                tint = accent,
-            )
-        }
+        Icon(
+            imageVector = KpknLineIcons.Timer,
+            contentDescription = null,
+            modifier = Modifier.size(15.dp),
+            tint = if (accent == PaceChipNeutral) WizardColors.text else accent,
+        )
         Text(
             text = text,
-            style = headerChipStyle(FontWeight.SemiBold, headerViewportScale()).copy(
-                fontFeatureSettings = "tnum",
-            ),
-            color = accent,
+            style = KpknType.action.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
+            color = WizardColors.text,
+            maxLines = 1,
+            softWrap = false,
         )
-
     }
 
     if (showAdjustDialog) {
@@ -374,6 +367,7 @@ internal fun WorkoutHeaderBar(
     sessionHasProgrammedTime: Boolean = false,
     completedWorkingSetCount: Int = 0,
     totalWorkingSetCount: Int = 0,
+    totalExerciseCount: Int = 0,
     pacingAlertMessage: String? = null,
     coachPaceAlert: String? = null,
     exerciseTag: String? = null,
@@ -410,7 +404,11 @@ internal fun WorkoutHeaderBar(
     program: Program? = null,
     forcedMarqueeMoving: Boolean = false,
     compactLayout: Boolean? = null,
+    /** En la vista Lista el contexto del ejercicio va dentro de la lista (prototipo 02) y la cabecera queda solo con la isla. */
+    showExerciseContext: Boolean = true,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
+    /** Cada incremento abre «Tiempo de sesión» (lo pide el menú ⋯ de la sesión). */
+    sessionTimeRequest: Int = 0,
 ) {
     val headerScale = headerCompactScale()
     val typeScale = headerViewportScale()
@@ -420,92 +418,9 @@ internal fun WorkoutHeaderBar(
     val density = LocalDensity.current
     var headerContentHeightPx by remember { mutableIntStateOf(0) }
 
+    // Refinamiento 02: la cabecera no pinta fondo propio (ni portada, ni relleno, ni degradado). Solo flota la cápsula de vidrio sobre la
+    // sesión, como en el prototipo; lo que pasa por debajo se ve a través del vidrio.
     Box(modifier = Modifier.fillMaxWidth().zIndex(8f)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (headerContentHeightPx > 0) {
-                        Modifier.height(with(density) { headerContentHeightPx.toDp() })
-                    } else {
-                        Modifier.matchParentSize()
-                    },
-                )
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            0.00f to Color.White,
-                            0.70f to Color.White,
-                            1.00f to Color.Transparent,
-                        ),
-                        blendMode = BlendMode.DstIn,
-                    )
-                },
-        ) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(KpknSurface.canvas),
-            )
-            // Portada del programa activo como fondo tenue (LV1 punto 13)
-            val effectiveCover = program?.coverImage ?: programCover
-            if (!effectiveCover.isNullOrBlank()) {
-                val bundledCover = rememberProgramCover(programCoverEntryIdOf(effectiveCover), with(density) { 360.dp.roundToPx() })
-                val coverKind = heroCoverKind(effectiveCover, hasBundledCover = bundledCover != null)
-                val identity = remember(program, effectiveCover) {
-                    if (program != null) {
-                        coverIdentityForProgram(program)
-                    } else {
-                        val choice = parseProgramStudioCover(effectiveCover)
-                        val base = coverIdentityFor("session_header_program", null)
-                        if (choice != null) base.restyled(choice.style, choice.palette) else base
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .testTag("workout_header_cover_background")
-                        .graphicsLayer { alpha = 0.18f },
-                ) {
-                    when {
-                        coverKind == HeroCoverKind.REMOTE -> {
-                            AsyncImage(
-                                model = effectiveCover,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                        coverKind == HeroCoverKind.BUNDLED && bundledCover != null -> {
-                            Image(
-                                bitmap = bundledCover,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                        coverKind == HeroCoverKind.STUDIO || coverKind == HeroCoverKind.GRADIENT -> {
-                            CoverStudioArt(
-                                identity = identity,
-                                modifier = Modifier.fillMaxSize(),
-                                animate = false,
-                                reduced = true,
-                            )
-                        }
-                    }
-                }
-            }
-            if (bodyHazeState != null) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .kpknCoverGlass(bodyHazeState, RectangleShape, withBorder = false),
-                )
-            }
-        }
-
         // LV-C: en la cabecera compacta los botones de icono conservan 44 dp de layout; Compose amplía su zona de toque a los 48 dp
         // mínimos (se mide con touchBoundsInRoot en LiveHeaderTouchTargetsTest). Así el relator no pierde los 4 dp de alto que le
         // quitaba la fila, sobre todo a 740 dp con letra al 130 %. Los chips tampoco reservan 48 dp de layout.
@@ -515,180 +430,64 @@ internal fun WorkoutHeaderBar(
                 .fillMaxWidth()
                 .onSizeChanged { headerContentHeightPx = it.height }
                 .windowInsetsPadding(statusBarInsets)
-                .padding(start = 12.dp, end = 12.dp, top = if (compactHeader) 0.dp else 10.dp, bottom = if (compactHeader) 0.dp else 7.dp)
+                .padding(start = 10.dp, end = 10.dp, top = if (compactHeader) 0.dp else 10.dp, bottom = if (compactHeader) 0.dp else 7.dp)
                 .testTag("live-session-header"),
             verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
         ) {
+            var openSessionTimeRequest by remember { mutableIntStateOf(0) }
+            LaunchedEffect(sessionTimeRequest) { if (sessionTimeRequest > 0) openSessionTimeRequest++ }
+            // Isla del prototipo 02 (`.phone > .island`): 60 dp de alto (53 en pantallas bajas), radio 30, relleno 15 / 8, degradado
+            // gris a 135° con borde blanco al 13 %, reflejo interior arriba y sombra. Título y subtítulo a la izquierda, en una línea;
+            // el cronómetro y «⋯» a la derecha, centrados en vertical.
+            val capsuleShape = RoundedCornerShape(30.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = if (compactHeader) 2.dp else 8.dp, bottom = cs(6.dp))
+                    .shadow(14.dp, capsuleShape, clip = false, ambientColor = Color(0x88000000), spotColor = Color(0x88000000))
+                    .clip(capsuleShape)
+                    .then(
+                        if (bodyHazeState != null) {
+                            Modifier.kpknCoverGlassOrFallback(bodyHazeState, capsuleShape, withBorder = false)
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .background(Brush.linearGradient(listOf(Color(0xB03A3A3A), Color(0xA8202020))), capsuleShape)
+                    .drawBehind {
+                        drawLine(Color(0x13FFFFFF), Offset(size.height / 2, 1.dp.toPx()), Offset(size.width - size.height / 2, 1.dp.toPx()), 1.dp.toPx())
+                    }
+                    .border(1.dp, Color(0x21FFFFFF), capsuleShape)
+                    .heightIn(min = if (compactHeader) 53.dp else 60.dp)
+                    .padding(start = 15.dp, end = 8.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
-                    val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
-                    val titleBase = KpknType.title.copy(fontSize = if (compactHeader) 18.sp else 20.sp, lineHeight = if (compactHeader) 20.sp else 24.sp)
-                    val reducedMotion = wizardReducedMotion()
-                    val titleAnnotated = remember(exerciseName, exerciseChips) {
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(color = WizardColors.text)) {
-                                append(exerciseName)
-                            }
-                            exerciseChips.forEach { chip ->
-                                append(" · ")
-                                withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                    append(chip)
-                                }
-                            }
-                        }
-                    }
-                    val titleStyle = titleBase
-                    val measurer = rememberTextMeasurer()
-                    val textLayout = remember(titleAnnotated, titleStyle, measurer) {
-                        measurer.measure(titleAnnotated, style = titleStyle, maxLines = 1, softWrap = false)
-                    }
-                    // Font metrics can exceed the nominal line height (notably the compact title).
-                    val titleSlotHeight = with(density) {
-                        maxOf(titleBase.lineHeight.toDp(), textLayout.size.height.toDp())
-                    }
-
-                    BoxWithConstraints(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(titleSlotHeight),
-                        contentAlignment = Alignment.BottomStart,
-                    ) {
-                        val containerWidthPx = constraints.maxWidth
-                        val textWidthPx = textLayout.size.width
-                        val useMarquee = workoutHeaderShouldUseMarquee(
-                            textWidth = textWidthPx,
-                            containerWidth = containerWidthPx,
-                            reducedMotion = reducedMotion,
-                        )
-
-                        val titleOffset = remember(titleAnnotated, textWidthPx, containerWidthPx) { Animatable(0f) }
-                        val overflowPx = (textWidthPx - containerWidthPx).coerceAtLeast(0).toFloat()
-                        LaunchedEffect(useMarquee, overflowPx) {
-                            titleOffset.snapTo(0f)
-                            if (useMarquee) {
-                                val travelMs = (overflowPx / (12f * density.density) * 1000).toInt().coerceAtLeast(1200)
-                                while (true) {
-                                    delay(2500)
-                                    titleOffset.animateTo(overflowPx, tween(travelMs, easing = LinearEasing))
-                                    delay(2500)
-                                    titleOffset.animateTo(0f, tween(travelMs, easing = LinearEasing))
-                                }
-                            }
-                        }
-                        val isMoving = titleOffset.value > 0.5f
-                        val effectiveMoving = isMoving || forcedMarqueeMoving
-
-                        // Fundido de 16 dp en el borde derecho, y en el izquierdo mientras se mueve (LV1 punto 1)
-                        val fadeModifier = if (useMarquee && effectiveMoving) {
-                            Modifier
-                                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                .drawWithContent {
-                                    drawContent()
-                                    val fadePx = 16.dp.toPx()
-                                    // Fundido derecho
-                                    drawRect(
-                                        brush = Brush.horizontalGradient(
-                                            0f to Color.Black,
-                                            1f to Color.Transparent,
-                                            startX = (size.width - fadePx).coerceAtLeast(0f),
-                                            endX = size.width,
-                                        ),
-                                        blendMode = BlendMode.DstIn,
-                                    )
-                                    // Fundido izquierdo mientras se mueve
-                                    if (effectiveMoving) {
-                                        drawRect(
-                                            brush = Brush.horizontalGradient(
-                                                0f to Color.Transparent,
-                                                1f to Color.Black,
-                                                startX = 0f,
-                                                endX = fadePx,
-                                            ),
-                                            blendMode = BlendMode.DstIn,
-                                        )
-                                    }
-                                }
-                        } else Modifier
-
-                        Box(Modifier.fillMaxWidth().clipToBounds().then(fadeModifier)) {
-                            Text(
-                                text = titleAnnotated,
-                                modifier = Modifier
-                                    .then(if (useMarquee && effectiveMoving) Modifier.wrapContentWidth(Alignment.Start, unbounded = true) else Modifier.fillMaxWidth())
-                                    .graphicsLayer { translationX = -titleOffset.value }
-                                    .then(if (useMarquee) Modifier.testTag("workout_header_title_marquee") else Modifier),
-                                style = titleStyle,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = if (useMarquee && effectiveMoving) TextOverflow.Clip else TextOverflow.Ellipsis,
-                            )
-                        }
-
-                    }
+                Column(modifier = Modifier.weight(1f).padding(vertical = 6.dp)) {
+                    // Una línea cada una, como el prototipo 02 (`white-space: nowrap; text-overflow: ellipsis`): la isla no crece.
                     Text(
-                        text = buildString {
-                            if (!protocolLabel.isNullOrBlank()) append("$protocolLabel · ")
-                            if (!groupName.isNullOrBlank()) append("$groupName · ")
-                            append(sessionName)
-                        },
-                        style = (if (compactHeader) KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp) else KpknType.caption).scaledBy(typeScale),
-                        color = WizardColors.textMuted,
+                        text = sessionName,
+                        style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold),
+                        color = WizardColors.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = "$totalExerciseCount ejercicios · $completedWorkingSetCount de $totalWorkingSetCount series registradas",
+                        modifier = Modifier.padding(top = 3.dp),
+                        style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp),
+                        color = WizardColors.textFaint,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(0.dp),
-                ) {
-                    if (onStoryClick != null) {
-                        KpknIconButton(
-                            icon = KpknLineIcons.Book,
-                            contentDescription = "Historia de la sesión",
-                            onClick = onStoryClick,
-                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-story-header"),
-                        )
-                    }
-                    onToggleVoice?.let { toggle ->
-                        KpknIconButton(KpknLineIcons.Mic, if (voiceSessionEnabled) "Desactivar voz" else "Activar voz", toggle,
-                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-voice-header"), filled = voiceSessionEnabled)
-                    }
-                    onMoreClick?.let { more ->
-                        KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
-                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-more-header"))
-                    }
-                }
-            }
-            // Fila de chips a todo el ancho de la cabecera, debajo del subtítulo: los botones de icono se quedan arriba (LR1a2).
-            var openSessionTimeRequest by remember { mutableIntStateOf(0) }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    // Máscara de alfa ANTES del desplazamiento (LR1a2): el fundido cae sobre la ventana visible. Con la máscara después,
-                    // caía sobre el contenido entero, que llega fuera de la pantalla, y el chip que no cabe se cortaba con un borde recto.
-                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(Color.Black, Color.Transparent),
-                                startX = size.width - 24.dp.toPx(),
-                                endX = size.width,
-                            ),
-                            blendMode = BlendMode.DstIn,
-                        )
-                    }
-                    .horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
-            ) {
-                Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
                     WorkoutChronometer(
                         startTimeMs = startTimeMs,
@@ -711,121 +510,194 @@ internal fun WorkoutHeaderBar(
                         onRevertUltraFast = onRevertUltraFast,
                         openSessionTimeRequest = openSessionTimeRequest,
                     )
-                }
-
-                // Low-score adaptation is narrated through the relator, not a percentage chip.
-                if (ultraFastApplied) {
-                    Surface(
-                        onClick = { openSessionTimeRequest++ },
-                        shape = KpknShape.pill,
-                        color = KpknSurface.inset,
-                    ) {
-                        Text(
-                            "ULTRARRÁPIDO",
-                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                            style = headerChipStyle(FontWeight.Medium, typeScale),
-                            color = PaceChipGreen,
-                            maxLines = 1,
-                        )
-                    }
-                }
-
-                if (isSuperset) {
-                    Surface(
-                        shape = KpknShape.pill,
-                        color = KpknSurface.inset,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                        ) {
-                            Icon(
-                                Icons.Default.SwapHoriz,
-                                contentDescription = null,
-                                tint = HeaderSignalRed,
-                                modifier = Modifier.size(cs(12.dp)),
-                            )
-                            Text(
-                                "Superserie",
-                                style = headerChipStyle(FontWeight.Medium, typeScale),
-                                color = HeaderSignalRed,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-                // Multi-tag chips (new system)
-                activeMainTags.forEach { tag ->
-                    Surface(
-                        onClick = { onTagClick(tag.id) },
-                        color = KpknSurface.inset,
-                        shape = KpknShape.pill,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                        ) {
-                            Text(
-                                text = activeMainTagLabels[tag.id] ?: tag.name,
-                                style = headerChipStyle(FontWeight.Medium, typeScale),
-                                color = WizardColors.text,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                contentDescription = "Editar",
-                                modifier = Modifier.size(cs(12.dp)),
-                                tint = WizardColors.textMuted,
-                            )
-                        }
-                    }
-                }
-                activeSubTags.forEach { subTag ->
-                    Surface(
-                        onClick = { onRemoveSubTag(subTag.id) },
-                        color = KpknSurface.inset,
-                        shape = KpknShape.pill,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
-                        ) {
-                            Text(
-                                text = subTag.name,
-                                style = headerChipStyle(FontWeight.Medium, typeScale),
-                                color = WizardColors.textMuted,
-                                maxLines = 1,
-                            )
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Quitar",
-                                modifier = Modifier.size(cs(10.dp)),
-                                tint = WizardColors.textFaint,
-                            )
-                        }
-                    }
-                }
-                if (activeMainTags.isEmpty()) {
-                    Surface(
-                        onClick = onOpenTagList,
-                        color = KpknSurface.inset,
-                        shape = KpknShape.pill,
-                    ) {
-                        Text(
-                            text = if (hasCreatedTags) "Etiquetas" else "Sin etiquetas",
-                            modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
-                            style = headerChipStyle(FontWeight.Medium, typeScale),
-                            color = WizardColors.textMuted,
-                            maxLines = 1,
-                        )
+                    onMoreClick?.let { more ->
+                        KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
+                            modifier = Modifier.size(44.dp).testTag("workout-more-header"))
                     }
                 }
             }
+            }
+            // Contexto del ejercicio fuera de la cápsula (prototipo 02): nombre en Syne 18 y una sola línea de contexto. En la Lista lo
+            // pinta la propia lista, para que se desplace con ella.
+            if (showExerciseContext) {
+                WorkoutExerciseContextBlock(
+                    exerciseName = exerciseName,
+                    exerciseChips = exerciseChips,
+                    ultraFastApplied = ultraFastApplied,
+                    onUltraFastClick = { openSessionTimeRequest++ },
+                    isSuperset = isSuperset,
+                    activeMainTags = activeMainTags,
+                    activeMainTagLabels = activeMainTagLabels,
+                    activeSubTags = activeSubTags,
+                    onTagClick = onTagClick,
+                    onOpenTagList = onOpenTagList,
+                    onToggleVoice = onToggleVoice,
+                    voiceSessionEnabled = voiceSessionEnabled,
+                    modifier = Modifier.padding(start = 6.dp, top = if (compactHeader) 4.dp else 8.dp),
+                )
+            }
         }
+        }
+    }
+}
+
+/** Nombre del ejercicio en Syne 18, su línea de contexto (equipo · señales · etiqueta ⌄) y el micrófono (prototipo 02, `.context`). */
+@Composable
+internal fun WorkoutExerciseContextBlock(
+    exerciseName: String,
+    exerciseChips: List<String>,
+    ultraFastApplied: Boolean,
+    onUltraFastClick: () -> Unit,
+    isSuperset: Boolean,
+    activeMainTags: List<WorkoutTag>,
+    activeMainTagLabels: Map<String, String>,
+    activeSubTags: List<WorkoutSubTag>,
+    onTagClick: (String) -> Unit,
+    onOpenTagList: () -> Unit,
+    onToggleVoice: (() -> Unit)?,
+    voiceSessionEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                exerciseName,
+                style = KpknType.title.copy(fontSize = 18.sp, lineHeight = 21.sp, letterSpacing = (-0.35).sp),
+                color = WizardColors.text,
+                modifier = Modifier.testTag("workout-header-exercise"),
+            )
+            WorkoutHeaderContextLine(
+                exerciseChips = workoutHeaderVisibleChips(exerciseName, exerciseChips),
+                ultraFastApplied = ultraFastApplied,
+                onUltraFastClick = onUltraFastClick,
+                isSuperset = isSuperset,
+                activeMainTags = activeMainTags,
+                activeMainTagLabels = activeMainTagLabels,
+                activeSubTags = activeSubTags,
+                onTagClick = onTagClick,
+                onOpenTagList = onOpenTagList,
+            )
+        }
+        onToggleVoice?.let { toggle ->
+            // Micrófono sin relleno; activo, con el acento tenue del prototipo (.mic-on).
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(if (voiceSessionEnabled) HeaderMicOnTint else Color.Transparent)
+                    .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = toggle)
+                    .semantics { contentDescription = if (voiceSessionEnabled) "Desactivar voz" else "Activar voz" }
+                    .testTag("workout-voice-header"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    KpknLineIcons.Mic,
+                    contentDescription = null,
+                    modifier = Modifier.size(19.dp),
+                    tint = if (voiceSessionEnabled) HeaderMicOnInk else WizardColors.textMuted,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Los datos de la línea de contexto que el nombre del ejercicio no dice ya. «Barra» y «Alta» sobran en «Sentadilla Trasera con Barra
+ * Alta»: un dato se omite si todas sus palabras están en el nombre (sin distinguir mayúsculas ni tildes).
+ */
+internal fun workoutHeaderVisibleChips(exerciseName: String, chips: List<String>): List<String> {
+    fun words(text: String): List<String> = java.text.Normalizer.normalize(text.lowercase(), java.text.Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+        .split(Regex("[^a-z0-9]+"))
+        .filter { it.isNotBlank() }
+    val nameWords = words(exerciseName).toSet()
+    return chips.filter { chip -> words(chip).let { it.isEmpty() || !nameWords.containsAll(it) } }.filter { it.isNotBlank() }
+}
+
+/** Título de la cápsula (prototipo 02): «Pierna · Semana 1»; sin semana de programa, solo el nombre de la sesión. */
+internal fun workoutHeaderSessionTitle(sessionName: String, weekInBlock: Int?): String =
+    weekInBlock?.takeIf { it > 0 }?.let { "$sessionName · Semana $it" } ?: sessionName
+
+private val HeaderMicOnInk = Color(0xFFF49A6E)
+private val HeaderMicOnTint = Color(0x12F49A6E)
+
+/** Texto de la etiqueta activa en la línea de contexto: la primera, «+n» por las demás; sin ninguna, «Etiquetas». */
+internal fun workoutHeaderTagSummary(mainLabels: List<String>, subTagCount: Int): String {
+    if (mainLabels.isEmpty()) return "Etiquetas"
+    val extra = mainLabels.size - 1 + subTagCount
+    return mainLabels.first() + if (extra > 0) " +$extra" else ""
+}
+
+/**
+ * Línea de contexto bajo el nombre del ejercicio (prototipo 02): «Barra · Alta · Competición ⌄». La etiqueta abre su gestor (o la
+ * lista si hay varias o ninguna). Superserie y ultrarrápido van en la misma línea con su color de señal.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WorkoutHeaderContextLine(
+    exerciseChips: List<String>,
+    ultraFastApplied: Boolean,
+    onUltraFastClick: () -> Unit,
+    isSuperset: Boolean,
+    activeMainTags: List<WorkoutTag>,
+    activeMainTagLabels: Map<String, String>,
+    activeSubTags: List<WorkoutSubTag>,
+    onTagClick: (String) -> Unit,
+    onOpenTagList: () -> Unit,
+) {
+    val meta = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp)
+    // Iteración 04: sin datos que repitan el nombre ni «Etiquetas ⌄» vacío. Si no queda nada que decir, la línea no ocupa espacio
+    // (las etiquetas siguen en las opciones del ejercicio y en el menú de la sesión).
+    val hasTags = activeMainTags.isNotEmpty() || activeSubTags.isNotEmpty()
+    if (exerciseChips.isEmpty() && !isSuperset && !ultraFastApplied && !hasTags) return
+    @Composable fun FlowRowScope.Dot() = Text("·", modifier = Modifier.align(Alignment.CenterVertically), style = meta, color = WizardColors.textFaint)
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 2.dp).testTag("workout-header-context"),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        var first = true
+        @Composable fun FlowRowScope.Separator() { if (!first) Dot(); first = false }
+        exerciseChips.forEach { chip ->
+            Separator()
+            Text(chip, modifier = Modifier.align(Alignment.CenterVertically), style = meta, color = WizardColors.textFaint)
+        }
+        if (isSuperset) {
+            Separator()
+            Text("Superserie", modifier = Modifier.align(Alignment.CenterVertically), style = meta, color = HeaderSignalRed)
+        }
+        if (ultraFastApplied) {
+            Separator()
+            Text(
+                "Ultrarrápido",
+                modifier = Modifier.align(Alignment.CenterVertically).clickable(onClick = onUltraFastClick),
+                style = meta,
+                color = PaceChipGreen,
+            )
+        }
+        if (!hasTags) return@FlowRow
+        Separator()
+        val label = workoutHeaderTagSummary(
+            mainLabels = activeMainTags.map { activeMainTagLabels[it.id] ?: it.name },
+            subTagCount = activeSubTags.size,
+        )
+        Row(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .heightIn(min = 24.dp)
+                .clip(KpknShape.pill)
+                .clickable(onClickLabel = "Etiquetas del ejercicio") {
+                    if (activeMainTags.size == 1) onTagClick(activeMainTags.first().id) else onOpenTagList()
+                }
+                .testTag("workout-header-tags"),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Text(label, style = meta, color = WizardColors.textMuted, maxLines = 1)
+            Icon(KpknLineIcons.ChevronDown, contentDescription = null, modifier = Modifier.size(11.dp), tint = WizardColors.textFaint)
         }
     }
 }

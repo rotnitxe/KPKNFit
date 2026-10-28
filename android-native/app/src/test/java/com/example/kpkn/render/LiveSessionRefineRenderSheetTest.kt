@@ -24,6 +24,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -331,7 +333,7 @@ class LiveSessionRefineRenderSheetTest {
                                 background = null,
                                 sessionTimeRemainingSeconds = null,
                                 onAdjustTimeLimit = {},
-
+                                onMoreClick = {},
                                 hasCreatedTags = false,
                                 onOpenTagList = {},
                             )
@@ -341,16 +343,13 @@ class LiveSessionRefineRenderSheetTest {
             }
         }
         rule.waitForIdle()
-        // Borde derecho de cada chip = borde del texto + su relleno lateral (8 dp en «Sin etiquetas», 9 dp en «82 %»).
-        val sinEtiquetasDerecho = rule.onNodeWithText("Sin etiquetas", useUnmergedTree = true)
-            .fetchSemanticsNode().boundsInRoot.right / DENSITY + 8f
-        // El % va con espacio inseparable (U+00A0), igual que en WorkoutHeaderBar.kt.
-        val readinessDerecho = rule.onNodeWithText("82 %", useUnmergedTree = true)
-            .fetchSemanticsNode().boundsInRoot.right / DENSITY + 9f
-        println("LR1a2 cabecera 360 dp: sin etiquetas acaba en $sinEtiquetasDerecho; 82 % acaba en $readinessDerecho")
+        // Refinamiento 02: la cabecera es la isla de cristal (márgenes de 10 dp) y, sin etiquetas activas, no hay chip «Sin etiquetas»
+        // que medir. Lo que queda a la derecha es «⋯»: debe acabar dentro de la isla (350 dp).
+        val masDerecho = rule.onNodeWithTag("workout-more-header", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.right / DENSITY
+        rule.onAllNodesWithText("Sin etiquetas", useUnmergedTree = true).assertCountEquals(0)
+        println("Cabecera 360 dp: ⋯ acaba en $masDerecho")
         save(HEADER_TAG, "cabecera_chips_360_100")
-        assertTrue("«Sin etiquetas» acaba en $sinEtiquetasDerecho dp, fuera del margen de 344 dp", sinEtiquetasDerecho <= 344f)
-        assertTrue("«82 %» acaba en $readinessDerecho dp, fuera del margen de 344 dp", readinessDerecho <= 344f)
+        assertTrue("«⋯» acaba en $masDerecho dp, fuera de la isla de 350 dp", masDerecho <= 350f)
     }
 
     @Test
