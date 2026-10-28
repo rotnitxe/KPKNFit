@@ -5,6 +5,9 @@ import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
 import com.example.kpkn.data.food.FoodImporter
 import com.example.kpkn.data.food.FoodKnowledgeStore
+import com.example.kpkn.data.food.catalog.CatalogAssetSource
+import com.example.kpkn.data.food.catalog.NutritionCatalogHolder
+import com.example.kpkn.data.food.catalog.NutritionCatalogPublisher
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
@@ -28,6 +31,7 @@ import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.TextKeys
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import com.example.kpkn.domain.nutrition.nutrients.withCatalogNutrients
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import com.example.kpkn.domain.nutrition.expenditure.DayMark
@@ -279,6 +283,16 @@ class NutritionRepository private constructor(
                 listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
         }) { "Invalid food amount or nutrients" }
         withContext(Dispatchers.IO) {
+            // F4-B: instantánea de nutrientes del paquete de catálogo; sin paquete (o si falla la lectura) se guarda como siempre.
+            val log = NutritionCatalogHolder.current?.let { port ->
+                try {
+                    log.copy(foods = log.foods.map { it.withCatalogNutrients(port) })
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (error: Exception) {
+                    android.util.Log.w("NutritionRepository", "Meal saved without nutrient snapshot", error)
+                    log
+                }
+            } ?: log
             val alreadyStored = db.nutritionDao().getLogsForDate(log.date).any { it.id == log.id }
             // El objetivo histórico pasa por el resolvedor canónico: un registro
             // retroactivo (o su edición/borrado) jamás captura el plan activo
@@ -1260,6 +1274,14 @@ class NutritionRepository private constructor(
                 publishUserState(context)
             } finally {
                 userStatePublished.complete(Unit)
+            }
+            // F4-B: publica el paquete de catálogo en paralelo; solo se instala si salió verificado.
+            launch {
+                NutritionCatalogPublisher(
+                    context.filesDir,
+                    CatalogAssetSource { name -> runCatching { context.assets.open(name) }.getOrNull() },
+                    db.nutritionCatalogDao(),
+                ).publish()?.let { NutritionCatalogHolder.install(it) }
             }
             importCatalog(context)
 

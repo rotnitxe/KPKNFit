@@ -23,3 +23,19 @@ fun LoggedFood.withNutrientSnapshot(per100: Map<NutrientId, Double>, generation:
             .associate { it.key.key to it.value },
         catalogGeneration = generation,
     )
+
+/** Pone la instantánea por 100 g de la ficha del paquete (convertida desde 100 ml con la densidad si hace falta); sin cambios si no se puede. */
+fun LoggedFood.withCatalogNutrients(port: NutritionCatalogPort): LoggedFood {
+    if (isQuickEntry || hasNutrientSnapshot()) return this
+    val recordId = catalogRecordId ?: return this
+    val record = port.record(recordId) ?: return this
+    val values = port.nutrientsPer100(recordId)
+    if (values.isEmpty()) return this
+    if (!(record.basisAmount > 0.0)) return this
+    val factor = when (record.basisUnit) {
+        "g" -> 100.0 / record.basisAmount
+        "ml" -> 100.0 / record.basisAmount / (record.densityGPerMl?.takeIf { it > 0.0 } ?: 1.0)
+        else -> return this
+    }
+    return withNutrientSnapshot(values.mapValues { it.value * factor }, port.generation)
+}
