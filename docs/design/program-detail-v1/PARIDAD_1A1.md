@@ -129,3 +129,15 @@ En paralelo desde 750a7a9c6: R-FS (comida + buscar; huella como hueco `footprint
 scratchpad `encargo_R_comun.md`. En cola por disco (2,6 GB por worktree + build): R-M (vitaminas y minerales, tras R-FS
 o en paralelo sin tocar el registro) y R-H (historias; tras R-C). H-D1 por defecto: la hoja nueva solo para las historias
 nuevas; programa y mes siguen con la hoja del lienzo v6 ya aprobada.
+
+### Registros — R-CR Crear programa (fusionado, 7340c4e1c; código de 34b3b163c)
+Sin compilar aún: la base no compilaba (ProgramHistorySheet del menú sin today/onSaveCopy, suma de la ola 1) → arreglado en
+f164a2549 y avisado a R-C y R-FS (cherry-pick). Pruebas a correr con la suma: PostDischargeRoutingTest, DeepLinkRouterTest,
+ProgramsViewModelTest, ProgramReadyCopyTest, LibraryVisibleEntriesTest, LibraryCardModelTest, NewProgramSheetsTest,
+LibraryReachabilityTest, NewProgramInstanceCopyTest, SetupStepGraphNewProgramTest, SetupStepGraphTest,
+SetupWizardEntrenoPlanTest. Decisiones para el informe: modo aparte NEW_PROGRAM; «Lo que ya sabemos» fila fija; en la ruta del
+catálogo no hay paso PLAN; máximos antes de la semana (orden funcional, el lienzo pone la semana primero); atrás en «Listo»
+al importar deja el programa guardado sin activar; «Desde cero» solo pasa por «Listo» si hay uno en curso; crear desde
+plantilla ya no activa. Pendiente fuera de zona: comentario de PlanGoalMatcher.kt que nombra la hoja vieja.
+Lanzados R-M (vitaminas; entrega NutrientFootprint para los huecos de R-FS) y R-H (historias; entrega
+CompetitionStoryShareSheet para el onShare de R-C) desde 7340c4e1c. Disco: 244 GB libres.
