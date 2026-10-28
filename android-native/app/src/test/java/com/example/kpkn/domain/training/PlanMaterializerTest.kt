@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.AppliedRecipeProposal
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.EffectiveWeekRecipe
+import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.NativeProgressionProposalKind
 import com.example.kpkn.data.models.NativeProgressionResolution
 import com.example.kpkn.data.models.NativeProgressionResolutionStatus
@@ -26,6 +27,8 @@ import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
@@ -504,7 +507,8 @@ class PlanMaterializerTest {
         )
         val parts = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercises[1], null)
         assertEquals(base, parts.parentName)
-        assertTrue(parts.chips.isEmpty())
+        // F-15: la aparición de velocidad repite la configuración de la principal y lleva su rótulo como chip.
+        assertEquals(listOf("Velocidad"), parts.chips)
         exercises.forEach { exercise ->
             assertTrue(
                 "Ningún nombre materializado puede ser el id crudo: '${exercise.name}'",
@@ -810,6 +814,79 @@ class PlanMaterializerTest {
             SeqIds(),
             profile = profile,
         )
+
+    private val fullProfile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0)
+
+    private fun sessionsNamed(program: Program, weekIndex: Int, name: String) =
+        weeksOf(program)[weekIndex].sessions.first { it.name == name }
+
+    @Test
+    fun f15_wendler_bbb_volume_has_its_own_identity_and_is_linked_to_the_main_lift() {
+        val program = materializePublished("wendler-531-bbb", fullProfile)
+        val squatDay = sessionsNamed(program, 0, "Sentadilla")
+        val squats = squatDay.allExercises().filter { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+        assertEquals(2, squats.size)
+        val main = squats[0]
+        val volume = squats[1]
+        assertEquals(null, main.occurrenceLabel)
+        assertEquals("Volumen BBB 5×10", volume.occurrenceLabel)
+        assertEquals(ExerciseRelationshipType.ASSISTANCE, volume.relationshipType)
+        assertEquals(emptyList<Any>(), SessionSlopRules.violations(squatDay))
+        assertEquals(listOf("Volumen BBB 5×10"), exerciseDisplayParts(volume, null).chips)
+        assertTrue("la principal no lleva chip", exerciseDisplayParts(main, null).chips.isEmpty())
+        // Las cuatro semanas, los cuatro días: ninguna sesión repite un ejercicio sin identidad propia.
+        weeksOf(program).forEach { week -> week.sessions.forEach { assertEquals(it.name, emptyList<Any>(), SessionSlopRules.violations(it)) } }
+    }
+
+    @Test
+    fun f15_wendler_fsl_uses_its_own_label() {
+        val program = materializePublished("wendler-531-fsl", fullProfile)
+        val volume = sessionsNamed(program, 0, "Banca").allExercises().filter { it.catalogConfigurationId == CatalogIds.BP }.last()
+        assertEquals("Primera serie extra (FSL) 5×5", volume.occurrenceLabel)
+        assertEquals(ExerciseRelationshipType.ASSISTANCE, volume.relationshipType)
+    }
+
+    @Test
+    fun f15_coan_speed_deadlift_is_labelled_and_a_technique_of_the_heavy_one() {
+        val program = materializePublished("coan-phillipi-dl", fullProfile)
+        val day = sessionsNamed(program, 0, "Peso muerto")
+        val deadlifts = day.allExercises().filter { it.catalogConfigurationId == CatalogIds.DL }
+        assertEquals(2, deadlifts.size)
+        val speed = deadlifts.first { it.slotRole == SlotRole.SPEED }
+        val heavy = deadlifts.first { it.slotRole == SlotRole.T1_MAIN }
+        assertEquals("Velocidad", speed.occurrenceLabel)
+        assertEquals(ExerciseRelationshipType.TECHNIQUE, speed.relationshipType)
+        assertEquals(null, heavy.occurrenceLabel)
+        assertEquals(emptyList<Any>(), SessionSlopRules.violations(day))
+        assertTrue(exerciseDisplayParts(speed, null).chips.contains("Velocidad"))
+    }
+
+    @Test
+    fun f15_phat_speed_work_is_labelled() {
+        val program = materializePublished("phat-verified", fullProfile)
+        val upper = sessionsNamed(program, 0, "Power Upper")
+        val speedBench = upper.allExercises().first { it.slotRole == SlotRole.SPEED }
+        assertEquals("Velocidad", speedBench.occurrenceLabel)
+        val lower = sessionsNamed(program, 0, "Power Lower")
+        val speedSquat = lower.allExercises().first { it.slotRole == SlotRole.SPEED }
+        assertEquals("Velocidad (cajón)", speedSquat.occurrenceLabel)
+        assertEquals(CatalogIds.SQ_LOW, speedSquat.relativeToCanonicalExerciseId)
+        assertEquals(ExerciseRelationshipType.VARIATION, speedSquat.relationshipType)
+        listOf(upper, lower).forEach { assertEquals(it.name, emptyList<Any>(), SessionSlopRules.violations(it)) }
+    }
+
+    @Test
+    fun f15_sheiko_second_batch_of_the_squat_is_labelled() {
+        val program = materializePublished("sheiko-29-32", fullProfile)
+        listOf("Sentadilla/Banca", "Sentadilla/Banca 2").forEach { name ->
+            val day = sessionsNamed(program, 0, name)
+            val squats = day.allExercises().filter { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+            assertEquals(name, 2, squats.size)
+            assertEquals(name, "Segunda tanda", squats[1].occurrenceLabel)
+            assertEquals(name, ExerciseRelationshipType.ASSISTANCE, squats[1].relationshipType)
+            assertEquals(name, emptyList<Any>(), SessionSlopRules.violations(day))
+        }
+    }
 
     @Test
     fun lilliebridge_heavy_deadlift_resolves_to_170_174_180_and_184_kg_with_a_200_kg_one_rm() {

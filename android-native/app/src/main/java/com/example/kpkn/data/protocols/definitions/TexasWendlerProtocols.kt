@@ -157,13 +157,13 @@ object WendlerProtocols {
     private fun bbb(configurationId: String, lift: LiftSlot) = slot(
         "bbb", SlotRole.T2_SUPPLEMENTAL, configurationId,
         repeatPercentSets(5, 10, 50.0, 120),
-        120, lift, supplementalOf = "t1",
+        120, lift, supplementalOf = "t1", occurrenceLabel = "Volumen BBB 5×10",
     )
 
     private fun fsl(configurationId: String, lift: LiftSlot, firstPercent: Double) = slot(
         "fsl", SlotRole.T2_SUPPLEMENTAL, configurationId,
         repeatPercentSets(5, 5, firstPercent, 120),
-        120, lift, supplementalOf = "t1",
+        120, lift, supplementalOf = "t1", occurrenceLabel = "Primera serie extra (FSL) 5×5",
     )
 
     private fun assistanceFor(lift: LiftSlot) = when (lift) {
@@ -245,7 +245,7 @@ object WendlerProtocols {
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 3,
+            contentVersion = 4,
         )
     }
 

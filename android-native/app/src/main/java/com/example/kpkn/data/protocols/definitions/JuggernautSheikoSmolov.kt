@@ -202,7 +202,7 @@ object RemainingVerifiedProtocols {
             "Sentadilla/Banca", weekday = 1, slots = listOf(
                 slot("a", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sq, rest(sq), LiftSlot.SQUAT, isCompetitionLift = true),
                 slot("b", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, bp, 150, LiftSlot.BENCH, isCompetitionLift = true),
-                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a"),
+                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a", occurrenceLabel = "Segunda tanda"),
                 kpknAssist("lunge", CatalogIds.LUNGE_F, 2, 8, 90),
                 kpknAssist("fly", CatalogIds.FLY, 2, 12, 60),
                 kpknAssist("crunch", CatalogIds.CRUNCH, 3, 15, 45),
@@ -225,7 +225,7 @@ object RemainingVerifiedProtocols {
             "Sentadilla/Banca 2", weekday = 5, slots = listOf(
                 slot("a", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sq, rest(sq), LiftSlot.SQUAT, isCompetitionLift = true),
                 slot("b", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, bp, 150, LiftSlot.BENCH, isCompetitionLift = true),
-                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a"),
+                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a", occurrenceLabel = "Segunda tanda"),
                 kpknAssist("lunge", CatalogIds.LUNGE_F, 2, 8, 90),
                 kpknAssist("fly", CatalogIds.FLY, 2, 12, 60),
                 kpknAssist("crunch", CatalogIds.CRUNCH, 3, 15, 45),
@@ -461,7 +461,7 @@ object RemainingVerifiedProtocols {
                         SHEIKO_URL,
                     ),
                 ),
-                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2,
+                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 3,
             ),
             ProtocolFidelitySpec(
                 16, 3, requiresPercent = true, claimedLevel = "avanzado",
@@ -787,7 +787,7 @@ object RemainingVerifiedProtocols {
             val weeks = heavy.mapIndexed { i, pct ->
                 weekRecipe(i + 1, 0, "DL", if (i >= 8) BlockGoal.PEAK else BlockGoal.INTENSIFICATION, listOf(
                     day("Peso muerto", weekday = 4, priority = SlotPriority.SPEED, slots = listOf(
-                        slot("speed", SlotRole.SPEED, CatalogIds.DL, repeatPercentSets(listOf(8, 8, 6, 5, 3, 3, 3, 3, 2, 2)[i], 3, speed[i], 90), 90, LiftSlot.DEADLIFT, technique = TechniqueModifier.SPEED, supplementalOf = "dl", priority = SlotPriority.SPEED),
+                        slot("speed", SlotRole.SPEED, CatalogIds.DL, repeatPercentSets(listOf(8, 8, 6, 5, 3, 3, 3, 3, 2, 2)[i], 3, speed[i], 90), 90, LiftSlot.DEADLIFT, technique = TechniqueModifier.SPEED, supplementalOf = "dl", priority = SlotPriority.SPEED, occurrenceLabel = "Velocidad"),
                         slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, listOf(SetRecipe(reps = if (pct >= 97) 1 else if (i == 4) 3 else 2, percent = pct, isTopSet = pct >= 95, loadBasis = LoadBasis.PERCENT_DESIRED_MAX)).let { if (i == 4) List(3) { SetRecipe(reps = 3, percent = 80.0, loadBasis = LoadBasis.PERCENT_DESIRED_MAX) } else it }, 240, LiftSlot.DEADLIFT, isCompetitionLift = true),
                         slot("sldl", SlotRole.T3_ACCESSORY, CatalogIds.SLDL, rpeSets(2, 8, 8.0), 90),
                         slot("row", SlotRole.T3_ACCESSORY, CatalogIds.ROW, rpeSets(3, 8, 8.0), 90),
@@ -798,7 +798,7 @@ object RemainingVerifiedProtocols {
             }
             // B.S6: la H3 («cuatro bisagras por diseño») estaba muerta (los cuatro accesorios no repiten dominante más de tres veces
             // ni tres seguidas) y se retira; la H2 sigue viva: DL, speed, SLDL y buenos días son cuatro bisagras en la sesión.
-            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, coanExemptions, claimedDaysPerWeek = 1, claimedLevel = "avanzado")
+            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, coanExemptions, claimedDaysPerWeek = 1, claimedLevel = "avanzado", contentVersion = 2)
         },
         ProtocolFidelitySpec(10, 1, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w10" to listOf(100.0))),
         kind = ProtocolKind.SPECIALIZATION,

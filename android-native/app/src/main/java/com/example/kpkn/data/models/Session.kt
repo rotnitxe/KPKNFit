@@ -379,6 +379,11 @@ data class Exercise(
     val nativeProgressionManaged: Boolean = false,
     /** Bloque APRE del editor: variante y sus cuatro series. Vive en el JSON; no añade columnas ni tablas a Room. */
     val apreBlock: ApreBlockReference? = null,
+    /**
+     * Rótulo de una aparición que el autor prescribe junto a otra del mismo ejercicio o de una variante enlazada:
+     * «Volumen BBB 5×10», «Velocidad», «Segunda tanda». null = ejercicio sin repetición por diseño.
+     */
+    val occurrenceLabel: String? = null,
 )
 
 @Serializable

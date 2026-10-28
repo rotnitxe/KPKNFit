@@ -220,8 +220,8 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** LÍNEA BASE medida en master (27-oct-2026). La ola 5 debe dejarlo en 0. */
-        const val CEILING = 2238
+        /** LÍNEA BASE medida en master (27-oct-2026); F-15 (identidad propia de las apariciones repetidas por el autor): 2238 → 1670. La ola 5 debe dejarlo en 0. */
+        const val CEILING = 1670
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40

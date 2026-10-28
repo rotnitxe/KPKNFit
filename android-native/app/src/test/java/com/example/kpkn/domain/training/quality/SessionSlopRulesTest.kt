@@ -15,6 +15,7 @@ class SessionSlopRulesTest {
         configurationId: String?,
         definitionId: String? = configurationId?.substringBefore("__"),
         linkedTo: String? = null,
+        occurrenceLabel: String? = null,
         sets: List<ExerciseSet> = listOf(ExerciseSet(id = "$id-s1")),
     ): Exercise = Exercise(
         id = id,
@@ -22,6 +23,7 @@ class SessionSlopRulesTest {
         catalogConfigurationId = configurationId,
         catalogDefinitionId = definitionId,
         relativeToCanonicalExerciseId = linkedTo,
+        occurrenceLabel = occurrenceLabel,
         sets = sets,
     )
 
@@ -48,6 +50,28 @@ class SessionSlopRulesTest {
             session(
                 exercise("e1", "Sentadilla trasera (barra alta)", "high_bar_back_squat__barbell"),
                 exercise("e2", "Sentadilla trasera (barra alta)", "high_bar_back_squat__barbell", linkedTo = "high_bar_back_squat__barbell"),
+            ),
+        )
+        assertEquals(emptyList<SlopViolation>(), violations)
+    }
+
+    @Test
+    fun `el rotulo del autor tambien da identidad propia a la segunda aparicion`() {
+        val violations = SessionSlopRules.violations(
+            session(
+                exercise("e1", "Sentadilla trasera (barra baja)", "low_bar_back_squat__barbell"),
+                exercise("e2", "Sentadilla trasera (barra baja)", "low_bar_back_squat__barbell", occurrenceLabel = "Segunda tanda"),
+            ),
+        )
+        assertEquals(emptyList<SlopViolation>(), violations)
+    }
+
+    @Test
+    fun `la aparicion enlazada puede ir antes que la base`() {
+        val violations = SessionSlopRules.violations(
+            session(
+                exercise("e1", "Peso muerto", "conventional_deadlift__bilateral__barbell", linkedTo = "conventional_deadlift__bilateral__barbell", occurrenceLabel = "Velocidad"),
+                exercise("e2", "Peso muerto", "conventional_deadlift__bilateral__barbell"),
             ),
         )
         assertEquals(emptyList<SlopViolation>(), violations)

@@ -1479,15 +1479,20 @@ class ProtocolRecipeFidelityTest {
         val bumped = listOf(
             "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
             "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32", "korte-3x3",
+            "tsa-9", "gzcl-jt-2", "westside-conjugate", "korte-3x3",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
+            "lilliebridge", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
+            // F-15: la segunda tanda de Sheiko lleva rótulo propio.
+            "sheiko-29-32",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
+        // F-15: el volumen BBB y la serie FSL de 5/3/1 llevan rótulo propio (v4); la velocidad de Coan y PHAT también (v2).
+        listOf("wendler-531-bbb", "wendler-531-fsl").forEach { id -> assertEquals("$id: contentVersion", 4, recipeOf(id).contentVersion) }
+        listOf("coan-phillipi-dl", "phat-verified").forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
-        listOf("coan-phillipi-dl", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
+        listOf("phul-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {

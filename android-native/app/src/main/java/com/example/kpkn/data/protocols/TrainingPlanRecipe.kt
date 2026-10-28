@@ -254,6 +254,11 @@ data class SlotRecipe(
     val authoredSetRange: AuthoredSetRange? = null,
     /** Referencia explícita del slot; null = resolución legacy sin cambios. */
     val explicitReference: SlotLoadReferenceMetadata? = null,
+    /**
+     * Rótulo de una aparición que el autor prescribe junto a otra del mismo ejercicio o de una variante enlazada
+     * («Volumen BBB 5×10», «Velocidad», «Segunda tanda»). null = el slot no repite ejercicio por diseño.
+     */
+    val occurrenceLabel: String? = null,
 )
 
 /** Tipo de sesión que declara un [DayRecipe] (dispatch de MIXED_CARDIO, §14.3). */

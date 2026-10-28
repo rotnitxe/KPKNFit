@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.exercises
 
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -141,5 +142,29 @@ class ExerciseDisplayNameTest {
         val parts = exerciseDisplayParts(exercise, info)
         assertEquals("incline_chest_fly__cable", info?.id)
         assertEquals(listOf("Polea"), parts.chips)
+    }
+
+    @Test
+    fun f15_occurrence_label_is_the_first_chip_on_catalog_configurations() {
+        val repeated = exercise("cfg").copy(occurrenceLabel = "Volumen BBB 5×10")
+        assertEquals(listOf("Volumen BBB 5×10"), exerciseDisplayParts(repeated, null).chips)
+        assertEquals("Cruce de Poleas · Volumen BBB 5×10", exerciseDisplayParts(repeated, null).text)
+        val info = ExerciseMuscleInfo(id = "cfg", name = "Cruce de Poleas", catalogVariantChips = listOf("Polea Alta"))
+        assertEquals(listOf("Volumen BBB 5×10", "Polea Alta"), exerciseDisplayParts(repeated, info).chips)
+    }
+
+    @Test
+    fun f15_a_named_variation_does_not_repeat_its_label_as_a_chip() {
+        val variation = exercise("cfg").copy(
+            occurrenceLabel = "Velocidad (cajón)",
+            relationshipType = ExerciseRelationshipType.VARIATION,
+            relativeToCanonicalExerciseId = "low_bar_back_squat__barbell",
+        )
+        assertEquals(emptyList<String>(), exerciseDisplayParts(variation, null).chips)
+    }
+
+    @Test
+    fun f15_an_exercise_without_label_is_unchanged() {
+        assertEquals(emptyList<String>(), exerciseDisplayParts(exercise("cfg"), null).chips)
     }
 }

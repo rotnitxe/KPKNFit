@@ -109,6 +109,7 @@ fun slot(
     isUnilateral: Boolean = false,
     source: SlotSource = SlotSource.AUTHOR,
     priority: SlotPriority = SlotPriority.NORMAL,
+    occurrenceLabel: String? = null,
 ): SlotRecipe = SlotRecipe(
     id = id,
     role = role,
@@ -121,6 +122,7 @@ fun slot(
     isUnilateral = isUnilateral,
     source = source,
     priority = priority,
+    occurrenceLabel = occurrenceLabel,
 )
 
 fun day(

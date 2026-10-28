@@ -66,6 +66,7 @@ import com.example.kpkn.domain.training.approach.ApproachInfoProvider
 import com.example.kpkn.domain.training.approach.ApproachOptions
 import com.example.kpkn.domain.training.approach.ApproachPlanner
 import com.example.kpkn.domain.training.approach.approachLevelOf
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -958,7 +959,7 @@ object PlanMaterializer {
                 referenceExerciseId = stableExerciseId
                     ?: legacyExercises[slot.lift.configurationId + "|"]?.removeFirstOrNull()?.id,
             )
-        }
+        }.let { withOccurrenceIdentity(day, it) }
         val parts = groupParts(day, exercises, idProvider, stableSessionId)
         val cardioPart = cardioPartOf(day, week, scope, idProvider, stableSessionId)
         val cardioFirst = cardioPart != null && day.cardioBlocks.any {
@@ -1034,6 +1035,53 @@ object PlanMaterializer {
             isCardioGroup = true,
         )
     }
+
+    /**
+     * F-15 · Identidad propia de las apariciones repetidas por el autor. Un slot que cuelga de otro del mismo día
+     * (`supplementalOf`), o un SPEED con la misma configuración que un T1 sin enlace (Coan, PHAT), y que repite su ejercicio
+     * (misma configuración, misma definición o misma familia de movimiento) o lleva rótulo explícito, queda enlazado al ancla:
+     * `relativeToCanonicalExerciseId` = configuración del ancla; `VARIATION` si la configuración es distinta, `TECHNIQUE` si es
+     * la misma con técnica o velocidad y `ASSISTANCE` si es la misma sin técnica. Con la misma configuración recibe además un
+     * rótulo (el del autor o uno por defecto) para que la tarjeta no salga idéntica a la del ancla.
+     */
+    private fun withOccurrenceIdentity(day: DayRecipe, exercises: List<Exercise>): List<Exercise> =
+        day.slots.zip(exercises).mapIndexed { index, (slot, exercise) ->
+            val anchorIndex = slot.supplementalOf
+                ?.let { id -> day.slots.indexOfFirst { it.id == id } }
+                ?.takeIf { it >= 0 && it != index }
+                ?: day.slots.indexOfFirst { other ->
+                    slot.role == SlotRole.SPEED && other !== slot && other.role == SlotRole.T1_MAIN &&
+                        other.lift.configurationId == slot.lift.configurationId
+                }.takeIf { it >= 0 }
+            val anchor = anchorIndex?.let { day.slots[it] } ?: return@mapIndexed exercise
+            val configurationId = slot.lift.configurationId
+            val anchorConfigurationId = anchor.lift.configurationId
+            val sameConfiguration = configurationId == anchorConfigurationId
+            val related = sameConfiguration ||
+                configurationId.substringBefore("__") == anchorConfigurationId.substringBefore("__") ||
+                SessionSlopRules.familyOf(configurationId)?.let { it == SessionSlopRules.familyOf(anchorConfigurationId) } == true
+            if (!related && slot.occurrenceLabel == null) return@mapIndexed exercise
+            val technique = slot.technique
+            val isSpeed = slot.role == SlotRole.SPEED || technique == TechniqueModifier.SPEED
+            val label = slot.occurrenceLabel ?: if (sameConfiguration) {
+                when {
+                    isSpeed -> "Velocidad"
+                    technique != null -> technique.displayName()
+                    else -> "Volumen"
+                }
+            } else {
+                null
+            }
+            exercise.copy(
+                relativeToCanonicalExerciseId = anchorConfigurationId,
+                relationshipType = when {
+                    !sameConfiguration -> ExerciseRelationshipType.VARIATION
+                    technique != null || slot.role == SlotRole.SPEED -> ExerciseRelationshipType.TECHNIQUE
+                    else -> ExerciseRelationshipType.ASSISTANCE
+                },
+                occurrenceLabel = label,
+            )
+        }
 
     private fun groupParts(
         day: DayRecipe,
