@@ -48,6 +48,33 @@ class MissedSessionPolicyTest {
         assertEquals(stale,ProgramProgressEngine.resolveMissedSessions(stale,MissedSessionChoice.SKIP,metadata,emptyList()))
         assertEquals(MissedSessionChoice.DO_THIS_WEEK,MissedSessionPolicy.defaultChoice(p.copy(sourceProtocolId = "author")))
     }
+    @Test fun staleIdsAreClearedButReportedAsAnUnappliedResponse() {
+        val p = fixture().copy(pendingMissedSessions = MissedSessionsRequest("w1","w1",listOf("old-session"),programRunId = "run"))
+        val result = ProgramProgressEngine.resolveMissedSessions(p,MissedSessionChoice.SKIP,metadata,emptyList(),nowMs = 7)
+        assertNull(result.pendingMissedSessions)
+        assertTrue(result.skippedSessionKeys.isEmpty())
+        val decision = result.programDecisions.single()
+        assertEquals(UnappliedResponse.TITLE,decision.title)
+        assertEquals("MISSED_SESSION",decision.source)
+        assertEquals("w1",decision.weekId)
+        assertTrue(decision.detail.contains("cambiaron"))
+        assertEquals(decision.detail,UnappliedResponse.newReason(p,result))
+        // Cuando ya no falta nada, el motivo es otro.
+        val done = ProgramProgressEngine.resolveMissedSessions(p.copy(pendingMissedSessions = MissedSessionsRequest("w1","w1",listOf("s-w1"),programRunId = "run")),
+            MissedSessionChoice.SKIP,metadata,listOf(log("w1")),nowMs = 8)
+        assertNull(done.pendingMissedSessions)
+        assertTrue(done.programDecisions.single().detail.contains("Ya no faltan"))
+    }
+    @Test fun softReturnWithoutCatalogKeepsTheRequestAndSaysWhy() {
+        val p = ownRecipe().let { it.copy(pendingMissedSessions = MissedSessionsRequest(
+            ProgramHierarchyIndex(it).orderedWeeks().single().week.id,it.runState!!.weekInstanceId!!,
+            ProgramHierarchyIndex(it).orderedWeeks().single().week.sessions.map { s -> s.id },programRunId = "run")) }
+        val result = ProgramProgressEngine.resolveMissedSessions(p,MissedSessionChoice.SOFT_RETURN,null,emptyList(),nowMs = 9)
+        assertEquals(p.pendingMissedSessions,result.pendingMissedSessions)
+        assertEquals(p.macrocycles,result.macrocycles)
+        assertEquals(UnappliedResponse.TITLE,result.programDecisions.last().title)
+        assertTrue(result.programDecisions.last().detail.contains("catálogo"))
+    }
     @Test fun doingTheMissingEarlierWeekAfterAnExplicitChoiceReconcilesWithRealCanonicalLog() {
         val p = fixture()
         val oldLogs = listOf(log("w2"))

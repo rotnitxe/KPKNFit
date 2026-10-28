@@ -318,7 +318,16 @@ class ProgramDetailViewModel(
         viewModelScope.launch {
             _scheduleBusy.value = true
             try {
-                _schedulePreview.value = repository.previewScheduleContinuation(programId,choice,expected)
+                val prepared = repository.previewScheduleContinuation(programId,choice,expected)
+                val unappliedReason = prepared?.let { com.example.kpkn.domain.training.UnappliedResponse.newReason(it.original,it.result) }
+                if (prepared != null && unappliedReason != null) {
+                    // La elección ya no se puede aplicar: se guarda la decisión con el motivo y se dice, sin pedir confirmar un cambio vacío.
+                    _schedulePreview.value = null
+                    repository.submitScheduleContinuation(programId,prepared)
+                    _uiState.update { it.copy(snackbarMessage = unappliedReason) }
+                    return@launch
+                }
+                _schedulePreview.value = prepared
                 if (_schedulePreview.value == null) _uiState.update { it.copy(snackbarMessage =
                     "No hay cambios disponibles. Comprueba las sesiones registradas, las ediciones y cualquier entrenamiento en curso.") }
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
@@ -655,9 +664,11 @@ class ProgramDetailViewModel(
             _weeklyCheckinBusy.value = true
             try {
                 val preview = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewWeeklyCheckin(programId, answer) }
-                _weeklyCheckinPreview.value = preview
+                // Una respuesta que ya no se puede aplicar se guarda como decisión y se dice el motivo, sin pedir confirmar nada.
+                val unapplied = preview != null && com.example.kpkn.domain.training.UnappliedResponse.newReason(preview.original, preview.result) != null
+                _weeklyCheckinPreview.value = if (unapplied) null else preview
                 if (preview == null) _uiState.update { it.copy(snackbarMessage = "La petición semanal cambió. Revisa el programa.") }
-                else if (saveOmission) saveWeeklyCheckinPreview(preview)
+                else if (saveOmission || unapplied) saveWeeklyCheckinPreview(preview)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la revisión semanal.") }
@@ -681,7 +692,9 @@ class ProgramDetailViewModel(
     private suspend fun saveWeeklyCheckinPreview(preview: ProgramRepository.WeeklyCheckinPreview) {
         val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitWeeklyCheckin(programId, preview) }
         _weeklyCheckinPreview.value = null
+        val unappliedReason = com.example.kpkn.domain.training.UnappliedResponse.newReason(preview.original, preview.result)
         val message = if (!saved) "El programa cambió. Revisa de nuevo la propuesta antes de confirmar."
+            else if (unappliedReason != null) unappliedReason
             else if (preview.result.effectiveWeekRecipes == preview.original.effectiveWeekRecipes) "Semana sin cambios"
             else "Semana ajustada"
         _uiState.update { it.copy(snackbarMessage = message) }

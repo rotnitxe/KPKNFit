@@ -83,16 +83,27 @@ object MissedSessionPolicy {
         val request = program.pendingMissedSessions ?: return program
         val run = program.runState ?: return program
         if (run.status != ProgramRunStatus.ACTIVE || run.runId != request.programRunId || run.cycleNumber != request.cycleNumber) return program
-        val week = ProgramHierarchyIndex(program).locateWeek(request.weekId)?.week ?: return program
+        // Una respuesta que no se puede aplicar queda dicha (decisión «Respuesta no aplicada»), no se traga en silencio.
+        fun unapplied(reason: String,clearRequest: Boolean): Program = program.copy(
+            pendingMissedSessions = if (clearRequest) null else program.pendingMissedSessions,
+            programDecisions = program.programDecisions + UnappliedResponse.decision(
+                "missed-unapplied:${skippedKey(run.runId,run.cycleNumber,request.weekId,choice.name)}:$nowMs",
+                nowMs,"MISSED_SESSION",reason,request.weekId))
+        val week = ProgramHierarchyIndex(program).locateWeek(request.weekId)?.week
+            ?: return unapplied("La semana de la petición ya no existe en el programa, así que no se aplicó tu elección.",true)
         val ids = missing(program,week,logs,request.weekInstanceId,run.cycleNumber,run.runId)
         // Un registro posterior o una edición obliga a revisar la petición actualizada.
-        if (ids.toSet() != request.sessionIds.toSet() || ids.isEmpty()) return program.copy(pendingMissedSessions = null)
+        if (ids.isEmpty()) return unapplied("Ya no faltan sesiones requeridas en ${week.name}, así que no hacía falta tu elección.",true)
+        if (ids.toSet() != request.sessionIds.toSet())
+            return unapplied("Las sesiones de ${week.name} cambiaron desde que se preguntó (se registraron o se editaron), así que no se aplicó tu elección.",true)
         val cleared = program.copy(pendingMissedSessions = null)
         if (choice == MissedSessionChoice.SOFT_RETURN && metadata != null) {
             val softened = applySoftReturn(cleared,metadata,executedSessionIds,nowMs)
             if (softened != cleared) return softened
         }
-        if (choice == MissedSessionChoice.SOFT_RETURN && metadata == null && program.acceptsKpknAdjustments()) return program
+        // Sin catálogo no se puede reconstruir la semana: la petición se conserva para poder reintentar.
+        if (choice == MissedSessionChoice.SOFT_RETURN && metadata == null && program.acceptsKpknAdjustments())
+            return unapplied("No se pudo preparar la vuelta suave porque el catálogo de ejercicios no está disponible. Inténtalo de nuevo.",false)
         val id = "missed:${skippedKey(run.runId,run.cycleNumber,request.weekId,choice.name)}"
         val keys = if (choice == MissedSessionChoice.SKIP) ids.map { skippedKey(run.runId,run.cycleNumber,request.weekInstanceId,it) } else emptyList()
         val detail = if (choice == MissedSessionChoice.SKIP) "${ids.size} sesiones declaradas saltadas en ${week.name}. No cuentan como entrenamientos registrados."
