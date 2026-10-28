@@ -1,0 +1,175 @@
+package com.example.kpkn.domain.nutrition.exam
+
+import android.content.Context
+import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.food.FoodImporter
+import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.models.FoodItem
+import com.example.kpkn.data.repository.BodyProgressRepository
+import com.example.kpkn.data.repository.FoodCatalogImporter
+import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.nutrition.ContextDetector
+import com.example.kpkn.domain.nutrition.DatasetTestHarness
+import com.example.kpkn.domain.nutrition.FoodResolutionPort
+import com.example.kpkn.domain.nutrition.FoodState
+import com.example.kpkn.domain.nutrition.HouseholdPortions
+import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
+import com.example.kpkn.domain.nutrition.TagResolver
+import com.example.kpkn.domain.nutrition.parseMealDescription
+import com.example.kpkn.testsupport.SyncRoomExecutor
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.withTimeout
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import kotlin.math.round
+
+/**
+ * Cadena REAL de la rama de Codex (nutrition-local-ai, 16cf3c293 + cambios sin commitear) para el examen de nutricion.
+ *
+ * Mismo camino que `FoodLoggerDrawer.analyzeDescription` -> `resolveTags` -> `createTagResolver`:
+ *
+ *     ContextDetector.detect -> parseMealDescription -> TagResolver(port, null).resolveAll
+ *
+ * pero con el [FoodResolutionPort] de la app: `resolveSmart` pasa por `NutritionRepository.resolveFoodWithSmartResolver`
+ * (recuperacion FTS de <= 20 candidatos en Room + `SmartFoodResolver.resolveWithCandidates`), `getFoodById` por
+ * `NutritionRepository.getFoodById`. El repositorio se arma sobre una base Room en memoria (Robolectric) y el catalogo
+ * USDA/OFF se instala con el mismo ciclo que el arranque de la app (`FoodImporter.runImport` -> `commitRows`, con el
+ * indice FTS reconstruido), leyendo los CSV de `src/main/assets`. El catalogo grande (catalog.sqlite) no participa.
+ * Sin historial ni calibracion del usuario (igual que el corredor de master).
+ */
+class CodexExamPipeline private constructor(
+    private val resolver: TagResolver,
+    private val repository: NutritionRepository,
+    private val db: KpknDatabase,
+    val globalFoods: Int,
+    val usdaRows: Int,
+    val offRows: Int,
+    val indexSize: Int,
+    val datasetDocuments: Int,
+    private val system: String,
+) {
+
+    /** Procesa un caso con el contrato de la seccion 6: nunca lanza; un fallo o un exceso de 5 s va en `error`. */
+    suspend fun predict(case: ExamCase): ExamPrediction {
+        val mealType = MasterExamPipeline.parseMealType(case.mealType)
+        val start = System.nanoTime()
+        fun elapsedMs(): Double = round((System.nanoTime() - start) / 1_000_000.0 * 10.0) / 10.0
+        return try {
+            val tags = withTimeout(TIMEOUT_MS) {
+                val context = ContextDetector.detect(case.text, mealType)
+                val parsed = parseMealDescription(case.text, SemanticPortionRetriever.retrieve(case.text))
+                resolver.resolveAll(parsed, context, mealType).first
+            }
+            val latency = elapsedMs()
+            if (latency > TIMEOUT_MS) {
+                ExamPrediction(case.id, system, latency, "TIMEOUT", emptyList())
+            } else {
+                ExamPrediction(case.id, system, latency, null, tags.map(MasterExamPipeline::toMention), lastResort = tags.isEmpty())
+            }
+        } catch (t: TimeoutCancellationException) {
+            ExamPrediction(case.id, system, elapsedMs(), "TIMEOUT", emptyList())
+        } catch (t: Throwable) {
+            ExamPrediction(case.id, system, elapsedMs(), "${t.javaClass.simpleName}: ${t.message}", emptyList())
+        }
+    }
+
+    /** Cierra el repositorio y la base en memoria. */
+    suspend fun close() {
+        val job = NutritionRepository::class.java.getDeclaredField("repositoryJob").apply { isAccessible = true }
+        (job.get(repository) as Job).cancelAndJoin()
+        db.close()
+        BodyProgressRepository.closeInstance()
+        KpknDatabase.closeInstance()
+        SyncRoomExecutor.uninstall()
+    }
+
+    companion object {
+        const val TIMEOUT_MS = 5000L
+        private const val ASSETS_DIR = "src/main/assets"
+        private const val STARTUP_TIMEOUT_MS = 20L * 60 * 1000
+
+        /**
+         * Importador de catalogo de la app (`FoodImporter.importIfNeeded` -> `runImport`), con el analisis leyendo los CSV
+         * directamente de `src/main/assets` (lo que `parseCatalog` hace con `context.assets`). Cuenta las filas analizadas.
+         */
+        private class FileAssetImporter : FoodCatalogImporter {
+            @Volatile var usda = 0
+            @Volatile var off = 0
+
+            override suspend fun importIfNeeded(
+                db: KpknDatabase,
+                context: Context,
+                alreadyImported: Boolean,
+                existingMeta: FoodImporter.ImportMetadata?,
+                onMetaUpdated: (FoodImporter.ImportMetadata) -> Unit,
+            ): Boolean = FoodImporter.runImport(db, alreadyImported, existingMeta, onMetaUpdated) { onProgress ->
+                val openAsset: (String) -> InputStream = { path -> FileInputStream(File(ASSETS_DIR, path)) }
+                val usdaRows = FoodImporter.parseUsda(openAsset) { onProgress(0.5f * it) }
+                val offRows = FoodImporter.parseOff(openAsset) { onProgress(0.5f + 0.5f * it) }
+                usda = usdaRows.size
+                off = offRows.size
+                usdaRows + offRows
+            }
+        }
+
+        /** Carga el catalogo real, arranca el repositorio como la app y arma el resolutor. Lento (decenas de segundos). */
+        suspend fun create(context: Context, system: String): CodexExamPipeline {
+            SyncRoomExecutor.install()
+            ProgramRepository.closeInstance()
+            BodyProgressRepository.closeInstance()
+            KpknDatabase.closeInstance()
+            val db = KpknDatabase.createInMemory(context)
+            val importer = FileAssetImporter()
+            val ctor = NutritionRepository::class.java.getDeclaredConstructor(
+                Context::class.java,
+                KpknDatabase::class.java,
+                Boolean::class.javaPrimitiveType,
+                FoodCatalogImporter::class.java,
+            ).apply { isAccessible = true }
+            val repo = ctor.newInstance(context, db, false, importer) as NutritionRepository
+            repo.refreshData(context)
+            // Fases 1-3 del arranque: estado del usuario, importacion del catalogo global y conocimiento/indice.
+            withTimeout(STARTUP_TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+            val globalFoods = db.nutritionDao().getGlobalFoodCount()
+            check(globalFoods > 0) { "la importacion del catalogo no dejo filas en global_foods" }
+            // La app instala el dataset semantico en `ensureDatasetKnowledge`; si no cargo bajo Robolectric, el real de archivo.
+            if (!SemanticPortionRetriever.status().ready) DatasetTestHarness.restore(null)
+            // Deja el indice del resolutor al dia (la app lo hace al inicio de cada resolveFoodWithSmartResolver).
+            repo.initFoodIndex()
+
+            val port = object : FoodResolutionPort {
+                override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
+                    repo.resolveFoodWithSmartResolver(tag, brandHint, contextHint, stateHint)
+
+                override suspend fun getFoodById(id: String): FoodItem? = repo.getFoodById(id)
+
+                override suspend fun staticFood(tag: String): FoodItem? = HouseholdPortions.householdStaticFood(tag)
+
+                override fun staticIsExact(tag: String): Boolean = findFoodExactByNormalized(tag) != null
+
+                override fun recordLearned(
+                    query: String,
+                    brandHint: String?,
+                    foodId: String,
+                    portionGrams: Double?,
+                    cookingMethod: String?,
+                ) = Unit
+            }
+            return CodexExamPipeline(
+                resolver = TagResolver(port, null),
+                repository = repo,
+                db = db,
+                globalFoods = globalFoods,
+                usdaRows = importer.usda,
+                offRows = importer.off,
+                indexSize = repo.foodIndexForTests().size(),
+                datasetDocuments = SemanticPortionRetriever.status().documentCount,
+                system = system,
+            )
+        }
+    }
+}
