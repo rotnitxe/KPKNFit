@@ -306,7 +306,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
                 exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
             )
             repository.addProgram(result.program)
-            repository.startProgram(result.program.id)
+            // CR-S6: nada se activa sin preguntar; lo decide «Listo para empezar» (cr-listo).
             TemplateApplyOutcome.Created(result.program.id)
         }
 

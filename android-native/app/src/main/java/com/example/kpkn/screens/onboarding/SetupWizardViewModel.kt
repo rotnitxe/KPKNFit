@@ -64,6 +64,8 @@ import com.example.kpkn.domain.training.split.RedistributionOptions
 import com.example.kpkn.domain.training.split.SplitRedistributor
 import com.example.kpkn.domain.training.split.WeekAssignment
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
+import com.example.kpkn.screens.programs.ProgramReadyCopy
+import com.example.kpkn.screens.programs.ProgramReadyCurrent
 import com.example.kpkn.screens.programs.ReadyWeekSnapshot
 import java.io.File
 import java.time.LocalDate
@@ -221,6 +223,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     value.copy(
                         draftId = id,
                         draftScope = realScope,
+                        // La instancia «Nuevo programa» comparte el borrador de solo entreno: se retoma siempre (CR-D5) y,
+                        // abierto desde la instancia, se marca como suyo.
+                        newProgramInstance = value.newProgramInstance || mode == SetupWizardMode.NEW_PROGRAM,
                         nutritionMode = nutritionMode.takeIf { restored == null } ?: value.nutritionMode,
                         nutritionPlanId = nutritionPlanId ?: value.nutritionPlanId,
                         wizChat = normalizeProgress(value.wizChat, realScope, mode),
@@ -247,7 +252,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 val draft = applyPreselection(revisionChecked, preselectedPlanId, restoredFromStorage = restored != null)
                 if (mode == SetupWizardMode.RESUME) {
                     _state.value = _state.value.copy(mode = when (SetupDraftResolver.scopeOf(draft.draftScope)) {
-                        SetupDraftScope.TRAINING_ONLY -> SetupWizardMode.TRAINING_ONLY
+                        SetupDraftScope.TRAINING_ONLY ->
+                            if (draft.newProgramInstance) SetupWizardMode.NEW_PROGRAM else SetupWizardMode.TRAINING_ONLY
                         SetupDraftScope.NUTRITION_ONLY -> SetupWizardMode.NUTRITION_ONLY
                         else -> SetupWizardMode.FULL
                     })
@@ -441,6 +447,30 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /**
+     * Instancia «Nuevo programa»: el lápiz de «Lo que ya sabemos». Alias, edad, altura y peso vuelven a la ruta delante de
+     * Entreno y el cursor va al alias; al confirmarlos el asistente vuelve a donde estaba y el capítulo se pliega otra vez.
+     */
+    fun editKnownBasics() {
+        viewModelScope.launch { commandMutex.withLock {
+            val state = _state.value
+            if (!initialized || state.isCommitting || state.isSubmittingAnswer || state.isSavingAndExiting ||
+                state.machineState == WizChatMachineState.Committed ||
+                state.machineState == WizChatMachineState.UnsupportedDraft
+            ) return@withLock
+            val draft = state.draft
+            if (!draft.newProgramInstance || draft.editsKnownBasics) return@withLock
+            val opened = draft.copy(editsKnownBasics = true)
+            persistAndPublish(opened.withReturnIntentBefore(SetupStepId.NAME).editStep(SetupStepId.NAME))
+        } }
+    }
+
+    /** «Listo para empezar»: marca una de sus tres opciones (no confirma nada; el botón redondo guarda). */
+    fun setReadyChoice(choice: ProgramReadyChoice) = mutateDraft { it.copy(readyChoice = choice) }
+
+    /** El programa en curso que nombra el cierre «Listo para empezar»; null = ninguno. */
+    fun readyCurrentProgram(): ProgramReadyCurrent? = environment.readyCurrentProgram()
+
+    /**
      * Solo selecciona el plan: escribe el id elegido en el paso PLAN sin
      * validar candidatos, sin tocar el espejo conversacional y sin avanzar el
      * paso (la confirmación sigue siendo [submitCurrentStep]).
@@ -630,7 +660,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return draft
         }
         savedStateHandle[PRESELECTED_PLAN_KEY] = wanted
-        return seeded.withChangeImpacts(draft)
+        // Instancia «Nuevo programa» (cr-cat3): con el plan del catálogo ya elegido solo se pregunta lo que falta.
+        val instance = if (seeded.newProgramInstance) seeded.copy(catalogPlanChosen = true) else seeded
+        return instance.withChangeImpacts(draft)
     }
 
     fun setWeightUnit(unit: String) = mutateDraft(step = SetupStepId.WEIGHT) { draft ->
@@ -800,6 +832,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Whether the step cursor can move one step back. */
     fun canGoBack(): Boolean {
         if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return false
+        if (_state.value.draft.cancelKnownBasicsEdit() != null) return true
         return SetupStepGraph.previous(_state.value.draft.stepProgress.currentStepId,
             _state.value.draft.stepContext(), _state.value.draft.stepProgress.visited) != null
     }
@@ -807,6 +840,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun goBack(): Boolean {
         if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return false
         val expectedStep = _state.value.draft.stepProgress.currentStepId
+        // Instancia «Nuevo programa»: atrás desde el primer paso de «Lo que ya sabemos» abierto con el lápiz cancela la edición.
+        if (_state.value.draft.cancelKnownBasicsEdit() != null) {
+            if (navigationInFlight) return false
+            navigationInFlight = true
+            viewModelScope.launch {
+                try { commandMutex.withLock {
+                    if (_state.value.draft.stepProgress.currentStepId != expectedStep) return@withLock
+                    _state.value.draft.cancelKnownBasicsEdit()?.let { persistAndPublish(it) }
+                } } finally { navigationInFlight = false }
+            }
+            return true
+        }
         if (SetupStepGraph.previous(expectedStep, _state.value.draft.stepContext(), _state.value.draft.stepProgress.visited) == null) return false
         if (navigationInFlight) return false
         navigationInFlight = true
@@ -1000,7 +1045,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
         val confirmed = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(
             stepping.resumeAfterEdit(confirmedStep),
-        ).withNextDraftRevision(previous)
+        ).closingKnownBasicsEdit().withNextDraftRevision(previous)
         val previousCandidateKey = candidateSetKey(previous)
         _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
         val persisted = persistDraft(confirmed)
@@ -1238,7 +1283,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 settings = base,
                 program = program?.copy(avoidedExerciseGroups = draft.avoidedExercises.map { it.name }.toSet()),
                 nutritionPlan = nutrition,
-                activateProgram = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
+                // Instancia «Nuevo programa»: nada se activa al guardar; lo decide «Listo para empezar» después (cr-listo).
+                activateProgram = !draft.newProgramInstance &&
+                    draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
                 activateNutrition = draft.includeNutrition && draft.activateNutrition && !trackingOnly,
                 derivedBodyGoals = bodyGoals,
                 initialWellbeing = null,
@@ -1248,7 +1295,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 nutritionTrackingOnly = trackingOnly,
                 bodyObservations = SetupActivationPayload.bodyObservations(draft),
             ))
-            _state.value = _state.value.copy(draft = draft.copy(
+            // «Listo para empezar»: empezar ahora (pausa el actual), ponerlo en cola o guardarlo sin activar.
+            val savedProgramId = result.programId ?: program?.id
+            if (draft.newProgramInstance && savedProgramId != null) {
+                val choice = draft.readyChoice ?: ProgramReadyCopy.defaultChoice(environment.readyCurrentProgram())
+                environment.applyReadyChoice(savedProgramId, choice)
+            }
+            _state.value = _state.value.copy(committedProgramId = savedProgramId, draft = draft.copy(
                 wizChat = draft.wizChat.copy(terminal = true, currentQuestionId = WizChatQuestionId.REVIEW, stage = WizChatStage.REVIEW),
                 stepProgress = draft.stepProgress.at(SetupStepId.REVIEW_ACTIVATE, draft.stepContext()),
             ), dirty = false, receiptId = result.commitId, isCommitting = false, machineState = WizChatMachineState.Committed, errors = emptyMap())
@@ -3384,7 +3437,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val title = SetupStepDefinitions.of(step)?.title ?: "la revisión"
             put("review", "Falta revisar «$title» antes de activar")
         }
-        if (SetupDraftCompatibility.pendingMandatoryVitals(d).isNotEmpty()) put("profile", "Completa tu edad, estatura y peso para continuar")
+        // La instancia «Nuevo programa» no vuelve a declarar lo que KPKN ya sabe: basta con que el dato exista.
+        val vitalsMissing = if (d.newProgramInstance) {
+            d.ageYears == null || d.heightCm == null || d.weightKg == null
+        } else {
+            SetupDraftCompatibility.pendingMandatoryVitals(d).isNotEmpty()
+        }
+        if (vitalsMissing) put("profile", "Completa tu edad, estatura y peso para continuar")
         val blocking = SetupWizardValidation.validateAll(d).firstOrNull { it.isBlocking }
         if (blocking != null) put(blocking.key, blocking.message ?: "Revisa tus respuestas antes de activar")
         if (d.includeTraining && d.goal?.isLegacyOnly == true) {
@@ -3425,7 +3484,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
             put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
         }
-        if (activationConfirmation(d, s.programPreview) && !d.confirmActivation) put("activation", "Confirma la activación del plan")
+        if (!d.newProgramInstance && activationConfirmation(d, s.programPreview) && !d.confirmActivation) put("activation", "Confirma la activación del plan")
     }
     private fun activationConfirmation(draft: SetupWizardDraft, preview: Program?): Boolean = (draft.activateProgram && preview != null && environment.activeProgramId()?.let { it != preview.id } == true) || (draft.includeNutrition && draft.activateNutrition && environment.activeNutritionPlanId()?.let { it != (draft.nutritionPlanId ?: draft.commitId) } == true)
 
@@ -3535,7 +3594,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             competesWithoutDate = SetupPatchField.Set(SetupActivationPayload.competesWithoutDateOf(draft)),
             onboardingProgramDone = setIf(
                 true,
-                _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&
+                _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY, SetupWizardMode.NEW_PROGRAM) &&
                     (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER || program != null),
             ),
             onboardingNutritionDone = setIf(
@@ -3589,13 +3648,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun newDraft(mode: SetupWizardMode, nutritionMode: String, nutritionPlanId: String?, id: String): SetupWizardDraft {
         val settings = environment.settings
         val training = mode != SetupWizardMode.NUTRITION_ONLY
-        val nutrition = mode != SetupWizardMode.TRAINING_ONLY
+        val nutrition = !mode.trainingOnly
         val first = WizChatGraph.firstFor(WizChatGraphContext(training, nutrition))
         val progress = WizChatProgress(scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scopeFor(mode).name.lowercase(), currentQuestionId = first, stage = WizChatGraph.stageFor(first))
         val unit = if (settings.weightUnit == WeightUnit.LBS) "lb" else "kg"
         return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, importedBodyFatPercent = settings.userVitals.bodyFatPercentage, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
-            trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability))
+            trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability),
+            // Instancia «Nuevo programa»: Datos básicos plegado en «Lo que ya sabemos»; solo se abre si falta un vital.
+            newProgramInstance = mode == SetupWizardMode.NEW_PROGRAM,
+            editsKnownBasics = mode == SetupWizardMode.NEW_PROGRAM && (
+                (settings.userVitals.age ?: settings.age) == null || settings.userVitals.height == null || settings.userVitals.weight == null
+            ))
             .let { draft -> draft.copy(stepProgress = SetupStepProgress.initial(draft.stepContext())) }
     }
     private fun normalizeProgress(progress: WizChatProgress, scope: String, mode: SetupWizardMode): WizChatProgress {
@@ -3607,7 +3671,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         return progress.copy(schemaVersion = 2, scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scope, currentQuestionId = safeQuestion, stage = WizChatGraph.stageFor(safeQuestion))
     }
-    private fun scopeFor(mode: SetupWizardMode): SetupDraftScope = when (mode) { SetupWizardMode.TRAINING_ONLY -> SetupDraftScope.TRAINING_ONLY; SetupWizardMode.NUTRITION_ONLY -> SetupDraftScope.NUTRITION_ONLY; else -> SetupDraftScope.FULL }
+    private fun scopeFor(mode: SetupWizardMode): SetupDraftScope = when (mode) { SetupWizardMode.TRAINING_ONLY, SetupWizardMode.NEW_PROGRAM -> SetupDraftScope.TRAINING_ONLY; SetupWizardMode.NUTRITION_ONLY -> SetupDraftScope.NUTRITION_ONLY; else -> SetupDraftScope.FULL }
     private fun SetupFocus.toTrainingFocus() = TrainingFocus.valueOf(name)
     private fun SetupExperience?.toCatalogLevel() = when (this) { SetupExperience.ADVANCED -> CatalogLevel.ADVANCED; SetupExperience.INTERMEDIATE -> CatalogLevel.INTERMEDIATE; else -> CatalogLevel.BEGINNER }
     private val SetupEquipment.catalogId: String get() = when (this) { SetupEquipment.NONE, SetupEquipment.BODYWEIGHT -> "bodyweight"; SetupEquipment.BANDS -> "band"; SetupEquipment.DUMBBELLS -> "dumbbells"; SetupEquipment.MACHINE -> "machine"; SetupEquipment.CABLE -> "cable"; SetupEquipment.BARBELL -> "barbell"; SetupEquipment.PULL_UP -> "pull_up_bar"; SetupEquipment.GYM -> "general_gym"; SetupEquipment.SUPPORT -> "support"; SetupEquipment.BALL -> "ball"; SetupEquipment.SMITH -> "smith_machine" }

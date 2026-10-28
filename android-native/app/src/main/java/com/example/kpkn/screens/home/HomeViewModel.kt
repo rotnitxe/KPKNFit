@@ -68,32 +68,6 @@ import java.util.Calendar
     private val _wellbeing = MutableStateFlow<List<com.example.kpkn.data.models.DailyWellbeingLog>>(emptyList())
     private var loadWellbeingJob: Job? = null
 
-    private val _showCreateProgramSheet = MutableStateFlow(false)
-    val showCreateProgramSheet: StateFlow<Boolean> = _showCreateProgramSheet.asStateFlow()
-    private val _pendingProgramName = MutableStateFlow<String?>(null)
-    val pendingProgramName: StateFlow<String?> = _pendingProgramName.asStateFlow()
-    fun openCreateProgramSheet(preferredName: String? = null) {
-        _pendingProgramName.value = preferredName?.trim()?.takeIf { it.isNotEmpty() }
-        _showCreateProgramSheet.value = true
-    }
-
-    fun dismissCreateProgramSheet() {
-        _showCreateProgramSheet.value = false
-    }
-
-    fun onProgramCreated(programId: String, activate: Boolean) {
-        val name = _pendingProgramName.value
-        if (!name.isNullOrBlank()) {
-            repository.getProgramById(programId)?.let { repository.updateProgram(it.copy(name = name)) }
-        }
-        _showCreateProgramSheet.value = false
-        _pendingProgramName.value = null
-        if (activate) {
-            repository.startProgram(programId)
-            repository.updateSettings { it.copy(onboardingProgramDone = true) }
-        }
-    }
-
     val programs = repository.programs
 
     val activeProgramId: StateFlow<String?> = repository.activeProgramState

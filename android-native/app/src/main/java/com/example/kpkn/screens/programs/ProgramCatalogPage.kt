@@ -226,11 +226,11 @@ internal fun ProgramCatalogPage(
         }
     }
 
-    // Menú de días: 1 a 6 o «Todos»; se ancla al chip de días.
+    // Menú de días: 1 a 7 o «Todos» (CR-F7, como el asistente); se ancla al chip de días.
     if (openMenu == CatalogMenu.DAYS) {
         daysBounds?.let { anchor ->
             ProgramItemMenu(
-                items = (listOf<Int?>(null) + (1..6).toList()).map { option ->
+                items = (listOf<Int?>(null) + (1..7).toList()).map { option ->
                     ProgramAnchoredMenuItem(
                         label = option?.let(::pluralDias) ?: "Todos",
                         onClick = { daysFilter = option },

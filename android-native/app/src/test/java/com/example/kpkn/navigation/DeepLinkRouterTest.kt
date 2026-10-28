@@ -131,8 +131,9 @@ class DeepLinkRouterTest {
 
     @Test
     fun setupModuleScopesRouteToDirectEditorsOrHome() {
+        // CR-D4: el enlace de solo entreno abre «A tu medida» en la instancia «Nuevo programa» del asistente.
         assertEquals(
-            KpknRoute.ProgramEditor.create(),
+            KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM"),
             DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY"))?.route,
         )
         assertEquals(
@@ -181,9 +182,9 @@ class DeepLinkRouterTest {
             KpknRoute.SetupWizard.create(mode = "RESUME"),
             DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=RESUME"))?.route,
         )
-        // Los scopes directos no admiten borrador: no inventan ruta con draftId.
+        // La instancia «Nuevo programa» retoma su propio borrador (CR-D5): el draftId del enlace no viaja.
         assertEquals(
-            KpknRoute.ProgramEditor.create(),
+            KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM"),
             DeepLinkRouter.resolve(
                 Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY&draftId=draft-123"),
             )?.route,

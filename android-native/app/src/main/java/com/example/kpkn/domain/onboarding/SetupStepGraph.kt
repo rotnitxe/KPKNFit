@@ -145,6 +145,23 @@ data class SetupStepContext(
     val programImportEnabled: Boolean = ProgramSourceOptions.IMPORT_ENABLED,
     /** COMPETITION: disciplina de competición con experiencia intermedia o avanzada (`CompetitionRules.disciplines`). */
     val asksCompetition: Boolean = false,
+    // ── Instancia «Nuevo programa» (Registros v4, cr-wz*) ─────────────────────────────────────────────────────────
+    /**
+     * La instancia «Nuevo programa» del asistente: solo Entreno, sin el capítulo Datos básicos (KPKN ya lo sabe y sale
+     * plegado en «Lo que ya sabemos»), sin el hito de Entreno y con el cierre «Listo para empezar» en REVIEW_ACTIVATE.
+     */
+    val newProgramInstance: Boolean = false,
+    /**
+     * Solo en la instancia: la persona tocó el lápiz de «Lo que ya sabemos» (o faltan edad, altura o peso). Alias, edad,
+     * altura y peso vuelven a la ruta delante de Entreno; sexo y grasa no se piden en esta instancia.
+     */
+    val editsKnownBasics: Boolean = false,
+    /**
+     * Solo en la instancia: el plan se eligió en el catálogo («Configurar este plan», cr-cat3). El asistente pregunta solo
+     * lo que el plan necesita y KPKN no sabe: material, días y tiempo; luego la semana, los máximos si el plan los usa y el
+     * cierre.
+     */
+    val catalogPlanChosen: Boolean = false,
 )
 
 object SetupStepGraph {
@@ -354,7 +371,13 @@ object SetupStepGraph {
     fun nodes(context: SetupStepContext): List<SetupStepNode> = buildList {
         // Bloque 1: Datos básicos. Obligatorio siempre que haya entreno o nutrición;
         // los scopes antiguos (solo rings) conservan su arranque sin vitales.
-        if (context.includeTraining || context.includeNutrition) {
+        if (context.newProgramInstance) {
+            // Instancia «Nuevo programa»: lo conocido no se vuelve a preguntar. Solo con el lápiz (o si falta un vital)
+            // vuelven alias, edad, altura y peso; sexo y grasa nunca, y sin hito de bloque.
+            if (context.editsKnownBasics) {
+                addAll(listOf(SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT))
+            }
+        } else if (context.includeTraining || context.includeNutrition) {
             addAll(listOf(
                 SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
                 SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT,
@@ -367,7 +390,19 @@ object SetupStepGraph {
         // WEEK_LAYOUT solo existe si hay programa (no con «lo armaré más adelante»).
         // ROUTE, STYLE, DAYS, SPLIT, AUTOREGULATION(_CONFIRM), WARMUPS, TRAINING_MARKS y TRAINING_REVIEW
         // ya no son preguntas: el enum y sus lecturas legacy siguen intactos.
-        if (context.includeTraining) {
+        if (context.includeTraining && context.newProgramInstance && context.catalogPlanChosen) {
+            // «Configurar este plan» (cr-cat3): el plan y su objetivo ya están elegidos; solo material, días y tiempo, la
+            // semana, los máximos si el plan los usa y el cierre.
+            add(SetupStepId.EQUIPMENT)
+            add(SetupStepId.AVAILABILITY)
+            addAll(listOf(SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
+            if (context.goalIncludesCardio) {
+                addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
+                if (context.asksCardioBase) add(SetupStepId.CARDIO_BASE)
+            }
+            if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
+            if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
+        } else if (context.includeTraining) {
             add(SetupStepId.EXPERIENCE)
             add(SetupStepId.EQUIPMENT)
             add(SetupStepId.AVAILABILITY)
@@ -390,11 +425,11 @@ object SetupStepGraph {
             if (context.asksProgramSource) add(SetupStepId.PROGRAM_SOURCE)
             val programSource = context.programSource.takeIf { context.asksProgramSource }
             when {
-                programSource == ProgramSource.LATER -> add(SetupStepId.MILESTONE_TRAINING)
+                programSource == ProgramSource.LATER -> if (!context.newProgramInstance) add(SetupStepId.MILESTONE_TRAINING)
                 programSource == ProgramSource.IMPORT && context.programImportEnabled -> {
                     add(SetupStepId.PROGRAM_IMPORT)
                     if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
-                    add(SetupStepId.MILESTONE_TRAINING)
+                    if (!context.newProgramInstance) add(SetupStepId.MILESTONE_TRAINING)
                 }
                 else -> {
                     if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
@@ -406,7 +441,8 @@ object SetupStepGraph {
                     if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
                     add(SetupStepId.PLAN)
                     if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
-                    add(SetupStepId.MILESTONE_TRAINING)
+                    // La instancia «Nuevo programa» no celebra el bloque: de la semana pasa directa a «Listo para empezar».
+                    if (!context.newProgramInstance) add(SetupStepId.MILESTONE_TRAINING)
                 }
             }
         }

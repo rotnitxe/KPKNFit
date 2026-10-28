@@ -75,7 +75,22 @@ import com.example.kpkn.domain.multisport.TrainingIntent
 import java.time.LocalDate
 
 @Serializable
-enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RESUME }
+enum class SetupWizardMode {
+    FULL, TRAINING_ONLY, NUTRITION_ONLY, RESUME,
+
+    /**
+     * Instancia «Nuevo programa» (Registros v4, cr-wz*): el asistente de solo entreno con cabecera propia, «Lo que ya
+     * sabemos» plegado arriba y el cierre «Listo para empezar». Guarda su borrador en el mismo sitio que TRAINING_ONLY.
+     */
+    NEW_PROGRAM;
+
+    /** Solo entreno: TRAINING_ONLY y la instancia «Nuevo programa». */
+    val trainingOnly: Boolean get() = this == TRAINING_ONLY || this == NEW_PROGRAM
+}
+
+/** Lo que eliges en «Listo para empezar» (cr-listo): empezar ahora, ponerlo en cola o guardarlo sin activar. */
+@Serializable
+enum class ProgramReadyChoice { START_NOW, QUEUE, SAVE }
 
 @Serializable
 enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, REVIEW }
@@ -451,6 +466,15 @@ data class SetupWizardDraft(
      * borradores guardados lo leen; se persiste con el borrador y null = avance normal.
      */
     val reviewReturnStep: SetupStepId? = null,
+    // ── Instancia «Nuevo programa» (Registros v4) ─────────────────────────────────────────────────────────────────
+    /** El borrador es de la instancia «Nuevo programa» (ver [SetupStepContext.newProgramInstance]). */
+    val newProgramInstance: Boolean = false,
+    /** «Lo que ya sabemos» abierto con el lápiz (o con un vital que falta): alias, edad, altura y peso vuelven a la ruta. */
+    val editsKnownBasics: Boolean = false,
+    /** El plan se eligió en el catálogo («Configurar este plan»): el asistente solo pregunta lo que falta. */
+    val catalogPlanChosen: Boolean = false,
+    /** La opción de «Listo para empezar»; null = la de por defecto (en cola si hay uno en curso, si no empezar ahora). */
+    val readyChoice: ProgramReadyChoice? = null,
     // ── Entreno v2 ──────────────────────────────────────────────────────────
     // Datos reales de los pasos nuevos, todos con valor por defecto: el JSON antiguo sigue leyéndose. Los campos
     // antiguos que el motor actual lee (`trainingEnvironment`, `equipment`, `trainingOptions.availability`, `goal`,
@@ -567,6 +591,9 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     asksProgramSource = experience == SetupExperience.ADVANCED,
     programSource = programSource,
     asksCompetition = asksCompetition(),
+    newProgramInstance = newProgramInstance,
+    editsKnownBasics = newProgramInstance && editsKnownBasics,
+    catalogPlanChosen = newProgramInstance && catalogPlanChosen,
 )
 
 /**
@@ -833,6 +860,31 @@ internal fun SetupWizardDraft.withReturnIntentBefore(target: SetupStepId?): Setu
     return copy(reviewReturnStep = if (keepExisting) existing else cursor)
 }
 
+/**
+ * Instancia «Nuevo programa»: al salir del capítulo Datos básicos (abierto con el lápiz de «Lo que ya sabemos» o porque
+ * faltaba un vital) el capítulo se vuelve a plegar en su fila. El cursor se reindexa en la ruta sin esos pasos.
+ */
+internal fun SetupWizardDraft.closingKnownBasicsEdit(): SetupWizardDraft {
+    if (!newProgramInstance || !editsKnownBasics) return this
+    if (SetupStepGraph.blockOf(stepProgress.currentStepId) == com.example.kpkn.domain.onboarding.SetupWizardBlock.BASICS) return this
+    val closed = copy(editsKnownBasics = false)
+    return closed.copy(stepProgress = closed.stepProgress.at(closed.stepProgress.currentStepId, closed.stepContext()))
+}
+
+/**
+ * Instancia «Nuevo programa»: atrás desde el primer paso de Datos básicos abierto con el lápiz cancela la edición y vuelve
+ * a donde estaba (la intención de regreso), sin borrar nada. Null si no hay edición que cancelar.
+ */
+internal fun SetupWizardDraft.cancelKnownBasicsEdit(): SetupWizardDraft? {
+    if (!newProgramInstance || !editsKnownBasics) return null
+    val target = reviewReturnStep ?: return null
+    val route = SetupStepGraph.stepIds(stepContext())
+    if (route.firstOrNull() != stepProgress.currentStepId) return null
+    val closed = copy(editsKnownBasics = false, reviewReturnStep = null)
+    if (target !in SetupStepGraph.stepIds(closed.stepContext())) return null
+    return closed.editStep(target)
+}
+
 /** Editando antes de la intención de regreso: confirmar guarda el cambio y conserva lo que sigue (aviso y «Guardar cambio»). */
 fun SetupWizardDraft.keepsLaterAnswers(): Boolean {
     val target = reviewReturnStep ?: return false
@@ -1091,6 +1143,8 @@ data class SetupWizardState(
     val isLoading: Boolean = false,
     val isCommitting: Boolean = false,
     val receiptId: String? = null,
+    /** Instancia «Nuevo programa»: el programa que guardó el cierre «Listo para empezar» (para abrirlo en Programas). */
+    val committedProgramId: String? = null,
     val programPreview: Program? = null,
     val previewReport: PersonalizationReport? = null,
     val isPreviewLoading: Boolean = false,

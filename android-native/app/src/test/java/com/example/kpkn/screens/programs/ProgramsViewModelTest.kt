@@ -265,7 +265,7 @@ class ProgramsViewModelTest {
     }
 
     @Test
-    fun createProgramFromTemplate_activates_program_and_materializes_executable_sessions() = runBlocking {
+    fun createProgramFromTemplate_saves_without_activating_and_materializes_executable_sessions() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val vm = createViewModel()
         val repository = ProgramRepository.getInstance()
@@ -283,7 +283,8 @@ class ProgramsViewModelTest {
             val id = result.getOrThrow()
             val created = repository.getProgramById(id)
             assertNotNull(created)
-            assertEquals(id, repository.activeProgramState.value?.programId)
+            // CR-S6: crear no activa; lo decide «Listo para empezar».
+            assertTrue(repository.activeProgramState.value?.programId != id)
             com.example.kpkn.domain.training.ProgramExecutionContract.requireExecutable(created!!)
             val weeks = created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
             assertTrue(weeks.isNotEmpty())

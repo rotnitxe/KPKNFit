@@ -37,7 +37,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,8 +45,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import com.example.kpkn.data.models.WeightUnit
-import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
@@ -67,10 +64,6 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
-import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
-import com.example.kpkn.screens.programs.ProgramsViewModel
-import com.example.kpkn.screens.programs.ProtocolDetailSheet
-import com.example.kpkn.screens.programs.TrainingMaxWizard
 import com.example.kpkn.screens.monthsummary.MonthlySummaryNotice
 import com.example.kpkn.screens.monthsummary.MonthlySummaryScreen
 import com.example.kpkn.screens.monthsummary.homeNoticeMonth
@@ -78,7 +71,6 @@ import com.example.kpkn.screens.monthsummary.monthlyNoticeLine
 import com.example.kpkn.screens.monthsummary.monthlyNoticeTitle
 import com.example.kpkn.screens.monthsummary.summaryKey
 import com.example.kpkn.screens.stories.MonthShareSheet
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknGlass
@@ -91,7 +83,6 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -122,7 +113,6 @@ import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -165,15 +155,8 @@ fun HomeScreen(
     @Suppress("UNUSED_VARIABLE")
     val unusedTheme = themeMode to onThemeChange
 
-    val programsVm: ProgramsViewModel = viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
-    val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
-    val pendingProgramName by viewModel.pendingProgramName.collectAsState()
-    var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
-    var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
-    var templateError by remember { mutableStateOf<String?>(null) }
-    val createScope = rememberCoroutineScope()
     val openCreate = onCreateProgram
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
@@ -408,89 +391,6 @@ fun HomeScreen(
                 onDismiss = {
                     showFoodLogger = false
                     loggerMealChoice = null
-                },
-            )
-        }
-        if (showCreateProgramSheet) {
-            CreateProgramTemplateSheet(
-                onDismiss = viewModel::dismissCreateProgramSheet,
-                onCreateBlank = {
-                    val id = programsVm.createBlankProgram()
-                    viewModel.onProgramCreated(id, activate = pendingProgramName != null)
-                    onNavigateToProgram(id)
-                },
-                onCreateFromTemplate = { template ->
-                    createScope.launch {
-                        when (val outcome = programsVm.createProgramFromTemplateGated(template.id)) {
-                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
-                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
-                                onNavigateToProgram(outcome.programId)
-                            }
-                        }
-                    }
-                },
-                onSelectProtocol = { protocol ->
-                    viewModel.dismissCreateProgramSheet()
-                    selectedProtocol = protocol
-                },
-                // E-18: con el asistente disponible, TODA tarjeta de la biblioteca (plan propio, de autor, plantilla o
-                // método) sigue al asistente con el plan elegido; el atajo directo ya no se ofrece desde aquí.
-                onSelectPlan = { entry ->
-                    viewModel.dismissCreateProgramSheet()
-                    onOpenSetupWizard(entry.id)
-                },
-                onOpenConcept = onOpenConcept?.let { open ->
-                    { conceptId ->
-                        viewModel.dismissCreateProgramSheet()
-                        open(conceptId)
-                    }
-                },
-            )
-        }
-        selectedProtocol?.let { protocol ->
-            ProtocolDetailSheet(
-                protocol = protocol,
-                onDismiss = { selectedProtocol = null },
-                onContinue = {
-                    selectedProtocol = null
-                    protocolForTm = protocol
-                },
-            )
-        }
-        protocolForTm?.let { protocol ->
-            TrainingMaxWizard(
-                initial = programsVm.estimatedProfileFromHistory(),
-                trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
-                unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
-                onDismiss = {
-                    val id = programsVm.createProgramFromProtocol(protocol.id, preferredName = pendingProgramName)
-                    protocolForTm = null
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    } else {
-                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
-                    }
-                },
-                onConfirm = { profile ->
-                    val id = programsVm.createProgramFromProtocol(protocol.id, profile, pendingProgramName)
-                    protocolForTm = null
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    } else {
-                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
-                    }
-                },
-            )
-        }
-        templateError?.let { message ->
-            KpknAlertDialog(
-                onDismissRequest = { templateError = null },
-                title = { Text("No se pudo aplicar la plantilla", fontWeight = FontWeight.Black) },
-                text = { Text(message) },
-                confirmButton = {
-                    TextButton(onClick = { templateError = null }) { Text("Entendido") }
                 },
             )
         }

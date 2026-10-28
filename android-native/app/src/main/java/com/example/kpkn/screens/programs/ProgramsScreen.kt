@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -140,6 +141,8 @@ fun ProgramsScreen(
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
+    // «Listo para empezar» (cr-listo) de los caminos sin asistente: el programa ya guardado que espera la decisión.
+    var readyProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     val createScope = rememberCoroutineScope()
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
@@ -354,7 +357,7 @@ fun ProgramsScreen(
                     when (val outcome = viewModel.createProgramFromTemplateGated(template.id)) {
                         is ProgramsViewModel.TemplateApplyOutcome.Created -> {
                             showCatalog = false
-                            onNavigateToProgram(outcome.programId)
+                            readyProgramId = outcome.programId
                         }
                     }
                 }
@@ -384,7 +387,8 @@ fun ProgramsScreen(
             onCreate = { name, mode, coverImage ->
                 val id = viewModel.createBlankProgram(name = name, mode = mode, coverImage = coverImage)
                 showBlankSheet = false
-                onNavigateToProgram(id)
+                // cr-cero: «Crear y abrir» lleva al programa vacío; si hay uno en curso, antes pasa por «Listo para empezar».
+                if (activeProgram != null) readyProgramId = id else onNavigateToProgram(id)
             },
         )
     }
@@ -413,7 +417,7 @@ fun ProgramsScreen(
                 val id = viewModel.createProgramFromProtocol(protocol.id)
                 protocolForTm = null
                 if (id != null) {
-                    onNavigateToProgram(id)
+                    readyProgramId = id
                 } else {
                     templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
@@ -422,10 +426,24 @@ fun ProgramsScreen(
                 val id = viewModel.createProgramFromProtocol(protocol.id, profile)
                 protocolForTm = null
                 if (id != null) {
-                    onNavigateToProgram(id)
+                    readyProgramId = id
                 } else {
                     templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
+            },
+        )
+    }
+    readyProgramId?.let { programId ->
+        ProgramReadyOverlay(
+            programId = programId,
+            onDone = { id ->
+                readyProgramId = null
+                onNavigateToProgram(id)
+            },
+            onBack = { readyProgramId = null },
+            onEditProgram = { id ->
+                readyProgramId = null
+                onEditProgram(id)
             },
         )
     }
