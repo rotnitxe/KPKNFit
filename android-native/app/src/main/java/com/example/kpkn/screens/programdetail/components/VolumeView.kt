@@ -2,67 +2,37 @@ package com.example.kpkn.screens.programdetail.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.models.AthleteProfileScore
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.models.isSimpleProgram
-import com.example.kpkn.data.models.isSimpleTemporalProgram
-import com.example.kpkn.screens.programdetail.design.volumeScopeLabelOf
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.domain.training.CanonicalMuscleVolumeEntry
-import com.example.kpkn.domain.training.DiscomfortEntry
-import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
-import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.TrainingVolumeResult
 import com.example.kpkn.domain.training.TrainingWindow
+import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.VolumeCountingMode
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeAssociation
-import com.example.kpkn.screens.programdetail.design.progress.ProgramRangesRow
-import com.example.kpkn.screens.programdetail.design.progress.RangesOrigin
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeCountControls
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeDiscomfort
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeInactive
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeModule
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeNoSessions
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeSummaryModule
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
-import com.example.kpkn.screens.programdetail.design.programVolumeSplit
-import com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.screens.programdetail.design.programVolumeBreakdown
-import com.example.kpkn.screens.programdetail.parseIsoDateExact
-import java.time.format.DateTimeFormatter
+import com.example.kpkn.screens.programdetail.design.progress.ProgressVolumeEmpty
+import com.example.kpkn.screens.programdetail.design.progress.ProgressVolumeHistoryLink
+import com.example.kpkn.screens.programdetail.design.progress.ProgressVolumeModule
+import com.example.kpkn.screens.programdetail.design.progress.RangesOrigin
+import com.example.kpkn.screens.programdetail.design.progress.lowerFirst
+import com.example.kpkn.screens.programdetail.design.progress.rangesOriginLabel
+import com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.Locale
-import kotlin.math.max
-
-internal data class CanonicalMuscleVolumeUi(
-    val muscleId: String,
-    val muscleName: String,
-    val weeklySets: Double,
-)
 
 internal data class PersonalizedVolumeTarget(
     val muscleName: String,
@@ -71,357 +41,128 @@ internal data class PersonalizedVolumeTarget(
     val maxRecoverable: Int,
 )
 
-private data class VolumeScopeOption(
-    val id: String,
-    val label: String,
-    val detail: String,
-    val weeks: List<ProgramWeek>,
-    val averageByWeek: Boolean,
+/**
+ * Los músculos de «Series por músculo» en el orden del lienzo (g-volume): pierna, torso, brazos y gemelo. Los nueve primeros salen
+ * siempre (el lienzo enseña «Pantorrillas 0 / 0»); el resto, solo si tiene series planificadas o hechas.
+ */
+internal val canvasMuscleOrder = listOf(
+    "Cuádriceps", "Isquiosurales", "Glúteos", "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Pantorrillas",
+    "Trapecio", "Romboides", "Erectores Espinales", "Aductores", "Abdomen", "Core", "Antebrazo", "Cuello",
 )
+private const val CANVAS_ALWAYS_SHOWN = 9
 
-private data class IndexedVolumeWeek(
-    val globalIndex: Int,
-    val blockId: String,
-    val blockName: String,
-    val week: ProgramWeek,
-)
-
-private val canonicalMuscleCatalog = listOf(
-    "Cuello",
-    "Trapecio",
-    "Deltoides",
-    "Pectorales",
-    "Bíceps",
-    "Tríceps",
-    "Antebrazo",
-    "Dorsales",
-    "Erectores Espinales",
-    "Core",
-    "Abdomen",
-    "Glúteos",
-    "Aductores",
-    "Cuádriceps",
-    "Isquiosurales",
-    "Pantorrillas",
-    "Romboides",
-)
+/** Las indirectas cuentan la mitad: el modo del lienzo («Indirectas: ½»), fijo. */
+private const val INDIRECT_HALF = 1
 
 /**
- * Plan y realización comparten ventana y modo de contabilidad de series. Los desgloses explican la misma cifra que la barra.
+ * Las filas de «Series por músculo»: [planned] y [done] por músculo canónico, las zonas de [targets] (null si no está calibrado) y el
+ * orden del lienzo, con las prioridades del usuario delante. [hasLogs] = hay registros: sin ellos no hay cifra de lo hecho.
+ */
+internal fun volumeMuscleRows(
+    planned: Map<String, Double>,
+    done: Map<String, Double>,
+    targets: Map<String, PersonalizedVolumeTarget>?,
+    priorityByMuscle: Map<String, Double>,
+    hasLogs: Boolean,
+): List<ProgramVolumeMuscle> = canvasMuscleOrder.withIndex()
+    .mapNotNull { (index, name) ->
+        val plan = planned[name] ?: 0.0
+        val real = done[name] ?: 0.0
+        if (index >= CANVAS_ALWAYS_SHOWN && plan <= 0.0 && real <= 0.0) return@mapNotNull null
+        ProgramVolumeMuscle(
+            name = name,
+            sets = plan,
+            zones = targets?.get(name)?.let { ProgramVolumeZones(it.minEffective, it.maxAdaptive, it.maxRecoverable) },
+            real = real.takeIf { hasLogs },
+            scaleMax = 0.0,
+        )
+    }
+    .sortedByDescending { priorityByMuscle[it.name] ?: 0.0 }
+
+/**
+ * «Series por músculo» de la pestaña Progreso (lienzo v6, g-volume) para las semanas del alcance de arriba: [weeks] y, si
+ * [averageByWeek], su promedio semanal. Lo hecho y lo planificado comparten ventana; las indirectas cuentan la mitad. Sin programa activo
+ * o sin sesiones, el módulo dice por qué y ofrece la salida. Debajo, «Ver lo que has hecho en 4 semanas».
  */
 @Composable
 internal fun VolumeView(
     program: Program,
+    weeks: List<ProgramWeek>,
+    averageByWeek: Boolean,
     isProgramActive: Boolean,
     hasCreatedSessions: Boolean,
     onActivateProgram: () -> Unit,
     onGoCreateSession: () -> Unit,
-    onApplyVolumeCalibration: (ProgramMode, AthleteProfileScore, List<VolumeRecommendation>) -> Unit,
-    programDiscomforts: List<DiscomfortEntry>,
-    exerciseDiscomfortAssociations: List<ExerciseDiscomfortAssociationEntry>,
-    programLogs: List<WorkoutLog> = emptyList(),
+    programLogs: List<WorkoutLog>,
+    rangesOrigin: RangesOrigin,
+    onOpenRanges: () -> Unit,
     modifier: Modifier = Modifier,
-    rangesOrigin: RangesOrigin = RangesOrigin.GENERAL_REFERENCE,
-    onOpenRanges: () -> Unit = {},
-    openAnswersToken: Int = 0,
 ) {
-    val volumeScopeOptions = remember(program) { buildVolumeScopeOptions(program) }
-    var selectedVolumeScopeId by rememberSaveable(program.id) { mutableStateOf("") }
-    var indirectMode by rememberSaveable(program.id) { mutableStateOf(0) }
-    LaunchedEffect(volumeScopeOptions) {
-        if (volumeScopeOptions.none { it.id == selectedVolumeScopeId }) {
-            selectedVolumeScopeId = volumeScopeOptions.firstOrNull()?.id.orEmpty()
-        }
-    }
-    val selectedVolumeScope = remember(volumeScopeOptions, selectedVolumeScopeId) {
-        volumeScopeOptions.firstOrNull { it.id == selectedVolumeScopeId } ?: volumeScopeOptions.firstOrNull()
-    }
     val zone = ZoneId.systemDefault()
     val today = LocalDate.now(zone)
-    val volume = remember(program, selectedVolumeScope, programLogs, indirectMode, zone, today) {
+    val volume = remember(program, weeks, averageByWeek, programLogs, zone, today) {
         calculateProgramVolume(
             program = program,
-            weeks = selectedVolumeScope?.weeks.orEmpty(),
-            averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
+            weeks = weeks,
+            averageByWeek = averageByWeek,
             logs = programLogs,
             exerciseIndex = catalogExerciseIndex(),
-            indirectMode = indirectMode,
+            indirectMode = INDIRECT_HALF,
             adjustByIntensity = false,
             zone = zone,
             today = today,
         )
     }
-    val canonicalVolumes = remember(volume) { mergeCanonicalVolumeCatalog(volume.planned.weeklyEntries()) }
-    val personalizedTargets = remember(program.volumeRecommendations) {
-        mergePersonalizedTargets(program.volumeRecommendations)
+    val calibrated = program.volumeRecommendations.isNotEmpty() && program.athleteProfileScore != null
+    val targets = remember(program.volumeRecommendations, calibrated) {
+        if (calibrated) mergePersonalizedTargets(program.volumeRecommendations) else null
     }
-    val isVolumeCalibrated = remember(program.volumeRecommendations, program.athleteProfileScore) {
-        program.volumeRecommendations.isNotEmpty() && program.athleteProfileScore != null
-    }
-    val completedVolumes = volume.completed
-    val totalWeeklySets = remember(canonicalVolumes) { canonicalVolumes.sumOf { it.weeklySets } }
-    val activeMuscles = remember(canonicalVolumes) { canonicalVolumes.count { it.weeklySets > 0.0 } }
-    val topMuscle = remember(canonicalVolumes) { canonicalVolumes.maxByOrNull { it.weeklySets } }
-
-    var showCalibrationSheet by rememberSaveable { mutableStateOf(false) }
-    // «Revisar mis respuestas» de la hoja de rangos sube el token: abre la misma calibración de siempre (mismo cálculo).
-    LaunchedEffect(openAnswersToken) {
-        if (openAnswersToken > 0) showCalibrationSheet = true
-    }
-    var expandedMuscleName by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
-    var doneViewChoice by rememberSaveable(program.id) { mutableStateOf<Boolean?>(null) }
-
-    // Los alcances tienen tipo (Semana, Bloque, Programa): el selector recorre los de un mismo tipo y el segmento cambia de tipo.
-    val scopeKinds = remember(volumeScopeOptions) { volumeScopeOptions.map { it.kindKey() }.distinct() }
-    val selectedKey = selectedVolumeScope?.kindKey()
-    val selectedKind = selectedKey?.let { scopeKinds.indexOf(it) }?.coerceAtLeast(0) ?: 0
-    val optionsOfKind = volumeScopeOptions.filter { it.kindKey() == selectedKey }
-    val position = optionsOfKind.indexOfFirst { it.id == selectedVolumeScope?.id }
-
-    // Prioridades del usuario (bolsa de orden del programa, por músculo): van delante; luego, por series.
+    // Prioridades del usuario (bolsa de orden del programa, por músculo): van delante; luego, el orden del lienzo.
     val priorityByMuscle = remember(program.planOrderPriorities) {
         program.planOrderPriorities.orEmpty().entries
             .groupBy { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
             .mapValues { (_, entries) -> entries.sumOf { it.value }.toDouble() }
     }
-    val muscleRows = remember(canonicalVolumes, personalizedTargets, isVolumeCalibrated, completedVolumes, priorityByMuscle) {
-        val fallbackMax = max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
-        canonicalVolumes
-            .sortedWith(
-                compareByDescending<CanonicalMuscleVolumeUi> { priorityByMuscle[it.muscleName] ?: 0.0 }
-                    .thenByDescending { it.weeklySets },
-            )
-            .map { entry ->
-                val target = if (isVolumeCalibrated) personalizedTargets[entry.muscleName] else null
-                val zones = target?.let { ProgramVolumeZones(it.minEffective, it.maxAdaptive, it.maxRecoverable) }
-                val canonicalName = VolumeCalculator.normalizeCanonicalMuscleGroup(entry.muscleName)
-                val completed = completedVolumes.muscles[canonicalName]?.sets ?: 0.0
-                ProgramVolumeMuscle(
-                    name = entry.muscleName,
-                    sets = entry.weeklySets,
-                    zones = zones,
-                    real = completed.takeIf { programLogs.isNotEmpty() },
-                    scaleMax = if (zones != null) {
-                        max(max(entry.weeklySets, completed), zones.maxRecoverable.toDouble()).coerceAtLeast(1.0)
-                    } else {
-                        max(fallbackMax, completed).coerceAtLeast(1.0)
-                    },
-                )
-            }
+    val hasLogs = programLogs.isNotEmpty()
+    val muscles = remember(volume, targets, priorityByMuscle, hasLogs) {
+        volumeMuscleRows(
+            planned = volume.planned.weeklyEntries().associate { it.muscleName to it.weeklySets },
+            done = volume.completed.muscles.mapValues { it.value.sets },
+            targets = targets,
+            priorityByMuscle = priorityByMuscle,
+            hasLogs = hasLogs,
+        )
     }
-    val hasDoneVolume = remember(muscleRows) { muscleRows.any { it.real != null } }
-
-    // El cálculo ya contiene los contribuyentes; solo se proyecta la fila desplegada.
-    val breakdown = remember(expandedMuscleName, volume) {
+    var doneViewChoice by rememberSaveable(program.id) { mutableStateOf(true) }
+    var expandedMuscleName by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
+    val doneView = hasLogs && doneViewChoice
+    // El desglose explica la misma cifra que la barra: lo hecho en «Hecho» y lo planificado en «Plan».
+    val breakdown = remember(expandedMuscleName, volume, doneView) {
         expandedMuscleName?.let { muscle ->
-            programVolumeBreakdown(muscle, volume.planned.muscles[muscle])
+            val result = if (doneView) volume.completed else volume.planned
+            programVolumeBreakdown(muscle, result.muscles[muscle])
         }
     }
 
-    val split = remember(canonicalVolumes) {
-        programVolumeSplit(canonicalVolumes.map { it.muscleName to it.weeklySets })
-    }
-    val discomfortRows = remember(programDiscomforts) {
-        programDiscomforts.take(4).map { ProgramVolumeDiscomfort(name = it.name, count = it.count) }
-    }
-    val associationRows = remember(exerciseDiscomfortAssociations) {
-        exerciseDiscomfortAssociations.take(6).map {
-            ProgramVolumeAssociation(exercise = it.exerciseName, discomfort = it.discomfortLabel, count = it.count)
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        when {
+            !isProgramActive -> ProgressVolumeEmpty(inactive = true, onAction = onActivateProgram)
+            !hasCreatedSessions -> ProgressVolumeEmpty(inactive = false, onAction = onGoCreateSession)
+            else -> ProgressVolumeModule(
+                muscles = muscles,
+                doneView = doneView,
+                onDoneViewChange = if (hasLogs) ({ doneViewChoice = it }) else null,
+                rangesLabel = lowerFirst(rangesOriginLabel(rangesOrigin)),
+                onOpenRanges = onOpenRanges,
+                expandedMuscle = expandedMuscleName,
+                onToggleMuscle = { name -> expandedMuscleName = if (expandedMuscleName == name) null else name },
+                breakdown = breakdown,
+            )
         }
-    }
-
-    val scope = ProgramVolumeScope(
-        label = volumeScopeLabelOf(selectedVolumeScope?.label ?: "Sin alcance", simpleProgram = program.isSimpleProgram),
-        detail = selectedVolumeScope?.detail.orEmpty() + " ${volumeWindowDate(volume.window.start)} – ${volumeWindowDate(volume.window.endInclusive)}.",
-        kinds = scopeKinds.map(::volumeKindLabel),
-        selectedKind = selectedKind,
-        canPrevious = position > 0,
-        canNext = position >= 0 && position < optionsOfKind.lastIndex,
-    )
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        if (!isProgramActive) {
-            ProgramVolumeInactive(onActivate = onActivateProgram)
-            Spacer(Modifier.height(120.dp))
-            return@Column
-        }
-
-        if (!hasCreatedSessions) {
-            ProgramVolumeNoSessions(onAddSession = onGoCreateSession)
-            Spacer(Modifier.height(120.dp))
-            return@Column
-        }
-
-        ProgramVolumeModule(
-            muscles = muscleRows,
-            scope = scope,
-            onSelectKind = { index ->
-                scopeKinds.getOrNull(index)?.let { key ->
-                    volumeScopeOptions.firstOrNull { it.kindKey() == key }?.let { selectedVolumeScopeId = it.id }
-                }
-            },
-            onPreviousScope = {
-                if (position > 0) selectedVolumeScopeId = optionsOfKind[position - 1].id
-            },
-            onNextScope = {
-                if (position in 0 until optionsOfKind.lastIndex) selectedVolumeScopeId = optionsOfKind[position + 1].id
-            },
-            expandedMuscle = expandedMuscleName,
-            onToggleMuscle = { name -> expandedMuscleName = if (expandedMuscleName == name) null else name },
-            breakdown = breakdown,
-            header = { ProgramRangesRow(origin = rangesOrigin, onClick = onOpenRanges) },
-            // «Hecho / Plan»: con registros, por defecto lo hecho (la barra) frente al plan (el trazo); sin registros, solo el plan.
-            doneView = hasDoneVolume && (doneViewChoice ?: true),
-            onDoneViewChange = if (hasDoneVolume) ({ doneViewChoice = it }) else null,
-            unassignedCount = completedVolumes.unassignedCount,
-            controls = {
-                ProgramVolumeCountControls(
-                    indirectMode = indirectMode,
-                    onIndirectMode = { indirectMode = it },
-                )
-            },
-        )
-
-        // Enlace discreto al panel de lo REGISTRADO (T5a); sin navegación provista no se muestra.
+        // Enlace al panel de lo REGISTRADO; sin navegación provista no se muestra.
         LocalMuscleVolumePanelOpener.current?.let { openPanel ->
-            KpknTextAction(
-                text = "Ver lo que has hecho en 4 semanas",
-                onClick = { openPanel(program.id) },
-                icon = KpknLineIcons.ChevronRight,
-                modifier = Modifier.testTag("volumen_ver_registrado"),
-            )
+            ProgressVolumeHistoryLink(onClick = { openPanel(program.id) })
         }
-
-        ProgramVolumeSummaryModule(
-            totalSets = totalWeeklySets,
-            activeMuscles = activeMuscles,
-            topMuscle = topMuscle?.muscleName,
-            split = split,
-            discomforts = discomfortRows,
-            associations = associationRows,
-        )
-
-        Spacer(Modifier.height(120.dp))
-    }
-
-    if (showCalibrationSheet) {
-        VolumeCalibrationSheet(
-            currentMode = program.mode,
-            onDismiss = { showCalibrationSheet = false },
-            onSave = { result ->
-                onApplyVolumeCalibration(result.mode, result.score, result.recommendations)
-                showCalibrationSheet = false
-            },
-        )
-    }
-}
-
-/** Tipo de un alcance según su identificador: programa completo, bloque o semana. */
-private fun VolumeScopeOption.kindKey(): String = id.substringBefore(':')
-
-/** Rótulo del tipo de alcance en el segmento. */
-private fun volumeKindLabel(key: String): String = when (key) {
-    "macro" -> "Programa"
-    "block" -> "Bloque"
-    else -> "Semana"
-}
-
-private fun mergeCanonicalVolumeCatalog(
-    entries: List<CanonicalMuscleVolumeEntry>,
-): List<CanonicalMuscleVolumeUi> {
-    val byName = entries.associateBy { it.muscleName }
-    return canonicalMuscleCatalog.map { muscleName ->
-        val existing = byName[muscleName]
-        CanonicalMuscleVolumeUi(
-            muscleId = existing?.muscleId ?: muscleName.lowercase().replace(" ", "-"),
-            muscleName = muscleName,
-            weeklySets = existing?.weeklySets ?: 0.0,
-        )
-    }
-}
-
-private fun buildVolumeScopeOptions(program: Program): List<VolumeScopeOption> {
-    val indexedWeeks = program.indexedVolumeWeeks()
-    if (indexedWeeks.isEmpty()) return emptyList()
-
-    if (program.isSimpleTemporalProgram) {
-        return indexedWeeks.map { item ->
-            VolumeScopeOption(
-                id = "week:${item.week.id}",
-                label = "S${item.globalIndex + 1} · ${weekScopeName(item.week)}",
-                detail = "Conteo exacto de esa semana.",
-                weeks = listOf(item.week),
-                averageByWeek = false,
-            )
-        }
-    }
-
-    val options = mutableListOf<VolumeScopeOption>()
-    options += VolumeScopeOption(
-        id = "macro:average",
-        label = "Programa completo",
-        detail = "Promedio semanal de ${indexedWeeks.size} semanas.",
-        weeks = indexedWeeks.map { it.week },
-        averageByWeek = true,
-    )
-
-    indexedWeeks
-        .groupBy { it.blockId }
-        .values
-        .filter { it.isNotEmpty() }
-        .forEach { blockWeeks ->
-            val first = blockWeeks.first()
-            options += VolumeScopeOption(
-                id = "block:${first.blockId}",
-                label = first.blockName,
-                detail = "Promedio semanal del bloque (${blockWeeks.size} semanas).",
-                weeks = blockWeeks.map { it.week },
-                averageByWeek = true,
-            )
-        }
-
-    indexedWeeks.forEach { item ->
-        options += VolumeScopeOption(
-            id = "week:${item.week.id}",
-            label = "S${item.globalIndex + 1} · ${weekScopeName(item.week)}",
-            detail = "Conteo exacto de esa semana.",
-            weeks = listOf(item.week),
-            averageByWeek = false,
-        )
-    }
-
-    return options.distinctBy { it.id }
-}
-
-private fun Program.indexedVolumeWeeks(): List<IndexedVolumeWeek> {
-    val result = mutableListOf<IndexedVolumeWeek>()
-    macrocycles.forEach { macro ->
-        macro.blocks.forEach { block ->
-            block.mesocycles.forEach { meso ->
-                meso.weeks.forEach { week ->
-                    result += IndexedVolumeWeek(
-                        globalIndex = result.size,
-                        blockId = block.id,
-                        blockName = block.name,
-                        week = week,
-                    )
-                }
-            }
-        }
-    }
-    return result
-}
-private fun weekScopeName(week: ProgramWeek): String {
-    val date = week.startDate?.let(::parseIsoDateExact)?.format(monthDayFormatter)
-    return if (date != null && !week.name.contains(date)) {
-        "${week.name} · $date"
-    } else {
-        week.name
     }
 }
 
@@ -493,7 +234,7 @@ internal data class ProgramVolumeCalculation(
     val completed: TrainingVolumeResult,
 )
 
-/** Proyección compartida por el plan, «Real» y sus desgloses; calibrar no altera la contabilidad. */
+/** Proyección compartida por el plan, lo hecho y sus desgloses; calibrar no altera la contabilidad. */
 internal fun calculateProgramVolume(
     program: Program,
     weeks: List<ProgramWeek>,
@@ -529,12 +270,4 @@ internal fun calculateProgramVolume(
             programId = program.id,
         ),
     )
-}
-
-private val monthDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd", Locale.US)
-
-/** Fecha de la ventana de volumen en español corto («22 oct»), con el año solo si no es el actual. */
-private fun volumeWindowDate(date: LocalDate): String {
-    val pattern = if (date.year == LocalDate.now().year) "d MMM" else "d MMM yyyy"
-    return date.format(DateTimeFormatter.ofPattern(pattern, Locale.forLanguageTag("es"))).replace(".", "")
 }

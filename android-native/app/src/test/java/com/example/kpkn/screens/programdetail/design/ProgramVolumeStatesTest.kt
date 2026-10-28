@@ -1,13 +1,11 @@
 package com.example.kpkn.screens.programdetail.design
 
-import com.example.kpkn.domain.training.split.SplitGroup
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** Tabla de estados de volumen de P4: un caso por estado, de la regla al color y a la etiqueta; y el reparto y las cifras. */
+/** Tabla de estados de volumen de P4: un caso por estado, de la regla al color y a la etiqueta; y las cifras. */
 class ProgramVolumeStatesTest {
 
     private val zones = ProgramVolumeZones(minEffective = 8, maxAdaptive = 14, maxRecoverable = 20)
@@ -60,24 +58,8 @@ class ProgramVolumeStatesTest {
     }
 
     @Test
-    fun repartePorGrupoDeEmpujeTironYPierna() {
-        assertEquals(SplitGroup.PUSH, programVolumeSplitGroup("Pectorales"))
-        assertEquals(SplitGroup.PULL, programVolumeSplitGroup("Dorsales"))
-        assertEquals(SplitGroup.LEGS, programVolumeSplitGroup("Cuádriceps"))
-        assertNull(programVolumeSplitGroup("Core"))
-        val split = programVolumeSplit(listOf("Pectorales" to 10.0, "Dorsales" to 6.0, "Cuádriceps" to 4.0, "Core" to 3.0))
-        assertEquals(ProgramVolumeSplit(push = 10.0, pull = 6.0, legs = 4.0), split)
-    }
-
-    @Test
     fun seriesConComaSoloSiHayDecimales() {
         assertEquals("14", programVolumeSeries(14.0))
         assertEquals("13,5", programVolumeSeries(13.5))
-    }
-
-    @Test
-    fun porcentajeSinTotalEsCero() {
-        assertEquals(0, programVolumeShare(3.0, 0.0))
-        assertEquals(25, programVolumeShare(1.0, 4.0))
     }
 }

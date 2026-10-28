@@ -28,13 +28,9 @@ import com.example.kpkn.screens.programdetail.design.ProgramPhase
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseBlockUi
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseWeekUi
 import com.example.kpkn.screens.programdetail.design.ProgramSessionUi
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeAssociation
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeBreakdown
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeDiscomfort
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeLine
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programHeadlineMeta
 import com.example.kpkn.screens.programdetail.design.programModeLabel
@@ -232,16 +228,6 @@ internal object ProgramDetailSamples {
         muscle.copy(zones = null, scaleMax = 26.0, )
     }
 
-    /** El alcance de una semana, con sus tres tipos. */
-    val volumeScopeWeek = ProgramVolumeScope(
-        label = "S3 · Acumulación",
-        detail = "Conteo exacto de esa semana.",
-        kinds = listOf("Semana", "Bloque", "Programa"),
-        selectedKind = 0,
-        canPrevious = true,
-        canNext = true,
-    )
-
     /** El desglose de pectorales: tres ejercicios y sin cabezas. */
     val volumeBreakdownPectorales = ProgramVolumeBreakdown(
         exercises = listOf(
@@ -251,15 +237,6 @@ internal object ProgramDetailSamples {
         ),
         subMuscles = emptyList(),
     )
-
-    /** El reparto de la semana de ejemplo, con empuje por delante. */
-    val volumeSplit = ProgramVolumeSplit(push = 62.0, pull = 48.0, legs = 40.0)
-
-    /** Molestias de ejemplo para el resumen. */
-    val volumeDiscomforts = listOf(ProgramVolumeDiscomfort("Hombro derecho", 3), ProgramVolumeDiscomfort("Lumbar", 1))
-
-    /** Molestias asociadas a un ejercicio de ejemplo. */
-    val volumeAssociations = listOf(ProgramVolumeAssociation("Press militar", "Pinchazo en hombro", 2))
 
     /** Tres sesiones de ejemplo de una semana, en días distintos: lo que una aplicación con reemplazo borra (P5). */
     private fun splitSessions(week: Int): List<Session> = listOf(

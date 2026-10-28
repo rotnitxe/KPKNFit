@@ -9,10 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.screens.programdetail.design.structure.StructureChip
 
 /**
- * Selector de alcance de la pestaña Progreso: «Programa» siempre, y «Bloque N» o «Semana N» solo si [blockLabel] o [weekLabel] no son
+ * Selector de alcance de la pestaña Progreso (`scopeChips` del lienzo, `.chip` con 6 dp de hueco): «Programa» siempre, y «Bloque N» o «Semana N» solo si [blockLabel] o [weekLabel] no son
  * nulos. El alcance elegido va en relleno de tinta. La fila se desplaza en horizontal si no cabe. Sin estado: [selected] marca cuál va
  * elegido y [onSelect] recibe el que se toca.
  */
@@ -48,7 +48,7 @@ private fun ProgressScopeChip(
     selected: ProgressScope,
     onSelect: (ProgressScope) -> Unit,
 ) {
-    KpknChip(
+    StructureChip(
         text = text,
         selected = scope == selected,
         onClick = { onSelect(scope) },

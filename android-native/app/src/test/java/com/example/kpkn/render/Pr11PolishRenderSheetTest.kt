@@ -42,10 +42,6 @@ import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderState
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderStatus
 import com.example.kpkn.screens.programdetail.design.ProgramNextSession
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationInvite
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeModule
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -59,8 +55,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 
 /**
- * HOJA DE DIBUJO del pulido de la Pre Release 11 (Q3): Program Detail en un día sin sesión (con y sin «Siguiente»), el volumen sin
- * calibrar con los músculos sin series al final, Propuestas sin ningún TM y la gráfica de grasa con dos pesajes del mismo día. No
+ * HOJA DE DIBUJO del pulido de la Pre Release 11 (Q3): Program Detail en un día sin sesión (con y sin «Siguiente»), Propuestas sin ningún TM y la gráfica de grasa con dos pesajes del mismo día. No
  * comprueba nada: escribe PNG. Pinta a 360 dp, con la letra al 100 % y al 130 %, sin movimiento. Solo corre con `KPKN_RENDER_DIR`.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -84,7 +79,7 @@ class Pr11PolishRenderSheetTest {
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     /** Los casos de la hoja, en orden. */
-    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "propuestasSinTm", "propuestasSinTmConTm", "grasaDosPesajes")
+    private val cases = listOf("pdDescanso", "pdSinSiguiente", "propuestasSinTm", "propuestasSinTmConTm", "grasaDosPesajes")
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
@@ -115,7 +110,6 @@ class Pr11PolishRenderSheetTest {
     /** Alto de la hoja de cada caso: lo bastante para que el contenido entero quepa al 130 %. */
     private fun heightOf(name: String): Int = when (name) {
         "pdDescanso", "pdSinSiguiente" -> 560
-        "volumenSinCalibrar" -> 1700
         "propuestasSinTm", "propuestasSinTmConTm" -> 460
         "grasaDosPesajes" -> 560
         else -> 800
@@ -150,29 +144,6 @@ class Pr11PolishRenderSheetTest {
     )
 
     private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onOpenNextSession = {})
-
-    /** Un volumen sin calibrar: ningún músculo tiene zonas, y tres no tienen series esta semana. */
-    private val uncalibratedMuscles = listOf(
-        ProgramVolumeMuscle("Glúteos", 20.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Deltoides", 19.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuádriceps", 19.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Dorsales", 14.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Isquiosurales", 12.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Pectorales", 8.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Trapecio", 7.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuello", 0.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Bíceps", 0.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Tríceps", 0.0, null, null,   scaleMax = 20.0),
-    )
-
-    private val volumeScope = ProgramVolumeScope(
-        label = "S1 · Semana repetible",
-        detail = "Conteo exacto de esa semana.",
-        kinds = listOf("Semana"),
-        selectedKind = 0,
-        canPrevious = false,
-        canNext = false,
-    )
 
     /** Un programa sin perfil de TM: la fila de TM no debe pintarse, y la propuesta nativa sí. */
     private val noTmProgram = Program(id = "fuerza-libre", name = "Fuerza libre", description = "", mode = ProgramMode.HYPERTROPHY)
@@ -213,22 +184,6 @@ class Pr11PolishRenderSheetTest {
             }
             "pdSinSiguiente" -> Frame {
                 ProgramHeader(state = headerState(null), actions = noopHeaderActions)
-            }
-            "volumenSinCalibrar" -> Frame {
-                ProgramVolumeCalibrationInvite(
-                    onCalibrate = {},
-                    note = "Sin calibrar: las zonas aparecen al calibrar",
-                )
-                ProgramVolumeModule(
-                    muscles = uncalibratedMuscles,
-                    scope = volumeScope,
-                    onSelectKind = {},
-                    onPreviousScope = {},
-                    onNextScope = {},
-                    expandedMuscle = null,
-                    onToggleMuscle = {},
-                    breakdown = null,
-                )
             }
             "propuestasSinTm" -> Frame {
                 AutoregulationProposalsCard(
