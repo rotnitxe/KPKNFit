@@ -223,6 +223,10 @@ class ProgramSessionSlopAuditTest {
 
     // ─── Informe ───────────────────────────────────────────────────────────────────────────────
 
+    /** Clase de la etiqueta del programa: receta, protocol, original, adapted, native o «a medida». */
+    private fun classOf(label: String): String =
+        if (label.startsWith("receta ")) "receta" else label.substringBefore(" ·").substringBefore(":")
+
     private fun render(audit: Audit): String {
         val byRule = TreeMap<String, Int>()
         audit.findings.forEach { byRule[it.rule] = (byRule[it.rule] ?: 0) + 1 }
@@ -231,6 +235,9 @@ class ProgramSessionSlopAuditTest {
             appendLine("[session-slop] violaciones totales: ${audit.findings.size} (techo actual: $CEILING)")
             appendLine("[session-slop] por regla:")
             (SlopRule.entries.map { it.name } + FILLER_OVER_WEEKLY_CAP).forEach { rule -> appendLine("[session-slop]   $rule: ${byRule[rule] ?: 0}") }
+            appendLine("[session-slop] por clase de programa (violaciones):")
+            audit.findings.groupingBy { classOf(it.program) }.eachCount().toSortedMap()
+                .forEach { (kind, count) -> appendLine("[session-slop]   $kind: $count") }
             appendLine("[session-slop] primeras ${REPORT_SAMPLE} violaciones (regla · programa · semana · sesión · detalle):")
             audit.findings.take(REPORT_SAMPLE).forEach { f -> appendLine("  ${f.rule} · ${f.program} · ${f.week} · ${f.session} · ${f.detail}") }
             appendLine("[session-slop] muestra por regla (hasta $RULE_SAMPLE cada una):")
@@ -246,8 +253,8 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7 (todo el material). La ola 5 debe dejarlo en 0. */
-        const val CEILING = 2464
+        /** Techo (trinquete) tras F-02b: 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11. La ola 5 debe dejarlo en 0. */
+        const val CEILING = 1280
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40
