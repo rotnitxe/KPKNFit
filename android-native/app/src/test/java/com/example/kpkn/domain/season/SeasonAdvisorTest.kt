@@ -13,6 +13,31 @@ class SeasonAdvisorTest {
         assertFalse(SeasonAdviceCode.MEET_NEEDS_MAINTENANCE in codes(SeasonInput(daysToCompetition = 15,direction = PlanDirection.DEFICIT)))
         assertFalse(SeasonAdviceCode.MEET_NEEDS_MAINTENANCE in codes(SeasonInput(daysToCompetition = 3,direction = PlanDirection.DEFICIT,targetBodyweightKg = 83.0,currentBodyweightKg = 84.0)))
     }
+    @Test fun weightRiskWithoutATrendIsALowSeverityRequestToLogWeight() {
+        val base = SeasonInput(direction = PlanDirection.MAINTENANCE,currentBodyweightKg = 84.0,targetBodyweightKg = 83.0,daysToCompetition = 28)
+        val noTrend = SeasonAdvisor.advise(base).single { it.code == SeasonAdviceCode.WEIGHT_CLASS_RISK }
+        assertEquals(1,noTrend.severity)
+        assertEquals("Registra tu peso para saber si llegas a tu categoría",noTrend.detail)
+        val withTrend = SeasonAdvisor.advise(base.copy(weeklyWeightRateKg = -0.1)).single { it.code == SeasonAdviceCode.WEIGHT_CLASS_RISK }
+        assertEquals(2,withTrend.severity)
+        assertTrue(withTrend.detail.contains("Proyección lineal"))
+        // El día del pesaje con el peso por encima sigue siendo un riesgo real, aunque no haya tendencia.
+        val weighInDay = SeasonAdvisor.advise(base.copy(daysToCompetition = 0)).single { it.code == SeasonAdviceCode.WEIGHT_CLASS_RISK }
+        assertEquals(2,weighInDay.severity)
+    }
+    @Test fun nextPeakBlockInDeficitWarnsInThePreviousBlockWithoutDuplicatingTheCurrentPeakNote() {
+        for (next in listOf(BlockGoal.PEAK,BlockGoal.TAPER,BlockGoal.REALIZATION)) {
+            val early = SeasonAdvisor.advise(SeasonInput(blockGoal = BlockGoal.INTENSIFICATION,nextBlockGoal = next,direction = PlanDirection.DEFICIT,
+                calorieTarget = 2300,maintenanceKcal = 2400)).single { it.code == SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE }
+            assertTrue(early.detail.contains("Tu próximo bloque es de pico: conviene llegar en mantenimiento"))
+        }
+        assertFalse(SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE in codes(SeasonInput(blockGoal = BlockGoal.INTENSIFICATION,nextBlockGoal = BlockGoal.PEAK,direction = PlanDirection.MAINTENANCE)))
+        assertFalse(SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE in codes(SeasonInput(blockGoal = BlockGoal.INTENSIFICATION,nextBlockGoal = BlockGoal.ACCUMULATION,direction = PlanDirection.DEFICIT)))
+        val inPeak = SeasonAdvisor.advise(SeasonInput(blockGoal = BlockGoal.PEAK,nextBlockGoal = BlockGoal.TAPER,direction = PlanDirection.DEFICIT))
+            .filter { it.code == SeasonAdviceCode.PEAK_NEEDS_MAINTENANCE }
+        assertEquals(1,inPeak.size)
+        assertEquals(2,inPeak.single().severity)
+    }
     @Test fun deloadContextCannotMutateNutritionAccounting() {
         val input = SeasonInput(currentWeekIsDeload = true,direction = PlanDirection.MAINTENANCE,calorieTarget = 2400)
         val advice = SeasonAdvisor.advise(input).single()

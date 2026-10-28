@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.domain.workout.isMyoReps
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
@@ -2037,9 +2038,12 @@ internal fun SetInputCardV2(
                                 previous.rir?.let { append(" · RIR $it") }
                             }
                         } ?: "Sin historial anterior"
-                    },
+                    } + (if (!bodyLoad && exercise.loadEstimate != null) " · ${VariantLoadEstimates.PRESCRIPTION_LABEL}" else ""),
                     modifier = Modifier.weight(1f)
                         .then(if (missingBodyWeight) Modifier.clickable(role = Role.Button) { loadModeMenuExpanded = true } else Modifier)
+                        .then(exercise.loadEstimate?.takeIf { !bodyLoad }?.let { estimate ->
+                            Modifier.semantics { contentDescription = VariantLoadEstimates.accessibilityLabel(estimate, null) }
+                        } ?: Modifier)
                         .testTag("live-card-load-reference"),
                     style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
                     color = if (missingBodyWeight) WizardColors.text else Ref02CardFaint,

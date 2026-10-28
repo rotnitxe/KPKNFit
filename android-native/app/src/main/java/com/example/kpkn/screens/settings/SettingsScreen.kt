@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -119,6 +120,7 @@ fun SettingsScreen(
     var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
     var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showNutritionSources by rememberSaveable { mutableStateOf(false) }
     val localTelemetryPath = remember(context) { File(context.filesDir, "kpkn_logs").absolutePath }
 
     LaunchedEffect(context) {
@@ -246,6 +248,18 @@ fun SettingsScreen(
                         description = "Barra, discos y cargas disponibles en tu gimnasio.",
                         actionLabel = "Editar",
                         onClick = onOpenEquipmentInventory,
+                    )
+                }
+            }
+            item {
+                SettingsBlockTitle("Nutrición")
+                SettingsCard {
+                    SettingsActionRow(
+                        icon = Icons.Default.Info,
+                        title = "Fuentes y licencias de los datos",
+                        description = "De dónde salen los datos de alimentos y bajo qué licencias se usan.",
+                        actionLabel = "Ver",
+                        onClick = { showNutritionSources = true },
                     )
                 }
             }
@@ -418,6 +432,8 @@ fun SettingsScreen(
             item { Spacer(Modifier.height(40.dp)) }
         }
     }
+
+    if (showNutritionSources) NutritionSourcesDialog(onDismiss = { showNutritionSources = false })
 
     pendingImport?.let { uri ->
         KpknAlertDialog(

@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.SessionDurationEstimator
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 
 /**
  * El contrato del brief D1 aplicado a UNA rutina generada (lo usan el barrido de los modos generales y el de las
@@ -59,6 +60,8 @@ internal object RoutineContractChecks {
             if (ids.size != ids.distinct().size) problems += "$label: ${session.name} repite ejercicios $ids"
             val definitions = exercises.mapNotNull { it.catalogDefinitionId }
             if (definitions.size != definitions.distinct().size) problems += "$label: ${session.name} repite definiciones"
+            val families = exercises.mapNotNull { SessionSlopRules.familyOf(it.catalogConfigurationId) }
+            if (families.size != families.distinct().size) problems += "$label: ${session.name} repite sentadilla trasera"
             when (report.kind) {
                 RoutineSessionKind.STRENGTH -> if (report.strengthExerciseCount < 3) problems += "$label: ${session.name} solo ${report.strengthExerciseCount} ejercicios de fuerza"
                 RoutineSessionKind.MIXED -> if (exercises.size < 3) problems += "$label: ${session.name} mixta con ${exercises.size} ejercicios"

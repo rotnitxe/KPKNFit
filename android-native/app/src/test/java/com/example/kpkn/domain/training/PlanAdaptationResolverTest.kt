@@ -722,6 +722,93 @@ class PlanAdaptationResolverTest {
         assertEquals(adapted.changes, adapted.recipe.provenance?.slotChanges)
     }
 
+    @Test
+    fun two_squats_in_one_day_without_rack_never_adapt_to_the_same_configuration() {
+        // DUP-02 (F-12): sentadilla barra alta + sentadilla con pausa sin rack ni barra:
+        // la primera cae al primer sustituto y la segunda al siguiente distinto.
+        val scenario = benchWithoutBarbell()
+        fun squatSlot(id: String, configurationId: String) = SlotRecipe(
+            id = id,
+            role = SlotRole.T2_SUPPLEMENTAL,
+            lift = LiftRef(configurationId, null),
+            sets = List(3) { SetRecipe(reps = 5, rir = 2, rpe = 8.0, loadBasis = LoadBasis.RPE) },
+            restSeconds = 120,
+        )
+        val recipe = TrainingPlanRecipe(
+            id = "recipe-two-squats",
+            weeks = listOf(
+                weekRecipe(
+                    1,
+                    0,
+                    "Bloque",
+                    BlockGoal.ACCUMULATION,
+                    listOf(
+                        DayRecipe(
+                            label = "Inferior",
+                            id = "d1",
+                            slots = listOf(
+                                squatSlot("s-high-bar", "high_bar_back_squat__barbell"),
+                                squatSlot("s-paused", "paused_back_squat__barbell"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val result = PlanAdaptationResolver.adapt(scenario.request(recipe))
+
+        assertTrue("Se esperaba adaptación: $result", result is PlanAdaptationResult.Adapted)
+        val adapted = result as PlanAdaptationResult.Adapted
+        val configurations = adapted.recipe.weeks[0].days[0].slots.map { it.lift.configurationId }
+        assertEquals(listOf("quads_sentadilla_copa__default", "quads_sentadilla_sin_carga__default"), configurations)
+        assertEquals(configurations.size, configurations.map { it.substringBefore("__") }.distinct().size)
+    }
+
+    @Test
+    fun squat_whose_viable_alternatives_are_already_in_the_day_fails_with_taken_detail() {
+        // DUP-02 (F-12): si todas las alternativas viables ya están en el día, el fallo es el de
+        // siempre (NO_VALID_SUBSTITUTION) con el detalle «todas las alternativas ya están en el día».
+        val scenario = benchWithoutBarbell()
+        fun slot(id: String, configurationId: String) = SlotRecipe(
+            id = id,
+            role = SlotRole.T2_SUPPLEMENTAL,
+            lift = LiftRef(configurationId, null),
+            sets = List(3) { SetRecipe(reps = 8, rir = 2, rpe = 8.0, loadBasis = LoadBasis.RPE) },
+            restSeconds = 120,
+        )
+        val recipe = TrainingPlanRecipe(
+            id = "recipe-taken",
+            weeks = listOf(
+                weekRecipe(
+                    1,
+                    0,
+                    "Bloque",
+                    BlockGoal.ACCUMULATION,
+                    listOf(
+                        DayRecipe(
+                            label = "Inferior",
+                            id = "d1",
+                            slots = listOf(
+                                slot("s-high-bar", "high_bar_back_squat__barbell"),
+                                slot("s-goblet", "quads_sentadilla_copa__default"),
+                                slot("s-bodyweight", "quads_sentadilla_sin_carga__default"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val result = PlanAdaptationResolver.adapt(scenario.request(recipe))
+
+        assertTrue("Se esperaba fallo tipado: $result", result is PlanAdaptationResult.NotViable)
+        val failure = result as PlanAdaptationResult.NotViable
+        assertEquals(PlanAdaptationReason.NO_VALID_SUBSTITUTION, failure.reason)
+        assertEquals("s-high-bar", failure.slotId)
+        assertTrue(failure.detail, failure.detail.contains("todas las alternativas ya están en el día"))
+    }
+
     // ─── §15.2: motivos tipados ──────────────────────────────────────────────
 
     @Test

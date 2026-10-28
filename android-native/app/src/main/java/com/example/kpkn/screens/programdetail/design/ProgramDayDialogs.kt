@@ -1,26 +1,40 @@
 package com.example.kpkn.screens.programdetail.design
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknDangerPill
+import com.example.kpkn.ui.design.KpknMonthCalendar
+import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknRadioRow
 import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
+import java.time.LocalDate
 
 /*
- * Diálogos de la pestaña Semana (P2), sobre KpknAlertDialog y con las piezas de la app. Sin estado: cada uno recibe lo que muestra y
- * llama a sus lambdas. Los textos son los de siempre: las pruebas los buscan.
+ * Diálogos de la pestaña Semana (P2), sobre KpknAlertDialog y con las piezas de la app. Casi sin estado: cada uno recibe lo que muestra y
+ * llama a sus lambdas; la hoja de la fecha guarda solo la fecha que se está eligiendo. Los textos del aviso de calendario salen de
+ * `ProgramScheduleCopy.kt`; las pruebas buscan los textos.
  */
 
 /** «Cambiar inicio de semana»: el alcance (todas las semanas o desde esta) y qué pasa con las sesiones. */
@@ -81,56 +95,73 @@ internal fun ProgramStartDayDialog(
     )
 }
 
-/** Aviso de calendario antes de entrenar fuera de su día: se puede continuar igualmente. */
+/**
+ * Aviso de calendario antes de empezar una sesión fuera de su fecha: [title] dice el caso y [message] lo explica. Se puede empezar igualmente.
+ */
 @Composable
 internal fun ProgramOffScheduleDialog(
+    title: String,
     message: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { DialogTitle("Aviso de calendario") },
+        title = { DialogTitle(title) },
         text = { Text(text = message, style = KpknType.body, color = WizardColors.textMuted) },
-        confirmButton = { KpknCompactPill(text = "Continuar", onClick = onConfirm) },
+        confirmButton = { KpknCompactPill(text = "Empezar igualmente", onClick = onConfirm) },
         dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
     )
 }
 
 /**
- * «Fecha de entrenamiento»: la fecha ISO de este día de la semana. Con el calendario de mes (`KpknMonthCalendar`) llegará después; por
- * ahora es el campo de texto de siempre.
+ * «Fecha del <día>» (sustituye al campo de texto AAAA-MM-DD): el calendario de mes para anclar este día de la semana a otra fecha. «Guardar»
+ * devuelve la fecha elegida; «Quitar la fecha», si ya hay una, devuelve null. La hoja no guarda nada por sí sola.
  */
 @Composable
-internal fun ProgramDayDateDialog(
-    draft: String,
-    onDraftChange: (String) -> Unit,
-    onSave: () -> Unit,
+internal fun ProgramDayDateSheet(
+    title: String,
+    selected: LocalDate?,
+    today: LocalDate,
+    onSave: (LocalDate?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { DialogTitle("Fecha de entrenamiento") },
-        text = {
-            Column {
-                Text(
-                    text = "Fecha AAAA-MM-DD de este día de la semana. Así puedes anclar turnos irregulares.",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
-                Spacer(Modifier.height(12.dp))
-                KpknTextField(
-                    value = draft,
-                    onValueChange = onDraftChange,
-                    label = "Fecha",
-                    placeholder = "AAAA-MM-DD",
-                    singleLine = true,
-                )
+    var picked by remember(selected) { mutableStateOf(selected) }
+    KpknSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+        ) {
+            Text(text = title, style = KpknType.title, color = WizardColors.text)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = "Para turnos irregulares: ancla este día a otra fecha.",
+                style = KpknType.body,
+                color = WizardColors.textMuted,
+            )
+            Spacer(Modifier.height(12.dp))
+            KpknMonthCalendar(
+                selected = picked,
+                onSelect = { picked = it },
+                today = today,
+            )
+            Spacer(Modifier.height(18.dp))
+            KpknPrimaryPill(
+                text = "Guardar",
+                onClick = { onSave(picked) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = picked != null,
+            )
+            if (selected != null) {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                    KpknTextAction(text = "Quitar la fecha", onClick = { onSave(null) })
+                }
             }
-        },
-        confirmButton = { KpknCompactPill(text = "Guardar", onClick = onSave) },
-        dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
-    )
+            Spacer(Modifier.height(16.dp))
+        }
+    }
 }
 
 /** «Restaurar sesión»: la sesión vuelve a lo que dice el plan. Solo se restaura esa ocurrencia. */

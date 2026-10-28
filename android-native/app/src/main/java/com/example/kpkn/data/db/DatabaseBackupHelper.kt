@@ -77,13 +77,16 @@ object DatabaseBackupHelper {
         val staging = context.getDatabasePath(stagingName)
         try {
             // Validate the copied SQLite file before Room can invoke any corruption recovery callback.
+            // Read-write on purpose: since SQLite 3.44 quick_check also checks FTS4 tables (global_foods_fts) by running an
+            // INSERT, which fails on a read-only connection on recent Android (seen on API 36). The staging copy is disposable.
             staging.parentFile?.mkdirs()
             snapshotFile.inputStream().use { input -> staging.outputStream().use { output -> input.copyTo(output) } }
             val checked=android.database.sqlite.SQLiteDatabase.openDatabase(staging.absolutePath,null,
-                android.database.sqlite.SQLiteDatabase.OPEN_READONLY,
+                android.database.sqlite.SQLiteDatabase.OPEN_READWRITE,
                 android.database.DatabaseErrorHandler { throw IllegalStateException("Snapshot corrupto; se conservan los datos activos y el archivo externo") })
             try {
-                require(checked.version in 1..36) { "Versión de snapshot no compatible" }
+                // Upper bound = @Database(version) of KpknDatabase; NutritionDayStateBackupTest fails when it falls behind.
+                require(checked.version in 1..37) { "Versión de snapshot no compatible" }
                 checked.rawQuery("PRAGMA quick_check",null).use { check ->
                     require(check.count==1 && check.moveToFirst() && check.getString(0)=="ok") { "Snapshot SQLite corrupto" }
                 }

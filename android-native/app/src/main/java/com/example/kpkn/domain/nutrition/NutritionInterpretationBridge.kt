@@ -80,6 +80,21 @@ object NutritionInterpretationBridge {
         )
     }
 
+    /**
+     * Indica si la tarjeta puede aceptar su estimación con «Usar lo estimado»: tiene una pregunta
+     * material pendiente, ya trae una comida estimada y su cantidad declarada está leída. Es la misma
+     * condición con la que el chip «seguir con la estimación» está activo en cada tarjeta.
+     */
+    fun canAcceptEstimate(tag: ResolvedTag): Boolean =
+        tag.hasMaterialQuestion() && tag.loggedFood != null && !tag.unresolvedDeclaredAmount
+
+    /**
+     * Acepta de una vez la estimación de todas las tarjetas que cumplen [canAcceptEstimate]. Las demás
+     * quedan como el mismo objeto, sin tocar.
+     */
+    fun acceptAllEstimates(tags: List<ResolvedTag>): List<ResolvedTag> =
+        tags.map { tag -> if (canAcceptEstimate(tag)) acceptEstimate(tag) else tag }
+
     fun enrich(tag: ResolvedTag, rawDescription: String): ResolvedTag =
         enrich(tag, ParsedMealDescription(rawDescription = rawDescription, verbatimDescription = rawDescription))
 

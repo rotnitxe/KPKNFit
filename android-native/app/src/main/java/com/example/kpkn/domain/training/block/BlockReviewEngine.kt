@@ -14,6 +14,11 @@ object BlockReviewEngine {
     const val IMPROVING_COVERAGE = 85
     const val LOW_COVERAGE = 60
 
+    /**
+     * Revisión factual del bloque a partir de los registros del propio programa.
+     *
+     * @param context reservado: hoy no se lee (la revisión no usa el contexto de transición).
+     */
     fun review(
         program: Program,
         blockId: String,

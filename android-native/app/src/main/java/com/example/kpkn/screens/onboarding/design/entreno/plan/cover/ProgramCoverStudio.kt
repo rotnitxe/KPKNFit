@@ -32,12 +32,28 @@ internal fun parseProgramStudioCover(coverImage: String?): ProgramStudioChoice? 
 }
 
 /**
- * La identidad de portada de [program] para la cabecera, Home y las miniaturas. Sin portada de estudio (o con una inválida), es la
- * de siempre: [coverIdentityFor] con el id del programa y su plantilla. Con ella, el estilo y la paleta del estudio.
+ * La identidad de portada de [program] para la cabecera, Home y las miniaturas. Con `kpkn-lines://` (elegida en «Editar programa»),
+ * la portada de líneas con su estilo y su fondo. Sin portada (null, vacía o `gradient://`), la de líneas por defecto: Perfil sobre
+ * Carbón, o Ondas si el programa es una sola semana. Con `kpkn-studio://`, el estilo y la paleta del estudio. Lo demás (fotos,
+ * `kpkn-cover://`, valores inválidos) es la de siempre: [coverIdentityFor] con el id del programa y su plantilla. Las portadas de
+ * líneas llevan además la carga de sus semanas y la semana en curso ([LineCoverSpec]).
  */
 internal fun coverIdentityForProgram(program: Program): CoverIdentity {
     val base = coverIdentityFor(program.id, program.structureTemplateId)
-    val choice = parseProgramStudioCover(program.coverImage) ?: return base
+    val coverImage = program.coverImage
+    val weeks = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+    val setsPerWeek = weeks.map { week -> week.sessions.sumOf { session -> session.allExercises().sumOf { it.sets.size } } }
+    val loads = normalizedWeekLoads(setsPerWeek)
+    val currentWeek = program.runState?.weekId?.let { id -> weeks.indexOfFirst { it.id == id } } ?: -1
+    val weekCount = maxOf(1, weeks.size)
+    parseLineCover(coverImage)?.let { (style, background) ->
+        return base.copy(lines = LineCoverSpec(style, background, base.seed, loads, currentWeek, weekCount))
+    }
+    if (coverImage.isNullOrBlank() || coverImage.startsWith("gradient://")) {
+        val style = if (weekCount > 1) LineCoverStyle.PERFIL else LineCoverStyle.ONDAS
+        return base.copy(lines = LineCoverSpec(style, LineCoverBackground.CARBON, base.seed, loads, currentWeek, weekCount))
+    }
+    val choice = parseProgramStudioCover(coverImage) ?: return base
     return base.restyled(choice.style, choice.palette)
 }
 

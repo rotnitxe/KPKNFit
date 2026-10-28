@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.AppliedRecipeProposal
 import com.example.kpkn.domain.training.ExerciseCompositionMetadataProvider
 import com.example.kpkn.domain.training.PlanMaterializer
+import com.example.kpkn.domain.training.UnappliedResponse
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.acceptsKpknAdjustments
 
@@ -48,14 +49,32 @@ object WeeklyCheckinEngine {
         deficitMode: Boolean = false,
     ): Program {
         if (!program.acceptsKpknAdjustments()) return program
-        if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(program.planningVolumeTargets)) return program
-        val request = program.pendingWeeklyCheckin ?: return program
-        val run = program.runState ?: return program
-        if (run.status != ProgramRunStatus.ACTIVE || run.runId != checkin.programRunId || run.cycleNumber != checkin.cycleNumber ||
-            run.weekId != checkin.weekId || !checkin.matches(request) || program.weeklyCheckins.any { it.matches(request) }) return program
-        if (!checkin.skipped && !validAnswers(checkin, request)) return program
-        val recipe = program.sourceRecipe ?: return program
-        val source = PlanMaterializer.weekRecipeSourceFor(program, recipe, checkin.weekId) ?: return program
+        // Una respuesta que no se puede aplicar queda dicha (decisión «Respuesta no aplicada»), nunca tragada en silencio.
+        // La petición vigente sólo se limpia si la propia respuesta le correspondía y ya no tiene salida posible.
+        fun unapplied(reason: String, clearRequest: Boolean): Program = program.copy(
+            pendingWeeklyCheckin = if (clearRequest) null else program.pendingWeeklyCheckin,
+            programDecisions = program.programDecisions + UnappliedResponse.decision(
+                "weekly-checkin-unapplied:${checkin.programRunId}:${checkin.cycleNumber}:${checkin.weekId}:$nowMs",
+                nowMs, "WEEKLY_CHECKIN", reason, checkin.weekId))
+        if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(program.planningVolumeTargets))
+            return unapplied("Los rangos de series del programa no son válidos, así que no se ajustó la semana. Revísalos en el programa.", false)
+        val request = program.pendingWeeklyCheckin
+            ?: return unapplied("Ya no hay una revisión semanal pendiente en este programa.", false)
+        val run = program.runState
+            ?: return unapplied("El programa no tiene una ejecución en curso.", false)
+        if (run.status != ProgramRunStatus.ACTIVE)
+            return unapplied("El programa ya no está en curso, así que la revisión semanal no se aplicó.", checkin.matches(request))
+        if (run.runId != checkin.programRunId || run.cycleNumber != checkin.cycleNumber ||
+            run.weekId != checkin.weekId || !checkin.matches(request))
+            return unapplied("Tu respuesta era de otra semana o de otra ejecución del programa, así que no se aplicó.", false)
+        if (program.weeklyCheckins.any { it.matches(request) })
+            return unapplied("Esa revisión semanal ya estaba respondida.", true)
+        if (!checkin.skipped && !validAnswers(checkin, request))
+            return unapplied("Las respuestas no corresponden a los músculos que se preguntaron esta semana. Vuelve a responder.", false)
+        val recipe = program.sourceRecipe
+            ?: return unapplied("El programa ya no tiene la receta de esta semana, así que no se ajustó.", true)
+        val source = PlanMaterializer.weekRecipeSourceFor(program, recipe, checkin.weekId)
+            ?: return unapplied("La semana de la revisión ya no existe en el programa, así que no se ajustó.", true)
         val protected = source.week.sessions.mapIndexedNotNull { index, session -> index.takeIf {
             session.id in executedSessionIds || program.manualSessionOverrides.any { entry ->
                 entry.sessionId == session.id && (entry.weekId == null || entry.weekId == source.week.id) &&

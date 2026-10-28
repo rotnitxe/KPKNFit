@@ -21,6 +21,8 @@ object DayArchetypes {
         t1Id: String = "sq",
         t1ConfigurationId: String = Id.SQ_LOW,
         t1Technique: TechniqueModifier? = null,
+        /** F-14: bisagra suplementaria del slot `dl-def` (déficit por defecto; RDL o piernas rígidas cuando el T1 de la semana ya es déficit). */
+        t2HingeId: String = Id.DL_DEF,
     ): DayRecipe = day(
         label = label,
         archetype = DaySlotTemplate.PL_SQUAT,
@@ -33,7 +35,7 @@ object DayArchetypes {
                 technique = t1Technique,
             ).let { if (t1Top) it.copy(sets = it.sets.mapIndexed { i, s -> s.copy(isTopSet = !s.isWarmup && i == it.sets.lastIndex) }) else it },
             slot(
-                "dl-def", SlotRole.T2_SUPPLEMENTAL, Id.DL_DEF,
+                "dl-def", SlotRole.T2_SUPPLEMENTAL, t2HingeId,
                 repeatPercentSets(3, 5, deficitPercent, 180),
                 restSeconds = 180, liftSlot = LiftSlot.DEADLIFT, source = kpkn,
             ),
@@ -198,6 +200,26 @@ object DayArchetypes {
                 slot("calf", SlotRole.T3_ACCESSORY, Id.CALF, rangeRirSets(4, 10, 12, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
             )
         },
+    )
+
+    /**
+     * F-41 · Segundo día de torso, equilibrado entre empuje y tirón y con ejercicios distintos a los de [bbTorso]
+     * (ninguna configuración coincide con ellos), para las semanas con «Torso A» y «Torso B».
+     * El remo con el pecho apoyado va con agarre ancho (`CSR_WIDE`) porque `CSR` ya es el de [bbTorso].
+     */
+    fun bbTorsoB(rir: Int = 2): DayRecipe = day(
+        label = "Torso B",
+        archetype = DaySlotTemplate.BB_TORSO,
+        weekday = 1,
+        slots = listOf(
+            slot("press", SlotRole.T1_MAIN, Id.BP_INC_DB, rangeRirSets(3, 6, 8, rir), restSeconds = 180),
+            slot("row", SlotRole.T2_SUPPLEMENTAL, Id.CSR_WIDE, rangeRirSets(4, 8, 10, rir), restSeconds = 120, source = kpkn),
+            slot("shoulder", SlotRole.T3_ACCESSORY, Id.SEATED_PRESS_DB, rangeRirSets(3, 8, 10, rir), restSeconds = 120, source = kpkn),
+            slot("pull", SlotRole.T3_ACCESSORY, Id.LAT_CLOSE_GRIP, rangeRirSets(3, 10, 12, rir), restSeconds = 90, source = kpkn),
+            slot("lat", SlotRole.T3_ACCESSORY, Id.LATERAL, rangeRirSets(3, 12, 15, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
+            slot("hammer", SlotRole.T3_ACCESSORY, Id.HAMMER, rangeRirSets(2, 10, 12, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
+            slot("pushdown", SlotRole.T3_ACCESSORY, Id.PUSHDOWN, rangeRirSets(2, 12, 15, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
+        ),
     )
 
     fun bbTorso(rir: Int = 2): DayRecipe = day(

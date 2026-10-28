@@ -20,6 +20,7 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.amrapAsRecord
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
@@ -268,9 +269,9 @@ object GzclProtocols {
      * notación del autor) y del T2 (3 series de 10 al 65 %). Las etapas 2 (T1 6×2+, T2 3×8) y 3 (T1 10×1+, T2 3×6) llevan la MISMA
      * carga y las escribe `GzclpProgression` como receta efectiva del ciclo nuevo cuando no se completa el volumen base.
      */
-    private fun t1Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
+    private fun t1Stage(): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
 
-    private fun t2Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
+    private fun t2Stage(): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
 
     fun gzclpRecipe(): TrainingPlanRecipe {
         val days = listOf(
@@ -293,8 +294,8 @@ object GzclProtocols {
             weekRecipe(w, 0, "Etapa T1", BlockGoal.ACCUMULATION, days.mapIndexed { index, (main, t2id) ->
                 val (label, id, lift) = main
                 day(label, weekday = listOf(1, 2, 4, 5)[index], slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, id, t1Stage(w), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
-                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(w), 120, t2Lifts.getValue(t2id), supplementalOf = "t1"),
+                    slot("t1", SlotRole.T1_MAIN, id, t1Stage(), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
+                    slot("t2", SlotRole.T2_SUPPLEMENTAL, t2id, t2Stage(), 120, t2Lifts.getValue(t2id), supplementalOf = "t1"),
                     // L-09 (B.S6): `rpeSets` solo copia `repsMax`; el rango 15-20 del T3 pierde el mínimo si no se fija `repsMin`.
                     slot(
                         "t3a", SlotRole.T3_ACCESSORY, if (index % 2 == 0) CatalogIds.LAT else CatalogIds.PENDLAY,
@@ -307,7 +308,7 @@ object GzclProtocols {
         }
         return TrainingPlanRecipe(
             id = "gzclp",
-            weeks = weeks,
+            weeks = weeks.rotateKpknFillers(),
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // L-09 (B.S6): la subida lineal por sesión de GZCLP no cabe en 4 semanas idénticas; se aproxima con la subida del
@@ -318,7 +319,8 @@ object GzclProtocols {
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 3,
+            // F-31: el Pallof de KPKN rota a partir del tercer día (versión 4).
+            contentVersion = 4,
         )
     }
 
@@ -377,7 +379,7 @@ object GzclProtocols {
             ).map { day -> if (goal == BlockGoal.PEAK) day.mainWorkPercentOfOneRm() else day })
         }
         return TrainingPlanRecipe(
-            "gzcl-jt-2", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated,
+            "gzcl-jt-2", weeks.rotateKpknFillers(), 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated,
             // B.S6 parte 2b (C5): son 12 semanas que no se repiten y terminan en el test de 1RM; no hay semana de descarga.
             exemptions = listOf(
                 RecipeCompositionExemption(
@@ -387,7 +389,8 @@ object GzclProtocols {
                 ),
             ),
             claimedDaysPerWeek = 4, claimedLevel = "avanzado", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
-            contentVersion = 2,
+            // F-31: la rueda abdominal de KPKN rota a partir del tercer día (versión 3).
+            contentVersion = 3,
         )
     }
 
@@ -421,7 +424,7 @@ object GzclProtocols {
             ).map { it.amrapAsRecord() })
         }
         return TrainingPlanRecipe(
-            "gzcl-rippler", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+            "gzcl-rippler", weeks.rotateKpknFillers(), 0.90, sbdSlots(), ProgressionRule.None,
             // B.S6 parte 2b (C5): son 12 semanas que no se repiten y cierran con el test de las semanas 11 y 12 (97,5 y 100 % del TM).
             exemptions = listOf(
                 RecipeCompositionExemption(
@@ -430,7 +433,7 @@ object GzclProtocols {
                     GZCL_URL,
                 ),
             ),
-            claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 2,
+            claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 3, // F-31: rueda abdominal rotada
         )
     }
 
@@ -471,7 +474,7 @@ object GzclProtocols {
             ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2).mainWorkPercentOfOneRm() else day })
         }
         return TrainingPlanRecipe(
-            "gzcl-uhf-9", weeks, 0.90, sbdSlots(), ProgressionRule.None,
+            "gzcl-uhf-9", weeks.rotateKpknFillers(), 0.90, sbdSlots(), ProgressionRule.None,
             // B.S6 parte 2b (C5): son 9 semanas que no se repiten y terminan en la semana de pico; el método no programa descarga aparte.
             exemptions = listOf(
                 RecipeCompositionExemption(
@@ -480,7 +483,7 @@ object GzclProtocols {
                     GZCL_URL,
                 ),
             ),
-            claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = 2,
+            claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = 3, // F-31: GHR rotado
         )
     }
 

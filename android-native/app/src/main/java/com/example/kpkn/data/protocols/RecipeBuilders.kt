@@ -109,6 +109,7 @@ fun slot(
     isUnilateral: Boolean = false,
     source: SlotSource = SlotSource.AUTHOR,
     priority: SlotPriority = SlotPriority.NORMAL,
+    occurrenceLabel: String? = null,
 ): SlotRecipe = SlotRecipe(
     id = id,
     role = role,
@@ -121,6 +122,7 @@ fun slot(
     isUnilateral = isUnilateral,
     source = source,
     priority = priority,
+    occurrenceLabel = occurrenceLabel,
 )
 
 fun day(
@@ -361,3 +363,81 @@ fun DayRecipe.amrapAsCalibrator(): DayRecipe = copy(
         )
     },
 )
+
+/**
+ * Alternativas de relleno por propósito (F-31, decisión 3 del 27-oct). Solo ids de [CatalogIds]. La primera alternativa que
+ * sirve es la que usa [rotateKpknFillers]; el orden pone primero la más parecida en intención.
+ */
+val KPKN_FILLER_ALTERNATIVES: Map<String, List<String>> = mapOf(
+    // Orden de cada lista: 1.º el MISMO material que el original, 2.º peso corporal sin material, 3.º las demás. Así la
+    // rotación no hace que un plan pida material que no pedía (p. ej. Smolov: solo barra, rack y polea).
+    CatalogIds.PALLOF to listOf(CatalogIds.PLANCHA, CatalogIds.HLR, CatalogIds.WHEEL), // cable → sin otra de polea; corporal; rueda
+    CatalogIds.WHEEL to listOf(CatalogIds.PLANCHA, CatalogIds.HLR, CatalogIds.PALLOF), // rueda → sin otra de rueda; corporal; polea
+    CatalogIds.GHR to listOf(CatalogIds.CURL_L, CatalogIds.CURL_H), // ghd → máquina (el curl nórdico pide una ancla que «todo el material» no acredita)
+    CatalogIds.FACE to listOf(CatalogIds.REAR_DELT_CABLE, CatalogIds.BAND_PA, CatalogIds.REAR_DELT), // polea; banda; mancuernas
+    CatalogIds.PENDLAY to listOf(CatalogIds.ROW, CatalogIds.CSR, CatalogIds.ROW_DB), // barra; mancuernas
+    CatalogIds.LAT to listOf(CatalogIds.LAT_CLOSE_GRIP, CatalogIds.PULLOVER, CatalogIds.PULLUP), // polea; polea; barra de dominadas
+    CatalogIds.JM to listOf(CatalogIds.SKULLCRUSHER, CatalogIds.OH_TRI, CatalogIds.PUSHDOWN), // barra; polea
+    CatalogIds.OH_TRI to listOf(CatalogIds.PUSHDOWN, CatalogIds.KICKBACK_CABLE), // polea
+    CatalogIds.CRUNCH to listOf(CatalogIds.HLR, CatalogIds.PLANCHA, CatalogIds.PALLOF), // corporal; polea
+    CatalogIds.CALF to listOf(CatalogIds.CALF_SEATED), // máquina
+)
+
+/** Máximo de días distintos por semana en que el mismo relleno de KPKN puede aparecer (regla C12). */
+private const val KPKN_FILLER_MAX_DAYS_PER_WEEK = 2
+
+/** Definición aproximada de una configuración: lo que va antes del primer «__» de su id (como en la prueba F-16). */
+private fun definitionOfConfiguration(configurationId: String): String = configurationId.substringBefore("__")
+
+/**
+ * En cada semana, la 3.ª y siguientes apariciones (en días distintos) de un relleno KPKN (`T3_ACCESSORY` con
+ * `source == KPKN_DEFAULT`) pasan a la primera alternativa de [alternatives] que no esté ya en ese día (ni por configuración ni
+ * por definición) ni haya llegado a 2 días en la semana. Mismas series, descanso e id de slot; se quita la técnica, que
+ * era del ejercicio original. Si ninguna alternativa sirve, la aparición se queda como está (C12 la seguirá señalando).
+ */
+fun List<WeekRecipe>.rotateKpknFillers(
+    alternatives: Map<String, List<String>> = KPKN_FILLER_ALTERNATIVES,
+): List<WeekRecipe> = map { week -> week.rotateKpknFillers(alternatives) }
+
+private fun WeekRecipe.rotateKpknFillers(alternatives: Map<String, List<String>>): WeekRecipe {
+    fun SlotRecipe.isKpknFiller(): Boolean = role == SlotRole.T3_ACCESSORY && source == SlotSource.KPKN_DEFAULT
+    // Días (por índice) en que cada configuración aparece como relleno KPKN; empieza con lo que trae la receta.
+    val usage = HashMap<String, MutableSet<Int>>()
+    days.forEachIndexed { dayIndex, day ->
+        day.slots.filter { it.isKpknFiller() }.forEach { usage.getOrPut(it.lift.configurationId) { HashSet() }.add(dayIndex) }
+    }
+    if (usage.values.none { it.size > KPKN_FILLER_MAX_DAYS_PER_WEEK }) return this
+    val kept = HashMap<String, MutableSet<Int>>()
+    val rotatedDays = days.mapIndexed { dayIndex, day ->
+        var slots = day.slots
+        day.slots.forEachIndexed { slotIndex, original ->
+            if (!original.isKpknFiller()) return@forEachIndexed
+            val configuration = original.lift.configurationId
+            val keptDays = kept.getOrPut(configuration) { HashSet() }
+            if (dayIndex in keptDays || keptDays.size < KPKN_FILLER_MAX_DAYS_PER_WEEK) {
+                keptDays += dayIndex
+                return@forEachIndexed
+            }
+            val others = slots.filterIndexed { index, _ -> index != slotIndex }.map { it.lift.configurationId }
+            val otherDefinitions = others.map(::definitionOfConfiguration).toSet()
+            val replacement = alternatives[configuration].orEmpty().firstOrNull { candidate ->
+                candidate != configuration &&
+                    candidate !in others &&
+                    definitionOfConfiguration(candidate) !in otherDefinitions &&
+                    (usage[candidate]?.size ?: 0) < KPKN_FILLER_MAX_DAYS_PER_WEEK
+            }
+            if (replacement == null) {
+                keptDays += dayIndex
+                return@forEachIndexed
+            }
+            usage.getValue(configuration).remove(dayIndex)
+            usage.getOrPut(replacement) { HashSet() }.add(dayIndex)
+            kept.getOrPut(replacement) { HashSet() }.add(dayIndex)
+            slots = slots.mapIndexed { index, slot ->
+                if (index != slotIndex) slot else slot.copy(lift = slot.lift.copy(configurationId = replacement), technique = null)
+            }
+        }
+        if (slots === day.slots) day else day.copy(slots = slots)
+    }
+    return copy(days = rotatedDays)
+}

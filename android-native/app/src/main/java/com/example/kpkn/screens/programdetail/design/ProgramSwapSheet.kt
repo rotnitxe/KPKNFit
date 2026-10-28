@@ -16,7 +16,8 @@ import com.example.kpkn.domain.training.SwapOption
 import com.example.kpkn.domain.training.SwapScope
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknCompactPill
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -37,13 +38,12 @@ internal fun ProgramSwapSheet(
     var equipmentConfirmed by remember(sourceName,options) { mutableStateOf(false) }
     KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.9f) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Cambiar ejercicio",style = KpknType.bodyStrong,color = WizardColors.text)
-            Text(sourceName,style = KpknType.body,color = WizardColors.text)
+            ProgramSheetHeader(title = sourceName, eyebrow = "Cambiar ejercicio")
             if (previewDetail != null) {
                 Text(previewDetail,style = KpknType.body,color = WizardColors.text)
                 if (!busy) {
-                    KpknCompactPill("Confirmar cambio",onConfirm,fullWidth = true)
-                    KpknCompactPill("Editar selección",onEdit,filled = false,fullWidth = true)
+                    KpknPrimaryPill(text = "Confirmar cambio", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+                    KpknSecondaryPill(text = "Editar selección", onClick = onEdit, modifier = Modifier.fillMaxWidth())
                 }
             } else {
                 Text("Conserva repeticiones, RIR y descansos. La configuración nueva tendrá una carga por elegir y quedará como personalización manual.",style = KpknType.body,color = WizardColors.textMuted)
@@ -71,11 +71,11 @@ internal fun ProgramSwapSheet(
                     }
                 }
                 selected?.takeIf { !busy && (!requiresEquipmentConfirmation || equipmentConfirmed) }?.let { chosen ->
-                    KpknCompactPill("Revisar cambio",{ onPreview(chosen,scope,equipmentConfirmed) },fullWidth = true)
+                    KpknPrimaryPill(text = "Revisar cambio", onClick = { onPreview(chosen,scope,equipmentConfirmed) }, modifier = Modifier.fillMaxWidth())
                 }
             }
             if (busy) Text("Preparando…",style = KpknType.caption,color = WizardColors.textMuted)
-            else KpknCompactPill("Volver",onDismiss,filled = false,fullWidth = true)
+            else KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
         }
     }
 }

@@ -3326,7 +3326,7 @@ class ProgramDetailViewModelTest {
         )
     }
 
-    // ─── B.S5 · R-03: «VER PROPUESTA» solo lleva a la pestaña Semana ───
+    // ─── B.S5 · R-03: «VER PROPUESTA» abre la hoja de progresiones y no acepta nada ───
 
     private fun programDetailScreenSource(): String {
         val relative = "main/java/com/example/kpkn/screens/programdetail/ProgramDetailScreen.kt"
@@ -3338,22 +3338,29 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun verPropuesta_only_navigates_to_the_week_tab_and_never_accepts_the_proposal() {
+    fun verPropuesta_opens_the_progression_sheet_and_never_accepts_the_proposal() {
         val source = programDetailScreenSource()
-        // El aviso de transición (módulo KPKN) enseña «Ver propuesta» en tipo frase; su acción principal solo abre Semana.
+        // El aviso de transición (módulo KPKN) enseña «Ver propuesta» en tipo frase; su acción principal abre la hoja de progresiones.
         val label = source.indexOf("isAutoreg -> \"Ver propuesta\"")
         assertTrue("el botón Ver propuesta existe", label > 0)
         val handler = source.substring(source.indexOf("onPrimary = {", label), source.indexOf("onSecondary", label))
         val branch = handler.substringAfter("isAutoreg ->").substringBefore("isDeload ->")
 
-        assertTrue(branch, branch.contains("setStructureSubTab(StructureSubTab.SEMANA)"))
+        assertTrue(branch, branch.contains("onOpenProposals()"))
+        assertFalse(branch, branch.contains("setStructureSubTab"))
         assertFalse(branch, branch.contains("acceptAutoregulation"))
         assertFalse(branch, branch.contains("rejectAutoregulation"))
-        // La decisión se toma en la tarjeta de propuestas de la pestaña Semana (aplicar, aceptar todo, rechazar).
+        assertTrue("«Ver propuesta» abre la hoja PROGRESSION", source.contains("onOpenProposals = { pendingDetail = ProgramPendingKind.PROGRESSION }"))
+        // La decisión se toma en la hoja «Pendiente» (progresiones): la tarjeta de propuestas ya no vive en la pestaña Semana.
         val weekBranch = source.substringAfter("if (structureSubTab == StructureSubTab.SEMANA) {")
             .substringBefore("\n        } else {")
-        assertTrue("TM se muestra en Semana", weekBranch.contains("ExerciseTrainingMaxPanel("))
-        assertTrue("las decisiones se mantienen en Semana", weekBranch.contains("AutoregulationProposalsCard("))
+        // El TM por ejercicio pasó a Estructura › «Cargas de referencia (TM)», en su hoja (P5): ya no ocupa la Semana.
+        assertFalse("TM sale de Semana", weekBranch.contains("ExerciseTrainingMaxPanel("))
+        val tmSheet = source.substringAfter("if (showExerciseTmSheet) {").substringBefore("\n        }\n")
+        assertTrue("TM en la hoja de cargas de referencia", tmSheet.contains("ExerciseTrainingMaxPanel("))
+        assertTrue("Estructura abre la hoja de TM", source.contains("onOpenTrainingMaxes = if (exerciseTmTargets.isNotEmpty()) ({ showExerciseTmSheet = true }) else null"))
+        assertFalse("la tarjeta de propuestas sale de Semana", weekBranch.contains("AutoregulationProposalsCard("))
+        assertTrue("las propuestas se revisan en la hoja Pendiente", source.contains("ProgramPendingKind.PROGRESSION -> AutoregulationProposalsCard("))
     }
 
     // ─── B.S5 · usesTrainingMax: la tarjeta de TM sale con toda progresión que lo mueve ───

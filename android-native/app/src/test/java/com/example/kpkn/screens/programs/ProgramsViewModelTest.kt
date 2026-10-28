@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
@@ -20,6 +21,7 @@ import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -28,7 +30,6 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -160,8 +161,13 @@ class ProgramsViewModelTest {
         assertNotNull(id)
         val created = ProgramRepository.getInstance().getProgramById(id!!)!!
         assertNotNull(created.sourceRecipe)
-        assertNull(created.athleteProfileScore)
-        assertTrue(created.volumeRecommendations.isEmpty())
+        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN (2 de 3 salvo fuerza 1: dosis estándar, estilo del método).
+        assertEquals(listOf(2, 2, 1, 2), created.athleteProfileScore!!.let { listOf(it.technicalScore, it.consistencyScore, it.strengthScore, it.mobilityScore) })
+        assertTrue(created.volumeRecommendations.isNotEmpty())
+        assertEquals(
+            com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED,
+            ProgramRepository.getInstance().settings.value.volumeCalibrationProfile?.responses?.state,
+        )
     }
 
     @Test
@@ -252,8 +258,10 @@ class ProgramsViewModelTest {
         val created = ProgramRepository.getInstance().getProgramById((outcome as ProgramsViewModel.TemplateApplyOutcome.Created).programId)!!
         // simple-1 es la estructura en blanco de una semana; crear no inventa una rutina.
         assertEquals(1, created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.size)
-        assertNull(created.athleteProfileScore)
-        assertTrue(created.volumeRecommendations.isEmpty())
+        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN, no vacía.
+        assertEquals(com.example.kpkn.domain.training.VolumeCalibrationEngine.styleFor(created.mode), created.athleteProfileScore!!.trainingStyle)
+        assertTrue(created.volumeRecommendations.isNotEmpty())
+        assertEquals(com.example.kpkn.data.models.VolumeSystem.KPNK, created.volumeSystem)
     }
 
     @Test
@@ -290,5 +298,47 @@ class ProgramsViewModelTest {
         // También verifica que skipCalibration = true materializa sin calibración
         val uncalibratedResult = vm.createProgramFromTemplate("simple-1", skipCalibration = true)
         assertTrue("skipCalibration debe materializar", uncalibratedResult.isSuccess)
+    }
+
+    @Test
+    fun createBlankProgram_numbers_after_the_highest_existing_name() {
+        val repository = ProgramRepository.getInstance()
+        repository.addProgram(buildNewProgram(id = "nuevo-1", name = "Nuevo programa 1"))
+        repository.addProgram(buildNewProgram(id = "nuevo-3", name = "Nuevo programa 3"))
+        val vm = createViewModel()
+
+        val id = vm.createBlankProgram()
+
+        // Contar nombres daba «Nuevo programa 3» otra vez; el mayor más uno da 4.
+        assertEquals("Nuevo programa 4", repository.getProgramById(id)!!.name)
+    }
+
+    @Test
+    fun createBlankProgram_uses_the_given_name_mode_and_cover() {
+        val vm = createViewModel()
+
+        val id = vm.createBlankProgram(name = "  Mi fuerza  ", mode = ProgramMode.POWERLIFTING, coverImage = "kpkn-lines://PERFIL/CARBON")
+
+        // El nombre se recorta; el modo y la portada son los que eligió la hoja «Desde cero».
+        val created = ProgramRepository.getInstance().getProgramById(id)!!
+        assertEquals("Mi fuerza", created.name)
+        assertEquals(ProgramMode.POWERLIFTING, created.mode)
+        assertEquals("kpkn-lines://PERFIL/CARBON", created.coverImage)
+    }
+
+    @Test
+    fun inactivePrograms_leave_out_the_queued_program() = runBlocking {
+        val repository = ProgramRepository.getInstance()
+        repository.addProgram(buildNewProgram(id = "en-cola", name = "En cola"))
+        repository.addProgram(buildNewProgram(id = "suelto", name = "Suelto"))
+        val vm = createViewModel()
+        vm.addToQueue("en-cola")
+
+        val inactive = withTimeout(10_000) {
+            vm.inactivePrograms.first { list -> list.any { it.id == "suelto" } }
+        }
+
+        assertEquals(listOf("suelto"), inactive.map { it.id })
+        assertEquals(listOf("en-cola"), vm.programQueue.first { it.isNotEmpty() }.map { it.id })
     }
 }

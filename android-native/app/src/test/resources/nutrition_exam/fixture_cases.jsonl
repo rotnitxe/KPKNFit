@@ -1,0 +1,6 @@
+{"id": "F0001", "split": "dev", "text": "2 huevos revueltos con una marraqueta", "mealType": "BREAKFAST", "region": "CL", "phenomena": ["F01"], "style": "telefono", "origin": "usuario"}
+{"id": "F0002", "split": "dev", "text": "un vaso de leche", "mealType": "BREAKFAST", "region": "CL", "phenomena": ["F02"], "style": "telefono", "origin": "usuario"}
+{"id": "F0003", "split": "dev", "text": "200 g de arroz cocido con pollo a la plancha", "mealType": "LUNCH", "region": "CL", "phenomena": ["F03"], "style": "dictado", "origin": "usuario"}
+{"id": "F0004", "split": "dev", "text": "agua", "mealType": "SNACK", "region": "CL", "phenomena": ["F04"], "style": "telefono", "origin": "usuario"}
+{"id": "F0005", "split": "dev", "text": "una empanada de pino y una coca cola zero", "mealType": "LUNCH", "region": "CL", "phenomena": ["F05"], "style": "telefono", "origin": "usuario"}
+{"id": "F0006", "split": "dev", "text": "xyzzy plokt", "mealType": "DINNER", "region": "CL", "phenomena": ["F06"], "style": "telefono", "origin": "usuario"}

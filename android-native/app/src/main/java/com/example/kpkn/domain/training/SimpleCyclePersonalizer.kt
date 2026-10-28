@@ -1644,7 +1644,14 @@ class SimpleCyclePersonalizer(
             when {
                 power != null && main != null -> power.supplementalOf = main.slotId
                 power != null -> group.firstOrNull { it !== power }?.let { power.supplementalOf = it.slotId }
-                main != null -> group.filter { it !== main }.forEach { it.supplementalOf = main.slotId }
+                // DUP-07: dos slots no potentes con la MISMA configuración (p. ej. el remo de R y el de V cuando no hay
+                // jalón ni dominadas) se fusionan en el principal, no se dejan como dos tarjetas iguales.
+                main != null -> {
+                    val others = group.filter { it !== main }
+                    main.sets = maxOf(main.sets, minOf(group.sumOf { it.sets }, 4))
+                    others.forEach { it.removed = true }
+                    notes += "$dayLabel: ${group.size} slots equivalentes de ${main.configurationId} fusionados en ${main.sets} series (§13.3)."
+                }
                 else -> {
                     val first = group.first()
                     first.sets = minOf(group.sumOf { it.sets }, 4)
@@ -1792,6 +1799,8 @@ class SimpleCyclePersonalizer(
                 restSeconds = slot.restSeconds,
                 technique = slot.technique,
                 supplementalOf = slot.supplementalOf,
+                // La potencia emparejada con el básico de trabajo (§11.5/§14.3) tiene identidad propia: «Potencia».
+                occurrenceLabel = "Potencia".takeIf { slot.intent == SlotIntent.P && slot.supplementalOf != null },
                 isCompetitionLift = slot.isCompetitionLift,
                 source = SlotSource.KPKN_DEFAULT,
                 priority = if (slot.intent == SlotIntent.P) SlotPriority.SPEED else SlotPriority.NORMAL,

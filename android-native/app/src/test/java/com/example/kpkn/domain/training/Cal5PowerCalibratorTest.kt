@@ -50,7 +50,7 @@ class Cal5PowerCalibratorTest {
                 assertEquals("$id: el mínimo son las repeticiones prescritas", set.reps, set.amrapMinimumReps)
             }
             // T-14 cambia los accesorios del principiante; los calibradores existentes siguen intactos.
-            assertEquals("$id: contenido publicado", if (id == "power-12-3") 4 else 3, recipe.contentVersion)
+            assertEquals("$id: contenido publicado", if (id == "power-20-5") 5 else 4, recipe.contentVersion)
         }
     }
 

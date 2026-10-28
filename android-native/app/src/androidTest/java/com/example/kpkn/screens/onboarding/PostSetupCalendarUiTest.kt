@@ -13,18 +13,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.hasInsertTextAtCursorAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -71,6 +70,7 @@ import com.example.kpkn.domain.nutrition.encodeWeeklyForecast
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.screens.programdetail.ProgramDetailViewModel
 import com.example.kpkn.screens.programdetail.components.DayView
+import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -87,6 +87,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -314,12 +318,11 @@ class PostSetupCalendarUiTest {
 
         val viewModel = mountRealDayView(fixture)
         scrollDayHeaderIntoView(dayHeaderTag(fixture.requiredDate))
-        // La columna de fecha de un día con calendario tiene su propia etiqueta y su clickable («Fecha de entrenamiento»).
-        // Se pulsa esa columna, no el centro de la fila: la fila entera alterna la expansión del día.
+        // El número de fecha de un día con calendario tiene su propia etiqueta: tocarlo abre la hoja «Fecha del <día>» con el calendario de mes.
         composeRule.onNodeWithTag(dayDateTag(fixture.requiredDate)).performClick()
-        composeRule.onNodeWithText("Fecha de entrenamiento").assertIsDisplayed()
-        composeRule.onNode(hasInsertTextAtCursorAction())
-            .performTextReplacement(fixture.movedRequiredDate.toString())
+        val requiredDayName = fixture.requiredDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"))
+        composeRule.onNodeWithText(dayDateSheetTitle(requiredDayName)).assertIsDisplayed()
+        pickCalendarDate(fixture.movedRequiredDate)
         composeRule.onNodeWithText("Guardar").performClick()
 
         val programAfter = awaitRoomProgram(fixture.programId) { saved ->
@@ -370,7 +373,8 @@ class PostSetupCalendarUiTest {
         assertEquals(listOf(preconfirmedB), roomProgram(fixture.programId).optionalSessionConfirmations)
         val viewModel = mountRealDayView(fixture)
 
-        expandDay(fixture.optionalADate)
+        expandSession("Optional A $runId")
+        expandSession("Optional B $runId")
         composeRule.onNodeWithText("Optional A $runId").assertIsDisplayed()
         composeRule.onNodeWithText("Optional B $runId").assertIsDisplayed()
         val confirmA = optionalConfirmationAction(fixture.optionalAId, "Confirmar sesión opcional")
@@ -771,17 +775,46 @@ class PostSetupCalendarUiTest {
         composeRule.onNodeWithTag(tag).assertIsDisplayed()
     }
 
-    /** La cabecera de un día (la fila que se despliega al tocarla) lleva la etiqueta `programday-header-<número del día>`. */
+    /** La columna de fecha de un día (su cabecera en la agenda) lleva la etiqueta `programday-header-<número del día>`; tocarla no despliega el día. */
     private fun dayHeaderTag(date: LocalDate): String = "programday-header-${date.dayOfWeek.value}"
 
     /** La columna de fecha de un día con calendario lleva la etiqueta `programday-date-<número del día>`. */
     private fun dayDateTag(date: LocalDate): String = "programday-date-${date.dayOfWeek.value}"
 
-    private fun expandDay(date: LocalDate) {
-        val tag = dayHeaderTag(date)
-        scrollDayHeaderIntoView(tag)
-        composeRule.onNodeWithTag(tag).performTouchInput { click() }
+    /** Despliega una sesión de la agenda tocando su nombre: el día ya se ve sin desplegar. */
+    private fun expandSession(name: String) {
+        composeRule.onNodeWithText(name).performScrollTo().performClick()
     }
+
+    /**
+     * Elige [date] en el calendario de mes de la hoja «Fecha del …»: si su día no sale en pantalla, avanza o retrocede de mes con
+     * «Mes siguiente» o «Mes anterior» y toca su número. La descripción de cada día es, p. ej., «viernes 30 de octubre de 2026».
+     */
+    private fun pickCalendarDate(date: LocalDate) {
+        val target = YearMonth.from(date)
+        val dayLabel = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es")))
+        repeat(24) {
+            if (composeRule.onAllNodesWithContentDescription(dayLabel, substring = true).fetchSemanticsNodes().isNotEmpty()) {
+                composeRule.onNodeWithContentDescription(dayLabel, substring = true).performClick()
+                return
+            }
+            val shown = shownCalendarMonth(around = target)
+            composeRule.onNodeWithContentDescription(if (shown < target) "Mes siguiente" else "Mes anterior").performClick()
+        }
+        throw AssertionError("No aparece «$dayLabel» en el calendario de la hoja")
+    }
+
+    /** El mes que muestra ahora el calendario: el de ±24 meses alrededor de [around] cuyo título («Octubre de 2026») está en pantalla. */
+    private fun shownCalendarMonth(around: YearMonth): YearMonth =
+        (-24L..24L).map { around.plusMonths(it) }.firstOrNull { month ->
+            composeRule.onAllNodesWithText(calendarMonthTitle(month)).fetchSemanticsNodes().isNotEmpty()
+        } ?: throw AssertionError("No se ve el título del calendario cerca de $around")
+
+    /** El título del mes tal como lo pinta `KpknMonthCalendar`: «Octubre de 2026». */
+    private fun calendarMonthTitle(month: YearMonth): String =
+        month.atDay(1)
+            .format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", Locale.forLanguageTag("es")))
+            .replaceFirstChar { it.uppercase(Locale.forLanguageTag("es")) }
 
     /** La acción de confirmación de una sesión opcional vive dentro de su bloque de sesión (etiqueta `programsession-<id>`). */
     private fun optionalConfirmationAction(sessionId: String, contentDescription: String) =

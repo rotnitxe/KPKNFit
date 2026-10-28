@@ -56,12 +56,15 @@ fun ProgramVolumeRow(
     /** Falso cuando el estado lo dice el módulo una sola vez (todo el volumen sin calibrar); la semántica sigue leyéndolo. */
     showStateLabel: Boolean = true,
     totalVolume: Boolean = false,
+    /** Vista «Hecho»: la cifra, la marca y el estado son lo registrado y el plan queda como trazo y como texto. */
+    doneView: Boolean = false,
 ) {
     val reduced = wizardReducedMotion()
-    val state = muscle.state
+    val shown = if (doneView) muscle.real ?: 0.0 else muscle.sets
+    val state = if (doneView) programVolumeStateOf(shown, muscle.zones) else muscle.state
     val stateColor = programVolumeStateColor(state)
-    val label = programVolumeStateLabel(state, muscle.sets, muscle.zones)
-    val seriesText = programVolumeSeries(muscle.sets)
+    val label = programVolumeStateLabel(state, shown, muscle.zones)
+    val seriesText = programVolumeSeries(shown)
     val unit = if (totalVolume) "series" else "series/sem"
     val interaction = remember { MutableInteractionSource() }
     val chevronTurn by animateFloatAsState(
@@ -135,7 +138,8 @@ fun ProgramVolumeRow(
             }
             Spacer(Modifier.height(10.dp))
             ProgramVolumeBar(
-                sets = muscle.sets,
+                sets = shown,
+                planTick = if (doneView) muscle.sets else null,
                 zones = muscle.zones,
                 scaleMax = muscle.scaleMax,
                 markColor = stateColor,
@@ -155,9 +159,9 @@ fun ProgramVolumeRow(
                 } else {
                     Spacer(Modifier.weight(1f))
                 }
-                muscle.real?.let { real ->
+                (if (doneView) muscle.sets else muscle.real)?.let { other ->
                     Text(
-                        text = "Real ${programVolumeSeries(real)} $unit",
+                        text = "${if (doneView) "Plan" else "Real"} ${programVolumeSeries(other)} $unit",
                         style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.textMuted,
                         maxLines = 1,

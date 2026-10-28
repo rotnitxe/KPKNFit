@@ -23,6 +23,7 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.rangeRirSets
@@ -151,7 +152,7 @@ object JuggernautProtocol {
         }
         return TrainingPlanRecipe(
             id = "juggernaut-2",
-            weeks = weeks,
+            weeks = weeks.rotateKpknFillers(),
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // CAL5 (RES1 §5.2): Juggernaut no sube el TM un salto fijo por ola: el TM nuevo es TM + (reps del AMRAP de realización − estándar)
@@ -171,7 +172,8 @@ object JuggernautProtocol {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
-            contentVersion = 3,
+            // F-31: el relleno de KPKN (Pallof, GHR) rota a partir del tercer día (versión 4).
+            contentVersion = 4,
         )
     }
 
@@ -202,7 +204,7 @@ object RemainingVerifiedProtocols {
             "Sentadilla/Banca", weekday = 1, slots = listOf(
                 slot("a", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sq, rest(sq), LiftSlot.SQUAT, isCompetitionLift = true),
                 slot("b", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, bp, 150, LiftSlot.BENCH, isCompetitionLift = true),
-                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a"),
+                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a", occurrenceLabel = "Segunda tanda"),
                 kpknAssist("lunge", CatalogIds.LUNGE_F, 2, 8, 90),
                 kpknAssist("fly", CatalogIds.FLY, 2, 12, 60),
                 kpknAssist("crunch", CatalogIds.CRUNCH, 3, 15, 45),
@@ -225,7 +227,7 @@ object RemainingVerifiedProtocols {
             "Sentadilla/Banca 2", weekday = 5, slots = listOf(
                 slot("a", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sq, rest(sq), LiftSlot.SQUAT, isCompetitionLift = true),
                 slot("b", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, bp, 150, LiftSlot.BENCH, isCompetitionLift = true),
-                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a"),
+                slot("a2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_LOW, sq2, 150, LiftSlot.SQUAT, supplementalOf = "a", occurrenceLabel = "Segunda tanda"),
                 kpknAssist("lunge", CatalogIds.LUNGE_F, 2, 8, 90),
                 kpknAssist("fly", CatalogIds.FLY, 2, 12, 60),
                 kpknAssist("crunch", CatalogIds.CRUNCH, 3, 15, 45),
@@ -436,7 +438,7 @@ object RemainingVerifiedProtocols {
             "sheiko_3day",
             attributed("Sheiko programs #29-32", "https://www.powerliftingtowin.com/sheiko/", "Boris Sheiko"),
             TrainingPlanRecipe(
-                "sheiko-29-32", weeks, 1.0, sbdSlots(), ProgressionRule.None,
+                "sheiko-29-32", weeks.rotateKpknFillers(), 1.0, sbdSlots(), ProgressionRule.None,
                 // B.S6 parte 2b: C1 por slot (la banca de la sesión de sentadilla y banca con 9 y 10 series en #29 a #31, la sentadilla con 9 en
                 // la semana 5 a 7 y el peso muerto hasta la rodilla con 9 en la 5) y C5 (la 16 es la competición). Todo por diseño de la tabla.
                 exemptions = listOf(
@@ -461,7 +463,7 @@ object RemainingVerifiedProtocols {
                         SHEIKO_URL,
                     ),
                 ),
-                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2,
+                claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 4, // F-31: abdominal de KPKN rotado
             ),
             ProtocolFidelitySpec(
                 16, 3, requiresPercent = true, claimedLevel = "avanzado",
@@ -632,9 +634,9 @@ object RemainingVerifiedProtocols {
             "smolov_base",
             attributed("Smolov squat cycle", "https://www.powerliftingtowin.com/smolov/", "Sergey Smolov"),
             TrainingPlanRecipe(
-                "smolov", weeks, 1.0, mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
+                "smolov", weeks.rotateKpknFillers(), 1.0, mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
                 ProgressionRule.WeeklyKg(mapOf(4 to 10.0, 5 to 15.0)), exemptions,
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 2,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 3, // F-31: dorsal y face pull de KPKN rotados
             ),
             ProtocolFidelitySpec(
                 13, 4, requiresPercent = true, claimedLevel = "avanzado",
@@ -689,7 +691,7 @@ object RemainingVerifiedProtocols {
                         )
                     },
                 )
-            },
+            }.rotateKpknFillers(),
             trainingMaxPercent = 1.0,
             liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW),
             progression = ProgressionRule.WeeklyKg(mapOf(2 to 5.0, 3 to 10.0)),
@@ -698,7 +700,8 @@ object RemainingVerifiedProtocols {
             exemptions = smolovJrExemptions,
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
-            contentVersion = 2,
+            // F-31: dorsal y face pull de KPKN rotados a partir del tercer día (versión 3).
+            contentVersion = 3,
         ),
         fidelitySpec = ProtocolFidelitySpec(
             3, 4, requiresPercent = true, claimedLevel = "avanzado",
@@ -787,7 +790,7 @@ object RemainingVerifiedProtocols {
             val weeks = heavy.mapIndexed { i, pct ->
                 weekRecipe(i + 1, 0, "DL", if (i >= 8) BlockGoal.PEAK else BlockGoal.INTENSIFICATION, listOf(
                     day("Peso muerto", weekday = 4, priority = SlotPriority.SPEED, slots = listOf(
-                        slot("speed", SlotRole.SPEED, CatalogIds.DL, repeatPercentSets(listOf(8, 8, 6, 5, 3, 3, 3, 3, 2, 2)[i], 3, speed[i], 90), 90, LiftSlot.DEADLIFT, technique = TechniqueModifier.SPEED, supplementalOf = "dl", priority = SlotPriority.SPEED),
+                        slot("speed", SlotRole.SPEED, CatalogIds.DL, repeatPercentSets(listOf(8, 8, 6, 5, 3, 3, 3, 3, 2, 2)[i], 3, speed[i], 90), 90, LiftSlot.DEADLIFT, technique = TechniqueModifier.SPEED, supplementalOf = "dl", priority = SlotPriority.SPEED, occurrenceLabel = "Velocidad"),
                         slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, listOf(SetRecipe(reps = if (pct >= 97) 1 else if (i == 4) 3 else 2, percent = pct, isTopSet = pct >= 95, loadBasis = LoadBasis.PERCENT_DESIRED_MAX)).let { if (i == 4) List(3) { SetRecipe(reps = 3, percent = 80.0, loadBasis = LoadBasis.PERCENT_DESIRED_MAX) } else it }, 240, LiftSlot.DEADLIFT, isCompetitionLift = true),
                         slot("sldl", SlotRole.T3_ACCESSORY, CatalogIds.SLDL, rpeSets(2, 8, 8.0), 90),
                         slot("row", SlotRole.T3_ACCESSORY, CatalogIds.ROW, rpeSets(3, 8, 8.0), 90),
@@ -798,7 +801,7 @@ object RemainingVerifiedProtocols {
             }
             // B.S6: la H3 («cuatro bisagras por diseño») estaba muerta (los cuatro accesorios no repiten dominante más de tres veces
             // ni tres seguidas) y se retira; la H2 sigue viva: DL, speed, SLDL y buenos días son cuatro bisagras en la sesión.
-            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, coanExemptions, claimedDaysPerWeek = 1, claimedLevel = "avanzado")
+            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, coanExemptions, claimedDaysPerWeek = 1, claimedLevel = "avanzado", contentVersion = 2)
         },
         ProtocolFidelitySpec(10, 1, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w10" to listOf(100.0))),
         kind = ProtocolKind.SPECIALIZATION,

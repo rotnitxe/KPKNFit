@@ -379,6 +379,16 @@ data class Exercise(
     val nativeProgressionManaged: Boolean = false,
     /** Bloque APRE del editor: variante y sus cuatro series. Vive en el JSON; no añade columnas ni tablas a Room. */
     val apreBlock: ApreBlockReference? = null,
+    /**
+     * Rótulo de una aparición que el autor prescribe junto a otra del mismo ejercicio o de una variante enlazada:
+     * «Volumen BBB 5×10», «Velocidad», «Segunda tanda». null = ejercicio sin repetición por diseño.
+     */
+    val occurrenceLabel: String? = null,
+    /**
+     * Carga estimada de una variante sin marca propia (factor fijo sobre la marca de su básico, [com.example.kpkn.domain.training.VariantLoadEstimates]).
+     * La referencia de carga sigue pendiente: la estimación nunca se guarda como marca declarada. null = carga declarada o sin kilos.
+     */
+    val loadEstimate: com.example.kpkn.domain.training.VariantLoadEstimate? = null,
 )
 
 @Serializable

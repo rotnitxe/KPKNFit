@@ -23,6 +23,7 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rotateKpknFillers
 import com.example.kpkn.data.protocols.dropT3
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.repeatPercentSets
@@ -70,7 +71,8 @@ object TexasMethodProtocols {
             // L-16 (B.S6): las dominadas llevaban las 3 series como AMRAP y a RPE 8 a la vez (contradictorio), en un slot sin
             // `liftSlot`; ahora son 3×8 a RPE 8 sin AMRAP (el TM de Texas sube con el top set del viernes, `TopSetPr`).
             slot("chin", SlotRole.T3_ACCESSORY, CatalogIds.CHIN, rpeSets(3, 8, 8.0), 120),
-            slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.BACK_EXT, rpeSets(3, 12, 7.0), 90, source = SlotSource.KPKN_DEFAULT),
+            // DUP-07: `BACK_EXT` es una máquina sin llave curada en el panel y nunca se podía acreditar; la hiperextensión a 45° sí.
+            slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.HYPER_45, rpeSets(3, 12, 7.0), 90, source = SlotSource.KPKN_DEFAULT),
             kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
         ),
     )
@@ -119,7 +121,7 @@ object TexasMethodProtocols {
         claimedLevel = "intermedio",
         autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
         repeats = true,
-        contentVersion = 2,
+        contentVersion = 3,
     )
 
     val threeDay = Protocol(
@@ -157,13 +159,13 @@ object WendlerProtocols {
     private fun bbb(configurationId: String, lift: LiftSlot) = slot(
         "bbb", SlotRole.T2_SUPPLEMENTAL, configurationId,
         repeatPercentSets(5, 10, 50.0, 120),
-        120, lift, supplementalOf = "t1",
+        120, lift, supplementalOf = "t1", occurrenceLabel = "Volumen BBB 5×10",
     )
 
     private fun fsl(configurationId: String, lift: LiftSlot, firstPercent: Double) = slot(
         "fsl", SlotRole.T2_SUPPLEMENTAL, configurationId,
         repeatPercentSets(5, 5, firstPercent, 120),
-        120, lift, supplementalOf = "t1",
+        120, lift, supplementalOf = "t1", occurrenceLabel = "Primera serie extra (FSL) 5×5",
     )
 
     private fun assistanceFor(lift: LiftSlot) = when (lift) {
@@ -245,7 +247,7 @@ object WendlerProtocols {
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 3,
+            contentVersion = 4,
         )
     }
 
@@ -305,7 +307,7 @@ object TexasMethodFourDay {
                 ),
                 weekName = "Semana $w",
             )
-        },
+        }.rotateKpknFillers(),
         // D7 (B.S6): el TM es el 87 % del 1RM (≈ 5RM) como en el Texas de 3 días. El top set 1×5 al 100 % del TM es el 87 %
         // del 1RM (Epley admite 5 repeticiones) y el volumen 5×5 al 90 % del TM, el 78 % del 1RM.
         trainingMaxPercent = 0.87,
@@ -330,7 +332,8 @@ object TexasMethodFourDay {
         claimedDaysPerWeek = 4,
         claimedLevel = "intermedio",
         repeats = true,
-        contentVersion = 2,
+        // F-31: el relleno de KPKN (remo Pendlay, GHR, Pallof) rota a partir del tercer día de la semana (versión 3).
+        contentVersion = 3,
     )
 
     val definition = Protocol(

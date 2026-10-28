@@ -230,7 +230,6 @@ class Pr11PolishRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                    onCalibrate = {},
                 )
             }
             "propuestasSinTm" -> Frame {

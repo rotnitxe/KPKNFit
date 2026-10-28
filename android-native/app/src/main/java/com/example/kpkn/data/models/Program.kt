@@ -712,7 +712,7 @@ fun Program.convertSimpleCalendarizedToAdvanced(): Program {
     val archivedBreak = if (wasCalendarized && pausedCyclicSnapshot != null) {
         CalendarBreak(
             id = "break_${id}_to_advanced_${System.currentTimeMillis()}",
-            title = "Ciclo pausado al convertir a Avanzado",
+            title = "Ciclo pausado al pasar a programa por bloques",
             startDate = timelineStartDate ?: LocalDate.now().toString(),
             endDate = calendarization?.manualEndDate ?: timelineStartDate ?: LocalDate.now().toString(),
             weeks = macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },

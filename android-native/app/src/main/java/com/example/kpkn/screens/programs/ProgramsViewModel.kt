@@ -3,15 +3,21 @@ package com.example.kpkn.screens.programs
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
@@ -22,12 +28,27 @@ import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.ProgramProtocolEngine
+import com.example.kpkn.domain.training.HomeSessionResolver
+import com.example.kpkn.domain.training.HomeWeekResolver
+import com.example.kpkn.domain.training.ProgramDetailHelpers
+import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.domain.training.ProgramTemplateEngine
+import com.example.kpkn.domain.training.SystemAppClock
+import com.example.kpkn.screens.programdetail.design.ProgramRibbonWeek
+import com.example.kpkn.screens.programdetail.design.programPhaseColor
+import com.example.kpkn.screens.programdetail.design.programPhaseOf
+import com.example.kpkn.screens.programdetail.design.programProgressLabel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 
@@ -76,6 +97,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         settings.archivedProgramIds.mapNotNull { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    /** Todos los registros de entrenamiento: la hoja «Compartir en historias» de la lista filtra los de cada programa. */
+    val history: StateFlow<List<WorkoutLog>> = repository.history
+
     /**
      * Currently active program state (with programId, status, currentWeekId, etc).
      * Null if no program is active.
@@ -109,15 +133,40 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     /**
-     * All programs that are NOT currently featured (for display in list).
+     * Programas que NO son el de en curso ni están en cola: «Tus programas». Un programa encolado sale solo en «En cola».
      */
-    val inactivePrograms: StateFlow<List<Program>> = combine(programs, featuredProgramId) { all, activeId ->
-        all.filter { it.id != activeId }
+    val inactivePrograms: StateFlow<List<Program>> = combine(programs, featuredProgramId, repository.programQueue) { all, activeId, queue ->
+        inactiveProgramsOf(all = all, featuredId = activeId, queuedIds = queue)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val programQueue: StateFlow<List<Program>> = combine(repository.programQueue, programs) { queue, all ->
-        queue.mapNotNull { id -> all.find { it.id == id } }
+    // Si se activa un programa que estaba en cola, sale en «En curso» y no en «En cola» a la vez.
+    val programQueue: StateFlow<List<Program>> = combine(repository.programQueue, programs, featuredProgramId) { queue, all, activeId ->
+        queue.filter { it != activeId }.mapNotNull { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /**
+     * Lo que la tarjeta «En curso» enseña del programa activo: sesión de hoy, semana y cinta de fases. Null sin programa en curso o pausado.
+     */
+    internal val activeSummary: StateFlow<ActiveProgramSummary?> = combine(
+        activeProgram,
+        activeProgramState,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { program, active, history, ongoing ->
+        program?.let { summarizeActiveProgram(it, active, history, ongoing, SystemAppClock.today(ZoneId.systemDefault())) }
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /**
+     * Último día con un registro de cada programa: la fecha de «Terminado · d MMM». El programa no guarda fecha de cierre.
+     */
+    val lastTrainedOn: StateFlow<Map<String, LocalDate>> = repository.history
+        .map { logs -> lastTrainedDatesOf(logs.map { it.programId to it.date }, ZoneId.systemDefault()) }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
     // ─── Business Logic ────────────────────────────────────────────────────
 
@@ -168,21 +217,33 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         repository.permanentlyDeleteProgram(programId)
     }
 
-    fun createBlankProgram(): String {
+    /**
+     * Crea un programa en blanco. [name] en blanco o null → «Nuevo programa N»; [mode] y [coverImage] (si no es null) son los que
+     * eligió la hoja «Desde cero», y sustituyen a los de siempre.
+     */
+    fun createBlankProgram(
+        name: String? = null,
+        mode: ProgramMode = ProgramMode.HYPERTROPHY,
+        coverImage: String? = null,
+    ): String {
         val programId = UUID.randomUUID().toString()
-        val nextNumber = repository.programs.value.count { it.name.startsWith("Nuevo programa") } + 1
-        repository.addProgram(
-            buildNewProgram(
-                id = programId,
-                name = "Nuevo programa $nextNumber",
-            ),
+        // El número sale del mayor «Nuevo programa N» que ya existe (contar nombres repetía números tras borrar uno).
+        val nextNumber = nextBlankProgramNumber(repository.programs.value.map { it.name })
+        val base = buildNewProgram(
+            id = programId,
+            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Nuevo programa $nextNumber",
+            mode = mode,
         )
+        repository.addProgram(coverImage?.let { base.copy(coverImage = it) } ?: base)
         return programId
     }
 
+    /** El nombre que propone la hoja «Desde cero»: el mismo que [createBlankProgram] pone si no se escribe ninguno. */
+    fun suggestedBlankProgramName(): String =
+        "Nuevo programa ${nextBlankProgramNumber(repository.programs.value.map { it.name })}"
+
     sealed interface TemplateApplyOutcome {
         data class Created(val programId: String) : TemplateApplyOutcome
-        data object RequiresCalibration : TemplateApplyOutcome
     }
 
     suspend fun createProgramFromTemplate(
@@ -193,15 +254,14 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         runCatching {
             when (val outcome = createProgramFromTemplateGated(templateId, skipCalibration, calibration)) {
                 is TemplateApplyOutcome.Created -> outcome.programId
-                TemplateApplyOutcome.RequiresCalibration ->
-                    error("REQUIRES_CALIBRATION")
             }
         }
     }
 
     /**
-     * Crea con la dosis editorial y aplica sólo las respuestas aportadas expresamente.
-     * [skipCalibration] se conserva por compatibilidad; el cuestionario ya no bloquea crear.
+     * Crea con la dosis editorial. Con respuestas aportadas expresamente ([calibration]) escala con ellas; sin ellas, con la
+     * calibración sugerida por KPKN (IMP-03, [suggestedCalibrationFor]). [skipCalibration] se conserva por compatibilidad;
+     * el cuestionario ya no bloquea crear.
      */
     suspend fun createProgramFromTemplateGated(
         templateId: String,
@@ -211,27 +271,28 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         withContext(Dispatchers.Default) {
             val template = resolveProgramTemplate(templateId)
             val programId = UUID.randomUUID().toString()
-            val pending = calibration ?: pendingCalibrationForCreate
+            val pending = calibration
             // C.P6: la plantilla se llama como su ficha de la biblioteca (nunca el nombre crudo de la plantilla) y,
             // si no declara una pista, toma el modo de la disciplina de la entrada.
             val entry = PersonalizedPlanCatalog.find("template:${template.id}")
+            val templateMode = pending?.mode ?: when (template.trackLabel) {
+                "Powerlifting" -> ProgramMode.POWERLIFTING
+                "Powerbuilding" -> ProgramMode.POWERBUILDING
+                else -> entry?.let(::programModeFor) ?: ProgramMode.HYPERTROPHY
+            }
+            // IMP-03: sin respuestas propias el programa nace con la calibración sugerida, así que `scaleToCalibratedVolume` escala.
+            val suggested = if (pending == null) suggestedCalibrationFor(templateMode) else null
             val base = Program(
                 id = programId,
                 name = entry?.let(::programNameFor) ?: template.name,
                 coverImage = "gradient://ember",
                 structure = template.type,
-                mode = pending?.mode ?: when (template.trackLabel) {
-                    "Powerlifting" -> ProgramMode.POWERLIFTING
-                    "Powerbuilding" -> ProgramMode.POWERBUILDING
-                    else -> entry?.let(::programModeFor) ?: ProgramMode.HYPERTROPHY
-                },
-                volumeRecommendations = pending?.recommendations.orEmpty(),
-                athleteProfileScore = pending?.score,
-                volumeSystem = if (pending != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+                mode = templateMode,
+                volumeRecommendations = pending?.recommendations ?: suggested?.recommendations.orEmpty(),
+                athleteProfileScore = pending?.score ?: suggested?.score,
+                volumeSystem = if (pending != null || suggested != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
                 volumeCalibrationNotes = pending?.notes.orEmpty(),
             )
-            // Crear conserva la dosis editorial sin exigir autovaloraciones ni fabricar una puntuación.
-            pendingCalibrationForCreate = null
             val result = ProgramTemplateEngine.applyTemplate(
                 current = base,
                 template = template,
@@ -249,8 +310,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         }
 
     /**
-     * Materializa el protocolo con sus referencias declaradas. [skipCalibration] se conserva
-     * por compatibilidad; la ausencia de autovaloraciones no bloquea la creación.
+     * Materializa el protocolo con sus referencias declaradas. Sin [calibration] propia usa la sugerida por KPKN
+     * (IMP-03, [suggestedCalibrationFor]). [skipCalibration] se conserva por compatibilidad; la ausencia de
+     * autovaloraciones no bloquea la creación.
      */
     fun createProgramFromProtocolGated(
         protocolId: String,
@@ -264,17 +326,20 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         // C.P6: el nombre que la persona escribió sigue mandando; si no, el de la ficha de la biblioteca. El modo
         // sale de la disciplina de la entrada (antes TODOS los métodos salían como powerlifting, también PHUL).
         val entry = PersonalizedPlanCatalog.find("protocol:${protocol.id}")
+        val protocolMode = entry?.let(::programModeFor) ?: ProgramMode.POWERLIFTING
+        // IMP-03: sin respuestas propias, la calibración sugerida (el estilo sale del modo del método).
+        val suggested = if (calibration == null) suggestedCalibrationFor(protocolMode) else null
         val base = Program(
             id = programId,
             name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: entry?.let(::programNameFor) ?: protocol.name,
             coverImage = "gradient://ember",
             structure = ProgramStructure.SIMPLE,
-            mode = entry?.let(::programModeFor) ?: ProgramMode.POWERLIFTING,
+            mode = protocolMode,
             powerliftingProfile = profile,
             selectedSplitId = protocol.defaultSplit,
-            volumeRecommendations = calibration?.recommendations.orEmpty(),
-            athleteProfileScore = calibration?.score,
-            volumeSystem = if (calibration != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+            volumeRecommendations = calibration?.recommendations ?: suggested?.recommendations.orEmpty(),
+            athleteProfileScore = calibration?.score ?: suggested?.score,
+            volumeSystem = if (calibration != null || suggested != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
             volumeCalibrationNotes = calibration?.notes.orEmpty(),
         )
         // La falta de cuestionario no bloquea una receta de autor ni modifica su dosis.
@@ -321,17 +386,29 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
     ): String? = createProgramFromProtocolGated(protocolId, profile, preferredName, calibration, skipCalibration)
 
     /**
-     * La calibración del sheet previo a crear programa no tiene programa aún:
-     * se guarda como borrador pendiente que el siguiente create consume. Como
-     * el base de create* parte de Program() vacío, aquí se registra en
-     * memoria para que el reintento la aplique al materializar+escalar.
+     * IMP-03: la calibración que recibe un programa creado sin respuestas propias: (2, 2, 2, 2) con el estilo del modo
+     * ([VolumeCalibrationEngine.suggested]). Si la persona aún no tiene un perfil global, se estrena con esta sugerencia en
+     * estado SUGGESTED para que la tarjeta «Tu volumen» diga de dónde sale; un perfil ya declarado nunca se pisa.
      */
-    private var pendingCalibrationForCreate: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null
-
-    fun applyCalibrationToLatestDraft(
-        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult,
-    ) {
-        pendingCalibrationForCreate = calibration
+    private fun suggestedCalibrationFor(mode: ProgramMode): com.example.kpkn.domain.training.VolumeCalibrationOutput {
+        val suggested = com.example.kpkn.domain.training.VolumeCalibrationEngine.suggested(mode)
+        repository.updateSettings { settings ->
+            if (settings.volumeCalibrationProfile != null) settings else settings.copy(
+                volumeCalibrationProfile = com.example.kpkn.data.models.VolumeCalibrationProfile(
+                    trainingStyle = suggested.score.trainingStyle,
+                    athleteProfileScore = suggested.score,
+                    responses = com.example.kpkn.data.models.VolumeCalibrationResponses(
+                        suggested.score.technicalScore, suggested.score.consistencyScore,
+                        suggested.score.strengthScore, suggested.score.mobilityScore,
+                        com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED,
+                    ),
+                    recommendations = suggested.recommendations,
+                    calibratedAtMs = System.currentTimeMillis(),
+                    calculatorRevision = com.example.kpkn.domain.training.VolumeCalibrationEngine.REVISION,
+                ),
+            )
+        }
+        return suggested
     }
 
     fun addToQueue(programId: String) {
@@ -348,6 +425,11 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
 
     fun resumeProgram() {
         repository.resumeProgram()
+    }
+
+    /** Activa el programa: pasa a ser el de en curso, igual que «Activar programa» de su detalle. */
+    fun startProgram(programId: String) {
+        repository.startProgram(programId)
     }
 
 }
@@ -407,3 +489,113 @@ data class ProgramStats(
     val weeks: Int,
     val sessions: Int,
 )
+
+/** Lo que la tarjeta «En curso» enseña del programa activo. */
+internal data class ActiveProgramSummary(
+    val programId: String,
+    /** Sesión de hoy que queda por hacer; null si hoy no toca ninguna. */
+    val todaySessionName: String?,
+    /** «Semana 4 de 6 · Intensificación»; null si no se sabe en qué semana va. */
+    val progressLabel: String?,
+    /** Una celda por semana de la cinta de fases; vacía si el programa tiene una sola semana. */
+    val ribbon: List<ProgramRibbonWeek>,
+)
+
+private val BLANK_PROGRAM_NAME = Regex("""Nuevo programa (\d+)""")
+
+/** El número del próximo «Nuevo programa N»: el mayor que ya usa algún nombre, más uno. Un hueco no se reutiliza. */
+internal fun nextBlankProgramNumber(existingNames: Collection<String>): Int {
+    val highest = existingNames
+        .mapNotNull { name -> BLANK_PROGRAM_NAME.matchEntire(name.trim())?.groupValues?.get(1)?.toIntOrNull() }
+        .maxOrNull() ?: 0
+    return highest + 1
+}
+
+/** «Tus programas»: los que no son el de en curso ni están en cola. */
+internal fun inactiveProgramsOf(all: List<Program>, featuredId: String?, queuedIds: List<String>): List<Program> =
+    all.filter { it.id != featuredId && it.id !in queuedIds }
+
+/** Terminado si su ciclo guardado quedó completado. El resto son borradores, igual que en la cabecera del detalle. */
+internal fun programIsFinished(program: Program): Boolean = program.runState?.status == ProgramRunStatus.COMPLETED
+
+private val SHORT_MONTHS = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+
+/** Estado de una tarjeta de «Tus programas»: «Borrador», «Terminado · 12 sep» o «Terminado» si no se sabe la fecha. */
+internal fun programListStatusLabel(completed: Boolean, completedOn: LocalDate?): String = when {
+    !completed -> "Borrador"
+    completedOn == null -> "Terminado"
+    else -> "Terminado · ${completedOn.dayOfMonth} ${SHORT_MONTHS[completedOn.monthValue - 1]}"
+}
+
+/** El último día con un registro de cada programa, a partir de pares (programa, fecha ISO). Las fechas que no se leen se ignoran. */
+internal fun lastTrainedDatesOf(entries: List<Pair<String, String>>, zone: ZoneId): Map<String, LocalDate> {
+    val days = HashMap<String, LocalDate>()
+    entries.forEach { (programId, raw) ->
+        val day = parseLogDay(raw, zone) ?: return@forEach
+        val known = days[programId]
+        if (known == null || day.isAfter(known)) days[programId] = day
+    }
+    return days
+}
+
+private fun parseLogDay(raw: String, zone: ZoneId): LocalDate? =
+    runCatching { Instant.parse(raw).atZone(zone).toLocalDate() }
+        .recoverCatching { LocalDate.parse(raw.take(10)) }
+        .getOrNull()
+
+/** La cinta de fases: una celda por semana, del color de la fase de su bloque. Hecha si va antes de la semana actual. */
+internal fun programRibbonOf(program: Program, currentWeekIndex: Int?): List<ProgramRibbonWeek> {
+    val roadmap = ProgramDetailHelpers.buildRoadmapBlocks(program)
+    val phaseByWeek = roadmap.flatMap { block ->
+        val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmap, program)
+        val phase = programPhaseOf(goal = block.goal, hasCompetitionWeek = weeks.any { it.keyDateType == KeyDateType.COMPETITION })
+        weeks.map { week -> week.id to phase }
+    }.toMap()
+    return ProgramDetailHelpers.getAllWeeks(roadmap, program).mapIndexed { index, week ->
+        ProgramRibbonWeek(
+            color = programPhaseColor(phaseByWeek[week.id]),
+            done = currentWeekIndex != null && index < currentWeekIndex,
+            current = index == currentWeekIndex,
+        )
+    }
+}
+
+/**
+ * Lo que la tarjeta «En curso» enseña, con el mismo cálculo que la cabecera del detalle: la primera sesión de hoy por hacer, la
+ * línea «Semana N de M · Fase» y la cinta. Si [active] no es de [program], no hay sesiones de hoy.
+ */
+internal fun summarizeActiveProgram(
+    program: Program,
+    active: ActiveProgramState?,
+    history: List<WorkoutLog>,
+    ongoing: OngoingWorkoutState?,
+    today: LocalDate,
+): ActiveProgramSummary {
+    val sessions = if (active?.programId == program.id) {
+        HomeSessionResolver.resolveTodaySessions(
+            program = program,
+            active = active,
+            currentDayOfWeek = today.dayOfWeek.value,
+            history = history,
+            ongoing = ongoing,
+            today = today,
+        )
+    } else {
+        emptyList()
+    }
+    val line = HomeWeekResolver.programLine(program, sessions, today)
+    val weekCount = ProgramHierarchyIndex(program).orderedWeeks().size
+    val repeatingWeek = program.isSimpleProgram && weekCount <= 1
+    return ActiveProgramSummary(
+        programId = program.id,
+        todaySessionName = HomeSessionResolver.selectPrimarySession(sessions)?.takeIf { !it.isCompleted }?.session?.name,
+        progressLabel = programProgressLabel(
+            weekIndex = line?.weekIndex,
+            weekCount = line?.weekCount,
+            phase = line?.phase,
+            repeatingWeek = repeatingWeek,
+            cycle = program.runState?.cycleNumber,
+        ),
+        ribbon = if (weekCount > 1) programRibbonOf(program, line?.weekIndex?.minus(1)) else emptyList(),
+    )
+}

@@ -1,12 +1,19 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.calculations.percentLoadKg
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.generator.Prescriber
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 
 enum class SwapScope { THIS_SESSION, REST_OF_BLOCK, WHOLE_PROGRAM }
 
-/** Cambio manual explícito; las referencias de carga siguen perteneciendo a su configuración original. */
+/**
+ * Cambio manual explícito; las referencias de carga siguen perteneciendo a su configuración original.
+ * DUP-03: una sesión afectada que ya tiene el destino (misma configuración, definición o familia de movimiento,
+ * [SessionSlopRules.familyOf]) conserva su ejercicio; la decisión cuenta esas sesiones.
+ */
 fun applyExerciseSwap(
     program: Program,
     sessionId: String,
@@ -35,14 +42,36 @@ fun applyExerciseSwap(
     val firstWeek = maxOf(sourceLocation.globalWeekIndex,currentWeek?.globalWeekIndex ?: sourceLocation.globalWeekIndex)
     val changedRoots = linkedMapOf<String,ProgramHierarchyLocation>()
     var changedExercises = 0
+    var skippedSessions = 0
+    val targetDefinition = info.catalogDefinitionId
+    val targetFamily = SessionSlopRules.familyOf(target.configId)
+    /** El destino ya está en la sesión (en otro ejercicio distinto del que se cambia). */
+    fun alreadyHasTarget(session: Session): Boolean = session.allExercises().any { other ->
+        val otherConfig = other.catalogConfigurationId
+        otherConfig != sourceConfiguration && otherConfig != null && (
+            otherConfig == target.configId ||
+                (targetDefinition != null && other.catalogDefinitionId == targetDefinition) ||
+                (targetFamily != null && SessionSlopRules.familyOf(otherConfig) == targetFamily)
+            )
+    }
 
     fun replace(exercise: Exercise): Exercise {
         if (exercise.catalogConfigurationId != sourceConfiguration) return exercise
         changedExercises++
-        return exercise.copy(name = info.name,exerciseDbId = entry.id,exerciseId = entry.id,canonicalExerciseId = entry.id,
+        // F-22 (decisión 2): un cambio EQUIVALENTE entre variantes de la tabla lleva kilos estimados desde la marca del original
+        // (o desde la del básico del que ya venía estimada); siempre marcados «estimada», nunca como marca declarada.
+        val estimate = if (target.kind == SwapKind.EQUIVALENT) {
+            exercise.loadEstimate?.let { VariantLoadEstimates.estimate(it.sourceConfigurationId, it.sourceOneRmKg, target.configId) }
+                ?: exercise.reference1RM?.takeIf { it > 0.0 }?.let { VariantLoadEstimates.estimate(sourceConfiguration, it, target.configId) }
+        } else {
+            null
+        }
+        val estimatedTm = estimate?.let { est -> exercise.referenceTrainingMax?.takeIf { it > 0.0 }?.times(est.factor) }
+        // Volver al básico del que venía la estimación no es una estimación: es su propia marca.
+        val replacement = exercise.copy(name = info.name,loadEstimate = estimate?.takeIf { it.sourceConfigurationId != target.configId },exerciseDbId = entry.id,exerciseId = entry.id,canonicalExerciseId = entry.id,
             exerciseFamilyId = entry.familyId,catalogRevision = info.catalogRevision,catalogDefinitionId = info.catalogDefinitionId,
             catalogConfigurationId = entry.id,performanceProfileId = info.performanceProfileId,effectiveMuscles = info.involvedMuscles,
-            variantName = info.catalogVariantChips.joinToString(" · "),reference1RM = null,referenceTrainingMax = null,prFor1RM = null,
+            variantName = info.catalogVariantChips.joinToString(" · "),reference1RM = estimate?.estimatedOneRmKg,referenceTrainingMax = estimatedTm,prFor1RM = null,
             techniqueModifier = null,relationshipType = null,relativeToCanonicalExerciseId = null,relationshipNotes = null,
             nativeProgressionManaged = false,apreBlock = null,
             loadReference = null,loadQuantityConvention = convention,setupDetails = null,selectedAspects = null,
@@ -50,10 +79,17 @@ fun applyExerciseSwap(
             sets = exercise.sets.map { set -> set.copy(weight = null,loadQuantityConvention = convention,
                 loadModeV2 = null,unitModeV2 = null,plannedTargetV2 = null,leftTarget = null,rightTarget = null,
                 contextKeyV2 = null,contextProfileIdV3 = null,defaultTagIdV3 = null,defaultSetupProfileIdV3 = null,tagId = null,setupId = null) })
+        if (estimate == null) return replacement
+        // Las series con %RM leen la referencia estimada de su base; las de carga fija siguen sin kilos (la carga de otra variante no se hereda).
+        return replacement.copy(sets = replacement.sets.map { set -> set.copy(weight = percentLoadKg(replacement, set)?.let(Prescriber::roundLoad)) })
     }
     fun change(session: Session): Session {
         if (session.id in executedSessionIds) return session
-        val changeOwn = scope != SwapScope.THIS_SESSION || session.id == sessionId
+        var changeOwn = scope != SwapScope.THIS_SESSION || session.id == sessionId
+        if (changeOwn && session.allExercises().any { it.catalogConfigurationId == sourceConfiguration } && alreadyHasTarget(session)) {
+            skippedSessions++
+            changeOwn = false
+        }
         return session.copy(
             exercises = if (changeOwn) session.exercises.map(::replace) else session.exercises,
             parts = if (changeOwn) session.parts.map { it.copy(exercises = it.exercises.map(::replace)) } else session.parts,
@@ -82,6 +118,11 @@ fun applyExerciseSwap(
     }
     return marked.copy(programDecisions = marked.programDecisions + ProgramDecision(
         "manual-swap:${program.runState?.runId}:$nowMs:$sessionId:$exerciseId:${target.configId}:$scope",nowMs,"MANUAL","Ejercicio cambiado",
-        "${source.name} → ${info.name} en ${changedRoots.size} sesiones ($changedExercises ejercicios). Repeticiones, RIR y descansos conservados; carga pendiente para la configuración nueva.",
+        "${source.name} → ${info.name} en ${changedRoots.size} ${if (changedRoots.size == 1) "sesión" else "sesiones"} " +
+            "($changedExercises ${if (changedExercises == 1) "ejercicio" else "ejercicios"})" +
+            (if (skippedSessions > 0) {
+                "; $skippedSessions ${if (skippedSessions == 1) "sesión conserva" else "sesiones conservan"} el ejercicio porque ya tenía${if (skippedSessions == 1) "" else "n"} «${info.name}»"
+            } else "") +
+            ". Repeticiones, RIR y descansos conservados; carga pendiente para la configuración nueva.",
         weekId = sourceLocation.week.id,blockId = sourceLocation.blockId))
 }

@@ -318,7 +318,16 @@ class ProgramDetailViewModel(
         viewModelScope.launch {
             _scheduleBusy.value = true
             try {
-                _schedulePreview.value = repository.previewScheduleContinuation(programId,choice,expected)
+                val prepared = repository.previewScheduleContinuation(programId,choice,expected)
+                val unappliedReason = prepared?.let { com.example.kpkn.domain.training.UnappliedResponse.newReason(it.original,it.result) }
+                if (prepared != null && unappliedReason != null) {
+                    // La elección ya no se puede aplicar: se guarda la decisión con el motivo y se dice, sin pedir confirmar un cambio vacío.
+                    _schedulePreview.value = null
+                    repository.submitScheduleContinuation(programId,prepared)
+                    _uiState.update { it.copy(snackbarMessage = unappliedReason) }
+                    return@launch
+                }
+                _schedulePreview.value = prepared
                 if (_schedulePreview.value == null) _uiState.update { it.copy(snackbarMessage =
                     "No hay cambios disponibles. Comprueba las sesiones registradas, las ediciones y cualquier entrenamiento en curso.") }
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
@@ -568,6 +577,25 @@ class ProgramDetailViewModel(
         .map { it.volumeCalibrationProfile?.responses }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** IMP-02: respuestas del calibrador con su origen; la declarada gana, si no valen los registros y al final lo sugerido. */
+    val calibrationAnswers: StateFlow<List<com.example.kpkn.domain.training.calibration.ResolvedCalibrationAnswer>> =
+        combine(program, history, repository.settings, feedbacks) { p, logs, settings, feedbackList ->
+            val zone = java.time.ZoneId.systemDefault()
+            val derived = p?.let {
+                val profile = it.powerliftingProfile
+                com.example.kpkn.domain.training.calibration.CalibrationEvidence.derive(
+                    com.example.kpkn.domain.training.calibration.CalibrationDerivationInput(logs, it.id, it.runState?.runId,
+                        LocalDate.now(zone), zone,
+                        plannedSessionsLastFourWeeks = com.example.kpkn.domain.training.calibration.CalibrationEvidence.typicalSessionsPerWeek(it)?.times(4),
+                        squat1RmKg = profile?.let { pl -> pl.squat1RM ?: pl.squatE1RM },
+                        bench1RmKg = profile?.let { pl -> pl.bench1RM ?: pl.benchE1RM },
+                        deadlift1RmKg = profile?.let { pl -> pl.deadlift1RM ?: pl.deadliftE1RM },
+                        bodyWeightKg = settings.userVitals.weight, feedbacks = feedbackList))
+            }
+            com.example.kpkn.domain.training.calibration.CalibrationEvidence.resolve(settings.volumeCalibrationProfile?.responses, derived)
+        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     private val _planningVolumeTargetBusy = MutableStateFlow(false)
     val planningVolumeTargetBusy = _planningVolumeTargetBusy.asStateFlow()
 
@@ -655,9 +683,11 @@ class ProgramDetailViewModel(
             _weeklyCheckinBusy.value = true
             try {
                 val preview = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewWeeklyCheckin(programId, answer) }
-                _weeklyCheckinPreview.value = preview
+                // Una respuesta que ya no se puede aplicar se guarda como decisión y se dice el motivo, sin pedir confirmar nada.
+                val unapplied = preview != null && com.example.kpkn.domain.training.UnappliedResponse.newReason(preview.original, preview.result) != null
+                _weeklyCheckinPreview.value = if (unapplied) null else preview
                 if (preview == null) _uiState.update { it.copy(snackbarMessage = "La petición semanal cambió. Revisa el programa.") }
-                else if (saveOmission) saveWeeklyCheckinPreview(preview)
+                else if (saveOmission || unapplied) saveWeeklyCheckinPreview(preview)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la revisión semanal.") }
@@ -681,7 +711,9 @@ class ProgramDetailViewModel(
     private suspend fun saveWeeklyCheckinPreview(preview: ProgramRepository.WeeklyCheckinPreview) {
         val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitWeeklyCheckin(programId, preview) }
         _weeklyCheckinPreview.value = null
+        val unappliedReason = com.example.kpkn.domain.training.UnappliedResponse.newReason(preview.original, preview.result)
         val message = if (!saved) "El programa cambió. Revisa de nuevo la propuesta antes de confirmar."
+            else if (unappliedReason != null) unappliedReason
             else if (preview.result.effectiveWeekRecipes == preview.original.effectiveWeekRecipes) "Semana sin cambios"
             else "Semana ajustada"
         _uiState.update { it.copy(snackbarMessage = message) }
@@ -852,6 +884,13 @@ class ProgramDetailViewModel(
     // ─── Init: Auto-select + Tour ─────────────────────────────────────────
 
     init {
+        // Sin salida si nunca se registra la última sesión obligatoria: al abrir el detalle se pide la decisión (F-43).
+        viewModelScope.launch {
+            try {
+                val zone = java.time.ZoneId.systemDefault()
+                repository.requestStalledMissedSessions(programId, appClock.today(zone), zone)
+            } catch (error: Exception) { if (error is CancellationException) throw error }
+        }
         // Auto-select active/first block when activeProgramState, program, or roadmapBlocks changes
         viewModelScope.launch {
             combine(activeProgramState, program, roadmapBlocks) { active, p, blocks ->
@@ -981,6 +1020,11 @@ class ProgramDetailViewModel(
 
     fun activateOrResume() {
         if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
+    }
+
+    /** Aviso puntual de la pantalla (el mismo canal que el resto de mensajes). */
+    fun showMessage(message: String) {
+        _uiState.update { it.copy(snackbarMessage = message) }
     }
 
     fun consumeSnackbarMessage() {

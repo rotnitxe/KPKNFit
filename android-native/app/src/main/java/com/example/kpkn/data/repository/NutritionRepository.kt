@@ -5,11 +5,15 @@ import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
 import com.example.kpkn.data.food.FoodImporter
 import com.example.kpkn.data.food.FoodKnowledgeStore
+import com.example.kpkn.data.food.catalog.CatalogAssetSource
+import com.example.kpkn.data.food.catalog.NutritionCatalogHolder
+import com.example.kpkn.data.food.catalog.NutritionCatalogPublisher
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.staticFoodForAlias
+import com.example.kpkn.data.food.v2.NutritionParserV2Holder
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
 import com.example.kpkn.domain.nutrition.FoodKnowledge
@@ -28,6 +32,10 @@ import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.TextKeys
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import com.example.kpkn.domain.nutrition.nutrients.withCatalogNutrients
+import com.example.kpkn.domain.nutrition.v2.ConceptCatalogV2
+import com.example.kpkn.domain.nutrition.v2.ConceptSearchV2
+import com.example.kpkn.domain.nutrition.v2.LoggerSearchV2
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import com.example.kpkn.domain.nutrition.expenditure.DayMark
@@ -123,6 +131,12 @@ class NutritionRepository private constructor(
         db: KpknDatabase = KpknDatabase.getInstance(context),
         ownsDatabase: Boolean = false,
     ) : this(context, db, ownsDatabase, FoodCatalogImporter.Default)
+
+    /**
+     * F4-B: solo el arranque de la app ([init]) publica el paquete de catálogo. Las pruebas, que construyen el repositorio
+     * con [initForTests] o por reflexión, no: cada una copiaría y verificaría 33 MB y escribiría el puntero en su base.
+     */
+    private var publishCatalog = false
 
     /** Normalized body observations are shared with the body feature and never stored in Settings. */
     private val normalizedBodyRepository by lazy { BodyProgressRepository.getInstance(appContext) }
@@ -279,6 +293,16 @@ class NutritionRepository private constructor(
                 listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
         }) { "Invalid food amount or nutrients" }
         withContext(Dispatchers.IO) {
+            // F4-B: instantánea de nutrientes del paquete de catálogo; sin paquete (o si falla la lectura) se guarda como siempre.
+            val log = NutritionCatalogHolder.current?.let { port ->
+                try {
+                    log.copy(foods = log.foods.map { it.withCatalogNutrients(port) })
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (error: Exception) {
+                    android.util.Log.w("NutritionRepository", "Meal saved without nutrient snapshot", error)
+                    log
+                }
+            } ?: log
             val alreadyStored = db.nutritionDao().getLogsForDate(log.date).any { it.id == log.id }
             // El objetivo histórico pasa por el resolvedor canónico: un registro
             // retroactivo (o su edición/borrado) jamás captura el plan activo
@@ -535,6 +559,38 @@ class NutritionRepository private constructor(
             loggerFilter = loggerFilter,
         )
     }
+
+    /**
+     * «Buscar» del registro y sugerencias al corregir una tarjeta: el vocabulario v2 es el sistema. Mezcla lo aprendido y lo
+     * propio, los conceptos v2, el buscador anterior ([searchFoodCandidates] con su filtro del registro) y los productos del
+     * paquete de catálogo ([LoggerSearchV2.merge]). Sin vocabulario o sin paquete, esas partes quedan vacías y responde el resto.
+     */
+    suspend fun searchLoggerCandidates(query: String, limit: Int = 20): List<FoodCandidate> = withContext(Dispatchers.IO) {
+        val normalizedQuery = TextKeys.normalize(query)
+        if (normalizedQuery.isBlank() || limit <= 0) return@withContext emptyList()
+        val legacy = searchFoodCandidates(query, limit = limit, loggerFilter = true)
+        val concepts = NutritionParserV2Holder.parser(appContext)?.catalog?.let { catalog ->
+            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.conceptCandidates(conceptSearchFor(catalog), query) }
+        }.orEmpty()
+        val pack = NutritionCatalogHolder.current?.let { port ->
+            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.packCandidates(port, query) }
+        }.orEmpty()
+        LoggerSearchV2.merge(legacy, concepts, pack, limit, _foodQueryLearning.value[normalizedQuery]?.foodId)
+    }
+
+    /** Carga el vocabulario v2 y arma el índice de «Buscar»; el registro lo llama al abrirse para que la primera búsqueda no espere. */
+    suspend fun prepareLoggerSearch() {
+        withContext(Dispatchers.IO) {
+            NutritionParserV2Holder.parser(appContext)?.catalog?.let { conceptSearchFor(it) }
+        }
+    }
+
+    /** Índice de búsqueda del vocabulario v2; se rehace solo si cambia el catálogo cargado. */
+    @Volatile
+    private var conceptSearchCache: ConceptSearchV2? = null
+
+    private fun conceptSearchFor(catalog: ConceptCatalogV2): ConceptSearchV2 =
+        conceptSearchCache?.takeIf { it.catalog === catalog } ?: ConceptSearchV2(catalog).also { conceptSearchCache = it }
 
     /** The static catalog and user foods, normalized once per published catalog (see [localSearchPool]). */
     private class SearchPool(val source: List<FoodItem>, val foods: List<FoodItem>)
@@ -1200,7 +1256,17 @@ class NutritionRepository private constructor(
         } else {
             null
         }
-        cached ?: global
+        cached ?: global ?: v2FoodById(foodId)
+    }
+
+    /** Ficha del vocabulario v2 o del paquete por su id (favoritos y lo aprendido desde «Buscar»); null si no está. */
+    private suspend fun v2FoodById(foodId: String): FoodItem? {
+        if (V2_RECORD_PREFIXES.none { foodId.startsWith(it) }) return null
+        NutritionParserV2Holder.parser(appContext)?.catalog?.let { catalog ->
+            conceptSearchFor(catalog).hitForRecord(foodId)?.let { hit -> return LoggerSearchV2.conceptFood(hit, catalog.generation) }
+        }
+        val port = NutritionCatalogHolder.current ?: return null
+        return searchRead<FoodItem?>(null) { LoggerSearchV2.packFoodById(port, foodId) }
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
@@ -1260,6 +1326,14 @@ class NutritionRepository private constructor(
                 publishUserState(context)
             } finally {
                 userStatePublished.complete(Unit)
+            }
+            // F4-B: publica el paquete de catálogo en paralelo; solo se instala si salió verificado.
+            if (publishCatalog) launch {
+                NutritionCatalogPublisher(
+                    context.filesDir,
+                    CatalogAssetSource { name -> runCatching { context.assets.open(name) }.getOrNull() },
+                    db.nutritionCatalogDao(),
+                ).publish()?.let { NutritionCatalogHolder.install(it) }
             }
             importCatalog(context)
 
@@ -1589,9 +1663,16 @@ class NutritionRepository private constructor(
         private const val SEARCH_CUSTOM_LIMIT = 120
         private const val MAX_SEARCH_TERMS = 4
 
+        /** Prefijos de id de las fichas del vocabulario v2 y del paquete de catálogo. */
+        private val V2_RECORD_PREFIXES = listOf("usda_", "off_", "ciqual_", "kpkn_")
+
         @Volatile private var INSTANCE: NutritionRepository? = null
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {
-            INSTANCE ?: NutritionRepository(context.applicationContext).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
+            INSTANCE ?: NutritionRepository(context.applicationContext).also {
+                INSTANCE = it
+                it.publishCatalog = true
+                it.loadFromDb(context.applicationContext)
+            }
         }
         fun initForTests(context: Context): NutritionRepository = initForTests(context, FoodCatalogImporter.Default)
 

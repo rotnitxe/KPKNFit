@@ -48,6 +48,33 @@ class MissedSessionPolicyTest {
         assertEquals(stale,ProgramProgressEngine.resolveMissedSessions(stale,MissedSessionChoice.SKIP,metadata,emptyList()))
         assertEquals(MissedSessionChoice.DO_THIS_WEEK,MissedSessionPolicy.defaultChoice(p.copy(sourceProtocolId = "author")))
     }
+    @Test fun staleIdsAreClearedButReportedAsAnUnappliedResponse() {
+        val p = fixture().copy(pendingMissedSessions = MissedSessionsRequest("w1","w1",listOf("old-session"),programRunId = "run"))
+        val result = ProgramProgressEngine.resolveMissedSessions(p,MissedSessionChoice.SKIP,metadata,emptyList(),nowMs = 7)
+        assertNull(result.pendingMissedSessions)
+        assertTrue(result.skippedSessionKeys.isEmpty())
+        val decision = result.programDecisions.single()
+        assertEquals(UnappliedResponse.TITLE,decision.title)
+        assertEquals("MISSED_SESSION",decision.source)
+        assertEquals("w1",decision.weekId)
+        assertTrue(decision.detail.contains("cambiaron"))
+        assertEquals(decision.detail,UnappliedResponse.newReason(p,result))
+        // Cuando ya no falta nada, el motivo es otro.
+        val done = ProgramProgressEngine.resolveMissedSessions(p.copy(pendingMissedSessions = MissedSessionsRequest("w1","w1",listOf("s-w1"),programRunId = "run")),
+            MissedSessionChoice.SKIP,metadata,listOf(log("w1")),nowMs = 8)
+        assertNull(done.pendingMissedSessions)
+        assertTrue(done.programDecisions.single().detail.contains("Ya no faltan"))
+    }
+    @Test fun softReturnWithoutCatalogKeepsTheRequestAndSaysWhy() {
+        val p = ownRecipe().let { it.copy(pendingMissedSessions = MissedSessionsRequest(
+            ProgramHierarchyIndex(it).orderedWeeks().single().week.id,it.runState!!.weekInstanceId!!,
+            ProgramHierarchyIndex(it).orderedWeeks().single().week.sessions.map { s -> s.id },programRunId = "run")) }
+        val result = ProgramProgressEngine.resolveMissedSessions(p,MissedSessionChoice.SOFT_RETURN,null,emptyList(),nowMs = 9)
+        assertEquals(p.pendingMissedSessions,result.pendingMissedSessions)
+        assertEquals(p.macrocycles,result.macrocycles)
+        assertEquals(UnappliedResponse.TITLE,result.programDecisions.last().title)
+        assertTrue(result.programDecisions.last().detail.contains("catálogo"))
+    }
     @Test fun doingTheMissingEarlierWeekAfterAnExplicitChoiceReconcilesWithRealCanonicalLog() {
         val p = fixture()
         val oldLogs = listOf(log("w2"))
@@ -73,6 +100,52 @@ class MissedSessionPolicyTest {
         assertTrue(ProgramProgressEngine.isWeekInstanceComplete(week,emptyList(),"p","w1",1,"r:1",listOf(key)))
         assertFalse(ProgramProgressEngine.isWeekInstanceComplete(week,emptyList(),"p","w1",2,"r:1",listOf(key)))
         assertFalse(ProgramProgressEngine.isWeekInstanceComplete(week,emptyList(),"p","w1",1,"r:2",listOf(key)))
+    }
+    private val stalledToday = java.time.LocalDate.of(2026,10,9)
+    private val stalledZone = java.time.ZoneId.of("UTC")
+    private fun twoSessionWeek(timelineStart: String? = null,weeks: Int = 1): Program {
+        fun session(id: String) = Session(id,id,exercises = listOf(Exercise("e-$id","Banca",sets = listOf(ExerciseSet("set-$id",targetReps = 5)))))
+        return Program("p","Plan",structure = ProgramStructure.COMPLEX,timelineStartDate = timelineStart,
+            calendarization = if (timelineStart != null) ProgramCalendarEngine.defaultCompetitionCalendarization() else null,
+            macrocycles = listOf(Macrocycle("macro","Macro",listOf(
+                Block("b1","Bloque 1",goal = BlockGoal.ACCUMULATION,mesocycles = listOf(Mesocycle("m1","Meso",weeks = (1..weeks).map {
+                    ProgramWeek("w$it","w$it",sessions = listOf(session("a$it"),session("b$it")))
+                })))))),
+            runState = ProgramRunState("run",weekId = "w1",weekInstanceId = "w1",blockId = "b1"))
+    }
+    private fun stalledLog(sessionId: String,date: String) = WorkoutLog("log-$sessionId","p",sessionId,sessionId,date,30,
+        weekId = "w1",weekInstanceId = "w1",cycleNumber = 1,programRunId = "run")
+    @Test fun stalledWeekWithTheLastRequiredSessionUnloggedAndEightIdleDaysRequestsADecision() {
+        val p = twoSessionWeek()
+        val logs = listOf(stalledLog("a1","2026-10-01T10:00:00Z"))
+        val result = MissedSessionPolicy.requestIfStalled(p,logs,stalledToday,stalledZone,nowMs = 42)
+        val request = result.pendingMissedSessions!!
+        assertEquals("w1",request.weekId)
+        assertEquals(listOf("b1"),request.sessionIds)
+        assertEquals("run",request.programRunId)
+        assertEquals(42L,request.createdAtMs)
+        // Idempotente: con la petición ya creada no cambia nada.
+        assertEquals(result,MissedSessionPolicy.requestIfStalled(result,logs,stalledToday,stalledZone,nowMs = 99))
+        // Y la petición se puede resolver como cualquier otra.
+        val skipped = ProgramProgressEngine.resolveMissedSessions(result,MissedSessionChoice.SKIP,null,logs,nowMs = 50)
+        assertEquals(1,skipped.skippedSessionKeys.size)
+        assertNull(skipped.pendingMissedSessions)
+    }
+    @Test fun stalledPolicyAsksNothingWithoutIdlenessOrWhenNothingIsMissing() {
+        val p = twoSessionWeek()
+        val recent = listOf(stalledLog("a1","2026-10-07T10:00:00Z"))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,recent,stalledToday,stalledZone))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,emptyList(),stalledToday,stalledZone))
+        val done = listOf(stalledLog("a1","2026-10-01T10:00:00Z"),stalledLog("b1","2026-10-01T11:00:00Z"))
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,done,stalledToday,stalledZone))
+    }
+    @Test fun datedProgramWhoseCursorWeekEndedByCalendarRequestsADecisionWithoutAnyLog() {
+        val p = twoSessionWeek(timelineStart = "2026-10-05",weeks = 2)
+        assertTrue(ProgramCalendarEngine.isCalendarized(p))
+        val ended = MissedSessionPolicy.requestIfStalled(p,emptyList(),java.time.LocalDate.of(2026,10,13),stalledZone,nowMs = 7)
+        assertEquals("w1",ended.pendingMissedSessions?.weekId)
+        assertEquals(listOf("a1","b1"),ended.pendingMissedSessions?.sessionIds)
+        assertEquals(p,MissedSessionPolicy.requestIfStalled(p,emptyList(),java.time.LocalDate.of(2026,10,8),stalledZone))
     }
     private fun ownRecipe(): Program {
         val recipe = TrainingPlanRecipe("return",listOf(WeekRecipe(1,0,days = listOf(1,3).map { day -> DayRecipe("Día $day",weekday = day,

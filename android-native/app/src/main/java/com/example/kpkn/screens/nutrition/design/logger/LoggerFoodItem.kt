@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.nutrition.design.logger
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +30,7 @@ import com.example.kpkn.screens.nutrition.components.foodClarificationPrompt
 import com.example.kpkn.screens.nutrition.components.portionPresetLabel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknMetric
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -117,6 +120,32 @@ fun LoggerFoodItem(
             }
             Spacer(Modifier.width(12.dp))
             KpknMetric(value = kcalValue, unit = "kcal", style = KpknType.metricM)
+        }
+
+        // Chips de estado y forma (F3, N50). Si «Corregir» cambió de alimento, ninguna elección coincide y no se muestran;
+        // la dimensión con pregunta pendiente se omite porque la aclaración ya ofrece esas opciones.
+        val currentFoodId = tag.foodItem?.id
+        val variantGroups = tag.variantChoices
+            .filter { it.dimension != pendingQuestion?.requestId }
+            .groupBy { it.dimension }
+            .values
+        if (!tag.isExcluded && variantGroups.isNotEmpty() && tag.variantChoices.any { it.food.id == currentFoodId }) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                variantGroups.forEachIndexed { index, group ->
+                    if (index > 0) Spacer(Modifier.width(8.dp))
+                    group.forEach { choice ->
+                        val selected = choice.food.id == currentFoodId
+                        KpknChip(
+                            text = choice.label,
+                            selected = selected,
+                            onClick = { if (!selected) actions.onIdentityChoice(choice.food.id) },
+                        )
+                    }
+                }
+            }
         }
 
         if (logged != null) {

@@ -1,0 +1,79 @@
+/* ================= HISTORIAS: COMPETENCIA, CUERPO Y NUTRICIÓN ================= */
+// Competencia
+function medalSvg(m='oro'){const d=MEDAL[m];return `<svg viewBox="0 0 200 200" width="100%" aria-hidden="true"><defs><radialGradient id="mg" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".35" stop-color="${d.c}"/><stop offset="1" stop-color="${d.c2}"/></radialGradient><filter id="mglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+  <circle cx="100" cy="100" r="62" fill="${d.c}" opacity=".35" filter="url(#mglow)"/>${Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2;return `<path class="ln" pathLength="1" d="M${100+Math.cos(a)*74} ${100+Math.sin(a)*74}L${100+Math.cos(a)*(92+(i%3)*6)} ${100+Math.sin(a)*(92+(i%3)*6)}" stroke="${i%4?'#f2eee6':d.c}" stroke-width="${i%4?1:2}" stroke-linecap="round" opacity="${i%4?.5:1}"/>`}).join('')}
+  <circle cx="100" cy="100" r="56" fill="url(#mg)"/><circle cx="100" cy="100" r="44" fill="none" stroke="#0004" stroke-width="2"/><text x="100" y="118" text-anchor="middle" font-family="Syne" font-weight="800" font-size="52" fill="#1b1206">1</text></svg>`}
+const storyMeetTotal=(o={})=>storyShell({art:coverSvg('relieve','carbon',{seed:6}),artBottom:'48%',top:'44%',end:true,ey:'Copa de otoño · 21 sep',title:'552,5 kg',sub:'Oro · -83 kg Open · 79,4 IPF GL',w:o.w,foot:'Mi competencia',
+  extra:`<div class="st-medal" style="width:46%;top:22%">${medalSvg('oro')}</div>`,
+  inner:`<div class="st-lifts">${[['Sentadilla','200'],['Press banca','132,5'],['Peso muerto','217,5']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div><div class="st-badge">${ic('spark',14)}Mejor total: +12,5 kg</div>`});
+const storyMeetScore=(o={})=>storyShell({art:coverSvg('ondas','carbon',{seed:3}),artBottom:'55%',top:'40%',end:true,ey:'Copa de otoño · intentos',title:'8 de 9',sub:'Válidos · total 552,5 kg',w:o.w,foot:'Mi competencia',
+  inner:`<div class="st-score">${['S','B','D'].map(k=>`<small>${k==='S'?'SENT.':k==='B'?'BANCA':'P. MUERTO'}</small>${ATT[k].map(a=>`<span class="${a[1]}">${kg(a[0])}<em>${a[1]==='ok'?'✓':'✗'}</em></span>`).join('')}`).join('')}</div>`});
+const storyMeetPhoto=(o={})=>storyShell({photo:true,art:coverSvg('orbitas','carbon',{seed:4,clear:true}),artBottom:'52%',top:'60%',ey:'Copa de otoño',title:'Oro',w:o.w,foot:'Mi competencia',
+  extra:`<div class="st-medal" style="width:30%;top:46%;left:80%">${medalSvg('oro')}</div>`,
+  inner:`<div class="st-inline"><span>552,5<small>kg</small></span><i></i><span>79,4<small>pts</small></span><i></i><span>8/9</span></div>`});
+const storyMeetNext=(o={})=>storyShell({art:coverSvg('orbitas','noche',{seed:4}),artBottom:'45%',top:'42%',end:true,ey:'Open regional · 16 nov',title:'Faltan 18 días',sub:'Madrid · -83 kg · AEP',w:o.w,foot:'Mi próxima competencia',
+  inner:`<div class="st-lifts">${[['Sentadilla','192,5'],['Press banca','130'],['Peso muerto','210']].map(l=>`<div><span>${l[0]} · abro con</span><b>${l[1]}</b></div>`).join('')}</div>`});
+// Cuerpo
+function bodyChart(){const v=BODY.w,w=300,h=200,mn=79.8,mx=85,X=i=>14+i*(w-28)/(v.length-1),Y=x=>h-20-(x-mn)/(mx-mn)*(h-50);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" class="draw" aria-hidden="true"><defs><linearGradient id="bf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2eee6" stop-opacity=".16"/><stop offset="1" stop-color="#f2eee6" stop-opacity="0"/></linearGradient></defs>${[0,1,2,3].map(k=>`<line x1="0" x2="${w}" y1="${30+k*45}" y2="${30+k*45}" stroke="#ffffff0e"/>`).join('')}
+  <path d="${v.map((x,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1)).join('')}L${X(v.length-1)} ${h}L${X(0)} ${h}Z" fill="url(#bf)"/><path class="ln" pathLength="1" d="${v.map((x,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1)).join('')}" fill="none" stroke="#f2eee6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="${X(0)}" cy="${Y(v[0])}" r="4" fill="#0a0a0a" stroke="#f2eee6" stroke-width="1.6"/><circle cx="${X(v.length-1)}" cy="${Y(v[v.length-1])}" r="6" fill="#f49a6e" style="filter:drop-shadow(0 0 6px #f49a6e)"/></svg>`}
+const storyBodyChange=(o={})=>storyShell({art:'',artBottom:'100%',top:'52%',ey:'12 semanas',title:'−4,2 kg',sub:'De forma constante: 0,35 kg por semana',w:o.w,foot:'Mi progreso',
+  extra:`<div class="st-chart" style="top:8%;height:38%">${bodyChart()}</div>`,
+  inner:`<div class="st-lifts">${[['Cintura','−6,1 cm'],['% grasa','−3,4 puntos'],['Masa magra','+0,6 kg']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`});
+const storyBodyMeasures=(o={})=>storyShell({art:coverSvg('eco','carbon',{num:'6'}),artBottom:'45%',top:'44%',end:true,ey:'Medidas · 12 semanas',title:'−6,1 cm',sub:'de cintura, con la misma fuerza',w:o.w,foot:'Mi progreso',
+  inner:`<div class="st-lifts">${[['Cintura','−6,1 cm'],['Cadera','−3,0 cm'],['Pecho','+1,2 cm'],['Brazo','+0,8 cm']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`});
+// Nutrición
+const storyNutriWeek=(o={})=>storyShell({art:'',artBottom:'100%',top:'40%',ey:'Mi semana · nutrición',title:'6 de 7 días',sub:'En mi objetivo de 2.300 kcal',w:o.w,foot:'Mi nutrición',
+  extra:`<div class="st-ring" style="top:6%;left:24%;right:24%">${ringSvg(2240,2300).replace('<span data-count="2240">0</span>','2.240').replace('width="86" height="86"','width="100%" height="100%"').replace('class="ring"','class="ring" style="width:100%;height:auto;aspect-ratio:1"').replace('<small>kcal</small>','<small style="font-size:3.4cqw">kcal de media</small>').replace('<b>','<b style="font-size:8.5cqw">')}</div>`,
+  inner:`<div class="st-days">${NUTRI.days.map(d=>`<div><i class="${d[1]>110?'over':''}" style="height:${Math.round(d[1]*.22)}cqw"></i><small>${d[0]}</small></div>`).join('')}</div>`});
+const storyNutriMacros=(o={})=>storyShell({art:coverSvg('bruma','carbon',{seed:2}),artBottom:'48%',top:'42%',end:true,ey:'Media diaria · 7 días',title:'162 g de proteína',sub:'2.240 kcal · objetivo cumplido',w:o.w,foot:'Mi nutrición',
+  inner:`<div class="st-macros">${[['Proteína',162,180,'#f49a6e'],['Carbos',228,250,'#f7cf73'],['Grasa',71,75,'#8fb2ff']].map(m=>`<div><span>${m[0]}</span><i style="--w:${Math.round(m[1]/m[2]*100)}%;--c:${m[3]}"></i><b>${m[1]} g</b></div>`).join('')}</div>`});
+const storyNutriStreak=(o={})=>storyShell({art:coverSvg('espiral','carbon',{weeks:4,now:3}),artBottom:'42%',top:'48%',end:true,ey:'Racha',title:'23 días',sub:'Registrando todas mis comidas',w:o.w,foot:'Mi nutrición',
+  inner:`<div class="st-badge">${ic('fire',14)}Mi mejor racha</div>`});
+const STORIES={meetTotal:storyMeetTotal,meetScore:storyMeetScore,meetPhoto:storyMeetPhoto,meetNext:storyMeetNext,bodyChange:storyBodyChange,bodyMeasures:storyBodyMeasures,nutriWeek:storyNutriWeek,nutriMacros:storyNutriMacros,nutriStreak:storyNutriStreak};
+
+const shareSheet=(title,fn,tabs,inc)=>sheet(`<h3>${title}</h3><div style="display:flex;justify-content:center;margin:8px 0 12px">${fn({w:'176px'})}</div>
+  <div class="seg" style="margin-bottom:10px">${tabs.map((t,i)=>`<button class="${i===0?'on':''}">${t}</button>`).join('')}</div>
+  ${inc?`<div class="mgroup" style="margin-top:4px">Incluir</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${inc.map((x,i)=>`<span class="chip ${x[1]?'on':''}" style="height:32px">${x[1]?ic('check',13):''}${x[0]}</span>`).join('')}</div>`:''}
+  <div style="display:flex;gap:8px"><button class="pill pri" style="flex:1">${ic('share',18)}Instagram</button><button class="pill sec" style="flex:0 0 auto">Vídeo</button></div><button class="pill sec sm" style="width:100%;margin-top:8px">Guardar · Más apps</button>`);
+
+scene({tab:'historias',id:'h-meet-sheet',title:'Competencia · compartir',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:60px"><div class="ptitle">Copa de otoño</div></div>${shareSheet('Compartir tu competencia',storyMeetTotal,['Total','Intentos','Foto','Próxima'],[['Medalla',1],['Puntos',1],['Peso corporal',0]])}`,
+ notes:{tags:[['new','Cuatro plantillas'],['new','Imagen o vídeo']],
+  p:['Se abre desde la celebración, la ficha y el ⋯. Cuatro plantillas: <b>Total</b> (medalla, total y los tres levantamientos), <b>Intentos</b> (la tabla de nueve con válidos y nulos), <b>Foto</b> (tu foto del día con la medalla) y <b>Próxima</b> (cuenta atrás antes de competir).',
+     '<b>«Vídeo»</b> exporta 6 segundos con la animación de felicitación (estallido de líneas, medalla que gira, total que cuenta) para que la historia se mueva. Mismo dibujo que la imagen, grabado cuadro a cuadro.',
+     'El peso corporal sale solo si lo activas (apagado por defecto).']}});
+scene({tab:'historias',id:'h-meet-total',title:'Competencia · Total',after:drawAfter,html:()=>fullStory(storyMeetTotal),notes:{p:['La medalla con su halo de rayos finos arriba; el total como título, la categoría y los puntos debajo, y los tres levantamientos. La insignia dice lo más destacado del día.']}});
+scene({tab:'historias',id:'h-meet-score',title:'Competencia · Intentos',after:drawAfter,html:()=>fullStory(storyMeetScore),notes:{p:['El marcador de nueve intentos: válidos en tinta llena, nulos tachados. Para quien quiere enseñar el día entero.']}});
+scene({tab:'historias',id:'h-meet-photo',title:'Competencia · Foto',after:drawAfter,html:()=>fullStory(storyMeetPhoto),notes:{p:['Tu foto de la competencia (aquí un degradado en su lugar) con curvas de nivel finas encima, la medalla pequeña y tres cifras en una línea.']}});
+scene({tab:'historias',id:'h-meet-next',title:'Competencia · Próxima',after:drawAfter,html:()=>fullStory(storyMeetNext),notes:{p:['Antes de competir: cuenta atrás y con qué abres. Se ofrece desde la tarjeta «Próxima».']}});
+scene({tab:'historias',id:'h-meet-video',title:'Competencia · vídeo (6 s)',after:ph=>{animateIn(ph);ph.querySelector('.cele svg')?.classList.add('go')},html:()=>`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000"><div class="story" style="--sw:100%"><div class="cele" style="position:absolute">${confetti(30)}${burst()}
+  <div style="position:absolute;left:50%;top:30%;transform:translate(-50%,-50%)"><div class="spin-medal">${medal('oro',120)}</div></div>
+  <div style="position:absolute;left:7%;right:7%;top:52%"><div class="st-ey rise" style="opacity:0;animation:rise .7s .6s forwards">Copa de otoño · oro</div><div class="st-name pop-in" style="animation-delay:.8s"><span data-count="552.5" data-dec="1">0</span> kg</div><div class="st-meta" style="opacity:0;animation:rise .7s 1.1s forwards">Mejor total: +12,5 kg</div></div>
+  <div class="st-in" style="top:auto"><div class="st-foot">KPKN<span>Mi competencia</span></div></div></div></div></div>`,
+ notes:{tags:[['new','Felicitación animada']],p:['La versión en vídeo: confeti, estallido de líneas, la medalla que entra girando y el total que cuenta. Al exportar se graba a 30 fps en 1080 × 1920 (MP4 de unos 2 MB). Instagram lo acepta como historia normal.']}});
+
+scene({tab:'historias',id:'h-body-sheet',title:'Cuerpo · compartir',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:60px"><div class="ptitle">Cuerpo</div></div>${shareSheet('Compartir tu progreso',storyBodyChange,['Cambio','Medidas'],[['Peso actual',0],['Cambio en kg',1],['Medidas',1],['% de grasa',1]])}`,
+ notes:{tags:[['new','Privado por defecto']],p:['Desde Cuerpo (botón compartir en el módulo de peso) y desde el ⋯ del historial. Dos plantillas: <b>Cambio</b> (la curva de tu peso y lo que cambió) y <b>Medidas</b> (perímetros).',
+  '<b>Privacidad</b>: por defecto nunca sale tu peso, solo los cambios. Tu peso actual se incluye solo si lo activas.',
+  'Fotos de progreso: la app no las tiene hoy (las fotos son de entrenos). Si las quieres, es una función nueva para otra ronda: «antes y después» con las mismas líneas.']}});
+scene({tab:'historias',id:'h-body-change',title:'Cuerpo · Cambio',after:drawAfter,html:()=>fullStory(storyBodyChange),notes:{p:['La curva de 12 semanas con el último punto en acento, el cambio como título y tres cambios más. Sin cifra de peso absoluto.']}});
+scene({tab:'historias',id:'h-body-measures',title:'Cuerpo · Medidas',after:drawAfter,html:()=>fullStory(storyBodyMeasures),notes:{p:['Los perímetros que cambiaron, con el fondo «Eco» que repite la cifra principal.']}});
+scene({tab:'historias',id:'h-nutri-sheet',title:'Nutrición · compartir',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:60px"><div class="ptitle">Nutrición</div></div>${shareSheet('Compartir tu semana',storyNutriWeek,['Semana','Macros','Racha'],[['Calorías',1],['Objetivo',1]])}`,
+ notes:{tags:[['new','Tres plantillas']],p:['Desde la tendencia semanal de Nutrición. <b>Semana</b> (días en objetivo y la barra de cada día), <b>Macros</b> (media diaria frente a objetivo) y <b>Racha</b> (días seguidos registrando, del hábito «Comidas» que ya existe).','Nunca sale qué comiste ni tu peso.']}});
+scene({tab:'historias',id:'h-nutri-week',title:'Nutrición · Semana',after:ph=>{animateIn(ph)},html:()=>fullStory(storyNutriWeek),notes:{p:['El anillo de la media con los macros como arcos y siete barras, en acento el día que te pasaste.']}});
+scene({tab:'historias',id:'h-nutri-macros',title:'Nutrición · Macros',after:drawAfter,html:()=>fullStory(storyNutriMacros),notes:{p:['Tres barras finas con el objetivo como fondo y la proteína como titular.']}});
+scene({tab:'historias',id:'h-nutri-streak',title:'Nutrición · Racha',after:drawAfter,html:()=>fullStory(storyNutriStreak),notes:{p:['La espiral cuenta las semanas de la racha.']}});
+
+/* --- v2: historias de otras disciplinas --- */
+const storyRace=(o={})=>storyShell({art:coverSvg('ondas','noche',{seed:3}),artBottom:'50%',top:'42%',end:true,ey:'Media maratón de Valencia',title:'1:38:12',sub:'21,1 km · 4:39 /km · puesto 1.204',w:o.w,foot:'Mi carrera',
+  inner:`<div class="st-lifts">${[['Marca personal','−3:41'],['Último kilómetro','4:21'],['Categoría M35','187.º']].map(l=>`<div><span>${l[0]}</span><b>${l[1]}</b></div>`).join('')}</div>`});
+const storyStage=(o={})=>storyShell({photo:true,art:coverSvg('bruma','carbon',{seed:4,clear:true}),artBottom:'52%',top:'60%',ey:'Regional · Men’s Physique',title:'2.º puesto',w:o.w,foot:'Mi competencia',
+  extra:`<div class="st-medal" style="width:28%;top:48%;left:80%">${medalSvg('plata')}</div>`,
+  inner:`<div class="st-inline"><span>14<small>competidores</small></span><i></i><span>9<small>semanas de prep</small></span></div>`});
+const storyCombat=(o={})=>storyShell({art:coverSvg('campo','carbon',{seed:7}),artBottom:'50%',top:'42%',end:true,ey:'Open de BJJ · -82,3 kg',title:'Plata · 3–1',sub:'Azul · adulto',w:o.w,foot:'Mi competencia',
+  inner:`<div class="st-lifts">${[['Octavos','Puntos 6–2'],['Cuartos','Sumisión'],['Semifinal','Ventaja'],['Final','0–2']].map(l=>`<div><span>${l[0]}</span><b style="font-size:4.6cqw">${l[1]}</b></div>`).join('')}</div>`});
+Object.assign(STORIES,{race:storyRace,stage:storyStage,combat:storyCombat});
+scene({tab:'historias',id:'h-race',title:'Carrera · tiempo',after:drawAfter,html:()=>fullStory(storyRace),notes:{tags:[['new','Contra el reloj']],p:['El tiempo como titular, distancia, ritmo y puesto; abajo la marca personal y el kilómetro más rápido. Igual para trail (con desnivel), ciclismo, natación, remo y triatlón (con segmentos).']}});
+scene({tab:'historias',id:'h-stage',title:'Culturismo · tarima',after:drawAfter,html:()=>fullStory(storyStage),notes:{tags:[['new','Jueceo']],p:['Tu foto de tarima a pantalla completa con la medalla y el puesto. Sin peso corporal salvo que lo actives.']}});
+scene({tab:'historias',id:'h-combat',title:'Combate · cuadro',after:drawAfter,html:()=>fullStory(storyCombat),notes:{tags:[['new','Combates']],p:['Medalla y balance como titular y el camino ronda a ronda. Sirve para todas las disciplinas de combate y para armwrestling.']}});

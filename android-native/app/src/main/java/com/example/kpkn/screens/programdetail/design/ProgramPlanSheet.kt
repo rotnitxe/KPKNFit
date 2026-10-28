@@ -18,6 +18,7 @@ import com.example.kpkn.screens.programdetail.MAX_PLAN_NOTES
 import com.example.kpkn.screens.programdetail.ProgramPlanDisplaySummary
 import com.example.kpkn.screens.programdetail.moreLabel
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknType
 
 /**
@@ -26,7 +27,12 @@ import com.example.kpkn.ui.design.KpknType
  * redacta [ProgramPlanDisplaySummary]; aquí solo se pintan.
  */
 @Composable
-internal fun ProgramPlanSheet(summary: ProgramPlanDisplaySummary, onDismiss: () -> Unit) {
+internal fun ProgramPlanSheet(
+    summary: ProgramPlanDisplaySummary,
+    onDismiss: () -> Unit,
+    /** Abre la hoja de solo lectura «Cómo funciona» de la entrada del catálogo (su id). Sin él, el botón no aparece. */
+    onOpenPlanInfo: ((String) -> Unit)? = null,
+) {
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -34,11 +40,8 @@ internal fun ProgramPlanSheet(summary: ProgramPlanDisplaySummary, onDismiss: () 
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
-            Text(text = "Plan y procedencia", style = KpknType.title, color = WizardColors.text)
-            Spacer(Modifier.height(14.dp))
-            Text(text = summary.planName, style = KpknType.bodyStrong, color = WizardColors.text)
+            ProgramSheetHeader(title = summary.planName, eyebrow = "Sobre el programa", subtitle = summary.provenanceLabel)
             Spacer(Modifier.height(4.dp))
-            Text(text = summary.provenanceLabel, style = KpknType.caption, color = WizardColors.textMuted)
             summary.sourceLine?.let { line ->
                 Text(text = line, style = KpknType.caption, color = WizardColors.textMuted)
             }
@@ -74,6 +77,18 @@ internal fun ProgramPlanSheet(summary: ProgramPlanDisplaySummary, onDismiss: () 
                     hiddenSingular = "cambio",
                     hiddenPlural = "cambios",
                 )
+            }
+            // «Ver cómo funciona» al final, solo si el plan viene del catálogo.
+            summary.catalogEntry?.let { entry ->
+                if (onOpenPlanInfo != null) {
+                    Spacer(Modifier.height(18.dp))
+                    KpknCompactPill(
+                        text = "Ver cómo funciona",
+                        onClick = { onOpenPlanInfo(entry.id) },
+                        filled = false,
+                        fullWidth = true,
+                    )
+                }
             }
         }
     }
