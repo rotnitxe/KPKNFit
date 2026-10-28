@@ -26,6 +26,9 @@ class AssetInventoryTest {
         "subjective_portion_lexicon.json", "branded_snack_catalog.json", "branded_energy_kcal_catalog.json",
         // The food knowledge of the description pipeline (FoodKnowledgeStore, WP-N13): JSON, so it is not part of the catalog fingerprint.
         "food_knowledge_v1.json",
+        // Nutrition v2: the catalog pack and its manifest (NutritionCatalogPublisher; Android packaging unpacks the .gz) and the
+        // concept vocabulary of the v2 parser (NutritionParserV2Holder).
+        "nutrition_catalog.json", "nutrition_catalog.sqlite.gz", "concepts_app.json.gz",
     )
 
     private val dir = File("src/main/assets/food_data")

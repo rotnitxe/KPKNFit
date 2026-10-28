@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
 import java.security.MessageDigest
@@ -31,7 +32,7 @@ private data class CatalogManifest(
 
 /**
  * Publica el paquete de catálogo desde assets a `filesDir/nutrition_catalog/<generation>.sqlite` con verificación
- * (sha256, tamaño, `quick_check`, `metadata.generation`) y mueve el puntero de Room. No lanza (salvo cancelación):
+ * (sha256, tamaño, `metadata.generation`) y mueve el puntero de Room. No lanza (salvo cancelación):
  * ante cualquier fallo devuelve null y la app sigue como si no hubiera paquete.
  */
 class NutritionCatalogPublisher(
@@ -102,12 +103,17 @@ class NutritionCatalogPublisher(
         }
     }
 
-    /** Descomprime el .gz a [target] y devuelve el sha256 (hex minúsculas) de lo escrito; corta si excede el tamaño declarado. */
+    /**
+     * Copia el paquete a [target] (descomprimiéndolo si es gzip) y devuelve el sha256 (hex minúsculas) de lo escrito; corta
+     * si excede el tamaño declarado. El empaquetado de Android descomprime los `.gz` de assets y les quita la extensión, así
+     * que en el APK el paquete llega como [PACK_ASSET_PLAIN]; gzip se reconoce por la cabecera (1f 8b), no por el nombre.
+     */
     private fun decompress(target: File, manifest: CatalogManifest): String {
-        val source = assets.open(PACK_ASSET) ?: error("Falta el asset $PACK_ASSET")
+        val raw = (assets.open(PACK_ASSET) ?: assets.open(PACK_ASSET_PLAIN) ?: error("Falta el asset $PACK_ASSET")).buffered()
+        val source = if (isGzip(raw)) GZIPInputStream(raw) else raw
         val digest = MessageDigest.getInstance("SHA-256")
         var total = 0L
-        GZIPInputStream(source).use { input ->
+        source.use { input ->
             target.outputStream().use { output ->
                 val buffer = ByteArray(64 * 1024)
                 while (true) {
@@ -123,11 +129,21 @@ class NutritionCatalogPublisher(
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
+    private fun isGzip(input: BufferedInputStream): Boolean {
+        input.mark(2)
+        val gzip = input.read() == 0x1f && input.read() == 0x8b
+        input.reset()
+        return gzip
+    }
+
+    /**
+     * Sin `PRAGMA quick_check`: desde SQLite 3.44 también revisa las tablas FTS4, y en Android esa revisión intenta escribir
+     * y falla con la base abierta de solo lectura («attempt to write a readonly database»). El sha256 del archivo completo ya
+     * garantiza que es idéntico al construido, y `build_pack.py` corre `integrity_check` al construirlo.
+     */
     private fun verify(file: File, generation: String) {
         val db = SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY)
         try {
-            val integrity = db.rawQuery("PRAGMA quick_check", null).use { c -> if (c.moveToFirst()) c.getString(0) else null }
-            check(integrity == "ok") { "quick_check del paquete: $integrity" }
             val declared = db.rawQuery("SELECT value FROM metadata WHERE key = 'generation'", null)
                 .use { c -> if (c.moveToFirst()) c.getString(0) else null }
             check(declared == generation) { "metadata.generation ($declared) no coincide con el manifiesto" }
@@ -145,6 +161,7 @@ class NutritionCatalogPublisher(
         private const val FOLDER = "nutrition_catalog"
         const val MANIFEST_ASSET = "food_data/nutrition_catalog.json"
         const val PACK_ASSET = "food_data/nutrition_catalog.sqlite.gz"
+        const val PACK_ASSET_PLAIN = "food_data/nutrition_catalog.sqlite"
         private val json = Json { ignoreUnknownKeys = true }
     }
 }

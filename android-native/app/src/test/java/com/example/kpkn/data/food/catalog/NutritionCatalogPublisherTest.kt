@@ -72,6 +72,20 @@ class NutritionCatalogPublisherTest {
         assertEquals(CatalogFixture.sqlite.size.toLong(), File(folder, "${CatalogFixture.generation}.sqlite").length())
     }
 
+    @Test fun `publishes the uncompressed pack that Android packaging leaves in the APK`() {
+        val plain = CatalogFixture.FakeAssets(
+            mapOf(
+                NutritionCatalogPublisher.MANIFEST_ASSET to CatalogFixture.manifestJson.toByteArray(),
+                NutritionCatalogPublisher.PACK_ASSET_PLAIN to CatalogFixture.sqlite,
+            ),
+        )
+        val port = publish(plain)
+        assertNotNull(port)
+        assertEquals("usda_171265", port!!.record("usda_171265")?.id)
+        assertEquals(CatalogFixture.sha256(CatalogFixture.sqlite), runBlocking { db.nutritionCatalogDao().active() }!!.sha256)
+        assertEquals(listOf("${CatalogFixture.generation}.sqlite"), folderNames())
+    }
+
     @Test fun `second call with the same generation does not copy again`() {
         val assets = CatalogFixture.fixtureAssets()
         val first = publish(assets)

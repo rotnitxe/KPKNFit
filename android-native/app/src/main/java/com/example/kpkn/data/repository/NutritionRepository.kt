@@ -128,6 +128,12 @@ class NutritionRepository private constructor(
         ownsDatabase: Boolean = false,
     ) : this(context, db, ownsDatabase, FoodCatalogImporter.Default)
 
+    /**
+     * F4-B: solo el arranque de la app ([init]) publica el paquete de catálogo. Las pruebas, que construyen el repositorio
+     * con [initForTests] o por reflexión, no: cada una copiaría y verificaría 33 MB y escribiría el puntero en su base.
+     */
+    private var publishCatalog = false
+
     /** Normalized body observations are shared with the body feature and never stored in Settings. */
     private val normalizedBodyRepository by lazy { BodyProgressRepository.getInstance(appContext) }
     val bodyProgressRepository: BodyProgressRepository
@@ -1276,7 +1282,7 @@ class NutritionRepository private constructor(
                 userStatePublished.complete(Unit)
             }
             // F4-B: publica el paquete de catálogo en paralelo; solo se instala si salió verificado.
-            launch {
+            if (publishCatalog) launch {
                 NutritionCatalogPublisher(
                     context.filesDir,
                     CatalogAssetSource { name -> runCatching { context.assets.open(name) }.getOrNull() },
@@ -1613,7 +1619,11 @@ class NutritionRepository private constructor(
 
         @Volatile private var INSTANCE: NutritionRepository? = null
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {
-            INSTANCE ?: NutritionRepository(context.applicationContext).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
+            INSTANCE ?: NutritionRepository(context.applicationContext).also {
+                INSTANCE = it
+                it.publishCatalog = true
+                it.loadFromDb(context.applicationContext)
+            }
         }
         fun initForTests(context: Context): NutritionRepository = initForTests(context, FoodCatalogImporter.Default)
 
