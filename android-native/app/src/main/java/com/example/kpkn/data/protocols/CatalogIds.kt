@@ -60,6 +60,8 @@ object CatalogIds {
     const val FACE = "deltoides_face_pull__default"
     const val BAND_PA = "back_band_pull_apart__default"
     const val REAR_DELT = "rear_delt_raise__dumbbells"
+    /** Elevación posterior en polea: relevo del face pull (mismo material) en la rotación del relleno de KPKN. */
+    const val REAR_DELT_CABLE = "rear_delt_raise__cable"
     const val LATERAL = "standing_lateral_raise__dumbbells"
     const val LATERAL_CABLE = "standing_lateral_raise__cable"
     const val SUPER_LAT = "lateral_raise_super_rom__cable"

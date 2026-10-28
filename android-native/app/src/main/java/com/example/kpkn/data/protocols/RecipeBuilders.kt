@@ -369,16 +369,18 @@ fun DayRecipe.amrapAsCalibrator(): DayRecipe = copy(
  * sirve es la que usa [rotateKpknFillers]; el orden pone primero la más parecida en intención.
  */
 val KPKN_FILLER_ALTERNATIVES: Map<String, List<String>> = mapOf(
-    CatalogIds.PALLOF to listOf(CatalogIds.WHEEL, CatalogIds.PLANCHA, CatalogIds.HLR),
-    CatalogIds.WHEEL to listOf(CatalogIds.PALLOF, CatalogIds.PLANCHA, CatalogIds.HLR),
-    CatalogIds.GHR to listOf(CatalogIds.CURL_L, CatalogIds.CURL_H),
-    CatalogIds.FACE to listOf(CatalogIds.REAR_DELT, CatalogIds.BAND_PA),
-    CatalogIds.PENDLAY to listOf(CatalogIds.CSR, CatalogIds.ROW_DB, CatalogIds.ROW),
-    CatalogIds.LAT to listOf(CatalogIds.PULLUP, CatalogIds.LAT_CLOSE_GRIP),
-    CatalogIds.JM to listOf(CatalogIds.OH_TRI, CatalogIds.PUSHDOWN),
-    CatalogIds.OH_TRI to listOf(CatalogIds.PUSHDOWN, CatalogIds.KICKBACK_CABLE),
-    CatalogIds.CRUNCH to listOf(CatalogIds.HLR, CatalogIds.PALLOF, CatalogIds.PLANCHA),
-    CatalogIds.CALF to listOf(CatalogIds.CALF_SEATED),
+    // Orden de cada lista: 1.º el MISMO material que el original, 2.º peso corporal sin material, 3.º las demás. Así la
+    // rotación no hace que un plan pida material que no pedía (p. ej. Smolov: solo barra, rack y polea).
+    CatalogIds.PALLOF to listOf(CatalogIds.PLANCHA, CatalogIds.HLR, CatalogIds.WHEEL), // cable → sin otra de polea; corporal; rueda
+    CatalogIds.WHEEL to listOf(CatalogIds.PLANCHA, CatalogIds.HLR, CatalogIds.PALLOF), // rueda → sin otra de rueda; corporal; polea
+    CatalogIds.GHR to listOf(CatalogIds.CURL_L, CatalogIds.CURL_H), // ghd → máquina (el curl nórdico pide una ancla que «todo el material» no acredita)
+    CatalogIds.FACE to listOf(CatalogIds.REAR_DELT_CABLE, CatalogIds.BAND_PA, CatalogIds.REAR_DELT), // polea; banda; mancuernas
+    CatalogIds.PENDLAY to listOf(CatalogIds.ROW, CatalogIds.CSR, CatalogIds.ROW_DB), // barra; mancuernas
+    CatalogIds.LAT to listOf(CatalogIds.LAT_CLOSE_GRIP, CatalogIds.PULLOVER, CatalogIds.PULLUP), // polea; polea; barra de dominadas
+    CatalogIds.JM to listOf(CatalogIds.SKULLCRUSHER, CatalogIds.OH_TRI, CatalogIds.PUSHDOWN), // barra; polea
+    CatalogIds.OH_TRI to listOf(CatalogIds.PUSHDOWN, CatalogIds.KICKBACK_CABLE), // polea
+    CatalogIds.CRUNCH to listOf(CatalogIds.HLR, CatalogIds.PLANCHA, CatalogIds.PALLOF), // corporal; polea
+    CatalogIds.CALF to listOf(CatalogIds.CALF_SEATED), // máquina
 )
 
 /** Máximo de días distintos por semana en que el mismo relleno de KPKN puede aparecer (regla C12). */

@@ -155,7 +155,8 @@ class ProtocolRecipeFidelityTest {
         fun filler(configuration: String, source: SlotSource = SlotSource.KPKN_DEFAULT) =
             slot("core", SlotRole.T3_ACCESSORY, configuration, rpeSets(3, 10, 8.0), 60, source = source)
         fun main(id: String) = slot("t1", SlotRole.T1_MAIN, id, rpeSets(3, 5, 8.0), 180)
-        // Cuatro días con Pallof; el 3.º ya trae la rueda (autor), así que la primera alternativa válida es la plancha.
+        // Cuatro días con Pallof; el 3.º ya trae la rueda (autor), así que la primera alternativa válida es la plancha
+        // (peso corporal antes que rueda, F-31b: la rotación no añade material).
         val week = weekRecipe(
             1, 0, "Bloque", BlockGoal.ACCUMULATION,
             listOf(
@@ -170,7 +171,7 @@ class ProtocolRecipeFidelityTest {
         assertEquals(CatalogIds.PALLOF, fillerOf(0).lift.configurationId)
         assertEquals(CatalogIds.PALLOF, fillerOf(1).lift.configurationId)
         assertEquals("el día C ya tiene la rueda del autor", CatalogIds.PLANCHA, fillerOf(2).lift.configurationId)
-        assertEquals("el día D toma la rueda, que aún no llegó a 2 días de relleno", CatalogIds.WHEEL, fillerOf(3).lift.configurationId)
+        assertEquals("el día D repite la plancha, que aún no llegó a 2 días de relleno", CatalogIds.PLANCHA, fillerOf(3).lift.configurationId)
         assertEquals(week.days[2].slots.first { it.id == "core" }.sets, fillerOf(2).sets)
         assertEquals(week.days[2].slots.first { it.id == "core" }.restSeconds, fillerOf(2).restSeconds)
         assertEquals(week.days.map { d -> d.slots.map { it.id } }, rotated.days.map { d -> d.slots.map { it.id } })
