@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.programdetail.design.progress
 
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -167,39 +170,69 @@ internal fun ProgressSummaryModule(ui: ProgramProgressUi, modifier: Modifier = M
         Spacer(Modifier.height(6.dp))
         Text(text = ui.headline, style = ProgressHeadlineStyle, color = WizardColors.text)
         Spacer(Modifier.height(14.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ProgressKpiTile(
+        val tiles = listOf(
+            ProgressKpi(
                 label = "CUMPLIMIENTO",
                 value = kpis.compliancePct?.let { "$it %" } ?: "—",
                 footer = "${kpis.sessionsDone} de ${kpis.sessionsPlanned} $sessionWord",
-                modifier = Modifier.weight(1f),
-            )
-            ProgressKpiTile(
-                label = "SERIES",
-                value = kpis.setsDone.toString(),
-                footer = "de ${kpis.setsPlanned} planificadas",
-                modifier = Modifier.weight(1f),
-            )
-            ProgressKpiTile(
-                label = "TONELAJE",
-                value = "${formatDecimalEs(kpis.tonnageKg / 1000.0, 1)} t",
-                footer = "kg × reps",
-                modifier = Modifier.weight(1f),
-            )
+            ),
+            ProgressKpi(label = "SERIES", value = kpis.setsDone.toString(), footer = "de ${kpis.setsPlanned} planificadas"),
+            ProgressKpi(label = "TONELAJE", value = "${formatDecimalEs(kpis.tonnageKg / 1000.0, 1)} t", footer = "kg × reps"),
+        )
+        val measurer = rememberTextMeasurer()
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            // Tres columnas si cada etiqueta y cada cifra caben enteras; con texto grande o pantalla estrecha, una fila por cifra.
+            val tileInner = with(LocalDensity.current) { ((maxWidth - 16.dp) / 3 - 24.dp).roundToPx() }
+            val fits = tiles.all { tile ->
+                measurer.measure(tile.label, ProgressKpiLabelStyle).size.width <= tileInner &&
+                    measurer.measure(tile.value, ProgressKpiValueStyle).size.width <= tileInner
+            }
+            if (fits) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    tiles.forEach { ProgressKpiTile(it, modifier = Modifier.weight(1f)) }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    tiles.forEach { ProgressKpiRow(it) }
+                }
+            }
         }
+    }
+}
+
+/** Una cifra del resumen: etiqueta en mayúsculas, valor y pie. */
+private data class ProgressKpi(val label: String, val value: String, val footer: String)
+
+/** La cifra en una fila a todo el ancho: etiqueta y pie a la izquierda, valor a la derecha. Para texto grande o pantallas estrechas. */
+@Composable
+private fun ProgressKpiRow(kpi: ProgressKpi) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(KpknSurface.inset, RoundedCornerShape(16.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = kpi.label, style = ProgressKpiLabelStyle, color = WizardColors.textFaint)
+            Spacer(Modifier.height(2.dp))
+            Text(text = kpi.footer, style = ProgressKpiFooterStyle, color = WizardColors.textFaint)
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(text = kpi.value, style = ProgressKpiValueStyle, color = WizardColors.text, maxLines = 1)
     }
 }
 
 /** Una cifra del resumen sobre la superficie interior: etiqueta en mayúsculas, valor grande y pie de una o dos líneas. */
 @Composable
-private fun ProgressKpiTile(label: String, value: String, footer: String, modifier: Modifier = Modifier) {
+private fun ProgressKpiTile(kpi: ProgressKpi, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .background(KpknSurface.inset, RoundedCornerShape(16.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         Text(
-            text = label,
+            text = kpi.label,
             style = ProgressKpiLabelStyle,
             color = WizardColors.textFaint,
             maxLines = 1,
@@ -207,7 +240,7 @@ private fun ProgressKpiTile(label: String, value: String, footer: String, modifi
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = value,
+            text = kpi.value,
             style = ProgressKpiValueStyle,
             color = WizardColors.text,
             maxLines = 1,
@@ -215,7 +248,7 @@ private fun ProgressKpiTile(label: String, value: String, footer: String, modifi
         )
         Spacer(Modifier.height(2.dp))
         Text(
-            text = footer,
+            text = kpi.footer,
             style = ProgressKpiFooterStyle,
             color = WizardColors.textFaint,
             maxLines = 2,
@@ -277,7 +310,7 @@ private fun ProgressLiftItem(row: ProgressLiftRow) {
                 text = row.name,
                 style = ProgressLiftNameStyle,
                 color = WizardColors.text,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(4.dp))
@@ -287,14 +320,15 @@ private fun ProgressLiftItem(row: ProgressLiftRow) {
                 text = row.caption,
                 style = ProgressLiftCaptionStyle,
                 color = WizardColors.textFaint,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         LiftSparkline(
             points = row.points,
             color = color,
-            modifier = Modifier.padding(horizontal = 10.dp).size(74.dp, 28.dp),
+            // Con texto grande la línea se acorta para dejar sitio al nombre.
+            modifier = Modifier.padding(horizontal = 10.dp).size(if (LocalDensity.current.fontScale > 1.15f) 48.dp else 74.dp, 28.dp),
         )
         Column(horizontalAlignment = Alignment.End) {
             Text(text = value, style = ProgressLiftValueStyle, color = WizardColors.text, maxLines = 1)

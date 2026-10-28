@@ -9,6 +9,7 @@ import com.example.kpkn.domain.training.progress.LiftTrend
 import com.example.kpkn.domain.training.progress.LiftTrendEngine
 import com.example.kpkn.domain.training.progress.LiftTrendStatus
 import com.example.kpkn.domain.training.progress.WeeklyWorkEngine
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.programdetail.design.programPhaseColor
 import com.example.kpkn.screens.programdetail.design.programPhaseOf
 
@@ -182,7 +183,8 @@ private fun programWeeksOf(program: Program): List<ScopeWeek> {
             goal = block.goal,
             hasCompetitionWeek = blockWeeks.any { it.keyDateType == KeyDateType.COMPETITION },
         )
-        val color = programPhaseColor(phase)
+        // Sin fase (una rutina, un bloque sin objetivo), lo hecho va en el acento de «Hechas»: en gris parecería lo previsto.
+        val color = if (phase == null) SymbolPalette.musculo else programPhaseColor(phase)
         for (week in blockWeeks) {
             weeks += ScopeWeek(
                 id = week.id,

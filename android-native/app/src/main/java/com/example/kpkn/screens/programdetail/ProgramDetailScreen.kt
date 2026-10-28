@@ -297,6 +297,14 @@ fun ProgramDetailScreen(
     val statusTopPx = WindowInsets.statusBars.getTop(density).toFloat()
     val islandLinePx = statusTopPx + with(density) { ProgramIslandBottom.toPx() }
     val scroll = rememberScrollState()
+    // Al cambiar de pestaña la página vuelve arriba: si no, Estructura o Progreso se abrían por la mitad, a la altura de la anterior.
+    var shownTab by remember { mutableStateOf(uiState.structureSubTab) }
+    LaunchedEffect(uiState.structureSubTab) {
+        if (uiState.structureSubTab != shownTab) {
+            shownTab = uiState.structureSubTab
+            scroll.scrollTo(0)
+        }
+    }
     val headerBottomRoot = remember { mutableFloatStateOf(Float.MAX_VALUE) }
     val headerOut = rememberPassedLine(markerRootY = headerBottomRoot, lineRootPx = islandLinePx)
     val slidePx = with(density) { 12.dp.roundToPx() }

@@ -155,6 +155,21 @@ El usuario se fue a dormir con la orden de no parar ni preguntar y de decidir lo
   cifra. Fotos: el degradado a negro se pinta también sin foto (el texto pisaba las líneas) y la línea de cifras lleva tres
   (duración, volumen y series) como el prototipo; el RIR medio queda en Sesión. Resumen del mes: en pantallas estrechas
   «142,5 kg» cortaba la unidad; la cifra se reduce según su valor final para que no cambie de tamaño mientras cuenta.
+- **QA en emulador (ZFlip5_QA: 360 dp con fuente al 130 %), arreglos.** Progreso: las tres cifras del resumen pasan a una fila
+  cada una cuando la etiqueta o la cifra no caben enteras (salían «8…», «1…», «6…»); en Fuerza, nombre y pie admiten dos líneas
+  y la línea de e1RM se acorta con texto grande. Las semanas sin fase (rutinas) pintan lo hecho en el acento de «Hechas» y no en
+  gris. Volumen: la ventana sale en español corto («22 oct – 28 oct»), no ISO. Estructura: al cambiar de pestaña la página
+  vuelve arriba (abría a media altura) y la revisión del plan escribe decimales con coma. Compartir (programa y mes): márgenes
+  laterales de 20 dp (iba pegado al borde) y la fila de plantillas solo si hay más de una. Programas: la lista pinta la portada
+  de líneas como la cabecera (pintaba el degradado), y `kpkn-lines://` deja de tratarse como foto remota.
+  Revisión del plan: un valor largo («37,8 / sec 14,0 / estab 2,0») va bajo el nombre (lo partía letra a letra). «Guardar
+  imagen» pasa a «Guardar» (se cortaba con texto grande). Inicio lee los resúmenes vistos fuera del hilo principal (StrictMode).
+- **Pendiente de decidir con el usuario: Progreso de una rutina.** Una rutina repite la misma semana, así que todas sus
+  repeticiones caen en «S1» («178 / 127» series, «En 1 semana»). Lo correcto parece contar por semana del calendario, pero cambia
+  qué significan las cifras del prototipo; no lo invento sin su visto bueno.
+- **Fallos de la suite completa que vienen de master (no de esta rama).** 96 de 15.044 pruebas fallan en archivos que esta rama
+  no toca (migraciones de Room 37, Nutrición, vídeo, editor de sesiones, hojas de dibujo de VT, recorrido de Inicio). Ninguno
+  está en Program Detail, Programas, historias ni resumen del mes.
 - **No se tocan esta noche (con motivo).** «Añadir una semana a…» de la Ruta numera por bloque («Semana 3») mientras «Añadir
   semana» numera en todo el programa («Semana 7»): unificarlo cambia `ProgramKeyDateEngine` y sus pruebas de dominio, y el nombre
   se edita en la hoja; queda para una pasada con el usuario. Las dos hojas de calibración de Programas e Inicio que nunca se abren

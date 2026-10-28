@@ -583,7 +583,9 @@ private fun HomeWithProgram(
     // El informe se calcula fuera del hilo principal. Visto (al abrirlo) o descartado, el mes no vuelve a salir (SharedPreferences).
     val context = LocalContext.current
     val summaryStore = remember(context) { monthlySummaryStore(context) }
-    var seenKeys by remember { mutableStateOf(summaryStore.seenKeys()) }
+    // La primera lectura carga el archivo de preferencias: fuera del hilo principal. Hasta tenerla, no hay aviso.
+    var seenKeys by remember { mutableStateOf<Set<String>?>(null) }
+    LaunchedEffect(summaryStore) { seenKeys = withContext(Dispatchers.IO) { summaryStore.seenKeys() } }
     val history by ProgramRepository.getInstance().history.collectAsState()
     val noticeToday = remember { LocalDate.now() }
     val prevReport by produceState<MonthlyReport?>(initialValue = null, history, activeProgramId) {
@@ -595,10 +597,11 @@ private fun HomeWithProgram(
     val notice = remember(prevReport, seenKeys, activeProgramId, noticeToday) {
         val report = prevReport
         val id = activeProgramId
-        if (report == null || id == null) {
+        val seen = seenKeys
+        if (report == null || id == null || seen == null) {
             null
         } else {
-            homeNoticeMonth(noticeToday, if (report.eligible) listOf(report.month) else emptyList(), seenKeys, id)?.let { it to report }
+            homeNoticeMonth(noticeToday, if (report.eligible) listOf(report.month) else emptyList(), seen, id)?.let { it to report }
         }
     }
     var showSummary by rememberSaveable { mutableStateOf(false) }

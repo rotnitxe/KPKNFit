@@ -478,7 +478,7 @@ private fun ActiveProgramCard(
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
     // Portada de estudio (`kpkn-studio://`): la misma que pinta la cabecera de Program Detail, sin animación.
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (heroCoverKind(program.coverImage, hasBundledCover = false) != HeroCoverKind.STUDIO) null else coverIdentityForProgram(program)
+        if (heroCoverKind(program.coverImage, hasBundledCover = false) !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
     }
     val todaySession = summary?.todaySessionName
     val ribbon = summary?.ribbon.orEmpty()
@@ -857,7 +857,7 @@ internal fun ProgramCoverThumb(
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), widthPx)
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (heroCoverKind(program.coverImage, hasBundledCover = false) != HeroCoverKind.STUDIO) null else coverIdentityForProgram(program)
+        if (heroCoverKind(program.coverImage, hasBundledCover = false) !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
     }
     Box(
         modifier = modifier
@@ -901,6 +901,9 @@ internal fun CreateTailoredProgramCard(onClick: () -> Unit) {
         }
     }
 }
+
+/** Portadas que dibuja el motor en la lista: las de estudio y líneas, y sin portada la de líneas por defecto (como la cabecera). */
+private val PROGRAM_ART_COVERS = setOf(HeroCoverKind.STUDIO, HeroCoverKind.GRADIENT)
 
 internal fun programCoverBrush(coverImage: String?): Brush {
     val colors = when (coverImage) {

@@ -232,7 +232,7 @@ internal fun VolumeView(
 
     val scope = ProgramVolumeScope(
         label = volumeScopeLabelOf(selectedVolumeScope?.label ?: "Sin alcance", simpleProgram = program.isSimpleProgram),
-        detail = selectedVolumeScope?.detail.orEmpty() + " ${volume.window.start} – ${volume.window.endInclusive}.",
+        detail = selectedVolumeScope?.detail.orEmpty() + " ${volumeWindowDate(volume.window.start)} – ${volumeWindowDate(volume.window.endInclusive)}.",
         kinds = scopeKinds.map(::volumeKindLabel),
         selectedKind = selectedKind,
         canPrevious = position > 0,
@@ -532,3 +532,9 @@ internal fun calculateProgramVolume(
 }
 
 private val monthDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd", Locale.US)
+
+/** Fecha de la ventana de volumen en español corto («22 oct»), con el año solo si no es el actual. */
+private fun volumeWindowDate(date: LocalDate): String {
+    val pattern = if (date.year == LocalDate.now().year) "d MMM" else "d MMM yyyy"
+    return date.format(DateTimeFormatter.ofPattern(pattern, Locale.forLanguageTag("es"))).replace(".", "")
+}

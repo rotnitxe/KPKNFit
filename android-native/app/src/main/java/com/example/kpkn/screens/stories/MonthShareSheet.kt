@@ -118,7 +118,7 @@ internal fun MonthShareSheet(report: MonthlyReport, programName: String?, onDism
 
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Text(
@@ -131,16 +131,19 @@ internal fun MonthShareSheet(report: MonthlyReport, programName: String?, onDism
                     drawMonthStory(story, template, measurer, progress.value)
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                templates.forEach { option ->
-                    KpknCompactPill(
-                        text = option.label,
-                        onClick = { template = option },
-                        modifier = Modifier.weight(1f).testTag("month-story-template-${option.name}"),
-                        height = 40.dp,
-                        filled = option == template,
-                        fullWidth = true,
-                    )
+            // Con una sola plantilla no hay nada que elegir.
+            if (templates.size > 1) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    templates.forEach { option ->
+                        KpknCompactPill(
+                            text = option.label,
+                            onClick = { template = option },
+                            modifier = Modifier.weight(1f).testTag("month-story-template-${option.name}"),
+                            height = 40.dp,
+                            filled = option == template,
+                            fullWidth = true,
+                        )
+                    }
                 }
             }
             KpknPrimaryPill(
@@ -152,7 +155,7 @@ internal fun MonthShareSheet(report: MonthlyReport, programName: String?, onDism
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 KpknSecondaryPill(
-                    text = "Guardar imagen",
+                    text = "Guardar",
                     onClick = { onSaveClick() },
                     modifier = Modifier.weight(1f),
                     tag = "month-story-save",
