@@ -85,7 +85,20 @@ PHENOMENA_NAMES = {
     "F14": "Regionalismo",
     "F15": "Bebida o alcohol",
     "F16": "Suplemento",
+    "F17": "Texto extenso o con ruido",
+    "F18": "Inglés o mezcla de idiomas",
 }
+
+GROUP_NAMES = {
+    "A": "Modulo A (16 fenomenos)",
+    "B1": "Ingles coloquial",
+    "B2": "Ingles formal o extenso y spanglish",
+    "B3": "Faltas en los nombres de alimentos",
+    "B4": "Sin puntuacion",
+    "B5": "Formal y bien escrito",
+    "B6": "Texto extenso con ruido",
+}
+LANG_NAMES = {"es": "Espanol", "en": "Ingles", "mix": "Mezcla de idiomas"}
 
 # Aceptacion (seccion 7)
 ACCEPT_M4_UPPER_PP = 0.5
@@ -94,7 +107,7 @@ ACCEPT_PHENOMENON_MAX_DROP_PP = 3.0
 
 COUNTERS = (
     "cases", "errors", "missing",
-    "m3_num", "m3_den",
+    "m3_num", "m3_den", "m3_via_equiv",
     "m5_num", "m5_den",
     "m1_num", "m1_den",
     "m2_num", "m2_den",
@@ -300,13 +313,48 @@ def sum_eaten(pm, pis):
 # Evaluacion de un caso
 # ---------------------------------------------------------------------------
 
+def equivalent_eaten(g):
+    """Lecturas equivalentes de una mencion de oro como «comidos alternativos».
+
+    Devuelve una lista de dicts {"grams": g, "eaten": {kcal, protein, fat, carbs}} con
+    eaten = per100g * grams / 100, solo para los `equivalents` con gramos > 0 y per100g con
+    valores. Un equivalente al que le falte algun nutriente que el oro principal si evalua se
+    ignora (no se aceptaria por defecto un nutriente sin dato).
+    """
+    out = []
+    main = g.get("eaten") or {}
+    needed = [k for k in NUT_KEYS if _num(main.get(k)) is not None]
+    for e in (g.get("equivalents") or []):
+        if not isinstance(e, dict):
+            continue
+        grams = _num(e.get("grams"))
+        per = e.get("per100g")
+        if grams is None or grams <= 0 or not _per100_has_values(per):
+            continue
+        alt = {}
+        for k in NUT_KEYS:
+            v = _num(per.get(k))
+            alt[k] = None if v is None else v * grams / 100.0
+        if any(alt[k] is None for k in needed):
+            continue
+        out.append({"grams": float(grams), "eaten": alt})
+    return out
+
+
 def _assess(g, pm, pis, group):
     cls = mention_class(g, group=group)
     eaten = sum_eaten(pm, pis)
     failed = nutrients_failed(eaten, g.get("eaten"), cls)
     heur = any(bool(pm[i].get("heuristic")) for i in pis)
+    via_equiv = False
+    if failed and not heur:
+        for alt in equivalent_eaten(g):
+            if not nutrients_failed(eaten, alt["eaten"], cls):
+                failed = []
+                via_equiv = True
+                break
     return {"cls": cls, "eaten": eaten, "failed": failed, "heur": heur,
-            "ok": (not failed) and (not heur)}
+            "via_equiv": via_equiv, "ok": (not failed) and (not heur)}
 
 
 def evaluate_case(case, gold, pred, thr=THRESHOLD):
@@ -436,6 +484,8 @@ def evaluate_case(case, gold, pred, thr=THRESHOLD):
         a = _assess(g, pm, pis, group)
         if a["ok"]:
             c["m3_num"] += 1
+            if a["via_equiv"]:
+                c["m3_via_equiv"] += 1
         else:
             if a["heur"]:
                 reason = "ficha heuristica"
@@ -454,11 +504,22 @@ def evaluate_case(case, gold, pred, thr=THRESHOLD):
             c["m1_den"] += 1
             pp = pm[pis[0]].get("per100g") or {}
             main_ok = bool(refs) and per100_close(pp, refs[0])
-            any_ok = main_ok or any(per100_close(pp, r) for r in eq_refs)
-            if any_ok:
+            # equivalentes cuya identidad coincide (per100g) y, de ellos, sus gramos validos
+            eq_hits = [e for e in (g.get("equivalents") or [])
+                       if isinstance(e, dict) and _per100_has_values(e.get("per100g"))
+                       and per100_close(pp, e["per100g"])]
+            if main_ok or eq_hits:
                 c["m1_num"] += 1
+            gold_grams = None
             if main_ok:
-                gk = grams_ok(pm[pis[0]].get("grams"), g.get("grams"), a["cls"])
+                gold_grams = g.get("grams")
+            else:
+                eq_grams = [_num(e.get("grams")) for e in eq_hits]
+                eq_grams = [x for x in eq_grams if x is not None and x > 0]
+                if eq_grams:
+                    gold_grams = {"target": eq_grams[0]}
+            if gold_grams is not None:
+                gk = grams_ok(pm[pis[0]].get("grams"), gold_grams, a["cls"])
                 if gk is not None:
                     c["m2_den"] += 1
                     if gk:
@@ -490,8 +551,14 @@ def evaluate_case(case, gold, pred, thr=THRESHOLD):
             gk = _num((gms[gi].get("eaten") or {}).get("kcal"))
             if gk is not None:
                 pk = sum_eaten(pm, m["preds"]).get("kcal")
-                if pk is None or abs(pk - gk) > max(M4_KCAL[0] * abs(gk), M4_KCAL[1]) + 1e-9:
-                    bad = True
+
+                def far(ref):
+                    return pk is None or abs(pk - ref) > max(M4_KCAL[0] * abs(ref), M4_KCAL[1]) + 1e-9
+
+                if far(gk):
+                    alt_kcal = [_num(a_["eaten"].get("kcal")) for a_ in equivalent_eaten(gms[gi])]
+                    if all(far(ak) for ak in alt_kcal if ak is not None):
+                        bad = True
         if bad:
             c["m4_num"] += 1
 
@@ -518,7 +585,9 @@ def evaluate_case(case, gold, pred, thr=THRESHOLD):
 
     return {"id": case["id"], "text": case.get("text", ""), "counters": c,
             "latency": latency, "nutr_counts": nutr_counts, "failures": failures,
-            "phenomena": list(case.get("phenomena") or [])}
+            "phenomena": list(case.get("phenomena") or []),
+            "group": case.get("group") or "A",
+            "lang": case.get("lang") or "es"}
 
 
 # ---------------------------------------------------------------------------
@@ -568,7 +637,10 @@ def system_summary(results):
 
 
 def phenomenon_summary(results, code):
-    sub = [r for r in results if code in r["phenomena"]]
+    return subset_summary([r for r in results if code in r["phenomena"]])
+
+
+def subset_summary(sub):
     t = totals(sub)
     m = metrics_from_totals(t)
     lat = [r["latency"] for r in sub if r["latency"] is not None]
@@ -589,12 +661,15 @@ def ci95(values):
     return [percentile(vals, 2.5), percentile(vals, 97.5)]
 
 
-def bootstrap(per_system, phen_members, seed, reps):
+def bootstrap(per_system, phen_members, seed, reps, extra_members=None):
     """per_system: lista (1 o 2) de listas de resultados de caso en el MISMO orden.
 
     Devuelve dict con listas de replicas: glob[s][metrica], phen[s][codigo][metrica],
     y si hay 2 sistemas dglob[metrica], dphen[codigo][metrica] (B - A).
+    extra_members: {familia: {clave: [indices]}} (p. ej. "groups", "langs"); su resultado va en
+    extra[familia] = {"phen": ..., "dphen": ...} con la misma estructura que phen / dphen.
     """
+    extra_members = extra_members or {}
     n = len(per_system[0])
     ns = len(per_system)
     cols = [{k: [r["counters"][k] for r in res] for k in BOOT_COUNTERS} for res in per_system]
@@ -602,8 +677,11 @@ def bootstrap(per_system, phen_members, seed, reps):
     phen = [{code: {k: [] for k in PHEN_METRICS} for code in phen_members} for _ in range(ns)]
     dglob = {k: [] for k in METRIC_KEYS}
     dphen = {code: {k: [] for k in PHEN_METRICS} for code in phen_members}
+    extra = {fam: {"phen": [{code: {k: [] for k in PHEN_METRICS} for code in mem} for _ in range(ns)],
+                   "dphen": {code: {k: [] for k in PHEN_METRICS} for code in mem}}
+             for fam, mem in extra_members.items()}
     if n == 0:
-        return {"glob": glob, "phen": phen, "dglob": dglob, "dphen": dphen}
+        return {"glob": glob, "phen": phen, "dglob": dglob, "dphen": dphen, "extra": extra}
     rng = random.Random(seed)
     population = list(range(n))
     for _ in range(reps):
@@ -620,25 +698,29 @@ def bootstrap(per_system, phen_members, seed, reps):
             for k in METRIC_KEYS:
                 a, b = gm[0][k], gm[1][k]
                 dglob[k].append(None if a is None or b is None else b - a)
-        for code, members in phen_members.items():
-            pm_ = []
-            for s in range(ns):
-                t = {}
-                for k in ("m3_num", "m3_den", "m5_num", "m5_den"):
-                    col = cols[s][k]
-                    t[k] = sum(weights.get(i, 0) * col[i] for i in members)
-                vals = {
-                    "M3": (100.0 * t["m3_num"] / t["m3_den"]) if t["m3_den"] else None,
-                    "M5": (100.0 * t["m5_num"] / t["m5_den"]) if t["m5_den"] else None,
-                }
-                pm_.append(vals)
-                for k in PHEN_METRICS:
-                    phen[s][code][k].append(vals[k])
-            if ns == 2:
-                for k in PHEN_METRICS:
-                    a, b = pm_[0][k], pm_[1][k]
-                    dphen[code][k].append(None if a is None or b is None else b - a)
-    return {"glob": glob, "phen": phen, "dglob": dglob, "dphen": dphen}
+        families = [(phen_members, phen, dphen)]
+        for fam, mem in extra_members.items():
+            families.append((mem, extra[fam]["phen"], extra[fam]["dphen"]))
+        for members_map, phen_out, dphen_out in families:
+            for code, members in members_map.items():
+                pm_ = []
+                for s in range(ns):
+                    t = {}
+                    for k in ("m3_num", "m3_den", "m5_num", "m5_den"):
+                        col = cols[s][k]
+                        t[k] = sum(weights.get(i, 0) * col[i] for i in members)
+                    vals = {
+                        "M3": (100.0 * t["m3_num"] / t["m3_den"]) if t["m3_den"] else None,
+                        "M5": (100.0 * t["m5_num"] / t["m5_den"]) if t["m5_den"] else None,
+                    }
+                    pm_.append(vals)
+                    for k in PHEN_METRICS:
+                        phen_out[s][code][k].append(vals[k])
+                if ns == 2:
+                    for k in PHEN_METRICS:
+                        a, b = pm_[0][k], pm_[1][k]
+                        dphen_out[code][k].append(None if a is None or b is None else b - a)
+    return {"glob": glob, "phen": phen, "dglob": dglob, "dphen": dphen, "extra": extra}
 
 
 # ---------------------------------------------------------------------------
@@ -782,7 +864,15 @@ def run(args):
     for code in sorted({p for c in cases for p in (c.get("phenomena") or [])}):
         phen_members[code] = [i for i, c in enumerate(cases) if code in (c.get("phenomena") or [])]
 
-    boot = bootstrap(results, phen_members, args.seed, args.boot) if cases else None
+    group_members = collections.OrderedDict()
+    for key in sorted({c.get("group") or "A" for c in cases}):
+        group_members[key] = [i for i, c in enumerate(cases) if (c.get("group") or "A") == key]
+    lang_members = collections.OrderedDict()
+    for key in sorted({c.get("lang") or "es" for c in cases}):
+        lang_members[key] = [i for i, c in enumerate(cases) if (c.get("lang") or "es") == key]
+
+    boot = (bootstrap(results, phen_members, args.seed, args.boot,
+                      {"groups": group_members, "langs": lang_members}) if cases else None)
 
     report = {
         "schema": 1,
@@ -802,6 +892,8 @@ def run(args):
         },
         "global": {},
         "phenomena": {},
+        "groups": {},
+        "langs": {},
         "acceptance": None,
         "notes": [],
     }
@@ -825,29 +917,43 @@ def run(args):
                 "ci95": ci95(boot["dglob"][k]) if boot else None}
             for k in METRIC_KEYS}
 
+    def breakdown(members_map, names, boot_phen, boot_dphen):
+        out = collections.OrderedDict()
+        for code, members in members_map.items():
+            entry = {"name": names.get(code, code)}
+            for s, (label, _name, _p) in enumerate(systems):
+                ps = subset_summary([results[s][i] for i in members])
+                entry["mentions"] = ps["mentions"]
+                entry["cases"] = ps["cases"]
+                entry[label] = {
+                    "metrics": {k: {"value": ps["metrics"][k],
+                                    "ci95": ci95(boot_phen[s][code][k]) if boot_phen else None}
+                                for k in PHEN_METRICS},
+                    "latencyMs": ps["latencyMs"],
+                }
+            if ab:
+                entry["delta"] = {}
+                for k in PHEN_METRICS:
+                    a = entry["A"]["metrics"][k]["value"]
+                    b = entry["B"]["metrics"][k]["value"]
+                    entry["delta"][k] = {"value": None if a is None or b is None else b - a,
+                                         "ci95": ci95(boot_dphen[code][k]) if boot_dphen else None}
+            out[code] = entry
+        return out
+
+    report["phenomena"] = breakdown(phen_members, PHENOMENA_NAMES,
+                                    boot["phen"] if boot else None, boot["dphen"] if boot else None)
+    report["groups"] = breakdown(group_members, GROUP_NAMES,
+                                 boot["extra"]["groups"]["phen"] if boot else None,
+                                 boot["extra"]["groups"]["dphen"] if boot else None)
+    report["langs"] = breakdown(lang_members, LANG_NAMES,
+                                boot["extra"]["langs"]["phen"] if boot else None,
+                                boot["extra"]["langs"]["dphen"] if boot else None)
     phen_checks = []
-    for code, members in phen_members.items():
-        entry = {"name": PHENOMENA_NAMES.get(code, code)}
-        for s, (label, _name, _p) in enumerate(systems):
-            ps = phenomenon_summary(results[s], code)
-            entry["mentions"] = ps["mentions"]
-            entry["cases"] = ps["cases"]
-            entry[label] = {
-                "metrics": {k: {"value": ps["metrics"][k],
-                                "ci95": ci95(boot["phen"][s][code][k]) if boot else None}
-                            for k in PHEN_METRICS},
-                "latencyMs": ps["latencyMs"],
-            }
-        if ab:
-            entry["delta"] = {}
-            for k in PHEN_METRICS:
-                a = entry["A"]["metrics"][k]["value"]
-                b = entry["B"]["metrics"][k]["value"]
-                entry["delta"][k] = {"value": None if a is None or b is None else b - a,
-                                     "ci95": ci95(boot["dphen"][code][k]) if boot else None}
+    if ab:
+        for code, entry in report["phenomena"].items():
             phen_checks.append({"code": code, "mentions": entry["mentions"],
                                 "deltaM3": entry["delta"]["M3"]["value"]})
-        report["phenomena"][code] = entry
 
     if ab:
         report["acceptance"] = decide_acceptance(
@@ -862,7 +968,13 @@ def run(args):
         "con otras consonantes solo la 's' (tomates -> tomate).",
         "Plato con allowSplit: se empareja primero como un todo; si ese todo queda fuera de tolerancia "
         "y el grupo de componentes si cabe, se usa el grupo.",
-        "M2 se calcula sobre las menciones con M1 cumplida contra la referencia principal y gramos evaluables.",
+        "M2 se calcula sobre las menciones con M1 cumplida y gramos evaluables: contra los gramos del oro si "
+        "coincide la referencia principal y contra los gramos del equivalente si solo coincide un `equivalents`.",
+        "Lecturas equivalentes (`equivalents` con gramos y per100g): M3 acepta la mencion si cae en tolerancia "
+        "frente al comido principal o frente al de algun equivalente (contador m3_via_equiv, informativo); "
+        "M4 solo marca error si la kcal se aleja de la principal y de todas las equivalentes.",
+        "Desglose por grupo (group; null = modulo A) y por idioma (lang; ausente = es): informativo, "
+        "no entra en la regla de aceptacion.",
         "M1/M2 no se evaluan en menciones de oro sin per100g ni en platos emparejados por componentes.",
         "Las menciones con 'optional' sin pareja no cuentan; emparejadas puntuan en M3 pero no en M5.",
     ]
@@ -873,6 +985,34 @@ def run(args):
             fails_b = [f for r in results[1] for f in r["failures"]]
             report["failuresB"] = {"total": len(fails_b), "shown": fails_b[:50]}
     return report
+
+
+def _render_breakdown(L, title, first_col, entries, ab):
+    L.append(title)
+    L.append("")
+    if ab:
+        L.append("| %s | Menciones | M3 A | M3 B | Delta M3 [IC95] | M5 A | M5 B | Delta M5 [IC95] |" % first_col)
+        L.append("|---|---|---|---|---|---|---|---|")
+        for code, e in entries.items():
+            row = ["%s %s" % (code, e["name"]), str(e["mentions"])]
+            for k in PHEN_METRICS:
+                row.append(_fmt_metric(k, e["A"]["metrics"][k]["value"]))
+                row.append(_fmt_metric(k, e["B"]["metrics"][k]["value"]))
+                row.append("%s %s" % (_fmt_delta(k, e["delta"][k]["value"]),
+                                      _fmt_ci(k, e["delta"][k]["ci95"], delta=True)))
+            L.append("| " + " | ".join(row) + " |")
+    else:
+        L.append("| %s | Menciones | M3 [IC95] | M5 [IC95] | Latencia p50 / p95 (ms) |" % first_col)
+        L.append("|---|---|---|---|---|")
+        for code, e in entries.items():
+            m3 = e["A"]["metrics"]["M3"]
+            m5 = e["A"]["metrics"]["M5"]
+            L.append("| %s %s | %d | %s %s | %s %s | %s / %s |" % (
+                code, e["name"], e["mentions"],
+                _fmt_metric("M3", m3["value"]), _fmt_ci("M3", m3["ci95"]),
+                _fmt_metric("M5", m5["value"]), _fmt_ci("M5", m5["ci95"]),
+                _fmt_ms(e["A"]["latencyMs"]["p50"]), _fmt_ms(e["A"]["latencyMs"]["p95"])))
+    L.append("")
 
 
 def render_markdown(rep):
@@ -944,32 +1084,12 @@ def render_markdown(rep):
             _fmt_ms(lb["p50"]), _fmt_ms(lb["p95"]), _f(rep["global"]["B"]["m8MedianNutrients"])))
     L.append("")
 
-    L.append("## Por fenomeno (M3 y M5 sobre las menciones de los casos con ese codigo)")
-    L.append("")
-    if ab:
-        L.append("| Fenomeno | Menciones | M3 A | M3 B | Delta M3 [IC95] | M5 A | M5 B | Delta M5 [IC95] |")
-        L.append("|---|---|---|---|---|---|---|---|")
-        for code, e in rep["phenomena"].items():
-            row = ["%s %s" % (code, e["name"]), str(e["mentions"])]
-            for k in PHEN_METRICS:
-                row.append(_fmt_metric(k, e["A"]["metrics"][k]["value"]))
-                row.append(_fmt_metric(k, e["B"]["metrics"][k]["value"]))
-                row.append("%s %s" % (_fmt_delta(k, e["delta"][k]["value"]),
-                                      _fmt_ci(k, e["delta"][k]["ci95"], delta=True)))
-            L.append("| " + " | ".join(row) + " |")
-        # M3 y M5 se intercalan por fenomeno; ver orden en row
-    else:
-        L.append("| Fenomeno | Menciones | M3 [IC95] | M5 [IC95] | Latencia p50 / p95 (ms) |")
-        L.append("|---|---|---|---|---|")
-        for code, e in rep["phenomena"].items():
-            m3 = e["A"]["metrics"]["M3"]
-            m5 = e["A"]["metrics"]["M5"]
-            L.append("| %s %s | %d | %s %s | %s %s | %s / %s |" % (
-                code, e["name"], e["mentions"],
-                _fmt_metric("M3", m3["value"]), _fmt_ci("M3", m3["ci95"]),
-                _fmt_metric("M5", m5["value"]), _fmt_ci("M5", m5["ci95"]),
-                _fmt_ms(e["A"]["latencyMs"]["p50"]), _fmt_ms(e["A"]["latencyMs"]["p95"])))
-    L.append("")
+    _render_breakdown(L, "## Por fenomeno (M3 y M5 sobre las menciones de los casos con ese codigo)",
+                      "Fenomeno", rep["phenomena"], ab)
+    _render_breakdown(L, "## Por grupo (M3 y M5 sobre las menciones de los casos de ese grupo)",
+                      "Grupo", rep.get("groups") or {}, ab)
+    _render_breakdown(L, "## Por idioma (M3 y M5 sobre las menciones de los casos de ese idioma)",
+                      "Idioma", rep.get("langs") or {}, ab)
 
     if rep["split"] == "dev" and "failures" in rep:
         f = rep["failures"]

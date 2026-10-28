@@ -239,12 +239,13 @@ class MetricTests(unittest.TestCase):
         c = r["counters"]
         self.assertEqual((c["m1_num"], c["m1_den"], c["m2_num"], c["m2_den"]), (1, 1, 1, 1))
 
-    def test_m1_by_equivalence_has_no_m2(self):
+    def test_m1_by_equivalence_measures_m2_against_equivalent_grams(self):
         r = ev([self.milk()], [pred_m("leche en polvo", 129, 6.8, 6.9, 9.9, grams=26.0, per100g=dict(self.DRY))])
         c = r["counters"]
         self.assertEqual((c["m1_num"], c["m1_den"]), (1, 1))
-        self.assertEqual((c["m2_num"], c["m2_den"]), (0, 0))   # M2 solo con la referencia principal
+        self.assertEqual((c["m2_num"], c["m2_den"]), (1, 1))   # 26 g frente a los 26 g del equivalente
         self.assertEqual(c["m3_num"], 1)                       # los nutrientes consumidos coinciden
+        self.assertEqual(c["m3_via_equiv"], 0)                 # aceptada por la principal, no por el equivalente
 
     def test_m1_fails_when_per100g_far(self):
         r = ev([self.milk()], [pred_m("leche en polvo", 128, 6.6, 6.8, 9.8, per100g={"kcal": 150.0, "protein": 3, "fat": 8, "carbs": 5})])
@@ -317,6 +318,96 @@ class MetricTests(unittest.TestCase):
         r2 = score.evaluate_case(c, g, None)
         self.assertEqual((r2["counters"]["errors"], r2["counters"]["missing"]), (1, 1))
         self.assertEqual((r2["counters"]["m7_den"], r2["counters"]["m7_num"]), (1, 0))
+
+
+class EquivalentReadingTests(unittest.TestCase):
+    FRIED = {"kcal": 312.0, "protein": 3.4, "fat": 15.0, "carbs": 41.0}
+    BOILED = {"kcal": 87.0, "protein": 1.9, "fat": 0.1, "carbs": 20.1}
+
+    def papas(self, equivalents=None):
+        """Principal: 150 g de papas fritas (468 kcal); equivalente: 200 g de papas hervidas (174 kcal)."""
+        if equivalents is None:
+            equivalents = [{"source": "SR", "code": "2", "grams": 200.0, "per100g": self.BOILED,
+                            "note": "el texto no dice como estaban cocidas"}]
+        return gold_food("papas", "papas", 468, 5.1, 22.5, 61.5, tol="HOUSEHOLD", grams=150.0,
+                         per100g=self.FRIED, equivalents=equivalents)
+
+    def boiled_pred(self, grams=200.0, kcal=174.0, auto=True, per100g=None):
+        return pred_m("papas", kcal, 3.8, 0.2, 40.2, grams=grams, auto=auto,
+                      per100g=dict(per100g or self.BOILED))
+
+    def test_equivalent_eaten_helper(self):
+        alts = score.equivalent_eaten(self.papas())
+        self.assertEqual(len(alts), 1)
+        self.assertAlmostEqual(alts[0]["eaten"]["kcal"], 174.0)
+        self.assertAlmostEqual(alts[0]["eaten"]["protein"], 3.8)
+        self.assertAlmostEqual(alts[0]["eaten"]["fat"], 0.2)
+        self.assertAlmostEqual(alts[0]["eaten"]["carbs"], 40.2)
+        self.assertEqual(alts[0]["grams"], 200.0)
+
+    def test_prediction_matching_equivalent_is_correct_and_not_silent_error(self):
+        r = ev([self.papas()], [self.boiled_pred()])
+        c = r["counters"]
+        self.assertEqual((c["m3_num"], c["m3_den"], c["m3_via_equiv"]), (1, 1, 1))
+        self.assertEqual((c["m4_num"], c["m4_den"]), (0, 1))
+        self.assertEqual((c["m1_num"], c["m1_den"]), (1, 1))
+        self.assertEqual((c["m2_num"], c["m2_den"]), (1, 1))     # 200 g frente a los 200 g del equivalente
+        self.assertEqual(r["failures"], [])
+
+    def test_m2_against_equivalent_grams_can_fail(self):
+        r = ev([self.papas()], [self.boiled_pred(grams=100.0)])   # 100 g no cumplen los 200 g del equivalente
+        c = r["counters"]
+        self.assertEqual((c["m2_num"], c["m2_den"]), (0, 1))
+
+    def test_prediction_matching_main_is_not_counted_as_via_equiv(self):
+        r = ev([self.papas()], [pred_m("papas", 468, 5.1, 22.5, 61.5, grams=150.0, auto=True,
+                                       per100g=dict(self.FRIED))])
+        c = r["counters"]
+        self.assertEqual((c["m3_num"], c["m3_via_equiv"], c["m4_num"]), (1, 0, 0))
+        self.assertEqual((c["m2_num"], c["m2_den"]), (1, 1))
+
+    def test_prediction_far_from_main_and_equivalent_is_wrong_and_silent_error(self):
+        r = ev([self.papas()], [pred_m("papas", 900, 8, 40, 90, grams=300.0, auto=True,
+                                       per100g={"kcal": 233.0, "protein": 2.7, "fat": 13.0, "carbs": 30.0})])
+        c = r["counters"]
+        self.assertEqual((c["m3_num"], c["m3_den"], c["m3_via_equiv"]), (0, 1, 0))
+        self.assertEqual((c["m4_num"], c["m4_den"]), (1, 1))
+        self.assertEqual(len(r["failures"]), 1)
+
+    def test_heuristic_prediction_matching_equivalent_is_not_accepted(self):
+        p = self.boiled_pred()
+        p["heuristic"] = True
+        c = ev([self.papas()], [p])["counters"]
+        self.assertEqual((c["m3_num"], c["m3_via_equiv"], c["m4_num"]), (0, 0, 1))
+
+    def test_incomplete_equivalents_are_ignored(self):
+        bad = [{"source": "SR", "code": "a", "per100g": self.BOILED},                       # sin grams
+               {"source": "SR", "code": "b", "grams": 0, "per100g": self.BOILED},          # grams = 0
+               {"source": "SR", "code": "c", "grams": 200.0},                               # sin per100g
+               {"source": "SR", "code": "d", "grams": 200.0, "per100g": {}},                # per100g vacio
+               {"source": "SR", "code": "e", "grams": "200", "per100g": self.BOILED},      # grams no numerico
+               {"source": "SR", "code": "f", "grams": 200.0, "per100g": {"kcal": 87.0}},    # faltan macros
+               "basura"]
+        self.assertEqual(score.equivalent_eaten(self.papas(bad)), [])
+        r = ev([self.papas(bad)], [self.boiled_pred()])
+        c = r["counters"]
+        self.assertEqual((c["m3_num"], c["m3_den"], c["m3_via_equiv"]), (0, 1, 0))
+        self.assertEqual((c["m4_num"], c["m4_den"]), (1, 1))
+        # y la lectura principal sigue funcionando junto a equivalentes rotos
+        ok = ev([self.papas(bad)], [pred_m("papas", 468, 5.1, 22.5, 61.5, grams=150.0, auto=True,
+                                           per100g=dict(self.FRIED))])["counters"]
+        self.assertEqual((ok["m3_num"], ok["m4_num"]), (1, 0))
+
+    def test_equivalent_without_per100g_values_does_not_break_m1(self):
+        eq = [{"source": "SR", "code": "x", "grams": 200.0, "per100g": {}}]
+        c = ev([self.papas(eq)], [pred_m("papas", 468, 5.1, 22.5, 61.5, per100g=dict(self.FRIED))])["counters"]
+        self.assertEqual((c["m1_num"], c["m1_den"]), (1, 1))
+
+    def test_m3_via_equiv_is_in_counters(self):
+        self.assertIn("m3_via_equiv", score.COUNTERS)
+        self.assertIn("m3_via_equiv", score.BOOT_COUNTERS)
+        t = score.totals([ev([self.papas()], [self.boiled_pred()])])
+        self.assertEqual(t["m3_via_equiv"], 1)
 
 
 # ---------------------------------------------------------------------------
@@ -464,6 +555,83 @@ class CliTests(unittest.TestCase):
         self.assertEqual(data["global"]["A"]["counts"]["errors"], 2)
         self.assertEqual(data["global"]["A"]["counts"]["missing"], 2)
         self.assertAlmostEqual(data["global"]["A"]["metrics"]["M3"]["value"], 80.0)
+
+    def test_f17_f18_names_in_report(self):
+        self.assertEqual(score.PHENOMENA_NAMES["F17"], "Texto extenso o con ruido")
+        self.assertEqual(score.PHENOMENA_NAMES["F18"], "Inglés o mezcla de idiomas")
+        ids = ["E1001", "E1002"]
+        cases = [dict(case(ids[0], "huevo cocido", "dev", ["F17"]), group="B6", lang="es"),
+                 dict(case(ids[1], "boiled egg", "dev", ["F18"]), group="B1", lang="en")]
+        golds = [gold_rec(i, [gold_food("huevo cocido", "huevo cocido", 155, 13, 11, 1.1)]) for i in ids]
+        paths = {"cases": os.path.join(self.tmp, "all.jsonl"), "gold": os.path.join(self.tmp, "gold.jsonl")}
+        write_jsonl(paths["cases"], cases)
+        write_jsonl(paths["gold"], golds)
+        a = self.pred_file("a.jsonl", ids, "sysA", 155.0)
+        _p, md, data = self.run_cli(paths, a)
+        self.assertEqual(data["phenomena"]["F17"]["name"], "Texto extenso o con ruido")
+        self.assertEqual(data["phenomena"]["F18"]["name"], "Inglés o mezcla de idiomas")
+        self.assertIn("F17 Texto extenso o con ruido", md)
+        self.assertIn("F18 Inglés o mezcla de idiomas", md)
+
+    def breakdown_fixtures(self):
+        ids = ["E0001", "E0002", "E1001", "E1002"]
+        cases = [case("E0001", "huevo cocido", "dev", ["F01"]),                                  # modulo A: sin group ni lang
+                 dict(case("E0002", "huevo cocido", "dev", ["F01"]), group=None),                # group null explicito
+                 dict(case("E1001", "huevo cocido", "dev", ["F18"]), group="B1", lang="en"),
+                 dict(case("E1002", "huevo cocido", "dev", ["F17"]), group="B3", lang="mix")]
+        golds = [gold_rec(i, [gold_food("huevo cocido", "huevo cocido", 155, 13, 11, 1.1)]) for i in ids]
+        paths = {"cases": os.path.join(self.tmp, "all.jsonl"), "gold": os.path.join(self.tmp, "gold.jsonl")}
+        write_jsonl(paths["cases"], cases)
+        write_jsonl(paths["gold"], golds)
+        return ids, paths
+
+    def test_breakdown_by_group_and_language_single_system(self):
+        ids, paths = self.breakdown_fixtures()
+        a = self.pred_file("a.jsonl", ids, "sysA", 155.0)
+        _p, md, data = self.run_cli(paths, a)
+        self.assertEqual(list(data["groups"]), ["A", "B1", "B3"])
+        self.assertEqual(list(data["langs"]), ["en", "es", "mix"])
+        self.assertEqual(data["groups"]["A"]["cases"], 2)          # group null y ausente caen en "A"
+        self.assertEqual(data["groups"]["A"]["mentions"], 2)
+        self.assertEqual(data["langs"]["es"]["cases"], 2)          # lang ausente cae en "es"
+        self.assertEqual(data["groups"]["B1"]["A"]["metrics"]["M3"]["value"], 100.0)
+        self.assertIn("ci95", data["groups"]["B3"]["A"]["metrics"]["M3"])
+        self.assertIn("## Por grupo", md)
+        self.assertIn("## Por idioma", md)
+        self.assertIn("| A Modulo A", md)
+        self.assertIn("| B1 ", md)
+        self.assertIn("| mix ", md)
+
+    def test_breakdown_by_group_and_language_with_paired_delta(self):
+        ids, paths = self.breakdown_fixtures()
+        a = self.pred_file("a.jsonl", ids, "sysA", 400.0)
+        b = self.pred_file("b.jsonl", ids, "sysB", 155.0)
+        _p, md, data = self.run_cli(paths, a, b)
+        for fam in ("groups", "langs"):
+            for key, e in data[fam].items():
+                self.assertIn("delta", e, (fam, key))
+                self.assertAlmostEqual(e["delta"]["M3"]["value"], 100.0)
+                for k in ("M3", "M5"):
+                    self.assertEqual(len(e["delta"][k]["ci95"]), 2)
+        self.assertIn("| Grupo | Menciones | M3 A | M3 B |", md)
+        self.assertIn("| Idioma | Menciones | M3 A | M3 B |", md)
+        # el desglose no entra en la regla de aceptacion
+        self.assertEqual(set(data["acceptance"]["criteria"]),
+                         {"m3_ci_lower_gt_0", "m4_ci_upper_le_0_5pp", "no_phenomenon_drops_gt_3pp"})
+
+    def test_m3_via_equiv_in_report_counts(self):
+        ids, paths = self.fixtures(n=2)
+        eq = [{"source": "SR", "code": "2", "grams": 200.0,
+               "per100g": {"kcal": 87.0, "protein": 1.9, "fat": 0.1, "carbs": 20.1}}]
+        golds = [gold_rec(i, [gold_food("papas", "papas", 468, 5.1, 22.5, 61.5, tol="HOUSEHOLD", equivalents=eq)])
+                 for i in ids]
+        write_jsonl(paths["gold"], golds)
+        a = os.path.join(self.tmp, "a.jsonl")
+        write_jsonl(a, [pred_rec(i, [pred_m("papas", 174, 3.8, 0.2, 40.2, auto=True)]) for i in ids])
+        _p, _md, data = self.run_cli(paths, a)
+        self.assertEqual(data["global"]["A"]["counts"]["m3_via_equiv"], 2)
+        self.assertEqual(data["global"]["A"]["counts"]["m4_num"], 0)
+        self.assertAlmostEqual(data["global"]["A"]["metrics"]["M3"]["value"], 100.0)
 
     def test_sanitize_filename(self):
         self.assertEqual(score.sanitize_filename("master@c4491bc83"), "master@c4491bc83")

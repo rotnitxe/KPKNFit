@@ -160,10 +160,10 @@ Predicciones sin pareja = extras; oro sin pareja (no opcional) = omisiones.
 
 | Métrica | Definición |
 |---|---|
-| **M3 Mención correcta** (principal) | emparejada ∧ kcal y los tres macros consumidos dentro de tolerancia ∧ no heurística |
+| **M3 Mención correcta** (principal) | emparejada ∧ kcal y los tres macros consumidos dentro de tolerancia del `eaten` principal **o** de una lectura de `equivalents` (sus `per100g` × sus gramos) ∧ no heurística |
 | M1 Identidad | emparejada ∧ `per100g` de la predicción dentro de ±12 % kcal / ±20 % macros (piso 2 g) de la referencia o de un `equivalents` |
-| M2 Gramos | emparejada ∧ gramos en tolerancia (solo si la forma coincide) |
-| M4 **Error silencioso** | `autoAccepted` ∧ (sin pareja ∨ kcal fuera de ±50 % ∨ heurística) — tasa sobre menciones autoaceptadas |
+| M2 Gramos | emparejada ∧ gramos en tolerancia frente a la referencia con la que coincidió la identidad (principal o equivalente) |
+| M4 **Error silencioso** | `autoAccepted` ∧ (sin pareja ∨ kcal fuera de ±50 % de la principal y de todos los equivalentes ∨ heurística) — tasa sobre menciones autoaceptadas |
 | M5 Cobertura | emparejada ∧ no heurística |
 | M6 Preguntas | precisión y recobrado de `questions` frente a `ambiguity`; preguntas por comida |
 | M7 Comida | kcal de la comida dentro de ±20 % |
@@ -172,7 +172,13 @@ Predicciones sin pareja = extras; oro sin pareja (no opcional) = omisiones.
 | Latencia | p50 / p95 de `latencyMs` |
 
 **Comparación A/B pareada**: bootstrap de 2.000 remuestreos por caso (semilla fija 20261027), IC 95 %
-de la diferencia B − A en cada métrica, global y por fenómeno.
+de la diferencia B − A en cada métrica, global, por fenómeno, por grupo (A, B1–B6) y por idioma
+(es/en/mix). `m3_via_equiv` cuenta las menciones aceptadas por una lectura equivalente (transparencia).
+
+**Lecturas equivalentes.** Cuando el texto no permite decidir (cantidad, estado, forma o tipo no
+dichos) y dos lecturas son razonables, el oro guarda la de la convención como principal, marca la
+`ambiguity` y pone la otra en `equivalents` con su ficha y sus gramos; el examen acepta cualquiera de
+las dos (adjudicación, `spec\ADJUDICACION.md` convenciones v1.2).
 
 **Regla de aceptación** (cambiar el predeterminado): M3 mejora con IC inferior > 0 ∧ M4 no empeora
 (IC superior de B − A ≤ 0,5 pp) ∧ ningún fenómeno con ≥ 30 menciones cae más de 3 pp en M3.
