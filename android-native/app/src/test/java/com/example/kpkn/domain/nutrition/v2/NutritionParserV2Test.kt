@@ -130,4 +130,28 @@ class NutritionParserV2Test {
         assertTrue(r.mentions.isNotEmpty())
         r.mentions.forEach { assertEquals(text.substring(it.draft.start, it.draft.end), it.text) }
     }
+
+    @Test fun intentedFoodIsExcludedAndNeverAutoAccepted() {
+        val r = parser.parse("iba a pedir pollo pero me comí 2 huevos")
+        assertEquals(2, r.mentions.size)
+        val chicken = r.mentions.first { it.conceptId == "pollo_t" }
+        assertTrue(chicken.excluded)
+        assertFalse(chicken.autoAccepted)
+        assertEquals(null, chicken.eatenKcal)
+        val eggs = r.mentions.first { it.conceptId == "huevo_t" }
+        assertFalse(eggs.excluded)
+        assertEquals(100.0, eggs.grams!!, 1e-6)
+    }
+
+    @Test fun otherPersonsMealIsExcluded() {
+        val r = parser.parse("mi hermano pidió pollo, yo comí arroz")
+        assertTrue(r.mentions.first { it.conceptId == "pollo_t" }.excluded)
+        assertFalse(r.mentions.first { it.conceptId == "arroz_t" }.excluded)
+    }
+
+    @Test fun correctedQuantityReplacesTheEarlierMention() {
+        val r = parser.parse("me comí un huevo y bueno 3 huevos")
+        assertEquals(1, r.mentions.size)
+        assertEquals(150.0, r.mentions.single().grams!!, 1e-6)
+    }
 }

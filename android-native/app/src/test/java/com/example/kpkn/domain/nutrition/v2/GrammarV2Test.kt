@@ -502,4 +502,158 @@ class GrammarV2Test {
         val drafts = parse("pan no tomate")
         assertTrue(drafts[1].excluded)
     }
+    // ─── Alcance de la negación (ronda 1) ───────────────────────────────
+
+    @Test fun `ni encadena la exclusion`() {
+        val drafts = parse("hamburguesa sin tomate ni queso")
+        assertEquals(listOf(listOf("hamburguesa"), listOf("tomate"), listOf("queso")), ids(drafts))
+        assertEquals(listOf(false, true, true), drafts.map { it.excluded })
+    }
+
+    @Test fun `un articulo entre sin y el alimento no rompe la exclusion`() {
+        val drafts = parse("hamburguesa sin el tomate")
+        assertEquals(listOf(false, true), drafts.map { it.excluded })
+        val one = parse("arroz sin un huevo")
+        assertEquals(listOf(false, true), one.map { it.excluded })
+    }
+
+    @Test fun `me salte y skipped excluyen el alimento`() {
+        val es = parse("me salté el pan y comí arroz")
+        assertEquals(listOf(listOf("pan"), listOf("arroz")), ids(es))
+        assertEquals(listOf(true, false), es.map { it.excluded })
+        val en = parse("I skipped the toast")
+        assertEquals(listOf(true), en.map { it.excluded })
+    }
+
+    @Test fun `ingles didn't have excluye`() {
+        val drafts = parse("I didn't have any cheese")
+        assertEquals(1, drafts.size)
+        assertTrue(drafts[0].excluded)
+    }
+
+    @Test fun `un verbo de intencion deja el alimento fuera hasta el pero`() {
+        val drafts = parse("iba a pedir arroz con pollo pero me comí una manzana")
+        assertEquals(listOf(listOf("arroz_con_pollo"), listOf("manzana")), ids(drafts))
+        assertEquals(listOf(true, false), drafts.map { it.excluded })
+        val en = parse("I was going to order eggs but had toast")
+        assertEquals(listOf(true, false), en.map { it.excluded })
+        val thought = parse("pensaba comprar queso")
+        assertTrue(thought[0].excluded)
+    }
+
+    @Test fun `una intencion sin accion no excluye`() {
+        // «quería un café» es una compra o un deseo cumplido; solo «quería pedir/comprar…» queda en el aire.
+        val drafts = parse("queria un cafe y comí pan")
+        assertFalse(drafts[0].excluded)
+        assertFalse(drafts[1].excluded)
+    }
+
+    @Test fun `una tercera persona que pide o come no cuenta como comida de la persona`() {
+        val drafts = parse("mi hermano pidió pollo, yo comí arroz")
+        assertEquals(listOf(listOf("pollo"), listOf("arroz")), ids(drafts))
+        assertEquals(listOf(true, false), drafts.map { it.excluded })
+        val kids = parse("los niños comieron tostadas")
+        assertTrue(kids[0].excluded)
+    }
+
+    @Test fun `una tercera persona que sirve a la persona no excluye`() {
+        val drafts = parse("mi mamá me sirvió arroz")
+        assertEquals(1, drafts.size)
+        assertFalse(drafts[0].excluded)
+        assertFalse(parse("mi mamá hizo arroz y me lo comí")[0].excluded)
+    }
+
+    @Test fun `él seguido de una cantidad es otra persona y el articulo no`() {
+        val drafts = parse("yo pollo y él un huevo")
+        assertEquals(listOf(listOf("pollo"), listOf("huevo")), ids(drafts))
+        assertEquals(listOf(false, true), drafts.map { it.excluded })
+        assertFalse(parse("comí el pollo")[0].excluded)
+    }
+
+    @Test fun `no fue seguido de un alimento lo excluye`() {
+        val drafts = parse("no fue pollo, solo arroz")
+        assertEquals(listOf(true, false), drafts.map { it.excluded })
+    }
+
+    @Test fun `bueno repite el alimento y sustituye la mencion anterior`() {
+        val drafts = parse("me comí una manzana y bueno dos manzanas")
+        assertEquals(1, drafts.size)
+        assertEquals(QuantityV2.Count(2.0), drafts[0].quantity)
+        val other = parse("pollo 100 g y bueno 2 manzanas")
+        assertEquals(listOf(listOf("pollo"), listOf("manzana")), ids(other))
+    }
+
+    @Test fun `mejor al final corrige la cantidad del mismo alimento`() {
+        val drafts = parse("2 manzanas, 3 manzanas mejor")
+        assertEquals(1, drafts.size)
+        assertEquals(QuantityV2.Count(3.0), drafts[0].quantity)
+    }
+
+    @Test fun `mentira corrige sin alimento nuevo`() {
+        val drafts = parse("250 ml de leche, no mentira fueron 200 ml")
+        assertEquals(1, drafts.size)
+        assertEquals(QuantityV2.Volume(200.0), drafts[0].quantity)
+    }
+
+    @Test fun `una fruta o bebida en cadena de con y no se pega al plato`() {
+        val lex = LexiconV2(
+            ModifierVocabularyV2.entries + foodEntries +
+                food("platano", "platano") + food("jugo de naranja", "jugo_naranja"),
+        )
+        fun concept(id: String, kind: ConceptKindV2, category: String) = ConceptV2(
+            id = id, name = id, kind = kind, category = category, aliasesEs = emptyList(), aliasesEn = emptyList(),
+            typos = emptyList(), defaultState = null, defaultForm = FoodFormV2.NA, variants = emptyList(),
+            countable = true, unit = null, portions = emptyList(), defaultGrams = 100.0, densityGPerMl = null,
+            reconstitution = null, components = null,
+        )
+        val catalog = ConceptCatalogV2(
+            "t",
+            listOf(
+                concept("pan", ConceptKindV2.FOOD, "CEREALES_PANES"), concept("queso", ConceptKindV2.FOOD, "LACTEOS"),
+                concept("tomate", ConceptKindV2.FOOD, "VERDURAS"), concept("platano", ConceptKindV2.FOOD, "FRUTAS"),
+                concept("jugo_naranja", ConceptKindV2.DRINK, "BEBIDAS"), concept("avena", ConceptKindV2.FOOD, "CEREALES_PANES"),
+                concept("leche", ConceptKindV2.DRINK, "LACTEOS"),
+            ),
+            emptyMap(),
+        )
+        val fruit = parse("avena con queso y platano", lex, catalog)
+        assertEquals(listOf(null, 0, null), fruit.map { it.attachedTo })
+        val drink = parse("pan con queso y jugo de naranja", lex, catalog)
+        assertEquals(listOf(null, 0, null), drink.map { it.attachedTo })
+        // Un ingrediente de plato sigue colgando de la base.
+        val topping = parse("pan con queso y tomate", lex, catalog)
+        assertEquals(listOf(null, 0, 0), topping.map { it.attachedTo })
+    }
+
+    @Test fun `mi papa con posesivo es una persona y no el tuberculo`() {
+        val lex = LexiconV2(ModifierVocabularyV2.entries + foodEntries + food("papa", "papa") + food("papas", "papa"))
+        val drafts = parse("mi papa pidió pollo y yo comí papas", lex)
+        assertEquals(listOf(listOf("pollo"), listOf("papa")), ids(drafts))
+        assertEquals(listOf(true, false), drafts.map { it.excluded })
+        // Sin posesivo sigue siendo el tubérculo.
+        assertEquals(listOf(listOf("papa")), ids(parse("200 g de papa", lex)))
+    }
+
+    @Test fun `una negacion que repite la base la retira`() {
+        val drafts = parse("cené arroz y bueno no fue arroz, fue pollo")
+        assertEquals(listOf(listOf("arroz"), listOf("pollo")), ids(drafts))
+        assertEquals(listOf(true, false), drafts.map { it.excluded })
+    }
+
+    @Test fun `una palta en cadena de con sigue siendo aderezo del plato`() {
+        val lex = LexiconV2(ModifierVocabularyV2.entries + foodEntries)
+        fun concept(id: String, category: String) = ConceptV2(
+            id = id, name = id, kind = ConceptKindV2.FOOD, category = category, aliasesEs = emptyList(), aliasesEn = emptyList(),
+            typos = emptyList(), defaultState = null, defaultForm = FoodFormV2.NA, variants = emptyList(),
+            countable = true, unit = null, portions = emptyList(), defaultGrams = 100.0, densityGPerMl = null,
+            reconstitution = null, components = null,
+        )
+        val catalog = ConceptCatalogV2(
+            "t",
+            listOf(concept("pan", "CEREALES_PANES"), concept("queso", "LACTEOS"), concept("palta", "FRUTAS"), concept("manzana", "FRUTAS")),
+            emptyMap(),
+        )
+        assertEquals(listOf(null, 0, 0), parse("pan con queso y palta", lex, catalog).map { it.attachedTo })
+        assertEquals(listOf(null, 0, null), parse("pan con queso y manzana", lex, catalog).map { it.attachedTo })
+    }
 }

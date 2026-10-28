@@ -16,6 +16,63 @@ object GrammarV2 {
     private val CUT_WORDS = setOf("despues", "luego", "then")
     private val DOZEN_WORDS = setOf("docena", "docenas", "dozen", "dozens")
 
+    /**
+     * Palabras sueltas, desconocidas para el léxico, que niegan lo que sigue como «sin»: «ni palta ni mayo», «me salté el
+     * pan», «I skipped the fries», «didn't have dessert» (el apóstrofo se descarta: «didn» + «t»).
+     */
+    private val NEGATION_WORDS = setOf(
+        "ni", "salte", "saltamos", "saltaron", "omiti", "skipped", "skip", "didn", "don", "doesn", "haven", "hadn", "wasn",
+    )
+
+    private val POSSESSIVES = setOf("mi", "su", "tu")
+
+    /** Frutas que se usan de acompañamiento o aliño (no se comen aparte): primer tramo del id del concepto. */
+    private val TOPPING_FRUITS = setOf("palta", "aguacate", "limon", "lima", "aceituna", "aceitunas", "coco")
+
+    /** Palabras que se saltan entre la negación y el alimento negado («sin el pan», «didn't have any dessert»). */
+    private val NEGATION_BRIDGE = setOf(
+        "el", "la", "los", "las", "mi", "mis", "su", "sus", "tu", "nada", "ningun", "ninguna", "ninguno", "t", "have", "had",
+        "eat", "ate", "any", "the", "my", "a", "an", "some", "tomar", "comer", "tener", "tuve", "tuvo", "hubo", "habia",
+        "fue", "fueron", "era", "eran", "es", "son", "sea", "hay",
+    )
+
+    /** Palabras sueltas que corrigen lo dicho antes («bueno, dos empanadas», «3 galletas mejor», «no, mentira»). */
+    private val CORRECTION_WORDS = setOf("bueno", "mentira", "mejor", "ups")
+
+    /** Verbos de intención: «iba a pedir…», «pensaba comprar…» (lo dicho a continuación no se comió). */
+    private val INTENT_WORDS = setOf(
+        "iba", "ibamos", "iban", "pensaba", "pensabamos", "pensaban", "pense", "pensamos", "pensado", "queria", "querian",
+        "queriamos", "quisimos", "planeaba", "planeabamos", "hubiera", "hubiese", "habria", "hubieramos", "wanted", "planned",
+        "intended", "considered", "thought", "going", "propuso", "sugirio", "recomendo", "proposed", "suggested",
+    )
+
+    /** Acciones de pedir, comprar o preparar que siguen a un verbo de intención. */
+    private val INTENT_ACTIONS = setOf(
+        "pedir", "pedirme", "pedirnos", "pedirse", "pedido", "pedirle", "comprar", "comprarme", "comprarnos", "comprarle",
+        "comprado", "comer", "comerme", "comernos", "comerlo", "comido", "tomar", "tomarme", "tomarnos", "tomado", "hacer",
+        "hacerme", "hacernos", "hacerse", "preparar", "prepararme", "prepararnos", "agregar", "agregarle", "anadir", "ordenar",
+        "probar", "servirme", "cocinar", "order", "ordering", "buy", "buying", "get", "have", "eat", "make", "cook", "try",
+        "drink", "grab", "asar", "asarlo", "cocinarlo", "prepararlo", "freir", "freirlo", "pedirlo", "comprarlo", "comerlo",
+    )
+
+    /** Palabras de contraste: lo que sigue ya no es lo que no se hizo («iba a pedir pizza pero me comí una ensalada»). */
+    private val CONTRAST_WORDS = setOf("pero", "but", "aunque", "sino", "although", "though", "entonces")
+
+    /** Terceras personas que pueden comer o pedir otra cosa que la persona: «mi primo pidió…», «los niños comieron…». */
+    private val OTHER_PERSON_WORDS = setOf(
+        "mama", "papa", "madre", "padre", "hermano", "hermana", "primo", "prima", "tio", "tia", "amigo", "amiga", "socio",
+        "socia", "esposa", "esposo", "marido", "mujer", "novio", "novia", "hijo", "hija", "hijos", "ninos", "ninas", "chicos",
+        "companero", "companera", "suegra", "suegro", "abuela", "abuelo", "vecina", "vecino", "jefe", "ella", "ellos",
+        "ellas", "mum", "mom", "dad", "wife", "husband", "friend", "brother", "sister", "kids", "colleague", "cousin",
+        "boss",
+    )
+
+    /** Verbos de comer o pedir en tercera persona (pasado). */
+    private val OTHER_PERSON_VERBS = setOf(
+        "pidio", "pidieron", "ordeno", "ordenaron", "comio", "comieron", "tomo", "tomaron", "probo", "probaron", "ate",
+        "ordered", "drank", "tried", "devoro", "devoraron", "quiso", "wanted",
+    )
+
     /** Palabras que delatan, en el nombre del alimento excluido, una forma de la base («sin azúcar» = forma). */
     private val FORM_KEYWORDS: Map<FoodFormV2, Set<String>> = mapOf(
         FoodFormV2.SUGAR_FREE to setOf("azucar", "azucares", "sugar", "sugars", "edulcorante"),
@@ -70,6 +127,9 @@ object GrammarV2 {
         var excluded = false
         var attachedTo: Int? = null
 
+        /** La corrección «bueno, dos empanadas» sustituyó esta mención por otra del mismo alimento. */
+        var dropped = false
+
         /** Rangos de tokens usados (alimento, cantidad, modificadores). */
         val used = ArrayList<IntRange>().also { it += food.first..food.last }
 
@@ -123,6 +183,10 @@ object GrammarV2 {
         val last = span.last
         val word = tokens[first].norm
         val foods = span.tags.filterIsInstance<LexTag.Food>()
+        // «mi papá» (el padre) no es «papa» (el tubérculo): sin tilde son la misma palabra, pero el posesivo delata a la persona.
+        if (first == last && word == "papa" && first > 0 && tokens[first - 1].norm in POSSESSIVES) {
+            return Item(Kind.UNKNOWN, first, last, word = word)
+        }
         if (first == last && (foods.isEmpty() || span.fuzzy) && tokens[first].isWord) {
             when {
                 word in OTHER_WORDS -> return Item(Kind.OTHER, first, last, word = word)
@@ -133,7 +197,11 @@ object GrammarV2 {
         if (foods.isNotEmpty()) {
             return Item(Kind.FOOD, first, last, ids = foods.map { it.conceptId }.distinct(), fuzzy = span.fuzzy, word = word)
         }
-        if (span.tags.isEmpty()) return Item(Kind.UNKNOWN, first, last, word = word)
+        if (span.tags.isEmpty()) {
+            if (first == last && word in NEGATION_WORDS) return Item(Kind.NEG, first, last, tag = LexTag.Negation, word = word)
+            if (first == last && word in CORRECTION_WORDS) return Item(Kind.CORR, first, last, tag = LexTag.Correction, word = word)
+            return Item(Kind.UNKNOWN, first, last, word = word)
+        }
         val best = span.tags.mapNotNull { tag -> kindOf(tag)?.let { it to tag } }.minByOrNull { it.first.ordinal }
             ?: return Item(Kind.UNKNOWN, first, last, word = word)
         if (best.first == Kind.FILLER) return null
@@ -151,7 +219,13 @@ object GrammarV2 {
 
         fun run(items: List<Item>): List<MentionDraftV2> {
             for (clause in splitClauses(items)) processClause(clause)
-            return out.map { it.toDraft(tokens) }
+            if (out.none { it.dropped }) return out.map { it.toDraft(tokens) }
+            val newIndex = HashMap<Int, Int>()
+            for (b in out) if (!b.dropped) newIndex[b.index] = newIndex.size
+            return out.filter { !it.dropped }.map { b ->
+                val d = b.toDraft(tokens)
+                d.copy(attachedTo = b.attachedTo?.let { newIndex[it] })
+            }
         }
 
         // ─── Cláusulas ──────────────────────────────────────────────────
@@ -184,7 +258,7 @@ object GrammarV2 {
             var j = and + 1
             while (j < items.size) {
                 when (items[j].kind) {
-                    Kind.UNKNOWN, Kind.OTHER, Kind.SIZE, Kind.STATE, Kind.FORM -> j++
+                    Kind.UNKNOWN, Kind.OTHER, Kind.SIZE, Kind.STATE, Kind.FORM, Kind.CORR, Kind.NEG -> j++
                     Kind.NUM, Kind.HOUSEHOLD, Kind.CONTAINER, Kind.VAGUE -> return true
                     Kind.FOOD -> return !chain
                     else -> return false
@@ -345,11 +419,13 @@ object GrammarV2 {
                 applyCorrection(elems)
                 return
             }
+            val corrected = pendingCorrection || elems.any { it.kind == Kind.CORR }
             pendingCorrection = false
 
             // Alimentos: exclusión («sin X») y, si el catálogo lo dice, forma de la base en lugar de exclusión.
             val builders = HashMap<Int, Builder>()
             var previousKept = -1
+            val unreal = unrealFoods(elems)
             for (f in foodAt) {
                 val neg = negationBefore(elems, f)
                 if (neg >= 0 && previousKept >= 0) {
@@ -364,14 +440,15 @@ object GrammarV2 {
                 val builder = Builder(out.size, elems[f])
                 out += builder
                 builders[f] = builder
-                if (neg >= 0) {
+                if (neg >= 0 || f in unreal) {
                     builder.excluded = true
-                    builder.used += elems[neg].first..elems[neg].last
+                    if (neg >= 0) builder.used += elems[neg].first..elems[neg].last
                 } else {
                     previousKept = f
                 }
             }
             val ordered = foodAt.mapNotNull { f -> builders[f]?.let { f to it } }
+            if (corrected) replaceCorrected(ordered.map { it.second })
 
             val claimed = HashSet<Item>()
             // Cantidades de masa/volumen/envase con contenido que cuelgan de «ALIM de …»: no son de un alimento posterior.
@@ -447,7 +524,7 @@ object GrammarV2 {
                 when {
                     target != null -> b.attachedTo = target.index
                     withAt >= 0 && before != null -> b.attachedTo = before.attachedTo ?: before.index
-                    withAt < 0 && hasAnd && before?.attachedTo != null -> b.attachedTo = before.attachedTo
+                    withAt < 0 && hasAnd && before?.attachedTo != null && !standsAlone(b) -> b.attachedTo = before.attachedTo
                 }
                 if (b.attachedTo == null) lastBase = b.index
                 previousAny = idx
@@ -455,15 +532,107 @@ object GrammarV2 {
             }
         }
 
+        /**
+         * Tercer elemento de «X con Y y Z»: una fruta o una bebida sin cantidad («avena con leche y plátano») se come aparte,
+         * no es otro ingrediente del plato. Sin catálogo no se sabe y se deja como ingrediente.
+         */
+        private fun standsAlone(b: Builder): Boolean {
+            val cat = catalog ?: return false
+            return b.food.ids.isNotEmpty() && b.food.ids.all { id ->
+                val c = cat.concept(id)
+                c != null && (
+                    c.kind == ConceptKindV2.DRINK || c.category == "BEBIDAS" || c.category == "ALCOHOL" ||
+                        (c.category == "FRUTAS" && c.id.substringBefore('_') !in TOPPING_FRUITS)
+                    )
+            }
+        }
+
+        /**
+         * Una marca de corrección delante de (o en) una cláusula que repite el alimento de la última mención base la
+         * sustituye: «me comí una empanada y bueno dos empanadas» deja solo las dos; «no fueron tallarines, fueron
+         * ravioles» retira también los tallarines (el excluido de la cláusula repite el alimento de la base).
+         */
+        private fun replaceCorrected(clause: List<Builder>) {
+            val prev = lastBase?.let { out[it] } ?: return
+            if (prev.dropped || clause.none { b -> prev.food.ids.any { it in b.food.ids } }) return
+            prev.dropped = true
+            for (b in out) if (b.attachedTo == prev.index) b.dropped = true
+            lastBase = null
+        }
+
         private fun isSuffixShaped(q: QuantityV2): Boolean =
             q is QuantityV2.Mass || q is QuantityV2.Volume ||
                 (q is QuantityV2.Container && (q.netGrams != null || q.netMl != null))
 
-        /** Posición del «sin»/«no» que precede al alimento [food] (saltando tamaños, estados y formas), o -1. */
+        /**
+         * Posición del «sin»/«no» que precede al alimento [food] (saltando tamaños, estados, formas, artículos y cantidades
+         * débiles: «sin el pan», «sin un huevo», «didn't have any dessert»), o -1.
+         */
         private fun negationBefore(elems: List<Item>, food: Int): Int {
             var p = food - 1
-            while (p >= 0 && (elems[p].kind == Kind.SIZE || elems[p].kind == Kind.STATE || elems[p].kind == Kind.FORM)) p--
+            while (p >= 0 && isNegationBridge(elems[p])) p--
             return if (p >= 0 && elems[p].kind == Kind.NEG) p else -1
+        }
+
+        private fun isNegationBridge(e: Item): Boolean = when (e.kind) {
+            Kind.SIZE, Kind.STATE, Kind.FORM -> true
+            Kind.Q -> e.q!!.weak
+            Kind.NUM -> (e.tag as? LexTag.Number)?.weak == true
+            Kind.UNKNOWN -> e.word in NEGATION_BRIDGE
+            else -> false
+        }
+
+        private fun wordAt(e: Item): String? = if (e.first == e.last) tokens[e.first].norm else null
+
+        /**
+         * Alimentos de la cláusula que la persona no comió aunque no lleven «sin»: lo que sigue a un verbo de intención
+         * («iba a pedir…», «pensaba comprar…», «se me antojó…» no) o a una tercera persona que come o pide
+         * («mi primo pidió…»), hasta una palabra de contraste («pero…»). Devuelve las posiciones de esos alimentos.
+         */
+        private fun unrealFoods(elems: List<Item>): Set<Int> {
+            val out = HashSet<Int>()
+            var unreal = false
+            for (p in elems.indices) {
+                val e = elems[p]
+                val w = wordAt(e)
+                if (w != null && w in CONTRAST_WORDS) {
+                    unreal = false
+                    continue
+                }
+                if (!unreal && w != null && opensUnreal(elems, p, w)) unreal = true
+                if (unreal && e.kind == Kind.FOOD) out += p
+            }
+            return out
+        }
+
+        private fun opensUnreal(elems: List<Item>, p: Int, w: String): Boolean {
+            if (w in INTENT_WORDS) return actionWithin(elems, p + 1, 3)
+            if ((w == "estaba" || w == "estabamos") && elems.getOrNull(p + 1)?.let { wordAt(it) } == "por") {
+                return actionWithin(elems, p + 2, 2)
+            }
+            // «y él un churrasco»: «él» (= «el») seguido de una cantidad no es un artículo.
+            if ((w == "el" || w == "ella") && elems.getOrNull(p + 1)?.let { it.kind == Kind.Q || it.kind == Kind.NUM } == true) {
+                return true
+            }
+            if (w in OTHER_PERSON_WORDS && elems[p].kind != Kind.FOOD) {
+                // «mi primo (se) pidió…»: sin «me/nos» de por medio (esos son de la persona).
+                for (k in p + 1..minOf(p + 4, elems.lastIndex)) {
+                    val x = wordAt(elems[k]) ?: continue
+                    if (x == "me" || x == "nos") return false
+                    if (x in OTHER_PERSON_VERBS) return true
+                    if (elems[k].kind == Kind.FOOD) return false
+                }
+            }
+            return false
+        }
+
+        private fun actionWithin(elems: List<Item>, from: Int, window: Int): Boolean {
+            for (k in from..minOf(from + window - 1, elems.lastIndex)) {
+                val x = wordAt(elems[k])
+                if (x != null && x in INTENT_ACTIONS) return true
+                if (elems[k].kind == Kind.FOOD) return false
+            }
+            return false
         }
 
         private fun formHint(baseIds: List<String>, excludedIds: List<String>): FoodFormV2? {
