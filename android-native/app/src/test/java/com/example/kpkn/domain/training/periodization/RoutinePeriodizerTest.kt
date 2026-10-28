@@ -267,4 +267,19 @@ class RoutinePeriodizerTest {
             }
         }
     }
+
+    @Test
+    fun no_week_of_a_heavy_mode_has_repeated_exercises_or_movement_families() {
+        val horizons = listOf(ProgramVariant.BLOCKS to Horizon.Weeks(6), ProgramVariant.PERIODIZED to Horizon.Weeks(12))
+        val problems = RoutinePeriodizer.HEAVY_MODES.flatMap { mode ->
+            listOf(RoutineLevel.NOVICE, RoutineLevel.INTERMEDIATE).flatMap { level ->
+                val request = s.request(s.gym, mode, level, dayCount = 3, minutes = 75)
+                val base = RoutineGenerator.generate(request).program
+                horizons.flatMap { (variant, horizon) ->
+                    slopOf("$mode $level $variant", RoutinePeriodizer.build(request, base, variant, horizon).program)
+                }
+            }
+        }
+        assertEquals(emptyList<String>(), problems)
+    }
 }
