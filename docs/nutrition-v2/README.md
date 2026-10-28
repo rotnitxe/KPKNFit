@@ -18,7 +18,7 @@ ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOC
 | F1b | Conceptos y alias en español por lotes («IA en la fábrica») | hecho: 1.652 conceptos, 22.425 alias (es/en/faltas), 2.068 fichas; rondas de datos R1-D (`b4cc06fe6`) y R2-D (`f6de40a13`) |
 | F2 | Parser v2 por léxico + gramática de enlaces, en sombra | hecho (`fc6d7c94b` + ronda 1 `fa14c0558`, `c5edc22d9`) |
 | F3 | Cantidad, estado y presentación (reconstitución) explícitos | hecho en el resolutor (fracciones, envases, reconstitución, estado y forma por defecto, preguntas materiales); los chips nuevos en la tarjeta quedan pendientes |
-| F5 | Integración, rendimiento, teléfono, fuentes y licencias | hecho: adaptador con la misma compuerta (`c5348ee10`), interruptor (apagado), Fuentes y licencias, assets; la QA en el emulador encontró que el paquete no se publicaba en el dispositivo (arreglado, N33); falta recorrerlo en el teléfono |
+| F5 | Integración, rendimiento, teléfono, fuentes y licencias | hecho: adaptador con la misma compuerta (`c5348ee10`), Fuentes y licencias, assets; la QA en el emulador encontró que el paquete no se publicaba en el dispositivo (arreglado, N33); QA en el Flip5 con arreglos N35–N44; desde el 28-oct v2 es el sistema, sin interruptor (N45), y «Buscar» usa v2 y el paquete (N46–N48, sin compilar todavía) |
 
 ## Decisiones
 
@@ -27,7 +27,7 @@ ACEPTA). Decisiones de la noche del 28-oct: [DECISIONES_NOCHE.md](DECISIONES_NOC
 | D1 | IA solo offline (al construir catálogo y examen), nunca en tiempo de ejecución. |
 | D2 | Catálogo como SQLite de solo lectura fuera de Room; puntero en `nutrition_catalog_publication` (Room 36, ya en master); una sola generación viva. |
 | D3 | USDA Branded fuera del APK salvo evidencia del examen. |
-| D4 | Parser v2 en sombra; v1 de respaldo; cambio de predeterminado solo con la regla A/B y visto bueno del usuario. |
+| D4 | Parser v2 en sombra; v1 de respaldo; cambio de predeterminado solo con la regla A/B y visto bueno del usuario. **Cumplida el 28-oct:** v2 ganó en TEST y el usuario decidió que es el sistema (N45); v1 queda solo como respaldo interno. |
 | D5 | es-CL como región principal; sinónimos AR/MX/PE/CO/ES. |
 | D6 | Del trabajo de Codex (`codex/nutrition-local-ai-20261024`, sin commitear) se copian piezas con atribución; su worktree no se toca. |
 | D7 | El historial nunca se recalcula (contrato v2). |

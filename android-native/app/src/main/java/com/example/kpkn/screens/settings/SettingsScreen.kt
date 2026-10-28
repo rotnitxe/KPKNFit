@@ -15,9 +15,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.Role
-import com.example.kpkn.ui.design.KpknSwitch
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,7 +34,6 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -258,13 +254,6 @@ fun SettingsScreen(
             item {
                 SettingsBlockTitle("Nutrición")
                 SettingsCard {
-                    SettingsSwitchRow(
-                        icon = Icons.Default.Restaurant,
-                        title = "Intérprete de comidas v2 (beta)",
-                        description = "Usa el vocabulario nuevo en español (1.600 alimentos y platos) para entender lo que escribes. Si no reconoce nada, usa el intérprete actual.",
-                        checked = trainingSettings.nutritionParserV2,
-                        onCheckedChange = { checked -> viewModel.update { it.copy(nutritionParserV2 = checked) } },
-                    )
                     SettingsActionRow(
                         icon = Icons.Default.Info,
                         title = "Fuentes y licencias de los datos",
@@ -539,23 +528,6 @@ private fun SettingsActionRow(icon: ImageVector, title: String, description: Str
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         TextButton(onClick = onClick) { Text(actionLabel, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) }
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(icon: ImageVector, title: String, description: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().toggleable(checked, role = Role.Switch, onValueChange = onCheckedChange).padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(23.dp))
-        Spacer(Modifier.size(12.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, fontWeight = FontWeight.Bold)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Spacer(Modifier.size(12.dp))
-        KpknSwitch(checked, null)
     }
 }
 

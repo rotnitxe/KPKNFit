@@ -371,22 +371,19 @@ fun FoodLoggerDrawer(
         // are read before the hop and every Compose state write happens after withContext returns.
         val contextBefore = detectedContext
         val currentMealType = mealType
-        // Modo sombra del intérprete v2: el ajuste se lee al empezar el análisis; si v2 no resuelve nada, se usa v1.
-        val useParserV2 = settings.nutritionParserV2
         val (resolvedContext, mergedTags) = withContext(Dispatchers.Default) {
-            val v2Tags = if (useParserV2) {
-                try {
-                    NutritionParserV2Holder.parser(appContext)?.let { parserV2 ->
-                        // v2 se midió con el texto tal como se escribió y tiene su propio normalizador (rawDescription ya pasó por el de v1).
-                        ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.verbatimDescription.ifBlank { parsed.rawDescription }), parserV2.catalog)
-                    }?.takeIf { candidate -> candidate.any { it.isResolved } }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Exception) {
-                    android.util.Log.w("FoodLoggerDrawer", "Intérprete v2 falló; se usa el actual", error)
-                    null
-                }
-            } else null
+            // El intérprete v2 es el sistema; el anterior solo responde si v2 no reconoce ninguna mención o falla (respaldo interno).
+            val v2Tags = try {
+                NutritionParserV2Holder.parser(appContext)?.let { parserV2 ->
+                    // v2 se midió con el texto tal como se escribió y tiene su propio normalizador (rawDescription ya pasó por el de v1).
+                    ResolvedTagAdapterV2.toResolvedTags(parserV2.parse(parsed.verbatimDescription.ifBlank { parsed.rawDescription }), parserV2.catalog)
+                }?.takeIf { candidate -> candidate.any { it.isResolved } }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("FoodLoggerDrawer", "Intérprete v2 falló; responde el anterior", error)
+                null
+            }
             val result = if (v2Tags != null) v2Tags to contextBefore
             else createTagResolver().resolveAll(parsed, contextBefore, currentMealType)
             val newTags = result.first
@@ -716,9 +713,9 @@ fun FoodLoggerDrawer(
         nutritionRepo.initFoodIndex()
     }
 
-    // Precarga el vocabulario del intérprete v2 (≈0,9 s la primera vez) al abrir el registro, no en el primer análisis.
-    LaunchedEffect(settings.nutritionParserV2) {
-        if (settings.nutritionParserV2) scope.launch { NutritionParserV2Holder.parser(appContext) }
+    // Precarga el vocabulario v2 y el índice de «Buscar» al abrir el registro (≈0,4 s la primera vez), no en el primer análisis ni en la primera búsqueda.
+    LaunchedEffect(Unit) {
+        nutritionRepo.prepareLoggerSearch()
     }
 
     // WP-U7 (C5): after process death the draft comes back from its seed without cards: interpret the last analyzed text
@@ -1257,9 +1254,9 @@ fun FoodLoggerDrawer(
         }
         val query = searchQuery
         searchJob = scope.launch {
-            // The repository applies the verified-nutrients and declared-identity filter BEFORE the limit (WP-S2), so all
-            // 15 rows are usable ones.
-            val results = nutritionRepo.searchFoodCandidates(query, limit = 15, loggerFilter = true)
+            // Vocabulario v2, lo propio y lo aprendido, el buscador anterior y los productos del paquete: todas las filas pasan
+            // el filtro del registro (nutrientes verificables e identidad declarada) antes del límite.
+            val results = nutritionRepo.searchLoggerCandidates(query, limit = 20)
                 .distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
             if (searchQuery == query) {
                 searchResults = results
@@ -1470,7 +1467,7 @@ fun FoodLoggerDrawer(
             delay(CORRECTION_SEARCH_DEBOUNCE_MS) // debounce: the next keystroke cancels this effect before it searches
             // The repository searches on IO; filtering and trimming its rows stays off the main thread too.
             suggestions = withContext(Dispatchers.Default) {
-                nutritionRepo.searchFoodCandidates(lookup, limit = 15, loggerFilter = true)
+                nutritionRepo.searchLoggerCandidates(lookup, limit = 15)
                     .filter { FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients) }
                     .take(5)
             }
