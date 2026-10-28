@@ -120,3 +120,12 @@ tras integrar Program Detail y coordinando con ella.
 Limpieza lista para hacer tras fusionar: import ProgramAnalyticsEngine (ProgramDetailScreen.kt:34),
 setMacrocycleRoadmapExpanded + macrocycleRoadmapExpanded (VM:949/101), exerciseTrainingMaxSummary/Missing
 (ExerciseTrainingMaxPanel.kt:34/42); exerciseCatalogSnapshot sí se usa en data/ (no tocar).
+
+### 28-oct (noche) — Registros v4 en marcha
+Inventario hecho (750a7a9c6: 60 sobra, 88 falta/difiere, 35 dudosos). Dudosos resueltos con la regla aprobada (patrón de la
+escena más cercana sin perder funciones; contradicciones: manda el dibujo salvo nota explícita); decisiones en los encargos.
+En paralelo desde 750a7a9c6: R-FS (comida + buscar; huella como hueco `footprint`), R-CR (crear programa), R-C
+(competencias; NO toca programdetail: la píldora «Planificar intentos» → c-plan la cableo yo). Reglas comunes:
+scratchpad `encargo_R_comun.md`. En cola por disco (2,6 GB por worktree + build): R-M (vitaminas y minerales, tras R-FS
+o en paralelo sin tocar el registro) y R-H (historias; tras R-C). H-D1 por defecto: la hoja nueva solo para las historias
+nuevas; programa y mes siguen con la hoja del lienzo v6 ya aprobada.
