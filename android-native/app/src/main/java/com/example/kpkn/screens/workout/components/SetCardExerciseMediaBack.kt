@@ -12,6 +12,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -20,6 +21,8 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import com.example.kpkn.screens.workout.toLiveNumberString
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -332,103 +335,110 @@ internal fun SetCardExerciseMediaBack(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        KpknModule(
+        // `mediaCard` del prototipo 02: «‹ Serie 3» y «Álbum»; la vista de la cámara con «Vídeo» / «Ficha», el disparador y la insignia; el
+        // resumen del análisis con «Abrir análisis ›» y, en el pie, «Revisar trayectoria y métricas». La vista expandida no cambia.
+        val compactFace = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+        val faceInset = if (compactFace) 15.dp else 18.dp
+        val line = when {
+            captureError != null -> VisualModeAnalysisLine(
+                "${captureError.orEmpty()} · reintentar", "reintentar", VisualModeAnalysisAction.RETRY,
+            )
+            videoAnalysis != null -> visualModeAnalysisLine(videoAnalysis.state, setIndex).let { full ->
+                // `.v2-media-summary` del prototipo: «Analizando…», «Requiere revisión» o «8 completas · 2 parciales»; el detalle va en
+                // «Abrir análisis ›». Reintentar sigue en la propia línea.
+                mediaRef02SummaryText(videoAnalysis.state)?.let { short -> full.copy(text = short) } ?: full
+            }
+            else -> VisualModeAnalysisLine(saveLine)
+        }
+        val openAnalysis: (() -> Unit)? = videoAnalysis?.let { analysis ->
+            onOpenAnalysis?.let { open -> { open(analysis.mediaId) } }
+        }
+        val onLineAction: (() -> Unit)? = when {
+            captureError != null -> onRetryPendingCaptures
+            line.action == VisualModeAnalysisAction.RETRY -> onRetryAnalysis?.let { retry -> { retry(videoAnalysis!!.mediaId) } }
+            else -> null
+        }
+        val faceShape = RoundedCornerShape(25.dp)
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .testTag(MediaFaceTag)
-                .onGloballyPositioned { faceBounds = it.boundsInRoot() },
-            contentPadding = PaddingValues(10.dp),
+                .onGloballyPositioned { faceBounds = it.boundsInRoot() }
+                .clip(faceShape)
+                .background(Color(0xFF111111))
+                .border(1.dp, Color(0x0BFFFFFF), faceShape),
         ) {
-            // Cabecera: volver a «Serie N», el icono del álbum y «Expandir».
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                Modifier.weight(1f).fillMaxWidth()
+                    .padding(start = faceInset, end = faceInset, top = if (compactFace) 9.dp else 13.dp),
             ) {
-                MediaFacePill(
-                    text = "Serie ${setIndex + 1}",
-                    leading = {
-                        Icon(
-                            KpknLineIcons.ChevronLeft,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = WizardColors.text,
-                        )
-                    },
-                    onClick = onFlipBack,
-                    description = "Volver a la serie",
-                )
-                Box(modifier = Modifier.weight(1f))
-                WorkoutCameraSwitchButton(cameraChoice, !recording, { mediaCapture?.switchCamera() })
-                if (mediaCapture != null || showControlsWithoutCamera) {
-                    MediaFaceIconButton(
-                        description = "Álbum",
-                        onClick = { showAlbum = true },
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(if (compactFace) 27.dp else 29.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(
+                        Modifier.heightIn(min = 30.dp).clickable(role = Role.Button, onClick = onFlipBack)
+                            .semantics { contentDescription = "Volver a la serie" }.testTag("media_back"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Icon(
-                            Icons.Default.Collections,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = WizardColors.text,
-                        )
+                        Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(14.dp), tint = WizardColors.text)
+                        Text("Serie ${setIndex + 1}", style = mediaRef02Body(11.sp), color = WizardColors.text)
                     }
-                    Box(modifier = Modifier.width(6.dp))
+                    Box(Modifier.weight(1f))
+                    WorkoutCameraSwitchButton(cameraChoice, !recording, { mediaCapture?.switchCamera() })
+                    if (mediaCapture != null || showControlsWithoutCamera) {
+                        Box(
+                            Modifier.heightIn(min = 30.dp).clickable(role = Role.Button) { showAlbum = true }
+                                .padding(horizontal = 4.dp).testTag("media_album"),
+                            contentAlignment = Alignment.Center,
+                        ) { Text("Álbum", style = mediaRef02Body(11.sp), color = MediaRef02Muted) }
+                    }
                 }
-                // Con la letra muy grande «Expandir» queda solo con su icono para que la cabecera no se parta.
-                MediaFacePill(
-                    text = if (fontScale > 1.15f) null else "Expandir",
-                    leading = { ExpandGlyph(expand = true) },
-                    onClick = { openExpanded() },
-                    description = "Expandir",
-                    modifier = Modifier.testTag("media_expand"),
+                Stage(
+                    stageModifier = Modifier.weight(1f).fillMaxWidth().padding(top = 8.dp),
+                    compact = true,
+                    showPreview = !expanded,
                 )
+                // `.v2-media-summary`: lo que dice el análisis y «Abrir análisis ›».
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 42.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(9.dp),
+                ) {
+                    Text(
+                        line.text,
+                        Modifier.weight(1f)
+                            .then(if (onLineAction != null) Modifier.clickable(role = Role.Button, onClick = onLineAction) else Modifier)
+                            .testTag("media_analysis_line"),
+                        style = mediaRef02Body(9.sp),
+                        color = if (captureError != null) WizardColors.danger else MediaRef02Muted,
+                    )
+                    if (openAnalysis != null) {
+                        Row(
+                            Modifier.heightIn(min = 32.dp).clickable(role = Role.Button, onClick = openAnalysis).testTag("media_open_analysis"),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("Abrir análisis", style = mediaRef02Body(10.sp), color = WizardColors.text)
+                            Icon(KpknLineIcons.ChevronRight, null, Modifier.size(13.dp), tint = WizardColors.text)
+                        }
+                    }
+                }
             }
-            Box(modifier = Modifier.height(8.dp))
-            Stage(
-                stageModifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                compact = true,
-                showPreview = !expanded,
-            )
-            Box(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Box(
+                Modifier.fillMaxWidth().heightIn(min = if (compactFace) 51.dp else 57.dp)
+                    .padding(start = faceInset, end = faceInset, top = if (compactFace) 4.dp else 6.dp, bottom = if (compactFace) 9.dp else 12.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                if (techniqueRes != null) {
-                    Image(
-                        painter = painterResource(techniqueRes),
-                        contentDescription = "Foto de técnica de ${exercise.name}",
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(KpknSurface.inset),
-                        contentScale = ContentScale.Fit,
-                    )
-                }
-                val line = when {
-                    captureError != null -> VisualModeAnalysisLine(
-                        "${captureError.orEmpty()} · reintentar", "reintentar", VisualModeAnalysisAction.RETRY,
-                    )
-                    videoAnalysis != null -> visualModeAnalysisLine(videoAnalysis.state, setIndex)
-                    else -> VisualModeAnalysisLine(saveLine)
-                }
-                val onLineAction: (() -> Unit)? = when {
-                    captureError != null -> onRetryPendingCaptures
-                    line.action == VisualModeAnalysisAction.OPEN -> onOpenAnalysis?.let { open -> { open(videoAnalysis!!.mediaId) } }
-                    line.action == VisualModeAnalysisAction.RETRY -> onRetryAnalysis?.let { retry -> { retry(videoAnalysis!!.mediaId) } }
-                    else -> null
-                }
-                MediaAnalysisLine(
-                    line = line,
-                    onAction = onLineAction,
-                    color = when {
-                        captureError != null -> WizardColors.danger
-                        videoAnalysis?.state is SetVideoAnalysisState.Unsupported -> WizardColors.textFaint
-                        else -> WizardColors.textMuted
-                    },
-                    modifier = Modifier.weight(1f),
+                RestRef02Button(
+                    "Revisar trayectoria y métricas",
+                    { openAnalysis?.invoke() },
+                    primary = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = KpknLineIcons.Route,
+                    tag = "media_review_analysis",
+                    enabled = openAnalysis != null,
                 )
             }
         }
@@ -447,6 +457,27 @@ internal fun SetCardExerciseMediaBack(
                             stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording)
                         }
                     },
+                    onOpenAlbum = if (mediaCapture != null) ({ showAlbum = true }) else null,
+                    footer = if (techniqueOpen) null else ({
+                        // `.media-copy` + `.media-result`: la serie a la que se asocia la captura y lo que dice el análisis.
+                        Text(
+                            "Serie ${setIndex + 1} · ${weightKg?.let { it.toLiveNumberString() } ?: "—"} kg · ${reps?.toString() ?: "—"} reps",
+                            style = KpknType.caption.copy(fontSize = 12.sp), color = WizardColors.text,
+                        )
+                        Text("La captura queda asociada a esta serie.", style = KpknType.caption.copy(fontSize = 11.sp), color = WizardColors.textMuted)
+                        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                videoAnalysis?.let { visualModeAnalysisLine(it.state, setIndex).text } ?: "Sin análisis todavía",
+                                Modifier.weight(1f), style = KpknType.caption.copy(fontSize = 11.sp), color = Color(0xFFB9B5AE),
+                            )
+                            val analysis = videoAnalysis
+                            if (analysis != null && onOpenAnalysis != null) {
+                                Text("Ver análisis", Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) { onOpenAnalysis(analysis.mediaId) }
+                                    .padding(horizontal = 6.dp, vertical = 12.dp).testTag("media_expanded_analysis"),
+                                    style = KpknType.caption.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                            }
+                        }
+                    }),
                     stage = { stageModifier ->
                         if (techniqueOpen) TechniqueRecorderStage(
                             request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
@@ -719,9 +750,10 @@ private fun MediaStage(
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val shape = RoundedCornerShape(if (compact) 22.dp else 24.dp)
-    val shutterOuter = if (compact) 60.dp else 68.dp
-    val shutterInner = if (compact) 44.dp else 50.dp
+    // En la tarjeta, `.v2-media-preview`: radio 19, fondo #0d1015 y disparador de 49 centrado.
+    val shape = RoundedCornerShape(if (compact) 19.dp else 24.dp)
+    val shutterOuter = if (compact) 49.dp else 68.dp
+    val shutterInner = if (compact) 36.dp else 50.dp
     val thumbSize = if (compact) 36.dp else 44.dp
     val thumbTarget = 48.dp
     val maxThumbs = if (compact) 3 else 4
@@ -729,10 +761,12 @@ private fun MediaStage(
         modifier = modifier
             .testTag(if (compact) "media_stage_compact" else "media_stage_expanded")
             .clip(shape)
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0xFF2A2622), Color(0xFF121110)),
-                    center = Offset.Unspecified,
+            .then(
+                if (compact) Modifier.background(Color(0xFF0D1015)) else Modifier.background(
+                    Brush.radialGradient(
+                        colors = listOf(Color(0xFF2A2622), Color(0xFF121110)),
+                        center = Offset.Unspecified,
+                    ),
                 ),
             ),
     ) {
@@ -785,8 +819,16 @@ private fun MediaStage(
             }
         }
 
-        // Arriba a la izquierda: «Foto» y «Vídeo».
-        ModeSwitch(
+        // Arriba a la izquierda: «Foto» y «Vídeo» (en la tarjeta, un solo botón que alterna, como `.v2-media-top`).
+        if (compact) {
+            MediaRef02TopPill(
+                text = if (mode == MediaMode.VIDEO) "Vídeo" else "Foto",
+                description = if (mode == MediaMode.VIDEO) "Cambiar a foto" else "Cambiar a vídeo",
+                enabled = !recording,
+                onClick = { onModeChange(if (mode == MediaMode.VIDEO) MediaMode.PHOTO else MediaMode.VIDEO) },
+                modifier = Modifier.align(Alignment.TopStart).padding(10.dp).testTag("media_mode_toggle"),
+            )
+        } else ModeSwitch(
             mode = mode,
             onModeChange = onModeChange,
             enabled = !recording,
@@ -795,7 +837,13 @@ private fun MediaStage(
                 .padding(12.dp),
         )
         // Arriba a la derecha: «Ficha». Su zona táctil de 48 dp sobresale 8 dp de la píldora: sube 8 dp para quedar a la altura del selector.
-        MediaOverlayPill(
+        if (compact) MediaRef02TopPill(
+            text = "Ficha",
+            description = "Ficha del ejercicio",
+            enabled = true,
+            onClick = onFicha,
+            modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).testTag("media_ficha"),
+        ) else MediaOverlayPill(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 4.dp, end = 12.dp),
@@ -879,7 +927,15 @@ private fun MediaStage(
                 .padding(6.dp)
                 .testTag("media_thumb_strip")
         }
-        if (twoRows) {
+        // En la tarjeta no van la galería ni las miniaturas (`.v2-media-preview` del prototipo): el álbum está en la cabecera.
+        if (compact) {
+            Text(
+                if (recording) "Grabando" else if (cameraReady) "Cámara" else "Cámara inactiva",
+                modifier = Modifier.align(Alignment.BottomStart).padding(start = 11.dp, bottom = 14.dp).testTag("media_badge"),
+                style = mediaRef02Body(8.sp),
+                color = Color(0xB0FFFFFF),
+            )
+        } else if (twoRows) {
             Column(modifier = groupModifier) {
                 if (galleryEnabled || shown.isNotEmpty()) {
                     Row(
@@ -915,9 +971,13 @@ private fun MediaStage(
             outer = shutterOuter,
             inner = shutterInner,
             onClick = onShutter,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 14.dp),
+            modifier = if (compact) {
+                Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
+            } else {
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 14.dp)
+            },
         )
     }
 }
@@ -1146,6 +1206,10 @@ internal fun ExpandedMediaOverlay(
     stage: @Composable (Modifier) -> Unit,
     foldRequested: Boolean = false,
     beforeFold: suspend () -> Unit = {},
+    /** «Álbum» junto al plegado (prototipo 02, `media`). */
+    onOpenAlbum: (() -> Unit)? = null,
+    /** Debajo del escenario: la línea de la serie y el resultado del análisis (`.media-copy` y `.media-result`). */
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val reduced = wizardReducedMotion()
     val density = LocalDensity.current
@@ -1215,9 +1279,17 @@ internal fun ExpandedMediaOverlay(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(title, modifier = Modifier.fillMaxWidth(), style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(title, modifier = Modifier.fillMaxWidth(), style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display, fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp, lineHeight = 24.sp), color = WizardColors.text)
                     if (subtitle.isNotBlank()) {
-                        Text(subtitle, modifier = Modifier.fillMaxWidth(), style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(subtitle, modifier = Modifier.fillMaxWidth(), style = KpknType.caption, color = WizardColors.textMuted)
+                    }
+                }
+                onOpenAlbum?.let { openAlbum ->
+                    Box(Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClick = openAlbum).padding(horizontal = 8.dp)
+                        .testTag("media_expanded_album"), contentAlignment = Alignment.Center) {
+                        Text("Álbum", style = KpknType.caption.copy(fontSize = 12.sp), color = Color(0xFFB9B5AE))
                     }
                 }
                 val interaction = remember { MutableInteractionSource() }
@@ -1242,8 +1314,16 @@ internal fun ExpandedMediaOverlay(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp, bottom = if (footer != null) 4.dp else 8.dp),
             )
+            footer?.let { content ->
+                Column(Modifier.fillMaxWidth().graphicsLayer { alpha = p }.padding(start = 14.dp, end = 14.dp, bottom = 12.dp)) {
+                    content()
+                    // Pie del visor (prototipo 02): «Volver al registro» pliega a la tarjeta, como Atrás.
+                    RestRef02Button("Volver al registro", fold, primary = false, modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        tag = "media_expanded_back")
+                }
+            }
         }
     }
 }
@@ -1255,4 +1335,40 @@ private fun DisposableEffectTracker() {
         KpknModalTracker.onOpened()
         onDispose { KpknModalTracker.onClosed() }
     }
+}
+
+private val MediaRef02Muted = Color(0xFFB9B5AE)
+
+private fun mediaRef02Body(size: androidx.compose.ui.unit.TextUnit) =
+    androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body, fontSize = size)
+
+/** `.v2-media-top > button`: píldora de radio 9 sobre la imagen, fondo #111 al 80 % y texto de 10. */
+@Composable
+private fun MediaRef02TopPill(text: String, description: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .heightIn(min = 30.dp)
+            .clip(RoundedCornerShape(9.dp))
+            .background(Color(0xCC111111))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description }
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) { Text(text, style = mediaRef02Body(10.sp), color = WizardColors.text) }
+}
+
+/** El resumen corto del análisis en la tarjeta (prototipo 02); null cuando la línea completa dice algo que hace falta leer. */
+private fun mediaRef02SummaryText(state: com.example.kpkn.screens.workout.SetVideoAnalysisState): String? = when (state) {
+    is com.example.kpkn.screens.workout.SetVideoAnalysisState.Analyzing -> "Analizando…"
+    com.example.kpkn.screens.workout.SetVideoAnalysisState.Inconclusive -> "Requiere revisión"
+    is com.example.kpkn.screens.workout.SetVideoAnalysisState.Suggest -> when (state.confidence) {
+        com.example.kpkn.domain.biomechanics.metrics.CountConfidence.BAJA -> "Requiere revisión"
+        com.example.kpkn.domain.biomechanics.metrics.CountConfidence.MEDIA -> "≈ ${state.reps} completas · revisar"
+        com.example.kpkn.domain.biomechanics.metrics.CountConfidence.ALTA ->
+            "${state.reps} ${if (state.reps == 1) "completa" else "completas"}" +
+                (if (state.partials > 0) " · ${state.partials} ${if (state.partials == 1) "parcial" else "parciales"}" else "")
+    }
+    is com.example.kpkn.screens.workout.SetVideoAnalysisState.Mismatch ->
+        if (state.confidence == com.example.kpkn.domain.biomechanics.metrics.CountConfidence.BAJA) "Requiere revisión" else null
+    else -> null
 }

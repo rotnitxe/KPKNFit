@@ -20,7 +20,7 @@ class MfpPlateCardTest {
         var state by mutableStateOf("plates")
         rule.setContent { KPKNTheme { MfpTrainingPreview.Myo(state) } }
         rule.waitUntil(20_000) { rule.onAllNodesWithTag("load-plate-label",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertTextContains("por lado: 25 + 10 + 5")
+        rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertContentDescriptionEquals("por lado: 25 + 10 + 5")
         val before=rule.onNodeWithTag("set_execution_card",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.height
         rule.runOnIdle { state="no_inventory" }
         rule.waitForIdle()
@@ -35,8 +35,9 @@ class MfpPlateCardTest {
     }
     @Test fun reversoIdentificaMyoSinConfundirLaExplicacionConRestPauseNormal() {
         rule.setContent { KPKNTheme { MfpTrainingPreview.Myo("myo_back") } }
-        rule.onNodeWithText("ASÍ SE VE MYO-REPS").assertExists()
-        assertTrue(rule.onAllNodesWithText("Mini 1").fetchSemanticsNodes().isNotEmpty())
+        rule.onNodeWithTag("technique-tab-3",useUnmergedTree=true).assertIsSelected()
+        rule.onNodeWithTag("technique-tab-2",useUnmergedTree=true).assertIsNotSelected()
+        assertTrue(rule.onAllNodesWithText("tramos",substring=true,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty())
     }
 
 }

@@ -5,303 +5,404 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.*
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.kpkn.data.workout.RestGameRecordStore
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.workout.RestGameEngine
 import com.example.kpkn.screens.workout.RestNextSetSummary
-import com.example.kpkn.ui.design.KpknCompactPill
-import com.example.kpkn.ui.design.KpknSetFormat
-import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSetFormat
 import kotlin.math.abs
-import kotlin.math.sin
 import kotlin.random.Random
 
-internal enum class RestArcadeMode(val label: String, val hint: String) {
-    RUNNER("Salta las mancuernas", "Obstáculos, hoyos y suplementos"),
-    FLAPPY("Entre las pesas", "Encuentra el hueco y mantén el vuelo"),
-    SHOOTER("Escuadrón retro", "Esquiva las ráfagas y abre paso"),
+internal enum class RestArcadeMode(val label: String, val hint: String, val key: String) {
+    RUNNER("Salta las mancuernas", "Salto con altura variable, doble salto con tiza, «¡Justo!» al rozar y racha que multiplica.", "runner"),
+    FLAPPY("Entre las pesas", "Impulsos suaves y huecos que respiran contigo: el fondo marca inhala/exhala. Pasar por el centro encadena «Perfecto».", "flappy"),
+    SHOOTER("Escuadrón retro", "Nave que sigues con el dedo sin taparla, oleadas con patrón, jefe cada cuatro y potenciadores.", "shooter"),
 }
 
-/** Rest is supplied by the controller; selecting/restarting a game cannot mutate that clock. */
+private val ArcadeInk = GameInk
+private val ArcadeBody = TextStyle(fontFamily = WizardFonts.body)
+private val ArcadeSyne = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold)
+
+/**
+ * Juegos del descanso (iteración 03, aprobada). Arriba, siempre, el reloj del descanso (`.gtop`: anillo, tiempo, «siguiente», −15 /
+ * pausa / +15); el descanso manda: en pausa congela la partida y al llegar a cero la congela con «Volver a la serie» o «Seguir jugando ·
+ * cuenta como extra». El selector enseña cada juego con su vista previa animada, su descripción y «Récord N · 3 vidas».
+ */
 @Composable
 internal fun RestArcade(
     remainingSeconds: Int, totalSeconds: Int, nextSet: RestNextSetSummary?,
     onBack: () -> Unit, onSkip: () -> Unit, modifier: Modifier = Modifier,
-    recordStore: RestGameRecordStore? = null, runner: RestGameEngine? = null,
+    recordStore: RestGameRecordStore? = null,
+    @Suppress("UNUSED_PARAMETER") runner: RestGameEngine? = null,
     running: Boolean = true, compact: Boolean = false,
+    isPaused: Boolean = !running,
+    onDecrease: (() -> Unit)? = null,
+    onTogglePause: (() -> Unit)? = null,
+    onIncrease: (() -> Unit)? = null,
 ) {
     var mode by remember { mutableStateOf<RestArcadeMode?>(null) }
-    var round by remember { mutableIntStateOf(0) }
-    val reduced = wizardReducedMotion()
-    var started by remember(mode, round) { mutableStateOf(!reduced) }
-    val game = runner ?: remember(round) { RestGameEngine() }
-    Column(
-        modifier.fillMaxSize().then(if (compact) Modifier else Modifier.statusBarsPadding().navigationBarsPadding())
-            .padding(horizontal = if (compact) 14.dp else 20.dp)
-            .padding(top = if (compact) 10.dp else 20.dp, bottom = if (compact) 10.dp else 22.dp),
-        verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 16.dp),
-    ) {
-        RestArcadeHeader(mode, remainingSeconds, totalSeconds, compact) { if (mode == null) onBack() else mode = null }
-        // Same controller values as the rest surface; this rail has no clock/deadline owner.
-        Box(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0xFF1B1B1B))) {
-            val progress = ((totalSeconds - remainingSeconds.coerceAtLeast(0)).toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
-            Box(Modifier.fillMaxWidth(progress).fillMaxHeight().background(Brush.horizontalGradient(listOf(ArcadeBlue, ArcadePeach))))
-        }
-        if (mode == null) {
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val gap = if (compact) 9.dp else 12.dp
-                // CSS flex:1/min-height/overflow:auto from the approved picker, including card-sized hosts.
-                val tileHeight = ((maxHeight - gap * 2) / 3).coerceAtLeast(if (compact) 110.dp else 128.dp)
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(gap)) {
-                    RestArcadeMode.entries.forEach { choice ->
-                        val shape = RoundedCornerShape(24.dp)
-                        Row(
-                            Modifier.fillMaxWidth().heightIn(min = tileHeight).clip(shape).background(Color(0xFF111111))
-                                .border(1.dp, ArcadeInk.copy(alpha = .09f), shape)
-                                .clickable(role = Role.Button) { mode = choice }
-                                .padding(if (compact) 14.dp else 18.dp).testTag("rest-game-${choice.name.lowercase()}"),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        ) {
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(choice.label, style = KpknType.title.copy(fontSize = if (compact) 18.sp else 20.sp,
-                                    lineHeight = if (compact) 22.sp else 24.sp), color = ArcadeInk)
-                                Text(choice.hint, style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 18.sp), color = ArcadeInk.copy(alpha = .55f))
-                            }
-                            RestArcadePickerArt(choice)
-                        }
-                    }
-                }
-            }
-            RestArcadeReferenceButton("Volver al descanso", onBack, Modifier.fillMaxWidth().testTag("arcade-return-rest"))
+    var keepPlaying by remember { mutableStateOf(false) }
+    val over = remainingSeconds <= 0
+    val nextText = nextSet?.let { next -> (next.exerciseName?.let { "$it · " } ?: "") + next.headline() }
+    Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 9.dp)) {
+        RestGameTop(
+            remainingSeconds = remainingSeconds,
+            totalSeconds = totalSeconds,
+            subtitle = when {
+                over -> "Descanso cumplido · tiempo extra"
+                isPaused -> "Descanso en pausa · el juego también"
+                nextText != null -> "Descanso · siguiente: $nextText"
+                else -> "Descanso"
+            },
+            isPaused = isPaused,
+            onBack = { if (mode == null) onBack() else mode = null },
+            onDecrease = onDecrease?.takeIf { !over },
+            onTogglePause = onTogglePause,
+            onIncrease = onIncrease?.takeIf { !over },
+        )
+        val chosen = mode
+        if (chosen == null) {
+            RestGamePicker(recordStore, compact, Modifier.weight(1f)) { mode = it }
+            if (compact) RestRef02Button("Volver al descanso", onBack, primary = false, modifier = Modifier.fillMaxWidth(), tag = "arcade-return-rest")
         } else {
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                key(mode, round) {
-                    if (mode == RestArcadeMode.RUNNER) RestGameArena(game, recordStore, Modifier.fillMaxSize(), running && started)
-                    else RestFlightArena(mode!!, Modifier.fillMaxSize(), running && started)
-                }
-                if (!started) KpknCompactPill("Empezar", onClick = { started = true }, filled = true, modifier = Modifier.align(Alignment.Center))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RestArcadeReferenceButton("Reiniciar juego", { game.reset(); round++ }, Modifier.weight(1f).testTag("rest-game-restart"))
-                RestArcadeReferenceButton("Otro juego", { mode = null }, Modifier.weight(1f))
-            }
-            if (!compact && nextSet != null) Text("Después · ${nextSet.headline()}", style = KpknType.caption, color = ArcadeInk.copy(alpha = .55f))
-            // The picker has one return action, as in the reference. In a running game retain the
-            // existing skip callback alongside a short return label so neither action is truncated.
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RestArcadeReferenceButton("Saltar descanso", onSkip, Modifier.weight(1f))
-                RestArcadeReferenceButton("Volver", onBack, Modifier.weight(1f).testTag("arcade-return-rest"))
+            key(chosen) {
+                RestGamePlay(
+                    mode = chosen,
+                    recordStore = recordStore,
+                    paused = isPaused,
+                    restOver = over && !keepPlaying,
+                    nextText = nextText,
+                    onBackToSet = onSkip,
+                    onKeepPlaying = { keepPlaying = true },
+                    onClose = { mode = null },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
             }
         }
     }
 }
 
+/** `.gtop`: el reloj del descanso, que manda sobre el juego. */
 @Composable
-private fun RestArcadeHeader(mode: RestArcadeMode?, remainingSeconds: Int, totalSeconds: Int, compact: Boolean, onBack: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF111111))
-            .border(1.dp, ArcadeInk.copy(alpha = .1f), CircleShape)
-            .clickable(role = Role.Button, onClickLabel = "Volver", onClick = onBack)
-            .semantics { contentDescription = "Volver" }, contentAlignment = Alignment.Center) {
-            Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(18.dp), tint = ArcadeInk)
+private fun RestGameTop(
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    subtitle: String,
+    isPaused: Boolean,
+    onBack: () -> Unit,
+    onDecrease: (() -> Unit)?,
+    onTogglePause: (() -> Unit)?,
+    onIncrease: (() -> Unit)?,
+) {
+    val shape = RoundedCornerShape(29.dp)
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 58.dp).clip(shape)
+            .background(Brush.linearGradient(listOf(Color(0xC2333333), Color(0xB3212121))))
+            .border(1.dp, Color(0x24FFFFFF), shape)
+            .semantics { contentDescription = "Descanso" }
+            .padding(start = 2.dp, end = 6.dp).testTag("arcade-rest-top"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(Modifier.size(width = 30.dp, height = 44.dp).clickable(role = Role.Button, onClick = onBack)
+            .semantics { contentDescription = "Volver" }.testTag("arcade-back"), contentAlignment = Alignment.Center) {
+            Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(15.dp), tint = ArcadeInk)
+        }
+        val fraction = if (remainingSeconds <= 0) 0f else (remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
+        Canvas(Modifier.size(44.dp)) {
+            val r = 19.dp.toPx()
+            val stroke = 3.dp.toPx()
+            val topLeft = Offset(center.x - r, center.y - r)
+            drawCircle(Color(0x14FFFFFF), r, center, style = Stroke(stroke))
+            drawArc(ArcadeInk, -90f, 360f * fraction, false, topLeft, Size(r * 2, r * 2), style = Stroke(stroke, cap = StrokeCap.Round))
         }
         Column(Modifier.weight(1f)) {
-            Text(mode?.label ?: "Jugar mientras descansas", style = KpknType.bodyStrong.copy(fontSize = 15.sp),
-                color = ArcadeInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (mode != null && !compact) Text("El descanso sigue corriendo", style = KpknType.caption.copy(fontSize = 12.sp), color = ArcadeInk.copy(alpha = .58f))
-        }
-        Column(horizontalAlignment = Alignment.End) {
             Text((if (remainingSeconds < 0) "+" else "") + KpknSetFormat.rest(abs(remainingSeconds)),
-                style = KpknType.metricM.copy(fontSize = 25.sp, lineHeight = 29.sp, letterSpacing = (-1).sp),
-                color = ArcadeInk, modifier = Modifier.testTag("arcade-rest-clock"))
-            Text((if (remainingSeconds < 0) "sobre " else "de ") + KpknSetFormat.rest(totalSeconds.coerceAtLeast(1)) +
-                if (remainingSeconds < 0) "" else " · sugerido",
-                style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 12.sp), color = ArcadeInk.copy(alpha = .5f))
+                style = ArcadeSyne.copy(fontSize = 18.sp, lineHeight = 23.sp, fontFeatureSettings = "'tnum' 1"), color = ArcadeInk,
+                modifier = Modifier.testTag("arcade-rest-clock"))
+            Text(subtitle, style = ArcadeBody.copy(fontSize = 10.sp, lineHeight = 13.sp), color = LiveSheetTokens.Faint)
         }
-    }
-}
-
-/** Neutral 44 dp action from recovery.css; wrapping is allowed at larger system font sizes. */
-@Composable
-private fun RestArcadeReferenceButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(24.dp)
-    Box(modifier.heightIn(min = 44.dp).clip(shape).background(Color(0xFF111111))
-        .border(1.dp, ArcadeInk.copy(alpha = .12f), shape).clickable(role = Role.Button, onClick = onClick)
-        .padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
-        Text(text, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 19.sp), color = ArcadeInk,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-    }
-}
-
-private val ArcadeInk = Color(0xFFF2EEE6)
-private val ArcadeBlue = Color(0xFF8FB2FF)
-private val ArcadePeach = Color(0xFFF49A6E)
-
-/** Pure frame-stepped game: normalized coordinates, no timer/service/persistence ownership. */
-internal class RestFlightEngine(val mode: RestArcadeMode, private val random: Random = Random.Default) {
-    internal data class Gate(var x: Float, val y: Float, var scored: Boolean = false)
-    internal data class Ship(var x: Float, var y: Float, var hp: Int = 2)
-    internal data class Shot(var x: Float, var y: Float, val hostile: Boolean)
-    var playerX = 74f; private set
-    var playerY = 210f; private set
-    var velocity = 0f; private set
-    var lives = 3; private set
-    var score = 0; private set
-    var elapsed = 0f; private set
-    private var immune = 0f
-    private var spawn = 0f
-    private var fire = 0f
-    private var hostileFire = 0f
-    val gates = mutableListOf<Gate>()
-    val ships = mutableListOf<Ship>()
-    val shots = mutableListOf<Shot>()
-    val ended get() = lives <= 0
-    fun flap() { if (!ended) velocity = -190f }
-    fun steer(x: Float, y: Float) { playerX = x.coerceIn(18f, 342f); playerY = y.coerceIn(225f, 395f) }
-    private fun hit() {
-        if (immune > 0f || ended) return
-        lives--; immune = 1.3f
-        if (mode == RestArcadeMode.FLAPPY) { playerY = 210f; velocity = -90f }
-    }
-    fun step(seconds: Float) {
-        if (ended) return
-        val dt = seconds.coerceIn(0f, .04f)
-        if (dt == 0f) return
-        elapsed += dt; immune = (immune - dt).coerceAtLeast(0f); spawn -= dt
-        if (mode == RestArcadeMode.FLAPPY) {
-            velocity += 460f * dt; playerY += velocity * dt
-            if (playerY < 14f || playerY > 404f) hit()
-            val speed = (100f + elapsed * 1.5f).coerceAtMost(180f)
-            val halfGap = (68f - elapsed * .16f).coerceAtLeast(48f)
-            if (spawn <= 0f) { gates += Gate(390f, 115f + random.nextFloat() * 190f); spawn = 1.85f }
-            gates.forEach {
-                it.x -= speed * dt
-                if (it.x < playerX + 11f && it.x + 36f > playerX - 11f && abs(playerY - it.y) + 10f > halfGap) hit()
-                if (!it.scored && it.x + 36f < playerX) { it.scored = true; score++ }
-            }
-            gates.removeAll { it.x < -40f }
-        } else {
-            if (elapsed <= dt) { playerX = 180f; playerY = 362f }
-            fire -= dt; hostileFire -= dt
-            if (fire <= 0f) { shots += Shot(playerX, playerY - 18f, false); fire = .23f }
-            if (spawn <= 0f) { ships += Ship(25f + random.nextFloat() * 310f, -15f); spawn = (1.05f - elapsed * .008f).coerceAtLeast(.35f) }
-            if (hostileFire <= 0f) { ships.forEach { shots += Shot(it.x, it.y + 12f, true) }; hostileFire = 1.5f }
-            ships.forEach {
-                it.y += (46f + elapsed * .6f).coerceAtMost(105f) * dt
-                it.x = (it.x + sin(elapsed * 1.6f + it.y * .02f) * 18f * dt).coerceIn(16f, 344f)
-                if (abs(it.x - playerX) < 21f && abs(it.y - playerY) < 23f) { hit(); it.hp = 0 }
-                if (it.y > 430f) { hit(); it.hp = 0 }
-            }
-            shots.forEach { shot ->
-                shot.y += (if (shot.hostile) 155f else -280f) * dt
-                if (shot.hostile) {
-                    if (abs(shot.x - playerX) < 13f && abs(shot.y - playerY) < 18f) { hit(); shot.y = 500f }
-                } else {
-                    val target = ships.firstOrNull { it.hp > 0 && abs(it.x - shot.x) < 17f && abs(it.y - shot.y) < 18f }
-                    if (target != null) { target.hp--; shot.y = -100f; if (target.hp == 0) score += 10 }
-                }
-            }
-            ships.removeAll { it.hp <= 0 }
-            shots.removeAll { it.y < -20f || it.y > 440f }
-        }
+        GameTopButton("−15", "Quitar 15 segundos", onDecrease, "arcade-rest-minus")
+        GameTopButton(null, if (isPaused) "Reanudar descanso" else "Pausar descanso", onTogglePause, "arcade-rest-pause",
+            icon = if (isPaused) KpknLineIcons.Play else KpknLineIcons.Pause)
+        GameTopButton("+15", "Añadir 15 segundos", onIncrease, "arcade-rest-plus")
     }
 }
 
 @Composable
-private fun RestFlightArena(mode: RestArcadeMode, modifier: Modifier, running: Boolean) {
-    val engine = remember(mode) { RestFlightEngine(mode) }
-    var frame by remember { mutableLongStateOf(0L) }
-    var hudScore by remember { mutableIntStateOf(0) }
-    var hudLives by remember { mutableIntStateOf(3) }
+private fun GameTopButton(text: String?, description: String, onClick: (() -> Unit)?, tag: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
+    Box(
+        Modifier.size(44.dp).clickable(enabled = onClick != null, role = Role.Button) { onClick?.invoke() }
+            .semantics { contentDescription = description }.testTag(tag),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0x0DFFFFFF)), contentAlignment = Alignment.Center) {
+            val ink = ArcadeInk.copy(alpha = if (onClick != null) 1f else .35f)
+            if (icon != null) Icon(icon, null, Modifier.size(13.dp), tint = ink)
+            else Text(text.orEmpty(), style = ArcadeBody.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold), color = ink)
+        }
+    }
+}
+
+/** `.picker`: tres tarjetas con la vista previa animada, el nombre, la descripción y «Récord N · 3 vidas»; el pie recuerda la regla. */
+@Composable
+private fun RestGamePicker(recordStore: RestGameRecordStore?, compact: Boolean, modifier: Modifier, onPick: (RestArcadeMode) -> Unit) {
+    val reduced = wizardReducedMotion()
+    var clock by remember { mutableFloatStateOf(0f) }
     val owner = LocalLifecycleOwner.current
-    LaunchedEffect(engine, owner, running) {
-        if (!running) return@LaunchedEffect
+    LaunchedEffect(owner, reduced) {
+        if (reduced) return@LaunchedEffect
         owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             var last = 0L
-            while (!engine.ended) withInfiniteAnimationFrameNanos { now ->
-                engine.step(if (last == 0L) 0f else (now - last) / 1_000_000_000f)
-                last = now; frame = now
-                if (hudScore != engine.score) hudScore = engine.score
-                if (hudLives != engine.lives) hudLives = engine.lives
+            while (true) withInfiniteAnimationFrameNanos { now ->
+                if (last != 0L) clock += (now - last) / 1_000_000_000f
+                last = now
             }
         }
     }
-    Box(modifier.clip(RoundedCornerShape(26.dp)).background(Color(0xFF0E0E0E)).border(1.dp, ArcadeInk.copy(alpha = .1f), RoundedCornerShape(26.dp))) {
-        Canvas(Modifier.fillMaxSize().testTag("flight-arena").semantics {
-            contentDescription = if (mode == RestArcadeMode.FLAPPY) "Tocar para volar" else "Arrastrar avión para esquivar y disparar"
-            if (mode == RestArcadeMode.FLAPPY) { role = Role.Button; onClick { engine.flap(); true } }
-        }.pointerInput(mode) {
-            if (mode == RestArcadeMode.FLAPPY) detectTapGestures { engine.flap() }
-            else detectDragGestures(onDragStart = { engine.steer(it.x / size.width * 360f, it.y / size.height * 420f) }) { change, _ ->
-                change.consume(); engine.steer(change.position.x / size.width * 360f, change.position.y / size.height * 420f)
-            }
-        }) {
-            @Suppress("UNUSED_VARIABLE") val tick = frame
-            val sx = size.width / 360f; val sy = size.height / 420f
-            for (n in 0..22) {
-                val x = ((n * 73) % 360).toFloat(); val y = (n * 37f + engine.elapsed * 12f) % 420f
-                drawCircle(ArcadeInk.copy(alpha = .16f), 1f, Offset(x * sx, y * sy))
-            }
-            if (mode == RestArcadeMode.FLAPPY) {
-                val gap = (68f - engine.elapsed * .16f).coerceAtLeast(48f)
-                engine.gates.forEach {
-                    drawRect(ArcadeBlue.copy(alpha = .65f), Offset(it.x * sx, 0f), Size(36f * sx, (it.y - gap) * sy))
-                    drawRect(ArcadeBlue.copy(alpha = .65f), Offset(it.x * sx, (it.y + gap) * sy), Size(36f * sx, (420f - it.y - gap) * sy))
+    Column(modifier.fillMaxWidth().padding(top = 2.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        RestArcadeMode.entries.forEach { game ->
+            val shape = RoundedCornerShape(22.dp)
+            Row(
+                Modifier.fillMaxWidth().clip(shape).background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), shape)
+                    .clickable(role = Role.Button) { onPick(game) }.padding(13.dp).testTag("rest-game-${game.name.lowercase()}"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Canvas(Modifier.size(if (compact) 64.dp else 84.dp).clip(RoundedCornerShape(16.dp))) { drawGamePreview(game, clock) }
+                Column(Modifier.weight(1f)) {
+                    Text(game.label, style = ArcadeSyne.copy(fontSize = 16.sp, lineHeight = 21.sp), color = ArcadeInk)
+                    Text(game.hint, Modifier.padding(top = 5.dp), style = ArcadeBody.copy(fontSize = if (compact) 10.sp else 11.sp, lineHeight = 15.sp),
+                        color = LiveSheetTokens.Muted)
+                    Text("Récord ${restGameBest(recordStore, game).formatEs()} · 3 vidas", Modifier.padding(top = 6.dp),
+                        style = ArcadeBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint)
                 }
-                drawOval(ArcadePeach, Offset((engine.playerX - 13f) * sx, (engine.playerY - 9f) * sy), Size(26f * sx, 18f * sy))
-                drawCircle(ArcadeInk, 2f * sx, Offset((engine.playerX + 6f) * sx, (engine.playerY - 3f) * sy))
-                drawLine(ArcadeInk, Offset((engine.playerX - 8f) * sx, engine.playerY * sy), Offset((engine.playerX - 16f) * sx, (engine.playerY - 7f) * sy), 3f * sx)
-            } else {
-                fun plane(x: Float, y: Float, enemy: Boolean) {
-                    val direction = if (enemy) -1f else 1f
-                    val path = Path().apply {
-                        moveTo(x * sx, (y - 17f * direction) * sy)
-                        lineTo((x + 15f) * sx, (y + 10f * direction) * sy)
-                        lineTo(x * sx, (y + 5f * direction) * sy)
-                        lineTo((x - 15f) * sx, (y + 10f * direction) * sy); close()
-                    }
-                    drawPath(path, if (enemy) ArcadePeach else ArcadeBlue)
-                    drawPath(path, ArcadeInk.copy(alpha = .6f), style = Stroke(1f * sx))
-                }
-                engine.ships.forEach { plane(it.x, it.y, true) }
-                engine.shots.forEach { drawLine(if (it.hostile) ArcadePeach else ArcadeInk, Offset(it.x * sx, it.y * sy), Offset(it.x * sx, (it.y + 7f) * sy), 2f * sx) }
-                plane(engine.playerX, engine.playerY, false)
             }
         }
-        Text(if (mode == RestArcadeMode.FLAPPY) "Toca para volar" else "Arrastra tu avión · disparo automático",
-            style = KpknType.caption, color = ArcadeInk.copy(alpha = .55f), modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp))
-        // Read only primitive HUD values outside the draw phase.
-        Text("$hudScore   ·   ${"♥".repeat(hudLives.coerceAtLeast(0))}", style = KpknType.bodyStrong, color = ArcadeInk, modifier = Modifier.align(Alignment.TopStart).padding(16.dp))
-        if (hudLives <= 0) Text("Fin de partida", style = KpknType.title, color = ArcadeInk, modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = .8f)).padding(18.dp))
+        Box(Modifier.weight(1f))
+        Text("El descanso manda: al llegar a cero el juego se congela y vuelves a la serie.", Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            style = ArcadeBody.copy(fontSize = 10.5.sp, lineHeight = 15.sp), color = LiveSheetTokens.Faint, textAlign = TextAlign.Center)
     }
 }
+
+/** Una partida: el lienzo a todo el ancho, el HUD (puntos o récord y las vidas), la pista inicial y las capas de pausa y de fin. */
+@Composable
+private fun RestGamePlay(
+    mode: RestArcadeMode,
+    recordStore: RestGameRecordStore?,
+    paused: Boolean,
+    restOver: Boolean,
+    nextText: String?,
+    onBackToSet: () -> Unit,
+    onKeepPlaying: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier,
+) {
+    val reduced = wizardReducedMotion()
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    var round by remember { mutableIntStateOf(0) }
+    var areaPx by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+    val world = remember(mode, round, areaPx) {
+        if (areaPx.width <= 0 || areaPx.height <= 0) null
+        else newArcadeWorld(mode, areaPx.width / density.density, areaPx.height / density.density, restGameBest(recordStore, mode), reduced)
+    }
+    var finished by remember(mode, round) { mutableStateOf(false) }
+    var finalScore by remember(mode, round) { mutableIntStateOf(0) }
+    var touched by remember(mode, round) { mutableStateOf(false) }
+    var frame by remember { mutableLongStateOf(0L) }
+    val frozen = paused || restOver
+    val frozenNow by rememberUpdatedState(frozen)
+    val owner = LocalLifecycleOwner.current
+    LaunchedEffect(world, owner) {
+        val game = world ?: return@LaunchedEffect
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            var last = 0L
+            while (!finished) withInfiniteAnimationFrameNanos { now ->
+                val dt = if (last == 0L) 0f else ((now - last) / 1_000_000_000f).coerceAtMost(.033f)
+                last = now
+                if (!frozenNow && dt > 0f && game.update(dt)) {
+                    finished = true
+                    finalScore = game.score
+                    restGameSubmit(recordStore, mode, game.score)
+                }
+                frame = now
+            }
+        }
+    }
+    Box(
+        modifier.clip(RoundedCornerShape(18.dp)).background(Color.Black).border(1.dp, Color(0x12FFFFFF), RoundedCornerShape(18.dp))
+            .onSizeChanged { areaPx = it },
+    ) {
+        Canvas(
+            Modifier.fillMaxSize().testTag("rest-game-canvas-${mode.key}")
+                .semantics { contentDescription = "${mode.label}. ${world?.hint.orEmpty()}" }
+                .pointerInput(world, frozen, finished) {
+                    val game = world ?: return@pointerInput
+                    if (frozen || finished) return@pointerInput
+                    awaitEachGesture {
+                        val down = awaitFirstDown()
+                        touched = true
+                        game.press(down.position.x / density.density, down.position.y / density.density)
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (!change.pressed) break
+                            game.move(change.position.x / density.density, change.position.y / density.density)
+                            change.consume()
+                        }
+                        game.release()
+                    }
+                },
+        ) {
+            @Suppress("UNUSED_VARIABLE") val tick = frame
+            val game = world ?: return@Canvas
+            val shake = game.shake
+            translate(if (shake > 0f) (Random.nextFloat() * 2f - 1f) * shake * density.density else 0f,
+                if (shake > 0f) (Random.nextFloat() * 2f - 1f) * shake * density.density else 0f) {
+                scaleToDp { game.draw(this, textMeasurer) }
+            }
+            if (frozen && !finished) drawRect(Color(0xAA000000))
+        }
+        world?.let { game ->
+            @Suppress("UNUSED_VARIABLE") val tick = frame
+            // `.ghud`: puntos (y la racha, el jefe… o el récord) a la izquierda y las tres vidas a la derecha.
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp).testTag("rest-game-hud"),
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(game.score.formatEs(), style = ArcadeSyne.copy(fontSize = 16.sp, lineHeight = 21.sp), color = ArcadeInk)
+                    Text(game.extra().ifBlank { "Récord ${game.best.formatEs()}" }, style = ArcadeBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint)
+                }
+                Row(Modifier.semantics { contentDescription = "${game.lives.coerceAtLeast(0)} vidas" }, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(3) { i ->
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(if (i < game.lives) ArcadeInk else Color(0x22FFFFFF)))
+                    }
+                }
+            }
+            // `.gmsg`: la pista hasta el primer toque y «En pausa» mientras el descanso está parado.
+            val message = when {
+                paused && !finished -> "En pausa" to "El descanso está en pausa; el juego también."
+                !touched && !finished && !restOver -> null to game.hint
+                else -> null
+            }
+            message?.let { (title, body) ->
+                Column(Modifier.align(Alignment.Center).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    title?.let { Text(it, style = ArcadeSyne.copy(fontSize = 18.sp, lineHeight = 23.sp), color = ArcadeInk) }
+                    Text(body, Modifier.padding(top = 6.dp), style = ArcadeBody.copy(fontSize = 12.sp, lineHeight = 17.sp), color = LiveSheetTokens.Muted,
+                        textAlign = TextAlign.Center)
+                }
+            }
+        }
+        when {
+            finished -> GameOverlay(
+                eyebrow = "FIN DE LA PARTIDA",
+                title = finalScore.formatEs(),
+                body = "Récord ${restGameBest(recordStore, mode).formatEs()}. El descanso sigue corriendo arriba; reiniciar la partida no lo toca.",
+                primary = "Otra partida" to { round++; Unit },
+                secondary = "Cerrar juego" to onClose,
+                tag = "rest-game-over",
+            )
+            restOver -> GameOverlay(
+                eyebrow = "DESCANSO TERMINADO",
+                title = "Siguiente serie",
+                body = listOfNotNull(nextText, "Tu partida queda congelada con ${(world?.score ?: 0).formatEs()} puntos.").joinToString(". "),
+                primary = "Volver a la serie" to onBackToSet,
+                secondary = "Seguir jugando · cuenta como extra" to onKeepPlaying,
+                tag = "rest-game-rest-over",
+                primaryIcon = KpknLineIcons.Play,
+            )
+        }
+    }
+}
+
+/** `.gover`: velo con desenfoque, el rótulo, la cifra o el título en Syne, el texto y las dos salidas. */
+@Composable
+private fun GameOverlay(
+    eyebrow: String,
+    title: String,
+    body: String,
+    primary: Pair<String, () -> Unit>,
+    secondary: Pair<String, () -> Unit>,
+    tag: String,
+    primaryIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+) {
+    Column(
+        Modifier.fillMaxSize().background(Color(0xCC000000))
+            .clickable(remember { MutableInteractionSource() }, indication = null) {}
+            .padding(horizontal = 30.dp).testTag(tag),
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(eyebrow, style = ArcadeBody.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
+        Text(title, style = ArcadeSyne.copy(fontSize = 25.sp, lineHeight = 33.sp), color = ArcadeInk, textAlign = TextAlign.Center)
+        Text(body, Modifier.padding(bottom = 10.dp), style = ArcadeBody.copy(fontSize = 12.5.sp, lineHeight = 18.sp), color = LiveSheetTokens.Muted,
+            textAlign = TextAlign.Center)
+        RestRef02Button(primary.first, primary.second, primary = true, modifier = Modifier.width(220.dp), icon = primaryIcon, tag = "$tag-primary")
+        RestRef02Button(secondary.first, secondary.second, primary = false, modifier = Modifier.width(220.dp), tag = "$tag-secondary")
+    }
+}
+
+private fun restGameBest(store: RestGameRecordStore?, mode: RestArcadeMode): Int = store?.best(mode.key) ?: 0
+
+private fun restGameSubmit(store: RestGameRecordStore?, mode: RestArcadeMode, score: Int) {
+    store?.submit(mode.key, score)
+}
+
+private fun Int.formatEs(): String = java.text.NumberFormat.getIntegerInstance(java.util.Locale.forLanguageTag("es")).format(this)

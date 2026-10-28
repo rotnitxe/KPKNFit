@@ -194,7 +194,7 @@ class Revision14VisualDeviceTest {
                     rule.onNodeWithTag("rest-game-runner", useUnmergedTree = true)
                         .performTouchInput { click(center) }
                     settle()
-                    rule.onNodeWithTag("rest-game-restart", useUnmergedTree = true).assertIsDisplayed()
+                    rule.onNodeWithTag("rest-game-canvas-runner", useUnmergedTree = true).assertIsDisplayed()
                     rule.onNodeWithTag("arcade-rest-clock", useUnmergedTree = true).assertTextEquals("2:38")
                     capture("14-runner-after-physical-tap")
                 }

@@ -19,7 +19,18 @@ class RestGameRecordStore(private val prefs: SharedPreferences) {
         return true
     }
 
+    /** Récord de cada juego del descanso (iteración 03): «runner», «flappy» o «shooter». */
+    fun best(game: String): Int = prefs.getInt(KEY_GAME_PREFIX + game, 0).coerceAtLeast(0)
+
+    /** Guarda [score] como récord de [game] si lo supera. Devuelve `true` si lo superó. */
+    fun submit(game: String, score: Int): Boolean {
+        if (score <= best(game)) return false
+        prefs.edit().putInt(KEY_GAME_PREFIX + game, score).apply()
+        return true
+    }
+
     companion object {
+        const val KEY_GAME_PREFIX = "best_v3_"
         const val FILE_NAME = "rest_game"
         const val KEY_BEST = "best_jumps"
 

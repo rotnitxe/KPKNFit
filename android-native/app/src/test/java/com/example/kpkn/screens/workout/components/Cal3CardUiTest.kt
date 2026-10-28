@@ -33,27 +33,26 @@ class Cal3CardUiTest {
     @Test fun fullWalkthroughAt740() = Cal3CardContract(rule).walkthrough(740, output)
     @Test fun raise880() = state(cal3Fixture(), "raise")
     @Test fun raise740LargeText() = state(cal3Fixture(), "raise", 740, 1.3f)
-    @Test fun hold880() { state(cal3Fixture(reference = 94.3), "hold"); rule.onNodeWithText("Mantener las cargas").assertIsDisplayed() }
+    @Test fun hold880() { state(cal3Fixture(reference = 94.3), "hold"); rule.onNodeWithText("Propuesta para S2, S3, S4", substring = true).assertIsDisplayed() }
     @Test fun hold740() = state(cal3Fixture(reference = 94.3), "hold", 740)
-    @Test fun lower880() { state(cal3Fixture(weight = 60.0, rir = 0), "lower"); rule.onNodeWithText("Bajar las cargas").assertIsDisplayed() }
+    @Test fun lower880() { state(cal3Fixture(weight = 60.0, rir = 0), "lower"); rule.onNodeWithText("Propuesta para S2, S3, S4", substring = true).assertIsDisplayed() }
     @Test fun lower740() = state(cal3Fixture(weight = 60.0, rir = 0), "lower", 740)
-    @Test fun firstReference880() { state(cal3Fixture(reference = null), "first"); rule.onNodeWithText("Primera referencia").assertIsDisplayed() }
+    @Test fun firstReference880() { state(cal3Fixture(reference = null), "first"); rule.onNodeWithText("Propuesta para S2, S3, S4", substring = true).assertIsDisplayed() }
     @Test fun firstReference740() = state(cal3Fixture(reference = null), "first", 740)
     @Test fun noEffort880() { state(cal3Fixture(rir = null), "no-effort"); rule.onNodeWithTag("calibration-apply").assertDoesNotExist() }
     @Test fun noEffort740() = state(cal3Fixture(rir = null), "no-effort", 740)
-    @Test fun future880() { state(cal3Fixture(scope = CalibrationScope.NEXT_SESSIONS), "future"); rule.onNodeWithText("Guardar propuesta").assertIsDisplayed() }
+    @Test fun future880() { state(cal3Fixture(scope = CalibrationScope.NEXT_SESSIONS), "future"); rule.onNodeWithTag("calibration-apply").assertContentDescriptionEquals("Guardar propuesta") }
     @Test fun future740() = state(cal3Fixture(scope = CalibrationScope.NEXT_SESSIONS), "future", 740)
     @Test fun normalAmrapShowsMinimumAndRealNoRuleEffect() {
         val contract = Cal3CardContract(rule)
         contract.show(cal3Fixture(), 740, normalAmrap = true)
-        rule.onNodeWithText("Mínimo superado · 10/6 reps").assertIsDisplayed()
-        rule.onNodeWithText("Registrado en tu historial y récords").assertIsDisplayed()
+        rule.onNodeWithText("Mínimo superado · 10/6").assertIsDisplayed()
         rule.onNodeWithText("Sin regla de progresión: queda registrado").assertIsDisplayed()
         contract.assertFrame()
     }
     @Test fun normalAmrapNeverClampsAShortSetToItsMinimum() {
         Cal3CardContract(rule).show(cal3Fixture(reps = 5), 740, normalAmrap = true)
-        rule.onNodeWithText("Mínimo no alcanzado · 5/6 reps").assertIsDisplayed()
+        rule.onNodeWithText("Mínimo no alcanzado · 5/6").assertIsDisplayed()
     }
     @Test fun appliedLoadsRemainMarkedOnTheLineAt740WithLargeText() {
         val f = cal3Fixture()

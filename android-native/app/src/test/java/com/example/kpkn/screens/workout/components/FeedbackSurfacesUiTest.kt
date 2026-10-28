@@ -12,14 +12,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -66,7 +71,7 @@ class FeedbackSurfacesUiTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private val nbsp = "\u00A0"
+    private val nbsp = " "
     private val day = 24L * 60L * 60L * 1000L
     private val nowMs = 1_792_152_000_000L // 16-oct-2026
 
@@ -125,9 +130,25 @@ class FeedbackSurfacesUiTest {
             java.time.Instant.ofEpochMilli(nowMs)),
     )
 
+    /** La fila «Molestias» del feedback abre la hoja «Molestias del ejercicio» (buscador, chips destacados y avisos del motor). */
+    private fun openDiscomfortSheet() {
+        rule.onNodeWithTag("rest-feedback-discomforts").performClick()
+        rule.waitForIdle()
+    }
+
+    /** «Listo» cierra la hoja con una animación breve: se espera a que salga de la pantalla antes de seguir. */
+    private fun closeDiscomfortSheet() {
+        rule.onNodeWithText("Listo").performClick()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTag("rest-discomforts-sheet").fetchSemanticsNodes().isEmpty() }
+    }
+
     private fun openFromSearch(query: String, label: String) {
+        openDiscomfortSheet()
         rule.onNode(hasSetTextAction()).performTextInput(query)
-        rule.onNode(hasText(label) and hasClickAction()).performClick()
+        rule.waitForIdle()
+        // El último nodo es el de la hoja (se pinta encima): con una molestia elegida, la fila «Molestias» también la nombra.
+        val matches = rule.onAllNodes(hasText(label) and hasClickAction())
+        matches[matches.fetchSemanticsNodes().size - 1].performClick()
         rule.waitForIdle()
     }
 
@@ -136,9 +157,9 @@ class FeedbackSurfacesUiTest {
     @Test
     fun thePanelAsksHowItWentAndNoLongerAsksHowIntenseItWas() {
         panel()
-        rule.onNodeWithText("¿Cómo te salió?").assertExists()
-        rule.onNodeWithText("CALIDAD TÉCNICA").assertExists()
-        rule.onNodeWithText("¿ALGUNA MOLESTIA?").assertExists()
+        rule.onNodeWithText("EJERCICIO TERMINADO").assertExists()
+        rule.onNodeWithText("Calidad técnica").assertExists()
+        rule.onNodeWithTag("rest-feedback-discomforts").assertExists()
         rule.onNodeWithText("Guardar feedback").assertExists()
         // Sin planificar intensidad el panel de antes preguntaba esto; ahora el RIR/RPE se anota en cada serie.
         rule.onAllNodesWithText("Qué tan intenso fue", ignoreCase = true).assertCountEquals(0)
@@ -150,11 +171,11 @@ class FeedbackSurfacesUiTest {
     fun theTechniqueStartsAtEightAndIsSavedFromTheSlider() {
         val saved = mutableListOf<List<PostExerciseFeedback>>()
         panel(onSave = { saved += it })
-        rule.onNodeWithText("/ 10 · limpia").assertExists()
+        rule.onNodeWithTag("rest-feedback-quality-sq").assertTextEquals("8/10")
         rule.onNodeWithContentDescription("Calidad técnica")
             .performSemanticsAction(SemanticsActions.SetProgress) { it(5f) }
         rule.waitForIdle()
-        rule.onNodeWithText("/ 10 · aceptable").assertExists()
+        rule.onNodeWithTag("rest-feedback-quality-sq").assertTextEquals("5/10")
         rule.onNodeWithText("Guardar feedback").performClick()
         val feedback = saved.single().single()
         assertEquals("sq", feedback.exerciseId)
@@ -167,6 +188,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun highlightedChipsContainOnlyPreviouslyReportedZones() {
         panel(insights=FeedbackInsights(reported=listOf(ReportedDiscomfort("hip_front",lastReportedAtMs=nowMs-3*day))))
+        openDiscomfortSheet()
         rule.onNode(hasText("Cadera anterior · la reportaste el",substring=true)).assertExists()
         rule.onAllNodesWithText("Frecuentes en",substring=true).assertCountEquals(0)
         rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
@@ -176,6 +198,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun withoutAnythingFromTheEngineThereAreNoHighlightedChipsAndNoNotice() {
         panel()
+        openDiscomfortSheet()
         rule.onAllNodesWithText("Frecuentes en", substring = true).assertCountEquals(0)
         rule.onAllNodesWithText("Esta semana llevas", substring = true).assertCountEquals(0)
         rule.onNodeWithText("Escribe para buscar la zona que molesta.").assertExists()
@@ -184,6 +207,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun reportedHistoryDoesNotCreateAPercentageOrLoadNotice() {
         panel(insights=FeedbackInsights(reported=listOf(ReportedDiscomfort("knee_patellar",lastReportedAtMs=nowMs-3*day))))
+        openDiscomfortSheet()
         rule.onNode(hasText("Rodilla anterior · la reportaste el",substring=true)).assertExists()
         rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
         rule.onAllNodesWithText("Baja el volumen",substring=true).assertCountEquals(0)
@@ -192,6 +216,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun theFriendlySearchFindsTheKneeEvenWithATypo() {
         panel()
+        openDiscomfortSheet()
         rule.onNode(hasSetTextAction()).performTextInput("rodila")
         rule.waitForIdle()
         rule.onNodeWithText("Rodilla anterior").assertExists()
@@ -201,6 +226,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun theSearchSaysSoWhenNothingMatches() {
         panel()
+        openDiscomfortSheet()
         rule.onNode(hasSetTextAction()).performTextInput("zzzz")
         rule.waitForIdle()
         rule.onNode(hasText("No se encontraron resultados", substring = true)).assertExists()
@@ -238,6 +264,8 @@ class FeedbackSurfacesUiTest {
         rule.onNodeWithText("Reportar molestia").performClick()
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Quitar").assertExists()
+        // La hoja de molestias sigue abierta sobre el feedback: se cierra con «Listo» antes de guardar.
+        closeDiscomfortSheet()
         rule.onNodeWithText("Guardar feedback").performClick()
         val feedback=saved.single().single()
         assertEquals(listOf("knee_patellar"),feedback.discomfortIds)
@@ -313,28 +341,28 @@ class FeedbackSurfacesUiTest {
                 draft = draft,
                 save = {},
                 insights = FeedbackInsights(
-                    
                     reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
-                    
                 ),
                 onDefer = { skips++ },
                 onExpand = { expands++ },
             ),
         )
-        rule.onNodeWithText("2:41").assertExists()
-        rule.onNodeWithText("de 4:09").assertExists()
-        rule.onNodeWithText("TÉCNICA").assertExists()
-        rule.onNodeWithText("¿ALGUNA MOLESTIA?").assertExists()
-        // Lo reportado antes y lo frecuente van en una sola fila, sin el rótulo «Frecuentes en…» (la tarjeta no tiene sitio).
-        rule.onNode(hasText("Cadera anterior · ", substring = true)).assertExists()
-        rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
-        rule.onAllNodesWithText("Frecuentes en", substring = true).assertCountEquals(0)
-        rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
+        rule.onNodeWithText("2:41 · DESCANSO").assertExists()
+        rule.onNodeWithText("Calidad técnica").assertExists()
+        rule.onNodeWithTag("rest-feedback-discomforts").assertExists()
         rule.onNodeWithText("Guardar feedback").assertExists()
         rule.onNodeWithText("Ahora no").performClick()
         assertEquals(1, skips)
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         assertEquals(1, expands)
+        // Lo reportado antes y lo frecuente van en la hoja «Molestias del ejercicio» (la tarjeta solo muestra la fila de molestias).
+        openDiscomfortSheet()
+        rule.onNodeWithText("Molestias del ejercicio").assertExists()
+        rule.onNodeWithText("¿ALGUNA MOLESTIA?").assertExists()
+        rule.onNode(hasText("Cadera anterior · ", substring = true)).assertExists()
+        rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
+        rule.onAllNodesWithText("Frecuentes en", substring = true).assertCountEquals(0)
+        rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
     }
 
     @Test
@@ -374,8 +402,10 @@ class FeedbackSurfacesUiTest {
         rule.runOnIdle { draft.select("lumbar") }
         rule.waitForIdle()
         assertEquals(4, draft.technical("sq"))
-        rule.onAllNodesWithText("/ 10 · irregular").assertCountEquals(1)
-        rule.onAllNodesWithText("4 / 10 · irregular").assertCountEquals(1)
+        rule.onAllNodesWithTag("rest-feedback-quality-sq").assertCountEquals(2)
+        rule.onAllNodesWithTag("rest-feedback-quality-sq")[0].assertTextEquals("4/10")
+        rule.onAllNodesWithTag("rest-feedback-quality-sq")[1].assertTextEquals("4/10")
+        // La fila «Molestias» muestra la zona corta de la molestia elegida (como el prototipo), en la tarjeta y en el panel.
         rule.onAllNodesWithText("Lumbar").assertCountEquals(2)
         // «Guardar» de la tarjeta y «Guardar» de la pantalla completa guardan exactamente lo mismo.
         val buttons = rule.onAllNodesWithText("Guardar feedback")

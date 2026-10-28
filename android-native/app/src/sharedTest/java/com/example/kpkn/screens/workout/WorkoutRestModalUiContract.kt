@@ -3,8 +3,13 @@ package com.example.kpkn.screens.workout
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -51,10 +56,12 @@ abstract class WorkoutRestModalUiContract {
             }
         }
 
-        composeRule.onNodeWithText("DESCANSO").assertExists()
-        composeRule.onNodeWithText("ÚLTIMA SERIE").assertExists()
-        composeRule.onNodeWithText("DESCANSO SUGERIDO").assertExists()
-        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
+        // Refinamiento 02: pantalla completa con eyebrow «PAUSA ENTRE SERIES», la última serie en su bloque y la fila del sugerido.
+        composeRule.onNodeWithTag("rest-full-eyebrow", useUnmergedTree = true).assertTextEquals("PAUSA ENTRE SERIES")
+        composeRule.onNodeWithText("ÚLTIMA", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithText("80 × 8", substring = true, useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithText("Descanso sugerido", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithContentDescription("Restar 15 segundos", useUnmergedTree = true).assertExists()
     }
 
     @Test
@@ -90,13 +97,16 @@ abstract class WorkoutRestModalUiContract {
             }
         }
 
-        composeRule.onNodeWithText("de 1:45 · manual").assertIsDisplayed()
-        composeRule.onNodeWithText("DESCANSO SUGERIDO").assertExists()
-        composeRule.onNodeWithText("Ajustar tiempo").assertExists()
-        composeRule.onNodeWithText("Terminar descanso").assertExists()
-        composeRule.onNodeWithContentDescription("Restar 15 segundos").performClick()
-        composeRule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
-        composeRule.onNodeWithText("Terminar descanso").performClick()
+        // Refinamiento 02: sin insignia «manual»; el tiempo está en el eclipse y los controles principales en pantalla completa.
+        composeRule.onNodeWithTag("rest-eclipse-clock", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("0:54")
+        composeRule.onNodeWithText("Descanso sugerido", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("rest-minus", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("rest-pause", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("rest-plus", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("rest-end", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithContentDescription("Restar 15 segundos", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithContentDescription("Sumar 15 segundos", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithText("Terminar descanso", useUnmergedTree = true).performClick()
         composeRule.runOnIdle { assertEquals(1, decreases); assertEquals(1, increases); assertEquals(1, skips) }
     }
 
@@ -123,10 +133,11 @@ abstract class WorkoutRestModalUiContract {
             }
         }
 
-        // Cabecera del feedback (LV6, F2): el ejercicio y «Ejercicio terminado · Descanso 0:42». El «Saltar descanso» lo pone el panel.
-        composeRule.onNodeWithText("Press banca").assertExists()
-        composeRule.onNodeWithText("Ejercicio terminado · Descanso 0:42").assertExists()
-        composeRule.onNodeWithText("Feedback post ejercicio").assertExists()
+        // Refinamiento 02: eyebrow «DESCANSO + FEEDBACK», el ejercicio, el reloj pequeño con «0:42» y el feedback en la misma superficie.
+        composeRule.onNodeWithTag("rest-full-eyebrow", useUnmergedTree = true).assertTextEquals("DESCANSO + FEEDBACK")
+        composeRule.onNodeWithText("Press banca", useUnmergedTree = true).assertExists()
+        composeRule.onNodeWithTag("rest-feedback-clock", useUnmergedTree = true).assert(hasAnyDescendant(hasText("0:42")))
+        composeRule.onNodeWithText("Feedback post ejercicio", useUnmergedTree = true).assertExists()
         composeRule.onAllNodesWithText("Saltar descanso").assertCountEquals(0)
     }
 }

@@ -1,5 +1,12 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -60,115 +67,51 @@ internal fun GuidedTechniquePanel(
     pauseSeconds: Int = RestPausePlanDefaults.PauseSeconds,
     targetRestReps: Int = RestPausePlanDefaults.Reps,
     loadMode: LoadModeV2 = LoadModeV2.LOAD,
+    /** «Principal: 100 kg × 8 · RIR 2» (`inline-note` de «Técnica en curso»). */
+    principal: String? = null,
 ) {
     var confirmSkipTechnique by remember { mutableStateOf(false) }
-    KpknModule(
-        modifier = modifier.fillMaxWidth(),
-        accent = accentColor,
-        contentPadding = PaddingValues(14.dp),
+    // «Técnica en curso» del prototipo 02: el panel de la hoja (#141513, radio 28) con el título en Syne, «Rest-pause · tramo 1 de 2», el
+    // reloj de la pausa en Syne 53 o los campos del tramo, la línea de la serie principal y «Terminar técnica con lo realizado». El tramo se
+    // registra con el ✓ de siempre.
+    val technique = when (phase) {
+        is GuidedTechniquePhase.DropSet -> "Drop-set"
+        else -> if (restPauseStyle == "myo") "Myo-reps" else "Rest-pause"
+    }
+    val (index, total) = when (phase) {
+        is GuidedTechniquePhase.DropSet -> phase.index to phase.total
+        is GuidedTechniquePhase.RestPauseCountdown -> phase.index to phase.total
+        is GuidedTechniquePhase.RestPauseReps -> phase.index to phase.total
+    }
+    Column(
+        modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(LiveSheetTokens.Panel)
+            .padding(start = 19.dp, end = 19.dp, top = 12.dp, bottom = 10.dp).testTag("guided-technique-sheet"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            when (phase) {
-                is GuidedTechniquePhase.DropSet -> {
-                    Text(
-                        "DROP-SET ${phase.index + 1}/${phase.total}",
-                        style = KpknType.eyebrow,
-                        color = accentColor,
-                    )
-                    Text(
-                        when (loadMode) {
-                            LoadModeV2.ASSISTED -> "Sin descanso. Aumenta la asistencia y completa ~${targetRestReps} reps."
-                            LoadModeV2.BODYWEIGHT -> "Sin descanso. Reduce la dificultad y completa ~${targetRestReps} reps."
-                            else -> "Sin descanso. Reduce la carga y completa ~${targetRestReps} reps."
-                        },
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        KpknTextField(
-                            value = dropWeightText,
-                            onValueChange = onDropWeightChange,
-                            label = if (loadMode == LoadModeV2.ASSISTED) "Asistencia sugerida" else "Peso sugerido",
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknTextField(
-                            value = dropRepsText,
-                            onValueChange = onDropRepsChange,
-                            label = "Repeticiones",
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    Text(
-                        "Sugerido: ${phase.suggestedWeight.toTrimmedNumberString()} kg para ~${targetRestReps} reps",
-                        style = KpknType.caption,
-                        color = WizardColors.textFaint,
-                    )
-                }
-
-                is GuidedTechniquePhase.RestPauseCountdown -> {
-                    Text(
-                        "${if(restPauseStyle == "myo") "MYO-REPS" else "REST-PAUSE"} ${phase.index + 1}/${phase.total}",
-                        style = KpknType.eyebrow,
-                        color = accentColor,
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            KpknLineIcons.Clock,
-                            contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(22.dp),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "${phase.secondsLeft} s",
-                            style = KpknType.metricL,
-                            color = WizardColors.text,
-                        )
-                    }
-                    KpknProgressBar(
-                        progress = phase.secondsLeft.toFloat() / pauseSeconds.coerceAtLeast(1).toFloat(),
-                        color = accentColor,
-                        trackColor = Color.White.copy(alpha = 0.08f),
-                        height = 6.dp,
-                    )
-                    Text(
-                        "Pausa fija de ${pauseSeconds} s. Luego harás ${targetRestReps} reps.",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                }
-
-                is GuidedTechniquePhase.RestPauseReps -> {
-                    Text(
-                        "${if(restPauseStyle == "myo") "MYO-REPS" else "REST-PAUSE"} ${phase.index + 1}/${phase.total}",
-                        style = KpknType.eyebrow,
-                        color = accentColor,
-                    )
-                    Text(
-                        "Confirma las ${targetRestReps} reps de esta mini-serie.",
-                        style = KpknType.caption,
-                        color = WizardColors.textMuted,
-                    )
-                    KpknTextField(
-                        value = restPauseRepsText,
-                        onValueChange = onRestPauseRepsChange,
-                        label = "Repeticiones",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+        Text("Técnica en curso", style = androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+            fontWeight = FontWeight.Bold, fontSize = 21.sp, letterSpacing = (-0.4).sp), color = WizardColors.text)
+        LiveSheetSubtitle("$technique · tramo ${index + 1} de $total")
+        when (phase) {
+            is GuidedTechniquePhase.RestPauseCountdown -> {
+                Text("${phase.secondsLeft} s", Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    style = androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+                        fontWeight = FontWeight.ExtraBold, fontSize = 53.sp, fontFeatureSettings = "'tnum' 1"),
+                    color = WizardColors.text, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                LiveSheetSubtitle("Pausa de $pauseSeconds s. Después podrás registrar el siguiente tramo.")
             }
-
-            GuidedSkipAction(
-                text = "Terminar técnica con lo realizado",
-                onClick = { confirmSkipTechnique = true },
-            )
+            is GuidedTechniquePhase.DropSet -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                LiveSheetLabeledField(if (loadMode == LoadModeV2.ASSISTED) "Asistencia · kg" else "Carga · kg", dropWeightText, onDropWeightChange,
+                    Modifier.weight(1f), keyboardType = KeyboardType.Decimal)
+                LiveSheetLabeledField("Repeticiones", dropRepsText, onDropRepsChange, Modifier.weight(1f), keyboardType = KeyboardType.Number)
+            }
+            is GuidedTechniquePhase.RestPauseReps ->
+                LiveSheetLabeledField("Repeticiones", restPauseRepsText, onRestPauseRepsChange, keyboardType = KeyboardType.Number)
         }
+        principal?.let { LiveSheetInlineNote("Principal: $it") }
+        GuidedSkipAction(
+            text = "Terminar técnica con lo realizado",
+            onClick = { confirmSkipTechnique = true },
+        )
     }
     if (confirmSkipTechnique) {
         // El cuerpo de KpknAlertDialog reparte los dos botones en una sola fila: con «Seguir con la técnica», el de confirmar se aplastaba

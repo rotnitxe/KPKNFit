@@ -155,6 +155,8 @@ internal class WorkoutStructureSheetsState {
     var showReplaceExercisePicker by mutableStateOf(false)
     var replaceTargetExerciseId by mutableStateOf<String?>(null)
     var replaceSearchQuery by mutableStateOf("")
+    /** «Abrir el catálogo completo» desde la hoja «Reemplazar ejercicio»: el pedido pasa al catálogo de siempre. */
+    var replaceUseFullCatalog by mutableStateOf(false)
     var showReplaceCardioPicker by mutableStateOf(false)
     var replaceCardioTargetExerciseId by mutableStateOf<String?>(null)
     var setupSheetExerciseId by mutableStateOf<String?>(null)
@@ -347,6 +349,7 @@ internal fun WorkoutStructureSheetsHost(
         state.showReplaceExercisePicker,
         state.replaceTargetExerciseId,
         state.replaceSearchQuery,
+        state.replaceUseFullCatalog,
     ) {
         val open = onOpenCatalog ?: return@LaunchedEffect
         val request = when {
@@ -388,7 +391,7 @@ internal fun WorkoutStructureSheetsHost(
                 state.createSupersetFromCatalogAnchorId = null
                 req
             }
-            state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> {
+            state.showReplaceExercisePicker && state.replaceTargetExerciseId != null && state.replaceUseFullCatalog -> {
                 val replaceTarget = modeSession.allExercises()
                     .firstOrNull { it.id == state.replaceTargetExerciseId }
                 val req = CatalogLaunchRequest(
@@ -406,6 +409,7 @@ internal fun WorkoutStructureSheetsHost(
                 state.showReplaceExercisePicker = false
                 state.replaceTargetExerciseId = null
                 state.replaceSearchQuery = ""
+                state.replaceUseFullCatalog = false
                 req
             }
             else -> null
@@ -930,7 +934,43 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    if (!useFullPageCatalog && state.showReplaceExercisePicker && state.replaceTargetExerciseId != null) {
+    // «Reemplazar ejercicio» del prototipo 02: una hoja con búsqueda y la revisión antes de aplicar (no la página del catálogo).
+    if (state.showReplaceExercisePicker && state.replaceTargetExerciseId != null && !state.replaceUseFullCatalog) {
+        val replaceTarget = visibleExercises.firstOrNull { it.id == state.replaceTargetExerciseId }
+        if (replaceTarget != null && replacePickerFor(replaceTarget) != ReplacePicker.CARDIO) {
+            val pending = pendingReplacementSets(replaceTarget, replaceTarget, uiState.completedSets, uiState.omittedSetKeys)
+            val catalog = remember { exerciseCatalogSnapshot() }
+            com.example.kpkn.screens.workout.components.LiveReplaceSheet(
+                target = com.example.kpkn.screens.workout.components.LiveReplaceTarget(
+                    name = displayWorkoutExerciseName(replaceTarget),
+                    catalogId = replaceTarget.catalogConfigurationId ?: replaceTarget.exerciseDbId,
+                    doneSets = replaceTarget.sets.indices.count { index ->
+                        replaceTarget.completionKeysForSet(index).any { it in uiState.completedSets }
+                    },
+                    pendingSets = pending.size,
+                    planSummary = replacementPlanSummary(replaceTarget.copy(sets = pending)),
+                    restSeconds = replaceTarget.restTime,
+                ),
+                catalog = catalog,
+                onApply = { info ->
+                    val targetId = state.replaceTargetExerciseId
+                    state.showReplaceExercisePicker = false
+                    state.replaceTargetExerciseId = null
+                    if (targetId != null) {
+                        viewModel.replaceExercise(exerciseId = targetId, replacement = info, deferPersistencePrompt = true)
+                        viewModel.revealReplacementPersistencePrompt(targetId)
+                    }
+                },
+                onOpenFullCatalog = { state.replaceUseFullCatalog = true },
+                onDismiss = {
+                    state.showReplaceExercisePicker = false
+                    state.replaceTargetExerciseId = null
+                },
+            )
+        }
+    }
+
+    if (!useFullPageCatalog && state.showReplaceExercisePicker && state.replaceTargetExerciseId != null && state.replaceUseFullCatalog) {
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         val replaceTarget = visibleExercises.firstOrNull { it.id == state.replaceTargetExerciseId }
@@ -939,6 +979,7 @@ internal fun WorkoutStructureSheetsHost(
             onDismissRequest = {
                 state.showReplaceExercisePicker = false
                 state.replaceTargetExerciseId = null
+                state.replaceUseFullCatalog = false
             },
             safeTopInset = true,
             maxHeightFraction = 1f,
@@ -954,6 +995,7 @@ internal fun WorkoutStructureSheetsHost(
                     if (target != null) {
                         state.showReplaceExercisePicker = false
                         state.replaceTargetExerciseId = null
+                        state.replaceUseFullCatalog = false
                         viewModel.replaceExercise(
                             exerciseId = target,
                             replacement = info,

@@ -620,14 +620,16 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
         CountConfidence.MEDIA -> repNotes.add("Revisa el conteo")
         CountConfidence.BAJA -> repNotes.add("Vídeo no concluyente")
     }
+    // Prototipo 02: «8 + 2 · completas + parciales» cuando las parciales tienen un número fiable.
+    val partialCount = report.partialReps.takeIf { it > 0 && report.partialConfidenceOrCount() == CountConfidence.ALTA }
     tiles.add(
         SummaryTileUi(
             id = SummaryTileId.REPS,
             label = "Repeticiones",
-            value = report.repCount.toString(),
+            value = if (partialCount != null) "${report.repCount} + $partialCount" else report.repCount.toString(),
             prefix = if (estimated) "≈ " else "",
-            countTo = report.repCount,
-            notes = repNotes,
+            countTo = if (partialCount != null) null else report.repCount,
+            notes = if (partialCount != null) listOf("completas + parciales") + repNotes.drop(1) else repNotes,
             confidence = report.confidence,
         ),
     )
@@ -637,10 +639,10 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
     if (MetricKey.TUT in report.available && tut != null && tut >= 0L) {
         val total = (tut / 1000.0).roundToInt()
         if (total < 100) {
-            tiles.add(SummaryTileUi(SummaryTileId.TUT, "TUT", value = total.toString(), unit = "s", countTo = total, notes = listOf("Tiempo bajo tensión")))
+            tiles.add(SummaryTileUi(SummaryTileId.TUT, "Tiempo bajo tensión", value = total.toString(), unit = "s", countTo = total, notes = listOf("en esta serie")))
         } else {
             val clock = "${total / 60}:${(total % 60).toString().padStart(2, '0')}"
-            tiles.add(SummaryTileUi(SummaryTileId.TUT, "TUT", value = clock, unit = "min", notes = listOf("Tiempo bajo tensión")))
+            tiles.add(SummaryTileUi(SummaryTileId.TUT, "Tiempo bajo tensión", value = clock, unit = "min", notes = listOf("en esta serie")))
         }
     }
 
@@ -674,7 +676,9 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
                 prefix = if (report.isOblique()) "≈ " else "",
                 suffix = "°",
                 countTo = if (report.isOblique()) null else rom.roundToInt(),
-                notes = if (sdText != null) listOf("± $sdText° entre repeticiones") else emptyList(),
+                // «estimado · vista lateral» del prototipo: el ángulo sale de la pose, y la vista dice cuánto fiarse.
+                notes = listOf(if (report.isOblique()) "estimado · vista oblicua" else "estimado · vista lateral") +
+                    (if (sdText != null) listOf("± $sdText° entre repeticiones") else emptyList()),
             ),
         )
     }
@@ -689,9 +693,10 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
                 id = SummaryTileId.VELOCITY_LOSS,
                 label = "Pérdida de velocidad",
                 value = pct.toString(),
+                prefix = "≈ ",
                 unit = "%",
-                countTo = pct,
-                notes = listOf("Entre la mejor y la última repetición"),
+                countTo = null,
+                notes = listOf("comparación relativa", "Entre la mejor y la última repetición"),
             ),
         )
     } else if (MetricKey.VELOCITY_RELATIVE in report.available) {

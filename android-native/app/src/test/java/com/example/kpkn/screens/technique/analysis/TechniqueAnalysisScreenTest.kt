@@ -237,7 +237,7 @@ class TechniqueAnalysisScreenTest {
     @Test
     fun analyzing_shows_the_title_the_percentage_and_the_bar() {
         content { AnalysisStatusModule(AnalysisStatusUi.Analyzing(progressPct = 42, updating = false, queued = false)) }
-        rule.onNodeWithText("Analizando el vídeo…").assertIsDisplayed()
+        rule.onNodeWithText("Analizando…").assertIsDisplayed()
         rule.onNodeWithContentDescription("42 %").assertIsDisplayed()
         rule.onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)).assertRangeInfoEquals(ProgressBarRangeInfo(0.42f, 0f..1f))
     }
@@ -437,8 +437,8 @@ class TechniqueAnalysisScreenTest {
         )
         screen(state, calls)
 
-        rule.onNodeWithText("Sentadilla trasera").assertIsDisplayed()
-        rule.onNodeWithText("Serie 3 · 80 kg × 8 · 13 oct").assertIsDisplayed()
+        // Prototipo 02: «Sentadilla · serie 3» en una sola línea de la cabecera.
+        rule.onNodeWithText("Sentadilla trasera · serie 3").assertIsDisplayed()
         // Trayectoria es la pestaña inicial: capas y repetición elegida con su ROM; el reproductor sigue arriba.
         rule.onNodeWithText("Trayectoria de barra").assertIsDisplayed()
         rule.onNodeWithText("Articulaciones").assertIsDisplayed()
@@ -534,7 +534,7 @@ class TechniqueAnalysisScreenTest {
     fun while_analyzing_there_are_no_results_and_no_menu() {
         val calls = Calls()
         screen(TechniqueSamples.statusUiState(AnalysisStatusUi.Analyzing(42, updating = false, queued = false)), calls)
-        rule.onNodeWithText("Analizando el vídeo…").assertIsDisplayed()
+        rule.onNodeWithText("Analizando…").assertIsDisplayed()
         rule.onNodeWithTag(ANALYSIS_SUMMARY_TAG).assertDoesNotExist()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_MENU_TAG).assertDoesNotExist()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_TRENDS_TAG).assertDoesNotExist()

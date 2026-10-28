@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.workout.technique.design
 
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,9 +39,36 @@ fun FramingChip(
     isFrontPreferred: Boolean = false,
     visualMode: Boolean = false,
     status: FramingCheckStatus = FramingCheckStatus.EVALUATED,
+    /** Con barra el visto bueno dice «Cuerpo y barra visibles»; sin ella, «Cuerpo visible». */
+    hasBarbell: Boolean = false,
 ) {
     val isOk = verdict.ok && status == FramingCheckStatus.EVALUATED
     val primaryIssue = verdict.issues.firstOrNull()
+    if (visualMode) {
+        // `.v2-framing-status` (prototipo 02): franja oscura de radio 11, icono ✓ o «i» y la frase completa de la guía.
+        val sentence = when {
+            status == FramingCheckStatus.UNAVAILABLE -> FramingInstruction.UNAVAILABLE_SPEECH
+            status == FramingCheckStatus.CHECKING -> FramingInstruction.CHECKING_SHORT
+            isOk -> if (hasBarbell) "Cuerpo y barra visibles" else "Cuerpo visible"
+            primaryIssue != null -> FramingInstruction.spoken(primaryIssue,
+                if (isFrontPreferred) com.example.kpkn.domain.biomechanics.kinematics.ViewKind.FRONT else com.example.kpkn.domain.biomechanics.kinematics.ViewKind.SIDE)
+            else -> FramingInstruction.CHECKING_SHORT
+        }
+        Row(
+            modifier = modifier.clip(androidx.compose.foundation.shape.RoundedCornerShape(11.dp)).background(Color(0xBB111111))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            androidx.compose.material3.Icon(
+                if (isOk) com.example.kpkn.ui.components.icons.KpknLineIcons.Check else com.example.kpkn.ui.components.icons.KpknLineIcons.Info,
+                null, Modifier.size(16.dp), tint = if (isOk) Color(0xFFD7E5D5) else WizardColors.text,
+            )
+            Text(text = sentence, fontSize = 10.sp, lineHeight = 14.sp, color = WizardColors.text,
+                fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body)
+        }
+        return
+    }
 
     val text = when {
         status == FramingCheckStatus.UNAVAILABLE -> FramingInstruction.UNAVAILABLE_SHORT

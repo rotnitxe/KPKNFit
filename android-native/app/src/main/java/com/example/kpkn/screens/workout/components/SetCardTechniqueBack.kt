@@ -1,5 +1,13 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.semantics.role
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -213,274 +221,284 @@ internal fun SetCardTechniqueBack(
     }
     val mainLabel = techniqueBlock(mainWeight, mainReps.toString())
 
-    KpknModule(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-        accent = if (isFailedSet) WizardColors.danger else null,
+    // Compacto según el alto real de la cara (la variante `.compact` del prototipo en el marco de 394).
+    val densityNow = LocalDensity.current
+    val frameCompact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+    var compactCard by remember(frameCompact) { mutableStateOf(frameCompact) }
+    val inset = if (compactCard) 15.dp else 18.dp
+    // El tramo que enseña el conmutador: 0 es la serie principal; 1…n, los drops o las pausas.
+    var segmentIndex by remember(currentSet.id) { mutableIntStateOf(0) }
+    var chainSheet by remember { mutableStateOf(false) }
+    var noteSheet by remember { mutableStateOf(false) }
+    var failureSheet by remember { mutableStateOf(false) }
+    val rows = when { dropEnabled -> dropRows; restPauseEnabled -> restPauseRows; else -> emptyList() }
+    val safeSegment = segmentIndex.coerceIn(0, rows.size)
+    // «Volver al registro» guarda la técnica en la serie (con sus tramos) y vuelve al frente; sin técnica, solo vuelve.
+    fun leave() {
+        val submitted = (dropEnabled || restPauseEnabled) && commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled) { drops, pauses ->
+            onCompleteTechniques(drops, if (myo) pauses.map { it.copy(style = "myo") } else pauses)
+        }
+        if (!submitted) onFlipBack()
+    }
+    fun addSegment() {
+        if (dropEnabled && dropRows.size < LiveDropSetMax) {
+            val nextIndex = dropRows.size
+            val suggested = nextDropWeightKg(mainWeight, mainReps, nextIndex, dropRows.lastOrNull()?.weightText, loadMode)
+            dropRows = dropRows + TechniqueCheckRow(weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
+                repsText = DropSetPlanDefaults.DropReps.toString())
+            segmentIndex = dropRows.size
+        } else if (restPauseEnabled && restPauseRows.size < RestPausePlanDefaults.MaxCount) {
+            restPauseRows = restPauseRows + TechniqueCheckRow(repsText = (if (myo) 4 else RestPausePlanDefaults.Reps).toString(),
+                restText = (if (myo) 15 else RestPausePlanDefaults.PauseSeconds).toString())
+            segmentIndex = restPauseRows.size
+        }
+    }
+    val canAdd = (dropEnabled && dropRows.size < LiveDropSetMax) || (restPauseEnabled && restPauseRows.size < RestPausePlanDefaults.MaxCount)
+
+    // `advancedCard` del prototipo 02 en el marco de la tarjeta (radio 25, #111).
+    Column(
+        modifier.fillMaxSize().onSizeChanged { compactCard = with(densityNow) { it.height.toDp() } < 440.dp }
+            .clip(RoundedCornerShape(25.dp)).background(Color(0xFF111111))
+            .border(1.dp, if (isFailedSet) WizardColors.danger.copy(alpha = .5f) else Color(0x0BFFFFFF), RoundedCornerShape(25.dp))
+            .testTag("technique-body"),
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // Cabecera fija: volver a «Serie N» y el título «AVANZADO» (con el atajo de la foto del récord si toca).
+        androidx.compose.runtime.CompositionLocalProvider(LocalAdvancedCompact provides compactCard) {
+        Column(Modifier.weight(1f).fillMaxWidth().padding(start = inset, end = inset, top = if (compactCard) 9.dp else 13.dp)) {
+            Row(Modifier.fillMaxWidth().height(if (compactCard) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.heightIn(min = 30.dp).plainClickable(::leave).semantics { contentDescription = "Volver a la serie" },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(14.dp), tint = AdvancedInk)
+                    Text(if (setNumber != null) "Serie $setNumber" else "Serie", style = advancedBody(11.sp), color = AdvancedInk)
+                }
+                Spacer(Modifier.weight(1f))
+                Text("AVANZADO", style = advancedBody(9.sp, letterSpacing = .65.sp), color = AdvancedMuted)
+            }
+            // El bloque central cede alto: los enlaces de abajo se miden antes y siempre caben.
+            Column(Modifier.weight(1f, fill = true).fillMaxWidth()) {
+            // `.v2-tech-tabs`: Normal · Drop · Rest-pause · Myo.
+            Row(Modifier.fillMaxWidth().heightIn(min = if (compactCard) 32.dp else 36.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                listOf("Normal", "Drop", "Rest-pause", "Myo").forEachIndexed { index, label ->
+                    val selected = segment == index
+                    Box(
+                        Modifier.weight(1f).heightIn(min = if (compactCard) 32.dp else 36.dp).clip(RoundedCornerShape(12.dp))
+                            .background(if (selected) AdvancedInk else Color(0x05FFFFFF))
+                            .plainClickable {
+                                when (index) {
+                                    1 -> { dropEnabled = true; restPauseEnabled = false }
+                                    2 -> {
+                                        if (myo) restPauseRows = List(RestPausePlanDefaults.DefaultCount) { TechniqueCheckRow() }
+                                        myo = false; restPauseEnabled = true; dropEnabled = false
+                                    }
+                                    3 -> {
+                                        if (!myo) restPauseRows = List(4) { TechniqueCheckRow(repsText = "4", restText = "15") }
+                                        myo = true; restPauseEnabled = true; dropEnabled = false; committed = false
+                                    }
+                                    else -> { dropEnabled = false; restPauseEnabled = false }
+                                }
+                                segmentIndex = 0
+                            }
+                            .semantics { this.selected = selected; role = Role.Tab }
+                            .padding(horizontal = 5.dp, vertical = 6.dp)
+                            .testTag("technique-tab-$index"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(label, style = advancedBody(if (compactCard) 10.sp else 11.sp, lineHeight = 13.sp), color = if (selected) Color(0xFF111111) else AdvancedInk,
+                            textAlign = TextAlign.Center)
+                    }
+                }
+            }
+            // `.v2-chain-head`: «CADENA DE LA SERIE» y «N tramos ›» (abre la cadena entera).
+            Row(Modifier.fillMaxWidth().heightIn(min = if (compactCard) 36.dp else 43.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("CADENA DE LA SERIE", Modifier.weight(1f), style = advancedBody(9.sp, letterSpacing = .6.sp), color = AdvancedFaint)
+                Row(
+                    Modifier.heightIn(min = 32.dp).plainClickable { chainSheet = true }.testTag(TechniqueChainTag),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("${rows.size + 1} tramos", style = advancedBody(11.sp), color = AdvancedMuted)
+                    Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = AdvancedMuted)
+                }
+            }
+            // `.v2-segment-switch`: ‹ PRINCIPAL 100 × 8 ›.
+            val active = rows.getOrNull(safeSegment - 1)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().heightIn(min = if (compactCard) 58.dp else 71.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF1A1A1A))
+                    .padding(horizontal = 4.dp, vertical = if (compactCard) 5.dp else 9.dp).testTag(TechniqueLinkTag),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                BackToSetPill(label = if (setNumber != null) "Serie $setNumber" else "Serie", onClick = onFlipBack)
-                Box(modifier = Modifier.weight(1f))
-                if (showPrMediaShortcut && onOpenPrMedia != null) {
-                    PrMediaShortcut(
-                        text = LiveSetPrPolicy.SHORTCUT_LABEL,
-                        accent = sessionAccentColor,
-                        onClick = onOpenPrMedia,
+                SegmentArrow(KpknLineIcons.ChevronLeft, "Tramo anterior", safeSegment > 0) { segmentIndex = safeSegment - 1 }
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        when {
+                            safeSegment == 0 -> "PRINCIPAL"
+                            dropEnabled -> "DROP $safeSegment"
+                            else -> "TRAMO $safeSegment"
+                        },
+                        Modifier.padding(bottom = if (compactCard) 2.dp else 5.dp), style = advancedBody(8.sp, letterSpacing = 1.sp), color = AdvancedFaint,
+                    )
+                    Text(
+                        when {
+                            active == null -> mainLabel
+                            dropEnabled -> techniqueBlock(active.weightText, active.repsText)
+                            else -> techniqueBlock(mainWeight, active.repsText)
+                        },
+                        style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = if (compactCard) 19.sp else 23.sp,
+                            fontFeatureSettings = "'tnum' 1"),
+                        color = AdvancedInk,
                     )
                 }
-                Text(
-                    "AVANZADO",
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
+                SegmentArrow(KpknLineIcons.ChevronRight, "Tramo siguiente", safeSegment < rows.size) { segmentIndex = safeSegment + 1 }
+            }
+            if (active != null) {
+                val index = safeSegment - 1
+                Row(Modifier.fillMaxWidth().padding(top = if (compactCard) 8.dp else 13.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (dropEnabled) {
+                        AdvancedField("Carga · kg", active.weightText, KeyboardType.Decimal, Modifier.weight(1f)) { text ->
+                            dropRows = dropRows.updatedAt(index) { it.copy(weightText = text) }
+                        }
+                        AdvancedField("Repeticiones", active.repsText, KeyboardType.Number, Modifier.weight(1f)) { text ->
+                            dropRows = dropRows.updatedAt(index) { it.copy(repsText = text) }
+                        }
+                    } else {
+                        AdvancedField("Pausa · s", active.restText, KeyboardType.Number, Modifier.weight(1f)) { text ->
+                            restPauseRows = restPauseRows.updatedAt(index) { it.copy(restText = text) }
+                        }
+                        AdvancedField("Repeticiones", active.repsText, KeyboardType.Number, Modifier.weight(1f)) { text ->
+                            restPauseRows = restPauseRows.updatedAt(index) { it.copy(repsText = text) }
+                        }
+                    }
+                }
+            } else {
+                Text("Carga, repeticiones y esfuerzo de la serie principal se conservan.", Modifier.padding(vertical = 12.dp),
+                    style = advancedBody(11.sp, lineHeight = 17.sp), color = AdvancedMuted)
+            }
+            }
+            // `.v2-advanced-links`: nota, añadir tramo y error de ejecución, cada uno con su filete.
+            AdvancedLink(if (noteText.isBlank()) "Añadir nota" else "Ver nota", KpknLineIcons.Edit, chevron = true) { noteSheet = true }
+            if (dropEnabled || restPauseEnabled) {
+                AdvancedLink("Añadir tramo", KpknLineIcons.Plus, enabled = canAdd, onClick = ::addSegment)
+            }
+            AdvancedLink(if (isFailedSet) "Error de ejecución · marcado" else "Error de ejecución", null, danger = true) { failureSheet = true }
+        }
+        }
+        Box(
+            Modifier.fillMaxWidth().heightIn(min = if (compactCard) 51.dp else 57.dp)
+                .padding(start = inset, end = inset, top = if (compactCard) 4.dp else 6.dp, bottom = if (compactCard) 9.dp else 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                Modifier.fillMaxWidth().heightIn(min = 39.dp).clip(RoundedCornerShape(14.dp)).border(1.dp, Color(0x24FFFFFF), RoundedCornerShape(14.dp))
+                    .plainClickable(::leave).testTag("technique-back-to-record"),
+                contentAlignment = Alignment.Center,
+            ) { Text("Volver al registro", style = advancedBody(12.sp, FontWeight.SemiBold), color = AdvancedInk) }
+        }
+    }
+
+    if (chainSheet) {
+        // `tech-chain`: la cadena entera; tocar un tramo lo abre en el conmutador.
+        LiveSheet(title = "Cadena de la serie", onDismiss = { chainSheet = false }, tag = "technique-chain-sheet", footer = null) { close ->
+            LiveSheetSubtitle("Principal $mainLabel. Selecciona un tramo para editarlo.")
+            rows.forEachIndexed { index, row ->
+                LiveSheetMenuRow(
+                    "${if (dropEnabled) "Drop" else "Tramo"} ${index + 1} · " +
+                        (if (dropEnabled) techniqueBlock(row.weightText, row.repsText) else techniqueBlock(mainWeight, row.repsText)),
+                    { segmentIndex = index + 1; close() },
                 )
             }
-
-            // Zona que se desplaza: la técnica, la cadena, el eslabón abierto, la explicación y la nota. Lo que asoma cortado por arriba o por abajo
-            // se funde con una máscara (sin borde recto), igual que la cadena por los lados.
-            val bodyScroll = rememberScrollState()
-            val bodyFade = with(LocalDensity.current) { 14.dp.toPx() }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .testTag("technique-body")
-                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        if (bodyScroll.value > 0) {
-                            drawRect(
-                                brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = 0f, endY = bodyFade),
-                                blendMode = BlendMode.DstIn,
-                            )
-                        }
-                        if (bodyScroll.value < bodyScroll.maxValue) {
-                            drawRect(
-                                brush = Brush.verticalGradient(listOf(Color.Black, Color.Transparent), startY = size.height - bodyFade, endY = size.height),
-                                blendMode = BlendMode.DstIn,
-                            )
-                        }
-                    }
-                    .verticalScroll(bodyScroll),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                MyoTechniqueSegments(
-                    options = TechniqueSegments,
-                    selectedIndex = segment,
-                    onSelect = { index ->
-                        when (index) {
-                            1 -> {
-                                dropEnabled = true
-                                restPauseEnabled = false
-                            }
-                            2 -> {
-                                if(myo) restPauseRows = List(RestPausePlanDefaults.DefaultCount) { TechniqueCheckRow() }
-                                myo=false;restPauseEnabled=true;dropEnabled=false
-                            }
-                            3 -> {
-                                if(!myo) restPauseRows = List(4) { TechniqueCheckRow(repsText="4",restText="15") }
-                                myo=true;restPauseEnabled=true;dropEnabled=false;committed=false
-                            }
-                            else -> {
-                                dropEnabled = false
-                                restPauseEnabled = false
-                            }
-                        }
-                    },
-                )
-
-                when {
-                    dropEnabled -> {
-                        val active = activeDrop.coerceIn(0, (dropRows.size - 1).coerceAtLeast(0))
-                        TechniqueChain(
-                            mainLabel = mainLabel,
-                            rows = dropRows,
-                            linkTitle = { index -> "Drop ${index + 1}" },
-                            linkValue = { row -> row.weightText.ifBlank { "—" } },
-                            linkSub = { row -> "× ${row.repsText.ifBlank { "—" }}" },
-                            activeIndex = active,
-                            onSelect = { activeDrop = it },
-                            canAdd = dropRows.size < LiveDropSetMax,
-                            onAdd = {
-                                val nextIndex = dropRows.size
-                                val suggested = nextDropWeightKg(
-                                    mainWeight = mainWeight,
-                                    mainReps = mainReps,
-                                    nextIndex = nextIndex,
-                                    lastWeightText = dropRows.lastOrNull()?.weightText,
-                                    loadMode = loadMode,
-                                )
-                                dropRows = dropRows + TechniqueCheckRow(
-                                    weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
-                                    repsText = DropSetPlanDefaults.DropReps.toString(),
-                                )
-                                activeDrop = nextIndex
-                            },
-                            addDescription = "Añadir drop",
-                            accent = sessionAccentColor,
-                        )
-                        dropRows.getOrNull(active)?.let { row ->
-                            val suggested = suggestedDropLoadsForMainSet(mainWeight, mainReps, active + 1, loadMode).getOrNull(active)
-                                ?.takeIf { it > 0.0 }
-                            OpenTechniqueRow(
-                                title = "Drop ${active + 1}",
-                                suggestion = suggested?.let { "Sugerido ${NativeProgressionText.formatKg(it)} kg" },
-                                suggestionSelected = suggested != null &&
-                                    row.weightText.replace(',', '.').toDoubleOrNull() == suggested,
-                                onSuggestion = suggested?.let { value ->
-                                    { dropRows = dropRows.updatedAt(active) { it.copy(weightText = value.toTrimmedNumberString()) } }
-                                },
-                                firstValue = row.weightText,
-                                firstUnit = "kg",
-                                firstKeyboard = KeyboardType.Decimal,
-                                onFirstChange = { text -> dropRows = dropRows.updatedAt(active) { it.copy(weightText = text) } },
-                                onFirstStep = { direction ->
-                                    val current = row.weightText.replace(',', '.').toDoubleOrNull() ?: mainWeight
-                                    val next = (current + direction * loadStepKg).coerceAtLeast(0.0)
-                                    dropRows = dropRows.updatedAt(active) { it.copy(weightText = next.toTrimmedNumberString()) }
-                                },
-                                secondValue = row.repsText,
-                                secondUnit = "reps",
-                                onSecondChange = { text -> dropRows = dropRows.updatedAt(active) { it.copy(repsText = text) } },
-                                onSecondStep = { direction ->
-                                    val current = row.repsText.toIntOrNull() ?: 0
-                                    dropRows = dropRows.updatedAt(active) { it.copy(repsText = (current + direction).coerceAtLeast(0).toString()) }
-                                },
-                                done = row.done,
-                                onDoneChange = { done -> dropRows = dropRows.updatedAt(active) { it.copy(done = done) } },
-                                doneDescription = "Hecho",
-                            )
-                        }
-                        TechniqueExplanation(
-                            title = "ASÍ SE VE UN DROP-SET",
-                            blocks = buildList {
-                                add(TechniqueBlock(mainLabel, ghost = false))
-                                dropRows.forEach { row -> add(TechniqueBlock(techniqueBlock(row.weightText, row.repsText), ghost = false)) }
-                            },
-                            accent = sessionAccentColor,
-                        )
-                    }
-                    restPauseEnabled -> {
-                        if(myo) Text("Activación cerca del fallo y mini-series de 3–5 reps con pausas de 10–30 s.",style=KpknType.caption,color=WizardColors.textMuted)
-                        val active = activePause.coerceIn(0, (restPauseRows.size - 1).coerceAtLeast(0))
-                        TechniqueChain(
-                            mainLabel = mainLabel,
-                            rows = restPauseRows,
-                            linkTitle = { index -> if(myo) "Mini ${index + 1}" else "Pausa ${index + 1}" },
-                            linkValue = { row -> "${row.repsText.ifBlank { "—" }} reps" },
-                            linkSub = { row -> "${row.restText.ifBlank { "—" }} s" },
-                            activeIndex = active,
-                            onSelect = { activePause = it },
-                            canAdd = restPauseRows.size < RestPausePlanDefaults.MaxCount,
-                            onAdd = {
-                                restPauseRows = restPauseRows + TechniqueCheckRow(
-                                    repsText = (if(myo) 4 else RestPausePlanDefaults.Reps).toString(),
-                                    restText = (if(myo) 15 else RestPausePlanDefaults.PauseSeconds).toString(),
-                                )
-                                activePause = restPauseRows.size - 1
-                            },
-                            addDescription = if(myo) "Añadir mini-serie" else "Añadir pausa",
-                            accent = sessionAccentColor,
-                        )
-                        restPauseRows.getOrNull(active)?.let { row ->
-                            OpenTechniqueRow(
-                                title = if(myo) "Mini ${active + 1}" else "Pausa ${active + 1}",
-                                suggestion = null,
-                                suggestionSelected = false,
-                                onSuggestion = null,
-                                firstValue = row.repsText,
-                                firstUnit = "reps",
-                                firstKeyboard = KeyboardType.Number,
-                                onFirstChange = { text -> restPauseRows = restPauseRows.updatedAt(active) { it.copy(repsText = text) } },
-                                onFirstStep = { direction ->
-                                    val current = row.repsText.toIntOrNull() ?: 0
-                                    restPauseRows = restPauseRows.updatedAt(active) {
-                                        it.copy(repsText = (current + direction).coerceAtLeast(0).toString())
-                                    }
-                                },
-                                secondValue = row.restText,
-                                secondUnit = "s",
-                                onSecondChange = { text -> restPauseRows = restPauseRows.updatedAt(active) { it.copy(restText = text) } },
-                                onSecondStep = { direction ->
-                                    val current = row.restText.toIntOrNull() ?: 0
-                                    restPauseRows = restPauseRows.updatedAt(active) {
-                                        it.copy(restText = (current + direction * 5).coerceAtLeast(0).toString())
-                                    }
-                                },
-                                done = row.done,
-                                onDoneChange = { done -> restPauseRows = restPauseRows.updatedAt(active) { it.copy(done = done) } },
-                                doneDescription = "Hecho",
-                            )
-                        }
-                        TechniqueExplanation(
-                            title = if(myo) "ASÍ SE VE MYO-REPS" else "ASÍ SE VE UN REST-PAUSE",
-                            blocks = buildList {
-                                add(TechniqueBlock(mainLabel, ghost = false))
-                                restPauseRows.forEach { row ->
-                                    add(TechniqueBlock("${row.restText.ifBlank { "—" }} s", ghost = false, isPause = true))
-                                    add(TechniqueBlock(techniqueBlock(mainWeight, row.repsText), ghost = false))
-                                }
-                            },
-                            accent = sessionAccentColor,
-                        )
-                    }
-                    else -> {
-                        TechniqueChain(
-                            mainLabel = mainLabel,
-                            rows = emptyList<TechniqueCheckRow>(),
-                            linkTitle = { "" },
-                            linkValue = { "" },
-                            linkSub = { "" },
-                            activeIndex = -1,
-                            onSelect = {},
-                            canAdd = false,
-                            onAdd = {},
-                            addDescription = "",
-                            accent = sessionAccentColor,
-                        )
-                        Text(
-                            "Elige drop-set o rest-pause",
-                            style = KpknType.caption,
-                            color = WizardColors.textFaint,
-                        )
-                    }
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        "NOTA DE LA SERIE",
-                        style = KpknType.eyebrow,
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                    )
-                    KpknTextField(
-                        value = noteText,
-                        onValueChange = onNoteChange,
-                        placeholder = "Añadir una nota de esta serie",
-                        singleLine = false,
-                        maxLines = 2,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                // The action scrolls with the explanation and notes; it cannot cover a partial row.
-                TechniquePill(
-                    text = "Error de ejecución",
-                    onClick = { onFailedSetChange(!isFailedSet) },
-                    fill = if (isFailedSet) WizardColors.danger else KpknSurface.inset,
-                    ink = if (isFailedSet) WizardColors.ctaContent else WizardColors.danger,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            if (dropEnabled || restPauseEnabled) {
+                LiveSheetSecondary("Añadir tramo", { addSegment(); close() }, Modifier.padding(top = 12.dp), enabled = canAdd, icon = KpknLineIcons.Plus)
             }
         }
+    }
+    if (noteSheet) {
+        LiveSheet(title = "Nota de la serie", onDismiss = { noteSheet = false }, tag = "technique-note-sheet") {
+            LiveSheetSubtitle(if (setNumber != null) "Serie $setNumber" else "Serie")
+            LiveSheetLabeledField("Observación", noteText, onNoteChange, multiline = true, placeholder = "Escribe una observación…")
+        }
+    }
+    if (failureSheet) {
+        LiveSheet(title = "Error de ejecución", onDismiss = { failureSheet = false }, tag = "technique-failure-sheet", footer = null) { close ->
+            LiveSheetSubtitle("Señala una incidencia de ejecución. Llegar al fallo muscular se informa en esfuerzo.")
+            LiveSheetSecondary(if (isFailedSet) "Quitar error de ejecución" else "Marcar error de ejecución",
+                { onFailedSetChange(!isFailedSet); close() }, Modifier.padding(top = 12.dp), tag = "technique-mark-failed")
+        }
+    }
+}
+
+private val AdvancedInk = Color(0xFFF2EEE6)
+private val AdvancedMuted = Color(0xFFB9B5AE)
+private val AdvancedFaint = Color(0xFF92908A)
+
+private fun advancedBody(size: androidx.compose.ui.unit.TextUnit, weight: FontWeight = FontWeight.Normal,
+    lineHeight: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
+    letterSpacing: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified) =
+    TextStyle(fontFamily = WizardFonts.body, fontSize = size, fontWeight = weight, lineHeight = lineHeight, letterSpacing = letterSpacing)
+
+private val LocalAdvancedCompact = androidx.compose.runtime.compositionLocalOf { false }
+
+@Composable
+private fun compactAdvanced(): Boolean = LocalAdvancedCompact.current
+
+@Composable
+private fun SegmentArrow(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.size(width = 34.dp, height = 44.dp).then(if (enabled) Modifier.plainClickable(onClick) else Modifier)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, Modifier.size(16.dp), tint = AdvancedInk.copy(alpha = if (enabled) 1f else .3f)) }
+}
+
+@Composable
+private fun AdvancedField(label: String, value: String, keyboard: KeyboardType, modifier: Modifier, onChange: (String) -> Unit) {
+    val compact = compactAdvanced()
+    Column(modifier) {
+        if (!compact) Text(label, style = advancedBody(10.sp), color = AdvancedMuted)
+        androidx.compose.foundation.text.BasicTextField(
+            value = value,
+            onValueChange = onChange,
+            singleLine = true,
+            textStyle = advancedBody(14.sp, FontWeight.SemiBold).copy(color = AdvancedInk),
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboard),
+            modifier = Modifier.padding(top = if (compactAdvanced()) 3.dp else 6.dp).fillMaxWidth()
+                .height(if (compactAdvanced()) 32.dp else 38.dp).clip(RoundedCornerShape(10.dp))
+                .background(Color(0x0DFFFFFF)).border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(10.dp))
+                .padding(horizontal = 11.dp).wrapContentHeight(Alignment.CenterVertically)
+                .semantics { contentDescription = label },
+            decorationBox = { inner ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // En compacto la etiqueta va dentro del campo, a la izquierda del valor.
+                    if (compact) Text(label, Modifier.padding(end = 8.dp), style = advancedBody(9.sp), color = AdvancedFaint)
+                    Box(Modifier.weight(1f)) { inner() }
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun AdvancedLink(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    chevron: Boolean = false,
+    danger: Boolean = false,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val tint = (if (danger) Color(0xFFFF9B92) else AdvancedMuted).copy(alpha = if (enabled) 1f else .4f)
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = if (compactAdvanced()) 24.dp else 31.dp)
+            .drawBehind { drawLine(Color(0x08FFFFFF), Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) }
+            .then(if (enabled) Modifier.plainClickable(onClick) else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        icon?.let { Icon(it, null, Modifier.size(15.dp), tint = tint) }
+        Text(text, Modifier.weight(1f), style = advancedBody(10.sp), color = tint)
+        if (chevron) Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = tint)
     }
 }
 

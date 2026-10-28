@@ -100,6 +100,9 @@ internal fun SeriesOptionsSheet(
     setDraftKeys: Collection<String> = emptyList(),
     manualLoadKeys: Collection<String> = emptyList(),
     bottomClearance: Dp = 0.dp,
+    /** «Avanzado» y «Parciales y ROM» / «Nota» de la rejilla (abren la cara Avanzado o «Detalle del registro» de esa serie). */
+    onAdvanced: (() -> Unit)? = null,
+    onDetails: (() -> Unit)? = null,
 ) {
     val lastIndex = (exercise.sets.size - 1).coerceAtLeast(0)
     // La serie en la que se pulsó: las acciones y la cabecera hablan de ella aunque luego se marquen otras para el tipo.
@@ -186,10 +189,15 @@ internal fun SeriesOptionsSheet(
             Text(summary.title, style = KpknType.caption.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
             Text(summary.detail, Modifier.weight(1f), style = KpknType.title.copy(fontSize = 22.sp, lineHeight = 26.sp), color = WizardColors.text)
         }
+        // `.v2-options-grid`: Configurar serie, Avanzado, Parciales y ROM y Nota; debajo, «Añadir serie», «Omitir» y «Quitar».
         ExerciseOptionsGrid(listOf(
             ExerciseOption("Configurar serie", KpknLineIcons.Sliders, { onEdit(); onDismiss() }),
-            ExerciseOption("Añadir serie", KpknLineIcons.Plus, { onAddSet(); onDismiss() }, enabled = availability.canAdd),
+            ExerciseOption("Avanzado", KpknLineIcons.Flame, { onAdvanced?.invoke(); onDismiss() }, enabled = onAdvanced != null),
+            ExerciseOption("Parciales y ROM", KpknLineIcons.Plus, { onDetails?.invoke(); onDismiss() }, enabled = onDetails != null),
+            ExerciseOption("Nota", KpknLineIcons.Edit, { onDetails?.invoke(); onDismiss() }, enabled = onDetails != null),
         ))
+        LiveSheetMenuRow("Añadir serie", { onAddSet(); onDismiss() }, icon = KpknLineIcons.Plus, chevron = false,
+            enabled = availability.canAdd)
         LiveSheetMenuRow("Omitir serie", { onSkipSet(focusIdx); onDismiss() }, icon = LiveOptionIcons.Skip, chevron = false,
             enabled = availability.canSkip)
         LiveSheetMenuRow("Quitar serie pendiente", { onDeleteSet(focusIdx); onDismiss() }, icon = KpknLineIcons.Trash, danger = true,

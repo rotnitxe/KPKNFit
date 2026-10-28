@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.testTag
 import com.example.kpkn.screens.workout.components.HeaderSheet
 import com.example.kpkn.screens.workout.components.HeaderSheetAction
 import com.example.kpkn.screens.workout.components.HeaderSheetFrame
@@ -232,44 +233,48 @@ internal const val WORKOUT_TAG_EMPTY_COPY = "Este ejercicio aún no tiene etique
 @Composable
 internal fun WorkoutTagListOverlay(
     rows: List<WorkoutTagListRow>, onSelectTag: (String) -> Unit, onCreateTag: () -> Unit,
-    onDismiss: () -> Unit, hasSeenEducation: Boolean = true, onOpened: () -> Unit = {},
+    onDismiss: () -> Unit, @Suppress("UNUSED_PARAMETER") hasSeenEducation: Boolean = true, onOpened: () -> Unit = {},
     onCreateInline: ((String, TagSetupInput?) -> CreateTagResult)? = null,
-    onManageTag: (String) -> Unit = {}, activeSubTagIds: List<String> = emptyList(),
-    onToggleSubTag: (String) -> Unit = {},
+    onManageTag: (String) -> Unit = {}, @Suppress("UNUSED_PARAMETER") activeSubTagIds: List<String> = emptyList(),
+    @Suppress("UNUSED_PARAMETER") onToggleSubTag: (String) -> Unit = {},
     exerciseName: String = "",
 ) {
     LaunchedEffect(Unit) { onOpened() }
-    val showEducation = remember { showTagEducation(hasSeenEducation, rows.isEmpty()) }
     var creating by remember { mutableStateOf(false) }
-    // Prototipo 02 (`tags`): contexto del ejercicio, una fila por etiqueta con su referencia, «Nueva etiqueta» y la nota de alcance.
+    val form = remember { TagFormState() }
+    // Prototipo 02 (`tags`): «ETIQUETAS DE ESTE EJERCICIO», el ejercicio en Syne 22, una fila por etiqueta con su referencia,
+    // «Nueva etiqueta» y la nota de alcance. `tag-new`: el formulario con «Guardar etiqueta» en el pie.
     LiveSheet(title = if (creating) "Nueva etiqueta" else "Etiquetas del ejercicio", onDismiss = onDismiss, tag = "live-tags-sheet",
-        footer = if (creating) null else { close -> LiveSheetPrimary("Listo", close) }) {
+        footer = if (creating && onCreateInline != null) { _ ->
+            LiveSheetPrimary("Guardar etiqueta", { form.save(onCreateInline) { creating = false } }, enabled = form.canSave,
+                tag = "live-tag-new-save")
+        } else { close -> LiveSheetPrimary("Listo", close) }) {
         if (creating && onCreateInline != null) {
-            TagCreateForm(onCreateInline, exerciseName = exerciseName, onDone = { creating = false })
+            TagFormFields(form, exerciseName)
             return@LiveSheet
         }
-        Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
+        Column(Modifier.fillMaxWidth()) {
             Text("ETIQUETAS DE ESTE EJERCICIO", style = KpknType.caption.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
-            if (exerciseName.isNotBlank()) Text(exerciseName, Modifier.padding(top = 4.dp), style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = WizardColors.text)
-            Text("Cada contexto conserva su referencia de carga.", Modifier.padding(top = 3.dp),
-                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 19.sp), color = LiveSheetTokens.Muted)
+            if (exerciseName.isNotBlank()) {
+                Text(exerciseName, Modifier.padding(top = 7.dp, bottom = 10.dp), style = TagContextTitle, color = WizardColors.text)
+            }
+            Text("Cada contexto conserva su referencia de carga.", style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 19.sp),
+                color = LiveSheetTokens.Muted)
         }
-        if (showEducation || rows.isEmpty()) LiveSheetShortCopy(WORKOUT_TAG_EDUCATION_COPY)
-        if (rows.isEmpty()) LiveSheetShortCopy(WORKOUT_TAG_EMPTY_COPY)
-        Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
             rows.forEach { row -> LiveTagOptionRow(row, { onSelectTag(row.tag.id) }, { onManageTag(row.tag.id) }) }
         }
-        val activeSubTags = rows.filter { it.isActive }.flatMap { it.tag.subTags }
-        if (activeSubTags.isNotEmpty()) {
-            LiveSheetSectionLabel("Subetiquetas")
-            LiveSheetChoiceRow(activeSubTags.map { it.id to it.name }, selected = { it in activeSubTagIds }, onSelect = onToggleSubTag,
-                tagPrefix = "live-subtag")
-        }
-        LiveSheetSecondary("Nueva etiqueta", { if (onCreateInline != null) creating = true else onCreateTag() },
+        LiveSheetSecondary("Nueva etiqueta", { if (onCreateInline != null) { form.reset(); creating = true } else onCreateTag() },
             Modifier.padding(top = 12.dp), icon = KpknLineIcons.Plus, tag = "live-tags-new")
         LiveSheetShortCopy("Cambiar el contexto afecta a los próximos registros. Las series ya guardadas mantienen su etiqueta.")
     }
 }
+
+/** `.v2-context-header strong`: Syne 700 22 (interlineado 1,3: Syne recorta los acentos por debajo). */
+private val TagContextTitle = androidx.compose.ui.text.TextStyle(
+    fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 22.sp, lineHeight = 29.sp,
+)
 
 /** `.v2-tag-option`: marca de selección, nombre y referencia; el lápiz abre su gestión. */
 @Composable
@@ -312,37 +317,48 @@ private fun HeaderTagChip(row: WorkoutTagListRow, onClick: () -> Unit, onManage:
     }
 }
 
-@Composable
-private fun TagCreateForm(onCreate: (String, TagSetupInput?) -> CreateTagResult, exerciseName: String = "", onDone: () -> Unit = {}) {
-    var name by remember { mutableStateOf("") }
-    var machine by remember { mutableStateOf("") }
-    var baseLoad by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    if (exerciseName.isNotBlank()) LiveSheetSubtitle(exerciseName)
-    LiveSheetLabeledField("Nombre", name, { name = it; error = null }, tag = "live-tag-new-name")
-    Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        LiveSheetLabeledField("Equipo / marca", machine, { machine = it }, Modifier.weight(1f))
-        LiveSheetLabeledField("Carga base · kg", baseLoad, { baseLoad = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
-            Modifier.weight(1f), keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
-    }
-    LiveSheetLabeledField("Notas de setup", notes, { notes = it }, Modifier.padding(top = 12.dp), multiline = true)
-    error?.let { LiveSheetShortCopy(it, error = true) }
-    LiveSheetPrimary("Guardar etiqueta", {
-        val setup = TagSetupInput(machineBrand = machine, baseLoadKg = baseLoad.replace(',', '.').toDoubleOrNull(), setupNotes = notes)
-        when (val result = onCreate(name, setup.takeIf { it.hasContent })) {
-            is CreateTagResult.Created -> { name = ""; machine = ""; baseLoad = ""; notes = ""; error = null; onDone() }
-            is CreateTagResult.Duplicate -> error = "Ya existe una etiqueta con el nombre «${result.existingName}»."
-            CreateTagResult.InvalidName -> error = "El nombre no es válido."
+/** Lo que se escribe en `tag-new` / `tag-setup`: nombre, equipo o marca, carga base y notas de setup. */
+private class TagFormState(name: String = "", brand: String = "", base: String = "", notes: String = "") {
+    var name by mutableStateOf(name)
+    var brand by mutableStateOf(brand)
+    var base by mutableStateOf(base)
+    var notes by mutableStateOf(notes)
+    var error by mutableStateOf<String?>(null)
+    val canSave: Boolean get() = name.isNotBlank() || brand.isNotBlank()
+    fun setup() = TagSetupInput(machineBrand = brand, baseLoadKg = base.replace(',', '.').toDoubleOrNull(), setupNotes = notes)
+    fun reset() { name = ""; brand = ""; base = ""; notes = ""; error = null }
+    fun save(onCreate: (String, TagSetupInput?) -> CreateTagResult, onDone: () -> Unit) {
+        if (base.isNotBlank() && base.replace(',', '.').toDoubleOrNull() == null) { error = "Revisa el nombre y la carga base."; return }
+        when (onCreate(name, setup().takeIf { it.hasContent })) {
+            is CreateTagResult.Created -> { reset(); onDone() }
+            is CreateTagResult.Duplicate -> error = "Ya existe una etiqueta con ese nombre."
+            CreateTagResult.InvalidName -> error = "Revisa el nombre y la carga base."
         }
-    }, Modifier.padding(top = 16.dp), enabled = name.isNotBlank() || machine.isNotBlank(), tag = "live-tag-new-save")
-    LiveSheetTextAction("Volver a las etiquetas", onDone)
+    }
+}
+
+/** `tag-new` / `tag-setup`: el ejercicio, Nombre, «Equipo / marca» y «Carga base · kg» en dos columnas, y «Notas de setup». */
+@Composable
+private fun TagFormFields(form: TagFormState, exerciseName: String) {
+    if (exerciseName.isNotBlank()) LiveSheetSubtitle(exerciseName)
+    LiveSheetLabeledField("Nombre", form.name, { form.name = it; form.error = null }, tag = "live-tag-new-name")
+    Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LiveSheetLabeledField("Equipo / marca", form.brand, { form.brand = it }, Modifier.weight(1f), tag = "live-tag-brand")
+        LiveSheetLabeledField("Carga base · kg", form.base, { form.base = it.filter { c -> c.isDigit() || c == '.' || c == ',' }; form.error = null },
+            Modifier.weight(1f), keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal, tag = "live-tag-base")
+    }
+    LiveSheetLabeledField("Notas de setup", form.notes, { form.notes = it }, Modifier.padding(top = 12.dp), multiline = true,
+        tag = "live-tag-notes")
+    form.error?.let { LiveSheetShortCopy(it, Modifier.padding(top = 8.dp), error = true) }
 }
 
 @Composable
 internal fun WorkoutCreateTagOverlay(onCreate: (String, TagSetupInput?) -> CreateTagResult, onDismiss: () -> Unit) {
-    LiveSheet(title = "Nueva etiqueta", onDismiss = onDismiss, tag = "live-tag-new-sheet", footer = null) { close ->
-        TagCreateForm(onCreate, onDone = close)
+    val form = remember { TagFormState() }
+    LiveSheet(title = "Nueva etiqueta", onDismiss = onDismiss, tag = "live-tag-new-sheet", footer = { close ->
+        LiveSheetPrimary("Guardar etiqueta", { form.save(onCreate, close) }, enabled = form.canSave, tag = "live-tag-new-save")
+    }) {
+        TagFormFields(form, "")
     }
 }
 
@@ -350,7 +366,7 @@ internal fun WorkoutCreateTagOverlay(onCreate: (String, TagSetupInput?) -> Creat
 @Composable
 internal fun WorkoutTagManagerModal(
     tag: WorkoutTag,
-    exerciseId: String,
+    @Suppress("UNUSED_PARAMETER") exerciseId: String,
     onRename: (String) -> RenameTagResult,
     onDelete: () -> Unit,
     onResetHistory: () -> Unit,
@@ -359,193 +375,90 @@ internal fun WorkoutTagManagerModal(
     onToggleSubTagActive: (String) -> Unit,
     activeSubTagIds: List<String>,
     onDismiss: () -> Unit,
-    onViewAll: () -> Unit = {},
-    history: List<ExerciseHistoryEntry> = emptyList(),
+    @Suppress("UNUSED_PARAMETER") onViewAll: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") history: List<ExerciseHistoryEntry> = emptyList(),
     machineBrand: String = "",
     baseLoadKg: String = "",
     setupNotes: String = "",
     onSaveSetup: (TagSetupInput) -> Unit = {},
+    exerciseName: String = "",
+    /** «REFERENCIA DE ESTA ETIQUETA»: la última carga con esta etiqueta, o «Sin historial». */
+    referenceLabel: String? = null,
 ) {
-    var editName by remember { mutableStateOf(tag.name) }
-    var renameError by remember { mutableStateOf<String?>(null) }
-    var showAddSubTag by remember { mutableStateOf(false) }
+    val form = remember(tag.id) { TagFormState(tag.name, machineBrand, baseLoadKg, setupNotes) }
     var showResetConfirm by remember { mutableStateOf(false) }
-    var newSubTagName by remember { mutableStateOf("") }
-    var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
-    var setupExpanded by remember { mutableStateOf(false) }
-    var brand by remember(tag.id, machineBrand) { mutableStateOf(machineBrand) }
-    var baseLoad by remember(tag.id, baseLoadKg) { mutableStateOf(baseLoadKg) }
-    var notes by remember(tag.id, setupNotes) { mutableStateOf(setupNotes) }
+    var showSubTags by remember { mutableStateOf(false) }
 
-    HeaderSheet(onDismiss) { close ->
-        HeaderSheetFrame(tag.name.ifBlank { "Etiqueta" }, footer = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeaderSheetAction("Ver más", onViewAll, Modifier.weight(1f))
-                HeaderSheetAction("Listo", close, Modifier.weight(1f), primary = true)
-            }
-        }) {
-            WorkoutTagFilledTextField(
-                value = editName,
-                onValueChange = { editName = it },
-                label = "Nombre",
-            )
-
-            if (editName != tag.name) {
-                KpknTextAction(
-                    text = "Guardar nombre",
-                    onClick = {
-                        when (val result = onRename(editName)) {
-                            RenameTagResult.Success -> renameError = null
-                            is RenameTagResult.Duplicate -> {
-                                renameError = "Ya existe una etiqueta con el nombre «${result.existingName}»."
-                            }
-                            RenameTagResult.InvalidName -> renameError = "El nombre no es válido."
-                            RenameTagResult.NotFound -> renameError = "No se encontró la etiqueta."
-                        }
-                    },
-                )
-            }
-            renameError?.let { message ->
-                Text(message, style = KpknType.caption, color = WizardColors.danger)
-            }
-
-            HorizontalDivider(color = KpknSurface.divider)
-
-            HeaderSheetAction(if (setupExpanded) "Set-up · Ocultar" else "Set-up · Mostrar", { setupExpanded = !setupExpanded }, Modifier.fillMaxWidth())
-            if (setupExpanded) {
-                WorkoutTagFilledTextField(
-                    value = brand,
-                    onValueChange = { brand = it },
-                    label = "Máquina o marca",
-                )
-                WorkoutTagFilledTextField(
-                    value = baseLoad,
-                    onValueChange = { baseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
-                    label = "Carga base (kg)",
-                )
-                WorkoutTagFilledTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = "Notas de set-up",
-                )
-                KpknTextAction(
-                    text = "Guardar set-up",
-                    onClick = {
-                        onSaveSetup(
-                            TagSetupInput(
-                                machineBrand = brand,
-                                baseLoadKg = baseLoad.replace(',', '.').toDoubleOrNull(),
-                                setupNotes = notes,
-                            ),
-                        )
-                    },
-                )
-
-                HorizontalDivider(color = KpknSurface.divider)
-
-            }
-
-            SheetLabel("Historial")
-            WorkoutExerciseHistoryContent(
-                history = history,
-                activeTag = tag.name,
-                maxEntries = 4,
-                maxSetsPerEntry = 3,
-            )
-
-            HorizontalDivider(color = KpknSurface.divider)
-
-            if (tag.subTags.isNotEmpty()) {
-                SheetLabel("Sub-etiquetas")
-                tag.subTags.forEach { subTag ->
-                    val isActive = subTag.id in activeSubTagIds
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        KpknChip(
-                            text = "${subTag.name} · ${subTagCategoryLabel(subTag.category)}",
-                            selected = isActive,
-                            onClick = { onToggleSubTagActive(subTag.id) },
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknIconButton(
-                            icon = KpknLineIcons.Close,
-                            contentDescription = "Eliminar",
-                            onClick = { onRemoveSubTag(subTag.id) },
-                        )
-                    }
-                }
-            }
-
-            if (showAddSubTag) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    WorkoutTagFilledTextField(
-                        value = newSubTagName,
-                        onValueChange = { newSubTagName = it },
-                        label = "Nombre de sub-etiqueta",
-                    )
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SubTagCategory.entries.forEach { cat ->
-                            KpknChip(
-                                text = subTagCategoryLabel(cat),
-                                selected = newSubTagCategory == cat,
-                                onClick = { newSubTagCategory = cat },
-                            )
-                        }
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        HeaderSheetAction(
-                            text = "Agregar",
-                            modifier = Modifier.weight(1f),
-                            primary = true,
-                            onClick = {
-                                if (newSubTagName.isNotBlank()) {
-                                    onAddSubTag(newSubTagName, newSubTagCategory)
-                                    newSubTagName = ""
-                                    showAddSubTag = false
-                                }
-                            },
-                            enabled = newSubTagName.isNotBlank(),
-                        )
-                        HeaderSheetAction("Cancelar", { showAddSubTag = false }, Modifier.weight(1f))
-                    }
-                }
-            } else {
-                HeaderSheetAction(
-                    text = "Añadir sub-etiqueta",
-                    onClick = { showAddSubTag = true },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            HorizontalDivider(color = KpknSurface.divider)
-
-            KpknTextAction(text = "Reiniciar historial", onClick = { showResetConfirm = true })
-
-            KpknTextAction(
-                text = "Eliminar etiqueta",
-                onClick = onDelete,
-                color = WizardColors.danger,
-                leadingIcon = KpknLineIcons.Trash,
-            )
+    fun save(close: () -> Unit) {
+        if (form.base.isNotBlank() && form.base.replace(',', '.').toDoubleOrNull() == null) {
+            form.error = "Revisa el nombre y la carga base."
+            return
         }
+        if (form.name.trim() != tag.name) {
+            when (onRename(form.name)) {
+                RenameTagResult.Success -> Unit
+                is RenameTagResult.Duplicate -> { form.error = "Ya existe una etiqueta con ese nombre."; return }
+                RenameTagResult.InvalidName -> { form.error = "Revisa el nombre y la carga base."; return }
+                RenameTagResult.NotFound -> { form.error = "No se encontró la etiqueta."; return }
+            }
+        }
+        onSaveSetup(form.setup())
+        close()
+    }
+
+    // Prototipo 02 (`tag-setup`): «Contexto del ejercicio», el formulario, «REFERENCIA DE ESTA ETIQUETA», «Reiniciar referencia de
+    // historial» en rojo y «Guardar etiqueta» en el pie. Quitar la etiqueta y sus subetiquetas siguen al final, como acciones de texto.
+    LiveSheet(title = "Contexto del ejercicio", onDismiss = onDismiss, tag = "live-tag-setup-sheet", footer = { close ->
+        LiveSheetPrimary("Guardar etiqueta", { save(close) }, enabled = form.name.isNotBlank(), tag = "live-tag-setup-save")
+    }) {
+        TagFormFields(form, exerciseName)
+        Column(
+            Modifier.fillMaxWidth().padding(vertical = 20.dp).drawBehind {
+                drawLine(Color(0x2DFFFFFF), androidx.compose.ui.geometry.Offset(1.dp.toPx(), 0f),
+                    androidx.compose.ui.geometry.Offset(1.dp.toPx(), size.height), 2.dp.toPx())
+            }.padding(horizontal = 13.dp, vertical = 9.dp),
+        ) {
+            Text("REFERENCIA DE ESTA ETIQUETA", style = KpknType.caption.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
+            Text(referenceLabel?.takeIf { it.isNotBlank() } ?: "Sin historial", Modifier.padding(top = 8.dp),
+                style = TagContextTitle.copy(fontSize = 17.sp, lineHeight = 23.sp), color = WizardColors.text)
+        }
+        LiveSheetTextAction("Reiniciar referencia de historial", { showResetConfirm = true }, Modifier.testTag("live-tag-reset"),
+            danger = true, wide = false)
+        LiveSheetTextAction(if (tag.subTags.isEmpty()) "Subetiquetas" else "Subetiquetas · ${tag.subTags.size}", { showSubTags = true },
+            wide = false)
+        LiveSheetTextAction("Eliminar etiqueta", onDelete, danger = true, wide = false)
     }
 
     if (showResetConfirm) {
-        HeaderSheet({ showResetConfirm = false }) { close ->
-            HeaderSheetFrame("Reiniciar historial", footer = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HeaderSheetAction("Cancelar", close, Modifier.weight(1f))
-                    HeaderSheetAction("Reiniciar", { onResetHistory(); showResetConfirm = false }, Modifier.weight(1f), primary = true)
-                }
-            }) {
-                Text("Se ignorarán las cargas anteriores de «${tag.name}» para sugerencias y PRs de esta etiqueta. Los registros de sesión no se borran.", style = KpknType.body, color = WizardColors.text)
+        LiveAlert(
+            title = "¿Reiniciar esta referencia?",
+            text = "La referencia de la etiqueta se calcularía desde este momento. Los registros originales se conservan.",
+            primaryLabel = "Conservar referencia",
+            onPrimary = { showResetConfirm = false },
+            secondaryLabel = "Reiniciar referencia",
+            onSecondary = { onResetHistory(); showResetConfirm = false },
+            dangerSecondary = true,
+            onDismiss = { showResetConfirm = false },
+            tag = "live-tag-reset-alert",
+        )
+    }
+    if (showSubTags) {
+        var newSubTagName by remember { mutableStateOf("") }
+        var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
+        LiveSheet(title = "Subetiquetas", onDismiss = { showSubTags = false }, tag = "live-subtags-sheet") {
+            LiveSheetSubtitle(tag.name)
+            tag.subTags.forEach { subTag ->
+                LiveSheetMenuRow("${subTag.name} · ${subTagCategoryLabel(subTag.category)}", { onToggleSubTagActive(subTag.id) },
+                    icon = if (subTag.id in activeSubTagIds) KpknLineIcons.Check else null, chevron = false)
+                LiveSheetTextAction("Quitar ${subTag.name}", { onRemoveSubTag(subTag.id) }, danger = true, wide = false)
             }
+            LiveSheetLabeledField("Nueva subetiqueta", newSubTagName, { newSubTagName = it }, Modifier.padding(top = 12.dp))
+            LiveSheetChoiceRow(SubTagCategory.entries.map { it to subTagCategoryLabel(it) }, selected = { it == newSubTagCategory },
+                onSelect = { newSubTagCategory = it }, tagPrefix = "live-subtag-category")
+            LiveSheetSecondary("Añadir subetiqueta", {
+                onAddSubTag(newSubTagName, newSubTagCategory)
+                newSubTagName = ""
+            }, Modifier.padding(top = 10.dp), enabled = newSubTagName.isNotBlank())
         }
     }
 }

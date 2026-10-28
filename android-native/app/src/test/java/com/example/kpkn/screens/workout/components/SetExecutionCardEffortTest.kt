@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -294,11 +295,11 @@ class SetExecutionCardEffortTest {
     @Test
     fun alPulsarElCheckSinEsfuerzoSaleElAvisoYElSliderSigueSinMarcar() {
         mostrar(casoRir())
-        rule.onNodeWithText(EffortRequiredHint).assertDoesNotExist()
+        rule.onNodeWithTag(AVISO_TAG).assertDoesNotExist()
 
         pulsarCheck()
 
-        rule.onNodeWithText(EffortRequiredHint).assertExists()
+        rule.onNodeWithTag(AVISO_TAG).assertExists()
         assertEquals("Esfuerzo sin marcar", descripcionDelSlider())
     }
 
@@ -306,11 +307,11 @@ class SetExecutionCardEffortTest {
     fun alMarcarElEsfuerzoElAvisoDesaparece() {
         mostrar(casoRir())
         pulsarCheck()
-        rule.onNodeWithText(EffortRequiredHint).assertExists()
+        rule.onNodeWithTag(AVISO_TAG).assertExists()
 
         marcar(0)
 
-        rule.onNodeWithText(EffortRequiredHint).assertDoesNotExist()
+        rule.onNodeWithTag(AVISO_TAG).assertDoesNotExist()
     }
 
     @Test
@@ -334,11 +335,12 @@ class SetExecutionCardEffortTest {
         mostrar(casoRir())
         val nodo = rule.onNodeWithTag(EffortSliderTag).fetchSemanticsNode()
         val escala = buildEffortScale(IntensityMode.RIR, IntensityMode.RIR, 2, null)
-        val x = effortCenterPx(escala.planIndex!!, escala.items.size, nodo.size.width.toFloat(), 23f * 3f)
+        val x = effortCenterPx(escala.planIndex!!, escala.items.size, nodo.size.width.toFloat(), 12.5f * 3f)
 
         rule.onNodeWithTag(EffortSliderTag).performTouchInput { click(Offset(x, centerY)) }
         rule.waitForIdle()
         assertEquals("Esfuerzo RIR 2, exigente", descripcionDelSlider())
+        rule.onNodeWithTag("live-effort-value").assertTextEquals("RIR 2")
         pulsarCheck()
 
         assertEquals(2.0, registros.single().intensity!!, 0.001)
@@ -429,7 +431,7 @@ class SetExecutionCardEffortTest {
         marcar(0)
         pulsarCheck()
         assertTrue("el guion de carga RM no es un informe de esfuerzo", registros.isEmpty())
-        rule.onNodeWithText(EffortRequiredHint).assertExists()
+        rule.onNodeWithTag(AVISO_TAG).assertExists()
     }
 
     @Test
@@ -523,7 +525,7 @@ class SetExecutionCardEffortTest {
         val alturas = mutableListOf("sin marcar" to base)
 
         pulsarCheck()
-        rule.onNodeWithText(EffortRequiredHint).assertExists()
+        rule.onNodeWithTag(AVISO_TAG).assertExists()
         alturas += "con el aviso" to alturaDeLaTarjeta()
         marcar(0)
         alturas += "en el mínimo" to alturaDeLaTarjeta()
@@ -544,12 +546,13 @@ class SetExecutionCardEffortTest {
     fun elPanelGuiadoDeDropsSeAbreEncimaYLaTarjetaNoCambiaDeTamano() {
         mostrar(Caso("conDrops", ejercicio(serieConDrops()), serieConDrops()))
         val base = alturaDeLaTarjeta()
-        rule.onNodeWithText("DROP-SET 1/2").assertDoesNotExist()
+        rule.onNodeWithText("Drop-set · tramo 1 de 2").assertDoesNotExist()
 
         marcar(0)
         pulsarCheck()
 
-        rule.onNodeWithText("DROP-SET 1/2").assertExists()
+        rule.onNodeWithText("Técnica en curso").assertExists()
+        rule.onNodeWithText("Drop-set · tramo 1 de 2").assertExists()
         assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
         assertTrue(registros.single().advanced.dropSets.isEmpty())
         val alto = alturaDeLaTarjeta()
@@ -561,11 +564,11 @@ class SetExecutionCardEffortTest {
         mostrar(casoRir())
         marcar(0)
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()
-        rule.onNodeWithText("Drop-set").performClick()
+        rule.onNodeWithTag("technique-tab-1").performClick()
         rule.onNodeWithContentDescription("Volver a la serie").performClick()
         pulsarCheck()
 
-        rule.onNodeWithText("DROP-SET 1/1").assertExists()
+        rule.onNodeWithText("Drop-set · tramo 1 de 1").assertExists()
         assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
         assertTrue("la sugerencia no es una miniserie realizada", registros.single().advanced.dropSets.isEmpty())
         rule.onNodeWithText("Terminar técnica con lo realizado").performClick()
@@ -602,20 +605,20 @@ class SetExecutionCardEffortTest {
     }
 
     @Test
-    fun elRelojPorTiempoConservaObjetivoInicioYDetencionEnElMarcoPorModo() {
+    fun elRelojPorTiempoConservaInicioYDetencionEnElMarcoPorModo() {
         mostrar(Caso("tiempo", ejercicio(serieEnTiempo(), TrainingMode.TIME), serieEnTiempo()))
 
-        rule.onNodeWithContentDescription("Iniciar").assertExists()
-        rule.onNodeWithText("TIEMPO REALIZADO · min:s").assertExists()
-        rule.onNodeWithText("Objetivo 0:45").assertExists()
+        rule.onNodeWithText("TIEMPO").assertExists()
+        rule.onNodeWithTag("live-card-set-clock").assertExists()
+        rule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").assertExists()
 
-        rule.onNodeWithContentDescription("Iniciar").performClick()
+        rule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").performClick()
         rule.waitForIdle()
 
-        rule.onNodeWithContentDescription("Detener").assertExists()
-        rule.onNodeWithText("Restan", substring = true).assertExists()
-        rule.onNodeWithContentDescription("Detener").performClick()
-        rule.onNodeWithContentDescription("Iniciar").assertExists()
+        rule.onNodeWithContentDescription("Pausar el cronómetro de la serie").assertExists()
+        rule.onNodeWithContentDescription("Pausar el cronómetro de la serie").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").assertExists()
         assertTrue("detener el reloj no registra la serie", registros.isEmpty())
     }
 
@@ -626,7 +629,8 @@ class SetExecutionCardEffortTest {
 
         pulsarCheck()
 
-        val nodo = rule.onNodeWithText(EffortRequiredHint).fetchSemanticsNode()
+        rule.onNodeWithTag(AVISO_TAG).assertTextEquals(AVISO_ESFUERZO)
+        val nodo = rule.onNodeWithTag(AVISO_TAG).fetchSemanticsNode()
         val resultados = mutableListOf<TextLayoutResult>()
         rule.runOnIdle { nodo.config[SemanticsActions.GetTextLayoutResult].action?.invoke(resultados) }
         val aviso = resultados.single()
@@ -639,5 +643,8 @@ class SetExecutionCardEffortTest {
     private companion object {
         const val TARJETA = "lv8-tarjeta"
         const val PAGINA = "lv8-pagina"
+        /** El aviso de «marca tu esfuerzo» sustituye a la fila de detalle de la tarjeta (Refinamiento 02). */
+        const val AVISO_TAG = "live-card-inline-error"
+        const val AVISO_ESFUERZO = "Marca tu esfuerzo antes de registrar."
     }
 }

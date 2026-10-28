@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.ui.draw.drawBehind
 import android.os.SystemClock
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import kotlinx.coroutines.isActive
 internal enum class LiveSessionDestination(val title: String) {
     MENU("Sesión"), VIEW("Vista de registro"), VOICE("Conversación de voz"), ROUTE("Ruta de la sesión"), MILESTONES("Hitos"), PHOTOS("Fotos y vídeos"),
     TIMER("Temporizador"), RM("Calculadora RM"), CALORIES("Calorías"), NOTES("Notas y tareas"),
+    ASSISTANCE("Asistencia de sesión"), ANALYSIS_HELP("Cómo leer este análisis"),
 }
 
 /** Tarjetas y Lista comparten el mismo borrador; Foco quedó descartada (Refinamiento 02). */
@@ -105,12 +107,17 @@ internal fun LiveSessionSheetsHost(
     onQuickRecord: (() -> Unit)? = null,
     onShortenSession: (() -> Unit)? = null,
     onFinishSession: (() -> Unit)? = null,
+    /** «Por qué aparece esta referencia» de la asistencia: el historial del ejercicio en curso. */
+    onOpenReferenceHistory: (() -> Unit)? = null,
+    /** «Revisar descanso sugerido»: solo mientras hay un descanso con sugerencia. */
+    onOpenRestSuggestion: (() -> Unit)? = null,
 ) {
     val bodyStates = rememberSaveableStateHolder()
     if (destination == null) return
     // Hojas del prototipo 02: menú «Tu sesión» en filas, vista de registro y el resto con la misma hoja (título en Syne, ✕ y «Listo»).
     val title = liveSessionSheetTitle(destination)
-    val withFooter = destination !in setOf(LiveSessionDestination.MENU, LiveSessionDestination.VIEW, LiveSessionDestination.ROUTE)
+    val withFooter = destination !in setOf(LiveSessionDestination.MENU, LiveSessionDestination.VIEW, LiveSessionDestination.ROUTE,
+        LiveSessionDestination.ASSISTANCE)
     LiveSheet(
         title = title,
         onDismiss = { onDestination(null) },
@@ -153,6 +160,31 @@ internal fun LiveSessionSheetsHost(
                         modifier = Modifier.testTag("live-session-menu-calories"))
                     LiveSheetMenuRow("Historia de la sesión", { run(onOpenStory) }, icon = KpknLineIcons.Star,
                         modifier = Modifier.testTag("workout-story-header"))
+                    LiveSheetMenuRow("Ayuda y explicaciones", { go(LiveSessionDestination.ASSISTANCE) }, icon = KpknLineIcons.Info,
+                        modifier = Modifier.testTag("live-session-menu-assistance"))
+                }
+                // `assistance` del prototipo 02: ayuda solo cuando aporta una explicación o una acción concreta.
+                LiveSessionDestination.ASSISTANCE -> {
+                    LiveSheetSubtitle("Ayuda solo cuando aporta una explicación o una acción concreta.")
+                    LiveSheetMenuRow("Por qué aparece esta referencia", { onDestination(null); onOpenReferenceHistory?.invoke() },
+                        icon = KpknLineIcons.History, enabled = onOpenReferenceHistory != null,
+                        modifier = Modifier.testTag("live-assistance-reference"))
+                    LiveSheetMenuRow("Revisar descanso sugerido", { onDestination(null); onOpenRestSuggestion?.invoke() },
+                        icon = KpknLineIcons.Clock, enabled = onOpenRestSuggestion != null,
+                        small = if (onOpenRestSuggestion == null) "Durante el descanso" else null,
+                        modifier = Modifier.testTag("live-assistance-rest"))
+                    LiveSheetMenuRow("Entender las métricas del vídeo", { onDestination(LiveSessionDestination.ANALYSIS_HELP) }, icon = KpknLineIcons.Info,
+                        modifier = Modifier.testTag("live-assistance-analysis"))
+                    LiveSessionHelpNote("Explicaciones en su sitio",
+                        "La referencia de carga se explica en su historial, el descanso sugerido en el propio descanso y las métricas en el análisis del vídeo.")
+                }
+                LiveSessionDestination.ANALYSIS_HELP -> {
+                    LiveSheetSubtitle("El análisis sale de tu vídeo: la pose y la barra se estiman fotograma a fotograma.")
+                    LiveSessionHelpNote("Qué se puede comprobar",
+                        "Seleccionar una repetición, desplazar la línea de tiempo, activar capas y consultar las métricas disponibles.")
+                    LiveSessionHelpNote("Unidades y confianza",
+                        "Sin escala física validada, la velocidad permanece en unidades relativas. Un dato ausente se muestra como «—»; " +
+                            "los valores estimados llevan «≈».")
                 }
                 LiveSessionDestination.VIEW -> {
                     LiveSheetSubtitle("Tarjetas y Lista comparten el mismo borrador. Cambiar de vista no registra ni borra nada.")
@@ -195,6 +227,20 @@ internal fun liveSessionSheetTitle(destination: LiveSessionDestination): String 
     LiveSessionDestination.NOTES -> "Notas de sesión"
     LiveSessionDestination.MILESTONES -> "Hitos de la sesión"
     else -> destination.title
+}
+
+/** `.v2-history-note` con título: filete de 2, el título 13/600 y el texto de 12. */
+@Composable
+private fun LiveSessionHelpNote(title: String, body: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 10.dp).drawBehind {
+            drawLine(Color(0x2DFFFFFF), androidx.compose.ui.geometry.Offset(1.dp.toPx(), 0f),
+                androidx.compose.ui.geometry.Offset(1.dp.toPx(), size.height), 2.dp.toPx())
+        }.padding(horizontal = 13.dp, vertical = 9.dp),
+    ) {
+        Text(title, style = KpknType.bodyStrong.copy(fontSize = 13.sp), color = WizardColors.text)
+        Text(body, Modifier.padding(top = 8.dp), style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 20.sp), color = WizardColors.textMuted)
+    }
 }
 
 @Composable

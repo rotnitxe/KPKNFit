@@ -1,6 +1,23 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.Canvas
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -180,105 +197,114 @@ fun VoiceCaptureModeDialog(onChosen: (VoiceCaptureMode) -> Unit, onDismissReques
     }
     androidx.activity.compose.BackHandler(enabled = onDismissRequest != null) { dismiss() }
     // A drag animation must not hide this sheet before asynchronous stop has succeeded.
-    HeaderSheet(onDismiss = { dismiss() }, modifier = modifier, dismissible = false) { _ ->
-        HeaderSheetFrame(if (step == VoiceCheckStep.CHOICES) "Modo de voz" else "Probemos tu voz", footer = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeaderSheetAction("Ahora no", { dismiss() }, Modifier.weight(1f), enabled = onDismissRequest != null && !transitioning)
-                when (step) {
-                    VoiceCheckStep.CHOICES -> HeaderSheetAction("Activar", ::activate, Modifier.weight(1f), primary = true, enabled = selected != null && verified != null && !transitioning)
-                    VoiceCheckStep.INTRO, VoiceCheckStep.FAILED -> HeaderSheetAction(if (step == VoiceCheckStep.FAILED) "Reintentar" else "Comenzar prueba", ::requestTest, Modifier.weight(1f), primary = true, enabled = !transitioning)
-                    VoiceCheckStep.PASSED -> HeaderSheetAction("Activar", ::activate, Modifier.weight(1f), primary = true, enabled = !transitioning)
-                    else -> HeaderSheetAction("Escuchando…", {}, Modifier.weight(1f), enabled = false)
+    // Prototipo 02 (`voice`): «Elige cómo entrenar con voz.», Música → Manos libres con su icono y radio, «Entrada de audio»,
+    // «Probar este modo»; la prueba con la onda, «Di «Listo»» / «Te escuchamos.» y «Activar modo de voz»; «Ahora no» al pie.
+    LiveSheet(title = "Modo de voz", onDismiss = { dismiss() }, modifier = modifier, tag = "voice-mode-sheet", footer = null,
+        showClose = false, dismissible = false) {
+        LiveSheetSubtitle("Elige cómo entrenar con voz.")
+        if (step == VoiceCheckStep.CHOICES || step == VoiceCheckStep.INTRO) {
+            VoiceModeChoices(selected) { mode ->
+                if (verified != null && !transitioning) {
+                    selected = mode; message = null
+                    step = if (mode in verified.orEmpty()) VoiceCheckStep.CHOICES else VoiceCheckStep.INTRO
                 }
             }
-        }) {
-            if (step == VoiceCheckStep.CHOICES) {
-                VoiceModeChoices(selected) { mode ->
-                    if (verified != null && !transitioning) {
-                        selected = mode; message = null
-                        step = if (mode in verified.orEmpty()) VoiceCheckStep.CHOICES else VoiceCheckStep.INTRO
-                    }
-                }
-                if (verified == null) Text("Preparando controles de voz…", style = KpknType.caption, color = WizardColors.textMuted)
-            } else {
-                VoiceFirstUseArt(listening = step == VoiceCheckStep.LISTENING, passed = step == VoiceCheckStep.PASSED, rms = rms)
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Entrada de audio", Modifier.weight(1f), style = VoiceBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+                Text(route?.takeIf { it.isNotBlank() } ?: when (selected) {
+                    VoiceCaptureMode.HANDS_FREE -> "Micrófono de auriculares"
+                    VoiceCaptureMode.MUSIC -> "Micrófono del teléfono"
+                    null -> "—"
+                }, style = VoiceBody.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+            }
+            if (verified == null) LiveSheetShortCopy("Preparando controles de voz…")
+            val alreadyVerified = selected?.let { it in verified.orEmpty() } == true
+            LiveSheetPrimary(if (alreadyVerified) "Activar modo de voz" else "Probar este modo",
+                { if (alreadyVerified) activate() else requestTest() }, Modifier.padding(top = 10.dp),
+                enabled = selected != null && verified != null && !transitioning, tag = "voice-mode-test")
+        } else {
+            Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                VoiceWaveform(listening = step == VoiceCheckStep.LISTENING, passed = step == VoiceCheckStep.PASSED, rms = rms)
                 Text(when (step) {
-                    VoiceCheckStep.PASSED -> "Te escuchamos"
+                    VoiceCheckStep.PASSED -> "Te escuchamos."
                     VoiceCheckStep.CONNECTING -> "Preparando micrófono…"
-                    VoiceCheckStep.LISTENING -> "Di «Listo»"
                     VoiceCheckStep.FAILED -> "Probemos otra vez"
-                    else -> "Di una palabra"
-                }, style = KpknType.title, color = WizardColors.text)
-                Text(if (selected == VoiceCaptureMode.HANDS_FREE) "Usa el micrófono de tus audífonos. La música puede perder calidad mientras escucha."
-                    else "Usa el micrófono del teléfono y conserva la calidad de la música. Acerca el teléfono al hablar.", style = KpknType.body, color = WizardColors.textMuted)
-                if (step == VoiceCheckStep.INTRO) Text("Listo", style = KpknType.metricM, color = WizardColors.text)
-                if (heard.isNotBlank()) Text("«" + heard + "»", style = KpknType.bodyStrong, color = WizardColors.text)
-                route?.takeIf { ownsCapture && it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-                message?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-                HeaderSheetAction("Cambiar modo", { stopBefore { selected = null; step = VoiceCheckStep.CHOICES; message = null; heard = "" } }, Modifier.fillMaxWidth(), enabled = !transitioning)
+                    else -> "Di «Listo»"
+                }, Modifier.padding(top = 14.dp), style = VoiceSyne.copy(fontSize = 22.sp, lineHeight = 29.sp), color = WizardColors.text,
+                    textAlign = TextAlign.Center)
+                Text(message ?: "Comprueba el modo antes de entrenar.", Modifier.padding(top = 8.dp, bottom = 14.dp),
+                    style = VoiceBody.copy(fontSize = 12.sp, lineHeight = 19.sp), color = LiveSheetTokens.Muted, textAlign = TextAlign.Center)
+                if (heard.isNotBlank()) Text("«$heard»", style = VoiceBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                route?.takeIf { ownsCapture && it.isNotBlank() }?.let { Text(it, style = VoiceBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint) }
             }
+            when (step) {
+                VoiceCheckStep.PASSED -> LiveSheetPrimary("Activar modo de voz", ::activate, enabled = !transitioning, tag = "voice-mode-activate")
+                VoiceCheckStep.FAILED -> LiveSheetPrimary("Reintentar", ::requestTest, enabled = !transitioning, tag = "voice-mode-retry")
+                else -> LiveSheetPrimary("Escuchando…", {}, enabled = false)
+            }
+            LiveSheetTextAction("Cambiar modo", { stopBefore { selected = null; step = VoiceCheckStep.CHOICES; message = null; heard = "" } })
         }
+        if (step == VoiceCheckStep.INTRO && message != null) LiveSheetShortCopy(message.orEmpty(), error = true)
+        LiveSheetTextAction("Ahora no", { if (onDismissRequest != null && !transitioning) dismiss() }, Modifier.testTag("voice-mode-later"))
     }
 }
 
+private val VoiceBody = TextStyle(fontFamily = WizardFonts.body)
+private val VoiceSyne = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold)
+
+/** `.v2-voice-check` del prototipo: 25 barras que siguen el nivel del micrófono; al pasar la prueba, la marca. */
 @Composable
-private fun VoiceFirstUseArt(listening: Boolean, passed: Boolean, rms: Float) {
+private fun VoiceWaveform(listening: Boolean, passed: Boolean, rms: Float) {
     val reduced = wizardReducedMotion()
     val visibility = rememberFeedbackAnimationVisibility()
     val clock = rememberRestClock(listening && visibility.visible && !reduced)
     val level = if (rms.isFinite() && rms != 0f) ((rms + 70f) / 50f).coerceIn(0f, 1f) else 0f
     val ink = WizardColors.text
-    Canvas(Modifier.fillMaxWidth().height(138.dp).then(visibility.modifier)) {
+    Canvas(Modifier.fillMaxWidth().height(84.dp).then(visibility.modifier)) {
         val center = Offset(size.width / 2, size.height / 2)
-        val radius = 42.dp.toPx()
-        drawCircle(ink.copy(alpha = .06f), radius, center)
-        drawCircle(ink.copy(alpha = .18f), radius, center, style = Stroke(1.dp.toPx()))
-        if (listening && !reduced) {
-            val pulse = (clock.seconds % 1.8f) / 1.8f
-            drawCircle(ink.copy(alpha = (1f - pulse) * .2f), radius + pulse * 14.dp.toPx(), center, style = Stroke(1.dp.toPx()))
-        }
         if (passed) {
             drawLine(ink, center + Offset(-13.dp.toPx(), 0f), center + Offset(-3.dp.toPx(), 10.dp.toPx()), 3.dp.toPx(), StrokeCap.Round)
             drawLine(ink, center + Offset(-3.dp.toPx(), 10.dp.toPx()), center + Offset(16.dp.toPx(), -12.dp.toPx()), 3.dp.toPx(), StrokeCap.Round)
-        } else {
-            repeat(9) { i ->
-                val h = (5f + level * (if (i % 2 == 0) 22f else 14f)).dp.toPx()
-                val x = center.x + (i - 4) * 5.dp.toPx()
-                drawLine(ink, Offset(x, center.y - h / 2), Offset(x, center.y + h / 2), 2.dp.toPx(), StrokeCap.Round)
-            }
+            return@Canvas
+        }
+        val gap = 6.dp.toPx()
+        repeat(25) { i ->
+            val wave = if (listening && !reduced) .5f + .5f * kotlin.math.sin(clock.seconds * 5f + i * .55f) else .35f
+            val shape = 1f - kotlin.math.abs(i - 12) / 14f
+            val h = (4f + (6f + level * 40f) * shape * wave).dp.toPx()
+            val x = center.x + (i - 12) * gap
+            drawLine(ink.copy(alpha = if (listening) 1f else .45f), Offset(x, center.y - h / 2), Offset(x, center.y + h / 2), 2.dp.toPx(), StrokeCap.Round)
         }
     }
 }
 
+/** `.v2-voice-choices`: Música y Manos libres, cada una con su icono, título, explicación y radio. */
 @Composable
 internal fun VoiceModeChoices(selected: VoiceCaptureMode?, onSelect: (VoiceCaptureMode) -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        listOf(VoiceCaptureMode.HANDS_FREE, VoiceCaptureMode.MUSIC).forEach { mode ->
+    Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+        listOf(
+            Triple(VoiceCaptureMode.MUSIC, "Música", "Tu audio, con captura de voz."),
+            Triple(VoiceCaptureMode.HANDS_FREE, "Manos libres", "Escucha continua de tus comandos."),
+        ).forEach { (mode, title, hint) ->
             val active = selected == mode
-            KpknModule(modifier = Modifier.weight(1f).semantics { this.selected = active }, onClick = { onSelect(mode) },
-                accent = if (active) WizardColors.text else null, contentPadding = PaddingValues(12.dp)) {
-                val visibility = rememberFeedbackAnimationVisibility()
-                val reduced = wizardReducedMotion()
-                val clock = rememberRestClock(active && mode == VoiceCaptureMode.MUSIC && visibility.visible && !reduced)
-                val ink = if (active) WizardColors.text else WizardColors.textMuted
-                Canvas(Modifier.fillMaxWidth().height(66.dp).then(visibility.modifier)) {
-                    val cx = size.width / 2
-                    val cy = size.height / 2
-                    val stroke = Stroke(2.dp.toPx(), cap = StrokeCap.Round)
-                    if (mode == VoiceCaptureMode.HANDS_FREE) {
-                        drawArc(ink, 180f, 180f, false, Offset(cx - 22.dp.toPx(), cy - 22.dp.toPx()), androidx.compose.ui.geometry.Size(44.dp.toPx(), 44.dp.toPx()), style = stroke)
-                        listOf(-1, 1).forEach { side -> drawLine(ink, Offset(cx + side * 22.dp.toPx(), cy), Offset(cx + side * 22.dp.toPx(), cy + 16.dp.toPx()), 7.dp.toPx(), StrokeCap.Round) }
-                    } else {
-                        listOf(-14f, -5f, 5f, 14f).forEachIndexed { i, x ->
-                            val wave = if (active && !reduced) .6f + .4f * kotlin.math.sin(clock.seconds * 2 + i) else .7f
-                            val h = (if (i == 1 || i == 2) 20.dp.toPx() else 11.dp.toPx()) * wave
-                            drawLine(ink, Offset(cx + x.dp.toPx(), cy - h), Offset(cx + x.dp.toPx(), cy + h), 4.dp.toPx(), StrokeCap.Round)
-                        }
-                    }
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 70.dp).drawBehind {
+                    drawLine(LiveSheetTokens.Line, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                }.clickable(role = Role.RadioButton) { onSelect(mode) }.semantics { this.selected = active }
+                    .testTag("voice-mode-${mode.name.lowercase()}"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(if (mode == VoiceCaptureMode.MUSIC) KpknLineIcons.Play else KpknLineIcons.Mic, null, Modifier.size(22.dp),
+                    tint = if (active) WizardColors.text else LiveSheetTokens.Muted)
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = VoiceBody.copy(fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                    Text(hint, Modifier.padding(top = 5.dp), style = VoiceBody.copy(fontSize = 10.sp, lineHeight = 14.sp), color = LiveSheetTokens.Faint)
                 }
-                Text(if (mode == VoiceCaptureMode.HANDS_FREE) "Manos libres" else "Modo música", style = KpknType.bodyStrong, color = ink)
-                Spacer(Modifier.height(6.dp))
-                Text(if (mode == VoiceCaptureMode.HANDS_FREE) "Micrófono de auriculares; reduce la calidad de la música." else "Micrófono del teléfono; acércalo al hablar.", style = KpknType.caption, color = WizardColors.textMuted)
+                Box(Modifier.size(17.dp).clip(CircleShape).border(1.dp, if (active) WizardColors.text else Color(0x38FFFFFF), CircleShape)
+                    .padding(4.dp)) {
+                    if (active) Box(Modifier.fillMaxSize().clip(CircleShape).background(WizardColors.text))
+                }
             }
         }
     }

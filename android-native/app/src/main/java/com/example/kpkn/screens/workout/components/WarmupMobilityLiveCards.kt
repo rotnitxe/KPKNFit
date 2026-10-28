@@ -1,6 +1,14 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.foundation.shape.CircleShape
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -141,7 +149,8 @@ internal fun MobilityPhaseLiveCard(
     nextIsWarmup: Boolean = true,
 ) {
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
-    var view by rememberSaveable { mutableStateOf(MOB_VIEW_MOVEMENT) }
+    // El prototipo abre la movilidad en «Checklist».
+    var view by rememberSaveable { mutableStateOf(MOB_VIEW_LIST) }
     var selectedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var skipRequested by rememberSaveable { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
@@ -173,7 +182,6 @@ internal fun MobilityPhaseLiveCard(
     val markDone: (WorkoutMobilityChecklistItem) -> Unit = { item ->
         moveRunning = false
         selectedKey = null
-        view = MOB_VIEW_MOVEMENT
         message = "Movimiento ${items.indexOf(item) + 1} hecho."
         onToggleComplete(item, true)
     }
@@ -220,153 +228,217 @@ internal fun MobilityPhaseLiveCard(
 
     val inlineRest = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
     val continueLabel = if (nextIsWarmup) "Continuar con aproximación" else "Continuar con series"
-    PrepCardShell(modifier) {
-        // Cabecera: título, reloj global (abre su página) y lista (abre su página).
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = PrepTouch),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "Movilidad",
-                style = PrepTitleStyle,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            PrepButton(
-                text = formatPrepClock(remainingSeconds),
-                onClick = { view = if (view == MOB_VIEW_GLOBAL) MOB_VIEW_MOVEMENT else MOB_VIEW_GLOBAL },
-                tone = PrepTone.TONAL,
-                icon = KpknLineIcons.Clock,
-                description = "Abrir reloj global de movilidad",
-                tag = "mob-global-chip",
-            )
-            KpknIconButton(
-                icon = Icons.AutoMirrored.Filled.ListIcon,
-                contentDescription = if (view == MOB_VIEW_LIST) "Cerrar lista de movimientos" else "Ver lista de movimientos",
-                onClick = { view = if (view == MOB_VIEW_LIST) MOB_VIEW_MOVEMENT else MOB_VIEW_LIST },
-                modifier = Modifier.testTag("mob-list-toggle"),
-            )
-        }
-
-        val bodyModifier = Modifier.weight(1f).fillMaxWidth()
-        when {
-            view == MOB_VIEW_LIST -> MobilityListPane(
-                modifier = bodyModifier,
-                items = items,
-                completedStepKeys = completedStepKeys,
-                currentKey = currentKey,
-                doneCount = doneCount,
-                onSelect = { item ->
-                    moveRunning = false
-                    selectedKey = item.stepKey
-                    view = MOB_VIEW_MOVEMENT
-                },
-                onToggle = { item, completed ->
-                    moveRunning = false
-                    selectedKey = null
-                    view = MOB_VIEW_MOVEMENT
-                    message = if (completed) "Movimiento ${items.indexOf(item) + 1} hecho." else "Movimiento pendiente"
-                    onToggleComplete(item, completed)
-                },
-            )
-            view == MOB_VIEW_GLOBAL -> MobilityGlobalPane(
-                modifier = bodyModifier,
-                totalMinutes = totalMinutes,
-                remainingSeconds = remainingSeconds,
-                isRunning = isTimerRunning,
-                onPlay = { if (isTimerRunning) onPauseTimer() else onStartTimer() },
-                onAddSeconds = { onAddTimerSeconds(30) },
-                onReset = onResetTimer,
-                onBack = { view = MOB_VIEW_MOVEMENT },
-            )
-            finished || current == null -> PrepCenteredNote(
-                modifier = bodyModifier,
-                tag = "mob-end-pane",
-                title = if (skipped) "Fase omitida" else "Movilidad completada",
-                text = if (skipped) {
-                    if (nextIsWarmup) "Puedes continuar con las aproximaciones." else "Puedes continuar con tus series."
-                } else {
-                    "$doneCount de ${items.size} movimientos hechos."
-                },
-            )
-            else -> MobilityMovementPane(
-                modifier = bodyModifier,
-                item = current,
-                number = currentIndex + 1,
-                total = items.size,
-                showExerciseBadge = showExerciseBadge,
-                remaining = moveRemaining,
-                running = moveRunning,
-                onPlay = {
-                    if (moveRunning) {
-                        moveRunning = false
-                        message = "Temporizador en pausa"
-                    } else {
-                        if (moveRemaining <= 0) moveRemaining = doseSeconds
-                        moveRunning = true
-                        message = "Temporizador en marcha"
-                    }
-                },
-                onAddSeconds = { moveRemaining += 30 },
-                onReset = {
-                    moveRunning = false
-                    moveRemaining = doseSeconds
-                    message = "Temporizador reiniciado"
-                },
-            )
-        }
-
-        if (inlineRest != null) {
-            PrepRestBlock(
-                remainingSeconds = inlineRest.coerceAtLeast(0),
-                totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
-                accent = sessionAccentColor,
-                onSkip = onSkipInlineRest ?: {},
-            )
-        }
-        if (finished) {
-            PrepButton(
-                text = continueLabel,
-                onClick = onContinue,
-                modifier = Modifier.fillMaxWidth(),
-                tone = PrepTone.PRIMARY,
-                tag = "prep-continue",
-            )
-        } else {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                PrepButton(
-                    text = "Saltar fase",
-                    onClick = {
+    val compact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+    var guideKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var zoneSheet by rememberSaveable { mutableStateOf<String?>(null) }
+    if (inlineRest != null) {
+        PrepRef02InlineRest(
+            modifier = modifier,
+            compact = compact,
+            kicker = "DESCANSO · MOVILIDAD",
+            remainingSeconds = inlineRest.coerceAtLeast(0),
+            totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
+            nextTitle = doneTarget?.mobility?.name,
+            nextDose = doneTarget?.let { mobilityDoseLabel(it.mobility) },
+            onEnd = onSkipInlineRest ?: {},
+        )
+        return
+    }
+    // `mobilityCard` del prototipo 02: «MOVILIDAD 2 / 3», «Prepara el movimiento.», Checklist · Movimiento · Articulaciones y, en el pie,
+    // «Omitir» / «Continuar». La guía de cada movimiento (con su reloj) vive en su hoja.
+    RestRef02Card(
+        compact = compact,
+        modifier = modifier,
+        tag = PrepLiveCardTag,
+        footer = {
+            if (finished) {
+                RestRef02Button(continueLabel, onContinue, primary = true, modifier = Modifier.fillMaxWidth(), tag = "prep-continue")
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    RestRef02Button("Omitir", {
                         moveRunning = false
                         skipRequested = true
                         message = "Fase de movilidad omitida"
                         onSkip()
+                    }, primary = false, modifier = Modifier.weight(1f), tag = "prep-skip")
+                    RestRef02Button("Continuar", onDone, primary = true,
+                        modifier = Modifier.weight(1f).semantics { contentDescription = "Marcar hecho y avanzar al siguiente movimiento" },
+                        tag = "mob-done")
+                }
+            }
+        },
+    ) {
+        PrepRef02Head("MOVILIDAD", "$doneCount / ${items.size}", compact, countTag = "mob-count")
+        PrepRef02Title("Prepara el movimiento.", compact)
+        PrepRef02Tabs(
+            options = listOf(MOB_VIEW_LIST to "Checklist", MOB_VIEW_MOVEMENT to "Movimiento", MOB_VIEW_GLOBAL to "Articulaciones"),
+            selected = view,
+            onSelect = { view = it },
+            compact = compact,
+            tagPrefix = "mob-view",
+        )
+        Column(
+            Modifier.weight(1f).fillMaxWidth().padding(top = if (compact) 6.dp else 8.dp)
+                .semantics { message?.let { liveRegion = LiveRegionMode.Polite; stateDescription = it } },
+        ) {
+            when {
+                finished && view != MOB_VIEW_GLOBAL -> PrepCenteredNote(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    tag = "mob-end-pane",
+                    title = if (skipped) "Fase omitida" else "Movilidad completada",
+                    text = if (skipped) {
+                        if (nextIsWarmup) "Puedes continuar con las aproximaciones." else "Puedes continuar con tus series."
+                    } else {
+                        "$doneCount de ${items.size} movimientos hechos."
                     },
-                    modifier = Modifier.weight(1f),
-                    tone = PrepTone.TONAL,
-                    tag = "prep-skip",
                 )
-                PrepButton(
-                    text = "Hecho",
-                    onClick = onDone,
-                    modifier = Modifier.weight(1f),
-                    tone = PrepTone.PRIMARY,
-                    icon = KpknLineIcons.Check,
-                    description = "Marcar hecho y avanzar al siguiente movimiento",
-                    tag = "mob-done",
-                )
+                view == MOB_VIEW_LIST -> Column(Modifier.fillMaxWidth().testTag("mob-list-pane")) {
+                    items.forEach { item ->
+                        key(item.stepKey) {
+                            val done = item.stepKey in completedStepKeys
+                            PrepRef02MovementRow(
+                                name = item.mobility.name + if (showExerciseBadge && item.exerciseName.isNotBlank()) " · ${item.exerciseName}" else "",
+                                done = done,
+                                onToggle = { checked ->
+                                    moveRunning = false
+                                    selectedKey = null
+                                    message = if (checked) "Movimiento ${items.indexOf(item) + 1} hecho." else "Movimiento pendiente"
+                                    onToggleComplete(item, checked)
+                                },
+                                onInfo = {
+                                    moveRunning = false
+                                    selectedKey = item.stepKey
+                                    guideKey = item.stepKey
+                                },
+                                tag = "mob-row-${item.stepKey}",
+                            )
+                        }
+                    }
+                }
+                view == MOB_VIEW_MOVEMENT -> current?.let { item ->
+                    val mob = item.mobility
+                    val movementId = ReviewedExerciseTechniqueImages.mobilityMovementId(mob.catalogConfigurationId, mob.exerciseDbId, mob.id)
+                    Box(
+                        Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(19.dp)).background(Color(0xFF0D1015))
+                            .testTag("mob-movement-pane"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (ReviewedExerciseTechniqueImages.mobilityImage(movementId) != null) {
+                            MobilityTechniqueImage(movementId = movementId, contentDescription = "Demostración de ${mob.name}",
+                                modifier = Modifier.fillMaxSize())
+                        } else {
+                            Text(mobilityDoseLabel(mob), style = PrepRef02Syne(20.sp), color = WizardColors.text, textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(16.dp))
+                        }
+                    }
+                    // `.v2-movement-caption`: el nombre y «Ver guía ›».
+                    Row(Modifier.fillMaxWidth().heightIn(min = 38.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(mob.name, Modifier.weight(1f), style = PrepRef02Body(11.sp), color = WizardColors.text)
+                        Row(
+                            Modifier.heightIn(min = 38.dp).clickable(role = Role.Button) {
+                                moveRunning = false
+                                selectedKey = item.stepKey
+                                guideKey = item.stepKey
+                            }.testTag("mob-open-guide"),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("Ver guía", style = PrepRef02Body(11.sp), color = PrepRef02Muted)
+                            Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = PrepRef02Muted)
+                        }
+                    }
+                }
+                else -> Column(Modifier.fillMaxWidth().testTag("mob-joints-pane")) {
+                    val zones = items.flatMap { it.mobility.bodyZones }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                    Text("Articulaciones del movimiento.", Modifier.padding(vertical = 12.dp), style = PrepRef02Body(11.sp),
+                        color = PrepRef02Muted)
+                    if (zones.isEmpty()) {
+                        Text("Este bloque no indica articulaciones.", style = PrepRef02Body(11.sp), color = PrepRef02Faint)
+                    }
+                    zones.forEach { zone ->
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 44.dp).prepRef02Line().clickable(role = Role.Button) { zoneSheet = zone }
+                                .testTag("mob-joint-$zone"),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(zone.replaceFirstChar { it.uppercase() }, Modifier.weight(1f), style = PrepRef02Body(12.sp), color = WizardColors.text)
+                            Icon(KpknLineIcons.ChevronRight, null, Modifier.size(13.dp), tint = PrepRef02Muted)
+                        }
+                    }
+                }
             }
         }
-        PrepStatus(
-            message ?: when {
-                skipped -> "Fase de movilidad omitida"
-                finished -> "Movilidad completada."
-                else -> "Completa cada movimiento para avanzar."
+    }
+
+    items.firstOrNull { it.stepKey == guideKey }?.let { guide ->
+        // `movement-detail`: la guía del movimiento con su dosis, su reloj (el del movimiento en pantalla) y «Marcar completado».
+        val mob = guide.mobility
+        val done = guide.stepKey in completedStepKeys
+        val timed = mobilityDoseSeconds(mob) > 0
+        val isCurrent = guide.stepKey == currentKey
+        val movementId = ReviewedExerciseTechniqueImages.mobilityMovementId(mob.catalogConfigurationId, mob.exerciseDbId, mob.id)
+        LiveSheet(
+            title = mob.name,
+            onDismiss = { guideKey = null },
+            tag = "mob-guide-sheet",
+            footer = { close ->
+                LiveSheetPrimary(if (done) "Marcar pendiente" else "Marcar completado", {
+                    if (done) onToggleComplete(guide, false) else markDone(guide)
+                    close()
+                }, tag = "mob-guide-done")
             },
-        )
+        ) {
+            if (ReviewedExerciseTechniqueImages.mobilityImage(movementId) != null) {
+                Box(Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF0D1015))) {
+                    MobilityTechniqueImage(movementId = movementId, contentDescription = "Demostración de ${mob.name}", modifier = Modifier.fillMaxSize())
+                }
+            }
+            LiveSheetSubtitle("Explora el movimiento a tu ritmo antes de añadir carga.")
+            Text(mobilityDoseLabel(mob), style = PrepRef02Body(12.sp), color = WizardColors.text, modifier = Modifier.testTag("mob-dose-summary"))
+            if (timed && isCurrent) {
+                Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(formatPrepClock(moveRemaining), Modifier.weight(1f).testTag("mob-dose"), style = PrepRef02Syne(34.sp),
+                        color = WizardColors.text)
+                    LiveSheetSecondary(if (moveRunning) "Pausar" else "Iniciar", {
+                        if (moveRunning) {
+                            moveRunning = false
+                            message = "Temporizador en pausa"
+                        } else {
+                            if (moveRemaining <= 0) moveRemaining = doseSeconds
+                            moveRunning = true
+                            message = "Temporizador en marcha"
+                        }
+                    }, Modifier.width(120.dp), tag = "mob-play")
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                    LiveSheetTextAction("+30 s", { moveRemaining += 30 }, Modifier.testTag("mob-plus"), wide = false)
+                    LiveSheetTextAction("Reiniciar", {
+                        moveRunning = false
+                        moveRemaining = doseSeconds
+                        message = "Temporizador reiniciado"
+                    }, Modifier.testTag("mob-reset"), wide = false)
+                }
+            }
+            mob.notes?.takeIf { it.isNotBlank() }?.let { LiveSheetShortCopy(it) }
+            if (mob.bodyZones.isNotEmpty()) {
+                LiveSheetSectionLabel("Articulaciones")
+                Text(mob.bodyZones.joinToString(" · "), style = PrepRef02Body(12.sp), color = PrepRef02Muted)
+            }
+        }
+    }
+    zoneSheet?.let { zone ->
+        LiveSheet(title = zone.replaceFirstChar { it.uppercase() }, onDismiss = { zoneSheet = null }, tag = "mob-joint-sheet", footer = null) { close ->
+            LiveSheetSubtitle("Movimientos de este bloque que trabajan esta zona.")
+            items.filter { item -> item.mobility.bodyZones.any { it.trim() == zone } }.forEach { item ->
+                LiveSheetMenuRow(item.mobility.name, {
+                    moveRunning = false
+                    selectedKey = item.stepKey
+                    guideKey = item.stepKey
+                    close()
+                })
+            }
+        }
     }
 }
 
@@ -673,35 +745,55 @@ internal fun WarmupPhaseLiveCard(
     }
 
     val inlineRest = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
-    PrepCardShell(modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = PrepTouch),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "Aproximación",
-                style = PrepTitleStyle,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                "$doneCount/${rows.size}",
-                style = PrepMetaStyle.copy(fontFeatureSettings = "'tnum' 1"),
-                color = WizardColors.textMuted,
-                modifier = Modifier.testTag("warmup-count"),
-            )
-            if (!skipped && onAddSet != null) {
-                KpknIconButton(
-                    icon = KpknLineIcons.Plus,
-                    contentDescription = "Añadir aproximación",
-                    onClick = onAddSet,
-                    modifier = Modifier.testTag("warmup-add"),
-                )
+    val compact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+    // Los kg de cada aproximación: lo registrado, o lo que se escribió en «Ajustar», o la sugerencia.
+    val weightTexts = remember { mutableStateMapOf<String, String>() }
+    fun rowKey(row: WarmupPhaseRow) = "${row.exerciseId}|${row.warmup.id}"
+    fun rowWeightText(row: WarmupPhaseRow): String =
+        weightTexts[rowKey(row)] ?: (row.actualWeightKg ?: row.suggestedWeightKg)?.toTrimmedNumberString().orEmpty()
+    fun rowWeightKg(row: WarmupPhaseRow): Double =
+        rowWeightText(row).replace(',', '.').toDoubleOrNull() ?: row.suggestedWeightKg ?: 0.0
+    var page by rememberSaveable { mutableStateOf(0) }
+    var loadSheet by rememberSaveable { mutableStateOf(false) }
+    if (inlineRest != null) {
+        val next = firstPending
+        PrepRef02InlineRest(
+            modifier = modifier,
+            compact = compact,
+            kicker = "DESCANSO · APROX.",
+            remainingSeconds = inlineRest.coerceAtLeast(0),
+            totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
+            nextTitle = next?.let { "Aproximación A${it.index + 1}" },
+            nextDose = next?.let { "${rowWeightText(it).ifBlank { "—" }} kg × ${it.warmup.targetReps}" },
+            onEnd = onSkipInlineRest ?: {},
+        )
+        return
+    }
+    val pages = ((rows.size + 2) / 3).coerceAtLeast(1)
+    val safePage = page.coerceIn(0, pages - 1)
+    // `warmupCard` del prototipo 02: «APROXIMACIONES 1 / 2», «Acércate a tu carga.», la referencia de trabajo con «Ajustar», tres filas por
+    // página («A1 · 20 % · 20 × 10» con su marca), «+ Aproximación» y, en el pie, «Omitir» / «Ir a efectivas».
+    RestRef02Card(
+        compact = compact,
+        modifier = modifier,
+        tag = PrepLiveCardTag,
+        footer = {
+            if (allDone || skipped) {
+                RestRef02Button("Ir a efectivas", onContinue, primary = true, modifier = Modifier.fillMaxWidth(), tag = "prep-continue")
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    RestRef02Button("Omitir", {
+                        skipRequested = true
+                        message = "Fase de aproximación omitida"
+                        onSkip()
+                    }, primary = false, modifier = Modifier.weight(1f), tag = "prep-skip")
+                    RestRef02Button("Ir a efectivas", onContinue, primary = true, modifier = Modifier.weight(1f), tag = "prep-go-working")
+                }
             }
-        }
+        },
+    ) {
+        PrepRef02Head("APROXIMACIONES", "$doneCount / ${rows.size}", compact, countTag = "warmup-count")
+        PrepRef02Title("Acércate a tu carga.", compact)
         if (skipped) {
             PrepCenteredNote(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -710,79 +802,97 @@ internal fun WarmupPhaseLiveCard(
                 text = "Las series efectivas siguen pendientes.",
             )
         } else {
-            workingWeightKg?.takeIf { it > 0.0 }?.let { kg ->
+            // `.v2-reference`: «Trabajo · 100 kg» y «Ajustar» (los kg de cada aproximación).
+            Row(Modifier.fillMaxWidth().heightIn(min = 25.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "Primera serie efectiva · ${kg.toTrimmedNumberString()} kg",
-                    style = PrepMetaStyle,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.testTag("warmup-anchor"),
+                    "Trabajo · ${workingWeightKg?.takeIf { it > 0.0 }?.let { "${it.toTrimmedNumberString()} kg" } ?: "—"}",
+                    Modifier.weight(1f).testTag("warmup-anchor"),
+                    style = PrepRef02Body(10.sp), color = PrepRef02Faint,
                 )
+                if (onWeightDraft != null) {
+                    Box(Modifier.heightIn(min = 32.dp).clickable(role = Role.Button) { loadSheet = true }.testTag("warmup-adjust"),
+                        contentAlignment = Alignment.Center) {
+                        Text("Ajustar", style = PrepRef02Body(10.sp), color = PrepRef02Muted)
+                    }
+                }
             }
             Column(
-                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("warmup-list"),
+                Modifier.weight(1f).fillMaxWidth().testTag("warmup-list")
+                    .semantics { message?.let { liveRegion = LiveRegionMode.Polite; stateDescription = it } },
             ) {
-                rows.forEach { row ->
+                rows.drop(safePage * 3).take(3).forEach { row ->
                     key(row.exerciseId, row.warmup.id) {
-                        WarmupChecklistLine(
-                            title = "A${row.index + 1} · ${formatLiveWarmupPercent(row.warmup.percentageOfWorkingWeight)}",
-                            subtitle = row.exerciseBadge.orEmpty(),
-                            suggestedWeightKg = row.suggestedWeightKg,
-                            actualWeightKg = row.actualWeightKg,
-                            isCompleted = row.isCompleted,
-                            accent = sessionAccentColor,
-                            onToggle = { completed, kg ->
+                        PrepRef02WarmRow(
+                            label = "A${row.index + 1}",
+                            percent = formatLiveWarmupPercent(row.warmup.percentageOfWorkingWeight),
+                            dose = "${rowWeightText(row).ifBlank { "—" }} × ${row.warmup.targetReps}",
+                            badge = row.exerciseBadge,
+                            done = row.isCompleted,
+                            onToggle = {
+                                val completed = !row.isCompleted
                                 pendingToggle = Triple(row.exerciseId, row.warmup.id, completed)
                                 message = null
-                                onToggleComplete(row, completed, kg)
+                                onToggleComplete(row, completed, rowWeightKg(row))
                             },
-                            onWeightDraft = onWeightDraft?.let { callback -> { text -> callback(row, text) } },
-                            repsLabel = "× ${row.warmup.targetReps}",
-                            restLabel = formatPrepClock(row.warmup.restBetween ?: 60),
-                            checkDescription = (if (row.isCompleted) "Desmarcar" else "Marcar hecha") + " aproximación ${row.index + 1}",
-                            weightDescription = "Carga de aproximación ${row.index + 1} en kg",
                         )
                     }
                 }
             }
-        }
-        if (inlineRest != null) {
-            PrepRestBlock(
-                remainingSeconds = inlineRest.coerceAtLeast(0),
-                totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
-                accent = sessionAccentColor,
-                onSkip = onSkipInlineRest ?: {},
-            )
-        }
-        if (allDone || skipped) {
-            if (inlineRest == null) {
-                PrepButton(
-                    text = "Continuar con series",
-                    onClick = onContinue,
-                    modifier = Modifier.fillMaxWidth(),
-                    tone = PrepTone.PRIMARY,
-                    tag = "prep-continue",
-                )
+            // `.v2-warm-footer`: «+ Aproximación» y, con más de tres, la paginación.
+            Row(Modifier.fillMaxWidth().heightIn(min = 36.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (onAddSet != null) {
+                    Row(
+                        Modifier.heightIn(min = 36.dp).clickable(role = Role.Button, onClick = onAddSet)
+                            .semantics { contentDescription = "Añadir aproximación" }.testTag("warmup-add"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(KpknLineIcons.Plus, null, Modifier.size(14.dp), tint = PrepRef02Muted)
+                        Text("Aproximación", style = PrepRef02Body(11.sp), color = PrepRef02Muted)
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                if (pages > 1) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(36.dp).clickable(enabled = safePage > 0, role = Role.Button) { page = safePage - 1 }
+                            .semantics { contentDescription = "Página anterior" }, contentAlignment = Alignment.Center) {
+                            Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(13.dp), tint = PrepRef02Muted.copy(alpha = if (safePage > 0) 1f else .35f))
+                        }
+                        Text("${safePage + 1}/$pages", style = PrepRef02Body(10.sp), color = PrepRef02Muted)
+                        Box(Modifier.size(36.dp).clickable(enabled = safePage < pages - 1, role = Role.Button) { page = safePage + 1 }
+                            .semantics { contentDescription = "Página siguiente" }, contentAlignment = Alignment.Center) {
+                            Icon(KpknLineIcons.ChevronRight, null, Modifier.size(13.dp),
+                                tint = PrepRef02Muted.copy(alpha = if (safePage < pages - 1) 1f else .35f))
+                        }
+                    }
+                }
             }
-        } else {
-            PrepButton(
-                text = "Saltar fase",
-                onClick = {
-                    skipRequested = true
-                    message = "Fase de aproximación omitida"
-                    onSkip()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                tone = PrepTone.TONAL,
-                tag = "prep-skip",
-            )
         }
-        PrepStatus(
-            message ?: when {
-                skipped -> "Fase de aproximación omitida"
-                allDone -> "Aproximación completada. Todo listo para empezar."
-                else -> "Marca cada aproximación al terminar."
-            },
-        )
+    }
+    if (loadSheet && onWeightDraft != null) {
+        // `warmup-load`: los kg de cada aproximación, con coma decimal.
+        LiveSheet(title = "Carga de las aproximaciones", onDismiss = { loadSheet = false }, tag = "warmup-load-sheet") {
+            LiveSheetSubtitle(
+                workingWeightKg?.takeIf { it > 0.0 }?.let { "Trabajo · ${it.toTrimmedNumberString()} kg. Ajusta la carga de cada aproximación." }
+                    ?: "Ajusta la carga de cada aproximación.",
+            )
+            rows.forEach { row ->
+                key(row.exerciseId, row.warmup.id) {
+                    LiveSheetLabeledField(
+                        label = "A${row.index + 1} · ${formatLiveWarmupPercent(row.warmup.percentageOfWorkingWeight)} · × ${row.warmup.targetReps} · kg",
+                        value = rowWeightText(row),
+                        onValueChange = { text ->
+                            weightTexts[rowKey(row)] = text
+                            onWeightDraft(row, text)
+                        },
+                        modifier = Modifier.padding(top = 10.dp),
+                        keyboardType = KeyboardType.Decimal,
+                        tag = "warmup-load-${row.index}",
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1281,4 +1391,167 @@ private fun PrepRestBlock(
 private fun formatLiveWarmupPercent(raw: Double): String {
     val pct = if (raw <= 1.0) raw * 100.0 else raw
     return "${pct.roundToInt()} %"
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Piezas del Refinamiento 02 para las tarjetas de preparación (`mobilityCard` y `warmupCard` del prototipo).
+// ---------------------------------------------------------------------------------------------------------------------
+
+private val PrepRef02Muted = Color(0xFFB9B5AE)
+private val PrepRef02Faint = Color(0xFF92908A)
+
+private fun PrepRef02Body(size: androidx.compose.ui.unit.TextUnit, weight: FontWeight = FontWeight.Normal) =
+    TextStyle(fontFamily = WizardFonts.body, fontSize = size, fontWeight = weight)
+
+private fun PrepRef02Syne(size: androidx.compose.ui.unit.TextUnit) =
+    TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = size, fontFeatureSettings = "'tnum' 1")
+
+/** Filete inferior de las filas del prototipo (#ffffff09). */
+private fun Modifier.prepRef02Line(): Modifier = drawBehind {
+    drawLine(Color(0x09FFFFFF), androidx.compose.ui.geometry.Offset(0f, size.height),
+        androidx.compose.ui.geometry.Offset(size.width, size.height), 1.dp.toPx())
+}
+
+/** `.v2-kicker` de la preparación: «MOVILIDAD» / «APROXIMACIONES» y el contador a la derecha. */
+@Composable
+private fun PrepRef02Head(title: String, count: String, compact: Boolean, countTag: String) {
+    Row(Modifier.fillMaxWidth().height(if (compact) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, Modifier.weight(1f), style = PrepRef02Body(9.sp).copy(letterSpacing = 0.65.sp), color = PrepRef02Muted)
+        Text(count, Modifier.testTag(countTag), style = PrepRef02Body(9.sp).copy(fontFeatureSettings = "'tnum' 1"), color = PrepRef02Muted)
+    }
+}
+
+/** `.v2-card-title`: Syne 21 (20 en compacto) con su margen. */
+@Composable
+private fun PrepRef02Title(text: String, compact: Boolean) {
+    Text(
+        text,
+        Modifier.padding(top = if (compact) 7.dp else 9.dp, bottom = if (compact) 11.dp else 15.dp),
+        style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = if (compact) 20.sp else 21.sp,
+            letterSpacing = (-0.6).sp),
+        color = WizardColors.text,
+    )
+}
+
+/** `.v2-tech-tabs`: pestañas de 36 (32 en compacto), la elegida en tinta. */
+@Composable
+private fun PrepRef02Tabs(options: List<Pair<Int, String>>, selected: Int, onSelect: (Int) -> Unit, compact: Boolean, tagPrefix: String) {
+    Row(Modifier.fillMaxWidth().heightIn(min = if (compact) 32.dp else 36.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        options.forEach { (value, label) ->
+            val on = value == selected
+            Box(
+                Modifier.weight(1f).heightIn(min = if (compact) 32.dp else 36.dp).clip(RoundedCornerShape(12.dp))
+                    .background(if (on) WizardColors.text else Color(0x05FFFFFF))
+                    .clickable(role = Role.Tab) { onSelect(value) }
+                    .semantics { this.selected = on }
+                    .padding(horizontal = 5.dp, vertical = 6.dp)
+                    .testTag("$tagPrefix-$value"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, style = PrepRef02Body(if (compact) 10.sp else 11.sp), color = if (on) Color(0xFF111111) else WizardColors.text,
+                    textAlign = TextAlign.Center)
+            }
+        }
+    }
+}
+
+/** `.v2-movement-row`: el círculo de hecho con el nombre (marca el movimiento) y la información a la derecha. */
+@Composable
+private fun PrepRef02MovementRow(name: String, done: Boolean, onToggle: (Boolean) -> Unit, onInfo: () -> Unit, tag: String) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).prepRef02Line(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.weight(1f).heightIn(min = 44.dp)
+                .toggleable(value = done, role = Role.Checkbox, onValueChange = onToggle)
+                .testTag(tag),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                Modifier.size(22.dp).clip(CircleShape)
+                    .then(if (done) Modifier.background(WizardColors.text) else Modifier.border(1.dp, Color(0x40FFFFFF), CircleShape)),
+                contentAlignment = Alignment.Center,
+            ) { if (done) Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = Color(0xFF111111)) }
+            Text(name, style = PrepRef02Body(12.sp), color = if (done) PrepRef02Muted else WizardColors.text)
+        }
+        Box(
+            Modifier.size(width = 36.dp, height = 40.dp).clickable(role = Role.Button, onClick = onInfo)
+                .semantics { contentDescription = "Detalle de $name" },
+            contentAlignment = Alignment.Center,
+        ) { Icon(KpknLineIcons.Info, null, Modifier.size(15.dp), tint = PrepRef02Muted) }
+    }
+}
+
+/** `.v2-warm-row`: «A1», «20 %», «20 × 10» en Syne a la derecha y la marca (✓ hecha, + pendiente). */
+@Composable
+private fun PrepRef02WarmRow(label: String, percent: String, dose: String, badge: String?, done: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 47.dp)
+            .drawBehind {
+                drawLine(Color(0x10FFFFFF), androidx.compose.ui.geometry.Offset(0f, size.height),
+                    androidx.compose.ui.geometry.Offset(size.width, size.height), 1.dp.toPx())
+            },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, Modifier.width(24.dp), style = PrepRef02Body(10.sp), color = PrepRef02Faint)
+        Text(percent, Modifier.width(46.dp), style = PrepRef02Body(11.sp), color = PrepRef02Muted)
+        Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+            Text(dose, style = PrepRef02Syne(16.sp), color = if (done) PrepRef02Muted else WizardColors.text)
+            badge?.takeIf { it.isNotBlank() }?.let { Text(it, style = PrepRef02Body(9.sp), color = PrepRef02Faint) }
+        }
+        Box(
+            Modifier.size(width = 36.dp, height = 41.dp)
+                .toggleable(value = done, role = Role.Checkbox) { onToggle() }
+                .semantics { contentDescription = (if (done) "Desmarcar" else "Completar") + " aproximación $label" }
+                .testTag("warmup-check-$label"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(if (done) KpknLineIcons.Check else KpknLineIcons.Plus, null, Modifier.size(if (done) 16.dp else 15.dp),
+                tint = if (done) WizardColors.text else PrepRef02Muted)
+        }
+    }
+}
+
+/**
+ * El descanso corto de la preparación (`warmup-rest` del prototipo): la tarjeta del descanso con «DESCANSO · APROX.», el eclipse y la
+ * siguiente aproximación; «Terminar descanso» en el pie. Este descanso no admite pausa ni ajuste: esos controles van atenuados.
+ */
+@Composable
+private fun PrepRef02InlineRest(
+    modifier: Modifier,
+    compact: Boolean,
+    kicker: String,
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    nextTitle: String?,
+    nextDose: String?,
+    onEnd: () -> Unit,
+) {
+    RestRef02Card(
+        compact = compact,
+        modifier = modifier,
+        tag = PrepLiveCardTag,
+        footer = {
+            RestRef02Button("Terminar descanso", onEnd, primary = false, modifier = Modifier.fillMaxWidth().testTag("prep-rest-skip"))
+        },
+    ) {
+        RestRef02CardClockPanel(
+            compact = compact,
+            kicker = kicker,
+            remainingSeconds = remainingSeconds,
+            progress = (1f - remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f),
+            isPaused = false,
+            animationsOn = true,
+            onExpand = null,
+            onDecrease = {},
+            onTogglePause = {},
+            onIncrease = {},
+            nextTitle = nextTitle,
+            nextDose = nextDose,
+            suggestion = null,
+            onOpenSuggestion = null,
+            pauseEnabled = false,
+            decreaseEnabled = false,
+            increaseEnabled = false,
+        )
+    }
 }

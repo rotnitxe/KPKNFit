@@ -1,5 +1,12 @@
 package com.example.kpkn.screens.technique.analysis
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.clickable
 import android.app.Application
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ScrollState
@@ -252,7 +259,9 @@ fun TechniqueAnalysisScreen(
     var showProfilePicker by rememberSaveable { mutableStateOf(false) }
     var pickedProfile by rememberSaveable { mutableStateOf<AnalysisProfileId?>(null) }
     var profilesExpanded by rememberSaveable { mutableStateOf(false) }
-    var metricName by rememberSaveable { mutableStateOf(RepMetricKind.VELOCITY.name) }
+    // El prototipo 02 abre «Repeticiones» comparando el ROM.
+    var metricName by rememberSaveable { mutableStateOf(RepMetricKind.ROM.name) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
     var showPlateDialog by rememberSaveable { mutableStateOf(false) }
     var showOtherDiameter by rememberSaveable { mutableStateOf(false) }
     var chosenDiameter by rememberSaveable { mutableIntStateOf(0) }
@@ -395,10 +404,13 @@ fun TechniqueAnalysisScreen(
                     .fillMaxSize()
                     .statusBarsPadding(),
             ) {
-                KpknTopRow(
-                    onBack = actions.onBack,
-                    actions = {
-                        if (menuRows.isNotEmpty()) {
+                // `.v2-full-top`: «ANÁLISIS», «Sentadilla · serie 3» en una línea y el cierre; ⋯ conserva reanalizar y la tendencia.
+                AnalysisSurfaceTop(
+                    title = listOfNotNull(state.exerciseName, state.setInfo?.substringBefore(" · ")?.takeIf { it.startsWith("Serie") }?.lowercase())
+                        .joinToString(" · "),
+                    onClose = actions.onBack,
+                    menu = if (menuRows.isNotEmpty()) {
+                        {
                             KpknIconButton(
                                 icon = KpknLineIcons.More,
                                 contentDescription = "Más opciones",
@@ -408,9 +420,9 @@ fun TechniqueAnalysisScreen(
                                     .onGloballyPositioned { menuAnchor = it.boundsInWindow() },
                             )
                         }
-                    },
+                    } else null,
+                    modifier = Modifier.kpknEntrance(ENTRANCE_GROUP, 0),
                 )
-                AnalysisHeader(state = state, modifier = Modifier.kpknEntrance(ENTRANCE_GROUP, 0))
                 Spacer(Modifier.height(8.dp))
                 PlayerSection(
                     state = state,
@@ -422,13 +434,13 @@ fun TechniqueAnalysisScreen(
                     showTrailLegend = false,
                     overlayOptions = TechniqueOverlayOptions(skeleton = bodyLayer, trail = trailLayer),
                     modifier = Modifier.kpknEntrance(ENTRANCE_GROUP, 1),
+                    onInfo = { showHelp = true },
                 )
                 Spacer(Modifier.height(8.dp))
-                KpknSegmentedControl(
+                AnalysisUnderlineTabs(
                     options = AnalysisPanel.entries.map { it.label },
                     selectedIndex = AnalysisPanel.entries.indexOf(panel),
                     onSelect = { panelName = AnalysisPanel.entries[it].name },
-                    size = KpknSegmentedSize.Compact,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .testTag(ANALYSIS_PANEL_TABS_TAG),
@@ -556,6 +568,20 @@ fun TechniqueAnalysisScreen(
             }
         }
 
+        if (showHelp) {
+            // `analysis-help` del prototipo 02: qué se puede comprobar y cómo leer unidades y confianza.
+            com.example.kpkn.screens.workout.components.LiveSheet(title = "Cómo leer este análisis", onDismiss = { showHelp = false },
+                tag = "analysis-help-sheet") {
+                com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                    "El análisis sale de tu vídeo: la pose y la barra se estiman fotograma a fotograma.")
+                AnalysisHelpNote("Qué se puede comprobar",
+                    "Seleccionar una repetición, desplazar la línea de tiempo, activar capas y consultar las métricas disponibles.")
+                AnalysisHelpNote("Unidades y confianza",
+                    "Sin escala física validada, la velocidad permanece en unidades relativas. Un dato ausente se muestra como «—»; " +
+                        "los valores estimados llevan «≈».")
+            }
+        }
+
         // Marcar el disco: pantalla completa sobre negro.
         if (showPlateDialog && plate != null) {
             PlateCalibrationDialog(
@@ -644,19 +670,37 @@ private fun PlayerSection(
     showRepChips: Boolean = true,
     showTrailLegend: Boolean = true,
     overlayOptions: TechniqueOverlayOptions = TechniqueOverlayOptions(),
+    /** El botón «i» junto al vídeo: abre «Cómo leer este análisis». */
+    onInfo: (() -> Unit)? = null,
 ) {
     val aspect = state.videoAspect.takeIf { it > 0f } ?: DEFAULT_VIDEO_ASPECT
     val reps: List<TechniqueRepMark> = state.overlay?.reps.orEmpty()
     BoxWithConstraints(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         val videoHeight = minOf(maxWidth / aspect, viewport * maxShare).coerceAtLeast(160.dp)
         Column {
-            videoSlot(
-                Modifier
-                    .fillMaxWidth()
-                    .height(videoHeight)
-                    .clip(RoundedCornerShape(20.dp)),
-                overlayOptions,
-            )
+            Box {
+                videoSlot(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(videoHeight)
+                        .clip(RoundedCornerShape(20.dp)),
+                    overlayOptions,
+                )
+                if (onInfo != null) {
+                    Box(
+                        Modifier.align(Alignment.TopEnd).padding(6.dp).size(44.dp).clip(RoundedCornerShape(percent = 50))
+                            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onInfo)
+                            .semantics { contentDescription = "Acerca del análisis" }
+                            .testTag("analysis-info"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(Modifier.size(30.dp).clip(RoundedCornerShape(percent = 50)).background(Color(0xB3111111)),
+                            contentAlignment = Alignment.Center) {
+                            androidx.compose.material3.Icon(KpknLineIcons.Info, null, Modifier.size(16.dp), tint = WizardColors.text)
+                        }
+                    }
+                }
+            }
             if (showTrailLegend && state.overlay?.hasTrail == true) {
                 Spacer(Modifier.height(8.dp))
                 TrailLegend()
@@ -922,5 +966,68 @@ private fun LoadingBody() {
         KpknSkeleton(modifier = Modifier.fillMaxWidth().height(320.dp), shape = RoundedCornerShape(20.dp))
         KpknSkeletonModule(lines = 3)
         KpknSkeletonModule(lines = 2)
+    }
+}
+
+/** `.v2-full-top`: rótulo de 9 en mayúsculas, el título en Syne 18 en una línea y el cierre a la derecha. */
+@Composable
+private fun AnalysisSurfaceTop(title: String, onClose: () -> Unit, menu: (@Composable () -> Unit)?, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, end = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("ANÁLISIS", style = KpknType.eyebrow.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = WizardColors.textFaint)
+            Text(
+                title,
+                Modifier.padding(top = 4.dp).semantics { heading() },
+                style = androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 18.sp, lineHeight = 24.sp),
+                color = WizardColors.text,
+            )
+        }
+        menu?.invoke()
+        KpknIconButton(icon = KpknLineIcons.Close, contentDescription = "Cerrar vista", onClick = onClose,
+            modifier = Modifier.testTag("analysis-close"))
+    }
+}
+
+/** `.v2-analysis-tabs`: tres pestañas de texto; la elegida en tinta con un subrayado de 2. */
+@Composable
+private fun AnalysisUnderlineTabs(options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth().drawBehind {
+        drawLine(Color(0x14FFFFFF), androidx.compose.ui.geometry.Offset(0f, size.height), androidx.compose.ui.geometry.Offset(size.width, size.height), 1.dp.toPx())
+    }) {
+        options.forEachIndexed { index, label ->
+            val selected = index == selectedIndex
+            Box(
+                Modifier.weight(1f).heightIn(min = 44.dp)
+                    .clickable(role = androidx.compose.ui.semantics.Role.Tab) { onSelect(index) }
+                    .semantics { this.selected = selected }
+                    .drawBehind {
+                        if (selected) drawLine(WizardColors.text, androidx.compose.ui.geometry.Offset(0f, size.height - 1.dp.toPx()),
+                            androidx.compose.ui.geometry.Offset(size.width, size.height - 1.dp.toPx()), 2.dp.toPx())
+                    }
+                    .testTag("analysis-tab-$index"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, style = KpknType.caption.copy(fontSize = 12.sp),
+                    color = if (selected) WizardColors.text else WizardColors.textMuted)
+            }
+        }
+    }
+}
+
+/** `.v2-history-note` con título: filete de 2 a la izquierda, el título 13/600 y el texto de 12. */
+@Composable
+private fun AnalysisHelpNote(title: String, body: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 10.dp).drawBehind {
+            drawLine(Color(0x2DFFFFFF), androidx.compose.ui.geometry.Offset(1.dp.toPx(), 0f),
+                androidx.compose.ui.geometry.Offset(1.dp.toPx(), size.height), 2.dp.toPx())
+        }.padding(horizontal = 13.dp, vertical = 9.dp),
+    ) {
+        Text(title, style = KpknType.bodyStrong.copy(fontSize = 13.sp), color = WizardColors.text)
+        Text(body, Modifier.padding(top = 8.dp), style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 20.sp), color = WizardColors.textMuted)
     }
 }

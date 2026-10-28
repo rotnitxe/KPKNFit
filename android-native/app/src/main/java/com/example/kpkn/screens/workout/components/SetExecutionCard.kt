@@ -1,5 +1,13 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
 import com.example.kpkn.domain.workout.isMyoReps
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
@@ -737,7 +745,7 @@ private fun SetSecondaryPill(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(if (iconOnly) 17.dp else 15.dp), tint = WizardColors.textMuted)
-            if (!iconOnly) Text(text, style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium),
+            if (!iconOnly) Text(text, style = KpknType.chip.copy(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.Medium),
                 color = WizardColors.textMuted, maxLines = 1, softWrap = false)
         }
     }
@@ -781,7 +789,7 @@ internal fun LiveSetCardActions(onAdvanced: () -> Unit, onVisual: () -> Unit, on
             SetSecondaryPill("Historial del ejercicio", KpknLineIcons.History, onHistory,
                 Modifier.width(52.dp).testTag("secondary_pill_historial"), iconOnly = true)
         }
-        HorizontalDivider(Modifier.align(Alignment.TopCenter), color = Color.White.copy(alpha = 0.05f))
+        HorizontalDivider(Modifier.align(Alignment.TopCenter), color = Color(0x0CFFFFFF))
     }
 }
 
@@ -864,6 +872,8 @@ internal fun SetInputCardV2(
     onSetBodyWeight: (Double) -> Unit,
     initialBodyWeight: Double?,
     onConfigureSet: (() -> Unit)? = null,
+    /** En una superserie, la letra del ejercicio («A1»): el kicker dice «RONDA n · A1». */
+    supersetLabel: String? = null,
     recordActionHolder: RecordActionHolder,
     recordActionScopeOwner: Any? = null,
     recordActionPageKey: String? = null,
@@ -906,6 +916,9 @@ internal fun SetInputCardV2(
     onRetryPendingCaptures: () -> Unit = {},
     openMediaFace: Boolean = false,
     onMediaFaceConsumed: () -> Unit = {},
+    /** Pedido desde «Opciones de la serie»: «advanced» gira a la cara Avanzado; «details» abre «Detalle del registro». */
+    panelRequest: String? = null,
+    onPanelRequestConsumed: () -> Unit = {},
     sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
     loadPopTrigger: Any? = null,
     /** Fija el fotograma del fuego del slider de esfuerzo (hojas de render y pruebas); nulo, el fuego corre solo. */
@@ -960,7 +973,8 @@ internal fun SetInputCardV2(
     }
     val resolvedPlannedUnitMode = liveSetUnitMode(exercise, currentSet)
     val liveMode = liveSetCardMode(exercise, currentSet, resolvedPlannedUnitMode)
-    val legacyModeLayout = liveMode == LiveSetCardMode.REPS || liveMode == LiveSetCardMode.AMRAP
+    // Refinamiento 02: la tarjeta del prototipo es la misma para todos los modos (carga, cantidad, esfuerzo, detalle y acciones).
+    val legacyModeLayout = true
     val plannedRepRange = activeRepRange(currentSet, activeSide)
     val plannedAmrap = currentSet.purpose.isAmrap
     // AMRAP is not a failure report by default.  A failure is recorded only
@@ -1316,6 +1330,13 @@ internal fun SetInputCardV2(
             cardFace = SetCardFace.ExerciseMedia
             onMediaFaceConsumed()
         }
+    }
+    LaunchedEffect(panelRequest) {
+        when (panelRequest) {
+            "advanced" -> cardFace = SetCardFace.Technique
+            "details" -> showFeedbackExtrasPopup = true
+        }
+        if (panelRequest != null) onPanelRequestConsumed()
     }
     var setNoteText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(restoredDraft?.notes.orEmpty())
@@ -1873,6 +1894,9 @@ internal fun SetInputCardV2(
     val stableCardHeight = liveSessionCardHeight()
     // Marco de 394 dp (pantallas de 360 de ancho): la misma composición con menos aire, como la clase «compact» del prototipo 02.
     val tightCard = stableCardHeight < 420.dp
+    // `.v2-content`: 13/18 de relleno (9/15 en compacto).
+    val cardInset = if (tightCard) 15.dp else 18.dp
+    var rmSheetOpen by remember(exercise.id, setIndex) { mutableStateOf(false) }
     fun selectLiveLoadMode(selectedMode: LoadModeV2) {
         if (loadMode != selectedMode) updateActiveWeightText("")
         loadMode = selectedMode
@@ -1916,95 +1940,97 @@ internal fun SetInputCardV2(
     }
     @Composable
     fun LegacyLoadHero() {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        // `.v2-load` del prototipo 02: «CARGA» (o «LASTRE» / «AYUDA EXTERNA») con el modo a la derecha, la cifra en Syne con «kg» pegado y
+        // −/+ en cuadros de 36, y debajo la referencia con el icono de historial. Filete inferior al 6 %.
+        val plates = plateHint
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = cardInset)
+                .drawBehind { drawLine(Color(0x10FFFFFF), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
+                .padding(top = if (tightCard) 5.dp else 9.dp, bottom = if (tightCard) 5.dp else 7.dp),
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(if (tightCard) 18.dp else 24.dp),
+                modifier = Modifier.fillMaxWidth().height(19.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Con inventario de discos, la etiqueta dice cómo montar la carga («por lado: 25 + 10 + 5»).
-                val plates = plateHint
                 Text(
-                    plates?.compact ?: loadFieldLabel.substringBefore(" (").uppercase(),
-                    modifier = Modifier.weight(1f, fill = false)
+                    when (loadMode) {
+                        LoadModeV2.ASSISTED -> "AYUDA EXTERNA"
+                        LoadModeV2.LASTRE -> "LASTRE"
+                        else -> "CARGA"
+                    },
+                    // Con inventario de discos, cómo montar la carga va en la descripción accesible de la etiqueta.
+                    modifier = Modifier.weight(1f)
                         .then(if (plates == null) Modifier else Modifier.testTag("load-plate-label").semantics { contentDescription = plates.text }),
-                    style = KpknType.eyebrow.copy(fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 0.8.sp),
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
+                    color = Ref02CardMuted,
                 )
-                Spacer(Modifier.weight(1f))
                 ModeLoadButton()
             }
-            val heroStyle = KpknType.display.copy(
-                fontSize = 46.sp,
-                lineHeight = 52.sp,
+            val heroSize = if (tightCard) 40.sp else 47.sp
+            val heroStyle = TextStyle(
+                fontFamily = WizardFonts.display,
+                fontSize = heroSize,
                 fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-1).sp,
+                letterSpacing = (-1.5).sp,
                 fontFeatureSettings = "'lnum' 1, 'tnum' 1",
             )
             Row(
                 modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero"),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // La cifra lleva «kg» pegado (prototipo 02). Sin carga escrita se muestra en tinta la carga del plan: es la que se registra
-                // si la serie se guarda sin tocarla. Sin carga de plan, «—» atenuado.
-                BasicTextField(
-                    value = reportWeightText,
-                    onValueChange = { typed ->
-                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                        updateActiveWeightText(typed)
-                    },
-                    modifier = Modifier.width(IntrinsicSize.Max),
-                    singleLine = true,
-                    textStyle = heroStyle.copy(color = WizardColors.text),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (reportWeightText.isBlank()) {
-                                Text(
-                                    plannedWeightGhost ?: "—",
-                                    style = heroStyle,
-                                    color = if (plannedWeightGhost != null) WizardColors.text else WizardColors.textFaint,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                )
+                // Sin carga escrita se ve en tinta la del plan (es la que se registra); sin plan, «—» atenuado.
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
+                    BasicTextField(
+                        value = reportWeightText,
+                        onValueChange = { typed ->
+                            loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                            updateActiveWeightText(typed)
+                        },
+                        modifier = Modifier.width(IntrinsicSize.Max).semantics { contentDescription = "Carga en kg" },
+                        singleLine = true,
+                        textStyle = heroStyle.copy(color = WizardColors.text),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (reportWeightText.isBlank()) {
+                                    Text(plannedWeightGhost ?: "—", style = heroStyle,
+                                        color = if (plannedWeightGhost != null) WizardColors.text else Ref02CardFaint)
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
-                        }
-                    },
-                )
-                Text(
-                    "kg",
-                    modifier = Modifier.align(Alignment.Bottom).padding(start = 4.dp, bottom = 12.dp),
-                    style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 14.sp),
-                    color = WizardColors.textFaint,
-                    maxLines = 1,
-                    softWrap = false,
-                )
-                Spacer(Modifier.weight(1f))
+                        },
+                    )
+                    Text("kg", Modifier.padding(start = 4.dp, bottom = if (tightCard) 9.dp else 11.dp),
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint)
+                }
                 val increment = quickLoadIncrementFor(exercise, currentSet)
                 fun adjust(direction: Int) {
                     val current = reportWeightText.replace(',', '.').toDoubleOrNull()
                         ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()
                         ?: 0.0
-                    updateActiveWeightText((current + increment * direction).coerceAtLeast(0.0).toTrimmedNumberString())
+                    updateActiveWeightText(ref02Quantity((current + increment * direction).coerceAtLeast(0.0)))
                 }
-                LoadStepButton(Icons.Default.Remove, "Disminuir carga") { adjust(-1) }
-                LoadStepButton(Icons.Default.Add, "Aumentar carga") { adjust(1) }
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Ref02StepButton(KpknLineIcons.Minus, "Disminuir carga", 36.dp, 36.dp) { adjust(-1) }
+                    Ref02StepButton(KpknLineIcons.Plus, "Aumentar carga", 36.dp, 36.dp) { adjust(1) }
+                }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().height(if (tightCard) 22.dp else 26.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 25.dp),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 val bodyLoad = loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.LASTRE || loadMode == LoadModeV2.ASSISTED
                 val missingBodyWeight = bodyLoad && bodyWeightText.isBlank()
+                val isRm = liveMode == LiveSetCardMode.RM
                 Text(
                     when {
+                        isRm -> "${rmValues.percent.toLiveNumberString()}% · RM ${rmValues.loadReference?.toLiveNumberString() ?: "—"} kg"
                         missingBodyWeight -> "${liveLoadModeLabel(loadMode)} · añade tu peso corporal"
                         bodyLoad -> "${liveLoadModeLabel(loadMode)} · corporal $bodyWeightText kg"
                         else -> ghostSet?.let { previous ->
                             buildString {
-                                append("Anterior ")
                                 append(previous.weight.toTrimmedNumberString())
                                 append(" × ")
                                 append(previous.reps)
@@ -2015,11 +2041,11 @@ internal fun SetInputCardV2(
                     modifier = Modifier.weight(1f)
                         .then(if (missingBodyWeight) Modifier.clickable(role = Role.Button) { loadModeMenuExpanded = true } else Modifier)
                         .testTag("live-card-load-reference"),
-                    style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
-                    color = if (missingBodyWeight) WizardColors.text else WizardColors.textFaint,
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
+                    color = if (missingBodyWeight) WizardColors.text else Ref02CardFaint,
                 )
-                // `.reference-line button` del prototipo 02: enlace de texto subrayado, no un icono. Su zona táctil no se amplía en
-                // vertical: invadiría el chip de vídeo de la fila de reps (el historial también está en la fila de acciones).
+                // `.v2-reference > button`: el icono de historial (o la hoja del RM en una serie por porcentaje). Su zona táctil no crece
+                // en vertical: invadiría la del chip de vídeo de la cabecera de la cantidad, justo debajo.
                 val baseViewConfiguration = androidx.compose.ui.platform.LocalViewConfiguration.current
                 val flatTouch = remember(baseViewConfiguration) {
                     object : androidx.compose.ui.platform.ViewConfiguration by baseViewConfiguration {
@@ -2027,16 +2053,40 @@ internal fun SetInputCardV2(
                     }
                 }
                 CompositionLocalProvider(androidx.compose.ui.platform.LocalViewConfiguration provides flatTouch) {
-                    Text(
-                        "Historial",
-                        modifier = Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = onShowHistory)
-                            .semantics { contentDescription = "Consultar referencia" }.wrapContentHeight(Alignment.CenterVertically),
-                        style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp,
-                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline),
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                    )
+                    Box(
+                        Modifier.size(width = 28.dp, height = 25.dp)
+                            .clickable(role = Role.Button) { if (isRm) rmSheetOpen = true else onShowHistory() }
+                            .semantics { contentDescription = "Consultar referencia" }
+                            .testTag("live-card-reference-history"),
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(KpknLineIcons.History, null, Modifier.size(14.dp), tint = Ref02CardMuted) }
                 }
+            }
+        }
+        if (rmSheetOpen) {
+            LiveSheet(title = "Referencia de RM", onDismiss = { rmSheetOpen = false }, tag = "live-rm-sheet") {
+                LiveRmFocus(rmValues, reportWeightText,
+                    onWeight = { typed ->
+                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                        updateActiveWeightText(typed)
+                        val weight = typed.replace(',', '.').toDoubleOrNull()
+                        val reference = rmValues.loadReference
+                        if (weight != null && weight.isFinite() && weight > 0 && reference != null) rmPercent = weight / reference * 100
+                    },
+                    onPercent = ::applyRmPercent,
+                    onEstimatedReps = { reps ->
+                        val percentOfRm = estimatePercent1RM(reps)
+                        val next = if (rmValues.usesTrainingMax && rmValues.oneRm != null && rmValues.trainingMax != null)
+                            percentOfRm * rmValues.oneRm / rmValues.trainingMax else percentOfRm
+                        applyRmPercent(next)
+                    },
+                    onReference = { reference ->
+                        rmReference = reference
+                        liveRmValues(exercise, currentSet, rmPercent, reference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
+                    },
+                    prLabel = exercise.prFor1RM?.takeIf { rmReference == pristineRmReference }?.let { "PR: ${it.weight.toLiveNumberString()} kg × ${it.reps}" },
+                    fallbackWeight = plannedWeightGhost,
+                    modeButton = { ModeLoadButton() })
             }
         }
     }
@@ -2071,24 +2121,33 @@ internal fun SetInputCardV2(
 
     @Composable
     fun LegacyDetailRow() {
+        // `.v2-detail-line`: el resumen de parciales, ayuda y ROM (o «Parciales, ayuda y ROM ›»); si hay que avisar, el aviso en línea.
         val partials = partialSets.sum().coerceAtLeast(0)
         val summary = buildList {
             if (partials > 0) add("+$partials parciales")
             if (assistedRepsValue > 0) add("$assistedRepsValue con ayuda")
             romValue?.let { add("ROM $it%") }
-            if (setNoteText.isNotBlank()) add("Nota")
         }.joinToString(" · ").ifBlank { "Parciales, ayuda y ROM" }
+        val inlineError = quantityError ?: if (effortHintVisible && !hasChosenReportedEffort) "Marca tu esfuerzo antes de registrar." else null
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (tightCard) 36.dp else 44.dp)
-                .clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") { showFeedbackExtrasPopup = true }
+                .heightIn(min = if (tightCard) 26.dp else 27.dp)
+                .then(if (inlineError == null) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") {
+                    showFeedbackExtrasPopup = true
+                } else Modifier)
                 .testTag("live-card-detail"),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(summary, modifier = Modifier.weight(1f), style = KpknType.caption.copy(fontSize = 13.sp, lineHeight = 16.sp),
-                color = WizardColors.textMuted)
-            Icon(KpknLineIcons.ChevronRight, null, tint = WizardColors.textFaint, modifier = Modifier.size(14.dp))
+            if (inlineError != null) {
+                Text(inlineError, Modifier.weight(1f).testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
+            } else {
+                Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
+                    color = Ref02CardMuted)
+                Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
+            }
         }
         SetDetailSheetHost()
     }
@@ -2127,13 +2186,13 @@ internal fun SetInputCardV2(
                     .graphicsLayer { alpha = if (flipRotation <= 90f) 1f else 0f }
                     .blur(
                         when {
-                            isFailedSet -> 7.dp
                             godModeActionsVisible -> 6.dp
                             else -> 0.dp
                         },
                     ),
                 // Módulo KPKN (LR1a): radio 24 dp, relleno `module` y filete blanco al 7 %, sin sombra ni brillo.
-                shape = RoundedCornerShape(28.dp),
+                // `.v2-card`: radio 25 (Refinamiento 02), como la tarjeta del descanso que comparte el paginador.
+                shape = RoundedCornerShape(25.dp),
                 color = Color(0xFF111111),
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
@@ -2149,42 +2208,52 @@ internal fun SetInputCardV2(
                         val placeable = measurable.measure(constraints)
                         layout(placeable.width, placeable.height) {}
                     } else Modifier)
-                    .then(if (legacyModeLayout) Modifier.padding(bottom = 56.dp) else Modifier),
+                    .then(if (legacyModeLayout) Modifier.padding(bottom = if (tightCard) 52.dp else 58.dp) else Modifier),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
             if (legacyModeLayout) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp).height(if (tightCard) 28.dp else 44.dp).testTag("live-card-series-kicker"),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(start = cardInset, end = cardInset - 6.dp, top = if (tightCard) 9.dp else 13.dp)
+                        .height(if (tightCard) 27.dp else 29.dp).testTag("live-card-series-kicker"),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    val purpose = "SERIE ${setIndex + 1}"
-                    // Refinamiento 02: «SERIE 3» en gris y el total («/ 4») atenuado, como el prototipo.
+                    // `.v2-kicker`: el propósito (AMRAP, Calibrador), la ronda de la superserie («RONDA 2 · A1») o «SERIE 3» (con L/R en
+                    // unilateral) y el total atenuado; a la derecha, el lado y la configuración de la serie.
+                    val sideSuffix = if (supportsIndependentSides) (if (selectedSide == "left") "L" else "R") else ""
+                    val purpose = when {
+                        currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR -> "Calibrador"
+                        isAmrap -> "AMRAP"
+                        supersetLabel != null -> "RONDA ${setIndex + 1} · $supersetLabel"
+                        else -> "SERIE ${setIndex + 1}$sideSuffix"
+                    }
                     Text(
                         buildAnnotatedString {
                             append(purpose)
-                            withStyle(SpanStyle(color = WizardColors.textFaint)) {
-                                append(" / ${exercise.sets.count { !it.isEmptySlot }}")
-                            }
+                            withStyle(SpanStyle(color = Ref02CardFaint)) { append(" / ${exercise.sets.count { !it.isEmptySlot }}") }
                         },
-                        style = KpknType.eyebrow.copy(fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 0.8.sp),
-                        color = WizardColors.textMuted,
+                        modifier = Modifier.weight(1f),
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, letterSpacing = 0.65.sp),
+                        color = Ref02CardMuted,
                     )
                     if (supportsIndependentSides) {
-                        TextButton(onClick = { if (!sideLocked) selectSide(if (selectedSide == "left") "right" else "left") }, enabled = !sideLocked) {
-                            Text(if (selectedSide == "left") "Izquierda" else "Derecha", style = KpknType.caption)
+                        // `.v2-side`: el lado con borde de 1 px y radio 7.
+                        Box(
+                            Modifier.clip(RoundedCornerShape(7.dp)).border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(7.dp))
+                                .clickable(enabled = !sideLocked, role = Role.Button) { selectSide(if (selectedSide == "left") "right" else "left") }
+                                .padding(horizontal = 7.dp, vertical = 5.dp).testTag("live-card-side"),
+                        ) {
+                            Text(if (selectedSide == "left") "Izquierda" else "Derecha",
+                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp), color = WizardColors.text)
                         }
                     }
-                    Spacer(Modifier.weight(1f))
-                    // AMRAP y calibrador: el propósito y su mínimo, en el kicker (la tarjeta del prototipo no tiene otra fila para ello).
-                    if (isAmrap) {
-                        Text("${amrapMinimumReps?.let { "Mínimo $it" } ?: "Sin mínimo"} · ${if (currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR) "Calibrador" else "AMRAP"}",
-                            Modifier.testTag("amrap-purpose-badge"),
-                            style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold),
-                            color = Color(0xFFF49A6E), maxLines = 1)
-                    }
-                    IconButton(onClick = { onConfigureSet?.invoke() ?: run { cardFace = SetCardFace.Technique } }, modifier = Modifier.size(44.dp)) {
-                        Icon(Icons.Default.Tune, "Configurar esta serie", tint = WizardColors.textMuted, modifier = Modifier.size(19.dp))
-                    }
+                    Box(
+                        Modifier.size(width = 32.dp, height = 30.dp)
+                            .clickable(role = Role.Button) { onConfigureSet?.invoke() ?: run { cardFace = SetCardFace.Technique } }
+                            .semantics { contentDescription = "Configurar esta serie" },
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(Icons.Default.Tune, null, tint = Ref02CardMuted, modifier = Modifier.size(16.dp)) }
                 }
             }
             if (currentSet.plannedIntensityTechniques.any { it.type == TechniqueType.CLUSTER_SET }) {
@@ -2305,15 +2374,12 @@ internal fun SetInputCardV2(
 
             if (legacyModeLayout) {
                 LegacyLoadHero()
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.White.copy(alpha = 0.06f))
-                // 10 dp libres sobre la fila de reps: la zona táctil ampliada del chip de vídeo no choca con el historial.
-                Spacer(Modifier.height(10.dp))
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(if (legacyModeLayout) Modifier.weight(1f).padding(horizontal = 16.dp) else Modifier.weight(1f)),
+                    .then(if (legacyModeLayout) Modifier.weight(1f).padding(horizontal = cardInset) else Modifier.weight(1f)),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                     val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
@@ -2330,7 +2396,7 @@ internal fun SetInputCardV2(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(24.dp)
+                                    .height(if (legacyModeLayout) 21.dp else 24.dp)
                                     .testTag("set_reps_header"),
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
@@ -2340,11 +2406,17 @@ internal fun SetInputCardV2(
                                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                                 ) {
                                     Text(
-                                        if (isTimeMode) "TIEMPO" else if (legacyModeLayout) "REPETICIONES" else "REPS",
-                                        style = KpknType.eyebrow.copy(fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 0.8.sp),
-                                        color = WizardColors.textMuted,
+                                        when (resolvedPlannedUnitMode) {
+                                            UnitModeV2.TIME -> "TIEMPO"
+                                            UnitModeV2.DISTANCE -> "DISTANCIA"
+                                            UnitModeV2.CUSTOM -> (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "Cantidad").uppercase()
+                                            UnitModeV2.REPS -> if (legacyModeLayout) "REPETICIONES" else "REPS"
+                                        },
+                                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = 1.sp),
+                                        color = Ref02CardMuted,
                                     )
-                                    if (isTimeMode) {
+                                    if (isTimeMode && !legacyModeLayout) {
                                         // Ley 1 (LV8): lo que decía el temporizador debajo del todo, ya sin sitio en la tarjeta, va aquí en una línea.
                                         val timerSupport = when {
                                             timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
@@ -2380,6 +2452,21 @@ internal fun SetInputCardV2(
                                     }
                                 }
                                 Spacer(Modifier.weight(1f))
+                                // A la derecha de la cabecera: el reloj de la serie por tiempo, o el mínimo del AMRAP / calibrador, atenuado.
+                                if (legacyModeLayout && isTimeMode) {
+                                    Ref02SetClockButton(timerRunning, if (timerRunning && plannedTarget != null) timerRemainingSeconds else timerElapsedSeconds,
+                                        ::toggleSetTimer)
+                                } else if (legacyModeLayout && isAmrap) {
+                                    Text(
+                                        when {
+                                            amrapMinimumReps != null -> "Mínimo $amrapMinimumReps"
+                                            currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR -> "0 reps permitido"
+                                            else -> "Sin mínimo"
+                                        },
+                                        Modifier.testTag("amrap-purpose-badge"),
+                                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp), color = Ref02CardFaint,
+                                    )
+                                }
                                 if (resolvedPlannedUnitMode == UnitModeV2.REPS) videoAnalysis?.let { analysis ->
                                     Box {
                                         WorkoutVideoChip(
@@ -2435,9 +2522,45 @@ internal fun SetInputCardV2(
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
+                            Spacer(modifier = Modifier.height(if (legacyModeLayout) 0.dp else if (roomyStepper) 8.dp else 6.dp))
 
-                            if (isTimeMode) {
+                            val quantityGhost = if (supportsIndependentSides) {
+                                if (selectedSide == "left") leftValueGhost else rightValueGhost
+                            } else {
+                                plannedValueGhost
+                            }
+                            if (legacyModeLayout && resolvedPlannedUnitMode != UnitModeV2.REPS) {
+                                // En una serie por tiempo, antes de arrancar el reloj el campo enseña el objetivo del plan (como la carga del plan).
+                                val timeNotStarted = isTimeMode && !timerRunning && timerElapsedSeconds == 0
+                                Ref02QuantityInput(
+                                    value = if (isFailedSet) "0" else if (timeNotStarted && reportValueText == "0") "" else reportValueText,
+                                    placeholder = quantityGhost.takeIf { it.isNotBlank() && it != "0" }
+                                        ?: plannedTarget?.takeIf { isTimeMode && it.toDouble() > 0.0 }?.let { it.toDouble().toTrimmedNumberString() },
+                                    unit = when (resolvedPlannedUnitMode) {
+                                        UnitModeV2.TIME -> "s"
+                                        UnitModeV2.DISTANCE -> "m"
+                                        else -> exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"
+                                    },
+                                    decimal = resolvedPlannedUnitMode != UnitModeV2.TIME,
+                                    allowColon = isTimeMode,
+                                    enabled = !isFailedSet && !timerRunning,
+                                    onValueChange = { updateActiveValueText(it) },
+                                    onStep = { step ->
+                                        val current = (if (isTimeMode) parseLiveDurationSeconds(reportValueText)?.toDouble() else null)
+                                            ?: reportValueText.replace(',', '.').toDoubleOrNull()
+                                            ?: quantityGhost.replace(',', '.').toDoubleOrNull() ?: 0.0
+                                        updateActiveValueText(ref02Quantity((current + step).coerceAtLeast(0.0)))
+                                    },
+                                )
+                            } else if (legacyModeLayout) {
+                                val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: quantityGhost.toIntOrNull() ?: 0
+                                // El ✓ lee las repeticiones del centro de la selección (antes, la rueda): se mantiene en la cifra que se ve.
+                                SideEffect { repsWheelCenterIndex.intValue = currentReps }
+                                Ref02RepButtons(currentReps, tightCard, enabled = !isFailedSet) { value ->
+                                    updateActiveValueText(value.toString())
+                                    repsWheelCenterIndex.intValue = value
+                                }
+                            } else if (isTimeMode) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -2536,6 +2659,21 @@ internal fun SetInputCardV2(
 
                     @Composable
                     fun EffortBlock() {
+                        if (legacyModeLayout) {
+                            LiveEffortRange(
+                                scale = effortScale,
+                                selectedIndex = effortIndex,
+                                onSelect = { onEffortSelected(it) },
+                                compact = tightCard,
+                                hapticsEnabled = hapticFeedbackEnabled,
+                                onClear = {
+                                    effortIndex = null
+                                    intensityText = ""
+                                    reachedFailure = false
+                                },
+                            )
+                            return
+                        }
                         // El esfuerzo (LV8): un slider de fuego que empieza en el mínimo y marca el plan. Sale en TODAS las series de
                         // fuerza, también las que no traen objetivo de esfuerzo: registrar exige haberlo marcado.
                         EffortFireSlider(
@@ -2606,7 +2744,7 @@ internal fun SetInputCardV2(
                     }
 
                     if (legacyModeLayout) {
-                        ValueStepperBlock(Modifier.fillMaxWidth())
+                        ValueStepperBlock(Modifier.fillMaxWidth().padding(top = if (tightCard) 7.dp else 12.dp))
                         // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
                         EffortBlock()
                         LegacyDetailRow()
@@ -3590,8 +3728,10 @@ internal fun SetInputCardV2(
             }
             }
             if (legacyModeLayout && !showAmrapResult) {
-                Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color(0xFF111111))
-                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)) {
+                // `.v2-card-footer`: 58 de alto (52 en compacto) con las acciones de 40 tras un filete.
+                Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(if (tightCard) 52.dp else 58.dp).background(Color(0xFF111111))
+                    // Acciones de 40 en el dibujo y 44 de zona táctil: el pie reparte el resto arriba y abajo.
+                    .padding(start = cardInset, end = cardInset, top = if (tightCard) 2.dp else 4.dp, bottom = if (tightCard) 6.dp else 10.dp)) {
                     LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
                         onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
                 }
@@ -3617,10 +3757,7 @@ internal fun SetInputCardV2(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp))
-                            .background(KpknSurface.module)
-                            .verticalScroll(rememberScrollState())
-                            .padding(10.dp),
+                            .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp)),
                     ) {
                         GuidedTechniquePanel(
                             phase = guidedPhaseNow,
@@ -3636,6 +3773,10 @@ internal fun SetInputCardV2(
                             onDropRepsChange = { guidedDropRepsText = it },
                             onRestPauseRepsChange = { guidedRestPauseRepsText = it },
                             onSkipTechnique = { guidedSkipAction[0]?.invoke() },
+                            principal = buildString {
+                                append("${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}")
+                                chosenEffortItem?.let { append(" · ${effortValueLabel(it)}") }
+                            },
                         )
                     }
                 }
@@ -3742,116 +3883,68 @@ internal fun SetInputCardV2(
     }
             androidx.compose.animation.AnimatedVisibility(
                 visible = isFailedSet,
-                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(250)) +
-                        androidx.compose.animation.scaleIn(initialScale = 0.96f, animationSpec = androidx.compose.animation.core.tween(250)),
-                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)) +
-                        androidx.compose.animation.scaleOut(targetScale = 0.96f, animationSpec = androidx.compose.animation.core.tween(200)),
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(250)),
+                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
                 modifier = Modifier.matchParentSize(),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(WorkoutUiTokens.CardShape)
-                        .background(Color(0xFF8B1E1E).copy(alpha = 0.94f))
-                        .clickable { /* consume taps while the error state is visible */ }
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    contentAlignment = Alignment.Center,
+                // «Serie con incidencia» del prototipo 02: la misma tarjeta, con «!», «Error de ejecución», la carga y las repeticiones,
+                // «Revisar motivo» (hoja con los motivos) y «Recuperar serie»; abajo, las acciones de siempre.
+                var reasonSheet by remember { mutableStateOf(false) }
+                Column(
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(25.dp)).background(Color(0xFF111111))
+                        .border(1.dp, Color(0x0BFFFFFF), RoundedCornerShape(25.dp))
+                        .pointerInput(Unit) { detectTapGestures { } }
+                        .testTag("live-card-failed"),
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Text(
-                            "Marcaste esta serie como fallida",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            "Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.92f),
-                            textAlign = TextAlign.Center,
-                        )
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Text(
-                                "Causa o motivo del fallo (opcional):",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.90f),
-                            )
-                            OutlinedTextField(
-                                value = failedSetReason,
-                                onValueChange = { failedSetReason = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = {
-                                    Text(
-                                        "Ej. Molestia en hombro, fallo técnico, carga excesiva…",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.50f),
-                                    )
-                                },
-                                textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White),
-                                singleLine = false,
-                                maxLines = 2,
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White.copy(alpha = 0.60f),
-                                    unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
-                                    focusedContainerColor = Color.Black.copy(alpha = 0.25f),
-                                    unfocusedContainerColor = Color.Black.copy(alpha = 0.20f),
-                                    cursorColor = Color.White,
-                                ),
-                            )
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                listOf("Molestia articular", "Fallo técnico", "Carga excesiva", "Pérdida de agarre").forEach { chipText ->
-                                    Surface(
-                                        onClick = { failedSetReason = chipText },
-                                        shape = RoundedCornerShape(999.dp),
-                                        color = if (failedSetReason == chipText) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f),
-                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
-                                    ) {
-                                        Text(
-                                            chipText,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                            color = Color.White.copy(alpha = 0.90f),
-                                        )
-                                    }
-                                }
-                            }
+                    Column(Modifier.weight(1f).fillMaxWidth().padding(start = cardInset, end = cardInset, top = if (tightCard) 9.dp else 13.dp)) {
+                        Row(Modifier.fillMaxWidth().height(if (tightCard) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("SERIE ${setIndex + 1}", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, letterSpacing = 0.65.sp),
+                                color = Ref02CardMuted)
                         }
-
-                        Button(
-                            onClick = {
+                        Column(
+                            Modifier.fillMaxWidth().padding(top = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Box(Modifier.size(49.dp).border(1.dp, Color(0x55FFB5AD), CircleShape), contentAlignment = Alignment.Center) {
+                                Text("!", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 28.sp),
+                                    color = Color(0xFFFFB5AD))
+                            }
+                            Text("Error de ejecución", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 23.sp),
+                                color = WizardColors.text)
+                            Text(
+                                "${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}\n" +
+                                    "El fallo muscular se registra en esfuerzo.",
+                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp, lineHeight = 19.sp),
+                                color = Ref02CardMuted, textAlign = TextAlign.Center,
+                            )
+                            if (failedSetReason.isNotBlank()) {
+                                Text(failedSetReason, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp), color = Ref02CardFaint)
+                            }
+                            LiveSheetSecondary("Revisar motivo", { reasonSheet = true }, tag = "live-card-failed-reason")
+                            LiveSheetPrimary("Recuperar serie", {
                                 isFailedSet = false
                                 failedSetReason = ""
                                 onRevertExecutionError?.invoke()
-                            },
-                            modifier = Modifier.widthIn(min = 140.dp, max = 220.dp).height(38.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Black.copy(alpha = 0.40f),
-                                contentColor = Color.White,
-                            ),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                        ) {
-                            Text("Revertir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            }, tag = "live-card-failed-revert")
                         }
+                    }
+                    Box(
+                        Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp)
+                            .padding(start = cardInset, end = cardInset, top = if (tightCard) 4.dp else 6.dp, bottom = if (tightCard) 9.dp else 12.dp),
+                    ) {
+                        LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
+                            onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
+                    }
+                }
+                if (reasonSheet) {
+                    LiveSheet(title = "Error de ejecución", onDismiss = { reasonSheet = false }, tag = "live-card-failed-sheet") {
+                        LiveSheetSubtitle("Señala una incidencia de ejecución. Llegar al fallo muscular se informa en esfuerzo.")
+                        LiveSheetChoiceRow(
+                            options = listOf("Molestia articular", "Fallo técnico", "Carga excesiva").map { it to it },
+                            selected = { it == failedSetReason },
+                            onSelect = { failedSetReason = if (failedSetReason == it) "" else it },
+                        )
                     }
                 }
             }
@@ -3924,3 +4017,117 @@ private fun RomReportSlider(
         }
     }
 }
+
+private val Ref02CardMuted = Color(0xFFB9B5AE)
+private val Ref02CardFaint = Color(0xFF92908A)
+
+/** `.step-buttons button`: cuadro de esquinas 12 con relleno blanco al 3 % e icono gris de 15. */
+@Composable
+private fun Ref02StepButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    width: Dp,
+    height: Dp,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier.size(width = width, height = height).clip(RoundedCornerShape(12.dp)).background(Color(0x07FFFFFF))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick).semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, Modifier.size(15.dp), tint = Ref02CardMuted.copy(alpha = if (enabled) 1f else .4f)) }
+}
+
+/**
+ * `.wheel-track` del prototipo: cinco botones redondos alrededor de las repeticiones (dos menos, la actual y dos más). La actual va en tinta
+ * con la cifra más grande; tocar cualquiera la elige.
+ */
+@Composable
+private fun Ref02RepButtons(current: Int, compact: Boolean, enabled: Boolean, onSelect: (Int) -> Unit) {
+    val start = (current - 2).coerceAtLeast(0)
+    val size = if (compact) 40.dp else 44.dp
+    Row(
+        Modifier.fillMaxWidth().padding(top = 4.dp).height(if (compact) 43.dp else 46.dp).testTag("live-card-reps"),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        (start until start + 5).forEach { value ->
+            val selected = value == current
+            Box(
+                Modifier.size(size).clip(CircleShape).background(if (selected) WizardColors.text else Color(0x04FFFFFF))
+                    .clickable(enabled = enabled, role = Role.Button) { onSelect(value) }
+                    .semantics { contentDescription = "$value repeticiones"; this.selected = selected }
+                    .testTag("live-card-reps-$value"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(value.toString(), style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold,
+                    fontSize = if (selected) 24.sp else 19.sp, fontFeatureSettings = "'tnum' 1"),
+                    color = if (selected) Color(0xFF111111) else Ref02CardMuted)
+            }
+        }
+    }
+}
+
+/** `.v2-quantity-input`: la cantidad en Syne de 36 (ancho 130), su unidad y −/+ de 1 a la derecha. */
+@Composable
+private fun Ref02QuantityInput(
+    value: String,
+    placeholder: String?,
+    unit: String,
+    decimal: Boolean,
+    enabled: Boolean,
+    onValueChange: (String) -> Unit,
+    onStep: (Int) -> Unit,
+    allowColon: Boolean = false,
+) {
+    val style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp, letterSpacing = (-1.5).sp,
+        fontFeatureSettings = "'tnum' 1")
+    Row(Modifier.fillMaxWidth().height(49.dp).testTag("live-card-quantity-input"), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        BasicTextField(
+            value = value,
+            // Se admiten el signo (la validación rechaza los negativos), la coma decimal y, en tiempo, «min:s».
+            onValueChange = { typed -> onValueChange(typed.filter { it.isDigit() || it == '-' || (decimal && (it == ',' || it == '.')) || (allowColon && it == ':') }) },
+            enabled = enabled,
+            singleLine = true,
+            textStyle = style.copy(color = WizardColors.text),
+            keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
+            modifier = Modifier.width(130.dp).semantics { contentDescription = "Cantidad registrada" },
+            decorationBox = { inner ->
+                Box {
+                    if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
+                    inner()
+                }
+            },
+        )
+        Text(unit, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint)
+        Spacer(Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Ref02StepButton(KpknLineIcons.Minus, "Reducir cantidad", 41.dp, 40.dp, enabled) { onStep(-1) }
+            Ref02StepButton(KpknLineIcons.Plus, "Aumentar cantidad", 41.dp, 40.dp, enabled) { onStep(1) }
+        }
+    }
+}
+
+/** El reloj de la serie por tiempo en la cabecera de «TIEMPO» (`set-clock`): play/pausa y el tiempo. */
+@Composable
+private fun Ref02SetClockButton(running: Boolean, seconds: Int, onClick: () -> Unit) {
+    Row(
+        Modifier.heightIn(min = 26.dp).clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = if (running) "Pausar el cronómetro de la serie" else "Iniciar el cronómetro de la serie" }
+            .testTag("live-card-set-clock"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(if (running) KpknLineIcons.Pause else KpknLineIcons.Play, null, Modifier.size(13.dp), tint = Ref02CardMuted)
+        Text("%d:%02d".format(seconds / 60, seconds % 60), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp,
+            fontFeatureSettings = "'tnum' 1"), color = Ref02CardMuted)
+    }
+}
+
+/** Cantidad o carga con hasta tres decimales y coma (12,25 + 1 = 13,25): sin el recorte a un decimal de `toTrimmedNumberString`. */
+private fun ref02Quantity(value: Double): String = java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("es")).apply {
+    isGroupingUsed = false
+    maximumFractionDigits = 3
+    minimumFractionDigits = 0
+}.format(value)

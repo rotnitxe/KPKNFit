@@ -72,110 +72,65 @@ internal fun RestFeedbackCard(
 ) {
     val safeRemaining = remainingSeconds.coerceAtLeast(0)
     val safeTotal = totalSeconds.coerceAtLeast(safeRemaining).coerceAtLeast(1)
-    val progress = RestClockMath.progress(safeTotal, safeRemaining)
-    var openDiscomfortId by remember { mutableStateOf<String?>(null) }
+    val compact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+    var discomfortsOpen by remember { mutableStateOf(false) }
     val focusName = remember(feedbackExercises) {
         if (feedbackExercises.size == 1) displayWorkoutExerciseName(feedbackExercises.first()) else "esta superserie"
     }
-
-    KpknModule(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        contentPadding = PaddingValues(0.dp),
+    // `restCard` con el panel `feedback`: «1:32 · DESCANSO» con expandir, el feedback y «Ahora no» / «Guardar feedback» en el pie.
+    RestRef02Card(
+        compact = compact,
+        modifier = modifier,
+        tag = "rest-feedback-card",
+        footer = { RestRef02FeedbackActions(onDefer = onDefer, onSave = onSave, inCard = true) },
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // La franja de arriba (F4): el descanso que sigue corriendo y el botón para verlo a pantalla completa.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(KpknSurface.inset)
-                    .padding(horizontal = 14.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                RestRingsClock(
-                    shape = shape,
-                    progress = progress,
-                    animationsOn = clockActive,
-                    runnerScale = 0f,
-                    trackColor = CardTrackColor,
-                    strokeBoost = 1.15f,
-                    modifier = Modifier.size(width = 44.dp, height = 40.dp),
-                )
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = RestClockMath.spokenRemaining(safeRemaining) },
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        text = KpknSetFormat.rest(safeRemaining),
-                        style = KpknType.metricL.copy(fontSize = 24.sp, lineHeight = 28.sp),
-                        color = WizardColors.text,
-                        maxLines = 1,
-                    )
-                    Text(
-                        text = "de ${KpknSetFormat.rest(safeTotal)}",
-                        style = KpknType.caption.copy(fontSize = 12.sp),
-                        color = WizardColors.textMuted,
-                        maxLines = 1,
-                        modifier = Modifier.padding(bottom = 3.dp),
-                    )
-                }
-                if (onExpand != null) {
-                    KpknIconButton(
-                        icon = KpknLineIcons.ChevronDown,
-                        contentDescription = "Expandir descanso",
-                        onClick = onExpand,
-                        modifier = Modifier.graphicsLayer { rotationZ = 180f },
-                    )
-                }
-            }
-
-            // Lo de en medio se desplaza si no cabe (la letra al 130 %, varios chips): su borde de abajo se funde en vez de cortarse.
-            val middleScroll = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = true)
-                    .fillMaxWidth()
-                    .fadeBottomWhenScrollable(middleScroll)
-                    .verticalScroll(middleScroll)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Box(Modifier.fillMaxWidth().height(48.dp)) { videoSlot?.invoke() }
-                feedbackExercises.forEach { exercise ->
-                    TechniqueQualityCompactRow(
-                        value = draft.technical(exercise.id),
-                        onValueChange = { draft.setTechnical(exercise.id, it) },
-                        exerciseName = if (feedbackExercises.size > 1) displayWorkoutExerciseName(exercise) else null,
-                        animated = clockActive && openDiscomfortId == null,
-                    )
-                }
-                if (linked.isNotEmpty()) {
-                    LinkedDiscomfortsCompact(linked = linked, draft = draft)
-                }
-                DiscomfortPicker(
-                    draft = draft,
-                    insights = insights,
-                    focusName = focusName,
-                    nowMs = nowMs,
-                    onOpenDiscomfort = { openDiscomfortId = it },
-                    compact = true,
-                )
-            }
-
-            FeedbackActions(
-                onDefer = onDefer,
-                onSave = onSave,
-                compact = true,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-            )
-        }
+        RestRef02Kicker("${KpknSetFormat.rest(safeRemaining)} · DESCANSO", compact, onExpand)
+        RestRef02FeedbackBody(
+            feedbackExercises = feedbackExercises,
+            draft = draft,
+            linked = linked,
+            wide = false,
+            compact = compact,
+            onOpenDiscomforts = { discomfortsOpen = true },
+        )
     }
+    if (discomfortsOpen) {
+        RestRef02DiscomfortsSheet(
+            draft = draft,
+            insights = insights,
+            explainDiscomfort = explainDiscomfort,
+            focusName = focusName,
+            nowMs = nowMs,
+            animated = clockActive,
+            onDismiss = { discomfortsOpen = false },
+        )
+    }
+}
 
+/**
+ * «Molestias del ejercicio» (`feedback-discomforts` del prototipo): la hoja con el buscador, las molestias destacadas y el aviso del
+ * motor; cada molestia abre su ficha. Lo elegido va al borrador compartido.
+ */
+@Composable
+internal fun RestRef02DiscomfortsSheet(
+    draft: PostExerciseFeedbackDraft,
+    insights: FeedbackInsights,
+    explainDiscomfort: suspend (String) -> DiscomfortInsight?,
+    focusName: String,
+    nowMs: Long,
+    animated: Boolean,
+    onDismiss: () -> Unit,
+) {
+    var openDiscomfortId by remember { mutableStateOf<String?>(null) }
+    LiveSheet(title = "Molestias del ejercicio", onDismiss = onDismiss, tag = "rest-discomforts-sheet") {
+        DiscomfortPicker(
+            draft = draft,
+            insights = insights,
+            focusName = focusName,
+            nowMs = nowMs,
+            onOpenDiscomfort = { openDiscomfortId = it },
+        )
+    }
     openDiscomfortId?.let { id ->
         val knowledge = discomfortKnowledge(id)
         if (knowledge != null) {
@@ -191,7 +146,7 @@ internal fun RestFeedbackCard(
                     openDiscomfortId = null
                 },
                 onDismiss = { openDiscomfortId = null },
-                animated = clockActive,
+                animated = animated,
             )
         }
     }

@@ -10,12 +10,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.screens.workout.PendingRestSuggestion
@@ -154,16 +154,15 @@ class RestSurfaceParityTest {
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Pausar descanso").performClick()
-        rule.onNodeWithText("Terminar descanso").performScrollTo().performClick()
-        rule.onNodeWithText("DESCANSO SUGERIDO").performScrollTo().performClick()
-        rule.onNodeWithText("Saltar series restantes de Sentadilla trasera").performScrollTo().performClick()
-        rule.onNodeWithContentDescription("Minimizar").performClick()
+        rule.onNodeWithTag("rest-end").performClick()
+        rule.onNodeWithTag("rest-suggestion-row").performClick()
+        rule.onNodeWithTag("rest-suggestion-apply").performClick()
+        rule.onNodeWithContentDescription("Minimizar a tarjeta").performClick()
         assertEquals(1, taps.minus)
         assertEquals(1, taps.plus)
         assertEquals(1, taps.pauses)
         assertEquals(1, taps.skip)
         assertEquals(1, taps.adaptive)
-        assertEquals(1, taps.skipExercise)
         assertEquals(1, taps.minimize)
     }
 
@@ -174,7 +173,8 @@ class RestSurfaceParityTest {
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
         rule.onNodeWithContentDescription("Pausar descanso").performClick()
-        rule.onNodeWithText("Descanso sugerido").performClick()
+        rule.onNodeWithTag("rest-suggestion-row").performClick()
+        rule.onNodeWithTag("rest-suggestion-apply").performClick()
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         assertEquals(1, taps.minus)
         assertEquals(1, taps.plus)
@@ -192,12 +192,13 @@ class RestSurfaceParityTest {
         overlay(taps, playing = true)
         // master opens the arcade picker first; selecting a game keeps the same rest clock active.
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithText("El descanso sigue corriendo").assertExists()
-        rule.onNodeWithText("Después", substring = true).assertExists()
-        rule.onNodeWithText("Saltar descanso").performClick()
+        rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("2:41")
+        rule.onNodeWithTag("rest-end").performClick()
         assertEquals(1, taps.skip)
-        rule.onNodeWithText("Volver").performClick()
-        rule.onNodeWithText("Ajustar tiempo").assertExists()
+        // Desde el juego, «atrás» vuelve al selector; desde el selector, vuelve al reloj.
+        rule.onNodeWithTag("arcade-back").performClick()
+        rule.onNodeWithTag("arcade-back").performClick()
+        rule.onNodeWithText("Una pausa antes de la siguiente.").assertExists()
         rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
         assertEquals(1, taps.plus)
     }
@@ -207,9 +208,11 @@ class RestSurfaceParityTest {
         val taps = Taps()
         card(taps, playing = true)
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithText("Saltar descanso").performClick()
-        assertEquals(1, taps.skip)
-        rule.onNodeWithText("Volver").performClick()
+        rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("2:41")
+        // Desde el juego, «atrás» vuelve al selector; «Volver al descanso» devuelve a la tarjeta con el mismo reloj.
+        rule.onNodeWithTag("arcade-back").performClick()
+        rule.onNodeWithTag("arcade-return-rest").performClick()
+        rule.onNodeWithText("2:41").assertExists()
         rule.onNodeWithText("Jugar mientras descansas").assertExists()
         rule.onNodeWithContentDescription("Restar 15 segundos").performClick()
         assertEquals(1, taps.minus)
@@ -244,31 +247,31 @@ class RestSurfaceParityTest {
     @Test
     fun theFullScreenShowsWhatEverythingElseKeepsShowing() {
         overlay(Taps())
-        rule.onNodeWithText("DESCANSO").assertExists()
+        rule.onNodeWithTag("rest-full-eyebrow").assertTextEquals("PAUSA ENTRE SERIES")
         rule.onNodeWithText("2:41").assertExists()
-        rule.onNodeWithText("de 4:09").assertExists()
-        rule.onNodeWithText("Ajustar tiempo").assertExists()
-        rule.onNodeWithText("ÚLTIMA SERIE").assertExists()
-        rule.onNodeWithText("PLAN DE SESIÓN").assertExists()
-        rule.onNodeWithContentDescription("Descanso: quedan 2 minutos y 41 segundos").assertExists()
+        rule.onNodeWithText("Una pausa antes de la siguiente.").assertExists()
+        rule.onNodeWithTag("rest-full-context").assertExists()
+        rule.onNodeWithText("ÚLTIMA").assertExists()
+        rule.onNodeWithText("SIGUIENTE").assertExists()
+        rule.onNodeWithContentDescription("Descansando, 2:41").assertExists()
     }
 
     @Test
     fun theCardShowsTheNextSetFromTheRealPlan() {
         card(Taps())
         rule.onNodeWithText("2:41").assertExists()
-        rule.onNodeWithText("de 4:09").assertExists()
-        rule.onNodeWithText("Serie 2 · 95${nbsp}kg${nbsp}×${nbsp}4–6").assertExists()
-        rule.onNodeWithText("RIR 2").assertExists()
+        rule.onNodeWithText("SIGUIENTE").assertExists()
+        rule.onNodeWithText("Sentadilla trasera · serie 2").assertExists()
+        rule.onNodeWithText("95${nbsp}kg${nbsp}×${nbsp}4–6").assertExists()
     }
 
     @Test
     fun bothRestSurfacesPauseAndResumeTheSameClock() {
         val taps = Taps()
         overlay(taps, paused = true)
-        rule.onNodeWithText("En pausa · de 4:09").assertExists()
+        rule.onNodeWithContentDescription("En pausa, 2:41").assertExists()
         rule.onNodeWithContentDescription("Continuar descanso").performClick()
-        rule.onNodeWithText("Descanso en pausa").assertExists()
+        rule.onNodeWithText("En pausa").assertExists()
         assertEquals(1, taps.pauses)
     }
 
@@ -276,7 +279,7 @@ class RestSurfaceParityTest {
     fun theCardShowsThePausedClockWithoutLosingTheRemainingTime() {
         card(Taps(), paused = true)
         rule.onNodeWithText("2:41").assertExists()
-        rule.onNodeWithText("En pausa · de 4:09").assertExists()
+        rule.onNodeWithContentDescription("En pausa, 2:41").assertExists()
         rule.onNodeWithContentDescription("Continuar descanso").assertExists()
     }
 
@@ -332,11 +335,12 @@ class RestSurfaceParityTest {
                 )
             }
         }
-        rule.onNodeWithText("TIEMPO EXTRA").assertExists()
+        rule.onNodeWithText("Tiempo extra").assertExists()
         rule.onNodeWithText("+0:24").assertExists()
-        rule.onNodeWithText("sobre 4:09").assertExists()
-        rule.onNodeWithText("Descanso cumplido. Serie 2 de 4: 95${nbsp}kg${nbsp}×${nbsp}4–6.").assertExists()
-        rule.onNodeWithText("Empezar la serie 2").performClick()
+        rule.onNodeWithText("Tu descanso se ha cumplido.").assertExists()
+        rule.onNodeWithText("SIGUIENTE").assertExists()
+        rule.onNodeWithText("95${nbsp}kg${nbsp}×${nbsp}4–6").assertExists()
+        rule.onNodeWithText("Continuar entrenando").performClick()
         rule.onNodeWithText("Necesito +30 s").performClick()
         assertEquals(1, started)
         assertEquals(1, extended)
@@ -360,9 +364,9 @@ class RestSurfaceParityTest {
                 )
             }
         }
-        rule.onNodeWithText("DESCANSO CUMPLIDO").assertExists()
+        rule.onNodeWithText("DESCANSO · TIEMPO EXTRA").assertExists()
         rule.onNodeWithText("+0:24").assertExists()
-        rule.onNodeWithText("Empezar la serie 2").performClick()
+        rule.onNodeWithText("Continuar").performClick()
         rule.onNodeWithText("Necesito +30 s").performClick()
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         assertEquals(1, started)

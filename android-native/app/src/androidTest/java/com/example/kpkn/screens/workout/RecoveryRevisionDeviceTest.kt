@@ -57,43 +57,31 @@ class RecoveryRevisionDeviceTest {
         assertTrue(game.velocity > RestGameEngine.JUMP_SPEED)
     }
 
-    @Test fun flappyHasRealGravityFlapScoringAndCollision() {
-        val game = RestFlightEngine(RestArcadeMode.FLAPPY, Random(9))
-        game.flap()
-        val before = game.playerY
-        game.step(.016f)
-        assertTrue(game.playerY < before)
-        game.gates.clear()
-        game.gates += RestFlightEngine.Gate(-38f, 210f)
-        game.step(.016f)
-        assertEquals(1, game.score)
-        game.gates += RestFlightEngine.Gate(game.playerX, 80f)
-        game.step(.016f)
-        assertEquals(2, game.lives)
-        assertFalse(game.ended)
+    @Test fun flappyWaitsForFirstFlapThenGravityCostsLives() {
+        val game = FlappyWorld(360f, 520f, best = 0, random = Random(9), reduced = true)
+        repeat(60) { assertFalse(game.update(.016f)) }
+        assertEquals("Before the first flap the bird hovers and cannot lose lives", 3, game.lives)
+        game.press(0f, 0f)
+        var ended = false
+        var frames = 0
+        while (!ended && frames < 60 * 120) { ended = game.update(.016f); frames++ }
+        assertTrue("Without more flaps the bird hits the ground until the game ends", ended)
+        assertEquals(0, game.lives)
     }
 
-    @Test fun shooterMovementShotsHitsAndEnemyDamageAreReal() {
-        val game = RestFlightEngine(RestArcadeMode.SHOOTER, Random(4))
-        game.step(.016f)
-        game.ships.clear(); game.shots.clear()
-        game.steer(180f, 350f)
-        assertEquals(180f, game.playerX, .001f)
-        assertEquals(350f, game.playerY, .001f)
-        game.ships += RestFlightEngine.Ship(180f, 170f, hp = 1)
-        game.shots += RestFlightEngine.Shot(180f, 175f, false)
-        game.step(.016f)
-        assertEquals(10, game.score)
-        assertTrue(game.ships.isEmpty())
-        game.shots += RestFlightEngine.Shot(180f, 345f, true)
-        game.step(.016f)
-        assertEquals(2, game.lives)
-        game.steer(-100f, 1000f)
-        assertEquals(18f, game.playerX, .001f)
-        assertEquals(395f, game.playerY, .001f)
+    @Test fun shooterAutoFiresAndFollowsRelativeDrag() {
+        val game = ShooterWorld(360f, 520f, best = 0, random = Random(4), reduced = true)
+        assertEquals(3, game.lives)
+        game.press(180f, 400f)
+        game.move(120f, 400f)
+        var ended = false
+        var frames = 0
+        while (!ended && game.score == 0 && frames < 60 * 120) { ended = game.update(.016f); frames++ }
+        assertTrue("Automatic fire scores or the waves end the game", ended || game.score > 0)
+        game.release()
     }
 
-    @Test fun arcadePickerRestartAndReturnPreserveControllerClock() {
+    @Test fun arcadePickerPlayAndBackPreserveControllerClock() {
         var returned = 0
         rule.setContent {
             MaterialTheme {
@@ -105,9 +93,11 @@ class RecoveryRevisionDeviceTest {
         }
         rule.onNodeWithTag("rest-game-runner").assertIsDisplayed().performClick()
         rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("1:13")
-        rule.onNodeWithTag("rest-game-restart").performClick()
+        rule.onNodeWithTag("arcade-back").performClick()
+        rule.onNodeWithTag("rest-game-runner").assertIsDisplayed()
         rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("1:13")
-        rule.onNodeWithTag("arcade-return-rest").performClick()
+        rule.runOnIdle { assertEquals(0, returned) }
+        rule.onNodeWithTag("arcade-back").performClick()
         rule.runOnIdle { assertEquals(1, returned) }
     }
 

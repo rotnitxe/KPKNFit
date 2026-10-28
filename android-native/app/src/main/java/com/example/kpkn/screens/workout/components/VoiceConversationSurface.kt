@@ -383,7 +383,7 @@ private fun VoiceHistoryCard(
 }
 
 @Composable
-private fun VoiceCorrectionSheet(
+internal fun VoiceCorrectionSheet(
     entry: VoiceHistoryEntry,
     onDismiss: () -> Unit,
     onConfirm: (Double, Int, Double) -> Unit,
@@ -463,7 +463,7 @@ private fun VoiceCorrectionSheet(
 }
 
 @Composable
-private fun VoiceAuditSheet(entry: VoiceHistoryEntry, onDismiss: () -> Unit) {
+internal fun VoiceAuditSheet(entry: VoiceHistoryEntry, onDismiss: () -> Unit) {
     val audit = entry.audit ?: return
     KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = onDismiss) {
         HeaderSheetFrame(

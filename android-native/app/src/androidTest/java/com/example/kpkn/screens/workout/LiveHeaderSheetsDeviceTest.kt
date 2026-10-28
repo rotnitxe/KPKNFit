@@ -132,24 +132,21 @@ class LiveHeaderSheetsDeviceTest {
             WorkoutTagManagerModal(tag, "exercise", { renamed = it; RenameTagResult.Success }, {}, { reset++ },
                 { _, _ -> }, {}, {}, emptyList(), {}, machineBrand = "Rack", baseLoadKg = "20", onSaveSetup = { saved = it })
         }
-        rule.onNodeWithContentDescription("Nombre", useUnmergedTree = true).performTextReplacement("Máquina B")
-        tap("Guardar nombre")
-        tap("Set-up · Mostrar")
-        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).performScrollTo().performTextReplacement("25,5")
-        tap("Guardar set-up")
-        captureManagerDiagnostic("after-save-before-ending-edit")
-        // Finish text editing explicitly in the ComponentActivity test host, then test the real touch target.
+        // «Contexto del ejercicio» (prototipo 02): reiniciar la referencia pide confirmación y conserva los registros.
+        tap("Reiniciar referencia de historial")
+        rule.onNodeWithText("Los registros originales se conservan.", substring = true, useUnmergedTree = true).assertExists()
+        rule.runOnIdle { assertEquals(0, reset) }
+        rule.onNodeWithText("Reiniciar referencia", useUnmergedTree = true).assertIsDisplayed().performClick()
+        rule.runOnIdle { assertEquals(1, reset) }
+        // Nombre y carga base se guardan juntos con «Guardar etiqueta».
+        rule.onNodeWithTag("live-tag-new-name", useUnmergedTree = true).performTextReplacement("Máquina B")
+        rule.onNodeWithTag("live-tag-base", useUnmergedTree = true).performScrollTo().performTextReplacement("25,5")
+        captureManagerDiagnostic("after-edit-before-save")
         rule.runOnIdle { finishEditing() }
-        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).assertIsNotFocused()
         rule.waitUntil(2_000) { !managerImeVisible() }
         rule.waitForIdle()
-        // Scroll to the real target, independent of the available height or Flex posture.
-        rule.onNodeWithTag("live-header-sheet-body", useUnmergedTree = true).assertIsDisplayed()
-        tap("Reiniciar historial")
-        rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
-        rule.runOnIdle { assertEquals(0, reset) }
-        rule.onNodeWithText("Reiniciar", useUnmergedTree = true).assertIsDisplayed().performClick()
-        rule.runOnIdle { assertEquals("Máquina B", renamed); assertEquals(25.5, saved!!.baseLoadKg!!, .0001); assertEquals(1, reset) }
+        tap("Guardar etiqueta")
+        rule.runOnIdle { assertEquals("Máquina B", renamed); assertEquals(25.5, saved!!.baseLoadKg!!, .0001) }
     }
 
     @Test fun realVoiceModeIsActivatedOnlyAfterExplicitStart() {
@@ -157,11 +154,11 @@ class LiveHeaderSheetsDeviceTest {
         voiceFixture = verifiedVoiceModesForUiFixture(InstrumentationRegistry.getInstrumentation().targetContext)
         content { VoiceCaptureModeDialog({ chosen += it }, {}) }
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty() }
-        rule.onNodeWithText("Activar").assertIsNotEnabled()
+        rule.onNodeWithTag("voice-mode-test").assertIsNotEnabled()
         tap("Manos libres")
-        tap("Modo música")
+        tap("Música")
         rule.runOnIdle { assertTrue(chosen.isEmpty()) }
-        rule.onNodeWithText("Activar").performClick()
+        rule.onNodeWithText("Activar modo de voz").performClick()
         rule.waitUntil(5_000) { chosen.isNotEmpty() }
         rule.runOnIdle { assertEquals(listOf(VoiceCaptureMode.MUSIC), chosen) }
         rule.onAllNodesWithText("Prueba de sonido").assertCountEquals(0)

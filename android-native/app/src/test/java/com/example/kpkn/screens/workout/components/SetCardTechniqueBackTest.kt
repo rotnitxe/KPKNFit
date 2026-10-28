@@ -9,24 +9,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
-import com.example.kpkn.domain.training.NativeProgressionText
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
+import com.example.kpkn.screens.workout.toTrimmedNumberString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -38,8 +43,9 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * El reverso «Avanzado» con Compose sobre Robolectric (LR0, LV8): el segmentado «Normal · Drop-set · Rest-pause», la cadena de la serie
- * con solo el eslabón activo abierto, el registro de la técnica al marcar todos los eslabones y el fallo y la nota que se conservan.
+ * El reverso «Avanzado» con Compose sobre Robolectric (Refinamiento 02): el conmutador «Normal · Drop · Rest-pause · Myo», la cadena de la
+ * serie en su hoja con solo el tramo activo abierto en el reverso, la técnica que se guarda en la serie al pulsar «Volver al registro», y el
+ * error de ejecución y la nota que se conservan.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w420dp-h1600dp")
@@ -76,19 +82,33 @@ class SetCardTechniqueBackTest {
         }
     }
 
+    /** Elige la técnica «Drop» en el conmutador; el reverso queda en la serie principal hasta abrir un tramo. */
     private fun mostrarReversoConDrops() {
         mostrarReverso()
-        rule.onNodeWithText("Drop-set").performClick()
+        rule.onNodeWithTag("technique-tab-1").performClick()
     }
 
+    /** Pasa de la serie principal al primer tramo del conmutador, con sus campos. */
+    private fun abrirElPrimerTramo() {
+        rule.onNodeWithContentDescription("Tramo siguiente").performClick()
+    }
+
+    /** El valor escrito en un campo del reverso, por su descripción accesible. */
+    private fun valorDelCampo(descripcion: String): String =
+        rule.onNodeWithContentDescription(descripcion).fetchSemanticsNode().config[SemanticsProperties.EditableText].text
+
+    /** Las filas de la hoja «Cadena de la serie» (cada tramo lleva «·» en su texto). */
+    private fun filasDeLaCadena() =
+        rule.onAllNodes(hasAnyAncestor(hasTestTag("technique-chain-sheet-body")) and hasText("·", substring = true), useUnmergedTree = true)
+
     @Test
-    fun marcarElDropComoHechoRegistraLaTecnicaEnLaSerie() {
+    fun elDropSeGuardaEnLaSerieAlVolverAlRegistro() {
         mostrarReversoConDrops()
 
-        rule.onNodeWithTag(TechniqueDoneToggleTag).performClick()
+        rule.onNodeWithTag("technique-back-to-record").performClick()
         rule.waitForIdle()
 
-        val (drops, pauses) = checkNotNull(saved) { "al marcar el drop como hecho no se registró la técnica" }
+        val (drops, pauses) = checkNotNull(saved) { "al volver al registro con un drop no se registró la técnica" }
         assertEquals(1, drops.size)
         assertTrue(drops.first().weight > 0.0)
         assertEquals(3, drops.first().reps)
@@ -96,7 +116,7 @@ class SetCardTechniqueBackTest {
     }
 
     @Test
-    fun sinMarcarNingunDropNoSeRegistraNada() {
+    fun elegirUnDropSinVolverAlRegistroNoRegistraNada() {
         mostrarReversoConDrops()
 
         rule.waitForIdle()
@@ -109,9 +129,9 @@ class SetCardTechniqueBackTest {
         mostrarReverso()
 
         rule.onNodeWithText("Normal").assertExists()
-        rule.onNodeWithText("Drop-set").assertExists()
+        rule.onNodeWithText("Drop").assertExists()
         rule.onNodeWithText("Rest-pause").assertExists()
-        rule.onNodeWithText("Myo-reps").assertExists()
+        rule.onNodeWithText("Myo").assertExists()
         rule.onNodeWithText("Serie 3").assertExists()
         rule.onNodeWithText("AVANZADO").assertExists()
     }
@@ -119,42 +139,51 @@ class SetCardTechniqueBackTest {
     @Test
     fun laCadenaEmpiezaConLaPrincipalYUnDropYPermiteAnadirHastaElMaximo() {
         mostrarReversoConDrops()
-        rule.onAllNodesWithTag(TechniqueLinkTag).assertCountEquals(2)
+        rule.onNodeWithText("2 tramos").assertExists()
 
-        repeat(4) { rule.onNodeWithContentDescription("Añadir drop").performClick() }
+        rule.onNodeWithTag(TechniqueChainTag).performClick()
+        rule.waitForIdle()
+        filasDeLaCadena().assertCountEquals(1)
+        rule.onNodeWithContentDescription("Cerrar panel").performClick()
+        rule.waitForIdle()
 
-        rule.onAllNodesWithTag(TechniqueLinkTag).assertCountEquals(6)
-        rule.onNodeWithContentDescription("Añadir drop").assertDoesNotExist()
+        repeat(4) { rule.onNodeWithText("Añadir tramo").performClick() }
+
+        rule.onNodeWithText("6 tramos").assertExists()
+        rule.onAllNodes(hasText("Añadir tramo") and hasClickAction()).assertCountEquals(0)
     }
 
     @Test
     fun soloElEslabonActivoEstaAbiertoYElNuevoPasaAserElActivo() {
         mostrarReversoConDrops()
-        repeat(2) { rule.onNodeWithContentDescription("Añadir drop").performClick() }
+        abrirElPrimerTramo()
+        repeat(2) { rule.onNodeWithText("Añadir tramo").performClick() }
         rule.waitForIdle()
 
-        rule.onAllNodesWithTag(TechniqueDoneToggleTag).assertCountEquals(1)
-        // «Drop 3» sale en su eslabón y en el título del eslabón abierto; «Drop 1», solo en su eslabón.
-        rule.onAllNodesWithText("Drop 3").assertCountEquals(2)
-        rule.onAllNodesWithText("Drop 1").assertCountEquals(1)
-
-        rule.onAllNodesWithText("Drop 1").onFirst().performClick()
-        rule.waitForIdle()
-        rule.onAllNodesWithText("Drop 1").assertCountEquals(2)
-        rule.onAllNodesWithText("Drop 3").assertCountEquals(1)
+        // Solo el tramo activo enseña sus campos, y el recién añadido (DROP 3) pasa a serlo.
+        rule.onNodeWithText("DROP 3").assertExists()
+        rule.onAllNodesWithContentDescription("Carga · kg").assertCountEquals(1)
+        rule.onNodeWithContentDescription("Tramo anterior").performClick()
+        rule.onNodeWithText("DROP 2").assertExists()
+        rule.onNodeWithContentDescription("Tramo anterior").performClick()
+        rule.onNodeWithText("DROP 1").assertExists()
     }
 
     @Test
     fun laSugerenciaDelDropSoloSaleSiLaAppLaCalcula() {
         mostrarReversoConDrops()
-        val sugerido = suggestedDropLoadsForMainSet(100.0, 8, 1).first()
-        rule.onNodeWithText("Sugerido ${NativeProgressionText.formatKg(sugerido)} kg").assertExists()
+        abrirElPrimerTramo()
+
+        // La carga del drop llega escrita con la sugerencia que calcula la app; ya no hay un chip aparte.
+        val sugerido = suggestedDropLoadsForMainSet(100.0, 8, 1).first().toTrimmedNumberString()
+        assertEquals(sugerido, valorDelCampo("Carga · kg"))
+        rule.onAllNodesWithText("Sugerido", substring = true).assertCountEquals(0)
     }
 
     @Test
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    fun conLaLetraGrandeElChipSugeridoPasaALaCargaSolaYSuDescripcionSigueCompleta() {
-        val sugerido = NativeProgressionText.formatKg(suggestedDropLoadsForMainSet(100.0, 8, 1).first())
+    fun conLaLetraGrandeLaCargaDelDropSeLeeEntera() {
+        val sugerido = suggestedDropLoadsForMainSet(100.0, 8, 1).first().toTrimmedNumberString()
         rule.setContent {
             // El ancho de la tarjeta de la serie (272 dp) con la letra al 130 %.
             CompositionLocalProvider(LocalDensity provides Density(1f, 1.3f)) {
@@ -180,45 +209,48 @@ class SetCardTechniqueBackTest {
             }
         }
         rule.waitForIdle()
+        abrirElPrimerTramo()
 
-        rule.onNodeWithContentDescription("Sugerido $sugerido kg").assertExists()
-        rule.onNodeWithText("$sugerido kg").assertExists()
-        rule.onNodeWithText("Sugerido $sugerido kg").assertDoesNotExist()
+        rule.onNodeWithText("DROP 1").assertExists()
+        rule.onNodeWithText("Carga · kg").assertExists()
+        rule.onNodeWithText("$sugerido × 3").assertExists()
+        assertEquals(sugerido, valorDelCampo("Carga · kg"))
     }
 
     @Test
-    fun sinCargaPrincipalNoHayChipSugerido() {
+    fun sinCargaPrincipalLaCargaDelDropQuedaVacia() {
         mostrarReverso(mainWeight = 0.0)
-        rule.onNodeWithText("Drop-set").performClick()
+        rule.onNodeWithTag("technique-tab-1").performClick()
+        abrirElPrimerTramo()
 
+        assertEquals("", valorDelCampo("Carga · kg"))
         rule.onAllNodesWithText("Sugerido", substring = true).assertCountEquals(0)
     }
 
     @Test
-    fun elRestPauseMuestraLasPausasYSuExplicacion() {
+    fun elRestPauseMuestraSusTramosYSuCampoDePausa() {
         mostrarReverso()
-        rule.onNodeWithText("Rest-pause").performClick()
+        rule.onNodeWithTag("technique-tab-2").performClick()
 
-        rule.onAllNodesWithTag(TechniqueLinkTag).assertCountEquals(1 + RestPausePlanDefaults.DefaultCount)
-        rule.onNodeWithText("ASÍ SE VE UN REST-PAUSE").assertExists()
-        // «Pausa 1» sale en su eslabón y en el título del eslabón abierto.
-        rule.onAllNodesWithText("Pausa 1").assertCountEquals(2)
+        rule.onNodeWithText("${1 + RestPausePlanDefaults.DefaultCount} tramos").assertExists()
+        rule.onNodeWithText("PRINCIPAL").assertExists()
+        abrirElPrimerTramo()
+        rule.onNodeWithText("TRAMO 1").assertExists()
+        assertEquals(RestPausePlanDefaults.PauseSeconds.toString(), valorDelCampo("Pausa · s"))
+        assertEquals(RestPausePlanDefaults.Reps.toString(), valorDelCampo("Repeticiones"))
     }
 
     @Test
-    fun elRestPauseSeRegistraCuandoTodasLasPausasEstanHechas() {
+    fun elRestPauseSeGuardaEnLaSerieAlVolverAlRegistro() {
         mostrarReverso()
-        rule.onNodeWithText("Rest-pause").performClick()
+        rule.onNodeWithTag("technique-tab-2").performClick()
+        rule.waitForIdle()
+        assertNull("sin volver al registro no se registra la pausa", saved)
 
-        for (indice in 0 until RestPausePlanDefaults.DefaultCount) {
-            if (indice > 0) rule.onAllNodesWithText("Pausa ${indice + 1}").onFirst().performClick()
-            rule.waitForIdle()
-            assertNull("hasta marcar la última no se registra: pausa ${indice + 1}", saved)
-            rule.onNodeWithTag(TechniqueDoneToggleTag).performClick()
-            rule.waitForIdle()
-        }
+        rule.onNodeWithTag("technique-back-to-record").performClick()
+        rule.waitForIdle()
 
-        val (drops, pauses) = checkNotNull(saved) { "con todas las pausas hechas debe registrarse" }
+        val (drops, pauses) = checkNotNull(saved) { "al volver al registro con el rest-pause no se registró la técnica" }
         assertTrue(drops.isEmpty())
         assertEquals(RestPausePlanDefaults.DefaultCount, pauses.size)
         assertEquals(RestPausePlanDefaults.Reps, pauses.first().reps)
@@ -229,21 +261,33 @@ class SetCardTechniqueBackTest {
     fun elErrorDeEjecucionYLaNotaSeConservan() {
         mostrarReverso()
 
-        rule.onNodeWithText("NOTA DE LA SERIE").assertExists()
+        rule.onNodeWithText("Añadir nota").performClick()
+        rule.onNodeWithTag("technique-note-sheet", useUnmergedTree = true).assertExists()
+        rule.onNodeWithContentDescription("Observación").assertExists()
+        rule.onNodeWithContentDescription("Cerrar panel").performClick()
+        // Las hojas salen con una animación corta: se espera a que la nota se haya ido antes de abrir la del error.
+        rule.mainClock.advanceTimeBy(600)
+        rule.waitForIdle()
+
         rule.onNodeWithText("Error de ejecución").performClick()
+        rule.mainClock.advanceTimeBy(600)
+        rule.waitForIdle()
+        // En esta caja de prueba de 380 dp la hoja deja el botón fuera de la ventana: se pulsa con su acción (la que usa TalkBack).
+        rule.onNodeWithTag("technique-mark-failed", useUnmergedTree = true).performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
+        rule.waitForIdle()
 
         assertEquals(true, fallida)
     }
 
     @Test
-    fun elReversoNoCreceAunqueLaCadenaTengaCincoDropsYSeDesplazaPorDentro() {
+    fun elReversoNoCreceAunqueLaCadenaTengaCincoDrops() {
         mostrarReverso(alto = 380)
-        rule.onNodeWithText("Drop-set").performClick()
-        repeat(4) { rule.onNodeWithContentDescription("Añadir drop").performClick() }
+        rule.onNodeWithTag("technique-tab-1").performClick()
+        repeat(4) { rule.onNodeWithText("Añadir tramo").performClick() }
         rule.waitForIdle()
 
         val alto = rule.onNodeWithTag("reverso").fetchSemanticsNode().boundsInRoot.height
         assertEquals("la tarjeta no cambia de tamaño: el reverso mide $alto px", 380f, alto, 1f)
-        rule.onNodeWithText("Error de ejecución").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Error de ejecución").assertIsDisplayed()
     }
 }

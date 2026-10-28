@@ -648,7 +648,7 @@ private fun WorkoutHeaderContextLine(
     onTagClick: (String) -> Unit,
     onOpenTagList: () -> Unit,
 ) {
-    val meta = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp)
+    val meta = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp)
     // Iteración 04: sin datos que repitan el nombre ni «Etiquetas ⌄» vacío. Si no queda nada que decir, la línea no ocupa espacio
     // (las etiquetas siguen en las opciones del ejercicio y en el menú de la sesión).
     val hasTags = activeMainTags.isNotEmpty() || activeSubTags.isNotEmpty()
@@ -665,10 +665,7 @@ private fun WorkoutHeaderContextLine(
             Separator()
             Text(chip, modifier = Modifier.align(Alignment.CenterVertically), style = meta, color = WizardColors.textFaint)
         }
-        if (isSuperset) {
-            Separator()
-            Text("Superserie", modifier = Modifier.align(Alignment.CenterVertically), style = meta, color = HeaderSignalRed)
-        }
+        // El prototipo no pinta la superserie aquí: la dicen el kicker de la tarjeta («RONDA 2 · A1») y la Lista («SUPERSERIE A»).
         if (ultraFastApplied) {
             Separator()
             Text(

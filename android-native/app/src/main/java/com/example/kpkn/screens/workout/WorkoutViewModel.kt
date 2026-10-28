@@ -475,7 +475,10 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.considerSessionMilestoneForSet(exercise, weight, reps)
                 this@WorkoutViewModel.offerLiveVolumeAdvanceAfterSet()
             }
-            override fun onRecordingRejected(message: String) = showWorkoutToast(message)
+            // Un fallo al guardar lo cuenta la alerta «No se pudo guardar» (con «Reintentar»), no un aviso suelto.
+            override fun onRecordingRejected(message: String) {
+                if (!message.startsWith(SAVE_FAILED_PREFIX)) showWorkoutToast(message)
+            }
         },
     )
 
@@ -1160,7 +1163,7 @@ class WorkoutViewModel(
         }
         voiceController.hapticEnabledProvider = { repository.settings.value.hapticFeedbackEnabled }
         sessionTtsManager.setSpeechRate(repository.settings.value.ttsSpeechRate)
-        voiceController.onCommandDetected = { command -> voiceCommandHandler.handleVoiceCommand(command) }
+        voiceController.onCommandDetected = { command -> recordVoiceCommand(command); voiceCommandHandler.handleVoiceCommand(command) }
         voiceController.onStageChanged = { stage ->
             updateUiState { state ->
                 state.copy(
@@ -1778,6 +1781,11 @@ class WorkoutViewModel(
      * when the pager/finish sheet leaves composition, which used to surface
      * the literal "The coroutine scope left the composition" failure.
      */
+    private val _saveFailureRetry = MutableStateFlow<(() -> Unit)?>(null)
+    /** Reintento del último registro que no se pudo guardar; mientras no sea nulo se muestra «No se pudo guardar». */
+    val saveFailureRetry: StateFlow<(() -> Unit)?> = _saveFailureRetry.asStateFlow()
+    fun dismissSaveFailure() { _saveFailureRetry.value = null }
+
     fun launchWorkoutCommand(command: suspend () -> Unit) {
         viewModelScope.launch {
             command()
@@ -1844,8 +1852,17 @@ class WorkoutViewModel(
                 sessionId = sessionId,
             )
             if (error is kotlinx.coroutines.CancellationException) throw error
-            showWorkoutToast("No se pudo guardar la serie. Reintenta; tus entradas se conservan.")
             RecordSetResult.PersistenceFailed(error)
+        }
+        if (result is RecordSetResult.PersistenceFailed) {
+            // «No se pudo guardar» (prototipo 02): «Reintentar» repite este mismo registro; el borrador sigue en la serie.
+            _saveFailureRetry.value = {
+                _saveFailureRetry.value = null
+                launchWorkoutCommand {
+                    recordSetV2(weight, value, intensity, advanced, loadMode, unitMode, bodyWeight, side, tagId, setupId, machineBrand,
+                        amrapOverride, setIdxOverride, expectedExerciseId, expectedSetIdx, expectedSide, expectedSourceRef)
+                }
+            }
         }
         val committedKey = when (result) {
             is RecordSetResult.Created -> result.setKey
@@ -2240,9 +2257,49 @@ class WorkoutViewModel(
         if (voiceHistoryJob?.isActive == true && voiceHistoryKey == key) return
         voiceHistoryJob?.cancel()
         voiceHistoryKey = key
+        _voiceCommands.value = emptyList()
         voiceHistoryJob = viewModelScope.launch {
             voiceHistoryRepository.observe(key).collect { _voiceHistory.value = it }
         }
+    }
+
+    private val _voiceCommands = MutableStateFlow<List<com.example.kpkn.domain.workout.VoiceCommandRecord>>(emptyList())
+    /** Comandos de voz aplicados en la sesión en curso (registros «Comando» de la cápsula); no se persisten. */
+    val voiceCommands: StateFlow<List<com.example.kpkn.domain.workout.VoiceCommandRecord>> = _voiceCommands.asStateFlow()
+
+    /** Anota un comando que cambia la sesión con lo que se aplicó; las consultas y los registros de series no son comandos. */
+    private fun recordVoiceCommand(command: VoiceSessionCommand) {
+        val state = _uiState.value
+        val (value, detail) = when (command) {
+            is VoiceSessionCommand.AdjustRestTime -> {
+                if (!state.isRestTimerRunning) return
+                val d = command.deltaSeconds
+                (if (d >= 0) "+$d s" else "−${-d} s") to "descanso"
+            }
+            VoiceSessionCommand.SkipRest -> "Terminar descanso" to "descanso"
+            VoiceSessionCommand.UseAdaptiveRest -> "Descanso sugerido" to "descanso"
+            VoiceSessionCommand.NextExercise -> "Siguiente ejercicio" to "navegación"
+            VoiceSessionCommand.PreviousExercise -> "Ejercicio anterior" to "navegación"
+            VoiceSessionCommand.SkipSet -> "Saltar serie" to "serie"
+            VoiceSessionCommand.AddSet -> "Añadir serie" to "serie"
+            VoiceSessionCommand.UndoLastSet -> "Deshacer serie" to "serie"
+            VoiceSessionCommand.StartVideoCapture -> "Iniciar vídeo" to "captura"
+            VoiceSessionCommand.StopVideoCapture -> "Detener vídeo" to "captura"
+            VoiceSessionCommand.StartCardio -> "Empezar cardio" to "cardio"
+            VoiceSessionCommand.PauseCardio -> "Pausar cardio" to "cardio"
+            VoiceSessionCommand.ResumeCardio -> "Reanudar cardio" to "cardio"
+            VoiceSessionCommand.SkipCardioBlock -> "Saltar paso" to "cardio"
+            VoiceSessionCommand.FinishCardio -> "Terminar cardio" to "cardio"
+            else -> return
+        }
+        val now = System.currentTimeMillis()
+        _voiceCommands.value = _voiceCommands.value + com.example.kpkn.domain.workout.VoiceCommandRecord(
+            id = "cmd-$now-${_voiceCommands.value.size}",
+            atEpochMs = now,
+            transcript = voiceController.lastCommandTranscript,
+            value = value,
+            detail = detail,
+        )
     }
 
     fun consumeVoiceHistoryNotice() {
@@ -2292,6 +2349,38 @@ class WorkoutViewModel(
             voiceHistoryRepository.correct(entry.id, values, now)
             voiceHistoryRepository.markRegistered(entry.sessionKey, entry.exerciseId, entry.setIdx, entry.side, now)
             _voiceHistoryNotice.value = "Registro confirmado. Se actualiza la misma serie."
+        }
+    }
+
+    /** «Descartar» de una captura «Por revisar»: la tarjeta queda como estaba y la captura desaparece. */
+    fun discardVoiceHistoryCapture(entryId: String) {
+        val entry = _voiceHistory.value.firstOrNull { it.id == entryId } ?: return
+        if (entry.status != VoiceHistoryStatus.REVIEW) return
+        viewModelScope.launch { voiceHistoryRepository.delete(entry.id) }
+    }
+
+    /**
+     * «Deshacer» del recibo de voz: quita la serie que la voz acaba de registrar (solo la última y dentro de su ventana, como el comando
+     * «deshacer») y su captura. Si ya no se puede, lo dice y no toca nada.
+     */
+    fun undoVoiceHistoryCapture(entryId: String) {
+        val entry = _voiceHistory.value.firstOrNull { it.id == entryId } ?: return
+        if (entry.status != VoiceHistoryStatus.REGISTERED) return
+        viewModelScope.launch {
+            // El token es el que armó la voz al registrar: sin él (o si es de otra serie) ya no se puede deshacer.
+            val payload = voiceController.peekPendingUndo(System.currentTimeMillis())
+                ?.takeIf { it.exerciseId == entry.exerciseId && it.setIdx == entry.setIdx }
+            if (payload == null) {
+                _voiceHistoryNotice.value = "Ya no se puede deshacer esa serie. Edítala si hace falta."
+                return@launch
+            }
+            val result = voiceSetMutations.undo(payload)
+            if (!result.isCommitted) {
+                _voiceHistoryNotice.value = "Ya no se puede deshacer esa serie. Edítala si hace falta."
+                return@launch
+            }
+            voiceHistoryRepository.delete(entry.id)
+            _voiceHistoryNotice.value = "Serie ${entry.setIdx + 1} deshecha."
         }
     }
 
@@ -5904,6 +5993,8 @@ class WorkoutViewModel(
         expectedExerciseId: String? = null,
         expectedSetIndex: Int? = null,
         expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
+        /** El esfuerzo real que la persona marcó al terminar (iteración 03); nunca el planificado. */
+        actualRpe: Double? = null,
     ): Boolean {
         return recordCardioSet(
             manualDurationSeconds,
@@ -5911,6 +6002,7 @@ class WorkoutViewModel(
             averageHeartRate,
             expectedExerciseId = expectedExerciseId,
             expectedSetIndex = expectedSetIndex,
+            actualRpe = actualRpe,
             expectedSourceRef = expectedSourceRef,
         )
     }
@@ -7777,3 +7869,5 @@ class WorkoutViewModel(
 
     internal fun retryVideoAnalysis(mediaId: String) { videoAnalysisRetry.retry(mediaId) }
 }
+
+private const val SAVE_FAILED_PREFIX = "No se pudo guardar la serie."

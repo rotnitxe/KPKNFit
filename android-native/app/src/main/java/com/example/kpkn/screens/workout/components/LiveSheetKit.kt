@@ -14,6 +14,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,11 +84,13 @@ internal fun LiveSheet(
     stableHeightFraction: Float? = null,
     footer: (@Composable ColumnScope.(close: () -> Unit) -> Unit)? = { close -> LiveSheetPrimary("Listo", close) },
     showClose: Boolean = true,
+    /** false: ni arrastrar ni tocar el velo la cierran (p. ej. mientras se libera el micrófono). */
+    dismissible: Boolean = true,
     content: @Composable ColumnScope.(close: () -> Unit) -> Unit,
 ) {
     LiveSheetWindow {
     HeaderSheet(onDismiss = onDismiss, modifier = modifier, stableHeightFraction = stableHeightFraction, showDragHandle = false,
-        scrim = LiveSheetTokens.Veil, panelTint = LiveSheetTokens.Panel) { close ->
+        scrim = LiveSheetTokens.Veil, panelTint = LiveSheetTokens.Panel, dismissible = dismissible) { close ->
         Column(Modifier.fillMaxWidth().testTag(tag)) {
             Box(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 4.dp), contentAlignment = Alignment.Center) {
                 Box(Modifier.size(width = 33.dp, height = 3.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x30FFFFFF)))
@@ -437,3 +441,47 @@ internal fun <T> LiveSheetNumberGrid(values: List<Pair<T, String>>, selected: (T
 /** Filete horizontal de las hojas. */
 @Composable
 internal fun LiveSheetDivider(modifier: Modifier = Modifier) = HorizontalDivider(modifier, color = LiveSheetTokens.Line)
+
+/**
+ * `.v2-config-fields select`: rótulo de 11 y un campo de 43 de alto (radio 12, borde blanco al 11 %, fondo #1a1a1a) con el valor
+ * elegido y ⌄; al tocarlo despliega las opciones.
+ */
+@Composable
+internal fun <T> LiveSheetSelectField(
+    label: String,
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    tag: String? = null,
+) {
+    var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val shape = RoundedCornerShape(12.dp)
+    Column(modifier.fillMaxWidth()) {
+        Text(label, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, lineHeight = 15.sp), color = LiveSheetTokens.Muted)
+        Box(Modifier.padding(top = 7.dp)) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 43.dp).clip(shape).background(Color(0xFF1A1A1A)).border(1.dp, Color(0x1CFFFFFF), shape)
+                    .clickable(role = Role.Button) { open = true }
+                    .semantics { contentDescription = label; stateDescription = options.firstOrNull { it.first == selected }?.second.orEmpty() }
+                    .then(if (tag != null) Modifier.testTag(tag) else Modifier)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(options.firstOrNull { it.first == selected }?.second.orEmpty(), Modifier.weight(1f),
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.sp, lineHeight = 17.sp), color = WizardColors.text)
+                Icon(KpknLineIcons.ChevronDown, null, Modifier.size(13.dp), tint = LiveSheetTokens.Muted)
+            }
+            androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false },
+                modifier = Modifier.background(Color(0xFF1A1A1A))) {
+                options.forEach { (value, text) ->
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { Text(text, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.sp), color = WizardColors.text) },
+                        onClick = { open = false; onSelect(value) },
+                        modifier = if (tag != null) Modifier.testTag("$tag-$text") else Modifier,
+                    )
+                }
+            }
+        }
+    }
+}

@@ -2,6 +2,14 @@
 
 package com.example.kpkn.screens.workout.technique
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -351,6 +359,8 @@ internal fun TechniqueRecorderStage(
         guideTts.initialize()
         onDispose { guideTts.shutdown() }
     }
+    // «Detener» de la cápsula de voz mientras habla la guía.
+    LaunchedEffect(guideTts) { TechniqueCaptureVoiceLink.stopGuideRequests.collect { guideTts.stop() } }
     val voiceCommandsEnabled by TechniqueCaptureVoiceLink.voiceEnabled.collectAsStateWithLifecycle()
 
     // Política inicial aprobada: guía antes de grabar; durante la serie el evaluador
@@ -737,6 +747,7 @@ internal fun TechniqueRecorderStageContent(
     } else {
         FramingInstruction.spoken(verdict, framingStatus, preferredView)
     }
+    var showFramingGuide by remember { mutableStateOf(false) }
     Box(
         modifier = modifier.fillMaxSize().testTag(TechniqueRecorderStageTag)
             .clip(RoundedCornerShape(24.dp)).background(KpknSurface.inset),
@@ -772,13 +783,16 @@ internal fun TechniqueRecorderStageContent(
                         expandedScene = true, showSilhouette = !isRecording, showGuideText = false,
                     )
                 }
+                // `.v2-framing-corners`: el marco de cuatro esquinas, ámbar mientras falta y verde al estar listo.
+                if (available) FramingCornerFrame(ready = framingReady && !isRecording,
+                    Modifier.matchParentSize().padding(start = 28.dp, end = 28.dp, top = 39.dp, bottom = 32.dp))
                 if (available && !isRecording) Row(
                     Modifier.align(Alignment.TopStart).fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.Top,
                 ) {
                     FramingChip(
                         verdict = verdict, isFrontPreferred = preferredView == ViewKind.FRONT, visualMode = true,
-                        status = framingStatus,
+                        status = framingStatus, hasBarbell = showsPlateBadge,
                         modifier = Modifier.weight(1f).testTag("technique_framing"),
                     )
                     Spacer(Modifier.width(6.dp))
@@ -795,15 +809,33 @@ internal fun TechniqueRecorderStageContent(
                         )
                     }
                 }
-                if (available && isRecording) RecTimerPill(
-                    elapsedSeconds = elapsedSeconds, animate = false,
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
-                )
-                if (available && (onOpenGallery != null || onOpenAlbum != null)) Row(
+                // `.v2-framing-recording`: «PREPARAR CAPTURA» o «● GRABANDO» con el tiempo, abajo a la derecha.
+                if (available) Row(
+                    Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = 10.dp).testTag("technique_recording_state"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    if (isRecording) Box(Modifier.size(5.dp).clip(RoundedCornerShape(percent = 50)).background(Color(0xFFFF9C97)))
+                    Text(
+                        if (isRecording) "GRABANDO · ${elapsedSeconds / 60}:${(elapsedSeconds % 60).toString().padStart(2, '0')}" else "PREPARAR CAPTURA",
+                        style = KpknType.caption.copy(fontSize = 8.sp, letterSpacing = .5.sp), color = WizardColors.text,
+                    )
+                }
+                if (available && (onOpenGallery != null || onOpenAlbum != null || !isRecording)) Row(
                     Modifier.align(Alignment.BottomStart).padding(4.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
+                    // `.v2-framing-view`: «Vista lateral · cómo encuadrar» abre «Preparar el encuadre».
+                    if (!isRecording) Text(
+                        "${framingViewLabel(preferredView)} · cómo encuadrar",
+                        Modifier.heightIn(min = 32.dp).wrapContentHeight(Alignment.CenterVertically)
+                            .clickable(role = Role.Button) { showFramingGuide = true }
+                            .clip(RoundedCornerShape(7.dp)).background(Color(0xCC111111)).padding(horizontal = 7.dp, vertical = 5.dp)
+                            .testTag("technique_framing_view"),
+                        style = KpknType.caption.copy(fontSize = 8.sp, textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline),
+                        color = Color(0xFFD9D5CD),
+                    )
                     if (onOpenGallery != null) MediaOverlayPill("Abrir galería", onOpenGallery) {
                         Text("Galería", style = KpknType.chip, color = WizardColors.text)
                     }
@@ -827,13 +859,13 @@ internal fun TechniqueRecorderStageContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                RecordButton(
+                // `.v2-record-control`: círculo crema de 49 con la cámara (o la pausa al grabar).
+                Ref02RecordControl(
                     isRecording = isRecording, onClick = onRecord,
                     modifier = Modifier.testTag("technique_record").semantics {
                         if (isProcessing) stateDescription = "Procesando vídeo"
                     },
-                    enabled = available && !isProcessing && (isRecording || canRecord), visualMode = true,
-                    recordColor = RecordRed,
+                    enabled = available && !isProcessing && (isRecording || canRecord),
                 )
                 Column(Modifier.weight(1f).testTag("technique_capture_state")) {
                     Text(
@@ -851,11 +883,92 @@ internal fun TechniqueRecorderStageContent(
                 }
                 CaptureCommandPill(
                     text = if (isRecording) "«Detener vídeo»" else "«Iniciar vídeo»",
-                    enabled = voiceCommandsEnabled,
+                    enabled = voiceCommandsEnabled && available && !isProcessing && (isRecording || canRecord),
                     modifier = Modifier.testTag("technique_voice_command"),
+                    onClick = onRecord,
                 )
             }
         }
+    }
+    if (showFramingGuide) {
+        // `framing-guide` del prototipo 02: los cuatro pasos para preparar el encuadre.
+        com.example.kpkn.screens.workout.components.LiveSheet(title = "Preparar el encuadre", onDismiss = { showFramingGuide = false },
+            tag = "technique_framing_guide") {
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle("${framingViewLabel(preferredView)} para este ejercicio.")
+            FRAMING_GUIDE_STEPS.forEach { (title, body) -> FramingGuideStep(title, body) }
+        }
+    }
+}
+
+private fun framingViewLabel(view: ViewKind): String = when (view) {
+    ViewKind.FRONT -> "Vista frontal"
+    ViewKind.OBLIQUE -> "Vista diagonal"
+    else -> "Vista lateral"
+}
+
+private val FRAMING_GUIDE_STEPS = listOf(
+    "01 · Coloca la cámara a un lado" to "Apóyala en una superficie estable y mantén el móvil nivelado. La vista se adapta al ejercicio que vas a analizar.",
+    "02 · Deja espacio al movimiento" to "Incluye cabeza, pies y barra durante todo el recorrido. Deja margen arriba y abajo, también en la posición más baja.",
+    "03 · Comprueba lo que se ve" to "Una sola persona, articulaciones visibles y luz suficiente. Si el perfil requiere un disco para calibrar, también debe quedar visible.",
+    "04 · Espera la confirmación" to "La guía da una indicación cada vez. «Encuadre listo» confirma la captura, no la calidad técnica del ejercicio.",
+)
+
+/** `.v2-history-note` con título: filete de 2, el paso en 13/600 y su explicación en 12. */
+@Composable
+private fun FramingGuideStep(title: String, body: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 10.dp).drawBehind {
+            drawLine(Color(0x2DFFFFFF), Offset(1.dp.toPx(), 0f), Offset(1.dp.toPx(), size.height), 2.dp.toPx())
+        }.padding(horizontal = 13.dp, vertical = 9.dp),
+    ) {
+        Text(title, style = KpknType.bodyStrong.copy(fontSize = 13.sp), color = WizardColors.text)
+        Text(body, Modifier.padding(top = 8.dp), style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 20.sp), color = WizardColors.textMuted)
+    }
+}
+
+/** El marco de encuadre: borde discontinuo de 1 y cuatro esquinas de 17 × 2. */
+@Composable
+private fun FramingCornerFrame(ready: Boolean, modifier: Modifier = Modifier) {
+    val corner = if (ready) Color(0xFFD7E5D5) else Color(0xFFFFB09B)
+    val dashed = if (ready) Color(0x60D7E5D5) else Color(0x42F49A6E)
+    androidx.compose.foundation.Canvas(modifier.testTag("technique_framing_corners")) {
+        val r = 10.dp.toPx()
+        drawRoundRect(dashed, cornerRadius = androidx.compose.ui.geometry.CornerRadius(r, r),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(),
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))))
+        val l = 17.dp.toPx()
+        val w = 2.dp.toPx()
+        val half = w / 2
+        listOf(
+            Offset(half, half) to Pair(Offset(l, half), Offset(half, l)),
+            Offset(size.width - half, half) to Pair(Offset(size.width - l, half), Offset(size.width - half, l)),
+            Offset(half, size.height - half) to Pair(Offset(l, size.height - half), Offset(half, size.height - l)),
+            Offset(size.width - half, size.height - half) to Pair(Offset(size.width - l, size.height - half), Offset(size.width - half, size.height - l)),
+        ).forEach { (origin, ends) ->
+            drawLine(corner, origin, ends.first, w)
+            drawLine(corner, origin, ends.second, w)
+        }
+    }
+}
+
+/** El control de grabación del prototipo: crema, borde oscuro de 3 y un anillo tenue; cámara en reposo, pausa al grabar. */
+@Composable
+private fun Ref02RecordControl(isRecording: Boolean, onClick: () -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        modifier.size(49.dp).alpha(if (enabled) 1f else .45f)
+            .border(1.dp, Color(0x8CF2EEE6), RoundedCornerShape(percent = 50))
+            .padding(1.dp)
+            .clip(RoundedCornerShape(percent = 50))
+            .background(Color(0xFFF2EEE6))
+            .border(3.dp, Color(0xFF111111), RoundedCornerShape(percent = 50))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = if (isRecording) "Detener grabación" else "Iniciar grabación" },
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            if (isRecording) com.example.kpkn.ui.components.icons.KpknLineIcons.Pause else com.example.kpkn.ui.components.icons.KpknLineIcons.Camera,
+            null, Modifier.size(if (isRecording) 21.dp else 23.dp), tint = Color(0xFF111111),
+        )
     }
 }
 
@@ -969,11 +1082,15 @@ private fun CaptureCommandPill(
     text: String,
     enabled: Boolean,
     modifier: Modifier = Modifier,
+    /** La píldora también se pulsa: hace lo mismo que el comando que enseña. */
+    onClick: (() -> Unit)? = null,
 ) {
     Surface(
-        modifier = modifier.semantics {
-            stateDescription = if (enabled) "Comando disponible" else "Activa Modo Voz"
-        },
+        modifier = modifier
+            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick) else Modifier)
+            .semantics {
+                stateDescription = if (enabled) "Comando disponible" else "Activa Modo Voz"
+            },
         shape = KpknShape.pill,
         color = KpknSurface.module.copy(alpha = if (enabled) 0.92f else 0.55f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = if (enabled) 0.28f else 0.12f)),

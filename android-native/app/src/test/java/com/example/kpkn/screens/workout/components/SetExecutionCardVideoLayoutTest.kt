@@ -167,7 +167,8 @@ class SetExecutionCardVideoLayoutTest {
         rule.onNodeWithContentDescription("El vídeo cuenta 8 · +1 parcial · ROM\u00A0≈\u00A095\u00A0%. Toca para ver las opciones").assertExists()
         val chip = rule.onNodeWithTag(WorkoutVideoChipTag).fetchSemanticsNode().boundsInRoot
         val card = rule.onNodeWithTag("set_execution_card").fetchSemanticsNode().boundsInRoot
-        assertEquals(24f * 3f, chip.height, 0.01f)
+        // Refinamiento 02: la cabecera de la cantidad mide 21 dp (antes 24) y la píldora ocupa su altura; el área táctil sigue en 48 dp.
+        assertEquals(21f * 3f, chip.height, 0.01f)
         assertTrue(chip.width >= 48f * 3f)
         val touchBounds = rule.onNodeWithTag(WorkoutVideoChipTag).fetchSemanticsNode().touchBoundsInRoot
         assertTrue(touchBounds.height >= 48f * 3f && touchBounds.width >= 48f * 3f)

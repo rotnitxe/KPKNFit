@@ -117,8 +117,9 @@ class LiveQaLayoutTest {
         assertEquals(before.bottom, after.bottom, 0f)
     }
 
-    @Test fun advancedDropAt100() = advanced("Drop-set", 1f)
-    @Test fun advancedDropAt130() = advanced("Drop-set", 1.3f)
+    // Refinamiento 02: la pestaña del reverso se llama «Drop» (antes «Drop-set»).
+    @Test fun advancedDropAt100() = advanced("Drop", 1f)
+    @Test fun advancedDropAt130() = advanced("Drop", 1.3f)
     @Test fun advancedRestPauseAt100() = advanced("Rest-pause", 1f)
     @Test fun advancedRestPauseAt130() = advanced("Rest-pause", 1.3f)
 
@@ -138,14 +139,18 @@ class LiveQaLayoutTest {
         val initial = rule.onNodeWithTag("qa-card").fetchSemanticsNode().boundsInRoot
         rule.onNodeWithText(technique).performClick()
         if (technique == "Rest-pause") {
-            rule.onNodeWithContentDescription("Más eslabones").assertIsDisplayed()
+            // Refinamiento 02: la flecha «Más eslabones» de la cadena horizontal ya no existe; la cadena se abre desde «N tramos ›».
+            rule.onNodeWithTag(TechniqueChainTag, true).assertIsDisplayed()
         }
-        rule.onNodeWithTag("technique-explanation", true).performScrollTo().assertIsDisplayed()
-        val explanation = rule.onNodeWithTag("technique-explanation", true).getUnclippedBoundsInRoot()
+        // Refinamiento 02: la explicación («ASÍ SE VE…») ya no se pinta. Lo último del reverso, «Error de ejecución», debe caber
+        // entero dentro del cuerpo, como lo hacía la explicación.
+        val lastLink = rule.onNodeWithText("Error de ejecución").assertIsDisplayed().getUnclippedBoundsInRoot()
         val body = rule.onNodeWithTag("technique-body", true).getUnclippedBoundsInRoot()
-        assertTrue("Explanation $explanation fits entirely in viewport $body", explanation.top >= body.top - 1.dp && explanation.bottom <= body.bottom + 1.dp)
+        assertTrue("El último enlace $lastLink cabe en el cuerpo $body", lastLink.top >= body.top - 1.dp && lastLink.bottom <= body.bottom + 1.dp)
         save("qa-card", "advanced-${technique}-${(scale * 100).toInt()}")
-        rule.onNodeWithText("Error de ejecución").performScrollTo().assertIsDisplayed().performClick()
+        // Refinamiento 02: «Error de ejecución» abre su hoja; el fallo se marca con «Marcar error de ejecución».
+        rule.onNodeWithText("Error de ejecución").assertIsDisplayed().performClick()
+        rule.onNodeWithTag("technique-mark-failed", true).performClick()
         assertTrue(failed)
         val after = rule.onNodeWithTag("qa-card").fetchSemanticsNode().boundsInRoot
         assertEquals(initial.height, after.height, 0f)
@@ -311,11 +316,15 @@ class LiveQaLayoutTest {
                     {}, {}, {}, null, {}, isAdaptiveActive = true, shape = shape, clockActive = false)
             }
         }
-        rule.onNodeWithContentDescription("Reloj de descanso: ${shape.label}").assertIsDisplayed()
-        rule.onNodeWithText("de 4:09 · sugerido").assertExists()
-        val reference = rule.onNodeWithText("Plan de sesión · 3:00").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        // Refinamiento 02: la forma ya no se pinta; el eclipse lleva el mismo tiempo sea cual sea la forma pasada.
+        rule.onAllNodesWithContentDescription("Reloj de descanso: ${shape.label}", useUnmergedTree = true).assertCountEquals(0)
+        rule.onNodeWithTag("rest-eclipse", useUnmergedTree = true).assertIsDisplayed()
+        rule.onNodeWithTag("rest-eclipse-clock", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("2:38")
+        rule.onNodeWithText("Sugerido aplicado", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("4:09", useUnmergedTree = true).assertExists()
+        val reference = rule.onNodeWithTag("rest-suggestion-row", useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val card = rule.onNodeWithTag("qa-rest-card").fetchSemanticsNode().boundsInRoot
-        assertTrue("La referencia del plan queda completa junto al reloj", reference.top >= card.top && reference.bottom <= card.bottom)
+        assertTrue("La fila del sugerido queda completa dentro de la tarjeta", reference.top >= card.top && reference.bottom <= card.bottom)
         save("qa-rest-card", "rest-card-${shape.name}")
     }
 

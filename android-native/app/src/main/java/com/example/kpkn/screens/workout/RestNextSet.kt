@@ -24,6 +24,8 @@ internal data class RestNextSetSummary(
     val durationSeconds: Int? = null,
     /** «RIR 2», «RPE 8» o null si la serie no marca intensidad. */
     val intensityText: String? = null,
+    /** Lo siguiente es cardio: el descanso lo anuncia y al terminarlo se pasa a su espacio (iteración 03). */
+    val cardio: Boolean = false,
 ) {
     /** «Serie 2 · 95 kg × 4–6». Sin carga, solo las repeticiones o el tiempo («Serie 2 · 8 reps», «Serie 1 · 45 s»). */
     fun headline(): String {
@@ -79,6 +81,15 @@ internal fun restNextSetSummary(
     suggestedKg: (Exercise, Int) -> Double? = { _, _ -> null },
 ): RestNextSetSummary? {
     val exercise = exercises.getOrNull(currentExerciseIdx) ?: return null
+    exercise.cardioDetails?.let { cardio ->
+        return RestNextSetSummary(
+            setNumber = currentSetIdx + 1,
+            setTotal = exercise.sets.size.coerceAtLeast(1),
+            exerciseName = "Cardio · ${nameOf(exercise)}",
+            durationSeconds = cardio.effectiveDurationSeconds().takeIf { it > 0 },
+            cardio = true,
+        )
+    }
     val set = exercise.sets.getOrNull(currentSetIdx) ?: return null
     if (set.isEmptySlot) return null
     val reps = set.effectiveRepRange()?.format()

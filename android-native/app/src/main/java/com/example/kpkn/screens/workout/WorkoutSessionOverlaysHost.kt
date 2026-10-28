@@ -59,6 +59,8 @@ internal fun WorkoutSessionOverlaysHost(
     onBack: () -> Unit,
     /** «Usar» del historial: lleva esa carga al borrador de la serie activa. */
     onUseHistoryWeight: (Double) -> Unit = {},
+    /** «Ver opciones del ejercicio» de la alerta de molestia. */
+    onOpenExerciseOptions: (String) -> Unit = {},
 ) {
     // Las molestias que quedaron presentes la sesión anterior, con el día en que se anotaron («Rodilla anterior · lunes»).
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
@@ -198,12 +200,17 @@ internal fun WorkoutSessionOverlaysHost(
         val discomfortLabel = persistentHit?.label.orEmpty()
         com.example.kpkn.screens.workout.components.LiveAlert(
             title = "Molestia reportada antes",
-            text = "En este ejercicio reportaste $discomfortLabel. Cuida la técnica y usa cargas adecuadas para ti. " +
-                "Si la molestia persiste, cambia de ejercicio y consulta con un kinesiólogo.",
+            text = "En el historial de este ejercicio hay una molestia de ${discomfortLabel.replaceFirstChar { it.lowercase() }}. " +
+                "Revisa cómo te encuentras hoy.",
             primaryLabel = "Entendido",
             onPrimary = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+            secondaryLabel = "Ver opciones del ejercicio",
+            onSecondary = {
+                dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id
+                onOpenExerciseOptions(currentExerciseForAlert.id)
+            },
             onDismiss = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
-            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
+            tag = "live-discomfort-alert",
         )
     }
 }

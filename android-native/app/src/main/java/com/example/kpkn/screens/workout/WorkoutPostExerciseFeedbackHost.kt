@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -263,7 +265,7 @@ internal fun PostExerciseFeedbackPanel(
     val linked = remember(feedbackExercises, postExerciseFeedbackByExerciseId) {
         linkedDiscomfortsFor(feedbackExercises, postExerciseFeedbackByExerciseId, ::feedbackArticulationsOf)
     }
-    var openDiscomfortId by remember { mutableStateOf<String?>(null) }
+    var discomfortsOpen by remember { mutableStateOf(false) }
     val focusName = remember(feedbackExercises) {
         if (feedbackExercises.size == 1) displayWorkoutExerciseName(feedbackExercises.first()) else "esta superserie"
     }
@@ -275,82 +277,35 @@ internal fun PostExerciseFeedbackPanel(
         canonicalKeyOf = canonicalKeyOf,
         onSave = onSave,
     )
-
-    val body: @Composable () -> Unit = {
-        Text(
-            text = "¿Cómo te salió?",
-            style = KpknType.title.copy(fontSize = 22.sp, lineHeight = 26.sp),
-            color = WizardColors.text,
+    // `.v2-feedback.wide` del Refinamiento 02: el feedback de la pantalla completa, con «Ahora no» / «Guardar feedback» debajo.
+    Column(modifier = if (bounded) Modifier.fillMaxSize() else Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        com.example.kpkn.screens.workout.components.RestRef02FeedbackBody(
+            feedbackExercises = feedbackExercises,
+            draft = liveDraft,
+            linked = linked,
+            wide = true,
+            compact = false,
+            onOpenDiscomforts = { discomfortsOpen = true },
         )
-        feedbackExercises.forEach { exercise ->
-            TechniqueCard(
-                value = liveDraft.technical(exercise.id),
-                onValueChange = { liveDraft.setTechnical(exercise.id, it) },
-                exerciseName = if (feedbackExercises.size > 1) displayWorkoutExerciseName(exercise) else null,
-                animated = openDiscomfortId == null,
-            )
-        }
-        if (linked.isNotEmpty()) {
-            LinkedDiscomfortsModule(linked = linked, draft = liveDraft)
-        }
-        KpknModule(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(14.dp),
-        ) {
-            DiscomfortPicker(
-                draft = liveDraft,
-                insights = insights,
-                focusName = focusName,
-                nowMs = nowMs,
-                onOpenDiscomfort = { openDiscomfortId = it },
-            )
+        if (bounded) Spacer(Modifier.weight(1f))
+        if (onDefer != null) {
+            com.example.kpkn.screens.workout.components.RestRef02FeedbackActions(onDefer = onDefer, onSave = save, inCard = false,
+                modifier = Modifier.padding(top = 12.dp))
+        } else {
+            com.example.kpkn.screens.workout.components.RestRef02Button("Guardar feedback", save, primary = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp), height = 46.dp, radius = 23.dp, tag = "feedback-save")
         }
     }
-
-    if (bounded) {
-        val bodyScroll = rememberScrollState()
-        Column(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .fadeBottomWhenScrollable(bodyScroll)
-                    .verticalScroll(bodyScroll),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                body()
-            }
-            FeedbackActions(onDefer = onDefer, onSave = save, modifier = Modifier.padding(top = 12.dp))
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            body()
-            FeedbackActions(onDefer = onDefer, onSave = save)
-        }
-    }
-
-    openDiscomfortId?.let { id ->
-        val knowledge = discomfortKnowledge(id)
-        if (knowledge != null) {
-            val insight by produceState<DiscomfortInsight?>(initialValue = null, id, explainDiscomfort) {
-                value = explainDiscomfort(id)
-            }
-            DiscomfortSheet(
-                knowledge = knowledge,
-                selected = liveDraft.isSelected(id),
-                insight = insight,
-                onToggleReport = {
-                    liveDraft.toggle(id)
-                    openDiscomfortId = null
-                },
-                onDismiss = { openDiscomfortId = null },
-            )
-        }
+    if (discomfortsOpen) {
+        com.example.kpkn.screens.workout.components.RestRef02DiscomfortsSheet(
+            draft = liveDraft,
+            insights = insights,
+            explainDiscomfort = explainDiscomfort,
+            focusName = focusName,
+            nowMs = nowMs,
+            animated = true,
+            onDismiss = { discomfortsOpen = false },
+        )
     }
 }
 

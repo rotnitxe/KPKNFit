@@ -192,6 +192,8 @@ internal fun WorkoutRestOverlayHost(
             onStart = { viewModel.dismissRestOverrun() },
             onExtend = { viewModel.extendRestAfterOverrun() },
             onMinimize = { viewModel.toggleRestMinimized() },
+            lastSetText = lastCompletedSet?.let { com.example.kpkn.screens.workout.components.restRef02LastSetText(it, lastCompletedCustomUnit) },
+            onExtendSeconds = { viewModel.extendRestAfterOverrun(it) },
         )
     }
 }

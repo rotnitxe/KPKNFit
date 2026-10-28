@@ -676,17 +676,16 @@ class SessionRevisionFlowDeviceTest {
         activeTag("rest-game-shooter").assertExists()
         assertRealRestTick(vm, deadline)
         activeTag("rest-game-flappy").performClick()
-        waitForTag("flight-arena")
-        // Reduced-motion mode intentionally requires an explicit start.
-        if (compose.onAllNodesWithText("Empezar").fetchSemanticsNodes().isNotEmpty()) {
-            compose.onNodeWithText("Empezar").performClick()
-        }
-        activeTag("flight-arena").performTouchInput { click(center) }
+        waitForTag("rest-game-canvas-flappy")
+        // The first tap starts the flight; the rest clock keeps its real tick.
+        activeTag("rest-game-canvas-flappy").performTouchInput { click(center) }
         assertRealRestTick(vm, deadline)
         capture("11-real-rest-flappy")
-        activeTag("rest-game-restart").performClick()
+        // «Volver» closes the game into the picker; a second «Volver» returns to the rest.
+        activeTag("arcade-back").performClick()
+        waitForTag("rest-game-flappy")
         assertRealRestTick(vm, deadline)
-        activeTag("arcade-return-rest").performClick()
+        activeTag("arcade-back").performClick()
         waitForTag("rest-play")
         compose.onNodeWithTag("arcade-rest-clock", true).assertDoesNotExist()
         assertRealRestTick(vm, deadline)

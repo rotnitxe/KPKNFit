@@ -106,6 +106,9 @@ interface WorkoutVoiceHistoryDao {
     @Query("DELETE FROM workout_voice_history WHERE createdAtEpochMs < :cutoff")
     suspend fun deleteOlderThan(cutoff: Long)
 
+    @Query("DELETE FROM workout_voice_history WHERE id = :id")
+    suspend fun deleteById(id: String)
+
     @Query(
         "DELETE FROM workout_voice_history WHERE sessionKey = :sessionKey AND id NOT IN (" +
             "SELECT id FROM workout_voice_history WHERE sessionKey = :sessionKey " +

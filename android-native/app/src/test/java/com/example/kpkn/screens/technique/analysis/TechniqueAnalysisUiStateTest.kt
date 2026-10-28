@@ -55,9 +55,10 @@ class TechniqueAnalysisUiStateTest {
             buildSummary(TechniqueSamples.analysisReport).tiles.map { it.id },
         )
         val reps = byId.getValue(SummaryTileId.REPS)
-        assertEquals("8", reps.figure)
+        // Prototipo 02: con parciales de número fiable, «8 + 1 · completas + parciales».
+        assertEquals("8 + 1", reps.figure)
         assertEquals(CountConfidence.ALTA, reps.confidence)
-        assertEquals(listOf("+1 parcial", "1 fallida", "Confianza alta"), reps.notes)
+        assertEquals(listOf("completas + parciales", "1 fallida", "Confianza alta"), reps.notes)
 
         assertEquals("41", byId.getValue(SummaryTileId.TUT).value)
         assertEquals("s", byId.getValue(SummaryTileId.TUT).unit)
@@ -66,10 +67,12 @@ class TechniqueAnalysisUiStateTest {
         val rom = byId.getValue(SummaryTileId.ROM)
         assertEquals("108°", rom.figure)
         assertEquals("ROM de la rodilla", rom.label)
-        assertEquals(listOf("± 3° entre repeticiones"), rom.notes)
+        // Prototipo 02: «estimado · vista lateral» antes de la dispersión.
+        assertEquals(listOf("estimado · vista lateral", "± 3° entre repeticiones"), rom.notes)
 
         val loss = byId.getValue(SummaryTileId.VELOCITY_LOSS)
-        assertEquals("19", loss.figure)
+        // Prototipo 02: la pérdida es una comparación relativa, «≈ 19 %».
+        assertEquals("≈ 19", loss.figure)
         assertEquals("%", loss.unit)
 
         val mean = byId.getValue(SummaryTileId.VELOCITY_MEAN)
@@ -213,7 +216,7 @@ class TechniqueAnalysisUiStateTest {
     fun partials_failures_and_sides_are_counted_apart_from_the_full_reps() {
         val both = buildSummary(TechniqueSamples.analysisReport.copy(partialReps = 2, failedReps = 2, perSideCounts = mapOf("left" to 4, "right" to 3)))
         val notes = both.tiles.first { it.id == SummaryTileId.REPS }.notes
-        assertEquals(listOf("+2 parciales", "2 fallidas", "Izq. 4 · der. 3", "Confianza alta"), notes)
+        assertEquals(listOf("completas + parciales", "2 fallidas", "Izq. 4 · der. 3", "Confianza alta"), notes)
     }
 
     @Test
@@ -577,10 +580,10 @@ class TechniqueAnalysisUiStateTest {
     @Test
     fun the_count_note_uses_the_own_confidence_of_the_partials_and_falls_back_to_the_reps_one() {
         fun note(report: SetTechniqueReport) = buildSummary(report).tiles.first { it.id == SummaryTileId.REPS }.notes.first()
-        assertEquals("+2 parciales", note(PartialsSamples.report(partialConfidence = CountConfidence.ALTA)))
+        assertEquals("completas + parciales", note(PartialsSamples.report(partialConfidence = CountConfidence.ALTA)))
         assertEquals("+≈\u00A02 parciales", note(PartialsSamples.report(partialConfidence = CountConfidence.MEDIA)))
         // Un informe de antes del motor 9 no trae la confianza de las parciales: vale la del conteo.
-        assertEquals("+2 parciales", note(PartialsSamples.report(partialConfidence = null)))
+        assertEquals("completas + parciales", note(PartialsSamples.report(partialConfidence = null)))
         val oldMedium = PartialsSamples.report(partialConfidence = null, base = TechniqueSamples.analysisReportMedium)
         assertEquals("+≈\u00A02 parciales", note(oldMedium))
         // Sin zona (motor viejo) la línea sigue diciendo el recorrido.

@@ -79,7 +79,7 @@ class LiveHeaderSheetsRenderSheetTest {
         }
         if (scene == "voice") {
             rule.waitUntil(5_000) { rule.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty() }
-            rule.onNodeWithText("Modo música", useUnmergedTree = true).performScrollTo().performClick()
+            rule.onNodeWithText("Música", useUnmergedTree = true).performScrollTo().performClick()
         }
         // Capture the final entry pose, with the same vertical viewport as the physical window.
         rule.mainClock.advanceTimeBy(1_000)
@@ -89,7 +89,7 @@ class LiveHeaderSheetsRenderSheetTest {
         val footerLabels = when (scene) {
             "tags", "time" -> listOf("Listo")
             "ultrafast" -> listOf("Cancelar", "Aplicar")
-            else -> listOf("Ahora no", "Activar")
+            else -> listOf("Ahora no")
         }
         footerLabels.forEach { label ->
             val footer = rule.onNode(hasText(label) and hasClickAction()).assertIsDisplayed()

@@ -134,6 +134,8 @@ internal fun WorkoutV2Body(
 ) {
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
     val videoThumbBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
+    // «Avanzado» o «Parciales y ROM» pedidos desde «Opciones de la serie» (ejercicio, serie, panel): los abre la tarjeta o la Lista.
+    var seriesPanelRequest by remember { mutableStateOf<Triple<String, Int, String>?>(null) }
     val restVideoMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
     val restVideoKey = uiState.setJustLoggedKey
     val restVideo = restVideoKey?.let(videoAnalysis::get)
@@ -457,6 +459,8 @@ internal fun WorkoutV2Body(
                         onSaveSetup = { setup ->
                             viewModel.upsertTagSetup(currentExercise.id, tag.id, setup)
                         },
+                        exerciseName = displayWorkoutExerciseName(currentExercise),
+                        referenceLabel = viewModel.lastLoadLabelForTag(currentExercise, tag),
                     )
                 } else {
                     tagManagerTagId = null
@@ -551,7 +555,23 @@ internal fun WorkoutV2Body(
                     accentColor = sessionAccentColor,
                     warmupWorkingWeight = warmupWorkingWeight,
                     viewModel = viewModel,
-                    modifier = Modifier.fillMaxSize().padding(bottom = dockBottomClearance),
+                    // `.island` flota sobre la Lista (prototipo 02): la lista sube bajo la cabecera y empieza 14 por debajo de ella.
+                    modifier = Modifier.fillMaxSize().padding(bottom = dockBottomClearance).extendUnderHeader(headerHeightPx),
+                    topInset = with(density) { headerHeightPx.toDp() } + 14.dp,
+                    warmupRestRemaining = if (warmupRestActive) restTimerRemaining else null,
+                    warmupRestTotal = if (warmupRestActive) {
+                        uiState.restModalState?.let { rest -> rest.activeSeconds.takeIf { it > 0 } ?: rest.plannedSeconds.takeIf { it > 0 } } ?: 60
+                    } else null,
+                    warmupRestIsMobility = warmupRestActive && uiState.restModalState?.warmupSetId.isNullOrBlank(),
+                    onEndWarmupRest = { viewModel.stopRestTimer() },
+                    media = ListEditorMedia(
+                        videoAnalysisBySetKey = videoAnalysis,
+                        onOpenAnalysis = onOpenTechniqueAnalysis,
+                        onRetryAnalysis = { viewModel.retryVideoAnalysis(it) },
+                        techniqueVideoSettings = settings.techniqueVideo,
+                    ),
+                    panelRequest = seriesPanelRequest,
+                    onPanelRequestConsumed = { seriesPanelRequest = null },
                     // El contexto del ejercicio en curso encabeza la lista y se desplaza con ella (prototipo 02).
                     contextHeader = {
                         WorkoutExerciseContextBlock(
@@ -700,6 +720,55 @@ internal fun WorkoutV2Body(
                                             onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(currentExercise.id, currentCardioSetIndex) },
                                             onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(currentExercise.id, currentCardioSetIndex) },
                                             onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(currentExercise.id, currentCardioSetIndex) },
+                                            exerciseName = displayWorkoutExerciseName(currentExercise),
+                                            maxHeartRateBpm = (settings.userVitals.age ?: settings.age)?.takeIf { it in 10..100 }?.let { 220 - it },
+                                            bodyWeightKg = viewModel.currentBodyWeight(),
+                                            onRecordWithRpe = { duration, distance, heartRate, rpe ->
+                                                if (cardioPageActionIsCurrent()) {
+                                                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex, executionRef(uiState, currentExercise, currentCardioSetIndex, null), actualRpe = rpe)
+                                                } else {
+                                                    false
+                                                }
+                                            },
+                                            // Sesión mixta: si antes hubo fuerza, el cardio empieza con «Ahora vamos con cardio».
+                                            transitionIn = visibleExercises.indexOfFirst { it.id == currentExercise.id }.takeIf { it > 0 }?.let { position ->
+                                                val strength = visibleExercises.take(position).filter { cardioDetailsOrNull(it) == null }
+                                                val doneSets = strength.sumOf { ex -> ex.sets.indices.count { i -> ex.completionKeysForSet(i).any { it in uiState.completedSets } } }
+                                                if (strength.isEmpty()) null
+                                                else CardioTransitionInfo("Terminaste la fuerza: ${strength.size} ${if (strength.size == 1) "ejercicio" else "ejercicios"} y $doneSets ${if (doneSets == 1) "serie" else "series"}.")
+                                            },
+                                            // Sesión mixta: si después sigue fuerza, al registrar el cardio aparece «Ahora vamos con fuerza».
+                                            transitionOut = visibleExercises.indexOfFirst { it.id == currentExercise.id }.takeIf { it >= 0 }?.let { position ->
+                                                val nextIdx = (position + 1 until visibleExercises.size).firstOrNull { cardioDetailsOrNull(visibleExercises[it]) == null }
+                                                    ?: return@let null
+                                                val next = visibleExercises[nextIdx]
+                                                val first = next.sets.firstOrNull()
+                                                val firstKg = first?.weight?.takeIf { it > 0.0 }
+                                                val firstReps = first?.targetReps ?: first?.targetRepsRange?.max
+                                                val ghost = viewModel.getGhostForSet(next.id, 0, next.exerciseDbId ?: next.exerciseId, uiState.exerciseTags[next.id])
+                                                CardioTransitionOutInfo(
+                                                    exerciseName = displayWorkoutExerciseName(next),
+                                                    meta = listOfNotNull(
+                                                        "${next.sets.size} ${if (next.sets.size == 1) "serie" else "series"}",
+                                                        next.restTime?.takeIf { it > 0 }?.let { "descanso ${com.example.kpkn.ui.design.KpknSetFormat.rest(it)}" },
+                                                    ).joinToString(" · "),
+                                                    firstSet = when {
+                                                        firstKg != null && firstReps != null -> "${formatDecimal(firstKg)} kg × $firstReps"
+                                                        firstReps != null -> "× $firstReps"
+                                                        else -> null
+                                                    },
+                                                    planEffort = first?.targetRIR?.let { "RIR $it · plan" } ?: first?.targetRPE?.let { "RPE ${formatDecimal(it)} · plan" },
+                                                    lastTime = ghost?.takeIf { it.reps > 0 }?.let { g ->
+                                                        (if (g.weight > 0.0) "${formatDecimal(g.weight)} × ${g.reps}" else "× ${g.reps}") +
+                                                            (g.rir?.let { " · RIR $it" } ?: g.rpe?.let { " · RPE ${formatDecimal(it)}" } ?: "")
+                                                    },
+                                                    chips = next.warmupSets.indices.map { "A${it + 1}" } + next.sets.indices.map { "${it + 1}" },
+                                                    footnote = next.warmupSets.firstOrNull()?.let { w ->
+                                                        firstKg?.let { kg -> "Aproximación A1 · ${formatDecimal(kg * w.percentageOfWorkingWeight / 100.0)} kg × ${w.targetReps} antes de la primera serie" }
+                                                    },
+                                                    onContinue = { viewModel.selectExercise(nextIdx) },
+                                                )
+                                            },
                                             onRecord = { duration, distance, heartRate ->
                                                 if (cardioPageActionIsCurrent()) {
                                                     viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex, executionRef(uiState, currentExercise, currentCardioSetIndex, null))
@@ -1964,6 +2033,16 @@ internal fun WorkoutV2Body(
                                     onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(pageExercise.id, pageSetIndex) },
                                     onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(pageExercise.id, pageSetIndex) },
                                     onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(pageExercise.id, pageSetIndex) },
+                                    exerciseName = displayWorkoutExerciseName(pageExercise),
+                                    maxHeartRateBpm = (settings.userVitals.age ?: settings.age)?.takeIf { it in 10..100 }?.let { 220 - it },
+                                    bodyWeightKg = viewModel.currentBodyWeight(),
+                                    onRecordWithRpe = { duration, distance, heartRate, rpe ->
+                                        if (cardioPageActionIsCurrent()) {
+                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex, executionRef(uiState, pageExercise, pageSetIndex, null), actualRpe = rpe)
+                                        } else {
+                                            false
+                                        }
+                                    },
                                     onRecord = { duration, distance, heartRate ->
                                         if (cardioPageActionIsCurrent()) {
                                             viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex, executionRef(uiState, pageExercise, pageSetIndex, null))
@@ -2035,6 +2114,8 @@ internal fun WorkoutV2Body(
                                         onExpand = { viewModel.toggleRestMinimized() },
                                         clockActive = isActivePage,
                                         modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                        onExtendSeconds = { viewModel.extendRestAfterOverrun(it) },
+                                        exerciseName = displayWorkoutExerciseName(restAnchorExercise),
                                     )
                                 } else {
                                     val total = restState?.totalRestSeconds() ?: 90
@@ -2192,6 +2273,16 @@ internal fun WorkoutV2Body(
                                         onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(targetExercise.id, activeSetIndex) },
                                         onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(targetExercise.id, activeSetIndex) },
                                         onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(targetExercise.id, activeSetIndex) },
+                                        exerciseName = displayWorkoutExerciseName(targetExercise),
+                                        maxHeartRateBpm = (settings.userVitals.age ?: settings.age)?.takeIf { it in 10..100 }?.let { 220 - it },
+                                        bodyWeightKg = viewModel.currentBodyWeight(),
+                                        onRecordWithRpe = { duration, distance, heartRate, rpe ->
+                                            if (cardioPageActionIsCurrent()) {
+                                                viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex, executionRef(uiState, targetExercise, activeSetIndex, null), actualRpe = rpe)
+                                            } else {
+                                                false
+                                            }
+                                        },
                                         onRecord = { duration, distance, heartRate ->
                                             if (cardioPageActionIsCurrent()) {
                                                 viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex, executionRef(uiState, targetExercise, activeSetIndex, null))
@@ -2298,6 +2389,14 @@ internal fun WorkoutV2Body(
                                         viewModel.showHistoryForExercise(targetExercise)
                                     },
                                     onConfigureSet = { viewModel.showSeriesTypeSheet(targetExercise.id, activeSetIndex, activeSetIndex) },
+                                    // «RONDA n · A1»: la letra del ejercicio dentro de su superserie (A1, A2…), en el orden de la sesión.
+                                    supersetLabel = targetExercise.takeIf { it.isInSuperset() }?.let { member ->
+                                        val group = member.supersetGroupRef?.takeIf { it.isNotBlank() } ?: member.supersetId
+                                        val position = visibleExercises.filter {
+                                            (it.supersetGroupRef?.takeIf { ref -> ref.isNotBlank() } ?: it.supersetId) == group
+                                        }.indexOfFirst { it.id == member.id }
+                                        if (position >= 0) "A${position + 1}" else null
+                                    },
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
                                     onExecutionError = { effort ->
@@ -2388,6 +2487,10 @@ internal fun WorkoutV2Body(
                                     onRetryPendingCaptures = onRetryPendingCaptures,
                                     openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
                                     onMediaFaceConsumed = { viewModel.mediaCapture.consumeOpenMediaFace() },
+                                    panelRequest = seriesPanelRequest?.takeIf {
+                                        isSettledPage && it.first == targetExercise.id && it.second == activeSetIndex
+                                    }?.third,
+                                    onPanelRequestConsumed = { seriesPanelRequest = null },
                                     sessionMilestones = uiState.sessionMilestones,
                                     lastHomologatedResultV3 = sessionCompletedSet?.homologatedResultV3
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
@@ -2447,6 +2550,10 @@ internal fun WorkoutV2Body(
                 },
                 onOpenAllSeries = { setConfigTarget = null; onEditExercise(ex.id) },
                 onDismiss = { setConfigTarget = null },
+                onOpenDetails = {
+                    setConfigTarget = null
+                    seriesPanelRequest = Triple(ex.id, target.fromSetIdx, "details")
+                },
             )
         }
     }
@@ -2475,6 +2582,8 @@ internal fun WorkoutV2Body(
                     viewModel.hideSeriesTypeSheet()
                 },
                 onEdit = { setConfigTarget = target },
+                onAdvanced = { seriesPanelRequest = Triple(ex.id, target.fromSetIdx, "advanced") },
+                onDetails = { seriesPanelRequest = Triple(ex.id, target.fromSetIdx, "details") },
                 onAddSet = { viewModel.addSetToCurrentExercise(ex.id) },
                 onSkipSet = { setIndex -> viewModel.omitSet(ex.id, setIndex) },
                 onDeleteSet = { setIndex -> viewModel.removeSetFromExercise(ex.id, setIndex) },
@@ -2574,6 +2683,20 @@ internal fun WorkoutV2Body(
         }
     }
 
+    val saveFailureRetry by viewModel.saveFailureRetry.collectAsStateWithLifecycle()
+    saveFailureRetry?.let { retry ->
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "No se pudo guardar",
+            text = "Tu borrador sigue disponible. Reintenta cuando quieras.",
+            primaryLabel = "Reintentar",
+            onPrimary = retry,
+            secondaryLabel = "Volver al registro",
+            onSecondary = { viewModel.dismissSaveFailure() },
+            onDismiss = { viewModel.dismissSaveFailure() },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Repeat,
+            tag = "live-save-failed",
+        )
+    }
     pendingUpdateAction?.let { pending ->
         com.example.kpkn.screens.workout.components.LiveAlert(
             title = "Actualizar serie",
@@ -2652,6 +2775,18 @@ internal fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
         hasRightOnly -> listOf("${id}_${setIndex}_R")
         else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
     }
+}
+
+/** Sube el contenido [px] para que pase por debajo de la cabecera (que va encima con zIndex) sin cambiar el sitio que ocupa. */
+private fun Modifier.extendUnderHeader(px: Int): Modifier = layout { measurable, constraints ->
+    val extra = px.coerceAtLeast(0)
+    val placeable = measurable.measure(
+        constraints.copy(
+            minHeight = constraints.minHeight + extra,
+            maxHeight = if (constraints.hasBoundedHeight) constraints.maxHeight + extra else constraints.maxHeight,
+        ),
+    )
+    layout(placeable.width, (placeable.height - extra).coerceAtLeast(0)) { placeable.place(0, -extra) }
 }
 
 private fun Modifier.livePagerFullBleed(horizontalInset: Dp): Modifier =

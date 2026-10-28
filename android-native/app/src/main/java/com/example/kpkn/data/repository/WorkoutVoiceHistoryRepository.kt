@@ -53,6 +53,9 @@ class WorkoutVoiceHistoryRepository(
         next
     }
 
+    /** «Descartar» una captura por revisar o quitar la de una serie deshecha. */
+    suspend fun delete(id: String) = withContext(Dispatchers.IO) { dao.deleteById(id) }
+
     suspend fun markRegistered(
         sessionKey: String,
         exerciseId: String,

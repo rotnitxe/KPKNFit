@@ -14,8 +14,16 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 /** Pestañas de «Configurar serie» (prototipo 02, `set-config`). */
 internal enum class LiveSetConfigTab(val title: String) { TARGET("Objetivo"), LOAD("Carga"), DETAIL("Detalle") }
 
+/** «Formato» de `set-config` (prototipo 02): las siete formas de plantear el objetivo de la serie. */
+internal enum class LiveSetFormat(val label: String) {
+    REPS("Repeticiones"), RM("RM / TM"), SOLO_RPE("Solo RPE"), TIME("Tiempo"), DISTANCE("Distancia"), CUSTOM("Unidad propia"), AMRAP("AMRAP"),
+}
+
 /** Lo que la hoja edita del plan de una serie; el registro realizado no se toca. */
 internal data class LiveSetConfigDraft(
+    val format: LiveSetFormat,
+    /** «% de RM» cuando el formato es RM / TM. */
+    val percentRm: String,
     val min: String,
     val max: String,
     val intensity: IntensityMode,
@@ -31,7 +39,19 @@ private fun Double.plain(): String = if (this % 1.0 == 0.0) toLong().toString() 
 internal fun liveSetConfigDraft(exercise: Exercise, set: ExerciseSet): LiveSetConfigDraft {
     val range = set.targetRepsRange
     val intensity = if (set.intensityMode == IntensityMode.RPE) IntensityMode.RPE else IntensityMode.RIR
+    val unit = com.example.kpkn.screens.workout.liveSetUnitMode(exercise, set)
+    val format = when (com.example.kpkn.screens.workout.liveSetCardMode(exercise, set, unit)) {
+        com.example.kpkn.screens.workout.LiveSetCardMode.RM -> LiveSetFormat.RM
+        com.example.kpkn.screens.workout.LiveSetCardMode.SOLO_RPE -> LiveSetFormat.SOLO_RPE
+        com.example.kpkn.screens.workout.LiveSetCardMode.TIME -> LiveSetFormat.TIME
+        com.example.kpkn.screens.workout.LiveSetCardMode.DISTANCE -> LiveSetFormat.DISTANCE
+        com.example.kpkn.screens.workout.LiveSetCardMode.CUSTOM -> LiveSetFormat.CUSTOM
+        com.example.kpkn.screens.workout.LiveSetCardMode.AMRAP -> if (set.purpose == SetPurpose.AMRAP) LiveSetFormat.AMRAP else LiveSetFormat.REPS
+        com.example.kpkn.screens.workout.LiveSetCardMode.REPS -> LiveSetFormat.REPS
+    }
     return LiveSetConfigDraft(
+        format = format,
+        percentRm = set.targetPercentageRM?.plain().orEmpty(),
         min = (range?.min ?: set.targetReps)?.toString().orEmpty(),
         max = (range?.max ?: set.targetReps)?.toString().orEmpty(),
         intensity = intensity,
@@ -55,15 +75,27 @@ internal fun applyLiveSetConfig(draft: LiveSetConfigDraft, set: ExerciseSet, res
     if (effort == null || effort < 0 || (draft.intensity == IntensityMode.RPE && effort > 10)) return null
     if (rest == null || rest < 0) return null
     if (draft.reference.isNotBlank() && (reference == null || reference < 0)) return null
+    val percentRm = num(draft.percentRm)
+    // RM / TM pide su porcentaje: sin él la serie no tendría de dónde sacar la carga.
+    if (draft.format == LiveSetFormat.RM && (percentRm == null || percentRm <= 0 || percentRm > 110)) return null
+    val unit = when (draft.format) {
+        LiveSetFormat.TIME -> UnitModeV2.TIME
+        LiveSetFormat.DISTANCE -> UnitModeV2.DISTANCE
+        LiveSetFormat.CUSTOM -> UnitModeV2.CUSTOM
+        else -> UnitModeV2.REPS
+    }
     return set.copy(
+        unitModeV2 = unit,
+        targetPercentageRM = if (draft.format == LiveSetFormat.RM) percentRm else set.targetPercentageRM,
         targetReps = max,
         targetRepsRange = if (min != max) RepRange(min, max) else null,
-        intensityMode = draft.intensity,
+        intensityMode = if (draft.format == LiveSetFormat.RM) IntensityMode.LOAD else draft.intensity,
         targetRIR = if (draft.intensity == IntensityMode.RIR) effort.toInt() else set.targetRIR,
         targetRPE = if (draft.intensity == IntensityMode.RPE) effort else set.targetRPE,
         restAfterSeconds = rest.takeIf { it != restFallback },
         loadModeV2 = draft.loadMode,
-        weight = reference,
+        // Solo RPE no lleva carga fija: la guía el esfuerzo.
+        weight = if (draft.format == LiveSetFormat.SOLO_RPE) null else reference,
         purpose = draft.purpose,
         calibrationScope = if (draft.purpose == SetPurpose.CALIBRATOR) set.calibrationScope ?: CalibrationScope.SESSION else null,
     )
@@ -83,6 +115,8 @@ internal fun LiveSetConfigSheet(
     onOpenTechnique: () -> Unit,
     onOpenAllSeries: () -> Unit,
     onDismiss: () -> Unit,
+    /** «Parciales, ayuda y ROM» del Detalle: abre el detalle de ejecución de la serie (con su propio borrador). */
+    onOpenDetails: (() -> Unit)? = null,
 ) {
     val set = exercise.sets.getOrNull(setIndex) ?: return
     val initial = remember(exercise.id, set.id) { liveSetConfigDraft(exercise, set) }
@@ -110,16 +144,8 @@ internal fun LiveSetConfigSheet(
         onDismiss = ::requestClose,
         tag = "live-set-config-sheet",
         footer = {
-            if (confirmDiscard) {
-                LiveSheetInlineNote("Tienes cambios sin guardar en los objetivos de la serie.")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LiveSheetSecondary("Seguir editando", { confirmDiscard = false }, Modifier.weight(1f))
-                    LiveSheetPrimary("Descartar", onDismiss, Modifier.weight(1f), tag = "live-set-config-discard")
-                }
-            } else {
-                LiveSheetPrimary("Guardar", ::save, tag = "live-set-config-save")
-                LiveSheetTextAction("Cancelar", ::requestClose)
-            }
+            LiveSheetPrimary("Guardar objetivos", ::save, tag = "live-set-config-save")
+            LiveSheetTextAction("Cancelar", ::requestClose)
         },
     ) {
         LiveSheetSubtitle("${displayWorkoutExerciseName(exercise)} · serie ${setIndex + 1}\nLos objetivos son independientes de lo registrado.")
@@ -127,19 +153,36 @@ internal fun LiveSetConfigSheet(
         Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
             when (tab) {
                 LiveSetConfigTab.TARGET -> {
+                    LiveSheetSelectField("Formato", LiveSetFormat.entries.map { it to it.label }, draft.format, { format ->
+                        draft = draft.copy(
+                            format = format,
+                            purpose = when {
+                                format == LiveSetFormat.AMRAP -> SetPurpose.AMRAP
+                                draft.purpose == SetPurpose.AMRAP -> SetPurpose.NONE
+                                else -> draft.purpose
+                            },
+                        )
+                        error = null
+                    }, Modifier.padding(bottom = 16.dp), tag = "live-set-config-format")
+                    if (draft.format == LiveSetFormat.RM) {
+                        LiveSheetLabeledField("% de RM", draft.percentRm, { draft = draft.copy(percentRm = it.filter { c -> c.isDigit() || c == ',' || c == '.' }); error = null },
+                            Modifier.padding(bottom = 16.dp), keyboardType = KeyboardType.Decimal, tag = "live-set-config-percent")
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         LiveSheetLabeledField("Objetivo mínimo", draft.min, { draft = draft.copy(min = it.filter(Char::isDigit)); error = null },
                             Modifier.weight(1f), keyboardType = KeyboardType.Number, tag = "live-set-config-min")
                         LiveSheetLabeledField("Objetivo máximo", draft.max, { draft = draft.copy(max = it.filter(Char::isDigit)); error = null },
                             Modifier.weight(1f), keyboardType = KeyboardType.Number, tag = "live-set-config-max")
                     }
-                    LiveSheetSectionLabel("Intensidad")
-                    LiveSheetChoiceRow(listOf(IntensityMode.RIR to "RIR", IntensityMode.RPE to "RPE"), { it == draft.intensity },
-                        { draft = draft.copy(intensity = it); error = null }, tagPrefix = "live-set-config-intensity")
-                    LiveSheetLabeledField("Valor objetivo", draft.effort, { draft = draft.copy(effort = it.filter { c -> c.isDigit() || c == ',' || c == '.' }); error = null },
-                        keyboardType = KeyboardType.Decimal, tag = "live-set-config-effort")
+                    // `.two-fields`: «Intensidad» (RIR / RPE) y «Valor objetivo» en la misma fila.
+                    Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
+                        LiveSheetSelectField("Intensidad", listOf(IntensityMode.RIR to "RIR", IntensityMode.RPE to "RPE"), draft.intensity,
+                            { draft = draft.copy(intensity = it); error = null }, Modifier.weight(1f), tag = "live-set-config-intensity")
+                        LiveSheetLabeledField("Valor objetivo", draft.effort, { draft = draft.copy(effort = it.filter { c -> c.isDigit() || c == ',' || c == '.' }); error = null },
+                            Modifier.weight(1f), keyboardType = KeyboardType.Decimal, tag = "live-set-config-effort")
+                    }
                     LiveSheetLabeledField("Descanso después · segundos", draft.rest, { draft = draft.copy(rest = it.filter(Char::isDigit)); error = null },
-                        Modifier.padding(top = 12.dp), keyboardType = KeyboardType.Number, tag = "live-set-config-rest")
+                        Modifier.padding(top = 16.dp), keyboardType = KeyboardType.Number, tag = "live-set-config-rest")
                 }
                 LiveSetConfigTab.LOAD -> {
                     LiveSheetChoiceRow(listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED).map { it to liveLoadModeLabel(it) },
@@ -149,13 +192,22 @@ internal fun LiveSetConfigSheet(
                     LiveSheetShortCopy("La carga realmente utilizada se edita al registrar la serie.")
                 }
                 LiveSetConfigTab.DETAIL -> {
-                    LiveSheetSectionLabel("Propósito", Modifier.padding(top = 0.dp))
-                    LiveSheetChoiceRow(listOf(SetPurpose.NONE to "Efectiva", SetPurpose.AMRAP to "AMRAP", SetPurpose.CALIBRATOR to "Calibrador"),
-                        { it == draft.purpose }, { draft = draft.copy(purpose = it) }, tagPrefix = "live-set-config-purpose")
-                    LiveSheetMenuRow("Técnica avanzada", onOpenTechnique, icon = KpknLineIcons.Layers)
-                    LiveSheetMenuRow("Todas las series del ejercicio", onOpenAllSeries, icon = KpknLineIcons.Sliders,
+                    LiveSheetSelectField("Propósito", listOf(SetPurpose.NONE to "Efectiva", SetPurpose.AMRAP to "AMRAP", SetPurpose.CALIBRATOR to "Calibrador"),
+                        draft.purpose, { purpose ->
+                            draft = draft.copy(
+                                purpose = purpose,
+                                format = when {
+                                    purpose == SetPurpose.AMRAP -> LiveSetFormat.AMRAP
+                                    draft.format == LiveSetFormat.AMRAP -> LiveSetFormat.REPS
+                                    else -> draft.format
+                                },
+                            )
+                        }, Modifier.padding(bottom = 8.dp), tag = "live-set-config-purpose")
+                    LiveSheetMenuRow("Parciales, ayuda y ROM", { onOpenDetails?.invoke() }, icon = null, enabled = onOpenDetails != null)
+                    LiveSheetMenuRow("Técnica avanzada", onOpenTechnique, icon = null)
+                    LiveSheetMenuRow("Todas las series del ejercicio", onOpenAllSeries, icon = null,
                         small = exercise.sets.size.let { "$it series" })
-                    LiveSheetShortCopy("Formato, lateralidad y carga inteligente se ajustan para todo el ejercicio.")
+                    LiveSheetShortCopy("El detalle de ejecución conserva su propio borrador.")
                 }
             }
         }
@@ -163,5 +215,17 @@ internal fun LiveSetConfigSheet(
         LiveSheetChoiceRow(listOf(false to "Esta serie", true to "Pendientes del ejercicio"), { it == pendingScope }, { pendingScope = it },
             Modifier.testTag("live-set-config-scope"), tagPrefix = "live-set-config-scope")
         error?.let { LiveSheetShortCopy(it, error = true) }
+    }
+    if (confirmDiscard) {
+        LiveAlert(
+            title = "Tienes cambios sin guardar",
+            text = "Puedes volver a la configuración o descartar esta edición.",
+            primaryLabel = "Seguir editando",
+            onPrimary = { confirmDiscard = false },
+            secondaryLabel = "Descartar cambios",
+            onSecondary = { confirmDiscard = false; onDismiss() },
+            onDismiss = { confirmDiscard = false },
+            tag = "live-set-config-dirty",
+        )
     }
 }

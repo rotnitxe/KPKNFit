@@ -134,12 +134,13 @@ private fun AnalyzingBody(status: AnalysisStatusUi.Analyzing, modifier: Modifier
         animationSpec = if (reduced) snap() else tween(durationMillis = 600),
         label = "analysisProgressNumber",
     )
-    val title = if (status.updating) "Actualizando el análisis…" else "Analizando el vídeo…"
+    // Prototipo 02: «Analizando…» con «Analizando repeticiones y amplitud.»; el recálculo y la cola dicen lo suyo.
+    val title = if (status.updating) "Actualizando el análisis…" else "Analizando…"
     val showNumber = !status.queued || pct > 0
     val caption = when {
         status.queued && pct == 0 -> "En cola: empieza en cuanto el móvil esté libre."
         status.updating -> "Se recalcula con los datos que ya tenemos."
-        else -> "Puedes salir de la pantalla: el análisis sigue en segundo plano."
+        else -> "Analizando repeticiones y amplitud."
     }
     KpknModule(modifier = modifier.testTag(ANALYSIS_STATUS_TAG)) {
         KpknModuleHeader("Análisis")

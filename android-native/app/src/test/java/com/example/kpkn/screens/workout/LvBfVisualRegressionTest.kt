@@ -85,7 +85,8 @@ class LvBfVisualRegressionTest {
                 } }
             }
         }
-        if (mode == TrainingMode.RM) rule.onNodeWithTag("live-rm-edit").performClick()
+        // Refinamiento 02: el editor de RM vive en la hoja «Referencia de RM» (live-rm-sheet), que abre la referencia de la tarjeta.
+        if (mode == TrainingMode.RM) rule.onNodeWithTag("live-card-reference-history").performClick()
         val frame = rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot
         val actions = rule.onNodeWithTag("live-card-actions").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").fetchSemanticsNode().boundsInRoot
@@ -106,9 +107,14 @@ class LvBfVisualRegressionTest {
             assertTrue("$tag conserva 44dp táctiles", target.width / density >= 43.5f && target.height / density >= 43.5f)
         }
         if (mode == TrainingMode.DISTANCE || mode == TrainingMode.CUSTOM) {
-            val target = rule.onNodeWithText("Objetivo", substring = true).fetchSemanticsNode().boundsInRoot
-            val label = rule.onNodeWithText(if (mode == TrainingMode.DISTANCE) "METROS RECORRIDOS" else "CANTIDAD REALIZADA").fetchSemanticsNode().boundsInRoot
-            assertTrue("Al menos 6dp separan el objetivo de la etiqueta", label.top - target.bottom >= 6f * density - 1f)
+            // Refinamiento 02: el frente ya no pinta «Objetivo» ni las etiquetas de LiveModeSetContent. La cantidad se lee en su cabecera
+            // (set_reps_header, 21 dp) y el campo va justo debajo: la etiqueta cabe en su cabecera y la cabecera no pisa el campo.
+            val unitLabel = if (mode == TrainingMode.DISTANCE) "DISTANCIA" else exercise.customUnit.orEmpty().uppercase()
+            val header = rule.onNodeWithTag("set_reps_header", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val label = rule.onNodeWithText(unitLabel, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            val field = rule.onNodeWithTag("live-card-quantity-input", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+            assertTrue("La etiqueta de la cantidad cabe en su cabecera", label.top >= header.top - 1f && label.bottom <= header.bottom + 1f)
+            assertTrue("La cabecera de la cantidad no pisa su campo", header.bottom <= field.top + 1f)
         }
         if (mode == TrainingMode.DISTANCE || mode == TrainingMode.SOLO_RPE) {
             val titleNode = rule.onNode(hasText(exercise.name) and hasAnyAncestor(hasTestTag("live-session-header")), useUnmergedTree = true)

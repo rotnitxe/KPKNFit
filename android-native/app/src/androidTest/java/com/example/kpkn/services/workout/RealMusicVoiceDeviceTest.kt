@@ -130,13 +130,13 @@ class RealMusicVoiceDeviceTest {
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty()
         }
-        compose.onNodeWithText("Modo música").assertIsDisplayed().performClick()
-        compose.onNodeWithText("Comenzar prueba").assertIsDisplayed()
+        compose.onNodeWithText("Música").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Probar este modo").assertIsDisplayed()
         // Pump Compose frames explicitly below; microphone and IPC keep their real wall time.
         compose.mainClock.advanceTimeBy(500)
         compose.mainClock.autoAdvance = false
         compose.mainClock.advanceTimeByFrame()
-        compose.onNodeWithText("Comenzar prueba").performClick()
+        compose.onNodeWithText("Probar este modo").performClick()
         compose.waitUntil(25_000) {
             compose.mainClock.advanceTimeByFrame()
             actual.captureState.value == VoiceCaptureState.LISTENING &&
@@ -159,7 +159,7 @@ class RealMusicVoiceDeviceTest {
         phase("recognized_expected_word")
         // Do not persist recognition hypotheses or a potentially unexpected transcript in a PNG.
         compose.mainClock.advanceTimeByFrame()
-        compose.onNodeWithText("Activar").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Activar modo de voz").assertIsDisplayed().performClick()
         compose.waitUntil(5_000) {
             compose.mainClock.advanceTimeByFrame()
             chosen.isNotEmpty()

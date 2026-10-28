@@ -115,22 +115,23 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
             rule.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach { node ->
                 val b = node.boundsInRoot
                 assertTrue("$tag dentro de la tarjeta", b.left >= frame.left && b.right <= frame.right + 1 && b.top >= frame.top && b.bottom <= frame.bottom + 1)
-                assertTrue("$tag objetivo de 44 dp", b.height / density >= 44f - .5f)
+                assertTrue("$tag objetivo de 48 dp", b.height / density >= 48f - .5f)
             }
         }
     }
 
     fun walkthrough(height: Int, output: File? = null) {
         show(height = height, before = true)
-        rule.onNodeWithTag("amrap-purpose-badge").assertTextEquals("Mínimo 6 · Calibrador")
+        rule.onNodeWithTag("amrap-purpose-badge").assertTextEquals("Mínimo 6")
         assertFrame(); output?.let { save(it, "v7-$height-before") }
         rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed()
         val range = rule.onNodeWithTag(EffortSliderTag).fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo]
         rule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(range.range.endInclusive) }
         rule.onNodeWithTag("live-session-record").performClick()
         rule.onNodeWithTag("calibration-result").assertIsDisplayed()
-        rule.onNodeWithText("Aplicar a S2–S4").assertIsDisplayed()
-        rule.onAllNodesWithText("60 → 62,5 kg").assertCountEquals(3)
+        rule.onNodeWithTag("calibration-apply").assertContentDescriptionEquals("Aplicar a S2–S4")
+        rule.onNodeWithTag("apre-set4-result").assertTextEquals("62,5 kg")
+        rule.onNodeWithText("Propuesta para S2, S3, S4", substring = true).assertIsDisplayed()
         assertEquals(1, recordCount)
         assertFrame(); output?.let { save(it, "v7-$height-proposed") }
         rule.onNodeWithTag("calibration-apply").performClick()

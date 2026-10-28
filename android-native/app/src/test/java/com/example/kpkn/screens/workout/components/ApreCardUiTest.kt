@@ -94,7 +94,7 @@ class ApreCardUiTest {
         }
     }
     private fun completeText(node: SemanticsNodeInteraction) {
-        node.performScrollTo().assertIsDisplayed()
+        node.assertIsDisplayed() // Refinamiento 02: el resultado cabe entero en la tarjeta, sin desplazamiento.
         val results = mutableListOf<TextLayoutResult>()
         node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
         val layout = results.single()
@@ -106,7 +106,6 @@ class ApreCardUiTest {
             assertTrue(layout.getLineLeft(line) >= -1f)
             assertTrue(layout.getLineRight(line) <= layout.size.width+1f)
         }
-        println("APRE texto=${layout.layoutInput.text} size=${layout.size} paragraph=${layout.multiParagraph.width}")
     }
     private fun capture(name: String) {
         val dir = System.getenv("KPKN_RENDER_DIR")?.let(::File) ?: return
@@ -122,10 +121,9 @@ class ApreCardUiTest {
         ApreVariant.entries.forEach { variant ->
             rule.runOnIdle { seed(variant) }
             rule.waitForIdle(); frame(height)
-            rule.onNodeWithText("APRE ${variant.xrmReps} · S3").assertIsDisplayed()
-            val record = state.value.calibrationDecisions.single()
+            rule.onNodeWithText("APRE").assertIsDisplayed()
             completeText(rule.onNodeWithTag("apre-set4-result"))
-            completeText(rule.onNodeWithText(record.decision.reason))
+            completeText(rule.onNodeWithText("Propuesta para", substring = true))
             rule.onNodeWithText("Sin referencia previa").assertDoesNotExist()
             rule.onNodeWithText("Capacidad",substring = true).assertDoesNotExist()
             capture("apre-v7-${variant.xrmReps}-$height-${(font*100).toInt()}-proposed")

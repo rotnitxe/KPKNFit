@@ -14,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -94,7 +97,12 @@ class RestVideoLayoutTest {
             rule.mainClock.advanceTimeByFrame()
             rule.waitForIdle()
             val bounds = rule.onNodeWithTag("rest_surface", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-            val anchor = if (kind == 3) rule.onNodeWithTag("feedback_content", useUnmergedTree = true) else rule.onNodeWithText("1:26", useUnmergedTree = true)
+            // El reloj de cada superficie: el eclipse, el kicker de la tarjeta de feedback o el propio feedback a pantalla completa.
+            val anchor = when (kind) {
+                1 -> rule.onNodeWithTag("rest-kicker", useUnmergedTree = true)
+                3 -> rule.onNodeWithTag("feedback_content", useUnmergedTree = true)
+                else -> rule.onNodeWithText("1:26", useUnmergedTree = true)
+            }
             val anchorBounds = anchor.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             cases.forEach { result ->
                 rule.runOnIdle { state.value = result }
@@ -102,20 +110,24 @@ class RestVideoLayoutTest {
                 rule.waitForIdle()
                 assertEquals(bounds, rule.onNodeWithTag("rest_surface", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot)
                 assertEquals("El reloj o el feedback se mueve en $kind/$result", anchorBounds, anchor.fetchSemanticsNode().boundsInRoot)
-                val line = try {
-                    rule.onNodeWithTag(RestVideoLineTag, useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode()
-                } catch (failure: AssertionError) {
-                    throw AssertionError("Fila no visible en superficie $kind al $fontScale: $result; marco $bounds; fila ${rule.onNodeWithTag(RestVideoLineTag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot}", failure)
+                // El descanso no pinta la franja de vídeo, llegue el análisis que llegue.
+                rule.onNodeWithTag(RestVideoLineTag, useUnmergedTree = true).assertDoesNotExist()
+                // Cada texto de la superficie se dibuja entero: sin cortes y con la última línea completa.
+                val texts = rule.onAllNodes(
+                    hasAnyAncestor(hasTestTag("rest_surface")) and SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult),
+                    useUnmergedTree = true,
+                )
+                repeat(texts.fetchSemanticsNodes().size) { index ->
+                    val layouts = mutableListOf<TextLayoutResult>()
+                    texts[index].performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                    layouts.forEach { layout ->
+                        // Un texto con salto de línea solo se corta por alto o con puntos suspensivos. (`didOverflowWidth` da positivo en
+                        // cualquier texto más estrecho que su caja centrada, aunque se vea entero.)
+                        val cut = layout.didOverflowHeight || (layout.lineCount > 0 && layout.isLineEllipsized(layout.lineCount - 1))
+                        assertFalse("Texto cortado en $kind/$result: ${layout.layoutInput.text} (${layout.size}, ${layout.layoutInput.constraints})", cut)
+                        assertTrue("Texto incompleto en $kind/$result: ${layout.layoutInput.text}", layout.getLineEnd(layout.lineCount - 1) == layout.layoutInput.text.length)
+                    }
                 }
-                assertEquals("Fila de vídeo en superficie $kind al $fontScale: $result", 48f * 3f, line.boundsInRoot.height, 0.01f)
-                val layouts = mutableListOf<TextLayoutResult>()
-                rule.onNodeWithTag(RestVideoTextTag, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-                val layout = layouts.single()
-                assertFalse("Texto cortado en $kind/$result: ${layout.layoutInput.text}", layout.hasVisualOverflow)
-                assertTrue(layout.lineCount <= 2)
-                val links = layout.layoutInput.text.getLinkAnnotations(0, layout.layoutInput.text.length)
-                assertEquals(workoutRestVideoLine(result).actions.size, links.size)
-                assertTrue("Se dibuja toda la frase", layout.getLineEnd(layout.lineCount - 1) == layout.layoutInput.text.length)
             }
         }
     }

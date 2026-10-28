@@ -263,6 +263,7 @@ fun WorkoutScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val voiceHistory by viewModel.voiceHistory.collectAsStateWithLifecycle()
+    val voiceCommands by viewModel.voiceCommands.collectAsStateWithLifecycle()
     val voiceHistoryNotice by viewModel.voiceHistoryNotice.collectAsStateWithLifecycle()
     val sessionMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
     val mediaCaptureError by viewModel.mediaCapture.captureError.collectAsStateWithLifecycle()
@@ -1156,6 +1157,7 @@ fun WorkoutScreen(
         onQuickRecord = { viewModel.openQuickRecording() },
         onShortenSession = { viewModel.previewUltraFast() },
         onFinishSession = { viewModel.showFinish() },
+        onOpenReferenceHistory = currentExercise?.let { exercise -> { viewModel.showHistoryForExercise(exercise) } },
     )
 
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
@@ -1357,6 +1359,10 @@ fun WorkoutScreen(
         onShowExitDialogChange = { showExitDialog = it },
         onBack = onBack,
         onUseHistoryWeight = { rmSelectedWeight.value = it },
+        onOpenExerciseOptions = { id ->
+            structureSheets.exerciseContextForceMemberActions = false
+            structureSheets.exerciseContextExerciseId = id
+        },
     )
 
     WorkoutStructureSheetsHost(
@@ -1500,26 +1506,44 @@ fun WorkoutScreen(
         )
     }
 
+    // Prototipo 02 (`conflict` → `discard`): primero «Ya hay una sesión en curso»; descartar pide una segunda confirmación.
+    var reviewingDiscard by remember { mutableStateOf(false) }
     uiState.pendingOngoingConflict?.let { existing ->
-        com.example.kpkn.screens.workout.components.LiveAlert(
-            title = "Entrenamiento en curso",
-            text = "Ya hay un entrenamiento en curso: ${existing.session.name}. Si empiezas este, se perderá el anterior.",
-            primaryLabel = "Reanudar el que está en curso",
-            onPrimary = {
-                val existingProgramId = existing.programId
-                val existingSessionId = existing.session.id
-                viewModel.dismissOngoingConflict()
-                onOpenExistingWorkout(existingProgramId, existingSessionId)
-            },
-            secondaryLabel = "Descartar y empezar este",
-            onSecondary = { viewModel.confirmDiscardOngoingAndStart() },
-            dangerSecondary = true,
-            onDismiss = {
-                viewModel.dismissOngoingConflict()
-                onBack()
-            },
-            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
-        )
+        if (!reviewingDiscard) {
+            com.example.kpkn.screens.workout.components.LiveAlert(
+                title = "Ya hay una sesión en curso",
+                text = "Puedes reanudar ${existing.session.name}. Empezar otra descartaría la sesión pendiente.",
+                primaryLabel = "Reanudar sesión",
+                onPrimary = {
+                    val existingProgramId = existing.programId
+                    val existingSessionId = existing.session.id
+                    viewModel.dismissOngoingConflict()
+                    onOpenExistingWorkout(existingProgramId, existingSessionId)
+                },
+                secondaryLabel = "Revisar descarte",
+                onSecondary = { reviewingDiscard = true },
+                onDismiss = {
+                    viewModel.dismissOngoingConflict()
+                    onBack()
+                },
+                tag = "live-conflict-alert",
+            )
+        } else {
+            com.example.kpkn.screens.workout.components.LiveAlert(
+                title = "¿Descartar la sesión pendiente?",
+                text = "Se perderían los datos de esa sesión que todavía no hayas guardado.",
+                primaryLabel = "Conservar sesión",
+                onPrimary = { reviewingDiscard = false },
+                secondaryLabel = "Descartar sesión",
+                onSecondary = {
+                    reviewingDiscard = false
+                    viewModel.confirmDiscardOngoingAndStart()
+                },
+                dangerSecondary = true,
+                onDismiss = { reviewingDiscard = false },
+                tag = "live-discard-alert",
+            )
+        }
     }
 
     if (uiState.pendingOngoingCorrupt) {
@@ -1568,31 +1592,55 @@ fun WorkoutScreen(
         )
     }
 
-    if (showVoiceConversation) {
-        VoiceConversationSurface(
+    // Modo Voz como capa (iteración 03): la cápsula flota sobre la sesión mientras la voz está en uso (también en pausa) y se abre
+    // hacia arriba con los registros. «Desactivar Modo Voz» la retira.
+    var voiceCapsuleVisible by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
+    LaunchedEffect(uiState.voiceSessionEnabled) { if (uiState.voiceSessionEnabled) voiceCapsuleVisible = true }
+    val guideSpeech by com.example.kpkn.services.workout.TechniqueCaptureVoiceLink.guideSpeech.collectAsStateWithLifecycle()
+    val recorderOpen by com.example.kpkn.services.workout.TechniqueCaptureVoiceLink.recorderOpen.collectAsStateWithLifecycle()
+    LaunchedEffect(guideSpeech) {
+        if (guideSpeech != null) {
+            kotlinx.coroutines.delay(4_500)
+            com.example.kpkn.services.workout.TechniqueCaptureVoiceLink.guideSpeechShown()
+        }
+    }
+    if (voiceCapsuleVisible || showVoiceConversation) {
+        com.example.kpkn.screens.workout.components.VoiceCapsuleLayer(
             entries = voiceHistory,
+            commands = voiceCommands,
             voiceEnabled = uiState.voiceSessionEnabled,
-            captureModeLabel = when (settings.voiceCaptureMode) {
-                com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE -> "Manos libres"
-                com.example.kpkn.data.models.VoiceCaptureMode.MUSIC -> "Con música"
-            },
-            sessionName = session.name,
-            currentExerciseName = currentExercise?.let(::displayWorkoutExerciseName) ?: session.name,
-            currentSetLabel = "serie ${uiState.currentSetIdx + 1}",
+            context = com.example.kpkn.screens.workout.components.VoiceCapsuleContext(
+                exerciseName = currentExercise?.let(::displayWorkoutExerciseName) ?: session.name,
+                setLabel = "serie ${uiState.currentSetIdx + 1}",
+                captureModeLabel = when (settings.voiceCaptureMode) {
+                    com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE -> "Manos libres"
+                    com.example.kpkn.data.models.VoiceCaptureMode.MUSIC -> "Con música"
+                },
+                resting = uiState.isRestTimerRunning,
+                capturing = recorderOpen,
+            ),
+            expanded = showVoiceConversation,
+            onExpandedChange = { showVoiceConversation = it },
+            bottomPadding = if (liveSessionView == LiveSessionView.LIST) 22.dp else dockBottomClearance + 8.dp,
             notice = voiceHistoryNotice,
-            onClose = { showVoiceConversation = false },
+            guideSpeech = guideSpeech,
+            onStopGuide = { com.example.kpkn.services.workout.TechniqueCaptureVoiceLink.requestStopGuide() },
             onTogglePause = {
                 if (uiState.voiceSessionEnabled) viewModel.pauseVoiceConversation()
                 else viewModel.resumeVoiceConversation()
             },
             onDisable = {
                 viewModel.disableVoice()
+                voiceCapsuleVisible = false
                 showVoiceConversation = false
             },
             onListenExample = viewModel::speakVoiceExample,
             onConfirmCorrection = { entryId, weight, reps, rir ->
                 viewModel.correctVoiceHistoryCapture(entryId, weight, reps, rir)
             },
+            onUndo = viewModel::undoVoiceHistoryCapture,
+            onDiscard = viewModel::discardVoiceHistoryCapture,
+            modifier = Modifier.navigationBarsPadding(),
         )
     }
 }

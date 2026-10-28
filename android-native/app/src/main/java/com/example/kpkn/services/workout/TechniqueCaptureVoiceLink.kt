@@ -51,6 +51,14 @@ object TechniqueCaptureVoiceLink {
     private val _voiceToggleRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val voiceToggleRequests: SharedFlow<Unit> = _voiceToggleRequests.asSharedFlow()
 
+    private val _guideSpeech = MutableStateFlow<String?>(null)
+    /** La frase que la guía de encuadre acaba de decir (la cápsula enseña «KPKN habla» con ella). */
+    val guideSpeech: StateFlow<String?> = _guideSpeech.asStateFlow()
+
+    private val _stopGuideRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    /** «Detener» de la cápsula: el grabador calla la guía. */
+    val stopGuideRequests: SharedFlow<Unit> = _stopGuideRequests.asSharedFlow()
+
     @Volatile
     private var lastGuideText: String? = null
 
@@ -90,11 +98,23 @@ object TechniqueCaptureVoiceLink {
     fun noteGuideSpoken(text: String, nowMs: Long = monotonicMs()) {
         lastGuideText = text
         lastGuideAtMs = nowMs
+        _guideSpeech.value = text
     }
 
     fun clearGuideSpeech() {
         lastGuideText = null
         lastGuideAtMs = 0L
+        _guideSpeech.value = null
+    }
+
+    /** La frase ya se dijo: la cápsula deja de enseñarla (el eco sigue filtrándose con su ventana). */
+    fun guideSpeechShown() {
+        _guideSpeech.value = null
+    }
+
+    fun requestStopGuide() {
+        _stopGuideRequests.tryEmit(Unit)
+        clearGuideSpeech()
     }
 
     /** Ignora el eco de la propia guía para que la síntesis de voz no active comandos. */

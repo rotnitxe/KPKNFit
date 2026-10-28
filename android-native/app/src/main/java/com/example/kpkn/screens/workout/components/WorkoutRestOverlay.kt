@@ -103,124 +103,107 @@ internal fun RestTimerOverlay(
     onTogglePause: () -> Unit = {},
 
 ) {
-    // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
+    // El total es el del descanso entero (con los ajustes de ±15 s): así el eclipse no vuelve a cero al ajustar el tiempo.
     val totalSeconds = state.totalRestSeconds().coerceAtLeast(remainingSeconds).coerceAtLeast(1)
     val progress = RestClockMath.progress(totalSeconds, remainingSeconds)
     val hasFeedback = postExerciseFeedbackContent != null
     var playing by rememberSaveable(state.startedAtMs) { mutableStateOf(initiallyPlaying) }
+    var suggestionOpen by remember { mutableStateOf(false) }
+    // La primera experiencia del descanso anterior ya no existe en el Refinamiento 02: se da por vista.
+    LaunchedEffect(showIntro) { if (showIntro) onIntroDone() }
+    val title = headline?.title ?: state.exerciseName
+    val lastSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
+    val lastSetText = lastSet?.let { restRef02LastSetText(it, lastCompletedCustomUnit) }
+    val suggestedSeconds = pendingRestSuggestion?.adaptiveSeconds?.takeIf { onUseAdaptive != null && !isAdaptiveActive }
+    val suggestion = restSuggestionLine(state.plannedSeconds, totalSeconds, suggestedSeconds, isAdaptiveActive)
+    val running = remainingSeconds > 0
+    val endRest: @Composable ColumnScope.() -> Unit = { RestRef02FullPrimary("Terminar descanso", onSkip, "rest-end") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .kpknHazeEffect(hazeState)
-            // Velo negro al 92 % sobre la tarjeta de detrás: lo de debajo no se transparenta (LR1a).
-            .background(KpknSurface.canvas.copy(alpha = 0.92f))
-            // The rest layer is modal.  Consume taps in its transparent
-            // margins too, otherwise a touch can fall through to the media
-            // card and open Photos/camera after "Saltar descanso".
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {},
-            )
-            .zIndex(6f),
-    ) {
-        if (showIntro) {
-            RestFirstExperience(onDone = onIntroDone, animationsOn = clockActive)
-        } else AnimatedContent(
-            targetState = hasFeedback,
-            transitionSpec = {
-                (if (targetState) {
-                    (slideInVertically { it } + fadeIn()) togetherWith
-                    (slideOutVertically { -it } + fadeOut())
-                } else {
-                    (slideInVertically { -it } + fadeIn()) togetherWith
-                    (slideOutVertically { it } + fadeOut())
-                }).using(SizeTransform(clip = false))
-            },
-            label = "feedback-layout-transition",
-        ) { showingFeedback ->
-            if (showingFeedback) {
-                FeedbackContent(
-                    state = state,
-                    remainingSeconds = remainingSeconds,
-                    progress = progress,
-                    sessionAccentColor = sessionAccentColor,
-                    pendingRestSuggestion = pendingRestSuggestion,
-                    isAdaptiveActive = isAdaptiveActive,
-                    onSkip = onSkip,
-                    onUseAdaptive = onUseAdaptive,
-                    postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
-                    onDeferFeedback = onDeferFeedback,
-                    feedbackExerciseCount = feedbackExerciseCount,
-                    title = feedbackTitle ?: state.exerciseName,
-                    after = feedbackAfter,
-                    showTimerChrome = remainingSeconds > 0,
-                    onMinimize = onMinimize,
-                    relatorText = relatorText,
-                    relatorPhaseKey = relatorPhaseKey,
-                    relatorActions = relatorActions,
-                    onRelatorAction = onRelatorAction,
-                    shape = shape,
-                    clockActive = clockActive,
-                    videoSlot = videoSlot,
-                )
-            } else {
-                AnimatedContent(
-                    targetState = playing,
-                    transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(160)) },
-                    label = "rest-game-transition",
-                ) { isPlaying ->
-                    if (isPlaying) {
-                        // El juego vive dentro de la misma superficie. El descanso manda: al llegar a 0 esta capa deja de componerse y
-                        // el juego se cierra con ella; «Saltar descanso» desde aquí es el mismo onSkip.
-                        RestGameFullScreen(
-                            remainingSeconds = remainingSeconds,
-                            totalSeconds = totalSeconds,
-                            nextSet = nextSet,
-                            onBack = { playing = false },
-                            onSkip = onSkip,
-                            recordStore = recordStore,
-                            engine = gameEngine,
-                            running = clockActive && !isPaused,
-                        )
-                    } else {
-                        NormalRestContent(
-                            state = state,
-                            remainingSeconds = remainingSeconds,
-                            totalSeconds = totalSeconds,
-                            progress = progress,
-                            pendingRestSuggestion = pendingRestSuggestion,
-                            lastSetOutcome = lastSetOutcome,
-                            lastCompletedSet = lastCompletedSet,
-                            lastCompletedSets = lastCompletedSets,
-                            lastCompletedCustomUnit = lastCompletedCustomUnit,
-                            isAdaptiveActive = isAdaptiveActive,
-                            sessionAccentColor = sessionAccentColor,
-                            onDecrease = onDecrease,
-                            onIncrease = onIncrease,
-                            onSkip = onSkip,
-                            skipExerciseLabel = skipExerciseLabel,
-                            onSkipExercise = onSkipExercise,
-                            onUseAdaptive = onUseAdaptive,
-                            onMinimize = onMinimize,
-                            relatorText = relatorText,
-                            relatorPhaseKey = relatorPhaseKey,
-                            relatorActions = relatorActions,
-                            onRelatorAction = onRelatorAction,
-                            shape = shape,
-                            onShapeChange = onShapeChange,
-                            headline = headline,
-                            onPlay = { playing = true },
-                            clockActive = clockActive,
-                            videoSlot = videoSlot,
-                            isPaused = isPaused,
-                            onTogglePause = onTogglePause,
-                        )
-                    }
+    Box(Modifier.fillMaxSize().zIndex(6f)) {
+        when {
+            hasFeedback -> RestRef02FullscreenScaffold(
+                eyebrow = if (running) "DESCANSO + FEEDBACK" else "FEEDBACK DEL EJERCICIO",
+                title = feedbackTitle ?: title,
+                onMinimize = onMinimize.takeIf { running },
+                bottom = if (running) endRest else null,
+            ) { _ ->
+                if (running) {
+                    RestRef02FeedbackClock(
+                        remainingSeconds = remainingSeconds,
+                        totalSeconds = totalSeconds,
+                        progress = progress,
+                        animationsOn = clockActive,
+                        suggestedSeconds = suggestedSeconds,
+                        onOpenSuggestion = { suggestionOpen = true },
+                    )
+                }
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    CompositionLocalProvider(
+                        LocalFeedbackBounded provides true,
+                        LocalFeedbackDefer provides onDeferFeedback,
+                    ) { postExerciseFeedbackContent?.invoke() }
                 }
             }
+            // Pantalla de juego del prototipo (iteración 03): solo el reloj del descanso arriba y el lienzo; el descanso manda.
+            playing -> Box(
+                Modifier.fillMaxSize().background(Color.Black)
+                    .clickable(remember { MutableInteractionSource() }, indication = null) {}
+                    .statusBarsPadding().navigationBarsPadding()
+                    .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 10.dp)
+                    .testTag("rest-fullscreen-games"),
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    RestGameFullScreen(
+                        remainingSeconds = remainingSeconds,
+                        totalSeconds = totalSeconds,
+                        nextSet = nextSet,
+                        onBack = { playing = false },
+                        onSkip = onSkip,
+                        recordStore = recordStore,
+                        engine = gameEngine,
+                        running = clockActive && !isPaused,
+                        isPaused = isPaused,
+                        onDecrease = onDecrease,
+                        onTogglePause = onTogglePause,
+                        onIncrease = onIncrease,
+                    )
+                }
+            }
+            else -> RestRef02FullscreenScaffold(
+                eyebrow = if (state.kind == RestTimerKind.WARMUP) "PAUSA ENTRE APROXIMACIONES" else "PAUSA ENTRE SERIES",
+                title = title,
+                onMinimize = onMinimize,
+                bottom = endRest,
+            ) { compact ->
+                RestRef02FullClockPanel(
+                    compact = compact,
+                    remainingSeconds = remainingSeconds.coerceAtLeast(0),
+                    progress = progress,
+                    isPaused = isPaused,
+                    animationsOn = clockActive,
+                    onDecrease = onDecrease,
+                    onTogglePause = onTogglePause,
+                    onIncrease = onIncrease,
+                    suggestion = suggestion,
+                    onOpenSuggestion = { suggestionOpen = true },
+                    lastSetText = lastSetText,
+                    nextTitle = nextSet?.let { restRef02NextTitle(it, title, card = false) },
+                    nextDose = nextSet?.doseText(),
+                    onPlay = { playing = true },
+                )
+            }
         }
+    }
+    val pending = pendingRestSuggestion
+    if (suggestionOpen && pending != null && onUseAdaptive != null) {
+        RestSuggestionSheet(
+            plannedSeconds = state.plannedSeconds.takeIf { it > 0 } ?: pending.plannedSeconds,
+            suggestedSeconds = pending.adaptiveSeconds,
+            lastSetText = lastSetText,
+            elapsedSeconds = totalSeconds - remainingSeconds.coerceAtLeast(0),
+            onApply = onUseAdaptive,
+            onDismiss = { suggestionOpen = false },
+        )
     }
 }
 

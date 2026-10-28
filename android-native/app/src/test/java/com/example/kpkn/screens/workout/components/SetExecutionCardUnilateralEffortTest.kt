@@ -137,7 +137,8 @@ class SetExecutionCardUnilateralEffortTest {
         pulsarCheck()
 
         assertEquals("el segundo lado no se registra sin esfuerzo", 1, registros.size)
-        rule.onNodeWithText(EffortRequiredHint).assertExists()
+        // Refinamiento 02: el aviso sale en la fila de estado de la tarjeta (live-card-inline-error) con su texto nuevo.
+        rule.onNodeWithText("Marca tu esfuerzo antes de registrar.").assertExists()
 
         marcar(14)
         pulsarCheck()

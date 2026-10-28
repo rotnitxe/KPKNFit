@@ -127,6 +127,9 @@ class WorkoutVoiceController(
     private var pendingRestAnnouncement: PendingRestAnnouncement? = null
 
     var onCommandDetected: ((VoiceSessionCommand) -> Unit)? = null
+    /** La última frase final que se interpretó como comando; la cápsula la cita en los registros «Comando». */
+    @Volatile var lastCommandTranscript: String = ""
+        private set
     var onError: ((String) -> Unit)? = null
     var onStageChanged: ((VoicePipelineStage) -> Unit)? = null
     var exerciseInfoProvider: (() -> ExerciseInfo?)? = null
@@ -1759,6 +1762,7 @@ class WorkoutVoiceController(
     }
 
     private fun processCommand(transcript: String, exerciseInfo: ExerciseInfo?) {
+        lastCommandTranscript = transcript.trim()
         updateStage(VoicePipelineStage.PROCESSING)
 
         if (exerciseInfo?.showFinishSheet == true) {

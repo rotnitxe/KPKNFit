@@ -163,11 +163,12 @@ class SetExecutionCardFacesTest {
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()
         rule.waitForIdle()
 
-        rule.onNodeWithText("Drop-set").performClick()
+        // Refinamiento 02: la pestaña es «Drop» y cada tramo se añade con el enlace «Añadir tramo» de la cara.
+        rule.onNodeWithText("Drop").performClick()
         rule.waitForIdle()
-        comprobarMismaAltura(base, "Avanzado con Drop-set")
+        comprobarMismaAltura(base, "Avanzado con Drop")
         repeat(4) {
-            rule.onNodeWithContentDescription("Añadir drop").performClick()
+            rule.onNodeWithText("Añadir tramo").performClick()
             rule.waitForIdle()
         }
         comprobarMismaAltura(base, "Avanzado con cinco drops")

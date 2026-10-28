@@ -93,16 +93,20 @@ class LiveSetModesRenderSheetTest {
             val info = rule.onNodeWithTag(EffortSliderTag).fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo]
             rule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(info.range.endInclusive) }
         }
-        if (editRm) rule.onNodeWithTag("live-rm-edit").performClick()
+        if (editRm) {
+            // Refinamiento 02: el editor del RM vive en la hoja «Referencia de RM», que se abre desde el icono de historial.
+            rule.onNodeWithTag("live-card-reference-history").performClick()
+            rule.onNodeWithTag("live-rm-edit").performClick()
+        }
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val actions = rule.onNodeWithTag("live-card-actions").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val island = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        if (editRm) rule.onNodeWithTag(EffortSliderTag).performScrollTo()
         val touch = rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val track = rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        // Refinamiento 02: la tarjeta ya no pinta el fuego ni su pista de 18 dp; la pista táctil es `EffortSliderTag` (`touch`).
+        rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).assertDoesNotExist()
         assertEquals(312f, frame.width / density, .5f); assertEquals(394f, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f); assertEquals(44f, touch.height / density, .5f)
-        assertEquals(18f, track.height / density, .5f); assertEquals(112f, island.height / density, .5f)
+        assertEquals(112f, island.height / density, .5f)
         assertTrue(actions.bottom <= frame.bottom + 1f)
         assertEquals(12f, (island.top - frame.bottom) / density, .5f)
         // Refinamiento 02: en la tarjeta de repeticiones el ROM vive en «Detalle del registro»; la fila de detalle lo resume.
@@ -110,7 +114,7 @@ class LiveSetModesRenderSheetTest {
         if (editRm) rule.onNodeWithTag("live-rm-percent").performScrollTo()
         val folder = File(checkNotNull(System.getenv("KPKN_RENDER_DIR"))).apply { mkdirs() }
         File(folder, "$name-medidas.txt").writeText("viewport=360x$height dp; status=45 dp; navigation=24 dp\n" +
-            listOf("card" to frame, "actions" to actions, "line" to island, "effort-touch" to touch, "effort-track" to track).joinToString("\n") { (label, rect) ->
+            listOf("card" to frame, "actions" to actions, "line" to island, "effort-touch" to touch).joinToString("\n") { (label, rect) ->
                 "$label: x=${rect.left / density}, y=${rect.top / density}, width=${rect.width / density}, height=${rect.height / density} dp"
             })
         val bounds = rule.onNodeWithTag("lv-b-scene").fetchSemanticsNode().boundsInRoot

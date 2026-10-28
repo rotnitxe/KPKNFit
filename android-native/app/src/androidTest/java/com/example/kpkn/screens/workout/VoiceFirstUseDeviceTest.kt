@@ -65,12 +65,10 @@ class VoiceFirstUseDeviceTest {
         var chosen = 0
         compose.setContent { KPKNTheme { VoiceCaptureModeDialog(onChosen = { chosen++ }, onDismissRequest = {}) } }
         awaitChoicesLoaded()
-        compose.onNodeWithText("Activar").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-mode-test").assertIsNotEnabled()
         compose.onNodeWithText("Manos libres").performClick()
-        compose.onNodeWithText("Probemos tu voz").assertIsDisplayed()
-        compose.onNodeWithText("Comenzar prueba").assertIsEnabled()
-        compose.onNodeWithText("Listo").assertExists()
-        compose.onNodeWithText("Activar").assertDoesNotExist()
+        compose.onNodeWithText("Probar este modo").assertIsEnabled()
+        compose.onNodeWithText("Activar modo de voz").assertDoesNotExist()
         compose.runOnIdle { assertEquals(0, chosen) }
         assertFalse(preferences.contains(VoiceCaptureMode.HANDS_FREE.name))
     }
@@ -79,9 +77,9 @@ class VoiceFirstUseDeviceTest {
         var chosen = 0
         compose.setContent { KPKNTheme { VoiceCaptureModeDialog(onChosen = { chosen++ }, onDismissRequest = {}) } }
         awaitChoicesLoaded()
-        compose.onNodeWithText("Modo música").performClick()
-        compose.onNodeWithText("Comenzar prueba").assertIsEnabled()
-        compose.onNodeWithText("Activar").assertDoesNotExist()
+        compose.onNodeWithText("Música").performClick()
+        compose.onNodeWithText("Probar este modo").assertIsEnabled()
+        compose.onNodeWithText("Activar modo de voz").assertDoesNotExist()
         compose.runOnIdle { assertEquals(0, chosen) }
         assertFalse(preferences.contains(VoiceCaptureMode.MUSIC.name))
     }
@@ -97,13 +95,12 @@ class VoiceFirstUseDeviceTest {
         } }
         awaitChoicesLoaded()
         compose.onNodeWithText("Manos libres").performClick()
-        compose.onNodeWithText("Comenzar prueba").assertExists()
+        compose.onNodeWithText("Probar este modo").assertExists()
         // Two actual semantics clicks before recomposition exercise the in-flight transition guard.
         compose.onNodeWithText("Ahora no").performSemanticsAction(SemanticsActions.OnClick) { click ->
             assertTrue(click()); assertTrue(click())
         }
         compose.waitUntil(5_000) { !visible.value }
-        compose.onNodeWithText("Probemos tu voz").assertDoesNotExist()
         compose.runOnIdle { assertEquals(1, dismissals); assertEquals(0, chosen) }
         assertTrue(preferences.all.isEmpty())
     }
@@ -118,14 +115,14 @@ class VoiceFirstUseDeviceTest {
             }, onDismissRequest = { visible.value = false })
         } }
         awaitChoicesLoaded()
-        compose.onNodeWithText("Activar").assertIsNotEnabled()
+        compose.onNodeWithTag("voice-mode-test").assertIsNotEnabled()
         compose.runOnIdle { assertTrue(chosen.isEmpty()) }
-        compose.onNodeWithText("Modo música").performClick()
+        compose.onNodeWithText("Música").performClick()
         compose.onNodeWithText("Modo de voz").assertIsDisplayed()
-        compose.onNodeWithText("Comenzar prueba").assertDoesNotExist()
-        compose.onNodeWithText("Activar").assertIsEnabled()
+        compose.onNodeWithText("Probar este modo").assertDoesNotExist()
+        compose.onNodeWithText("Activar modo de voz").assertIsEnabled()
         compose.runOnIdle { assertTrue(chosen.isEmpty()) }
-        compose.onNodeWithText("Activar").performSemanticsAction(SemanticsActions.OnClick) { click ->
+        compose.onNodeWithText("Activar modo de voz").performSemanticsAction(SemanticsActions.OnClick) { click ->
             assertTrue(click()); assertTrue(click())
         }
         compose.waitUntil(5_000) { !visible.value }

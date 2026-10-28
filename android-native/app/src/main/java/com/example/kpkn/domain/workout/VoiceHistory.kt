@@ -59,3 +59,16 @@ object VoiceHistoryRetention {
     const val MAX_ENTRIES_PER_SESSION: Int = 500
     const val RETENTION_MS: Long = RETENTION_DAYS * 24L * 60L * 60L * 1000L
 }
+
+/**
+ * Un comando de voz aplicado en la sesión («+15 s», «Terminar descanso», «Iniciar vídeo»…). Solo vive en la sesión en curso: el historial
+ * persistido es de capturas de series. [transcript] es la frase oída (vacía si el reconocedor no la dejó).
+ */
+data class VoiceCommandRecord(
+    val id: String,
+    val atEpochMs: Long,
+    val transcript: String,
+    val value: String,
+    val detail: String,
+    val link: String = "Aplicado",
+)

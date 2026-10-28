@@ -373,12 +373,17 @@ internal fun RestGameFullScreen(
     recordStore: RestGameRecordStore? = null,
     engine: RestGameEngine? = null,
     running: Boolean = true,
+    isPaused: Boolean = !running,
+    onDecrease: (() -> Unit)? = null,
+    onTogglePause: (() -> Unit)? = null,
+    onIncrease: (() -> Unit)? = null,
 ) {
     val (game, store) = rememberRestGame(engine, recordStore)
     RestArcade(
         remainingSeconds = remainingSeconds, totalSeconds = totalSeconds, nextSet = nextSet,
         onBack = onBack, onSkip = onSkip, modifier = modifier,
         recordStore = store, runner = game, running = running, compact = false,
+        isPaused = isPaused, onDecrease = onDecrease, onTogglePause = onTogglePause, onIncrease = onIncrease,
     )
 }
 

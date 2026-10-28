@@ -152,106 +152,42 @@ internal fun RestOverrunOverlay(
     modifier: Modifier = Modifier,
     clockActive: Boolean = true,
     extraSecondsOverride: Int? = null,
+    lastSetText: String? = null,
+    onExtendSeconds: ((Int) -> Unit)? = null,
 ) {
     val extra = rememberExtraSeconds(overrun, extraSecondsOverride)
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .kpknHazeEffect(hazeState)
-            .background(KpknSurface.canvas.copy(alpha = 0.92f))
-            // La capa es modal: se tragan los toques de los márgenes para que no caigan en la tarjeta de detrás.
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {},
-            )
-            .zIndex(6f),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 20.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (onMinimize != null) {
-                    KpknIconButton(
-                        icon = KpknLineIcons.ChevronDown,
-                        contentDescription = "Minimizar",
-                        onClick = onMinimize,
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    headline?.let {
-                        Text(
-                            text = it.title,
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        it.subtitle?.let { subtitle ->
-                            Text(text = subtitle, style = KpknType.caption, color = WizardColors.textMuted)
-                        }
-                    }
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-            Text(
-                text = overrunSentence(nextSet),
-                style = KpknType.body,
-                color = WizardColors.text.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                RestRingsClock(
-                    shape = shape,
-                    progress = 1f,
-                    overtime = true,
-                    animationsOn = clockActive,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp),
-                )
-                Spacer(Modifier.height(6.dp))
-                OvertimeReadout(
-                    extraSeconds = extra,
-                    totalSeconds = overrun.totalSeconds,
-                    timeSize = 60.sp,
-                )
-            }
-            if (nextSet != null) {
-                RestNextBox(nextSet = nextSet, background = KpknSurface.module)
-                Spacer(Modifier.height(16.dp))
-            }
-            KpknPrimaryPill(
-                text = startLabel(nextSet),
-                onClick = onStart,
-                modifier = Modifier.fillMaxWidth(),
-                icon = KpknLineIcons.PlayFilled,
-            )
-            KpknTextAction(
-                text = "Necesito +${RestOverrunPolicy.EXTEND_SECONDS} s",
-                onClick = onExtend,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = WizardColors.textMuted,
-            )
-        }
+    // El descanso cumplido del Refinamiento 02 es la misma pantalla completa del descanso en tiempo extra: «Tu descanso se ha
+    // cumplido.», el eclipse lleno con «+0:12 · Tiempo extra», «Necesito +30 s» y «Continuar entrenando».
+    RestRef02FullscreenScaffold(
+        eyebrow = "PAUSA ENTRE SERIES",
+        title = headline?.title.orEmpty(),
+        onMinimize = onMinimize,
+        modifier = modifier.zIndex(6f).testTag("rest-overrun"),
+        bottom = {
+            RestRef02Button("Necesito +30 s", onExtend, primary = false, modifier = Modifier.fillMaxWidth(), height = 39.dp,
+                radius = 23.dp, tag = "rest-overrun-extend")
+            RestRef02FullPrimary("Continuar entrenando", onStart, "rest-overrun-start")
+        },
+    ) { compact ->
+        RestRef02FullClockPanel(
+            compact = compact,
+            remainingSeconds = -extra,
+            progress = 1f,
+            isPaused = false,
+            animationsOn = clockActive,
+            onDecrease = {},
+            onTogglePause = {},
+            onIncrease = { onExtendSeconds?.invoke(15) ?: onExtend() },
+            suggestion = null,
+            onOpenSuggestion = null,
+            lastSetText = lastSetText,
+            nextTitle = nextSet?.let { restRef02NextTitle(it, headline?.title.orEmpty(), card = false) },
+            nextDose = nextSet?.doseText(),
+            onPlay = null,
+            overtime = true,
+            pauseEnabled = false,
+            decreaseEnabled = false,
+        )
     }
 }
 
@@ -394,22 +330,40 @@ internal fun RestOverrunCard(
     modifier: Modifier = Modifier,
     clockActive: Boolean = true,
     extraSecondsOverride: Int? = null,
+    onExtendSeconds: ((Int) -> Unit)? = null,
+    exerciseName: String = "",
 ) {
-    KpknModule(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        contentPadding = PaddingValues(0.dp),
+    val extra = rememberExtraSeconds(overrun, extraSecondsOverride)
+    val compact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
+    // La tarjeta del descanso en tiempo extra: el mismo marco, el eclipse lleno con «+0:12» y el pie para seguir o pedir 30 s más.
+    RestRef02Card(
+        compact = compact,
+        modifier = modifier,
+        tag = "rest-overrun-card",
+        footer = {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                RestRef02Button("Necesito +30 s", onExtend, primary = false, modifier = Modifier.weight(1f), tag = "rest-overrun-extend")
+                RestRef02Button("Continuar", onStart, primary = true, modifier = Modifier.weight(1f), tag = "rest-overrun-start")
+            }
+        },
     ) {
-        RestOverrunCardContent(
-            overrun = overrun,
-            shape = shape,
-            nextSet = nextSet,
-            onStart = onStart,
-            onExtend = onExtend,
+        RestRef02CardClockPanel(
+            compact = compact,
+            kicker = "DESCANSO · TIEMPO EXTRA",
+            remainingSeconds = -extra,
+            progress = 1f,
+            isPaused = false,
+            animationsOn = clockActive,
             onExpand = onExpand,
-            clockActive = clockActive,
-            extraSecondsOverride = extraSecondsOverride,
+            onDecrease = {},
+            onTogglePause = {},
+            onIncrease = { onExtendSeconds?.invoke(15) ?: onExtend() },
+            nextTitle = nextSet?.let { restRef02NextTitle(it, exerciseName, card = true) },
+            nextDose = nextSet?.doseText(),
+            suggestion = null,
+            onOpenSuggestion = null,
+            pauseEnabled = false,
+            decreaseEnabled = false,
         )
     }
 }
