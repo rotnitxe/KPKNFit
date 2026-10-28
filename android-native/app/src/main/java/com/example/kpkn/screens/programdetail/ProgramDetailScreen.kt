@@ -135,6 +135,12 @@ import com.example.kpkn.screens.programdetail.design.weekDateRange
 import com.example.kpkn.screens.programdetail.design.weekNavigatorSubtitle
 import com.example.kpkn.screens.programdetail.design.weekNavigatorTitle
 import com.example.kpkn.screens.programdetail.design.weekSheetSubtitle
+import com.example.kpkn.screens.programdetail.design.progress.ProgressLiftsModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressScope
+import com.example.kpkn.screens.programdetail.design.progress.ProgressScopeChips
+import com.example.kpkn.screens.programdetail.design.progress.ProgressSummaryModule
+import com.example.kpkn.screens.programdetail.design.progress.ProgressWorkModule
+import com.example.kpkn.screens.programdetail.design.progress.buildProgramProgress
 import androidx.compose.ui.geometry.Rect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1315,6 +1321,50 @@ private fun TrainingPanel(
                         .flatMap { it.mesocycles }
                         .flatMap { it.weeks }
                         .any { it.sessions.isNotEmpty() }
+                }
+                // Pestaña Progreso: resumen, fuerza y trabajo por semana, con el alcance elegido. Va encima de la calibración y del volumen, que no cambian.
+                var progressScope by rememberSaveable { mutableStateOf(ProgressScope.PROGRAM) }
+                var showAllLifts by rememberSaveable { mutableStateOf(false) }
+                val blockPosition = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
+                val blockLabel = if (roadmapBlocks.size >= 2 && blockPosition >= 0) "Bloque ${blockPosition + 1}" else null
+                val weekPosition = allProgramWeeks.indexOfFirst { it.id == selectedWeekId }
+                val weekLabel = if (weekPosition >= 0) "Semana ${weekPosition + 1}" else null
+                val progressUi = remember(program, progLogs, progressScope, selectedBlockId, selectedWeekId, activeWeekId, showAllLifts) {
+                    buildProgramProgress(
+                        program = program,
+                        logs = progLogs,
+                        scope = progressScope,
+                        selectedBlockId = selectedBlockId,
+                        selectedWeekId = selectedWeekId,
+                        currentWeekId = activeWeekId,
+                        maxLifts = if (showAllLifts) Int.MAX_VALUE else 5,
+                    )
+                }
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
+                    ProgressScopeChips(
+                        selected = progressScope,
+                        blockLabel = blockLabel,
+                        weekLabel = weekLabel,
+                        onSelect = { progressScope = it },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    ProgressSummaryModule(progressUi)
+                    Spacer(Modifier.height(12.dp))
+                    if (progressUi.lifts.isNotEmpty()) {
+                        ProgressLiftsModule(
+                            rows = progressUi.lifts,
+                            allCount = progressUi.allLiftsCount,
+                            onSeeAll = { showAllLifts = true },
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    ProgressWorkModule(
+                        weeks = progressUi.weeks,
+                        setsDone = progressUi.kpis.setsDone,
+                        setsPlanned = progressUi.kpis.setsPlanned,
+                        note = progressUi.weekNote,
+                    )
+                    Spacer(Modifier.height(12.dp))
                 }
                 Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     ProgramVolumeCalibrationModule(volumeEvidence, program.planningVolumeTargets, closedCycleEvidence,

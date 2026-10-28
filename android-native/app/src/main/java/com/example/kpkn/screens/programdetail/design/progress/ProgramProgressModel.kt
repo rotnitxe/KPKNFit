@@ -79,7 +79,7 @@ internal data class ProgramProgressUi(
     /** Frase de resumen sobre la fuerza y el estado de los ejercicios. */
     val headline: String,
     val kpis: ProgressKpis,
-    /** Hasta [MAX_LIFT_ROWS] ejercicios con sesiones, del que más sesiones tiene al que menos. */
+    /** Hasta el tope de filas de fuerza (por defecto [MAX_LIFT_ROWS]) de los ejercicios con sesiones, del que más sesiones tiene al que menos. */
     val lifts: List<ProgressLiftRow>,
     /** Todos los ejercicios con sesiones, sin el tope de la lista. */
     val allLiftsCount: Int,
@@ -92,7 +92,8 @@ internal data class ProgramProgressUi(
 /**
  * Calcula la pestaña Progreso de [program] para [scope]. Solo cuentan los [logs] del programa cuya semana está en el alcance. Una
  * semana ha empezado si va antes de [currentWeekId] o es esa misma; si [currentWeekId] no está en el programa, han empezado todas.
- * [selectedBlockId] y [selectedWeekId] fijan el alcance de bloque o de semana.
+ * [selectedBlockId] y [selectedWeekId] fijan el alcance de bloque o de semana. [maxLifts] pone el tope de filas de la lista de fuerza; los
+ * ejercicios que no caben cuentan en [ProgramProgressUi.allLiftsCount].
  */
 internal fun buildProgramProgress(
     program: Program,
@@ -101,6 +102,7 @@ internal fun buildProgramProgress(
     selectedBlockId: String?,
     selectedWeekId: String?,
     currentWeekId: String?,
+    maxLifts: Int = MAX_LIFT_ROWS,
 ): ProgramProgressUi {
     val programWeeks = programWeeksOf(program)
     val currentPosition = programWeeks.indexOfFirst { it.id == currentWeekId }
@@ -145,7 +147,7 @@ internal fun buildProgramProgress(
             setsPlanned = started.sumOf { it.plannedSets },
             tonnageKg = work.sumOf { it.tonnageKg },
         ),
-        lifts = trends.take(MAX_LIFT_ROWS).map { it.toRow() },
+        lifts = trends.take(maxLifts).map { it.toRow() },
         allLiftsCount = trends.size,
         weeks = if (scope == ProgressScope.WEEK) emptyList() else bars,
         weekNote = shortfall?.let { week ->
