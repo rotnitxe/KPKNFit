@@ -10,12 +10,12 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
  * cada objetivo.
  */
 
-/** Fase de un bloque: su nombre en el eyebrow y su color. Competición lleva bandera. */
+/** Fase de un bloque: su nombre en el eyebrow y su color (los `--ph-*` del lienzo v6). Competición lleva bandera. */
 internal enum class ProgramPhase(val label: String, val color: Color) {
     ACCUMULATION("Acumulación", SymbolPalette.musculo),
     INTENSIFICATION("Intensificación", SymbolPalette.energia),
-    REALIZATION("Realización", SymbolPalette.mente),
-    DELOAD("Descarga", SymbolPalette.columna),
+    REALIZATION("Realización", SymbolPalette.columna),
+    DELOAD("Descarga", Color(0xFF7FCFA4)),
     COMPETITION("Competición", WizardColors.danger),
 }
 

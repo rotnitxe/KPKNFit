@@ -35,11 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
@@ -50,7 +53,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,18 +64,17 @@ import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Una sesión de un día con lo que su tarjeta necesita (P2). Los minutos salen de `SessionDurationEstimator`, nunca de series × 3.
- * [optionalDateIso] es la fecha de una sesión opcional futura que se puede confirmar; null si no aplica.
  * [focus] son los puntos de foco de la tarjeta y [proposalLabel] el texto de su cápsula de propuesta, si la hay.
  */
 internal data class ProgramSessionUi(
@@ -83,11 +84,9 @@ internal data class ProgramSessionUi(
     val done: Boolean,
     val customized: Boolean,
     val restorable: Boolean,
-    val optionalDateIso: String?,
-    val optionalConfirmed: Boolean,
     /** Los focos de la sesión (como mucho tres), para sus puntos de color. */
     val focus: List<SessionFocus> = emptyList(),
-    /** El texto de la cápsula de propuesta de la sesión; null si no hay propuesta. */
+    /** El texto de la cápsula de propuesta de la sesión («+2,5 kg»); null si no hay propuesta. */
     val proposalLabel: String? = null,
 )
 
@@ -111,10 +110,11 @@ internal data class ProgramDayUi(
 )
 
 /**
- * Un día de la agenda de la pestaña Semana (P2): la columna de fecha a la izquierda y, a la derecha, sus sesiones como tarjetas apiladas.
- * Tocar una tarjeta la despliega o la pliega en su sitio ([onToggleSession]); mantenerla pulsada la arrastra (los callbacks de arrastre
- * vienen de la pantalla). Un día sin sesiones es una fila «Descanso» con «+ Sesión». Una pulsación larga en la columna de fecha llama
- * [onLongPressDay] con su rectángulo (el menú del día). Sin estado propio: lo que se despliega y los menús viven en la pantalla.
+ * Un día de la agenda (lienzo v6, `.day`): la columna de fecha a la izquierda y, a la derecha, sus sesiones como tarjetas apiladas. Tocar
+ * una tarjeta la despliega o la pliega en su sitio ([onToggleSession]); mantenerla pulsada la arrastra (los callbacks de arrastre vienen de
+ * la pantalla). Un día sin sesiones es la línea «Descanso», con «Sesión» solo si hay [onAddSession] (la rutina, s-simple). Un descanso que
+ * es destino de arrastre se abre y enseña la línea de soltar (s-drag). Una pulsación larga en la columna de fecha llama [onLongPressDay]
+ * con su rectángulo (el menú del día). Sin estado propio: lo que se despliega y los menús viven en la pantalla.
  */
 @Composable
 internal fun ProgramDayModule(
@@ -123,12 +123,11 @@ internal fun ProgramDayModule(
     onToggleSession: (String) -> Unit,
     onLongPressDay: (Rect) -> Unit,
     onEditDate: () -> Unit,
-    onAddSession: () -> Unit,
+    onAddSession: (() -> Unit)?,
     onStartSession: (Session) -> Unit,
     onEditSession: (String) -> Unit,
     onMoreSession: (sessionId: String, anchor: Rect) -> Unit,
     onRestoreSession: (String) -> Unit,
-    onToggleOptional: (dateIso: String, sessionId: String) -> Unit,
     draggingSessionId: String?,
     insertIndex: Int?,
     anchorFirstSession: Boolean,
@@ -139,19 +138,20 @@ internal fun ProgramDayModule(
     onSessionDragEnd: (String) -> Unit,
     onSessionDragCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    onSwapExercise: ((String,String) -> Unit)? = null,
+    onSwapExercise: ((String, String) -> Unit)? = null,
 ) {
     val reduced = wizardReducedMotion()
     val sessions = day.sessions
-    val rest = sessions.isEmpty()
+    // Un descanso que recibe la sesión arrastrada se abre como un día con sesiones (s-drag).
+    val rest = sessions.isEmpty() && !day.isDropTarget
     // La sesión que toca hoy es la primera que no está hecha, y solo en el día de hoy.
     val nowIndex = if (day.isToday) sessions.indexOfFirst { !it.done } else -1
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
+            .padding(vertical = if (rest) 0.dp else 6.dp)
             .onGloballyPositioned { onDayBounds(it.boundsInWindow()) },
-        verticalAlignment = if (rest) Alignment.CenterVertically else Alignment.Top,
+        verticalAlignment = Alignment.Top,
     ) {
         DayDateColumn(
             day = day,
@@ -161,7 +161,7 @@ internal fun ProgramDayModule(
         )
         Spacer(Modifier.width(10.dp))
         if (rest) {
-            RestDayLine(day = day, onAddSession = onAddSession, modifier = Modifier.weight(1f))
+            RestLine(text = "Descanso", onAddSession = onAddSession, modifier = Modifier.weight(1f))
         } else {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (sessions.size > 1) DayCaption(day)
@@ -187,7 +187,6 @@ internal fun ProgramDayModule(
                         onEdit = { onEditSession(ui.session.id) },
                         onMore = { anchor -> onMoreSession(ui.session.id, anchor) },
                         onRestore = if (ui.customized && ui.restorable) ({ onRestoreSession(ui.session.id) }) else null,
-                        onToggleOptional = ui.optionalDateIso?.let { date -> ({ onToggleOptional(date, ui.session.id) }) },
                         onSwapExercise = onSwapExercise?.let { action -> { exerciseId: String -> action(ui.session.id, exerciseId) } },
                         onBounds = { rect -> onSessionBounds(ui.session.id, rect) },
                         onDragStart = { onSessionDragStart(ui.session.id) },
@@ -203,9 +202,10 @@ internal fun ProgramDayModule(
 }
 
 /**
- * La tarjeta de una sesión de la agenda (P2): «1 DE 2» si el día tiene varias, el nombre, la línea de datos y, a la derecha, su estado
- * («Hecha», «Empezar» en la sesión que toca hoy u «Opcional»). Tocar el texto la despliega o la pliega en su sitio; mantenerla pulsada la
- * arrastra. Desplegada muestra sus ejercicios y sus acciones con [ProgramSessionBlock].
+ * La tarjeta de una sesión de la agenda (`.sess`): «1 DE 2» si el día tiene varias, el nombre, la línea de datos y, a la derecha, su
+ * estado (check si está hecha, ▶ si toca hoy, «Opcional» con borde punteado). Tocar el texto la despliega o la pliega en su sitio;
+ * mantenerla pulsada la arrastra. Desplegada (`.sess.open`, s-open), el nombre crece a 19 sp, la línea suma sus series, ⋯ ocupa el sitio
+ * del estado y debajo van sus ejercicios y sus acciones con [ProgramSessionBlock].
  */
 @Composable
 private fun ProgramSessionCard(
@@ -222,7 +222,6 @@ private fun ProgramSessionCard(
     onEdit: () -> Unit,
     onMore: (Rect) -> Unit,
     onRestore: (() -> Unit)?,
-    onToggleOptional: (() -> Unit)?,
     onSwapExercise: ((String) -> Unit)?,
     onBounds: (Rect) -> Unit,
     onDragStart: () -> Unit,
@@ -235,20 +234,11 @@ private fun ProgramSessionCard(
     val latestDrag by rememberUpdatedState(onDrag)
     val latestDragEnd by rememberUpdatedState(onDragEnd)
     val latestDragCancel by rememberUpdatedState(onDragCancel)
+    var moreBounds by remember { mutableStateOf(Rect.Zero) }
     val optional = !ui.done && !isNow && ui.session.requirement == SessionRequirement.OPTIONAL
-    val fill: Brush = when {
-        isNow -> Brush.linearGradient(listOf(SymbolPalette.musculo.copy(alpha = 0.08f), KpknSurface.module))
-        optional -> SolidColor(Color(0xFF0B0B0B))
-        else -> SolidColor(KpknSurface.module)
-    }
-    val edge = when {
-        isNow -> SymbolPalette.musculo.copy(alpha = 0.4f)
-        optional -> Color.White.copy(alpha = 0.16f)
-        else -> KpknSurface.moduleBorder
-    }
-    // Una sesión hecha se ve atenuada; la que se arrastra, casi transparente, como la línea de inserción manda.
+    // La que se arrastra se queda como un fantasma al 25 % (`.ghost`); una hecha, al 62 % (`.sess.done`).
     val cardAlpha = when {
-        dragging -> 0.22f
+        dragging -> 0.25f
         ui.done -> 0.62f
         else -> 1f
     }
@@ -258,8 +248,13 @@ private fun ProgramSessionCard(
             .onGloballyPositioned { onBounds(it.boundsInWindow()) }
             .graphicsLayer { alpha = cardAlpha }
             .clip(SessionCardShape)
-            .background(fill, SessionCardShape)
-            .border(1.dp, edge, SessionCardShape)
+            .then(
+                when {
+                    isNow -> Modifier.drawBehind { drawNowFill() }.border(1.dp, NowEdge, SessionCardShape)
+                    optional -> Modifier.background(OptionalFill, SessionCardShape).drawBehind { drawDashedEdge() }
+                    else -> Modifier.background(KpknSurface.module, SessionCardShape).border(1.dp, KpknSurface.moduleBorder, SessionCardShape)
+                },
+            )
             .defaultMinSize(minHeight = 64.dp)
             .pointerInput(ui.session.id) {
                 detectDragGesturesAfterLongPress(
@@ -272,9 +267,17 @@ private fun ProgramSessionCard(
                     },
                 )
             }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(
+                start = if (expanded) 16.dp else 14.dp,
+                top = if (expanded) 14.dp else 12.dp,
+                end = if (expanded) 16.dp else 14.dp,
+                bottom = if (expanded) 16.dp else 12.dp,
+            ),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = if (expanded) 0.dp else 40.dp),
+            verticalAlignment = if (expanded) Alignment.Top else Alignment.CenterVertically,
+        ) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -294,17 +297,29 @@ private fun ProgramSessionCard(
                 }
                 Text(
                     text = ui.session.name,
-                    style = SessionCardNameStyle,
+                    style = if (expanded) SessionOpenNameStyle else SessionCardNameStyle,
                     color = if (ui.done) WizardColors.textMuted else WizardColors.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = if (anchorFirst) Modifier.tourAnchor(TourAnchors.TRAINING_SESION) else Modifier,
                 )
-                Spacer(Modifier.height(4.dp))
-                SessionDataLine(ui)
+                // El fantasma de la sesión que se arrastra solo lleva el nombre (`.sess.ghost`).
+                if (!dragging) {
+                    Spacer(Modifier.height(3.dp))
+                    SessionDataLine(ui = ui, expanded = expanded)
+                }
             }
-            Spacer(Modifier.width(12.dp))
-            SessionStatusMark(ui = ui, isNow = isNow, onStart = onStart)
+            if (expanded) {
+                Spacer(Modifier.width(10.dp))
+                ProgramRoundButton(
+                    icon = KpknLineIcons.More,
+                    contentDescription = "Más opciones de la sesión",
+                    onClick = { onMore(moreBounds) },
+                    modifier = Modifier.onGloballyPositioned { moreBounds = it.boundsInWindow() },
+                )
+            } else {
+                SessionStatusMark(ui = ui, isNow = isNow, optional = optional, onStart = onStart)
+            }
         }
         AnimatedVisibility(
             visible = expanded,
@@ -321,90 +336,101 @@ private fun ProgramSessionCard(
                     fadeOut(animationSpec = tween(durationMillis = 220))
             },
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Spacer(Modifier.height(10.dp))
-                ProgramSessionBlock(
-                    ui = ui,
-                    showName = false,
-                    onStart = onStart,
-                    onEdit = onEdit,
-                    onMore = onMore,
-                    onRestore = onRestore,
-                    onToggleOptional = onToggleOptional,
-                    startAnchor = anchorFirst,
-                    onSwapExercise = onSwapExercise,
-                )
-            }
+            ProgramSessionBlock(
+                ui = ui,
+                onStart = onStart,
+                onEdit = onEdit,
+                onRestore = onRestore,
+                startAnchor = anchorFirst,
+                onSwapExercise = onSwapExercise,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
 
-/** El estado de una tarjeta, a la derecha: «Hecha» (check), «Empezar» (la sesión que toca hoy) u «Opcional». Si no, nada. */
+/** El estado de una tarjeta plegada, a la derecha: check (`.mark.ok`), ▶ (`.play`) u «Opcional» (`.chip` de 26 dp). Si no, nada. */
 @Composable
-private fun SessionStatusMark(ui: ProgramSessionUi, isNow: Boolean, onStart: () -> Unit) {
+private fun SessionStatusMark(ui: ProgramSessionUi, isNow: Boolean, optional: Boolean, onStart: () -> Unit) {
     when {
-        ui.done -> Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(SymbolPalette.ok.copy(alpha = 0.13f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = KpknLineIcons.Check,
-                contentDescription = "Hecha",
-                modifier = Modifier.size(16.dp),
-                tint = WizardColors.done,
-            )
+        ui.done -> {
+            Spacer(Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(DoneMarkFill, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.Check,
+                    contentDescription = "Hecha",
+                    modifier = Modifier.size(16.dp),
+                    tint = WizardColors.done,
+                )
+            }
         }
-        isNow -> Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(WizardColors.text, CircleShape)
-                .semantics { contentDescription = "Empezar ${ui.session.name}" }
-                .clickable(role = Role.Button, onClick = onStart),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = KpknLineIcons.PlayFilled,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = DayInk,
-            )
+        isNow -> {
+            Spacer(Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(WizardColors.text, CircleShape)
+                    .semantics { contentDescription = "Empezar ${ui.session.name}" }
+                    .clickable(role = Role.Button, onClick = onStart),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.PlayFilled,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = DayInk,
+                )
+            }
         }
-        ui.session.requirement == SessionRequirement.OPTIONAL -> Text(
-            text = "Opcional",
-            style = DayCaptionStyle,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-            modifier = Modifier
-                .border(1.dp, Color.White.copy(alpha = 0.16f), KpknShape.pill)
-                .padding(horizontal = 8.dp, vertical = 3.dp),
-        )
+        optional -> {
+            Spacer(Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .height(26.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(KpknSurface.inset, RoundedCornerShape(15.dp))
+                    .padding(horizontal = 11.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "Opcional", style = OptionalChipStyle, color = WizardColors.textMuted, maxLines = 1)
+            }
+        }
         else -> Unit
     }
 }
 
-/** La línea de datos de una tarjeta: los puntos de foco, «6 ejercicios · ≈ 58 min» y la cápsula de propuesta si la hay. */
+/**
+ * La línea de datos de una tarjeta (`.ln`): los puntos de foco, «6 ejercicios · ≈ 58 min» y la cápsula de propuesta si la hay. Desplegada
+ * (s-open), sin cápsula y con sus series: «6 ejercicios · ≈ 58 min · 17 series».
+ */
 @Composable
-private fun SessionDataLine(ui: ProgramSessionUi) {
+private fun SessionDataLine(ui: ProgramSessionUi, expanded: Boolean) {
+    val base = "${SpanishPlurals.exercises(ui.exerciseCount)} · ≈ ${ui.minutes} min"
+    val text = if (expanded) "$base · ${SpanishPlurals.sets(ui.session.allExercises().sumOf { it.sets.size })}" else base
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (ui.focus.isNotEmpty()) {
             SessionFocusDots(ui.focus)
             Spacer(Modifier.width(6.dp))
         }
         Text(
-            text = "${SpanishPlurals.exercises(ui.exerciseCount)} · ≈ ${ui.minutes} min",
+            text = text,
             style = SessionDataStyle,
             color = WizardColors.textFaint,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
         )
-        ui.proposalLabel?.let { label ->
-            Spacer(Modifier.width(8.dp))
-            ProposalChip(label)
+        val proposal = ui.proposalLabel
+        if (!expanded && proposal != null) {
+            Spacer(Modifier.width(6.dp))
+            ProposalChip(proposal)
         }
     }
 }
@@ -419,26 +445,31 @@ private fun SessionFocusDots(focus: List<SessionFocus>) {
     }
 }
 
-/** La cápsula de propuesta de una sesión: 22 dp de alto, `musculo` al 12 % y texto `musculo`. */
+/** La cápsula de propuesta (`.pchip`): 22 dp de alto, radio 11, `musculo` al 12 %, flecha de subida de 12 dp y texto `musculo`. */
 @Composable
 private fun ProposalChip(label: String) {
-    Box(
+    Row(
         modifier = Modifier
             .height(22.dp)
-            .clip(KpknShape.pill)
-            .background(SymbolPalette.musculo.copy(alpha = 0.12f), KpknShape.pill)
+            .clip(RoundedCornerShape(11.dp))
+            .background(SymbolPalette.musculo.copy(alpha = 0.12f), RoundedCornerShape(11.dp))
             .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
+        Icon(imageVector = KpknLineIcons.TrendUp, contentDescription = null, modifier = Modifier.size(12.dp), tint = SymbolPalette.musculo)
         Text(text = label, style = ProposalStyle, color = SymbolPalette.musculo, maxLines = 1)
     }
 }
 
-/** La línea sobre las tarjetas de un día con varias sesiones: «2 sesiones» a la izquierda y el total de la jornada a la derecha. */
+/** La línea sobre las tarjetas de un día con varias sesiones (`.dayhead`): «2 sesiones» a la izquierda y el total del día a la derecha. */
 @Composable
 private fun DayCaption(day: ProgramDayUi) {
     val minutes = day.sessions.sumOf { it.minutes }
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             text = SpanishPlurals.sessions(day.sessions.size),
             style = DayCaptionStyle,
@@ -448,7 +479,7 @@ private fun DayCaption(day: ProgramDayUi) {
         Spacer(Modifier.weight(1f))
         Text(
             text = dayTotalLabel(minutes),
-            style = DayCaptionStyle,
+            style = DayCaptionStyle.copy(fontFeatureSettings = "'tnum' 1"),
             color = WizardColors.textFaint,
             maxLines = 1,
         )
@@ -456,9 +487,10 @@ private fun DayCaption(day: ProgramDayUi) {
 }
 
 /**
- * La columna de fecha de la agenda (P2): el día corto en eyebrow (o «HOY») y, con calendario, el número en un círculo de Syne. Hoy va
- * en `musculo`; un día pasado o de descanso va atenuado. Tocar el número llama [onEditDate] si el día tiene fecha editable; una pulsación
- * larga en la columna llama [onLongPress] con su rectángulo (el menú del día). [rest] achica el número, que es un día de descanso.
+ * La columna de fecha de la agenda (`.dcol`): el día corto en eyebrow (o «HOY») y, con calendario, el número en un círculo de Syne. Hoy va
+ * en `musculo`; un día pasado, en `dim`. Un descanso ([rest], `.day.restd`) va siempre en `dim`, más arriba y con el número a 15 sp.
+ * Tocar el número llama [onEditDate] si el día tiene fecha editable; una pulsación larga en la columna llama [onLongPress] con su
+ * rectángulo (el menú del día).
  */
 @Composable
 private fun DayDateColumn(
@@ -468,17 +500,16 @@ private fun DayDateColumn(
     onLongPress: ((Rect) -> Unit)?,
 ) {
     var bounds by remember { mutableStateOf(Rect.Zero) }
-    val today = day.isToday
-    val faded = !today && (rest || day.isPast)
-    val faint = WizardColors.textFaint.copy(alpha = 0.6f)
+    val today = day.isToday && !rest
+    val dimmed = rest || (!today && day.isPast)
     val eyebrowColor = when {
         today -> SymbolPalette.musculo
-        faded -> faint
+        dimmed -> AgendaDim
         else -> WizardColors.textFaint
     }
     val numberColor = when {
         today -> DayInk
-        faded -> faint
+        dimmed -> AgendaDim
         else -> WizardColors.text
     }
     val longPress = onLongPress
@@ -488,15 +519,17 @@ private fun DayDateColumn(
         .testTag("programday-header-${day.id}")
         .onGloballyPositioned { bounds = it.boundsInWindow() }
     Column(
-        modifier = if (longPress != null) {
-            columnBase.combinedClickable(
-                onClick = {},
-                onLongClickLabel = "Más opciones del día",
-                onLongClick = { longPress(bounds) },
-            )
-        } else {
-            columnBase
-        },
+        modifier = (
+            if (longPress != null) {
+                columnBase.combinedClickable(
+                    onClick = {},
+                    onLongClickLabel = "Más opciones del día",
+                    onLongClick = { longPress(bounds) },
+                )
+            } else {
+                columnBase
+            }
+            ).padding(top = if (rest) 4.dp else 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -507,7 +540,7 @@ private fun DayDateColumn(
         )
         val number = day.dateNumber
         if (number != null) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(2.dp))
             val numberTouch = if (day.dateEditable && editDate != null) {
                 Modifier
                     .testTag("programday-date-${day.id}")
@@ -517,7 +550,8 @@ private fun DayDateColumn(
             }
             Box(
                 modifier = Modifier
-                    .size(if (rest) 28.dp else 36.dp)
+                    .width(36.dp)
+                    .height(if (rest) 28.dp else 36.dp)
                     .clip(CircleShape)
                     .background(if (today) SymbolPalette.musculo else Color.Transparent, CircleShape)
                     .then(numberTouch),
@@ -535,110 +569,163 @@ private fun DayDateColumn(
 }
 
 /**
- * Un día sin sesiones (P2 agenda): «Descanso» con una línea de 1 dp que ocupa el resto y «+ Sesión» (fuera del programa no lo hay). Fuera
- * del programa, el nombre del día tachado y «Fuera de programa». Si el día es destino de arrastre, «Suelta la sesión aquí».
+ * La línea de un descanso (`.rest`): [text] a 13 sp en `dim`, «Sesión» con su + (`.act.faint`) si hay [onAddSession] y el filete que llena
+ * el resto, en el orden del lienzo.
  */
 @Composable
-private fun RestDayLine(day: ProgramDayUi, onAddSession: () -> Unit, modifier: Modifier = Modifier) {
-    val faint = WizardColors.textFaint.copy(alpha = 0.6f)
-    Row(modifier = modifier.defaultMinSize(minHeight = 40.dp), verticalAlignment = Alignment.CenterVertically) {
-        when {
-            day.isDropTarget -> Text(
-                text = "Suelta la sesión aquí",
-                style = KpknType.caption,
-                color = SymbolPalette.musculo,
-                maxLines = 1,
-            )
-            day.isOutsideProgram -> {
-                Text(
-                    text = day.name,
-                    style = KpknType.caption,
-                    color = faint,
-                    textDecoration = TextDecoration.LineThrough,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Fuera de programa", style = KpknType.caption, color = faint, maxLines = 1)
+private fun RestLine(text: String, onAddSession: (() -> Unit)?, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.defaultMinSize(minHeight = 40.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(text = text, style = RestStyle, color = AgendaDim, maxLines = 1)
+        if (onAddSession != null) {
+            Row(
+                modifier = Modifier
+                    .defaultMinSize(minHeight = 36.dp)
+                    .clickable(role = Role.Button, onClickLabel = "Añadir sesión", onClick = onAddSession),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(imageVector = KpknLineIcons.Plus, contentDescription = null, modifier = Modifier.size(16.dp), tint = WizardColors.textMuted)
+                Text(text = "Sesión", style = RestActionStyle, color = WizardColors.textMuted, maxLines = 1)
             }
-            else -> Text(text = "Descanso", style = KpknType.caption, color = faint, maxLines = 1)
         }
-        Spacer(Modifier.width(10.dp))
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(Color.White.copy(alpha = 0.05f)))
-        if (!day.isOutsideProgram) {
-            Spacer(Modifier.width(10.dp))
-            KpknTextAction(text = "+ Sesión", onClick = onAddSession)
-        }
+        Box(modifier = Modifier.weight(1f).height(1.dp).background(RestRule))
     }
 }
 
 /**
- * Los descansos seguidos de la semana plegados en una sola fila (P2 agenda): la columna de fecha del primero y «Descanso · N días». No
- * lleva «+ Sesión»; tocarla llama [onOpen], que abre sus días uno a uno.
+ * Los descansos seguidos de la semana en una sola fila (`agendaHtml`): la columna de fecha del primero y «Descanso · N días». No se
+ * despliega. Con [onAddSession] (la rutina) lleva «Sesión», que añade en el primer día del tramo; [onLongPress] abre el menú de ese día.
  */
 @Composable
-internal fun ProgramRestRunRow(days: List<ProgramDayUi>, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ProgramRestRunRow(
+    days: List<ProgramDayUi>,
+    modifier: Modifier = Modifier,
+    onAddSession: (() -> Unit)? = null,
+    onLongPress: ((Rect) -> Unit)? = null,
+) {
     val first = days.first()
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(role = Role.Button, onClickLabel = "Ver los días de descanso", onClick = onOpen)
-            .padding(vertical = 6.dp)
             .testTag("programrestrun-${first.id}"),
+        verticalAlignment = Alignment.Top,
+    ) {
+        DayDateColumn(day = first, rest = true, onEditDate = null, onLongPress = onLongPress)
+        Spacer(Modifier.width(10.dp))
+        RestLine(text = "Descanso · ${SpanishPlurals.days(days.size)}", onAddSession = onAddSession, modifier = Modifier.weight(1f))
+    }
+}
+
+/**
+ * La tarjeta que se levanta mientras se arrastra una sesión (`.sess.dragcard`): su nombre, su resumen y el asa a la derecha, girada −2° y
+ * al 103 %, con el borde de tinta al 25 %. La pantalla le pone la posición.
+ */
+@Composable
+internal fun ProgramSessionDragCard(title: String, caption: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .graphicsLayer {
+                rotationZ = -2f
+                scaleX = 1.03f
+                scaleY = 1.03f
+                shadowElevation = 18.dp.toPx()
+                shape = SessionCardShape
+                clip = false
+            }
+            .clip(SessionCardShape)
+            .background(KpknSurface.module, SessionCardShape)
+            .border(1.dp, DragEdge, SessionCardShape)
+            .defaultMinSize(minHeight = 64.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DayDateColumn(day = first, rest = true, onEditDate = null, onLongPress = null)
-        Spacer(Modifier.width(10.dp))
-        Row(modifier = Modifier.weight(1f).defaultMinSize(minHeight = 40.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Descanso · ${SpanishPlurals.days(days.size)}",
-                style = KpknType.caption,
-                color = WizardColors.textFaint.copy(alpha = 0.6f),
+                text = title,
+                style = SessionCardNameStyle,
+                color = WizardColors.text,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(10.dp))
-            Box(modifier = Modifier.weight(1f).height(1.dp).background(Color.White.copy(alpha = 0.05f)))
+            Spacer(Modifier.height(3.dp))
+            Text(
+                text = caption,
+                style = SessionDataStyle,
+                color = WizardColors.textFaint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Box(modifier = Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+            Icon(imageVector = KpknLineIcons.Grip, contentDescription = null, modifier = Modifier.size(18.dp), tint = WizardColors.textMuted)
         }
     }
 }
 
-/** La tarjeta que se levanta mientras se arrastra una sesión (P2): su nombre y su resumen. La pantalla le pone la sombra. */
-@Composable
-internal fun ProgramSessionDragCard(title: String, caption: String, modifier: Modifier = Modifier) {
-    KpknModule(modifier = modifier) {
-        Text(
-            text = title,
-            style = KpknType.bodyStrong,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = caption,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/** Línea de inserción al arrastrar: 3 dp de tinta `musculo`. */
+/** La línea de soltar al arrastrar (`.drop`): 3 dp de `musculo` con radio 2 y 2 dp arriba y abajo. */
 @Composable
 private fun ProgramDropLine() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 2.dp)
             .height(3.dp)
-            .clip(KpknShape.pill)
-            .background(SymbolPalette.musculo, KpknShape.pill),
+            .clip(RoundedCornerShape(2.dp))
+            .background(SymbolPalette.musculo, RoundedCornerShape(2.dp)),
+    )
+}
+
+/** El fondo de la sesión que toca hoy (`.sess.now`): degradado a 160° de `musculo` al 8 % a `#111` en el 60 %. */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawNowFill() {
+    val angle = Math.toRadians(160.0)
+    val dx = sin(angle).toFloat()
+    val dy = -cos(angle).toFloat()
+    val half = (abs(size.width * dx) + abs(size.height * dy)) / 2f
+    val start = center - Offset(dx * half, dy * half)
+    val end = center + Offset(dx * half, dy * half)
+    drawRect(Brush.linearGradient(0f to NowTint, 0.6f to KpknSurface.module, start = start, end = end))
+}
+
+/** El borde punteado de una sesión opcional (`.sess.optn`): 1 dp de blanco al 16,5 %. */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawDashedEdge() {
+    val stroke = 1.dp.toPx()
+    val radius = 20.dp.toPx() - stroke / 2f
+    drawRoundRect(
+        color = OptionalEdge,
+        topLeft = Offset(stroke / 2f, stroke / 2f),
+        size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
+        cornerRadius = CornerRadius(radius, radius),
+        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx()))),
     )
 }
 
 /** La tinta oscura sobre `musculo`: el número de HOY y el icono de «Empezar». */
 private val DayInk = Color(0xFF111111)
+
+/** `--dim` del lienzo: los descansos y los días pasados. */
+private val AgendaDim = Color(0xFF5F5C57)
+
+/** El filete de un descanso: blanco al 5 % (`#ffffff0d`). */
+private val RestRule = Color.White.copy(alpha = 0x0D / 255f)
+
+/** `.sess.now`: el borde (`#f49a6e66`) y el arranque del degradado (`#f49a6e14`). */
+private val NowEdge = Color(0x66F49A6E)
+private val NowTint = Color(0x14F49A6E)
+
+/** `.sess.optn`: el fondo (`#0b0b0b`) y el borde punteado (`#ffffff2a`). */
+private val OptionalFill = Color(0xFF0B0B0B)
+private val OptionalEdge = Color(0x2AFFFFFF)
+
+/** `.mark.ok`: `#43d18c22`. */
+private val DoneMarkFill = Color(0x2243D18C)
+
+/** `.dragcard`: el borde de tinta al 25 % (`#f2eee640`). */
+private val DragEdge = Color(0x40F2EEE6)
 
 /** La tarjeta de sesión: 20 dp de radio (la agenda no usa el módulo de 24 dp). */
 private val SessionCardShape = RoundedCornerShape(20.dp)
@@ -652,24 +739,44 @@ private val DayEyebrowStyle = TextStyle(
     letterSpacing = 1.1.sp,
 )
 
-/** El número del día: Syne Bold 20 / 24 con cifras tabulares y de altura de mayúscula. */
+/** El número del día: Syne Bold 20 / 22 con cifras tabulares. */
 private val DayNumberStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
     fontSize = 20.sp,
-    lineHeight = 24.sp,
+    lineHeight = 22.sp,
     fontFeatureSettings = "'lnum' 1, 'tnum' 1",
 )
 
-/** El número de un día de descanso: el de [DayNumberStyle], en 15 / 18. */
-private val DayNumberRestStyle = DayNumberStyle.copy(fontSize = 15.sp, lineHeight = 18.sp)
+/** El número de un descanso: el de [DayNumberStyle], a 15 sp. */
+private val DayNumberRestStyle = DayNumberStyle.copy(fontSize = 15.sp, lineHeight = 16.5.sp)
 
-/** Las líneas pequeñas de la agenda (el total del día y el número de sesiones): Inter 11 / 14. */
+/** La línea de un día con varias sesiones (`.dayhead`): Inter 11 / 14 con 0,3 sp de espaciado. */
 private val DayCaptionStyle = TextStyle(
     fontFamily = WizardFonts.body,
     fontWeight = FontWeight.Normal,
     fontSize = 11.sp,
     lineHeight = 14.sp,
+    letterSpacing = 0.3.sp,
+)
+
+/** «Descanso» (`.rest`): Inter 13 / 17. */
+private val RestStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Normal,
+    fontSize = 13.sp,
+    lineHeight = 17.sp,
+)
+
+/** «Sesión» en un descanso (`.act`): Inter SemiBold 13 / 17. */
+private val RestActionStyle = RestStyle.copy(fontWeight = FontWeight.SemiBold)
+
+/** «Opcional» (`.chip`): Inter Medium 12 / 16. */
+private val OptionalChipStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Medium,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
 )
 
 /** El «1 DE 2» de una tarjeta: Inter SemiBold 10 / 14 con 1 sp de espaciado. */
@@ -681,13 +788,17 @@ private val SessionIndexStyle = TextStyle(
     letterSpacing = 1.sp,
 )
 
-/** El nombre de la sesión en su tarjeta: Syne Bold 15,5 / 20, una línea. */
+/** El nombre de la sesión en su tarjeta (`.sess strong`): Syne Bold 15,5 / 18,6 con −0,2 sp, una línea. */
 private val SessionCardNameStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
     fontSize = 15.5.sp,
-    lineHeight = 20.sp,
+    lineHeight = 18.6.sp,
+    letterSpacing = (-0.2).sp,
 )
+
+/** El nombre de la sesión desplegada (s-open): el mismo, a 19 sp. */
+private val SessionOpenNameStyle = SessionCardNameStyle.copy(fontSize = 19.sp, lineHeight = 22.8.sp)
 
 /** La línea de datos de la tarjeta: Inter 12 / 16 con cifras tabulares. */
 private val SessionDataStyle = TextStyle(

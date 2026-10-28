@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail.design
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,16 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.kpkn.data.models.isCardio
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -32,34 +26,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.domain.training.VariantLoadEstimates
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.domain.exercises.exerciseDisplayName
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.programdetail.components.formatExercisePrescription
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknCheckRow
-import com.example.kpkn.ui.design.KpknCompactPill
-import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 
 /**
- * Una sesión desplegada dentro de su día (P2): sus ejercicios con la dosis debajo de cada nombre; «Sesión personalizada» con «Restaurar»
- * si aplica; la confirmación de la sesión opcional futura; y las acciones: «Empezar» (44 dp), «Editar» y «Más opciones». [showName] pone el
- * nombre arriba, en Syne, cuando el día tiene varias sesiones. Los minutos vienen ya calculados por el estimador. Sin estado: el menú y los
- * diálogos viven en la pantalla.
+ * El cuerpo de una sesión desplegada en la agenda (s-open): sus ejercicios (`.ex`: el nombre, la dosis debajo y «Cambiar ejercicio» a la
+ * derecha, con un filete entre uno y otro), «Sesión personalizada» con «Restaurar» si aplica y las acciones (`.sess-acts`): «Empezar» y
+ * «Editar», a partes iguales. El nombre, la línea de datos y ⋯ los pone la tarjeta. Sin estado: los menús y los diálogos viven en la
+ * pantalla.
  */
 @Composable
 internal fun ProgramSessionBlock(
     ui: ProgramSessionUi,
-    showName: Boolean,
     onStart: () -> Unit,
     onEdit: () -> Unit,
-    onMore: (Rect) -> Unit,
     onRestore: (() -> Unit)?,
-    onToggleOptional: (() -> Unit)?,
     modifier: Modifier = Modifier,
     startAnchor: Boolean = false,
     onSwapExercise: ((String) -> Unit)? = null,
@@ -67,45 +57,45 @@ internal fun ProgramSessionBlock(
     val session = ui.session
     val exerciseLookup = remember { catalogExerciseIndex() }
     val exercises = remember(session) { session.allExercises() }
-    var moreBounds by remember { mutableStateOf(Rect.Zero) }
-    // Dentro de la tarjeta de la agenda (sin nombre) no lleva padding vertical: lo pone la tarjeta.
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = if (showName) 12.dp else 0.dp).testTag("programsession-${session.id}")) {
-        if (showName) {
-            Text(
-                text = session.name,
-                style = SessionNameStyle,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(4.dp))
-        }
-        if (exercises.isEmpty()) {
-            Text(text = "Sin ejercicios todavía", style = KpknType.caption, color = WizardColors.textMuted)
-        }
-        exercises.forEach { exercise ->
-            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = exerciseDisplayName(exercise,exerciseLookup),modifier = Modifier.weight(1f),
-                        style = KpknType.bodyStrong,color = WizardColors.text,maxLines = 2,overflow = TextOverflow.Ellipsis)
-                    if (onSwapExercise != null && !exercise.isCardio && !exercise.catalogConfigurationId.isNullOrBlank() && exercise.sets.isNotEmpty()) {
-                        Box(modifier = Modifier.defaultMinSize(minWidth = 48.dp,minHeight = 48.dp)
-                            .semantics { contentDescription = "Cambiar ejercicio: ${exerciseDisplayName(exercise,exerciseLookup)}" }
-                            .clickable(role = Role.Button) { onSwapExercise(exercise.id) },
-                            contentAlignment = Alignment.Center) { Text("⇄",style = KpknType.bodyStrong,color = WizardColors.text) }
-                    }
-                }
-                formatExercisePrescription(exercise)?.let { dose ->
-                    val estimateNote = exercise.loadEstimate?.let { estimate ->
-                        VariantLoadEstimates.accessibilityLabel(estimate, exerciseLookup[estimate.sourceConfigurationId]?.name)
-                    }
+    Column(modifier = modifier.fillMaxWidth().testTag("programsession-${session.id}")) {
+        exercises.forEachIndexed { index, exercise ->
+            val name = exerciseDisplayName(exercise, exerciseLookup)
+            if (index > 0) Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = dose,
-                        modifier = if (estimateNote != null) Modifier.semantics { contentDescription = "$dose. $estimateNote" } else Modifier,
-                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                        color = WizardColors.textMuted,
+                        text = name,
+                        style = ExerciseNameStyle,
+                        color = WizardColors.text,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                    formatExercisePrescription(exercise)?.let { dose ->
+                        val estimateNote = exercise.loadEstimate?.let { estimate ->
+                            VariantLoadEstimates.accessibilityLabel(estimate, exerciseLookup[estimate.sourceConfigurationId]?.name)
+                        }
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = dose,
+                            modifier = if (estimateNote != null) Modifier.semantics { contentDescription = "$dose. $estimateNote" } else Modifier,
+                            style = ExerciseDoseStyle,
+                            color = WizardColors.textFaint,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                if (onSwapExercise != null && !exercise.isCardio && !exercise.catalogConfigurationId.isNullOrBlank() && exercise.sets.isNotEmpty()) {
+                    Spacer(Modifier.width(10.dp))
+                    ProgramRoundButton(
+                        icon = KpknLineIcons.Swap,
+                        contentDescription = "Cambiar ejercicio: $name",
+                        onClick = { onSwapExercise(exercise.id) },
+                        iconSize = 18.dp,
+                        tint = WizardColors.textFaint,
                     )
                 }
             }
@@ -121,35 +111,25 @@ internal fun ProgramSessionBlock(
                 RestoreAction(onClick = onRestore)
             }
         }
-        val optionalDate = ui.optionalDateIso
-        if (optionalDate != null && onToggleOptional != null) {
-            val description = if (ui.optionalConfirmed) {
-                "Retirar confirmación de sesión opcional"
-            } else {
-                "Confirmar sesión opcional"
-            }
-            KpknCheckRow(
-                checked = ui.optionalConfirmed,
-                title = description,
-                onClick = onToggleOptional,
-                modifier = Modifier.fillMaxWidth().semantics { contentDescription = description },
-            )
-        }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            KpknCompactPill(
+            ProgramLienzoPill(
                 text = "Empezar",
                 onClick = onStart,
-                modifier = if (startAnchor) Modifier.tourAnchor(TourAnchors.TRAINING_EMPEZAR) else Modifier,
+                modifier = Modifier
+                    .weight(1f)
+                    .then(if (startAnchor) Modifier.tourAnchor(TourAnchors.TRAINING_EMPEZAR) else Modifier),
+                small = true,
+                icon = KpknLineIcons.PlayFilled,
             )
             Spacer(Modifier.width(8.dp))
-            KpknCompactPill(text = "Editar", onClick = onEdit, filled = false)
-            Spacer(Modifier.weight(1f))
-            KpknIconButton(
-                icon = KpknLineIcons.More,
-                contentDescription = "Más opciones de la sesión",
-                onClick = { onMore(moreBounds) },
-                modifier = Modifier.onGloballyPositioned { moreBounds = it.boundsInWindow() },
+            ProgramLienzoPill(
+                text = "Editar",
+                onClick = onEdit,
+                modifier = Modifier.weight(1f),
+                filled = false,
+                small = true,
+                icon = KpknLineIcons.Edit,
             )
         }
     }
@@ -178,10 +158,19 @@ private fun RestoreAction(onClick: () -> Unit) {
     }
 }
 
-/** El nombre de cada sesión cuando el día tiene varias: Syne Bold 18 / 22, como título de sección. */
-private val SessionNameStyle = TextStyle(
-    fontFamily = WizardFonts.display,
-    fontWeight = FontWeight.Bold,
-    fontSize = 18.sp,
-    lineHeight = 22.sp,
+/** El nombre de un ejercicio (`.ex strong`): Inter SemiBold 14 / 18. */
+private val ExerciseNameStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 14.sp,
+    lineHeight = 18.sp,
+)
+
+/** La dosis de un ejercicio (`.ex span`): Inter 12 / 16 con cifras tabulares. */
+private val ExerciseDoseStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Normal,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+    fontFeatureSettings = "'tnum' 1",
 )

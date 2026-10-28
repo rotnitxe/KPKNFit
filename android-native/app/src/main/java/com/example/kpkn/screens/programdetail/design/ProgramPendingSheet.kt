@@ -100,7 +100,7 @@ internal fun ProgramPendingBell(count: Int, onClick: () -> Unit, modifier: Modif
                 .background(KpknSurface.inset, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = KpknLineIcons.Bell, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
+            Icon(imageVector = KpknLineIcons.Bell, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.textMuted)
         }
         // Insignia: 20 dp como mínimo y un anillo negro de 3 dp por fuera; se corre -3 dp hacia arriba y a la derecha, como en el prototipo.
         Box(

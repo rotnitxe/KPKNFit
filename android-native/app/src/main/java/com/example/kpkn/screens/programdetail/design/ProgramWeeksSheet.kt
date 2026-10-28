@@ -17,8 +17,6 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknSecondaryPill
-import com.example.kpkn.ui.design.KpknType
 
 /**
  * Hoja «Semanas» de la pestaña Semana: el índice de todas las semanas del programa. Dentro va el módulo «Fases» o la fila de semanas de un
@@ -37,30 +35,40 @@ internal fun ProgramWeeksSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(start = 18.dp, top = 2.dp, end = 18.dp, bottom = 30.dp),
         ) {
             Text(text = "Semanas", style = SheetTitleStyle, color = WizardColors.text)
-            Spacer(Modifier.height(6.dp))
-            Text(text = subtitle, style = KpknType.body, color = WizardColors.textMuted)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(text = subtitle, style = SheetSubtitleStyle, color = WizardColors.textMuted)
+            Spacer(Modifier.height(12.dp))
             content()
             if (onGoToCurrent != null) {
-                Spacer(Modifier.height(18.dp))
-                KpknSecondaryPill(
+                Spacer(Modifier.height(20.dp))
+                ProgramLienzoPill(
                     text = "Ir a la semana actual",
                     onClick = onGoToCurrent,
                     modifier = Modifier.fillMaxWidth(),
+                    filled = false,
+                    small = true,
                 )
             }
-            Spacer(Modifier.height(12.dp))
         }
     }
 }
 
-/** El título de la hoja: Syne Bold 22 / 26. */
+/** El título de la hoja (`.sheet h3`): Syne Bold 21 / 24 con −0,4 sp. */
 private val SheetTitleStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
-    fontSize = 22.sp,
-    lineHeight = 26.sp,
+    fontSize = 21.sp,
+    lineHeight = 24.sp,
+    letterSpacing = (-0.4).sp,
+)
+
+/** El subtítulo de la hoja (`.sheet .sub`): Inter 13 / 19. */
+private val SheetSubtitleStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Normal,
+    fontSize = 13.sp,
+    lineHeight = 19.sp,
 )

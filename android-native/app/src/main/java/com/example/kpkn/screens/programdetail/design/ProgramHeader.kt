@@ -37,7 +37,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,12 +49,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
@@ -59,25 +61,23 @@ import java.util.Locale
 internal data class ProgramHeaderState(
     val name: String,
     val status: ProgramHeaderStatus,
-    /** «12 semanas · 4 días por semana · Fuerza»; sin dato, se omite (ver [programMetaLine]). Va en una sola línea. */
+    /** «Músculo · 6 semanas · 3 bloques» (ver [programHeadlineMeta]): una sola línea, como `.meta` del lienzo. */
     val meta: String,
     /** Arte de estudio o de siempre; null solo si hay foto o portada empaquetada. */
     val identity: CoverIdentity?,
     val photoUrl: String?,
     val bundled: ImageBitmap?,
-    val weekCount: Int,
-    val currentWeekIndex: Int?,
-    /** «Semana 3 de 12 · Acumulación»; null si no se sabe en qué semana va. */
+    /** «Semana 4 de 6 · Intensificación»; null si no se sabe en qué semana va. */
     val progressLabel: String?,
     val primary: ProgramHeaderPrimary,
     /** La siguiente sesión, para un día sin sesión: su píldora dice «Siguiente: jueves · Pierna A». Null si no hay ninguna. */
     val nextSession: ProgramNextSession? = null,
-    /** Línea de alcance del programa (ver [programScopeLine]). La cabecera ya no la pinta; el dato se conserva. */
-    val scopeLine: String? = null,
-    val deloadNotice: String? = null,
-    /** Una fase por semana, para la cinta de fases. Vacía: se pinta la regla de semanas de siempre. */
+    /**
+     * Una fase por semana, para la cinta de fases. Vacía (una rutina: C-D1), no hay cinta ni línea de progreso: la semana de la rutina y su
+     * mini-cinta van en el navegador de la pestaña Semana (s-simple).
+     */
     val ribbon: List<ProgramRibbonWeek> = emptyList(),
-    /** El bloque actual, a la derecha de la cinta («Bloque 2 de 3»). */
+    /** El bloque actual, a la derecha de la línea de progreso («Bloque 2 de 3»). */
     val blockLabel: String? = null,
     /** Una línea bajo la fila de acciones, p. ej. «Hoy también: Cardio y potencia · ≈ 32 min». */
     val todayAlso: String? = null,
@@ -86,10 +86,6 @@ internal data class ProgramHeaderState(
 /** Las acciones de la cabecera. Cada una la ejecuta la pantalla. */
 internal data class ProgramHeaderActions(
     val onPrimary: () -> Unit,
-    /** Ya no se pintan aquí: van en ⋯. */
-    val onStartPause: () -> Unit,
-    /** Ya no se pintan aquí: van en ⋯. */
-    val onEdit: () -> Unit,
     /** Abre el día de la siguiente sesión en la pestaña Semana. */
     val onOpenNextSession: () -> Unit = {},
     /** «Compartir en historias». Null = la cabecera no pinta el botón. */
@@ -101,8 +97,9 @@ internal data class ProgramHeaderActions(
 )
 
 /**
- * Cabecera del programa (KPKN_UI_V2 §5): póster a la izquierda; a su derecha, el estado, el nombre y la meta. Debajo, la cinta de fases
- * (o la regla de semanas), el progreso y la fila de acciones: la principal contextual, compartir y la campana de pendientes.
+ * Portada del programa (lienzo v6, `heroBlock`): la portada de 84 × 104 dp a la izquierda y, a su derecha, el estado, el nombre y la meta
+ * en una sola línea. Debajo, la cinta de fases con «Semana 4 de 6 · Intensificación» y «Bloque 2 de 3», y la fila de acciones: la
+ * principal contextual, compartir y la campana de pendientes. Nada más: la semana va justo después.
  */
 @Composable
 internal fun ProgramHeader(
@@ -117,25 +114,24 @@ internal fun ProgramHeader(
                 photoUrl = state.photoUrl,
                 bundled = state.bundled,
                 animate = true,
+                width = 84.dp,
+                height = 104.dp,
+                radius = 18.dp,
             )
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 StatusEyebrow(state.status)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
                 ProgramTitle(state.name)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
                 if (state.meta.isNotBlank()) {
                     Text(
                         text = state.meta,
-                        style = KpknType.caption,
+                        style = HeroMetaStyle,
                         color = WizardColors.textMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-                state.deloadNotice?.let { notice ->
-                    Spacer(Modifier.height(4.dp))
-                    Text(notice, style = KpknType.caption, color = WizardColors.textMuted)
                 }
             }
         }
@@ -146,26 +142,13 @@ internal fun ProgramHeader(
                 Spacer(Modifier.height(8.dp))
                 ProgramRibbonLabels(progress = state.progressLabel, block = state.blockLabel)
             }
-        } else {
-            Spacer(Modifier.height(18.dp))
-            ProgramWeekRuler(weekCount = state.weekCount, currentIndex = state.currentWeekIndex)
-            state.progressLabel?.let { label ->
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = label,
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
         Spacer(Modifier.height(16.dp))
         ProgramActionRow(state = state, actions = actions)
         state.todayAlso?.let { line ->
             Text(
                 text = line,
-                style = KpknType.caption,
+                style = HeroCapStyle,
                 color = WizardColors.textFaint,
                 modifier = Modifier.padding(start = 4.dp, top = 10.dp, end = 4.dp),
             )
@@ -177,17 +160,17 @@ internal fun ProgramHeader(
 private val ProgramTrailingSlot = 60.dp
 
 /**
- * Fila de acciones: la principal (ocupa lo que sobra), «Compartir en historias» si lo hay, y la campana con los pendientes. En un día sin
- * sesión, la píldora secundaria enseña la siguiente sesión («Siguiente: jueves · Pierna A»). Si la etiqueta no cabe a la letra actual, la
- * píldora ocupa la primera línea y los botones van debajo, a la derecha: así nunca se corta una palabra (KPKN_UI_V2 §5).
+ * Fila de acciones (`.hero-acts`): la principal (ocupa lo que sobra), «Compartir en historias» si lo hay, y la campana con los pendientes.
+ * En un día sin sesión, la píldora secundaria enseña la siguiente sesión («Siguiente: jueves · Pierna A»). Si la etiqueta no cabe a la letra
+ * actual, la píldora ocupa la primera línea y los botones van debajo, a la derecha: así nunca se corta una palabra.
  */
 @Composable
 private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderActions) {
     val primaryLabel = programHeaderPrimaryLabel(state.primary)
-    val primaryIcon = if (state.primary is ProgramHeaderPrimary.Start || state.primary == ProgramHeaderPrimary.Continue) {
-        KpknLineIcons.Play
-    } else {
-        null
+    // «Empezar · Tirón», «Continuar · Tirón» y «Reanudar» llevan el icono play (p-today, p-paused); «Activar programa», ninguno.
+    val primaryIcon = when (state.primary) {
+        is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue, ProgramHeaderPrimary.Resume -> KpknLineIcons.PlayFilled
+        else -> null
     }
     // Sin acción principal (día sin sesión), la píldora secundaria enseña la siguiente sesión.
     val isNext = primaryLabel == null && state.nextSession != null
@@ -202,12 +185,12 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         // Lo que dejan los botones de la derecha; lo demás es para la píldora.
         val pillRowPx = with(density) { (maxWidth - ProgramTrailingSlot * trailing).toPx() }
-        // Lo que necesita la píldora: el texto, el icono (20 dp y 8 dp) si lo hay, y 24 dp de margen a cada lado.
+        // Lo que necesita la píldora: el texto, el icono (18 dp y 8 dp) si lo hay, y 20 dp de margen a cada lado.
         val neededPx = if (pillLabel == null) {
             0f
         } else {
-            measurer.measure(text = pillLabel, style = WizardTypography.cta, maxLines = 1, softWrap = false).size.width.toFloat() +
-                with(density) { (48.dp + (if (pillIcon != null) 28.dp else 0.dp)).toPx() }
+            measurer.measure(text = pillLabel, style = ProgramPillStyle, maxLines = 1, softWrap = false).size.width.toFloat() +
+                with(density) { (40.dp + (if (pillIcon != null) 26.dp else 0.dp)).toPx() }
         }
         if (pillLabel != null && neededPx > pillRowPx) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -251,7 +234,8 @@ private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderAc
 }
 
 /**
- * La píldora de la fila: la principal («Empezar…», «Activar programa») o, en un día sin sesión, la secundaria con la siguiente sesión.
+ * La píldora de la fila: la principal (`.pill.pri`: «Empezar · Tirón», «Reanudar», «Activar programa») o, en un día sin sesión, la
+ * secundaria (`.pill.sec`) con la siguiente sesión.
  */
 @Composable
 private fun ProgramHeaderPill(
@@ -263,11 +247,11 @@ private fun ProgramHeaderPill(
     description: String?,
 ) {
     if (isNext) {
-        // La secundaria de la siguiente sesión: TalkBack lee «Siguiente sesión: jueves, Pierna A» en vez de la etiqueta corta.
+        // La secundaria de la siguiente sesión: TalkBack lee «Siguiente sesión: jueves, Pierna A» en vez de la etiqueta.
         val pillModifier = if (description != null) modifier.semantics { contentDescription = description } else modifier
-        KpknSecondaryPill(text = text, onClick = onClick, modifier = pillModifier, tag = "program_header_next", icon = icon)
+        ProgramLienzoPill(text = text, onClick = onClick, modifier = pillModifier, filled = false, tag = "program_header_next", icon = icon)
     } else {
-        KpknPrimaryPill(text = text, onClick = onClick, modifier = modifier, tag = "program_header_primary", icon = icon)
+        ProgramLienzoPill(text = text, onClick = onClick, modifier = modifier, filled = true, tag = "program_header_primary", icon = icon)
     }
 }
 
@@ -282,13 +266,13 @@ private fun ProgramTrailingButtons(actions: ProgramHeaderActions) {
     ProgramPendingBell(count = actions.pendingCount, onClick = actions.onPending)
 }
 
-/** «Compartir en historias»: círculo de 52 dp en `inset` con el icono de compartir ([ProgramShareIcon]). */
+/** «Compartir en historias» (`.ib.fill`, 52 dp): círculo `inset` con el icono de compartir en `textMuted`. */
 @Composable
 private fun ProgramShareButton(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.97f else 1f,
+        targetValue = if (pressed) 0.975f else 1f,
         animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
         label = "programShareScale",
     )
@@ -305,18 +289,21 @@ private fun ProgramShareButton(onClick: () -> Unit) {
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(imageVector = ProgramShareIcon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
+        Icon(imageVector = ProgramShareIcon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.textMuted)
     }
 }
 
-/** Bajo la cinta: el progreso a la izquierda (`textMuted`) y el bloque a la derecha (`textFaint`). */
+/**
+ * Bajo la cinta (`.ribbon-l`): «Semana **4** de 6 · Intensificación» a la izquierda (12 sp, `textMuted`, el número en negrita) y el bloque
+ * a la derecha (`.cap`, `textFaint`).
+ */
 @Composable
 private fun ProgramRibbonLabels(progress: String?, block: String?) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         progress?.let { label ->
             Text(
-                text = label,
-                style = KpknType.caption,
+                text = progressWithBoldWeek(label),
+                style = HeroCapStyle,
                 color = WizardColors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -326,7 +313,7 @@ private fun ProgramRibbonLabels(progress: String?, block: String?) {
         block?.let { name ->
             Text(
                 text = name,
-                style = KpknType.caption,
+                style = HeroCapStyle,
                 color = WizardColors.textFaint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -337,22 +324,37 @@ private fun ProgramRibbonLabels(progress: String?, block: String?) {
     }
 }
 
-/** Eyebrow de estado: un punto (`done` activo, `energia` pausado, `textFaint` borrador) y el texto en mayúsculas. */
+/** El número de semana al principio de la línea de progreso: va en negrita (`<b class="tn">`). */
+private val LeadingWeekNumber = Regex("^Semana (\\d+)")
+
+/** «Semana 4 de 6 · …» con el número de la semana en negrita y cifras tabulares. */
+private fun progressWithBoldWeek(label: String) = buildAnnotatedString {
+    val number = LeadingWeekNumber.find(label)?.groups?.get(1)
+    if (number == null) {
+        append(label)
+    } else {
+        append(label.substring(0, number.range.first))
+        withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontFeatureSettings = "'tnum' 1")) { append(number.value) }
+        append(label.substring(number.range.last + 1))
+    }
+}
+
+/** Eyebrow de estado (`.status`): un punto de 7 dp (`done` activo, `energia` pausado, `textFaint` borrador) y el texto en mayúsculas. */
 @Composable
 private fun StatusEyebrow(status: ProgramHeaderStatus) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(programHeaderDotColor(status)))
-        Spacer(Modifier.width(8.dp))
+        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(programHeaderDotColor(status)))
+        Spacer(Modifier.width(7.dp))
         Text(
             text = programHeaderStatusLabel(status).uppercase(Locale("es")),
-            style = KpknType.eyebrow,
+            style = HeroStatusStyle,
             color = WizardColors.textMuted,
             maxLines = 1,
         )
     }
 }
 
-/** Nombre del programa: 26 sp como máximo, tres líneas como máximo, y se encoge hasta 20 sp antes de cortar. */
+/** Nombre del programa (`.pname`): Syne ExtraBold 28 sp como máximo, tres líneas como máximo, y se encoge hasta 20 sp antes de cortar. */
 @Composable
 private fun ProgramTitle(name: String) {
     val measurer = rememberTextMeasurer()
@@ -371,12 +373,12 @@ private fun ProgramTitle(name: String) {
 }
 
 /** Tamaños del nombre, en sp. */
-private const val TitleMaxSp = 26f
+private const val TitleMaxSp = 28f
 private const val TitleMinSp = 20f
 private const val TitleMaxLines = 3
 
 /**
- * El estilo del nombre con la mayor letra (de 26 a 20 sp, en pasos de 1 sp) con la que cabe en [TitleMaxLines] líneas de [widthPx].
+ * El estilo del nombre con la mayor letra (de 28 a 20 sp, en pasos de 1 sp) con la que cabe en [TitleMaxLines] líneas de [widthPx].
  * Si ni con 20 sp cabe, se queda en 20 sp y la línea final se corta con elipsis.
  */
 internal fun fittedTitleStyle(measurer: TextMeasurer, name: String, widthPx: Int): TextStyle {
@@ -397,8 +399,18 @@ internal fun fittedTitleStyle(measurer: TextMeasurer, name: String, widthPx: Int
 
 private fun titleStyleAt(sp: Float): TextStyle = KpknType.display.copy(
     fontSize = sp.sp,
-    lineHeight = (sp * 1.2f).sp,
+    lineHeight = (sp * 1.02f).sp,
+    letterSpacing = (-0.8f * sp / TitleMaxSp).sp,
 )
+
+/** El estado (`.status`): Inter SemiBold 11 sp con 1,3 sp de espaciado. */
+private val HeroStatusStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 1.3.sp)
+
+/** La meta (`.meta`): Inter 13 sp. */
+private val HeroMetaStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 18.sp)
+
+/** Las líneas pequeñas (`.cap` y `.ribbon-l`): Inter 12 sp. */
+private val HeroCapStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp)
 
 /** Color del punto de estado; expuesto para las pruebas de la cabecera. */
 internal fun programHeaderDotColor(status: ProgramHeaderStatus): Color = when (status) {

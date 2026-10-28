@@ -361,81 +361,6 @@ class PostSetupCalendarUiTest {
         assertEquals(fixture.weekId, viewModel.selectedWeekMeta.value?.id)
     }
 
-    @Test
-    fun oneOptionalConfirmationIsDurableAndUndoRemovesOnlyItsExactKey() {
-        val fixture = installFixture(preconfirmOptionalB = true)
-        val baselineForecast = requireForecast(roomPlan(fixture.planId))
-        assertEquals("Las dos opcionales comparten la misma fecha futura", fixture.optionalADate, fixture.optionalBDate)
-        val preconfirmedB = OptionalSessionConfirmation(
-            dayIso = fixture.optionalADate.toString(),
-            sessionId = fixture.optionalBId,
-        )
-        assertEquals(listOf(preconfirmedB), roomProgram(fixture.programId).optionalSessionConfirmations)
-        val viewModel = mountRealDayView(fixture)
-
-        expandSession("Optional A $runId")
-        expandSession("Optional B $runId")
-        composeRule.onNodeWithText("Optional A $runId").assertIsDisplayed()
-        composeRule.onNodeWithText("Optional B $runId").assertIsDisplayed()
-        val confirmA = optionalConfirmationAction(fixture.optionalAId, "Confirmar sesión opcional")
-        confirmA.assertIsDisplayed()
-        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional")
-            .assertIsDisplayed()
-        confirmA.performClick()
-
-        val confirmedProgram = awaitRoomProgram(fixture.programId) { saved ->
-            saved.optionalSessionConfirmations == listOf(
-                preconfirmedB,
-                OptionalSessionConfirmation(
-                    dayIso = fixture.optionalADate.toString(),
-                    sessionId = fixture.optionalAId,
-                ),
-            )
-        }
-        assertEquals(
-            "A se añade a la clave preexistente de B en la misma fecha",
-            listOf(preconfirmedB, OptionalSessionConfirmation(fixture.optionalADate.toString(), fixture.optionalAId)),
-            confirmedProgram.optionalSessionConfirmations,
-        )
-        optionalConfirmationAction(fixture.optionalAId, "Retirar confirmación de sesión opcional")
-            .assertIsDisplayed()
-        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional")
-            .assertIsDisplayed()
-
-        val confirmedPlan = awaitRoomPlan(fixture.planId) { saved ->
-            forecastDocument(saved)?.revision?.let { it > baselineForecast.revision } == true
-        }
-        val confirmedForecast = requireForecast(confirmedPlan)
-        assertForecastBudgetAndFrozenDays(fixture.today, baselineForecast, confirmedForecast)
-        assertNotEquals(
-            "La confirmación futura de la opcional cambia su objetivo previsto productivo",
-            baselineForecast.days.first { it.date == fixture.optionalADate },
-            confirmedForecast.days.first { it.date == fixture.optionalADate },
-        )
-
-        optionalConfirmationAction(fixture.optionalAId, "Retirar confirmación de sesión opcional")
-            .performClick()
-        val undoneProgram = awaitRoomProgram(fixture.programId) { saved ->
-            saved.optionalSessionConfirmations == listOf(preconfirmedB)
-        }
-        assertEquals("Retirar A conserva la confirmación durable de B", listOf(preconfirmedB), undoneProgram.optionalSessionConfirmations)
-        optionalConfirmationAction(fixture.optionalAId, "Confirmar sesión opcional").assertIsDisplayed()
-        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional").assertIsDisplayed()
-
-        val undonePlan = awaitRoomPlan(fixture.planId) { saved ->
-            forecastDocument(saved)?.revision?.let { it > confirmedForecast.revision } == true
-        }
-        val undoneForecast = requireForecast(undonePlan)
-        assertForecastBudgetAndFrozenDays(fixture.today, baselineForecast, undoneForecast)
-        assertEquals("Al desconfirmar, vuelve la misma previsión calculada antes del cambio", baselineForecast.days, undoneForecast.days)
-        assertNotEquals(
-            "Desconfirmar la opcional retira su gasto del reforecast",
-            confirmedForecast.days.first { it.date == fixture.optionalADate },
-            undoneForecast.days.first { it.date == fixture.optionalADate },
-        )
-        assertEquals(fixture.weekId, viewModel.selectedWeekMeta.value?.id)
-    }
-
     private fun installFixture(preconfirmOptionalB: Boolean = false): CalendarFixture {
         val today = LocalDate.now()
         val requiredDate = today.plusDays(1)
@@ -746,9 +671,7 @@ class PostSetupCalendarUiTest {
                             onStartWorkout = {},
                             onApplySessionsLayout = { viewModel.replaceWeekSessions(fixture.weekId, it) },
                             onUpdateStartDay = { _, _, _ -> },
-                            onUpdateWeekMetadata = viewModel::updateWeekMetadata,
                             onUpdateTrainingDayDate = viewModel::updateWeekTrainingDayDate,
-                            onToggleOptionalConfirmation = viewModel::toggleOptionalSessionConfirmation,
                         )
                     }
                 }
@@ -815,12 +738,6 @@ class PostSetupCalendarUiTest {
         month.atDay(1)
             .format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", Locale.forLanguageTag("es")))
             .replaceFirstChar { it.uppercase(Locale.forLanguageTag("es")) }
-
-    /** La acción de confirmación de una sesión opcional vive dentro de su bloque de sesión (etiqueta `programsession-<id>`). */
-    private fun optionalConfirmationAction(sessionId: String, contentDescription: String) =
-        composeRule.onNode(
-            hasContentDescription(contentDescription) and hasAnyAncestor(hasTestTag("programsession-$sessionId")),
-        )
 
     private fun assertForecastBudgetAndFrozenDays(
         fixtureToday: LocalDate,

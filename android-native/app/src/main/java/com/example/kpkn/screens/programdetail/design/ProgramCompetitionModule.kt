@@ -1,5 +1,21 @@
 package com.example.kpkn.screens.programdetail.design
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import java.util.Locale
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,41 +43,150 @@ internal fun competitionLiftLabel(movement: CompetitionMovementType): String = w
     else -> movement.name
 }
 
+/** La cifra grande del módulo de competición (p-comp): «18» con «días», «Hoy», «Terminada» o nada si no hay fecha válida (C-D3). */
+internal data class CompetitionCountdown(val value: String, val unit: String?)
+
+internal fun competitionCountdown(state: ProgramCompetitionState): CompetitionCountdown? {
+    val days = state.daysToMeet
+    return when {
+        state.record.status == CompetitionRecordStatus.COMPLETED -> CompetitionCountdown("Terminada", null)
+        days == null -> null
+        days > 0 -> CompetitionCountdown("$days", if (days == 1) "día" else "días")
+        days == 0 -> CompetitionCountdown("Hoy", null)
+        else -> CompetitionCountdown("Terminada", null)
+    }
+}
+
+/** «Open regional · 16 nov»; sin fecha legible, «Open regional · sin fecha». */
+internal fun competitionTitleLine(record: CompetitionRecord): String {
+    val date = record.eventDate?.let { runCatching { java.time.LocalDate.parse(it.take(10)) }.getOrNull() }
+    return "${record.title.trim()} · ${date?.let { weekDateRange(listOf(it)) } ?: "sin fecha"}"
+}
+
+/** «82,5»: un decimal con coma y sin «,0». */
+private fun competitionKg(value: Double): String {
+    val text = String.format(Locale.forLanguageTag("es-ES"), "%.1f", value)
+    return text.removeSuffix(",0")
+}
+
+/**
+ * «Pesaje 82,5 kg · −0,2 kg/sem»: el peso objetivo del pesaje y la tendencia observada; sin tendencia, solo el peso. Null si no hay peso
+ * objetivo.
+ */
+internal fun competitionWeighInLine(state: ProgramCompetitionState): String? {
+    val target = state.forecast?.targetKg ?: state.record.targetBodyweightKg ?: return null
+    val rate = state.weeklyWeightRateKg?.takeIf { it.isFinite() }
+    val trend = rate?.let { value ->
+        val magnitude = String.format(Locale.forLanguageTag("es-ES"), "%.1f", kotlin.math.abs(value))
+        val sign = when {
+            magnitude == "0,0" -> ""
+            value < 0 -> "−"
+            else -> "+"
+        }
+        " · $sign$magnitude kg/sem"
+    }.orEmpty()
+    return "Pesaje ${competitionKg(target)} kg$trend"
+}
+
+/** «185 · 120 · 210»: el primer intento planificado de sentadilla, banca y peso muerto, en ese orden. Null sin intentos. */
+internal fun competitionAttemptsLine(attempts: List<PlannedAttempt>): String? {
+    val openers = AttemptPlanner.lifts.mapNotNull { lift ->
+        attempts.filter { it.movementType == lift }.minByOrNull { it.attemptNumber }?.weightKg
+    }
+    return openers.takeIf { it.isNotEmpty() }?.joinToString(" · ") { competitionKg(it) }
+}
+
+/**
+ * Módulo de competición de la portada (lienzo v6, p-comp): eyebrow «Competición» con «Ficha ›», la cuenta atrás en grande, el nombre y la
+ * fecha, el pesaje, los intentos a la derecha y «Planificar intentos». El día de la competición añade «Modo competición»; al terminar,
+ * «Revisar actualización de marcas».
+ */
 @Composable
 internal fun ProgramCompetitionModule(state: ProgramCompetitionState,busy: Boolean,onPlan: () -> Unit,onMeetDay: () -> Unit,onReviewResult: () -> Unit,
     onOpenRecord: (() -> Unit)? = null) {
-    KpknModule(Modifier.fillMaxWidth()) {
-        Text("Competición · ${state.record.title}",style = KpknType.bodyStrong,color = WizardColors.text)
-        Text(when {
-            state.daysToMeet == 0 -> "Hoy compites"
-            state.daysToMeet != null && state.daysToMeet > 0 -> "Faltan ${state.daysToMeet} días"
-            state.daysToMeet != null -> "Competición pasada"
-            else -> "Sin fecha de competición válida"
-        },style = KpknType.body,color = WizardColors.text)
-        state.forecast?.let {
-            Text(it.message,style = KpknType.body,color = WizardColors.text)
-            Text(state.weeklyWeightRateKg?.let { rate -> "Peso declarado en el perfil; tendencia observada en 28 días: $rate kg/semana." }
-                ?: "Peso declarado en el perfil; sin tendencia corporal observada suficiente.",style = KpknType.caption,color = WizardColors.textMuted)
-        }
-        if (state.record.status == CompetitionRecordStatus.COMPLETED) {
-            state.resultSummary?.let { summary ->
-                Text(summary,style = KpknType.body,color = WizardColors.text)
-                if (!busy) KpknCompactPill("Revisar actualización de marcas",onReviewResult,fullWidth = true)
+    val completed = state.record.status == CompetitionRecordStatus.COMPLETED
+    val countdown = competitionCountdown(state)
+    val weighIn = competitionWeighInLine(state)
+    val attempts = state.takeIf { it.supportsSbdPlanning }?.let { competitionAttemptsLine(it.record.plannedAttempts) }
+    KpknModule(Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("COMPETICIÓN", style = CompEyebrowStyle, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
+            if (!busy && onOpenRecord != null) {
+                Row(
+                    Modifier.heightIn(min = 36.dp).semantics(mergeDescendants = true) { contentDescription = "Ficha de competición" }
+                        .clickable(role = Role.Button, onClick = onOpenRecord),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Ficha", style = CompActionStyle, color = WizardColors.textMuted)
+                    Icon(KpknLineIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp), tint = WizardColors.textMuted)
+                }
             }
-            if (state.record.meetResultAppliedAtMs != null) Text("Resultado aplicado a las referencias del programa.",style = KpknType.caption,color = WizardColors.textMuted)
-        } else if (!busy && state.supportsSbdPlanning) {
-            KpknCompactPill("Planificar intentos",onPlan,fullWidth = true)
-            if (state.daysToMeet == 0 && MeetDayPlan.build(state.record.plannedAttempts).isNotEmpty())
-                KpknCompactPill("Modo competición",onMeetDay,filled = false,fullWidth = true)
         }
-        if (!state.supportsSbdPlanning) Text("Consulta o registra esta competición en su ficha.",style = KpknType.body,color = WizardColors.text)
-        if (!busy && onOpenRecord != null) KpknCompactPill(when {
-            state.record.status == CompetitionRecordStatus.COMPLETED -> "Ver resultado"
-            state.daysToMeet != null && state.daysToMeet <= 0 -> "Registrar resultado"
-            else -> "Ficha de competición"
-        },onOpenRecord,filled = false,fullWidth = true)
+        Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column {
+                countdown?.let { figure ->
+                    Text(
+                        buildAnnotatedString {
+                            append(figure.value)
+                            figure.unit?.let { unit -> withStyle(CompNumUnitStyle) { append(" $unit") } }
+                        },
+                        style = CompNumStyle,
+                        color = WizardColors.text,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                }
+                Text(competitionTitleLine(state.record), style = CompCapStyle, color = WizardColors.textFaint)
+                weighIn?.let { Text(it, style = CompCapStyle, color = WizardColors.textFaint) }
+            }
+            if (attempts != null) {
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    Text("Intentos", style = CompCapStyle, color = WizardColors.textFaint)
+                    Spacer(Modifier.height(4.dp))
+                    Text(attempts, style = CompAttemptsStyle, color = WizardColors.text, textAlign = TextAlign.End)
+                }
+            }
+        }
+        if (!busy) {
+            when {
+                completed -> if (state.resultSummary != null) {
+                    ProgramLienzoPill("Revisar actualización de marcas", onReviewResult, Modifier.fillMaxWidth().padding(top = 14.dp), filled = false, small = true)
+                }
+                state.supportsSbdPlanning -> {
+                    ProgramLienzoPill("Planificar intentos", onPlan, Modifier.fillMaxWidth().padding(top = 14.dp), filled = false, small = true)
+                    if (state.daysToMeet == 0 && MeetDayPlan.build(state.record.plannedAttempts).isNotEmpty()) {
+                        ProgramLienzoPill("Modo competición", onMeetDay, Modifier.fillMaxWidth().padding(top = 8.dp), filled = false, small = true)
+                    }
+                }
+            }
+        }
     }
 }
+
+/** El eyebrow del módulo (`.ey`): Inter SemiBold 11 sp con 1,2 sp. */
+private val CompEyebrowStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 1.2.sp)
+
+/** «Ficha ›» (`.act`): Inter SemiBold 13 sp. */
+private val CompActionStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 18.sp)
+
+/** La cifra grande (`.num`): Syne ExtraBold 28 sp con −0,6 sp y cifras tabulares. */
+private val CompNumStyle = TextStyle(
+    fontFamily = WizardFonts.display,
+    fontWeight = FontWeight.ExtraBold,
+    fontSize = 28.sp,
+    lineHeight = 28.sp,
+    letterSpacing = (-0.6).sp,
+    fontFeatureSettings = "'tnum' 1",
+)
+
+/** La unidad de la cifra (`.num small`): Inter SemiBold 12 sp en `textMuted`. */
+private val CompNumUnitStyle = SpanStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, letterSpacing = 0.sp, color = WizardColors.textMuted)
+
+/** `.cap`: Inter 12 sp. */
+private val CompCapStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp)
+
+/** Los intentos: Syne Bold 15 sp con cifras tabulares. */
+private val CompAttemptsStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 15.sp, lineHeight = 18.sp, fontFeatureSettings = "'tnum' 1")
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

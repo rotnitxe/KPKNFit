@@ -64,7 +64,6 @@ class ProgramDayModuleTest {
                 onEditSession = {},
                 onMoreSession = { _, _ -> },
                 onRestoreSession = {},
-                onToggleOptional = { _, _ -> },
                 draggingSessionId = null,
                 insertIndex = null,
                 anchorFirstSession = false,
@@ -110,7 +109,6 @@ class ProgramDayModuleTest {
                 onEditSession = {},
                 onMoreSession = { _, _ -> },
                 onRestoreSession = {},
-                onToggleOptional = { _, _ -> },
                 draggingSessionId = null,
                 insertIndex = null,
                 anchorFirstSession = false,
@@ -228,7 +226,6 @@ class ProgramDayModuleTest {
                     onStartWorkout = {},
                     onApplySessionsLayout = {},
                     onUpdateStartDay = { _, _, _ -> },
-                    onUpdateWeekMetadata = { _, _, _ -> },
                 )
             }
         }

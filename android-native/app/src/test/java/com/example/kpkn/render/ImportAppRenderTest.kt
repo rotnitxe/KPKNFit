@@ -339,7 +339,6 @@ class ImportAppRenderTest {
                     onEditSession = {},
                     onMoreSession = { _, _ -> },
                     onRestoreSession = {},
-                    onToggleOptional = { _, _ -> },
                     draggingSessionId = null,
                     insertIndex = null,
                     anchorFirstSession = false,

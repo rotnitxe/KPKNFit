@@ -19,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -29,7 +28,6 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -54,6 +52,7 @@ import com.example.kpkn.screens.programdetail.design.agendaRows
 import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
 import com.example.kpkn.screens.programdetail.design.scheduleCopy
 import com.example.kpkn.screens.programdetail.design.sessionFocus
+import com.example.kpkn.screens.programdetail.design.sessionProposalLabel
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
@@ -112,13 +111,14 @@ private val ExpandedSessionsSaver = listSaver<Set<String>, String>(
 )
 
 /**
- * La agenda de la semana (P2): un día por fila, con la fecha a la izquierda y sus sesiones como tarjetas apiladas a la derecha, en el orden
- * de los días desde el día de inicio del programa. Cada tarjeta se despliega en su sitio al tocarla y se reordena manteniéndola pulsada;
- * los descansos seguidos se pliegan en una fila. Una pulsación larga en la columna de fecha abre el menú del día, y el botón «Más
- * opciones» de cada sesión abre su menú. Los minutos salen de `SessionDurationEstimator`. Los diálogos de cada acción viven aquí.
+ * La agenda de la semana (lienzo v6, `agendaHtml`): un día por fila, con la fecha a la izquierda y sus sesiones como tarjetas apiladas a
+ * la derecha, en el orden de los días desde el día de inicio del programa. Cada tarjeta se despliega en su sitio al tocarla y se reordena
+ * manteniéndola pulsada; los descansos seguidos se pliegan en una fila que no se despliega. Los días fuera del programa no salen. Una
+ * pulsación larga en la columna de fecha abre el menú del día, y el ⋯ de cada sesión desplegada abre su menú. Los minutos salen de
+ * `SessionDurationEstimator`. Los diálogos de cada acción viven aquí.
  *
- * [completedSessionIds] son las sesiones ya hechas (con su check). [expandedDayIds] y [onExpandedDayIdsChange] ya no se usan: las sesiones
- * desplegadas viven aquí. [restoreBlockedSessionIds] son las sesiones que ya no se pueden restaurar desde el plan.
+ * [addSessionOnRest] pone «Sesión» en los descansos (la rutina, s-simple). [completedSessionIds] son las sesiones ya hechas (con su check).
+ * [restoreBlockedSessionIds] son las sesiones que ya no se pueden restaurar desde el plan.
  */
 @Suppress("UNUSED_PARAMETER")
 @Composable
@@ -134,13 +134,7 @@ fun DayView(
     onStartWorkout: (Session) -> Unit,
     onApplySessionsLayout: (List<Session>) -> Unit,
     onUpdateStartDay: (Int, StartDayTemporalScope, StartDaySessionMode) -> Unit,
-    onUpdateWeekMetadata: (String, String, String?) -> Unit,
     onUpdateTrainingDayDate: (weekId: String, dayOfWeek: Int, isoDate: String?) -> Unit = { _, _, _ -> },
-    /**
-     * Confirma/desconfirma UNA sesión opcional en UNA fecha (sólo fechas
-     * futuras; el estado sale de `program.optionalSessionConfirmations`).
-     */
-    onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
     /** Restaura únicamente la sesión marcada, usando su receta fuente. */
     onRestoreManualSessionFromPlan: (String) -> Unit = {},
     onSwapExercise: ((String,String) -> Unit)? = null,
@@ -152,9 +146,8 @@ fun DayView(
     restoreBlockedSessionIds: Set<String> = emptySet(),
     /** Sesiones ya hechas: su fila muestra el check. */
     completedSessionIds: Set<String> = emptySet(),
-    /** Días desplegados, si los guarda la pantalla; null = los de siempre (hoy, o el primero). */
-    expandedDayIds: Set<Int>? = null,
-    onExpandedDayIdsChange: ((Set<Int>) -> Unit)? = null,
+    /** «Sesión» en cada descanso, también en los tramos plegados (la rutina, s-simple). */
+    addSessionOnRest: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -192,12 +185,6 @@ fun DayView(
             ?.let { id -> calendarProjection.weeks.firstOrNull { it.weekId == id }?.trainingDayDates }
             .orEmpty()
     }
-    // Estado checked: sólo (día ISO, sesión) confirmados EXPLÍCITAMENTE.
-    val confirmedOptionalKeys = remember(program) {
-        program.optionalSessionConfirmations
-            .map { it.dayIso to it.sessionId }
-            .toSet()
-    }
     val manuallyCustomizedSessionIds = remember(program.manualSessionOverrides) {
         program.manualSessionOverrides.map { it.sessionId }.toSet()
     }
@@ -222,9 +209,14 @@ fun DayView(
         trainingDayDates.entries.firstOrNull { it.value == todayIso }?.key
             ?: LocalDate.now().dayOfWeek.value.takeIf { dow -> days.any { it.id == dow } }
     }
-    // Cada tarjeta de sesión se despliega en su sitio; los descansos seguidos se abren uno a uno al tocarlos.
+    // Cada tarjeta de sesión se despliega en su sitio.
     var expandedSessions by rememberSaveable(selectedWeekId, stateSaver = ExpandedSessionsSaver) { mutableStateOf(emptySet<String>()) }
-    var openRestRuns by remember(selectedWeekId) { mutableStateOf(setOf<Int>()) }
+    // La cápsula de propuesta de cada sesión (s-week): la primera propuesta pendiente con carga objetivo de uno de sus ejercicios.
+    val proposalsById = remember(sessions, program.nativeProgressionProposals) {
+        sessions.associate { session ->
+            session.id to sessionProposalLabel(session.allExercises(), program.nativeProgressionProposals)
+        }
+    }
     // La primera sesión de la semana lleva las anclas del recorrido (`training.sesion` y `training.empezar`).
     val anchorDayId = days.firstOrNull { day -> dayLayout.any { it.dayId == day.id } }?.id
 
@@ -246,24 +238,19 @@ fun DayView(
         }
     }
 
-    fun sessionUiOf(entry: DaySessionEntry, scheduledDate: String?): ProgramSessionUi {
+    fun sessionUiOf(entry: DaySessionEntry): ProgramSessionUi {
         val session = entry.session
-        // Acción contextual sólo para OPCIONAL con fecha real y futura; clave exacta día+sesión (no «todas»).
-        val optionalDateIso = if (session.requirement == SessionRequirement.OPTIONAL) {
-            scheduledDate?.takeIf { it > todayIso }
-        } else {
-            null
-        }
+        val done = session.id in completedSessionIds
         return ProgramSessionUi(
             session = session,
             exerciseCount = exercisesById[session.id] ?: 0,
             minutes = minutesById[session.id] ?: 0,
-            done = session.id in completedSessionIds,
+            done = done,
             customized = session.id in manuallyCustomizedSessionIds,
             restorable = hasSourceRecipe && session.id !in restoreBlockedSessionIds,
-            optionalDateIso = optionalDateIso,
-            optionalConfirmed = optionalDateIso != null && (optionalDateIso to session.id) in confirmedOptionalKeys,
             focus = focusById[session.id].orEmpty(),
+            // Una sesión hecha no lleva cápsula.
+            proposalLabel = proposalsById[session.id].takeUnless { done },
         )
     }
 
@@ -364,7 +351,7 @@ fun DayView(
             name = day.name,
             short = day.short,
             dateNumber = scheduledDate?.let(::dayNumberOf),
-            sessions = dayLayout.filter { it.dayId == day.id }.map { sessionUiOf(it, scheduledDate) },
+            sessions = dayLayout.filter { it.dayId == day.id }.map { sessionUiOf(it) },
             isToday = day.id == todayDayId,
             isStartDay = day.id == startDay,
             isOutsideProgram = day.id in outsideProgramDays,
@@ -403,7 +390,7 @@ fun DayView(
             .onGloballyPositioned { rootBounds = it.boundsInWindow() },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            agendaRows(dayUis, openRestRuns, dragState.draggedSessionId != null).forEach { row ->
+            agendaRows(dayUis, dragState.draggedSessionId != null).forEach { row ->
                 when (row) {
                     is AgendaRow.Day -> {
                         val dayId = row.day.id
@@ -415,12 +402,11 @@ fun DayView(
                             },
                             onLongPressDay = { rect -> if (dayMenuItems(dayId).isNotEmpty()) dayMenu = dayId to rect },
                             onEditDate = { editingDayDate = dayId to scheduledDates[dayId].orEmpty() },
-                            onAddSession = { onAddSession(dayId) },
+                            onAddSession = if (addSessionOnRest) ({ onAddSession(dayId) }) else null,
                             onStartSession = { session -> startSession(session, row.day.isOutsideProgram, scheduledDates[dayId]) },
                             onEditSession = onEditSession,
                             onMoreSession = { sessionId, anchor -> sessionMenu = sessionId to anchor },
                             onRestoreSession = { sessionId -> pendingRestoreSessionId = sessionId },
-                            onToggleOptional = { dateIso, sessionId -> onToggleOptionalConfirmation(dateIso, sessionId) },
                             draggingSessionId = dragState.draggedSessionId,
                             insertIndex = if (row.day.isDropTarget) dragState.targetIndex else null,
                             anchorFirstSession = dayId == anchorDayId,
@@ -433,10 +419,15 @@ fun DayView(
                             onSwapExercise = onSwapExercise,
                         )
                     }
-                    is AgendaRow.RestRun -> ProgramRestRunRow(
-                        days = row.days,
-                        onOpen = { openRestRuns = openRestRuns + row.days.first().id },
-                    )
+                    is AgendaRow.RestRun -> {
+                        // «Sesión» del tramo añade en su primer día; la pulsación larga abre el menú de ese día.
+                        val firstDayId = row.days.first().id
+                        ProgramRestRunRow(
+                            days = row.days,
+                            onAddSession = if (addSessionOnRest) ({ onAddSession(firstDayId) }) else null,
+                            onLongPress = { rect -> if (dayMenuItems(firstDayId).isNotEmpty()) dayMenu = firstDayId to rect },
+                        )
+                    }
                 }
             }
         }
@@ -585,13 +576,7 @@ private fun DragOverlay(
         modifier = Modifier
             .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
             .width(cardWidth)
-            .zIndex(100f)
-            .graphicsLayer {
-                scaleX = 1.02f
-                scaleY = 1.02f
-                alpha = 0.96f
-                shadowElevation = 14.dp.toPx()
-            },
+            .zIndex(100f),
     ) {
         ProgramSessionDragCard(
             title = session.name,

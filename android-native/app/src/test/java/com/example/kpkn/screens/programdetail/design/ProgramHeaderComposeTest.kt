@@ -47,32 +47,30 @@ class ProgramHeaderComposeTest {
     private fun headerState(primary: ProgramHeaderPrimary) = ProgramHeaderState(
         name = program.name,
         status = ProgramHeaderStatus.ACTIVE,
-        meta = "12 semanas · 4 días por semana · Fuerza",
+        meta = "Fuerza · 12 semanas",
         identity = coverIdentityFor(program.id, null),
         photoUrl = null,
         bundled = null,
-        weekCount = 12,
-        currentWeekIndex = 3,
         progressLabel = "Semana 3 de 12 · Acumulación",
         primary = primary,
     )
 
-    private val noopActions = ProgramHeaderActions(onPrimary = {}, onStartPause = {}, onEdit = {})
+    private val noopActions = ProgramHeaderActions(onPrimary = {})
 
     @Test
     fun primaryActionIsStartWhenTodayHasASession() {
         composeRule.setContent {
             ProgramHeader(state = headerState(ProgramHeaderPrimary.Start("Torso A")), actions = noopActions)
         }
-        composeRule.onNodeWithText("Empezar Torso A").assertExists()
+        composeRule.onNodeWithText("Empezar · Torso A").assertExists()
     }
 
     @Test
     fun primaryActionIsContinueWhenTheSessionIsOngoing() {
         composeRule.setContent {
-            ProgramHeader(state = headerState(ProgramHeaderPrimary.Continue), actions = noopActions)
+            ProgramHeader(state = headerState(ProgramHeaderPrimary.Continue("Torso A")), actions = noopActions)
         }
-        composeRule.onNodeWithText("Continuar sesión").assertExists()
+        composeRule.onNodeWithText("Continuar · Torso A").assertExists()
     }
 
     @Test

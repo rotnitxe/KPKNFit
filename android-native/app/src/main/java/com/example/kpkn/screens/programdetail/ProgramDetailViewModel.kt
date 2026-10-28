@@ -147,9 +147,6 @@ data class ProgramCompetitionState(
     val supportsSbdPlanning: Boolean = true,
 )
 
-data class ProgramSeasonState(val input: com.example.kpkn.domain.season.SeasonInput,
-    val advice: List<com.example.kpkn.domain.season.SeasonAdvice>)
-
 class ProgramDetailViewModel(
     private val programId: String,
     private val idProvider: IdProvider = UuidIdProvider,
@@ -199,14 +196,6 @@ class ProgramDetailViewModel(
     private val competitionRecords = runCatching { CompetitionRepository.getInstance().records }.getOrElse {
         MutableStateFlow<List<com.example.kpkn.data.models.CompetitionRecord>>(emptyList()).asStateFlow()
     }
-    val seasonState: StateFlow<ProgramSeasonState?> = combine(program,repository.settings,repository.seasonContextChanges) { p,_,_ ->
-        p?.let {
-            val zone = java.time.ZoneId.systemDefault()
-            val context = repository.seasonInput(it.id,appClock.today(zone),zone)
-            ProgramSeasonState(context,com.example.kpkn.domain.season.SeasonAdvisor.advise(context))
-        }
-    }.flowOn(kotlinx.coroutines.Dispatchers.IO).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
-
     val competitionState: StateFlow<ProgramCompetitionState?> = combine(program,competitionRecords,repository.settings,repository.seasonContextChanges) { p,records,settings,_ ->
         if (p == null) null else {
             val today = appClock.today(java.time.ZoneId.systemDefault())
@@ -357,11 +346,6 @@ class ProgramDetailViewModel(
         p?.let { ProgramProgressReportEngine.build(it, logs.filter { log -> log.programId == it.id }, exerciseCatalogSnapshot()) }
     }.flowOn(kotlinx.coroutines.Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    val plannedLoadProjection: StateFlow<com.example.kpkn.domain.training.planning.PlannedLoadProjection?> = program.map { p ->
-        p?.let { com.example.kpkn.domain.training.planning.PlannedLoadProjector.next(it,exerciseCatalogSnapshot()) }
-    }.flowOn(kotlinx.coroutines.Dispatchers.Default)
-        .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
 
     private val _exerciseSwapRequest = MutableStateFlow<ProgramRepository.ExerciseSwapRequest?>(null)
     val exerciseSwapRequest = _exerciseSwapRequest.asStateFlow()

@@ -191,24 +191,6 @@ class ProgramDetailViewModelTest {
         return plan
     }
 
-    @Test fun season_context_refreshes_from_committed_nutrition_without_mutating_training_or_accounting() = runBlocking {
-        val id = nextId()
-        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
-        repository.addProgram(p)
-        repository.flushPendingWrites()
-        val plan = seedSeasonNutrition()
-        val vm = vmFor(id)
-        val first = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2000 } }!!
-        assertEquals(2400,first.input.maintenanceKcal)
-        assertTrue(first.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
-        repository.databaseForTests().nutritionDao().upsertPlan(plan.copy(calorieTarget = 2200).toEntity())
-        val changed = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2200 } }!!
-        assertFalse(changed.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
-        assertEquals(p.macrocycles,repository.getProgramById(id)!!.macrocycles)
-        assertTrue(repository.getLogsForProgram(id).isEmpty())
-        assertEquals(plan.id,repository.databaseForTests().nutritionDao().getActiveState()?.activePlanId)
-    }
-
     @Test fun nutrition_changed_in_the_commit_lane_invalidates_a_weekly_preview_before_program_write() = runBlocking {
         val id = nextId()
         val base = materializedRestoreProgram(id)
@@ -389,19 +371,6 @@ class ProgramDetailViewModelTest {
         assertEquals("Edición posterior",repository.getProgramById(p.id)!!.name)
         assertEquals(ongoing,repository.ongoingWorkout.value)
         assertTrue(repository.getProgramById(p.id)!!.manualSessionOverrides.isEmpty())
-    }
-
-    @Test fun planned_load_uses_the_next_prescribed_week_and_disappears_after_completion(): Unit = runBlocking {
-        val id = nextId()
-        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
-        repository.addProgram(p)
-        repository.flushPendingWrites()
-        val vm = vmFor(id)
-        val projection = withTimeout(10_000) { vm.plannedLoadProjection.first { it != null } }!!
-        assertEquals("${id}_w2",projection.weekId)
-        assertFalse(projection.nextCycleTemplate)
-        assertTrue(repository.mutateProgramNow(id) { it.copy(runState = it.runState!!.copy(status = ProgramRunStatus.COMPLETED)) })
-        withTimeout(10_000) { vm.plannedLoadProjection.first { it == null } }
     }
 
     private fun completedContinuationProgram(): Program {

@@ -11,12 +11,12 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 /** Cuántos puntos de foco caben como mucho en la tarjeta de una sesión (P2 agenda). */
 private const val MAX_FOCUS_DOTS = 3
 
-/** El foco de una sesión (P2 agenda): el grupo que trabaja, con el color de su punto en la tarjeta. */
+/** El foco de una sesión (P2 agenda): el grupo que trabaja, con el color de su punto en la tarjeta (`MUS` del lienzo v6). */
 internal enum class SessionFocus(val color: Color) {
     LEG(SymbolPalette.musculo),
     PUSH(SymbolPalette.energia),
     PULL(SymbolPalette.columna),
-    CORE(SymbolPalette.mente),
+    CORE(Color(0xFFC9A8FF)),
     CARDIO(SymbolPalette.ok),
 }
 
@@ -87,24 +87,25 @@ internal sealed interface AgendaRow {
 }
 
 /**
- * Las filas de la agenda (P2): los días en orden, salvo los descansos seguidos (dos o más sin sesiones, dentro del programa y sin ser
- * destino de arrastre), que se pliegan en un [AgendaRow.RestRun]. No se pliegan mientras se arrastra una sesión ([dragging]) ni si su
- * primer día está en [openRestRuns], que es un tramo que el usuario ha abierto.
+ * Las filas de la agenda (lienzo v6, `agendaHtml`): los días en orden, salvo los descansos seguidos (dos o más sin sesiones y sin ser
+ * destino de arrastre), que se pliegan en un [AgendaRow.RestRun] y no se despliegan. No se pliegan mientras se arrastra una sesión
+ * ([dragging]). Los días fuera del programa (antes del inicio o después del fin) no salen en la agenda (W-D3), salvo que tengan alguna
+ * sesión: así no se pierde, y al empezarla avisa el diálogo de fuera de calendario.
  */
-internal fun agendaRows(days: List<ProgramDayUi>, openRestRuns: Set<Int>, dragging: Boolean): List<AgendaRow> {
+internal fun agendaRows(days: List<ProgramDayUi>, dragging: Boolean): List<AgendaRow> {
+    val inProgram = days.filterNot { it.isOutsideProgram && it.sessions.isEmpty() }
     val rows = mutableListOf<AgendaRow>()
     var index = 0
-    while (index < days.size) {
-        if (!isRestSlot(days[index])) {
-            rows += AgendaRow.Day(days[index])
+    while (index < inProgram.size) {
+        if (!isRestSlot(inProgram[index])) {
+            rows += AgendaRow.Day(inProgram[index])
             index++
             continue
         }
         var end = index
-        while (end < days.size && isRestSlot(days[end])) end++
-        val run = days.subList(index, end)
-        val folded = run.size >= 2 && !dragging && run.first().id !in openRestRuns
-        if (folded) {
+        while (end < inProgram.size && isRestSlot(inProgram[end])) end++
+        val run = inProgram.subList(index, end)
+        if (run.size >= 2 && !dragging) {
             rows += AgendaRow.RestRun(run.toList())
         } else {
             run.forEach { rows += AgendaRow.Day(it) }
@@ -114,8 +115,8 @@ internal fun agendaRows(days: List<ProgramDayUi>, openRestRuns: Set<Int>, draggi
     return rows
 }
 
-/** Un día de descanso que puede plegarse: sin sesiones, dentro del programa y sin ser destino de arrastre. */
-private fun isRestSlot(day: ProgramDayUi): Boolean = day.sessions.isEmpty() && !day.isOutsideProgram && !day.isDropTarget
+/** Un día de descanso que puede plegarse: sin sesiones y sin ser destino de arrastre. */
+private fun isRestSlot(day: ProgramDayUi): Boolean = day.sessions.isEmpty() && !day.isDropTarget
 
 /**
  * El total de una jornada en la agenda: «≈ 45 min», «≈ 1 h 20 min» o «≈ 2 h» cuando no sobran minutos. Los minutos vienen del estimador.
@@ -125,4 +126,24 @@ internal fun dayTotalLabel(minutes: Int): String {
     val hours = minutes / 60
     val rest = minutes % 60
     return if (rest == 0) "≈ $hours h" else "≈ $hours h $rest min"
+}
+
+/**
+ * La cápsula de propuesta de una sesión (s-week, «+2,5 kg»): la primera propuesta de progresión pendiente con carga objetivo cuyo ejercicio
+ * está en la sesión, como diferencia con la carga más alta que la sesión prescribe ahora. Null si no hay ninguna o no hay con qué comparar.
+ */
+internal fun sessionProposalLabel(
+    exercises: List<Exercise>,
+    proposals: List<com.example.kpkn.data.models.NativeProgressionProposal>,
+): String? {
+    for (proposal in proposals) {
+        val target = proposal.targetLoadKg ?: continue
+        val exercise = exercises.firstOrNull { it.catalogConfigurationId == proposal.identity.configurationId } ?: continue
+        val current = exercise.sets.mapNotNull { it.weight }.maxOrNull() ?: continue
+        val delta = target - current
+        if (kotlin.math.abs(delta) < 0.05) continue
+        val magnitude = String.format(java.util.Locale.forLanguageTag("es-ES"), "%.1f", kotlin.math.abs(delta)).removeSuffix(",0")
+        return "${if (delta > 0) "+" else "−"}$magnitude kg"
+    }
+    return null
 }
