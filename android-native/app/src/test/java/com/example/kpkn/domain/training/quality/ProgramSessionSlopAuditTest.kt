@@ -3,7 +3,13 @@ package com.example.kpkn.domain.training.quality
 import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.EquipmentCategory
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.programs.CatalogLevel
@@ -15,6 +21,9 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.definitions.NativeProfileCalendars
 import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
+import com.example.kpkn.domain.exercises.exerciseDisplayName
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.training.CardioPreference
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
@@ -50,7 +59,7 @@ class ProgramSessionSlopAuditTest {
 
     private data class Finding(val rule: String, val program: String, val week: String, val session: String, val detail: String)
 
-    private class Audit {
+    private class Audit(private val displayLookup: Map<String, ExerciseMuscleInfo>) {
         val findings = ArrayList<Finding>()
         val unavailable = ArrayList<String>()
         var programs = 0
@@ -66,6 +75,14 @@ class ProgramSessionSlopAuditTest {
                     sessions++
                     SessionSlopRules.violations(session).forEach { v ->
                         findings += Finding(v.rule.name, label, weekLabel, v.sessionName, v.detail)
+                    }
+                    // I-2 · Lo que ve la persona: dos ejercicios de fuerza de una sesión no pueden pintarse con el mismo texto.
+                    session.allExercises().filterNot { it.isCardio }.forEach { e ->
+                        val internal = exerciseDisplayParts(e, resolveCatalogInfoForDisplay(e, displayLookup)).chips.filter { INTERNAL_CHIP.matches(it) }
+                        if (internal.isNotEmpty()) findings += Finding(INTERNAL_DISPLAY_CHIP, label, weekLabel, session.name, "${e.catalogConfigurationId}: $internal")
+                    }
+                    displayDuplicates(session, displayLookup).forEach { (text, list) ->
+                        findings += Finding(DUPLICATE_DISPLAY_NAME, label, weekLabel, session.name, "«$text» ×${list.size}: ${list.map { it.catalogConfigurationId }}")
                     }
                 }
             }
@@ -94,7 +111,7 @@ class ProgramSessionSlopAuditTest {
 
     @Test
     fun `ninguna sesion de ningun programa tiene slop`() {
-        val audit = Audit()
+        val audit = Audit(CatalogCompositionTestSupport.catalog.toLegacyConfigurationLookup())
         auditAuthoredPlans(audit)
         auditNativePlans(audit)
         auditRoutines(audit)
@@ -107,9 +124,42 @@ class ProgramSessionSlopAuditTest {
             "Violaciones de slop en sesiones: total $total > techo $CEILING (ver build/reports/session-slop/report.txt)",
             total <= CEILING,
         )
+        // I-2: dos tarjetas de una sesión nunca se llaman igual (sin techo: la regla vale 0 en todos los programas).
+        val sameDisplay = audit.findings.filter { it.rule == DUPLICATE_DISPLAY_NAME }
+        assertEquals("Tarjetas con el mismo texto en una sesión: ${sameDisplay.take(3)}", 0, sameDisplay.size)
+        // I-2: ningún chip de la tarjeta es un id interno («seated_machine», «hands_elevated»).
+        val internalChips = audit.findings.filter { it.rule == INTERNAL_DISPLAY_CHIP }
+        assertEquals("Chips con id interno: ${internalChips.take(3)}", 0, internalChips.size)
         // F-48: ningún programa muestra nombres internos de ejercicio (el cardio sale con su rótulo en español).
         val internalNames = audit.findings.filter { it.rule == SlopRule.INTERNAL_NAME.name }
         assertEquals("Nombres internos visibles: ${internalNames.take(3)}", 0, internalNames.size)
+    }
+
+    @Test
+    fun `la regla de tarjetas iguales detecta dos ejercicios con el mismo texto y respeta el rotulo`() {
+        val lookup = CatalogCompositionTestSupport.catalog.toLegacyConfigurationLookup()
+        fun calf(id: String, configurationId: String, label: String? = null) = Exercise(
+            id = id,
+            name = "Elevación de Talones",
+            catalogConfigurationId = configurationId,
+            catalogDefinitionId = "calf_raise",
+            occurrenceLabel = label,
+            sets = listOf(ExerciseSet(id = "$id-s1")),
+        )
+        val same = Session(id = "s", name = "Día", exercises = listOf(calf("a", "calf_raise__bilateral__machine"), calf("b", "calf_raise__bilateral__machine")))
+        assertEquals(1, displayDuplicates(same, lookup).size)
+        val labelled = Session(id = "s", name = "Día", exercises = listOf(calf("a", "calf_raise__bilateral__machine"), calf("b", "calf_raise__bilateral__machine", "Volumen")))
+        assertEquals(emptyList<String>(), displayDuplicates(labelled, lookup).map { it.first })
+        val seatedAndPress = Session(
+            id = "s",
+            name = "Día",
+            exercises = listOf(calf("a", "calf_raise__bilateral__seated_machine"), calf("b", "calf_raise__bilateral__leg_press_machine")),
+        )
+        assertEquals(emptyList<String>(), displayDuplicates(seatedAndPress, lookup).map { it.first })
+        assertEquals(
+            "Elevación de Talones · Sentado en Máquina",
+            exerciseDisplayName(seatedAndPress.exercises.first(), lookup),
+        )
     }
 
     /**
@@ -238,7 +288,7 @@ class ProgramSessionSlopAuditTest {
             appendLine("[session-slop] programas revisados: ${audit.programs}; sesiones revisadas: ${audit.sessions}")
             appendLine("[session-slop] violaciones totales: ${audit.findings.size} (techo actual: $CEILING)")
             appendLine("[session-slop] por regla:")
-            (SlopRule.entries.map { it.name } + FILLER_OVER_WEEKLY_CAP).forEach { rule -> appendLine("[session-slop]   $rule: ${byRule[rule] ?: 0}") }
+            (SlopRule.entries.map { it.name } + DUPLICATE_DISPLAY_NAME + INTERNAL_DISPLAY_CHIP + FILLER_OVER_WEEKLY_CAP).forEach { rule -> appendLine("[session-slop]   $rule: ${byRule[rule] ?: 0}") }
             appendLine("[session-slop] por clase de programa (violaciones):")
             audit.findings.groupingBy { classOf(it.program) }.eachCount().toSortedMap()
                 .forEach { (kind, count) -> appendLine("[session-slop]   $kind: $count") }
@@ -283,9 +333,19 @@ class ProgramSessionSlopAuditTest {
     }
 
     private companion object {
-        /** Techo (trinquete): 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07; 162 tras F-15 y F-48 (solo queda el relleno). La ola 5 debe dejarlo en 0. */
+        /** Grupos de ejercicios de fuerza de la sesión que la tarjeta pinta con el mismo texto (nombre + chips, como Program Detail). */
+        fun displayDuplicates(session: Session, lookup: Map<String, ExerciseMuscleInfo>): List<Pair<String, List<Exercise>>> =
+            session.allExercises().filterNot { it.isCardio }
+                .groupBy { exerciseDisplayName(it, lookup).trim().lowercase() }
+                .filter { (_, list) -> list.size > 1 }
+                .map { (text, list) -> text to list }
+
+        /** Techo (trinquete): 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07; 162 tras F-15 y F-48 (solo queda el relleno); I-2 añade DUPLICATE_DISPLAY_NAME e INTERNAL_DISPLAY_CHIP, que valen 0 sin techo. La ola 5 debe dejarlo en 0. */
         const val CEILING = 162
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
+        const val DUPLICATE_DISPLAY_NAME = "DUPLICATE_DISPLAY_NAME"
+        const val INTERNAL_DISPLAY_CHIP = "INTERNAL_DISPLAY_CHIP"
+        val INTERNAL_CHIP = Regex("[a-z0-9]+(_[a-z0-9]+)+")
         const val FILLER_WEEKLY_CAP = 2
         const val REPORT_SAMPLE = 40
         const val RULE_SAMPLE = 10

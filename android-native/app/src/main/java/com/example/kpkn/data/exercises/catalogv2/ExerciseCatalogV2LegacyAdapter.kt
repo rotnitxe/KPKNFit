@@ -204,6 +204,11 @@ private fun optionLabel(id: String): String = when (id) {
     "low" -> "Polea Baja"
     "flat" -> "Plano"
     "feet_elevated" -> "Pies Elevados"
+    "hands_elevated" -> "Manos Elevadas"
+    // I-2: aparatos del gemelo que salían como el id interno en el chip («seated_machine»…).
+    "seated_machine" -> "Sentado en Máquina"
+    "donkey_machine" -> "Burro en Máquina"
+    "leg_press_machine" -> "En Prensa de Piernas"
     "h_bar" -> "Barra H"
     "t_bar" -> "Barra T"
     "hex_bar" -> "Barra Hex"
