@@ -1,23 +1,37 @@
 #!/usr/bin/env python3
-"""Acuerdo entre dos etiquetadores del oro del examen (EXAMEN.md secciones 5, 7 y 9).
+"""Acuerdo entre dos etiquetadores del oro del examen (EXAMEN.md secciones 4, 5, 7 y 9).
 
     python agree.py --a gold_L1.jsonl --b gold_L2.jsonl --out-agreed gold.jsonl \\
                     --out-disagree desacuerdos.jsonl --report acuerdo.json
 
-Empareja las menciones de A y B por caso con el algoritmo de la seccion 7 (tokens sin tildes, plural
-simple, sin stopwords; coeficiente de solapamiento sobre span/canonicalEs/aliasesEs; umbral 0,34;
-codicioso). Una mencion concuerda si sus kcal difieren <= 15 % del mayor (piso 20 kcal) y cada macro
-cae en la tolerancia de la clase mas holgada de las dos. Un caso concuerda si todas sus menciones no
-opcionales emparejan y concuerdan y los conjuntos `excluded` coinciden (normalizados; la palabra
-«sin» se ignora). Caso concordante -> se escribe la version A. Caso discordante -> linea de
-desacuerdo para el adjudicador. Un caso presente en solo uno de los dos oros es desacuerdo.
+Criterio coherente con score.py:
 
-Solo biblioteca estandar (no importa score.py: la normalizacion se replica aqui).
+1. Emparejamiento por caso: mencion con mencion (tokens sin tildes, plural simple, sin stopwords;
+   coeficiente de solapamiento sobre span/canonicalEs/aliasesEs; umbral 0,34; codicioso) MAS
+   plato = componentes: un DISH con allowSplit de un lado empareja con el grupo de menciones del otro
+   lado cuyos nombres empatan con sus `components` (misma logica que la fase 2 de score.py: si el
+   emparejamiento entero no concuerda y el grupo si, se usa el grupo). DISH contra DISH empareja normal.
+2. Una pareja concuerda si kcal, proteina, grasa y carbohidratos consumidos (`eaten`, sumados si es
+   grupo) caen dentro de la tolerancia de la clase mas holgada de las dos (tabla TOLERANCES, relativa
+   con piso, igual a score.py) medida sobre el PROMEDIO de los dos valores.
+3. Un caso concuerda si toda pareja no opcional-en-ambos concuerda, no queda mencion obligatoria sin
+   pareja y los `excluded` coinciden (normalizados; la palabra «sin» se ignora). Las menciones
+   opcionales sin pareja se ignoran para decidir (y pasan tal cual al oro).
+4. Oro de un caso concordante: estructura del lado que tenga DISH en la pareja (si ambos o ninguno, A);
+   `eaten` = promedio de A y B; `grams.target` = promedio si ambos son numericos y la pareja es
+   mencion-mencion, si no el del lado elegido; `reference`/`per100g` del lado elegido; la ficha del otro
+   lado se agrega a `equivalents` si su codigo es distinto; `ambiguity` = union; `mealEaten` = suma.
+   El caso lleva `"agreement": {"labelers": ["L1", "L2"], "method": "mean"}`.
+5. Caso discordante -> linea de desacuerdo para el adjudicador. Un caso presente en solo uno de los dos
+   oros es desacuerdo.
+
+Solo biblioteca estandar (no importa score.py: la normalizacion y las tolerancias se replican aqui).
 """
 from __future__ import annotations
 
 import argparse
 import collections
+import copy
 import json
 import os
 import re
@@ -25,10 +39,7 @@ import sys
 import unicodedata
 
 THRESHOLD = 0.34
-KCAL_REL = 0.15
-KCAL_FLOOR = 20.0
 NUT_KEYS = ("kcal", "protein", "fat", "carbs")
-MACRO_KEYS = ("protein", "fat", "carbs")
 
 STOPWORDS = frozenset(
     "de del la el los las un una unos unas con y e al a en por para mi me medio media poco".split()
@@ -36,13 +47,14 @@ STOPWORDS = frozenset(
 ES_PLURAL_CONSONANTS = frozenset("lnrdzjsx")
 EXCLUDED_IGNORED = frozenset(("sin",))
 
-# Tolerancia de nutrientes por clase: (relativa, piso de macro en g). Seccion 5.
+# Tolerancia de nutrientes por clase (identica a TOLERANCES de score.py, seccion 5):
+# relativa, piso de kcal y piso de cada macro (g).
 TOLERANCES = {
-    "EXPLICIT": (0.10, 2.0),
-    "CONTAINER": (0.15, 2.0),
-    "COUNT": (0.25, 3.0),
-    "HOUSEHOLD": (0.25, 3.0),
-    "SUBJECTIVE": (0.40, 4.0),
+    "EXPLICIT": {"nut": 0.10, "kcal": 15.0, "macro": 2.0},
+    "CONTAINER": {"nut": 0.15, "kcal": 20.0, "macro": 2.0},
+    "COUNT": {"nut": 0.25, "kcal": 25.0, "macro": 3.0},
+    "HOUSEHOLD": {"nut": 0.25, "kcal": 25.0, "macro": 3.0},
+    "SUBJECTIVE": {"nut": 0.40, "kcal": 40.0, "macro": 4.0},
 }
 CLASS_RANK = {"EXPLICIT": 0, "CONTAINER": 1, "COUNT": 2, "HOUSEHOLD": 3, "SUBJECTIVE": 4}
 
@@ -93,15 +105,19 @@ def norm_tokens(text, extra_stop=frozenset()):
     return frozenset(out)
 
 
-def mention_sets(mention):
-    strings = [mention.get("span"), mention.get("canonicalEs")]
-    strings.extend(mention.get("aliasesEs") or [])
+def token_sets(strings):
     sets = []
     for text in strings:
         tokens = norm_tokens(text)
         if tokens:
             sets.append(tokens)
     return sets
+
+
+def mention_sets(mention):
+    strings = [mention.get("span"), mention.get("canonicalEs")]
+    strings.extend(mention.get("aliasesEs") or [])
+    return token_sets(strings)
 
 
 def similarity(a_sets, b_sets):
@@ -115,14 +131,14 @@ def similarity(a_sets, b_sets):
 
 
 def pair_mentions(a_mentions, b_mentions):
-    """Emparejamiento codicioso por similitud descendente (umbral 0,34). Devuelve [(i, j, sim)]."""
+    """Emparejamiento codicioso uno a uno por similitud descendente (umbral 0,34). [(i, j, sim)]."""
     a_sets = [mention_sets(m) for m in a_mentions]
     b_sets = [mention_sets(m) for m in b_mentions]
     candidates = []
     for i, left in enumerate(a_sets):
         for j, right in enumerate(b_sets):
             sim = similarity(left, right)
-            if sim >= THRESHOLD:
+            if sim >= THRESHOLD - 1e-12:
                 candidates.append((-sim, i, j))
     candidates.sort()
     used_a, used_b, pairs = set(), set(), []
@@ -136,7 +152,7 @@ def pair_mentions(a_mentions, b_mentions):
     return pairs
 
 
-# --------------------------------------------------------------------------- concordancia
+# --------------------------------------------------------------------------- clases y concordancia
 
 def _num(value):
     if isinstance(value, bool):
@@ -144,46 +160,165 @@ def _num(value):
     return value if isinstance(value, (int, float)) else None
 
 
-def mention_class(mention):
-    own = (mention.get("grams") or {}).get("tolerance")
-    if own in TOLERANCES:
-        return own
+def mention_class(mention, group=False):
+    """Clase de tolerancia de una mencion (mismo criterio que score.mention_class)."""
     comp = [(c.get("grams") or {}).get("tolerance") for c in mention.get("components") or []
             if isinstance(c, dict)]
     comp = [c for c in comp if c in TOLERANCES]
-    return max(comp, key=lambda c: CLASS_RANK[c]) if comp else "SUBJECTIVE"
+    own = (mention.get("grams") or {}).get("tolerance")
+    if group and comp:
+        return max(comp, key=lambda c: CLASS_RANK[c])
+    if own in TOLERANCES:
+        return own
+    if comp:
+        return max(comp, key=lambda c: CLASS_RANK[c])
+    return "SUBJECTIVE"
 
 
 def looser_class(a, b):
     return a if CLASS_RANK[a] >= CLASS_RANK[b] else b
 
 
-def compare_mentions(a, b):
-    """Lista de diferencias entre dos menciones emparejadas; vacia si concuerdan."""
+def is_split_dish(mention):
+    return (mention.get("granularity") == "DISH" and bool(mention.get("allowSplit"))
+            and any(isinstance(c, dict) for c in mention.get("components") or []))
+
+
+def sum_eaten(mentions):
+    out = {}
+    for key in NUT_KEYS:
+        values = [_num((m.get("eaten") or {}).get(key)) for m in mentions]
+        values = [v for v in values if v is not None]
+        out[key] = sum(values) if values else None
+    return out
+
+
+def side_class(mentions, as_group):
+    """Clase mas holgada entre las menciones de un lado; un plato que empareja un grupo usa sus componentes."""
+    classes = [mention_class(m, group=(as_group and is_split_dish(m))) for m in mentions]
+    return max(classes, key=lambda c: CLASS_RANK[c]) if classes else "SUBJECTIVE"
+
+
+def _fmt(value):
+    return ("%g" % round(value, 2)) if isinstance(value, (int, float)) else str(value)
+
+
+def compare_groups(a_mentions, b_mentions, grouped=False):
+    """Diferencias entre dos lados emparejados (listas de menciones); vacia si concuerdan.
+
+    Cada nutriente consumido (sumado en un grupo) debe quedar dentro de la tolerancia de la clase mas
+    holgada de las dos, medida sobre el promedio de los dos valores.
+    """
     diffs = []
-    ea = a.get("eaten") or {}
-    eb = b.get("eaten") or {}
-    cls = looser_class(mention_class(a), mention_class(b))
-    rel, floor = TOLERANCES[cls]
-
-    ka, kb = _num(ea.get("kcal")), _num(eb.get("kcal"))
-    if ka is None and kb is None:
-        pass
-    elif ka is None or kb is None:
-        diffs.append(("kcal", "kcal no comparable: %s vs %s" % (ka, kb)))
-    elif abs(ka - kb) > max(KCAL_REL * max(abs(ka), abs(kb)), KCAL_FLOOR) + 1e-9:
-        diffs.append(("kcal", "kcal %s vs %s" % (ka, kb)))
-
-    for key in MACRO_KEYS:
-        va, vb = _num(ea.get(key)), _num(eb.get(key))
+    cls = looser_class(side_class(a_mentions, grouped), side_class(b_mentions, grouped))
+    tol = TOLERANCES[cls]
+    ea, eb = sum_eaten(a_mentions), sum_eaten(b_mentions)
+    for key in NUT_KEYS:
+        va, vb = ea[key], eb[key]
         if va is None and vb is None:
             continue
         if va is None or vb is None:
             diffs.append((key, "%s no comparable: %s vs %s" % (key, va, vb)))
-        elif abs(va - vb) > max(rel * max(abs(va), abs(vb)), floor) + 1e-9:
-            diffs.append((key, "%s %s vs %s (clase %s)" % (key, va, vb, cls)))
+            continue
+        floor = tol["kcal"] if key == "kcal" else tol["macro"]
+        mean = (abs(va) + abs(vb)) / 2.0
+        if abs(va - vb) > max(tol["nut"] * mean, floor) + 1e-9:
+            diffs.append((key, "%s %s vs %s (clase %s)" % (key, _fmt(va), _fmt(vb), cls)))
     return diffs
 
+
+def compare_mentions(a, b):
+    """Diferencias entre dos menciones emparejadas una a una; vacia si concuerdan."""
+    return compare_groups([a], [b], grouped=False)
+
+
+# --------------------------------------------------------------------------- emparejamiento con platos
+
+class Pair:
+    __slots__ = ("a", "b", "kind", "dish_side")
+
+    def __init__(self, a, b, kind="whole", dish_side=None):
+        self.a = list(a)
+        self.b = list(b)
+        self.kind = kind
+        self.dish_side = dish_side
+
+
+def _pair_diffs(pair, a_mentions, b_mentions):
+    return compare_groups([a_mentions[i] for i in pair.a], [b_mentions[j] for j in pair.b],
+                          grouped=pair.kind == "group")
+
+
+def build_pairs(a_mentions, b_mentions):
+    """Mencion-mencion (fase 1) y plato = componentes (fase 2, como score.py). Devuelve [Pair]."""
+    pairs = [Pair([i], [j]) for i, j, _ in pair_mentions(a_mentions, b_mentions)]
+    owner = {"A": {}, "B": {}}
+    for pair in pairs:
+        owner["A"][pair.a[0]] = pair
+        owner["B"][pair.b[0]] = pair
+    sides = {"A": a_mentions, "B": b_mentions}
+    other_of = {"A": "B", "B": "A"}
+    tokens = {side: [mention_sets(m) for m in ms] for side, ms in sides.items()}
+
+    def make(side, idx, group):
+        return Pair([idx] if side == "A" else group, group if side == "A" else [idx], "group", side)
+
+    for side in ("A", "B"):
+        other = other_of[side]
+        for idx, dish in enumerate(sides[side]):
+            if not is_split_dish(dish):
+                continue
+            comp_toks = [token_sets([c.get("canonicalEs")] + list(c.get("aliasesEs") or []))
+                         for c in dish.get("components") or [] if isinstance(c, dict)]
+            comp_toks = [t for t in comp_toks if t]
+            if not comp_toks:
+                continue
+
+            def group_from(candidates, comp_toks=comp_toks, other=other):
+                return sorted(j for j in candidates
+                              if any(similarity(tokens[other][j], ct) >= THRESHOLD - 1e-12
+                                     for ct in comp_toks))
+
+            free = [j for j in range(len(sides[other])) if j not in owner[other]]
+            current = owner[side].get(idx)
+            if current is None:
+                group = group_from(free)
+                if group:
+                    pair = make(side, idx, group)
+                    pairs.append(pair)
+                    owner[side][idx] = pair
+                    for j in group:
+                        owner[other][j] = pair
+                continue
+            if current.kind == "group":
+                continue
+            whole = current.b if side == "A" else current.a
+            if any(sides[other][j].get("granularity") == "DISH" for j in whole):
+                continue  # plato contra plato: empareja normal
+            if not _pair_diffs(current, a_mentions, b_mentions):
+                continue  # el emparejamiento entero ya concuerda
+            group = group_from(free + whole)
+            if group and set(group) != set(whole):
+                candidate = make(side, idx, group)
+                if not _pair_diffs(candidate, a_mentions, b_mentions):
+                    for j in whole:
+                        owner[other].pop(j, None)
+                    pairs.remove(current)
+                    pairs.append(candidate)
+                    owner[side][idx] = candidate
+                    for j in group:
+                        owner[other][j] = candidate
+    pairs.sort(key=lambda p: (min(p.a), min(p.b)))
+    return pairs
+
+
+def _pair_optional(pair, a_mentions, b_mentions):
+    """Opcional en ambos lados: todas las menciones de cada lado son opcionales."""
+    return (all(a_mentions[i].get("optional") for i in pair.a)
+            and all(b_mentions[j].get("optional") for j in pair.b))
+
+
+# --------------------------------------------------------------------------- excluidos
 
 def _excluded_text(entry):
     if isinstance(entry, str):
@@ -196,36 +331,46 @@ def _excluded_text(entry):
 def excluded_set(entries):
     result = set()
     for entry in entries or []:
-        tokens = norm_tokens(_excluded_text(entry), EXCLUDED_IGNORED)
-        if tokens:
-            result.add(tokens)
+        tokens_ = norm_tokens(_excluded_text(entry), EXCLUDED_IGNORED)
+        if tokens_:
+            result.add(tokens_)
     return result
 
 
+# --------------------------------------------------------------------------- comparacion de casos
+
 def compare_cases(case_a, case_b):
-    """Devuelve (concuerda, motivos, estadisticas). Motivo = (categoria, texto)."""
+    """Devuelve (concuerda, motivos, estadisticas, parejas). Motivo = (categoria, texto)."""
     a_mentions = case_a.get("mentions") or []
     b_mentions = case_b.get("mentions") or []
-    pairs = pair_mentions(a_mentions, b_mentions)
+    pairs = build_pairs(a_mentions, b_mentions)
     reasons = []
-    stats = {"pairs": len(pairs), "agreedPairs": 0, "unmatchedRequired": 0, "kcalDiffs": []}
-    matched_a = {i for i, _, _ in pairs}
-    matched_b = {j for _, j, _ in pairs}
+    stats = {"pairs": 0, "agreedPairs": 0, "unmatchedRequired": 0, "kcalDiffs": [],
+             "dishComponentPairs": 0, "agreedDishComponentPairs": 0}
+    matched_a = {i for p in pairs for i in p.a}
+    matched_b = {j for p in pairs for j in p.b}
 
-    for i, j, _ in pairs:
-        ma, mb = a_mentions[i], b_mentions[j]
-        if ma.get("optional") and mb.get("optional"):
-            continue  # opcional en ambas: no obliga a concordar
-        ka = _num((ma.get("eaten") or {}).get("kcal"))
-        kb = _num((mb.get("eaten") or {}).get("kcal"))
+    for pair in pairs:
+        if _pair_optional(pair, a_mentions, b_mentions):
+            continue  # opcional en ambos lados: no obliga a concordar ni cuenta
+        left = [a_mentions[i] for i in pair.a]
+        right = [b_mentions[j] for j in pair.b]
+        stats["pairs"] += 1
+        is_group = pair.kind == "group"
+        if is_group:
+            stats["dishComponentPairs"] += 1
+        ka, kb = sum_eaten(left)["kcal"], sum_eaten(right)["kcal"]
         if ka is not None and kb is not None:
             stats["kcalDiffs"].append(abs(ka - kb))
-        diffs = compare_mentions(ma, mb)
+        diffs = compare_groups(left, right, grouped=is_group)
         if diffs:
+            label = left[0]
             for category, text in diffs:
-                reasons.append((category, "%s '%s': %s" % (ma.get("mid"), ma.get("span"), text)))
+                reasons.append((category, "%s '%s': %s" % (label.get("mid"), label.get("span"), text)))
         else:
             stats["agreedPairs"] += 1
+            if is_group:
+                stats["agreedDishComponentPairs"] += 1
 
     for i, mention in enumerate(a_mentions):
         if i not in matched_a and not mention.get("optional"):
@@ -242,7 +387,109 @@ def compare_cases(case_a, case_b):
         reasons.append(("excluded", "excluded distinto: A=%s B=%s" % (
             json.dumps(case_a.get("excluded") or [], ensure_ascii=False),
             json.dumps(case_b.get("excluded") or [], ensure_ascii=False))))
-    return (not reasons), reasons, stats
+    return (not reasons), reasons, stats, pairs
+
+
+# --------------------------------------------------------------------------- construccion del oro
+
+def _mean(x, y):
+    if x is None:
+        return y
+    if y is None:
+        return x
+    return (x + y) / 2.0
+
+
+def _round(value, digits=2):
+    return None if value is None else round(value, digits)
+
+
+def _equivalent_of(mention):
+    """Ficha de una mencion como equivalente {source, code, grams, per100g}, o None si no la tiene."""
+    ref = mention.get("reference") or {}
+    per100 = mention.get("per100g")
+    grams = _num((mention.get("grams") or {}).get("target"))
+    if not ref.get("source") or not ref.get("code") or not isinstance(per100, dict) or grams is None:
+        return None
+    return {"source": ref["source"], "code": ref["code"], "grams": grams, "per100g": copy.deepcopy(per100)}
+
+
+def merge_pair(left, right, pair):
+    """Mencion de oro de una pareja concordante: promedio de A y B, estructura del lado con DISH."""
+    if pair.dish_side == "B":
+        use_b = True
+    elif pair.dish_side == "A":
+        use_b = False
+    else:
+        use_b = (right[0].get("granularity") == "DISH" and left[0].get("granularity") != "DISH")
+    chosen_side, other_side = (right, left) if use_b else (left, right)
+    chosen = copy.deepcopy(chosen_side[0])
+
+    totals_chosen, totals_other = sum_eaten(chosen_side), sum_eaten(other_side)
+    chosen["eaten"] = {k: _round(_mean(totals_chosen[k], totals_other[k])) for k in NUT_KEYS}
+
+    if len(left) == 1 and len(right) == 1:  # mencion con mencion: misma forma
+        g_chosen = _num((chosen.get("grams") or {}).get("target"))
+        g_other = _num((other_side[0].get("grams") or {}).get("target"))
+        if g_chosen is not None and g_other is not None:
+            grams = dict(chosen.get("grams") or {})
+            grams["target"] = _round(_mean(g_chosen, g_other))
+            chosen["grams"] = grams
+        # la ficha del otro lado queda como equivalente si su codigo es distinto
+        extra = _equivalent_of(other_side[0])
+        own_ref = chosen.get("reference") or {}
+        equivalents = list(chosen.get("equivalents") or [])
+        known = {(own_ref.get("source"), own_ref.get("code"))}
+        known.update((e.get("source"), e.get("code")) for e in equivalents if isinstance(e, dict))
+        if extra is not None and (extra["source"], extra["code"]) not in known:
+            equivalents.append(extra)
+        if equivalents or "equivalents" in chosen:
+            chosen["equivalents"] = equivalents
+
+    ambiguity = []
+    for mention in left + right:
+        for item in mention.get("ambiguity") or []:
+            if item not in ambiguity:
+                ambiguity.append(item)
+    chosen["ambiguity"] = ambiguity
+    chosen["optional"] = all(bool(m.get("optional")) for m in left + right)
+    return chosen
+
+
+def build_gold(case_a, case_b, pairs):
+    """Caso de oro promedio de dos etiquetadores que concuerdan."""
+    a_mentions = case_a.get("mentions") or []
+    b_mentions = case_b.get("mentions") or []
+    entries = []
+    for pair in pairs:
+        left = [a_mentions[i] for i in pair.a]
+        right = [b_mentions[j] for j in pair.b]
+        entries.append(((0, min(pair.a), 0), merge_pair(left, right, pair)))
+    matched_a = {i for p in pairs for i in p.a}
+    matched_b = {j for p in pairs for j in p.b}
+    for i, mention in enumerate(a_mentions):
+        if i not in matched_a:  # solo llegan aqui opcionales sin pareja
+            entries.append(((0, i, 1), copy.deepcopy(mention)))
+    for j, mention in enumerate(b_mentions):
+        if j not in matched_b:
+            entries.append(((1, j, 1), copy.deepcopy(mention)))
+    entries.sort(key=lambda item: item[0])
+    mentions = [m for _, m in entries]
+    seen = set()
+    for mention in mentions:
+        mid = mention.get("mid")
+        while mid in seen:
+            mid = "%sb" % mid
+        seen.add(mid)
+        mention["mid"] = mid
+
+    gold = copy.deepcopy(case_a)
+    gold.pop("labeler", None)
+    gold["mentions"] = mentions
+    kcals = [_num((m.get("eaten") or {}).get("kcal")) for m in mentions]
+    gold["mealEaten"] = {"kcal": round(sum(k for k in kcals if k is not None), 1)}
+    gold["agreement"] = {"labelers": ["L1", "L2"], "method": "mean"}
+    return gold
 
 
 def agree(gold_a, gold_b, text_by_id=None):
@@ -254,21 +501,23 @@ def agree(gold_a, gold_b, text_by_id=None):
 
     agreed, disagree = [], []
     reason_counts = collections.Counter()
-    totals = {"pairs": 0, "agreedPairs": 0, "unmatchedRequired": 0}
+    totals = {"pairs": 0, "agreedPairs": 0, "unmatchedRequired": 0,
+              "dishComponentPairs": 0, "agreedDishComponentPairs": 0}
     kcal_diffs = []
     for cid in order:
         case_a, case_b = by_id_a.get(cid), by_id_b.get(cid)
+        pairs = []
         if case_a is None or case_b is None:
             side = "A" if case_a is None else "B"
             reasons = [("casoAusente", "caso ausente en %s (descartado o con error)" % side)]
             ok = False
         else:
-            ok, reasons, stats = compare_cases(case_a, case_b)
+            ok, reasons, stats, pairs = compare_cases(case_a, case_b)
             for key in totals:
                 totals[key] += stats[key]
             kcal_diffs.extend(stats["kcalDiffs"])
         if ok:
-            agreed.append(case_a)
+            agreed.append(build_gold(case_a, case_b, pairs))
             continue
         for category, _ in reasons:
             reason_counts[category] += 1
@@ -291,6 +540,8 @@ def agree(gold_a, gold_b, text_by_id=None):
         "agreedMentions": totals["agreedPairs"],
         "unmatchedRequiredMentions": totals["unmatchedRequired"],
         "mentionAgreementRate": (totals["agreedPairs"] / mention_slots) if mention_slots else None,
+        "dishComponentPairs": totals["dishComponentPairs"],
+        "agreedDishComponentPairs": totals["agreedDishComponentPairs"],
         "meanAbsKcalDiff": (sum(kcal_diffs) / len(kcal_diffs)) if kcal_diffs else None,
         "reasonCounts": dict(reason_counts.most_common()),
         "topReasons": [{"reason": k, "count": v} for k, v in reason_counts.most_common(5)],

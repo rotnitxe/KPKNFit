@@ -10,7 +10,7 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 | Fase | Qué | Estado |
 |---|---|---|
 | F0 | Examen sellado + arnés A/B; línea base de master; veredicto master vs. Codex | en curso |
-| F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | pendiente |
+| F1a | Paquete de catálogo v0 (SQLite de solo lectura) con vector completo de nutrientes | paquete construido (`e0e53e842`); falta el lector en Android |
 | F4 | Micronutrientes de punta a punta (sin cambio de esquema Room) | pendiente |
 | F1b | Conceptos y alias en español por lotes («IA en la fábrica») | pendiente |
 | F2 | Parser v2 por léxico + gramática de enlaces, en sombra | pendiente |
@@ -39,10 +39,20 @@ Plan aprobado el 2026-10-27. Rama `claude/nutrition-search-nutrients-improvement
 | Lectores de fuentes (copiados de Codex) | `scripts/nutrition_v2/sources/` | hecho (`a6dd982fc`) |
 | Índice de referencias (16.541 fichas) | `scripts/nutrition_v2/exam/refindex.py` | hecho (`3214b91a5`) |
 | Generación de textos | 8 agentes Sonnet → `C:\kw\nutri-examen\raw\G1…G8.jsonl` (guía en `spec\GENERACION.md`) | hecho: 1.154 textos; por fenómeno exacto; estilo `telefono` 47 % (meta 40 %), SNACK 22 % (meta 15 %) |
-| Puntuador + bootstrap | `scripts/nutrition_v2/exam/score.py` | en curso |
-| Curación, oro y acuerdo | `scripts/nutrition_v2/exam/curate.py`, `gold_build.py`, `agree.py` | en curso |
-| Etiquetado | agentes Sonnet con `spec\ETIQUETADO.md` (convenciones de porciones) | pendiente |
-| Predicciones de master | `android-native/app/src/test/java/com/example/kpkn/domain/nutrition/exam/` | en curso |
+| Puntuador + bootstrap | `scripts/nutrition_v2/exam/score.py` | hecho (`793660b0d`) |
+| Curación, oro y acuerdo | `scripts/nutrition_v2/exam/curate.py`, `gold_build.py`, `agree.py` | hecho (`dcc1d445c`); curación real: 1.000 casos (DEV 400 / TEST 600), 146 de reserva, 8 duplicados |
+| Módulo B (pedido del 27-oct) | 6 agentes Sonnet → `raw\B1…B6.jsonl` (`spec\GENERACION_B.md`); curación en anexo (`caf997baf`) | hecho: 408 generados → 350 casos E1001–E1350 (DEV 140 / TEST 210; 92 en inglés, 18 spanglish); los 1.000 anteriores intactos |
+| Etiquetado | agentes Sonnet con `spec\ETIQUETADO.md` (criterios unificados v1.1) y `spec\TAREA_ETIQUETADOR.md`; lotes `work\batches\D01–D16`, `T01–T24`, `DB01–DB06`, `TB01–TB09` | TEST: L1 y L2 completos salvo TB07–TB09; DEV (solo L1): D01–D16 y DB01–DB02 hechos, DB03–DB06 en curso. 0 errores de validación |
+| Acuerdo v2 | `scripts/nutrition_v2/exam/agree.py`: tolerancia de la clase sobre el promedio, plato ≡ componentes, oro = promedio | hecho; sobre TEST A + TB01–TB06: 70 % de casos y 77 % de menciones concuerdan (antes 24–28 % de casos con ±15 % de kcal) |
+| Adjudicación | `spec\ADJUDICACION.md` (convenciones v1.2: 26 decisiones sobre las dudas de los etiquetadores; la otra lectura razonable va a `equivalents`) → `labels\ADJ\` | en curso: 8 agentes Sonnet sobre los 197 + 32 casos en desacuerdo |
+| Predicciones de master | `android-native/app/src/test/java/com/example/kpkn/domain/nutrition/exam/` | código listo; la verificación en Gradle Android falló por memoria del compilador (4 GiB) y un comentario sin cerrar: se repite con `-Xmx6g` |
+
+## Piezas de F1a
+
+| Pieza | Ruta | Estado |
+|---|---|---|
+| Contrato del paquete | `docs/nutrition-v2/F1A_PAQUETE.md` | hecho (`da6574cf4`) |
+| Constructor del paquete | `scripts/nutrition_v2/catalog/build_pack.py` | hecho (`e0e53e842`): 31,5 MB, 38 nutrientes, FTS4 sobre alias normalizados |
 
 ## Registro de corridas de TEST
 

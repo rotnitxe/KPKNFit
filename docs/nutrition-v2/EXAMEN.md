@@ -22,6 +22,17 @@ C:\kw\nutri-examen\
 
 Las descripciones no son secretas (los sistemas las leen todas); **el oro de TEST sí**.
 
+## 1 bis. Módulos
+
+- **Módulo A** (E0001–E1000): 16 fenómenos, 6 regiones; DEV 400 / TEST 600.
+- **Módulo B** (E1001–E1350, pedido del usuario del 27-oct): estilos variados y más idiomas, en seis
+  grupos (`group`): B1 inglés coloquial (60), B2 inglés formal o extenso y spanglish (50), B3 faltas en
+  los nombres de alimentos (70), B4 sin puntuación (60), B5 formal y bien escrito (50), B6 texto
+  extenso con ruido (60); español de Chile y de unos 20 países más, inglés de EE. UU. y Reino Unido.
+  DEV 140 / TEST 210. Total del examen: **1.350 casos (DEV 540 / TEST 810)**.
+- Los casos llevan además `lang` (`es` | `en` | `mix`) y `group` (null en el módulo A). F17 = texto
+  extenso o con ruido; F18 = inglés o mezcla de idiomas. El informe se desglosa también por grupo.
+
 ## 2. Casos (`cases/*.jsonl`) — una línea por descripción
 
 ```json

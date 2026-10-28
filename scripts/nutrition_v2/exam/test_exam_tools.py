@@ -417,6 +417,16 @@ def gold_mention(mid, span, canonical, kcal, protein=5.0, fat=5.0, carbs=20.0, t
     return mention
 
 
+def rice_chicken_dish(kcal):
+    return gold_mention(
+        "m1", "arroz con pollo", "arroz con pollo", kcal, protein=34.0, fat=10.0, carbs=44.0,
+        granularity="DISH", allowSplit=True,
+        components=[{"canonicalEs": "arroz", "aliasesEs": [], "grams": {"target": 150.0, "tolerance": "HOUSEHOLD"},
+                     "eaten": {"kcal": 200.0, "protein": 4.0, "fat": 1.0, "carbs": 44.0}},
+                    {"canonicalEs": "pollo", "aliasesEs": [], "grams": {"target": 100.0, "tolerance": "HOUSEHOLD"},
+                     "eaten": {"kcal": 220.0, "protein": 30.0, "fat": 9.0, "carbs": 0.0}}])
+
+
 def gold_case(cid, mentions, excluded=()):
     return {"id": cid, "mentions": mentions, "excluded": list(excluded),
             "mealEaten": {"kcal": sum(m["eaten"]["kcal"] for m in mentions)}}
@@ -435,8 +445,11 @@ class AgreeTests(unittest.TestCase):
         b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 215.0, protein=5.5),
                              gold_mention("m2", "pollo", "pollo", 140.0, protein=31.0)])
         agreed, disagree, report = agree.agree([a], [b], {"E1": "arroz con pollo"})
-        self.assertEqual(agreed, [a])
+        self.assertEqual(len(agreed), 1)
         self.assertEqual(disagree, [])
+        self.assertEqual([m["eaten"]["kcal"] for m in agreed[0]["mentions"]], [207.5, 145.0])
+        self.assertEqual(agreed[0]["mealEaten"], {"kcal": 352.5})
+        self.assertEqual(agreed[0]["agreement"], {"labelers": ["L1", "L2"], "method": "mean"})
         self.assertEqual(report["caseAgreementRate"], 1.0)
         self.assertEqual(report["mentionAgreementRate"], 1.0)
         self.assertAlmostEqual(report["meanAbsKcalDiff"], 12.5)
@@ -456,8 +469,8 @@ class AgreeTests(unittest.TestCase):
     def test_kcal_floor_and_relative_limit(self):
         near = agree.compare_mentions(gold_mention("m", "x", "x", 40.0), gold_mention("m", "x", "x", 59.0))
         self.assertEqual(near, [])  # 19 kcal <= piso 20
-        far = agree.compare_mentions(gold_mention("m", "x", "x", 500.0), gold_mention("m", "x", "x", 400.0))
-        self.assertEqual([k for k, _ in far], ["kcal"])  # 100 > 15 % de 500
+        far = agree.compare_mentions(gold_mention("m", "x", "x", 500.0), gold_mention("m", "x", "x", 300.0))
+        self.assertEqual([k for k, _ in far], ["kcal"])  # 200 > 25 % de 400 (promedio), clase HOUSEHOLD
 
     def test_macro_uses_looser_class(self):
         a = gold_mention("m", "x", "x", 100.0, protein=10.0, tol="EXPLICIT")
@@ -465,6 +478,104 @@ class AgreeTests(unittest.TestCase):
         b_loose = gold_mention("m", "x", "x", 100.0, protein=13.0, tol="SUBJECTIVE")
         self.assertEqual([k for k, _ in agree.compare_mentions(a, b_strict)], ["protein"])
         self.assertEqual(agree.compare_mentions(a, b_loose), [])
+
+    def test_subjective_30_percent_agrees_and_gold_is_the_mean(self):
+        a = gold_case("E1", [gold_mention("m1", "pasta", "pasta", 200.0, protein=8.0, fat=4.0, carbs=40.0,
+                                          tol="SUBJECTIVE")])
+        b = gold_case("E1", [gold_mention("m1", "pasta", "pasta", 270.0, protein=11.0, fat=5.5, carbs=54.0,
+                                          tol="SUBJECTIVE")])
+        agreed, disagree, report = agree.agree([a], [b])
+        self.assertEqual(disagree, [])
+        self.assertEqual(agreed[0]["mentions"][0]["eaten"],
+                         {"kcal": 235.0, "protein": 9.5, "fat": 4.75, "carbs": 47.0})
+        self.assertEqual(agreed[0]["mealEaten"], {"kcal": 235.0})
+        self.assertEqual(report["caseAgreementRate"], 1.0)
+
+    def test_explicit_15_percent_does_not_agree(self):
+        a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0, tol="EXPLICIT")])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 230.0, tol="EXPLICIT")])
+        agreed, disagree, report = agree.agree([a], [b])
+        self.assertEqual(agreed, [])
+        self.assertEqual(report["reasonCounts"]["kcal"], 1)
+
+    def test_grams_target_is_averaged_when_both_have_it(self):
+        a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0,
+                                          grams={"target": 100.0, "tolerance": "HOUSEHOLD"})])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 220.0,
+                                          grams={"target": 110.0, "tolerance": "HOUSEHOLD"})])
+        agreed, _, _ = agree.agree([a], [b])
+        self.assertEqual(agreed[0]["mentions"][0]["grams"], {"target": 105.0, "tolerance": "HOUSEHOLD"})
+        b2 = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 220.0,
+                                           grams={"target": None, "tolerance": "HOUSEHOLD"})])
+        agreed, _, _ = agree.agree([a], [b2])
+        self.assertEqual(agreed[0]["mentions"][0]["grams"]["target"], 100.0)
+
+    def test_dish_versus_two_mentions_agrees(self):
+        a = gold_case("E1", [rice_chicken_dish(kcal=420.0)])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0, protein=4.0, fat=1.0, carbs=44.0),
+                             gold_mention("m2", "pollo", "pollo", 215.0, protein=30.0, fat=9.0, carbs=0.0)])
+        agreed, disagree, report = agree.agree([a], [b])
+        self.assertEqual(disagree, [])
+        self.assertEqual(report["dishComponentPairs"], 1)
+        self.assertEqual(report["agreedDishComponentPairs"], 1)
+        self.assertEqual(report["mentionAgreementRate"], 1.0)
+        mentions = agreed[0]["mentions"]
+        self.assertEqual(len(mentions), 1)
+        self.assertEqual(mentions[0]["granularity"], "DISH")
+        self.assertEqual(mentions[0]["eaten"]["kcal"], 417.5)  # promedio de 420 y 415
+        self.assertEqual(agreed[0]["mealEaten"], {"kcal": 417.5})
+        # lados invertidos: la estructura sale del lado que tiene el plato
+        agreed, disagree, report = agree.agree([b], [a])
+        self.assertEqual(disagree, [])
+        self.assertEqual(report["dishComponentPairs"], 1)
+        self.assertEqual([m["granularity"] for m in agreed[0]["mentions"]], ["DISH"])
+
+    def test_dish_versus_two_mentions_far_apart_disagrees(self):
+        a = gold_case("E1", [rice_chicken_dish(kcal=420.0)])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 400.0, tol="EXPLICIT"),
+                             gold_mention("m2", "pollo", "pollo", 500.0, tol="EXPLICIT")])
+        agreed, disagree, report = agree.agree([a], [b])
+        # como en score.py, el grupo solo se usa si concuerda; si no, queda el emparejamiento entero
+        self.assertEqual(agreed, [])
+        self.assertEqual(len(disagree), 1)
+        self.assertEqual(report["agreedDishComponentPairs"], 0)
+        self.assertIn("faltaEnA", report["reasonCounts"])
+
+    def test_other_side_reference_is_added_to_equivalents(self):
+        ref_a = {"source": "USDA_FNDDS", "code": "100", "name": "Rice A"}
+        ref_b = {"source": "USDA_SR_LEGACY", "code": "200", "name": "Rice B"}
+        per_a = {"kcal": 130.0, "protein": 2.7, "fat": 0.3, "carbs": 28.0}
+        per_b = {"kcal": 140.0, "protein": 2.5, "fat": 0.4, "carbs": 30.0}
+        a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0, reference=ref_a, per100g=per_a)])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 210.0, reference=ref_b, per100g=per_b)])
+        agreed, _, _ = agree.agree([a], [b])
+        mention = agreed[0]["mentions"][0]
+        self.assertEqual(mention["reference"], ref_a)
+        self.assertEqual(mention["per100g"], per_a)
+        self.assertEqual(mention["equivalents"],
+                         [{"source": "USDA_SR_LEGACY", "code": "200", "grams": 100.0, "per100g": per_b}])
+        # misma ficha en ambos lados: no se agrega nada
+        b_same = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 210.0, reference=dict(ref_a),
+                                               per100g=per_a)])
+        agreed, _, _ = agree.agree([a], [b_same])
+        self.assertEqual(agreed[0]["mentions"][0].get("equivalents", []), [])
+
+    def test_ambiguity_is_the_union(self):
+        a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0, ambiguity=["STATE"])])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 205.0, ambiguity=["AMOUNT", "STATE"])])
+        agreed, _, _ = agree.agree([a], [b])
+        self.assertEqual(agreed[0]["mentions"][0]["ambiguity"], ["STATE", "AMOUNT"])
+
+    def test_both_optional_pair_does_not_block_nor_count(self):
+        a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0),
+                             gold_mention("m2", "sal", "sal", 0.0, optional=True)])
+        b = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 205.0),
+                             gold_mention("m2", "sal", "sal", 30.0, optional=True)])
+        agreed, disagree, report = agree.agree([a], [b])
+        self.assertEqual(disagree, [])
+        self.assertEqual(report["pairedMentions"], 1)
+        self.assertEqual(report["mentionAgreementRate"], 1.0)
+        self.assertTrue(agreed[0]["mentions"][1]["optional"])
 
     def test_disagreement_by_missing_mention(self):
         a = gold_case("E1", [gold_mention("m1", "arroz", "arroz", 200.0),
