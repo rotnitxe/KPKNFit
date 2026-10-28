@@ -28,7 +28,6 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -160,8 +159,13 @@ class ProgramsViewModelTest {
         assertNotNull(id)
         val created = ProgramRepository.getInstance().getProgramById(id!!)!!
         assertNotNull(created.sourceRecipe)
-        assertNull(created.athleteProfileScore)
-        assertTrue(created.volumeRecommendations.isEmpty())
+        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN (2 de 3 en todo, estilo del método).
+        assertEquals(listOf(2, 2, 2, 2), created.athleteProfileScore!!.let { listOf(it.technicalScore, it.consistencyScore, it.strengthScore, it.mobilityScore) })
+        assertTrue(created.volumeRecommendations.isNotEmpty())
+        assertEquals(
+            com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED,
+            ProgramRepository.getInstance().settings.value.volumeCalibrationProfile?.responses?.state,
+        )
     }
 
     @Test
@@ -252,8 +256,10 @@ class ProgramsViewModelTest {
         val created = ProgramRepository.getInstance().getProgramById((outcome as ProgramsViewModel.TemplateApplyOutcome.Created).programId)!!
         // simple-1 es la estructura en blanco de una semana; crear no inventa una rutina.
         assertEquals(1, created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.size)
-        assertNull(created.athleteProfileScore)
-        assertTrue(created.volumeRecommendations.isEmpty())
+        // IMP-03 (F-46): sin respuestas propias nace con la calibración sugerida por KPKN, no vacía.
+        assertEquals(com.example.kpkn.domain.training.VolumeCalibrationEngine.styleFor(created.mode), created.athleteProfileScore!!.trainingStyle)
+        assertTrue(created.volumeRecommendations.isNotEmpty())
+        assertEquals(com.example.kpkn.data.models.VolumeSystem.KPNK, created.volumeSystem)
     }
 
     @Test

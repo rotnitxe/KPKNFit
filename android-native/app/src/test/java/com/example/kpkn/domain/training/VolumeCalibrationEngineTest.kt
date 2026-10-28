@@ -58,4 +58,22 @@ class VolumeCalibrationEngineTest {
         assertSame(global, VolumeCalibrationEngine.effectiveRecommendations(emptyList(), global, general))
         assertSame(general, VolumeCalibrationEngine.effectiveRecommendations(emptyList(), emptyList(), general))
     }
+
+    @Test
+    fun suggestedCalibrationUsesTheStyleOfTheModeWithTwoOfThreeEverywhere() {
+        val expected = mapOf(
+            ProgramMode.POWERLIFTING to TrainingStyle.POWERLIFTER,
+            ProgramMode.POWERBUILDING to TrainingStyle.POWERBUILDER,
+            ProgramMode.HYPERTROPHY to TrainingStyle.BODYBUILDER,
+        )
+        ProgramMode.entries.forEach { mode ->
+            val suggested = VolumeCalibrationEngine.suggested(mode)
+            assertEquals(expected.getValue(mode), suggested.score.trainingStyle)
+            assertEquals(mode, suggested.mode)
+            assertEquals(listOf(2, 2, 2, 2), with(suggested.score) { listOf(technicalScore, consistencyScore, strengthScore, mobilityScore) })
+            assertEquals(8, suggested.score.totalScore)
+            assertTrue(suggested.recommendations.isNotEmpty())
+            assertEquals(VolumeCalibrationEngine.calculate(expected.getValue(mode), 2, 2, 2, 2), suggested)
+        }
+    }
 }

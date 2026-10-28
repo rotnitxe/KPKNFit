@@ -50,7 +50,7 @@ internal fun ProgramVolumeCalibrationModule(
             Text("Ciclo ${cycle.cycleNumber}: ${cycle.answeredWeeks} semanas respondidas y ${cycle.skippedWeeks} omitidas.", style = KpknType.caption, color = WizardColors.textMuted)
         }
         Spacer(Modifier.height(8.dp))
-        if (responses != null) Text("Perfil guardado · ${responseOrigin(responses.state)}", style = KpknType.caption, color = WizardColors.textMuted)
+        if (responses != null) Text(profileOriginLine(responses.state), style = KpknType.caption, color = WizardColors.textMuted)
         if (originalNotes.isNotBlank()) Text(originalNotes, style = KpknType.body, color = WizardColors.text)
         KpknCompactPill(text = "Ver registros y elegir rangos", onClick = onEdit, fullWidth = true)
         if (proposals.isNotEmpty()) {
@@ -115,7 +115,7 @@ internal fun ProgramPlanningVolumeTargetSheet(
                 summary.notes.forEach { Text(it, style = KpknType.body, color = WizardColors.text) }
             }
             responses?.let { saved ->
-                Text("Perfil guardado · ${responseOrigin(saved.state)}", style = KpknType.bodyStrong, color = WizardColors.text)
+                Text(profileOriginLine(saved.state), style = KpknType.bodyStrong, color = WizardColors.text)
                 Text("Técnica ${saved.technique}/3 · constancia ${saved.consistency}/3 · fuerza ${saved.strength}/3 · movilidad ${saved.mobility}/3", style = KpknType.body, color = WizardColors.text)
             }
             cycles.forEach { cycle ->
@@ -151,3 +151,7 @@ private fun responseOrigin(state: com.example.kpkn.data.models.CalibrationRespon
     com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED -> "valores sugeridos"
     com.example.kpkn.data.models.CalibrationResponseState.UNKNOWN -> "origen sin confirmar"
 }
+
+/** La línea de origen del perfil: «Sugerido por KPKN» cuando son los valores por defecto (IMP-03), si no, el origen de las respuestas. */
+private fun profileOriginLine(state: com.example.kpkn.data.models.CalibrationResponseState): String =
+    if (state == com.example.kpkn.data.models.CalibrationResponseState.SUGGESTED) "Sugerido por KPKN" else "Perfil guardado · ${responseOrigin(state)}"
