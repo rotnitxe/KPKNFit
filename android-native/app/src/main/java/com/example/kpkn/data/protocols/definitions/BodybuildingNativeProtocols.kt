@@ -284,7 +284,7 @@ object KpknNativeHypertrophyProtocols {
                     listOf(
                         DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                         DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                        DayArchetypes.bbPull(rir).copy(weekday = 4, label = "Torso B"),
+                        DayArchetypes.bbTorsoB(rir).copy(weekday = 4, label = "Torso B"),
                         DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
                     ).map { day ->
                         if (deload) {
@@ -307,7 +307,8 @@ object KpknNativeHypertrophyProtocols {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-            contentVersion = 3,
+            // F-41: «Torso B» pasa a ser un torso de verdad (antes solo tirón), versión 4.
+            contentVersion = 4,
         ),
         fidelitySpec = ProtocolFidelitySpec(6, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )

@@ -202,6 +202,26 @@ object DayArchetypes {
         },
     )
 
+    /**
+     * F-41 · Segundo día de torso, equilibrado entre empuje y tirón y con ejercicios distintos a los de [bbTorso]
+     * (ninguna configuración coincide con ellos), para las semanas con «Torso A» y «Torso B».
+     * El remo con el pecho apoyado va con agarre ancho (`CSR_WIDE`) porque `CSR` ya es el de [bbTorso].
+     */
+    fun bbTorsoB(rir: Int = 2): DayRecipe = day(
+        label = "Torso B",
+        archetype = DaySlotTemplate.BB_TORSO,
+        weekday = 1,
+        slots = listOf(
+            slot("press", SlotRole.T1_MAIN, Id.BP_INC_DB, rangeRirSets(3, 6, 8, rir), restSeconds = 180),
+            slot("row", SlotRole.T2_SUPPLEMENTAL, Id.CSR_WIDE, rangeRirSets(4, 8, 10, rir), restSeconds = 120, source = kpkn),
+            slot("shoulder", SlotRole.T3_ACCESSORY, Id.SEATED_PRESS_DB, rangeRirSets(3, 8, 10, rir), restSeconds = 120, source = kpkn),
+            slot("pull", SlotRole.T3_ACCESSORY, Id.LAT_CLOSE_GRIP, rangeRirSets(3, 10, 12, rir), restSeconds = 90, source = kpkn),
+            slot("lat", SlotRole.T3_ACCESSORY, Id.LATERAL, rangeRirSets(3, 12, 15, rir.coerceAtLeast(1)), restSeconds = 60, source = kpkn),
+            slot("hammer", SlotRole.T3_ACCESSORY, Id.HAMMER, rangeRirSets(2, 10, 12, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
+            slot("pushdown", SlotRole.T3_ACCESSORY, Id.PUSHDOWN, rangeRirSets(2, 12, 15, rir.coerceAtLeast(1)), restSeconds = 45, source = kpkn),
+        ),
+    )
+
     fun bbTorso(rir: Int = 2): DayRecipe = day(
         label = "Torso",
         archetype = DaySlotTemplate.BB_TORSO,

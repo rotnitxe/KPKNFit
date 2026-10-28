@@ -294,7 +294,7 @@ object KpknAdvancedProgramRecipes {
             val days = listOf(
                 DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                 DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
+                DayArchetypes.bbTorsoB(rir).copy(weekday = 4, label = "Torso B"),
                 // L-25 (B.S6): la pierna B baja un RIR pero nunca a 0 en los compuestos (antes: RIR 0 en la semana 5 y de la 7 a la 11).
                 DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1), hipDominant = true, label = "Pierna B", weekday = 5),
             ).map { day -> if (mapped.third == BlockGoal.DELOAD) day.asDeload() else day }
@@ -303,7 +303,7 @@ object KpknAdvancedProgramRecipes {
                 kind = if (mapped.third == BlockGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
             )
         }
-        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("body-12-3", weeks, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION + 1)
     }
 
     fun ppl16(): TrainingPlanRecipe {

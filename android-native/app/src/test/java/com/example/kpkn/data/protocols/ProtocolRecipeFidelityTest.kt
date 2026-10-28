@@ -53,7 +53,7 @@ class ProtocolRecipeFidelityTest {
         assertEquals(firstAccessory(offSeason,1,0) + 1,firstAccessory(offSeason,9,0))
         assertEquals(firstAccessory(offSeason,1,2) + 1,firstAccessory(offSeason,13,2))
         assertEquals(4,offSeason.contentVersion)
-        assertEquals(2,com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.hypertrophyUl12().contentVersion)
+        assertEquals(3,com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.hypertrophyUl12().contentVersion)
     }
 
     /**
@@ -1042,7 +1042,7 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
-    fun rp_style_ramps_accessory_sets_and_torso_b_pulls() {
+    fun rp_style_ramps_accessory_sets_and_torso_b_is_a_real_torso() {
         val recipe = recipeOf("kpkn-rp-style")
         val week1 = recipe.weeks.first { it.weekNumber == 1 }
         val week5 = recipe.weeks.first { it.weekNumber == 5 }
@@ -1054,11 +1054,34 @@ class ProtocolRecipeFidelityTest {
         assertEquals("la semana 6 es de descarga", WeekExecutionKind.DELOAD, recipe.weeks.first { it.weekNumber == 6 }.kind)
         val torsoB = week1.days.first { it.weekday == 4 }
         assertEquals("el jueves es el Torso B", "Torso B", torsoB.label)
+        // F-41: el Torso B ya no es solo tirón (`bbPull`): es el torso equilibrado `bbTorsoB`.
         assertEquals(
-            "el Torso B tira, no empuja",
-            DayArchetypes.bbPull(3).slots.first().lift.configurationId,
-            torsoB.slots.first().lift.configurationId,
+            "el Torso B es el torso equilibrado de F-41",
+            DayArchetypes.bbTorsoB(3).slots.map { it.lift.configurationId },
+            torsoB.slots.map { it.lift.configurationId },
         )
+    }
+
+    @Test
+    fun f41_the_two_torso_days_have_push_and_pull_and_share_no_configuration() {
+        val push = setOf(com.example.kpkn.domain.training.PatternFamily.HORIZONTAL_PUSH, com.example.kpkn.domain.training.PatternFamily.VERTICAL_PUSH)
+        val pull = setOf(com.example.kpkn.domain.training.PatternFamily.HORIZONTAL_PULL, com.example.kpkn.domain.training.PatternFamily.VERTICAL_PULL)
+        fun families(day: DayRecipe) = day.slots.mapNotNull { slot ->
+            metadata.metadata(slot.lift.configurationId)?.let { com.example.kpkn.domain.training.CompositionTaxonomy.familyOf(it.movementPatternId) }
+        }.toSet()
+        listOf(recipeOf("kpkn-rp-style"), templateRecipe("body-12-3")).forEach { recipe ->
+            recipe.weeks.forEach { week ->
+                val torsoA = week.days.first { it.label == "Torso A" }
+                val torsoB = week.days.first { it.label == "Torso B" }
+                val shared = torsoA.slots.map { it.lift.configurationId }.toSet() intersect torsoB.slots.map { it.lift.configurationId }.toSet()
+                assertTrue("${recipe.id} w${week.weekNumber}: los dos torsos comparten $shared", shared.isEmpty())
+                listOf(torsoA, torsoB).forEach { day ->
+                    val found = families(day)
+                    assertTrue("${recipe.id} w${week.weekNumber} ${day.label}: sin empuje ($found)", found.any { it in push })
+                    assertTrue("${recipe.id} w${week.weekNumber} ${day.label}: sin tirón ($found)", found.any { it in pull })
+                }
+            }
+        }
     }
 
     @Test
@@ -1618,12 +1641,14 @@ class ProtocolRecipeFidelityTest {
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "nsuns-531-lp-4d", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
+            "nsuns-531-lp-4d", "kpkn-rts-style", "calgary-16",
             // F-31: el relleno de KPKN rota a partir del tercer día de la semana (C12) y estas recetas pasan de la versión 2 a la 3.
             "texas-method-4d", "gzcl-uhf-9", "gzcl-jt-2", "gzcl-rippler", "smolov", "smolov-jr", "westside-conjugate", "korte-3x3",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
         // F-31: Lilliebridge, GZCLP, Juggernaut y Sheiko (la segunda tanda lleva rótulo propio desde F-15) pasan de la versión 3 a la 4.
         listOf("lilliebridge", "gzclp", "juggernaut-2", "sheiko-29-32").forEach { id -> assertEquals("$id: contentVersion", 4, recipeOf(id).contentVersion) }
+        // F-41: «Torso B» de kpkn-rp-style deja de ser solo tirón (v4).
+        assertEquals("kpkn-rp-style: contentVersion", 4, recipeOf("kpkn-rp-style").contentVersion)
         // F-15: el volumen BBB y la serie FSL de 5/3/1 llevan rótulo propio (v4); la velocidad de Coan y PHAT también (v2).
         listOf("wendler-531-bbb", "wendler-531-fsl").forEach { id -> assertEquals("$id: contentVersion", 4, recipeOf(id).contentVersion) }
         listOf("coan-phillipi-dl", "phat-verified").forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
@@ -1638,6 +1663,8 @@ class ProtocolRecipeFidelityTest {
                 // F-31: el relleno de KPKN rota a partir del tercer día (power-20-5 pasa a 5, body-20-5 a 4).
                 it.id == "power-20-5" -> 5
                 it.id == "body-20-5" -> 4
+                // F-41: «Torso B» de body-12-3 pasa a ser un torso de verdad.
+                it.id == "body-12-3" -> 3
                 it.id.startsWith("power-") || it.id in setOf("powerbuild-16-4","body-16-4") -> 3
                 else -> 2
             }
