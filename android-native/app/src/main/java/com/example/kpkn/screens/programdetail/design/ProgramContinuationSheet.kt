@@ -18,7 +18,10 @@ import com.example.kpkn.ui.design.KpknType
 
 @Composable
 internal fun ProgramContinuationSheet(preview: ProgramRepository.ContinuationPreview,busy: Boolean,onConfirm: () -> Unit,onDismiss: () -> Unit) {
-    val next = preview.nextProgram ?: return
+    val next = preview.nextProgram ?: run {
+        ProgramUnavailableSheet("Programa terminado", "No hay un programa nuevo que preparar con esta opción.", onDismiss)
+        return
+    }
     val weeks = ProgramHierarchyIndex(next).orderedWeeks()
     val sessionCount = weeks.sumOf { it.week.sessions.size }
     val maintenance = preview.choice == ContinuationChoice.MAINTENANCE_WEEK

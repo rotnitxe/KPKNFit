@@ -22,7 +22,10 @@ internal fun ProgramBlockReviewSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val review = preview.original.pendingBlockReview?.review ?: return
+    val review = preview.original.pendingBlockReview?.review ?: run {
+        ProgramUnavailableSheet("Bloque terminado", "Esta revisión ya no está pendiente. Vuelve a abrirla desde «Pendiente».", onDismiss)
+        return
+    }
     val previous = ProgramHierarchyIndex(preview.original).orderedWeeks().flatMap { it.week.sessions }.associateBy { it.id }
     val changed = ProgramHierarchyIndex(preview.result).orderedWeeks().flatMap { it.week.sessions }.filter { previous[it.id] != it }
     fun number(value: Double) = String.format(java.util.Locale.forLanguageTag("es-CL"), "%.1f", value)

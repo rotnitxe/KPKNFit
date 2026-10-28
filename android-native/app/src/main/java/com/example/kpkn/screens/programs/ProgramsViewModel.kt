@@ -139,8 +139,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         inactiveProgramsOf(all = all, featuredId = activeId, queuedIds = queue)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val programQueue: StateFlow<List<Program>> = combine(repository.programQueue, programs) { queue, all ->
-        queue.mapNotNull { id -> all.find { it.id == id } }
+    // Si se activa un programa que estaba en cola, sale en «En curso» y no en «En cola» a la vez.
+    val programQueue: StateFlow<List<Program>> = combine(repository.programQueue, programs, featuredProgramId) { queue, all, activeId ->
+        queue.filter { it != activeId }.mapNotNull { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     /**

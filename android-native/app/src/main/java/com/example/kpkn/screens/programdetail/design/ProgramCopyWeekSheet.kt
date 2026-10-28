@@ -37,6 +37,8 @@ internal fun ProgramCopyWeekSheet(
     weeks: List<WeekWithMeta>,
     currentBlockWeekIds: Set<String>,
     selectedWeekId: String?,
+    /** Destino ya marcado al abrir (la semana sobre la que se pegó); null = la primera semana distinta de la origen. */
+    initialTargetWeekId: String? = null,
     conflictsFor: (String, Set<String>) -> List<WeekCopyConflict>,
     onCopy: (String, Set<String>, Set<String>) -> Unit,
     onDismiss: () -> Unit,
@@ -45,7 +47,8 @@ internal fun ProgramCopyWeekSheet(
         mutableStateOf(selectedWeekId ?: weeks.firstOrNull()?.id.orEmpty())
     }
     var targetWeekIds by remember(weeks, sourceWeekId) {
-        mutableStateOf(weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet())
+        val initial = initialTargetWeekId?.takeIf { id -> id != sourceWeekId && weeks.any { it.id == id } }
+        mutableStateOf(initial?.let { setOf(it) } ?: weeks.filter { it.id != sourceWeekId }.take(1).map { it.id }.toSet())
     }
     var replaceWeekIds by remember { mutableStateOf(emptySet<String>()) }
     val conflicts = remember(sourceWeekId, targetWeekIds, weeks) { conflictsFor(sourceWeekId, targetWeekIds) }

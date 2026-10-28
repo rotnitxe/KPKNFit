@@ -244,6 +244,8 @@ fun ProgramDetailScreen(
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
+    // Semana copiada (para pegarla en otra): común a las pestañas, que AnimatedContent recrea al cambiar.
+    val copiedWeekState = rememberSaveable(program?.id) { mutableStateOf<String?>(null) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
     var showVolumeSheet by rememberSaveable { mutableStateOf(false) }
@@ -569,6 +571,7 @@ fun ProgramDetailScreen(
                         onCreateSession = onCreateSession,
                         onOpenProgram = onOpenProgram,
                         onOpenSplitPage = { showSplitPage = true },
+                        copiedWeekState = copiedWeekState,
                     )
                 }
             }
@@ -900,6 +903,7 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
+    copiedWeekState: MutableState<String?> = remember(program.id) { mutableStateOf(null) },
 ) {
     val volumeEvidence by viewModel.volumeEvidence.collectAsStateWithLifecycle()
     val closedCycleEvidence by viewModel.closedCycleEvidence.collectAsStateWithLifecycle()
@@ -916,8 +920,11 @@ private fun TrainingPanel(
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
     val restoreBlockedSessionIds by viewModel.restoreBlockedSessionIds.collectAsState()
-    var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
+    // Lo copiado vive por encima de las pestañas (copiedWeekState): cambiar de pestaña no lo pierde.
+    var copiedRoadmapWeekId by copiedWeekState
     var showCopyWeekDialog by remember { mutableStateOf(false) }
+    // Semana sobre la que se pegó: la hoja de conflictos la trae ya marcada como destino.
+    var pasteTargetWeekId by remember { mutableStateOf<String?>(null) }
     val allProgramWeeks = remember(program, roadmapBlocks) {
         com.example.kpkn.domain.training.ProgramDetailHelpers.getAllWeeks(roadmapBlocks, program)
     }
@@ -993,6 +1000,7 @@ private fun TrainingPanel(
                     replaceWeekIds = emptySet(),
                 )
             } else {
+                pasteTargetWeekId = targetWeekId
                 showCopyWeekDialog = true
             }
         }
@@ -1474,9 +1482,13 @@ private fun TrainingPanel(
             weeks = allProgramWeeks,
             currentBlockWeekIds = currentWeeks.map { it.id }.toSet(),
             selectedWeekId = copiedRoadmapWeekId ?: selectedWeekId,
+            initialTargetWeekId = pasteTargetWeekId,
             conflictsFor = { source, targets -> viewModel.previewWeekCopyConflicts(source, targets) },
             onCopy = { source, targets, replace -> viewModel.copyWeekSessions(source, targets, replace) },
-            onDismiss = { showCopyWeekDialog = false },
+            onDismiss = {
+                showCopyWeekDialog = false
+                pasteTargetWeekId = null
+            },
         )
     }
 
@@ -1613,6 +1625,9 @@ private fun TrainingPanel(
                 val weekMeta = currentWeeks.find { it.id == selectedWeekId }
                 if (block != null && weekMeta != null) {
                     viewModel.deleteSession(sessionToDelete.id, block.macroIndex, weekMeta.mesoIndex, selectedWeekId ?: "")
+                } else {
+                    // Sin bloque o semana elegidos no se sabe dónde está la sesión: se avisa en vez de cerrar sin hacer nada.
+                    viewModel.showMessage("No se pudo eliminar la sesión: vuelve a abrir su semana e inténtalo de nuevo.")
                 }
                 pendingDeleteSession = null
             },

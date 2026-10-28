@@ -213,6 +213,10 @@ private fun ChoiceSection(
                 )
             }
         }
+        // Qué significa la opción elegida, como el detalle de las filas de puntaje.
+        options.firstOrNull { it.value == selectedValue }?.let { chosen ->
+            Text(chosen.detail, style = KpknType.caption, color = WizardColors.textMuted)
+        }
     }
 }
 
