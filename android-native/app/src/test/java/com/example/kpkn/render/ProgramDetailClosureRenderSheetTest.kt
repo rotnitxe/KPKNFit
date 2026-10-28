@@ -388,7 +388,6 @@ class ProgramDetailClosureRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                    onCalibrate = {},
                     controls = controls,
                 )
                 ProgramVolumeSummaryModule(

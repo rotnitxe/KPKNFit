@@ -21,14 +21,38 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
+/** Ejercicios del programa que llevan TM: con referencia guardada, principales o secundarios, o con series en % del TM. */
+private fun trainingMaxTargetsOf(migrated: Program) = ExerciseTrainingMax.exercises(migrated).filter { exercise ->
+    exercise.referenceTrainingMax != null || exercise.slotRole in listOf(
+        com.example.kpkn.data.protocols.SlotRole.T1_MAIN, com.example.kpkn.data.protocols.SlotRole.T2_SUPPLEMENTAL) || exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
+}.distinctBy { listOf(it.catalogConfigurationId ?: it.exerciseDbId, it.loadQuantityConvention) }
+
+/** Los ids de los ejercicios con TM de [program] (los mismos que lista el panel). */
+internal fun exerciseTrainingMaxTargets(program: Program): List<String> = trainingMaxTargetsOf(ExerciseTrainingMax.migrate(program)).map { it.id }
+
+/** Cuántos de [targets] no tienen TM todavía. */
+internal fun exerciseTrainingMaxMissing(program: Program, targets: List<String>): Int {
+    val migrated = ExerciseTrainingMax.migrate(program)
+    return ExerciseTrainingMax.exercises(migrated).filter { it.id in targets }.count { exercise ->
+        ExerciseTrainingMax.capturedKg(migrated, exercise, PlanLoadReferenceKind.EXERCISE_TM) == null
+    }
+}
+
+/** La línea de la fila «Cargas de referencia (TM)»: cuántos ejercicios y cuántos faltan. */
+internal fun exerciseTrainingMaxSummary(count: Int, missing: Int): String {
+    val base = if (count == 1) "1 ejercicio con TM" else "$count ejercicios con TM"
+    return when (missing) {
+        0 -> base
+        1 -> "$base · falta 1"
+        else -> "$base · faltan $missing"
+    }
+}
+
 /** Exact per-exercise references, including lifts outside the four legacy profile fields. */
 @Composable
 internal fun ExerciseTrainingMaxPanel(program: Program, onConfirm: suspend (String, Double) -> Result<Unit>, modifier: Modifier = Modifier) {
     val migrated = remember(program) { ExerciseTrainingMax.migrate(program) }
-    val exercises = remember(migrated) { ExerciseTrainingMax.exercises(migrated).filter { exercise ->
-        exercise.referenceTrainingMax != null || exercise.slotRole in listOf(
-            com.example.kpkn.data.protocols.SlotRole.T1_MAIN, com.example.kpkn.data.protocols.SlotRole.T2_SUPPLEMENTAL) || exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
-    }.distinctBy { listOf(it.catalogConfigurationId ?: it.exerciseDbId, it.loadQuantityConvention) } }
+    val exercises = remember(migrated) { trainingMaxTargetsOf(migrated) }
     var selected by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }

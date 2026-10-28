@@ -70,7 +70,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.programdetail.design.ProgramDecisionsSheet
 import com.example.kpkn.screens.programdetail.design.WeeklyCheckinSheet
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationModule
 import com.example.kpkn.screens.programdetail.design.ProgramPlanningVolumeTargetSheet
 import com.example.kpkn.screens.programdetail.design.PlanningRangeProposalsSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
@@ -113,6 +112,7 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
@@ -138,6 +138,17 @@ import com.example.kpkn.screens.programdetail.design.weekSheetSubtitle
 import com.example.kpkn.screens.programdetail.design.progress.ProgressLiftsModule
 import com.example.kpkn.screens.programdetail.design.progress.ProgressScope
 import com.example.kpkn.screens.programdetail.design.progress.ProgressScopeChips
+import com.example.kpkn.screens.programdetail.design.progress.ProgramRangesSheet
+import com.example.kpkn.screens.programdetail.design.progress.ProgramMonthlySummariesModule
+import com.example.kpkn.screens.monthsummary.MonthlySummaryScreen
+import com.example.kpkn.screens.monthsummary.summaryKey
+import com.example.kpkn.screens.monthsummary.summaryMonths
+import com.example.kpkn.screens.stories.MonthShareSheet
+import com.example.kpkn.data.preferences.monthlySummaryStore
+import com.example.kpkn.domain.training.progress.MonthlyReportEngine
+import com.example.kpkn.ui.components.KpknPortal
+import java.time.YearMonth
+import com.example.kpkn.screens.programdetail.design.progress.rangesOriginOf
 import com.example.kpkn.screens.programdetail.design.progress.ProgressSummaryModule
 import com.example.kpkn.screens.programdetail.design.progress.ProgressWorkModule
 import com.example.kpkn.screens.programdetail.design.progress.buildProgramProgress
@@ -230,7 +241,6 @@ fun ProgramDetailScreen(
         viewModel.consumePendingOpenProgram()
         onOpenProgram(id)
     }
-    var showVolumeSetupNotice by remember { mutableStateOf(false) }
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
@@ -273,12 +283,7 @@ fun ProgramDetailScreen(
 
     val bundledCover = rememberProgramCover(programCoverEntryIdOf(p.coverImage), with(density) { 88.dp.roundToPx() })
 
-    LaunchedEffect(p.id, p.volumeSetupPromptSeen) {
-        if (!p.volumeSetupPromptSeen) {
-            showVolumeSetupNotice = true
-        }
-    }
-    // «Calibrar ahora» del aviso sube el token: se abre la hoja de calibración del volumen.
+    // Token de la hoja de calibración del volumen: ningún aviso lo sube desde que la fila «Rangos» abre su hoja.
     LaunchedEffect(openVolumeSheetToken) {
         if (openVolumeSheetToken > 0) showVolumeSheet = true
     }
@@ -763,7 +768,7 @@ fun ProgramDetailScreen(
             onDraftChange = { editDraft = it },
             onSave = {
                 viewModel.updateProgram(
-                    p.copy(name = draft.trimmedName, description = draft.trimmedDescription, coverImage = draft.cover),
+                    p.copy(name = draft.trimmedName, description = draft.trimmedDescription, coverImage = draft.cover, mode = draft.mode),
                 )
                 showEditSheet = false
             },
@@ -795,38 +800,6 @@ fun ProgramDetailScreen(
         notifiedLoopWeekId = loopWeek.id
         snackbarHostState.showKpknSnackbar("Ciclo activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
         LoopNotificationManager(context).notifyLoopActive(p.name, loopWeek.name)
-    }
-
-    if (showVolumeSetupNotice) {
-        KpknAlertDialog(
-            onDismissRequest = {
-                viewModel.markVolumeSetupPromptSeen()
-                showVolumeSetupNotice = false
-            },
-            title = { Text("Calibrar volumen del programa", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    "Para ajustar recomendaciones por músculo y activar automatizaciones de volumen, completa tu calibración inicial ahora."
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.markVolumeSetupPromptSeen()
-                    showVolumeSetupNotice = false
-                    openVolumeSheetToken++
-                }) {
-                    Text("Calibrar ahora")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    viewModel.markVolumeSetupPromptSeen()
-                    showVolumeSetupNotice = false
-                }) {
-                    Text("Más tarde")
-                }
-            },
-        )
     }
 
     // La unidad es la de Ajustes, una sola en toda la app: las hojas de máximos no tienen conmutador. Lo guardado son kg.
@@ -1090,8 +1063,24 @@ private fun TrainingPanel(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (structureSubTab == StructureSubTab.SEMANA) {
-            ExerciseTrainingMaxPanel(program, onConfirm = viewModel::updateExerciseTrainingMaxAndAwait, modifier = Modifier.padding(horizontal = 16.dp))
+        // Cargas de referencia (TM) por ejercicio: viven en Estructura («Del programa») y se editan en su hoja.
+        var showExerciseTmSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+        val exerciseTmTargets = remember(program) { exerciseTrainingMaxTargets(program) }
+        if (showExerciseTmSheet) {
+            KpknSheet(onDismissRequest = { showExerciseTmSheet = false }, stableHeightFraction = 0.85f) {
+                Column(
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("Cargas de referencia", style = KpknType.title, color = WizardColors.text)
+                    Text(
+                        "El TM de cada ejercicio que trabaja con porcentajes. Al cambiarlo se recalculan sus cargas.",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                    ExerciseTrainingMaxPanel(program, onConfirm = viewModel::updateExerciseTrainingMaxAndAwait)
+                }
+            }
         }
 
         when (structureSubTab) {
@@ -1237,7 +1226,13 @@ private fun TrainingPanel(
                     }
                 }
             }
-            StructureSubTab.MACROCICLO -> MacrocycleEditor(
+            StructureSubTab.MACROCICLO -> {
+                // «Revisión del plan» (antes al pie de Volumen) vive ahora al pie de Estructura: el mismo informe del motor.
+                val structureLogs by viewModel.programLogs.collectAsState()
+                val structureAnalyticsReport = remember(program, structureLogs) {
+                    ProgramAnalyticsEngine.analyze(program = program, logs = structureLogs, exerciseCatalog = exerciseCatalogSnapshot())
+                }
+                MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
@@ -1302,19 +1297,16 @@ private fun TrainingPanel(
                     viewModel.addProgramCopy(copy)
                     onOpenProgram(copy.id)
                 },
+                analyticsReport = structureAnalyticsReport,
+                onOpenTrainingMaxes = if (exerciseTmTargets.isNotEmpty()) ({ showExerciseTmSheet = true }) else null,
+                trainingMaxSummary = exerciseTrainingMaxSummary(exerciseTmTargets.size, exerciseTrainingMaxMissing(program, exerciseTmTargets)),
             )
+            }
             StructureSubTab.VOLUMEN -> {
                 val progLogs by viewModel.programLogs.collectAsState()
                 val isActiveProg by viewModel.isActiveProgram.collectAsState()
                 val discomforts by viewModel.programDiscomforts.collectAsState()
                 val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
-                val analyticsReport = remember(program, progLogs) {
-                    ProgramAnalyticsEngine.analyze(
-                        program = program,
-                        logs = progLogs,
-                        exerciseCatalog = exerciseCatalogSnapshot(),
-                    )
-                }
                 val hasCreatedSessions = remember(program) {
                     program.macrocycles
                         .flatMap { it.blocks }
@@ -1322,7 +1314,7 @@ private fun TrainingPanel(
                         .flatMap { it.weeks }
                         .any { it.sessions.isNotEmpty() }
                 }
-                // Pestaña Progreso: resumen, fuerza y trabajo por semana, con el alcance elegido. Va encima de la calibración y del volumen, que no cambian.
+                // Pestaña Progreso: resumen, fuerza y trabajo por semana, con el alcance elegido. Debajo, el volumen por músculo con la fila «Rangos» (sustituye a «Calibrar»).
                 var progressScope by rememberSaveable { mutableStateOf(ProgressScope.PROGRAM) }
                 var showAllLifts by rememberSaveable { mutableStateOf(false) }
                 val blockPosition = roadmapBlocks.indexOfFirst { it.id == selectedBlockId }
@@ -1365,12 +1357,48 @@ private fun TrainingPanel(
                         note = progressUi.weekNote,
                     )
                     Spacer(Modifier.height(12.dp))
+                    // Resúmenes mensuales (P8c-2): los meses con resumen; cada fila abre su pantalla completa, con su hoja de compartir.
+                    val summaryMonthList = remember(progLogs, program.id) { summaryMonths(progLogs, program.id, java.time.LocalDate.now()) }
+                    var openSummaryMonth by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
+                    var shareSummary by remember { mutableStateOf(false) }
+                    val summaryContext = LocalContext.current
+                    if (summaryMonthList.isNotEmpty()) {
+                        ProgramMonthlySummariesModule(
+                            months = summaryMonthList,
+                            onOpen = { month ->
+                                monthlySummaryStore(summaryContext).markSeen(summaryKey(program.id, month))
+                                openSummaryMonth = month.toString()
+                            },
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    openSummaryMonth?.let { monthText ->
+                        val month = remember(monthText) { YearMonth.parse(monthText) }
+                        val report = remember(progLogs, month, program.id) { MonthlyReportEngine.build(progLogs, month, program.id) }
+                        KpknPortal {
+                            MonthlySummaryScreen(
+                                report = report,
+                                programName = program.name,
+                                onShare = { shareSummary = true },
+                                onOpenProgress = null,
+                                onClose = {
+                                    shareSummary = false
+                                    openSummaryMonth = null
+                                },
+                            )
+                        }
+                        if (shareSummary) {
+                            MonthShareSheet(report = report, programName = program.name, onDismiss = { shareSummary = false })
+                        }
+                    }
                 }
-                Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    ProgramVolumeCalibrationModule(volumeEvidence, program.planningVolumeTargets, closedCycleEvidence,
-                        volumeProfileResponses, program.volumeCalibrationNotes, onEdit = { showPlanningVolumeTargets = true },
-                        proposals = planningRangeProposals, onReviewProposals = viewModel::reviewPlanningRanges)
-                }
+                // Rangos: la fila del volumen abre su hoja; «Revisar mis respuestas» sube el token que abre la calibración de siempre.
+                var showRangesSheet by rememberSaveable { mutableStateOf(false) }
+                var answersToken by remember { mutableIntStateOf(0) }
+                val rangesOrigin = rangesOriginOf(
+                    ownRangesCount = program.planningVolumeTargets.size,
+                    hasProfile = volumeProfileResponses != null || program.athleteProfileScore != null,
+                )
                 CompositionLocalProvider(
                     com.example.kpkn.screens.programdetail.components.LocalVolumeCalibrationSaved provides viewModel::saveVolumeCalibrationOriginals,
                 ) {
@@ -1402,9 +1430,23 @@ private fun TrainingPanel(
                     },
                     programDiscomforts = discomforts,
                     exerciseDiscomfortAssociations = exDiscomfortAssoc,
-                    analyticsReport = analyticsReport,
                     programLogs = progLogs,
+                    rangesOrigin = rangesOrigin,
+                    onOpenRanges = { showRangesSheet = true },
+                    openAnswersToken = answersToken,
                 )
+                }
+                if (showRangesSheet) {
+                    ProgramRangesSheet(
+                        origin = rangesOrigin,
+                        ownRangesCount = program.planningVolumeTargets.size,
+                        proposalsCount = planningRangeProposals.size,
+                        proposalsCycle = planningRangeProposals.maxOfOrNull { it.cycleNumber },
+                        onChooseOwn = { showRangesSheet = false; showPlanningVolumeTargets = true },
+                        onReviewAnswers = { showRangesSheet = false; answersToken++ },
+                        onReviewProposals = { showRangesSheet = false; viewModel.reviewPlanningRanges() },
+                        onDismiss = { showRangesSheet = false },
+                    )
                 }
             }
         }

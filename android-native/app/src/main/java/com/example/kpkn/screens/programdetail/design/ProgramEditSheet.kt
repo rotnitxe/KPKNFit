@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudio
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.restyled
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -46,9 +48,9 @@ import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * «Editar programa» (KPKN_UI_V2, P1): nombre y descripción con «Guardar», y el estudio de portada. Nada se escribe hasta «Guardar»,
- * que queda deshabilitado sin cambios. El estudio muestra los diez estilos en miniatura y la paleta, con una vista previa en vivo.
- * Con foto propia, la foto manda hasta «Usar portada KPKN».
+ * «Editar programa» (KPKN_UI_V2, P1): nombre, descripción y modalidad con «Guardar», y el estudio de portada. Nada se escribe
+ * hasta «Guardar», que queda deshabilitado sin cambios. El estudio muestra los diez estilos en miniatura y la paleta, con una
+ * vista previa en vivo. Con foto propia, la foto manda hasta «Usar portada KPKN».
  *
  * Sin estado: el borrador ([draft]) y sus cambios viven en la pantalla.
  */
@@ -92,6 +94,25 @@ internal fun ProgramEditSheet(
                     singleLine = false,
                     minLines = 2,
                 )
+                Spacer(Modifier.height(24.dp))
+                Text(text = "MODALIDAD", style = KpknType.eyebrow, color = WizardColors.textMuted)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Orienta el volumen y las cargas que KPKN propone para este programa.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    editableProgramModes.forEach { modo ->
+                        KpknChip(
+                            text = programModeLabel(modo),
+                            selected = draft.mode == modo,
+                            onClick = { onDraftChange(draft.copy(mode = modo)) },
+                            modifier = Modifier.testTag("editar_modalidad_${modo.name}"),
+                        )
+                    }
+                }
                 Spacer(Modifier.height(24.dp))
                 Text(text = "PORTADA", style = KpknType.eyebrow, color = WizardColors.textMuted)
                 Spacer(Modifier.height(12.dp))

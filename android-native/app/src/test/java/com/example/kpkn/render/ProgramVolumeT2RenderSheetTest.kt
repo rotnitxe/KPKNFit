@@ -82,7 +82,7 @@ class ProgramVolumeT2RenderSheetTest {
                     ProgramVolumeModule(
                         muscles = listOf(muscle), scope = scope,
                         onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
-                        expandedMuscle = muscle.name, onToggleMuscle = {}, breakdown = breakdown, onCalibrate = {},
+                        expandedMuscle = muscle.name, onToggleMuscle = {}, breakdown = breakdown,
                         controls = { ProgramVolumeCountControls(2, {}) },
                         unassignedCount = 2,
                     )

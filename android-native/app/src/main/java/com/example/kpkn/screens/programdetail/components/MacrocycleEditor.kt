@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
+import com.example.kpkn.domain.training.ProgramAnalyticsReport
 
 /**
  * Stable entry point for the program-detail macrocycle editor.
@@ -68,6 +69,9 @@ fun MacrocycleEditor(
     onUpdateWeek: (weekId: String, name: String, description: String?) -> Unit = { _, _, _ -> },
     onDeleteWeek: (weekId: String) -> Unit = {},
     onAddSimpleWeek: () -> Unit = {},
+    analyticsReport: ProgramAnalyticsReport? = null,
+    onOpenTrainingMaxes: (() -> Unit)? = null,
+    trainingMaxSummary: String? = null,
     modifier: Modifier = Modifier,
 ) {
     MacrocycleEditorLegacy(
@@ -120,6 +124,9 @@ fun MacrocycleEditor(
         onUpdateWeek = onUpdateWeek,
         onDeleteWeek = onDeleteWeek,
         onAddSimpleWeek = onAddSimpleWeek,
+        analyticsReport = analyticsReport,
+        onOpenTrainingMaxes = onOpenTrainingMaxes,
+        trainingMaxSummary = trainingMaxSummary,
         modifier = modifier,
     )
 }
