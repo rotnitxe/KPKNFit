@@ -18,9 +18,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * DUP-07 · Los planes propios nativos no repiten ejercicio (configuración, definición ni familia de movimiento) en una
- * sesión: la potencia (P) elige otra configuración que la del resto del día, y dos slots no potentes con la misma
- * configuración se fusionan en el principal.
+ * DUP-07 / I-1 · Los planes propios nativos no dejan dos tarjetas sin identidad propia del mismo ejercicio en una sesión.
+ * La potencia (P) conserva la barra ligera específica (§11.5: sentadilla de barra alta, banca con barra) emparejada con el
+ * básico de trabajo (`supplementalOf`) y rotulada «Potencia»; dos slots NO potentes con la misma configuración se fusionan
+ * en el principal.
  */
 class NativeSessionDuplicatesTest {
 
@@ -68,7 +69,7 @@ class NativeSessionDuplicatesTest {
     }
 
     @Test
-    fun `atleta completo conserva los slots de potencia al evitar el duplicado`() {
+    fun `atleta completo conserva los slots de potencia`() {
         listOf(AuthoredPlanFixtures.fullGym, AuthoredPlanFixtures.dumbbellsAndBench).forEach { gear ->
             val program = requireNotNull(personalize(NativeProfileKind.COMPLETE_ATHLETE, CatalogLevel.INTERMEDIATE, 4, gear))
             val speed = AuthoredPlanFixtures.exercisesOf(program).filter { it.slotRole == SlotRole.SPEED }
@@ -77,11 +78,30 @@ class NativeSessionDuplicatesTest {
     }
 
     @Test
-    fun `atleta completo con barra no hace dos sentadillas traseras el mismo dia`() {
-        val program = requireNotNull(personalize(NativeProfileKind.COMPLETE_ATHLETE, CatalogLevel.ADVANCED, 4, AuthoredPlanFixtures.fullGym))
-        AuthoredPlanFixtures.weeksOf(program).flatMap { it.sessions }.forEach { session ->
-            val families = session.allExercises().mapNotNull { SessionSlopRules.familyOf(it.catalogConfigurationId) }
-            assertEquals("${session.name}: $families", families.distinct().size, families.size)
+    fun `atleta completo con barra hace la potencia con barra alta y banca con barra, emparejada y rotulada Potencia`() {
+        listOf(CatalogLevel.INTERMEDIATE, CatalogLevel.ADVANCED).forEach { level ->
+            val program = requireNotNull(personalize(NativeProfileKind.COMPLETE_ATHLETE, level, 4, AuthoredPlanFixtures.fullGym))
+            // La banca de potencia comparte configuración con el básico: `normalizedIdentityFields` borra ese enlace a sí
+            // misma, así que la identidad la da el rótulo; la sentadilla de barra alta queda enlazada a la de barra baja.
+            val power = AuthoredPlanFixtures.exercisesOf(program).filter { it.slotRole == SlotRole.SPEED }
+            assertTrue("$level: el atleta debe seguir con potencia", power.isNotEmpty())
+            power.forEach {
+                assertEquals("$level: ${it.name} rotulada", "Potencia", it.occurrenceLabel)
+            }
+            val configurations = power.mapNotNull { it.catalogConfigurationId }.toSet()
+            assertTrue("$level: potencia de sentadilla con barra alta $configurations", "high_bar_back_squat__barbell" in configurations)
+            assertTrue("$level: potencia de banca con barra $configurations", "bench_press__barbell" in configurations)
+            power.filter { it.catalogConfigurationId == "high_bar_back_squat__barbell" }.forEach {
+                assertEquals("$level: ${it.name} enlazada a la sentadilla de barra baja", "low_bar_back_squat__barbell", it.relativeToCanonicalExerciseId)
+            }
+            AuthoredPlanFixtures.weeksOf(program).flatMap { it.sessions }.forEach { session ->
+                // Una aparición repetida solo cabe si tiene identidad propia; el resto de la sesión no repite nada.
+                assertEquals(
+                    "$level · ${session.name}",
+                    emptyList<Any>(),
+                    SessionSlopRules.violations(session).filter { it.rule in duplicateRules },
+                )
+            }
         }
     }
 

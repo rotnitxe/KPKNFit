@@ -4,7 +4,6 @@ import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.protocols.displayName as techniqueDisplayName
 
@@ -72,16 +71,12 @@ fun exerciseDisplayParts(
 }
 
 /**
- * Rótulo de una aparición repetida por el autor («Volumen BBB 5×10», «Velocidad»), como primer chip. Una variación con nombre
- * propio (`VARIATION` enlazada a otra configuración) no lo necesita: ya se distingue por su nombre.
+ * Rótulo de una aparición repetida por el autor («Volumen BBB 5×10», «Velocidad», «Potencia»), como primer chip. También lo
+ * pinta una variación con nombre propio (`VARIATION` enlazada): el materializador solo le pone rótulo si el autor lo declaró
+ * (p. ej. «Sentadilla Trasera con Barra Alta · Potencia» junto a «Sentadilla Trasera con Barra Baja»).
  */
-private fun occurrenceChipOf(exercise: Exercise): String? {
-    val label = exercise.occurrenceLabel?.trim().orEmpty()
-    if (label.isBlank()) return null
-    val isNamedVariation = exercise.relationshipType == ExerciseRelationshipType.VARIATION &&
-        exercise.relativeToCanonicalExerciseId != null
-    return label.takeUnless { isNamedVariation }
-}
+private fun occurrenceChipOf(exercise: Exercise): String? =
+    exercise.occurrenceLabel?.trim()?.takeIf { it.isNotBlank() }
 
 /**
  * Recipe technique label for display chips. Only recipe fields are read:

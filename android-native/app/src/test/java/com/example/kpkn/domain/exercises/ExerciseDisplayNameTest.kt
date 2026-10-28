@@ -154,13 +154,17 @@ class ExerciseDisplayNameTest {
     }
 
     @Test
-    fun f15_a_named_variation_does_not_repeat_its_label_as_a_chip() {
+    fun i1_an_explicit_label_is_also_painted_on_a_linked_variation() {
         val variation = exercise("cfg").copy(
-            occurrenceLabel = "Velocidad (cajón)",
+            occurrenceLabel = "Potencia",
             relationshipType = ExerciseRelationshipType.VARIATION,
             relativeToCanonicalExerciseId = "low_bar_back_squat__barbell",
         )
-        assertEquals(emptyList<String>(), exerciseDisplayParts(variation, null).chips)
+        assertEquals(listOf("Potencia"), exerciseDisplayParts(variation, null).chips)
+        assertEquals(
+            "Cruce de Poleas · Potencia",
+            exerciseDisplayParts(variation, ExerciseMuscleInfo(id = "cfg", name = "Cruce de Poleas")).text,
+        )
     }
 
     @Test
