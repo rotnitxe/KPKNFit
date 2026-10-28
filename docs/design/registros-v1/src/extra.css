@@ -196,3 +196,11 @@
 .qsheet{position:absolute;left:0;right:0;bottom:0;z-index:61;border-radius:28px 28px 0 0;padding:10px 16px 20px;background:linear-gradient(170deg,#262626ee,#121212f5);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-top:1px solid #ffffff1d;max-height:78%;overflow:hidden}
 .qsheet .food{margin-top:6px;padding:10px 12px}.qsheet .food-h .fi{width:34px;height:34px;border-radius:11px}
 .bump{animation:bump .8s cubic-bezier(.3,1.6,.5,1)}@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+/* Capturas reales (pestaña Crear, v3) */
+.realfull{position:absolute;inset:34px 0 0;display:flex;justify-content:center;align-items:flex-start;background:#000}
+.realfull img{height:100%;width:auto;max-width:100%;display:block;user-select:none}
+.realscroll{position:absolute;inset:34px 0 0;overflow-y:auto;scrollbar-width:none;background:#000}
+.realscroll img{width:100%;display:block;user-select:none}
+.realhead{position:sticky;top:0;z-index:2}
+.realsh img{width:100%;display:block;border-radius:12px}
+.realmiss{padding:40px 20px;color:#f49a6e;font-size:13px}

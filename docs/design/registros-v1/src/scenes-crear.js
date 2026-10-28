@@ -1,82 +1,88 @@
-/* ================= CREAR PROGRAMA (v2: el asistente de bienvenida, adaptado) ================= */
-const programsBehind=()=>`<div class="scroll" style="padding-top:52px"><div style="display:flex;justify-content:space-between;align-items:center"><div class="ptitle">Programas</div><button class="pill pri sm">${ic('plus',16)}Nuevo</button></div></div>`;
-// El asistente real: una página larga, negra y continua; lo confirmado se pliega en filas-resumen editables; vidrio solo
-// bajo la cabecera y el botón; progreso blanco sobre gris; símbolos de línea sin caja de tarjeta.
-function wzHead(done,total=9){return `<div class="wzh glass"><button class="ib" aria-label="Cerrar">${ic('close')}</button><div class="t"><strong>Nuevo programa</strong><span>Solo entreno · ${done} de ${total}</span></div></div><div class="wzp"><i style="width:${Math.round(done/total*100)}%"></i></div>`}
-const sumRow=(k,v,id)=>`<div class="wzsum" data-tag="setup-summary-${id}"><span class="k">${k}</span><span class="v">${v}</span>${ic('edit',16)}</div>`;
-const symRow=(sym,t,s,on)=>`<button class="wzopt ${on?'on':''}"><span class="sym">${ic(sym,40)}</span><span class="tx"><strong>${t}</strong>${s?`<span>${s}</span>`:''}</span><span class="rad">${on?ic('check',16):''}</span></button>`;
-const wzStep=(t,sub,body)=>`<section class="wzstep"><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}${body}</section>`;
-const wzBtn=(t='Continuar',dis=false)=>`<div class="wzbtn glass"><button class="pill pri" style="width:100%;${dis?'opacity:.35':''}">${t}</button></div>`;
-const peek=(t)=>`<section class="wzstep peek"><h2>${t}</h2></section>`;
-const KNOWN=[['Alias','Matías','alias'],['Edad','34 años','age'],['Altura','1,78 m','height'],['Peso','80,4 kg','weight']];
+/* ================= CREAR PROGRAMA (v3: pantallas REALES de la app) ================= */
+// Todo lo que se ve aquí sale de la app: renders de Compose (NewProgramRealRenderSheetTest y las hojas del importador),
+// no imitaciones. Los «ni_*» son el asistente real con dos retoques de la instancia «Nuevo programa» (etiqueta de la
+// cabecera y la fila plegada «Lo que ya sabemos»); «ni_13_listo» se compone con piezas reales del mismo asistente.
+const realImg=(k,alt='')=>IMG[k]?`<img src="${IMG[k]}" alt="${alt}" draggable="false">`:`<div class="realmiss">Falta la captura ${k}</div>`;
+// Pantalla completa: la captura entera cabe bajo la barra de estado (se reduce un poco, el fondo es negro igual).
+const realFull=(k)=>`<div class="realfull">${realImg(k)}</div>`;
+// Pantalla larga: se desplaza; `head` es una captura de cabecera que se queda fija arriba.
+const realScroll=(k,head)=>`<div class="realscroll">${head?`<div class="realhead">${realImg(head)}</div>`:''}${realImg(k)}</div>`;
+// Hoja real sobre la cabecera real de Programas.
+const realSheet=(k,extra='')=>`<div class="realscroll">${realImg('e_cabecera_programas_360')}</div>${sheet(`<div class="realsh">${realImg(k)}</div>${extra}`)}`;
+const REAL_TAG=['keep','Captura real'];
+const INST_TAG=['new','Instancia «Nuevo programa»'];
+const step=(id,k,title,p,tags=[REAL_TAG,INST_TAG])=>scene({tab:'crear',id,title,html:()=>realFull(k),notes:{tags,p:[].concat(p)}});
 
-scene({tab:'crear',id:'cr-new',title:'Nuevo programa (ya aprobado)',html:()=>`${programsBehind()}${sheet(`<h3>Nuevo programa</h3><div class="sub">Elige cómo empezar.</div>
-  <div class="opt-grid"><button class="opt wide" style="background:linear-gradient(135deg,#f49a6e22,#ffffff06);border-color:#f49a6e40"><span class="ic" style="color:var(--mus)">${ic('spark')}</span><span class="tx"><strong>A tu medida</strong><span style="display:block">KPKN lo arma con tu material, tus días y tu objetivo</span></span>${ic('fwd',18)}</button>
-  <button class="opt"><span class="ic">${ic('book')}</span><strong>Del catálogo</strong><span>Planes conocidos y planes KPKN</span></button><button class="opt"><span class="ic">${ic('upload')}</span><strong>Importar</strong><span>Excel, Word, PDF, texto o una foto</span></button>
-  <button class="opt wide"><span class="ic">${ic('plus')}</span><span class="tx"><strong>Desde cero</strong><span style="display:block">Le pones nombre y armas las sesiones tú</span></span>${ic('fwd',18)}</button></div>`)}`,
- notes:{tags:[['keep','Aprobada e implementada'],['fix','La misma hoja en Inicio']],
-  p:['La hoja aprobada en el lienzo anterior y ya implementada. «A tu medida» abre <b>el asistente de bienvenida</b> en su modo «solo entreno» (siguientes escenas). Inicio abre esta misma hoja (hoy abre otra distinta).']}});
+// ---- Punto de partida
+scene({tab:'crear',id:'cr-new',title:'Nuevo programa · cuatro caminos',html:()=>realFull('pr_01_nuevo'),
+ notes:{tags:[REAL_TAG,['keep','Ya implementada (P6b)']],
+  p:['La hoja «Nuevo programa» tal como está hoy en la rama: <b>A tu medida</b>, <b>Del catálogo</b>, <b>Importar</b> y <b>Desde cero</b>. Inicio abrirá esta misma hoja.',
+     'Las escenas siguientes recorren los cuatro caminos con pantallas reales. Todos terminan igual: «Listo para empezar», donde eliges si el programa empieza ya, va en cola o se guarda sin activar.']}});
 
-scene({tab:'crear',id:'cr-wz1',title:'A tu medida · el asistente, adaptado',html:()=>`<div class="wz wzpage">${wzHead(1)}
-  <div class="wzlead">Arma tu programa con las mismas preguntas que al empezar en KPKN. Lo que ya sabemos está arriba, plegado.</div>
-  <div class="wzsums">${KNOWN.map(k=>sumRow(k[0],k[1],k[2])).join('')}</div>
-  ${wzStep('¿Cuánta experiencia tienes?','Decide cuánto volumen y cuánta variedad tendrá tu programa.',symRow('spark','Estoy empezando','',false)+symRow('repeat','Estoy volviendo','',false)+symRow('cal','Ya entreno con constancia','',true)+symRow('trophy','Tengo experiencia','',false))}
-  ${peek('¿Dónde entrenas?')}${wzBtn()}</div>`,
- notes:{tags:[['keep','Es el asistente de bienvenida'],['new','Instancia «Nuevo programa»']],
-  p:['Se reutiliza <b>el asistente de bienvenida tal cual</b>: la misma página larga negra y continua, los mismos pasos, los mismos símbolos animados sin caja, el vidrio solo bajo la cabecera y el botón, y el progreso blanco sobre gris. Lo que cambia es la instancia:',
-     '<b>Cabecera propia</b>: «Nuevo programa · Solo entreno» con la X para salir (el borrador queda guardado y al volver retoma donde estabas; ya existe por alcance). <b>Lo que ya sabemos</b> (alias, edad, altura, peso) aparece plegado arriba como filas-resumen editables, igual que lo confirmado en el asistente, en vez de preguntarse otra vez.',
-     'Sin bienvenida, sin prólogo, sin nutrición y sin hito final de alta.'],
-  listTitle:'Qué se salta en esta instancia',list:['Género y % de grasa: hoy son obligatorios en «solo entreno» aunque solo sirven para la nutrición. Si faltan, no se piden.','Los pasos de alta (bienvenida, prólogo, intro) que ya no existen en modo solo entreno.','El cierre «Revisión y activación» del alta: lo sustituye «Listo para empezar» (última escena).']}});
+// ---- A tu medida = el asistente de bienvenida, en su instancia
+scene({tab:'crear',id:'cr-hoy',title:'Hoy, al llegar a KPKN: datos básicos',html:()=>realFull('wz_00_inicio'),
+ notes:{tags:[REAL_TAG,['fix','Se salta en «Nuevo programa»']],
+  p:['Así arranca hoy el asistente de bienvenida (capítulo «Datos básicos»: alias, nacimiento, altura y peso, sexo, grasa).',
+     'En «Nuevo programa» este capítulo <b>no se vuelve a preguntar</b>: KPKN ya lo sabe. Se pliega en una sola fila «Lo que ya sabemos», editable con el lápiz, y el asistente empieza directamente en el capítulo Entreno (siguiente escena).']}});
+step('cr-wz01','ni_01_experiencia','A tu medida · 1 · experiencia',
+ ['Es el asistente real, paso a paso. Lo único que cambia la instancia: la cabecera dice <b>«NUEVO PROGRAMA · n/m»</b> en vez de «ENTRENO» y arriba aparece <b>«Lo que ya sabemos · Matías · 34 años · 1,78 m · 80,4 kg»</b> plegado (con el mismo check y lápiz que cualquier respuesta confirmada).',
+  'La flecha vuelve al paso anterior; la X sale y guarda el borrador (al volver a «A tu medida» retoma donde estabas).']);
+step('cr-wz02','ni_02_lugar','A tu medida · 2 · dónde entrenas','Mismo paso y mismos símbolos de línea del alta.');
+step('cr-wz03','ni_03_material','A tu medida · 3 · material','Igual que en el alta. Si el material ya se respondió antes, viene marcado y basta con confirmar.');
+step('cr-wz04','ni_04_objetivo','A tu medida · 4 · objetivo','Perfiles generales y disciplinas, con los mismos símbolos. Las disciplinas dependen del material.');
+step('cr-wz05','ni_05_compites','A tu medida · 5 · ¿compites?',
+ ['Igual que en el alta. Única novedad: con «Sí, tengo fecha», además de armar el programa hacia ese día, se crea la competencia como <b>próxima</b> en Competencias (pestaña Competencias de este lienzo).']);
+step('cr-wz06','ni_06_energia','A tu medida · 6 · día con más energía','Tu sesión más fuerte caerá ese día.');
+step('cr-wz07','ni_07_dias','A tu medida · 7 · qué días','Días de la semana, con el día fuerte marcado y el inicio de semana.');
+step('cr-wz08','ni_08_tiempo','A tu medida · 8 · tiempo por sesión','El programa se ajusta al tiempo.');
+step('cr-wz08b','ni_08b_tecnica','A tu medida · prioridades · técnica','Los pasos de prioridades aparecen según el objetivo, igual que en el alta.');
+step('cr-wz08c','ni_08c_constancia','A tu medida · prioridades · constancia','Igual que en el alta.');
+step('cr-wz08d','ni_08d_fuerza','A tu medida · prioridades · fuerza','Igual que en el alta.');
+step('cr-wz08e','ni_08e_movilidad','A tu medida · prioridades · movilidad','Igual que en el alta.');
+step('cr-wz09','ni_09_musculos','A tu medida · músculos que priorizas','Hasta cinco, con las figuras de líneas del asistente. Se puede omitir.');
+step('cr-wz10','ni_10_marcas','A tu medida · tus marcas','1RM o mejor serie, con la regla deslizante. Se puede omitir; si el programa usa porcentajes, salen de aquí.');
+step('cr-wz11','ni_11_plan_propuestas','A tu medida · elige tu programa',
+ ['El paso PLAN real: la propuesta «Para ti · Hecho a tu medida» con su portada de líneas, otras versiones al deslizar, «Ver detalles» y «Elegir».']);
+step('cr-wz12','ni_12_semana','A tu medida · así queda tu semana','Las sesiones reales del programa elegido; se arrastran por el asa o se tocan para cambiarlas de día.');
+scene({tab:'crear',id:'cr-listo',title:'Todos los caminos · listo para empezar',html:()=>realFull('ni_13_listo'),
+ notes:{tags:[['new','Cierre de la instancia'],['fix','Nada se activa sin preguntar']],
+  p:['Sustituye a «Revisión y activación» del alta. Está <b>compuesto con piezas reales</b> del asistente: la cabecera, las filas plegadas con check y lápiz, las filas de opción con su radio y el botón redondo de confirmar. Solo el texto es nuevo.',
+     'Si ya hay un programa en curso: <b>Empezar ahora</b> (pausa el actual), <b>Ponerlo en cola</b> (por defecto) o <b>Guardarlo sin activar</b>. Si no hay ninguno, la opción por defecto es «Empezar ahora».',
+     'Lo usan los cuatro caminos: asistente, catálogo, importar y desde cero. Hoy un plan del catálogo se activa sin preguntar y el resto no se activa.']}});
 
-scene({tab:'crear',id:'cr-wz2',title:'A tu medida · material',html:()=>`<div class="wz wzpage">${wzHead(3)}
-  <div class="wzsums">${sumRow('Lo que ya sabemos','Matías · 34 años · 80,4 kg','basics')}${sumRow('Experiencia','Ya entreno con constancia','exp')}${sumRow('Dónde','Gimnasio','place')}</div>
-  ${wzStep('¿Con qué material entrenas?','Marcamos lo típico de un gimnasio. Quita lo que no tengas.',`<div class="wzgrid">${[['dumb','Barra y discos',1],['dumb','Mancuernas',1],['tower','Rack',1],['grip','Poleas',1],['target','Máquinas',1],['link','Bandas',0],['flag','Barra de dominadas',1],['heart','Cardio',1]].map(m=>`<button class="wzsym ${m[2]?'on':''}">${ic(m[0],38)}<span>${m[1]}</span></button>`).join('')}</div>`)}
-  ${peek('¿Cuál es tu objetivo?')}${wzBtn()}</div>`,
- notes:{tags:[['keep','Mismo paso del asistente']],p:['Las respuestas confirmadas se pliegan arriba; los datos conocidos se juntan en una sola fila. El material son los símbolos de línea del asistente (barra, mancuerna, rack…) sobre la superficie negra, sin tarjetas: el elegido en tinta, el resto atenuado.']}});
+// ---- Del catálogo
+scene({tab:'crear',id:'cr-cat1',title:'Del catálogo · la lista',html:()=>realFull('pr_02_catalogo'),
+ notes:{tags:[REAL_TAG,['keep','Ya implementada (P6b)']],
+  p:['«Del catálogo» abre la página de catálogo real: filtros por objetivo, días y duración, y cada plan con su portada, días, semanas, nivel y fuente (Plan KPKN, Original fiel…).']}});
+scene({tab:'crear',id:'cr-cat2',title:'Del catálogo · cómo funciona',html:()=>realFull('pr_03_como_funciona'),
+ notes:{tags:[REAL_TAG],
+  p:['Al tocar un plan: «Qué haces», «Tu semana tipo», «Fuente» y «Glosario». <b>Configurar este plan</b> abre el asistente (siguiente escena).']}});
+step('cr-cat3','ni_07_dias','Del catálogo · el asistente, solo lo que falta',
+ ['«Configurar este plan» abre <b>el mismo asistente</b> en la instancia «Nuevo programa», con el plan ya elegido y el objetivo resuelto: solo pregunta lo que el plan necesita y KPKN no sabe (días, tiempo, material). Lo ya conocido sale plegado arriba.',
+  'Después: «Así queda tu semana», los máximos si el plan usa porcentajes y «Listo para empezar».']);
+scene({tab:'crear',id:'cr-cat4',title:'Del catálogo · máximos de entrenamiento',html:()=>realFull('pr_05_maximos'),
+ notes:{tags:[REAL_TAG,['keep','Ya implementada (P6b)']],
+  p:['Para planes con porcentajes (5/3/1, etc.): 1RM por levantamiento con la regla del asistente; el TM sale al 90 %. «Crear sin TM» deja las cargas vacías. Luego, «Listo para empezar».']}});
 
-scene({tab:'crear',id:'cr-wz3',title:'A tu medida · objetivo y competencia',html:()=>`<div class="wz wzpage">${wzHead(4)}
-  <div class="wzsums">${sumRow('Lo que ya sabemos','Matías · 34 años · 80,4 kg','basics')}${sumRow('Experiencia','Ya entreno con constancia','exp')}${sumRow('Material','Gimnasio completo','gear')}</div>
-  ${wzStep('¿Cuál es tu objetivo?','',symRow('dumb','Fuerza y masa muscular','',false)+symRow('heart','Fuerza y cardio','',false)+symRow('spark','Funcional y saludable','',false)+`<div class="wzlbl">Una disciplina</div>`+chips(['Powerlifting','Powerbuilding','Culturismo','Calistenia','Halterofilia','Strongman','Armwrestling'],0,38))}
-  ${wzStep('¿Compites en tu disciplina?','',symRow('cal','Sí, tengo fecha','16 nov · Open regional',true)+symRow('trophy','Sí, sin fecha','',false)+symRow('close','No compito','',false))}
-  ${wzBtn()}</div>`,
- notes:{tags:[['keep','Mismos pasos'],['new','Crea la competencia']],p:['Igual que en el alta. Lo único nuevo: si compites con fecha, además de armar el programa hacia ese día (pico y puesta a punto, como hoy), se crea la competencia como «próxima» en Competencias.']}});
+// ---- Importar
+scene({tab:'crear',id:'cr-imp1',title:'Importar · de dónde',html:()=>realSheet('a_tres_simbolos_foto_411'),
+ notes:{tags:[REAL_TAG],p:['Tres fuentes: elegir archivo (Excel, CSV, Word, texto o PDF), pegar texto o una foto de la rutina (hacerla o elegirla de la galería).']}});
+scene({tab:'crear',id:'cr-imp2',title:'Importar · leyendo',html:()=>realSheet('c_progreso_cancelar_411'),
+ notes:{tags:[REAL_TAG],p:['Mientras lee: progreso por páginas y «Cancelar». Al terminar abre la revisión.']}});
+scene({tab:'crear',id:'cr-imp3',title:'Importar · revisión',html:()=>realFull('a_vista_previa_barra_360'),
+ notes:{tags:[REAL_TAG],p:['La revisión real: título, unidad de las cargas (kg o lb), semanas y días con cada ejercicio reconocido o propio, y la barra «Añadir ejercicio» / «Guardar programa».']}});
+scene({tab:'crear',id:'cr-imp4',title:'Importar · avisos',html:()=>realFull('c_avisos_desplegados_360'),
+ notes:{tags:[REAL_TAG],p:['Todo lo que no se pudo leer bien, con la fila de origen y una acción por aviso (Añadir como ejercicio, Revisar, Entendido, Ignorar).']}});
+scene({tab:'crear',id:'cr-imp5',title:'Importar · lo que falta decidir',html:()=>realScroll('c_review_three_problems'),
+ notes:{tags:[REAL_TAG],p:['Deshacer tras quitar algo, avisos pendientes y decisiones que faltan («Falta decidir «Remo con barra»»).']}});
+scene({tab:'crear',id:'cr-imp6',title:'Importar · ajustar un ejercicio',html:()=>realScroll('a_panel_kg_rpe'),
+ notes:{tags:[REAL_TAG],p:['El panel real para ajustar un ejercicio importado: propio o del catálogo, series y repeticiones, carga, esfuerzo, descanso y notas.']}});
+scene({tab:'crear',id:'cr-imp7',title:'Importar · menú de la semana',html:()=>realScroll('b_menu_semana'),
+ notes:{tags:[REAL_TAG],p:['Duplicar semana, añadir día o quitar la semana, directamente en la revisión.']}});
+scene({tab:'crear',id:'cr-imp8',title:'Importar · guardado',html:()=>realSheet('d_review_ready','<p class="cap" style="margin:14px 2px 0">Después: «Listo para empezar».</p>'),
+ notes:{tags:[REAL_TAG],p:['Confirmación al guardar («Listo: 1 semana · 2 días · 2 ejercicios») y paso a «Listo para empezar», el mismo cierre que el asistente.']}});
 
-scene({tab:'crear',id:'cr-wz-plan',title:'A tu medida · tu programa',after:drawAfter,html:()=>`<div class="wz wzpage">${wzHead(8)}
-  <div class="wzsums">${sumRow('Tu semana','5 días · 60 min · L M X V S','week')}</div>
-  ${wzStep('Tu programa a medida','',`<div class="offer pick" style="margin-top:6px"><div class="art">${cover('','perfil','carbon')}<span class="badge" style="position:absolute;left:12px;top:12px">${ic('spark',13)}Para ti</span></div><div class="in">
-   <strong class="syne" style="font-size:calc(21px*var(--fs));letter-spacing:-.5px">Fuerza y músculo · 6 semanas</strong><div class="meta" style="margin-top:4px">3 bloques · 5 días · ≈ 60 min</div>
-   ${['Bloques de 6 semanas: ya entrenas con constancia','Tren inferior dos veces: priorizaste glúteos'].map(w=>`<div class="why"><i></i>${w}</div>`).join('')}
-   <div style="display:flex;gap:8px;margin-top:14px"><button class="pill sec sm" style="flex:1">Ver detalles</button><button class="pill sec sm" style="flex:1">Otra versión</button></div></div></div>
-   <div class="wzlbl">También encaja</div>${['Rutina · 1 semana base','Periodizado · 12 semanas'].map(o=>`<div class="wzsum"><span class="v" style="flex:1;color:var(--ink)">${o}</span>${ic('fwd',16)}</div>`).join('')}`)}
-  ${wzBtn('Elegir este programa')}</div>`,
- notes:{tags:[['keep','Paso PLAN del asistente']],p:['Es el paso PLAN de hoy («Tu programa a medida» o «Elige tu programa» en disciplinas), con sus mismas acciones: «Ver detalles», «Otra versión», elegir o dejarlo para luego.','Dos mejoras que valen también para el alta: la portada de líneas del programa y dos razones que salen de tus respuestas (el evaluador ya sabe por qué elige).']}});
-
-scene({tab:'crear',id:'cr-wz-week',title:'A tu medida · así queda tu semana',html:()=>`<div class="wz wzpage">${wzHead(9)}
-  <div class="wzsums">${sumRow('Programa','Fuerza y músculo · 6 semanas','plan')}</div>
-  ${wzStep('Así queda tu semana','Mantén pulsada una sesión para moverla de día.',`<div class="wzweek">${[['LUN','Pierna A'],['MAR','Empuje'],['MIÉ','Tirón'],['JUE',''],['VIE','Pierna B'],['SÁB','Torso'],['DOM','']].map(d=>`<div class="wzday"><small>${d[0]}</small>${d[1]?`<span>${d[1]}</span>`:'<em>Descanso</em>'}</div>`).join('')}</div>`)}
-  ${wzBtn('Continuar')}</div>`,
- notes:{tags:[['keep','Mismo paso']],p:['El paso «Así queda tu semana» de hoy, con su aviso de material por día si aplica.']}});
-
-scene({tab:'crear',id:'cr-wz-end',title:'A tu medida · listo para empezar',html:()=>`<div class="wz wzpage">${wzHead(9,9)}
-  <div class="wzsums">${sumRow('Programa','Fuerza y músculo · 6 semanas','plan')}${sumRow('Semana','5 días · 60 min','week')}</div>
-  ${wzStep('Listo para empezar','Ya tienes «Motor y fuerza» en curso (semana 4 de 6). ¿Qué hacemos con el nuevo?',symRow('play','Empezar ahora','Pausa «Motor y fuerza»; podrás reanudarlo',false)+symRow('repeat','Ponerlo en cola','Empieza cuando termine el actual',true)+symRow('book','Guardarlo sin activar','Queda en «Tus programas»',false))}
-  ${wzBtn('Guardar y poner en cola')}</div>`,
- notes:{tags:[['new','Cierre propio de esta instancia'],['fix','Nada se activa sin preguntar']],
-  p:['Sustituye a «Revisión y activación» del alta (con su «Activar y entrar a KPKN»). Mismo patrón de filas del asistente. Todos los caminos de creación (asistente, catálogo, importar, desde cero) terminan con esta elección: hoy una estructura del catálogo se activa sin preguntar y el resto no activa.','Si no hay programa en curso, la opción por defecto es «Empezar ahora». Al terminar vuelve a Programas (no a Inicio) con el programa nuevo abierto.']}});
-
-scene({tab:'crear',id:'cr-info',title:'Catálogo › Cómo funciona',after:drawAfter,html:()=>`<div class="scroll" style="padding-top:0;padding-left:0;padding-right:0"><div style="height:200px;position:relative;overflow:hidden">${cover('big','eco','grafito',{num:'16'})}<div style="position:absolute;inset:0;background:linear-gradient(#0000 40%,#000)"></div><div style="position:absolute;top:44px;left:10px"><button class="fb glass" aria-label="Atrás">${ic('back')}</button></div></div>
-  <div style="padding:0 16px"><div class="lbl">Jim Wendler · Original fiel</div><div class="ptitle" style="margin-top:6px">5/3/1 Boring But Big</div><div class="meta">4 días · 16 semanas · Fuerza</div>
-  <div class="group-l">Qué haces</div><p class="body" style="margin:0">Un básico pesado con la onda 5/3/1 y después 5 × 10 del mismo levantamiento al 50–60 %. Ciclos de 4 semanas con descarga.</p>
-  <div class="group-l">Tu semana tipo</div><div class="split7" style="margin-top:0">${[['L','Press militar'],['M','Peso muerto'],['X',''],['J','Press banca'],['V','Sentadilla'],['S',''],['D','']].map(d=>`<div><small>${d[0]}</small><i class="${d[1]?'on':''}"></i><span>${d[1]||'—'}</span></div>`).join('')}</div>
-  <div class="group-l">Necesitas</div>${chips(['Barra y discos','Rack','Banco'],[])}
-  <button class="pill pri" style="width:100%;margin-top:20px">Configurar este plan</button></div></div>`,
- notes:{tags:[['keep','Mismo contenido']],p:['«Configurar este plan» abre el mismo asistente adaptado con el objetivo y los días ya preseleccionados (como hoy con <code>planId</code>), y el plan elegido en el paso PLAN.']}});
-
-scene({tab:'crear',id:'cr-import',title:'Importar',html:()=>`${programsBehind()}${sheet(`<h3>Importar un programa</h3><div class="sub">KPKN lo lee y te deja revisarlo antes de guardarlo.</div>
-  ${mi('upload','Elegir archivo','Excel, CSV, Word, texto o PDF')}${mi('paste','Pegar texto','Ej.: Día 1 — Pierna / Sentadilla 4x6 @120kg')}${mi('camera','Foto de tu rutina','Hacer una foto o elegirla de la galería')}`)}`,
- notes:{tags:[['keep','Mismas tres fuentes']],p:['Igual que hoy; al terminar la revisión pasa por «Listo para empezar».']}});
-
-scene({tab:'crear',id:'cr-tm',title:'Máximos de entrenamiento',html:()=>`<div class="wz wzpage">${wzHead(9,9)}${wzStep('Tus máximos','Escribe tu 1RM; el máximo de entrenamiento es el 90 % y con él salen las cargas.',
-  [['Sentadilla','160','144'],['Press banca','112,5','101'],['Peso muerto','190','171'],['Press militar · opcional','','—']].map(r=>`<div class="ratio" style="grid-template-columns:1fr 96px 64px;align-items:center;min-height:58px"><span>${r[0]}</span><div class="field" style="margin:0;padding:8px 12px"><div class="tn" style="margin:0">${r[1]||'<span class="cap">kg</span>'}</div></div><span class="cap tn" style="text-align:right">TM ${r[2]}</span></div>`).join('')+`<button class="act" style="margin-top:6px">${ic('history',16)}Calcular desde mi historial</button>`)}
-  <div class="wzbtn glass" style="display:flex;gap:8px"><button class="pill sec">Crear sin TM</button><button class="pill pri" style="flex:1">Aplicar</button></div></div>`,
- notes:{tags:[['keep','Mismo paso']],p:['Si el programa elegido usa porcentajes, este paso entra en la misma página antes de «Listo para empezar».']}});
+// ---- Desde cero
+scene({tab:'crear',id:'cr-cero',title:'Desde cero',html:()=>realFull('pr_04_desde_cero'),
+ notes:{tags:[REAL_TAG,['keep','Ya implementada (P6b)']],
+  p:['Nombre (sugerido), modalidad y portada de líneas. «Crear y abrir» lleva al programa vacío para armar semanas y sesiones; si hay uno en curso, antes pasa por «Listo para empezar».']}});
