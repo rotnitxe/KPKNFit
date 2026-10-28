@@ -39,7 +39,6 @@ import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.programdetail.components.*
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
@@ -242,7 +241,6 @@ fun ProgramDetailScreen(
         onOpenProgram(id)
     }
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
-    var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
     // Semana copiada (para pegarla en otra): común a las pestañas, que AnimatedContent recrea al cambiar.
     val copiedWeekState = rememberSaveable(program?.id) { mutableStateOf<String?>(null) }
@@ -251,6 +249,8 @@ fun ProgramDetailScreen(
     var showVolumeSheet by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
+    // «Versiones guardadas» (⋯): la hoja de copias del programa, la misma que abre Estructura.
+    var showVersions by rememberSaveable { mutableStateOf(false) }
     // «Compartir en historias»: desde el botón de la portada o desde «Más opciones» (⋯).
     var showShareSheet by rememberSaveable { mutableStateOf(false) }
     // «Pendiente»: la lista (desde la campana o ⋯) y la hoja de detalle de un aviso, por su tipo.
@@ -316,10 +316,11 @@ fun ProgramDetailScreen(
         isActive = isActive,
         sessionName = primarySession?.takeIf { !it.isCompleted }?.session?.name,
         sessionOngoing = primarySession?.isOngoing == true,
+        isPaused = isPaused,
     )
     val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
     val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
-    // La siguiente sesión de la semana que se ve: la fila de acciones la enseña en un día sin sesión («Siguiente: jueves · Pierna A»).
+    // La siguiente sesión de la semana que se ve: la fila de acciones la enseña en un día sin sesión («Siguiente: viernes · Pierna B»).
     val nextSession = remember(displayedSessions) {
         programNextSessionOf(
             sessions = displayedSessions.mapNotNull { session -> session.dayOfWeek?.let { it to session.name } },
@@ -465,8 +466,6 @@ fun ProgramDetailScreen(
         identity = identity,
         photoUrl = p.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE },
         bundled = bundledCover.takeIf { coverKind == HeroCoverKind.BUNDLED },
-        weekCount = weekCount,
-        currentWeekIndex = programLine?.weekIndex,
         progressLabel = programProgressLabel(
             weekIndex = programLine?.weekIndex,
             weekCount = programLine?.weekCount,
@@ -476,8 +475,6 @@ fun ProgramDetailScreen(
         ),
         primary = primaryAction,
         nextSession = nextSession,
-        scopeLine = null,
-        deloadNotice = null,
         ribbon = ribbon,
         blockLabel = blockLabel,
         todayAlso = todayAlso,
@@ -489,13 +486,11 @@ fun ProgramDetailScreen(
     val headerActions = ProgramHeaderActions(
         onPrimary = {
             when (primaryAction) {
-                is ProgramHeaderPrimary.Start, ProgramHeaderPrimary.Continue -> primarySession?.let { onStartWorkout(it.session, p) }
-                ProgramHeaderPrimary.Activate -> viewModel.activateOrResume()
+                is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue -> primarySession?.let { onStartWorkout(it.session, p) }
+                ProgramHeaderPrimary.Activate, ProgramHeaderPrimary.Resume -> viewModel.activateOrResume()
                 ProgramHeaderPrimary.None -> Unit
             }
         },
-        onStartPause = { viewModel.toggleStartPause() },
-        onEdit = openEdit,
         onOpenNextSession = {
             // Abre ese día en la pestaña Semana: se despliega solo ese día de la semana que se ve.
             val weekId = selectedWeekMeta?.id
@@ -541,13 +536,17 @@ fun ProgramDetailScreen(
                     ) {
                         ProgramHeader(state = headerState, actions = headerActions)
                     }
-                    Spacer(Modifier.height(16.dp))
-                    competitionState?.let { state ->
-                        com.example.kpkn.screens.programdetail.design.ProgramCompetitionModule(state,competitionBusy,
-                            onPlan = { planningCompetition = state },onMeetDay = { meetDayAttempts = state.record.plannedAttempts },
-                            onReviewResult = { viewModel.reviewMeetResult(state.record.id) },
-                            onOpenRecord = onOpenCompetition?.let { open -> { open(state.record.id) } })
-                        Spacer(Modifier.height(20.dp))
+                    // Bajo la portada no hay nada más que la competición (p-comp): la semana va justo después. El panel añade 12 dp por arriba,
+                    // así que quedan 22 dp entre la portada y la semana (p-today) y 12 dp entre la competición y la semana.
+                    val competition = competitionState
+                    if (competition != null) {
+                        Spacer(Modifier.height(18.dp))
+                        com.example.kpkn.screens.programdetail.design.ProgramCompetitionModule(competition,competitionBusy,
+                            onPlan = { planningCompetition = competition },onMeetDay = { meetDayAttempts = competition.record.plannedAttempts },
+                            onReviewResult = { viewModel.reviewMeetResult(competition.record.id) },
+                            onOpenRecord = onOpenCompetition?.let { open -> { open(competition.record.id) } })
+                    } else {
+                        Spacer(Modifier.height(10.dp))
                     }
                 }
                 AnimatedContent(
@@ -744,27 +743,87 @@ fun ProgramDetailScreen(
         )
     }
     if (showMoreMenu) {
+        // m-program: la portada, el nombre y el estado arriba; «Pendiente» primero, y los grupos «Programa» y «Registro».
+        val pauseRow = com.example.kpkn.screens.programdetail.design.programPauseRow(status, programLine?.weekIndex)
         ProgramMoreMenu(
+            header = com.example.kpkn.screens.programdetail.design.ProgramMenuHeader(
+                name = p.name,
+                statusLine = com.example.kpkn.screens.programdetail.design.programMenuStatusLine(
+                    status = status,
+                    weekIndex = if (repeatingWeek) p.runState?.cycleNumber ?: programLine?.weekIndex else programLine?.weekIndex,
+                    weekCount = if (repeatingWeek) null else programLine?.weekCount,
+                ),
+                identity = identity,
+                photoUrl = p.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE },
+                bundled = bundledCover.takeIf { coverKind == HeroCoverKind.BUNDLED },
+            ),
             items = buildList<ProgramMenuItem> {
-                if (pendingItems.isNotEmpty()) add(ProgramMenuItem(label = "Pendiente · ${pendingItems.size}", onClick = { showPending = true }))
-                add(ProgramMenuItem(label = "Sobre el programa", onClick = { showPlanSheet = true }))
-                add(ProgramMenuItem(label = "Editar programa", onClick = openEdit))
-                add(ProgramMenuItem(label = "Compartir en historias", onClick = { showShareSheet = true }))
+                if (pendingItems.isNotEmpty()) {
+                    add(
+                        ProgramMenuItem(
+                            icon = KpknLineIcons.Bell,
+                            label = "Pendiente · ${pendingItems.size}",
+                            detail = com.example.kpkn.screens.programdetail.design.pendingMenuDetail(pendingItems.map { it.title }),
+                            onClick = { showPending = true },
+                        ),
+                    )
+                }
+                add(
+                    ProgramMenuItem(
+                        icon = KpknLineIcons.Info,
+                        label = "Sobre el programa",
+                        detail = "Descripción, material, sesión más larga y cambios",
+                        group = "Programa",
+                        onClick = { showPlanSheet = true },
+                    ),
+                )
+                add(ProgramMenuItem(icon = KpknLineIcons.Edit, label = "Editar nombre, nota y portada", onClick = openEdit))
                 // Pausar, reanudar o activar: la misma llamada que tenía el botón de la cabecera.
                 add(
                     ProgramMenuItem(
-                        label = when (status) {
-                            ProgramHeaderStatus.ACTIVE -> "Pausar programa"
-                            ProgramHeaderStatus.PAUSED -> "Reanudar programa"
-                            ProgramHeaderStatus.DRAFT -> "Activar programa"
-                        },
+                        icon = if (status == ProgramHeaderStatus.ACTIVE) KpknLineIcons.Pause else KpknLineIcons.Play,
+                        label = pauseRow.title,
+                        detail = pauseRow.detail,
                         onClick = { viewModel.toggleStartPause() },
                     ),
                 )
-                add(ProgramMenuItem(label = "Decisiones del sistema", onClick = { showDecisions = true }))
-                add(ProgramMenuItem(label = "Historial", onClick = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) }))
+                add(
+                    ProgramMenuItem(
+                        icon = com.example.kpkn.screens.programdetail.design.ProgramShareIcon,
+                        label = "Compartir en historias",
+                        detail = "Portada, nombre y reparto o bloques",
+                        onClick = { showShareSheet = true },
+                    ),
+                )
+                add(
+                    ProgramMenuItem(
+                        icon = com.example.kpkn.screens.programdetail.design.MoreMenuSparkIcon,
+                        label = "Decisiones del sistema",
+                        detail = com.example.kpkn.screens.programdetail.design.decisionsMenuDetail(progressReport?.decisions.orEmpty().size),
+                        group = "Registro",
+                        onClick = { showDecisions = true },
+                    ),
+                )
+                add(
+                    ProgramMenuItem(
+                        icon = KpknLineIcons.History,
+                        label = "Versiones guardadas",
+                        detail = "Restaura el plan a un punto anterior",
+                        onClick = { showVersions = true },
+                    ),
+                )
             },
             onDismiss = { showMoreMenu = false },
+        )
+    }
+    if (showVersions) {
+        com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet(
+            snapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
+            onRestore = { snapshotId ->
+                viewModel.restoreProgramSnapshot(snapshotId)
+                showVersions = false
+            },
+            onDismiss = { showVersions = false },
         )
     }
     if (showShareSheet) {
@@ -798,19 +857,6 @@ fun ProgramDetailScreen(
     val needsRematerialize = p.macrocycles.any { macro -> macro.blocks.any { it.materializationPending } }
     LaunchedEffect(p.id, p.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }.map { it.id }) {
         if (needsRematerialize) viewModel.rematerializePending()
-    }
-
-    LaunchedEffect(p.id, activeProgramState?.currentWeekId, activeProgramState?.currentWeekInstanceId, currentWeeks) {
-        val activeWeekId = activeProgramState?.takeIf { it.programId == p.id }?.currentWeekId ?: return@LaunchedEffect
-        val templateId = ProgramProgressEngine.templateWeekIdFromInstance(activeWeekId) ?: activeWeekId
-        val instanceId = activeProgramState?.currentWeekInstanceId
-        val loopWeek = currentWeeks.firstOrNull { week ->
-            week.isLoopWeek && (week.id == activeWeekId || week.id == templateId || week.id == instanceId)
-        } ?: return@LaunchedEffect
-        if (notifiedLoopWeekId == loopWeek.id) return@LaunchedEffect
-        notifiedLoopWeekId = loopWeek.id
-        snackbarHostState.showKpknSnackbar("Ciclo activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
-        LoopNotificationManager(context).notifyLoopActive(p.name, loopWeek.name)
     }
 
     // La unidad es la de Ajustes, una sola en toda la app: las hojas de máximos no tienen conmutador. Lo guardado son kg.
@@ -948,7 +994,6 @@ private fun TrainingPanel(
     var weekMoreBounds by remember { mutableStateOf(Rect.Zero) }
     var pendingDeleteWeek by remember { mutableStateOf<String?>(null) }
     val completedSessionIds by viewModel.completedSessionIds.collectAsState()
-    val expandedWeekDays by viewModel.expandedWeekDays.collectAsState()
     val activeWeekId = currentWeekId?.currentWeekId
     // Módulo «Fases»: cada bloque con sus semanas numeradas en orden global. Hecha = antes de la semana en curso.
     val phaseBlocks = remember(roadmapBlocks, allProgramWeeks, activeWeekId, program) {
@@ -1025,9 +1070,9 @@ private fun TrainingPanel(
     val isRoutine = program.isSimpleProgram && currentWeeks.size <= 1
     val navWeeks = if (program.isSimpleProgram) currentWeeks else allProgramWeeks
     val navIndex = selectedWeekMeta?.let { week -> navWeeks.indexOfFirst { it.id == week.id } } ?: -1
-    // Una rutina no tiene a dónde ir: sus flechas se quedan apagadas.
-    val prevNavWeek = if (!isRoutine && navIndex > 0) navWeeks[navIndex - 1] else null
-    val nextNavWeek = if (!isRoutine && navIndex in 0 until navWeeks.lastIndex) navWeeks[navIndex + 1] else null
+    // La rutina navega igual que un programa por bloques (s-simple): las flechas van a la semana de antes o de después si la hay.
+    val prevNavWeek = if (navIndex > 0) navWeeks[navIndex - 1] else null
+    val nextNavWeek = if (navIndex in 0 until navWeeks.lastIndex) navWeeks[navIndex + 1] else null
     // Fechas de la semana: las que guarda; si no guarda ninguna, las de la proyección del calendario (la misma que usa la agenda).
     val calendarProjection = remember(program) { ProgramCalendarEngine.project(program) }
     val weekDates = selectedWeekMeta?.let { week ->
@@ -1102,30 +1147,39 @@ private fun TrainingPanel(
 
         when (structureSubTab) {
             StructureSubTab.SEMANA -> {
-                // Navegador de la semana, en el lugar de la antigua cabecera: ‹ título › con sus tres cifras. El título abre la hoja «Semanas».
+                // Navegador de la semana (lienzo v6, `weekHead`): un módulo con ‹ título › y sus tres cifras. El título abre la hoja «Semanas».
+                // En una rutina, el título es su semana («Semana 7») y lleva la mini-cinta de sus 12 semanas (s-simple). Ni nombre ni nota.
+                val emptyWeek = selectedWeekMeta != null && displayedSessions.isEmpty()
                 selectedWeekMeta?.let { week ->
-                    val phaseLabel = week.mesoGoal
-                        .takeIf { !program.isSimpleProgram && it != com.example.kpkn.data.models.MesocycleGoal.CUSTOM }
-                        ?.label
+                    val weekPhase = programPhaseOf(goal = weekBlockGoal, hasCompetitionWeek = false)
+                    val phaseLabel = if (program.isSimpleProgram) {
+                        null
+                    } else {
+                        weekPhase?.label ?: week.mesoGoal.takeIf { it != com.example.kpkn.data.models.MesocycleGoal.CUSTOM }?.label
+                    }
                     ProgramWeekHeader(
                         title = weekNavigatorTitle(isRoutine = isRoutine, weekIndex = navIndex, cycleNumber = program.runState?.cycleNumber),
                         subtitle = weekNavigatorSubtitle(phaseLabel = phaseLabel, dateRange = weekDateRange(weekDates)),
-                        phaseColor = if (program.isSimpleProgram) null else programPhaseColor(programPhaseOf(goal = weekBlockGoal, hasCompetitionWeek = false)),
-                        stats = weekStats,
+                        phaseColor = if (program.isSimpleProgram) null else programPhaseColor(weekPhase),
+                        // Una semana vacía va sin cifras (s-empty).
+                        stats = weekStats.takeUnless { emptyWeek },
                         canPrev = prevNavWeek != null,
                         canNext = nextNavWeek != null,
                         onPrev = { prevNavWeek?.let { navigateToWeek(it.id) } },
                         onNext = { nextNavWeek?.let { navigateToWeek(it.id) } },
-                        onOpenWeeks = { if (!isRoutine) showWeeksSheet = true },
+                        onOpenWeeks = { showWeeksSheet = true },
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        name = week.name.takeUnless { WeekDefaultName.matches(it.trim()) },
-                        description = week.description,
+                        miniRibbon = if (isRoutine) {
+                            com.example.kpkn.screens.programdetail.design.routineMiniRibbon(program.runState?.cycleNumber, program.loops)
+                        } else {
+                            emptyList()
+                        },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 val swapContext = LocalContext.current.applicationContext
-                if (selectedWeekMeta != null && displayedSessions.isEmpty()) {
-                    // Semana vacía: en vez de una agenda de días sin sesiones, copiar la anterior o añadir la primera sesión.
+                if (emptyWeek && selectedWeekMeta != null) {
+                    // Semana vacía (s-empty): en vez de una agenda de días sin sesiones, copiar la anterior o añadir la primera sesión.
                     KpknModule(
                         modifier = Modifier.padding(horizontal = 16.dp).tourAnchor(TourAnchors.TRAINING_SEMANA),
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 26.dp),
@@ -1137,17 +1191,17 @@ private fun TrainingPanel(
                                 color = WizardColors.text,
                                 textAlign = TextAlign.Center,
                             )
-                            Spacer(Modifier.height(6.dp))
+                            Spacer(Modifier.height(8.dp))
                             Text(
                                 text = "Copia una semana anterior o añade sesiones día a día.",
-                                style = KpknType.body,
+                                style = EmptyWeekBodyStyle,
                                 color = WizardColors.textMuted,
                                 textAlign = TextAlign.Center,
                             )
-                            Spacer(Modifier.height(18.dp))
+                            Spacer(Modifier.height(16.dp))
                             // navIndex cuenta desde 0: la semana de antes lleva el número navIndex (los números empiezan en 1).
-                            if (prevNavWeek != null && prevNavWeek.sessions.isNotEmpty()) {
-                                KpknPrimaryPill(
+                            if (prevNavWeek != null) {
+                                com.example.kpkn.screens.programdetail.design.ProgramLienzoPill(
                                     text = "Copiar la semana $navIndex",
                                     onClick = {
                                         viewModel.copyWeekSessions(
@@ -1157,15 +1211,19 @@ private fun TrainingPanel(
                                         )
                                     },
                                     modifier = Modifier.fillMaxWidth(),
+                                    small = true,
+                                    icon = com.example.kpkn.screens.programdetail.design.EmptyWeekCopyIcon,
                                 )
-                                Spacer(Modifier.height(10.dp))
+                                Spacer(Modifier.height(8.dp))
                             }
-                            KpknSecondaryPill(
+                            com.example.kpkn.screens.programdetail.design.ProgramLienzoPill(
                                 text = "Añadir sesión",
                                 onClick = { addSessionMenu = addSessionBounds },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
+                                filled = false,
+                                small = true,
                                 icon = KpknLineIcons.Plus,
                             )
                         }
@@ -1185,6 +1243,8 @@ private fun TrainingPanel(
                             }
                         },
                         onAddSession = { dayId -> addSessionOnDay(dayId) },
+                        // «+ Sesión» en los descansos solo en la rutina (s-simple); en un programa por bloques se añade abajo o desde el día.
+                        addSessionOnRest = isRoutine,
                         onDeleteSession = { sessionId ->
                             pendingDeleteSession = displayedSessions.firstOrNull { it.id == sessionId }
                         },
@@ -1198,25 +1258,15 @@ private fun TrainingPanel(
                         onUpdateStartDay = { startDay, scope, sessionMode ->
                             viewModel.updateStartDay(startDay, scope, sessionMode)
                         },
-                        onUpdateWeekMetadata = { weekId, name, description ->
-                            viewModel.updateWeekMetadata(weekId, name, description)
-                        },
                         onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
                             viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
-                        },
-                        onToggleOptionalConfirmation = { dayIso, sessionId ->
-                            viewModel.toggleOptionalSessionConfirmation(dayIso, sessionId)
                         },
                         onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
                         restoreBlockedSessionIds = restoreBlockedSessionIds,
                         completedSessionIds = completedSessionIds,
-                        expandedDayIds = expandedWeekDays?.takeIf { it.first == selectedWeekMeta?.id }?.second,
-                        onExpandedDayIdsChange = { days ->
-                            selectedWeekMeta?.id?.let { weekId -> viewModel.setExpandedWeekDays(weekId, days) }
-                        },
                     )
                     if (selectedWeekMeta != null) {
-                        // Debajo de la agenda: «Añadir sesión» (se elige el día) y el menú de la semana (⋯).
+                        // Debajo de la agenda (s-agenda): «Añadir sesión» (se elige el día) y el menú de la semana (⋯).
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1224,20 +1274,23 @@ private fun TrainingPanel(
                                 .padding(top = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            KpknSecondaryPill(
+                            com.example.kpkn.screens.programdetail.design.ProgramLienzoPill(
                                 text = "Añadir sesión",
                                 onClick = { addSessionMenu = addSessionBounds },
                                 modifier = Modifier
                                     .weight(1f)
                                     .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
+                                filled = false,
+                                small = true,
                                 icon = KpknLineIcons.Plus,
                             )
                             Spacer(Modifier.width(8.dp))
-                            KpknIconButton(
+                            com.example.kpkn.screens.programdetail.design.ProgramRoundButton(
                                 icon = KpknLineIcons.More,
                                 contentDescription = "Más opciones de la semana",
                                 onClick = { weekMenu = selectedWeekMeta.id to weekMoreBounds },
                                 modifier = Modifier.onGloballyPositioned { weekMoreBounds = it.boundsInWindow() },
+                                filled = true,
                             )
                         }
                     }
@@ -1649,8 +1702,13 @@ private fun TrainingPanel(
 /** Borrador de la hoja «Editar semana» (P2): la semana que se edita y lo que hay escrito. */
 private data class WeekEditDraft(val weekId: String, val name: String, val description: String)
 
-/** Nombre por defecto de una semana («Semana 3»): no se repite como subtítulo en la cabecera. */
-private val WeekDefaultName = Regex("Semana \\d+")
+/** El texto de la semana vacía (`.body`): Inter 14 sp con 1,45 de interlineado. */
+private val EmptyWeekBodyStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Normal,
+    fontSize = 14.sp,
+    lineHeight = 20.sp,
+)
 
 /** El título de la semana vacía: Syne Bold 18 / 22. */
 private val EmptyWeekTitleStyle = TextStyle(

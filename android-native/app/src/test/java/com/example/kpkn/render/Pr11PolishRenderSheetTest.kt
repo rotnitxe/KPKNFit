@@ -134,24 +134,22 @@ class Pr11PolishRenderSheetTest {
     private fun headerState(nextSession: ProgramNextSession?) = ProgramHeaderState(
         name = program.name,
         status = ProgramHeaderStatus.ACTIVE,
-        meta = "Semana que se repite · Fuerza y músculo",
+        meta = "Músculo · Rutina · 3 días",
         identity = coverIdentityFor(program.id, null),
         photoUrl = null,
         bundled = null,
-        weekCount = 1,
-        currentWeekIndex = null,
-        progressLabel = "Semana que se repite · ciclo 1",
+        progressLabel = null,
         primary = ProgramHeaderPrimary.None,
         nextSession = nextSession,
     )
 
     private val nextThursday = ProgramNextSession(
         dayOfWeek = 4,
-        label = "Jueves · Pierna A",
+        label = "Siguiente: jueves · Pierna A",
         description = "Siguiente sesión: jueves, Pierna A",
     )
 
-    private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onStartPause = {}, onEdit = {}, onOpenNextSession = {})
+    private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onOpenNextSession = {})
 
     /** Un volumen sin calibrar: ningún músculo tiene zonas, y tres no tienen series esta semana. */
     private val uncalibratedMuscles = listOf(

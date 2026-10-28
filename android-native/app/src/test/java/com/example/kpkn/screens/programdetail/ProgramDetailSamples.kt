@@ -36,7 +36,8 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeSplit
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
-import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.programHeadlineMeta
+import com.example.kpkn.screens.programdetail.design.programModeLabel
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockRange
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.programs.CatalogDuration
@@ -99,12 +100,16 @@ internal object ProgramDetailSamples {
     ): ProgramHeaderState = ProgramHeaderState(
         name = program.name,
         status = status,
-        meta = programMetaLine(weekCount, repeating, program.weekDays, program.mode),
+        meta = programHeadlineMeta(
+            goalLabel = programModeLabel(program.mode),
+            weekCount = weekCount,
+            blockCount = 1,
+            isRoutine = repeating,
+            daysPerWeek = program.weekDays,
+        ),
         identity = coverIdentityForProgram(program),
         photoUrl = null,
         bundled = null,
-        weekCount = weekCount,
-        currentWeekIndex = currentWeek,
         progressLabel = progressLabel,
         primary = primary,
     )
@@ -158,8 +163,7 @@ internal object ProgramDetailSamples {
         done: Boolean = false,
         customized: Boolean = false,
         restorable: Boolean = false,
-        optionalDate: String? = null,
-        confirmed: Boolean = false,
+        proposal: String? = null,
     ): ProgramSessionUi = ProgramSessionUi(
         session = session,
         exerciseCount = session.allExercises().size,
@@ -167,8 +171,7 @@ internal object ProgramDetailSamples {
         done = done,
         customized = customized,
         restorable = restorable,
-        optionalDateIso = optionalDate,
-        optionalConfirmed = confirmed,
+        proposalLabel = proposal,
     )
 
     /** Un día de la semana: [number] es su fecha si hay calendario (null sin calendario). */

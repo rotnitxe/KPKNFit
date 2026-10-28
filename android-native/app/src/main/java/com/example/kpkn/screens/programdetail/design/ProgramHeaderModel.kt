@@ -1,16 +1,11 @@
 package com.example.kpkn.screens.programdetail.design
 
-import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
-import com.example.kpkn.data.models.SimpleProgramKind
-import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.text.SpanishPlurals
-import com.example.kpkn.domain.training.ProgramScopes
 import com.example.kpkn.screens.programdetail.components.focusModeLabel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
-import kotlin.math.roundToInt
 
 /*
  * Textos y decisiones de la cabecera de Program Detail, sin Compose: la prueba en la JVM decide qué dice cada caso.
@@ -33,15 +28,18 @@ internal fun programHeaderStatusLabel(status: ProgramHeaderStatus): String = whe
     ProgramHeaderStatus.DRAFT -> "Borrador"
 }
 
-/** La acción principal de la cabecera (KPKN_UI_V2 §6). */
+/** La acción principal de la cabecera (lienzo v6: p-today, p-paused, p-rest). */
 internal sealed interface ProgramHeaderPrimary {
-    /** «Empezar <sesión de hoy>». */
+    /** «Empezar · <sesión de hoy>». */
     data class Start(val sessionName: String) : ProgramHeaderPrimary
 
-    /** «Continuar sesión»: la sesión de hoy ya está en curso. */
-    object Continue : ProgramHeaderPrimary
+    /** «Continuar · <sesión>»: la sesión de hoy ya está en curso (C-D5: el patrón de «Empezar · Tirón»). */
+    data class Continue(val sessionName: String) : ProgramHeaderPrimary
 
-    /** «Activar programa»: el programa no está activo (si está pausado, activar lo reanuda). */
+    /** «Reanudar»: el programa está pausado (p-paused). */
+    object Resume : ProgramHeaderPrimary
+
+    /** «Activar programa»: el programa es un borrador (no está activo ni pausado). */
     object Activate : ProgramHeaderPrimary
 
     /** Sin acción principal: hoy no toca sesión pendiente. */
@@ -50,57 +48,32 @@ internal sealed interface ProgramHeaderPrimary {
 
 /**
  * Elige la acción principal. [sessionName] es la sesión de hoy que queda por hacer (o en curso) de este programa; null si hoy no
- * queda ninguna. Sin programa activo, siempre «Activar programa».
+ * queda ninguna. Pausado, siempre «Reanudar»; sin programa activo, «Activar programa».
  */
 internal fun programHeaderPrimaryOf(
     isActive: Boolean,
     sessionName: String?,
     sessionOngoing: Boolean,
+    isPaused: Boolean = false,
 ): ProgramHeaderPrimary = when {
+    isPaused -> ProgramHeaderPrimary.Resume
     !isActive -> ProgramHeaderPrimary.Activate
     sessionName == null -> ProgramHeaderPrimary.None
-    sessionOngoing -> ProgramHeaderPrimary.Continue
+    sessionOngoing -> ProgramHeaderPrimary.Continue(sessionName)
     else -> ProgramHeaderPrimary.Start(sessionName)
 }
 
 /** Texto de la acción principal; null si no hay acción. */
 internal fun programHeaderPrimaryLabel(primary: ProgramHeaderPrimary): String? = when (primary) {
-    is ProgramHeaderPrimary.Start -> "Empezar ${primary.sessionName}"
-    ProgramHeaderPrimary.Continue -> "Continuar sesión"
+    is ProgramHeaderPrimary.Start -> "Empezar · ${primary.sessionName}"
+    is ProgramHeaderPrimary.Continue -> "Continuar · ${primary.sessionName}"
+    ProgramHeaderPrimary.Resume -> "Reanudar"
     ProgramHeaderPrimary.Activate -> "Activar programa"
     ProgramHeaderPrimary.None -> null
 }
 
 /** Etiqueta del modo en la meta, con el vocabulario del asistente. Null si el modo no se conoce: nunca se inventa uno. */
 internal fun programModeLabel(mode: ProgramMode?): String? = mode?.let(::focusModeLabel)
-
-/** Línea de alcance del programa con el vocabulario único: «Una semana que se repite», «8 semanas» o «Por bloques · 3 bloques · 12 semanas». */
-internal fun programScopeLine(program: Program): String = ProgramScopes.label(ProgramScopes.of(program))
-
-/** Recordatorio por calendario para rutinas propias repetidas, sin inferir fatiga ni modificar su contenido. */
-internal fun repeatingCycleDeloadNotice(program: Program): String? {
-    if (program.sourceRecipe != null || program.sourceProtocolId != null || !program.isSimpleProgram ||
-        program.simpleProgramKind != SimpleProgramKind.CYCLIC) return null
-    val cycle = program.runState?.cycleNumber ?: return null
-    return if (cycle > 0 && cycle % 6 == 0)
-        "Ciclo $cycle: puedes planificar una semana de descarga con la mitad de las series y 4 repeticiones en reserva."
-    else null
-}
-
-/**
- * «12 semanas · 4 días por semana · Fuerza». Lo que no se sabe se omite (nada de «—» en la meta). Un programa de una sola semana que
- * se repite dice «Semana que se repite» en vez de «1 semana».
- */
-internal fun programMetaLine(weekCount: Int, repeatingWeek: Boolean, daysPerWeek: Int?, mode: ProgramMode?): String =
-    listOfNotNull(
-        when {
-            repeatingWeek -> "Semana que se repite"
-            weekCount > 0 -> numberWithUnit(SpanishPlurals.weeks(weekCount))
-            else -> null
-        },
-        daysPerWeek?.takeIf { it > 0 }?.let { numberWithUnit(SpanishPlurals.days(it)) + " por semana" },
-        programModeLabel(mode),
-    ).joinToString(" · ")
 
 /**
  * La meta de la cabecera: «Fuerza · 12 semanas · 3 bloques»; en una rutina, «Fuerza · Rutina · 4 días». El modo va primero y lo que no
@@ -159,15 +132,15 @@ internal fun shortPhaseOf(phase: String?): String? =
 private const val PHASE_PREFIX = "Fase de "
 
 /**
- * La sesión que toca después de hoy en la semana que se ve: su día (1 = lunes … 7 = domingo), la etiqueta corta de la píldora («Jueves ·
- * Pierna A») y lo que lee TalkBack («Siguiente sesión: jueves, Pierna A»).
+ * La sesión que toca después de hoy en la semana que se ve: su día (1 = lunes … 7 = domingo), la etiqueta de la píldora («Siguiente:
+ * jueves · Pierna A», p-rest) y lo que lee TalkBack («Siguiente sesión: jueves, Pierna A»).
  */
 internal data class ProgramNextSession(val dayOfWeek: Int, val label: String, val description: String)
 
 private val SPANISH_LOCALE: Locale = Locale("es")
 
 /**
- * «Jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
+ * «Siguiente: jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
  * propio día cuenta solo dentro de siete días. [sessions] son pares (día, nombre); las que no tienen día se ignoran. Null si ninguna.
  */
 internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int): ProgramNextSession? {
@@ -177,8 +150,7 @@ internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int)
         ?: return null
     val dayName = DayOfWeek.of(next.first).getDisplayName(TextStyle.FULL, SPANISH_LOCALE).lowercase(SPANISH_LOCALE)
     val name = next.second.trim()
-    val capitalDay = dayName.replaceFirstChar { it.uppercase(SPANISH_LOCALE) }
-    val label = if (name.isEmpty()) capitalDay else "$capitalDay · $name"
+    val label = if (name.isEmpty()) "Siguiente: $dayName" else "Siguiente: $dayName · $name"
     val description = if (name.isEmpty()) "Siguiente sesión: $dayName" else "Siguiente sesión: $dayName, $name"
     return ProgramNextSession(dayOfWeek = next.first, label = label, description = description)
 }
@@ -189,16 +161,31 @@ private fun daysUntil(day: Int, today: Int): Int {
     return if (distance == 0) 7 else distance
 }
 
-/**
- * Subtítulo de la semana de un programa simple, en lugar de su nombre («Semana repetible»): «4 sesiones · ≈ 61 min de media». La media
- * solo cuenta las sesiones con duración; sin ninguna, dice solo las sesiones. Sin sesiones, null.
- */
-internal fun repeatingWeekSubtitle(sessionMinutes: List<Int>): String? {
-    if (sessionMinutes.isEmpty()) return null
-    val sessions = SpanishPlurals.sessions(sessionMinutes.size)
-    val timed = sessionMinutes.filter { it > 0 }
-    return if (timed.isEmpty()) sessions else "$sessions · ≈ ${timed.average().roundToInt()} min de media"
-}
-
 /** La línea «Hoy también» bajo la fila de acciones: otra sesión de hoy y su duración estimada. */
 internal fun programTodayAlsoLine(sessionName: String, minutes: Int): String = "Hoy también: $sessionName · ≈ $minutes min"
+
+/**
+ * La línea bajo el nombre en la hoja ⋯ del programa (m-program): «Activo · semana 4 de 6»; sin total (una rutina), «Activo · semana 7»;
+ * sin semana conocida, solo el estado.
+ */
+internal fun programMenuStatusLine(status: ProgramHeaderStatus, weekIndex: Int?, weekCount: Int?): String {
+    val state = programHeaderStatusLabel(status)
+    val week = weekIndex?.takeIf { it > 0 } ?: return state
+    return if (weekCount != null && weekCount > 1) "$state · semana $week de $weekCount" else "$state · semana $week"
+}
+
+/** La fila de pausar de ⋯ (m-program) y sus variantes (C-D2): título y subtítulo según el estado del programa. */
+internal data class ProgramPauseRow(val title: String, val detail: String?)
+
+/**
+ * «Pausar programa» / «Se guarda en la semana 4» con el programa activo; pausado, «Reanudar programa» / «Sigue en la semana 4»; en
+ * borrador, «Activar programa» / «Pasa a ser tu programa activo». Sin semana conocida, el activo y el pausado van sin subtítulo.
+ */
+internal fun programPauseRow(status: ProgramHeaderStatus, weekIndex: Int?): ProgramPauseRow {
+    val week = weekIndex?.takeIf { it > 0 }
+    return when (status) {
+        ProgramHeaderStatus.ACTIVE -> ProgramPauseRow("Pausar programa", week?.let { "Se guarda en la semana $it" })
+        ProgramHeaderStatus.PAUSED -> ProgramPauseRow("Reanudar programa", week?.let { "Sigue en la semana $it" })
+        ProgramHeaderStatus.DRAFT -> ProgramPauseRow("Activar programa", "Pasa a ser tu programa activo")
+    }
+}

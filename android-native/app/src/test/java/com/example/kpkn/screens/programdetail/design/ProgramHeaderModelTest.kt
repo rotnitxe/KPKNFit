@@ -1,40 +1,11 @@
 package com.example.kpkn.screens.programdetail.design
 
-import com.example.kpkn.data.models.Block
-import com.example.kpkn.data.models.Macrocycle
-import com.example.kpkn.data.models.Mesocycle
-import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.ProgramMode
-import com.example.kpkn.data.models.ProgramStructure
-import com.example.kpkn.data.models.ProgramWeek
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** Lo que dice la cabecera de Program Detail: la meta, la acción principal, el progreso y el estado (P1). */
+/** Lo que dice la cabecera de Program Detail: la meta, la acción principal, el progreso, el estado y las filas del ⋯ (lienzo v6). */
 class ProgramHeaderModelTest {
-
-    @Test fun repeating_sixth_cycle_offers_an_optional_calendar_deload() {
-        val p = Program("p", "Plan", runState = com.example.kpkn.data.models.ProgramRunState("r", cycleNumber = 6))
-        assertEquals("Ciclo 6: puedes planificar una semana de descarga con la mitad de las series y 4 repeticiones en reserva.", repeatingCycleDeloadNotice(p))
-        assertNull(repeatingCycleDeloadNotice(p.copy(runState = p.runState!!.copy(cycleNumber = 5))))
-        assertNull(repeatingCycleDeloadNotice(p.copy(runState = p.runState!!.copy(cycleNumber = 0))))
-        assertNull(repeatingCycleDeloadNotice(p.copy(sourceRecipe = com.example.kpkn.data.protocols.TrainingPlanRecipe("recipe", emptyList()))))
-        assertNull(repeatingCycleDeloadNotice(p.copy(sourceProtocolId = "author")))
-        assertNull(repeatingCycleDeloadNotice(p.copy(simpleProgramKind = com.example.kpkn.data.models.SimpleProgramKind.CALENDARIZED)))
-    }
-
-    @Test
-    fun metaSaysWeeksDaysAndModeInSpanish() {
-        // La cifra va pegada a su unidad con un espacio sin corte: nunca queda sola al final de línea.
-        assertEquals("12 semanas · 4 días por semana · Fuerza", programMetaLine(12, false, 4, ProgramMode.POWERLIFTING))
-    }
-
-    @Test
-    fun metaOmitsWhatIsNotKnownInsteadOfInventingIt() {
-        assertEquals("12 semanas · 4 días por semana", programMetaLine(12, false, 4, null))
-        assertEquals("Semana que se repite · Músculo", programMetaLine(1, true, null, ProgramMode.HYPERTROPHY))
-    }
 
     @Test
     fun headlineSaysModeWeeksAndBlocksInSpanish() {
@@ -69,14 +40,21 @@ class ProgramHeaderModelTest {
     fun primaryActionIsStartWhenTodayHasASession() {
         val primary = programHeaderPrimaryOf(isActive = true, sessionName = "Torso A", sessionOngoing = false)
         assertEquals(ProgramHeaderPrimary.Start("Torso A"), primary)
-        assertEquals("Empezar Torso A", programHeaderPrimaryLabel(primary))
+        assertEquals("Empezar · Torso A", programHeaderPrimaryLabel(primary))
     }
 
     @Test
     fun primaryActionIsContinueWhenTheSessionIsOngoing() {
         val primary = programHeaderPrimaryOf(isActive = true, sessionName = "Torso A", sessionOngoing = true)
-        assertEquals(ProgramHeaderPrimary.Continue, primary)
-        assertEquals("Continuar sesión", programHeaderPrimaryLabel(primary))
+        assertEquals(ProgramHeaderPrimary.Continue("Torso A"), primary)
+        assertEquals("Continuar · Torso A", programHeaderPrimaryLabel(primary))
+    }
+
+    @Test
+    fun primaryActionIsResumeWhenTheProgramIsPaused() {
+        val primary = programHeaderPrimaryOf(isActive = false, sessionName = "Torso A", sessionOngoing = false, isPaused = true)
+        assertEquals(ProgramHeaderPrimary.Resume, primary)
+        assertEquals("Reanudar", programHeaderPrimaryLabel(primary))
     }
 
     @Test
@@ -118,31 +96,26 @@ class ProgramHeaderModelTest {
     }
 
     @Test
-    fun scopeLineNamesTheBlocksOfAComplexProgram() {
-        val program = Program(
-            id = "p",
-            name = "P",
-            structure = ProgramStructure.COMPLEX,
-            macrocycles = listOf(
-                Macrocycle(
-                    id = "macro",
-                    name = "Macro",
-                    blocks = (1..3).map { b ->
-                        Block(
-                            id = "block$b",
-                            name = "Bloque $b",
-                            mesocycles = listOf(
-                                Mesocycle(
-                                    id = "meso$b",
-                                    name = "Meso $b",
-                                    weeks = (1..4).map { w -> ProgramWeek(id = "b${b}w$w", name = "Semana $w") },
-                                ),
-                            ),
-                        )
-                    },
-                ),
-            ),
+    fun menuStatusLineSaysTheStateAndTheWeek() {
+        assertEquals("Activo · semana 4 de 6", programMenuStatusLine(ProgramHeaderStatus.ACTIVE, weekIndex = 4, weekCount = 6))
+        assertEquals("Activo · semana 7", programMenuStatusLine(ProgramHeaderStatus.ACTIVE, weekIndex = 7, weekCount = null))
+        assertEquals("Pausado", programMenuStatusLine(ProgramHeaderStatus.PAUSED, weekIndex = null, weekCount = 6))
+    }
+
+    @Test
+    fun pauseRowChangesWithTheState() {
+        assertEquals(
+            ProgramPauseRow("Pausar programa", "Se guarda en la semana 4"),
+            programPauseRow(ProgramHeaderStatus.ACTIVE, weekIndex = 4),
         )
-        assertEquals("Por bloques · 3 bloques · 12 semanas", programScopeLine(program))
+        assertEquals(
+            ProgramPauseRow("Reanudar programa", "Sigue en la semana 4"),
+            programPauseRow(ProgramHeaderStatus.PAUSED, weekIndex = 4),
+        )
+        assertEquals(
+            ProgramPauseRow("Activar programa", "Pasa a ser tu programa activo"),
+            programPauseRow(ProgramHeaderStatus.DRAFT, weekIndex = null),
+        )
+        assertEquals(ProgramPauseRow("Pausar programa", null), programPauseRow(ProgramHeaderStatus.ACTIVE, weekIndex = null))
     }
 }

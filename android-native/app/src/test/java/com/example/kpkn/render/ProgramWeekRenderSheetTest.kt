@@ -140,7 +140,7 @@ class ProgramWeekRenderSheetTest {
         name = "Miércoles",
         short = "Mié",
         sessions = listOf(
-            ProgramDetailSamples.sessionUi(optionalSession, optionalDate = "2026-10-21", confirmed = false),
+            ProgramDetailSamples.sessionUi(optionalSession),
         ),
         number = "21",
     )
@@ -178,7 +178,6 @@ class ProgramWeekRenderSheetTest {
             onEditSession = {},
             onMoreSession = { _, _ -> },
             onRestoreSession = {},
-            onToggleOptional = { _, _ -> },
             draggingSessionId = null,
             insertIndex = null,
             anchorFirstSession = false,

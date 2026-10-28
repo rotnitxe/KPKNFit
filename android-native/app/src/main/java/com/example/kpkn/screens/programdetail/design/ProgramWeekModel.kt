@@ -23,8 +23,8 @@ internal data class ProgramWeekStats(
     /** «26/60». */
     val setsLabel: String get() = "$setsDone/$setsTotal"
 
-    /** «≈ 4 h 36 min», con el mismo formato que el total de un día de la agenda. */
-    val minutesLabel: String get() = dayTotalLabel(minutes)
+    /** «≈ 4 h 36» (s-week): sin «min» tras las horas. */
+    val minutesLabel: String get() = weekTotalLabel(minutes)
 }
 
 /**
@@ -40,6 +40,38 @@ internal fun programWeekStats(sessions: List<Session>, completedSessionIds: Set<
         setsTotal = sessions.sumOf { seriesOf(it) },
         minutes = sessions.sumOf { SessionDurationEstimator.estimate(it).totalMinutes },
     )
+}
+
+/** El tiempo de una semana en el navegador: «≈ 45 min», «≈ 4 h 36» (minutos con dos cifras: «≈ 4 h 05») o «≈ 4 h». */
+internal fun weekTotalLabel(minutes: Int): String {
+    if (minutes < 60) return "≈ $minutes min"
+    val rest = minutes % 60
+    return if (rest == 0) "≈ ${minutes / 60} h" else "≈ ${minutes / 60} h ${rest.toString().padStart(2, '0')}"
+}
+
+/** Cuántas semanas enseña la mini-cinta de una rutina (s-simple). */
+internal const val ROUTINE_RIBBON_WEEKS = 12
+
+/**
+ * La mini-cinta de una rutina (s-simple): las 12 semanas del tramo en el que cae [cycle] (1–12, 13–24…), las anteriores a [cycle] hechas y
+ * [cycle] elegida. Las semanas especiales de sus ciclos ([loops]: una cada `repeatEveryXLoops`) van en el color de su fase (la descarga en
+ * verde, el test de 1RM en el de realización, la competición en el suyo); el resto, en tinta. Sin texto.
+ */
+internal fun routineMiniRibbon(cycle: Int?, loops: List<com.example.kpkn.data.models.Loop>): List<ProgramMiniRibWeek> {
+    val current = cycle?.takeIf { it > 0 } ?: 1
+    val first = (current - 1) / ROUTINE_RIBBON_WEEKS * ROUTINE_RIBBON_WEEKS + 1
+    return (first until first + ROUTINE_RIBBON_WEEKS).map { week ->
+        val special = loops.firstOrNull { loop ->
+            loop.type != com.example.kpkn.data.models.LoopType.CUSTOM && loop.repeatEveryXLoops > 1 && week % loop.repeatEveryXLoops == 0
+        }
+        val color = when (special?.type) {
+            com.example.kpkn.data.models.LoopType.DELOAD -> ProgramPhase.DELOAD.color
+            com.example.kpkn.data.models.LoopType.ONE_RM_TEST -> ProgramPhase.REALIZATION.color
+            com.example.kpkn.data.models.LoopType.COMPETITION -> ProgramPhase.COMPETITION.color
+            else -> com.example.kpkn.screens.onboarding.design.WizardColors.text
+        }
+        ProgramMiniRibWeek(color = color, done = week < current, selected = week == current)
+    }
 }
 
 /** Las series de trabajo de una sesión: las de todos sus ejercicios. */
