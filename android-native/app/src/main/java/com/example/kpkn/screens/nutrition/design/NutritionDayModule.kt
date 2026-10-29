@@ -42,22 +42,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -66,11 +57,8 @@ import com.example.kpkn.data.models.DailyMacroTotals
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
 import com.example.kpkn.screens.nutrition.NutritionWeekDay
-import com.example.kpkn.screens.onboarding.design.MacroRingFractions
-import com.example.kpkn.screens.onboarding.design.WIZARD_RING_CALORIE_SCALE
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.screens.onboarding.design.WizardMacroRings
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -82,17 +70,19 @@ import com.example.kpkn.ui.design.KpknSkeletonModule
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.theme.MacroColors
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-/** Diámetro de los anillos de macros de «Tu día»: 112 dp, como en la nutrición de Home. */
-private val NutritionRingSize = 112.dp
+/** Diámetro del anillo fino de «Tu día»: 104 dp (`npRing(2240, 2300, 104)`). */
+private val NutritionRingSize = 104.dp
 
-/** Aire entre los anillos y la columna de la cifra con su lectura. */
-private val NutritionRingGap = 16.dp
+/** Aire entre el anillo y las filas de macros (`.np-day{gap:18px}`). */
+private val NutritionRingGap = 18.dp
+
+/** Etiqueta de prueba del contenedor del anillo de «Tu día» (solo se pinta con meta de kcal). */
+internal const val NUTRITION_DAY_RING_TAG = "nutrition-day-ring"
 
 /** Escala de letra a partir de la que la leyenda y las cifras se apilan (como Home). */
 internal const val NutritionLargeTextScale = 1.15f
@@ -108,9 +98,6 @@ private val NutritionDayNumber = TextStyle(
     lineHeight = 20.sp,
     fontFeatureSettings = "'tnum' 1",
 )
-
-/** Cifra de un macro en la leyenda de tres columnas: Inter SemiBold 15 sp con cifras tabulares. */
-private val NutritionMacroValue = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1")
 
 private val dayNamesEs = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
@@ -136,8 +123,8 @@ data class NutritionDayFigure(
 )
 
 /**
- * «Tu día» (NUTRITION_V1 §2.2): la tira de siete días con su mini anillo de kcal, y debajo, con un filete, los anillos de macros, la
- * cifra del día con su lectura («te quedan» o «te pasaste») y la leyenda de P, C y G. Tocar un día llama a [onSelectDate] y todo lo de
+ * «Tu día» (NUTRITION_V1 §2.2; Arreglos v1): la tira de siete días con su mini anillo de kcal, y debajo, con un filete, el anillo fino
+ * monocromo del día (cifra dentro y «de 2.300» debajo) con proteína, carbos y grasa como filas con barra fina en tinta. Tocar un día llama a [onSelectDate] y todo lo de
  * abajo cambia con `AnimatedContent`. Sin plan, ofrece «Definir objetivos» ([onDefineGoals]); con plan y sin meta, solo seguimiento.
  * Mientras el estado del usuario no se ha leído ([loaded] false) es un esqueleto: nunca «sin objetivos» por adelantado.
  */
@@ -204,10 +191,9 @@ fun NutritionDayModule(
                 NutritionDayFiguresBlock(
                     figure = figure,
                     hasActivePlan = hasActivePlan,
+                    largeText = largeText,
                     onDefineGoals = onDefineGoals,
                 )
-                Spacer(Modifier.height(16.dp))
-                NutritionMacroLegend(figure = figure, largeText = largeText)
             }
         }
     }
@@ -329,13 +315,16 @@ private fun NutritionDayColumn(
 }
 
 /**
- * Lo que va debajo de la tira para el día elegido. Con meta de kcal: los anillos de macros y la cifra con su lectura, a la derecha si
- * caben y apilados si no. Sin meta: la cifra a todo el ancho y, sin plan, «Definir objetivos». Las cifras cuentan la primera vez.
+ * Lo que va debajo de la tira para el día elegido (lienzo `v-day`, `.np-day`): con meta de kcal, el anillo fino monocromo de 104 dp con
+ * la cifra a su medida y «de 2.300» debajo, y a su derecha proteína, carbos y grasa como filas con barra fina en tinta (sin color por
+ * macro); con la letra grande, el anillo arriba y las filas a todo el ancho. Sin meta: la cifra a todo el ancho, las filas sin barra y,
+ * sin plan, «Definir objetivos». El gasto del entreno, si lo hay, va como una línea más debajo. Las cifras cuentan la primera vez.
  */
 @Composable
 private fun NutritionDayFiguresBlock(
     figure: NutritionDayFigure,
     hasActivePlan: Boolean,
+    largeText: Boolean,
     onDefineGoals: () -> Unit,
 ) {
     val reduced = wizardReducedMotion()
@@ -350,75 +339,67 @@ private fun NutritionDayFiguresBlock(
         animationSpec = countSpec,
         label = "nutrition-day-kcal",
     )
+    val approx = NutritionDisplayFormat.approxPrefix(figure.estimate)
+    val macros = listOf(
+        NutritionMacroLine("Proteína", figure.protein.grams, figure.protein.goal, approx),
+        NutritionMacroLine("Carbos", figure.carbs.grams, figure.carbs.goal, approx),
+        NutritionMacroLine("Grasa", figure.fat.grams, figure.fat.goal, approx),
+    )
     val goal = figure.kcalGoal
     if (goal == null) {
         Column(modifier = Modifier.fillMaxWidth()) {
             NutritionKcalFigure(value = kcalShown, estimate = figure.estimate, style = KpknType.metricXL)
-            if (figure.trainingBurnKcal > 0) {
-                Spacer(Modifier.height(8.dp))
-                NutritionTrainingLine(burnKcal = figure.trainingBurnKcal)
-            }
             if (!hasActivePlan) {
                 Spacer(Modifier.height(10.dp))
                 Text(text = "Aún no tienes objetivos.", style = KpknType.body, color = WizardColors.textMuted)
                 KpknTextAction(text = "Definir objetivos", onClick = onDefineGoals, icon = KpknLineIcons.ChevronRight)
             }
+            NutritionMacroLines(lines = macros, modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
+            if (figure.trainingBurnKcal > 0) {
+                Spacer(Modifier.height(12.dp))
+                NutritionTrainingLine(burnKcal = figure.trainingBurnKcal)
+            }
         }
     } else {
-        val measurer = rememberTextMeasurer()
-        val density = LocalDensity.current
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val ringsAndGapPx = with(density) { (NutritionRingSize + NutritionRingGap).roundToPx() }
-            val sideBySide = remember(constraints.maxWidth, density, measurer) {
-                nutritionFigureFits(measurer, density, availablePx = constraints.maxWidth - ringsAndGapPx)
+        val ring: @Composable () -> Unit = {
+            // El contenedor lleva la etiqueta de prueba y el ancla del recorrido; el anillo pone su propia descripción.
+            Box(Modifier.tourAnchor(TourAnchors.NUTRITION_ANILLOS).testTag(NUTRITION_DAY_RING_TAG)) {
+                NutritionThinRing(
+                    kcal = figure.kcal,
+                    goal = goal,
+                    size = NutritionRingSize,
+                    appeared = appeared,
+                    reducedMotion = reduced,
+                    approx = approx,
+                )
             }
-            if (sideBySide) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    NutritionRings(figure = figure, appeared = appeared, reduced = reduced)
-                    Spacer(Modifier.width(NutritionRingGap))
-                    Column(modifier = Modifier.weight(1f)) {
-                        NutritionKcalFigure(value = kcalShown, estimate = figure.estimate, style = KpknType.metricL)
-                        NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate, burnKcal = figure.trainingBurnKcal)
-                    }
+        }
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (largeText) {
+                // A escala de letra grande las filas no caben junto al anillo: el anillo arriba y las filas a todo el ancho.
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    ring()
+                    NutritionMacroLines(lines = macros, modifier = Modifier.fillMaxWidth().padding(top = 14.dp))
                 }
             } else {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    NutritionKcalFigure(value = kcalShown, estimate = figure.estimate, style = KpknType.metricXL)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        NutritionRings(figure = figure, appeared = appeared, reduced = reduced)
-                        Spacer(Modifier.width(NutritionRingGap))
-                        Column(modifier = Modifier.weight(1f)) {
-                            NutritionGoalLines(kcal = figure.kcal, goal = goal, estimate = figure.estimate, burnKcal = figure.trainingBurnKcal)
-                        }
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(NutritionRingGap),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ring()
+                    NutritionMacroLines(lines = macros, modifier = Modifier.weight(1f))
                 }
+            }
+            if (figure.trainingBurnKcal > 0) {
+                Spacer(Modifier.height(12.dp))
+                NutritionTrainingLine(burnKcal = figure.trainingBurnKcal)
             }
         }
     }
 }
 
-/** Los anillos de macros del día, con la etiqueta de su recorrido. */
-@Composable
-private fun NutritionRings(figure: NutritionDayFigure, appeared: Boolean, reduced: Boolean) {
-    Box(modifier = Modifier.size(NutritionRingSize).tourAnchor(TourAnchors.NUTRITION_ANILLOS)) {
-        WizardMacroRings(
-            kcal = figure.kcal,
-            fractions = nutritionRingFractions(figure),
-            caption = "kcal",
-            description = nutritionRingsDescription(figure),
-            appeared = appeared,
-            reducedMotion = reduced,
-            modifier = Modifier.fillMaxSize(),
-            // Sin cifra central: la kcal grande va al lado, así no se repite ni pisa los arcos.
-            showCenter = false,
-        )
-    }
-}
-
-/** La cifra de kcal del día con su unidad. Con [estimate] lleva «≈». */
+/** La cifra de kcal del día sin meta, con su unidad. Con [estimate] lleva «≈». */
 @Composable
 private fun NutritionKcalFigure(value: Int, estimate: Boolean, style: TextStyle) {
     KpknMetric(
@@ -426,22 +407,6 @@ private fun NutritionKcalFigure(value: Int, estimate: Boolean, style: TextStyle)
         unit = "kcal",
         style = style,
     )
-}
-
-/** Lo que se lee junto a la cifra con meta: «de 2.300 kcal» y lo que queda, en `danger` si se ha pasado. */
-@Composable
-private fun NutritionGoalLines(kcal: Int, goal: Int, estimate: Boolean, burnKcal: Int = 0) {
-    Text(text = "de ${formatKcalEs(goal)} kcal", style = KpknType.caption, color = WizardColors.textMuted)
-    Text(
-        text = kcalRemainingText(eaten = kcal, goal = goal, approx = NutritionDisplayFormat.approxPrefix(estimate)),
-        style = KpknType.caption,
-        color = if (kcal > goal) WizardColors.danger else WizardColors.textMuted,
-    )
-    // El gasto del entreno no cambia la meta: va como una línea más, debajo de lo que queda.
-    if (burnKcal > 0) {
-        Spacer(Modifier.height(4.dp))
-        NutritionTrainingLine(burnKcal = burnKcal)
-    }
 }
 
 /** «Entreno · 320 kcal» con un punto de músculo: el gasto del entreno del día, solo si lo hay. */
@@ -452,162 +417,6 @@ private fun NutritionTrainingLine(burnKcal: Int) {
         Spacer(Modifier.width(6.dp))
         Text(text = "Entreno · ${formatKcalEs(burnKcal)} kcal", style = KpknType.caption, color = WizardColors.textMuted)
     }
-}
-
-/**
- * La leyenda de P, C y G en tres columnas: punto y nombre y, debajo, los gramos con su meta en `textFaint` en la línea siguiente. Con la
- * letra grande, cada macro es una fila: nombre a la izquierda y cifra con su meta a la derecha.
- */
-@Composable
-private fun NutritionMacroLegend(figure: NutritionDayFigure, largeText: Boolean) {
-    val approx = NutritionDisplayFormat.approxPrefix(figure.estimate)
-    val macros = listOf(
-        Triple("Proteína", figure.protein, MacroColors.protein),
-        Triple("Hidratos", figure.carbs, MacroColors.carbs),
-        Triple("Grasas", figure.fat, MacroColors.fat),
-    )
-    if (largeText) {
-        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            macros.forEach { (name, macro, color) ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MacroName(name = name, color = color)
-                    MacroValue(macro = macro, approx = approx, stacked = true)
-                }
-            }
-        }
-    } else {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            macros.forEach { (name, macro, color) ->
-                Column(modifier = Modifier.weight(1f)) {
-                    MacroName(name = name, color = color)
-                    Spacer(Modifier.height(2.dp))
-                    MacroValue(macro = macro, approx = approx, stacked = false)
-                }
-            }
-        }
-    }
-}
-
-/** El punto de color de un macro y su nombre. */
-@Composable
-private fun MacroName(name: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(8.dp).background(color, CircleShape))
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = name,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/**
- * La cifra de un macro. En la leyenda de tres columnas, los gramos van en una línea y la meta («/ 160 g») debajo, en `textFaint`; con la
- * letra grande, gramos y meta van en la misma línea, en fila.
- */
-@Composable
-private fun MacroValue(macro: NutritionMacroFigure, approx: String, stacked: Boolean) {
-    if (stacked) {
-        Text(
-            text = macroFigureText(macro = macro, approx = approx),
-            style = KpknType.bodyStrong,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    } else {
-        Column {
-            Text(
-                text = "$approx${formatKcalEs(macro.grams)} g",
-                style = NutritionMacroValue,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            macro.goal?.let { goal ->
-                Text(
-                    text = "/ ${formatKcalEs(goal)} g",
-                    style = KpknType.caption,
-                    color = WizardColors.textFaint,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
-}
-
-/** Gramos y meta de un macro en una sola línea: el espacio es sin corte, así la unidad nunca queda sola. */
-private fun macroFigureText(macro: NutritionMacroFigure, approx: String): AnnotatedString = buildAnnotatedString {
-    withStyle(
-        SpanStyle(
-            color = WizardColors.text,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFeatureSettings = "'tnum' 1",
-        ),
-    ) {
-        append("$approx${formatKcalEs(macro.grams)} g")
-    }
-    macro.goal?.let { goal ->
-        withStyle(SpanStyle(color = WizardColors.textFaint, fontSize = 13.sp, fontWeight = FontWeight.Normal)) {
-            append(" / ${formatKcalEs(goal)} g")
-        }
-    }
-}
-
-/** Anillos del wizard: kcal frente a la meta (1 = círculo entero = 1,25 × la meta) y cada macro frente a su meta. */
-private fun nutritionRingFractions(figure: NutritionDayFigure): MacroRingFractions {
-    val goal = figure.kcalGoal
-    return MacroRingFractions(
-        calories = if (goal == null) 0f else ((figure.kcal.toFloat() / goal) / WIZARD_RING_CALORIE_SCALE).coerceIn(0f, 1f),
-        protein = macroShare(figure.protein),
-        carbs = macroShare(figure.carbs),
-        fat = macroShare(figure.fat),
-        // Con meta, la marca del 100 % va en su sitio; sin meta no hay escala ni marca.
-        referenceMark = if (goal == null) null else 1f / WIZARD_RING_CALORIE_SCALE,
-    )
-}
-
-private fun macroShare(macro: NutritionMacroFigure): Float {
-    val goal = macro.goal ?: return 0f
-    return (macro.grams.toFloat() / goal).coerceIn(0f, 1f)
-}
-
-/** Lo que se lee de los anillos: kcal frente a la meta y cada macro. */
-private fun nutritionRingsDescription(figure: NutritionDayFigure): String {
-    val kcal = figure.kcalGoal?.let { "${formatKcalEs(figure.kcal)} kilocalorías de ${formatKcalEs(it)}" }
-        ?: "${formatKcalEs(figure.kcal)} kilocalorías"
-    val burn = if (figure.trainingBurnKcal > 0) " Entreno de ${formatKcalEs(figure.trainingBurnKcal)} kilocalorías." else ""
-    return "Nutrición del día: $kcal. ${macroPhrase("Proteína", figure.protein)}. " +
-        "${macroPhrase("Hidratos", figure.carbs)}. ${macroPhrase("Grasas", figure.fat)}.$burn"
-}
-
-private fun macroPhrase(name: String, macro: NutritionMacroFigure): String =
-    macro.goal?.let { "$name ${macro.grams} de $it gramos" } ?: "$name ${macro.grams} gramos, sin meta"
-
-/** Lo que queda de la meta: «te quedan 1.045», «meta cubierta» o «te pasaste 120». */
-private fun kcalRemainingText(eaten: Int, goal: Int, approx: String): String = when {
-    eaten > goal -> "te pasaste $approx${formatKcalEs(eaten - goal)}"
-    eaten == goal -> "meta cubierta"
-    else -> "te quedan $approx${formatKcalEs(goal - eaten)}"
-}
-
-/**
- * ¿Cabe la cifra más ancha que se prevé («12.345 kcal») junto a los anillos? Se mide con el mismo tipo y la misma escala de letra que
- * se pintan; [availablePx] es el ancho que queda para la columna de la cifra.
- */
-private fun nutritionFigureFits(measurer: TextMeasurer, density: Density, availablePx: Int): Boolean {
-    val value = measurer.measure(text = formatKcalEs(12345), style = KpknType.metricL, maxLines = 1).size.width
-    val unit = measurer.measure(text = "kcal", style = KpknType.unit, maxLines = 1).size.width
-    val gapPx = with(density) { 3.dp.roundToPx() }
-    return value + gapPx + unit <= availablePx
 }
 
 /** Descripción de accesibilidad de un día: «jueves 2, hoy, 1.320 de 2.300 kilocalorías, 57 %» o «miércoles 1, sin registros». */

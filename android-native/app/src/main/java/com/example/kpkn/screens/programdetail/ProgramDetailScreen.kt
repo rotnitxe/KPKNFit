@@ -58,7 +58,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.programs.programCoverEntryIdOf
@@ -81,7 +80,6 @@ import com.example.kpkn.screens.programdetail.design.ProgramHeaderActions
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderState
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderStatus
-import com.example.kpkn.screens.programdetail.design.ProgramIslandBottom
 import com.example.kpkn.screens.programdetail.design.ProgramMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramMoreMenu
 import com.example.kpkn.screens.programdetail.design.ProgramOneRmSheet
@@ -99,7 +97,8 @@ import com.example.kpkn.screens.programdetail.design.programNextSessionOf
 import com.example.kpkn.screens.programdetail.design.programPhaseColor
 import com.example.kpkn.screens.programdetail.design.programTodayAlsoLine
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
-import com.example.kpkn.screens.programdetail.design.rememberPassedLine
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
@@ -302,9 +301,6 @@ fun ProgramDetailScreen(
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
 
-    // La cabecera ya salió por arriba cuando su borde inferior pasa la línea: la barra flotante lo usa para el punto de ⋯. Todo en la raíz.
-    val statusTopPx = WindowInsets.statusBars.getTop(density).toFloat()
-    val islandLinePx = statusTopPx + with(density) { ProgramIslandBottom.toPx() }
     val scroll = rememberScrollState()
     // Al cambiar de pestaña la página vuelve arriba: si no, Estructura o Progreso se abrían por la mitad, a la altura de la anterior.
     var shownTab by remember { mutableStateOf(uiState.structureSubTab) }
@@ -314,8 +310,8 @@ fun ProgramDetailScreen(
             scroll.scrollTo(0)
         }
     }
-    val headerBottomRoot = remember { mutableFloatStateOf(Float.MAX_VALUE) }
-    val headerOut = rememberPassedLine(markerRootY = headerBottomRoot, lineRootPx = islandLinePx)
+    // Fuente del vidrio de la barra flotante: el contenido desplazable (hazeSource) y la barra (hermana dibujada después) lo desenfoca.
+    val programHazeState = remember { HazeState() }
     val slidePx = with(density) { 12.dp.roundToPx() }
 
     val status = programHeaderStatusOf(isActive = isActive, isPaused = isPaused)
@@ -574,6 +570,9 @@ fun ProgramDetailScreen(
         onShare = { showShareSheet = true },
         pendingCount = pendingCount,
         onPending = { showPending = true },
+        // ⋯ vive en la fila del nombre (p-head), con su punto cuando hay pendientes. Abre el mismo menú del programa.
+        onMore = { showMoreMenu = true },
+        moreDot = pendingCount > 0,
     )
     val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
 
@@ -595,6 +594,9 @@ fun ProgramDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    // Fuente del desenfoque de la barra flotante (p-blur): fondo fijo + contenido que se desliza, hermano anterior a la barra.
+                    .background(KpknSurface.canvas)
+                    .hazeSource(state = programHazeState)
                     .verticalScroll(scroll)
                     .statusBarsPadding(),
             ) {
@@ -604,8 +606,7 @@ fun ProgramDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .kpknEntrance("programdetail", 0)
-                            .onGloballyPositioned { headerBottomRoot.floatValue = it.positionInRoot().y + it.size.height },
+                            .kpknEntrance("programdetail", 0),
                     ) {
                         ProgramHeader(state = headerState, actions = headerActions)
                     }
@@ -662,15 +663,15 @@ fun ProgramDetailScreen(
         if (!showSplitPage) {
             // Velo bajo la barra de estado: por encima del contenido que se desliza y por debajo de la barra flotante.
             KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
-            // Barra flotante: atrás, las tres pestañas y ⋯. Con pendientes y la cabecera ya fuera, ⋯ lleva el punto.
+            // Barra flotante: atrás y las tres pestañas, en vidrio que desenfoca el contenido de arriba (programHazeState).
+            // ⋯ ya no está aquí: va junto al nombre, en la cabecera.
             // El ancla del recorrido («Estructura») sigue en la barra, que es donde están ahora las pestañas.
             Box(modifier = Modifier.align(Alignment.TopCenter).tourAnchor(TourAnchors.TRAINING_ESTRUCTURA)) {
                 ProgramFloatingBar(
                     selected = uiState.structureSubTab,
                     onSelect = { viewModel.setStructureSubTab(it) },
                     onBack = onBack,
-                    onMore = { showMoreMenu = true },
-                    pendingDot = pendingCount > 0 && headerOut,
+                    hazeState = programHazeState,
                 )
             }
         }
@@ -693,6 +694,9 @@ fun ProgramDetailScreen(
                         .mapNotNull { iso -> runCatching { java.time.LocalDate.parse(iso.take(10)) }.getOrNull() },
                 )
             },
+            program = p,
+            isActive = isActive,
+            currentWeekId = activeProgramState?.currentWeekId?.takeIf { isActive && it.isNotBlank() },
         )
     }
     exerciseSwapRequest?.let { request ->

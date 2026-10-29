@@ -6,13 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,18 +23,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.ui.components.KpknGlassVariant
-import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlassOrFallback
 import java.text.NumberFormat
 import java.util.Locale
 
-private val SaveKcalStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, lineHeight = 24.sp)
 private val SaveGoStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp)
 
 /** Cifras con el punto de miles de España («1.752»). */
@@ -49,36 +45,27 @@ internal fun loggerThousands(value: Int): String = NumberFormat.getIntegerInstan
 }
 
 /**
- * La línea de la barra de guardado (lienzo `saveBar`): «4 alimentos · 25 g de proteína», o con dudas sin respuesta posible
- * «Resuelve 2 dudas o sigue con la estimación».
+ * La línea de la barra de guardado (lienzo `.np-save`): «1 alimento» o «4 alimentos», sin la proteína (se cortaba). Con dudas que no se
+ * pueden saltar ([blockingQuestions] mayor que 0) dice por qué el botón está apagado: «Resuelve 2 dudas». [proteinGrams] ya no se usa:
+ * se conserva para quien llama.
  */
+@Suppress("UNUSED_PARAMETER")
 fun loggerSaveBarLine(foodCount: Int, proteinGrams: Int, blockingQuestions: Int): String = when {
-    blockingQuestions > 0 -> "Resuelve ${if (blockingQuestions == 1) "1 duda" else "$blockingQuestions dudas"} o sigue con la estimación"
-    else -> "${if (foodCount == 1) "1 alimento" else "$foodCount alimentos"} · $proteinGrams g de proteína"
+    blockingQuestions > 0 -> "Resuelve ${if (blockingQuestions == 1) "1 duda" else "$blockingQuestions dudas"}"
+    else -> if (foodCount == 1) "1 alimento" else "$foodCount alimentos"
 }
 
 /** El verbo de la barra: «Guardar en desayuno» (la comida en minúscula) o «Guardar cambios» al editar una comida registrada. */
 fun loggerSaveLabel(mealLabel: String, editing: Boolean): String =
     if (editing) "Guardar cambios" else "Guardar en ${mealLabel.lowercase(Locale.forLanguageTag("es"))}"
 
-/** `.pending` (f-result): «2 dudas: tócalas para afinar o guarda con la estimación». */
-fun loggerPendingLine(count: Int): String =
-    if (count == 1) "1 duda: tócala para afinar o guarda con la estimación"
-    else "$count dudas: tócalas para afinar o guarda con la estimación"
-
-/** La línea de la media hoja de Inicio (f-home-res): «3 alimentos · 1 duda»; sin dudas, solo los alimentos. */
-fun loggerQuickSubtitle(foodCount: Int, pending: Int): String {
-    val foods = if (foodCount == 1) "1 alimento" else "$foodCount alimentos"
-    return when (pending) {
-        0 -> foods
-        1 -> "$foods · 1 duda"
-        else -> "$foods · $pending dudas"
-    }
-}
+/** El aviso de dudas (`.np-pend`): «1 duda por revisar · o guarda con lo estimado», «2 dudas por revisar · o guarda con lo estimado». */
+fun loggerPendingLine(count: Int): String = loggerPendingTitle(count) + LOGGER_PENDING_HINT
 
 /**
- * Barra de guardado flotante (lienzo `.savebar.glass`): píldora de vidrio de 64 dp con las calorías en Syne 20, la línea de [line] y el
- * botón de tinta de 48 dp «Guardar en desayuno». Apagado ([enabled] falso) va en gris (`.go.off`) y no hace nada.
+ * Barra de guardado flotante (lienzo `.np-save`): plana (superficie 2, sin vidrio), 64 dp y radio 32; a la izquierda las calorías
+ * («297 kcal», Inter SemiBold 18, se encoge antes que cortarse) con [line] debajo («1 alimento») y a la derecha el botón de tinta de 48 dp
+ * «Guardar en merienda». Apagado ([enabled] falso) va en gris (`.go.off`) y no hace nada.
  */
 @Composable
 fun LoggerSaveBar(
@@ -89,33 +76,47 @@ fun LoggerSaveBar(
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val haze = LocalHazeState.current
     val goFill by animateColorAsState(if (enabled) LoggerColors.ink else Color.White.copy(alpha = 0.1f), tween(200), label = "loggerSaveGo")
     val goInk by animateColorAsState(if (enabled) LoggerColors.onInk else LoggerColors.faint, tween(200), label = "loggerSaveGoInk")
+    val shape = RoundedCornerShape(32.dp)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp)
-            .kpknGlassOrFallback(haze, RoundedCornerShape(32.dp), variant = KpknGlassVariant.ISLAND)
+            .clip(shape)
+            .background(LoggerColors.surface2, shape)
             .padding(start = 20.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        // Las cifras se miden primero y nunca se cortan; el botón se queda con el resto y, si no le cabe su verbo, lo encoge.
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column(modifier = Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
-            Text(text = "${loggerThousands(kcal)} kcal", style = SaveKcalStyle, color = LoggerColors.ink, maxLines = 1)
-            Text(text = line, style = LoggerText.cap, color = LoggerColors.faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Column(modifier = Modifier.semantics(mergeDescendants = true) {}) {
+            LoggerFitText(text = "${loggerThousands(kcal)} kcal", style = LoggerText.number(18f), color = LoggerColors.ink, minSize = 13.sp)
+            LoggerFitText(text = line, style = LoggerText.cap, color = LoggerColors.faint, minSize = 13.sp)
         }
         Box(
             modifier = Modifier
+                .padding(start = 10.dp)
+                .weight(1f, fill = false)
                 .height(48.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(goFill, RoundedCornerShape(24.dp))
                 .clickable(enabled = enabled, role = Role.Button, onClick = onAction)
                 .semantics { contentDescription = actionLabel }
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = actionLabel, style = SaveGoStyle, color = goInk, maxLines = 1)
+            // Con letra grande, si «Guardar en merienda» no cabe ni encogido, el botón dice solo «Guardar» (la comida ya va en los chips
+            // de arriba y la descripción accesible conserva la frase entera).
+            val measurer = rememberTextMeasurer()
+            BoxWithConstraints(contentAlignment = Alignment.Center) {
+                val minStyle = SaveGoStyle.copy(fontSize = 13.sp)
+                val fits = measurer.measure(actionLabel, minStyle, maxLines = 1, softWrap = false).size.width <= constraints.maxWidth
+                LoggerFitText(text = if (fits) actionLabel else loggerSaveShortLabel(actionLabel), style = SaveGoStyle, color = goInk, minSize = 13.sp)
+            }
         }
     }
 }
+
+/** El verbo corto de la barra cuando la frase no cabe: «Guardar en merienda» y «Guardar cambios» → «Guardar». */
+fun loggerSaveShortLabel(actionLabel: String): String = actionLabel.substringBefore(' ')

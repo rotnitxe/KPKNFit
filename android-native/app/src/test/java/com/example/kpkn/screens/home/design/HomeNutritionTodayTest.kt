@@ -6,20 +6,15 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.data.models.MealType
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.example.kpkn.screens.home.HomeSamples
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** «Nutrición de hoy»: tocar una comida abre el registro; sin meta, «Definir objetivos» en vez de anillos; con meta, se lee si se pasa. */
+/** «Nutrición de hoy»: tocar una comida abre el registro; sin meta, «Definir objetivos» en vez del anillo; con meta, el anillo fino y el botón «Registrar comida». */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
 class HomeNutritionTodayTest {
@@ -83,62 +78,52 @@ class HomeNutritionTodayTest {
     }
 
     @Test
-    fun `por encima de la meta se lee te pasaste`() {
+    fun `por encima de la meta el anillo lee lo comido frente a la meta`() {
         rule.setContent {
             HomeNutritionToday(state = HomeSamples.nutritionOverGoal(), onAddMeal = {}, onOpenDay = {})
         }
 
-        rule.onNodeWithText("te pasaste", substring = true).assertExists()
+        rule.onNodeWithContentDescription("2.450 kilocalorías de 2.300", useUnmergedTree = true).assertExists()
     }
 
     @Test
-    fun `sin plan el mas de la cabecera registra una comida sin hora`() {
+    fun `con plan la cabecera dice objetivo y el boton registra una comida sin hora`() {
         val calls = mutableListOf<MealType?>()
         rule.setContent {
-            HomeNutritionToday(state = HomeSamples.nutritionNoGoal(), onAddMeal = { calls += it }, onOpenDay = {})
+            HomeNutritionToday(state = HomeSamples.nutritionTwoMeals(), onAddMeal = { calls += it }, onOpenDay = {})
         }
 
-        rule.onNodeWithContentDescription("Registrar comida").performClick()
+        rule.onNodeWithText("NUTRICIÓN DE HOY").assertExists()
+        rule.onNodeWithText("objetivo 2.300").assertExists()
+        rule.onNodeWithTag("home-nutrition-add").performClick()
 
         assertEquals(listOf<MealType?>(null), calls)
     }
 
     @Test
-    fun `con plan la barra que comiste sustituye al mas`() {
+    fun `sin plan el boton registrar comida tambien registra sin hora y no hay mas en la cabecera`() {
+        val calls = mutableListOf<MealType?>()
+        rule.setContent {
+            HomeNutritionToday(state = HomeSamples.nutritionNoGoal(), onAddMeal = { calls += it }, onOpenDay = {})
+        }
+
+        rule.onNodeWithContentDescription("Registrar comida").assertDoesNotExist()
+        rule.onNodeWithText("objetivo 2.300").assertDoesNotExist()
+        rule.onNodeWithTag("home-nutrition-add").performClick()
+
+        assertEquals(listOf<MealType?>(null), calls)
+    }
+
+    @Test
+    fun `las filas de macros usan los nombres del lienzo y la barra de nutricion no existe`() {
         rule.setContent {
             HomeNutritionToday(state = HomeSamples.nutritionTwoMeals(), onAddMeal = {}, onOpenDay = {})
         }
 
-        rule.onNodeWithContentDescription("Registrar comida").assertDoesNotExist()
-        assertTrue(homeShowsQuickLogger(showNutrition = true, kcalGoal = 2300))
-        assertFalse(homeShowsQuickLogger(showNutrition = true, kcalGoal = null))
-        assertFalse(homeShowsQuickLogger(showNutrition = false, kcalGoal = 2300))
-        assertTrue(homeNutritionShowsAddAction(null))
-        assertFalse(homeNutritionShowsAddAction(2300))
-    }
-
-    @Test
-    fun `la barra que comiste ofrece analizar solo con texto`() {
-        var analyzed = 0
-        var dictated = 0
-        var text by mutableStateOf("")
-        rule.setContent {
-            HomeQuickLoggerBar(
-                text = text,
-                onTextChange = { text = it },
-                onAnalyze = { analyzed++ },
-                onDictate = { dictated++ },
-                listening = false,
-            )
-        }
-
-        rule.onNodeWithText("¿Qué comiste? Escríbelo aquí", useUnmergedTree = true).assertExists()
-        rule.onNodeWithText("Analizar").assertDoesNotExist()
-        rule.onNodeWithContentDescription("Dictar").performClick()
-        rule.runOnIdle { text = "Pollo con arroz" }
-        rule.onNodeWithText("Analizar").performClick()
-
-        assertEquals(1, dictated)
-        assertEquals(1, analyzed)
+        rule.onNodeWithText("Proteína").assertExists()
+        rule.onNodeWithText("Carbos").assertExists()
+        rule.onNodeWithText("Grasa").assertExists()
+        rule.onNodeWithText("Hidratos").assertDoesNotExist()
+        rule.onNodeWithText("¿Qué comiste? Escríbelo aquí", useUnmergedTree = true).assertDoesNotExist()
     }
 }

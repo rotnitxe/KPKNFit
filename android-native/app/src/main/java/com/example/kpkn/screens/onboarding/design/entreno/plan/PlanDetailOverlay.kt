@@ -13,6 +13,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,12 +43,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,10 +75,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -102,6 +110,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.layout.slotOrder
 import com.example.kpkn.screens.onboarding.design.lerpF
 import com.example.kpkn.screens.onboarding.design.seg
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -165,6 +174,44 @@ fun PlanDetailOverlay(
     )
 }
 
+/**
+ * La misma ficha fuera del asistente (lienzo Arreglos v1): un plan del catálogo (con su pie fijo «Podrás modificarlo libremente
+ * después.» y [PlanFichaContent.primaryLabel]) o «Sobre el programa» de un programa propio (en modo lectura: sin
+ * [PlanFichaContent.primaryLabel] no hay pie). [onPrimary] es el botón del pie; [onSecondary], la acción secundaria del final.
+ */
+@Composable
+fun PlanFichaOverlay(
+    ficha: PlanFicha,
+    onClose: () -> Unit,
+    onPrimary: (() -> Unit)? = null,
+    onSecondary: (() -> Unit)? = null,
+) {
+    PlanFichaOverlay(ficha, onClose, wizardReducedMotion(), onPrimary, onSecondary)
+}
+
+/** La ficha reutilizada con el «reducir movimiento» decidido por quien llama (pruebas). */
+@Composable
+internal fun PlanFichaOverlay(
+    ficha: PlanFicha,
+    onClose: () -> Unit,
+    reduced: Boolean,
+    onPrimary: (() -> Unit)? = null,
+    onSecondary: (() -> Unit)? = null,
+) {
+    // Sin acción no hay botón: la ficha queda en modo lectura.
+    val content = if (onPrimary == null) ficha.content.copy(primaryLabel = null) else ficha.content
+    val secondary = onSecondary?.takeIf { content.secondaryLabel != null }
+    PlanDetailOverlay(
+        model = ficha.detail,
+        selected = false,
+        onChoose = onPrimary ?: {},
+        onClose = onClose,
+        reduced = reduced,
+        ficha = content,
+        onSecondary = secondary,
+    )
+}
+
 /** La hoja con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
 @Composable
 internal fun PlanDetailOverlay(
@@ -181,6 +228,8 @@ internal fun PlanDetailOverlay(
     swapOptionsOf: (String) -> List<SwapOption> = { emptyList() },
     onSwap: (String, String) -> Unit = { _, _ -> },
     onUndoSwap: (String) -> Unit = {},
+    ficha: PlanFichaContent? = null,
+    onSecondary: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -206,6 +255,7 @@ internal fun PlanDetailOverlay(
             model, selected, reduced, blur, { shown.value }, onChoose, leave,
             weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling, phases = phases,
             exercises = exercises, swapOptionsOf = swapOptionsOf, onSwap = onSwap, onUndoSwap = onUndoSwap,
+            ficha = ficha, onSecondary = onSecondary,
         )
     }
 }
@@ -232,9 +282,15 @@ internal fun DetailSheet(
     swapOptionsOf: (String) -> List<SwapOption> = { emptyList() },
     onSwap: (String, String) -> Unit = { _, _ -> },
     onUndoSwap: (String) -> Unit = {},
+    ficha: PlanFichaContent? = null,
+    onSecondary: (() -> Unit)? = null,
 ) {
     val card = model.card
     val accent = goalAccent(card.profile)
+    // El pie fijo: en el asistente siempre; en la ficha reutilizada, solo si trae su botón (sin él, modo lectura).
+    val showBar = ficha == null || ficha.primaryLabel != null
+    // «Ejercicios principales»: los de la ficha o, en el asistente, sus nombres con la imagen de KPKN de la semana tipo.
+    val exerciseRows = ficha?.exercises ?: remember(model.mainExercises, exercises) { wizardMainExerciseRows(model.mainExercises, exercises) }
     // «Cambiar» solo en el programa elegido: sus sustituciones viven en el borrador de ese programa.
     val swapState = remember { SwapPanelState() }
     val swaps = remember(exercises, selected, swapOptionsOf, onSwap, onUndoSwap) {
@@ -297,7 +353,9 @@ internal fun DetailSheet(
                     parallax = { -(scroll.value / headerPx).coerceIn(0f, 1f) * 0.7f },
                     cornerRadius = 0.dp,
                     topInset = statusTop + HEADER_STRIP,
-                    layout = CoverLayout.BANNER,
+                    // La ficha reutilizada (catálogo, «Sobre el programa») sigue al lienzo `.pf-cover`: el arte arriba y el título a todo
+                    // el ancho abajo, así un nombre corto («Mi PHAT») no se parte junto a la ilustración. El asistente conserva su banda.
+                    layout = if (ficha != null) CoverLayout.POSTER else CoverLayout.BANNER,
                 )
             }
             Column(
@@ -310,19 +368,35 @@ internal fun DetailSheet(
                     },
             ) {
                 Spacer(Modifier.height(20.dp))
-                DescriptionBlock(model.description, accent)
+                if (model.description.isNotBlank()) DescriptionBlock(model.description, accent)
                 if (siblingLabel != null && onSibling != null) {
                     SiblingVersionAction(label = siblingLabel, onClick = onSibling)
                 }
-                if (model.mainExercises.isNotEmpty()) {
+                ficha?.chips?.takeIf { it.isNotEmpty() }?.let { FichaChips(it) }
+                if (exerciseRows.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_EXERCISES)
-                    ExerciseList(model.mainExercises.take(MAX_MAIN_EXERCISES), accent)
+                    ExerciseList(exerciseRows.take(MAX_MAIN_EXERCISES))
                 }
                 if (model.blocks.isNotEmpty()) {
                     SectionTitle(PlanCopy.SECTION_STRUCTURE)
                     BlockTimeline(model.blocks, accent)
                 }
-                if (model.week.isNotEmpty()) {
+                if (ficha != null) {
+                    // La ficha reutilizada: «Tu semana» día por día (lunes a domingo, cada día se despliega) y sus secciones extra.
+                    val note = ficha.weekNote?.takeIf { it.isNotBlank() }
+                    if (ficha.days.isNotEmpty() || note != null) {
+                        SectionTitle(PlanCopy.SECTION_WEEK)
+                        if (ficha.days.isNotEmpty()) {
+                            FichaWeek(ficha.days, ficha.openDay, accent, reduced)
+                        } else if (note != null) {
+                            Text(note, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
+                        }
+                    }
+                    for (section in ficha.sections.filter { it.rows.isNotEmpty() }) {
+                        SectionTitle(section.title)
+                        FichaRows(section.rows, accent)
+                    }
+                } else if (model.week.isNotEmpty()) {
                     // Las fases de un programa de varias semanas van encima de «Tu semana», que enseña la primera.
                     PlanPhasesStrip(phases)
                     SectionTitle(PlanCopy.SECTION_WEEK)
@@ -333,15 +407,42 @@ internal fun DetailSheet(
                     ReasonList(model.reasons, accent)
                 }
                 if (model.notes.isNotEmpty()) {
-                    Spacer(Modifier.height(28.dp))
+                    // La ficha reutilizada titula las notas («Ten en cuenta»), como el lienzo; el asistente las deja sin título.
+                    if (ficha != null) SectionTitle(PlanCopy.SECTION_NOTES) else Spacer(Modifier.height(28.dp))
                     NoteList(model.notes)
                 }
                 if (!model.attribution.isNullOrBlank()) {
                     Spacer(Modifier.height(16.dp))
-                    Text(model.attribution, style = WizardTypography.note, color = WizardColors.textFaint)
+                    // Con fuente publicada, la atribución abre la fuente original (era «Ver la fuente original» en la hoja vieja).
+                    val sourceUrl = model.sourceUrl
+                    val uriHandler = LocalUriHandler.current
+                    Text(
+                        text = if (sourceUrl != null) model.attribution + " ↗" else model.attribution,
+                        style = WizardTypography.note,
+                        color = WizardColors.textFaint,
+                        modifier = if (sourceUrl != null) {
+                            Modifier.clickable(role = Role.Button, onClickLabel = "Ver la fuente original") {
+                                runCatching { uriHandler.openUri(sourceUrl) }
+                            }
+                        } else {
+                            Modifier
+                        },
+                    )
+                }
+                val secondaryLabel = ficha?.secondaryLabel
+                if (secondaryLabel != null && onSecondary != null) {
+                    SecondaryPill(
+                        label = secondaryLabel,
+                        onClick = onSecondary,
+                        modifier = Modifier
+                            .padding(top = 18.dp)
+                            .fillMaxWidth()
+                            .testTag(PLAN_FICHA_SECONDARY_TAG),
+                    )
                 }
             }
-            Spacer(Modifier.height(with(density) { barPx.toDp() } + 24.dp))
+            // Sin pie (modo lectura), el final solo deja aire sobre la barra de navegación.
+            Spacer(Modifier.height(if (showBar) with(density) { barPx.toDp() } + 24.dp else navBottom + 32.dp))
         }
         // Un velo bajo la barra de estado: el contenido que sube no se mezcla con la hora ni con los iconos del sistema.
         // Sólido por toda la barra y solo después se funde (antes se fundía desde arriba y, a la altura de la hora, dejaba
@@ -367,14 +468,17 @@ internal fun DetailSheet(
                 .align(Alignment.TopEnd)
                 .padding(top = statusTop + 2.dp, end = 10.dp),
         )
-        BottomBar(
-            selected = selected,
-            navBottom = navBottom,
-            onChoose = onChoose,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .onSizeChanged { barPx = it.height },
-        )
+        if (showBar) {
+            BottomBar(
+                selected = selected,
+                navBottom = navBottom,
+                onChoose = onChoose,
+                label = ficha?.primaryLabel,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { barPx = it.height },
+            )
+        }
         // El panel «Cambiar» va sobre la hoja y su pie, y bajo la ficha del ejercicio.
         swapState.panelExercise?.takeIf { swapState.panelOf != null }?.let { exercise ->
             SwapSheet(
@@ -442,9 +546,13 @@ internal fun CloseButton(onClick: () -> Unit, modifier: Modifier = Modifier, tag
     }
 }
 
-/** El pie fijo: una frase amable y el botón principal, sobre un velo que funde el contenido que pasa por debajo. */
+/**
+ * El pie fijo: una frase amable y el botón principal, sobre un velo que funde el contenido que pasa por debajo. Con [label] (la ficha
+ * reutilizada: «Configurar este plan») el botón dice eso y no tiene estado de «elegido».
+ */
 @Composable
-private fun BottomBar(selected: Boolean, navBottom: Dp, onChoose: () -> Unit, modifier: Modifier = Modifier) {
+private fun BottomBar(selected: Boolean, navBottom: Dp, onChoose: () -> Unit, modifier: Modifier = Modifier, label: String? = null) {
+    val done = selected && label == null
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -461,10 +569,10 @@ private fun BottomBar(selected: Boolean, navBottom: Dp, onChoose: () -> Unit, mo
         Text(PlanCopy.EDIT_FREELY, style = WizardTypography.note, color = WizardColors.textMuted, textAlign = TextAlign.Center)
         Spacer(Modifier.height(10.dp))
         PillButton(
-            label = if (selected) PlanCopy.PROGRAM_CHOSEN else PlanCopy.CHOOSE_PROGRAM,
-            container = if (selected) WizardColors.done else WizardColors.cta,
-            content = if (selected) SymbolPalette.onOk else WizardColors.ctaContent,
-            leadingCheck = selected,
+            label = label ?: if (done) PlanCopy.PROGRAM_CHOSEN else PlanCopy.CHOOSE_PROGRAM,
+            container = if (done) WizardColors.done else WizardColors.cta,
+            content = if (done) SymbolPalette.onOk else WizardColors.ctaContent,
+            leadingCheck = done,
             onClick = onChoose,
             modifier = Modifier
                 .fillMaxWidth()
@@ -593,13 +701,15 @@ internal fun ellipsizeAtWord(text: String, end: Int): String {
     return whole.trimEnd(' ', '\n', ',', ';', ':', '.', '-', '–', '—', '(') + "…"
 }
 
-/** Los ejercicios principales: una lista de línea, cada uno con el pictograma de su patrón y un filete debajo. */
+/**
+ * Los ejercicios principales: una lista de línea con un filete debajo de cada uno. La miniatura es la imagen del ejercicio que tiene
+ * KPKN; si KPKN no la tiene, la fila va sin miniatura (ni pictograma, ni inicial, ni icono en su lugar).
+ */
 @Composable
-private fun ExerciseList(names: List<String>, accent: Color) {
+private fun ExerciseList(rows: List<PlanFichaExercise>) {
     val divider = WizardColors.divider
     Column {
-        for (name in names) {
-            val pattern = remember(name) { exercisePatternOf(name) }
+        for (row in rows) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -611,20 +721,288 @@ private fun ExerciseList(names: List<String>, accent: Color) {
                     .semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PatternGlyph(pattern, accent, Modifier.size(42.dp))
-                Spacer(Modifier.width(14.dp))
-                Text(
-                    text = name,
-                    style = WizardTypography.cardTitle,
-                    color = WizardColors.text,
-                    modifier = Modifier
+                row.imageResId?.let { image ->
+                    ExerciseImageThumb(image)
+                    Spacer(Modifier.width(14.dp))
+                }
+                Column(
+                    Modifier
                         .weight(1f)
                         .padding(vertical = 10.dp),
-                )
+                ) {
+                    Text(text = row.name, style = WizardTypography.cardTitle, color = WizardColors.text)
+                    row.detail?.takeIf { it.isNotBlank() }?.let { detail ->
+                        Text(text = detail, style = WizardTypography.note, color = WizardColors.textFaint)
+                    }
+                }
             }
         }
     }
 }
+
+/** La imagen del ejercicio que tiene KPKN, en un cuadro redondeado de 42 dp (como la miniatura del catálogo de ejercicios). */
+@Composable
+private fun ExerciseImageThumb(imageResId: Int) {
+    Box(
+        Modifier
+            .size(42.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(SwapThumbFill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(imageResId),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
+            contentScale = ContentScale.Fit,
+        )
+    }
+}
+
+// ---------------------------------------------------------------- la ficha reutilizada (catálogo y «Sobre el programa»)
+
+/** Las etiquetas bajo la descripción (enfoque, material, alcance…): píldoras tenues de solo lectura. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FichaChips(chips: List<String>) {
+    FlowRow(
+        modifier = Modifier.padding(top = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        for (chip in chips) {
+            Box(
+                Modifier
+                    .heightIn(min = 30.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .padding(horizontal = 12.dp, vertical = 5.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(chip, style = WizardTypography.note, color = WizardColors.textMuted)
+            }
+        }
+    }
+}
+
+/**
+ * «Tu semana» día por día: de lunes a domingo, cada día con su abreviatura, el glifo de su sesión, su título y «7 ejercicios · ~75
+ * min»; el descanso, en gris. Un día de entreno se despliega (uno a la vez) y enseña sus ejercicios con «3 × 3–5 · RIR 2».
+ */
+@Composable
+private fun FichaWeek(days: List<PlanFichaDay>, initialOpen: Int?, accent: Color, reduced: Boolean) {
+    var open by remember(days, initialOpen) { mutableStateOf(initialOpen?.takeIf { day -> days.any { it.day == day && it.lines.isNotEmpty() } }) }
+    Column(Modifier.fillMaxWidth()) {
+        for (day in days) {
+            val expandable = !day.rest && day.lines.isNotEmpty()
+            val isOpen = open == day.day
+            FichaDayRow(day, accent, expandable, isOpen) { open = if (isOpen) null else day.day }
+            if (expandable) {
+                AnimatedVisibility(
+                    visible = isOpen,
+                    enter = if (reduced) EnterTransition.None else expandVertically(tween(240)) + fadeIn(tween(240)),
+                    exit = if (reduced) ExitTransition.None else shrinkVertically(tween(240)) + fadeOut(tween(240)),
+                ) {
+                    FichaDayLines(day.lines)
+                }
+            }
+        }
+    }
+}
+
+/** Una fila de «Tu semana»: «Lun», el círculo con el glifo de la sesión (un guion en el descanso), el título y la línea pequeña. */
+@Composable
+private fun FichaDayRow(day: PlanFichaDay, accent: Color, expandable: Boolean, open: Boolean, onToggle: () -> Unit) {
+    val divider = WizardColors.divider
+    val name = PlanCopy.WEEKDAY_NAMES[day.day - 1]
+    val description = buildString {
+        append(name.replaceFirstChar { it.uppercase() }).append(": ").append(day.title)
+        day.subtitle?.let { append(", ").append(it) }
+    }
+    val pattern = remember(day.glyphOf) { day.glyphOf?.let(::exercisePatternOf) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 66.dp)
+            .then(
+                if (expandable) {
+                    Modifier
+                        .testTag(planFichaDayTag(day.day))
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = description
+                            stateDescription = if (open) DAY_OPEN else DAY_CLOSED
+                        }
+                        .clickable(role = Role.Button, onClickLabel = "Ver los ejercicios del $name", onClick = onToggle)
+                } else {
+                    Modifier.clearAndSetSemantics { contentDescription = description }
+                },
+            )
+            .then(if (open) Modifier else Modifier.drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(divider, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+            })
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = day.label,
+            style = WizardTypography.controlLabel,
+            color = if (day.rest) WizardColors.textFaint else WizardColors.text,
+            modifier = Modifier.width(DAY_LABEL_WIDTH),
+        )
+        Spacer(Modifier.width(14.dp))
+        Box(
+            Modifier
+                .size(42.dp)
+                .background(DayCircleFill, CircleShape)
+                .border(1.dp, Color.White.copy(alpha = 0.10f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (pattern != null && !day.rest) {
+                PatternGlyph(pattern, accent, Modifier.size(22.dp))
+            } else {
+                // El descanso: un guion corto en tinta apagada.
+                val dash = WizardColors.textFaint.copy(alpha = 0.6f)
+                Canvas(Modifier.size(16.dp)) {
+                    val y = size.height / 2f
+                    drawLine(dash, Offset(0f, y), Offset(size.width, y), 1.6.dp.toPx(), StrokeCap.Round)
+                }
+            }
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(day.title, style = WizardTypography.cardTitle, color = if (day.rest) WizardColors.textFaint else WizardColors.text)
+            day.subtitle?.let { Text(it, style = WizardTypography.note, color = WizardColors.textFaint) }
+        }
+        if (expandable) {
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = if (open) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                contentDescription = null,
+                tint = WizardColors.textMuted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
+/** Los ejercicios de un día desplegado: el nombre a la izquierda y la prescripción corta a la derecha, alineados con el título. */
+@Composable
+private fun FichaDayLines(lines: List<PlanFichaLine>) {
+    val divider = WizardColors.divider
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(divider, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+            }
+            .padding(start = DAY_LABEL_WIDTH + 14.dp + 42.dp + 14.dp, top = 2.dp, bottom = 10.dp),
+    ) {
+        for (line in lines) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 7.dp)
+                    .semantics(mergeDescendants = true) {},
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(line.name, style = WizardTypography.note, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
+                if (line.prescription.isNotBlank()) {
+                    Text(
+                        text = line.prescription,
+                        style = DAY_LINE_PRESCRIPTION,
+                        color = WizardColors.text,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.widthIn(max = 160.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Las filas de una sección extra («Cargas y cambios»): un círculo con el icono del acento, el título y la línea pequeña. */
+@Composable
+private fun FichaRows(rows: List<PlanFichaRow>, accent: Color) {
+    val divider = WizardColors.divider
+    Column {
+        for (row in rows) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 60.dp)
+                    .drawBehind {
+                        val y = size.height - 0.5.dp.toPx()
+                        drawLine(divider, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+                    }
+                    .semantics(mergeDescendants = true) {},
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(38.dp)
+                        .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = when (row.icon) {
+                            PlanFichaRowIcon.TARGET -> KpknLineIcons.Target
+                            PlanFichaRowIcon.SWAP -> KpknLineIcons.Swap
+                        },
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .padding(vertical = 10.dp),
+                ) {
+                    Text(row.title, style = WizardTypography.cardTitle, color = WizardColors.text)
+                    if (row.subtitle.isNotBlank()) Text(row.subtitle, style = WizardTypography.note, color = WizardColors.textFaint)
+                }
+            }
+        }
+    }
+}
+
+/** La acción secundaria del final («Ver cómo funciona»): una píldora de contorno, pequeña, a todo el ancho. */
+@Composable
+private fun SecondaryPill(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.98f else 1f, tween(100), label = "secondaryPillPress")
+    Box(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(CircleShape)
+            .border(1.dp, WizardColors.text.copy(alpha = 0.24f), CircleShape)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, style = WizardTypography.controlLabel, color = WizardColors.text)
+    }
+}
+
+/** Ancho de la abreviatura del día («Mié») en «Tu semana» día por día. */
+private val DAY_LABEL_WIDTH = 36.dp
+
+/** El fondo del círculo de cada día (#141414, el del lienzo). */
+private val DayCircleFill = Color(0xFF141414)
+
+/** La prescripción de un ejercicio del día desplegado: cifras tabulares. */
+private val DAY_LINE_PRESCRIPTION = WizardTypography.note.copy(fontWeight = FontWeight.Medium, fontFeatureSettings = "tnum")
 
 /** Ancho mínimo y máximo de la columna de un bloque en la línea de tiempo horizontal. */
 private val BLOCK_MIN_COL = 112.dp
@@ -1348,7 +1726,8 @@ private fun SwapSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                SwapThumb(exercise.name, accent, 48.dp, 26.dp)
+                val currentImage = remember(exercise) { kpknImageOfRevealExercise(exercise) }
+                currentImage?.let { SwapThumb(it, 48.dp) }
                 Column(Modifier.weight(1f)) {
                     Text("REEMPLAZANDO", style = WizardTypography.eyebrow, color = WizardColors.textFaint)
                     Text(exercise.name, style = WizardTypography.controlLabel, color = WizardColors.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -1425,18 +1804,31 @@ private fun SwapSheet(
     }
 }
 
-/** El pictograma del ejercicio en un cuadro redondeado, como en el reemplazo del catálogo. */
+/**
+ * La imagen del ejercicio que tiene KPKN en un cuadro redondeado, como en el reemplazo del catálogo. Quien llama solo la pinta si KPKN
+ * tiene esa imagen: sin ella, la fila va sin miniatura.
+ */
 @Composable
-private fun SwapThumb(name: String, accent: Color, box: Dp, glyph: Dp) {
+private fun SwapThumb(imageResId: Int, box: Dp) {
     Box(
-        Modifier.size(box).background(SwapThumbFill, RoundedCornerShape(12.dp)),
+        Modifier
+            .size(box)
+            .clip(RoundedCornerShape(12.dp))
+            .background(SwapThumbFill),
         contentAlignment = Alignment.Center,
     ) {
-        PatternGlyph(exercisePatternOf(name), accent, Modifier.size(glyph))
+        Image(
+            painter = painterResource(imageResId),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
+            contentScale = ContentScale.Fit,
+        )
     }
 }
 
-/** Una alternativa: su pictograma, su nombre, su matiz y el motivo corto, y a la derecha su marca; 52 dp de alto como mínimo. */
+/** Una alternativa: la imagen de KPKN (si la tiene), su nombre, su matiz y el motivo corto, y a la derecha su marca; 52 dp de alto como mínimo. */
 @Composable
 private fun SwapOptionRow(option: SwapOption, accent: Color, selected: Boolean, onClick: () -> Unit) {
     Row(
@@ -1449,7 +1841,8 @@ private fun SwapOptionRow(option: SwapOption, accent: Color, selected: Boolean, 
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SwapThumb(option.displayName, accent, 44.dp, 24.dp)
+        val image = remember(option.configId) { kpknImageOfConfiguration(option.configId) }
+        image?.let { SwapThumb(it, 44.dp) }
         Column(Modifier.weight(1f)) {
             Text(option.displayName, style = WizardTypography.controlLabel, color = WizardColors.text)
             Text(swapReasonOf(option), style = WizardTypography.note, color = WizardColors.textMuted)

@@ -36,7 +36,8 @@ class LoggerSaveBarTest {
                 onAction = { saved = true },
             )
         }
-        rule.onNodeWithText("4 alimentos · 25 g de proteína").assertIsDisplayed()
+        rule.onNodeWithText("4 alimentos").assertIsDisplayed()
+        rule.onNodeWithText("548 kcal").assertIsDisplayed()
         rule.onNodeWithText("Guardar en almuerzo").assertIsDisplayed().performClick()
         assertTrue(saved)
     }
@@ -52,14 +53,37 @@ class LoggerSaveBarTest {
     }
 
     @Test
+    fun lasCaloriasMilesNoSeCortan() {
+        rule.setContent { LoggerSaveBar(kcal = 1752, line = "12 alimentos", actionLabel = "Guardar en merienda", enabled = true, onAction = {}) }
+        rule.onNodeWithText("1.752 kcal").assertIsDisplayed()
+        rule.onNodeWithText("12 alimentos").assertIsDisplayed()
+    }
+
+    @Test
+    fun elAvisoDeDudasEsUnaLineaYDesapareceSinDudas() {
+        rule.setContent { LoggerPendingLine(count = 2) }
+        rule.onNodeWithText("2 dudas por revisar · o guarda con lo estimado").assertIsDisplayed()
+    }
+
+    @Test
+    fun sinDudasElAvisoNoSeDibuja() {
+        rule.setContent { LoggerPendingLine(count = 0) }
+        rule.onNodeWithText("0 dudas por revisar · o guarda con lo estimado").assertDoesNotExist()
+    }
+
+    @Test
     fun losTextosSonLosDelLienzo() {
-        assertEquals("Resuelve 2 dudas o sigue con la estimación", loggerSaveBarLine(4, 25, 2))
-        assertEquals("1 alimento · 9 g de proteína", loggerSaveBarLine(1, 9, 0))
+        assertEquals("Resuelve 2 dudas", loggerSaveBarLine(4, 25, 2))
+        assertEquals("Resuelve 1 duda", loggerSaveBarLine(4, 25, 1))
+        assertEquals("1 alimento", loggerSaveBarLine(1, 9, 0))
+        assertEquals("4 alimentos", loggerSaveBarLine(4, 25, 0))
         assertEquals("Guardar cambios", loggerSaveLabel("Cena", editing = true))
         assertEquals("1.752", loggerThousands(1752))
-        assertEquals("2 dudas: tócalas para afinar o guarda con la estimación", loggerPendingLine(2))
-        assertEquals("1 duda: tócala para afinar o guarda con la estimación", loggerPendingLine(1))
-        assertEquals("3 alimentos · 1 duda", loggerQuickSubtitle(3, 1))
-        assertEquals("2 alimentos", loggerQuickSubtitle(2, 0))
+        assertEquals("2 dudas por revisar · o guarda con lo estimado", loggerPendingLine(2))
+        assertEquals("1 duda por revisar · o guarda con lo estimado", loggerPendingLine(1))
+        assertEquals("1 duda por revisar", loggerPendingTitle(1))
+        assertEquals("3 dudas por revisar", loggerPendingTitle(3))
+        assertEquals("Guardar", loggerSaveShortLabel("Guardar en merienda"))
+        assertEquals("Guardar", loggerSaveShortLabel("Guardar cambios"))
     }
 }

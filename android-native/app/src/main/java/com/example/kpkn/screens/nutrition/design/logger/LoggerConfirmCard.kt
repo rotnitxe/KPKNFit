@@ -22,15 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.ui.components.KpknDialogTheme
-import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknPortal
-import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlassOrFallback
 
 /**
- * Tarjeta de confirmación centrada (lienzo s-forget y s-discard): velo detrás, 20 dp de margen a los lados, 28 dp de radio y el vidrio de
- * las hojas. Título, frase y dos píldoras pequeñas del mismo ancho: [cancelLabel] con filete y [confirmLabel] en rojo suave. Tocar el
+ * Tarjeta de confirmación centrada (lienzo s-forget y s-discard): velo detrás, 20 dp de margen a los lados, 28 dp de radio y el fondo plano de
+ * las hojas (`#141414`, sin vidrio). Título, frase y dos píldoras pequeñas del mismo ancho: [cancelLabel] con filete y [confirmLabel] en rojo suave. Tocar el
  * velo o volver atrás es cancelar.
  */
 @Composable
@@ -42,7 +39,6 @@ fun LoggerConfirmCard(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    val haze = LocalHazeState.current
     // Mientras la tarjeta está en composición, la isla superior se oculta (como con hojas y diálogos).
     DisposableEffect(Unit) {
         KpknModalTracker.onOpened()
@@ -62,7 +58,7 @@ fun LoggerConfirmCard(
                     .padding(horizontal = 20.dp)
                     .widthIn(max = 520.dp)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(haze, RoundedCornerShape(28.dp), variant = KpknGlassVariant.SHEET)
+                    .background(LoggerColors.sheet, RoundedCornerShape(28.dp))
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {}),
             ) {
                 KpknDialogTheme {

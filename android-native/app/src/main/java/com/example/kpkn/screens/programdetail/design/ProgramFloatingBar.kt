@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -42,6 +43,7 @@ import com.example.kpkn.screens.programdetail.StructureSubTab
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknGlassOrFallback
+import dev.chrisbanes.haze.HazeState
 import kotlin.math.min
 
 /** Orden de las pestañas en la barra flotante: el enum no se reordena. */
@@ -73,17 +75,20 @@ private val FloatingTabStyle = TextStyle(
 )
 
 /**
- * La barra flotante de Program Detail: atrás a la izquierda, la píldora de vidrio con «Semana · Progreso · Estructura» en medio y ⋯ a
- * la derecha. Va sobre el contenido, bajo la barra de estado. Con [pendingDot], ⋯ lleva un punto de «hay pendientes».
+ * La barra flotante de Program Detail (`topbar2` de Arreglos v1): atrás a la izquierda y, a su derecha, la píldora de vidrio con
+ * «Semana · Progreso · Estructura», que ocupa todo el ancho que queda. Va sobre el contenido, bajo la barra de estado. ⋯ ya no está aquí:
+ * vive en la fila del nombre del programa ([ProgramMoreButton]).
+ *
+ * El vidrio desenfoca [hazeState]: la fuente (`hazeSource`) es el contenido desplazable de la pantalla, y esta barra es su hermana dibujada
+ * después. Sin él, el vidrio cae a su velo sin desenfoque.
  */
 @Composable
 internal fun ProgramFloatingBar(
     selected: StructureSubTab,
     onSelect: (StructureSubTab) -> Unit,
     onBack: () -> Unit,
-    onMore: () -> Unit,
-    pendingDot: Boolean,
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = LocalHazeState.current,
 ) {
     Row(
         modifier = modifier
@@ -93,39 +98,48 @@ internal fun ProgramFloatingBar(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        GlassCircleButton(icon = KpknLineIcons.ChevronLeft, label = "Atrás", onClick = onBack)
-        FloatingTabs(selected = selected, onSelect = onSelect, modifier = Modifier.weight(1f))
-        GlassCircleButton(
-            icon = KpknLineIcons.More,
-            label = if (pendingDot) "Más opciones, hay pendientes" else "Más opciones",
-            onClick = onMore,
-            dot = pendingDot,
-        )
+        GlassCircleButton(icon = KpknLineIcons.ChevronLeft, label = "Atrás", onClick = onBack, hazeState = hazeState)
+        FloatingTabs(selected = selected, onSelect = onSelect, hazeState = hazeState, modifier = Modifier.weight(1f))
     }
 }
 
-/** Círculo de vidrio de 48 dp con un icono. Con [dot], el punto de pendientes va arriba a la derecha, a 10 dp del borde. */
+/**
+ * ⋯ de la fila del nombre (`.ib.pd-more`): botón de 40 dp sin fondo, icono de 20 dp en `textMuted`, con margen de −4 dp arriba y −6 dp a
+ * la derecha (ocupa 34 × 36 dp en la fila y sobresale lo que dice el margen). Con [pendingDot], punto de 8 dp en #F49A6E con anillo negro de
+ * 2 dp, a 7 dp del borde superior y del derecho. Abre el mismo menú del programa de siempre.
+ */
 @Composable
-private fun GlassCircleButton(icon: ImageVector, label: String, onClick: () -> Unit, dot: Boolean = false) {
+internal fun ProgramMoreButton(onClick: () -> Unit, pendingDot: Boolean, modifier: Modifier = Modifier) {
     val interaction = remember { MutableInteractionSource() }
+    val overhangEnd = 6.dp
+    val overhangTop = 4.dp
     Box(
-        modifier = Modifier
-            .size(ProgramFloatingBarHeight)
-            .kpknGlassOrFallback(LocalHazeState.current, CircleShape)
-            .semantics { contentDescription = label }
+        modifier = modifier
+            .layout { measurable, constraints ->
+                // Margen negativo del CSS: la fila cuenta 34 × 36 dp, pero el botón mide 40 × 40 y se pinta desde −4 dp.
+                val placeable = measurable.measure(constraints)
+                val endPx = overhangEnd.roundToPx()
+                val topPx = overhangTop.roundToPx()
+                layout(placeable.width - endPx, placeable.height - topPx) { placeable.place(0, -topPx) }
+            }
+            .size(40.dp)
+            .clip(CircleShape)
+            .semantics {
+                contentDescription = if (pendingDot) "Más opciones del programa, hay pendientes" else "Más opciones del programa"
+            }
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
-        if (dot) {
-            // Anillo de 2 dp en #1B1B1B alrededor de un punto de 8 dp: el punto queda a 10 dp del borde superior y del derecho.
+        Icon(imageVector = KpknLineIcons.More, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.textMuted)
+        if (pendingDot) {
+            // Anillo negro de 2 dp alrededor de un punto de 8 dp: el punto queda a 7 dp del borde superior y del derecho.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
+                    .padding(top = 5.dp, end = 5.dp)
                     .size(12.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1B1B1B), CircleShape),
+                    .background(Color.Black, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(PendingDotColor, CircleShape))
@@ -134,17 +148,38 @@ private fun GlassCircleButton(icon: ImageVector, label: String, onClick: () -> U
     }
 }
 
+/** Círculo de vidrio de 48 dp con un icono. */
+@Composable
+private fun GlassCircleButton(icon: ImageVector, label: String, onClick: () -> Unit, hazeState: HazeState?) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier = Modifier
+            .size(ProgramFloatingBarHeight)
+            .kpknGlassOrFallback(hazeState, CircleShape)
+            .semantics { contentDescription = label }
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = WizardColors.text)
+    }
+}
+
 /**
  * La píldora de vidrio con las tres pestañas. El texto crece como mucho un 8 % con la escala de letra del sistema, como en el prototipo.
  */
 @Composable
-private fun FloatingTabs(selected: StructureSubTab, onSelect: (StructureSubTab) -> Unit, modifier: Modifier = Modifier) {
+private fun FloatingTabs(
+    selected: StructureSubTab,
+    onSelect: (StructureSubTab) -> Unit,
+    hazeState: HazeState?,
+    modifier: Modifier = Modifier,
+) {
     val density = LocalDensity.current
     val cappedDensity = Density(density = density.density, fontScale = min(density.fontScale, 1.08f))
     Row(
         modifier = modifier
             .height(ProgramFloatingBarHeight)
-            .kpknGlassOrFallback(LocalHazeState.current, RoundedCornerShape(24.dp))
+            .kpknGlassOrFallback(hazeState, RoundedCornerShape(24.dp))
             .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -161,12 +161,12 @@ internal fun VolumeView(
         }
         // Enlace al panel de lo REGISTRADO; sin navegación provista no se muestra.
         LocalMuscleVolumePanelOpener.current?.let { openPanel ->
-            ProgressVolumeHistoryLink(onClick = { openPanel(program.id) })
+            ProgressVolumeHistoryLink(onClick = { openPanel(program.id) }, program = program, logs = programLogs)
         }
     }
 }
 
-private fun mergePersonalizedTargets(
+internal fun mergePersonalizedTargets(
     recommendations: List<VolumeRecommendation>,
 ): Map<String, PersonalizedVolumeTarget> {
     val baseMap = recommendations

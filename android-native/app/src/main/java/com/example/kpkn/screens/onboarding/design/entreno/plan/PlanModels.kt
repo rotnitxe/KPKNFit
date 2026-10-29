@@ -47,7 +47,8 @@ data class PlanBlockModel(val label: String, val weeksLabel: String, val detail:
  *
  * - [mainExercises]: los ejercicios principales (se muestran hasta seis).
  * - [reasons]: «Por qué este programa» (las razones del generador).
- * - [notes]: notas honestas («Versión inicial: …»); [attribution]: de quién es el método, si aplica.
+ * - [notes]: notas honestas («Versión inicial: …»); [attribution]: de quién es el método, si aplica; [sourceUrl]: su fuente original,
+ *   que se abre al tocar la atribución.
  */
 data class PlanDetailModel(
     val card: PlanCardModel,
@@ -58,6 +59,7 @@ data class PlanDetailModel(
     val reasons: List<String>,
     val notes: List<String>,
     val attribution: String?,
+    val sourceUrl: String? = null,
 )
 
 /** Cuántos ejercicios principales enseña el detalle como máximo. */

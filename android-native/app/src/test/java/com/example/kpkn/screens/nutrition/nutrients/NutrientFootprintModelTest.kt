@@ -8,6 +8,7 @@ import com.example.kpkn.domain.nutrition.NutrientCoverage
 import com.example.kpkn.domain.nutrition.NutrientGroup
 import com.example.kpkn.domain.nutrition.NutrientKey
 import com.example.kpkn.domain.nutrition.footprintSlots
+import com.example.kpkn.domain.nutrition.groupedNutrientKeys
 import com.example.kpkn.domain.nutrition.nutrients.NutrientId
 import java.time.LocalDate
 import org.junit.Assert.*
@@ -64,6 +65,20 @@ class NutrientFootprintModelTest {
         assertEquals(37.5, fe.percent!!, 1e-9)
     }
 
+    @Test fun laListaDelDiaDevuelveLoVigiladoASuGrupoEnOrden() {
+        val food = LoggedFood(foodName = "Mucha grasa", calories = 2000.0, fatBreakdown = com.example.kpkn.data.models.FatBreakdown(saturated = 30.0))
+        val list = NutrientFootprints.list(NutrientCoverage.summarize(listOf(food)), NutrientsSamples.profile, 2000.0, NutrientScope.DAY)
+        assertEquals(listOf(NutrientKey.SAT_FAT), list.watch.map { it.key })
+        assertEquals(groupedNutrientKeys().first { it.first == NutrientGroup.FATS }.second, list.orderedRowsOf(NutrientGroup.FATS).map { it.key })
+        assertEquals(NutrientKey.entries.size, NutrientGroup.entries.sumOf { list.orderedRowsOf(it).size })
+    }
+
+    @Test fun unDatoIncompletoSeMarcaParcial() {
+        val state = NutrientsSamples.state("partial")
+        assertTrue(state.list.rowsOf(NutrientGroup.MINERALS).first { it.key == NutrientKey.IRON }.partial)
+        assertTrue(NutrientsSamples.state("complete").list.groups.flatMap { it.second }.none { it.partial })
+    }
+
     @Test fun lasCuatroCifrasDelDia() {
         val state = NutrientsSamples.state("complete")
         assertEquals(NutrientDayCounts(onTrack = 0, near = 0, below = 22, overMax = 0), NutrientFootprints.dayCounts(state.footprint))
@@ -74,7 +89,6 @@ class NutrientFootprintModelTest {
     @Test fun laCoberturaSeDiceEnUnaLinea() {
         val state = NutrientsSamples.state("partial")
         assertEquals("Cobertura: 50 % de las kcal con dato · 1 alimento sin ficha", NutrientFootprints.dayModuleCoverageLine(state.coverage))
-        assertEquals("50 % de las kcal con dato declarado · el total puede ser mayor", NutrientFootprints.daySheetCoverageLine(state.coverage))
         assertNull(NutrientFootprints.dayModuleCoverageLine(NutrientsSamples.state("no_data").coverage))
         assertEquals("1 con ficha completa · 1 estimado", NutrientFootprints.mealCoverageLine(NutrientsSamples.meal().coverage))
     }
@@ -166,8 +180,10 @@ class NutrientFootprintModelTest {
     }
 
     @Test fun laFechaYLaReferenciaVanEnElSubtitulo() {
-        assertEquals("Miércoles 28 · referencia de hombre, 30 años (DRI), según tu plan", NutrientFootprints.daySubtitle("2026-10-28", male30))
-        assertTrue(NutrientFootprints.daySubtitle("2026-10-28", null).startsWith("Miércoles 28 · sin referencia DRI"))
+        val today = LocalDate.of(2026, 10, 28)
+        assertEquals("Hoy · % de la referencia de tu perfil", NutrientFootprints.daySheetSubtitle("2026-10-28", male30, today))
+        assertEquals("Sábado 24 · % de la referencia de tu perfil", NutrientFootprints.daySheetSubtitle("2026-10-24", male30, today))
+        assertEquals("Hoy · cantidades relativas", NutrientFootprints.daySheetSubtitle("2026-10-28", null, today))
         assertEquals("hoy", NutrientFootprints.dayContext("2026-10-28", LocalDate.of(2026, 10, 28)))
         assertEquals("sábado 24", NutrientFootprints.dayContext("2026-10-24", LocalDate.of(2026, 10, 28)))
     }

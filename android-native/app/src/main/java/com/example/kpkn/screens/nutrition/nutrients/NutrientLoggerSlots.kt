@@ -7,12 +7,14 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.food.catalog.NutritionCatalogHolder
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.domain.nutrition.DriProfile
 import com.example.kpkn.domain.nutrition.nutrients.withCatalogNutrients
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
+import com.example.kpkn.screens.nutrition.design.logger.LoggerColors
 import com.example.kpkn.ui.components.KpknSheet
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CancellationException
@@ -45,7 +47,7 @@ private fun rememberWithCatalogNutrients(foods: List<LoggedFood>): List<LoggedFo
     return enriched
 }
 
-/** n-reg: el módulo de la comida entera bajo la tarjeta resumen; tocarlo abre su lista (n-reg-list). */
+/** n-reg: el módulo de la comida entera bajo la tarjeta resumen (huella radial); tocarlo abre su lista. */
 @Composable
 fun NutrientMealSlot(mealName: String, foods: List<LoggedFood>, profile: DriProfile?, energyKcal: Double?, hazeState: HazeState? = null) {
     if (foods.isEmpty()) return
@@ -56,17 +58,21 @@ fun NutrientMealSlot(mealName: String, foods: List<LoggedFood>, profile: DriProf
     if (open) NutrientMealListSheet(meal, onDismiss = { open = false }, hazeState = hazeState)
 }
 
-/** n-edit: la huella de esa cantidad bajo «Aporta» (alto 74) y «Destaca en»; con −/+ se mueve a la vez que las kcal. */
+/**
+ * n-edit: la huella radial de esa cantidad bajo «Aporta» y «Lo que más aporta»; con −/+ se mueve a la vez que las kcal. Va dentro de la
+ * hoja, sin fondo propio: [background] es el color de lo que tiene detrás (la hoja, o la tarjeta si la hoja la envuelve en una).
+ */
 @Composable
-fun NutrientFoodSlot(food: LoggedFood, profile: DriProfile?, energyKcal: Double?) {
+fun NutrientFoodSlot(food: LoggedFood, profile: DriProfile?, energyKcal: Double?, background: Color = LoggerColors.sheet) {
     val withData = rememberWithCatalogNutrients(listOf(food)).first()
     val model = remember(withData, profile, energyKcal) { NutrientFootprints.fromFoods(listOf(withData), profile, energyKcal) }
-    NutrientFootprintSection(model, height = NutrientFootprintHeights.Edit)
+    NutrientFootprintSection(model, size = NutrientRadialSizes.Edit, background = background)
 }
 
 /**
- * n-ficha: la huella de la ficha para los gramos elegidos, «Destaca en» y «N de 38 nutrientes con dato · Ver todos», que abre la lista
- * por grupos (n-ficha-vit/min/fat). Si la ficha solo trae la etiqueta (n-ficha-label), el aviso con «Completar con una ficha propia».
+ * n-ficha: la huella radial de la ficha para los gramos elegidos, «Lo que más aporta» y la fila «N de 38 nutrientes con dato ›», que abre la
+ * lista completa. Si la ficha solo trae la etiqueta (n-ficha-label), el aviso con «Completar con una ficha propia». [background] como en
+ * [NutrientFoodSlot].
  */
 @Composable
 fun NutrientCatalogSlot(
@@ -76,6 +82,7 @@ fun NutrientCatalogSlot(
     energyKcal: Double?,
     onCompleteWithOwnFood: (() -> Unit)?,
     hazeState: HazeState? = null,
+    background: Color = LoggerColors.sheet,
 ) {
     val scaled = remember(food, grams) { scaleFoodByPortion(food, amountGrams = grams) }
     val withData = rememberWithCatalogNutrients(listOf(scaled)).first()
@@ -88,22 +95,13 @@ fun NutrientCatalogSlot(
         labelOnlyText = model.labelOnlyText,
         onSeeAll = { showList = true },
         onCompleteWithOwnFood = onCompleteWithOwnFood,
+        background = background,
     )
     if (showList) {
         KpknSheet(onDismissRequest = { showList = false }, hazeState = hazeState, maxHeightFraction = 0.88f, stableHeightFraction = 0.88f) {
             NutrientFoodListContent(model, onBack = { showList = false }, hazeState = hazeState)
         }
     }
-}
-
-/** n-home: la línea «Esta comida» de la media hoja de Inicio, con lo que más aporta. */
-@Composable
-fun NutrientHomeSlot(foods: List<LoggedFood>, profile: DriProfile?, energyKcal: Double?) {
-    if (foods.isEmpty()) return
-    val withData = rememberWithCatalogNutrients(foods)
-    val model = remember(withData, profile, energyKcal) { NutrientFootprints.fromFoods(withData, profile, energyKcal) }
-    if (model.highlights.none { !it.warn }) return
-    NutrientHomeLine(model)
 }
 
 /**

@@ -84,6 +84,10 @@ import com.example.kpkn.domain.nutrition.absolutePortionOptions
 import com.example.kpkn.domain.nutrition.hasMaterialQuestion
 import com.example.kpkn.domain.nutrition.applyModifierScale
 import com.example.kpkn.domain.nutrition.adjustLoggedFoodForOil
+import com.example.kpkn.domain.nutrition.FoodPreparation
+import com.example.kpkn.domain.nutrition.FoodPreparations
+import com.example.kpkn.domain.nutrition.OilAmount
+import com.example.kpkn.domain.nutrition.oilAbsorptionCategory
 import com.example.kpkn.domain.nutrition.stripOilFromLoggedFood
 import com.example.kpkn.domain.nutrition.scalingForIntent
 import com.example.kpkn.domain.nutrition.oilGramsForLevel
@@ -163,9 +167,6 @@ internal data class AnalysisNotice(
     val technicalDetail: String? = null,
 )
 
-/** Cómo se abre el registro: la página entera (f-*, s-*) o la media hoja de Inicio (f-home-ana, f-home-res). */
-enum class FoodLoggerPresentation { FULL, QUICK }
-
 // ─── Composable ──────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,11 +183,9 @@ fun FoodLoggerDrawer(
     initialTab: Int = 0,
     /** WP-U11: a registered meal to edit; the sheet opens with its foods as decided cards and saves over the same id. */
     initialLog: NutritionLog? = null,
-    /** QUICK: la media hoja de Inicio, que se puede abrir completa («Abrir completo»). */
-    presentation: FoodLoggerPresentation = FoodLoggerPresentation.FULL,
     /** El objetivo de calorías del día: el aro de la tarjeta resumen y «te quedan N para hoy». Sin plan, null. */
     dailyKcalTarget: Int? = null,
-    /** Lo guardado, después de guardar (Inicio enseña su aviso con «Deshacer»). */
+    /** Lo guardado, después de guardar (Inicio hace rebotar su anillo de Nutrición de hoy). */
     onSaved: ((NutritionLog) -> Unit)? = null,
     /** Punto de conexión: la huella de vitaminas y minerales de la comida (n-reg), bajo la tarjeta resumen: el nombre de la comida y sus alimentos. */
     mealFootprint: (@Composable (String, List<LoggedFood>) -> Unit)? = null,
@@ -197,8 +196,6 @@ fun FoodLoggerDrawer(
      * «Completar con una ficha propia» (n-ficha-label).
      */
     catalogFootprint: (@Composable (FoodItem, Double, () -> Unit) -> Unit)? = null,
-    /** Punto de conexión: la línea «Esta comida» de la media hoja de Inicio (n-home), tras las tarjetas. */
-    homeLine: (@Composable (List<LoggedFood>) -> Unit)? = null,
     /** Punto de conexión: «Lo que más sumó: …» bajo la línea de guardado (n-saved); null si no hay nada que decir. */
     savedNutrientsLine: ((List<LoggedFood>) -> String?)? = null,
 ) {
@@ -1427,7 +1424,9 @@ fun FoodLoggerDrawer(
 
     // Respuesta recién elegida de una duda: queda marcada un momento antes de plegarse (f-clar).
     val answered = remember { mutableStateMapOf<String, LoggerQuestion>() }
-    val cookingChoice = remember { mutableStateMapOf<String, LoggerCooking>() }
+    // «Cómo lo preparaste» y «Aceite» elegidos en la hoja de ajuste (Arreglos v1), por alimento, y el aceite ya sumado a su ficha.
+    val prepChoice = remember { mutableStateMapOf<String, LoggerPrepChoice>() }
+    val prepApplied = remember { mutableStateMapOf<String, LoggerPrepApplied>() }
     var editingText by remember { mutableStateOf(false) }
     var sheetTagId by remember { mutableStateOf<String?>(null) }
     var identityTagId by remember { mutableStateOf<String?>(null) }
@@ -1437,10 +1436,37 @@ fun FoodLoggerDrawer(
     var showForget by remember { mutableStateOf(false) }
     var showAllFavorites by remember { mutableStateOf(false) }
     var createPrefill by remember { mutableStateOf<String?>(null) }
-    var quickExpanded by rememberSaveable { mutableStateOf(false) }
-    var quickAppend by remember { mutableStateOf(false) }
-    val quick = presentation == FoodLoggerPresentation.QUICK && !quickExpanded
     LaunchedEffect(isAnalyzing) { if (!isAnalyzing) editingText = false }
+
+    /**
+     * Suma a la ficha de [tagId] el aceite de su preparación elegida ([prepChoice]): lo que pide la opción menos lo que la ficha ya trae
+     * (la frita lleva el de «Normal»). Si la ficha sigue con el aceite que se le sumó la última vez, se quita antes; si se recalculó
+     * (otros gramos, otro tamaño, otra ficha), se parte de ella. [explicit]: lo pidió la persona en la fila; si no, y las cifras están
+     * corregidas a mano, se respetan.
+     */
+    fun applyPreparationOil(tagId: String, explicit: Boolean) {
+        val tag = tags.firstOrNull { it.id == tagId } ?: return
+        val food = tag.foodItem ?: return
+        val choice = prepChoice[tagId]?.takeIf { it.foodId == food.id } ?: return
+        val logged = tag.loggedFood ?: return
+        if (!explicit && tag.nutrientsManuallyEdited) return
+        val last = prepApplied[tagId]
+        val base = if (last != null && last.oiled == logged) last.base else logged
+        val grams = tag.amountGrams ?: base.amount
+        val delta = FoodPreparations.oilDeltaGrams(choice.preparation, choice.oil, oilAbsorptionCategory(food.name), grams)
+        val oiled = FoodPreparations.withOil(base, delta)
+        tags = tags.map {
+            if (it.id != tagId) it else it.copy(
+                loggedFood = oiled,
+                oilLevel = choice.oil?.level ?: "sin aceite",
+                appliedOilGrams = delta.coerceAtLeast(0.0),
+                needsOilClarification = false,
+                hasManualEdits = true,
+            )
+        }
+        refreshTag(tagId, "oil")
+        tags.firstOrNull { it.id == tagId }?.loggedFood?.let { prepApplied[tagId] = LoggerPrepApplied(base, it) }
+    }
 
     // s-loading: la búsqueda va sola al escribir, con 250 ms de espera.
     LaunchedEffect(searchQuery, searchFilter, activeTab) {
@@ -1846,7 +1872,7 @@ fun FoodLoggerDrawer(
                         }
                         if (hasTagsNow) {
                             if (pendingCount > 0) {
-                                item(key = "pending") { LoggerPendingBanner(loggerPendingLine(pendingCount), gutter.padding(top = 12.dp)) }
+                                item(key = "pending") { LoggerPendingLine(pendingCount, gutter.padding(top = 12.dp)) }
                             }
                             item(key = "sum") {
                                 LoggerSummaryCard(
@@ -1867,12 +1893,7 @@ fun FoodLoggerDrawer(
                                 Box(gutter.padding(top = 8.dp)) { FoodCardFor(tag, index, compact = false) }
                             }
                             item(key = "add_more") {
-                                LoggerAct(
-                                    text = "Añadir otro alimento",
-                                    onClick = { activeTab = 1 },
-                                    leadingIcon = KpknLineIcons.Plus,
-                                    modifier = gutter.padding(top = 8.dp),
-                                )
+                                LoggerAddFoodAction(onClick = { activeTab = 1 }, modifier = gutter.padding(top = 12.dp))
                             }
                         }
                     }
@@ -2000,126 +2021,18 @@ fun FoodLoggerDrawer(
         }
     }
 
-    // ─── La media hoja de Inicio (f-home-ana, f-home-res) ──────────────────────────
-    @Composable
-    fun QuickPage() {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = if (isAnalyzing) 6.dp else 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = "$mealLabel · $logTime",
-                        style = LoggerText.figure(16).copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
-                        color = LoggerColors.ink,
-                    )
-                    Text(
-                        text = if (isAnalyzing || !hasTagsNow) description else loggerQuickSubtitle(activeTagsNow.size, pendingCount),
-                        style = LoggerText.cap,
-                        color = LoggerColors.faint,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    )
-                }
-                if (!isAnalyzing) {
-                    LoggerAct(
-                        text = "Abrir completo",
-                        onClick = { quickExpanded = true },
-                        color = LoggerColors.faint,
-                        trailingIcon = KpknLineIcons.ChevronRight,
-                    )
-                }
-            }
-            if (isAnalyzing) {
-                LoggerAnalysisPanel(
-                    text = description,
-                    readingIndex = readingIndex,
-                    icons = loggerMentionRanges(description).take(4).map { range ->
-                        loggerFoodIcon(description.substring(range.first, range.last + 1))
-                    },
-                    height = 210.dp,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            } else {
-                analysisNotice?.let {
-                    val text = loggerNoticeText(
-                        if (tags.any { !it.origin.isPinned }) LoggerNoticeKind.PARTIAL else LoggerNoticeKind.NOTHING,
-                        tags.filterNot { it.origin.isPinned }.map(::tagDisplayName),
-                    )
-                    LoggerAnalysisNotice(
-                        title = text.title,
-                        message = text.message,
-                        onRetry = { analyzeDescription() },
-                        onSearch = { searchQuery = description; activeTab = 1; quickExpanded = true },
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-                tags.forEachIndexed { index, tag ->
-                    Box(Modifier.padding(top = 6.dp)) { FoodCardFor(tag, index, compact = true) }
-                }
-                if (quickAppend) {
-                    WriteBox(Modifier.padding(top = 8.dp))
-                }
-                if (hasTagsNow) homeLine?.let { line ->
-                    Box(Modifier.padding(top = 12.dp)) { line(activeTagsNow.mapNotNull { it.loggedFood }) }
-                }
-                Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LoggerPill(
-                        text = "",
-                        onClick = { quickAppend = true; editingText = true },
-                        tone = LoggerPillTone.SECONDARY,
-                        icon = KpknLineIcons.Plus,
-                        contentDescription = "Añadir otro alimento",
-                    )
-                    LoggerPill(
-                        text = "Guardar · ${loggerThousands(kcalNow)} kcal",
-                        onClick = { saveLog() },
-                        enabled = !isSaving && !showSuccess && activeTagsNow.isNotEmpty() && blockingCount == 0,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                toast?.let { current ->
-                    LoggerToast(
-                        message = current.message,
-                        icon = if (current.error) KpknLineIcons.Alert else KpknLineIcons.Check,
-                        actionLabel = current.actionLabel,
-                        onAction = current.onAction?.let { action -> { action(); toast = null } },
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
-                }
-            }
-        }
-    }
-
     // ─── Hoja ────────────────────────────────────────────────────────────────
-    key(sheetRevision, quick) {
-        if (quick) {
-            KpknSheet(
-                onDismissRequest = requestDismiss,
-                dismissible = !isSaving && !showSuccess,
-                maxHeightFraction = if (isAnalyzing) 0.78f else 0.82f,
-                backdropScrim = Color.Black.copy(alpha = 0.467f),
-            ) {
-                QuickPage()
-            }
-        } else {
-            // El lienzo dibuja el registro como página entera (`.lg`): la hoja ocupa toda la pantalla, sin asa.
-            KpknSheet(
-                onDismissRequest = requestDismiss,
-                dismissible = !isSaving && !showSuccess,
-                showDragHandle = false,
-                safeTopInset = true,
-                maxHeightFraction = 1f,
-                stableHeightFraction = 1f,
-            ) {
-                Box(Modifier.fillMaxWidth().weight(1f)) { FullPage() }
-            }
+    key(sheetRevision) {
+        // El lienzo dibuja el registro como página entera (`.lg`): la hoja ocupa toda la pantalla, sin asa.
+        KpknSheet(
+            onDismissRequest = requestDismiss,
+            dismissible = !isSaving && !showSuccess,
+            showDragHandle = false,
+            safeTopInset = true,
+            maxHeightFraction = 1f,
+            stableHeightFraction = 1f,
+        ) {
+            Box(Modifier.fillMaxWidth().weight(1f)) { FullPage() }
         }
     }
 
@@ -2137,43 +2050,88 @@ fun FoodLoggerDrawer(
                 !tag.foodItem?.brand.isNullOrBlank() -> tag.foodItem?.brand.orEmpty()
                 else -> "base KPKN"
             }
-            val cookable = tag.oilApplied || tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO
+            // «Cómo lo preparaste» (Arreglos v1): las preparaciones con ficha en el catálogo (chips de estado del concepto) y la actual.
+            val legacyFried = tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO
+            val stateRecords: Map<FoodPreparation, String> = if (tag.variantChoices.any { it.food.id == currentFoodId }) {
+                tag.variantChoices
+                    .filter { it.dimension == "state" }
+                    .mapNotNull { choice -> FoodPreparations.fromLabel(choice.label)?.let { it to choice.food.id } }
+                    .distinctBy { it.first }
+                    .toMap()
+            } else emptyMap()
+            val chosen = prepChoice[tag.id]?.takeIf { it.foodId == currentFoodId }
+            val currentPrep = chosen?.preparation
+                ?: stateRecords.entries.firstOrNull { it.value == currentFoodId }?.key
+                ?: tag.cookingMethod?.let { FoodPreparations.of(it) }
+            // «Crudo» se queda si el alimento estaba en crudo al abrir la hoja, aunque su grupo no se coma crudo (arroz pesado en crudo).
+            val openedRaw = remember(tag.id) { currentPrep == FoodPreparation.RAW }
+            val preparations = if (currentPrep == null && stateRecords.isEmpty()) emptyList() else {
+                FoodPreparations.available(stateRecords.keys, tag.foodItem?.category, currentPrep, keepRaw = openedRaw || currentPrep == FoodPreparation.RAW)
+            }
+            val oilOptions = FoodPreparations.oilOptions(currentPrep)
+            val legacyOil = legacyFried && chosen == null && currentPrep == FoodPreparation.FRIED
+            val oil = when {
+                oilOptions.isEmpty() -> null
+                chosen != null -> chosen.oil
+                legacyOil -> OilAmount.fromLevel(tag.oilLevel)
+                else -> FoodPreparations.recordOil(currentPrep)
+            }?.takeIf { it in oilOptions }
+            val gramsNow = tag.amountGrams ?: logged.amount
+            val oilKcal = when {
+                oilOptions.isEmpty() -> 0
+                legacyOil -> kotlin.math.round((tag.appliedOilGrams ?: 0.0) * 9.0).toInt()
+                else -> FoodPreparations.oilKcal(currentPrep, oil, oilAbsorptionCategory(tag.foodItem?.name ?: name), gramsNow)
+            }
+            // «Tamaño»: los cuatro tramos salen de la cantidad de referencia al abrir la hoja, para que no se muevan al pulsar − o +.
+            val sizeAnchor = remember(tag.id) { tag.baseAmountGrams ?: gramsNow }
             LoggerFoodSheet(
                 state = LoggerFoodSheetState(
                     name = name,
                     icon = loggerFoodIcon(name, tag.canonicalFamily),
                     matchLine = loggerMatchLine(tag.resolutionConfidence, tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE, source),
-                    grams = tag.amountGrams ?: logged.amount,
+                    grams = gramsNow,
                     units = if (logged.recipeId != null) loggerRecipeUnits(logged.unit)
                     else loggerUnits(name, tag.foodItem, tag.foodQuery.ifBlank { tag.tag }),
                     kcal = kotlin.math.round(logged.calories).toInt(),
                     protein = logged.protein,
                     carbs = logged.carbs,
                     fats = logged.fats,
-                    portion = if (logged.recipeId == null) tag.portion else null,
-                    cooking = if (cookable) {
-                        cookingChoice[tag.id] ?: (if (tag.oilLevel == "sin aceite") LoggerCooking.NO_FAT else LoggerCooking.OIL)
-                    } else null,
-                    variants = if (tag.variantChoices.any { it.food.id == currentFoodId }) {
-                        tag.variantChoices.map { LoggerVariantChip(it.dimension, it.food.id, it.label, it.food.id == currentFoodId) }
-                    } else emptyList(),
+                    sizes = if (logged.recipeId == null) loggerSizeOptions(sizeAnchor) else emptyList(),
+                    preparations = preparations,
+                    preparation = currentPrep,
+                    oil = oil,
+                    oilKcal = oilKcal,
                     excluded = tag.isExcluded,
                     volume = logged.unit == "ml",
                 ),
-                onGramsChange = { updateTagGrams(tag.id, it) },
-                onPortionChange = { updateTagPortion(tag.id, it) },
-                onCookingChange = { option ->
-                    cookingChoice[tag.id] = option
-                    updateTagOilLevel(
-                        tag.id,
-                        when (option) {
-                            LoggerCooking.OIL -> "medio"
-                            LoggerCooking.NO_FAT -> "sin aceite"
-                            LoggerCooking.BUTTER -> "poco"
-                        },
-                    )
+                onGramsChange = {
+                    updateTagGrams(tag.id, it)
+                    applyPreparationOil(tag.id, explicit = false)
                 },
-                onVariant = { id -> identityChoice(tag, id, null) },
+                onSizeChange = { option ->
+                    val base = tags.firstOrNull { it.id == tag.id }?.baseAmountGrams
+                    if (base != null && kotlin.math.abs(base - sizeAnchor) < 1e-6) updateTagPortion(tag.id, option.preset)
+                    else updateTagGrams(tag.id, option.grams)
+                    applyPreparationOil(tag.id, explicit = false)
+                },
+                onPreparationChange = { preparation ->
+                    val targetId = stateRecords[FoodPreparations.recordOf(preparation)] ?: currentFoodId
+                    if (targetId != null) {
+                        if (targetId != currentFoodId) identityChoice(tag, targetId, null)
+                        if (tags.firstOrNull { it.id == tag.id }?.foodItem?.id == targetId) {
+                            prepChoice[tag.id] = LoggerPrepChoice(preparation, FoodPreparations.defaultOil(preparation), targetId)
+                            applyPreparationOil(tag.id, explicit = true)
+                        }
+                    }
+                },
+                onOilChange = { amount ->
+                    if (legacyOil) {
+                        updateTagOilLevel(tag.id, amount.level)
+                    } else if (currentPrep != null && currentFoodId != null) {
+                        prepChoice[tag.id] = LoggerPrepChoice(currentPrep, amount, currentFoodId)
+                        applyPreparationOil(tag.id, explicit = true)
+                    }
+                },
                 onToggleExcluded = {
                     tags = tags.map { if (it.id == tag.id) NutritionInterpretationBridge.refresh(it.copy(isExcluded = !it.isExcluded)) else it }
                 },
@@ -2345,12 +2303,12 @@ fun FoodLoggerDrawer(
         )
     }
 
-    // ── Guardado: en la página, «Desayuno guardado» y se cierra a los 0,8 s (f-saved); en Inicio, la hoja baja al momento y
-    // Inicio enseña su aviso con «Deshacer» (f-home-done). ──
+    // ── Guardado: «Desayuno guardado» y se cierra a los 0,8 s (f-saved); desde Inicio, Inicio enseña después su aviso con
+    // «Deshacer» (f-home-done). ──
     if (showSuccess) {
         val holdMs = if (wizardReducedMotion()) LoggerSuccessHoldReducedMs else LoggerSuccessHoldMs
         LaunchedEffect(Unit) {
-            if (!quick) delay(LoggerSuccessDrawMs + holdMs)
+            delay(LoggerSuccessDrawMs + holdMs)
             savedLogSnapshot?.let { onSaved?.invoke(it) }
             showSuccess = false
             closeLogger()
@@ -2446,22 +2404,8 @@ private fun LoggerFavoriteRow(name: String, caption: String, onOpen: () -> Unit,
     }
 }
 
-/** `.pending`: «2 dudas: tócalas para afinar o guarda con la estimación» en energía, con la interrogación. */
-@Composable
-private fun LoggerPendingBanner(text: String, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(16.dp)
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(LoggerColors.ene.copy(alpha = 0.063f), shape)
-            .border(1.dp, LoggerColors.ene.copy(alpha = 0.2f), shape)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(LoggerIcons.Question, contentDescription = null, modifier = Modifier.size(16.dp), tint = LoggerColors.ene)
-        Text(text = text, style = LoggerText.cap, color = LoggerColors.ene)
-    }
-}
+/** «Cómo lo preparaste» y «Aceite» elegidos en la hoja de ajuste para la ficha [foodId] (Arreglos v1). */
+private data class LoggerPrepChoice(val preparation: FoodPreparation, val oil: OilAmount?, val foodId: String)
 
+/** La ficha antes ([base]) y después ([oiled]) de sumarle el aceite de su preparación, para quitarlo al cambiarlo. */
+private data class LoggerPrepApplied(val base: LoggedFood, val oiled: LoggedFood)

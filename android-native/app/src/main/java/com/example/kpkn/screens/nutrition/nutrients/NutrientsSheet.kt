@@ -1,12 +1,7 @@
 package com.example.kpkn.screens.nutrition.nutrients
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,8 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
@@ -28,12 +21,11 @@ import com.example.kpkn.domain.nutrition.DriProfile
 import com.example.kpkn.domain.nutrition.NutrientCoverage
 import com.example.kpkn.domain.nutrition.NutrientDayTotal
 import com.example.kpkn.domain.nutrition.NutrientFoodCoverage
-import com.example.kpkn.domain.nutrition.NutrientGroup
 import com.example.kpkn.domain.nutrition.NutrientKey
-import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.nutrition.design.logger.LoggerColors
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSheetTitle
+import com.example.kpkn.screens.nutrition.design.logger.LoggerText
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 
@@ -57,31 +49,16 @@ fun buildNutrientsSheetState(date: String, logs: List<NutritionLog>, profile: Dr
 }
 
 /**
- * El módulo «Vitaminas y minerales» del día (n-day), bajo el día de Nutrición (M-D1): cabecera con «Ver todos ›», la huella del día
- * (lo que llega al 100 % en tinta plena, lo que falta en tenue, el sodio pasado en rojo), cuatro cifras —al día, cerca (70–99 %), por
- * debajo y sobre el máx.— y la cobertura honesta del motor.
+ * El módulo «Vitaminas y minerales» del día (`npDay`), bajo el día de Nutrición: la huella radial del día con el recuento de objetivos
+ * cubiertos al centro, la leyenda al lado y, abajo, la cobertura honesta del motor. Tocarlo abre la lista completa ([onOpen]).
  */
 @Composable
 fun NutrientsDayModule(state: NutrientsSheetState, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    KpknModule(
-        modifier.fillMaxWidth().testTag("nutrients-day-module"),
-        contentPadding = PaddingValues(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp),
-    ) {
-        NutrientModuleHeader(onOpen)
-        Spacer(Modifier.height(8.dp))
-        NutrientFootprint(state.footprint, height = NutrientFootprintHeights.Day)
-        val counts = NutrientFootprints.dayCounts(state.footprint)
-        Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf(counts.onTrack to "al día", counts.near to "cerca", counts.below to "por debajo", counts.overMax to "sobre el máx.").forEachIndexed { i, (value, label) ->
-                NutrientKpi(value.toString(), label, Modifier.weight(1f),
-                    valueColor = if (i == 3 && value > 0) WizardColors.danger else WizardColors.text)
-            }
-        }
-        NutrientFootprints.dayModuleCoverageLine(state.coverage)?.let { NutrientCoverageLine(it) }
-    }
+    val context = remember(state.date) { NutrientFootprints.dayContext(state.date, LocalDate.now()) }
+    NutrientDayRadialModule(state.footprint, context, NutrientFootprints.dayModuleCoverageLine(state.coverage), onOpen, modifier)
 }
 
-/** La hoja «Nutrientes del día» (n-day-sheet). Tocar una fila abre la hoja de ese nutriente (n-nutrient) encima. */
+/** La hoja de la lista completa del día. Tocar una fila abre la hoja de ese nutriente (n-nutrient) encima. */
 @Composable
 fun NutrientsSheet(state: NutrientsSheetState, onDismiss: () -> Unit, hazeState: HazeState? = null) {
     var open by rememberSaveable(state.date) { mutableStateOf<String?>(null) }
@@ -96,30 +73,18 @@ fun NutrientsSheet(state: NutrientsSheetState, onDismiss: () -> Unit, hazeState:
 }
 
 /**
- * Contenido de la hoja del día: título, fecha y referencia, la cobertura en una línea, «A vigilar» arriba, los chips de grupo y una fila
- * por nutriente. Al pie, en letra pequeña, las fuentes y licencias y «No sustituye el consejo de un profesional» (M-D3).
+ * Contenido de la lista (`npList`): título «Vitaminas y minerales», «Hoy · % de la referencia de tu perfil» y una fila por nutriente, grupo
+ * tras grupo. Al pie, en letra pequeña, las fuentes y licencias y «No sustituye el consejo de un profesional» (M-D3: la atribución de
+ * los datos es obligatoria).
  */
 @Composable
 fun NutrientsContent(state: NutrientsSheetState, onOpenNutrient: (NutrientKey) -> Unit, modifier: Modifier = Modifier) {
-    var group by rememberSaveable { mutableStateOf(NutrientGroup.VITAMINS) }
+    val subtitle = remember(state.date, state.profile) { NutrientFootprints.daySheetSubtitle(state.date, state.profile, LocalDate.now()) }
     Column(modifier.fillMaxWidth().verticalScroll(rememberScrollState()).testTag("nutrients-list")) {
+        LoggerSheetTitle("Vitaminas y minerales", Modifier.padding(horizontal = 18.dp), sub = subtitle)
         Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-            Text("Nutrientes del día", style = NutrientSheetTitleStyle, color = WizardColors.text,
-                modifier = Modifier.padding(top = 2.dp, bottom = 4.dp).semantics { heading() })
-            Text(NutrientFootprints.daySubtitle(state.date, state.profile), style = KpknType.caption, color = WizardColors.textMuted,
-                modifier = Modifier.padding(bottom = 12.dp))
-            NutrientFootprints.daySheetCoverageLine(state.coverage)?.let {
-                Text(it, style = KpknType.caption, color = WizardColors.textFaint, modifier = Modifier.padding(bottom = 4.dp).testTag("nutrients-coverage"))
-            }
-            if (state.list.watch.isNotEmpty()) {
-                NutrientGroupLabel("A vigilar", Modifier.testTag("nutrients-watch"), color = WizardColors.danger)
-                NutrientRowsColumn(state.list.watch, onOpenNutrient)
-            }
-        }
-        NutrientGroupChips(group, { group = it }, Modifier.padding(top = 8.dp, bottom = 4.dp))
-        Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-            NutrientRowsColumn(state.list.rowsOf(group), onOpenNutrient)
-            Text(NutrientFootprints.SOURCES_FOOTER, style = KpknType.caption, color = WizardColors.textFaint,
+            NutrientGroupedRows(state.list, onOpenNutrient)
+            Text(NutrientFootprints.SOURCES_FOOTER, style = LoggerText.cap, color = LoggerColors.faint,
                 modifier = Modifier.padding(top = 16.dp, bottom = 30.dp).testTag("nutrients-sources"))
         }
     }

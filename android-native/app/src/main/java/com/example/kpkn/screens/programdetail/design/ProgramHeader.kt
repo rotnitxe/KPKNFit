@@ -94,6 +94,10 @@ internal data class ProgramHeaderActions(
     val pendingCount: Int = 0,
     /** Abre la hoja «Pendiente». */
     val onPending: () -> Unit = {},
+    /** ⋯ a la derecha del nombre (`.pd-more`): abre el menú del programa. Null = no se pinta. */
+    val onMore: (() -> Unit)? = null,
+    /** Punto naranja de «hay pendientes» en ⋯. */
+    val moreDot: Boolean = false,
 )
 
 /**
@@ -122,7 +126,15 @@ internal fun ProgramHeader(
             Column(modifier = Modifier.weight(1f)) {
                 StatusEyebrow(state.status)
                 Spacer(Modifier.height(6.dp))
-                ProgramTitle(state.name)
+                // `.pd-tl`: el nombre ocupa lo que sobra y ⋯ va a su derecha, 6 dp aparte, sin tapar el texto.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Box(modifier = Modifier.weight(1f)) { ProgramTitle(state.name) }
+                    actions.onMore?.let { onMore -> ProgramMoreButton(onClick = onMore, pendingDot = actions.moreDot) }
+                }
                 Spacer(Modifier.height(6.dp))
                 if (state.meta.isNotBlank()) {
                     Text(

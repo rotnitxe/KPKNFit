@@ -1656,10 +1656,10 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
-            // T5a: el enlace «Ver lo que has hecho en 4 semanas» de la pestaña Volumen abre el panel con los registros de este programa.
+            // Arreglos v1 (p-progress): la tarjeta «Tus últimas 4 semanas» de Progreso abre su página (antes, el panel de volumen).
             CompositionLocalProvider(
                 com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener provides { volumeProgramId ->
-                    navController.navigate(KpknRoute.MuscleVolumePanel.create(volumeProgramId))
+                    navController.navigate(KpknRoute.ProgramFourWeeks.create(volumeProgramId ?: id)) { launchSingleTop = true }
                 },
             ) {
             ProgramDetailScreen(
@@ -1710,6 +1710,25 @@ private fun KPKNNavGraph(
                 },
             )
             }
+        }
+        composable(KpknRoute.ProgramFourWeeks.route) { backStack ->
+            val id = backStack.arguments?.getString(KpknRoute.ProgramFourWeeks.ARG_PROGRAM_ID) ?: ""
+            // Comparte el ViewModel de Program Detail (de donde se abre): mismos datos y sin repetir su arranque.
+            val detailEntry = remember(backStack) {
+                runCatching { navController.getBackStackEntry(KpknRoute.ProgramDetail.route) }.getOrNull()
+            }
+            val detailViewModel: com.example.kpkn.screens.programdetail.ProgramDetailViewModel = if (detailEntry != null) {
+                viewModel(
+                    viewModelStoreOwner = detailEntry,
+                    factory = com.example.kpkn.screens.programdetail.ProgramDetailViewModel.factory(id),
+                )
+            } else {
+                viewModel(factory = com.example.kpkn.screens.programdetail.ProgramDetailViewModel.factory(id))
+            }
+            com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksRoute(
+                viewModel = detailViewModel,
+                onBack = { navController.popBackStack() },
+            )
         }
         composable(
             route = KpknRoute.ProgramEditor.route,

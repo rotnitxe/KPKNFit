@@ -28,13 +28,13 @@ class RecipeLoggerUiTest {
         return LoggerFoodSheetState(
             name = logged.foodName, icon = LoggerIcons.Bowl, matchLine = "Coincidencia alta · tu receta",
             grams = tag.amountGrams ?: logged.amount, units = loggerRecipeUnits(logged.unit), kcal = logged.calories.toInt(),
-            protein = logged.protein, carbs = logged.carbs, fats = logged.fats, portion = null, cooking = null,
+            protein = logged.protein, carbs = logged.carbs, fats = logged.fats,
         )
     }
 
     private fun show(tag: ResolvedTag, onAmount: (Double) -> Unit) = rule.setContent {
         LoggerFoodSheet(
-            state = state(tag), onGramsChange = onAmount, onPortionChange = {}, onCookingChange = {}, onVariant = {},
+            state = state(tag), onGramsChange = onAmount, onSizeChange = {}, onPreparationChange = {}, onOilChange = {},
             onToggleExcluded = {}, onMacroChange = { _, _ -> }, onChange = {}, onRemove = {}, onDismiss = {},
         )
     }

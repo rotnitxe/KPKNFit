@@ -82,14 +82,20 @@ private const val SHARE_ERROR = "No se pudo compartir la imagen."
  * o el selector del sistema, y guardar en Fotos). La imagen se pinta en segundo plano; mientras tanto, los botones están apagados.
  */
 @Composable
-internal fun ProgramShareSheet(program: Program, logs: List<WorkoutLog>, onDismiss: () -> Unit) {
+internal fun ProgramShareSheet(
+    program: Program,
+    logs: List<WorkoutLog>,
+    onDismiss: () -> Unit,
+    /** La plantilla con la que abre (p. ej. Progreso desde «Tus últimas 4 semanas»); si no está disponible, Semana. */
+    initialTemplate: ProgramStoryTemplate = ProgramStoryTemplate.SEMANA,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val reduced = wizardReducedMotion()
     val templates = remember(program, logs) { ProgramStoryBuilder.templates(program, logs) }
     val base = remember(program) { ProgramStoryBuilder.baseCover(program) }
     val hasInstagram = remember(context) { StoryShare.hasInstagram(context) }
-    var template by remember { mutableStateOf(ProgramStoryTemplate.SEMANA) }
+    var template by remember { mutableStateOf(initialTemplate.takeIf { it in templates } ?: ProgramStoryTemplate.SEMANA) }
     var styleChoice by remember { mutableStateOf<LineCoverStyle?>(null) }
     var busy by remember { mutableStateOf(false) }
     val story = remember(program, logs, template, styleChoice) {

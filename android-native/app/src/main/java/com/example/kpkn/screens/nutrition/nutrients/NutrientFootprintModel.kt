@@ -4,7 +4,6 @@ import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.domain.nutrition.DriKind
 import com.example.kpkn.domain.nutrition.DriProfile
 import com.example.kpkn.domain.nutrition.DriSex
-import com.example.kpkn.domain.nutrition.DriStage
 import com.example.kpkn.domain.nutrition.DriTarget
 import com.example.kpkn.domain.nutrition.DriTargets
 import com.example.kpkn.domain.nutrition.FootprintSlot
@@ -76,7 +75,7 @@ data class NutrientFootprintModel(
 /** Las cuatro cifras del día: al día · cerca (70–99 %) · por debajo · sobre el máx. Sobre las 24 de la huella. */
 data class NutrientDayCounts(val onTrack: Int, val near: Int, val below: Int, val overMax: Int)
 
-/** Una fila de lista (`nrow` del lienzo): nombre, cantidad, % y barra fina con marca al 100 %. */
+/** Una fila de lista (`np-nrow` del lienzo): nombre, cantidad, % y una barra fina de 3 dp. */
 data class NutrientRowModel(
     val key: NutrientKey,
     val name: String,
@@ -85,18 +84,26 @@ data class NutrientRowModel(
     val missing: Boolean,
     /** «142 %» o «—» (sin referencia); null si falta el dato. */
     val percentText: String?,
-    /** Tope: la cifra dice «del máx.» y la barra es un contorno. */
+    /** Tope: la cantidad lleva «· máx.» y la pista de la barra es un contorno. */
     val ceiling: Boolean,
     val over: Boolean,
     val noReference: Boolean,
     val fill: Float,
     val estimatedShare: Float,
     val note: String?,
+    /** Algún alimento no trae este dato: el total es «≥» y la pista de la barra va discontinua. */
+    val partial: Boolean = false,
 )
 
 /** Las listas por grupo y, solo en el día, «A vigilar» (lo que pasa un tope sube arriba). */
 data class NutrientListModel(val watch: List<NutrientRowModel>, val groups: List<Pair<NutrientGroup, List<NutrientRowModel>>>) {
     fun rowsOf(group: NutrientGroup): List<NutrientRowModel> = groups.firstOrNull { it.first == group }?.second.orEmpty()
+
+    /** Las filas de un grupo en su orden de pantalla, con lo de [watch] de vuelta en su sitio: el lienzo no separa un «A vigilar». */
+    fun orderedRowsOf(group: NutrientGroup): List<NutrientRowModel> {
+        val byKey = (watch + groups.flatMap { it.second }).associateBy { it.key }
+        return groupedNutrientKeys().firstOrNull { it.first == group }?.second.orEmpty().mapNotNull { byKey[it] }
+    }
 }
 
 /** Un alimento de «De dónde sale». [fraction] es relativa al que más aporta. */
@@ -301,13 +308,6 @@ object NutrientFootprints {
         return if (missing == 0) base else "$base · $missing ${if (missing == 1) "alimento" else "alimentos"} sin ficha"
     }
 
-    /** Hoja del día: «86 % de las kcal con dato declarado · el total puede ser mayor». Null sin alimentos. */
-    fun daySheetCoverageLine(coverage: NutrientFoodCoverage): String? {
-        if (coverage.foods == 0) return null
-        val base = "${percentText(coverage.declaredFraction * 100.0)} ${if (coverage.weightedByEnergy) "de las kcal" else "de los alimentos"} con dato declarado"
-        return if (coverage.declaredFraction < 1.0 - 1e-9) "$base · el total puede ser mayor" else base
-    }
-
     /** Comida: «3 con ficha completa · 1 estimado» (y «· N sin ficha» si alguno no trae nada). */
     fun mealCoverageLine(coverage: NutrientFoodCoverage): String {
         val parts = mutableListOf("${coverage.declaredFoods} con ficha completa")
@@ -396,7 +396,7 @@ object NutrientFootprints {
             key = key, name = key.label, valueText = valueText, missing = amount == null,
             percentText = when { amount == null -> null; pct == null -> "—"; else -> percentText(pct) },
             ceiling = ceiling, over = (pct ?: 0.0) > 100.0, noReference = noRef,
-            fill = ((pct ?: 0.0).coerceIn(0.0, 100.0) / 100.0).toFloat(), estimatedShare = estimatedShare(total), note = note,
+            fill = ((pct ?: 0.0).coerceIn(0.0, 100.0) / 100.0).toFloat(), estimatedShare = estimatedShare(total), note = note, partial = partial,
         )
     }
 
@@ -508,20 +508,9 @@ object NutrientFootprints {
 
     // ─── Hoja del día ───────────────────────────────────────────────────
 
-    /** «Miércoles 28 · referencia de hombre, 30 años (DRI), según tu plan». */
-    fun daySubtitle(date: String, profile: DriProfile?): String {
-        val day = runCatching { LocalDate.parse(date.take(10)) }.getOrNull()
-        val head = day?.let { "${WEEKDAYS[it.dayOfWeek.value - 1]} ${it.dayOfMonth}" } ?: date
-        val ref = profile?.let {
-            val who = when (it.stage) {
-                DriStage.PREGNANT -> "embarazo"
-                DriStage.LACTATING -> "lactancia"
-                DriStage.ADULT -> if (it.sex == DriSex.FEMALE) "mujer" else "hombre"
-            }
-            "referencia de $who, ${it.age} años (DRI), según tu plan"
-        } ?: "sin referencia DRI: falta un perfil adulto compatible en tu plan"
-        return "$head · $ref"
-    }
+    /** Bajo el título de la hoja del día: «Hoy · % de la referencia de tu perfil» (o «Miércoles 28 · …»; sin perfil, «cantidades relativas»). */
+    fun daySheetSubtitle(date: String, profile: DriProfile?, today: LocalDate): String =
+        "${dayContext(date, today).replaceFirstChar { it.uppercase() }} · ${if (profile == null) "cantidades relativas" else "% de la referencia de tu perfil"}"
 
     /** Lo que sigue al tipo en el eyebrow de la hoja de un nutriente: «hoy» o «miércoles 28». */
     fun dayContext(date: String, today: LocalDate): String {

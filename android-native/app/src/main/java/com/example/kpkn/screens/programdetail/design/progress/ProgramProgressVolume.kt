@@ -40,6 +40,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeBreakdown
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
 import com.example.kpkn.screens.programdetail.design.programVolumeSeries
@@ -57,7 +59,7 @@ import kotlin.math.max
 
 /*
  * «Series por músculo» de la escena g-volume del lienzo v6: «Hecho / Plan», la fila «Rangos», una fila por músculo con la barra de lo hecho,
- * la marca de lo planificado y la franja del rango útil, la leyenda y, aparte, «Ver lo que has hecho en 4 semanas». Los estados vacíos
+ * la marca de lo planificado y la franja del rango útil, la leyenda y, aparte, la tarjeta «Tus últimas 4 semanas» (Arreglos v1). Los estados vacíos
  * (programa sin activar, sin sesiones) no tienen escena: se rehacen con el mismo módulo y su acción, sin empujar nada hacia abajo.
  */
 
@@ -294,28 +296,21 @@ private fun BreakdownLine(name: String, sets: Double, color: Color, indent: Int 
     }
 }
 
-/** `.mod.tight` con «Ver lo que has hecho en 4 semanas ›» a todo el ancho. */
+/**
+ * Arreglos v1 (escena p-progress): el enlace «Ver lo que has hecho en 4 semanas» pasa a ser la tarjeta «Tus últimas 4 semanas»
+ * ([ProgramFourWeeksEntry]) con su línea y el mini calendario de los 28 días, calculados de [program] y sus [logs]. Sin [program], la
+ * tarjeta sale con el título y el calendario vacío.
+ */
 @Composable
-internal fun ProgressVolumeHistoryLink(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    StructureModule(modifier = modifier, tight = true) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(36.dp)
-                .testTag("volumen_ver_registrado")
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, role = Role.Button, onClick = onClick),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = "Ver lo que has hecho en 4 semanas", style = StructureActionStyle, color = StructureMuted)
-            Icon(
-                imageVector = KpknLineIcons.ChevronRight,
-                contentDescription = null,
-                modifier = Modifier.padding(start = 4.dp).size(16.dp),
-                tint = StructureMuted,
-            )
-        }
-    }
+internal fun ProgressVolumeHistoryLink(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    program: Program? = null,
+    logs: List<WorkoutLog> = emptyList(),
+) {
+    val currentWeekId = remember(program) { program?.let { fourWeeksCurrentWeekId(it) } }
+    val model = rememberProgramFourWeeks(program, logs, currentWeekId, withMuscles = false)
+    ProgramFourWeeksEntry(model = model, onClick = onClick, modifier = modifier)
 }
 
 /**

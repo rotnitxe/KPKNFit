@@ -3,6 +3,7 @@ package com.example.kpkn.screens.nutrition.design
 import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -46,11 +47,15 @@ class NutritionDayModuleTest {
     }
 
     @Test
-    fun conPlanSeVenLosAnillosYLoQueQuedaDelDia() {
+    fun conPlanSeVeElAnilloFinoYLasFilasDeMacros() {
         rule.setContent { Day() }
 
-        rule.onNodeWithTag("setup-nutrition-rings").assertExists()
-        rule.onNodeWithText("te quedan 1.060").assertExists()
+        rule.onNodeWithTag(NUTRITION_DAY_RING_TAG).assertExists()
+        rule.onNodeWithContentDescription("1.240 kilocalorías de 2.300", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Proteína").assertExists()
+        rule.onNodeWithText("Carbos").assertExists()
+        rule.onNodeWithText("Grasa").assertExists()
+        rule.onNodeWithText("Hidratos").assertDoesNotExist()
         rule.onNodeWithText("TU DÍA").assertExists()
     }
 
@@ -62,7 +67,7 @@ class NutritionDayModuleTest {
 
         rule.onNodeWithText("Aún no tienes objetivos.").assertExists()
         rule.onNodeWithText("Definir objetivos").assertExists()
-        rule.onNodeWithTag("setup-nutrition-rings").assertDoesNotExist()
+        rule.onNodeWithTag(NUTRITION_DAY_RING_TAG).assertDoesNotExist()
     }
 
     @Test
@@ -73,7 +78,7 @@ class NutritionDayModuleTest {
 
         rule.onNodeWithText("Definir objetivos").assertDoesNotExist()
         rule.onNodeWithText("Aún no tienes objetivos.").assertDoesNotExist()
-        rule.onNodeWithTag("setup-nutrition-rings").assertDoesNotExist()
+        rule.onNodeWithTag(NUTRITION_DAY_RING_TAG).assertDoesNotExist()
     }
 
     @Test
