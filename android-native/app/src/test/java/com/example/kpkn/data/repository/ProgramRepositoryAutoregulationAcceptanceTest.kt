@@ -51,8 +51,10 @@ import org.robolectric.annotation.Config
 /**
  * AC-G1/AC-G4/§14.5 por la ruta de repositorio+progreso: registrar una sesión
  * real → avanzar → aceptar/rechazar propuestas. La semana futura cambia de forma
- * observable, la semana entrenada queda byte idéntica (contraejemplo R-202) y
- * toda resolución persiste su estado terminal con motivo.
+ * observable (kilos derivados del nuevo TM), la semana entrenada queda byte idéntica
+ * (contraejemplo R-202) y toda resolución persiste su estado terminal con motivo.
+ * POST-RINGS: la propuesta de cambio es un `ADJUST_TM`; las de escala del modelo retirado
+ * (SCALE_WEEK_*) ya no se aplican (ver ProgramAutoregulationResolutionTest).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
@@ -107,11 +109,33 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
             .flatMap { it.sets }
             .map { it.targetPercentageRM }
 
+    /**
+     * Propuesta vigente POST-RINGS: bajar un 5 % el TM de sentadilla. Las propuestas de escala del
+     * modelo retirado (SCALE_WEEK_INTENSITY/VOLUME…) ya no se aplican: caducan sin cambiar el plan.
+     */
     private fun intensityProposal() = AutoregulationProposal(
-        kind = AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
+        kind = AutoregulationProposalKind.ADJUST_TM,
+        liftSlot = LiftSlot.SQUAT.name,
         percentDelta = -5.0,
-        explanation = "Readiness 38 — bajar intensidad de la próxima semana",
+        explanation = "Rendimiento por debajo del objetivo: bajar un 5 % el TM de sentadilla",
     )
+
+    /** Pesos (kg) de las series de los ejercicios de una semana cuya configuración cumple [filter]. */
+    private fun weightsOf(
+        program: Program,
+        weekId: String,
+        filter: (String?) -> Boolean = { true },
+    ): List<Double?> =
+        weeksOf(program).first { it.id == weekId }
+            .sessions.flatMap { it.allExercises() }
+            .filter { filter(it.catalogConfigurationId) }
+            .flatMap { exercise -> exercise.sets.map { it.weight } }
+
+    private fun squatWeightsOf(program: Program, weekId: String) =
+        weightsOf(program, weekId) { it == CatalogIds.SQ_LOW }
+
+    private fun nonSquatWeightsOf(program: Program, weekId: String) =
+        weightsOf(program, weekId) { it != CatalogIds.SQ_LOW }
 
     private suspend fun seedProgram(repository: ProgramRepository): Pair<Program, ProgramWeek> {
         val program = PlanMaterializer.materialize(
@@ -199,11 +223,11 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
         assertFalse("La semana vacía jamás es evidencia (R-202)", week2.id in evidence.weekIds)
         assertTrue(sessionId in evidence.sessionIds)
 
-        // 3) Estado AUGE real de la app: PROPOSE con la propuesta pendiente de la
+        // 3) Estado real de la app: PROPOSE con la propuesta de TM pendiente de la
         //    semana a la que acababa de apuntar el avance.
         val pending = PendingProgramAction(
             type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
-            message = "AUGE propone bajar intensidad",
+            message = "Propuesta: bajar un 5 % el TM de sentadilla",
             proposals = listOf(intensityProposal()),
             targetWeekId = week2.id,
         )
@@ -217,14 +241,35 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
         val trainedBefore = weeksOf(beforeAccept)[0].sessions
         val percentsBefore = percentsOf(beforeAccept, week2.id)
         assertTrue(percentsBefore.any { it != null })
+        val squatTmBefore = requireNotNull(beforeAccept.powerliftingProfile?.squatTM)
+        val squatWeightsBefore = squatWeightsOf(beforeAccept, week2.id)
+        val otherWeightsBefore = nonSquatWeightsOf(beforeAccept, week2.id)
+        assertEquals("El TM de sentadilla del perfil sembrado", 180.0, squatTmBefore, 1e-9)
+        assertEquals("Semana 2: 4 series de sentadilla al 82,5 % del TM", 4, squatWeightsBefore.size)
+        assertEquals(180.0 * 0.825, squatWeightsBefore.first()!!, 1e-6)
 
         // 4) Aceptar por la ruta de repositorio (evidencia real + persistencia).
         assertTrue(repository.resolvePendingAutoregulationNow(seeded.id, accept = true))
         val accepted = repository.getProgramById(seeded.id) ?: error("programa ausente tras aceptar")
 
         assertNull(accepted.runState?.pendingAction)
-        val percentsAfter = percentsOf(accepted, week2.id)
-        assertTrue("La propuesta aceptada cambia la semana futura", percentsBefore != percentsAfter)
+
+        // ADJUST_TM (-5 %): el perfil baja el TM de sentadilla; los porcentajes de la receta no se
+        // tocan (los kilos se derivan de TM x %), así que el cambio observable en la semana futura son
+        // los kilos de la sentadilla. Press y peso muerto quedan igual.
+        val squatTmAfter = requireNotNull(accepted.powerliftingProfile?.squatTM)
+        assertEquals("El TM de sentadilla baja un 5 %", squatTmBefore * 0.95, squatTmAfter, 1e-6)
+        assertEquals(
+            "Press y peso muerto conservan su TM",
+            beforeAccept.powerliftingProfile?.copy(squatTM = null),
+            accepted.powerliftingProfile?.copy(squatTM = null),
+        )
+        assertEquals("Los porcentajes de la receta no cambian con un ajuste de TM", percentsBefore, percentsOf(accepted, week2.id))
+        val squatWeightsAfter = squatWeightsOf(accepted, week2.id)
+        assertTrue("La propuesta aceptada cambia la semana futura", squatWeightsBefore != squatWeightsAfter)
+        assertEquals(squatWeightsBefore.size, squatWeightsAfter.size)
+        squatWeightsAfter.forEach { assertEquals(squatTmAfter * 0.825, it!!, 1e-6) }
+        assertEquals("El resto de ejercicios de la semana futura no cambia", otherWeightsBefore, nonSquatWeightsOf(accepted, week2.id))
         assertEquals("La semana entrenada queda byte idéntica", trainedBefore, weeksOf(accepted)[0].sessions)
 
         val applied = accepted.runState?.autoregulationAudit.orEmpty().filter {
@@ -233,7 +278,7 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
         assertTrue("Estado terminal APPLIED persistido", applied.isNotEmpty())
         assertTrue(applied.all { it.resolutionReason.isNotBlank() })
         assertEquals(
-            "La receta efectiva aprobada viaja junto a las sesiones",
+            "Como las series de la semana futura cambiaron de verdad, la receta efectiva viaja junto a las sesiones",
             1,
             accepted.effectiveWeekRecipes.size,
         )
@@ -244,7 +289,8 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
         assertNull(persisted.runState?.pendingAction)
         assertTrue(persisted.runState?.autoregulationAudit.orEmpty().any { it.resolution == PendingActionResolutionStatus.APPLIED })
         assertEquals(1, persisted.effectiveWeekRecipes.size)
-        assertTrue(percentsOf(persisted, week2.id) != percentsBefore)
+        assertEquals(squatTmAfter, persisted.powerliftingProfile?.squatTM)
+        assertEquals(squatWeightsAfter, squatWeightsOf(persisted, week2.id))
         assertEquals(trainedBefore, weeksOf(persisted)[0].sessions)
     }
 
@@ -264,7 +310,7 @@ class ProgramRepositoryAutoregulationAcceptanceTest {
                 runState = current.runState?.copy(
                     pendingAction = PendingProgramAction(
                         type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
-                        message = "AUGE propone bajar intensidad",
+                        message = "Propuesta: bajar un 5 % el TM de sentadilla",
                         proposals = listOf(intensityProposal()),
                         targetWeekId = week2.id,
                     ),

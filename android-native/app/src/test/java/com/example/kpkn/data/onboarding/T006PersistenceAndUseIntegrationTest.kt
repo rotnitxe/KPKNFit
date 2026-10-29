@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStructure
@@ -30,6 +31,7 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.onboarding.SetupCommitCoordinator
 import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupCommitResult
+import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
@@ -325,8 +327,7 @@ class T006PersistenceAndUseIntegrationTest {
     private fun recipeWeek(recipe: TrainingPlanRecipe, week: ProgramWeek) =
         recipe.weeks.first { it.weekNumber == week.progressionIndex }
 
-    private fun prescriptionSetCount(week: ProgramWeek): Int =
-        week.sessions.sumOf { session -> session.allExercises().sumOf { it.sets.size } }
+    private fun contentsOf(week: ProgramWeek): List<List<Any?>> = week.sessions.map { contentOf(it) }
 
     /** Identidades persistidas de una sesión: sesión, partes, ejercicios, ocurrencias, series y calentamientos. */
     private fun identityOf(session: Session): List<String?> = buildList {
@@ -1084,12 +1085,29 @@ class T006PersistenceAndUseIntegrationTest {
         assertTrue(week1Logs.all { it.completedExercises.isNotEmpty() })
         assertTrue(week1Logs.all { log -> repository.history.value.any { it.id == log.id } })
 
+        // POST-RINGS: las propuestas de escala del modelo retirado (SCALE_WEEK_*) ya no se aplican, así
+        // que el testigo de aceptación usa un ADJUST_TM (bajar un 5 % el TM de sentadilla). El atleta
+        // prescribe por RIR (sin % ni pesos), así que se siembra un perfil de cargas si el preview no
+        // lo trae: sin perfil la ADJUST_TM caducaría («el programa no tiene perfil de cargas»).
+        if (requireNotNull(repository.getProgramById(preview.id)).powerliftingProfile?.squatTM == null) {
+            assertTrue(repository.mutateProgramNow(preview.id) { current ->
+                current.copy(
+                    powerliftingProfile = PowerliftingProfile(
+                        squat1RM = 140.0, squatTM = 126.0,
+                        bench1RM = 100.0, benchTM = 90.0,
+                        deadlift1RM = 180.0, deadliftTM = 162.0,
+                    ),
+                )
+            })
+        }
         val beforeAcceptance = requireNotNull(repository.getProgramById(preview.id))
         val futureBefore = weekOf(beforeAcceptance, week2.id)
+        val squatTmBefore = requireNotNull(beforeAcceptance.powerliftingProfile?.squatTM)
         val proposal = AutoregulationProposal(
-            kind = AutoregulationProposalKind.SCALE_WEEK_VOLUME,
-            volumeFactor = 0.5,
-            explanation = "Q5 acceptance: reducir volumen de la semana futura",
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = LiftSlot.SQUAT.name,
+            percentDelta = -5.0,
+            explanation = "Q5 acceptance: bajar un 5 % el TM de sentadilla",
         )
         assertTrue(repository.mutateProgramNow(preview.id) { current ->
             current.copy(
@@ -1097,7 +1115,7 @@ class T006PersistenceAndUseIntegrationTest {
                 runState = requireNotNull(current.runState).copy(
                     pendingAction = PendingProgramAction(
                         type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
-                        message = "Reducir volumen futuro",
+                        message = "Bajar el TM de sentadilla",
                         proposals = listOf(proposal),
                         targetWeekId = week2.id,
                     ),
@@ -1107,15 +1125,21 @@ class T006PersistenceAndUseIntegrationTest {
         assertTrue("la propuesta real se acepta por ProgramRepository", repository.resolvePendingAutoregulationNow(preview.id, accept = true))
         val accepted = requireNotNull(repository.getProgramById(preview.id))
         val futureAfter = weekOf(accepted, week2.id)
-        assertNotEquals("la receta futura cambia después de aceptar", futureBefore.sessions, futureAfter.sessions)
-        assertTrue("la prescripción futura pierde series, no solo cambia el mensaje",
-            prescriptionSetCount(futureAfter) < prescriptionSetCount(futureBefore))
+        assertEquals("el TM de sentadilla baja un 5 %", squatTmBefore * 0.95,
+            requireNotNull(accepted.powerliftingProfile?.squatTM), 1e-6)
+        assertEquals("el resto del perfil no se toca",
+            beforeAcceptance.powerliftingProfile?.copy(squatTM = null),
+            accepted.powerliftingProfile?.copy(squatTM = null))
+        assertEquals("una prescripción por RIR no depende del TM: la semana futura no cambia",
+            contentsOf(futureBefore), contentsOf(futureAfter))
         assertEquals("la semana ya entrenada queda intacta", trainedWeekBefore.sessions,
             weekOf(accepted, week1.id).sessions)
         assertNull(accepted.runState?.pendingAction)
         assertTrue(accepted.runState?.autoregulationAudit.orEmpty().any {
             it.resolution == PendingActionResolutionStatus.APPLIED && it.resolutionReason.isNotBlank()
         })
+        // La aceptación reconstruye la semana objetivo y, al cambiar el plan (referencias de carga del
+        // TM), graba su receta efectiva de la ocurrencia 2 del ciclo 1, aunque las series RIR no cambien.
         assertTrue(accepted.effectiveWeekRecipes.any { it.weekOccurrence == 2 && it.cycleNumber == 1 })
 
         val acceptedW2 = weekOf(accepted, week2.id)
@@ -1180,8 +1204,8 @@ class T006PersistenceAndUseIntegrationTest {
         val restoredTarget = weekOf(restored, week2.id).sessions.first { it.id == editedTarget.id }
         assertEquals("Restaurar devuelve esa sesión a su receta", expectedRestoredName, restoredTarget.name)
         assertNotEquals(editedTarget.name, restoredTarget.name)
-        // Contenido completo de la receta EFECTIVA aceptada (SCALE_WEEK_VOLUME), no solo el nombre.
-        assertEquals("la sesión restaurada recupera la prescripción efectiva aceptada",
+        // Contenido completo de la prescripción vigente tras aceptar el ajuste de TM, no solo el nombre.
+        assertEquals("la sesión restaurada recupera la prescripción vigente aceptada",
             contentOf(target), contentOf(restoredTarget))
         assertNotEquals(contentOf(editedTarget), contentOf(restoredTarget))
         assertEquals("ids de sesión, partes, ejercicios, ocurrencias y series se conservan",
@@ -1205,10 +1229,12 @@ class T006PersistenceAndUseIntegrationTest {
         assertCursor(repository, 1, week3.id)
         val beforeReject = requireNotNull(repository.getProgramById(preview.id))
         val week4BeforeReject = weekOf(beforeReject, week4.id)
+        val squatTmBeforeReject = requireNotNull(beforeReject.powerliftingProfile?.squatTM)
         val rejectedProposal = AutoregulationProposal(
-            kind = AutoregulationProposalKind.SCALE_WEEK_VOLUME,
-            volumeFactor = 0.5,
-            explanation = "Q5 rejection: no cambiar la siguiente semana",
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = LiftSlot.SQUAT.name,
+            percentDelta = -5.0,
+            explanation = "Q5 rejection: no cambiar el TM ni la siguiente semana",
         )
         assertTrue(repository.mutateProgramNow(preview.id) { current ->
             current.copy(runState = requireNotNull(current.runState).copy(
@@ -1224,6 +1250,7 @@ class T006PersistenceAndUseIntegrationTest {
         val rejected = requireNotNull(repository.getProgramById(preview.id))
         assertEquals("rechazar no reconstruye la semana futura", week4BeforeReject.sessions,
             weekOf(rejected, week4.id).sessions)
+        assertEquals("rechazar no toca el TM", squatTmBeforeReject, rejected.powerliftingProfile?.squatTM)
         assertTrue(rejected.runState?.autoregulationAudit.orEmpty().any {
             it.resolution == PendingActionResolutionStatus.REJECTED && it.resolutionReason.isNotBlank()
         })
