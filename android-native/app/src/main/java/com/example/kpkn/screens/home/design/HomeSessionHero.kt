@@ -541,6 +541,6 @@ internal fun homeHeroNextLine(
 ): String? {
     if (weekDays.isEmpty()) return null
     if (next != null) return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} ${next.date.dayOfMonth} · ${next.sessionName}"
-    if (programNext != null) return "Siguiente: ${programNext.label.replaceFirstChar { it.lowercaseChar() }}"
+    if (programNext != null) return programNext.label
     return "Siguiente: la próxima semana"
 }

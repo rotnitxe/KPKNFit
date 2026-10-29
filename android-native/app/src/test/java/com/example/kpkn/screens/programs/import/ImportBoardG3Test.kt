@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.PlanLevel
 import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.ui.entitlements.LocalPlan
@@ -60,16 +61,21 @@ class ImportBoardG3Test {
     private val saved = mutableListOf<Program>()
     private val viewModelStore = ViewModelStore()
 
-    private fun newViewModel(): ImportProgramViewModel = ImportProgramViewModel(app).also { vm ->
-        vm.saveProgram = { program ->
-            saved += program
-            Result.success(Unit)
+    private fun newViewModel(): ImportProgramViewModel {
+        // Guardar abre «Listo para empezar» (cr-listo), que lee el repositorio de programas: uno en memoria por prueba.
+        ProgramRepository.initForTests(app)
+        return ImportProgramViewModel(app).also { vm ->
+            vm.saveProgram = { program ->
+                saved += program
+                Result.success(Unit)
+            }
+            viewModelStore.put("import-g3", vm)
         }
-        viewModelStore.put("import-g3", vm)
     }
 
     @After
     fun tearDown() {
+        ProgramRepository.closeInstance()
         viewModelStore.clear()
     }
 
