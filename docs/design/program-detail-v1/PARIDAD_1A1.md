@@ -161,3 +161,12 @@ del lienzo; varias propuestas → «Aplicar» la primera, «Mantener carga» rec
 Conflictos resueltos: copia desde Versiones guardadas se abre (como Estructura); Pr11PolishRenderSheetTest sin los casos de
 volumen y propuestas (borrados por PB y PD). Limpieza hecha (6a05fe25b). Program Detail COMPLETO en la rama; falta compilar
 la suma (se hará una vez con Registros).
+
+### Registros — R-H Historias (fusionado, d2a8db74e; código 723f63411)
+Compila en su rama; 18 pruebas en verde. Plantillas de competencia (Total, Intentos, Foto, Próxima, Tiempo, Tarima, Cuadro +
+vídeo MP4 6 s), cuerpo (Cambio, Medidas) y nutrición (Semana, Macros, Racha); hoja nueva solo para estas. Conectado por mí
+(4d0b00068): Cuerpo comparte desde el módulo de peso (shareHistory) y Nutrición desde la semana con macros medios
+(nutritionStoryMacrosOf + 2 pruebas) y racha de «Comidas» (HabitStreaks.daily, la misma de Hábitos). Falta: onShare de
+Competencias → CompetitionStoryShareSheet(competition, allCompetitions, onDismiss[, startWithNext]) cuando llegue R-C.
+Decisiones para el informe: medalla solo 1-3; «Guardar · Más apps» guarda y abre el selector; culturismo sin foto → sin
+historia; en objetivo = 85-110 %; Medidas sin «con la misma fuerza» (no hay dato).
