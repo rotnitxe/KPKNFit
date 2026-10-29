@@ -18,29 +18,33 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.nutrition.ClarificationRequest
 import com.example.kpkn.domain.nutrition.CookingStateResolver
 import com.example.kpkn.domain.nutrition.NutritionInterpretationBridge
+import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 /** Composiciones de la tortilla del lienzo (f-clar), en su orden: la respuesta se declara y se vuelve a resolver. */
 internal val TORTILLA_COMPOSITIONS = listOf("papas" to "De papas", "huevo" to "De huevo", "trigo" to "Trigo (wrap)", "maíz" to "De maíz")
@@ -69,9 +73,9 @@ object LoggerChoiceKeys {
 data class LoggerQuestionChoice(val key: String, val label: String, val drops: Int? = null)
 
 /**
- * Una duda tal como se pinta en su tarjeta (f-clar): la pregunta corta, las respuestas (chips, o gotas en el aceite), la respuesta por
- * defecto («Seguir con «nada»», null si no hay estimación que aceptar), la elegida y si tocarla abre el ajuste de cantidad (cantidad
- * declarada que no se pudo leer).
+ * Una duda tal como se pinta en su tarjeta (f-clar): la pregunta corta, las respuestas (siempre chips; las gotas del aceite ya no se
+ * dibujan), la respuesta por defecto ([skipLabel]: se conserva por si hace falta, pero la tarjeta ya no la muestra: guardar sigue con
+ * lo estimado), la elegida y si tocarla abre el ajuste de cantidad (cantidad declarada que no se pudo leer).
  */
 data class LoggerQuestion(
     val text: String,
@@ -93,6 +97,16 @@ internal fun clarificationCandidateChoices(question: ClarificationRequest.Identi
     return choices.filterNot { (_, label) ->
         TORTILLA_COMPOSITIONS.any { (composition, _) -> label.equals("Tortilla de $composition", ignoreCase = true) }
     }
+}
+
+/**
+ * Las porciones de una pregunta sin las repetidas: la que vale lo mismo (los mismos gramos, redondeados) que otra anterior sale, así que
+ * «porción (150 g)» desaparece junto a «Lo estimado (150 g)». Devuelve cada porción con su posición en [options], que es lo que lleva su
+ * clave de respuesta ([LoggerChoiceKeys.PORTION]).
+ */
+internal fun loggerDistinctPortions(options: List<PortionOption>): List<Pair<Int, PortionOption>> {
+    val seen = mutableSetOf<Long>()
+    return options.withIndex().filter { (_, option) -> seen.add(option.grams.roundToLong()) }.map { it.index to it.value }
 }
 
 /** El nombre del lienzo de un nivel de aceite del motor («sin aceite» → «nada»). */
@@ -166,7 +180,7 @@ fun loggerQuestionFor(tag: ResolvedTag, question: ClarificationRequest, selected
             )
             question.requestId == "package_portion" -> LoggerQuestion(
                 text = "¿Comiste todo el envase?",
-                choices = question.options.mapIndexed { index, option ->
+                choices = loggerDistinctPortions(question.options).map { (index, option) ->
                     val amount = Regex("\\(([^)]*)\\)").find(option.label)?.groupValues?.get(1) ?: "${option.grams.roundToInt()} g"
                     LoggerQuestionChoice(
                         LoggerChoiceKeys.PORTION + index,
@@ -178,7 +192,9 @@ fun loggerQuestionFor(tag: ResolvedTag, question: ClarificationRequest, selected
             )
             else -> LoggerQuestion(
                 text = "¿Qué porción fue?",
-                choices = question.options.mapIndexed { index, option -> LoggerQuestionChoice(LoggerChoiceKeys.PORTION + index, option.label) },
+                choices = loggerDistinctPortions(question.options).map { (index, option) ->
+                    LoggerQuestionChoice(LoggerChoiceKeys.PORTION + index, option.label)
+                },
                 skipLabel = defaultSkip,
                 selectedKey = selectedKey,
             )
@@ -186,14 +202,30 @@ fun loggerQuestionFor(tag: ResolvedTag, question: ClarificationRequest, selected
     }
 }
 
-private val QuestionStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.5.sp, lineHeight = 19.sp)
+private val QuestionStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 19.sp)
 private val OptStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 16.sp)
-private val DropStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 16.sp)
+
+/** La respuesta partida como la pinta el chip: el nombre con mayúscula inicial y, si lleva una cantidad entre paréntesis, esa cantidad aparte. */
+data class LoggerChipParts(val name: String, val detail: String?)
+
+private val QuantityInParens = Regex("""^(.*?)\s*\(\s*(\d[^)]*)\)\s*$""")
 
 /**
- * El bloque de la duda dentro de su tarjeta (lienzo `.q`): filete superior cálido, el punto de energía con la pregunta, las respuestas
- * (`.qopts`: chips de 38 dp; la elegida en tinta) o las gotas del aceite (`.drop3`), y «Seguir con …» (`.qskip`). [answered] apaga el
- * tono cálido del filete.
+ * «Lo estimado (150 g)» → «Lo estimado» + «150 g»; «plato (250 g)» → «Plato» + «250 g». Solo se separa un paréntesis que empieza por una cifra:
+ * «Trigo (wrap)» se queda entero. El nombre sale con la primera letra en mayúscula.
+ */
+fun loggerChipParts(label: String): LoggerChipParts {
+    val match = QuantityInParens.find(label.trim())
+    val name = (match?.groupValues?.get(1)?.takeIf { it.isNotBlank() } ?: label.trim())
+    val detail = match?.takeIf { it.groupValues[1].isNotBlank() }?.groupValues?.get(2)?.trim()?.takeIf { it.isNotEmpty() }
+    return LoggerChipParts(name.replaceFirstChar { it.titlecase(Locale.forLanguageTag("es")) }, detail)
+}
+
+/**
+ * El bloque de la duda dentro de su tarjeta (lienzo `.np-q`): filete de 1 dp, 12 dp de aire, la pregunta (Inter SemiBold 14) con el punto
+ * de acento de 7 dp SOLO mientras no se ha respondido, y las respuestas como chips de 40 dp con borde blanco al 11 % (`.np-opts`); la
+ * elegida va en tinta con texto negro. Todas las preguntas (porción, aceite, leche…) tienen esta misma forma; «Seguir con la estimación»
+ * ya no existe ([onSkip] se conserva sin uso). [answered] apaga el punto.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -204,101 +236,53 @@ fun LoggerQuestionBlock(
     modifier: Modifier = Modifier,
     answered: Boolean = question.selectedKey != null,
 ) {
-    val rule by animateColorAsState(
-        if (answered) Color.White.copy(alpha = 0.06f) else LoggerColors.ene.copy(alpha = 0.133f),
-        tween(400),
-        label = "loggerQuestionRule",
-    )
-    Column(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(rule))
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(LoggerColors.hair))
         Row(
             modifier = Modifier
-                .padding(top = 12.dp, bottom = 8.dp)
+                .padding(top = 12.dp, bottom = 10.dp)
                 .then(if (question.opensAdjust) Modifier.clickable(role = Role.Button) { onChoice(LoggerChoiceKeys.ADJUST) } else Modifier),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(Modifier.size(7.dp).clip(CircleShape).background(if (answered) LoggerColors.faint else LoggerColors.ene))
+            if (!answered) Box(Modifier.size(7.dp).clip(CircleShape).background(LoggerColors.accent))
             Text(text = question.text, style = QuestionStyle, color = LoggerColors.ink)
         }
-        if (question.drops) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                question.choices.forEach { choice ->
-                    LoggerDropChoice(
-                        choice = choice,
-                        selected = choice.key == question.selectedKey,
-                        onClick = { onChoice(choice.key) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        } else if (question.choices.isNotEmpty()) {
+        if (question.choices.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 question.choices.forEach { choice ->
                     LoggerQuestionChip(choice.label, choice.key == question.selectedKey) { onChoice(choice.key) }
                 }
             }
         }
-        if (question.skipLabel != null && !answered) {
-            Text(
-                text = question.skipLabel,
-                style = LoggerText.cap,
-                color = LoggerColors.faint,
-                modifier = Modifier
-                    .padding(top = 2.dp)
-                    .heightIn(min = 40.dp)
-                    .clickable(role = Role.Button, onClick = onSkip)
-                    .padding(top = 10.dp),
-            )
-        }
     }
 }
 
-/** `.qopts span`: 38 dp, radio 19, blanco al 5 % con borde al 8 %; elegida, en tinta con texto negro. */
+/** `.np-opts button`: 40 dp, radio 20, borde blanco al 11 %; nombre en tinta y, tras « · », la cantidad en gris tenue; elegida, fondo de tinta y texto negro. */
 @Composable
 private fun LoggerQuestionChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(19.dp)
-    val fill by animateColorAsState(if (selected) LoggerColors.ink else Color.White.copy(alpha = 0.047f), tween(300), label = "loggerQChip")
+    val shape = RoundedCornerShape(20.dp)
+    val fill by animateColorAsState(if (selected) LoggerColors.ink else Color.Transparent, tween(200), label = "loggerQChip")
+    val parts = remember(label) { loggerChipParts(label) }
+    val nameInk = if (selected) LoggerColors.onInk else LoggerColors.ink
+    val detailInk = if (selected) LoggerColors.onInk.copy(alpha = 0.73f) else LoggerColors.faint
+    val text = remember(parts, nameInk, detailInk) {
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = nameInk)) { append(parts.name) }
+            parts.detail?.let { withStyle(SpanStyle(color = detailInk, fontWeight = FontWeight.Normal)) { append(" · $it") } }
+        }
+    }
     Box(
         modifier = Modifier
-            .height(38.dp)
+            .heightIn(min = 40.dp)
             .clip(shape)
             .background(fill, shape)
-            .border(1.dp, if (selected) Color.Transparent else Color.White.copy(alpha = 0.078f), shape)
+            .then(if (selected) Modifier else Modifier.border(1.dp, Color.White.copy(alpha = 0.11f), shape))
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { this.selected = selected }
             .padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, style = OptStyle, color = if (selected) LoggerColors.onInk else LoggerColors.ink, maxLines = 1)
-    }
-}
-
-/** `.drop3 button` del aceite: las gotas (una como mínimo; «Nada» con su nombre atenuado) y el nombre; elegida, borde de tinta de 2 dp. */
-@Composable
-private fun LoggerDropChoice(choice: LoggerQuestionChoice, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(18.dp)
-    Column(
-        modifier = modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = 0.031f), shape)
-            .border(if (selected) 2.dp else 1.dp, if (selected) LoggerColors.ink else Color.White.copy(alpha = 0.07f), shape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { this.selected = selected }
-            .padding(horizontal = 2.dp, vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(Modifier.height(22.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            repeat(maxOf(1, choice.drops ?: 1)) {
-                Icon(LoggerIcons.Drop, contentDescription = null, modifier = Modifier.size(14.dp), tint = LoggerColors.ink)
-            }
-        }
-        Text(
-            text = choice.label,
-            style = DropStyle,
-            color = LoggerColors.ink,
-            modifier = Modifier.alpha(if ((choice.drops ?: 0) == 0) 0.4f else 1f),
-        )
+        Text(text = text, style = OptStyle)
     }
 }

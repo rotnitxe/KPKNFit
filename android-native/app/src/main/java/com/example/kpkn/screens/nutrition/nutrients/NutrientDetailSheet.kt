@@ -20,26 +20,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.nutrition.design.logger.LoggerColors
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSheetGroup
+import com.example.kpkn.screens.nutrition.design.logger.LoggerText
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 
-/** Título de las hojas (`.sheet h3`): Syne Bold 21. */
-internal val NutrientSheetTitleStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 24.sp,
-    letterSpacing = (-0.4).sp)
-/** Cifra grande (`.big`): Syne ExtraBold 44 con números tabulares. */
-private val BigStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 44.sp, lineHeight = 44.sp,
-    letterSpacing = (-2).sp, fontFeatureSettings = "'lnum' 1, 'tnum' 1")
-private val PercentStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 22.sp,
-    fontFeatureSettings = "'lnum' 1, 'tnum' 1")
+/** Cifra grande de la hoja de un nutriente: Inter SemiBold 44 con números tabulares (Syne queda solo para el total de la comida). */
+private val BigStyle = LoggerText.number(44f).copy(lineHeight = 44.sp, letterSpacing = (-1.5).sp)
 
 /**
  * La hoja de un nutriente (n-nutrient): eyebrow «Mineral · hoy», nombre, la cifra grande respecto a tu referencia con su barra, «De dónde
@@ -55,64 +47,63 @@ fun NutrientDetailSheet(model: NutrientDetailModel, onDismiss: () -> Unit, hazeS
 
 @Composable
 fun NutrientDetailContent(model: NutrientDetailModel, modifier: Modifier = Modifier) {
+    val hair = LoggerColors.hair
     Column(
         modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, bottom = 30.dp)
             .testTag("nutrient-detail-${model.key.name}"),
     ) {
-        Text(model.eyebrow.uppercase(), style = KpknType.eyebrow, color = WizardColors.textMuted)
-        Text(model.name, style = NutrientSheetTitleStyle, color = WizardColors.text, modifier = Modifier.padding(top = 6.dp).semantics { heading() })
+        Text(model.eyebrow.uppercase(), style = LoggerText.eyebrow, color = LoggerColors.muted)
+        Text(model.name, style = LoggerText.sheetTitle, color = LoggerColors.ink, modifier = Modifier.padding(top = 6.dp).semantics { heading() })
         Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(model.bigValue, style = BigStyle, color = WizardColors.text, modifier = Modifier.alignByBaseline())
-            Text(model.ofText, style = KpknType.body, color = WizardColors.textMuted, modifier = Modifier.weight(1f).alignByBaseline())
+            Text(model.bigValue, style = BigStyle, color = LoggerColors.ink, modifier = Modifier.alignByBaseline())
+            Text(model.ofText, style = LoggerText.body, color = LoggerColors.muted, modifier = Modifier.weight(1f).alignByBaseline())
             model.percentText?.let {
-                Text(it, style = PercentStyle, color = if (model.ceiling && model.over) WizardColors.danger else WizardColors.text, modifier = Modifier.alignByBaseline())
+                Text(it, style = LoggerText.number(18f), color = if (model.ceiling && model.over) LoggerColors.danger else LoggerColors.ink, modifier = Modifier.alignByBaseline())
             }
         }
         model.fill?.let { fill ->
-            NutrientBar(fill, 0f, Modifier.padding(top = 10.dp), ceiling = model.ceiling, overCeiling = model.ceiling && model.over,
-                arrow = model.over && !model.ceiling, height = 8.dp)
+            NutrientBar(fill, Modifier.padding(top = 10.dp), ceiling = model.ceiling, over = model.ceiling && model.over, height = 6.dp)
         }
-        model.alert?.let { Text(it, style = KpknType.caption, color = WizardColors.danger, modifier = Modifier.padding(top = 8.dp)) }
+        model.alert?.let { Text(it, style = LoggerText.cap, color = LoggerColors.danger, modifier = Modifier.padding(top = 8.dp)) }
 
         if (model.contributors.isNotEmpty()) {
-            NutrientGroupLabel("De dónde sale")
+            LoggerSheetGroup("De dónde sale")
             model.contributors.forEach { c ->
                 Column(
                     Modifier.fillMaxWidth()
-                        .drawBehind { drawLine(KpknSurface.divider, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
-                        .padding(top = 10.dp, bottom = 11.dp),
+                        .drawBehind { drawLine(hair, Offset(0f, size.height - 0.5f), Offset(size.width, size.height - 0.5f), strokeWidth = 1.dp.toPx()) }
+                        .padding(vertical = 10.dp),
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(c.name, style = KpknType.body.copy(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
-                            color = WizardColors.text, modifier = Modifier.weight(1f).alignByBaseline())
-                        Text(c.valueText, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.alignByBaseline())
+                        Text(c.name, style = LoggerText.body.copy(fontWeight = FontWeight.Medium), color = LoggerColors.ink, modifier = Modifier.weight(1f).alignByBaseline())
+                        Text(c.valueText, style = LoggerText.cap, color = LoggerColors.faint, modifier = Modifier.alignByBaseline())
                     }
-                    NutrientBar(c.fraction, 0f, Modifier.padding(top = 7.dp), track = false, fillAlpha = 0.55f, hatchedFill = c.estimated, mark = false)
+                    NutrientBar(c.fraction, Modifier.padding(top = 8.dp), fillAlpha = if (c.estimated) 0.4f else 0.75f)
                 }
             }
         }
         model.missingNote?.let { note ->
             Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(KpknLineIcons.Info, contentDescription = null, tint = WizardColors.textFaint, modifier = Modifier.size(14.dp))
-                Text(note, style = KpknType.caption, color = WizardColors.textFaint)
+                Icon(KpknLineIcons.Info, contentDescription = null, tint = LoggerColors.faint, modifier = Modifier.size(15.dp))
+                Text(note, style = LoggerText.cap, color = LoggerColors.faint)
             }
         }
         if (model.references.isNotEmpty()) {
-            NutrientGroupLabel("Referencia")
+            LoggerSheetGroup("Referencia")
             model.references.forEach { (label, value) ->
                 Row(
                     Modifier.fillMaxWidth()
-                        .drawBehind { drawLine(KpknSurface.divider, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
-                        .padding(vertical = 9.dp),
+                        .drawBehind { drawLine(hair, Offset(0f, size.height - 0.5f), Offset(size.width, size.height - 0.5f), strokeWidth = 1.dp.toPx()) }
+                        .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text(label, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-                    Text(value, style = KpknType.caption.copy(fontWeight = FontWeight.Bold), color = WizardColors.text)
+                    Text(label, style = LoggerText.cap, color = LoggerColors.muted, modifier = Modifier.weight(1f))
+                    Text(value, style = LoggerText.number(13f), color = LoggerColors.ink)
                 }
             }
         }
-        model.notes.forEach { Text(it, style = KpknType.caption, color = WizardColors.textFaint, modifier = Modifier.padding(top = 10.dp)) }
-        Text(model.sourceLine, style = KpknType.caption, color = WizardColors.textFaint, modifier = Modifier.padding(top = 10.dp))
+        model.notes.forEach { Text(it, style = LoggerText.cap, color = LoggerColors.faint, modifier = Modifier.padding(top = 10.dp)) }
+        Text(model.sourceLine, style = LoggerText.cap, color = LoggerColors.faint, modifier = Modifier.padding(top = 10.dp))
         Spacer(Modifier.height(4.dp))
     }
 }

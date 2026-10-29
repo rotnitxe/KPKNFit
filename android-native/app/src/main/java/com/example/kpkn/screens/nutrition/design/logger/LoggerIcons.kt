@@ -19,7 +19,6 @@ internal object LoggerIcons {
     val Cup: ImageVector by lazy { line("Cup", "M5 9h11v5a5 5 0 01-5 5h-1a5 5 0 01-5-5z", "M16 10.5h1.5a2.5 2.5 0 010 5H16M8 3.5c0 1.5 1 1.5 1 3M11.5 3.5c0 1.5 1 1.5 1 3") }
     val Drop: ImageVector by lazy { line("Drop", "M12 4s5.5 6.1 5.5 9.9a5.5 5.5 0 01-11 0C6.5 10.1 12 4 12 4z") }
     val Pan: ImageVector by lazy { line("Pan", "M16.5 13a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0z", "M16.5 13h5") }
-    val Raw: ImageVector by lazy { line("Raw", "M6 6l12 12M6 18c0-6.6 5.4-12 12-12") }
     val Bowl: ImageVector by lazy { line("Bowl", "M4 12h16a8 8 0 01-16 0z", "M12 12c0-4 2-6 5-7-1 3-2 5-5 7z") }
     val Question: ImageVector by lazy { line("Question", "M20.5 12a8.5 8.5 0 1 1-17 0a8.5 8.5 0 1 1 17 0z", "M9.6 9.5a2.5 2.5 0 114 2c-1 .6-1.6 1.1-1.6 2.3M12 16.5v.01") }
     val Ruler: ImageVector by lazy { line("Ruler", "M5 8h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2z", "M7 8v3M11 8v4M15 8v3M19 8v3") }

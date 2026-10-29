@@ -77,9 +77,10 @@ class LoggerFoodItemTest {
         }
         rule.onNodeWithText("¿De qué era la tortilla?").assertExists()
         rule.onNodeWithText("De maíz").performClick()
-        rule.onNodeWithText("Seguir con la estimación").performClick()
+        // «Seguir con la estimación» salió del lienzo: guardar ya sigue con lo estimado.
+        rule.onNodeWithText("Seguir con la estimación").assertDoesNotExist()
         assertEquals(listOf(LoggerChoiceKeys.COMPOSITION + "maíz"), keys)
-        assertEquals(1, skipped)
+        assertEquals(0, skipped)
     }
 
     @Test
@@ -136,5 +137,82 @@ class LoggerFoodItemTest {
     fun elNombreDelAceiteEsElDelLienzo() {
         assertEquals("Nada", loggerOilLabel("sin aceite"))
         assertEquals("Mucho", loggerOilLabel("abundante"))
+    }
+
+    @Test
+    fun laPorcionRepetidaSale_yLasClavesSiguenLaPosicionOriginal() {
+        val question = loggerQuestionFor(
+            NutritionSamples.chickenTag,
+            ClarificationRequest.Portion(
+                "quantity",
+                listOf(
+                    PortionOption("Lo estimado (150 g)", 150.0),
+                    PortionOption("porción (150 g)", 150.0),
+                    PortionOption("plato (250 g)", 250.0),
+                    PortionOption("puñado (40 g)", 40.0),
+                ),
+            ),
+        )
+        assertEquals("¿Qué porción fue?", question.text)
+        assertEquals(listOf("Lo estimado (150 g)", "plato (250 g)", "puñado (40 g)"), question.choices.map { it.label })
+        assertEquals(
+            listOf(LoggerChoiceKeys.PORTION + 0, LoggerChoiceKeys.PORTION + 2, LoggerChoiceKeys.PORTION + 3),
+            question.choices.map { it.key },
+        )
+    }
+
+    @Test
+    fun sinRepetidasNoSeQuitaNada() {
+        val options = listOf(PortionOption("Lo estimado (150 g)", 150.0), PortionOption("taza (60 g)", 60.0))
+        assertEquals(listOf(0 to options[0], 1 to options[1]), loggerDistinctPortions(options))
+        assertEquals(emptyList<Pair<Int, PortionOption>>(), loggerDistinctPortions(emptyList()))
+    }
+
+    @Test
+    fun loRedondeadoCuentaComoLaMismaCantidad() {
+        val options = listOf(PortionOption("Lo estimado (150 g)", 150.2), PortionOption("porción (150 g)", 149.9))
+        assertEquals(listOf(0), loggerDistinctPortions(options).map { it.first })
+    }
+
+    @Test
+    fun elChipSeparaElNombreYLaCantidad() {
+        assertEquals(LoggerChipParts("Lo estimado", "150 g"), loggerChipParts("Lo estimado (150 g)"))
+        assertEquals(LoggerChipParts("Plato", "250 g"), loggerChipParts("plato (250 g)"))
+        assertEquals(LoggerChipParts("Todo", "180 g"), loggerChipParts("Todo (180 g)"))
+        assertEquals(LoggerChipParts("1 unidad mediana", "150 g"), loggerChipParts("1 unidad mediana (150 g)"))
+        // Un paréntesis que no es una cantidad se queda dentro del nombre.
+        assertEquals(LoggerChipParts("Trigo (wrap)", null), loggerChipParts("Trigo (wrap)"))
+        assertEquals(LoggerChipParts("De maíz", null), loggerChipParts("De maíz"))
+    }
+
+    @Test
+    fun laPreguntaMuestraLasOpcionesEnMayusculaConLaCantidadAparte() {
+        val question = LoggerQuestion(
+            text = "¿Qué porción fue?",
+            choices = listOf(
+                LoggerQuestionChoice(LoggerChoiceKeys.PORTION + 0, "Lo estimado (150 g)"),
+                LoggerQuestionChoice(LoggerChoiceKeys.PORTION + 2, "plato (250 g)"),
+            ),
+            skipLabel = "Seguir con la estimación",
+        )
+        val keys = mutableListOf<String>()
+        rule.setContent {
+            LoggerQuestionBlock(question = question, onChoice = { keys += it }, onSkip = {})
+        }
+        rule.onNodeWithText("Lo estimado · 150 g").assertExists()
+        rule.onNodeWithText("Plato · 250 g").performClick()
+        rule.onNodeWithText("Seguir con la estimación").assertDoesNotExist()
+        assertEquals(listOf(LoggerChoiceKeys.PORTION + 2), keys)
+    }
+
+    @Test
+    fun lasBarrasMidenCuatroComoMinimoYSumanElTotal() {
+        val widths = loggerBarWidths(listOf(12f, 112f, 180f), available = 300f, minWidth = 4f)
+        assertEquals(300f, widths.sum(), 0.01f)
+        // Con 0 g de un macro no se dibuja su tramo.
+        assertEquals(listOf(0f), loggerBarWidths(listOf(0f), available = 300f, minWidth = 4f))
+        val tiny = loggerBarWidths(listOf(1f, 1000f), available = 200f, minWidth = 4f)
+        assertEquals(4f, tiny[0], 0.01f)
+        assertEquals(196f, tiny[1], 0.01f)
     }
 }

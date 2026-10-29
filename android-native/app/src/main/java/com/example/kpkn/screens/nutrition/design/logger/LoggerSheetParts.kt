@@ -77,6 +77,21 @@ internal object LoggerColors {
     val cardBorder = Color.White.copy(alpha = 0.07f)
     /** Tinta oscura sobre un fondo de tinta (`#111`). */
     val onInk = Color(0xFF111111)
+    /** Arreglos v1 · superficies planas (`--np-s1`, `--np-s2`, `--np-s3`) y la hoja (`#141414`), sin degradado ni vidrio. */
+    val surface1 = Color(0xFF121212)
+    val surface2 = Color(0xFF1C1C1C)
+    val surface3 = Color(0xFF2A2A2A)
+    val sheet = Color(0xFF141414)
+    /** `--np-hair`: filetes entre bloques. */
+    val hair = Color.White.copy(alpha = 0.06f)
+    /** `--np-track`: pista de las barras finas. */
+    val track = Color.White.copy(alpha = 0.08f)
+    /** Macros en tres tonos de tinta (`--np-p`, `--np-c`, `--np-f`). */
+    val macroP = Color(0xFFF2EEE6)
+    val macroC = Color(0xFFA29D94)
+    val macroF = Color(0xFF5F5C57)
+    /** `--np-acc`: el único acento, solo para una duda que espera respuesta. */
+    val accent = Color(0xFFF49A6E)
 }
 
 /** Tipos del lienzo, con el mínimo de 13 sp de la app. */
@@ -127,6 +142,23 @@ internal object LoggerText {
         fontWeight = weight,
         fontSize = size.sp,
         lineHeight = (size + 4).sp,
+        fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+    )
+    /** Arreglos v1 · toda cifra fuera del total: Inter SemiBold con dígitos tabulares. */
+    fun number(size: Float, weight: FontWeight = FontWeight.SemiBold) = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = weight,
+        fontSize = size.sp,
+        lineHeight = (size * 1.2f).sp,
+        fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+    )
+    /** `.np-k b`: el total de la comida, el único número en Syne (Bold 30, −0,6). */
+    val total = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp,
+        lineHeight = 32.sp,
+        letterSpacing = (-0.6).sp,
         fontFeatureSettings = "'lnum' 1, 'tnum' 1",
     )
 }

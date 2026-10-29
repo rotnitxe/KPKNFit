@@ -11,13 +11,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,10 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -39,8 +44,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -49,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknShape
 import kotlinx.coroutines.delay
 
 /** Cómo se ve el recuadro de la comida: escribiendo (f-empty, f-typed), leyéndose (f-ana) o ya analizado (f-result, f-error). */
@@ -81,11 +89,11 @@ fun rememberLoggerReadingIndex(text: String, active: Boolean): Int {
 }
 
 /**
- * El recuadro grande de la pestaña Describir (lienzo `.write`). Escribiendo: el marcador «¿Qué comiste? Escríbelo como lo contarías», y al
- * pie «Cantidades, marcas y cómo lo cocinaste» con el micrófono «Dictar» ([onDictate]); con texto, «Enter para analizar» y la píldora
- * «Analizar» ([analyzeLabel]). Leyendo ([LoggerWriteMode.READING]): el texto a 17 con los trozos que se subrayan en acento y pasan a
- * verde. Analizado ([LoggerWriteMode.RESULT]): compacto, a 14 en gris, con en verde lo que se convirtió en alimento ([foodMentions]);
- * tocarlo vuelve a escribir ([onEditRequest]).
+ * El campo de la pestaña Describir (lienzo `.np-write`): plano (superficie 1, borde de 1 dp al 8 %, con foco en tinta al 25 %, sin sombra
+ * ni halo). Escribiendo: el marcador «¿Qué comiste? Escríbelo como lo contarías» y, debajo, el micrófono «Dictar» ([onDictate]) a la
+ * izquierda y la píldora «Analizar» ([analyzeLabel]) a la derecha; Enter también analiza (acción «Ir» del teclado). Leyendo
+ * ([LoggerWriteMode.READING]): el texto a 17 con los trozos que se van subrayando. Analizado ([LoggerWriteMode.RESULT]): compacto
+ * (12 × 16), a 15 en gris con los trozos reconocidos ([foodMentions]) en tinta y subrayados; tocarlo vuelve a escribir ([onEditRequest]).
  */
 @Composable
 fun LoggerDescribeField(
@@ -108,7 +116,7 @@ fun LoggerDescribeField(
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val border by animateColorAsState(
-        if (mode == LoggerWriteMode.EDIT && focused) LoggerColors.ink.copy(alpha = 0.333f) else Color.White.copy(alpha = 0.086f),
+        if (mode == LoggerWriteMode.EDIT && focused) LoggerColors.ink.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
         tween(200),
         label = "loggerWriteBorder",
     )
@@ -116,92 +124,62 @@ fun LoggerDescribeField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .drawBehind {
-                // `.write.focus`: un halo de 4 dp por fuera (box-shadow), sin mover el recuadro.
-                if (mode == LoggerWriteMode.EDIT && focused) {
-                    val halo = 4.dp.toPx()
-                    drawRoundRect(
-                        color = LoggerColors.ink.copy(alpha = 0.047f),
-                        topLeft = Offset(-halo, -halo),
-                        size = Size(size.width + halo * 2, size.height + halo * 2),
-                        cornerRadius = CornerRadius(26.dp.toPx() + halo),
-                    )
-                }
-            }
-            .background(LoggerColors.card, shape)
+            .background(LoggerColors.surface1, shape)
             .border(1.dp, border, shape)
             .then(
                 if (compact && onEditRequest != null) {
                     Modifier
+                        .clip(shape)
                         .clickable(role = Role.Button, onClick = onEditRequest)
                         .semantics { contentDescription = "Editar lo que comiste: $text" }
                 } else {
                     Modifier
                 },
             )
-            .defaultMinSize(minHeight = if (compact) 0.dp else 150.dp)
             .padding(
-                start = if (compact) 14.dp else 16.dp,
-                end = if (compact) 14.dp else 16.dp,
+                start = 16.dp,
+                end = 16.dp,
                 top = if (compact) 12.dp else 16.dp,
                 bottom = 12.dp,
             ),
     ) {
         when (mode) {
             LoggerWriteMode.EDIT -> Column(Modifier.fillMaxWidth()) {
-                BasicTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    textStyle = WriteStyle.copy(color = LoggerColors.ink),
-                    cursorBrush = SolidColor(LoggerColors.ink),
-                    interactionSource = interaction,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { if (text.isNotBlank()) onAnalyze() }),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-                        .semantics { contentDescription = "¿Qué comiste?" },
-                    decorationBox = { inner ->
-                        Box {
-                            if (text.isEmpty()) {
-                                Text("¿Qué comiste? Escríbelo como lo contarías", style = WriteStyle, color = LoggerColors.dim)
+                // Alto mínimo del campo: 150 dp en total (el texto 60 + 14 de aire + la fila de acciones de 48 + el relleno de 16 y 12).
+                Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = 60.dp)) {
+                    BasicTextField(
+                        value = text,
+                        onValueChange = onTextChange,
+                        textStyle = WriteStyle.copy(color = LoggerColors.ink),
+                        cursorBrush = SolidColor(LoggerColors.ink),
+                        interactionSource = interaction,
+                        // Compose no deja poner la palabra «Analizar» en la tecla: «Ir» es la acción que más se le parece.
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Go),
+                        keyboardActions = KeyboardActions(onGo = { if (text.isNotBlank()) onAnalyze() }),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+                            .semantics { contentDescription = "¿Qué comiste?" },
+                        decorationBox = { inner ->
+                            Box {
+                                if (text.isEmpty()) {
+                                    Text("¿Qué comiste? Escríbelo como lo contarías", style = WriteStyle, color = LoggerColors.dim)
+                                }
+                                inner()
                             }
-                            inner()
-                        }
-                    },
-                )
+                        },
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (showAnalyze) {
-                        Text("Enter para analizar", style = LoggerText.cap, color = LoggerColors.faint, modifier = Modifier.weight(1f))
-                        LoggerPill(
-                            text = analyzeLabel,
-                            onClick = onAnalyze,
-                            small = true,
-                            icon = LoggerIcons.Spark,
-                        )
-                    } else {
-                        Text(
-                            "Cantidades, marcas y cómo lo cocinaste",
-                            style = LoggerText.cap,
-                            color = LoggerColors.faint,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (onDictate != null) {
-                            LoggerIconButton(
-                                icon = KpknLineIcons.Mic,
-                                contentDescription = if (listening) "Dejar de dictar" else "Dictar",
-                                onClick = onDictate,
-                                fill = true,
-                                tint = if (listening) LoggerColors.mus else LoggerColors.muted,
-                            )
-                        }
-                    }
+                    if (onDictate != null) DictateButton(listening = listening, onClick = onDictate)
+                    Spacer(Modifier.weight(1f))
+                    if (showAnalyze) AnalyzePill(label = analyzeLabel, onClick = onAnalyze)
                 }
             }
             LoggerWriteMode.READING -> LoggerTokenText(
@@ -217,41 +195,80 @@ fun LoggerDescribeField(
                 reading = false,
                 readingIndex = -1,
                 foodMentions = foodMentions,
-                style = WriteStyle.copy(fontSize = (fontSize ?: 14f).sp, lineHeight = ((fontSize ?: 14f) * 1.4f).sp),
+                style = WriteStyle.copy(fontSize = (fontSize ?: 15f).sp, lineHeight = ((fontSize ?: 15f) * 1.4f).sp),
                 color = if (fontSize == null) LoggerColors.muted else LoggerColors.ink,
             )
         }
     }
 }
 
+/** `.np .ib.fill`: el micrófono, botón redondo de 44 dp con fondo de superficie 2 (zona táctil de 48). Dictando, pasa a superficie 3. */
+@Composable
+private fun DictateButton(listening: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = if (listening) "Dejar de dictar" else "Dictar" },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(if (listening) LoggerColors.surface3 else LoggerColors.surface2, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                KpknLineIcons.Mic,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = if (listening) LoggerColors.ink else LoggerColors.muted,
+            )
+        }
+    }
+}
+
+/** `.pill.pri.sm` con el destello: la píldora compacta «Analizar» (40 dp de alto, tinta, texto negro), a su ancho de contenido. */
+@Composable
+private fun AnalyzePill(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .height(40.dp)
+                .clip(KpknShape.pill)
+                .background(LoggerColors.ink, KpknShape.pill)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(LoggerIcons.Spark, contentDescription = null, modifier = Modifier.size(16.dp), tint = LoggerColors.onInk)
+            Text(text = label, style = LoggerText.pillSmall, color = LoggerColors.onInk, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
 /**
- * El texto con sus trozos marcados (lienzo `.tok`): fondo redondeado de 6 dp y una raya inferior de 2 dp, en acento mientras se lee
- * (`.tok.on`) y en verde cuando ya es un alimento (`.tok.done`), con una transición de 0,4 s.
+ * El texto con sus trozos marcados (lienzo `.np-tok`): el trozo reconocido en tinta y subrayado con una raya de 1,5 dp separada 4 dp del
+ * texto, en tinta al 35 % (leyéndose, al 70 %). Sin fondo de color y sin verde: el acento queda para las dudas. Transición de 0,4 s.
  */
 @Composable
 private fun LoggerTokenText(text: String, reading: Boolean, readingIndex: Int, foodMentions: List<String>, style: TextStyle, color: Color) {
     val tokens = remember(text, reading, readingIndex, foodMentions) {
         if (reading) loggerReadingTokens(text, readingIndex) else loggerResultTokens(text, foodMentions)
     }
-    val fills = tokens.mapIndexed { index, token ->
-        key(index) {
-            animateColorAsState(
-                when (token.state) {
-                    LoggerTokenState.READING -> LoggerColors.mus.copy(alpha = 0.15f)
-                    LoggerTokenState.DONE -> LoggerColors.done.copy(alpha = 0.11f)
-                    LoggerTokenState.PLAIN -> Color.Transparent
-                },
-                tween(400),
-                label = "loggerTokenFill",
-            ).value
-        }
-    }
     val lines = tokens.mapIndexed { index, token ->
         key(index) {
             animateColorAsState(
                 when (token.state) {
-                    LoggerTokenState.READING -> LoggerColors.mus
-                    LoggerTokenState.DONE -> LoggerColors.done.copy(alpha = 0.53f)
+                    LoggerTokenState.READING -> LoggerColors.ink.copy(alpha = 0.7f)
+                    LoggerTokenState.DONE -> LoggerColors.ink.copy(alpha = 0.35f)
                     LoggerTokenState.PLAIN -> Color.Transparent
                 },
                 tween(400),
@@ -259,9 +276,19 @@ private fun LoggerTokenText(text: String, reading: Boolean, readingIndex: Int, f
             ).value
         }
     }
+    val annotated = remember(text, tokens) {
+        buildAnnotatedString {
+            append(text)
+            tokens.forEach { token ->
+                val from = token.start.coerceIn(0, text.length)
+                val to = token.end.coerceIn(0, text.length)
+                if (token.state != LoggerTokenState.PLAIN && from < to) addStyle(SpanStyle(color = LoggerColors.ink), from, to)
+            }
+        }
+    }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     Text(
-        text = text,
+        text = annotated,
         style = style,
         color = color,
         onTextLayout = { layout = it },
@@ -269,9 +296,8 @@ private fun LoggerTokenText(text: String, reading: Boolean, readingIndex: Int, f
             .fillMaxWidth()
             .drawBehind {
                 val result = layout ?: return@drawBehind
-                val pad = 2.dp.toPx()
-                val radius = CornerRadius(6.dp.toPx())
-                val rule = 2.dp.toPx()
+                val rule = 1.5.dp.toPx()
+                val offset = 4.dp.toPx()
                 tokens.forEachIndexed { index, token ->
                     val end = token.end.coerceAtMost(result.layoutInput.text.length)
                     if (token.start >= end) return@forEachIndexed
@@ -281,12 +307,10 @@ private fun LoggerTokenText(text: String, reading: Boolean, readingIndex: Int, f
                         val from = maxOf(token.start, result.getLineStart(line))
                         val to = minOf(end, result.getLineEnd(line, visibleEnd = true))
                         if (from >= to) continue
-                        val left = result.getHorizontalPosition(from, usePrimaryDirection = true) - pad
-                        val right = result.getHorizontalPosition(to, usePrimaryDirection = true) + pad
-                        val top = result.getLineTop(line)
-                        val bottom = result.getLineBottom(line)
-                        drawRoundRect(fills[index], topLeft = Offset(left, top), size = Size(right - left, bottom - top), cornerRadius = radius)
-                        drawRect(lines[index], topLeft = Offset(left, bottom - rule), size = Size(right - left, rule))
+                        val left = result.getHorizontalPosition(from, usePrimaryDirection = true)
+                        val right = result.getHorizontalPosition(to, usePrimaryDirection = true)
+                        val y = minOf(result.getLineBaseline(line) + offset, result.getLineBottom(line) - rule)
+                        drawRect(lines[index], topLeft = Offset(left, y), size = Size(right - left, rule))
                     }
                 }
             },

@@ -1,52 +1,38 @@
 package com.example.kpkn.screens.nutrition.design.logger
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import kotlin.math.PI
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-private val RingKcalStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, lineHeight = 20.sp)
-private val RingUnitStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 14.sp)
-private val MacLabelStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 16.sp)
-private val MacValueStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 16.sp)
 
 /** El reparto de las calorías entre proteína, carbos y grasa (4, 4 y 9 kcal por gramo), en tantos por uno; ceros si no hay nada. */
 fun loggerMacroShares(protein: Double, carbs: Double, fats: Double): Triple<Double, Double, Double> {
@@ -58,8 +44,69 @@ fun loggerMacroShares(protein: Double, carbs: Double, fats: Double): Triple<Doub
 }
 
 /**
- * Resumen de la comida (lienzo `sumCard`): el anillo de calorías de 86 dp con los tres macros como arcos, que cuenta al aparecer, y a su
- * derecha «Proteína / Carbos / Grasa» con su barra y sus gramos. El anillo se llena hasta [kcal] / [targetKcal]; sin objetivo, entero.
+ * Los anchos de los tramos de una barra apilada (`.np-bar i{flex:N;min-width:4px}`): [weights] reparten [available] (ya sin los huecos);
+ * un tramo con peso que saldría más estrecho que [minWidth] se queda en [minWidth] y los demás se reparten el resto. Los pesos de 0 o
+ * menos no dibujan nada (ancho 0).
+ */
+internal fun loggerBarWidths(weights: List<Float>, available: Float, minWidth: Float): List<Float> {
+    val live = weights.map { weight -> if (weight.isFinite() && weight > 0f) weight else 0f }
+    if (available <= 0f || live.sum() <= 0f) return live.map { 0f }
+    val pinned = BooleanArray(live.size)
+    var changed = true
+    while (changed) {
+        changed = false
+        val freeWeight = live.indices.filter { live[it] > 0f && !pinned[it] }.sumOf { live[it].toDouble() }.toFloat()
+        if (freeWeight <= 0f) break
+        val free = max(0f, available - pinned.count { it } * minWidth)
+        for (index in live.indices) {
+            if (live[index] > 0f && !pinned[index] && free * live[index] / freeWeight < minWidth) {
+                pinned[index] = true
+                changed = true
+            }
+        }
+    }
+    val freeWeight = live.indices.filter { live[it] > 0f && !pinned[it] }.sumOf { live[it].toDouble() }.toFloat()
+    val free = max(0f, available - pinned.count { it } * minWidth)
+    return live.indices.map { index ->
+        when {
+            live[index] <= 0f -> 0f
+            pinned[index] -> minWidth
+            else -> free * live[index] / freeWeight
+        }
+    }
+}
+
+/**
+ * Texto de una línea que nunca se corta: si no cabe a [style].fontSize, se encoge hasta [minSize] (autoajuste); jamás «…». Lo comparten
+ * el resumen, las columnas de macros, la tarjeta del alimento y la barra de guardar.
+ */
+@Composable
+internal fun LoggerFitText(
+    text: String,
+    style: TextStyle,
+    color: Color,
+    modifier: Modifier = Modifier,
+    minSize: TextUnit = 12.sp,
+    textAlign: TextAlign? = null,
+) {
+    val top = style.fontSize
+    val autoSize = remember(top, minSize) {
+        TextAutoSize.StepBased(minFontSize = if (minSize.value < top.value) minSize else top, maxFontSize = top, stepSize = 0.5.sp)
+    }
+    BasicText(
+        text = text,
+        modifier = modifier,
+        style = style.copy(color = color, textAlign = textAlign ?: style.textAlign),
+        maxLines = 1,
+        softWrap = false,
+        autoSize = autoSize,
+    )
+}
+
+/**
+ * Resumen de la comida (lienzo `npSum`): tarjeta plana (superficie 1, radio 24, 16 × 18) con el total en Syne 30 y «kcal» a su lado,
+ * [caption] a la derecha, la barra apilada de 8 dp con el reparto de las calorías y las tres columnas de macros. Sin anillo.
+ * [targetKcal] ya no se usa (el anillo era lo único que lo leía); se conserva para no romper a quien llama.
  */
 @Composable
 fun LoggerSummaryCard(
@@ -69,118 +116,119 @@ fun LoggerSummaryCard(
     fats: Double,
     modifier: Modifier = Modifier,
     targetKcal: Int? = null,
+    caption: String = "esta comida",
 ) {
-    val shape = RoundedCornerShape(26.dp)
-    Row(
+    val shape = RoundedCornerShape(24.dp)
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(LoggerColors.card, shape)
-            .border(1.dp, Color.White.copy(alpha = 0.078f), shape)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(LoggerColors.surface1, shape)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
     ) {
-        LoggerKcalRing(kcal = kcal, targetKcal = targetKcal, protein = protein, carbs = carbs, fats = fats)
-        LoggerMacroBars(protein = protein, carbs = carbs, fats = fats, modifier = Modifier.weight(1f))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = loggerThousands(kcal),
+                style = LoggerText.total,
+                color = LoggerColors.ink,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.alignByBaseline(),
+            )
+            Text(
+                text = "kcal",
+                style = LoggerText.cap.copy(fontWeight = FontWeight.Medium),
+                color = LoggerColors.faint,
+                modifier = Modifier.padding(start = 6.dp).alignBy(androidx.compose.ui.layout.LastBaseline),
+            )
+            Box(Modifier.weight(1f))
+            Text(
+                text = caption,
+                style = LoggerText.cap,
+                color = LoggerColors.faint,
+                modifier = Modifier.padding(start = 10.dp).alignBy(androidx.compose.ui.layout.LastBaseline),
+            )
+        }
+        LoggerMacroSplitBar(
+            protein = protein,
+            carbs = carbs,
+            fats = fats,
+            height = 8.dp,
+            modifier = Modifier.padding(top = 14.dp, bottom = 12.dp),
+        )
+        LoggerMacroColumns(protein = protein, carbs = carbs, fats = fats)
     }
 }
 
-/** El anillo de calorías (`ringSvg`): pista blanca al 6 % y tres arcos de 7 dp con 3 dp de hueco, desde arriba. */
+/**
+ * `.np-bar`: la barra apilada de [height] con proteína, carbos y grasa proporcionales a sus kcal (P·4, C·4, G·9) en los tres tonos de
+ * tinta, 3 dp entre tramos y radio 3 dp; cada tramo mide 4 dp como mínimo. Sin nada que repartir, solo la pista.
+ */
 @Composable
-fun LoggerKcalRing(
-    kcal: Int,
-    targetKcal: Int?,
+fun LoggerMacroSplitBar(
     protein: Double,
     carbs: Double,
     fats: Double,
     modifier: Modifier = Modifier,
+    height: Dp = 8.dp,
 ) {
-    val reduced = wizardReducedMotion()
-    val counter = remember { Animatable(if (reduced) kcal.toFloat() else 0f) }
-    LaunchedEffect(kcal, reduced) {
-        if (reduced) counter.snapTo(kcal.toFloat())
-        else counter.animateTo(kcal.toFloat(), tween(900, easing = CubicBezierEasing(0.2f, 0.8f, 0.2f, 1f)))
-    }
-    val shares = loggerMacroShares(protein, carbs, fats)
-    val fill = if (targetKcal == null || targetKcal <= 0) 1f else min(1f, kcal.toFloat() / targetKcal)
-    Box(
-        modifier = modifier
-            .size(86.dp)
-            .semantics { contentDescription = "$kcal kcal" },
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.size(86.dp)) {
-            val unit = size.width / 86f
-            val radius = 36f * unit
-            val stroke = 7f * unit
-            val topLeft = Offset(center.x - radius, center.y - radius)
-            val arcSize = Size(radius * 2, radius * 2)
-            drawCircle(Color.White.copy(alpha = 0.063f), radius = radius, style = Stroke(width = stroke))
-            val circumference = (2 * PI * radius).toFloat()
-            var start = -90f
-            listOf(
-                shares.first to LoggerColors.mus,
-                shares.second to LoggerColors.ene,
-                shares.third to LoggerColors.col,
-            ).forEach { (share, color) ->
-                val length = circumference * fill * share.toFloat()
-                val sweep = (length - 3f * unit).coerceAtLeast(0f) / circumference * 360f
-                if (sweep > 0f) {
-                    drawArc(color, startAngle = start, sweepAngle = sweep, useCenter = false, topLeft = topLeft, size = arcSize,
-                        style = Stroke(width = stroke, cap = StrokeCap.Round))
-                }
-                start += length / circumference * 360f
-            }
+    val weights = listOf(
+        (protein * 4).coerceAtLeast(0.0).toFloat(),
+        (carbs * 4).coerceAtLeast(0.0).toFloat(),
+        (fats * 9).coerceAtLeast(0.0).toFloat(),
+    )
+    val colors = listOf(LoggerColors.macroP, LoggerColors.macroC, LoggerColors.macroF)
+    Canvas(modifier = modifier.fillMaxWidth().height(height)) {
+        val gap = 3.dp.toPx()
+        val minWidth = 4.dp.toPx()
+        val radius = min(3.dp.toPx(), size.height / 2f)
+        val live = weights.count { it > 0f }
+        if (live == 0) {
+            drawRoundRect(LoggerColors.track, size = Size(size.width, size.height), cornerRadius = CornerRadius(radius))
+            return@Canvas
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clearAndSetSemantics { }) {
-            Text(text = counter.value.roundToInt().toString(), style = RingKcalStyle, color = LoggerColors.ink, textAlign = TextAlign.Center)
-            Text(text = "kcal", style = RingUnitStyle, color = LoggerColors.faint, modifier = Modifier.padding(top = 3.dp))
+        val widths = loggerBarWidths(weights, size.width - gap * (live - 1), minWidth)
+        var x = 0f
+        widths.forEachIndexed { index, width ->
+            if (width <= 0f) return@forEachIndexed
+            drawRoundRect(colors[index], topLeft = Offset(x, 0f), size = Size(width, size.height), cornerRadius = CornerRadius(radius))
+            x += width + gap
         }
     }
 }
 
-/** `.mac`: tres filas con el nombre (72 dp), la barra de 6 dp con el reparto y los gramos (44 dp) a la derecha. */
+/**
+ * `.np-mac`: tres columnas iguales con los gramos («3 g», Inter SemiBold 16, se encoge si no cabe) y debajo el cuadradito de 8 dp del tono
+ * y el nombre: Proteína, Carbos, Grasa.
+ */
 @Composable
-fun LoggerMacroBars(protein: Double, carbs: Double, fats: Double, modifier: Modifier = Modifier) {
-    val shares = loggerMacroShares(protein, carbs, fats)
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        LoggerMacroBar("Proteína", protein, shares.first, LoggerColors.mus)
-        LoggerMacroBar("Carbos", carbs, shares.second, LoggerColors.ene)
-        LoggerMacroBar("Grasa", fats, shares.third, LoggerColors.col)
+fun LoggerMacroColumns(protein: Double, carbs: Double, fats: Double, modifier: Modifier = Modifier) {
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LoggerMacroColumn("Proteína", protein, LoggerColors.macroP, Modifier.weight(1f))
+        LoggerMacroColumn("Carbos", carbs, LoggerColors.macroC, Modifier.weight(1f))
+        LoggerMacroColumn("Grasa", fats, LoggerColors.macroF, Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun LoggerMacroBar(label: String, grams: Double, share: Double, color: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(text = label, style = MacLabelStyle, color = LoggerColors.muted, maxLines = 1, modifier = Modifier.width(72.dp))
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color.White.copy(alpha = 0.063f)),
-        ) {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(share.toFloat().coerceIn(0f, 1f))
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(color),
+private fun LoggerMacroColumn(label: String, grams: Double, tone: Color, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        LoggerFitText(
+            text = "${grams.roundToInt()} g",
+            style = LoggerText.number(16f),
+            color = LoggerColors.ink,
+            minSize = 13.sp,
+        )
+        Row(modifier = Modifier.padding(top = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(tone))
+            Text(
+                text = label,
+                style = LoggerText.cap,
+                color = LoggerColors.faint,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.padding(start = 6.dp),
             )
         }
-        Text(
-            text = "${grams.roundToInt()} g",
-            style = MacValueStyle,
-            color = LoggerColors.ink,
-            textAlign = TextAlign.End,
-            maxLines = 1,
-            modifier = Modifier.width(44.dp),
-        )
     }
 }

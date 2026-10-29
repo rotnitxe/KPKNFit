@@ -1,0 +1,9 @@
+// NP_TABS: las pestañas del lienzo «Arreglos» (sustituyen a las de Registros al construir).
+const TABS=[
+  {id:'decisiones',label:'Reglas',title:'Más plano, más sobrio y que todo quepa',intro:'Lo que pediste el 29 de octubre, convertido en reglas para toda Nutrición y en arreglos concretos de Program Detail. Cada pantalla trae al lado la captura de hoy de tu teléfono. Nada de esto está en el código todavía: se implementa cuando lo apruebes.'},
+  {id:'registro',label:'Registro de comida',title:'Registrar comida, sin ruido',intro:'El campo para escribir, el resumen de lo que comiste y las dudas, con un solo tono de superficie, las cifras a su medida y el color reservado para lo que espera una decisión.'},
+  {id:'ajuste',label:'Ajustar un alimento',title:'Ajustar un alimento',intro:'La hoja de un alimento: cantidad, tamaño, cómo lo preparaste y lo que aporta. «Cómo lo cocinaste» y «Variante» pasan a ser una sola elección con opciones que tienen sentido. Toca las opciones: el prototipo responde.'},
+  {id:'vitaminas',label:'Vitaminas y minerales',title:'Vitaminas y minerales, en una pieza que se lee de un vistazo',intro:'Una huella radial en tinta: un radio por nutriente, más largo cuanto más cubre de tu día. Sin rejilla, sin ejes y sin arcoíris. La misma pieza en el registro, en la hoja de un alimento y en el día de Nutrición.'},
+  {id:'inicio',label:'Inicio',title:'Nutrición de hoy, con un botón',intro:'Sale la barra «¿Qué comiste?» de Inicio. La tarjeta «Nutrición de hoy» gana un botón simple que abre el registro.'},
+  {id:'programas',label:'Program Detail',title:'Program Detail: fichas, barra de vidrio y tus 4 semanas',intro:'La ficha visual del asistente sustituye a las hojas de puro texto (al elegir un plan del catálogo y en «Sobre el programa»). La barra superior pasa a vidrio con desenfoque y ⋯ baja junto al título. «Ver lo que has hecho en 4 semanas» se convierte en un resumen de verdad.'},
+];

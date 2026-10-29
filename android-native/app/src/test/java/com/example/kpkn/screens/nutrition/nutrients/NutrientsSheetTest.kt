@@ -27,25 +27,24 @@ class NutrientsSheetTest {
 
     @Test fun laHojaDelDiaTieneTituloFechaYReferencia() {
         show(NutrientsSamples.state("complete"))
-        rule.onNodeWithText("Nutrientes del día").assertExists()
-        rule.onNodeWithText("Sábado 24 · referencia de mujer, 31 años (DRI), según tu plan").assertExists()
-        rule.onNodeWithText("100 % de las kcal con dato declarado").assertExists()
+        rule.onNodeWithText("Vitaminas y minerales").assertExists()
+        rule.onNodeWithText("Sábado 24 · % de la referencia de tu perfil").assertExists()
     }
 
-    @Test fun unaFilaPorNutrienteYLosChipsCambianDeGrupo() {
+    @Test fun unaFilaPorNutrienteYLosGruposVanUnoTrasOtro() {
         show(NutrientsSamples.state("complete"))
         rule.onNodeWithTag("nutrient-VITAMIN_A").assertExists()
-        rule.onNodeWithTag("nutrient-FIBER").assertDoesNotExist()
-        rule.onNodeWithText("Carbos").performClick()
         rule.onNodeWithTag("nutrient-FIBER").assertExists()
         rule.onNodeWithText("13 g").assertExists()
         rule.onAllNodesWithText("50 %").onFirst().assertExists()
+        NutrientKey.entries.forEach { rule.onNodeWithTag("nutrient-${it.name}").assertExists() }
     }
 
-    @Test fun losChipsVanEnElOrdenDelLienzo() {
+    @Test fun lasEtiquetasDeGrupoVanEnElOrdenDelLienzo() {
         show(NutrientsSamples.state("complete"))
-        NutrientGroup.entries.forEach { rule.onNodeWithTag("nutrient-group-${it.name}").assertExists() }
         assertEquals(listOf("Vitaminas", "Minerales", "Grasas", "Carbos", "Otros"), NutrientGroup.entries.map { it.label })
+        NutrientGroup.entries.forEach { rule.onNodeWithText(it.label.uppercase()).assertExists() }
+        rule.onNodeWithTag("nutrient-group-VITAMINS").assertDoesNotExist()
     }
 
     @Test fun diaVacioNoMuestraCerosInventados() {
@@ -55,10 +54,9 @@ class NutrientsSheetTest {
         rule.onAllNodesWithText("0 %").assertCountEquals(0)
     }
 
-    @Test fun entradaRapidaReduceCoberturaYMarcaLoParcial() {
+    @Test fun entradaRapidaMarcaLoParcialConMayorOIgual() {
         show(NutrientsSamples.state("with_quick_entry"))
-        rule.onNodeWithText("50 % de las kcal con dato declarado · el total puede ser mayor").assertExists()
-        rule.onAllNodesWithText("1 alimento sin dato: puede ser más").onFirst().assertExists()
+        rule.onAllNodesWithText("≥", substring = true).onFirst().assertExists()
     }
 
     @Test fun tocarUnaFilaAbreSuHoja() {
@@ -67,29 +65,33 @@ class NutrientsSheetTest {
         assertEquals(listOf(NutrientKey.THIAMIN), opened)
     }
 
-    @Test fun elTopePasadoSubeAVigilar() {
+    @Test fun elTopeSeQuedaEnSuGrupoConMaxEnLaCantidad() {
         val food = LoggedFood(foodName = "Mucha grasa", calories = 2000.0, fatBreakdown = FatBreakdown(saturated = 30.0))
         show(buildNutrientsSheetState("2026-10-24", listOf(NutritionLog(date = "2026-10-24T12:00:00-03:00", foods = listOf(food))), NutrientsSamples.profile))
-        rule.onNodeWithTag("nutrients-watch").assertExists()
-        rule.onNodeWithText("Tope de la guía: 10 % de la energía (22 g con 2.000 kcal) · OMS").assertExists()
+        rule.onNodeWithTag("nutrients-watch").assertDoesNotExist()
+        rule.onNodeWithTag("nutrient-SAT_FAT").assertExists()
+        rule.onAllNodesWithText("· máx.", substring = true).onFirst().assertExists()
     }
 
-    @Test fun laNiacinaTieneSuNotaYElPieCitaLasFuentes() {
+    @Test fun elPieCitaLasFuentes() {
         show(NutrientsSamples.state("complete"))
-        rule.onNodeWithText("Preformada: con la que forma tu cuerpo, el total real suele ser mayor.").assertExists()
         rule.onNodeWithTag("nutrients-list").performScrollToNode(hasTestTag("nutrients-sources"))
         rule.onNodeWithTag("nutrients-sources").assertTextContains("No sustituye el consejo de un profesional.", substring = true)
     }
 
-    @Test fun elModuloDelDiaTieneHuellaCifrasYCobertura() {
+    @Test fun elModuloDelDiaTieneHuellaLeyendaYCobertura() {
+        var opened = 0
         rule.setContent { KPKNTheme { CompositionLocalProvider(LocalWizardReducedMotion provides true) {
-            NutrientsDayModule(NutrientsSamples.state("partial"), {})
+            NutrientsDayModule(NutrientsSamples.state("partial"), { opened++ })
         } } }
-        rule.onNodeWithText("VITAMINAS Y MINERALES").assertExists()
-        rule.onNodeWithText("Ver todos").assertExists()
-        rule.onNodeWithTag("nutrient-footprint").assertExists()
-        listOf("al día", "cerca", "por debajo", "sobre el máx.").forEach { rule.onNodeWithText(it).assertExists() }
-        rule.onNodeWithText("Cobertura: 50 % de las kcal con dato · 1 alimento sin ficha").assertExists()
+        rule.onNodeWithText("VITAMINAS Y MINERALES", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("sábado 24", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Ver todos", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag("nutrient-footprint", useUnmergedTree = true).assertExists()
+        listOf("cubiertos", "cerca", "por debajo").forEach { rule.onNodeWithText(it, useUnmergedTree = true).assertExists() }
+        rule.onNodeWithText("Cobertura: 50 % de las kcal con dato · 1 alimento sin ficha", useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("nutrients-day-module").performClick()
+        assertEquals(1, opened)
     }
 
     @Test fun laHojaDelNutrienteDiceDeDondeSale() {

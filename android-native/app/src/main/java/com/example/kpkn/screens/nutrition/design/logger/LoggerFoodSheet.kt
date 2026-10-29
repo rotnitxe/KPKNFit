@@ -3,17 +3,20 @@ package com.example.kpkn.screens.nutrition.design.logger
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -32,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -41,20 +45,62 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.PORTION_MULTIPLIERS
 import com.example.kpkn.data.models.PortionPreset
+import com.example.kpkn.domain.nutrition.FoodPreparation
+import com.example.kpkn.domain.nutrition.FoodPreparations
+import com.example.kpkn.domain.nutrition.OilAmount
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.LocalKpknSheetDismiss
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private val KpiValueStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, lineHeight = 18.sp, letterSpacing = (-0.4).sp)
-private val SizeStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 16.sp)
-private val DropStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 16.sp)
+/*
+ * Arreglos v1 · «Ajustar un alimento» (lienzo `npSheetInner`, escenas a-sheet, a-horno, a-cocido, a-aporta): hoja plana (#141414) con
+ * la cabecera, «Cantidad» (stepper y Gramos | Raciones), «Tamaño» en cuatro tramos, «Cómo lo preparaste» con la fila «Aceite»,
+ * «Aporta» y la huella. Las letras de 11-12 px del lienzo suben a 13 sp (mínimo de la app); las cifras se encogen si no caben.
+ */
 
-/** El nombre de cada tamaño en la hoja de ajuste (decisión F-D1, bloque `sizes` del lienzo). */
+/** `.sheet h3` dentro de `.np-sh-h`: Syne Bold 19. */
+private val TitleStyle = TextStyle(
+    fontFamily = WizardFonts.display,
+    fontWeight = FontWeight.Bold,
+    fontSize = 19.sp,
+    lineHeight = 22.sp,
+    letterSpacing = (-0.4).sp,
+)
+
+/** `.np-step b`: la cantidad en Inter SemiBold 26 tabular, −0,3. */
+private val AmountStyle = LoggerText.number(26f).copy(letterSpacing = (-0.3).sp)
+
+/** `.np-step small`: la unidad en Inter Medium 14. */
+private val AmountUnitStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp)
+
+/** `.np-seg button`: Inter Medium 13. */
+private val SegmentStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 16.sp)
+
+/** `.np-seg button small`: 11,5 px en el lienzo, 13 sp en la app. */
+private val SegmentSmallStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 16.sp)
+
+/** `.np-prep button`: Inter Medium 13,5. */
+private val PrepStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 13.5.sp, lineHeight = 18.sp)
+
+/** `.np-oil-h` y `.np-oil-none`: 12,5 px en el lienzo, 13 sp en la app. */
+private val OilStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 17.sp)
+
+/** `.np-k span`: «kcal» en Inter Medium 13. */
+private val KcalUnitStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 17.sp)
+
+/** `.np-row .tx strong`: Inter SemiBold 14. */
+private val RowTitleStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 19.sp)
+
+/** El nombre de cada tamaño en la hoja de ajuste. */
 fun loggerSizeLabel(preset: PortionPreset): String = when (preset) {
     PortionPreset.SMALL -> "Pequeña"
     PortionPreset.MEDIUM -> "Mediana"
@@ -62,15 +108,19 @@ fun loggerSizeLabel(preset: PortionPreset): String = when (preset) {
     PortionPreset.EXTRA -> "Extra"
 }
 
-/** Diámetro del círculo de cada tamaño (22, 30, 38 y 46 px en el lienzo). */
-private fun sizeDiameter(preset: PortionPreset): Int = when (preset) {
-    PortionPreset.SMALL -> 22
-    PortionPreset.MEDIUM -> 30
-    PortionPreset.LARGE -> 38
-    PortionPreset.EXTRA -> 46
-}
+/** Un tramo de «Tamaño»: el tamaño y sus gramos reales. */
+data class LoggerSizeOption(val preset: PortionPreset, val grams: Double)
 
-/** «Coincidencia alta · base KPKN» (f-edit): cuánto encaja lo elegido con lo escrito y de dónde salen sus datos. */
+/** Los cuatro tramos de «Tamaño» a partir de la cantidad de referencia [anchorGrams] (Mediana), con los multiplicadores de la app. */
+fun loggerSizeOptions(anchorGrams: Double): List<LoggerSizeOption> =
+    if (!anchorGrams.isFinite() || anchorGrams <= 0.0) emptyList()
+    else PortionPreset.entries.map { LoggerSizeOption(it, anchorGrams * (PORTION_MULTIPLIERS[it] ?: 1.0)) }
+
+/** El tramo que coincide con [grams] (al medio gramo); null si la cantidad no es la de ningún tramo. */
+fun loggerSelectedSize(sizes: List<LoggerSizeOption>, grams: Double): PortionPreset? =
+    sizes.firstOrNull { abs(it.grams - grams) < 0.5 }?.preset
+
+/** «Coincidencia alta · base KPKN»: cuánto encaja lo elegido con lo escrito y de dónde salen sus datos. */
 fun loggerMatchLine(confidence: Double?, estimated: Boolean, source: String): String {
     val level = when {
         estimated -> "Estimación"
@@ -96,13 +146,7 @@ fun loggerRecipeUnits(loggedUnit: String): List<LoggerUnit> =
         listOf(LoggerUnit(LoggerUnitKind.SERVINGS, "ración", "raciones", 1.0))
     }
 
-/** Cómo se cocinó (f-edit, `drop3`): con aceite, sin grasa o con mantequilla. */
-enum class LoggerCooking(val label: String) { OIL("Con aceite"), NO_FAT("Sin grasa"), BUTTER("Con mantequilla") }
-
-/** Una variante del alimento (decisión F-D2: las chips N50 viven en la hoja), con su grupo y si es la elegida. */
-data class LoggerVariantChip(val group: String, val id: String, val label: String, val selected: Boolean)
-
-/** Lo que la hoja de ajuste necesita de un alimento: todo ya calculado por la hoja del registro. */
+/** Lo que la hoja de ajuste necesita de un alimento: todo ya calculado por el registro. */
 data class LoggerFoodSheetState(
     val name: String,
     val icon: ImageVector,
@@ -113,26 +157,32 @@ data class LoggerFoodSheetState(
     val protein: Double,
     val carbs: Double,
     val fats: Double,
-    val portion: PortionPreset?,
-    val cooking: LoggerCooking?,
-    val variants: List<LoggerVariantChip> = emptyList(),
+    /** Los tramos de «Tamaño»; vacío los oculta (recetas). */
+    val sizes: List<LoggerSizeOption> = emptyList(),
+    /** Las chips de «Cómo lo preparaste», en su orden; vacío oculta el bloque. */
+    val preparations: List<FoodPreparation> = emptyList(),
+    val preparation: FoodPreparation? = null,
+    /** La opción marcada en «Aceite»; null, ninguna. */
+    val oil: OilAmount? = null,
+    /** Las kcal del aceite de la cabecera de la fila («+222 kcal»). */
+    val oilKcal: Int = 0,
     val excluded: Boolean = false,
     val volume: Boolean = false,
 )
 
 /**
- * Ajustar un alimento (lienzo f-edit), en una hoja: icono de 48 dp, nombre, «Coincidencia alta · base KPKN» y «Cambiar» ([onChange]);
- * «Cantidad» con −/+ en la unidad natural y las chips de unidad; los tamaños (F-D1); «Cómo lo cocinaste» si cocinar cambia algo;
- * las variantes y «Excluir» (F-D2); «Aporta» con cuatro cifras que se corrigen al tocarlas; la huella ([footprint], la pinta otro
- * paquete); la papelera roja y «Listo».
+ * Ajustar un alimento (Arreglos v1, `npSheetInner`): hoja plana con la cabecera (icono, nombre, «Coincidencia alta · base KPKN» y
+ * «Cambiar» → [onChange]); «Cantidad» con − y + y «Gramos | Raciones»; «Tamaño» en cuatro tramos con sus gramos; «Cómo lo
+ * preparaste» (una sola elección) con la fila «Aceite» o la línea que dice que no lleva; «Aporta» (las cifras se corrigen al
+ * tocarlas); la huella ([footprint], la pinta el paquete de nutrientes); «Excluir de la comida», la papelera y «Listo».
  */
 @Composable
 fun LoggerFoodSheet(
     state: LoggerFoodSheetState,
     onGramsChange: (Double) -> Unit,
-    onPortionChange: (PortionPreset) -> Unit,
-    onCookingChange: (LoggerCooking) -> Unit,
-    onVariant: (String) -> Unit,
+    onSizeChange: (LoggerSizeOption) -> Unit,
+    onPreparationChange: (FoodPreparation) -> Unit,
+    onOilChange: (OilAmount) -> Unit,
     onToggleExcluded: () -> Unit,
     onMacroChange: (LoggerMacro, Double) -> Unit,
     onChange: () -> Unit,
@@ -142,220 +192,491 @@ fun LoggerFoodSheet(
 ) {
     var unitIndex by remember(state.name) { mutableStateOf(0) }
     val unit = state.units.getOrNull(unitIndex) ?: state.units.firstOrNull() ?: LoggerUnit(LoggerUnitKind.GRAMS, "gramo", "gramos", 1.0)
-    KpknSheet(onDismissRequest = onDismiss, backdropScrim = Color.Black.copy(alpha = 0.67f)) {
+    val massUnit = if (state.volume) "ml" else "g"
+    KpknSheet(
+        onDismissRequest = onDismiss,
+        backdropScrim = Color.Black.copy(alpha = 0.67f),
+        surfaceColor = LoggerColors.sheet,
+    ) {
+        val close = LocalKpknSheetDismiss.current ?: onDismiss
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
         ) {
+            // `.np-sh-h`: icono en caja de 40, nombre y procedencia, «Cambiar».
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White.copy(alpha = 0.04f)),
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(13.dp))
+                        .background(LoggerColors.surface2),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(state.icon, contentDescription = null, modifier = Modifier.size(26.dp), tint = LoggerColors.ink)
+                    Icon(state.icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = LoggerColors.ink)
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(text = state.name, style = LoggerText.sheetTitle, color = LoggerColors.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        text = state.name,
+                        style = TitleStyle,
+                        color = LoggerColors.ink,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 2.dp),
+                    )
                     Text(text = state.matchLine, style = LoggerText.cap, color = LoggerColors.faint)
                 }
-                LoggerAct(text = "Cambiar", onClick = onChange)
+                LoggerAct(text = "Cambiar", onClick = onChange, modifier = Modifier.padding(horizontal = 4.dp))
             }
 
-            LoggerSheetGroup("Cantidad")
+            LoggerPageGroup("Cantidad")
             val value = loggerUnitValue(state.grams, unit)
-            val unitLabel = if (unit.kind == LoggerUnitKind.GRAMS) (if (state.volume) "ml" else "g") else loggerUnitNoun(value, unit)
-            // Tocar la cifra la deja escribir (la cantidad exacta, con decimales: «1,5» raciones o «75,5» g), como las cifras de «Aporta».
+            val unitLabel = if (unit.kind == LoggerUnitKind.GRAMS) massUnit else loggerUnitNoun(value, unit)
+            // Tocar la cifra la deja escribir (con decimales: «1,5» raciones o «75,5» g), como las cifras de «Aporta».
             var typing by remember(state.name, unitIndex) { mutableStateOf(false) }
-            var typed by remember(state.name, unitIndex, typing) { mutableStateOf(loggerFormatValue(value, unit).replace("½", ",5").let { if (it.startsWith(",")) "0$it" else it }) }
+            var typed by remember(state.name, unitIndex, typing) {
+                mutableStateOf(loggerFormatValue(value, unit).replace("½", ",5").let { if (it.startsWith(",")) "0$it" else it })
+            }
             val commitTyped = {
                 loggerParseAmount(typed)?.let { amount -> onGramsChange(amount * unit.gramsPerUnit) }
                 typing = false
             }
-            LoggerStepper(
+            LoggerAmountStepper(
                 value = loggerFormatValue(value, unit),
                 unit = unitLabel,
+                minusEnabled = state.grams > loggerMinGrams(unit) + 1e-6,
                 onMinus = { onGramsChange(loggerStepGrams(state.grams, unit, -1)) },
                 onPlus = { onGramsChange(loggerStepGrams(state.grams, unit, +1)) },
-                minusEnabled = state.grams > loggerMinGrams(unit) + 1e-6,
                 onValueClick = { typing = true },
-                valueContent = if (typing) {
+                editor = if (typing) {
                     {
-                        Row(verticalAlignment = Alignment.Bottom) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             BasicTextField(
                                 value = typed,
                                 onValueChange = { text -> typed = text.filter { it.isDigit() || it == ',' || it == '.' }.take(6) },
                                 singleLine = true,
-                                textStyle = LoggerText.figure(30, FontWeight.ExtraBold).copy(color = LoggerColors.ink, textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                                textStyle = AmountStyle.copy(color = LoggerColors.ink, textAlign = TextAlign.Center),
                                 cursorBrush = SolidColor(LoggerColors.ink),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = { commitTyped() }),
                                 modifier = Modifier.width(110.dp).semantics { contentDescription = "Cantidad en $unitLabel" },
                             )
-                            Text(text = unitLabel, style = LoggerText.cap, color = LoggerColors.muted, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+                            Text(text = unitLabel, style = AmountUnitStyle, color = LoggerColors.faint, modifier = Modifier.padding(start = 5.dp))
                         }
                     }
                 } else null,
             )
             if (state.units.size > 1) {
-                Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    state.units.forEachIndexed { index, option ->
-                        LoggerChip(text = option.chipLabel, selected = index == unitIndex, onClick = { unitIndex = index }, height = 34.dp)
-                    }
-                }
-            }
-            state.portion?.let { selected ->
-                Box(Modifier.fillMaxWidth().padding(top = 12.dp).height(1.dp).background(Color.White.copy(alpha = 0.06f)))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    PortionPreset.entries.forEach { preset ->
-                        val on = preset == selected
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable(role = Role.RadioButton) { onPortionChange(preset) }
-                                .semantics { this.selected = on },
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            val d = sizeDiameter(preset).dp
-                            Box(
-                                Modifier
-                                    .size(d)
-                                    .clip(CircleShape)
-                                    .background(if (on) LoggerColors.ink else Color.Transparent, CircleShape)
-                                    .border(1.5.dp, if (on) Color.Transparent else LoggerColors.ink.copy(alpha = 0.333f), CircleShape),
-                            )
-                            Text(
-                                text = loggerSizeLabel(preset),
-                                style = if (on) SizeStyle.copy(fontWeight = FontWeight.SemiBold) else SizeStyle,
-                                color = if (on) LoggerColors.ink else LoggerColors.faint,
-                            )
-                        }
-                    }
-                }
-            }
-
-            state.cooking?.let { cooking ->
-                LoggerSheetGroup("Cómo lo cocinaste")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        LoggerCooking.OIL to LoggerIcons.Pan,
-                        LoggerCooking.NO_FAT to LoggerIcons.Raw,
-                        LoggerCooking.BUTTER to LoggerIcons.Drop,
-                    ).forEach { (option, icon) ->
-                        val on = option == cooking
-                        val shape = RoundedCornerShape(18.dp)
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(shape)
-                                .background(Color.White.copy(alpha = 0.031f), shape)
-                                .border(if (on) 2.dp else 1.dp, if (on) LoggerColors.ink else Color.White.copy(alpha = 0.07f), shape)
-                                .clickable(role = Role.RadioButton) { onCookingChange(option) }
-                                .semantics { this.selected = on }
-                                .padding(horizontal = 4.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = LoggerColors.ink)
-                            Text(text = option.label, style = DropStyle, color = LoggerColors.ink, maxLines = 1)
-                        }
-                    }
-                }
-            }
-
-            if (state.variants.isNotEmpty()) {
-                LoggerSheetGroup("Variante")
-                state.variants.groupBy { it.group }.values.forEach { group ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        group.forEach { chip ->
-                            LoggerChip(text = chip.label, selected = chip.selected, onClick = { if (!chip.selected) onVariant(chip.id) })
-                        }
-                    }
-                }
-            }
-
-            LoggerSheetGroup("Aporta")
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                LoggerKpiField(state.kcal.toDouble(), "kcal", "kcal", Modifier.weight(1f)) { onMacroChange(LoggerMacro.CALORIES, it) }
-                LoggerKpiField(state.protein, "g", "prot.", Modifier.weight(1f)) { onMacroChange(LoggerMacro.PROTEIN, it) }
-                LoggerKpiField(state.carbs, "g", "carb.", Modifier.weight(1f)) { onMacroChange(LoggerMacro.CARBS, it) }
-                LoggerKpiField(state.fats, "g", "grasa", Modifier.weight(1f)) { onMacroChange(LoggerMacro.FATS, it) }
-            }
-            Text(
-                text = "Toca una cifra para corregirla a mano.",
-                style = LoggerText.cap,
-                color = LoggerColors.faint,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            footprint?.invoke()
-            LoggerMenuRow(
-                icon = if (state.excluded) KpknLineIcons.Plus else KpknLineIcons.Minus,
-                title = if (state.excluded) "Incluir en la comida" else "Excluir de la comida",
-                subtitle = if (state.excluded) "Ahora no cuenta en el total" else "Queda en la lista sin contar en el total",
-                onClick = onToggleExcluded,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            Row(modifier = Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LoggerPill(
-                    text = "",
-                    onClick = onRemove,
-                    tone = LoggerPillTone.SECONDARY,
-                    icon = KpknLineIcons.Trash,
-                    contentColor = LoggerColors.danger,
-                    contentDescription = "Quitar ${state.name}",
+                LoggerSegmented(
+                    labels = state.units.map { it.chipLabel },
+                    selected = state.units.indexOf(unit),
+                    soft = true,
+                    onSelect = { unitIndex = it },
+                    modifier = Modifier.padding(top = 8.dp),
                 )
-                LoggerPill(text = "Listo", onClick = onDismiss, modifier = Modifier.weight(1f))
+            }
+
+            if (state.sizes.isNotEmpty()) {
+                LoggerPageGroup("Tamaño")
+                val selectedSize = loggerSelectedSize(state.sizes, state.grams)
+                LoggerSegmented(
+                    labels = state.sizes.map { loggerSizeLabel(it.preset) },
+                    smalls = state.sizes.map { "${it.grams.roundToInt()} $massUnit" },
+                    selected = state.sizes.indexOfFirst { it.preset == selectedSize }.takeIf { it >= 0 },
+                    soft = false,
+                    onSelect = { index -> onSizeChange(state.sizes[index]) },
+                )
+            }
+
+            if (state.preparations.isNotEmpty()) {
+                LoggerPageGroup("Cómo lo preparaste")
+                LoggerPreparationChips(state.preparations, state.preparation, onPreparationChange)
+                val oilOptions = FoodPreparations.oilOptions(state.preparation)
+                if (oilOptions.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 2.dp, end = 2.dp, top = 14.dp, bottom = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = "Aceite", style = OilStyle, color = LoggerColors.faint, modifier = Modifier.weight(1f))
+                        LoggerFitText(
+                            text = FoodPreparations.oilCaption(state.oilKcal),
+                            style = LoggerText.number(13f, FontWeight.Medium),
+                            color = LoggerColors.muted,
+                            minSize = 11.sp,
+                        )
+                    }
+                    LoggerSegmented(
+                        labels = oilOptions.map { it.label },
+                        selected = oilOptions.indexOf(state.oil).takeIf { it >= 0 },
+                        soft = true,
+                        onSelect = { index -> onOilChange(oilOptions[index]) },
+                    )
+                } else {
+                    FoodPreparations.noOilLine(state.preparation)?.let { line ->
+                        Text(
+                            text = line,
+                            style = OilStyle,
+                            color = LoggerColors.faint,
+                            modifier = Modifier.padding(start = 2.dp, end = 2.dp, top = 12.dp),
+                        )
+                    }
+                }
+            }
+
+            LoggerSheetSeparator()
+            LoggerContribution(state = state, massUnit = massUnit, onMacroChange = onMacroChange)
+
+            footprint?.let { slot ->
+                LoggerSheetSeparator()
+                Column(Modifier.fillMaxWidth().padding(top = 14.dp)) { slot() }
+            }
+
+            // `.np-row`: excluir sin quitar.
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(LoggerColors.hair))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.Button, onClick = onToggleExcluded)
+                        .padding(horizontal = 2.dp, vertical = 14.dp),
+                ) {
+                    Text(
+                        text = if (state.excluded) "Incluir en la comida" else "Excluir de la comida",
+                        style = RowTitleStyle,
+                        color = LoggerColors.ink,
+                    )
+                    Text(
+                        text = if (state.excluded) "Ahora no cuenta en el total" else "Queda en la lista sin contar en el total",
+                        style = LoggerText.cap,
+                        color = LoggerColors.faint,
+                    )
+                }
+            }
+            // `.np-foot`: la papelera (52, filete blanco al 11 %, rojo) y «Listo».
+            Row(modifier = Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.11f), CircleShape)
+                        .clickable(role = Role.Button, onClick = onRemove)
+                        .semantics { contentDescription = "Quitar ${state.name}" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(KpknLineIcons.Trash, contentDescription = null, modifier = Modifier.size(18.dp), tint = LoggerColors.danger)
+                }
+                LoggerPill(text = "Listo", onClick = close, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** `.np-sep`: filete de 1 dp entre bloques (20 dp arriba, 4 abajo). */
+@Composable
+private fun LoggerSheetSeparator() {
+    Box(
+        Modifier
+            .padding(top = 20.dp, bottom = 4.dp)
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(LoggerColors.hair),
+    )
+}
+
+/**
+ * `.np-step`: caja superficie 2, radio 24, 6 dp de relleno; − y + redondos de 44 dp en superficie 3; la cifra en Inter SemiBold 26 con
+ * su unidad al lado en Inter Medium 14 gris tenue. Tocar la cifra la deja escribir ([editor]).
+ */
+@Composable
+private fun LoggerAmountStepper(
+    value: String,
+    unit: String,
+    minusEnabled: Boolean,
+    onMinus: () -> Unit,
+    onPlus: () -> Unit,
+    onValueClick: () -> Unit,
+    editor: (@Composable () -> Unit)?,
+) {
+    val shape = RoundedCornerShape(24.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(LoggerColors.surface2, shape)
+            .padding(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LoggerRoundStep(KpknLineIcons.Minus, "Menos $unit", minusEnabled, onMinus)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 6.dp)
+                .clickable(role = Role.Button, onClickLabel = "Escribir la cantidad", onClick = onValueClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (editor != null) {
+                editor()
+            } else {
+                Row {
+                    LoggerFitText(
+                        text = value,
+                        style = AmountStyle,
+                        color = LoggerColors.ink,
+                        minSize = 16.sp,
+                        modifier = Modifier.weight(1f, fill = false).alignByBaseline(),
+                    )
+                    if (unit.isNotEmpty()) {
+                        Text(
+                            text = unit,
+                            style = AmountUnitStyle,
+                            color = LoggerColors.faint,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(start = 5.dp).alignByBaseline(),
+                        )
+                    }
+                }
+            }
+        }
+        LoggerRoundStep(KpknLineIcons.Plus, "Más $unit", true, onPlus)
+    }
+}
+
+@Composable
+private fun LoggerRoundStep(icon: ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.38f }
+            .clip(CircleShape)
+            .background(LoggerColors.surface3, CircleShape)
+            .clickable(role = Role.Button, enabled = enabled, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = LoggerColors.ink)
+    }
+}
+
+/**
+ * `.np-seg`: pista superficie 2, radio 18, 4 dp de relleno y 3 entre tramos; cada tramo de 38 dp como mínimo, radio 14, con su
+ * [smalls] debajo si lo hay. Elegido: tinta con texto negro; con [soft] (`.np-seg.soft`), superficie 3 con texto tinta. Sin [selected],
+ * ninguno marcado.
+ */
+@Composable
+private fun LoggerSegmented(
+    labels: List<String>,
+    selected: Int?,
+    soft: Boolean,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    smalls: List<String>? = null,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(LoggerColors.surface2)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        labels.forEachIndexed { index, label ->
+            val on = index == selected
+            val fill = when {
+                !on -> Color.Transparent
+                soft -> LoggerColors.surface3
+                else -> LoggerColors.ink
+            }
+            val ink = when {
+                !on -> LoggerColors.muted
+                soft -> LoggerColors.ink
+                else -> LoggerColors.onInk
+            }
+            val smallInk = if (on && !soft) LoggerColors.onInk.copy(alpha = 0.73f) else LoggerColors.faint
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .defaultMinSize(minHeight = 38.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(fill)
+                    .selectable(selected = on, role = Role.RadioButton, onClick = { onSelect(index) })
+                    .padding(horizontal = 2.dp, vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                LoggerFitText(
+                    text = label,
+                    style = SegmentStyle.copy(fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium),
+                    color = ink,
+                    minSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                )
+                smalls?.getOrNull(index)?.let { small ->
+                    LoggerFitText(
+                        text = small,
+                        style = SegmentSmallStyle.copy(fontFeatureSettings = "'lnum' 1, 'tnum' 1"),
+                        color = smallInk,
+                        minSize = 10.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** `.np-prep`: chips de texto de 38 dp (superficie 2; elegida, tinta con texto negro), 6 dp entre ellas, sin iconos. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LoggerPreparationChips(
+    preparations: List<FoodPreparation>,
+    selected: FoodPreparation?,
+    onSelect: (FoodPreparation) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        preparations.forEach { preparation ->
+            val on = preparation == selected
+            val shape = RoundedCornerShape(19.dp)
+            Box(
+                modifier = Modifier
+                    .height(38.dp)
+                    .clip(shape)
+                    .background(if (on) LoggerColors.ink else LoggerColors.surface2, shape)
+                    .selectable(selected = on, role = Role.RadioButton, onClick = { if (!on) onSelect(preparation) })
+                    .padding(horizontal = 15.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = preparation.label,
+                    style = PrepStyle.copy(fontWeight = if (on) FontWeight.SemiBold else FontWeight.Medium),
+                    color = if (on) LoggerColors.onInk else LoggerColors.muted,
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
         }
     }
 }
 
 /**
- * Una cifra de «Aporta» (`.kpi`): valor en Syne 16 y su nombre debajo. Al tocarla se escribe con el teclado numérico; se aplica al
- * confirmar o al salir del campo.
+ * «Aporta» (`.np-mod` en la hoja): «APORTA» con los gramos a la derecha; las kcal en Syne 30 con «kcal»; la barra apilada de 8 dp en
+ * los tres tonos de tinta; las tres columnas de macros. Tocar cualquier cifra la deja corregir a mano.
  */
 @Composable
-private fun LoggerKpiField(value: Double, unit: String, label: String, modifier: Modifier = Modifier, onCommit: (Double) -> Unit) {
+private fun LoggerContribution(state: LoggerFoodSheetState, massUnit: String, onMacroChange: (LoggerMacro, Double) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Aporta".uppercase(java.util.Locale.forLanguageTag("es")),
+                style = LoggerText.eyebrow,
+                color = LoggerColors.muted,
+                modifier = Modifier.weight(1f),
+            )
+            Text(text = "${state.grams.roundToInt()} $massUnit", style = LoggerText.cap, color = LoggerColors.faint, maxLines = 1)
+        }
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+            LoggerEditableFigure(
+                shown = loggerThousands(state.kcal),
+                draftOf = state.kcal.toString(),
+                style = LoggerText.total,
+                minSize = 20.sp,
+                description = "kcal: ${state.kcal}. Corregir",
+                onCommit = { onMacroChange(LoggerMacro.CALORIES, it) },
+                modifier = Modifier.weight(1f, fill = false).alignByBaseline(),
+            )
+            Text(
+                text = "kcal",
+                style = KcalUnitStyle,
+                color = LoggerColors.faint,
+                modifier = Modifier.padding(start = 6.dp).alignByBaseline(),
+            )
+        }
+        LoggerMacroSplitBar(
+            protein = state.protein,
+            carbs = state.carbs,
+            fats = state.fats,
+            height = 8.dp,
+            modifier = Modifier.padding(top = 14.dp, bottom = 12.dp),
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(
+                Triple(LoggerMacro.PROTEIN, state.protein, "Proteína" to LoggerColors.macroP),
+                Triple(LoggerMacro.CARBS, state.carbs, "Carbos" to LoggerColors.macroC),
+                Triple(LoggerMacro.FATS, state.fats, "Grasa" to LoggerColors.macroF),
+            ).forEach { (macro, grams, named) ->
+                Column(modifier = Modifier.weight(1f)) {
+                    LoggerEditableFigure(
+                        shown = "${grams.roundToInt()} g",
+                        draftOf = grams.roundToInt().toString(),
+                        style = LoggerText.number(16f),
+                        minSize = 12.sp,
+                        description = "${named.first}: ${grams.roundToInt()} g. Corregir",
+                        onCommit = { onMacroChange(macro, it) },
+                    )
+                    Row(modifier = Modifier.padding(top = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(named.second))
+                        Text(
+                            text = named.first,
+                            style = LoggerText.cap,
+                            color = LoggerColors.faint,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(start = 6.dp),
+                        )
+                    }
+                }
+            }
+        }
+        Text(
+            text = "Toca una cifra para corregirla a mano.",
+            style = LoggerText.cap,
+            color = LoggerColors.faint,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+    }
+}
+
+/** Una cifra de «Aporta» que se encoge si no cabe y que, al tocarla, se escribe con el teclado numérico (se aplica con «Listo»). */
+@Composable
+private fun LoggerEditableFigure(
+    shown: String,
+    draftOf: String,
+    style: TextStyle,
+    minSize: androidx.compose.ui.unit.TextUnit,
+    description: String,
+    onCommit: (Double) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var editing by remember { mutableStateOf(false) }
-    var draft by remember(value) { mutableStateOf(value.roundToInt().toString()) }
-    val shown = if (unit == "kcal") value.roundToInt().toString() else "${value.roundToInt()} g"
-    val shape = RoundedCornerShape(16.dp)
-    Column(
+    var draft by remember(draftOf, editing) { mutableStateOf(draftOf) }
+    Box(
         modifier = modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = 0.04f), shape)
             .clickable(role = Role.Button) { editing = true }
-            .semantics { contentDescription = "$label: $shown. Corregir" }
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .semantics { contentDescription = description },
     ) {
         if (editing) {
             BasicTextField(
                 value = draft,
                 onValueChange = { text -> draft = text.filter { it.isDigit() || it == ',' || it == '.' }.take(5) },
                 singleLine = true,
-                textStyle = KpiValueStyle.copy(color = LoggerColors.ink),
+                textStyle = style.copy(color = LoggerColors.ink),
                 cursorBrush = SolidColor(LoggerColors.ink),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
                     draft.replace(',', '.').toDoubleOrNull()?.let { onCommit(it.coerceAtLeast(0.0)) }
                     editing = false
                 }),
+                modifier = Modifier.width(110.dp),
             )
         } else {
-            Text(text = shown, style = KpiValueStyle, color = LoggerColors.ink, maxLines = 1)
+            LoggerFitText(text = shown, style = style, color = LoggerColors.ink, minSize = minSize)
         }
-        Text(text = label, style = LoggerText.cap, color = LoggerColors.faint, maxLines = 1)
     }
 }
 

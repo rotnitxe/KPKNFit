@@ -36,6 +36,12 @@ sealed class KpknRoute(val route: String) {
         const val ARG_PROGRAM_ID = "programId"
     }
 
+    /** «Tus últimas 4 semanas» de un programa (Arreglos v1, p-4w): se abre desde Progreso de Program Detail. */
+    object ProgramFourWeeks : KpknRoute("program-four-weeks/{programId}") {
+        fun create(programId: String): String = "program-four-weeks/${Uri.encode(programId)}"
+        const val ARG_PROGRAM_ID = "programId"
+    }
+
     /**
      * Editor de programa DIRECTO (post-alta): única puerta de creación/edición
      * del programa sin wizard de módulo. [programId] null o vacío = alta nueva;

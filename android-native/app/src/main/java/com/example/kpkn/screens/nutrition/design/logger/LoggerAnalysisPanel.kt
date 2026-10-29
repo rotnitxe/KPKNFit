@@ -16,7 +16,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -104,22 +102,14 @@ fun LoggerAnalysisPanel(
     height: Dp = 250.dp,
 ) {
     val reduced = wizardReducedMotion()
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(24.dp)
     val (title, small) = loggerAnalysisMessage(text, readingIndex)
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
             .clip(shape)
-            .background(
-                Brush.radialGradient(
-                    0f to LoggerColors.mus.copy(alpha = 0.078f),
-                    0.7f to Color(0xFF0C0C0C),
-                    1f to Color(0xFF0C0C0C),
-                ),
-                shape,
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.07f), shape)
+            .background(LoggerColors.surface1, shape)
             .semantics { contentDescription = "Analizando la comida" },
     ) {
         LoggerPlate(
@@ -195,17 +185,13 @@ private fun LoggerPlate(icons: List<ImageVector>, reduced: Boolean, modifier: Mo
             )
             val arcTopLeft = Offset(c.x - 90f * u, c.y - 90f * u)
             val arcSize = Size(180f * u, 180f * u)
-            // El brillo del arco (drop-shadow de 6 px): el mismo trazo más ancho y transparente debajo.
+            // Sin brillo ni acento: el arco y el punto van en tinta (el acento es solo para las dudas).
             drawArc(
-                LoggerColors.mus.copy(alpha = 0.22f), startAngle = 180f, sweepAngle = 180f * draw[2].value, useCenter = false,
-                topLeft = arcTopLeft, size = arcSize, style = Stroke(8f * u, cap = StrokeCap.Round),
-            )
-            drawArc(
-                LoggerColors.mus, startAngle = 180f, sweepAngle = 180f * draw[2].value, useCenter = false,
+                LoggerColors.macroP, startAngle = 180f, sweepAngle = 180f * draw[2].value, useCenter = false,
                 topLeft = arcTopLeft, size = arcSize, style = Stroke(2f * u, cap = StrokeCap.Round),
             )
             rotate(orbit, pivot = c) {
-                drawCircle(LoggerColors.mus, radius = 3f * u, center = Offset(150f * u, 40f * u))
+                drawCircle(LoggerColors.macroP, radius = 3f * u, center = Offset(150f * u, 40f * u))
             }
         }
         icons.forEachIndexed { index, icon ->

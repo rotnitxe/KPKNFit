@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.progress.LiftTrend
 import com.example.kpkn.domain.training.progress.LiftTrendEngine
@@ -16,7 +18,11 @@ import com.example.kpkn.domain.training.progress.WeeklyWorkEngine
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.programdetail.design.programPhaseColor
 import com.example.kpkn.screens.programdetail.design.programPhaseOf
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import kotlin.math.roundToInt
 
 /*
@@ -33,6 +39,12 @@ private const val MAX_LIFT_ROWS = 5
 
 /** Semanas de estancamiento que se dan por buenas si el motor no las calcula. */
 private const val DEFAULT_STALLED_WEEKS = 3
+
+/** Semanas de calendario que enseñan como mucho la gráfica, el cumplimiento y el esfuerzo de una rutina (las últimas). */
+internal const val ROUTINE_MAX_WEEKS = 12
+
+/** Nombre del alcance de semana en una rutina: la semana de calendario de hoy. */
+internal const val ROUTINE_WEEK_LABEL = "Esta semana"
 
 /** Alcance de la pestaña: el programa entero, un bloque o una semana. */
 internal enum class ProgressScope { PROGRAM, BLOCK, WEEK }
@@ -120,6 +132,8 @@ internal data class ProgramProgressUi(
     val discomforts: ProgressDiscomforts?,
     /** Detalle de cada ejercicio de la lista, por su [ProgressLiftRow.key]. */
     val liftDetails: Map<String, ProgressLiftDetail>,
+    /** Una rutina cuenta por semana de calendario: su alcance de semana es «Esta semana». */
+    val isRoutine: Boolean = false,
 ) {
     /** Ejercicios con sesiones en el alcance. */
     val allLiftsCount: Int
@@ -130,7 +144,10 @@ internal data class ProgramProgressUi(
  * Calcula la pestaña Progreso de [program] para [scope]. Solo cuentan los [logs] del programa cuya semana está en el alcance. Una
  * semana ha empezado si va antes de [currentWeekId] o es esa misma; si [currentWeekId] no está en el programa, han empezado todas.
  * [selectedBlockId] y [selectedWeekId] fijan el alcance de bloque o de semana. [maxLifts] pone el tope de filas de la lista de fuerza.
- * [today] fecha las mejores series del detalle de cada ejercicio («Hoy»).
+ * [today] fecha las mejores series del detalle de cada ejercicio («Hoy») y, en una rutina, la semana de calendario actual.
+ *
+ * Una rutina (programa simple de una sola semana que se repite) cuenta por semana de calendario ([routineCalendarOf]): si no, todas sus
+ * repeticiones caerían en «S1» («178 / 127» series). Su alcance de semana es la semana de hoy, sea cual sea [selectedWeekId].
  */
 internal fun buildProgramProgress(
     program: Program,
@@ -142,15 +159,22 @@ internal fun buildProgramProgress(
     maxLifts: Int = MAX_LIFT_ROWS,
     today: LocalDate = LocalDate.now(),
 ): ProgramProgressUi {
-    val programWeeks = progressWeeksOf(program)
-    val currentPosition = programWeeks.indexOfFirst { it.id == currentWeekId }
+    val baseWeeks = progressWeeksOf(program)
+    val ownLogs = logs.filter { it.programId == program.id && it.weekId != null }
+    val routine = if (program.isSimpleProgram && baseWeeks.size == 1) routineCalendarOf(baseWeeks.single(), ownLogs, today) else null
+    val programWeeks = routine?.weeks ?: baseWeeks
+    val programLogs = routine?.logs ?: ownLogs
+    val nowWeekId = routine?.currentWeekId ?: currentWeekId
+    val pickedWeekId = routine?.currentWeekId ?: selectedWeekId
+    val currentPosition = programWeeks.indexOfFirst { it.id == nowWeekId }
     val scopeWeeks = when (scope) {
         ProgressScope.PROGRAM -> programWeeks
         ProgressScope.BLOCK -> programWeeks.filter { it.blockId == selectedBlockId }
-        ProgressScope.WEEK -> programWeeks.filter { it.id == selectedWeekId }
+        ProgressScope.WEEK -> programWeeks.filter { it.id == pickedWeekId }
     }
+    // Lo que se dibuja semana a semana (gráficas, cumplimiento, esfuerzo): en una rutina, solo sus últimas semanas.
+    val shownWeeks = if (routine != null) scopeWeeks.takeLast(ROUTINE_MAX_WEEKS) else scopeWeeks
     val scopeWeekIds = scopeWeeks.mapTo(HashSet()) { it.id }
-    val programLogs = logs.filter { it.programId == program.id && it.weekId != null }
     val scopeLogs = programLogs.filter { it.weekId in scopeWeekIds }
     // Sin semana actual en el programa, currentPosition es -1 y todas las semanas cuentan como empezadas.
     val started = scopeWeeks.filter { currentPosition < 0 || it.position <= currentPosition }
@@ -165,18 +189,18 @@ internal fun buildProgramProgress(
     val trends = LiftTrendEngine.trends(scopeLogs).filter { it.sessions > 0 }.sortedByDescending { it.sessions }
     val sessionsByLift = liftSessionsOf(scopeLogs)
     val rows = trends.map { it.toRow(sessionsByLift[it.exerciseKey].orEmpty()) }
-    val bars = scopeWeeks.map { week ->
+    val bars = shownWeeks.map { week ->
         ProgressWeekBar(
             label = "S${week.position + 1}",
             done = doneOf(week),
             planned = week.plannedSets,
             color = week.color,
-            isCurrent = week.id == currentWeekId,
+            isCurrent = week.id == nowWeekId,
         )
     }
     val loggedSessions = scopeLogs.mapTo(HashSet()) { it.weekId to it.sessionId }
     val shortfall = started.firstOrNull { week ->
-        week.id != currentWeekId && week.plannedSets - doneOf(week) > SHORTFALL_SETS
+        week in shownWeeks && week.id != nowWeekId && week.plannedSets - doneOf(week) > SHORTFALL_SETS
     }
     val kpis = ProgressKpis(
         sessionsDone = loggedSessions.size,
@@ -188,7 +212,8 @@ internal fun buildProgramProgress(
     val early = trends.none { it.status != LiftTrendStatus.NO_TREND }
     val deloadWeek = programWeeks.firstOrNull { it.isDeload && (currentPosition < 0 || it.position > currentPosition) }
     return ProgramProgressUi(
-        periodLabel = periodLabelOf(started),
+        // En una rutina, «Semana N» chocaría con el número de ciclo de la cabecera: su única semana es «Esta semana».
+        periodLabel = if (routine != null && (scope == ProgressScope.WEEK || started.size == 1)) ROUTINE_WEEK_LABEL else periodLabelOf(started),
         headline = headlineOf(hasLogs = scopeLogs.isNotEmpty(), trends = trends),
         early = early,
         kpis = kpis,
@@ -197,8 +222,8 @@ internal fun buildProgramProgress(
             programLogs = programLogs,
             scope = scope,
             selectedBlockId = selectedBlockId,
-            selectedWeekId = selectedWeekId,
-            currentWeekId = currentWeekId,
+            selectedWeekId = pickedWeekId,
+            currentWeekId = nowWeekId,
         ) ?: periodFooterOf(started.size),
         lifts = rows.take(maxLifts),
         allLifts = rows,
@@ -212,20 +237,20 @@ internal fun buildProgramProgress(
             weeks = if (scope == ProgressScope.WEEK) {
                 emptyList()
             } else {
-                scopeWeeks.map { week ->
-                    ProgressTonnageBar("S${week.position + 1}", workByWeek[week.id]?.tonnageKg ?: 0.0, week.id == currentWeekId)
+                shownWeeks.map { week ->
+                    ProgressTonnageBar("S${week.position + 1}", workByWeek[week.id]?.tonnageKg ?: 0.0, week.id == nowWeekId)
                 }
             },
         ),
         adherence = progressAdherenceOf(
-            scopeWeeks = scopeWeeks,
+            scopeWeeks = shownWeeks,
             currentPosition = currentPosition,
-            currentWeekId = currentWeekId,
+            currentWeekId = nowWeekId,
             loggedSessions = loggedSessions,
             compliancePct = kpis.compliancePct,
             scopeLogs = scopeLogs,
         ),
-        effort = progressEffortOf(scopeWeeks, work),
+        effort = progressEffortOf(shownWeeks, work),
         discomforts = progressDiscomfortsOf(scopeLogs, startedWeeks = started.size),
         liftDetails = rows.associate { row ->
             row.key to buildLiftDetail(
@@ -235,10 +260,12 @@ internal fun buildProgramProgress(
                 weekNumberOf = { weekId -> programWeeks.firstOrNull { it.id == weekId }?.let { it.position + 1 } },
                 deloadWeekNumber = deloadWeek?.let { it.position + 1 },
                 program = program,
-                currentPosition = currentPosition,
+                // En una rutina, la única semana del plan es la de cualquier semana de calendario.
+                currentPosition = if (routine != null) 0 else currentPosition,
                 today = today,
             )
         },
+        isRoutine = routine != null,
     )
 }
 
@@ -295,6 +322,39 @@ internal fun progressWeeksOf(program: Program): List<ProgressScopeWeek> {
     }
     return weeks
 }
+
+/** Una rutina contada por semana de calendario: sus semanas, sus registros llevados a la semana de su fecha y la semana de hoy. */
+internal data class RoutineCalendar(val weeks: List<ProgressScopeWeek>, val logs: List<WorkoutLog>, val currentWeekId: String)
+
+/**
+ * Una rutina repite [template] semana tras semana: cada semana de calendario (de lunes a domingo), desde la del primer registro hasta la
+ * de [today], es una semana del alcance con lo previsto de [template] y su posición (0 = la primera). Cada registro pasa a la semana de
+ * su fecha (la real si la hay); los que no tienen fecha legible no cuentan. Sin registros, solo la semana de hoy.
+ */
+internal fun routineCalendarOf(
+    template: ProgressScopeWeek,
+    logs: List<WorkoutLog>,
+    today: LocalDate,
+    zone: ZoneId = ZoneId.systemDefault(),
+): RoutineCalendar {
+    fun mondayOf(date: LocalDate): LocalDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    fun idOf(monday: LocalDate): String = "${template.id}@$monday"
+    val thisWeek = mondayOf(today)
+    val dated = logs.mapNotNull { log -> logLocalDate(log, zone)?.let { log to mondayOf(it) } }
+    val first = dated.minOfOrNull { it.second }?.takeIf { !it.isAfter(thisWeek) } ?: thisWeek
+    val count = ChronoUnit.WEEKS.between(first, thisWeek).toInt() + 1
+    val weeks = (0 until count).map { index -> template.copy(id = idOf(first.plusWeeks(index.toLong())), position = index) }
+    return RoutineCalendar(
+        weeks = weeks,
+        logs = dated.map { (log, monday) -> log.copy(weekId = idOf(monday)) },
+        currentWeekId = idOf(thisWeek),
+    )
+}
+
+/** El día de un registro: su fecha real si la tiene; si no, la del registro en la zona del teléfono. */
+private fun logLocalDate(log: WorkoutLog, zone: ZoneId): LocalDate? =
+    log.actualDate?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: ActivityLocalDate.fromInstantIsoOrDatePrefixOrNull(log.date, zone)
 
 /** Eyebrow del resumen: con una sola semana empezada, su número («Semana 1»); si no, cuántas («En 4 semanas»). */
 private fun periodLabelOf(started: List<ProgressScopeWeek>): String = when (started.size) {

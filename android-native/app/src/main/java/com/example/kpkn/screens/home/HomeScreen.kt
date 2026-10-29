@@ -228,7 +228,6 @@ fun HomeScreen(
                             showNutritionOverlay = false
                             showFoodLogger = true
                         },
-                        showAddMeal = !com.example.kpkn.screens.home.design.homeShowsQuickLogger(showNutrition, uiState.dailyCalorieGoal),
                     )
                 }
             } else {
@@ -384,61 +383,6 @@ fun HomeScreen(
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
         KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
 
-        // Registros v4 (F-D5, f-home…f-home-done): con plan de nutrición, la barra «¿Qué comiste?» registra sin salir de Inicio. Lo
-        // escrito abre la media hoja; al guardar, la hoja baja y queda el aviso con «Deshacer» 4 s. Sin plan, Inicio queda como estaba.
-        var quickLoggerText by rememberSaveable { mutableStateOf("") }
-        var quickLoggerDescription by rememberSaveable { mutableStateOf<String?>(null) }
-        var quickLoggerSaved by remember { mutableStateOf<NutritionLog?>(null) }
-        val quickLoggerDictation = com.example.kpkn.screens.nutrition.design.logger.rememberLoggerDictation(
-            current = { quickLoggerText },
-            onText = { quickLoggerText = it },
-        )
-        LaunchedEffect(quickLoggerSaved) {
-            if (quickLoggerSaved != null) {
-                kotlinx.coroutines.delay(4_000)
-                quickLoggerSaved = null
-            }
-        }
-        if (com.example.kpkn.screens.home.design.homeShowsQuickLogger(showNutrition, uiState.dailyCalorieGoal) && !showFoodLogger) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .imePadding()
-                    .navigationBarsPadding()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 86.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                quickLoggerSaved?.let { saved ->
-                    com.example.kpkn.screens.nutrition.design.logger.LoggerToast(
-                        message = com.example.kpkn.screens.nutrition.design.logger.loggerSavedTitle(saved.mealType) + " · " +
-                            com.example.kpkn.screens.nutrition.design.logger.loggerThousands(
-                                kotlin.math.round(saved.foods.sumOf { it.calories }).toInt(),
-                            ) + " kcal",
-                        actionLabel = "Deshacer",
-                        onAction = {
-                            nutritionRepo.deleteNutritionLog(saved.id)
-                            quickLoggerSaved = null
-                        },
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                    )
-                }
-                com.example.kpkn.screens.home.design.HomeQuickLoggerBar(
-                    text = quickLoggerText,
-                    onTextChange = { quickLoggerText = it },
-                    onAnalyze = {
-                        if (quickLoggerText.isNotBlank()) {
-                            quickLoggerDescription = quickLoggerText.trim()
-                            loggerMealChoice = null
-                            showFoodLogger = true
-                        }
-                    },
-                    onDictate = { quickLoggerDictation.toggle() },
-                    listening = quickLoggerDictation.listening,
-                )
-            }
-        }
-
         if (showFoodLogger) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
             // resto del estado (la semilla del borrador manda de todos modos al restaurar).
@@ -451,17 +395,9 @@ fun HomeScreen(
                 onDismiss = {
                     showFoodLogger = false
                     loggerMealChoice = null
-                    quickLoggerDescription = null
                 },
-                quickDescription = quickLoggerDescription,
                 dailyKcalTarget = if (showNutrition) uiState.dailyCalorieGoal else null,
-                onSaved = { saved ->
-                    if (quickLoggerDescription != null) {
-                        quickLoggerText = ""
-                        quickLoggerSaved = saved
-                    }
-                    nutritionSavedPulse++
-                },
+                onSaved = { nutritionSavedPulse++ },
             )
         }
     }
@@ -483,8 +419,6 @@ private fun HomeFoodLoggerHost(
     nutritionRepo: NutritionRepository,
     selectedMealForLogger: MealType,
     onDismiss: () -> Unit,
-    /** Lo escrito en la barra «¿Qué comiste?»: abre la media hoja (QUICK) y lo analiza; null abre el registro completo. */
-    quickDescription: String? = null,
     dailyKcalTarget: Int? = null,
     onSaved: (NutritionLog) -> Unit = {},
 ) {
@@ -505,13 +439,7 @@ private fun HomeFoodLoggerHost(
         foodDatabase = foodDatabase,
         initialDate = LocalDate.now().toString(),
         initialMealType = selectedMealForLogger,
-        initialDescription = quickDescription,
         initialTab = 0,
-        presentation = if (quickDescription != null) {
-            com.example.kpkn.screens.nutrition.components.FoodLoggerPresentation.QUICK
-        } else {
-            com.example.kpkn.screens.nutrition.components.FoodLoggerPresentation.FULL
-        },
         dailyKcalTarget = dailyKcalTarget,
         onSaved = onSaved,
         mealFootprint = { mealName, foods ->
@@ -521,7 +449,6 @@ private fun HomeFoodLoggerHost(
         catalogFootprint = { food, grams, completeWithOwnFood ->
             com.example.kpkn.screens.nutrition.nutrients.NutrientCatalogSlot(food, grams, driProfile, energyKcal, completeWithOwnFood)
         },
-        homeLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.NutrientHomeSlot(foods, driProfile, energyKcal) },
         savedNutrientsLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.nutrientSavedLineOf(foods, driProfile, energyKcal) },
     )
 }
@@ -1267,7 +1194,6 @@ internal fun NutritionTodayGlassOverlay(
     meals: List<NutritionLog>,
     onDismiss: () -> Unit,
     onAddMeal: () -> Unit,
-    showAddMeal: Boolean = true,
 ) {
     // Capa abierta: la isla superior se oculta mientras esté, como con una hoja o un diálogo (I12).
     DisposableEffect(Unit) {
@@ -1351,14 +1277,11 @@ internal fun NutritionTodayGlassOverlay(
                         }
                     }
                 }
-                // Registros v4 (F-D5): con plan, registra la barra «¿Qué comiste?» de Inicio y la píldora no se pinta.
-                if (showAddMeal) {
-                    HomePrimaryPill(
-                        text = "Registrar comida",
-                        onClick = onAddMeal,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                HomePrimaryPill(
+                    text = "Registrar comida",
+                    onClick = onAddMeal,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
