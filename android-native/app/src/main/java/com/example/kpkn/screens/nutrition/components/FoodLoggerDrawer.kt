@@ -6,6 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
@@ -112,7 +117,6 @@ import com.example.kpkn.screens.nutrition.scan.CameraPreviewSurface
 import com.example.kpkn.screens.nutrition.scan.rememberCameraBarcodeSource
 import com.example.kpkn.screens.nutrition.scan.scannedFoodTag
 import com.example.kpkn.screens.nutrition.reuse.QuickEntryOverlay
-import com.example.kpkn.screens.nutrition.reuse.ReuseLoggerEntries
 import com.example.kpkn.screens.nutrition.reuse.TemplatesSheet
 import com.example.kpkn.screens.nutrition.recipes.RecipeLibraryOverlay
 import com.example.kpkn.domain.nutrition.MealReuse
@@ -138,12 +142,7 @@ private const val CORRECTION_SEARCH_DEBOUNCE_MS = 250L
 private const val SAVE_FAILED_MESSAGE = "No se pudo guardar la comida. Tu borrador sigue aquí; vuelve a intentarlo."
 
 /** El nombre de una porción tal como se le muestra al usuario: nunca el identificador `SMALL`/`MEDIUM`/`LARGE`. */
-internal fun portionPresetLabel(preset: PortionPreset): String = when (preset) {
-    PortionPreset.SMALL -> "Pequeño"
-    PortionPreset.MEDIUM -> "Mediano"
-    PortionPreset.LARGE -> "Grande"
-    PortionPreset.EXTRA -> "Extra"
-}
+internal fun portionPresetLabel(preset: PortionPreset): String = loggerSizeLabel(preset)
 
 /** CRI-ANALYSIS: fragmento corto y seguro (errorType: mensaje) para mostrar en avisos
  *  de fallo. On-device, truncado; ayuda a diagnosticar la causa raíz. Puro y top-level
@@ -164,6 +163,9 @@ internal data class AnalysisNotice(
     val technicalDetail: String? = null,
 )
 
+/** Cómo se abre el registro: la página entera (f-*, s-*) o la media hoja de Inicio (f-home-ana, f-home-res). */
+enum class FoodLoggerPresentation { FULL, QUICK }
+
 // ─── Composable ──────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -180,6 +182,18 @@ fun FoodLoggerDrawer(
     initialTab: Int = 0,
     /** WP-U11: a registered meal to edit; the sheet opens with its foods as decided cards and saves over the same id. */
     initialLog: NutritionLog? = null,
+    /** QUICK: la media hoja de Inicio, que se puede abrir completa («Abrir completo»). */
+    presentation: FoodLoggerPresentation = FoodLoggerPresentation.FULL,
+    /** El objetivo de calorías del día: el aro de la tarjeta resumen y «te quedan N para hoy». Sin plan, null. */
+    dailyKcalTarget: Int? = null,
+    /** Lo guardado, después de guardar (Inicio enseña su aviso con «Deshacer»). */
+    onSaved: ((NutritionLog) -> Unit)? = null,
+    /** Punto de conexión: la huella de vitaminas y minerales de la comida (f-result), bajo la tarjeta resumen. */
+    mealFootprint: (@Composable (List<LoggedFood>) -> Unit)? = null,
+    /** Punto de conexión: la huella de un alimento en su hoja de ajuste (f-edit). */
+    foodFootprint: (@Composable (LoggedFood) -> Unit)? = null,
+    /** Punto de conexión: la huella de una ficha del buscador (s-detail) para los gramos elegidos. */
+    catalogFootprint: (@Composable (FoodItem, Double) -> Unit)? = null,
 ) {
     val programRepo = ProgramRepository.getInstance()
     val settings by programRepo.settings.collectAsState()
@@ -282,6 +296,8 @@ fun FoodLoggerDrawer(
     var utensilValues by remember(draft) { draft::utensilValues }
 
     val listState = rememberLazyListState()
+    // Registros v4: estado de la pantalla (no del borrador): filtro de búsqueda, hojas abiertas, avisos y respuestas recién elegidas.
+    var searchFilter by remember { mutableStateOf(LoggerSearchFilter.ALL) }
     val keepEditing: () -> Unit = {
         showDiscardConfirmation = false
         // The sheet animates offscreen before requesting dismissal. Recreate only
@@ -309,16 +325,8 @@ fun FoodLoggerDrawer(
         if (isAnalyzing) {
             analysisSeenHere = true
         } else if (analysisSeenHere && tags.isNotEmpty()) {
-            val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
-            listState.animateScrollToItem(lastIndex)
-        }
-    }
-
-    // C21: an error or a notice shows where the primary action is (the last item), never above the fold.
-    LaunchedEffect(saveError, analysisNotice, errorPulse) {
-        if (saveError != null || analysisNotice != null) {
-            val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
-            listState.animateScrollToItem(lastIndex)
+            // Registros v4 (f-result): el resultado se lee desde arriba (texto, dudas, resumen y tarjetas); los errores van en el aviso.
+            listState.animateScrollToItem(0)
         }
     }
 
@@ -915,6 +923,7 @@ fun FoodLoggerDrawer(
             "maíz", "maiz" -> "tortilla de maíz"
             "huevo" -> "tortilla de huevo"
             "papas", "patatas" -> "tortilla de papas"
+            "trigo" -> "tortilla de trigo"
             else -> return
         }
         val draftId = draftLogId
@@ -1272,7 +1281,8 @@ fun FoodLoggerDrawer(
         searchJob = scope.launch {
             // Vocabulario v2, lo propio y lo aprendido, el buscador anterior y los productos del paquete: todas las filas pasan
             // el filtro del registro (nutrientes verificables e identidad declarada) antes del límite.
-            val results = nutritionRepo.searchLoggerCandidates(query, limit = 20)
+            // S-D5: los filtros filtran la lista del buscador; con uno activo se piden más filas para que queden suficientes.
+            val results = nutritionRepo.searchLoggerCandidates(query, limit = if (searchFilter == LoggerSearchFilter.ALL) 20 else 60)
                 .distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
             if (searchQuery == query) {
                 searchResults = results
@@ -1292,12 +1302,24 @@ fun FoodLoggerDrawer(
         }
     }
 
+    // f-saved: lo guardado y lo que queda del día («548 kcal · te quedan 1.752 para hoy»).
+    val allLogs by nutritionRepo.nutritionLogs.collectAsState()
+    var savedLogSnapshot by remember { mutableStateOf<NutritionLog?>(null) }
+    var savedKcal by remember { mutableIntStateOf(0) }
+    var savedRemaining by remember { mutableStateOf<Int?>(null) }
+
     fun saveLog() {
         if (isSaving || showSuccess) return
+        // Registros v4 (f-result): se guarda con la respuesta por defecto de cada duda (la estimación central, «≈» en la tarjeta).
+        val defaulted = tags.count { !it.isExcluded && NutritionInterpretationBridge.canAcceptEstimate(it) }
+        if (defaulted > 0) {
+            NutritionTelemetry.event("clarification_answered", mapOf("kind" to "default_on_save", "count" to defaulted))
+            tags = NutritionInterpretationBridge.acceptAllEstimates(tags)
+        }
         val activeTags = tags.filterNot { it.isExcluded }
         if (activeTags.isEmpty() || activeTags.any { it.loggedFood == null || it.interpretationV2?.canFinalize() != true }) {
             reviewRequired = true
-            saveError = "Resuelve la duda pendiente o acepta la estimación antes de guardar."
+            saveError = "Ajusta la cantidad de lo que no pude leer antes de guardar."
             return
         }
         val foods = activeTags.map { tag -> tag.interpretationV2!!.toLoggedFood(tag.loggedFood!!) }
@@ -1318,6 +1340,13 @@ fun FoodLoggerDrawer(
         scope.launch {
             try {
                 onSave(log, confirmations)
+                val mealKcal = kotlin.math.round(foods.sumOf { it.calories }).toInt()
+                val before = allLogs.filter {
+                    it.date.take(10) == logDate && it.status == NutritionStatus.CONSUMED && it.id != log.id
+                }.sumOf { day -> day.foods.sumOf { it.calories } }
+                savedLogSnapshot = log
+                savedKcal = mealKcal
+                savedRemaining = dailyKcalTarget?.let { target -> target - kotlin.math.round(before).toInt() - mealKcal }
                 NutritionTelemetry.event("save_log", mapOf("foodCount" to foods.size, "tagCount" to activeTags.size, "edited" to (original != null)))
                 showSuccess = true
                 reviewRequired = false
@@ -1332,12 +1361,6 @@ fun FoodLoggerDrawer(
         }
     }
 
-    val visibleKcalRange = remember(tags) {
-        tags.filterNot { it.isExcluded }.mapNotNull { it.interpretationV2 }.takeIf { it.isNotEmpty() }?.let { values ->
-            values.sumOf { it.caloriesMin }.toInt() to values.sumOf { it.caloriesMax }.toInt()
-        }
-    }
-
     val tagTotals = remember(tags) {
         val activeTags = tags.filterNot { it.isExcluded }
         DailyMacroTotals(
@@ -1348,37 +1371,237 @@ fun FoodLoggerDrawer(
         )
     }
 
+    // ─── Registros v4: lo que la pantalla deriva del borrador ─────────────────────
+    val locale = java.util.Locale.forLanguageTag("es")
+    val mealLabel = MealSlots.mealLabel(mealType)
+    val activeTagsNow = tags.filterNot { it.isExcluded }
+    val hasTagsNow = tags.isNotEmpty()
+    val pendingCount = activeTagsNow.count { it.interpretationV2?.pendingQuestions?.isNotEmpty() == true }
+    // Lo que no se puede guardar ni con la estimación: la cantidad que no se pudo leer o un alimento sin datos.
+    val blockingCount = activeTagsNow.count { tag ->
+        (tag.loggedFood == null || tag.interpretationV2?.canFinalize() != true) && !NutritionInterpretationBridge.canAcceptEstimate(tag)
+    }
+    val descriptionEditedNow = FoodLoggerPrimaryAction.isDescriptionEdited(
+        current = description,
+        lastAnalyzed = lastAnalyzedDescription,
+        hasTags = hasTagsNow,
+        describeTab = activeTab == 0,
+    )
+    val analyzeLabel = FoodLoggerPrimaryAction.label(hasTags = false, descriptionEdited = descriptionEditedNow, isSearchMode = false)
+    val kcalNow = kotlin.math.round(tagTotals.calories).toInt()
+    val readingIndex = rememberLoggerReadingIndex(description, isAnalyzing)
+    val foodMentions = remember(tags) { tags.filterNot { it.origin.isPinned }.map { it.tag } }
+    val dictation = rememberLoggerDictation(current = { description }, onText = { description = it })
+
+    // El aviso de abajo (lienzo `.toast`): lo añadido o quitado con «Deshacer» durante 4 s, y los errores.
+    var toast by remember { mutableStateOf<LoggerToastData?>(null) }
+    fun showToast(message: String, actionLabel: String? = null, error: Boolean = false, onAction: (() -> Unit)? = null) {
+        toast = LoggerToastData(System.nanoTime(), message, actionLabel, onAction, error)
+    }
+    LaunchedEffect(toast?.id) {
+        if (toast != null) {
+            delay(4_000)
+            toast = null
+        }
+    }
+    LaunchedEffect(saveError, errorPulse) {
+        val message = saveError ?: return@LaunchedEffect
+        showToast(message, if (message == SAVE_FAILED_MESSAGE) "Reintentar" else null, error = true) {
+            if (message == SAVE_FAILED_MESSAGE) saveLog()
+        }
+        saveError = null
+    }
+    LaunchedEffect(dictation.error) {
+        dictation.error?.let { showToast(it, error = true) }
+        dictation.clearError()
+    }
+
+    // Respuesta recién elegida de una duda: queda marcada un momento antes de plegarse (f-clar).
+    val answered = remember { mutableStateMapOf<String, LoggerQuestion>() }
+    val cookingChoice = remember { mutableStateMapOf<String, LoggerCooking>() }
+    var editingText by remember { mutableStateOf(false) }
+    var sheetTagId by remember { mutableStateOf<String?>(null) }
+    var identityTagId by remember { mutableStateOf<String?>(null) }
+    var identityQuery by remember { mutableStateOf("") }
+    var identityResults by remember { mutableStateOf<List<FoodCandidate>?>(null) }
+    var detailFood by remember { mutableStateOf<FoodItem?>(null) }
+    var showForget by remember { mutableStateOf(false) }
+    var showAllFavorites by remember { mutableStateOf(false) }
+    var createPrefill by remember { mutableStateOf<String?>(null) }
+    var quickExpanded by rememberSaveable { mutableStateOf(false) }
+    var quickAppend by remember { mutableStateOf(false) }
+    val quick = presentation == FoodLoggerPresentation.QUICK && !quickExpanded
+    LaunchedEffect(isAnalyzing) { if (!isAnalyzing) editingText = false }
+
+    // s-loading: la búsqueda va sola al escribir, con 250 ms de espera.
+    LaunchedEffect(searchQuery, searchFilter, activeTab) {
+        if (activeTab != 1) return@LaunchedEffect
+        if (searchQuery.isBlank()) {
+            searchJob?.cancel()
+            searchResults = emptyList()
+            searchedQuery = null
+            return@LaunchedEffect
+        }
+        delay(250)
+        performSearch()
+    }
+    LaunchedEffect(identityQuery, identityTagId) {
+        val target = tags.firstOrNull { it.id == identityTagId }
+        if (target == null || identityQuery.isBlank()) {
+            identityResults = null
+            return@LaunchedEffect
+        }
+        delay(CORRECTION_SEARCH_DEBOUNCE_MS)
+        identityResults = withContext(Dispatchers.Default) {
+            nutritionRepo.searchLoggerCandidates(identityQuery, limit = 15)
+                .filter { FoodIdentity.matchesExclusions(it.food, target.excludedIngredients) }
+                .take(5)
+        }
+    }
+
+    /** Un alimento del buscador, de la ficha o de un atajo entra como una tarjeta más; la ración es la mostrada salvo [gramsOverride]. */
+    fun addSearchFood(selectedFood: FoodItem, gramsOverride: Double? = null) {
+        val queryUsed = searchQuery.ifBlank { selectedFood.name }
+        if (selectedFood.recipe != null) {
+            if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
+                saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+                errorPulse++
+                return
+            }
+            recipeToOpen = selectedFood; editRecipe = false; showRecipes = true
+            return
+        }
+        if (!NutrientBasis.isVerified(selectedFood)) {
+            saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
+            errorPulse++
+            return
+        }
+        if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
+            saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+            errorPulse++
+            return
+        }
+        // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
+        val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
+        val grams = gramsOverride ?: HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
+        val logged = scaleFoodByPortion(identity, amountGrams = grams)
+        val status = HouseholdPortions.operationalAutoStatus(
+            food = identity,
+            grams = grams,
+            brandHint = null,
+            explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
+            amountIntent = AmountIntent.UNSPECIFIED,
+            explicitPick = true,
+        )
+        val tag = NutritionInterpretationBridge.refresh(
+            ResolvedTag(
+                tag = identity.name,
+                portion = PortionPreset.MEDIUM,
+                quantity = 1.0,
+                amountGrams = grams,
+                foodItem = identity,
+                loggedFood = logged,
+                isResolved = status == FoodResolutionStatus.AUTO,
+                statusText = "",
+                hasManualEdits = true,
+                resolutionStatus = status,
+                nutritionSource = NutrientBasis.source(identity),
+                resolutionConfidence = 1.0,
+                origin = TagOrigin.SEARCH,
+            ).copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")),
+        )
+        tags = tags + tag
+        saveError = null
+        showToast("${identity.name.trim().replaceFirstChar { it.uppercase() }} añadido", "Deshacer") {
+            tags = tags.filterNot { it.id == tag.id }
+        }
+    }
+
+    /** Lo ya registrado otra vez (Repetir, Recientes): una tarjeta por alimento con id nuevo, con «Deshacer». */
+    fun addLoggedFoods(foods: List<LoggedFood>, title: String) {
+        val added = foods.map { food -> loggedFoodToEditableTag(food.copy(id = UUID.randomUUID().toString())) }
+        if (added.isEmpty()) return
+        tags = tags + added
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
+        saveError = null
+        val ids = added.map { it.id }.toSet()
+        showToast("$title añadido", "Deshacer") { tags = tags.filterNot { it.id in ids } }
+    }
+
+    fun removeTagWithUndo(tagId: String) {
+        val index = tags.indexOfFirst { it.id == tagId }
+        if (index < 0) return
+        val removed = tags[index]
+        removeTag(tagId)
+        showToast("${tagDisplayName(removed)} quitado", "Deshacer") {
+            tags = tags.toMutableList().apply { add(index.coerceAtMost(size), removed) }
+        }
+    }
+
+    fun identityChoice(tag: ResolvedTag, id: String, requestId: String?) {
+        when {
+            id == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID -> confirmComposition(tag.id)
+            requestId == "cut" -> updateTagCutClarification(tag.id, id)
+            else -> ((tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id }
+                ?: identityResults?.firstOrNull { it.food.id == id }?.food
+                ?: findStaticFoodById(id))
+                ?.let { resolveFood(tag.id, it, identityQuery.takeIf { q -> q.isNotBlank() }) }
+        }
+    }
+
+    /** La respuesta [key] de la duda de [tag] (claves de [LoggerChoiceKeys]). */
+    fun answerQuestion(tag: ResolvedTag, question: ClarificationRequest, shown: LoggerQuestion, key: String) {
+        when {
+            key == LoggerChoiceKeys.MORE -> { identityQuery = ""; identityTagId = tag.id; return }
+            key == LoggerChoiceKeys.ADJUST -> { sheetTagId = tag.id; return }
+            key.startsWith(LoggerChoiceKeys.IDENTITY) -> identityChoice(tag, key.removePrefix(LoggerChoiceKeys.IDENTITY), question.requestId)
+            key.startsWith(LoggerChoiceKeys.COMPOSITION) -> correctTortillaComposition(tag.id, key.removePrefix(LoggerChoiceKeys.COMPOSITION))
+            key == LoggerChoiceKeys.RAW -> updateTagCookingClarification(tag.id, false)
+            key == LoggerChoiceKeys.COOKED -> updateTagCookingClarification(tag.id, true)
+            key.startsWith(LoggerChoiceKeys.OIL) -> updateTagOilLevel(tag.id, key.removePrefix(LoggerChoiceKeys.OIL))
+            key.startsWith(LoggerChoiceKeys.PORTION) -> (question as? ClarificationRequest.Portion)?.options
+                ?.getOrNull(key.removePrefix(LoggerChoiceKeys.PORTION).toIntOrNull() ?: -1)
+                ?.let { applyPortionOption(tag.id, it) }
+        }
+        answered[tag.id] = shown.copy(selectedKey = key)
+    }
+
+    // ─── Hojas, diálogos y avisos (s-settings, s-forget, s-measures, s-date, s-discard) ─────────────
     if (showSettingsDialog) {
-        LoggerSettingsDialog(
-            onAdjustMeasures = {
-                showSettingsDialog = false
+        LoggerSettingsSheet(
+            onMeasures = {
                 utensilValues = currentUtensilValues()
                 showUtensilDialog = true
             },
-            onForgetLearned = {
+            onFavoritesAndRecipes = { recipeToOpen = null; editRecipe = false; showRecipes = true },
+            onForget = { showForget = true },
+            onDismiss = { showSettingsDialog = false },
+        )
+    }
+    if (showForget) {
+        LoggerForgetDialog(
+            onCancel = { showForget = false },
+            onForget = {
+                showForget = false
+                // S-F9: olvida lo aprendido y no toca la comida que se está registrando.
                 scope.launch {
                     try {
                         nutritionRepo.clearLearnedResolutions()
                         learnedMemoryCleared = true
-                        tags = emptyList()
-                        lastAnalyzedDescription = ""
-                        showSettingsDialog = false
+                        showToast("Olvidé lo aprendido")
                     } catch (cancelled: CancellationException) { throw cancelled }
-                    catch (error: Exception) { saveError = "No se pudieron borrar los hábitos. Inténtalo otra vez." }
+                    catch (error: Exception) { saveError = "No se pudo olvidar lo aprendido. Inténtalo otra vez." }
                 }
             },
-            onClose = { showSettingsDialog = false },
         )
     }
-
     if (showUtensilDialog) {
-        LoggerMeasuresDialog(
+        LoggerMeasuresSheet(
             values = utensilValues,
             onValueChange = { key, ml -> utensilValues = utensilValues + (key to ml) },
             onRestore = { utensilValues = SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (_, base) -> base.toFloat() } },
             onSave = {
-                // WP-U12 (C11): solo lo que difiere de la base se guarda; lo que volvió a la base deja de ser un
-                // override (si no, quedaría fijado aunque la base cambie).
+                // WP-U12 (C11): solo lo que difiere de la base se guarda; lo que volvió a la base deja de ser un override.
                 utensilValues.forEach { (key, ml) ->
                     val volume = ml.toDouble()
                     if (volume == SubjectivePortionEngine.UTENSIL_DEFAULTS[key]) {
@@ -1392,59 +1615,9 @@ fun FoodLoggerDrawer(
             onDismiss = { showUtensilDialog = false },
         )
     }
-
-    if (showPrivacyInfo) {
-        LoggerPrivacyDialog(onClose = { showPrivacyInfo = false })
-    }
-
-    val activeTagsForSave = tags.filterNot { it.isExcluded }
-    val saveBlocked = activeTagsForSave.isEmpty() || activeTagsForSave.any { tag ->
-        tag.loggedFood == null || tag.interpretationV2?.canFinalize() != true
-    }
-    val pendingQuestionTagId = activeTagsForSave.firstOrNull { it.interpretationV2?.pendingQuestions?.isNotEmpty() == true }?.id
-
-    // Acción principal de la barra: la de siempre (interpretar, guardar o buscar), con el texto de la hoja.
-    val hasTagsNow = tags.isNotEmpty()
-    val descriptionEditedNow = FoodLoggerPrimaryAction.isDescriptionEdited(
-        current = description,
-        lastAnalyzed = lastAnalyzedDescription,
-        hasTags = hasTagsNow,
-        describeTab = activeTab == 0,
-    )
-    val isSearchModeNow = activeTab == 1
-    val primaryLabel = FoodLoggerPrimaryAction.label(
-        hasTags = hasTagsNow,
-        descriptionEdited = descriptionEditedNow,
-        isSearchMode = isSearchModeNow,
-    )
-    val actionLabel = when (primaryLabel) {
-        "Registrar" -> "Interpretar comida"
-        "Guardar" -> if (isEditing) "Guardar cambios" else "Guardar en ${MealSlots.mealLabel(mealType)}"
-        else -> primaryLabel
-    }
-    val actionIcon = when {
-        descriptionEditedNow -> KpknLineIcons.Repeat
-        isSearchModeNow && !hasTagsNow -> KpknLineIcons.Search
-        else -> KpknLineIcons.Check
-    }
-    val barEnabled = if (isSearchModeNow) {
-        (hasTagsNow && !saveBlocked) || (!hasTagsNow && searchQuery.isNotBlank())
-    } else {
-        descriptionEditedNow || (hasTagsNow && !saveBlocked) || (!hasTagsNow && description.isNotBlank())
-    }
-    val onBarAction: () -> Unit = {
-        if (isSearchModeNow) {
-            if (hasTagsNow) saveLog()
-            else if (searchQuery.isNotBlank()) performSearch()
-        } else {
-            if (descriptionEditedNow) analyzeDescription()
-            else if (hasTagsNow) saveLog()
-            else analyzeDescription()
-        }
-    }
-
     if (showDiscardConfirmation) {
         LoggerDiscardDialog(
+            foodCount = tags.size,
             isEditing = isEditing,
             onDiscard = {
                 showDiscardConfirmation = false
@@ -1453,64 +1626,544 @@ fun FoodLoggerDrawer(
             onKeepEditing = keepEditing,
         )
     }
-
     if (showDateSheet) {
         LoggerDateSheet(
-            selected = runCatching { LocalDate.parse(logDate) }.getOrNull(),
+            selected = runCatching { LocalDate.parse(logDate) }.getOrDefault(LocalDate.now()),
+            selectedTime = logTime,
             today = LocalDate.now(),
-            onPick = { day ->
+            now = java.time.LocalTime.now(),
+            onDone = { day, time ->
                 logDate = day.toString()
-                logTime = MealTime.defaultFor(day, LocalDate.now(), java.time.LocalTime.now())
+                logTime = time
                 showDateSheet = false
             },
             onDismiss = { showDateSheet = false },
-            selectedTime = logTime,
-            onTimePick = { logTime = it; showDateSheet = false },
         )
     }
 
-    // Una fila de alimento con su estado de hoja: la corrección abierta y su búsqueda. Las respuestas cambian el borrador con las mismas
-    // funciones que antes tenía la tarjeta; la búsqueda de corrección conserva su pausa y su filtro de exclusiones.
+    // ─── Piezas de la página ────────────────────────────────────────────────────
+
     @Composable
-    fun LoggerFoodRow(tag: ResolvedTag) {
-        var correcting by remember(tag.id, tag.isResolved) { mutableStateOf(!tag.isResolved) }
-        var correctionQuery by remember(tag.id) { mutableStateOf(tag.foodQuery.ifBlank { tag.tag }) }
-        val lookup = correctionQuery.ifBlank { tag.tag }
-        // null mientras se busca: «No se encontraron coincidencias» no debe salir antes de que la búsqueda responda.
-        var suggestions by remember(lookup, foodDatabase.size, correcting) { mutableStateOf<List<FoodCandidate>?>(null) }
-        LaunchedEffect(correcting, lookup, foodDatabase.size) {
-            if (!correcting) return@LaunchedEffect
-            delay(CORRECTION_SEARCH_DEBOUNCE_MS) // debounce: the next keystroke cancels this effect before it searches
-            // The repository searches on IO; filtering and trimming its rows stays off the main thread too.
-            suggestions = withContext(Dispatchers.Default) {
-                nutritionRepo.searchLoggerCandidates(lookup, limit = 15)
-                    .filter { FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients) }
-                    .take(5)
+    fun FoodCardFor(tag: ResolvedTag, index: Int, compact: Boolean) {
+        val logged = tag.loggedFood
+        val name = tagDisplayName(tag)
+        val units = remember(tag.foodItem?.id, name) { loggerUnits(name, tag.foodItem, tag.foodQuery.ifBlank { tag.tag }) }
+        val grams = tag.amountGrams ?: logged?.amount ?: 0.0
+        val amount = when {
+            tag.isExcluded -> "No cuenta en el total"
+            logged == null -> "Sin datos: tócalo para elegir"
+            logged.recipeId != null -> loggerRecipeUnits(logged.unit).first().let { unit ->
+                val noun = if (unit.kind == LoggerUnitKind.GRAMS) logged.unit else loggerUnitNoun(logged.amount, unit)
+                "${loggerFormatValue(logged.amount, unit)} $noun"
+            }
+            else -> loggerAmountLine(grams, units, volumeUnit = logged.unit == "ml")
+        }
+        val approx = logged != null && (tag.isUncertain || logged.isUncertain || tag.interpretationV2?.isUncertain == true ||
+            tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE)
+        val question = if (tag.isExcluded) null else tag.interpretationV2?.pendingQuestions?.firstOrNull()
+        val shown = question?.let { loggerQuestionFor(tag, it) }
+        val justAnswered = answered[tag.id]
+        if (justAnswered != null && shown == null) {
+            LaunchedEffect(justAnswered) {
+                delay(1_200)
+                answered.remove(tag.id)
             }
         }
-        val pendingQuestion = if (tag.id == pendingQuestionTagId) {
-            tag.interpretationV2?.pendingQuestions?.firstOrNull()
-        } else {
-            null
+        LoggerFoodCard(
+            name = name,
+            subtitle = if (tag.isExcluded) amount else loggerFoodSubtitle(amount, approx),
+            kcal = logged?.let { loggerFoodKcal(kotlin.math.round(it.calories).toInt(), approx) } ?: "—",
+            protein = logged?.protein ?: 0.0,
+            carbs = logged?.carbs ?: 0.0,
+            fats = logged?.fats ?: 0.0,
+            icon = loggerFoodIcon(name, tag.canonicalFamily),
+            onOpen = { if (logged == null) { identityQuery = ""; identityTagId = tag.id } else sheetTagId = tag.id },
+            question = shown,
+            answered = if (shown == null) justAnswered else null,
+            onChoice = { key -> if (question != null && shown != null) answerQuestion(tag, question, shown, key) },
+            onSkip = { useEstimate(tag.id) },
+            index = index,
+            compact = compact,
+            modifier = Modifier.alpha(if (tag.isExcluded) 0.5f else 1f),
+        )
+    }
+
+    val gutter = Modifier.padding(horizontal = 16.dp)
+    val showSeg = activeTab == 1 || (!hasTagsNow && !isAnalyzing && analysisNotice == null)
+    val writeMode = when {
+        isAnalyzing -> LoggerWriteMode.READING
+        editingText || description.isBlank() -> LoggerWriteMode.EDIT
+        hasTagsNow || analysisNotice != null -> LoggerWriteMode.RESULT
+        else -> LoggerWriteMode.EDIT
+    }
+    val showSaveBar = hasTagsNow && !isAnalyzing
+    val repeatCards = remember(allLogs, mealType) { loggerRepeatCards(allLogs, mealType, LocalDate.now()) }
+    val recentFoods = remember(allLogs) { loggerRecentFoods(allLogs, LocalDate.now()) }
+
+    @Composable
+    fun WriteBox(modifier: Modifier = Modifier) {
+        LoggerDescribeField(
+            text = description,
+            onTextChange = { description = it },
+            onAnalyze = { editingText = false; analyzeDescription() },
+            mode = writeMode,
+            analyzeLabel = analyzeLabel,
+            showAnalyze = description.isNotBlank() && (!hasTagsNow || descriptionEditedNow),
+            onDictate = { dictation.toggle() },
+            listening = dictation.listening,
+            foodMentions = if (analysisNotice != null) emptyList() else foodMentions,
+            onEditRequest = { editingText = true },
+            fontSize = if (writeMode == LoggerWriteMode.RESULT && analysisNotice != null) 16f else null,
+            readingIndex = readingIndex,
+            modifier = modifier,
+        )
+    }
+
+    // ─── La página completa (f-*, s-*) ───────────────────────────────────────────
+    @Composable
+    fun FullPage() {
+        Box(Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 8.dp, bottom = if (showSaveBar) 150.dp else 40.dp),
+            ) {
+                item(key = "head") {
+                    LoggerHeader(
+                        title = if (isEditing) "Editar comida" else "Registrar comida",
+                        dateLabel = loggerDateLabel(logDate, locale, time = logTime),
+                        mealType = if (activeTab == 0 || searchQuery.isBlank()) mealType else null,
+                        onMealSelect = { mealType = it },
+                        onSettings = { showSettingsDialog = true },
+                        onClose = requestDismiss,
+                        onDateClick = { showDateSheet = true },
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                    )
+                }
+                if (showSeg) {
+                    item(key = "seg") {
+                        LoggerTabs(activeTab = activeTab, onTabSelect = { activeTab = it }, modifier = gutter)
+                    }
+                }
+
+                if (activeTab == 0) {
+                    item(key = "write") { WriteBox(gutter) }
+                    if (isAnalyzing) {
+                        item(key = "ana") {
+                            LoggerAnalysisPanel(
+                                text = description,
+                                readingIndex = readingIndex,
+                                icons = loggerMentionRanges(description).take(4).map { range ->
+                                    loggerFoodIcon(description.substring(range.first, range.last + 1))
+                                },
+                                modifier = gutter.padding(top = 12.dp),
+                            )
+                        }
+                    } else {
+                        analysisNotice?.let {
+                            item(key = "notice") {
+                                val text = loggerNoticeText(
+                                    if (tags.any { !it.origin.isPinned }) LoggerNoticeKind.PARTIAL else LoggerNoticeKind.NOTHING,
+                                    tags.filterNot { it.origin.isPinned }.map(::tagDisplayName),
+                                )
+                                LoggerAnalysisNotice(
+                                    title = text.title,
+                                    message = text.message,
+                                    onRetry = { analyzeDescription() },
+                                    onSearch = { searchQuery = description; activeTab = 1 },
+                                    modifier = gutter.padding(top = 12.dp),
+                                )
+                            }
+                        }
+                        if (!hasTagsNow && description.isBlank()) {
+                            if (repeatCards.isNotEmpty()) {
+                                item(key = "repeat_label") { LoggerPageGroup("Repetir", modifier = gutter) }
+                                item(key = "repeat") {
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(top = 4.dp),
+                                    ) {
+                                        items(repeatCards, key = { it.key }) { card ->
+                                            LoggerRepeatCardView(card.title, card.subtitle) { addLoggedFoods(card.foods, card.title) }
+                                        }
+                                    }
+                                }
+                            }
+                            val favoriteTemplates = mealTemplates.filter { "template:${it.id}" in favoriteIds }
+                            val favoriteCount = favoriteFoods.size + favoriteTemplates.size
+                            if (favoriteCount > 0) {
+                                item(key = "fav_label") {
+                                    LoggerPageGroup(
+                                        "Favoritos",
+                                        modifier = gutter,
+                                        action = if (favoriteCount > 2) {
+                                            {
+                                                LoggerAct(
+                                                    text = if (showAllFavorites) "Ver menos" else "Ver todos",
+                                                    onClick = { showAllFavorites = !showAllFavorites },
+                                                    color = LoggerColors.faint,
+                                                )
+                                            }
+                                        } else null,
+                                    )
+                                }
+                                item(key = "favorites") {
+                                    LoggerTightModule(gutter) {
+                                        val rows: List<LoggerFavoriteEntry> = favoriteFoods.map { food ->
+                                            LoggerFavoriteEntry(
+                                                name = food.name.trim().replaceFirstChar { it.uppercase() },
+                                                caption = "${loggerSearchPortion(food, food.name).kcal} kcal",
+                                                onOpen = {
+                                                    if (food.recipe != null) { recipeToOpen = food; editRecipe = false; showRecipes = true }
+                                                    else detailFood = food
+                                                },
+                                                onAdd = { addSearchFood(food) },
+                                            )
+                                        } + favoriteTemplates.map { template ->
+                                            LoggerFavoriteEntry(
+                                                name = template.name,
+                                                caption = "${kotlin.math.round(template.foods.sumOf { it.calories }).toInt()} kcal",
+                                                onOpen = { applyTemplate(template) },
+                                                onAdd = { applyTemplate(template) },
+                                            )
+                                        }
+                                        rows.take(if (showAllFavorites) rows.size else 2).forEachIndexed { index, row ->
+                                            LoggerFavoriteRow(row.name, row.caption, onOpen = row.onOpen, onAdd = row.onAdd, divider = index > 0)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (hasTagsNow) {
+                            if (pendingCount > 0) {
+                                item(key = "pending") { LoggerPendingBanner(loggerPendingLine(pendingCount), gutter.padding(top = 12.dp)) }
+                            }
+                            item(key = "sum") {
+                                LoggerSummaryCard(
+                                    kcal = kcalNow,
+                                    protein = tagTotals.protein,
+                                    carbs = tagTotals.carbs,
+                                    fats = tagTotals.fats,
+                                    targetKcal = dailyKcalTarget,
+                                    modifier = gutter.padding(top = 12.dp),
+                                )
+                            }
+                            mealFootprint?.let { footprint ->
+                                item(key = "meal_footprint") {
+                                    Box(gutter) { footprint(activeTagsNow.mapNotNull { it.loggedFood }) }
+                                }
+                            }
+                            itemsIndexed(tags, key = { _, tag -> "food_" + tag.id }) { index, tag ->
+                                Box(gutter.padding(top = 8.dp)) { FoodCardFor(tag, index, compact = false) }
+                            }
+                            item(key = "add_more") {
+                                LoggerAct(
+                                    text = "Añadir otro alimento",
+                                    onClick = { activeTab = 1 },
+                                    leadingIcon = KpknLineIcons.Plus,
+                                    modifier = gutter.padding(top = 8.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (activeTab == 1) {
+                    item(key = "search_field") {
+                        LoggerSearchField(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onScan = { showScanner = true },
+                            modifier = gutter,
+                        )
+                    }
+                    val filtered = filterLoggerCandidates(searchResults, searchFilter)
+                    val loading = searchQuery.isNotBlank() &&
+                        (searchedQuery != searchQuery || (catalogImportProgress != null && searchResults.isEmpty()))
+                    when {
+                        searchQuery.isBlank() -> item(key = "search_start") {
+                            LoggerSearchStart(
+                                recents = recentFoods,
+                                favoriteIds = favoriteIds,
+                                onAddRecent = { recent -> addLoggedFoods(listOf(recent.food), recent.name) },
+                                onOpenRecent = { recent -> addLoggedFoods(listOf(recent.food), recent.name) },
+                                onScan = { showScanner = true },
+                                onQuickEntry = { showQuickEntry = true },
+                                onRecipes = { recipeToOpen = null; editRecipe = false; showRecipes = true },
+                                onTemplates = { showTemplates = true },
+                                recipeCount = foodDatabase.count { it.recipe != null && it.isCustom },
+                                modifier = gutter,
+                            )
+                        }
+                        loading -> item(key = "search_loading") { LoggerSearchSkeleton(gutter) }
+                        filtered.isNotEmpty() -> {
+                            item(key = "search_filters") {
+                                LoggerSearchFilters(selected = searchFilter, onSelect = { searchFilter = it }, modifier = gutter)
+                            }
+                            item(key = "search_results") {
+                                LoggerTightModule(gutter.padding(top = 8.dp)) {
+                                    filtered.forEachIndexed { index, candidate ->
+                                        val food = candidate.food
+                                        val portion = loggerSearchPortion(food, searchQuery)
+                                        LoggerSearchRow(
+                                            name = food.name.trim().replaceFirstChar { it.uppercase() },
+                                            caption = loggerSearchCaption(candidate, searchQuery),
+                                            kcal = portion.kcal,
+                                            favorite = food.id in favoriteIds,
+                                            onToggleFavorite = if (food.id.isNotBlank()) ({ toggleFavorite(food.id) }) else null,
+                                            onAdd = { addSearchFood(food) },
+                                            onOpen = {
+                                                if (food.recipe != null) { recipeToOpen = food; editRecipe = false; showRecipes = true }
+                                                else detailFood = food
+                                            },
+                                            divider = index > 0,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else -> {
+                            if (searchResults.isNotEmpty()) {
+                                item(key = "search_filters") {
+                                    LoggerSearchFilters(selected = searchFilter, onSelect = { searchFilter = it }, modifier = gutter)
+                                }
+                            }
+                            item(key = "search_empty") {
+                                LoggerSearchEmpty(
+                                    query = searchQuery.trim(),
+                                    onDescribe = {
+                                        val text = searchQuery.trim()
+                                        description = text
+                                        activeTab = 0
+                                        analyzeDescription(text)
+                                    },
+                                    onCreate = {
+                                        customFoodToEdit = null
+                                        createPrefill = searchQuery.trim()
+                                        showCustomForm = true
+                                    },
+                                    modifier = gutter,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .imePadding()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                AnimatedVisibility(visible = toast != null, enter = fadeIn() + slideInVertically { it / 2 }, exit = fadeOut()) {
+                    toast?.let { current ->
+                        LoggerToast(
+                            message = current.message,
+                            icon = if (current.error) KpknLineIcons.Alert else KpknLineIcons.Check,
+                            actionLabel = current.actionLabel,
+                            onAction = current.onAction?.let { action -> { action(); toast = null } },
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                        )
+                    }
+                }
+                if (showSaveBar) {
+                    LoggerSaveBar(
+                        kcal = kcalNow,
+                        line = loggerSaveBarLine(activeTagsNow.size, kotlin.math.round(tagTotals.protein).toInt(), blockingCount),
+                        actionLabel = loggerSaveLabel(mealLabel, isEditing),
+                        enabled = !isSaving && !showSuccess && activeTagsNow.isNotEmpty() && blockingCount == 0,
+                        onAction = { saveLog() },
+                    )
+                }
+            }
+
+            if (showSuccess) {
+                LoggerSavedOverlay(
+                    title = loggerSavedTitle(mealType, isEditing),
+                    line = loggerSavedLine(savedKcal, savedRemaining),
+                )
+            }
         }
-        LoggerFoodItem(
-            tag = tag,
-            correcting = correcting,
-            correctionQuery = correctionQuery,
-            correctionResults = if (correcting) suggestions else null,
-            pendingQuestion = pendingQuestion,
-            matchUncertain = tagShowsMatchWarning(tag),
-            actions = LoggerFoodActions(
-                onToggleExpanded = { toggleTagExpanded(tag.id) },
-                onToggleCorrection = { correcting = !correcting },
-                onCorrectionQueryChange = { correctionQuery = it },
-                onPickCorrection = { candidate ->
-                    resolveFood(tag.id, candidate.food, lookup)
-                    correcting = false
-                },
-                onPortionChange = { updateTagPortion(tag.id, it) },
-                onPortionOption = { applyPortionOption(tag.id, it) },
+    }
+
+    // ─── La media hoja de Inicio (f-home-ana, f-home-res) ──────────────────────────
+    @Composable
+    fun QuickPage() {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, bottom = 20.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = if (isAnalyzing) 6.dp else 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "$mealLabel · $logTime",
+                        style = LoggerText.figure(16).copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                        color = LoggerColors.ink,
+                    )
+                    Text(
+                        text = if (isAnalyzing || !hasTagsNow) description else loggerQuickSubtitle(activeTagsNow.size, pendingCount),
+                        style = LoggerText.cap,
+                        color = LoggerColors.faint,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                }
+                if (!isAnalyzing) {
+                    LoggerAct(
+                        text = "Abrir completo",
+                        onClick = { quickExpanded = true },
+                        color = LoggerColors.faint,
+                        trailingIcon = KpknLineIcons.ChevronRight,
+                    )
+                }
+            }
+            if (isAnalyzing) {
+                LoggerAnalysisPanel(
+                    text = description,
+                    readingIndex = readingIndex,
+                    icons = loggerMentionRanges(description).take(4).map { range ->
+                        loggerFoodIcon(description.substring(range.first, range.last + 1))
+                    },
+                    height = 210.dp,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            } else {
+                analysisNotice?.let {
+                    val text = loggerNoticeText(
+                        if (tags.any { !it.origin.isPinned }) LoggerNoticeKind.PARTIAL else LoggerNoticeKind.NOTHING,
+                        tags.filterNot { it.origin.isPinned }.map(::tagDisplayName),
+                    )
+                    LoggerAnalysisNotice(
+                        title = text.title,
+                        message = text.message,
+                        onRetry = { analyzeDescription() },
+                        onSearch = { searchQuery = description; activeTab = 1; quickExpanded = true },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+                tags.forEachIndexed { index, tag ->
+                    Box(Modifier.padding(top = 6.dp)) { FoodCardFor(tag, index, compact = true) }
+                }
+                if (quickAppend) {
+                    WriteBox(Modifier.padding(top = 8.dp))
+                }
+                Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LoggerPill(
+                        text = "",
+                        onClick = { quickAppend = true; editingText = true },
+                        tone = LoggerPillTone.SECONDARY,
+                        icon = KpknLineIcons.Plus,
+                        contentDescription = "Añadir otro alimento",
+                    )
+                    LoggerPill(
+                        text = "Guardar · ${loggerThousands(kcalNow)} kcal",
+                        onClick = { saveLog() },
+                        enabled = !isSaving && !showSuccess && activeTagsNow.isNotEmpty() && blockingCount == 0,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                toast?.let { current ->
+                    LoggerToast(
+                        message = current.message,
+                        icon = if (current.error) KpknLineIcons.Alert else KpknLineIcons.Check,
+                        actionLabel = current.actionLabel,
+                        onAction = current.onAction?.let { action -> { action(); toast = null } },
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            }
+        }
+    }
+
+    // ─── Hoja ────────────────────────────────────────────────────────────────
+    key(sheetRevision, quick) {
+        if (quick) {
+            KpknSheet(
+                onDismissRequest = requestDismiss,
+                dismissible = !isSaving && !showSuccess,
+                maxHeightFraction = if (isAnalyzing) 0.78f else 0.82f,
+                backdropScrim = Color.Black.copy(alpha = 0.467f),
+            ) {
+                QuickPage()
+            }
+        } else {
+            // El lienzo dibuja el registro como página entera (`.lg`): la hoja ocupa toda la pantalla, sin asa.
+            KpknSheet(
+                onDismissRequest = requestDismiss,
+                dismissible = !isSaving && !showSuccess,
+                showDragHandle = false,
+                safeTopInset = true,
+                maxHeightFraction = 1f,
+                stableHeightFraction = 1f,
+            ) {
+                Box(Modifier.fillMaxWidth().weight(1f)) { FullPage() }
+            }
+        }
+    }
+
+    // ─── Hojas encima del registro: ajuste (f-edit), identidad (f-identity) y ficha (s-detail) ─────
+    tags.firstOrNull { it.id == sheetTagId }?.let { tag ->
+        val logged = tag.loggedFood
+        if (logged == null) {
+            sheetTagId = null
+        } else {
+            val name = tagDisplayName(tag)
+            val currentFoodId = tag.foodItem?.id
+            val source = when {
+                logged.recipeId != null -> "tu receta"
+                tag.foodItem?.isCustom == true -> "tu alimento"
+                !tag.foodItem?.brand.isNullOrBlank() -> tag.foodItem?.brand.orEmpty()
+                else -> "base KPKN"
+            }
+            val cookable = tag.oilApplied || tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO
+            LoggerFoodSheet(
+                state = LoggerFoodSheetState(
+                    name = name,
+                    icon = loggerFoodIcon(name, tag.canonicalFamily),
+                    matchLine = loggerMatchLine(tag.resolutionConfidence, tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE, source),
+                    grams = tag.amountGrams ?: logged.amount,
+                    units = if (logged.recipeId != null) loggerRecipeUnits(logged.unit)
+                    else loggerUnits(name, tag.foodItem, tag.foodQuery.ifBlank { tag.tag }),
+                    kcal = kotlin.math.round(logged.calories).toInt(),
+                    protein = logged.protein,
+                    carbs = logged.carbs,
+                    fats = logged.fats,
+                    portion = if (logged.recipeId == null) tag.portion else null,
+                    cooking = if (cookable) {
+                        cookingChoice[tag.id] ?: (if (tag.oilLevel == "sin aceite") LoggerCooking.NO_FAT else LoggerCooking.OIL)
+                    } else null,
+                    variants = if (tag.variantChoices.any { it.food.id == currentFoodId }) {
+                        tag.variantChoices.map { LoggerVariantChip(it.dimension, it.food.id, it.label, it.food.id == currentFoodId) }
+                    } else emptyList(),
+                    excluded = tag.isExcluded,
+                    volume = logged.unit == "ml",
+                ),
                 onGramsChange = { updateTagGrams(tag.id, it) },
+                onPortionChange = { updateTagPortion(tag.id, it) },
+                onCookingChange = { option ->
+                    cookingChoice[tag.id] = option
+                    updateTagOilLevel(
+                        tag.id,
+                        when (option) {
+                            LoggerCooking.OIL -> "medio"
+                            LoggerCooking.NO_FAT -> "sin aceite"
+                            LoggerCooking.BUTTER -> "poco"
+                        },
+                    )
+                },
+                onVariant = { id -> identityChoice(tag, id, null) },
+                onToggleExcluded = {
+                    tags = tags.map { if (it.id == tag.id) NutritionInterpretationBridge.refresh(it.copy(isExcluded = !it.isExcluded)) else it }
+                },
                 onMacroChange = { macro, value ->
                     when (macro) {
                         LoggerMacro.CALORIES -> updateTagCalories(tag.id, value)
@@ -1519,346 +2172,78 @@ fun FoodLoggerDrawer(
                         LoggerMacro.FATS -> updateTagFats(tag.id, value)
                     }
                 },
-                onRemove = { removeTag(tag.id) },
-                onOilLevelChange = { level -> updateTagOilLevel(tag.id, level) },
-                onCookingChange = { wantCooked -> updateTagCookingClarification(tag.id, wantCooked) },
-                onIdentityChoice = { id ->
-                    val requestId = (pendingQuestion as? ClarificationRequest.Identity)?.requestId
-                    when {
-                        id == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID -> confirmComposition(tag.id)
-                        requestId == "cut" -> updateTagCutClarification(tag.id, id)
-                        else -> ((tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id } ?: findStaticFoodById(id))
-                            ?.let { resolveFood(tag.id, it, null) }
-                    }
+                onChange = {
+                    sheetTagId = null
+                    identityQuery = ""
+                    identityTagId = tag.id
                 },
-                onDeclaredComposition = { correctTortillaComposition(tag.id, it) },
-                onUnsure = { useEstimate(tag.id) },
-            ),
-        )
-    }
-
-    // ─── Sheet ───────────────────────────────────────────────────────────────
-
-    key(sheetRevision) {
-    // Altura fija de casi pantalla completa: la hoja no salta al cambiar de pestaña.
-    KpknSheet(onDismissRequest = requestDismiss, dismissible = !isSaving && !showSuccess, stableHeightFraction = 0.92f) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            // ── Cabecera: título, fecha y comida ─────────────────────────────
-            item {
-                val locale = java.util.Locale.forLanguageTag("es")
-                LoggerHeader(
-                    title = if (isEditing) "Editar comida" else "Registrar comida",
-                    dateLabel = loggerDateLabel(logDate, locale) + " · " + logTime,
-                    mealType = mealType,
-                    onMealSelect = { mealType = it },
-                    onSettings = { showSettingsDialog = true },
-                    onClose = requestDismiss,
-                    onDateClick = { showDateSheet = true },
-                )
-            }
-
-            // ── Pestañas: Describir · Buscar ─────────────────────────────────
-            item { LoggerTabs(activeTab = activeTab, onTabSelect = { activeTab = it }) }
-
-            // ── N4: accesos discretos a las plantillas y a la entrada rápida ──
-            item(key = "reuse_entries") {
-                ReuseLoggerEntries(onTemplates = { showTemplates = true }, onQuickEntry = { showQuickEntry = true })
-            }
-            item(key = "recipe_entry") {
-                KpknTextAction("Recetas", {
-                    recipeToOpen = null; editRecipe = false; showRecipes = true
-                }, leadingIcon = KpknLineIcons.Book)
-            }
-
-            if (favoriteIds.isNotEmpty()) {
-                item(key = "favorite_foods") {
-                    Column {
-                        Text("Favoritos", style = KpknType.bodyStrong, color = WizardColors.text)
-                        favoriteFoods.forEach { food ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                KpknTextAction(food.name, {
-                                    if (food.recipe != null) {
-                                        recipeToOpen = food; editRecipe = false; showRecipes = true
-                                    } else addScannedFood(food, com.example.kpkn.screens.nutrition.scan.defaultGramsForScanned(food))
-                                }, modifier = Modifier.weight(1f))
-                                FoodFavoriteAction(food.name, true, { toggleFavorite(food.id) })
-                            }
-                        }
-                        mealTemplates.filter { "template:${it.id}" in favoriteIds }.forEach { template ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                KpknTextAction(template.name, { applyTemplate(template) }, modifier = Modifier.weight(1f))
-                                FoodFavoriteAction(template.name, true, { toggleFavorite("template:${template.id}") })
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── Describir ────────────────────────────────────────────────────
-            if (activeTab == 0) {
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        LoggerDescribeField(
-                            text = description,
-                            onTextChange = { description = it },
-                            onImeDone = { analyzeDescription() },
-                            onPrivacyInfo = { showPrivacyInfo = true },
-                            enabled = !isAnalyzing && !isSaving,
-                        )
-
-                        AnimatedVisibility(
-                            visible = isAnalyzing,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically(),
-                        ) {
-                            LoggerAnalysisPanel(
-                                interpreting = analysisStage == ParseStage.INTERPRETING,
-                                elapsedMs = analysisElapsedMs,
-                            )
-                        }
-
-                        AnimatedVisibility(
-                            visible = analysisNotice != null,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically(),
-                        ) {
-                            analysisNotice?.let { notice ->
-                                LoggerAnalysisNotice(
-                                    title = notice.title,
-                                    message = notice.message,
-                                    onRetry = { analyzeDescription() },
-                                    technicalDetail = notice.technicalDetail,
-                                    detailShown = showNoticeDetail,
-                                    onToggleDetail = { showNoticeDetail = !showNoticeDetail },
-                                )
-                            }
-                        }
-
-                        if (reviewRequired) {
-                            KpknModule(accent = SymbolPalette.energia) {
-                                Text(
-                                    text = "Revisa la comida antes de guardar: hay datos incompletos o fuera de rango.",
-                                    style = KpknType.body,
-                                    color = WizardColors.text,
-                                )
-                                val estimableCount = tags.count { NutritionInterpretationBridge.canAcceptEstimate(it) }
-                                if (estimableCount >= 2) {
-                                    KpknTextAction(
-                                        text = "Usar lo estimado en todo ($estimableCount)",
-                                        onClick = { useEstimateForAll() },
-                                        leadingIcon = KpknLineIcons.Check,
-                                    )
-                                }
-                            }
-                        }
-
-                        if (learnedMemoryCleared) {
-                            Text(
-                                text = "Memoria de aprendizaje borrada",
-                                style = KpknType.caption,
-                                color = WizardColors.textMuted,
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ── Buscar ───────────────────────────────────────────────────────
-            if (activeTab == 1) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        LoggerSearchField(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            onImeSearch = { performSearch() },
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknIconButton(
-                            icon = BarcodeIcon.Barcode,
-                            contentDescription = "Escanear código de barras",
-                            onClick = { showScanner = true },
-                        )
-                    }
-                }
-                item(key = "custom_food_create") {
-                    KpknTextAction(
-                        text = "Crear alimento propio",
-                        onClick = {
-                            customFoodToEdit = null
-                            showCustomForm = true
-                        },
-                        leadingIcon = KpknLineIcons.Plus,
-                        color = WizardColors.textMuted,
-                    )
-                }
-                // Mientras el catálogo se prepara, los resultados salen de lo que ya hay: el aviso lo dice.
-                catalogImportProgress?.let { progress ->
-                    item(key = "catalog_import_progress") { LoggerCatalogProgress(progress) }
-                }
-                items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
-                  Column {
-                    LoggerSearchRow(
-                        name = food.food.name.trim().replaceFirstChar { it.uppercase() },
-                        kcal = kotlin.math.round(food.food.calories).toInt(),
-                        basisGrams = kotlin.math.round(NutrientBasis.grams(food.food)).toInt(),
-                        caption = loggerSearchCaption(food),
-                        basisLabel = loggerSearchBasisLabel(food.food),
-                        onAdd = {
-                            val selectedFood = food.food
-                            if (selectedFood.recipe != null) {
-                                val queryUsed = searchQuery.ifBlank { selectedFood.name }
-                                if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
-                                    saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
-                                    errorPulse++
-                                    return@LoggerSearchRow
-                                }
-                                recipeToOpen = selectedFood; editRecipe = false; showRecipes = true
-                                return@LoggerSearchRow
-                            }
-                            if (!NutrientBasis.isVerified(selectedFood)) {
-                                saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
-                                errorPulse++
-                                return@LoggerSearchRow
-                            }
-                            val queryUsed = searchQuery.ifBlank { selectedFood.name }
-                            if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
-                                // The results outlive the query box: a tap that no longer matches must say so.
-                                saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
-                                errorPulse++
-                                return@LoggerSearchRow
-                            }
-                            // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
-                            val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
-                            val grams = HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
-                            val logged = scaleFoodByPortion(identity, amountGrams = grams)
-                            val status = HouseholdPortions.operationalAutoStatus(
-                                food = identity,
-                                grams = grams,
-                                brandHint = null,
-                                explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
-                                amountIntent = AmountIntent.UNSPECIFIED,
-                                explicitPick = true,
-                            )
-                            val tag = ResolvedTag(
-                                tag = identity.name,
-                                portion = PortionPreset.MEDIUM,
-                                quantity = 1.0,
-                                amountGrams = grams,
-                                foodItem = identity,
-                                loggedFood = logged,
-                                isResolved = status == FoodResolutionStatus.AUTO,
-                                statusText = "",
-                                hasManualEdits = true,
-                                resolutionStatus = status,
-                                nutritionSource = NutrientBasis.source(identity),
-                                resolutionConfidence = 1.0,
-                                origin = TagOrigin.SEARCH,
-                            )
-                            tags = tags + NutritionInterpretationBridge.refresh(tag.copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")))
-                            saveError = null
-                            searchQuery = ""
-                            searchResults = emptyList()
-                        },
-                    )
-                    FoodFavoriteAction(food.food.name, food.food.id in favoriteIds, { toggleFavorite(food.food.id) })
-                    // N3: acceso discreto a editar un alimento propio (los del catálogo no se editan).
-                    if (food.food.isCustom && !food.food.isAiInferred) {
-                        KpknTextAction(
-                            text = if (food.food.recipe != null) "Editar receta" else "Editar alimento propio",
-                            onClick = {
-                                if (food.food.recipe != null) {
-                                    recipeToOpen = food.food; editRecipe = true; showRecipes = true
-                                } else {
-                                    customFoodToEdit = food.food
-                                    showCustomForm = true
-                                }
-                            },
-                            leadingIcon = KpknLineIcons.Edit,
-                            color = WizardColors.textMuted,
-                            modifier = Modifier.padding(start = 16.dp),
-                        )
-                    }
-                  }
-                }
-                // Sin resultados de una búsqueda ya hecha: lo dice y ofrece describir la comida en lugar de buscarla.
-                if (searchQuery.isNotBlank() && searchResults.isEmpty() && searchedQuery == searchQuery) {
-                    item(key = "search_empty") {
-                        LoggerSearchEmpty(
-                            query = searchQuery,
-                            onDescribeInstead = {
-                                description = searchQuery
-                                activeTab = 0
-                            },
-                        )
-                    }
-                }
-            }
-
-            // ── Alimentos interpretados: un módulo con una fila por alimento ─────────────
-            if (tags.isNotEmpty()) {
-                item(key = "food_module") {
-                    KpknModule {
-                        KpknModuleHeader(label = "Lo que comiste")
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Resumen de la comida",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                        tags.forEachIndexed { index, tag ->
-                            if (index > 0) LoggerFoodDivider()
-                            LoggerFoodRow(tag)
-                        }
-                    }
-                }
-            }
-
-            // C21: errors sit next to the primary action (where the list scrolls to) and can be dismissed.
-            saveError?.let { message ->
-                item(key = "save_error") {
-                    LoggerErrorNotice(
-                        message = message,
-                        onDismiss = { saveError = null },
-                        onRetry = if (message == SAVE_FAILED_MESSAGE) ({ saveLog() }) else null,
-                    )
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+                onRemove = {
+                    sheetTagId = null
+                    removeTagWithUndo(tag.id)
+                },
+                onDismiss = { sheetTagId = null },
+                footprint = foodFootprint?.let { footprint -> { footprint(logged) } },
+            )
         }
+    }
 
-        // Barra fija de la hoja, después de la lista: el total y la acción principal, por encima del teclado.
-        LoggerSaveBar(
-            kcal = if (tags.isEmpty()) null else kotlin.math.round(tagTotals.calories).toInt(),
-            protein = if (tags.isEmpty()) null else kotlin.math.round(tagTotals.protein).toInt(),
-            carbs = if (tags.isEmpty()) null else kotlin.math.round(tagTotals.carbs).toInt(),
-            fats = if (tags.isEmpty()) null else kotlin.math.round(tagTotals.fats).toInt(),
-            approximate = visibleKcalRange != null,
-            actionLabel = actionLabel,
-            actionIcon = actionIcon,
-            enabled = !isAnalyzing && !isSaving && !showSuccess && barEnabled,
-            onAction = onBarAction,
-            busyLabel = when {
-                isSaving -> "Guardando…"
-                isAnalyzing -> "Interpretando…"
-                else -> null
+    tags.firstOrNull { it.id == identityTagId }?.let { tag ->
+        val question = tag.interpretationV2?.pendingQuestions?.firstOrNull() as? ClarificationRequest.Identity
+        val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0
+        fun captionFor(food: FoodItem?): String {
+            if (food == null) return ""
+            val kcal = kotlin.math.round(scaleFoodByPortion(food, amountGrams = grams).calories).toInt()
+            val units = loggerUnits(food.name, food, tag.foodQuery.ifBlank { tag.tag })
+            val natural = units.firstOrNull { it.kind == LoggerUnitKind.NATURAL }
+            val amount = natural?.let { "${loggerFormatValue(loggerUnitValue(grams, it), it)} ${loggerUnitNoun(loggerUnitValue(grams, it), it)}" }
+                ?: "${kotlin.math.round(grams).toInt()} g"
+            return "$amount · $kcal kcal"
+        }
+        val pool = tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase
+        val fromQuestion = question?.let { clarificationCandidateChoices(it) }.orEmpty().map { (id, label) ->
+            LoggerCandidate(id, label, captionFor(pool.firstOrNull { it.id == id } ?: findStaticFoodById(id)), likely = false)
+        }
+        val current = tag.foodItem?.let { food ->
+            LoggerCandidate(food.id, food.name, captionFor(food), likely = (tag.resolutionConfidence ?: 0.0) >= 0.8)
+        }
+        val others = (tag.reviewCandidates + tag.variantChoices.map { it.food }).distinctBy { it.id }
+            .filter { it.id != current?.id }
+            .map { LoggerCandidate(it.id, it.name, captionFor(it), likely = false) }
+        val candidates = (listOfNotNull(current) + fromQuestion + others).distinctBy { it.id }.take(4)
+        LoggerIdentitySheet(
+            typed = tag.foodQuery.ifBlank { tag.tag },
+            candidates = candidates,
+            onUse = { id ->
+                identityTagId = null
+                if (id != tag.foodItem?.id) identityChoice(tag, id, question?.requestId)
             },
-            succeeded = showSuccess,
-            modifier = Modifier.imePadding().padding(horizontal = 20.dp),
+            onDismiss = { identityTagId = null },
+            searchQuery = identityQuery,
+            onSearchQueryChange = { identityQuery = it },
+            searchResults = identityResults?.map { LoggerCandidate(it.food.id, it.food.name, captionFor(it.food), likely = false) },
         )
     }
+
+    detailFood?.let { food ->
+        LoggerFoodDetailSheet(
+            food = food,
+            query = searchQuery.ifBlank { food.name },
+            mealLabel = mealLabel.lowercase(locale),
+            favorite = food.id in favoriteIds,
+            onToggleFavorite = { toggleFavorite(food.id) },
+            onAdd = { grams ->
+                detailFood = null
+                addSearchFood(food, grams)
+            },
+            onDismiss = { detailFood = null },
+            // S-D1: editar lo propio vive en el ⋯ de la ficha.
+            onEdit = if (food.isCustom && !food.isAiInferred) ({
+                if (food.recipe != null) { recipeToOpen = food; editRecipe = true; showRecipes = true }
+                else { customFoodToEdit = food; showCustomForm = true }
+            }) else null,
+            editLabel = if (food.recipe != null) "Editar receta" else "Editar alimento propio",
+            footprint = catalogFootprint?.let { footprint -> { grams -> footprint(food, grams) } },
+        )
     }
 
     // ── N3: escáner de códigos de barras y alimentos propios (pantallas completas sobre la hoja) ──
@@ -1880,6 +2265,7 @@ fun FoodLoggerDrawer(
         val closeCustomForm = {
             showCustomForm = false
             customFoodToEdit = null
+            createPrefill = null
         }
         CustomFoodFormOverlay(
             initial = customFoodToEdit,
@@ -1889,6 +2275,7 @@ fun FoodLoggerDrawer(
                 if (searchQuery.isNotBlank()) performSearch()
             },
             onDismiss = closeCustomForm,
+            prefillName = createPrefill,
             delete = { id -> nutritionRepo.deleteCustomFood(id) },
             onDeleted = {
                 val removedId = customFoodToEdit?.id
@@ -1904,14 +2291,13 @@ fun FoodLoggerDrawer(
             onAdd = { food ->
                 tags = tags + loggedFoodToEditableTag(food)
                 saveError = null
-                searchQuery = ""
-                searchResults = emptyList()
                 showRecipes = false
+                showToast("${food.foodName.trim().replaceFirstChar { it.uppercase() }} añadido")
             }, onDismiss = { showRecipes = false },
         )
     }
 
-    // ── N4: plantillas (hoja) y entrada rápida (pantalla completa) ──
+    // ── N4: plantillas (hoja) y entrada rápida (hoja, s-quick) ──
     if (showTemplates) {
         TemplatesSheet(
             templates = mealTemplates,
@@ -1937,38 +2323,123 @@ fun FoodLoggerDrawer(
         )
     }
 
-    // ── Éxito: el check se queda en la barra y la hoja se cierra al acabar (600 ms; 300 ms con movimiento reducido) ──
+    // ── Guardado: en la página, «Desayuno guardado» y se cierra a los 0,8 s (f-saved); en Inicio, la hoja baja al momento y
+    // Inicio enseña su aviso con «Deshacer» (f-home-done). ──
     if (showSuccess) {
         val holdMs = if (wizardReducedMotion()) LoggerSuccessHoldReducedMs else LoggerSuccessHoldMs
         LaunchedEffect(Unit) {
-            kotlinx.coroutines.delay(holdMs)
+            if (!quick) delay(LoggerSuccessDrawMs + holdMs)
+            savedLogSnapshot?.let { onSaved?.invoke(it) }
             showSuccess = false
             closeLogger()
         }
     }
 }
 
-// ─── Sub-composables ─────────────────────────────────────────────────────────
+/** El nombre que lleva la tarjeta de un alimento: la identidad leída, el alimento elegido o lo escrito, con mayúscula. */
+private fun tagDisplayName(tag: ResolvedTag): String =
+    (tag.interpretationV2?.canonicalIdentity ?: tag.foodItem?.name ?: tag.tag).trim().replaceFirstChar { it.uppercase() }
 
-private fun tagShowsMatchWarning(tag: ResolvedTag): Boolean {
-    if (tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE) return true
-    if (tag.isUncertain || tag.isFuzzyMatch) return true
-    if (tag.resolutionStatus == FoodResolutionStatus.NEEDS_REVIEW ||
-        tag.resolutionStatus == FoodResolutionStatus.NO_RESOLVED ||
-        tag.resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION
+/** Una fila de «Favoritos»: un alimento o una plantilla marcada. */
+private class LoggerFavoriteEntry(val name: String, val caption: String, val onOpen: () -> Unit, val onAdd: () -> Unit)
+
+/** Un aviso del registro (lienzo `.toast`). */
+private data class LoggerToastData(
+    val id: Long,
+    val message: String,
+    val actionLabel: String?,
+    val onAction: (() -> Unit)?,
+    val error: Boolean,
+)
+
+/** «Repetir» (`hcard`): 170 dp, radio 20, el título en una línea y de cuándo es. */
+@Composable
+private fun LoggerRepeatCardView(title: String, subtitle: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .width(170.dp)
+            .clip(shape)
+            .background(LoggerColors.card, shape)
+            .border(1.dp, Color.White.copy(alpha = 0.07f), shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = "Repetir $title, $subtitle" }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
-        return true
+        Text(
+            text = title,
+            style = LoggerText.rowTitle.copy(fontSize = 13.5.sp),
+            color = LoggerColors.ink,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        )
+        Text(
+            text = subtitle,
+            style = LoggerText.cap,
+            color = LoggerColors.faint,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 3.dp),
+        )
     }
-    val confidence = tag.resolutionConfidence
-    if (confidence != null && confidence < 0.80) return true
-    val query = tag.foodQuery.ifBlank { tag.tag }
-    val matched = tag.foodItem?.name.orEmpty()
-    if (query.isNotBlank() && matched.isNotBlank()) {
-        val qn = FoodIdentity.normalize(query)
-        val nn = FoodIdentity.normalize(matched)
-        if (qn.length >= 5 && nn.length >= 5 && !nn.contains(qn) && !qn.contains(nn)) {
-            return true
+}
+
+/** Una fila de «Favoritos» (f-empty): la estrella llena en energía en su cuadro de 36 dp, nombre, kcal y «+». */
+@Composable
+private fun LoggerFavoriteRow(name: String, caption: String, onOpen: () -> Unit, onAdd: () -> Unit, divider: Boolean) {
+    Column {
+        if (divider) LoggerRowDivider()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 60.dp)
+                .clickable(role = Role.Button, onClick = onOpen)
+                .padding(horizontal = 2.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.04f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(LoggerIcons.StarFilled, contentDescription = null, modifier = Modifier.size(16.dp), tint = LoggerColors.ene)
+            }
+            Column(Modifier.weight(1f)) {
+                Text(text = name, style = LoggerText.rowTitle, color = LoggerColors.ink, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(text = caption, style = LoggerText.cap, color = LoggerColors.faint, modifier = Modifier.padding(top = 2.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.063f))
+                    .clickable(role = Role.Button, onClick = onAdd)
+                    .semantics { contentDescription = "Añadir $name" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(KpknLineIcons.Plus, contentDescription = null, modifier = Modifier.size(18.dp), tint = LoggerColors.ink)
+            }
         }
     }
-    return false
 }
+
+/** `.pending`: «2 dudas: tócalas para afinar o guarda con la estimación» en energía, con la interrogación. */
+@Composable
+private fun LoggerPendingBanner(text: String, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(16.dp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(LoggerColors.ene.copy(alpha = 0.063f), shape)
+            .border(1.dp, LoggerColors.ene.copy(alpha = 0.2f), shape)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(LoggerIcons.Question, contentDescription = null, modifier = Modifier.size(16.dp), tint = LoggerColors.ene)
+        Text(text = text, style = LoggerText.cap, color = LoggerColors.ene)
+    }
+}
+

@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.nutrition.customfood.*
 import com.example.kpkn.domain.nutrition.label.*
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchRow
-import com.example.kpkn.screens.nutrition.design.logger.loggerSearchBasisLabel
 import com.example.kpkn.screens.nutrition.design.NutritionFoodRow
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.domain.nutrition.NutrientKey

@@ -81,7 +81,7 @@ class LoggerHeaderTest {
                 onClose = { cerrado = true },
             )
         }
-        rule.onNodeWithContentDescription("Configuración de comidas").performClick()
+        rule.onNodeWithContentDescription("Ajustes del registro").performClick()
         rule.onNodeWithContentDescription("Cerrar").performClick()
         assertTrue(configurado)
         assertTrue(cerrado)
@@ -105,18 +105,19 @@ class LoggerHeaderTest {
                 if (pestana == 1) {
                     LoggerSearchEmpty(
                         query = "pan",
-                        onDescribeInstead = {
+                        onDescribe = {
                             texto = "pan"
                             pestana = 0
                         },
+                        onCreate = {},
                     )
                 } else {
                     Text(text = "descripcion:$texto")
                 }
             }
         }
-        rule.onNodeWithText("Sin resultados para «pan»").assertIsDisplayed()
-        rule.onNodeWithText("Describirlo en lugar de buscar").performClick()
+        rule.onNodeWithText("No encontré «pan»").assertIsDisplayed()
+        rule.onNodeWithText("Describirla").performClick()
         rule.onNodeWithText("descripcion:pan").assertIsDisplayed()
     }
 
@@ -124,9 +125,20 @@ class LoggerHeaderTest {
     fun sinResultadosLlamaAlLambdaDeDescribir() {
         var descrito = false
         rule.setContent {
-            LoggerSearchEmpty(query = "xyz", onDescribeInstead = { descrito = true })
+            LoggerSearchEmpty(query = "xyz", onDescribe = { descrito = true }, onCreate = {})
         }
-        rule.onNodeWithText("Describirlo en lugar de buscar").performClick()
+        rule.onNodeWithText("Describirla").performClick()
         assertTrue(descrito)
+    }
+
+    @Test
+    fun sinResultadosOfreceCrearElAlimento() {
+        var creado = false
+        rule.setContent {
+            LoggerSearchEmpty(query = "arepa de choclo", onDescribe = {}, onCreate = { creado = true })
+        }
+        rule.onNodeWithText("Descríbela y la estimamos, o créala con sus datos.").assertIsDisplayed()
+        rule.onNodeWithText("Crear alimento").performClick()
+        assertTrue(creado)
     }
 }

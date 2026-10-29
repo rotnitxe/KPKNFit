@@ -1,124 +1,142 @@
 package com.example.kpkn.screens.nutrition.design.logger
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.domain.nutrition.MealSlots
-import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSegmentedSize
-import com.example.kpkn.ui.design.KpknShape
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/** `.lg-head .t strong`: Syne Bold 19 con −0,3. */
+private val HeadTitleStyle = TextStyle(
+    fontFamily = WizardFonts.display,
+    fontWeight = FontWeight.Bold,
+    fontSize = 19.sp,
+    lineHeight = 23.sp,
+    letterSpacing = (-0.3).sp,
+)
+
 /**
- * Cabecera del registro de comida (NUTRITION_V1 §3): el título («Registrar comida» o «Editar comida»), la configuración y el cierre,
- * la fecha y las cuatro comidas de [MealSlots] en un control compacto. [onClose] es la misma acción de cierre y descarte que el arrastre
- * de la hoja. Con [onDateClick], la fecha es un botón de 48 dp que abre el calendario (N3b); sin él, solo informa.
+ * Cabecera del registro (lienzo `lg-head`, f-empty): el cierre a la izquierda, en el centro el título («Registrar comida» o «Editar
+ * comida») y debajo el calendario con «Hoy · 08:40», y los ajustes del registro a la derecha. Tocar la fecha abre «¿Cuándo fue?»
+ * ([onDateClick]). Debajo van las chips de la comida ([LoggerMealChips]) si [mealType] no es nulo.
  */
 @Composable
 fun LoggerHeader(
     title: String,
     dateLabel: String,
-    mealType: MealType,
+    mealType: MealType?,
     onMealSelect: (MealType) -> Unit,
     onSettings: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onDateClick: (() -> Unit)? = null,
 ) {
-    val meals = MealSlots.mealOrder
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // El título va a todo el ancho, para que casi siempre quepa en una línea. La fecha y los botones van debajo.
-        Text(
-            text = title,
-            style = KpknType.title,
-            color = WizardColors.text,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            LoggerDatePill(label = dateLabel, onClick = onDateClick)
-            Spacer(Modifier.weight(1f))
-            KpknIconButton(icon = KpknLineIcons.Sliders, contentDescription = "Configuración de comidas", onClick = onSettings)
-            KpknIconButton(icon = KpknLineIcons.Close, contentDescription = "Cerrar", onClick = onClose)
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            LoggerIconButton(icon = KpknLineIcons.Close, contentDescription = "Cerrar", onClick = onClose, fill = true)
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    style = HeadTitleStyle,
+                    color = LoggerColors.ink,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { heading() },
+                )
+                Row(
+                    modifier = Modifier
+                        .defaultMinSize(minHeight = 24.dp)
+                        .then(
+                            if (onDateClick != null) {
+                                Modifier
+                                    .clickable(role = Role.Button, onClick = onDateClick)
+                                    .semantics {
+                                        contentDescription = "Cambiar la fecha de la comida"
+                                        stateDescription = dateLabel
+                                    }
+                            } else {
+                                Modifier.semantics { contentDescription = "Fecha del registro: $dateLabel" }
+                            },
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(KpknLineIcons.Calendar, contentDescription = null, modifier = Modifier.size(13.dp), tint = LoggerColors.faint)
+                    Spacer(Modifier.width(5.dp))
+                    Text(text = dateLabel, style = LoggerText.cap, color = LoggerColors.faint, maxLines = 1)
+                }
+            }
+            LoggerIconButton(icon = KpknLineIcons.Sliders, contentDescription = "Ajustes del registro", onClick = onSettings, fill = true)
         }
-        KpknSegmentedControl(
-            options = meals.map { MealSlots.mealLabel(it) },
-            selectedIndex = meals.indexOf(mealType).coerceAtLeast(0),
-            onSelect = { index -> onMealSelect(meals[index]) },
-            size = KpknSegmentedSize.Compact,
-        )
+        if (mealType != null) LoggerMealChips(mealType = mealType, onMealSelect = onMealSelect)
     }
 }
 
-/**
- * Fecha del registro en una píldora `inset`. Con [onClick] es un botón de 48 dp de alto que se anuncia como «Cambiar la fecha de la
- * comida», con la fecha como estado; sin él, es solo informativa.
- */
+/** `.meal-chips`: Desayuno, Almuerzo, Merienda y Cena en chips de 34 dp. */
 @Composable
-private fun LoggerDatePill(label: String, onClick: (() -> Unit)?) {
-    val pill: @Composable () -> Unit = {
-        Box(
-            modifier = Modifier
-                .clip(KpknShape.pill)
-                .background(KpknSurface.inset, KpknShape.pill)
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-        ) {
-            Text(
-                text = label,
-                style = KpknType.chip,
-                color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+fun LoggerMealChips(mealType: MealType, onMealSelect: (MealType) -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(top = 6.dp, bottom = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        MealSlots.mealOrder.forEach { meal ->
+            LoggerChip(
+                text = MealSlots.mealLabel(meal),
+                selected = meal == mealType,
+                onClick = { onMealSelect(meal) },
+                height = 34.dp,
             )
         }
     }
-    if (onClick == null) {
-        Box(modifier = Modifier.semantics { contentDescription = "Fecha del registro: $label" }) { pill() }
-    } else {
-        Box(
-            modifier = Modifier
-                .defaultMinSize(minHeight = 48.dp)
-                .clickable(role = Role.Button, onClick = onClick)
-                .semantics {
-                    contentDescription = "Cambiar la fecha de la comida"
-                    stateDescription = label
-                },
-            contentAlignment = Alignment.CenterStart,
-        ) { pill() }
-    }
 }
 
 /**
- * Etiqueta de la fecha del registro: «Hoy · lun 13 oct» si es hoy y «lun 13 oct» si no. Si la fecha no se puede leer, se muestra tal cual.
+ * La fecha de la cabecera: «Hoy» si es hoy y «lun 13 oct» si no; [time] se añade con « · » («Hoy · 08:40»). Si la fecha no se puede leer,
+ * se muestra tal cual.
  */
-internal fun loggerDateLabel(logDate: String, locale: Locale, today: LocalDate = LocalDate.now()): String {
-    val date = runCatching { LocalDate.parse(logDate) }.getOrNull() ?: return logDate
-    val formatted = date.format(DateTimeFormatter.ofPattern("EEE d MMM", locale))
-    return if (date == today) "Hoy · $formatted" else formatted
+internal fun loggerDateLabel(logDate: String, locale: Locale, today: LocalDate = LocalDate.now(), time: String? = null): String {
+    val date = runCatching { LocalDate.parse(logDate) }.getOrNull()
+    val day = when {
+        date == null -> logDate
+        date == today -> "Hoy"
+        else -> date.format(DateTimeFormatter.ofPattern("EEE d MMM", locale))
+    }
+    return if (time.isNullOrBlank()) day else "$day · $time"
 }

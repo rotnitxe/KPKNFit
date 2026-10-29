@@ -14,8 +14,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Diálogos y reglas del registro (N3b): el descarte se confirma con «Descartar», la privacidad es corta y sin voseo, y los botones de
- * las medidas suben y bajan por su paso sin salirse del rango.
+ * Confirmaciones y reglas del registro: el descarte y el olvido se confirman con su botón rojo, la privacidad es corta y sin voseo, las
+ * medidas siguen el orden del lienzo y suben y bajan por su paso sin salirse del rango.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
@@ -29,20 +29,71 @@ class LoggerDialogsTest {
         var discarded = false
         rule.setContent {
             LoggerDiscardDialog(
+                foodCount = 4,
                 isEditing = false,
                 onDiscard = { discarded = true },
                 onKeepEditing = {},
             )
         }
         rule.onNodeWithText("¿Descartar esta comida?").assertIsDisplayed()
+        rule.onNodeWithText("Tienes 4 alimentos sin guardar.").assertIsDisplayed()
         rule.onNodeWithText("Descartar").performClick()
         assertTrue(discarded)
+    }
+
+    @Test
+    fun seguirEditandoNoDescarta() {
+        var discarded = false
+        var kept = false
+        rule.setContent {
+            LoggerDiscardDialog(foodCount = 2, isEditing = false, onDiscard = { discarded = true }, onKeepEditing = { kept = true })
+        }
+        rule.onNodeWithText("Seguir editando").performClick()
+        assertTrue(kept)
+        assertFalse(discarded)
+    }
+
+    @Test
+    fun olvidarSeConfirmaYCancelarNoOlvida() {
+        var forgot = false
+        var cancelled = false
+        rule.setContent { LoggerForgetDialog(onCancel = { cancelled = true }, onForget = { forgot = true }) }
+        rule.onNodeWithText("¿Olvidar lo aprendido?").assertIsDisplayed()
+        rule.onNodeWithText("Cancelar").performClick()
+        assertTrue(cancelled)
+        assertFalse(forgot)
+        rule.onNodeWithText("Olvidar").performClick()
+        assertTrue(forgot)
+    }
+
+    @Test
+    fun laFraseDelDescarteCuentaLosAlimentos() {
+        assertEquals("Tienes 4 alimentos sin guardar.", loggerDiscardText(4))
+        assertEquals("Tienes 1 alimento sin guardar.", loggerDiscardText(1))
+        assertEquals("Lo que escribiste no se guardará.", loggerDiscardText(0))
     }
 
     @Test
     fun laPrivacidadEsCortaYSinVoseo() {
         assertTrue(LoggerPrivacyText.length < 300)
         assertFalse(Regex("\\b(vos|tenés|usás|sos|podés|corregí)\\b", RegexOption.IGNORE_CASE).containsMatchIn(LoggerPrivacyText))
+    }
+
+    @Test
+    fun laHojaDeAjustesCierraConLaPrimeraFraseDeLaPrivacidad() {
+        assertEquals(
+            "Todo se calcula en tu teléfono: no se envían tus comidas a servidores ni se usan APIs o IA externas.",
+            LoggerPrivacyFirstSentence,
+        )
+        assertTrue(LoggerPrivacyText.startsWith(LoggerPrivacyFirstSentence))
+    }
+
+    @Test
+    fun lasMedidasSiguenElOrdenDelLienzo() {
+        assertEquals(
+            listOf("Taza", "Vaso", "Plato", "Plato hondo", "Bol", "Cucharada", "Cucharadita", "Cucharón", "Copa"),
+            LoggerMeasureSpecs.map { it.label },
+        )
     }
 
     @Test

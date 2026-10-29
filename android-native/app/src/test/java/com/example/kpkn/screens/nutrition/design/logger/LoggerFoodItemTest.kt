@@ -4,13 +4,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.example.kpkn.data.models.FoodItem
-import com.example.kpkn.data.models.PortionPreset
 import com.example.kpkn.domain.nutrition.ClarificationRequest
-import com.example.kpkn.domain.nutrition.ResolvedTag
-import com.example.kpkn.domain.nutrition.VariantChoice
+import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.screens.nutrition.NutritionSamples
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +18,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Fila de alimento (N3b): cada respuesta llama a su lambda y la fila no cambia el borrador por su cuenta.
+ * La tarjeta de un alimento (Registros v4, f-result y f-clar): tocarla abre su ajuste, cada respuesta de su duda llama con su clave y
+ * «Seguir con …» acepta la estimación. La tarjeta no cambia el borrador por su cuenta. También los textos puros de la tarjeta y de la
+ * duda.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h800dp-xxhdpi")
@@ -27,181 +29,112 @@ class LoggerFoodItemTest {
     @get:Rule
     val rule = createComposeRule()
 
-    /** Lo que la fila ha llamado, para comprobarlo después de cada toque. */
-    private class Calls {
-        var portion: PortionPreset? = null
-        var declared: String? = null
-        var corrections = 0
-        var removed = 0
-        val identities = mutableListOf<String>()
-    }
-
-    private fun actions(calls: Calls) = LoggerFoodActions(
-        onToggleExpanded = {},
-        onToggleCorrection = { calls.corrections++ },
-        onCorrectionQueryChange = {},
-        onPickCorrection = {},
-        onPortionChange = { calls.portion = it },
-        onPortionOption = {},
-        onGramsChange = {},
-        onMacroChange = { _, _ -> },
-        onRemove = { calls.removed++ },
-        onOilLevelChange = {},
-        onCookingChange = {},
-        onIdentityChoice = { calls.identities += it },
-        onDeclaredComposition = { calls.declared = it },
-        onUnsure = {},
+    private val tortillaQuestion = LoggerQuestion(
+        text = "¿De qué era la tortilla?",
+        choices = TORTILLA_COMPOSITIONS.map { (composition, label) -> LoggerQuestionChoice(LoggerChoiceKeys.COMPOSITION + composition, label) },
+        skipLabel = "Seguir con la estimación",
     )
 
     @Test
-    fun elegirUnaPorcionLlamaASuLambda() {
-        val calls = Calls()
+    fun tocarLaTarjetaAbreSuAjuste() {
+        var opened = 0
         rule.setContent {
-            LoggerFoodItem(
-                tag = NutritionSamples.chickenTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = actions(calls),
+            LoggerFoodCard(
+                name = "Huevos revueltos",
+                subtitle = "2 huevos · 110 g",
+                kcal = "182",
+                protein = 13.0,
+                carbs = 1.0,
+                fats = 14.0,
+                icon = LoggerIcons.Egg,
+                onOpen = { opened++ },
             )
         }
-        rule.onNodeWithText("Grande").performClick()
-        assertEquals(PortionPreset.LARGE, calls.portion)
+        rule.onNodeWithText("Huevos revueltos").assertExists()
+        rule.onNodeWithText("2 huevos · 110 g").assertExists()
+        rule.onNodeWithContentDescription("Huevos revueltos, 2 huevos · 110 g, 182 kcal. Ajustar").performClick()
+        assertEquals(1, opened)
     }
 
     @Test
-    fun unaRespuestaDeAclaracionLlamaASuLambda() {
-        val calls = Calls()
+    fun unaRespuestaDeLaDudaLlamaConSuClave() {
+        val keys = mutableListOf<String>()
+        var skipped = 0
         rule.setContent {
-            LoggerFoodItem(
-                tag = NutritionSamples.tortillaTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = NutritionSamples.tortillaQuestion,
-                matchUncertain = true,
-                actions = actions(calls),
+            LoggerFoodCard(
+                name = "Tortilla",
+                subtitle = "1 unidad · 120 g · aprox.",
+                kcal = "≈ 240",
+                protein = 8.0,
+                carbs = 20.0,
+                fats = 12.0,
+                icon = LoggerIcons.Pan,
+                onOpen = {},
+                question = tortillaQuestion,
+                onChoice = { keys += it },
+                onSkip = { skipped++ },
             )
         }
-        rule.onNodeWithText("De huevo").performClick()
-        assertEquals("huevo", calls.declared)
+        rule.onNodeWithText("¿De qué era la tortilla?").assertExists()
+        rule.onNodeWithText("De maíz").performClick()
+        rule.onNodeWithText("Seguir con la estimación").performClick()
+        assertEquals(listOf(LoggerChoiceKeys.COMPOSITION + "maíz"), keys)
+        assertEquals(1, skipped)
     }
 
     @Test
-    fun corregirLlamaALaBusqueda() {
-        val calls = Calls()
-        rule.setContent {
-            LoggerFoodItem(
-                tag = NutritionSamples.chickenTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = actions(calls),
-            )
-        }
-        rule.onNodeWithText("Corregir").performClick()
-        assertEquals(1, calls.corrections)
+    fun laLineaDeLaTarjetaMarcaLoAproximado() {
+        assertEquals("2 huevos · 110 g · aprox.", loggerFoodSubtitle("2 huevos · 110 g", approximate = true))
+        assertEquals("150 g", loggerFoodSubtitle("150 g", approximate = false))
+        assertEquals("≈ 96", loggerFoodKcal(96, approximate = true))
+        assertEquals("182", loggerFoodKcal(182, approximate = false))
     }
 
     @Test
-    fun quitarQuitaElAlimento() {
-        val calls = Calls()
-        rule.setContent {
-            LoggerFoodItem(
-                tag = NutritionSamples.chickenTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = actions(calls),
-            )
-        }
-        rule.onNodeWithContentDescription("Quitar Pollo a la plancha").performClick()
-        assertEquals(1, calls.removed)
+    fun laTortillaPreguntaSusCuatroComposiciones() {
+        val question = loggerQuestionFor(NutritionSamples.tortillaTag, NutritionSamples.tortillaQuestion)
+        assertEquals("¿De qué era la tortilla?", question.text)
+        assertEquals(listOf("De papas", "De huevo", "Trigo (wrap)", "De maíz"), question.choices.map { it.label })
+        assertTrue(question.choices.all { it.key.startsWith(LoggerChoiceKeys.COMPOSITION) })
     }
 
-    /** Arroz con chips de estado «Cocido» (el actual) y «Crudo», y de forma «En polvo» y «Preparado» (el actual). */
-    private fun tagWithVariants(): ResolvedTag {
-        val cocido = FoodItem(id = "arroz_cocido", name = "Arroz")
-        val crudo = FoodItem(id = "arroz_crudo", name = "Arroz")
-        val polvo = FoodItem(id = "arroz_polvo", name = "Arroz")
-        val preparado = FoodItem(id = "arroz_prep", name = "Arroz (preparado)")
-        return NutritionSamples.chickenTag.copy(
-            foodItem = cocido,
-            variantChoices = listOf(
-                VariantChoice("state", "Cocido", cocido),
-                VariantChoice("state", "Crudo", crudo),
-                VariantChoice("form", "Preparado", preparado),
-                VariantChoice("form", "En polvo", polvo),
+    @Test
+    fun elAceiteSePreguntaConGotas() {
+        val question = loggerQuestionFor(
+            NutritionSamples.chickenTag,
+            ClarificationRequest.Oil(requestId = "oil", options = listOf("sin aceite", "poco", "medio", "abundante")),
+        )
+        assertEquals("¿Cuánto aceite tenía?", question.text)
+        assertEquals(listOf("Nada", "Poco", "Medio", "Mucho"), question.choices.map { it.label })
+        assertEquals(listOf(0, 1, 2, 3), question.choices.map { it.drops })
+        assertTrue(question.drops)
+    }
+
+    @Test
+    fun laCantidadNoLeidaAbreElAjusteYNoSeSalta() {
+        val question = loggerQuestionFor(NutritionSamples.chickenTag, ClarificationRequest.Portion("declared_amount", emptyList()))
+        assertTrue(question.opensAdjust)
+        assertNull(question.skipLabel)
+        assertTrue(question.choices.isEmpty())
+    }
+
+    @Test
+    fun elEnvaseOfreceTodoOUnaPorcion() {
+        val question = loggerQuestionFor(
+            NutritionSamples.chickenTag,
+            ClarificationRequest.Portion(
+                "package_portion",
+                listOf(PortionOption("Comí todo el envase (180 g)", 180.0), PortionOption("Una porción habitual", 30.0)),
             ),
         )
+        assertEquals("¿Comiste todo el envase?", question.text)
+        assertEquals(listOf("Todo (180 g)", "Una porción (30 g)"), question.choices.map { it.label })
+        assertFalse(question.opensAdjust)
     }
 
     @Test
-    fun tocarUnChipNoSeleccionadoLlamaAIdentityChoiceYElSeleccionadoNo() {
-        val calls = Calls()
-        rule.setContent {
-            LoggerFoodItem(
-                tag = tagWithVariants(),
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = actions(calls),
-            )
-        }
-        rule.onNodeWithText("Cocido").performClick()
-        assertEquals(emptyList<String>(), calls.identities)
-        rule.onNodeWithText("Crudo").performClick()
-        assertEquals(listOf("arroz_crudo"), calls.identities)
-    }
-
-    @Test
-    fun sinFilaDeChipsCuandoElAlimentoActualNoEstaEntreLasElecciones() {
-        val calls = Calls()
-        rule.setContent {
-            LoggerFoodItem(
-                tag = tagWithVariants().copy(foodItem = FoodItem(id = "otro_alimento", name = "Otro")),
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = actions(calls),
-            )
-        }
-        rule.onNodeWithText("Cocido").assertDoesNotExist()
-        rule.onNodeWithText("Crudo").assertDoesNotExist()
-        rule.onNodeWithText("En polvo").assertDoesNotExist()
-    }
-
-    @Test
-    fun conPreguntaDeEstadoPendienteNoAparecenLosChipsDeEstado() {
-        val calls = Calls()
-        rule.setContent {
-            LoggerFoodItem(
-                tag = tagWithVariants(),
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = ClarificationRequest.Identity(
-                    requestId = "state",
-                    candidateIds = listOf("arroz_cocido", "arroz_crudo"),
-                    candidateLabels = listOf("Opción uno", "Opción dos"),
-                ),
-                matchUncertain = false,
-                actions = actions(calls),
-            )
-        }
-        rule.onNodeWithText("Cocido").assertDoesNotExist()
-        rule.onNodeWithText("Crudo").assertDoesNotExist()
-        rule.onNodeWithText("En polvo").assertExists()
-        rule.onNodeWithText("Preparado").assertExists()
+    fun elNombreDelAceiteEsElDelLienzo() {
+        assertEquals("Nada", loggerOilLabel("sin aceite"))
+        assertEquals("Mucho", loggerOilLabel("abundante"))
     }
 }
