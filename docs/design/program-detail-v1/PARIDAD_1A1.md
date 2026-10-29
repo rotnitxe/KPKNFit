@@ -180,3 +180,11 @@ NutrientMealModule + NutrientMealListSheet (registro), NutrientSavedLine (guarda
 DriTargets.profileFor(settings, plan), energyKcal = kcal objetivo del día. Pendiente: «Completar con una ficha propia» →
 customfood. Decisiones para el informe: cifras con fmtN del lienzo; cobertura sin artículo; notas a mano convertidas en
 reglas; unidades cortas («µg»); 13 sp mínimo.
+
+### Registros — R-C Competencias (fusionado, 0a2e61325; código edca306be)
+Compila en su rama; 93 pruebas (3 omitidas) en verde. Hub, nueva (28 disciplinas), próxima, plan, hoy, resultado, puesto,
+recuerdos, celebración, ficha, menú, marcas, comparar y plantillas por disciplina; borrado el asistente viejo, CompetitionScreen
+y el archivo de Perfil. Conectado por mí (commit siguiente): onShare → CompetitionStoryShareHost (historias) en ficha y
+recorridos; en Program Detail «Planificar intentos» → c-plan y «Modo competición» → c-today de la competencia enlazada.
+Decisiones para el informe: barra de pasos solo donde el lienzo la dibuja; hero de Inicio solo «Modo competición»; hora de
+carrera en hoja h/m/s (no rueda); «Comparar» solo en carga/reloj con historial; Room intacto (JSON con valores por defecto).
