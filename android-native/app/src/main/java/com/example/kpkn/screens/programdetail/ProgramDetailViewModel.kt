@@ -98,7 +98,6 @@ data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
     val selectedBlockId: String? = null,
     val selectedWeekId: String? = null,
-    val macrocycleRoadmapExpanded: Boolean? = null,
     val macrocycleKeyDatesSheetOpen: Boolean? = null,
     val macrocycleLibrarySheetOpen: Boolean? = null,
     val macrocycleLoopsSheetOpen: Boolean? = null,
@@ -561,25 +560,6 @@ class ProgramDetailViewModel(
         .map { it.volumeCalibrationProfile?.responses }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    /** IMP-02: respuestas del calibrador con su origen; la declarada gana, si no valen los registros y al final lo sugerido. */
-    val calibrationAnswers: StateFlow<List<com.example.kpkn.domain.training.calibration.ResolvedCalibrationAnswer>> =
-        combine(program, history, repository.settings, feedbacks) { p, logs, settings, feedbackList ->
-            val zone = java.time.ZoneId.systemDefault()
-            val derived = p?.let {
-                val profile = it.powerliftingProfile
-                com.example.kpkn.domain.training.calibration.CalibrationEvidence.derive(
-                    com.example.kpkn.domain.training.calibration.CalibrationDerivationInput(logs, it.id, it.runState?.runId,
-                        LocalDate.now(zone), zone,
-                        plannedSessionsLastFourWeeks = com.example.kpkn.domain.training.calibration.CalibrationEvidence.typicalSessionsPerWeek(it)?.times(4),
-                        squat1RmKg = profile?.let { pl -> pl.squat1RM ?: pl.squatE1RM },
-                        bench1RmKg = profile?.let { pl -> pl.bench1RM ?: pl.benchE1RM },
-                        deadlift1RmKg = profile?.let { pl -> pl.deadlift1RM ?: pl.deadliftE1RM },
-                        bodyWeightKg = settings.userVitals.weight, feedbacks = feedbackList))
-            }
-            com.example.kpkn.domain.training.calibration.CalibrationEvidence.resolve(settings.volumeCalibrationProfile?.responses, derived)
-        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
     private val _planningVolumeTargetBusy = MutableStateFlow(false)
     val planningVolumeTargetBusy = _planningVolumeTargetBusy.asStateFlow()
 
@@ -843,18 +823,6 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-    val programDiscomforts: StateFlow<List<com.example.kpkn.domain.training.DiscomfortEntry>> =
-        history
-            .map { h -> ProgramDetailHelpers.computeProgramDiscomforts(h, programId) }
-            .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val exerciseDiscomfortAssociations: StateFlow<List<com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry>> =
-        history
-            .map { h -> ProgramDetailHelpers.computeExerciseDiscomfortAssociations(h, programId) }
-            .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
     val isActiveProgram: StateFlow<Boolean> = activeProgramState
         .map { state -> state?.programId == programId && state.status == ProgramStatus.ACTIVE }
         .distinctUntilChanged()
@@ -944,10 +912,6 @@ class ProgramDetailViewModel(
 
     fun setStructureSubTab(tab: StructureSubTab) {
         _uiState.update { it.copy(structureSubTab = tab) }
-    }
-
-    fun setMacrocycleRoadmapExpanded(expanded: Boolean) {
-        _uiState.update { it.copy(macrocycleRoadmapExpanded = expanded) }
     }
 
     fun setMacrocycleKeyDatesSheetOpen(open: Boolean) {

@@ -31,7 +31,6 @@ import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
 import com.example.kpkn.screens.stories.ProgramShareSheet
 import com.example.kpkn.domain.training.LoopEngine
-import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
