@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Cardio v2 · Transiciones fuerza y cardio</title>
+<link rel="stylesheet" href="kpkn-mock.css">
+<style>
+  :root {
+    --emph: cubic-bezier(0.2, 0, 0, 1);
+    --emph-dec: cubic-bezier(0.05, 0.7, 0.1, 1);
+  }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.9em; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; color: var(--text); }
+
+  /* ── A · Flujo ─────────────────────────────────────────────────────── */
+  .flow-scroll { overflow-x: auto; margin: 0 0 18px; border-radius: var(--r-xl); }
+  .flow { background: var(--card); border-radius: var(--r-xl); padding: 22px 20px 22px; min-width: 1040px; }
+  .flow-labels { display: grid; grid-template-columns: repeat(8, 1fr); margin-bottom: 10px; font-size: 12px; color: var(--text-3); }
+  .flow-labels span { text-align: center; }
+  .flow-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, 1fr); position: relative; }
+  .flow-steps::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 12px; height: 4px; border-radius: 4px;
+    background: linear-gradient(90deg, rgba(208,188,255,.55) 0%, rgba(208,188,255,.55) 25%, rgba(90,200,250,.8) 38%, rgba(52,199,89,.8) 50%, rgba(255,214,10,.8) 62%, rgba(255,159,10,.8) 74%, rgba(208,188,255,.55) 88%, rgba(208,188,255,.55) 100%);
+  }
+  .flow-steps li { position: relative; padding: 0 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .flow-steps .dot { width: 28px; height: 28px; border-radius: 999px; background: var(--card); border: 2px solid var(--line-strong); display: grid; place-items: center; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; position: relative; }
+  .flow-steps .str .dot { border-color: var(--primary); }
+  .flow-steps .car .dot { border-color: var(--z2); }
+  .flow-steps .key .dot { width: 28px; border: 0; color: #0F0F0F; box-shadow: 0 0 0 5px rgba(208,188,255,.14); }
+  .flow-steps .key.to-car .dot { background: linear-gradient(90deg, #D0BCFF, #34C759); }
+  .flow-steps .key.to-str .dot { background: linear-gradient(90deg, #34C759, #D0BCFF); }
+  .flow-steps strong { font-size: 13px; font-weight: 600; line-height: 1.25; }
+  .flow-steps li > span:not(.dot) { font-size: 12px; color: var(--text-3); line-height: 1.35; }
+  .flow-steps .key strong { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .rule { background: var(--card); border-radius: var(--r-lg); padding: 16px; display: flex; gap: 12px; }
+  .rule .tile { flex: 0 0 40px; width: 40px; height: 40px; }
+  .rule b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .rule p { margin: 0; font-size: 13px; color: var(--text-2); }
+  @media (max-width: 900px) { .rules { grid-template-columns: 1fr; } }
+
+  /* ── Mosaicos de icono ─────────────────────────────────────────────── */
+  .tile { width: 44px; height: 44px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; flex: 0 0 44px; color: var(--text-2); }
+  .tile.car { background: rgba(52,199,89,.14); color: var(--z2); }
+  .tile.str { background: var(--primary-soft); color: var(--primary); }
+
+  /* ── Marco inmersivo ───────────────────────────────────────────────── */
+  .phone.immersive .statusbar { position: relative; z-index: 8; }
+  .phone.immersive .gesturebar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8; }
+  .phone.immersive .screen { position: absolute; inset: 0; overflow: hidden; }
+  .phone.is-off *, .phone.is-off *::before, .phone.is-off *::after { animation-play-state: paused !important; }
+
+  .inter { --dest: var(--z2); --dest-soft: rgba(52,199,89,.26); }
+  .inter.to-str { --dest: var(--primary); --dest-soft: rgba(208,188,255,.26); }
+  .inter .bg { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity 600ms var(--emph); }
+  .inter .veil { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(15,15,15,.55) 0, rgba(15,15,15,0) 22%, rgba(15,15,15,0) 58%, rgba(15,15,15,.6) 100%); }
+  .inter.is-run .bg { opacity: .55; }
+  @keyframes drift { to { transform: translateX(calc(var(--wl, 360) * -1px)); } }
+  .drift { animation: drift 20s linear infinite; }
+
+  .stage { position: absolute; inset: 0; padding: 46px 16px 34px; display: flex; flex-direction: column; z-index: 2; }
+  .stage.out { opacity: 0; transform: translateY(-12px); pointer-events: none; transition: opacity 280ms var(--emph), transform 280ms var(--emph); }
+  .inter.is-count .stage, .inter.is-run .stage { visibility: hidden; }
+  .stage .mid { margin-block: auto; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes lineup { from { transform: translateY(105%); } to { transform: none; } }
+  .stage.pre .r { opacity: 0; }
+  .stage.pre .hd .ln > span { transform: translateY(105%); }
+  .stage.enter .r { animation: rise 520ms var(--emph-dec) both; animation-delay: var(--d, 0ms); }
+  .stage.enter .hd .ln > span { animation: lineup 640ms var(--emph) both; animation-delay: var(--d, 0ms); }
+
+  .swap { display: flex; align-items: center; height: 40px; }
+  .swap .node { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 999px; display: grid; place-items: center; border: 1.5px solid transparent; transition: background 240ms, border-color 240ms, color 240ms; }
+  .swap .node .icon { width: 20px; height: 20px; }
+  .node.str { background: var(--primary-soft); color: var(--primary); }
+  .node.car { background: rgba(52,199,89,.14); color: var(--z2); }
+  .swap .from { opacity: .8; }
+  .swap .to { background: transparent; border: 1.5px dashed var(--line-strong); color: var(--text-3); }
+  .swap .to.on.car { background: rgba(52,199,89,.22); border: 1.5px solid var(--z2); color: var(--z2); }
+  .swap .to.on.str { background: rgba(208,188,255,.22); border: 1.5px solid var(--primary); color: var(--primary); }
+  .rail { position: relative; width: 84px; flex: 0 0 84px; height: 2px; background: var(--line-strong); margin: 0 6px; border-radius: 2px; }
+  .rail i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--pp, 0) * 100%); background: var(--dest); border-radius: 2px; }
+  .swap .ctx { flex: 1; min-width: 0; text-align: right; font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 10px; }
+
+  .hd { font-family: var(--font-display); font-weight: 800; font-size: 42px; line-height: 1.02; letter-spacing: -0.015em; margin: 20px 0 0; }
+  .hd .ln { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
+  .hd .ln > span { display: block; width: max-content; white-space: nowrap; }
+  .sub { color: var(--text-2); font-size: 14px; margin: 12px 0 0; max-width: 31ch; }
+
+  .recap { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 10px; border-radius: 999px; margin-top: 16px; background: rgba(26,26,28,.78); border: 1px solid var(--line); font-size: 13px; font-weight: 500; }
+  .recap .icon { width: 18px; height: 18px; color: var(--z2); }
+
+  .mach { margin-top: 18px; background: rgba(26,26,28,.8); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; }
+  .recap + .mach { margin-top: 14px; }
+  .mach .row1 { display: flex; gap: 12px; align-items: center; }
+  .mach .blk { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 8px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
+  .mach .blk b { font-weight: 600; color: var(--text); }
+  .instr { margin-top: 8px; display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.06); border-radius: var(--r-sm); padding: 11px 12px; font-size: 14px; font-weight: 500; }
+  .instr .icon { width: 20px; height: 20px; flex: 0 0 20px; color: var(--text-2); }
+  .instr .ml { margin-left: auto; font-weight: 400; }
+  .instr.gps-ok .icon { color: var(--z2); }
+  .gps-dot { width: 12px; height: 12px; border-radius: 99px; background: var(--z3); flex: 0 0 12px; margin: 0 4px; animation: blink 1.2s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .pbar { display: flex; gap: 2px; height: 8px; margin-top: 12px; }
+  .pbar i { flex: var(--w) 1 0%; border-radius: 3px; min-width: 2px; }
+  .mach .tot { margin-top: 8px; font-size: 12px; color: var(--text-3); }
+
+  .plan { display: flex; justify-content: center; margin-top: 4px; }
+  .plan button { height: 48px; background: none; border: 0; color: var(--text-2); font-size: 14px; font-weight: 500; padding: 0 16px; border-radius: 999px; display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+  .plan button:hover { background: rgba(255,255,255,.06); }
+  .plan .icon { width: 18px; height: 18px; }
+
+  .voice { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+  .mic { position: relative; width: 56px; height: 56px; flex: 0 0 56px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); border: 0; display: grid; place-items: center; cursor: pointer; }
+  .mic::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--primary); animation: ping 1.8s var(--emph) infinite; }
+  @keyframes ping { from { transform: scale(1); opacity: .6; } to { transform: scale(1.6); opacity: 0; } }
+  .voice .vt { flex: 1; min-width: 0; }
+  .eq { display: flex; gap: 3px; align-items: center; height: 24px; }
+  .eq i { width: 3px; height: 100%; border-radius: 3px; background: var(--primary); transform-origin: center; animation: eq 1s ease-in-out infinite; }
+  .eq i:nth-child(2) { animation-delay: -.3s; } .eq i:nth-child(3) { animation-delay: -.6s; } .eq i:nth-child(4) { animation-delay: -.15s; } .eq i:nth-child(5) { animation-delay: -.45s; }
+  @keyframes eq { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+
+  /* Control de deslizar */
+  .swipe-wrap { margin-top: 0; }
+  .swipe { position: relative; height: 64px; border-radius: 999px; background: rgba(18,18,20,.74); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--line-strong); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; --x: 0px; transition: border-color 200ms, box-shadow 200ms; }
+  .swipe .fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--x) + 62px); background: var(--dest-soft); border-radius: inherit; }
+  .swipe .lbl { position: absolute; inset: 0; display: grid; place-items: center; padding-left: 48px; font-weight: 600; font-size: 15px; pointer-events: none; }
+  .swipe .lbl span { background: linear-gradient(90deg, var(--text-3) 30%, var(--text) 50%, var(--text-3) 70%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: shim 2.8s linear infinite; }
+  @keyframes shim { from { background-position: 120% 0; } to { background-position: -80% 0; } }
+  .swipe .go { position: absolute; right: 16px; top: 0; bottom: 0; display: flex; align-items: center; color: var(--text-3); pointer-events: none; }
+  .swipe .go .icon { width: 22px; height: 22px; animation: nudge 1.8s var(--emph) infinite; }
+  @keyframes nudge { 0%, 100% { transform: translateX(0); opacity: .5; } 50% { transform: translateX(4px); opacity: 1; } }
+  .swipe .thumb { position: absolute; left: 3px; top: 3px; width: 56px; height: 56px; border-radius: 999px; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; transform: translateX(var(--x)); touch-action: none; cursor: grab; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+  .swipe .thumb .icon { stroke-width: 2.2; }
+  .swipe.live:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+  .swipe.drag .thumb { cursor: grabbing; }
+  .swipe.armed { border-color: var(--dest); box-shadow: 0 0 0 3px var(--dest-soft); }
+  .swipe .thumb.tk { animation: tk 160ms var(--emph); }
+  @keyframes tk { 50% { box-shadow: 0 0 0 8px rgba(208,188,255,.22), 0 4px 14px rgba(0,0,0,.45); } }
+  .swipe.shake { animation: shake 320ms var(--emph); }
+  @keyframes shake { 20% { transform: translateX(-5px); } 50% { transform: translateX(4px); } 80% { transform: translateX(-2px); } }
+  .swipe[aria-disabled="true"] { opacity: .6; }
+  .swipe[aria-disabled="true"] .thumb { background: var(--surface-2); color: var(--text-3); box-shadow: none; cursor: not-allowed; }
+  .swipe[aria-disabled="true"] .lbl span { animation: none; background: none; -webkit-text-fill-color: var(--text-3); color: var(--text-3); }
+  .swipe[aria-disabled="true"] .go .icon { animation: none; }
+
+  /* Cuenta atrás */
+  .count { position: absolute; inset: 0; z-index: 3; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 24px; }
+  .inter.is-count .count { display: flex; }
+  .cd { position: relative; width: 200px; height: 200px; display: grid; place-items: center; }
+  .cring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .cring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+  .cring .tr { stroke: rgba(255,255,255,.12); }
+  .cring .pg { stroke: var(--z2); stroke-dasharray: 327; stroke-dashoffset: 327; }
+  .cn { font-family: var(--font-display); font-weight: 800; font-size: 120px; line-height: 1; letter-spacing: -.02em; }
+  .cd.tick .pg { animation: ringfill 800ms linear forwards; }
+  .cd.tick .cn { animation: pop 800ms var(--emph-dec) both; }
+  .cd.fixed .pg { stroke-dashoffset: 110; animation: none; }
+  .cd.fixed .cn { animation: none; }
+  @keyframes ringfill { to { stroke-dashoffset: 0; } }
+  @keyframes pop { 0% { opacity: 0; transform: scale(.72); } 22% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(1.08); } }
+  .count .cl { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin-top: 18px; }
+  .count .cs { color: var(--text-2); font-size: 14px; margin-top: 4px; }
+
+  /* Estado «en curso» / fuerza */
+  .run { position: absolute; inset: 0; padding: 46px 16px 34px; display: none; flex-direction: column; z-index: 2; }
+  .inter.is-run .run { display: flex; animation: rise 420ms var(--emph-dec) both; }
+  .inter.is-restored .run { padding-top: 104px; }
+  .run .top { display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px; }
+  .live-badge { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.08); font-size: 12px; font-weight: 600; }
+  .live-badge i { width: 8px; height: 8px; border-radius: 99px; background: var(--dest); animation: blink 1.4s ease-in-out infinite; }
+  .run .st { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.1; margin: 22px 0 0; }
+  .run .stn { color: var(--text-3); font-size: 13px; margin-top: 2px; }
+  .run .tm { font-family: var(--font-display); font-weight: 800; font-size: 68px; line-height: 1; letter-spacing: -.02em; margin: 14px 0 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .run .tm small { font-size: 24px; font-weight: 700; color: var(--text-2); margin-left: 6px; letter-spacing: 0; }
+  .run .zrow { display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+  .run .zone-tape { margin-top: 12px; }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+  .metric { background: rgba(26,26,28,.8); border-radius: var(--r-md); padding: 10px 12px; }
+  .metric .caption { display: block; }
+  .metric b { font-size: 16px; font-weight: 600; }
+  .nextcard { display: flex; gap: 12px; align-items: center; background: rgba(26,26,28,.8); border-radius: var(--r-md); padding: 12px; margin-top: 12px; }
+  .nextcard .kind-bar { height: 36px; align-self: auto; }
+  .nextcard b { display: block; font-size: 14px; font-weight: 600; }
+  .run .acts { margin-top: auto; display: flex; gap: 10px; }
+  .run .acts .btn { flex: 1; }
+  .toast { position: absolute; left: 16px; right: 16px; top: 44px; z-index: 7; display: none; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: var(--r-md); background: #2B2930; color: var(--text); font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+  .toast .icon { width: 20px; height: 20px; color: var(--z2); flex: 0 0 20px; }
+  .inter.is-restored .toast { display: flex; animation: rise 420ms var(--emph-dec) both; }
+
+  .planSheet { display: none; position: absolute; inset: 0; z-index: 9; }
+  .inter.show-plan .planSheet { display: block; }
+  .planSheet .sheet { padding-bottom: 36px; }
+  .planline { display: flex; gap: 12px; align-items: center; padding: 8px 0; font-size: 14px; }
+  .planline .kind-bar { height: 34px; align-self: auto; }
+  .planline small { display: block; color: var(--text-3); font-size: 12px; }
+
+  /* ── B · Descanso ──────────────────────────────────────────────────── */
+  .rest { padding: 8px 16px 12px; display: flex; flex-direction: column; min-height: 100%; }
+  .rest .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 40px; }
+  .rest .ringbox { position: relative; width: 236px; height: 236px; margin: 14px auto 0; display: grid; place-items: center; text-align: center; }
+  .rest .ringbox svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .rest .ringbox circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+  .rest .adj { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .rest .adj .btn { width: 104px; }
+  .prevset { display: flex; gap: 12px; align-items: center; margin-top: 16px; }
+  .prevset .icon { color: var(--z2); flex: 0 0 22px; }
+  .nextmod { margin-top: 12px; }
+  .nextmod .row1 { display: flex; gap: 12px; align-items: center; }
+  .nextmod .hint { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--text-3); }
+  .nextmod .hint .icon { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 1px; }
+  .rest .foot { margin-top: auto; padding-top: 14px; }
+
+  /* ── E1 · Cardio listo ─────────────────────────────────────────────── */
+  .ready { padding: 0 16px 12px; display: flex; flex-direction: column; min-height: 100%; }
+  .ready .icon-btn { width: 48px; height: 48px; }
+  .ready .machcard { margin-top: 14px; }
+  .ready .machcard .mach { margin-top: 0; background: var(--card); border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .ready .zlabel { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-3); }
+  .ready .btn-start { height: 56px; font-size: 16px; }
+  .ready .foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 14px; }
+
+  /* ── Demo bar y G ──────────────────────────────────────────────────── */
+  .demo-bar { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .demo-bar .btn { height: 48px; padding: 0 16px; font-size: 14px; }
+  .demo-bar .caption { flex: 1; }
+  .spec-wrap { overflow-x: auto; border-radius: var(--r-lg); background: var(--card); }
+  .spec { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 13px; }
+  .spec th { text-align: left; font-weight: 600; color: var(--text-3); font-size: 12px; padding: 12px 16px 8px; }
+  .spec td { padding: 11px 16px; border-top: 1px solid var(--line); vertical-align: top; color: var(--text-2); }
+  .spec td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+  .gantt { background: var(--card); border-radius: var(--r-lg); padding: 18px 20px 14px; margin-top: 14px; }
+  .gantt h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+  .grow { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 12px; height: 28px; font-size: 12px; color: var(--text-2); }
+  .gtrack { position: relative; height: 10px; border-radius: 6px; background: rgba(255,255,255,.05); }
+  .gtrack i { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: var(--primary); opacity: .85; }
+  .gtrack i.c { background: var(--z2); }
+  .gaxis { display: grid; grid-template-columns: 170px 1fr; gap: 12px; margin-top: 6px; font-size: 11px; color: var(--text-3); }
+  .gaxis div { display: flex; justify-content: space-between; }
+  .rm { margin-top: 14px; background: var(--card); border-radius: var(--r-lg); padding: 16px 20px; }
+  .rm h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+  .rm ul { margin: 0; padding-left: 18px; color: var(--text-2); font-size: 13px; }
+  .foot-space { height: 56px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swipe .lbl span { animation: none; background: none; -webkit-text-fill-color: var(--text-2); color: var(--text-2); }
+    .drift, .gps-dot, .live-badge i, .mic::after, .eq i, .swipe .go .icon { animation: none !important; }
+    .stage.pre .r { opacity: 1; }
+    .stage.pre .hd .ln > span { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <h1>Transiciones fuerza y cardio</h1>
+  <p>Cuando una sesión mixta cambia de modalidad, la app se detiene un momento y dice «Ahora vamos con cardio» (o «Ahora vamos con fuerza»). La pantalla espera a que deslices: ese gesto empieza el cardio o continúa con la fuerza.</p>
+  <p>Solo ocurre en sesiones mixtas. En una sesión solo cardio no hay interstitial ni animación: se va directo a la pantalla «listo». Los marcos marcados como interactivos funcionan con ratón, táctil y teclado.</p>
+  <nav class="page-nav" aria-label="Maquetas">
+    <a href="index.html">Resumen</a>
+    <a href="editor.html">Editor</a>
+    <a href="live.html">En vivo</a>
+    <a href="transiciones.html" aria-current="page">Transiciones</a>
+    <a href="zonas.html">Zonas</a>
+  </nav>
+</header>
+
+<!-- A · Flujo -->
+<section class="section" aria-labelledby="sec-a">
+  <h2 id="sec-a">Flujo de una sesión mixta</h2>
+  <p>Sesión «Sábado · Pierna + cardio». Los dos momentos con nombre propio son las transiciones; el resto es la sesión de siempre.</p>
+  <div class="flow-scroll">
+    <div class="flow">
+      <div class="flow-labels" aria-hidden="true">
+        <span style="grid-column: 1 / 3">Fuerza</span>
+        <span style="grid-column: 4 / 7">Cardio</span>
+        <span style="grid-column: 8 / 9">Fuerza</span>
+      </div>
+      <ol class="flow-steps">
+        <li class="str"><span class="dot">1</span><strong>Última serie de fuerza</strong><span>Zancada búlgara, serie final</span></li>
+        <li class="str"><span class="dot">2</span><strong>Descanso con aviso</strong><span>«Siguiente: cardio». Al cerrarse el descanso, se dispara</span></li>
+        <li class="key to-car"><span class="dot">3</span><strong>«Ahora vamos con cardio»</strong><span>Espera tu gesto: desliza para empezar</span></li>
+        <li class="car"><span class="dot">4</span><strong>Cardio listo</strong><span>Cinta · Noruego 4×4, 3-2-1 al deslizar</span></li>
+        <li class="car"><span class="dot">5</span><strong>En curso</strong><span>Pasos, zonas y avisos de voz</span></li>
+        <li class="car"><span class="dot">6</span><strong>Guardar cardio</strong><span>RPE y cumplimiento</span></li>
+        <li class="key to-str"><span class="dot">7</span><strong>«Ahora vamos con fuerza»</strong><span>Aparece en el acto, sin descanso previo</span></li>
+        <li class="str"><span class="dot">8</span><strong>Siguiente ejercicio</strong><span>Primera serie lista</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="rules">
+    <div class="rule"><span class="tile str"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3.5 9v6M18 7v10M20.5 9v6M6 12h12"/></svg></span><div><b>Solo sesiones mixtas</b><p>Hace falta fuerza y cardio en la misma sesión, y que el paso activo cambie de modalidad.</p></div></div>
+    <div class="rule"><span class="tile"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0113.7-5.6L20 8M20 4v4h-4M20 12a8 8 0 01-13.7 5.6L4 16M4 20v-4h4"/></svg></span><div><b>No se repite al recuperar</b><p>Cada transición mostrada se guarda en <code>shownModalityTransitions</code>. Si restauras la sesión, retomas donde estabas.</p></div></div>
+    <div class="rule"><span class="tile car"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="1.7"/><path d="M11 8.5l-2.2 3.3 2.7 2 .8 3.7M9 12.2l-3 .8M13 9.5l2.2 2.3M4 20.5h13M19.5 20.5V9.5M17.5 9.5h4"/></svg></span><div><b>Solo cardio, sin animación</b><p>Si toda la sesión es cardio, vas directo a la pantalla «listo». Sin gesto ni fondo animado.</p></div></div>
+  </div>
+</section>
+
+<!-- B · Descanso -->
+<section class="section" aria-labelledby="sec-b">
+  <h2 id="sec-b">Antes: el descanso avisa</h2>
+  <p>Hoy el descanso tapa el cardio. Por eso la transición se dispara cuando el descanso se cierra, y el descanso ya anuncia lo que viene.</p>
+  <div class="gallery">
+    <figure class="mock">
+      <div class="phone" data-tpl="rest"></div>
+      <figcaption><strong>B · Descanso con aviso</strong><span>Tras la última serie de fuerza. Al terminar el descanso (o al saltarlo) aparece la transición.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- C · Fuerza → cardio -->
+<section class="section" aria-labelledby="sec-c">
+  <h2 id="sec-c">Fuerza → cardio: el momento clave</h2>
+  <p>El fondo pasa de la paleta de fuerza (lavanda) a la del cardio (zonas) siguiendo tu dedo. La marea de color sube sola hasta un 28 % al entrar y el resto lo pones tú al deslizar.</p>
+  <div class="gallery">
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-p="0"></div>
+      <figcaption><strong>C1 · Entrada</strong><span>Titular, máquina y primer bloque. La marea de cardio asoma abajo.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-p="0.6"></div>
+      <figcaption><strong>C2 · A mitad del gesto</strong><span>Pulgar al 60 %. El frente de color ya ha subido y el control se rellena.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-state="count"></div>
+      <figcaption><strong>C3a · Completado: cuenta atrás</strong><span>Fondo totalmente en cardio y 3-2-1 antes de arrancar el temporizador.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-state="run"></div>
+      <figcaption><strong>C3b · Cardio empezando</strong><span>Calentamiento en Zona 2. El fondo se atenúa pero conserva la paleta.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-live="1"></div>
+      <figcaption><strong>C4 · Interactivo</strong><span>Arrastra el círculo hasta el final. Teclado: Enter, Espacio o → sobre el control.</span></figcaption>
+      <div class="demo-bar"><button class="btn btn-ghost" type="button" data-reset>Repetir demo</button><span class="caption">Suelta antes del 85 % y vuelve atrás.</span></div>
+    </figure>
+  </div>
+</section>
+
+<!-- D · Cardio → fuerza -->
+<section class="section" aria-labelledby="sec-d">
+  <h2 id="sec-d">Cardio → fuerza</h2>
+  <p>Aparece nada más pulsar «Guardar cardio», en una sesión donde el cardio va primero. El fondo vuelve a la lavanda. Aquí no hay cuenta atrás: deslizar te lleva a la primera serie.</p>
+  <div class="gallery">
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="s-press" data-p="0"></div>
+      <figcaption><strong>D1 · Entrada</strong><span>Resumen del cardio guardado y el siguiente ejercicio.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="s-press" data-p="0.6"></div>
+      <figcaption><strong>D2 · A mitad del gesto</strong><span>La lavanda sube sobre la paleta de zonas.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="s-press" data-live="1"></div>
+      <figcaption><strong>D3 · Interactivo</strong><span>Mismo gesto y mismo teclado. Al completar, entras en la serie 1.</span></figcaption>
+      <div class="demo-bar"><button class="btn btn-ghost" type="button" data-reset>Repetir demo</button><span class="caption">Sin cuenta atrás: la fuerza no la necesita.</span></div>
+    </figure>
+  </div>
+</section>
+
+<!-- E · Sin animación -->
+<section class="section" aria-labelledby="sec-e">
+  <h2 id="sec-e">Cuándo no hay animación</h2>
+  <p>Tres casos que no deben interrumpirte: una sesión solo cardio, una sesión recuperada y el modo voz.</p>
+  <div class="gallery">
+    <figure class="mock">
+      <div class="phone" data-tpl="ready"></div>
+      <figcaption><strong>E1 · Solo cardio</strong><span>Directo a «listo». Un botón normal, sin interstitial.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta" data-state="restored"></div>
+      <figcaption><strong>E2 · Sesión recuperada</strong><span>Retomas el cardio en marcha. La transición ya se mostró, así que no vuelve.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-cinta-voz" data-voice="1" data-live="1"></div>
+      <figcaption><strong>E3 · Modo voz</strong><span>Escucha en lugar de pedir el gesto. El control sigue disponible. Toca el micrófono para simular «empezar».</span></figcaption>
+      <div class="demo-bar"><button class="btn btn-ghost" type="button" data-reset>Repetir demo</button><span class="caption">También puedes deslizar.</span></div>
+    </figure>
+  </div>
+</section>
+
+<!-- F · Variantes -->
+<section class="section" aria-labelledby="sec-f">
+  <h2 id="sec-f">Variantes por máquina</h2>
+  <p>La estructura es la misma; cambian el icono, el primer bloque, la instrucción y el total.</p>
+  <div class="gallery">
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-bici" data-p="0"></div>
+      <figcaption><strong>F1 · Bici estática</strong><span>Fondo Z2 de 45 min con un solo bloque.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-gps" data-gps="search" data-p="0"></div>
+      <figcaption><strong>F2a · Carrera exterior, buscando GPS</strong><span>El control está desactivado y dice «Esperando GPS…».</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-gps" data-gps="ready" data-p="0"></div>
+      <figcaption><strong>F2b · GPS listo</strong><span>Se activa el control y la fila pasa a verde.</span></figcaption>
+    </figure>
+    <figure class="mock">
+      <div class="phone" data-tpl="inter" data-cfg="c-aire" data-p="0"></div>
+      <figcaption><strong>F3 · Bici de aire, Tabata</strong><span>12 min. Avisa de que los pitidos y la voz están activados.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- G · Movimiento -->
+<section class="section" aria-labelledby="sec-g">
+  <h2 id="sec-g">Especificación de movimiento</h2>
+  <p>Curvas de Material 3: <code>emphasized</code> = <code>cubic-bezier(.2, 0, 0, 1)</code> y <code>emphasizedDecelerate</code> = <code>cubic-bezier(.05, .7, .1, 1)</code>. Lo que sigue al dedo no lleva curva.</p>
+  <div class="spec-wrap">
+    <table class="spec">
+      <thead><tr><th>Elemento</th><th>Duración</th><th>Curva</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Entrada de pantalla</td><td>520 ms</td><td>emphasizedDecelerate</td><td>Cada bloque sube 18 dp y aparece, con 70 ms entre bloques: indicador, texto, tarjeta y control.</td></tr>
+        <tr><td>Titular</td><td>640 ms por línea (+110 ms)</td><td>emphasized</td><td>Cada línea sube desde una máscara. No cambia el color ni el peso de ninguna palabra.</td></tr>
+        <tr><td>Fondo: marea inicial</td><td>1400 ms, tras 150 ms</td><td>emphasized</td><td>El color de destino sube hasta el 28 % de la altura. Las cintas derivan en bucle lineal de 18 a 34 s.</td></tr>
+        <tr><td>Fondo: arrastre</td><td>1:1 con el dedo</td><td>sin curva</td><td>Frente de color = 28 % + 72 % × progreso. Sin retardo ni suavizado.</td></tr>
+        <tr><td>Umbral</td><td>85 % del recorrido</td><td>—</td><td>Al cruzarlo: vibración de confirmación, borde del control y círculo de destino rellenos. Soltar con ≥ 85 % completa; llegar al 98 % completa sin soltar.</td></tr>
+        <tr><td>Soltar antes</td><td>≈ 380 ms</td><td>spring(ζ 0,75; k 380)</td><td>El pulgar vuelve a 0 y la marea a 28 %. Sin vibración.</td></tr>
+        <tr><td>Completar</td><td>180 / 700 / 280 ms</td><td>emphasized</td><td>Pulgar al final, fondo al 100 % y contenido que sale hacia arriba, a la vez.</td></tr>
+        <tr><td>3-2-1</td><td>800 ms por número</td><td>emphasizedDecelerate</td><td>Cada número entra de 0,72 a 1 en ~180 ms y sale agrandándose a 1,08. Aro de 800 ms. Voz y pitidos si están activados.</td></tr>
+        <tr><td>Entrada de «en curso»</td><td>420 ms</td><td>emphasizedDecelerate</td><td>Sube 18 dp. El fondo se atenúa al 55 % en 600 ms.</td></tr>
+        <tr><td>Vibración</td><td>—</td><td>—</td><td>25 / 50 / 75 %: <code>TextHandleMove</code>. 85 %: <code>Confirm</code>. Completar: <code>LongPress</code>. Cada número del 3-2-1: <code>TextHandleMove</code>.</td></tr>
+        <tr><td>Accesibilidad</td><td>—</td><td>—</td><td>El control es un slider con acción personalizada «Empezar» para TalkBack. Enter, Espacio o → lo completan desde teclado.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="gantt" aria-label="Línea de tiempo de la finalización">
+    <h3>Línea de tiempo al completar</h3>
+    <div class="grow"><span>Pulgar al final</span><div class="gtrack"><i style="left:0;width:5.3%"></i></div></div>
+    <div class="grow"><span>Fondo al 100 %</span><div class="gtrack"><i style="left:0;width:20.6%"></i></div></div>
+    <div class="grow"><span>Contenido sale</span><div class="gtrack"><i style="left:8.2%;width:8.2%"></i></div></div>
+    <div class="grow"><span>3 · 2 · 1</span><div class="gtrack"><i class="c" style="left:15.3%;width:23.5%"></i><i class="c" style="left:38.8%;width:23.5%"></i><i class="c" style="left:62.3%;width:23.5%"></i></div></div>
+    <div class="grow"><span>Entra «en curso»</span><div class="gtrack"><i style="left:85.9%;width:12.3%"></i></div></div>
+    <div class="gaxis"><span></span><div><span>0 ms</span><span>1000</span><span>2000</span><span>3000</span><span>3400</span></div></div>
+  </div>
+  <div class="rm">
+    <h3>Movimiento reducido</h3>
+    <ul>
+      <li>Paleta estática del destino: sin cintas que derivan y sin onda en el frente.</li>
+      <li>Sin animación de entrada: todo aparece a la vez.</li>
+      <li>El gesto sigue funcionando igual, pero los cambios de estado son instantáneos: el fondo salta a su valor final y la pantalla siguiente aparece sin entrada animada.</li>
+      <li>El 3-2-1 conserva su cadencia de un segundo por número, sin escala ni aro. La vibración y la voz no cambian.</li>
+    </ul>
+  </div>
+</section>
+<div class="foot-space"></div>
+
+<script>
+(() => {
+  'use strict';
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const H_IDLE = 0.28, THRESH = 0.85, FIN = 0.98;
+  let UID = 0;
+  const $ = (s, r = document) => r.querySelector(s);
+
+  /* ── Iconos ──────────────────────────────────────────────────────────── */
+  const ICONS = {
+    treadmill: '<circle cx="12" cy="4.5" r="1.7"/><path d="M11 8.5l-2.2 3.3 2.7 2 .8 3.7M9 12.2l-3 .8M13 9.5l2.2 2.3M4 20.5h13M19.5 20.5V9.5M17.5 9.5h4"/>',
+    bike: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9l3 7M9 6.5h3"/>',
+    pin: '<path d="M12 21s-6-5.2-6-10a6 6 0 0112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>',
+    fan: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.5"/><path d="M12 10.5V4M13.3 12.8l5.6 3.2M10.7 12.8L5.1 16"/>',
+    dumbbell: '<path d="M6 7v10M3.5 9v6M18 7v10M20.5 9v6M6 12h12"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    chevrons: '<path d="M7 6l6 6-6 6M13 6l6 6-6 6"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21"/>',
+    sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+    volume: '<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4zM15.5 9a4 4 0 010 6M18 6.5a8 8 0 010 11"/>',
+    back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    more: '<path d="M12 5h.01M12 12h.01M12 19h.01"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    skip: '<path d="M6 5l9 7-9 7zM18 5v14"/>',
+    crosshair: '<circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/>'
+  };
+  const ico = (n, c = 'icon') => '<svg class="' + c + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>';
+
+  const STATUS = '<div class="statusbar"><span>9:41</span><span class="icons">' +
+    '<svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.3" y="5.5" width="3" height="6.5" rx="1"/><rect x="8.6" y="3" width="3" height="9" rx="1"/><rect x="12.9" y="0" width="3" height="12" rx="1"/></svg>' +
+    '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M1 4.2a10 10 0 0114 0M3.5 7a6.4 6.4 0 019 0"/><circle cx="8" cy="10" r="1" fill="currentColor" stroke="none"/></svg>' +
+    '<svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden="true"><rect x=".5" y=".5" width="20" height="11" rx="3" stroke="currentColor" opacity=".6"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><rect x="21.5" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".6"/></svg>' +
+    '</span></div>';
+
+  /* ── Datos ───────────────────────────────────────────────────────────── */
+  const Z = 'var(--z2)', W4 = 'var(--z4)', RC = 'var(--k-recover)', CD = 'var(--k-cooldown)';
+  const BAR_NOR = [[10, Z], [4, W4], [3, RC], [4, W4], [3, RC], [4, W4], [3, RC], [4, W4], [5, CD]];
+  const BAR_TAB_FULL = [[5, Z]];
+  for (let i = 0; i < 8; i++) { BAR_TAB_FULL.push([.33, 'var(--z5)']); BAR_TAB_FULL.push([.17, RC]); }
+  BAR_TAB_FULL.push([3, CD]);
+
+  const CFG = {
+    'c-cinta': {
+      dir: 'c', head: ['Ahora vamos', 'con cardio'], sub: 'Terminaste la fuerza: 3 ejercicios y 10 series.', ctx: 'Sábado · Pierna + cardio',
+      m: { icon: 'treadmill', title: 'Cinta · Noruego 4×4', block: 'Calentamiento 10:00', zone: 2, instrIcon: 'sliders', instr: 'Ajusta la cinta a 7,5 km/h y 1 %', total: 'Total 40 min · ≈ 6,0 km', bar: BAR_NOR },
+      swipe: 'Desliza para empezar', planBtn: 'Ver el plan', planTitle: 'Plan del cardio',
+      plan: [['k-warmup', 'Calentamiento · 10:00', 'Zona 2 · 7,5 km/h · 1 %'], ['k-work', '4× Trabajo · 4:00', 'Zona 4 · 12,0 km/h · 1 %'], ['k-recover', 'Recuperación · 3:00', 'Entre cada trabajo'], ['k-cooldown', 'Vuelta a la calma · 5:00', 'Baja el ritmo poco a poco']],
+      count: ['Empezamos', 'Calentamiento · Zona 2'],
+      run: { badge: 'Empezando', cap: 'Cinta · Noruego 4×4', step: 'Calentamiento', stn: 'Paso 1 de 9', time: '10:00', zone: 2, zr: '112–130 lpm', metrics: [['Velocidad', '7,5 km/h'], ['Inclinación', '1 %'], ['FC', '98 lpm']], next: ['k-work', 'Trabajo 4:00 · Zona 4', '12,0 km/h · 1 %'], a2: 'Repetir demo' },
+      runB: { badge: 'En curso', cap: 'Cinta · Noruego 4×4', step: 'Trabajo', stn: 'Paso 4 de 9', time: '1:48', zone: 4, zr: '150–167 lpm', metrics: [['Velocidad', '12,0 km/h'], ['Inclinación', '1 %'], ['FC', '158 lpm']], next: ['k-recover', 'Recuperación 3:00', 'Baja la velocidad'], a2: 'Siguiente paso' },
+      toast: 'Sesión recuperada · sigues en el paso 4 de 9'
+    },
+    'c-cinta-voz': null,
+    'c-bici': {
+      dir: 'c', head: ['Ahora vamos', 'con cardio'], sub: 'Terminaste la fuerza: 3 ejercicios y 10 series.', ctx: 'Sábado · Pierna + cardio',
+      m: { icon: 'bike', title: 'Bici estática · Fondo Z2', block: 'Fondo 45:00', zone: 2, instrIcon: 'sliders', instr: 'Resistencia 8 y 85 rpm', total: 'Total 45 min · ≈ 18,0 km', bar: [[45, Z]] },
+      swipe: 'Desliza para empezar', planBtn: 'Ver el plan'
+    },
+    'c-gps': {
+      dir: 'c', head: ['Ahora vamos', 'con cardio'], sub: 'Terminaste la fuerza: 3 ejercicios y 10 series.', ctx: 'Sábado · Pierna + cardio',
+      m: { icon: 'pin', title: 'Carrera · Rodaje Z2', block: 'Rodaje 30:00', zone: 2, total: 'Total 30 min · ≈ 5,0 km', bar: [[30, Z]] },
+      swipe: 'Desliza para empezar', planBtn: 'Ver el plan'
+    },
+    'c-aire': {
+      dir: 'c', head: ['Ahora vamos', 'con cardio'], sub: 'Terminaste la fuerza: 3 ejercicios y 10 series.', ctx: 'Sábado · Pierna + cardio',
+      m: { icon: 'fan', title: 'Bici de aire · Tabata', block: 'Calentamiento 5:00', zone: 2, instrIcon: 'volume', instr: 'Pitidos y voz activados', total: 'Total 12 min · ≈ 80 kcal', bar: BAR_TAB_FULL },
+      swipe: 'Desliza para empezar', planBtn: 'Ver el plan'
+    },
+    's-press': {
+      dir: 's', head: ['Ahora vamos', 'con fuerza'], sub: 'Un respiro y seguimos con el siguiente ejercicio.', ctx: 'Cardio + empuje',
+      recap: 'Cardio guardado · 40:12 · Cumplido',
+      m: { icon: 'dumbbell', title: 'Press banca', sub: '4 × 8 · 70 kg', blockLbl: 'Primera serie', blockVal: 'Serie 1 de 4', instrIcon: 'dumbbell', instr: '8 repeticiones con 70 kg', total: 'Descanso entre series · 2:00', bar: [[1, 'var(--primary)'], [1, 'rgba(208,188,255,.3)'], [1, 'rgba(208,188,255,.3)'], [1, 'rgba(208,188,255,.3)']] },
+      swipe: 'Desliza para continuar', planBtn: 'Ver la sesión', planTitle: 'Resto de la sesión',
+      plan: [['k-work', 'Press banca · 4 × 8', '70 kg · Descanso 2:00'], ['k-work', 'Press militar · 3 × 10', '40 kg'], ['k-work', 'Fondos · 3 × 12', 'Peso corporal']],
+      run: { kind: 'str', badge: 'Fuerza', cap: 'Press banca · 4 × 8', step: 'Serie 1 de 4', stn: 'Primer ejercicio de fuerza', big: '70', unit: 'kg', reps: '8 repeticiones', metrics: [['Descanso', '2:00'], ['Series', '4'], ['Objetivo', 'RPE 8']], a1: 'Serie hecha', a2: 'Repetir demo' }
+    }
+  };
+  CFG['c-cinta-voz'] = Object.assign({}, CFG['c-cinta'], { compact: true, swipe: 'O desliza para empezar' });
+
+  /* ── Fondo animado ───────────────────────────────────────────────────── */
+  const STR = [
+    { c: 'D0BCFF', y: 80, amp: 30, wl: 360, th: 260, ph: 0, dur: 24, op: .34 },
+    { c: 'CCC2DC', y: 300, amp: 26, wl: 300, th: 240, ph: 1.6, dur: 30, rev: 1, op: .26 },
+    { c: 'EFB8C8', y: 520, amp: 32, wl: 420, th: 260, ph: 3, dur: 34, op: .16 }
+  ];
+  const CAR = [
+    { c: '5AC8FA', y: 40, amp: 26, wl: 300, th: 250, ph: .5, dur: 26, op: .34 },
+    { c: '34C759', y: 230, amp: 30, wl: 360, th: 250, ph: 2, dur: 30, rev: 1, op: .40 },
+    { c: 'FFD60A', y: 430, amp: 28, wl: 330, th: 250, ph: 4, dur: 28, op: .32 },
+    { c: 'FF9F0A', y: 620, amp: 30, wl: 390, th: 240, ph: 1, dur: 34, rev: 1, op: .40 }
+  ];
+  function ribbonPath(r) {
+    const W = 360 + r.wl, step = 10;
+    let top = '', bot = '';
+    for (let x = 0; x <= W; x += step) {
+      top += (x ? 'L' : 'M') + x + ' ' + (r.y + r.amp * Math.sin(2 * Math.PI * x / r.wl + r.ph)).toFixed(1);
+    }
+    for (let x = W; x >= 0; x -= step) {
+      bot += 'L' + x + ' ' + (r.y + r.th + r.amp * .7 * Math.sin(2 * Math.PI * x / r.wl + r.ph + .8)).toFixed(1);
+    }
+    return top + bot + 'Z';
+  }
+  function layer(list, uid, tag) {
+    let defs = '', body = '';
+    list.forEach((r, i) => {
+      const id = 'g' + uid + tag + i;
+      defs += '<linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#' + r.c + '" stop-opacity="' + r.op + '"/><stop offset=".7" stop-color="#' + r.c + '" stop-opacity="' + (r.op * .2).toFixed(3) + '"/><stop offset="1" stop-color="#' + r.c + '" stop-opacity="0"/></linearGradient>';
+      body += '<g class="drift" style="--wl:' + r.wl + ';animation-duration:' + r.dur + 's' + (r.rev ? ';animation-direction:reverse' : '') + '"><path d="' + ribbonPath(r) + '" fill="url(#' + id + ')"/></g>';
+    });
+    return { defs, body };
+  }
+  function bgHTML(dir, uid) {
+    const base = dir === 'c' ? STR : CAR, rev = dir === 'c' ? CAR : STR;
+    const lb = layer(base, uid, 'b'), lr = layer(rev, uid, 'r');
+    const a = RM.matches ? 0 : 28;
+    const q = (amp) => 'M0 0 q90 ' + (-amp) + ' 180 0 t180 0 t180 0 t180 0';
+    const crest = dir === 'c' ? '#34C759' : '#D0BCFF';
+    const glowB = dir === 'c' ? '#D0BCFF' : '#34C759';
+    const glowR = dir === 'c' ? '#34C759' : '#D0BCFF';
+    return '<svg class="bg" viewBox="0 0 360 780" preserveAspectRatio="none" aria-hidden="true"><defs>' + lb.defs + lr.defs +
+      '<radialGradient id="gl' + uid + 'b" cx=".8" cy=".12" r=".7"><stop offset="0" stop-color="' + glowB + '" stop-opacity=".22"/><stop offset="1" stop-color="' + glowB + '" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="gl' + uid + 'r" cx=".25" cy=".9" r=".7"><stop offset="0" stop-color="' + glowR + '" stop-opacity=".2"/><stop offset="1" stop-color="' + glowR + '" stop-opacity="0"/></radialGradient>' +
+      '<mask id="mk' + uid + '" maskUnits="userSpaceOnUse" x="0" y="0" width="360" height="780"><g class="fr" data-off="0"><g class="drift" style="--wl:360;animation-duration:9s"><path fill="#fff" d="' + q(a) + ' L720 1100 L0 1100Z"/></g></g></mask></defs>' +
+      '<rect width="360" height="780" fill="url(#gl' + uid + 'b)"/>' + lb.body +
+      '<g mask="url(#mk' + uid + ')"><rect width="360" height="780" fill="#0F0F0F"/><rect width="360" height="780" fill="url(#gl' + uid + 'r)"/>' + lr.body + '</g>' +
+      '<g class="fr" data-off="16" opacity=".35"><g class="drift" style="--wl:360;animation-duration:14s;animation-direction:reverse"><path d="' + q(a * .7) + '" fill="none" stroke="' + crest + '" stroke-width="1.5"/></g></g>' +
+      '<g class="fr" data-off="0"><g class="drift" style="--wl:360;animation-duration:9s"><path d="' + q(a) + '" fill="none" stroke="' + crest + '" stroke-width="10" opacity=".12"/><path d="' + q(a) + '" fill="none" stroke="' + crest + '" stroke-width="1.5" opacity=".75"/></g></g>' +
+      '</svg>';
+  }
+  function setH(bg, h) {
+    h = Math.max(0, Math.min(1, h));
+    const Y = (1 - h) * 840 - 30;
+    bg.frs.forEach(f => f.el.setAttribute('transform', 'translate(0 ' + (Y + f.off).toFixed(1) + ')'));
+    bg.h = h;
+  }
+
+  /* ── Piezas ──────────────────────────────────────────────────────────── */
+  function barHTML(bar) {
+    return '<div class="pbar" aria-hidden="true">' + bar.map(b => '<i style="--w:' + b[0] + ';background:' + b[1] + '"></i>').join('') + '</div>';
+  }
+  function swapHTML(c) {
+    const from = c.dir === 'c' ? 'str' : 'car', to = c.dir === 'c' ? 'car' : 'str';
+    const fi = c.dir === 'c' ? 'dumbbell' : 'treadmill', ti = c.dir === 'c' ? 'treadmill' : 'dumbbell';
+    return '<div class="swap r" style="--d:0ms"><span class="node from ' + from + '">' + ico(fi) + '</span><span class="rail"><i></i></span><span class="node to ' + to + '">' + ico(ti) + '</span><span class="ctx">' + c.ctx + '</span></div>';
+  }
+  function headHTML(c) {
+    return '<h2 class="hd" aria-label="' + c.head.join(' ') + '"><span class="ln" style="--d:120ms"><span>' + c.head[0] + '</span></span><span class="ln" style="--d:230ms"><span>' + c.head[1] + '</span></span></h2>' +
+      '<p class="sub r" style="--d:340ms">' + c.sub + '</p>';
+  }
+  function machHTML(c, o) {
+    const m = c.m;
+    let instr;
+    if (o.gps === 'search') instr = '<div class="instr gps"><span class="gps-dot"></span><span>Buscando GPS…</span><span class="caption ml">Sal a cielo abierto</span></div>';
+    else if (o.gps === 'ready') instr = '<div class="instr gps-ok">' + ico('check') + '<span>GPS listo</span><span class="caption ml">Precisión 4 m</span></div>';
+    else instr = '<div class="instr">' + ico(m.instrIcon) + '<span>' + m.instr + '</span></div>';
+    const tile = c.dir === 'c' ? 'car' : 'str';
+    const blk = c.dir === 'c'
+      ? '<div class="blk"><span>Primer bloque: <b>' + m.block + '</b></span><span class="zone-chip z' + m.zone + '">Zona ' + m.zone + '</span></div>'
+      : '<div class="blk"><span>' + m.blockLbl + '</span><b>' + m.blockVal + '</b></div>';
+    const recap = c.recap ? '<div class="recap r" style="--d:380ms">' + ico('check') + '<span>' + c.recap + '</span></div>' : '';
+    return recap + '<div class="mach r" style="--d:440ms"><div class="row1"><span class="tile ' + tile + '">' + ico(m.icon) + '</span><div><div class="title-m">' + m.title + '</div>' +
+      (m.sub ? '<div class="caption">' + m.sub + '</div>' : '<div class="caption">' + (c.dir === 'c' ? 'Cardio' : 'Fuerza') + '</div>') + '</div></div>' +
+      blk + instr + (o.compact ? '' : barHTML(m.bar)) + '<div class="tot">' + m.total + '</div></div>';
+  }
+  function voiceHTML() {
+    return '<div class="voice r" style="--d:500ms"><button class="mic" type="button" data-act="voice" aria-label="Simular que dices empezar">' + ico('mic') + '</button>' +
+      '<div class="vt"><div class="title-m" data-vt>Di «empezar» para comenzar</div><div class="caption">Escuchando · Voz activada</div></div>' +
+      '<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>';
+  }
+  function swipeHTML(c, o) {
+    const disabled = o.gps === 'search';
+    const label = disabled ? 'Esperando GPS…' : c.swipe;
+    return '<div class="swipe-wrap r" style="--d:600ms"><div class="swipe' + (o.live ? ' live' : '') + '" role="slider" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 %" tabindex="' + (o.live && !disabled ? 0 : -1) + '"' + (disabled ? ' aria-disabled="true"' : '') + '>' +
+      '<div class="fill"></div><div class="lbl"><span>' + label + '</span></div><div class="go">' + ico('chevrons') + '</div>' +
+      '<div class="thumb">' + ico('arrow') + '</div></div></div>';
+  }
+  function stageHTML(c, o) {
+    const hasPlan = !o.compact && c.planBtn;
+    return '<div class="stage' + (o.live ? ' pre' : '') + '">' + swapHTML(c) + headHTML(c) +
+      '<div class="mid">' + machHTML(c, o) + (o.voice ? voiceHTML() : '') +
+      (hasPlan ? '<div class="plan r" style="--d:520ms"><button type="button" data-act="plan">' + ico('list') + '<span>' + c.planBtn + '</span></button></div>' : '') + '</div>' +
+      swipeHTML(c, o) + '</div>';
+  }
+  function countHTML(c, fixed) {
+    if (!c.count) return '';
+    return '<div class="count" aria-hidden="true"><div class="cd' + (fixed ? ' fixed' : '') + '"><svg class="cring" viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="52"/><circle class="pg" cx="60" cy="60" r="52"/></svg><div class="cn">' + (fixed ? '2' : '3') + '</div></div>' +
+      '<div class="cl">' + c.count[0] + '</div><div class="cs">' + c.count[1] + '</div></div>';
+  }
+  function runHTML(r) {
+    if (!r) return '';
+    const head = '<div class="top"><span class="live-badge"><i></i>' + r.badge + '</span><span class="caption">' + r.cap + '</span></div>';
+    if (r.kind === 'str') {
+      return '<div class="run">' + head + '<h3 class="st">' + r.step + '</h3><div class="stn">' + r.stn + '</div>' +
+        '<div class="tm" style="color:var(--primary)">' + r.big + '<small>' + r.unit + '</small></div>' +
+        '<div class="zrow"><span class="title-m">× ' + r.reps + '</span></div>' +
+        '<div class="metrics">' + r.metrics.map(m => '<div class="metric"><span class="caption">' + m[0] + '</span><b>' + m[1] + '</b></div>').join('') + '</div>' +
+        '<div class="acts"><button class="btn btn-primary" type="button">' + r.a1 + '</button><button class="btn btn-ghost" type="button" data-act="again">' + r.a2 + '</button></div></div>';
+    }
+    return '<div class="run">' + head + '<h3 class="st">' + r.step + '</h3><div class="stn">' + r.stn + '</div>' +
+      '<div class="tm" data-tm style="color:var(--z' + r.zone + ')">' + r.time + '</div>' +
+      '<div class="zrow"><span class="zone-chip z' + r.zone + '">Zona ' + r.zone + '</span><span class="body-s">' + r.zr + '</span></div>' +
+      '<div class="zone-tape" aria-hidden="true">' + [1, 2, 3, 4, 5].map(n => '<i' + (n === r.zone ? ' class="is-on"' : '') + '></i>').join('') + '</div>' +
+      '<div class="metrics">' + r.metrics.map(m => '<div class="metric"><span class="caption">' + m[0] + '</span><b>' + m[1] + '</b></div>').join('') + '</div>' +
+      '<div class="nextcard"><span class="kind-bar ' + r.next[0] + '"></span><div><span class="caption">Siguiente</span><b>' + r.next[1] + '</b><span class="caption">' + r.next[2] + '</span></div></div>' +
+      '<div class="acts"><button class="btn btn-tonal" type="button">Pausar</button><button class="btn btn-ghost" type="button" data-act="again">' + r.a2 + '</button></div></div>';
+  }
+  function sheetHTML(c) {
+    if (!c.plan) return '';
+    return '<div class="planSheet"><div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-label="' + c.planTitle + '"><h3 class="headline" style="margin:0 0 6px">' + c.planTitle + '</h3>' +
+      c.plan.map(p => '<div class="planline"><span class="kind-bar ' + p[0] + '"></span><div><b>' + p[1] + '</b><small>' + p[2] + '</small></div></div>').join('') +
+      '<button class="btn btn-tonal btn-block" type="button" data-act="close" style="margin-top:10px">Cerrar</button></div></div>';
+  }
+
+  /* ── Animación ───────────────────────────────────────────────────────── */
+  const E_OUT = k => 1 - Math.pow(1 - k, 3);
+  const E_EMPH = k => 1 - Math.pow(1 - k, 4);
+  function tween(from, to, dur, ease, fn, done) {
+    if (RM.matches || dur <= 0) { fn(to); if (done) done(); return { cancel() {} }; }
+    let id, t0 = null, dead = false;
+    const step = ts => {
+      if (dead) return;
+      if (t0 === null) t0 = ts;
+      const k = Math.min(1, (ts - t0) / dur);
+      fn(from + (to - from) * ease(k));
+      if (k < 1) id = requestAnimationFrame(step); else if (done) done();
+    };
+    id = requestAnimationFrame(step);
+    return { cancel() { dead = true; cancelAnimationFrame(id); } };
+  }
+  function spring(from, to, fn, done) {
+    if (RM.matches) { fn(to); if (done) done(); return { cancel() {} }; }
+    const k = 380, z = .75, c = 2 * z * Math.sqrt(k);
+    let x = from, v = 0, last = null, id, dead = false;
+    const step = ts => {
+      if (dead) return;
+      if (last === null) last = ts;
+      const dt = Math.min(.032, (ts - last) / 1000); last = ts;
+      v += (-k * (x - to) - c * v) * dt; x += v * dt;
+      if (Math.abs(x - to) < .002 && Math.abs(v) < .02) { fn(to); if (done) done(); return; }
+      fn(x); id = requestAnimationFrame(step);
+    };
+    id = requestAnimationFrame(step);
+    return { cancel() { dead = true; cancelAnimationFrame(id); } };
+  }
+  /* Ajusta el tamaño de un texto grande de Syne al ancho disponible */
+  function fit(el, measure, max) {
+    const avail = el.clientWidth;
+    if (!avail) return;
+    let s = max;
+    el.style.fontSize = s + 'px';
+    while (measure() > avail && s > 16) { s -= 1; el.style.fontSize = s + 'px'; }
+  }
+  function fitAll(root) {
+    root.querySelectorAll('.hd').forEach(h => fit(h, () => Math.max(...Array.from(h.querySelectorAll('.ln > span')).map(s => s.offsetWidth)), 42));
+    root.querySelectorAll('.run .tm').forEach(t => fit(t, () => t.scrollWidth, 68));
+    root.querySelectorAll('.rest .display-l').forEach(t => fit(t, () => t.scrollWidth, 56));
+  }
+  const refit = () => document.querySelectorAll('.phone').forEach(fitAll);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+  window.addEventListener('load', refit);
+
+  const hap = pat => { try { if (navigator.vibrate) navigator.vibrate(pat); } catch (e) { /* sin vibración */ } };
+
+  /* ── Montaje de interstitial ─────────────────────────────────────────── */
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    const ph = en.target;
+    ph.classList.toggle('is-off', en.intersectionRatio === 0);
+    if (en.intersectionRatio >= .35 && ph._play && !ph._played) { ph._played = true; ph._play(); }
+  }), { threshold: [0, .35] });
+
+  function mountInter(ph) {
+    const d = ph.dataset, c = CFG[d.cfg], uid = ++UID;
+    const live = d.live === '1', state = d.state || 'idle', p0 = parseFloat(d.p || '0');
+    const o = { live, gps: d.gps, voice: d.voice === '1', compact: !!c.compact };
+    const to = c.dir === 'c' ? 'car' : 'str';
+    ph.classList.add('immersive');
+    const runData = state === 'restored' ? c.runB : c.run;
+    ph.innerHTML = STATUS + '<div class="screen inter to-' + to + '">' + bgHTML(c.dir, uid) + '<div class="veil"></div>' +
+      stageHTML(c, o) + countHTML(c, state === 'count') + runHTML(runData) + (live ? sheetHTML(c) : '') +
+      (state === 'restored' ? '<div class="toast" role="status">' + ico('check') + '<span>' + c.toast + '</span></div>' : '') +
+      '<div class="sr" aria-live="polite"></div></div><div class="gesturebar"></div>';
+
+    const screen = $('.screen', ph), sw = $('.swipe', ph), th = $('.thumb', ph), stage = $('.stage', ph);
+    const toNode = $('.swap .to', ph), lbl = $('.lbl', ph), live$ = $('.sr', ph);
+    const bg = { frs: Array.from($('.bg', ph).querySelectorAll('.fr')).map(el => ({ el, off: parseFloat(el.dataset.off) })), h: 0 };
+    let p = 0, done = false, dragging = false, timers = [], tws = [], runIv = null, band = 0;
+    const travel = () => Math.max(80, sw.clientWidth - 62) || 264;
+    const after = (ms, fn, keep) => { timers.push(setTimeout(fn, RM.matches && !keep ? 0 : ms)); };
+
+    function setThumb(v) {
+      p = Math.max(0, Math.min(1, v));
+      sw.style.setProperty('--x', (p * travel()).toFixed(1) + 'px');
+      screen.style.setProperty('--pp', p.toFixed(3));
+      lbl.style.opacity = String(Math.max(0, 1 - p * 1.4));
+      const armed = p >= THRESH;
+      sw.classList.toggle('armed', armed);
+      toNode.classList.toggle('on', armed || done);
+      sw.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+      sw.setAttribute('aria-valuetext', Math.round(p * 100) + ' %');
+    }
+    const both = v => { setThumb(v); setH(bg, H_IDLE + (1 - H_IDLE) * p); };
+
+    setH(bg, H_IDLE + (1 - H_IDLE) * p0);
+    setThumb(p0);
+
+    if (state === 'count') { stage.classList.add('out'); screen.classList.add('is-count'); setH(bg, 1); }
+    if (state === 'run' || state === 'restored') { stage.classList.add('out'); screen.classList.add('is-run'); setH(bg, 1); toNode.classList.add('on'); }
+    if (state === 'restored') screen.classList.add('is-restored');
+
+    if (!live) { io.observe(ph); return; }
+
+    /* ── Interacción ─────────────────────────────────────────────────── */
+    function clearAll() {
+      timers.forEach(clearTimeout); timers = [];
+      tws.forEach(t => t.cancel()); tws = [];
+      if (runIv) { clearInterval(runIv); runIv = null; }
+    }
+    function announce(t) { live$.textContent = ''; setTimeout(() => { live$.textContent = t; }, 30); }
+
+    function showRun() {
+      screen.classList.remove('is-count'); screen.classList.add('is-run');
+      fitAll(ph);
+      announce(c.dir === 'c' ? 'Cardio empezado. Calentamiento, 10 minutos, Zona 2.' : 'Fuerza empezada. Serie 1 de 4.');
+      const tm = $('[data-tm]', ph);
+      if (tm && c.dir === 'c') {
+        let rem = 600;
+        runIv = setInterval(() => { rem = Math.max(0, rem - 1); tm.textContent = Math.floor(rem / 60) + ':' + String(rem % 60).padStart(2, '0'); }, 1000);
+      }
+    }
+    function startCount() {
+      screen.classList.add('is-count');
+      const cd = $('.cd', ph), cn = $('.cn', ph);
+      [3, 2, 1].forEach((n, i) => after(i * 800, () => {
+        cn.textContent = String(n);
+        cd.classList.remove('tick'); void cd.offsetWidth; cd.classList.add('tick');
+        hap(12);
+      }, true));
+      after(2400, showRun, true);
+    }
+    function complete() {
+      if (done) return;
+      done = true; dragging = false; sw.classList.remove('drag');
+      hap([18, 30, 40]);
+      tws.forEach(t => t.cancel());
+      tws.push(tween(p, 1, 180, E_OUT, v => setThumb(v)));
+      tws.push(tween(bg.h, 1, 700, E_EMPH, v => setH(bg, v)));
+      sw.setAttribute('aria-disabled', 'true');
+      after(280, () => stage.classList.add('out'));
+      if (c.dir === 'c') after(520, startCount); else after(760, showRun);
+    }
+    function back() {
+      tws.forEach(t => t.cancel());
+      tws.push(spring(p, 0, v => both(v)));
+    }
+    function reset() {
+      clearAll();
+      done = false; dragging = false; band = 0;
+      screen.classList.remove('is-count', 'is-run', 'show-plan');
+      stage.classList.remove('out');
+      sw.removeAttribute('aria-disabled'); sw.classList.remove('armed', 'drag');
+      toNode.classList.remove('on');
+      const tm = $('[data-tm]', ph); if (tm) tm.textContent = c.run.time;
+      const vt = $('[data-vt]', ph); if (vt) vt.textContent = 'Di «empezar» para comenzar';
+      setThumb(0); setH(bg, 0);
+      play();
+    }
+    function play() {
+      stage.classList.remove('pre', 'enter'); void stage.offsetWidth; stage.classList.add('enter');
+      setH(bg, 0);
+      after(150, () => tws.push(tween(0, H_IDLE, 1400, E_EMPH, v => { if (!done && !dragging) setH(bg, v); })));
+    }
+    ph._play = play;
+
+    const bands = [.25, .5, .75, THRESH];
+    let sx = 0, sp = 0;
+    th.addEventListener('pointerdown', e => {
+      if (done || sw.getAttribute('aria-disabled') === 'true') { shake(); return; }
+      e.preventDefault();
+      tws.forEach(t => t.cancel());
+      dragging = true; sx = e.clientX; sp = p;
+      th.setPointerCapture(e.pointerId);
+      sw.classList.add('drag'); sw.focus({ preventScroll: true });
+    });
+    th.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const np = Math.max(0, Math.min(1, sp + (e.clientX - sx) / travel()));
+      const nb = bands.filter(b => np >= b).length;
+      if (nb !== band) {
+        if (nb > band) { hap(nb === 4 ? 25 : 8); th.classList.remove('tk'); void th.offsetWidth; th.classList.add('tk'); }
+        band = nb;
+      }
+      both(np);
+      if (np >= FIN) complete();
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; sw.classList.remove('drag');
+      if (p >= THRESH) complete(); else { band = 0; back(); }
+    };
+    th.addEventListener('pointerup', end);
+    th.addEventListener('pointercancel', end);
+    function shake() { sw.classList.remove('shake'); void sw.offsetWidth; sw.classList.add('shake'); }
+    sw.addEventListener('pointerdown', e => { if (e.target === sw || e.target.closest('.lbl,.go,.fill')) shake(); });
+    sw.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (sw.getAttribute('aria-disabled') === 'true') { shake(); return; }
+        complete();
+      }
+    });
+
+    screen.addEventListener('click', e => {
+      const a = e.target.closest('[data-act]'); if (!a) return;
+      const act = a.dataset.act;
+      if (act === 'again') reset();
+      else if (act === 'plan') screen.classList.add('show-plan');
+      else if (act === 'close') screen.classList.remove('show-plan');
+      else if (act === 'voice' && !done) {
+        const vt = $('[data-vt]', ph); if (vt) vt.textContent = 'Te he oído: «empezar»';
+        after(500, complete);
+      }
+    });
+    ph.addEventListener('keydown', e => { if (e.key === 'Escape') screen.classList.remove('show-plan'); });
+    const fig = ph.closest('figure'), rb = fig && fig.querySelector('[data-reset]');
+    if (rb) rb.addEventListener('click', reset);
+
+    io.observe(ph);
+  }
+
+  /* ── Descanso (B) ────────────────────────────────────────────────────── */
+  function mountRest(ph) {
+    const C = 2 * Math.PI * 104, off = (C * (1 - 150 / 180)).toFixed(1);
+    ph.innerHTML = STATUS + '<div class="screen"><div class="rest">' +
+      '<div class="head"><span class="caption">Sábado · Pierna + cardio</span><span class="badge">Última serie de fuerza</span></div>' +
+      '<div class="ringbox" role="timer" aria-label="Quedan 2 minutos y 30 segundos"><svg viewBox="0 0 236 236" aria-hidden="true"><circle cx="118" cy="118" r="104" stroke="rgba(255,255,255,.08)"/><circle cx="118" cy="118" r="104" stroke="#D0BCFF" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '"/></svg>' +
+      '<div><div class="caption">Descanso</div><div class="display-l num">2:30</div></div></div>' +
+      '<div class="adj"><button class="btn btn-ghost" type="button">−15 s</button><button class="btn btn-ghost" type="button">+15 s</button></div>' +
+      '<div class="card-2 prevset">' + ico('check') + '<div><div class="caption">Última serie hecha</div><div class="title-m" style="font-size:14px">Zancada búlgara · 10 × 2×16 kg · RPE 8</div></div></div>' +
+      '<div class="card nextmod"><div class="row1"><span class="tile car">' + ico('treadmill') + '</span><div><div class="caption">Siguiente: cardio</div><div class="title-m">Cinta · Noruego 4×4 · 40 min</div></div></div>' +
+      '<div class="hint">' + ico('info') + '<span>Cuando termine el descanso verás «Ahora vamos con cardio» y empezarás deslizando.</span></div></div>' +
+      '<div class="foot"><button class="btn btn-tonal btn-block" type="button" style="height:52px">' + ico('skip') + 'Saltar descanso</button></div>' +
+      '</div></div><div class="gesturebar"></div>';
+  }
+
+  /* ── Cardio listo (E1) ───────────────────────────────────────────────── */
+  function mountReady(ph) {
+    const c = CFG['c-cinta'];
+    ph.innerHTML = STATUS + '<div class="screen"><div class="ready">' +
+      '<div class="topbar" style="padding:6px 0 10px"><button class="icon-btn" type="button" aria-label="Volver">' + ico('back') + '</button><span class="title">Domingo · Cardio</span><button class="icon-btn" type="button" aria-label="Más opciones">' + ico('more') + '</button></div>' +
+      '<div><span class="badge">Sesión solo cardio</span></div>' +
+      '<h2 class="display-m" style="margin:14px 0 0;font-size:30px">Listo para empezar</h2>' +
+      '<p class="body-s" style="margin:8px 0 0">Ajusta la máquina y pulsa empezar. Sin transición, directo al cardio.</p>' +
+      '<div class="machcard">' + machHTML(c, {}).replace(/ r" style="--d:\d+ms"/g, '"') + '</div>' +
+      '<div class="card-2" style="margin-top:12px"><div class="body-s">Primer bloque en Zona 2 · 112–130 lpm</div><div class="zone-tape" style="margin-top:8px" aria-hidden="true"><i></i><i class="is-on"></i><i></i><i></i><i></i></div><div class="zlabel"><span>Z1 94</span><span>Z2 112</span><span>Z3 131</span><span>Z4 150</span><span>Z5 168</span></div></div>' +
+      '<div class="foot"><button class="btn btn-primary btn-block btn-start" type="button">Empezar cardio</button><button class="btn btn-ghost btn-block" type="button">' + ico('list') + 'Ver el plan</button></div>' +
+      '</div></div><div class="gesturebar"></div>';
+  }
+
+  document.querySelectorAll('.phone[data-tpl]').forEach(ph => {
+    const t = ph.dataset.tpl;
+    if (t === 'inter') mountInter(ph);
+    else if (t === 'rest') mountRest(ph);
+    else if (t === 'ready') mountReady(ph);
+  });
+})();
+</script>
+</body>
+</html>

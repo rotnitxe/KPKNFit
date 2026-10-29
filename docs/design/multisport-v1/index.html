@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>KPKN Fit · Multideporte · Galería de prototipos</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <script defer src="assets/scenarios.js"></script>
+  <script defer src="assets/gallery.js"></script>
+</head>
+<body class="gallery-page">
+  <a class="skip-link" href="#escenarios">Saltar a los escenarios</a>
+  <header class="gallery-header">
+    <a class="wordmark" href="index.html" aria-label="KPKN Fit, inicio de la galería">
+      <span class="tower-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>KPKN <b>FIT</b></span>
+    </a>
+    <div class="header-meta"><span>Diseño multideporte</span><span class="version-tag">V1 · PROTOTIPO</span></div>
+  </header>
+
+  <main class="gallery-main" id="escenarios">
+    <section class="gallery-intro" aria-labelledby="gallery-title">
+      <div>
+        <p class="eyebrow">VISTA DE ESCENARIOS <span class="eyebrow-dot"></span> DATOS DE EJEMPLO</p>
+        <h1 id="gallery-title">Entrena a tu manera.</h1>
+        <p class="intro-copy">Un perfil, varias disciplinas. Explora cada pantalla o recorre el primer híbrido de fuerza y running.</p>
+      </div>
+      <a class="primary-link" href="demo.html#home">Abrir Home <span aria-hidden="true">↗</span></a>
+    </section>
+
+    <section class="journey-strip" aria-labelledby="journey-title">
+      <div class="journey-heading">
+        <div><p class="eyebrow">RECORRIDO INTERACTIVO</p><h2 id="journey-title">Fuerza + running</h2></div>
+        <span class="status-live"><i></i> Estado local · reiniciable</span>
+      </div>
+      <p>Perfil → semana → alternativa → series → carrera → resumen</p>
+      <a href="demo.html#hybrid" class="text-link">Comenzar recorrido <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="gallery-tools" aria-label="Buscar y filtrar escenarios">
+      <label class="search-box">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.7"></circle><path d="m16 16 4.5 4.5"></path></svg>
+        <span class="sr-only">Buscar por disciplina o métrica</span>
+        <input id="scene-search" type="search" placeholder="Buscar disciplina, métrica o acción" autocomplete="off">
+        <kbd>/</kbd>
+      </label>
+      <div class="filter-row" id="group-filters" role="group" aria-label="Filtrar por familia"></div>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+    </section>
+
+    <div id="scenario-groups" class="scenario-groups"></div>
+
+    <section class="reference-row" aria-labelledby="cardio-reference-title">
+      <div class="reference-symbol" aria-hidden="true">↗</div>
+      <div><p class="eyebrow">REFERENCIA APROBADA</p><h2 id="cardio-reference-title">Cardio v2</h2><p>Editor, zonas, sesión en vivo y transiciones. Se conserva la maqueta existente, sin rediseño.</p></div>
+      <a class="secondary-link" href="references/cardio-v2/index.html">Abrir referencia <span aria-hidden="true">→</span></a>
+    </section>
+    <p class="gallery-footnote">Las pantallas de disciplinas futuras son proyecciones visuales. Los controles de la demo muestran estados locales y no conectan sensores, servicios ni almacenamiento productivo.</p>
+  </main>
+
+  <footer class="gallery-footer"><span>KPKN FIT</span><span>Prototipo local · funciona sin conexión</span><a href="references/cardio-v2/PROVENANCE.md">Origen de la referencia cardio</a></footer>
+</body>
+</html>

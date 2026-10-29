@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>KPKN · revisión interna de ampliaciones</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#202020;color:#f2eee6;font:14px/1.4 system-ui,sans-serif}
+    .tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:2;padding:12px 20px;background:#202020;border-bottom:1px solid #444}
+    label{display:flex;gap:8px;align-items:center}select{background:#111;color:#f2eee6;border:1px solid #666;padding:8px;border-radius:8px;max-width:300px}
+    .label{font-size:12px;color:#c4bfb6}main{display:flex;justify-content:center;padding:18px 8px 40px;min-width:464px}
+    iframe{border:0;display:block;background:#000;box-shadow:0 0 0 1px #555}
+  </style>
+</head>
+<body>
+  <div class="tools">
+    <span class="label">CONTROL INTERNO · NO ES UN ESCENARIO DE PRODUCTO</span>
+    <label>Escenario<select id="scenario" aria-label="Escenario nuevo"></select></label>
+    <label>Ancho<select id="width" aria-label="Ancho móvil"><option>320</option><option>360</option><option>430</option><option selected>448</option></select></label>
+    <label>Alto<select id="height" aria-label="Alto móvil"><option selected>600</option><option>640</option><option>800</option><option>997</option></select></label>
+    <label><input id="advanced" type="checkbox">Abrir detalles avanzados</label>
+  </div>
+  <output id="measure" aria-live="polite" style="display:block;font:12px/1.3 monospace;white-space:pre-wrap;padding:8px 20px">Cargando medidas…</output>
+  <main><iframe id="viewport" title="Ampliación KPKN en un viewport móvil" width="448" height="600"></iframe></main>
+  <script src="./scenarios.js"></script>
+  <script>
+    'use strict';
+    const routeSelect=document.getElementById('scenario');
+    const frame=document.getElementById('viewport');
+    SCENARIOS.forEach(scene=>{const opt=document.createElement('option');opt.value=scene.id;opt.textContent=scene.title;routeSelect.appendChild(opt)});
+    const requested=location.hash.slice(1);
+    routeSelect.value=SCENARIOS.some(scene=>scene.id===requested)?requested:(SCENARIOS.some(scene=>scene.id==='wizard-sports')?'wizard-sports':SCENARIOS[0].id);
+    function resize(){frame.width=document.getElementById('width').value;frame.height=document.getElementById('height').value}
+    function route(){frame.src='./index.html#'+encodeURIComponent(routeSelect.value);history.replaceState(null,'','#'+routeSelect.value)}
+    routeSelect.addEventListener('change',route);
+    document.getElementById('width').addEventListener('change',resize);
+    document.getElementById('height').addEventListener('change',resize);
+    function measure(){
+      const d=frame.contentDocument,a=d&&d.querySelector('#app');
+      if(!a||!a.innerText.trim())return;
+      const advanced=document.getElementById('advanced').checked;
+      if(advanced)Array.from(a.querySelectorAll('details')).forEach(el=>{el.open=true});
+      const bounds=a.getBoundingClientRect();
+      const outside=Array.from(a.querySelectorAll('h1,h2,h3,p,button,input,select,textarea,.module,.two-fields,.segmented,.calendar-session'))
+        .map(el=>({el,r:el.getBoundingClientRect()}))
+        .filter(({r})=>r.width>0&&(r.left<bounds.left-1||r.right>bounds.right+1));
+      function scrollParent(el){for(let p=el.parentElement;p&&p!==a;p=p.parentElement){const style=frame.contentWindow.getComputedStyle(p);if(/^(auto|scroll)$/.test(style.overflowX)&&p.scrollWidth>p.clientWidth+1)return p.className}return ''}
+      const described=outside.map(({el,r})=>({tag:el.tagName,text:(el.textContent||el.getAttribute('aria-label')||'').trim().slice(0,70),left:Math.round(r.left-bounds.left),right:Math.round(r.right-bounds.left),scrollParent:scrollParent(el)}));
+      const info={route:d.location.hash.slice(1),width:frame.clientWidth,advanced,documentWidth:d.documentElement.scrollWidth,appWidth:a.clientWidth,scrollWidth:a.scrollWidth,overflow:described.filter(item=>!item.scrollParent).slice(0,12),horizontalScroll:described.filter(item=>item.scrollParent).slice(0,12),badText:/\b(NaN|undefined)\b/.test(a.innerText),title:d.title};
+      document.getElementById('measure').textContent=JSON.stringify(info);
+    }
+    frame.addEventListener('load',measure);
+    document.getElementById('advanced').addEventListener('change',()=>{const d=frame.contentDocument;if(d)Array.from(d.querySelectorAll('details')).forEach(el=>{el.open=document.getElementById('advanced').checked});measure()});
+    setInterval(measure,300);
+    route();
+  </script>
+</body>
+</html>

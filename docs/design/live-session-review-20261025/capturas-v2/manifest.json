@@ -1,0 +1,140 @@
+[
+  {
+    "name": "01-tarjetas-lista",
+    "view": "compare",
+    "scene": "strength",
+    "bytes": 50461
+  },
+  {
+    "name": "02-descanso-tarjeta",
+    "view": "cards",
+    "scene": "rest-card",
+    "bytes": 27050
+  },
+  {
+    "name": "03-descanso-completo",
+    "view": "cards",
+    "scene": "rest",
+    "bytes": 22374
+  },
+  {
+    "name": "04-feedback",
+    "view": "cards",
+    "scene": "rest-feedback",
+    "bytes": 28646
+  },
+  {
+    "name": "05-selector-juegos",
+    "view": "cards",
+    "scene": "games",
+    "bytes": 28709
+  },
+  {
+    "name": "06-superserie",
+    "view": "list",
+    "scene": "superset",
+    "bytes": 32452
+  },
+  {
+    "name": "07-movilidad-lista",
+    "view": "list",
+    "scene": "mobility",
+    "bytes": 28333
+  },
+  {
+    "name": "08-aproximaciones-lista",
+    "view": "list",
+    "scene": "warmup",
+    "bytes": 28655
+  },
+  {
+    "name": "09-etiquetas",
+    "view": "cards",
+    "scene": "tags",
+    "bytes": 27453
+  },
+  {
+    "name": "10-configurar-serie",
+    "view": "cards",
+    "scene": "set-config",
+    "bytes": 24314
+  },
+  {
+    "name": "11-reemplazo",
+    "view": "cards",
+    "scene": "replacement-preview",
+    "bytes": 27790
+  },
+  {
+    "name": "12-aviso",
+    "view": "cards",
+    "scene": "alert-discomfort",
+    "bytes": 21327
+  },
+  {
+    "name": "13-analisis",
+    "view": "cards",
+    "scene": "video-detail",
+    "bytes": 27992
+  },
+  {
+    "name": "14-metricas",
+    "view": "cards",
+    "scene": "video-detail",
+    "bytes": 27433
+  },
+  {
+    "name": "15-selector-voz",
+    "view": "cards",
+    "scene": "voice-picker",
+    "bytes": 24429
+  },
+  {
+    "name": "16-conversacion",
+    "view": "cards",
+    "scene": "voice-conversation",
+    "bytes": 26152
+  },
+  {
+    "name": "17-encuadre",
+    "view": "cards",
+    "scene": "framing",
+    "bytes": 28215
+  },
+  {
+    "name": "18-corregir-encuadre",
+    "view": "cards",
+    "scene": "framing-warning",
+    "bytes": 28758
+  },
+  {
+    "name": "19-repeticiones",
+    "view": "cards",
+    "scene": "video-detail",
+    "bytes": 26648
+  },
+  {
+    "name": "20-guia-encuadre",
+    "view": "cards",
+    "scene": "framing",
+    "bytes": 32405
+  },
+  {
+    "name": "21-juego-saltos",
+    "view": "cards",
+    "scene": "game-runner",
+    "bytes": 27225
+  },
+  {
+    "name": "22-juego-vuelo",
+    "view": "cards",
+    "scene": "game-flappy",
+    "bytes": 26143
+  },
+  {
+    "name": "23-juego-escuadron",
+    "view": "cards",
+    "scene": "game-shooter",
+    "bytes": 26532
+  }
+]

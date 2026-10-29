@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Sesión en vivo · programa de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kpkn.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">K</div>
+    <div class="brand-txt">
+      <b>KPKN Fit</b>
+      <span>Sesión en vivo · programa de diseño</span>
+    </div>
+  </div>
+  <div class="phasebar" id="phasebar"></div>
+  <div class="tools">
+    <button class="tool" id="toggle-notes" aria-pressed="false"><span class="dot"></span>Anotaciones</button>
+    <button class="tool" id="toggle-motion" aria-pressed="false">Movimiento reducido</button>
+    <div class="zoom" id="zoom">
+      <button data-z="0.75">75</button><button data-z="0.9" class="on">90</button><button data-z="1">100</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="index">
+    <div class="index-head">
+      <div class="index-title">Fases</div>
+      <input id="search" class="search" type="search" placeholder="Buscar estado, modo, hoja…" autocomplete="off">
+      <div class="filters" id="filters">
+        <button class="f on" data-f="all">Todo</button>
+        <button class="f" data-f="exact">Exacto</button>
+        <button class="f" data-f="derived">Derivado</button>
+        <button class="f" data-f="gap">Brecha</button>
+      </div>
+    </div>
+    <nav class="index-list" id="index-list" aria-label="Estados del prototipo"></nav>
+    <div class="index-foot">
+      <span id="count">0 estados</span>
+      <span>← → para navegar</span>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-top">
+      <div class="crumbs" id="crumbs">—</div>
+      <div class="fidelity" id="fidelity"></div>
+    </div>
+    <div class="devwrap" id="devwrap">
+      <div class="device" id="device"></div>
+      <div class="pins" id="pins"></div>
+    </div>
+    <div class="stage-bottom">
+      <button class="navbtn" id="prev" aria-label="Anterior">←</button>
+      <div class="scene-name">
+        <b id="scene-name">—</b>
+        <span id="scene-desc">—</span>
+      </div>
+      <button class="navbtn" id="next" aria-label="Siguiente">→</button>
+    </div>
+  </main>
+
+  <aside class="inspector" id="inspector"></aside>
+</div>
+
+<script src="scenes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

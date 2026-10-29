@@ -1,0 +1,87 @@
+{
+  "scope": "HTML increment prototype only",
+  "state": "frozen candidate after bounded previews, shared placement checks and numeric selector recovery",
+  "localRenderScenes": 46,
+  "localContracts": 36,
+  "syntaxFiles": 12,
+  "visualApproval": "not asserted",
+  "nativeBuild": "not run",
+  "files": [
+    {
+      "file": "app.css",
+      "sha256": "F0989C043A34C09A47DB4A3571C7E8FDEEF22969798ACA6C7F5BDA5C876D8EF8"
+    },
+    {
+      "file": "app.js",
+      "sha256": "34647531A29265740D590BDFDBD3621BA7E523F8D23786F08D8F15B81E80FA98"
+    },
+    {
+      "file": "baseline.html",
+      "sha256": "84F9162808FFE6B91A9AD3D85EDF04C51222ADDE2B895953436FEF4A22926175"
+    },
+    {
+      "file": "baseline.js",
+      "sha256": "77855C27C90F435C65300225939222BBCC0C554EBC3AD80E8AD90F87F5B3BF77"
+    },
+    {
+      "file": "boot.js",
+      "sha256": "E697879E80B557B37434C31246900A2C620DA58C2D07D1A96F0FAE42C09C1CC3"
+    },
+    {
+      "file": "check-infrastructure.mjs",
+      "sha256": "67B0EB47756E3336F5821AC3D540755D385272310D9E9BED870CE9B7010BB66A"
+    },
+    {
+      "file": "check-prototype.mjs",
+      "sha256": "EF02AA094784EC96221B21AA75912061E3FC9056C8E5B8141ED47EDEA7C232AC"
+    },
+    {
+      "file": "comparison.html",
+      "sha256": "A42D5C1425FB0BEC4B21BA766136CC96D6D526FAA0A31C06D643631CCBB8FD59"
+    },
+    {
+      "file": "gallery.html",
+      "sha256": "70A89080979E09E9784244FF55CCD5369E96445986A1E2CDB79C8D2A378F4A08"
+    },
+    {
+      "file": "gallery.js",
+      "sha256": "B2C8334FB050D381800E35F10EC04BC7D88B2C47D6D574F6F99C1869ADE31D76"
+    },
+    {
+      "file": "index.html",
+      "sha256": "766EAD26E389182DE70538D93E399C256A4A89C4C77AA67CC01250F2102030AA"
+    },
+    {
+      "file": "kpkn.css",
+      "sha256": "6D6ADBF8F56D6FE9C70D71811CF4CFA5CA18C7D1181C8157FFD2F2DD015D2352"
+    },
+    {
+      "file": "kpkn.js",
+      "sha256": "22778608E53E5F8A7CF057256F636FB55CB2434F32B5B7CD426EE56C1695CBCD"
+    },
+    {
+      "file": "new-core.js",
+      "sha256": "382DE7167CAD9276BBC483EDF5FA3E41287CF26E83B0A52373BFCFF3958ADADC"
+    },
+    {
+      "file": "refine-sources.mjs",
+      "sha256": "3DD5B720F5456FF2A0B57197BCD26F83050631386507E6AA7EBAB011197005C7"
+    },
+    {
+      "file": "scenarios.js",
+      "sha256": "13E9486A4ACC056FB0E5DE82E3D89ED61AC5F3273873BE6C0F0893D119A62A72"
+    },
+    {
+      "file": "screens.js",
+      "sha256": "06A7412134BF4D891FB4A1E8F70957536D6B9ED62852EDBD86ECD2090B933ABC"
+    },
+    {
+      "file": "sports.js",
+      "sha256": "AB37D004F84DE77FCB1314DE31677E6105A767D497ADF0E4A5A8661E462E7E46"
+    }
+  ],
+  "supplementaryInfrastructureChecks": 36,
+  "newRuntimeFiles": [
+    "boot.js"
+  ]
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Serie y Mesa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F2EEE6;--muted:#B5B1AC;--faint:#7A7670;--hair:rgba(255,255,255,.07);--bg:#0B0B0A;--card:#111111;--inset:#1C1C1B;--green:#7FE3B0;--amber:#FFA15C;--sage:#A9C4B6;--red:#FF9B92}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060606;color:var(--cream);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:flex;gap:52px;padding:36px;align-items:flex-start}
+.rail{width:290px;position:sticky;top:36px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-family:Syne;font-weight:800;font-size:15px}
+.brand b{font-family:Syne;font-weight:800;font-size:18px}.brand small{display:block;color:var(--faint);font-size:10.5px;margin-top:1px}
+.g{font-size:9.5px;letter-spacing:1.4px;color:var(--faint);text-transform:uppercase;margin:16px 0 6px;font-weight:600}
+.it{display:block;width:100%;text-align:left;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;padding:7px 9px;border-radius:8px;cursor:pointer}
+.it small{display:block;font-size:10px;color:var(--faint);margin-top:1px}
+.it.on{background:#171716;color:var(--cream)}
+.lede{font-size:11.5px;line-height:17px;color:#6f6b66;margin-top:14px}
+.phone{width:393px;height:852px;border-radius:46px;background:#000;border:1px solid #222;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65);flex:none}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.screen.on{display:flex}
+.status{display:flex;justify-content:space-between;padding:13px 22px 0;font-size:12px;font-weight:600;flex:none}
+.hdr{margin:8px 14px 0;padding:9px 10px 9px 12px;border-radius:999px;background:#141413;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.05);flex:none}
+.hdr .txt{flex:1;min-width:0}.hdr .t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .s{font-size:10px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.circ{width:29px;height:29px;border-radius:50%;background:#1E1E1D;display:grid;place-items:center;font-size:12px;color:var(--muted);flex:none}
+.restchip{display:flex;align-items:center;gap:5px;height:29px;padding:0 9px;border-radius:15px;background:rgba(242,238,230,.07);font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;flex:none}
+.ring{width:13px;height:13px;border-radius:50%;border:2px solid var(--cream);border-right-color:rgba(242,238,230,.18);transform:rotate(45deg)}
+.zone{flex:1;min-height:0;display:flex;align-items:center;padding:12px 16px 0}
+.card{width:100%;height:440px;background:var(--card);border:1px solid var(--hair);border-radius:28px;padding:14px 16px 0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.head{display:flex;align-items:center;gap:6px;flex:none;height:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--cream)}
+.eyebrow{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.head .meta{margin-left:auto;font-size:10px;color:var(--faint)}
+.tag{display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 8px;border-radius:10px;background:rgba(242,238,230,.08);font-size:9.5px;font-weight:600;color:var(--muted)}
+.tag.pr{background:rgba(127,227,176,.12);color:var(--green)}
+.hero{display:flex;align-items:flex-end;gap:7px;flex:none;height:52px;margin-top:9px}
+.hero .v{font-family:Syne;font-weight:800;font-size:42px;line-height:44px;letter-spacing:-1.2px;font-variant-numeric:tabular-nums}
+.hero .u{font-size:11px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.hero .side{margin-left:auto;text-align:right;padding-bottom:3px}
+.hero .side b{font-family:Syne;font-size:16px}.hero .side span{display:block;font-size:9.5px;color:var(--faint);margin-top:1px}
+.sub{font-size:11px;color:var(--faint);flex:none}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:9px}
+.kpills{display:flex;gap:5px;flex:none}
+.kpill{flex:1;height:31px;border-radius:9px;background:var(--inset);display:flex;align-items:center;justify-content:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.kpill b{color:var(--cream);font-family:Syne;font-size:11.5px}
+.wheel{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-top:7px;flex:none;height:48px}
+.wheel span{font-family:Syne;font-weight:700;font-size:15px;color:var(--faint);width:30px;text-align:center}
+.wheel span.c{font-size:37px;color:var(--cream);width:68px;line-height:43px}
+.wlab{display:flex;justify-content:space-between;padding:0 8px;flex:none}
+.wlab span{font-size:8px;letter-spacing:1px;color:var(--faint);font-weight:600}
+.fire{display:flex;gap:4px;margin-top:8px;flex:none}
+.fire div{flex:1;height:27px;border-radius:7px;background:rgba(242,238,230,.09);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--faint)}
+.fire div.on{background:var(--cream);color:#0B0B0A}
+.hist{margin-top:auto;display:flex;align-items:flex-end;gap:12px;border-top:1px solid var(--hair);padding:9px 0 8px}
+.hlab{font-size:8px;letter-spacing:1px;color:var(--faint);font-weight:600;line-height:13px}
+.hlab b{font-family:Syne;font-size:12.5px;letter-spacing:0;color:var(--cream)}
+.hbars{display:flex;align-items:flex-end;gap:3px;height:28px;margin-left:auto}
+.hbars i{display:block;width:8px;border-radius:3px 3px 1px 1px;background:rgba(242,238,230,.22)}
+.hbars i.on{background:var(--green)}
+/* acciones DENTRO de la tarjeta, como LiveSetCardActions */
+.acts{flex:none;display:flex;justify-content:space-between;padding:8px 0 12px;border-top:1px solid var(--hair)}
+.acts span{font-size:11px;font-weight:600;color:var(--muted)}
+/* reverso técnica */
+.seg{display:flex;gap:3px;background:#0D0D0C;border-radius:15px;padding:3px;flex:none;margin-top:8px}
+.seg b{flex:1;height:27px;border-radius:12px;display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--faint)}
+.seg b.on{background:var(--cream);color:#0B0B0A}
+.chain{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:11px;background:var(--inset);font-size:10.5px;flex:none;margin-top:8px}
+.chain i{color:var(--faint);font-style:normal}
+.trow{display:flex;align-items:center;padding:4px 1px;flex:1;min-height:0}
+.trow .nm{font-size:11.5px}
+.stepper{display:flex;align-items:center;gap:6px;margin-left:auto}
+.stepper span{width:23px;height:23px;border-radius:7px;background:var(--inset);display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.stepper b{font-family:Syne;font-size:13px;min-width:44px;text-align:center}
+.field{height:32px;border-radius:9px;background:var(--inset);display:flex;align-items:center;padding:0 10px;color:var(--faint);font-size:11.5px;flex:none}
+.pillrow{display:flex;gap:6px;flex:none;margin-top:6px}
+.sp{height:26px;padding:0 10px;border-radius:13px;border:1px solid rgba(242,238,230,.14);display:flex;align-items:center;font-size:10.5px;font-weight:600;color:var(--muted)}
+/* cara media: tamaño real del código */
+.mstage{flex:1;min-height:0;border-radius:14px;background:linear-gradient(160deg,#191816,#0E0E0E);border:1px solid rgba(255,255,255,.06);position:relative;display:grid;place-items:center;overflow:hidden;margin-top:8px}
+.mstage .lbl{font-size:9.5px;color:var(--faint)}
+.shutter{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:38px;height:38px;border-radius:50%;background:var(--cream);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 0 4px rgba(242,238,230,.22)}
+.mtop{display:flex;gap:5px;align-items:center;flex:none;margin-top:8px}
+.mtop .sw{display:flex;gap:2px;background:#0D0D0C;border-radius:12px;padding:2px}
+.mtop .sw b{height:24px;padding:0 9px;border-radius:10px;display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--faint)}
+.mtop .sw b.on{background:var(--cream);color:#0B0B0A}
+.mtop .sp{margin-left:auto;height:24px;padding:0 9px;font-size:10px}
+.thumbs{display:flex;gap:5px;flex:none;margin-top:6px}
+.thumbs i{flex:1;height:30px;border-radius:7px;background:#171715;border:1px solid rgba(255,255,255,.06);display:grid;place-items:center;font-size:8.5px;font-style:normal;color:var(--faint)}
+.mline{font-size:9.5px;color:var(--faint);margin-top:5px;flex:none}
+/* bottom */
+.bottom{flex:none;margin:10px 14px 12px;padding:10px 11px 9px;border-radius:21px;background:#111110;border:1px solid rgba(255,255,255,.06)}
+.roadhead{display:flex;justify-content:space-between;margin-bottom:7px}
+.roadhead .l{font-size:9.5px;letter-spacing:1.1px;color:var(--faint);font-weight:600;text-transform:uppercase}
+.roadhead .r{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.road{display:flex;gap:3px;height:4px}
+.road i{display:block;border-radius:2px;background:rgba(242,238,230,.10)}
+.road i.done{background:rgba(242,238,230,.55)}.road i.on{background:var(--cream)}
+.roadlabels{display:flex;gap:3px;margin-top:4px}
+.roadlabels span{font-size:7.5px;letter-spacing:.8px;color:var(--faint);font-weight:600;white-space:nowrap;overflow:hidden}
+.roadlabels span.on{color:var(--cream)}
+.navrow{display:flex;align-items:center;gap:9px;margin-top:10px}
+.step{width:42px;height:42px;border-radius:13px;background:var(--inset);display:grid;place-items:center;font-size:15px;color:var(--muted);flex:none}
+.rec{flex:1;height:42px;border-radius:13px;background:var(--cream);color:#0B0B0A;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700}
+.rec .c{width:17px;height:17px;border-radius:50%;background:#0B0B0A;color:var(--cream);display:grid;place-items:center;font-size:9px}
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:#121211;border-radius:26px 26px 0 0;border-top:1px solid rgba(255,255,255,.09);padding:8px 16px 16px;box-shadow:0 -24px 60px rgba(0,0,0,.6)}
+.handle{width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin:0 auto 9px}
+.stitle{font-family:Syne;font-weight:700;font-size:18px}
+.sdesc{font-size:11px;color:var(--faint);margin:2px 0 10px}
+.srow{display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px}
+.srow .k{width:20px;color:var(--faint);font-size:10.5px}
+.srow .x{margin-left:auto;color:var(--faint);font-size:10.5px}
+.srow .x.on{color:var(--green)}
+/* mesa */
+.table{flex:1;min-height:0;overflow:auto;padding:8px 14px 0}
+.table::-webkit-scrollbar{display:none}
+.tghead{display:flex;align-items:center;gap:7px;padding:2px 2px 6px;border-bottom:1px solid var(--hair);margin-top:8px}
+.tghead .nm{font-size:11px;font-weight:600}
+.tghead .tag{margin-left:2px}
+.tghead .meta{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.tr{display:grid;grid-template-columns:24px 1fr 72px 42px 16px;align-items:center;gap:7px;padding:6px 3px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10.5px}
+.tr .idx{color:var(--faint);font-size:9.5px;font-variant-numeric:tabular-nums}
+.tr .ex{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .ld{font-family:Syne;font-weight:700;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
+.tr .ef{font-size:9.5px;color:var(--faint);text-align:right}
+.tr .st{text-align:right;color:var(--faint);font-size:9.5px}
+.tr.done .st{color:var(--green)}
+.tr.active{background:rgba(242,238,230,.055);border-left:2px solid var(--cream);padding-left:5px}
+.tr.active .ex{color:var(--cream);font-weight:600}
+.editor{padding:8px 5px 9px;border-bottom:1px solid var(--hair);background:rgba(242,238,230,.03)}
+.edrow{display:flex;align-items:center;gap:7px}
+.edrow .big{font-family:Syne;font-weight:800;font-size:27px;letter-spacing:-.7px;font-variant-numeric:tabular-nums}
+.edrow .u{font-size:10px;color:var(--faint);padding-top:5px}
+.mini{display:flex;gap:4px;margin-left:auto}
+.mini span{height:26px;min-width:42px;padding:0 7px;border-radius:7px;background:var(--inset);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--muted)}
+.edrow2{display:flex;align-items:center;gap:5px;margin-top:8px}
+.rir{display:flex;gap:3px}
+.rir span{width:24px;height:22px;border-radius:6px;background:rgba(242,238,230,.08);display:grid;place-items:center;font-size:9.5px;color:var(--faint)}
+.rir span.on{background:var(--cream);color:#0B0B0A;font-weight:700}
+.edrow2 .e1{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.medrow{display:flex;align-items:center;gap:5px;margin-top:8px}
+.medrow .sw{display:flex;gap:2px;background:#0D0D0C;border-radius:10px;padding:2px}
+.medrow .sw b{height:22px;padding:0 8px;border-radius:8px;display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--faint)}
+.medrow .sw b.on{background:var(--cream);color:#0B0B0A}
+.medrow .th{display:flex;gap:4px;margin-left:auto}
+.medrow .th i{width:26px;height:22px;border-radius:5px;background:#171715;border:1px solid rgba(255,255,255,.06);display:grid;place-items:center;font-size:7px;font-style:normal;color:var(--faint)}
+.medrow .sh{width:22px;height:22px;border-radius:50%;background:var(--cream);opacity:.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand"><div class="mark">K</div><div><b>KPKN Fit</b><small>Serie · estructura real</small></div></div>
+    <div class="g">Tarjeta de serie</div>
+    <button class="it on" data-go="reps"><span>Frente · Reps</span><small>Carga, reps, esfuerzo, historial</small></button>
+    <button class="it" data-go="tech"><span>Reverso · Técnica</span><small>Segmentado, cadena, nota</small></button>
+    <button class="it" data-go="media"><span>Reverso · Modo visual</span><small>Foto/vídeo, ficha, álbum</small></button>
+    <button class="it" data-go="hist"><span>Hoja · Historial</span><small>Se abre desde el pie de la tarjeta</small></button>
+    <button class="it" data-go="amrap"><span>Estado · AMRAP</span><small>Mínimo y resultado</small></button>
+    <button class="it" data-go="fail"><span>Estado · Fallida</span><small>Desenfoque y motivo</small></button>
+    <div class="g">Sesión</div>
+    <button class="it" data-go="menu"><span>Menú del «⋯»</span><small>Acciones globales</small></button>
+    <button class="it" data-go="warm"><span>Aproximación</span><small>Misma altura de tarjeta</small></button>
+    <div class="g">Experimental</div>
+    <button class="it" data-go="mesa"><span>Mesa</span><small>Series en filas</small></button>
+    <button class="it" data-go="mesamedia"><span>Mesa · media</span><small>Modo visual en la fila activa</small></button>
+    <div class="lede">Cada elemento sale del código: acciones dentro de la tarjeta, etiqueta en la cabecera del ejercicio, media en píldoras pequeñas y miniaturas.</div>
+  </aside>
+  <main class="phone" id="phone"></main>
+</div>
+<script>
+const head=(t,s)=>'<div class="status"><span>1:47</span><span>▮▮▮</span></div><div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">'+t+'</div><div class="s">'+s+'</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">⋯</div></div>';
+const bottom=(label)=>'<div class="bottom"><div class="roadhead"><span class="l">Series · 3 de 9</span><span class="r">Sentadilla 3 / 4</span></div><div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="on" style="width:53%"></i><i style="width:12%"></i></div><div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="on" style="width:53%">SER</span><span style="width:12%">REST</span></div><div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>'+label+'</div><div class="step">›</div></div></div>';
+const acts=(a)=>'<div class="acts">'+a.map(x=>'<span>'+x+'</span>').join('')+'</div>';
+const hist='<div class="hist"><div class="hlab">ÚLTIMAS 4 · e1RM<br><b>112,5 kg</b></div><div class="hbars"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i class="on" style="height:94%"></i></div></div>';
+const wheel=(n)=>'<div class="wheel"><span>'+(n-2)+'</span><span>'+(n-1)+'</span><span class="c">'+n+'</span><span>'+(n+1)+'</span><span>'+(n+2)+'</span></div><div class="wlab"><span>REPS</span><span>OBJETIVO '+n+'</span></div>';
+const fire=(i)=>'<div class="fire">'+[0,1,2,3,4].map((x,k)=>'<div class="'+(k===i?'on':'')+'">'+x+'</div>').join('')+'</div><div class="wlab" style="margin-top:4px"><span>RIR</span><span>FALLO</span></div>';
+const kpills='<div class="kpills"><div class="kpill">−2,5</div><div class="kpill">Sug <b>102,5</b></div><div class="kpill">+2,5</div></div>';
+const hero=(kg,side,sub)=>'<div class="hero"><span class="v">'+kg+'</span><span class="u">kg</span><span class="side">'+side+'</span></div><div class="sub">'+sub+'</div>';
+
+const S={};
+S.reps='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Serie efectiva</span><span class="tag pr" style="margin-left:6px">★ PR</span><span class="meta">3 / 4</span></div>'
++hero('100','<b>RIR 2</b><span>e1RM 112,5</span>','Objetivo 8 · tempo 2-0-1')
++'<div class="body">'+kpills+wheel(8)+fire(2)+'<div class="pillrow"><span class="sp">ROM</span><span class="sp">Vídeo</span><span class="sp">Detalles</span></div>'+hist+'</div>'+acts(['Avanzado','Modo visual','Historial'])+'</div>';
+
+S.tech='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Técnica de la serie</span><span class="meta">3 / 4</span></div>'
++'<div class="seg"><b class="on">Normal</b><b>Drop</b><b>Pausa</b><b>Myo</b></div>'
++'<div class="chain"><b>Principal</b><i>→</i><span>Drop 1</span><i>→</i><span style="color:var(--faint)">Añadir</span></div>'
++'<div class="body"><div class="trow"><span class="nm">Drop 1</span><div class="stepper"><span>−</span><b>80 kg</b><span>+</span></div></div>'
++'<div class="trow"><span class="nm">Reps del tramo</span><div class="stepper"><span>−</span><b>6</b><span>+</span></div></div>'
++'<div class="trow"><span class="nm">Descanso entre tramos</span><div class="stepper"><span>−</span><b>15″</b><span>+</span></div></div>'
++'<div class="field">Nota de la serie</div>'
++'<div class="pillrow"><span class="sp">Error de ejecución</span></div></div>'
++acts(['Serie 3','PR: foto o vídeo'])+'</div>';
+
+S.media='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Modo visual</span><span class="meta">3 / 4</span></div>'
++'<div class="mtop"><div class="sw"><b class="on">Foto</b><b>Vídeo</b></div><span class="sp">Ficha</span><span class="sp">Álbum</span></div>'
++'<div class="mstage"><span class="lbl">Encuadre de la serie</span><div class="shutter"></div></div>'
++'<div class="thumbs"><i>Antes</i><i>Serie 2</i><i>PR</i><i>+2</i></div>'
++'<div class="mline">2 fotos guardadas · análisis disponible</div>'
++acts(['Serie 3','Ver álbum','Historial'])+'</div>';
+
+S.amrap='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">AMRAP</span><span class="meta">mínimo 8</span></div>'
++hero('100','<b>RIR 0</b><span>al fallo</span>','Serie AMRAP · cuenta al e1RM')
++'<div class="body">'+kpills+wheel(10)+'<div class="field" style="margin-top:8px">Resultado 11 reps · e1RM 118,4</div>'+hist+'</div>'
++acts(['Configurar','Modo visual','Historial'])+'</div>';
+
+S.fail='<div class="card" style="border-color:rgba(255,155,146,.45)"><div class="head"><span class="dot"></span><span class="eyebrow">Serie fallida</span><span class="meta">rep 6 de 8</span></div>'
++hero('100','<b>fallo</b><span>no cuenta</span>','Error de ejecución')
++'<div class="body"><div class="seg" style="margin-top:2px"><b class="on">Fallo</b><b>Técnica</b><b>Dolor</b><b>Otro</b></div><div class="field" style="margin-top:8px">Motivo opcional</div><div class="mline">La serie no suma volumen</div>'+hist+'</div>'
++acts(['Avanzado','Modo visual','Historial'])+'</div>';
+
+S.warm='<div class="card"><div class="head"><span class="dot" style="background:var(--amber)"></span><span class="eyebrow" style="color:var(--amber)">Aproximación</span><span class="meta">100 kg objetivo</span></div>'
++hero('60','<b>× 5</b><span>40 % · 90″</span>','Serie A2 de la escalera')
++'<div class="body">'+[['A1','20 %','20','× 10','60″',''],['A2','40 %','60','× 5','90″','on'],['A3','60 %','75','× 3','90″',''],['A4','80 %','90','× 1','120″','']].map(r=>'<div class="trow" style="'+(r[5]==='on'?'background:rgba(255,161,92,.07);border:1px solid rgba(255,161,92,.22);border-radius:9px;padding:5px 6px':'')+'"><span class="nm" style="width:28px;color:var(--amber);font-weight:700">'+r[0]+'</span><span class="nm" style="width:40px;color:var(--faint)">'+r[1]+'</span><span class="nm" style="text-align:right;font-family:Syne;font-weight:700;font-size:17px">'+r[2]+'</span><span class="nm" style="width:40px;text-align:right;color:var(--muted)">'+r[3]+'</span><span class="nm" style="width:34px;text-align:right;color:var(--faint)">'+r[4]+'</span></div>').join('')+'</div>'
++acts(['Añadir serie','Continuar'])+'</div>';
+
+S.hist='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Serie efectiva</span><span class="meta">3 / 4</span></div>'
++hero('100','<b>RIR 2</b><span>e1RM 112,5</span>','Objetivo 8 · tempo 2-0-1')
++'<div class="body">'+kpills+wheel(8)+fire(2)+'<div class="pillrow"><span class="sp">ROM</span><span class="sp">Vídeo</span><span class="sp">Detalles</span></div>'+hist+'</div>'+acts(['Avanzado','Modo visual','Historial'])+'</div>'
++'<div class="scrim"></div><div class="sheet"><div class="handle"></div><div class="stitle">Historial · Sentadilla trasera</div><div class="sdesc">e1RM de las últimas 8 sesiones</div>'
++[['1','12 oct · 102,5 × 8','110,0'],['2','5 oct · 100 × 8','107,4'],['3','28 sep · 100 × 7','105,1'],['4','21 sep · 97,5 × 8','104,8']].map(r=>'<div class="srow"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span><span class="x on">'+r[2]+'</span></div>').join('')+'</div>';
+
+S.menu='<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Serie efectiva</span><span class="meta">3 / 4</span></div>'
++hero('100','<b>RIR 2</b><span>e1RM 112,5</span>','Objetivo 8 · tempo 2-0-1')
++'<div class="body">'+kpills+wheel(8)+fire(2)+'<div class="pillrow"><span class="sp">ROM</span><span class="sp">Vídeo</span><span class="sp">Detalles</span></div>'+hist+'</div>'+acts(['Avanzado','Modo visual','Historial'])+'</div>'
++'<div class="scrim"></div><div class="sheet"><div class="handle"></div><div class="stitle">Menú de la sesión</div><div class="sdesc">Todo lo global vive aquí, no en la tarjeta</div>'
++[['1','Reordenar ejercicios'],['2','Notas de la sesión'],['3','Hitos del día'],['4','Fotos y medios'],['5','Temporizador global'],['6','Calorías del cardio'],['7','Salir del entreno']].map(r=>'<div class="srow"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>').join('')+'</div>';
+
+const mesaRows=(withMedia)=>'<div class="tghead"><span class="nm">Sentadilla trasera</span><span class="tag">Barra libre</span><span class="meta">100 kg · 4 series · ⋯</span></div>'
++'<div class="tr done"><span class="idx">A1</span><span class="ex">20 %</span><span class="ld">20 × 10</span><span class="ef"></span><span class="st">✓</span></div>'
++'<div class="tr done"><span class="idx">A2</span><span class="ex">40 %</span><span class="ld">60 × 5</span><span class="ef"></span><span class="st">✓</span></div>'
++'<div class="tr done"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 3</span><span class="st">✓</span></div>'
++'<div class="tr done"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">✓</span></div>'
++'<div class="tr active"><span class="idx">3</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">●</span></div>'
++'<div class="editor"><div class="edrow"><span class="big">100</span><span class="u">kg</span><div class="mini"><span>−2,5</span><span>+2,5</span></div></div>'
++'<div class="edrow2"><div class="rir"><span>0</span><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><span class="e1">e1RM 112,5</span></div>'
++'<div class="medrow"><div class="sw"><b>Técnica</b><b>ROM</b><b>Molestia</b><b>Nota</b></div><div class="th"><i>Vídeo</i><i>Foto</i><i>Hist.</i></div></div>'+(withMedia?'<div class="medrow"><div class="sw"><b class="on">Foto</b><b>Vídeo</b></div><div class="th"><i>Antes</i><i>Serie 2</i><i>PR</i></div><div class="sh"></div></div>':'')
++'</div>'
++'<div class="tr"><span class="idx">4</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">—</span><span class="st">·</span></div>'
++'<div class="tghead" style="margin-top:10px"><span class="nm">Peso muerto rumano</span><span class="tag">Multipower</span><span class="meta">140 kg · 3 series · ⋯</span></div>'
++'<div class="tr done"><span class="idx">A1</span><span class="ex">60 %</span><span class="ld">80 × 5</span><span class="ef"></span><span class="st">✓</span></div>'
++'<div class="tr"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">RIR 2</span><span class="st">·</span></div>'
++'<div class="tr"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">—</span><span class="st">·</span></div>';
+S.mesa='<div class="table">'+mesaRows(false)+'</div>';
+S.mesamedia='<div class="table">'+mesaRows(true)+'</div>';
+
+const T={reps:['Sentadilla trasera','Serie 3 de 4 · 100 kg'],tech:['Sentadilla trasera','Serie 3 · técnica'],media:['Sentadilla trasera','Serie 3 · modo visual'],hist:['Sentadilla trasera','Serie 3 de 4 · 100 kg'],amrap:['Sentadilla trasera','Serie AMRAP'],fail:['Sentadilla trasera','Serie fallida'],warm:['Aproximación','Sentadilla trasera · A2 de 4'],menu:['Sentadilla trasera','Serie 3 de 4 · 100 kg'],mesa:['Pierna · Semana 1','9 ejercicios · 34 series'],mesamedia:['Pierna · Semana 1','Mesa con modo visual']};
+const ACT={reps:'Registrar serie',tech:'Volver a la serie',media:'Volver a la serie',hist:'Cerrar historial',amrap:'Registrar AMRAP',fail:'Reintentar',warm:'Marcar A2',menu:'Cerrar menú',mesa:'Registrar serie',mesamedia:'Registrar serie'};
+function show(id){
+  const t=T[id];
+  document.getElementById('phone').innerHTML='<div class="screen on">'+head(t[0],t[1])+S[id]+bottom(ACT[id])+'</div>';
+  document.querySelectorAll('.it').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  location.hash=id;
+}
+document.querySelector('.rail').addEventListener('click',e=>{const b=e.target.closest('.it');if(b)show(b.dataset.go)});
+show(location.hash.replace('#','')||'reps');
+</script>
+</body>
+</html>

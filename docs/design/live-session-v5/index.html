@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Live · prototipo interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F2EEE6;--muted:#B5B1AC;--faint:#7A7670;--hair:rgba(255,255,255,.07);--bg:#0B0B0A;--card:#111111;--inset:#1C1C1B;--green:#7FE3B0;--amber:#FFA15C;--sage:#A9C4B6;--red:#FF9B92}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060606;color:var(--cream);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:flex;gap:44px;padding:32px;align-items:flex-start}
+.rail{width:300px;position:sticky;top:32px;max-height:calc(100vh - 64px);overflow:auto}
+.rail::-webkit-scrollbar{width:3px}.rail::-webkit-scrollbar-thumb{background:#222}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-family:Syne;font-weight:800;font-size:15px}
+.brand b{font-family:Syne;font-weight:800;font-size:18px}.brand small{display:block;color:var(--faint);font-size:10.5px;margin-top:1px}
+.modebtns{display:flex;gap:4px;background:#141413;border-radius:14px;padding:3px;margin-bottom:10px}
+.modebtns button{flex:1;height:28px;border:0;border-radius:11px;background:none;color:var(--faint);font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.modebtns button.on{background:var(--cream);color:#0B0B0A}
+.g{font-size:9px;letter-spacing:1.3px;color:var(--faint);text-transform:uppercase;margin:14px 0 5px;font-weight:600}
+.it{display:block;width:100%;text-align:left;background:none;border:0;color:var(--muted);font:inherit;font-size:12px;padding:5px 8px;border-radius:7px;cursor:pointer}
+.it small{display:block;font-size:9.5px;color:var(--faint);margin-top:1px}
+.it.on{background:#171716;color:var(--cream)}
+.phone{width:393px;height:852px;border-radius:46px;background:#000;border:1px solid #222;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65);flex:none}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.status{display:flex;justify-content:space-between;padding:13px 22px 0;font-size:12px;font-weight:600;flex:none}
+.hdr{margin:8px 14px 0;padding:8px 9px 8px 11px;border-radius:999px;background:#141413;display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.05);flex:none}
+.hdr .txt{flex:1;min-width:0}.hdr .t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .s{font-size:10px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.circ{width:29px;height:29px;border-radius:50%;background:#1E1E1D;display:grid;place-items:center;font-size:12px;color:var(--muted);flex:none}
+.restchip{display:flex;align-items:center;gap:5px;height:29px;padding:0 9px;border-radius:15px;background:rgba(242,238,230,.07);font-size:10.5px;font-weight:600;flex:none}
+.ring{width:13px;height:13px;border-radius:50%;border:2px solid var(--cream);border-right-color:rgba(242,238,230,.18);transform:rotate(45deg)}
+.zone{flex:1;min-height:0;display:flex;align-items:center;padding:10px 15px 0}
+.card{width:100%;height:452px;background:var(--card);border:1px solid var(--hair);border-radius:28px;padding:13px 15px 0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.card.mob{border-color:rgba(169,196,182,.22)}.card.warm{border-color:rgba(255,161,92,.22)}
+.head{display:flex;align-items:center;gap:6px;flex:none;height:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--cream)}.card.mob .dot{background:var(--sage)}.card.warm .dot{background:var(--amber)}
+.eyebrow{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.card.mob .eyebrow{color:var(--sage)}.card.warm .eyebrow{color:var(--amber)}
+.head .meta{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.tag{display:inline-flex;align-items:center;gap:3px;height:19px;padding:0 7px;border-radius:9px;background:rgba(242,238,230,.08);font-size:9px;font-weight:600;color:var(--muted)}
+.tag.pr{background:rgba(127,227,176,.12);color:var(--green)}
+.hero{display:flex;align-items:flex-end;gap:6px;flex:none;height:48px;margin-top:8px}
+.hero .v{font-family:Syne;font-weight:800;font-size:38px;line-height:41px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.hero .u{font-size:10.5px;color:var(--muted);font-weight:600;padding-bottom:3px}
+.hero .side{margin-left:auto;text-align:right;padding-bottom:2px}
+.hero .side b{font-family:Syne;font-size:15px}.hero .side span{display:block;font-size:9px;color:var(--faint);margin-top:1px}
+.sub{font-size:10.5px;color:var(--faint);flex:none}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:8px;overflow:hidden}
+.kpills{display:flex;gap:4px;flex:none}
+.kpill{flex:1;height:29px;border-radius:8px;background:var(--inset);display:flex;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap}
+.kpill b{color:var(--cream);font-family:Syne;font-size:11px}
+.wheel{display:flex;align-items:center;justify-content:space-between;padding:0 3px;margin-top:5px;flex:none;height:42px}
+.wheel span{font-family:Syne;font-weight:700;font-size:14px;color:var(--faint);width:28px;text-align:center}
+.wheel span.c{font-size:33px;color:var(--cream);width:62px;line-height:38px}
+.wlab{display:flex;justify-content:space-between;padding:0 7px;flex:none}
+.wlab span{font-size:7.5px;letter-spacing:1px;color:var(--faint);font-weight:600}
+.fire{display:flex;gap:4px;margin-top:6px;flex:none}
+.fire div{flex:1;height:24px;border-radius:6px;background:rgba(242,238,230,.09);display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--faint)}
+.fire div.on{background:var(--cream);color:#0B0B0A}
+.pillrow{display:flex;gap:5px;flex:none;margin-top:6px}
+.sp{height:24px;padding:0 9px;border-radius:12px;border:1px solid rgba(242,238,230,.13);display:flex;align-items:center;font-size:9.5px;font-weight:600;color:var(--muted)}
+.band{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;background:rgba(255,155,146,.10);border:1px solid rgba(255,155,146,.24);font-size:9.5px;color:var(--red);flex:none;margin-top:6px}
+.band.ok{background:rgba(127,227,176,.08);border-color:rgba(127,227,176,.25);color:var(--green)}
+.band.dim{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);color:var(--faint)}
+.hist{margin-top:auto;display:flex;align-items:flex-end;gap:10px;border-top:1px solid var(--hair);padding:7px 0 6px}
+.hlab{font-size:7.5px;letter-spacing:1px;color:var(--faint);font-weight:600;line-height:12px}
+.hlab b{font-family:Syne;font-size:12px;letter-spacing:0;color:var(--cream)}
+.hbars{display:flex;align-items:flex-end;gap:3px;height:26px;margin-left:auto}
+.hbars i{display:block;width:7px;border-radius:2px 2px 1px 1px;background:rgba(242,238,230,.22)}
+.hbars i.on{background:var(--green)}
+.acts{flex:none;display:flex;justify-content:space-between;padding:7px 0 11px;border-top:1px solid var(--hair)}
+.acts span{font-size:10.5px;font-weight:600;color:var(--muted)}
+.seg{display:flex;gap:3px;background:#0D0D0C;border-radius:14px;padding:3px;flex:none;margin-top:7px}
+.seg b{flex:1;height:25px;border-radius:11px;display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--faint)}
+.seg b.on{background:var(--cream);color:#0B0B0A}
+.chain{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:10px;background:var(--inset);font-size:10px;flex:none;margin-top:7px}
+.chain i{color:var(--faint);font-style:normal}
+.trow{display:flex;align-items:center;padding:3px 1px;flex:1;min-height:0}
+.trow .nm{font-size:11px}
+.stepper{display:flex;align-items:center;gap:5px;margin-left:auto}
+.stepper span{width:22px;height:22px;border-radius:6px;background:var(--inset);display:grid;place-items:center;font-size:10.5px;color:var(--muted)}
+.stepper b{font-family:Syne;font-size:12px;min-width:42px;text-align:center}
+.field{height:30px;border-radius:8px;background:var(--inset);display:flex;align-items:center;padding:0 9px;color:var(--faint);font-size:11px;flex:none}
+.mrow{display:flex;align-items:center;gap:7px;padding:4px 4px;border-radius:7px;flex:1;min-height:0}
+.mrow.on{background:rgba(242,238,230,.06)}.mrow.done .nm{color:var(--faint);text-decoration:line-through}
+.check{width:15px;height:15px;border-radius:50%;border:1px solid rgba(242,238,230,.25);flex:none;display:grid;place-items:center;font-size:8px;color:#0B0B0A}
+.mrow.done .check{background:var(--sage);border-color:var(--sage)}
+.nm{font-size:11.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dose{font-size:9.5px;color:var(--faint)}
+.mstage{flex:1;min-height:0;border-radius:13px;background:linear-gradient(160deg,#191816,#0E0E0E);border:1px solid rgba(255,255,255,.06);position:relative;display:grid;place-items:center;overflow:hidden;margin-top:7px}
+.mstage .lbl{font-size:9px;color:var(--faint)}
+.shutter{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;background:var(--cream);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 0 4px rgba(242,238,230,.2)}
+.mtop{display:flex;gap:5px;align-items:center;flex:none;margin-top:7px}
+.mtop .sw{display:flex;gap:2px;background:#0D0D0C;border-radius:11px;padding:2px}
+.mtop .sw b{height:22px;padding:0 8px;border-radius:9px;display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--faint)}
+.mtop .sw b.on{background:var(--cream);color:#0B0B0A}
+.thumbs{display:flex;gap:4px;flex:none;margin-top:5px}
+.thumbs i{flex:1;height:26px;border-radius:6px;background:#171715;border:1px solid rgba(255,255,255,.06);display:grid;place-items:center;font-size:8px;font-style:normal;color:var(--faint)}
+.mline{font-size:9px;color:var(--faint);margin-top:4px;flex:none}
+.bottom{flex:none;margin:9px 13px 11px;padding:10px 11px 9px;border-radius:21px;background:#111110;border:1px solid rgba(255,255,255,.06)}
+.roadhead{display:flex;justify-content:space-between;margin-bottom:7px}
+.roadhead .l{font-size:9px;letter-spacing:1.1px;color:var(--faint);font-weight:600;text-transform:uppercase}
+.roadhead .r{font-size:9.5px;color:var(--muted)}
+.road{display:flex;gap:3px;height:4px}
+.road i{display:block;border-radius:2px;background:rgba(242,238,230,.10)}
+.road i.done{background:rgba(242,238,230,.55)}.road i.on{background:var(--cream)}
+.roadlabels{display:flex;gap:3px;margin-top:4px}
+.roadlabels span{font-size:7px;letter-spacing:.8px;color:var(--faint);font-weight:600;white-space:nowrap;overflow:hidden}
+.roadlabels span.on{color:var(--cream)}
+.navrow{display:flex;align-items:center;gap:8px;margin-top:9px}
+.step{width:40px;height:40px;border-radius:12px;background:var(--inset);display:grid;place-items:center;font-size:14px;color:var(--muted);flex:none}
+.rec{flex:1;height:40px;border-radius:12px;background:var(--cream);color:#0B0B0A;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:700}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:#121211;border-radius:26px 26px 0 0;border-top:1px solid rgba(255,255,255,.09);padding:8px 16px 16px;box-shadow:0 -24px 60px rgba(0,0,0,.6);max-height:80%;overflow:auto}
+.sheet::-webkit-scrollbar{display:none}
+.handle{width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin:0 auto 9px}
+.stitle{font-family:Syne;font-weight:700;font-size:17px}
+.sdesc{font-size:10.5px;color:var(--faint);margin:2px 0 9px}
+.srow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.055);font-size:11.5px}
+.srow .k{width:18px;color:var(--faint);font-size:10px}
+.srow .x{margin-left:auto;color:var(--faint);font-size:10px}
+.srow .x.on{color:var(--green)}
+.table{flex:1;min-height:0;overflow:auto;padding:6px 13px 0}
+.table::-webkit-scrollbar{display:none}
+.tghead{display:flex;align-items:center;gap:6px;padding:2px 2px 5px;border-bottom:1px solid var(--hair);margin-top:7px}
+.tghead .nm{font-size:10.5px;font-weight:600}
+.tghead .meta{margin-left:auto;font-size:9px;color:var(--faint)}
+.tr{display:grid;grid-template-columns:22px 1fr 68px 40px 14px;align-items:center;gap:6px;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.tr .idx{color:var(--faint);font-size:9px}
+.tr .ex{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .ld{font-family:Syne;font-weight:700;font-size:11px;text-align:right}
+.tr .ef{font-size:9px;color:var(--faint);text-align:right}
+.tr .st{text-align:right;color:var(--faint);font-size:9px}
+.tr.done .st{color:var(--green)}
+.tr.active{background:rgba(242,238,230,.055);border-left:2px solid var(--cream);padding-left:4px}
+.tr.active .ex{color:var(--cream);font-weight:600}
+.editor{padding:7px 5px 8px;border-bottom:1px solid var(--hair);background:rgba(242,238,230,.03)}
+.edrow{display:flex;align-items:center;gap:6px}
+.edrow .big{font-family:Syne;font-weight:800;font-size:25px;letter-spacing:-.6px}
+.edrow .u{font-size:9.5px;color:var(--faint);padding-top:4px}
+.mini{display:flex;gap:4px;margin-left:auto}
+.mini span{height:24px;min-width:40px;padding:0 6px;border-radius:6px;background:var(--inset);display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--muted)}
+.edrow2{display:flex;align-items:center;gap:5px;margin-top:7px}
+.rir{display:flex;gap:3px}
+.rir span{width:22px;height:20px;border-radius:5px;background:rgba(242,238,230,.08);display:grid;place-items:center;font-size:9px;color:var(--faint)}
+.rir span.on{background:var(--cream);color:#0B0B0A;font-weight:700}
+.edrow2 .e1{margin-left:auto;font-size:9px;color:var(--faint)}
+.edacts{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.edacts span{height:21px;padding:0 7px;border-radius:10px;border:1px solid rgba(242,238,230,.12);font-size:8.5px;font-weight:600;color:var(--muted);display:flex;align-items:center}
+.ov{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(0,0,0,.62)}
+.ovp{width:100%;background:#141413;border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:16px}
+.ovt{font-family:Syne;font-weight:700;font-size:16px}
+.ovd{font-size:10.5px;color:var(--faint);margin:3px 0 10px}
+.ovr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.055);font-size:11px}
+.ovb{margin-top:10px;height:36px;border-radius:18px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-size:12px;font-weight:700}
+.facebar{display:flex;gap:4px;margin-top:6px;flex:none}
+.facebar b{height:22px;padding:0 8px;border-radius:11px;background:rgba(242,238,230,.06);font-size:9px;font-weight:600;color:var(--faint);display:flex;align-items:center}
+.facebar b.on{background:var(--cream);color:#0B0B0A}</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand"><div class="mark">K</div><div><b>KPKN Fit</b><small>Live · inventario completo</small></div></div>
+    <div class="modebtns" id="modes"><button class="on" data-m="cards">Tarjetas</button><button data-m="mesa">Mesa</button></div>
+    <div id="index"></div>
+  </aside>
+  <main class="phone" id="phone"></main>
+</div>
+<script>/* Motor del prototipo: cada instancia tiene su propio contenido y las acciones cambian de cara. */
+var state={id:'reps',face:'front',mode:'cards'};
+
+var IT=[
+['reps','Serie · modos','Reps','Carga + rueda + esfuerzo',{mode:'REPS',load:100,reps:8,rir:2,pr:1,sub:'Objetivo 8 · tempo 2-0-1'}],
+['amrap','Serie · modos','AMRAP','Mínimo y resultado',{mode:'AMRAP',load:100,reps:10,rir:0,min:8,result:'11 reps · e1RM 118,4',sub:'Cuenta al e1RM'}],
+['calib','Serie · modos','Calibrador','Sin mínimo, ajusta 1RM',{mode:'CALIB',load:90,reps:8,rir:0,band:'Sin mínimo · ajusta el 1RM',sub:'Serie de calibración'}],
+['rm','Serie · modos','RM','Máximo de N repeticiones',{mode:'RM',rm:3,target:'105 kg',reps:3,sub:'Máximo de 3 repeticiones'}],
+['solo','Serie · modos','Solo RPE','Sin carga externa',{mode:'SOLO',rpe:'8,5',reps:12,sub:'Peso corporal · dominadas'}],
+['time','Serie · modos','Tiempo','Reloj por serie',{mode:'TIME',clock:'00:45',target:'45″',reps:0,sub:'Wall sit'}],
+['dist','Serie · modos','Distancia','Cardio y ritmo',{mode:'DIST',km:'2,4',pace:'5′04″',sub:'Cinta · zona 2'}],
+['custom','Serie · modos','Personalizado','Unidad propia',{mode:'CUSTOM',value:24,unit:'pasos',sets:3,sub:'Sled push'}],
+['uni','Serie · estados','Unilateral','Izquierda / derecha',{mode:'UNI',load:40,reps:10,rir:1,sub:'Zancada búlgara'}],
+['done','Serie · estados','Completada','Re-registro sin duplicar',{mode:'DONE',load:100,reps:8,rir:2,band:'Actualiza la serie 3 · no crea otra',sub:'Antes RIR 3'}],
+['skip','Serie · estados','Saltada','No cuenta al volumen',{mode:'SKIP',load:100,reps:8,band:'Motivo: falta de tiempo',sub:'Serie omitida'}],
+['fail','Serie · estados','Fallida','Error de ejecución',{mode:'FAIL',load:100,reps:6,rir:0,band:'La serie no suma volumen',sub:'Rep 6 de 8'}],
+['pr','Serie · estados','Récord','PR de la serie',{mode:'PR',load:105,reps:6,rir:1,pr:1,band:'Nuevo máximo · antes 110,0',sub:'+2,5 kg'}],
+['load','Serie · estados','Carga requerida','Bloqueo de registro',{mode:'LOAD',load:'—',reps:8,rir:2,band:'No se puede registrar sin carga',sub:'Elige una carga'}],
+['repl','Serie · estados','Volumen reemplazado','Sustitución por técnica',{mode:'REPL',load:100,reps:8,rir:2,band:'Cuenta como volumen reemplazado',sub:'Reemplazada'}],
+['tech','Serie · caras','Técnica','Drop, pausa, myo',{mode:'TECH'}],
+['media','Serie · caras','Modo visual','Foto, vídeo, ficha, álbum',{mode:'MEDIA'}],
+['guided','Serie · caras','Técnica guiada','Panel sobre la tarjeta',{mode:'REPS',load:80,reps:6,rir:1,overlay:'guided'}],
+['god','Serie · caras','God mode','Acciones de corrección',{mode:'REPS',load:100,reps:8,rir:2,overlay:'god'}],
+['undo','Serie · caras','Undo','Deshacer el último registro',{mode:'REPS',load:100,reps:8,rir:2,overlay:'undo'}],
+['blocked','Serie · caras','Back bloqueado','Aviso al intentar salir',{mode:'REPS',load:100,reps:8,rir:2,overlay:'blocked'}],
+['mob','Preparación','Movilidad','Reloj, lista, global',{mode:'MOB'}],
+['warm','Preparación','Aproximación','Escalera A1–A4',{mode:'WARM'}],
+['cardio','Preparación','Cardio','Timer, intervalos, FC',{mode:'CARDIO'}],
+['rest','Descanso','Descanso','Anillo y controles',{mode:'REST'}],
+['overrun','Descanso','Tiempo extra','Se pasó el descanso',{mode:'REST',overrun:1}],
+['mini','Descanso','Mini chip','Descanso minimizado',{mode:'REST',mini:1}],
+['game','Descanso','Juego','Descanso interactivo',{mode:'REST',game:1}],
+['feedback','Descanso','Feedback','Cierre del ejercicio',{mode:'FEEDBACK'}],
+['menu','Hojas','Menú','Acciones globales',{kind:'sheet',t:'Menú de la sesión',d:'Todo lo global vive aquí',rows:[['1','Reordenar ejercicios'],['2','Notas de la sesión'],['3','Hitos del día'],['4','Fotos y medios'],['5','Temporizador global'],['6','Calorías del cardio'],['7','Salir del entreno']]}],
+['route','Hojas','Ruta','Bloques de la sesión',{kind:'sheet',t:'Ruta',d:'Pierna · Semana 1',rows:[['1','Movilidad · 6'],['2','Aproximación · 4'],['3','Sentadilla trasera'],['4','Peso muerto rumano'],['5','Prensa de piernas']]}],
+['timer','Hojas','Temporizador','Global',{kind:'sheet',t:'Temporizador',d:'Global de la sesión',rows:[['▶','Correr / pausar'],['−','−1 min'],['+','+1 min']]}],
+['notes','Hojas','Notas','Se guarda al escribir',{kind:'sheet',t:'Nota de la sesión',d:'Se guarda al escribir',rows:[],input:'Escribe…'}],
+['milestones','Hojas','Hitos','Solo los reales',{kind:'sheet',t:'Hitos del día',d:'PR y meta estrella',rows:[['★','PR e1RM · Sentadilla'],['★','Meta estrella · Prensa'],['—','Sin más hitos']]}],
+['photos','Hojas','Fotos','Álbum y captura',{kind:'sheet',t:'Fotos y medios',d:'Álbum y captura',rows:[['1','Cámara'],['2','Álbum · 8'],['3','Vídeo técnico · 2'],['4','Compartir historia']]}],
+['calories','Hojas','Calorías','Solo cardio',{kind:'sheet',t:'Calorías',d:'Solo cardio',rows:[['—','Fuerza · sin estimación'],['1','Cinta · 2,4 km · 210 kcal'],['2','Método MET · nota al pie']]}],
+['options','Hojas','Opciones','Ejercicio',{kind:'sheet',t:'Opciones del ejercicio',d:'Sentadilla trasera',rows:[['1','Cambiar ejercicio'],['2','Saltar ejercicio'],['3','Quitar de la sesión'],['4','Crear superserie'],['5','Ver ficha']]}],
+['tags','Hojas','Etiquetas','Del ejercicio',{kind:'sheet',t:'Etiquetas',d:'Del ejercicio, no de la serie',rows:[['◉','Barra libre · actual'],['○','Smith'],['○','Multipower'],['○','Polea baja']]}],
+['amrapCfg','Hojas','Config AMRAP','Mínimo y techo',{kind:'sheet',t:'Configurar AMRAP',d:'Objetivo de la serie',rows:[['−','Mínimo 8 reps · +'],['−','Sin techo'],['1','Cuenta al e1RM · sí'],['2','Aviso bajo mínimo · sí']]}],
+['discomfort','Hojas','Molestias','Catálogo y buscador',{kind:'sheet',t:'Molestias',d:'Se guarda con la serie',rows:[['○','Sin molestias'],['○','Rodilla anterior'],['○','Lumbar'],['○','Hombro anterior']],input:'Buscar molestia'}],
+['history','Hojas','Historial','e1RM por sesión',{kind:'sheet',t:'Historial · Sentadilla',d:'e1RM últimas 8 sesiones',rows:[['1','12 oct · 102,5 × 8 · 110,0'],['2','5 oct · 100 × 8 · 107,4'],['3','28 sep · 100 × 7 · 105,1']]}],
+['reorder','Hojas','Reordenar','Orden del día',{kind:'sheet',t:'Reordenar',d:'Cambia el orden del día',rows:[['≡','Sentadilla trasera'],['≡','Peso muerto rumano'],['≡','Prensa de piernas']]}],
+['ultrafast','Hojas','Ultra-rápido','Un gesto',{kind:'sheet',t:'Registro ultrarrápido',d:'Una serie, un gesto',rows:[['1','100 × 8 · RIR 2'],['2','105 × 6 · RIR 1'],['3','Otra carga']]}],
+['rmRef','Hojas','RM del ejercicio','Referencia',{kind:'sheet',t:'RM del ejercicio',d:'Referencia',rows:[['1','1RM 118,0 kg'],['2','TM 106,2 kg'],['3','Recalcular']]}],
+['album','Hojas','Álbum','Medios del ejercicio',{kind:'sheet',t:'Álbum · Sentadilla',d:'Fotos y vídeos',rows:[['1','Antes · hoy'],['2','Serie 2 · hoy'],['3','PR · 12 oct']]}],
+['exit','Hojas','Salir','Cierre de sesión',{kind:'sheet',t:'Salir del entreno',d:'Se conserva lo registrado',rows:[['1','Guardar y salir'],['2','Descartar sesión'],['3','Seguir entrenando']]}],
+['mesa','Mesa','Mesa','Series en filas',{kind:'mesa',expand:'none'}],
+['mesaMedia','Mesa','Mesa · media','Modo visual en la fila',{kind:'mesa',expand:'media'}],
+['mesaTech','Mesa','Mesa · técnica','Técnica en la fila',{kind:'mesa',expand:'tech'}],
+['mesaInjury','Mesa','Mesa · molestia','Molestia en la fila',{kind:'mesa',expand:'injury'}]
+];
+
+var TITLES={mob:['Movilidad','Pierna · 6 movimientos'],warm:['Aproximación','Sentadilla trasera · A2 de 4'],cardio:['Cardio','Cinta · intervalos'],rest:['Descanso','Entre series'],overrun:['Descanso','Tiempo extra'],mini:['Descanso','Minimizado'],game:['Descanso','Juego'],feedback:['Feedback','Sentadilla trasera'],mesa:['Pierna · Semana 1','9 ejercicios · 34 series'],mesaMedia:['Pierna · Semana 1','Mesa con modo visual'],mesaTech:['Pierna · Semana 1','Mesa con técnica'],mesaInjury:['Pierna · Semana 1','Mesa con molestia']};
+var LABEL={mob:'Hecho · siguiente',warm:'Marcar A2',cardio:'Pausar',rest:'Saltar descanso',overrun:'Saltar',mini:'Abrir descanso',game:'Saltar',feedback:'Guardar feedback',mesa:'Registrar serie',mesaMedia:'Registrar serie',mesaTech:'Registrar tramo',mesaInjury:'Guardar molestia'};
+
+function phone(t,s,inner,label,extra){
+ return '<div class="status"><span>1:47</span><span>▮▮▮</span></div><div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">'+t+'</div><div class="s">'+s+'</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">⋯</div></div>'+inner+bottom(label)+extra;
+}
+function bottom(label){
+ return '<div class="bottom"><div class="roadhead"><span class="l">Series · 3 de 9</span><span class="r">Sentadilla 3 / 4</span></div><div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="on" style="width:53%"></i><i style="width:12%"></i></div><div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="on" style="width:53%">SER</span><span style="width:12%">REST</span></div><div class="navrow"><div class="step">‹</div><div class="rec">'+label+'</div><div class="step">›</div></div></div>';
+}
+function tag(t,cls){return '<span class="tag '+(cls||'')+'" style="margin-left:6px">'+t+'</span>';}
+function band(t,cls){return '<div class="band '+(cls||'')+'">'+t+'</div>';}
+function wheel(n){return '<div class="wheel"><span>'+(n-2)+'</span><span>'+(n-1)+'</span><span class="c">'+n+'</span><span>'+(n+1)+'</span><span>'+(n+2)+'</span></div><div class="wlab"><span>REPS</span><span>OBJETIVO '+n+'</span></div>';}
+function fire(i){return '<div class="fire">'+[0,1,2,3,4].map(function(x,k){return '<div class="'+(k===i?'on':'')+'">'+x+'</div>';}).join('')+'</div><div class="wlab" style="margin-top:3px"><span>RIR</span><span>FALLO</span></div>';}
+function kp(){return '<div class="kpills"><div class="kpill">−2,5</div><div class="kpill">Sug <b>102,5</b></div><div class="kpill">+2,5</div></div>';}
+function rom(){return '<div class="pillrow"><span class="sp">ROM</span><span class="sp">Vídeo</span><span class="sp">Detalles</span></div>';}
+function hist(){return '<div class="hist"><div class="hlab">ÚLTIMAS 4 · e1RM<br><b>112,5 kg</b></div><div class="hbars"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i class="on" style="height:94%"></i></div></div>';}
+
+function hero(c){
+ var v,u,side;
+ if(c.mode==='TIME'){v=c.clock;u='restante';side='<b>'+c.target+'</b><span>objetivo</span>';}
+ else if(c.mode==='DIST'){v=c.km;u='km';side='<b>'+c.pace+'</b><span>ritmo</span>';}
+ else if(c.mode==='SOLO'){v=c.rpe;u='RPE';side='<b>× '+c.reps+'</b><span>reps</span>';}
+ else if(c.mode==='RM'){v=c.rm;u='RM';side='<b>'+c.target+'</b><span>objetivo</span>';}
+ else if(c.mode==='CUSTOM'){v=c.value;u=c.unit;side='<b>× '+c.sets+'</b><span>rondas</span>';}
+ else {v=c.load;u='kg';side='<b>RIR '+c.rir+'</b><span>e1RM 112,5</span>';}
+ return '<div class="hero"><span class="v">'+v+'</span><span class="u">'+u+'</span><span class="side">'+side+'</span></div><div class="sub">'+(c.sub||'')+'</div>';
+}
+function body(c){
+ if(c.mode==='TIME') return '<div class="field">Iniciar · pausar · reiniciar</div>'+rom()+hist();
+ if(c.mode==='DIST') return '<div class="kpills"><div class="kpill">FC 142</div><div class="kpill">kcal 210</div><div class="kpill">Z2</div></div><div class="field" style="margin-top:7px">Distancia manual o GPS</div><div class="mline">Splits 5′04″ · 5′01″ · 5′00″</div>'+hist();
+ if(c.mode==='RM') return '<div class="field">Carga objetivo · última vez 102,5</div>'+wheel(c.reps)+fire(0)+rom()+hist();
+ if(c.mode==='SOLO') return '<div class="field">Sin carga externa</div>'+wheel(c.reps)+fire(1)+rom()+hist();
+ if(c.mode==='CUSTOM') return '<div class="field">Unidad propia · «'+c.unit+'»</div>'+fire(2)+rom()+hist();
+ var s=kp()+wheel(c.mode==='AMRAP'?10:c.reps)+fire(c.rir===0?0:(c.rir||2));
+ if(c.result) s+='<div class="band ok">'+c.result+'</div>';
+ if(c.band) s+=band(c.band,c.mode==='DONE'||c.mode==='PR'?'ok':(c.mode==='SKIP'?'dim':''));
+ if(c.mode==='UNI') s='<div class="seg" style="margin-top:2px"><b class="on">Izquierda</b><b>Derecha</b></div>'+s;
+ if(c.mode==='FAIL') s='<div class="seg" style="margin-top:2px"><b class="on">Fallo</b><b>Técnica</b><b>Dolor</b><b>Otro</b></div><div class="field" style="margin-top:7px">Motivo opcional</div>'+rom()+hist();
+ if(c.mode==='PR') s+='<div class="field" style="margin-top:6px">Foto o vídeo del PR</div>';
+ if(c.mode==='SKIP') s='<div class="cs"><div class="field">Recuperar serie</div>'+hist()+'</div>';
+ return s+rom()+hist();
+}
+function acts(list){
+ return '<div class="acts">'+list.map(function(a){return '<span data-act="'+a+'">'+a+'</span>';}).join('')+'</div>';
+}
+function card(c){
+ var eyebrow={REPS:'Serie efectiva',AMRAP:'AMRAP',CALIB:'Calibrador',RM:'RM',SOLO:'Solo RPE',TIME:'Tiempo',DIST:'Distancia',CUSTOM:'Personalizado',UNI:'Unilateral',DONE:'Completada',SKIP:'Saltada',FAIL:'Fallida',PR:'Récord',LOAD:'Carga requerida',REPL:'Volumen reemplazado',TECH:'Técnica',MEDIA:'Modo visual'}[c.mode]||'Serie efectiva';
+ var head='<div class="head"><span class="dot"></span><span class="eyebrow">'+eyebrow+'</span>'+(c.pr?tag('★ PR','pr'):'')+((c.mode==='DONE'||c.mode==='SKIP'||c.mode==='FAIL')?tag(c.mode==='FAIL'?'rep 6 de 8':c.mode.toLowerCase(),'') : '')+'<span class="meta">3 / 4</span></div>';
+ return '<div class="card '+(c.mode==='FAIL'?'fail':'')+'" '+(c.mode==='FAIL'?'style="border-color:rgba(255,155,146,.45)"':'')+'>'+head+hero(c)+'<div class="body">'+body(c)+'</div>'+acts(['Avanzado','Modo visual','Historial'])+'</div>';
+}
+function techCard(){
+ return '<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Técnica de la serie</span><span class="meta">3 / 4</span></div>'
+ +'<div class="seg"><b class="on">Normal</b><b>Drop</b><b>Pausa</b><b>Myo</b></div>'
+ +'<div class="chain"><b>Principal</b><i>→</i><span>Drop 1</span><i>→</i><span style="color:var(--faint)">Añadir</span></div>'
+ +'<div class="body"><div class="trow"><span class="nm">Drop 1</span><div class="stepper"><span>−</span><b>80 kg</b><span>+</span></div></div>'
+ +'<div class="trow"><span class="nm">Reps del tramo</span><div class="stepper"><span>−</span><b>6</b><span>+</span></div></div>'
+ +'<div class="trow"><span class="nm">Descanso entre tramos</span><div class="stepper"><span>−</span><b>15″</b><span>+</span></div></div>'
+ +'<div class="field">Nota de la serie</div><div class="pillrow"><span class="sp">Error de ejecución</span></div></div>'
+ +acts(['Serie 3','PR: foto o vídeo'])+'</div>';
+}
+function mediaCard(){
+ return '<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Modo visual</span><span class="meta">3 / 4</span></div>'
+ +'<div class="mtop"><div class="sw"><b class="on">Foto</b><b>Vídeo</b></div><span class="sp" style="margin-left:auto">Ficha</span><span class="sp">Álbum</span></div>'
+ +'<div class="mstage"><span class="lbl">Encuadre de la serie</span><div class="shutter"></div></div>'
+ +'<div class="thumbs"><i>Antes</i><i>Serie 2</i><i>PR</i><i>+2</i></div><div class="mline">2 fotos · análisis disponible</div>'
+ +acts(['Serie 3','Ver álbum','Historial'])+'</div>';
+}
+function mobCard(){
+ return '<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad</span><span class="meta">2 / 6</span></div><div class="hero"><span class="v">02:30</span><span class="u">restante</span><span class="side"><b>3 × 40″</b><span>por lado</span></span></div><div class="sub">Sentadilla profunda</div><div class="body">'
+ +['Tobillo|40″|done','Sentadilla profunda|3 × 40″|on','Apertura de cadera|8 reps|','Isquios|30″|'].map(function(r){var p=r.split('|');return '<div class="mrow '+p[2]+'"><span class="check">'+(p[2]==='done'?'✓':'')+'</span><span class="nm">'+p[0]+'</span><span class="dose">'+p[1]+'</span></div>';}).join('')
+ +'</div>'+acts(['A tu ritmo','Saltar fase'])+'</div>';
+}
+function warmCard(){
+ var rows=[['A1','20 %','20','× 10','60″'],['A2','40 %','60','× 5','90″'],['A3','60 %','75','× 3','90″'],['A4','80 %','90','× 1','120″']];
+ return '<div class="card warm"><div class="head"><span class="dot"></span><span class="eyebrow">Aproximación</span><span class="meta">100 kg objetivo</span></div><div class="hero"><span class="v">60</span><span class="u">kg</span><span class="side"><b>× 5</b><span>40 % · 90″</span></span></div><div class="sub">Serie A2 de la escalera</div><div class="body">'
+ +rows.map(function(r,i){return '<div class="trow" '+(i===1?'style="background:rgba(255,161,92,.07);border:1px solid rgba(255,161,92,.22);border-radius:9px;padding:4px 5px"':'')+'><span class="nm" style="width:26px;color:var(--amber);font-weight:700">'+r[0]+'</span><span class="nm" style="width:38px;color:var(--faint)">'+r[1]+'</span><span class="nm" style="text-align:right;font-family:Syne;font-weight:700;font-size:16px">'+r[2]+'</span><span class="nm" style="width:38px;text-align:right;color:var(--muted)">'+r[3]+'</span><span class="nm" style="width:30px;text-align:right;color:var(--faint)">'+r[4]+'</span></div>';}).join('')
+ +'</div>'+acts(['Añadir serie','Continuar'])+'</div>';
+}
+function cardioCard(){
+ return '<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Cardio</span><span class="meta">zona 2</span></div><div class="hero"><span class="v">18:24</span><span class="u">transcurrido</span><span class="side"><b>12,4 km/h</b><span>4′50″/km</span></span></div><div class="sub">Cinta · intervalos 2-1</div><div class="body"><div class="kpills"><div class="kpill">FC 142</div><div class="kpill">210 kcal</div><div class="kpill">Z2</div></div><div class="field" style="margin-top:7px">Intervalos · 4 de 8</div><div class="mline">Splits 5′04″ · 5′01″ · 5′00″</div>'+hist()+'</div>'+acts(['Pausar','Modo visual','Historial'])+'</div>';
+}
+function restCard(c){
+ var extra=c.overrun?'<div class="band">El descanso se pasó · siguiente set puede verse afectado</div>':(c.mini?'<div class="field">Descanso 1:12 · +15 s</div>':(c.game?'<div class="field">Mini-juego activo · récord 18</div>':'<div class="band ok">Sugerido 1:30 · última RIR 2</div>'));
+ return '<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Descanso</span><span class="meta">entre series</span></div><div class="hero"><span class="v">1:12</span><span class="u">restante</span><span class="side"><b>2:00</b><span>total</span></span></div><div class="sub">Siguiente: serie 4 · 100 × 8</div><div class="body">'+extra+'<div class="field" style="margin-top:7px">−15 s · Saltar · +15 s</div>'+hist()+'</div>'+acts(['Minimizar','Saltar descanso'])+'</div>';
+}
+function feedbackCard(){
+ return '<div class="card"><div class="head"><span class="dot"></span><span class="eyebrow">Feedback del ejercicio</span><span class="meta">4 series</span></div><div class="hero"><span class="v">8</span><span class="u">esfuerzo</span><span class="side"><b>2</b><span>molestias</span></span></div><div class="sub">Sentadilla trasera</div><div class="body"><div class="seg" style="margin-top:2px"><b class="on">Bien</b><b>Regular</b><b>Mal</b></div><div class="field" style="margin-top:7px">Calidad técnica</div><div class="field" style="margin-top:6px">Molestias</div><div class="mline">Se guarda con el ejercicio</div></div>'+acts(['Saltar feedback','Guardar'])+'</div>';
+}
+function overlay(c){
+ var o=c.overlay;
+ var data={guided:['Técnica guiada','Drop-set · tramo 1 de 2',['80 kg × 6','Descanso 15″','Siguiente tramo']],god:['God mode','Corrección manual',['Editar serie','Eliminar serie','Forzar completada']],undo:['Deshecho','Serie 3 eliminada',['Rehacer','Ver historial']],blocked:['Salir del entreno','Hay una serie en curso',['Seguir','Guardar y salir']]}[o];
+ return card(c)+'<div class="ov"><div class="ovp"><div class="ovt">'+data[0]+'</div><div class="ovd">'+data[1]+'</div>'+data[2].map(function(r){return '<div class="ovr">'+r+'</div>';}).join('')+'<div class="ovb">'+data[2][0]+'</div></div></div>';
+}
+function sheet(kind,cfg){
+ var extra=cfg.input?'<div class="field" style="height:40px;margin-top:8px">'+cfg.input+'</div>':'';
+ return '<div class="scrim"></div><div class="sheet"><div class="handle"></div><div class="stitle">'+cfg.t+'</div><div class="sdesc">'+cfg.d+'</div>'+(cfg.rows||[]).map(function(r){return '<div class="srow"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>';}).join('')+extra+'</div>';
+}
+function mesaRows(exp){
+ var s='<div class="tghead"><span class="nm">Sentadilla trasera</span><span class="tag">Barra libre</span><span class="meta">100 kg · 4 series · ⋯</span></div>'
+ +'<div class="tr done"><span class="idx">A1</span><span class="ex">20 %</span><span class="ld">20 × 10</span><span class="ef"></span><span class="st">✓</span></div>'
+ +'<div class="tr done"><span class="idx">A2</span><span class="ex">40 %</span><span class="ld">60 × 5</span><span class="ef"></span><span class="st">✓</span></div>'
+ +'<div class="tr done"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 3</span><span class="st">✓</span></div>'
+ +'<div class="tr done"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">✓</span></div>'
+ +'<div class="tr active"><span class="idx">3</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">●</span></div>'
+ +'<div class="editor"><div class="edrow"><span class="big">100</span><span class="u">kg</span><div class="mini"><span>−2,5</span><span>+2,5</span></div></div>'
+ +'<div class="edrow2"><div class="rir"><span>0</span><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><span class="e1">e1RM 112,5</span></div>'
+ +'<div class="edacts"><span>Técnica</span><span>ROM</span><span>Molestia</span><span>Nota</span><span>Vídeo</span><span>Foto</span><span>Hist.</span></div>'
+ +(exp==='media'?'<div class="mtop" style="margin-top:7px"><div class="sw"><b class="on">Foto</b><b>Vídeo</b></div><span class="sp" style="margin-left:auto">Ficha</span><span class="sp">Álbum</span></div><div class="thumbs"><i>Antes</i><i>Serie 2</i><i>PR</i><i>+2</i></div>':'')
+ +(exp==='tech'?'<div class="seg" style="margin-top:7px"><b class="on">Drop</b><b>Pausa</b><b>Myo</b></div><div class="chain"><b>Principal</b><i>→</i><span>Drop 1 · 80 × 6</span></div>':'')
+ +(exp==='injury'?'<div class="band" style="margin-top:7px">Molestia: rodilla anterior · hoy</div>':'')
+ +'</div>'
+ +'<div class="tr"><span class="idx">4</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">—</span><span class="st">·</span></div>'
+ +'<div class="tghead"><span class="nm">Peso muerto rumano</span><span class="tag">Multipower</span><span class="meta">140 kg · 3 series · ⋯</span></div>'
+ +'<div class="tr done"><span class="idx">A1</span><span class="ex">60 %</span><span class="ld">80 × 5</span><span class="ef"></span><span class="st">✓</span></div>'
+ +'<div class="tr"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">RIR 2</span><span class="st">·</span></div>'
+ +'<div class="tr"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">—</span><span class="st">·</span></div>';
+ return '<div class="table">'+s+'</div>';
+}
+function render(id){
+ var it=null;
+ for(var i=0;i<IT.length;i++){if(IT[i][0]===id){it=IT[i];break;}}
+ if(!it) it=IT[0];
+ var cfg=it[4];
+ var t=TITLES[id]||[it[2],'Serie 3 de 4 · 100 kg'];
+ var inner='',label=LABEL[id]||'Registrar serie',extra='';
+ if(cfg.kind==='sheet'){inner='<div class="zone" style="justify-content:center"><div class="mline">La hoja se abre sobre la tarjeta</div></div>';extra=sheet(id,cfg);}
+ else if(state.mode==='mesa'||cfg.kind==='mesa'){inner=mesaRows(cfg.kind==='mesa'?cfg.expand:(cfg.mode==='MEDIA'?'media':(cfg.mode==='TECH'?'tech':'none')));}
+ else if(cfg.mode==='MOB'){inner='<div class="zone">'+mobCard()+'</div>';}
+ else if(cfg.mode==='WARM'){inner='<div class="zone">'+warmCard()+'</div>';}
+ else if(cfg.mode==='CARDIO'){inner='<div class="zone">'+cardioCard()+'</div>';}
+ else if(cfg.mode==='REST'){inner='<div class="zone">'+restCard(cfg)+'</div>';}
+ else if(cfg.mode==='FEEDBACK'){inner='<div class="zone">'+feedbackCard()+'</div>';}
+ else if(cfg.overlay){inner='<div class="zone">'+overlay(cfg)+'</div>';}
+ else {var c=Object.assign({},cfg);if(state.face==='tech'&&state.id===id)inner='<div class="zone">'+techCard()+'</div>';else if(state.face==='media'&&state.id===id)inner='<div class="zone">'+mediaCard()+'</div>';else inner='<div class="zone">'+card(c)+'</div>';}
+ document.getElementById('phone').innerHTML=phone(t[0],t[1],inner,label,extra);
+ document.querySelectorAll('.it').forEach(function(b){b.classList.toggle('on',b.dataset.go===id);});
+ document.querySelectorAll('.acts span').forEach(function(a){
+  a.onclick=function(){
+   var x=a.dataset.act;
+   if(x==='Avanzado'){state.face='tech';}
+   else if(x==='Modo visual'){state.face='media';}
+   else if(x==='Historial'){document.getElementById('phone').insertAdjacentHTML('beforeend',sheet('history',{t:'Historial · Sentadilla',d:'e1RM últimas 8 sesiones',rows:[['1','12 oct · 102,5 × 8 · 110,0'],['2','5 oct · 100 × 8 · 107,4']]}));return;}
+   render(id);
+  };
+ });
+ document.querySelectorAll('.srow').forEach(function(r){r.onclick=function(){location.hash=id;};});
+ location.hash=id;
+}
+var idx=document.getElementById('index');
+var groups={};IT.forEach(function(i){(groups[i[1]]=groups[i[1]]||[]).push(i);});
+idx.innerHTML=Object.keys(groups).map(function(g){return '<div class="g">'+g+'</div>'+groups[g].map(function(i){return '<button class="it" data-go="'+i[0]+'"><span>'+i[2]+'</span><small>'+i[3]+'</small></button>';}).join('');}).join('');
+idx.addEventListener('click',function(e){var b=e.target.closest('.it');if(b){state.face='front';render(b.dataset.go);}});
+document.getElementById('modes').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;state.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(function(x){x.classList.toggle('on',x===b)});render(state.id);});
+render(location.hash.replace('#','')||'reps');
+</script>
+</body>
+</html>

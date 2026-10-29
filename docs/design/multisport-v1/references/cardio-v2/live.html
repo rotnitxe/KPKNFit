@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Cardio en vivo</title>
+<link rel="stylesheet" href="kpkn-mock.css">
+<style>
+/* ── Páginas de esta maqueta ─────────────────────────────────────────── */
+.sb { width: 15px; height: 15px; fill: currentColor; }
+.icon.sm { width: 18px; height: 18px; }
+.icon.lg { width: 28px; height: 28px; }
+
+/* Zonas: variables de color que gobiernan campo, anillo y cifra */
+.zc0 { --zc: #D0BCFF; --zc-rgb: 208,188,255; }
+.zc1 { --zc: #5AC8FA; --zc-rgb: 90,200,250; }
+.zc2 { --zc: #34C759; --zc-rgb: 52,199,89; }
+.zc3 { --zc: #FFD60A; --zc-rgb: 255,214,10; }
+.zc4 { --zc: #FF9F0A; --zc-rgb: 255,159,10; }
+.zc5 { --zc: #FF453A; --zc-rgb: 255,69,58; }
+.to2 { --zc2-rgb: 52,199,89; }
+
+/* El campo de zona: lo único audaz de la pantalla */
+.phone.live, .fld {
+  background:
+    linear-gradient(180deg, rgba(var(--zc-rgb), 0.36) 0%, rgba(var(--zc2-rgb, var(--zc-rgb)), 0.13) 55%, rgba(var(--zc2-rgb, var(--zc-rgb)), 0.04) 100%),
+    #0F0F0F;
+}
+.phone.live.neutral, .phone.live.zc0 { background: linear-gradient(180deg, rgba(208,188,255,0.20) 0%, rgba(208,188,255,0.07) 55%, rgba(208,188,255,0.02) 100%), #0F0F0F; }
+.phone.live.tab { background: linear-gradient(180deg, rgba(var(--zc-rgb), 0.50) 0%, rgba(var(--zc-rgb), 0.18) 60%, rgba(var(--zc-rgb), 0.05) 100%), #0F0F0F; }
+.phone.layers { background: #0F0F0F; }
+.fld { position: absolute; inset: 0; z-index: 0; }
+.phone.live .statusbar, .phone.live .gesturebar { position: relative; z-index: 1; }
+.phone.live .statusbar { color: rgba(243,241,246,0.8); }
+
+/* Página principal en vivo */
+.pg { min-height: 100%; height: 100%; display: flex; flex-direction: column; gap: 6px; padding: 0 18px 4px; position: relative; z-index: 1; }
+.lv-top { display: flex; justify-content: space-between; align-items: center; height: 36px; flex: none; font-size: 13px; color: var(--text-2); }
+.lv-top .clock { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.lv-top .clock span { color: var(--text-3); font-weight: 500; }
+.lv-step { display: flex; align-items: center; justify-content: space-between; height: 30px; flex: none; }
+.lv-step .kind { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; }
+.kdot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,0.10); font-size: 13px; font-weight: 600; }
+
+.ring { position: relative; width: 196px; height: 196px; margin: 0 auto; flex: none; }
+.ring::before { content: ""; position: absolute; inset: -26px; border-radius: 50%; background: radial-gradient(closest-side, rgba(var(--zc-rgb), 0.26), transparent); }
+.ring svg { position: relative; width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.ring .trk { stroke: rgba(255,255,255,0.12); }
+.ring .prg { stroke: var(--zc); filter: drop-shadow(0 0 6px rgba(var(--zc-rgb), 0.55)); }
+.ring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.ring-in .t { font-family: var(--font-display); font-weight: 800; font-size: 56px; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.ring-in .t.sm { font-size: 50px; }
+.ring-in .l { font-size: 12.5px; color: var(--text-2); margin-top: 6px; max-width: 120px; line-height: 1.25; }
+
+.hrblk { flex: none; }
+.hrrow { display: flex; justify-content: space-between; align-items: flex-end; }
+.hrn { display: flex; align-items: baseline; gap: 6px; }
+.hrn .hh { width: 20px; height: 20px; fill: currentColor; stroke: none; color: var(--hz, var(--zc)); align-self: center; }
+.hrn b { font-family: var(--font-display); font-weight: 800; font-size: 48px; line-height: 1; color: var(--hz, var(--zc)); font-variant-numeric: tabular-nums; }
+.hrn small { font-size: 14px; color: var(--text-2); }
+.tgt { text-align: right; line-height: 1.3; }
+.tgt .k { display: block; font-size: 11.5px; color: var(--text-3); }
+.tgt b { display: block; font-size: 14px; font-weight: 600; }
+.tgt span.v { font-size: 13px; color: var(--text-2); }
+.tape { position: relative; margin-top: 10px; }
+.tape .zone-tape { height: 12px; }
+.tape .zone-tape i { opacity: 0.30; }
+.tape .zone-tape i.is-on { opacity: 1; }
+.needle { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 3px; background: #fff; box-shadow: 0 0 0 2px rgba(15,15,15,0.55), 0 0 10px rgba(255,255,255,0.45); }
+.tape-l { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 11px; color: var(--text-3); text-align: center; margin-top: 5px; }
+
+.stat { flex: none; display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 12px; border-radius: 14px; background: rgba(255,255,255,0.08); font-size: 14px; font-weight: 600; }
+.stat .icon { width: 18px; height: 18px; flex: none; }
+.stat.ok .icon { color: var(--zc); }
+.stat.warn { flex-direction: column; align-items: stretch; gap: 6px; background: rgba(255,255,255,0.11); box-shadow: inset 3px 0 0 var(--zc); }
+.stat .l1 { display: flex; align-items: center; gap: 8px; }
+.bubble { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 400; color: var(--text-2); background: rgba(0,0,0,0.28); padding: 6px 10px; border-radius: 12px 12px 12px 4px; }
+.bubble .icon { width: 16px; height: 16px; color: var(--text); }
+.bubble em { font-style: normal; color: var(--text); font-weight: 500; }
+
+.mach { flex: none; display: flex; gap: 8px; flex-wrap: wrap; }
+.mchip { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,0.09); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.mchip .icon { width: 18px; height: 18px; color: var(--text-2); }
+.mchip.quiet { background: rgba(255,255,255,0.05); color: var(--text-2); font-weight: 500; }
+
+.nxt { flex: none; display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 14px; background: rgba(255,255,255,0.07); }
+.nxt .kind-bar { height: 30px; align-self: auto; }
+.nxt small { display: block; font-size: 11.5px; color: var(--text-3); line-height: 1.2; }
+.nxt strong { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+
+.pstrip { flex: none; }
+.pstrip svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.dots { flex: none; display: flex; justify-content: center; gap: 0; height: 28px; margin-top: auto; }
+.dots button { position: relative; width: 40px; height: 28px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; }
+.dots button::after { content: ""; position: absolute; left: 0; right: 0; top: -16px; bottom: -4px; }
+.dots i { display: block; width: 7px; height: 7px; border-radius: 4px; background: rgba(255,255,255,0.32); transition: width .25s var(--ease), background .25s; }
+.dots button[aria-current="true"] i { width: 18px; background: #fff; }
+
+.ctls { flex: none; display: flex; justify-content: space-around; align-items: flex-start; }
+.ctl { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; cursor: pointer; color: var(--text); width: 92px; padding: 0; }
+.ctl .c { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,0.13); margin: 4px 0; }
+.ctl.main .c { width: 64px; height: 64px; margin: 0; background: var(--text); color: #0F0F0F; }
+.ctl small { font-size: 11.5px; color: var(--text-2); line-height: 1.2; }
+
+/* RPE sin pulsaciones */
+.nohr { flex: none; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); }
+.nohr .r1 { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.nohr .r1 .icon { width: 18px; height: 18px; }
+.nohr .big { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.1; margin-top: 2px; }
+.rpe-scale { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 8px; }
+.rpe-scale i { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.16); }
+.rpe-scale i.on { background: var(--primary); }
+.rpe-scale i.cur { background: #fff; }
+.machbig { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.machbig div { padding: 8px 14px; border-radius: 14px; background: rgba(255,255,255,0.09); }
+.machbig b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.machbig b small { font-family: var(--font-body); font-weight: 500; font-size: 13px; color: var(--text-2); }
+.machbig span { font-size: 12px; color: var(--text-3); }
+.hint { flex: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 12px; border-radius: 14px; background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.22); font-size: 13px; color: var(--text-2); cursor: pointer; }
+.hint .icon { width: 18px; height: 18px; flex: none; }
+.hint b { color: var(--primary); font-weight: 600; margin-left: auto; font-size: 13px; }
+
+/* Guía secundaria (potencia) */
+.guide { flex: none; padding: 8px 12px; border-radius: 14px; border: 1px dashed rgba(255,255,255,0.18); }
+.guide .g1 { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); }
+.guide .g1 b { font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.guide .g2 { position: relative; height: 6px; margin: 9px 0 3px; border-radius: 3px; background: rgba(255,255,255,0.10); }
+.guide .g2 .win { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: rgba(255,255,255,0.30); }
+.guide .g2 .now { position: absolute; top: -3px; width: 3px; height: 12px; margin-left: -1.5px; border-radius: 2px; background: #fff; }
+
+/* Medidor de ritmo */
+.gauge { position: relative; height: 12px; border-radius: 6px; background: rgba(255,255,255,0.12); margin-top: 12px; }
+.gauge .win { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: var(--zc); }
+.gauge-l { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 5px; }
+
+/* Botón grande de paso abierto */
+.btn-xl { height: 56px; font-size: 17px; width: 100%; flex: none; }
+.btn-white { background: var(--text); color: #0F0F0F; }
+.cue { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.cue .icon { width: 16px; height: 16px; }
+.ring.open .trk { stroke: rgba(255,255,255,0.14); stroke-dasharray: 2 7; }
+.ring.open .sweep { stroke: var(--zc); transform-origin: 100px 100px; animation: sweep 2.6s linear infinite; }
+@keyframes sweep { to { transform: rotate(360deg); } }
+.est { flex: none; display: flex; gap: 8px; font-size: 12px; color: var(--text-3); align-items: flex-start; }
+.est .icon { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+
+/* Tabata */
+.pips { display: flex; justify-content: center; gap: 6px; flex: none; }
+.pips i { width: 26px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.18); }
+.pips i.on { background: #fff; }
+.pips i.cur { background: var(--zc); box-shadow: 0 0 0 2px rgba(255,255,255,0.9); }
+.tab-c { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+.tab-c { width: 100%; }
+.tab-c .w { font-family: var(--font-display); font-weight: 800; font-size: 38px; line-height: 1; white-space: nowrap; }
+.tab-c .n { font-family: var(--font-display); font-weight: 800; font-size: 104px; line-height: 0.95; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin: 4px 0 6px; text-shadow: 0 2px 24px rgba(0,0,0,0.25); white-space: nowrap; }
+.tab-c .r { font-size: 16px; font-weight: 600; color: var(--text); }
+.bar-t { height: 14px; border-radius: 7px; background: rgba(255,255,255,0.18); overflow: hidden; margin: 14px 0 0; width: 100%; }
+.bar-t i { display: block; height: 100%; background: #fff; border-radius: 7px; }
+.chips { display: flex; gap: 8px; justify-content: center; flex: none; flex-wrap: wrap; }
+.chip-l { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 999px; background: rgba(0,0,0,0.28); font-size: 13px; font-weight: 600; }
+
+/* 3-2-1 */
+.cd { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; min-height: 0; }
+.cd .big { position: relative; width: 236px; height: 236px; display: grid; place-items: center; }
+.cd .big svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.cd .big b { font-family: var(--font-display); font-weight: 800; font-size: 136px; line-height: 1; letter-spacing: -0.03em; }
+.cd .k { font-size: 13px; color: var(--text-2); margin-top: 6px; }
+.cd h3 { font-family: var(--font-display); font-weight: 800; font-size: 21px; line-height: 1.1; margin: 2px 0 8px; }
+
+/* Preparación */
+.rdy { min-height: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 12px; }
+.rdy .topbar { padding: 4px 0 0 0; margin-left: -8px; }
+.rdy .topbar .t2 { flex: 1; font-size: 15px; font-weight: 600; color: var(--text-2); }
+.rdy h2 { font-family: var(--font-display); font-weight: 800; font-size: 22px; line-height: 1.15; margin: 0; }
+.rdy .sub { margin: 2px 0 0; font-size: 13px; color: var(--text-2); }
+.kcard { display: flex; gap: 12px; }
+.kcard small { display: block; font-size: 11.5px; color: var(--text-3); }
+.kcard strong { display: block; font-size: 16px; font-weight: 600; }
+.kcard .mach { margin-top: 6px; gap: 6px; }
+.kcard .mchip { height: 30px; font-size: 13px; background: var(--surface-2); }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+.card-h span { font-size: 12px; font-weight: 400; color: var(--text-3); }
+.tot { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; padding: 10px 6px; }
+.tot div + div { border-left: 1px solid var(--line); }
+.tot b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 21px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.tot span { font-size: 12px; color: var(--text-3); }
+.sigs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sig { position: relative; height: 64px; border-radius: 14px; border: 1px solid var(--line-strong); background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-3); cursor: pointer; padding: 0; }
+.sig small { font-size: 11.5px; }
+.sig[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); border-color: transparent; }
+.sig[aria-pressed="false"]::after { content: ""; position: absolute; left: 50%; margin-left: -12px; top: 21px; width: 24px; height: 2px; border-radius: 2px; background: currentColor; transform: rotate(-45deg); }
+.cta { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.cta .cap { text-align: center; font-size: 12px; color: var(--text-3); }
+.btn[aria-disabled="true"] { background: var(--surface-2); color: var(--text-3); cursor: not-allowed; }
+.gps { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 14px 16px; }
+.gps .radar { position: relative; width: 92px; height: 92px; display: grid; place-items: center; }
+.gps .radar svg.rings { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gps .radar .rg { fill: none; stroke: var(--primary); stroke-width: 1.5; transform-origin: 60px 60px; animation: radar 2.4s ease-out infinite; opacity: 0.5; }
+.gps .radar .rg:nth-child(2) { animation-delay: .8s; } .gps .radar .rg:nth-child(3) { animation-delay: 1.6s; }
+@keyframes radar { from { transform: scale(.35); opacity: .7; } to { transform: scale(1); opacity: 0; } }
+.gps .disc { position: relative; width: 44px; height: 44px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; }
+.gps.ready .disc { background: var(--primary); color: var(--on-primary); }
+.gps.ready .rg { animation: none; opacity: .25; transform: none; }
+.pbar { width: 100%; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--primary); border-radius: 3px; }
+.route-mini { width: 54px; height: 40px; flex: none; }
+
+/* Páginas E */
+.pgq { min-height: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 0 18px 4px; }
+.mini { display: flex; align-items: center; justify-content: space-between; height: 40px; flex: none; font-size: 13px; color: var(--text-2); }
+.mini .kind { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); }
+.pgq h3 { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1.1; margin: 0; }
+.pgq .cap2 { font-size: 13px; color: var(--text-2); margin: 2px 0 0; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-2); margin-top: 8px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 8px; border-radius: 3px; display: inline-block; }
+.rows { display: flex; flex-direction: column; gap: 6px; }
+.row { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 14px; background: var(--card); }
+.row.now { background: var(--primary-soft); }
+.row .kind-bar { height: 30px; align-self: auto; }
+.row small { display: block; font-size: 11.5px; color: var(--text-3); line-height: 1.2; }
+.row strong { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.row .end { margin-left: auto; font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.ziz { display: flex; flex-direction: column; gap: 6px; }
+.ziz .z { display: grid; grid-template-columns: 34px 1fr 44px; align-items: center; gap: 8px; height: 34px; }
+.ziz .z .zc-n { font-size: 13px; }
+.ziz .z .b { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.ziz .z .b i { display: block; height: 100%; border-radius: 7px; }
+.ziz .z .tm { text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ziz .nm { font-size: 11px; color: var(--text-3); display: block; line-height: 1; }
+.ziz .obj { display: inline-block; margin-left: 6px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.map { position: relative; border-radius: 20px; overflow: hidden; background: #131315; flex: none; }
+.map svg { display: block; width: 100%; height: auto; }
+.splits { display: flex; flex-direction: column; }
+.splits .s { display: grid; grid-template-columns: 38px 56px 1fr 56px; align-items: center; gap: 8px; height: 32px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.splits .s.h { height: 24px; font-size: 11.5px; color: var(--text-3); }
+.splits .s .b { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.splits .s .b i { display: block; height: 100%; background: var(--z2); border-radius: 4px; }
+.splits .s :last-child { text-align: right; color: var(--text-2); }
+
+/* Control */
+.ghost { filter: blur(1.5px) saturate(.5); opacity: .55; pointer-events: none; }
+.pause-card { position: absolute; left: 18px; right: 18px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; z-index: 3; }
+.pause-card .pi { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.14); display: grid; place-items: center; }
+.pause-card h3 { font-family: var(--font-display); font-weight: 800; font-size: 28px; margin: 4px 0 0; }
+.pause-card .tm { font-family: var(--font-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+.pause-card .tm small { font-family: var(--font-body); font-weight: 500; font-size: 16px; color: var(--text-2); margin-left: 6px; }
+.pause-card .btn { width: 100%; height: 56px; font-size: 17px; }
+.pause-card .btn + .btn { height: 48px; font-size: 15px; }
+.holdwrap { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
+.hold { position: relative; width: 84px; height: 84px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.10); color: var(--text); display: grid; place-items: center; cursor: pointer; touch-action: none; padding: 0; }
+.hold svg.hr { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.hold .htrk { stroke: rgba(255,255,255,0.18); }
+.hold .hprog { stroke: #fff; stroke-dasharray: 100 100; stroke-dashoffset: 38; animation: hint 3.2s ease-in-out infinite; }
+.hold.is-holding .hprog { animation: none; }
+@keyframes hint { 0% { stroke-dashoffset: 100; } 70%, 100% { stroke-dashoffset: 0; } }
+.holdwrap p { margin: 0; font-size: 13px; color: var(--text-2); }
+.toast { position: absolute; left: 14px; right: 14px; bottom: 112px; z-index: 4; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 10px 16px; border-radius: 14px; background: #E6E0E9; color: #1D1B20; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
+.toast .icon { width: 20px; height: 20px; flex: none; }
+
+/* D2 */
+.d2c { position: relative; z-index: 1; min-height: 100%; display: flex; flex-direction: column; padding: 0 18px 8px; gap: 10px; }
+.d2c .ring { margin-top: 18px; }
+.d2c .ring .prg { transition: stroke .6s; }
+.d2c .lab { text-align: center; }
+.d2c .lab b { display: block; font-size: 17px; font-weight: 600; }
+.d2c .lab span { font-size: 13px; color: var(--text-2); }
+.phone.layers .fld.b { opacity: 0; transition: opacity 3s ease; }
+.phone.layers.fade-b .fld.b { opacity: 1; }
+.pop { animation: pop .5s var(--ease); }
+@keyframes pop { from { transform: scale(1.35); opacity: .3; } to { transform: scale(1); opacity: 1; } }
+.d2c .seg { background: rgba(0,0,0,0.35); }
+.d2c .seg button { height: 40px; }
+
+/* Hoja de cierre */
+.sheet.fin { padding-bottom: 16px; }
+.sheet.fin h3 { font-family: var(--font-display); font-weight: 800; font-size: 22px; margin: 0 0 10px; }
+.sum { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.sum small { display: block; font-size: 11.5px; color: var(--text-3); }
+.sum b { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.sum b em { font-family: var(--font-body); font-style: normal; font-weight: 500; font-size: 13px; color: var(--text-2); margin-left: 3px; }
+.rpe-h { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+.rpe-h .title-m { font-size: 15px; }
+.rpe-h output { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--primary); }
+.rng { -webkit-appearance: none; appearance: none; width: 100%; height: 40px; background: transparent; margin: 2px 0 0; cursor: pointer; --v: 66.7%; }
+.rng::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--primary) var(--v), var(--surface-2) var(--v)); }
+.rng::-moz-range-track { height: 8px; border-radius: 4px; background: var(--surface-2); }
+.rng::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--primary); }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--primary); border: 4px solid #1A1A1A; box-shadow: 0 0 0 1px var(--primary); }
+.rng::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 4px solid #1A1A1A; box-shadow: 0 0 0 1px var(--primary); }
+.nums { display: grid; grid-template-columns: repeat(10, 1fr); font-size: 11px; color: var(--text-3); text-align: center; margin: -2px 0 6px; padding: 0 2px; }
+.anch { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.anch span { font-size: 11px; line-height: 1.15; text-align: center; color: var(--text-3); padding: 5px 2px; border-radius: 8px; }
+.anch span.on { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.edit { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 14px; }
+.edit > .field { min-width: 0; }
+.edit .field .input { min-width: 0; padding: 0 12px; }
+.edit .field .input input { width: 100%; }
+.field .input { gap: 6px; }
+.field .input input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; }
+.field .input:focus-within { border-color: var(--primary); }
+.field .input span { color: var(--text-3); font-size: 13px; }
+.sheet.fin .btn { margin-top: 14px; height: 52px; }
+
+/* Resultado guardado */
+.res { min-height: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 8px; }
+.cmp { display: flex; align-items: center; gap: 14px; }
+.cmp svg { width: 62px; height: 62px; flex: none; transform: rotate(-90deg); }
+.cmp b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 17px; line-height: 1.2; margin-bottom: 2px; }
+.cmp span { font-size: 12.5px; color: var(--text-2); }
+.q { display: flex; justify-content: space-between; align-items: baseline; }
+.q b { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: 1; }
+.q span { font-size: 13px; font-weight: 600; color: var(--primary); }
+.scale { position: relative; display: grid; grid-template-columns: 33fr 33fr 34fr; gap: 3px; margin: 10px 0 4px; }
+.scale i { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.12); }
+.scale i.on { background: var(--primary); }
+.scale .mk { position: absolute; top: -4px; left: 81%; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 2px #1C1C1E; }
+.scale-l { display: grid; grid-template-columns: 33fr 33fr 34fr; font-size: 11px; color: var(--text-3); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.tbl th { font-weight: 400; font-size: 11.5px; color: var(--text-3); text-align: left; padding: 0 0 6px; }
+.tbl td { height: 36px; border-top: 1px solid var(--line); }
+.tbl th:nth-child(n+2), .tbl td:nth-child(n+2) { text-align: right; }
+.tbl .mb { display: inline-block; width: 36px; height: 5px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; margin-left: 8px; overflow: hidden; }
+.tbl .mb i { display: block; height: 100%; background: var(--z4); }
+.auge { display: flex; gap: 6px; flex-wrap: wrap; }
+.auge .ch { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #0F0F0F; font-variant-numeric: tabular-nums; }
+.auge .snc { background: var(--ring-snc); } .auge .musc { background: var(--ring-musc); } .auge .esp { background: var(--ring-esp); }
+
+.design-notes { max-width: 1240px; margin: 0 auto; padding: 28px 28px 64px; }
+.design-notes h2 { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0 0 10px; }
+.design-notes ul { color: var(--text-2); margin: 0; padding-left: 18px; max-width: 78ch; }
+.design-notes li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<!-- Iconos en línea -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sig" viewBox="0 0 24 24"><path d="M4 20h2.5v-4H4zM9 20h2.5v-8H9zM14 20h2.5V8H14zM19 20h2.5V4H19z"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M12 19.5l3-3.6a4.6 4.6 0 00-6 0zM12 5C8 5 4.6 6.6 2 9.4l2 2.2C6 9.6 8.8 8.3 12 8.3s6 1.3 8 3.3l2-2.2C19.4 6.6 16 5 12 5zm0 5.2c-2.2 0-4.2.9-5.6 2.4l2 2.2c1-1 2.3-1.600 3.600-1.600s2.600.6 3.600 1.600l2-2.200C16.200 11.100 14.200 10.200 12 10.200z"/></symbol>
+    <symbol id="i-bat" viewBox="0 0 24 24"><path d="M3 8.500A2.500 2.500 0 015.500 6h11A2.500 2.500 0 0119 8.500v7a2.500 2.500 0 01-2.500 2.500h-11A2.500 2.500 0 013 15.500zM20 10h1.500v4H20z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.300" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1.300" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.500v13l11-6.500z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M6 6l9 6-9 6z" fill="currentColor" stroke="none"/><path d="M18.500 6v12"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.500"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.500"/><path d="M8 11V8a4 4 0 017.600-1.700"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.500s-7.500-4.600-7.500-10.500A4.300 4.300 0 0112 7.600 4.300 4.300 0 0119.500 10c0 5.900-7.500 10.500-7.500 10.500z"/></symbol>
+    <symbol id="i-heartoff" viewBox="0 0 24 24"><path d="M12 20.500s-7.500-4.600-7.500-10.500A4.300 4.300 0 0112 7.600 4.300 4.300 0 0119.500 10c0 5.900-7.500 10.500-7.500 10.500z"/><path d="M4 4l16 16"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-5"/></symbol>
+    <symbol id="i-incline" viewBox="0 0 24 24"><path d="M3 18.500l18-8v8z"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9.500v5h3.500L12 18V6L7.500 9.500z"/><path d="M15.500 9a4 4 0 010 6M18 6.500a8 8 0 010 11"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.500 11a6.500 6.500 0 0013 0M12 17.500V21"/></symbol>
+    <symbol id="i-vibrate" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4.500 8v8M19.500 8v8"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-5.600 6-10.500a6 6 0 00-12 0C6 15.400 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.200"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6.500 11.500L12 6l5.500 5.500"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v13M6.500 12.500L12 18l5.500-5.500"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 20V4M6 5h11l-2.500 4 2.500 4H6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.500"/><circle cx="18" cy="16" r="3.500"/><path d="M6 16l4-8h5l3 8M10 8H8M12.500 12.500L10 8"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.500h6L10 21l8-10.500h-6z"/></symbol>
+  </defs>
+</svg>
+
+<header class="page-head">
+  <h1>Cardio en vivo</h1>
+  <p>Así se vería el espacio de cardio mientras entrenas: una pantalla propia, oscura y de un solo vistazo, donde el campo de color te dice en qué zona estás sin leer nada.</p>
+  <p>Cada estado está en su propio teléfono (360 × 780). Los marcos con interacción están señalados en su nota: el 3-2-1 con fundido, los puntos de página, el bloqueo, la escala RPE y las señales de la preparación.</p>
+  <nav class="page-nav" aria-label="Maquetas de cardio v2">
+    <a href="index.html">Resumen</a>
+    <a href="editor.html">Editor</a>
+    <a href="live.html" aria-current="page">En vivo</a>
+    <a href="transiciones.html">Transiciones</a>
+    <a href="zonas.html">Zonas</a>
+  </nav>
+</header>
+
+<!-- ═════════════════ A · Antes de empezar ═════════════════ -->
+<section class="section" id="a">
+  <h2>A · Antes de empezar</h2>
+  <p>Preparación: qué vas a hacer, cómo se va a avisar y un único botón grande. Las señales se pueden activar o desactivar tocándolas.</p>
+  <div class="gallery">
+
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="rdy">
+          <div class="topbar"><button class="icon-btn" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div class="t2">Listo para empezar</div></div>
+          <div><h2>Cinta · Noruego 4×4</h2><p class="sub">Intervalos de 4 min en Zona 4 · 4 vueltas</p></div>
+          <div class="card-2 kcard">
+            <div class="kind-bar k-warmup"></div>
+            <div><small>Primer paso</small><strong>Calentamiento · 10:00</strong>
+              <div class="body-s">Zona 2 · Suave · 112–130 lpm</div>
+              <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>7,5 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div></div>
+          </div>
+          <div class="card" style="padding:12px 16px 10px">
+            <div class="card-h">Programa completo <span>9 pasos</span></div>
+            <div class="pstrip" data-p="noruego" data-now="all" data-w="292" data-h="64" data-ticks="10" data-label="Perfil del programa Noruego 4×4"></div>
+          </div>
+          <div class="card-2 tot"><div><b>40:00</b><span>Duración</span></div><div><b>≈ 6,0 km</b><span>Distancia</span></div><div><b>≈ 470</b><span>kcal estimadas</span></div></div>
+          <div class="sigs" aria-label="Señales">
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-volume"/></svg><small>Pitidos</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-mic"/></svg><small>Voz</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-vibrate"/></svg><small>Vibración</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-heart"/></svg><small>Banda FC</small></button>
+          </div>
+          <div class="cta"><button class="btn btn-primary btn-xl"><svg class="icon lg"><use href="#i-play"/></svg>Empezar</button><div class="cap">Cuenta atrás de 3 s antes del primer paso</div></div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>A1 · Cinta, intervalos (Noruego 4×4)</strong><span>Primer paso, perfil completo coloreado por zona, totales y señales; las cuatro señales son pulsables.</span></figcaption>
+    </figure>
+
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="rdy">
+          <div class="topbar"><button class="icon-btn" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div class="t2">Esperando GPS</div></div>
+          <div><h2>Rodaje en la calle · 8 km</h2><p class="sub">Rodaje continuo · Zona 2</p></div>
+          <div class="card gps">
+            <div class="radar"><svg class="rings" viewBox="0 0 120 120" aria-hidden="true"><circle class="rg" cx="60" cy="60" r="58"/><circle class="rg" cx="60" cy="60" r="58"/><circle class="rg" cx="60" cy="60" r="58"/></svg><div class="disc"><svg class="icon"><use href="#i-pin"/></svg></div></div>
+            <div><b class="title-m">Buscando GPS…</b><div class="body-s">Precisión ±18 m · necesitamos ±10 m</div></div>
+            <div class="pbar" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="Señal GPS"><i style="width:62%"></i></div>
+            <div class="caption">Mejora al salir a cielo abierto</div>
+          </div>
+          <div class="card-2 kcard">
+            <div class="kind-bar k-work"></div>
+            <div><small>Primer paso</small><strong>Rodaje · 8,0 km</strong>
+              <div class="body-s">Zona 2 · Suave · 112–130 lpm</div>
+              <div class="body-s">Ritmo guía 5:31–6:13 /km</div></div>
+          </div>
+          <div class="sigs">
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-volume"/></svg><small>Pitidos</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-mic"/></svg><small>Voz</small></button>
+            <button class="sig" aria-pressed="false"><svg class="icon"><use href="#i-vibrate"/></svg><small>Vibración</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-pin"/></svg><small>GPS</small></button>
+          </div>
+          <div class="cta"><button class="btn btn-xl" aria-disabled="true">Empezar</button><button class="btn btn-ghost btn-block">Empezar sin GPS</button></div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>A2 · Calle: buscando GPS</strong><span>El botón principal espera la señal; si no llega, hay salida explícita para empezar sin mapa.</span></figcaption>
+    </figure>
+
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="rdy">
+          <div class="topbar"><button class="icon-btn" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div class="t2">Listo para empezar</div></div>
+          <div><h2>Rodaje en la calle · 8 km</h2><p class="sub">Rodaje continuo · Zona 2</p></div>
+          <div class="card gps ready">
+            <div class="radar"><svg class="rings" viewBox="0 0 120 120" aria-hidden="true"><circle class="rg" cx="60" cy="60" r="58"/><circle class="rg" cx="60" cy="60" r="44"/><circle class="rg" cx="60" cy="60" r="30"/></svg><div class="disc"><svg class="icon"><use href="#i-check"/></svg></div></div>
+            <div><b class="title-m">GPS listo</b><div class="body-s">Precisión ±5 m</div></div>
+            <div class="pbar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Señal GPS"><i style="width:100%"></i></div>
+            <div class="caption">Puedes empezar cuando quieras</div>
+          </div>
+          <div class="card-2 kcard">
+            <div class="kind-bar k-work"></div>
+            <div><small>Primer paso</small><strong>Rodaje · 8,0 km</strong>
+              <div class="body-s">Zona 2 · Suave · 112–130 lpm</div>
+              <div class="body-s">Ritmo guía 5:31–6:13 /km</div></div>
+          </div>
+          <div class="card-2 tot"><div><b>≈ 8,0 km</b><span>Distancia</span></div><div><b>≈ 47:00</b><span>Duración</span></div><div><b>≈ 520</b><span>kcal estimadas</span></div></div>
+          <div class="sigs">
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-volume"/></svg><small>Pitidos</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-mic"/></svg><small>Voz</small></button>
+            <button class="sig" aria-pressed="false"><svg class="icon"><use href="#i-vibrate"/></svg><small>Vibración</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-pin"/></svg><small>GPS</small></button>
+          </div>
+          <div class="cta"><button class="btn btn-primary btn-xl"><svg class="icon lg"><use href="#i-play"/></svg>Empezar</button></div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>A2 · Calle: GPS listo</strong><span>Misma pantalla con señal: el aviso pasa a confirmación y «Empezar» se activa.</span></figcaption>
+    </figure>
+
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="rdy">
+          <div class="topbar"><button class="icon-btn" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div class="t2">Listo para empezar</div></div>
+          <div><h2>Bici estática · Fondo Z2 · 45:00</h2><p class="sub">Un solo paso continuo</p></div>
+          <div class="card-2 kcard">
+            <div class="kind-bar k-work"></div>
+            <div><small>Primer paso</small><strong>Fondo · 45:00</strong>
+              <div class="body-s">Zona 2 · Suave · 112–130 lpm</div>
+              <div class="mach"><span class="mchip" style="color:var(--text-2);font-weight:500"><svg class="icon"><use href="#i-bolt"/></svg>Guía 150–160 W</span></div></div>
+          </div>
+          <div class="card" style="padding:12px 16px 10px">
+            <div class="card-h">Programa completo <span>1 paso</span></div>
+            <div class="pstrip" data-p="steady" data-now="all" data-w="292" data-h="64" data-ticks="15" data-label="Perfil: 45 minutos en Zona 2"></div>
+          </div>
+          <div class="card-2 tot"><div><b>45:00</b><span>Duración</span></div><div><b>Zona 2</b><span>Intensidad</span></div><div><b>≈ 360</b><span>kcal estimadas</span></div></div>
+          <div class="sigs">
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-volume"/></svg><small>Pitidos</small></button>
+            <button class="sig" aria-pressed="false"><svg class="icon"><use href="#i-mic"/></svg><small>Voz</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-vibrate"/></svg><small>Vibración</small></button>
+            <button class="sig" aria-pressed="true"><svg class="icon"><use href="#i-heart"/></svg><small>Banda FC</small></button>
+          </div>
+          <div class="cta"><button class="btn btn-primary btn-xl"><svg class="icon lg"><use href="#i-play"/></svg>Empezar</button><div class="cap">Cuenta atrás de 3 s antes del primer paso</div></div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>A3 · Bici estática, fondo en Zona 2</strong><span>Perfil plano, la potencia aparece solo como guía secundaria; aquí la voz está desactivada.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ B · En marcha, página principal ═════════════════ -->
+<section class="section" id="b">
+  <h2>B · En marcha: página principal</h2>
+  <p>El campo toma el color de la zona en la que estás ahora mismo. Todo lo demás es neutro: tiempo restante enorme, pulsaciones con su aguja sobre las cinco zonas y lo que viene después.</p>
+  <div class="gallery">
+
+    <!-- B1 -->
+    <figure class="mock">
+      <div class="phone live zc4">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg" id="pg-main" data-cls="live zc4">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">18:19 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 2 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 2 minutos 41 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="67 100"/></svg>
+            <div class="ring-in"><span class="t">2:41</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>158</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 4 · Umbral</b><span class="v">150–167 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i></i><i></i><i class="is-on"></i><i></i></div><span class="needle" style="left:68.9%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu zona</div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>12,0 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div>
+          <div class="nxt"><div class="kind-bar k-recover"></div><div><small>Siguiente</small><strong>Recuperación · 3:00 · 7,0 km/h</strong></div></div>
+          <div class="pstrip" data-p="noruego" data-now="18.317" data-w="324" data-h="34" data-label="Perfil del programa con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B1 · Trabajo en tu zona (Zona 4)</strong><span>El momento memorable: campo naranja, anillo del paso y la aguja dentro de la franja objetivo.</span></figcaption>
+    </figure>
+
+    <!-- B2 -->
+    <figure class="mock">
+      <div class="phone live zc1 to2">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">22:12 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-recover)"></i>Recuperación</span><span class="pill">Vuelta 2 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 1 minuto 48 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="60 100"/></svg>
+            <div class="ring-in"><span class="t">1:48</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk" style="--hz:var(--z2)">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>126</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 1–2 · Suave</b><span class="v">94–130 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i class="is-on"></i><i class="is-on"></i><i></i><i></i><i></i></div><span class="needle" style="left:34.7%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu zona · deja bajar el pulso</div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>7,0 km/h</span></div>
+          <div class="nxt"><div class="kind-bar k-work"></div><div><small>Siguiente · Vuelta 3 de 4</small><strong>Trabajo · 4:00 · 12,0 km/h · 1 %</strong></div></div>
+          <div class="pstrip" data-p="noruego" data-now="22.2" data-w="324" data-h="34" data-label="Perfil del programa con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B2 · Recuperación</strong><span>El campo se enfría a azul y verde; el objetivo es una franja ancha (Zona 1–2) y la meta es dejar bajar el pulso.</span></figcaption>
+    </figure>
+
+    <!-- B3 -->
+    <figure class="mock">
+      <div class="phone live zc5">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">27:02 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 3 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 58 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="24 100"/></svg>
+            <div class="ring-in"><span class="t">0:58</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>172</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 4 · Umbral</b><span class="v">150–167 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i></i><i></i><i class="is-on"></i><i></i></div><span class="needle" style="left:84%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat warn">
+            <div class="l1"><svg class="icon"><use href="#i-down"/></svg>Estás en Zona 5 · baja un poco</div>
+            <div class="bubble"><svg class="icon"><use href="#i-volume"/></svg><span>Voz: <em>«Zona 5. Baja un poco.»</em></span></div>
+          </div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>12,0 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div>
+          <div class="nxt"><div class="kind-bar k-recover"></div><div><small>Siguiente</small><strong>Recuperación · 3:00 · 7,0 km/h</strong></div></div>
+          <div class="pstrip" data-p="noruego" data-now="27.033" data-w="324" data-h="34" data-label="Perfil del programa con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B3 · Por encima de la zona</strong><span>Aviso claro pero sereno: sin parpadeos ni rojo de alarma, solo la frase y la cola de voz que suena.</span></figcaption>
+    </figure>
+
+    <!-- B4 -->
+    <figure class="mock">
+      <div class="phone live zc3">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">10:39 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 1 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 3 minutos 21 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="84 100"/></svg>
+            <div class="ring-in"><span class="t">3:21</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>138</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 4 · Umbral</b><span class="v">150–167 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i></i><i></i><i class="is-on"></i><i></i></div><span class="needle" style="left:47.4%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat warn">
+            <div class="l1"><svg class="icon"><use href="#i-up"/></svg>Estás en Zona 3 · sube un poco</div>
+          </div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>12,0 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div>
+          <div class="nxt"><div class="kind-bar k-recover"></div><div><small>Siguiente</small><strong>Recuperación · 3:00 · 7,0 km/h</strong></div></div>
+          <div class="pstrip" data-p="noruego" data-now="10.65" data-w="324" data-h="34" data-label="Perfil del programa con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B4 · Por debajo de la zona</strong><span>Típico al inicio de la primera serie: el campo amarillo cuenta la historia y la frase invita a subir.</span></figcaption>
+    </figure>
+
+    <!-- B5 -->
+    <figure class="mock">
+      <div class="phone live zc0">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">18:19 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 2 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 2 minutos 41 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="67 100"/></svg>
+            <div class="ring-in"><span class="t">2:41</span><span class="l">restante</span></div>
+          </div>
+          <div class="nohr">
+            <div class="r1"><svg class="icon"><use href="#i-heartoff"/></svg>Sin pulsaciones · te guías por esfuerzo</div>
+            <div class="big">RPE 8 · Duro</div>
+            <div class="rpe-scale" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i></div>
+          </div>
+          <div class="machbig"><div><b>12,0 <small>km/h</small></b><span>Velocidad</span></div><div><b>1 <small>%</small></b><span>Inclinación</span></div></div>
+          <div class="hint" role="button" tabindex="0"><svg class="icon"><use href="#i-info"/></svg>Conecta Health Connect para ver tus pulsaciones<b>Conectar</b></div>
+          <div class="nxt"><div class="kind-bar k-recover"></div><div><small>Siguiente</small><strong>Recuperación · 3:00 · 7,0 km/h</strong></div></div>
+          <div class="pstrip" data-p="noruego" data-now="18.317" data-w="324" data-h="34" data-label="Perfil del programa con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B5 · Sin datos de pulsaciones</strong><span>Sin color de zona (no se inventa): manda el esfuerzo percibido y los ajustes de la máquina, con una salida para conectar.</span></figcaption>
+    </figure>
+
+    <!-- B6 -->
+    <figure class="mock">
+      <div class="phone live zc2">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Bici estática · Fondo Z2</span><span class="clock">21:08 <span>/ 45:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Fondo</span><span class="pill">Paso único</span></div>
+          <div class="ring" role="img" aria-label="Quedan 23 minutos 52 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="53 100"/></svg>
+            <div class="ring-in"><span class="t sm">23:52</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>121</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 2 · Suave</b><span class="v">112–130 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i class="is-on"></i><i></i><i></i><i></i></div><span class="needle" style="left:29.5%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu zona</div>
+          <div class="guide">
+            <div class="g1"><span>Guía de potencia · 150–160 W</span><b>154 W</b></div>
+            <div class="g2" aria-hidden="true"><span class="win" style="left:40%;width:20%"></span><span class="now" style="left:48%"></span></div>
+            <div class="caption">82 rpm · es una guía, el objetivo es tu pulso</div>
+          </div>
+          <div class="nxt"><div class="kind-bar k-cooldown"></div><div><small>Después</small><strong>Fin del programa · guardar cardio</strong></div></div>
+          <div class="pstrip" data-p="steady" data-now="21.133" data-w="324" data-h="34" data-label="Perfil con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Terminar cardio"><span class="c"><svg class="icon"><use href="#i-flag"/></svg></span><small>Terminar</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B6 · Bici estática, Zona 2 con guía de potencia</strong><span>La potencia vive en una caja discreta con borde discontinuo; con un paso único, «saltar» pasa a ser «Terminar».</span></figcaption>
+    </figure>
+
+    <!-- B7a -->
+    <figure class="mock">
+      <div class="phone live zc5 tab">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Air bike · Tabata</span><span class="clock">7:06 <span>/ 12:00</span></span></div>
+          <div class="pips" aria-label="Ronda 5 de 8"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i><i></i></div>
+          <div class="tab-c">
+            <div class="r">Ronda 5 de 8</div>
+            <div class="n" role="img" aria-label="Quedan 14 segundos">0:14</div>
+            <div class="w">Dale</div>
+            <div class="bar-t" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" aria-label="Avance del intervalo"><i style="width:30%"></i></div>
+          </div>
+          <div class="chips"><span class="chip-l"><svg class="icon sm"><use href="#i-bolt"/></svg>RPE 10 · Máximo</span><span class="chip-l"><svg class="icon sm" style="fill:var(--z5);stroke:none;color:var(--z5)"><use href="#i-heart"/></svg>171 lpm</span></div>
+          <div class="nxt"><div class="kind-bar k-rest"></div><div><small>Siguiente</small><strong>Descanso · 0:10</strong></div></div>
+          <div class="pstrip" data-p="tabata" data-now="7.1" data-w="324" data-h="34" data-label="Perfil Tabata con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B7 · Tabata en air bike: trabajo</strong><span>Alto contraste: 0:14 a 132 px y una sola palabra de acción; el pulso pasa a dato secundario.</span></figcaption>
+    </figure>
+
+    <!-- B7b -->
+    <figure class="mock">
+      <div class="phone live zc1 tab">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Air bike · Tabata</span><span class="clock">7:23 <span>/ 12:00</span></span></div>
+          <div class="pips" aria-label="Ronda 5 de 8 completada"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+          <div class="tab-c">
+            <div class="r">Ronda 5 de 8 hecha</div>
+            <div class="n" role="img" aria-label="Quedan 7 segundos">0:07</div>
+            <div class="w">Descansa</div>
+            <div class="bar-t" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" aria-label="Avance del descanso"><i style="width:30%"></i></div>
+          </div>
+          <div class="chips"><span class="chip-l"><svg class="icon sm"><use href="#i-down"/></svg>Respira hondo</span><span class="chip-l"><svg class="icon sm" style="fill:var(--z3);stroke:none;color:var(--z3)"><use href="#i-heart"/></svg>152 lpm</span></div>
+          <div class="nxt"><div class="kind-bar k-work"></div><div><small>Prepárate · Ronda 6 de 8</small><strong>Trabajo · 0:20 · todo lo que puedas</strong></div></div>
+          <div class="pstrip" data-p="tabata" data-now="7.383" data-w="324" data-h="34" data-label="Perfil Tabata con marcador de ahora"></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>B7 · Tabata en air bike: descanso</strong><span>Mismo esqueleto, campo azul y verbo distinto: el cambio de color y de palabra se lee sin mirar el reloj.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ C · Pasos especiales ═════════════════ -->
+<section class="section" id="c">
+  <h2>C · Pasos especiales</h2>
+  <p>Cuando el paso no termina por tiempo, la cifra grande cambia de significado, pero el esqueleto de la pantalla se mantiene.</p>
+  <div class="gallery">
+
+    <!-- C1 -->
+    <figure class="mock">
+      <div class="phone live zc2">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Intervalos libres</span><span class="clock">3:12 <span>activo</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-warmup)"></i>Calentamiento</span><span class="pill">Paso abierto</span></div>
+          <div class="ring open" role="img" aria-label="Cronómetro: 3 minutos 12 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="6" stroke-linecap="round"/><circle class="sweep" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="18 100"/></svg>
+            <div class="ring-in"><span class="t">3:12</span><span class="l">Hasta que pulses Siguiente</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>118</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 2 · Suave</b><span class="v">112–130 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i class="is-on"></i><i></i><i></i><i></i></div><span class="needle" style="left:26.3%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>7,5 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div>
+          <button class="btn btn-white btn-xl" style="margin-top:auto"><svg class="icon"><use href="#i-skip"/></svg>Siguiente paso</button>
+          <div class="cue"><svg class="icon"><use href="#i-mic"/></svg>o di «siguiente paso»</div>
+          <nav class="dots" aria-label="Páginas" style="margin-top:0"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Terminar cardio"><span class="c"><svg class="icon"><use href="#i-flag"/></svg></span><small>Terminar</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>C1 · Paso abierto</strong><span>Cronómetro hacia arriba con arco que gira sin cerrar; la acción principal es «Siguiente paso», también por voz.</span></figcaption>
+    </figure>
+
+    <!-- C2 -->
+    <figure class="mock">
+      <div class="phone live zc5">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Calle · Series 6×400 m</span><span class="clock">21:40 <span>activo</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo · 400 m</span><span class="pill">Serie 3 de 6</span></div>
+          <div class="ring" role="img" aria-label="320 de 400 metros">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="80 100"/></svg>
+            <div class="ring-in"><span class="t">320</span><span class="l" style="font-size:15px;color:var(--text)">/ 400 m</span><span class="l" style="margin-top:2px">faltan 80 m</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><b style="color:var(--text)">4:28</b><small>/km</small></div>
+              <div class="tgt"><span class="k">Ritmo objetivo</span><b>Zona 5 · VO₂ máx</b><span class="v">4:25–4:35 /km</span></div>
+            </div>
+            <div class="gauge"><span class="win" style="left:37.5%;width:25%"></span><span class="needle" style="left:45%"></span></div>
+            <div class="gauge-l"><span>4:10</span><span>más lento →</span><span>4:50</span></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu ritmo</div>
+          <div class="mach"><span class="mchip quiet"><svg class="icon" style="fill:var(--z5);stroke:none;color:var(--z5)"><use href="#i-heart"/></svg>171 lpm</span><span class="mchip quiet"><svg class="icon"><use href="#i-flag"/></svg>Serie 2: 4:31 /km</span></div>
+          <div class="nxt"><div class="kind-bar k-rest"></div><div><small>Siguiente</small><strong>Descanso · 1:30 · trote suave</strong></div></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button><button aria-label="Mapa"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>C2 · Paso por distancia</strong><span>El anillo avanza con los metros y el ritmo en vivo se compara con su ventana objetivo; el pulso baja a dato secundario.</span></figcaption>
+    </figure>
+
+    <!-- C3 -->
+    <figure class="mock">
+      <div class="phone live zc3">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Air bike · Rondas por calorías</span><span class="clock">9:50 <span>activo</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo · 15 kcal</span><span class="pill">Ronda 2 de 5</span></div>
+          <div class="ring" role="img" aria-label="11 de 15 kilocalorías estimadas">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="73 100"/></svg>
+            <div class="ring-in"><span class="t">11</span><span class="l" style="font-size:15px;color:var(--text)">/ 15 kcal</span><span class="l" style="margin-top:2px">estimadas</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>146</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 3 · Aeróbico</b><span class="v">131–149 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i></i><i class="is-on"></i><i></i><i></i></div><span class="needle" style="left:55.1%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu zona</div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-bolt"/></svg>212 W</span><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>74 rpm</span></div>
+          <div class="est"><svg class="icon"><use href="#i-info"/></svg><span>Calorías estimadas con tu pulso y tu peso; pueden diferir de la consola de la máquina.</span></div>
+          <div class="nxt"><div class="kind-bar k-rest"></div><div><small>Siguiente</small><strong>Descanso · 1:00</strong></div></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>C3 · Paso por calorías</strong><span>«≈», «estimadas» y una nota breve: la cifra es una aproximación y la pantalla lo dice sin dramatizar.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ D · Entre pasos ═════════════════ -->
+<section class="section" id="d">
+  <h2>D · Entre pasos</h2>
+  <p>Cada cambio de paso avisa con una cuenta atrás de 3 s, en pantalla, con pitido y con vibración, mientras el campo cambia de color.</p>
+  <div class="gallery">
+
+    <!-- D1 -->
+    <figure class="mock">
+      <div class="phone live zc1 to2">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg" style="gap:10px">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">21:57 <span>/ 40:00</span></span></div>
+          <div class="chips" style="justify-content:center"><span class="chip-l"><svg class="icon sm"><use href="#i-check"/></svg>Trabajo 2 de 4 · hecho</span></div>
+          <div class="cd">
+            <div class="big">
+              <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="4"/><circle cx="100" cy="100" r="94" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="66 100"/></svg>
+              <b role="img" aria-label="Tres">3</b>
+            </div>
+            <div class="k">Ahora</div>
+            <h3>Recuperación · 3:00</h3>
+            <div class="chips"><span class="chip-l"><svg class="icon sm"><use href="#i-gauge"/></svg>7,0 km/h</span><span class="chip-l"><i class="zone-dot" style="background:var(--z1)"></i>Zona 1–2 · 94–130 lpm</span></div>
+          </div>
+          <div class="cue" style="height:48px"><svg class="icon"><use href="#i-volume"/></svg><svg class="icon"><use href="#i-vibrate"/></svg>Pitido y vibración en cada número</div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>D1 · Cuenta atrás 3-2-1</strong><span>Ocupa toda la pantalla: un número de 176 px, el paso que empieza y el ajuste de máquina nuevo.</span></figcaption>
+    </figure>
+
+    <!-- D2 -->
+    <figure class="mock">
+      <div class="phone live layers zc4" id="d2">
+        <div class="fld zc4 a"></div><div class="fld zc1 to2 b"></div>
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="d2c">
+          <div class="lv-top" style="padding-top:0"><span>Demostración de la transición</span></div>
+          <div class="ring" id="d2ring" role="img" aria-label="Estado de la demostración">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" id="d2prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="4 100"/></svg>
+            <div class="ring-in"><span class="t" id="d2num">0:04</span></div>
+          </div>
+          <div class="lab"><b id="d2lab">Trabajo · Zona 4</b><span id="d2sub">158 lpm · objetivo 150–167</span></div>
+          <div style="flex:1"></div>
+          <div class="seg" role="tablist" aria-label="Fase de la demostración">
+            <button role="tab" aria-selected="true" data-s="a">Zona 4</button>
+            <button role="tab" aria-selected="false" data-s="c">3-2-1</button>
+            <button role="tab" aria-selected="false" data-s="b">Zona 1</button>
+          </div>
+          <button class="btn btn-white btn-xl" id="d2play"><svg class="icon"><use href="#i-play"/></svg><span>Reproducir</span></button>
+          <div class="cue" style="margin-bottom:6px">El campo se funde en 3 s · con «reducir movimiento» el cambio es instantáneo</div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>D2 · Del naranja al azul (interactivo)</strong><span>«Reproducir» lanza 3-2-1 y funde el campo de Zona 4 a Zona 1; la botonera permite fijar cada fase.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ E · Páginas deslizables ═════════════════ -->
+<section class="section" id="e">
+  <h2>E · Páginas deslizables</h2>
+  <p>Se desliza a los lados entre principal, perfil, zonas y mapa (solo con GPS). Los puntos también se pulsan: pruébalos en E1 y E2, que recorren las tres páginas de la cinta.</p>
+  <div class="gallery">
+
+    <!-- E1 -->
+    <figure class="mock">
+      <div class="phone" data-pager="pg-main,pg-profile,pg-zones">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pgq" id="pg-profile" data-cls="">
+          <div class="mini"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo · Vuelta 2 de 4</span><span class="zone-chip z4">158 lpm</span></div>
+          <div><h3>Perfil del programa</h3><p class="cap2">18:19 de 40:00 · quedan 21:41</p></div>
+          <div class="card" style="padding:14px 14px 10px">
+            <div class="pstrip" data-p="noruego" data-now="18.317" data-w="296" data-h="150" data-ticks="10" data-label="Perfil del programa: hecho y pendiente"></div>
+            <div class="legend"><span><i style="background:#fff"></i>Hecho</span><span><i style="background:rgba(255,255,255,.28)"></i>Pendiente</span><span><i style="background:#fff;width:3px;height:12px"></i>Ahora</span></div>
+          </div>
+          <div class="rows">
+            <div class="row now"><div class="kind-bar k-work"></div><div><small>Ahora · Vuelta 2 de 4</small><strong>Trabajo · Zona 4 · 12,0 km/h</strong></div><span class="end">2:41</span></div>
+            <div class="row"><div class="kind-bar k-recover"></div><div><small>Después</small><strong>Recuperación · 7,0 km/h</strong></div><span class="end">3:00</span></div>
+            <div class="row"><div class="kind-bar k-work"></div><div><small>Vuelta 3 de 4</small><strong>Trabajo · Zona 4 · 12,0 km/h</strong></div><span class="end">4:00</span></div>
+            <div class="caption" style="padding:0 4px">+ 4 pasos más hasta la vuelta a la calma</div>
+          </div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal"><i></i></button><button aria-label="Perfil" aria-current="true"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>E1 · Perfil del programa (interactivo)</strong><span>Barras coloreadas por zona, lo hecho a plena intensidad, lo pendiente atenuado y el marcador «ahora». Pulsa los puntos.</span></figcaption>
+    </figure>
+
+    <!-- E2 -->
+    <figure class="mock">
+      <div class="phone" data-pager="pg-main,pg-profile,pg-zones">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pgq" id="pg-zones" data-cls="">
+          <div class="mini"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo · Vuelta 2 de 4</span><span class="zone-chip z4">158 lpm</span></div>
+          <div><h3>Zonas</h3><p class="cap2">Tiempo en zona y pulso de los últimos 18:19</p></div>
+          <div class="card" style="padding:12px 12px 8px">
+            <div class="chart">
+              <svg viewBox="0 0 300 190" role="img" aria-label="Pulso a lo largo del tiempo sobre las cinco zonas">
+                <rect x="30" y="8" width="266" height="25.7" fill="#FF453A" opacity=".22"/>
+                <rect x="30" y="33.7" width="266" height="24.3" fill="#FF9F0A" opacity=".22"/>
+                <rect x="30" y="58" width="266" height="25.6" fill="#FFD60A" opacity=".20"/>
+                <rect x="30" y="83.6" width="266" height="25.7" fill="#34C759" opacity=".20"/>
+                <rect x="30" y="109.3" width="266" height="24.3" fill="#5AC8FA" opacity=".22"/>
+                <rect x="175.4" y="8" width="58.1" height="158" fill="#D0BCFF" opacity=".08"/>
+                <rect x="277.1" y="8" width="18.9" height="158" fill="#D0BCFF" opacity=".08"/>
+                <rect x="30.5" y="34.2" width="265" height="23.3" rx="3" fill="none" stroke="#FF9F0A" stroke-opacity=".75" stroke-dasharray="3 3"/>
+                <g fill="rgba(243,241,246,.46)" font-size="11" text-anchor="end" font-family="Inter, system-ui, sans-serif">
+                  <text x="26" y="37">168</text><text x="26" y="61.500">150</text><text x="26" y="87">131</text><text x="26" y="113">112</text><text x="26" y="137">94</text>
+                </g>
+                <polyline points="30,164.6 44.5,143 59.1,129.5 73.6,118.7 88.1,110.6 117.2,101.2 146.3,94.4 175.4,90.4 189.9,78.2 204.4,63.4 219,51.2 233.5,44.5 240.8,51.2 248.1,58 262.6,78.2 277.1,91.7 284.4,83.6 291.7,64.7 296,51.2" fill="none" stroke="rgba(15,15,15,.6)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+                <polyline points="30,164.6 44.5,143 59.1,129.5 73.6,118.7 88.1,110.6 117.2,101.2 146.3,94.4 175.4,90.4 189.9,78.2 204.4,63.4 219,51.2 233.5,44.5 240.8,51.2 248.1,58 262.6,78.2 277.1,91.7 284.4,83.6 291.7,64.7 296,51.2" fill="none" stroke="#fff" stroke-width="2.400" stroke-linejoin="round" stroke-linecap="round"/>
+                <circle cx="296" cy="51.2" r="4.500" fill="#fff" stroke="#0F0F0F" stroke-width="2"/>
+                <g fill="rgba(243,241,246,.46)" font-size="11" text-anchor="middle" font-family="Inter, system-ui, sans-serif">
+                  <text x="30" y="184">0</text><text x="102.700" y="184">5</text><text x="175.400" y="184">10</text><text x="248.100" y="184">15 min</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="ziz" aria-label="Tiempo en cada zona">
+            <div class="z"><span class="zone-chip z5" style="justify-content:center;padding:0">Z5</span><div class="b"><i style="width:0%;background:var(--z5)"></i></div><span class="tm">0:00</span></div>
+            <div class="z"><span class="zone-chip z4" style="justify-content:center;padding:0">Z4</span><div class="b"><i style="width:43%;background:var(--z4)"></i></div><span class="tm">3:12</span></div>
+            <div class="z"><span class="zone-chip z3" style="justify-content:center;padding:0">Z3</span><div class="b"><i style="width:55%;background:var(--z3)"></i></div><span class="tm">4:07</span></div>
+            <div class="z"><span class="zone-chip z2" style="justify-content:center;padding:0">Z2</span><div class="b"><i style="width:100%;background:var(--z2)"></i></div><span class="tm">7:30</span></div>
+            <div class="z"><span class="zone-chip z1" style="justify-content:center;padding:0">Z1</span><div class="b"><i style="width:28%;background:var(--z1)"></i></div><span class="tm">2:06</span></div>
+          </div>
+          <div class="caption" style="padding:0 2px">Zona objetivo del paso: Zona 4 (recuadro discontinuo). Bajo Zona 1: 1:24.</div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas" aria-current="true"><i></i></button></nav>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>E2 · Zonas y tiempo en zona (interactivo)</strong><span>El pulso se dibuja sobre las franjas de color en un SVG; las barras de abajo se leen en el mismo orden vertical.</span></figcaption>
+    </figure>
+
+    <!-- E3 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pgq" id="pg-map" data-cls="">
+          <div class="mini"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Rodaje · 4,6 de 8,0 km</span><span class="zone-chip z2">129 lpm</span></div>
+          <div class="map">
+            <svg viewBox="0 0 324 236" role="img" aria-label="Recorrido estilizado con parciales por kilómetro">
+              <defs><pattern id="grid" width="27" height="27" patternUnits="userSpaceOnUse"><path d="M27 0H0V27" fill="none" stroke="rgba(255,255,255,.035)"/></pattern></defs>
+              <rect width="324" height="236" fill="url(#grid)"/>
+              <path d="M-10 176 C 60 150, 120 200, 180 168 S 290 120, 340 140" fill="none" stroke="rgba(90,200,250,.10)" stroke-width="16" stroke-linecap="round"/>
+              <g fill="rgba(255,255,255,.035)">
+                <rect x="14" y="14" width="64" height="40" rx="8"/><rect x="92" y="22" width="48" height="30" rx="8"/><rect x="238" y="14" width="70" height="44" rx="8"/>
+                <rect x="256" y="196" width="52" height="30" rx="8"/><rect x="20" y="206" width="80" height="22" rx="8"/><rect x="140" y="204" width="60" height="24" rx="8"/>
+              </g>
+              <ellipse cx="170" cy="96" rx="34" ry="20" fill="rgba(52,199,89,.06)"/>
+              <path id="route-rest" d="M246 104 C 252 70, 226 44, 188 44 S 112 42, 82 78 S 30 138, 46 196" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="4" stroke-dasharray="2 8" stroke-linecap="round"/>
+              <path id="route-done" d="M46 196 C 58 160, 96 150, 128 162 S 190 202, 222 172 S 262 132, 246 104" fill="none" stroke="rgba(15,15,15,.7)" stroke-width="10" stroke-linecap="round"/>
+              <path id="route-done2" d="M46 196 C 58 160, 96 150, 128 162 S 190 202, 222 172 S 262 132, 246 104" fill="none" stroke="#34C759" stroke-width="5.500" stroke-linecap="round"/>
+              <g id="kmarks" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle"></g>
+              <circle cx="46" cy="196" r="6" fill="#0F0F0F" stroke="#F3F1F6" stroke-width="2"/>
+              <circle id="nowdot" cx="246" cy="104" r="14" fill="rgba(52,199,89,.25)"/><circle id="nowdot2" cx="246" cy="104" r="7" fill="#fff" stroke="#34C759" stroke-width="3"/>
+            </svg>
+          </div>
+          <div class="body-s" style="display:flex;justify-content:space-between"><span>Ritmo medio <b style="color:var(--text)">5:52 /km</b></span><span>27:03 activo</span></div>
+          <div class="splits" aria-label="Parciales por kilómetro">
+            <div class="s h"><span>Km</span><span>Ritmo</span><span></span><span>FC</span></div>
+            <div class="s"><span>1</span><span>6:04</span><div class="b"><i style="width:76%"></i></div><span>121</span></div>
+            <div class="s"><span>2</span><span>5:56</span><div class="b"><i style="width:80%"></i></div><span>124</span></div>
+            <div class="s"><span>3</span><span>5:50</span><div class="b"><i style="width:84%"></i></div><span>126</span></div>
+            <div class="s"><span>4</span><span>5:47</span><div class="b"><i style="width:86%"></i></div><span>128</span></div>
+            <div class="s"><span>4,6</span><span>5:44</span><div class="b"><i style="width:88%"></i></div><span>129</span></div>
+          </div>
+          <div class="caption" style="padding:0 2px">Verde: ritmo dentro de Zona 2 (5:31–6:13 /km). Sin teselas de mapa: el trazo funciona sin conexión.</div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button><button aria-label="Mapa" aria-current="true"><i></i></button></nav>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>E3 · Mapa del rodaje</strong><span>Recorrido vectorial con kilómetros numerados, posición actual y parciales; la cuarta página solo existe con GPS.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ F · Control ═════════════════ -->
+<section class="section" id="f">
+  <h2>F · Estados de control</h2>
+  <p>Pausar, bloquear y saltar son acciones de bajo riesgo en el pecho del entrenamiento: grandes, con un solo gesto y sin sorpresas con el tiempo activo.</p>
+  <div class="gallery">
+
+    <!-- F1 -->
+    <figure class="mock">
+      <div class="phone live zc4">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen">
+          <div class="pg ghost" aria-hidden="true">
+            <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">12:34 <span>/ 40:00</span></span></div>
+            <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 1 de 4</span></div>
+            <div class="ring"><svg viewBox="0 0 200 200"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="36 100"/></svg><div class="ring-in"><span class="t">1:26</span></div></div>
+            <div class="hrblk"><div class="hrrow"><div class="hrn"><b>156</b><small>lpm</small></div></div></div>
+          </div>
+          <div class="scrim" style="z-index:2"></div>
+          <div class="pause-card" role="dialog" aria-label="En pausa">
+            <div class="pi"><svg class="icon lg"><use href="#i-pause"/></svg></div>
+            <h3>En pausa</h3>
+            <div class="tm">12:34<small>activo</small></div>
+            <div class="body-s">Llevas 0:42 en pausa · ese tiempo no cuenta</div>
+            <div style="height:6px"></div>
+            <button class="btn btn-white"><svg class="icon"><use href="#i-play"/></svg>Reanudar</button>
+            <button class="btn btn-danger"><svg class="icon"><use href="#i-flag"/></svg>Terminar cardio</button>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>F1 · En pausa</strong><span>La pantalla se apaga visualmente y todo el foco pasa a «Reanudar»; terminar es la salida secundaria.</span></figcaption>
+    </figure>
+
+    <!-- F2 -->
+    <figure class="mock">
+      <div class="phone live zc4">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span style="display:inline-flex;align-items:center;gap:6px;color:var(--text)"><svg class="icon sm"><use href="#i-lock"/></svg>Pantalla bloqueada</span><span class="clock">18:19 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-work)"></i>Trabajo</span><span class="pill">Vuelta 2 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 2 minutos 41 segundos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="67 100"/></svg>
+            <div class="ring-in"><span class="t">2:41</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>158</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 4 · Umbral</b><span class="v">150–167 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i></i><i></i><i></i><i class="is-on"></i><i></i></div><span class="needle" style="left:68.9%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat ok"><svg class="icon"><use href="#i-check"/></svg>En tu zona</div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>12,0 km/h</span><span class="mchip"><svg class="icon"><use href="#i-incline"/></svg>1 %</span></div>
+          <div class="nxt"><div class="kind-bar k-recover"></div><div><small>Siguiente</small><strong>Recuperación · 3:00 · 7,0 km/h</strong></div></div>
+          <div class="holdwrap" style="margin-top:auto">
+            <button class="hold" id="hold" aria-label="Mantén pulsado para desbloquear">
+              <svg class="hr" viewBox="0 0 84 84" aria-hidden="true"><circle class="htrk" cx="42" cy="42" r="38" fill="none" stroke-width="5"/><circle class="hprog" id="hprog" cx="42" cy="42" r="38" fill="none" stroke-width="5" stroke-linecap="round" pathLength="100"/></svg>
+              <svg class="icon lg" id="hicon"><use href="#i-lock"/></svg>
+            </button>
+            <p id="hlab">Mantén pulsado para desbloquear</p>
+          </div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>F2 · Pantalla bloqueada (interactivo)</strong><span>Se ve todo y no se toca nada; desbloquear exige mantener 1,2 s. Prueba a mantener pulsado el botón.</span></figcaption>
+    </figure>
+
+    <!-- F3 -->
+    <figure class="mock">
+      <div class="phone live zc4">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="pg">
+          <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">25:12 <span>/ 40:00</span></span></div>
+          <div class="lv-step"><span class="kind"><i class="kdot" style="background:var(--k-recover)"></i>Recuperación</span><span class="pill">Vuelta 3 de 4</span></div>
+          <div class="ring" role="img" aria-label="Quedan 3 minutos">
+            <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100"/></svg>
+            <div class="ring-in"><span class="t">3:00</span><span class="l">restante</span></div>
+          </div>
+          <div class="hrblk">
+            <div class="hrrow">
+              <div class="hrn"><svg class="icon hh"><use href="#i-heart"/></svg><b>163</b><small>lpm</small></div>
+              <div class="tgt"><span class="k">Objetivo</span><b>Zona 1–2 · Suave</b><span class="v">94–130 lpm</span></div>
+            </div>
+            <div class="tape"><div class="zone-tape"><i class="is-on"></i><i class="is-on"></i><i></i><i></i><i></i></div><span class="needle" style="left:76.8%"></span><div class="tape-l"><span>Z1</span><span>Z2</span><span>Z3</span><span>Z4</span><span>Z5</span></div></div>
+          </div>
+          <div class="stat"><svg class="icon"><use href="#i-down"/></svg>Zona 4 · deja bajar el pulso</div>
+          <div class="mach"><span class="mchip"><svg class="icon"><use href="#i-gauge"/></svg>7,0 km/h</span></div>
+          <div class="nxt"><div class="kind-bar k-work"></div><div><small>Siguiente · Vuelta 4 de 4</small><strong>Trabajo · 4:00 · 12,0 km/h · 1 %</strong></div></div>
+          <nav class="dots" aria-label="Páginas"><button aria-label="Principal" aria-current="true"><i></i></button><button aria-label="Perfil"><i></i></button><button aria-label="Zonas"><i></i></button></nav>
+          <div class="ctls">
+            <button class="ctl" aria-label="Bloquear pantalla"><span class="c"><svg class="icon"><use href="#i-lock"/></svg></span><small>Bloquear</small></button>
+            <button class="ctl main" aria-label="Pausar"><span class="c"><svg class="icon lg"><use href="#i-pause"/></svg></span><small>Pausa</small></button>
+            <button class="ctl" aria-label="Saltar paso"><span class="c"><svg class="icon"><use href="#i-skip"/></svg></span><small>Saltar paso</small></button>
+          </div>
+          <div class="toast" role="status"><svg class="icon"><use href="#i-skip"/></svg><span>Paso saltado · tu tiempo activo no cambia</span></div>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>F3 · Paso saltado</strong><span>Aviso sobre los controles, en el color inverso de Material 3 para que no se confunda con datos; el reloj activo sigue siendo el real.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ═════════════════ G · Terminar ═════════════════ -->
+<section class="section" id="g">
+  <h2>G · Terminar</h2>
+  <p>Cerrar la sesión pide solo lo imprescindible: confirmar cifras, un RPE real y guardar. Después, un resultado que explica el cumplimiento y la carga.</p>
+  <div class="gallery">
+
+    <!-- G1 -->
+    <figure class="mock">
+      <div class="phone live zc4">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen">
+          <div class="pg ghost" aria-hidden="true">
+            <div class="lv-top"><span>Cinta · Noruego 4×4</span><span class="clock">40:00</span></div>
+            <div class="ring" style="margin-top:30px"><svg viewBox="0 0 200 200"><circle class="trk" cx="100" cy="100" r="90" fill="none" stroke-width="12"/><circle class="prg" cx="100" cy="100" r="90" fill="none" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100"/></svg><div class="ring-in"><span class="t">0:00</span></div></div>
+          </div>
+          <div class="scrim" style="z-index:2"></div>
+          <div class="sheet fin" style="z-index:3" role="dialog" aria-label="Terminar cardio">
+            <h3>Terminar cardio</h3>
+            <div class="card-2 sum">
+              <div><small>Tiempo activo</small><b>38:12</b></div>
+              <div><small>Distancia</small><b>5,9<em>km</em></b></div>
+              <div><small>FC media</small><b>141<em>lpm</em></b></div>
+              <div><small>Calorías estimadas</small><b>≈ 455<em>kcal</em></b></div>
+            </div>
+            <div class="rpe-h"><span class="title-m">¿Cómo lo sentiste?</span><output id="rpeOut" for="rpe">RPE 7 · Duro</output></div>
+            <input class="rng" id="rpe" type="range" min="1" max="10" step="1" value="7" aria-label="Esfuerzo percibido de 1 a 10" aria-valuetext="RPE 7, Duro">
+            <div class="nums" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+            <div class="anch" id="anch" aria-hidden="true"><span>Muy suave</span><span>Suave</span><span>Algo duro</span><span class="on">Duro</span><span>Muy duro</span><span>Máximo</span></div>
+            <div class="edit">
+              <div class="field"><label for="dist">Distancia</label><div class="input"><input id="dist" value="5,9" inputmode="decimal"><span>km</span></div></div>
+              <div class="field"><label for="hrm">FC media</label><div class="input"><input id="hrm" value="141" inputmode="numeric"><span>lpm</span></div></div>
+            </div>
+            <button class="btn btn-primary btn-block"><svg class="icon"><use href="#i-check"/></svg>Guardar cardio</button>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>G1 · Confirmar y registrar (interactivo)</strong><span>Resumen, RPE real de 1 a 10 con seis anclas (mueve el control) y distancia o FC corregibles antes de guardar.</span></figcaption>
+    </figure>
+
+    <!-- G2 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb"><use href="#i-sig"/></svg><svg class="sb"><use href="#i-wifi"/></svg><svg class="sb"><use href="#i-bat"/></svg></span></div>
+        <div class="screen"><div class="res">
+          <div class="topbar" style="padding:4px 0 0;margin-left:-4px"><button class="icon-btn" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div class="title" style="font-size:18px">Cardio guardado</div></div>
+          <div class="card cmp">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="7"/><circle cx="32" cy="32" r="27" fill="none" stroke="var(--primary)" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="98 100"/></svg>
+            <div><b>Cumplido · 98 % del plan</b><span>Cinta · Noruego 4×4 · 5,9 de 6,0 km</span></div>
+          </div>
+          <div class="card" style="padding:14px 16px 12px">
+            <div class="q"><b>81 %</b><span>Bueno</span></div>
+            <div class="body-s" style="margin-top:2px">En tu zona objetivo 81 % del tiempo</div>
+            <div class="scale" aria-hidden="true"><i></i><i></i><i class="on"></i><span class="mk"></span></div>
+            <div class="scale-l"><span>Bajo ≤ 33</span><span>Medio 34–66</span><span style="text-align:right">Bueno ≥ 67</span></div>
+          </div>
+          <div class="card" style="padding:12px 16px 4px">
+            <div class="card-h">Intervalos de trabajo <span><i class="zone-dot" style="background:var(--z4)"></i> Zona 4 · 150–167 lpm</span></div>
+            <table class="tbl">
+              <thead><tr><th>Intervalo</th><th>FC media</th><th>En objetivo</th></tr></thead>
+              <tbody>
+                <tr><td>Trabajo 1</td><td>152 lpm</td><td>3:05<span class="mb"><i style="width:77%"></i></span></td></tr>
+                <tr><td>Trabajo 2</td><td>161 lpm</td><td>3:38<span class="mb"><i style="width:91%"></i></span></td></tr>
+                <tr><td>Trabajo 3</td><td>163 lpm</td><td>3:21<span class="mb"><i style="width:84%"></i></span></td></tr>
+                <tr><td>Trabajo 4</td><td>165 lpm</td><td>3:12<span class="mb"><i style="width:80%"></i></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card" style="padding:12px 16px">
+            <div class="card-h" style="margin-bottom:8px">Carga en tus anillos <span>según tu pulso</span></div>
+            <div class="auge"><span class="ch snc">SNC +9 %</span><span class="ch musc">Musc +12 %</span><span class="ch esp">Esp +4 %</span></div>
+          </div>
+          <button class="btn btn-primary btn-block" style="margin-top:auto;height:52px">Listo</button>
+        </div></div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>G2 · Resultado guardado</strong><span>Cumplimiento, calidad de zona con su escala visible, tabla por intervalo y el efecto en los tres anillos AUGE.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<section class="design-notes">
+  <h2>Decisiones de diseño</h2>
+  <ul>
+    <li>El campo de color sigue a la zona de tu pulso actual, no a la del objetivo; la frase de estado («En tu zona», «baja un poco») dice cómo estás respecto al objetivo.</li>
+    <li>Todo lo audaz se concentra en el campo de zona y la cifra de tiempo; el resto usa superficies translúcidas y los tonos apagados de los tipos de paso.</li>
+    <li>Sin pulsaciones no se pinta ninguna zona: el campo es neutro y el esfuerzo percibido (RPE) ocupa su lugar.</li>
+    <li>Las calorías siempre llevan «≈» o «estimadas»; no hay mensajes sobre el metabolismo.</li>
+    <li>Los datos de ejemplo son coherentes: edad 30, FC máx. 187, FC reposo 58; zonas 94–111, 112–130, 131–149, 150–167 y 168–187 lpm.</li>
+  </ul>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+  var ZRGB = { 1: '90,200,250', 2: '52,199,89', 3: '255,214,10', 4: '255,159,10', 5: '255,69,58' };
+  var LV = { 1: 0.34, 2: 0.5, 3: 0.64, 4: 0.82, 5: 1 };
+  function Z(m, z) { return { m: m, l: LV[z], c: ZRGB[z] }; }
+  var tab = [{ m: 5, l: 0.4, c: '143,201,184' }];
+  for (var i = 0; i < 8; i++) { tab.push({ m: 1 / 3, l: 1, c: '208,188,255' }); tab.push({ m: 1 / 6, l: 0.3, c: '92,88,98' }); }
+  tab.push({ m: 3, l: 0.35, c: '142,175,216' });
+  var PROGS = {
+    noruego: [Z(10, 2), Z(4, 4), Z(3, 1), Z(4, 4), Z(3, 1), Z(4, 4), Z(3, 1), Z(4, 4), Z(5, 1)],
+    steady: [Z(45, 2)],
+    tabata: tab
+  };
+
+  function strip(el) {
+    var d = el.dataset, W = +d.w, H = +d.h, prog = PROGS[d.p];
+    var tot = prog.reduce(function (a, s) { return a + s.m; }, 0);
+    var all = d.now === 'all', now = all ? tot : +d.now, ticks = +d.ticks || 0;
+    var gap = 2, top = 6, ax = ticks ? 18 : 0, avail = W - gap * (prog.length - 1);
+    var x = 0, t = 0, mark = null, starts = [], out = '';
+    prog.forEach(function (s) {
+      var w = Math.max(2, s.m / tot * avail), h = Math.max(3, s.l * H), y = top + H - h;
+      var f = Math.max(0, Math.min(1, (now - t) / s.m));
+      starts.push({ t: t, x: x, w: w });
+      out += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="3" fill="rgb(' + s.c + ')" fill-opacity="0.26"/>';
+      if (f > 0) out += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (w * f).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="3" fill="rgb(' + s.c + ')"/>';
+      if (!all && mark === null && now >= t && now < t + s.m) mark = x + w * f;
+      x += w + gap; t += s.m;
+    });
+    if (!all && mark === null) mark = W;
+    var labs = '';
+    if (ticks) {
+      for (var k = 0; k <= tot + 0.001; k += ticks) {
+        var px = 0;
+        for (var j = 0; j < starts.length; j++) { var st = starts[j]; if (k >= st.t - 1e-6 && k <= st.t + prog[j].m + 1e-6) { px = st.x + (k - st.t) / prog[j].m * st.w; break; } }
+        var anchor = k === 0 ? 'start' : (k + ticks > tot + 0.001 ? 'end' : 'middle');
+        labs += '<text x="' + px.toFixed(1) + '" y="' + (top + H + 14) + '" fill="rgba(243,241,246,.46)" font-size="11" text-anchor="' + anchor + '" font-family="Inter, system-ui, sans-serif">' + k + (k + ticks > tot + 0.001 ? ' min' : '') + '</text>';
+      }
+    }
+    var mk = '';
+    if (!all) mk = '<line x1="' + mark.toFixed(1) + '" x2="' + mark.toFixed(1) + '" y1="2" y2="' + (top + H) + '" stroke="#0F0F0F" stroke-opacity=".5" stroke-width="4" stroke-linecap="round"/><line x1="' + mark.toFixed(1) + '" x2="' + mark.toFixed(1) + '" y1="2" y2="' + (top + H) + '" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="' + mark.toFixed(1) + '" cy="3" r="3.500" fill="#fff"/>';
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + (top + H + ax) + '" width="' + W + '" height="' + (top + H + ax) + '" role="img" aria-label="' + (d.label || 'Perfil del programa') + '">' + out + mk + labs + '</svg>';
+  }
+  document.querySelectorAll('.pstrip').forEach(strip);
+
+  /* Marcas de kilómetro sobre el recorrido */
+  (function () {
+    var p = document.getElementById('route-done'), g = document.getElementById('kmarks');
+    if (!p || !g) return;
+    var L = p.getTotalLength();
+    for (var k = 1; k <= 4; k++) {
+      var pt = p.getPointAtLength(L * k / 4.6);
+      var c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y); c.setAttribute('r', 9); c.setAttribute('fill', '#1C1C1E'); c.setAttribute('stroke', '#34C759'); c.setAttribute('stroke-width', 2);
+      var t = document.createElementNS(NS, 'text'); t.setAttribute('x', pt.x); t.setAttribute('y', pt.y + 4); t.setAttribute('fill', '#F3F1F6'); t.textContent = k;
+      g.appendChild(c); g.appendChild(t);
+    }
+    var end = p.getPointAtLength(L);
+    ['nowdot', 'nowdot2'].forEach(function (id) { var e = document.getElementById(id); e.setAttribute('cx', end.x); e.setAttribute('cy', end.y); });
+  })();
+
+  /* Páginas deslizables: los puntos recorren las páginas (E1 y E2) */
+  var pages = {};
+  document.querySelectorAll('.pg[id], .pgq[id]').forEach(function (p) { pages[p.id] = p.cloneNode(true); });
+  document.querySelectorAll('[data-pager]').forEach(function (ph) {
+    var ids = ph.dataset.pager.split(','), scr = ph.querySelector('.screen');
+    function wire(root) {
+      root.querySelectorAll('.dots button').forEach(function (b, j) { b.addEventListener('click', function () { show(j); }); });
+    }
+    function show(i) {
+      var c = pages[ids[i]].cloneNode(true);
+      c.removeAttribute('id');
+      scr.replaceChildren(c);
+      scr.scrollTop = 0;
+      ph.className = 'phone ' + (c.dataset.cls || '');
+      wire(c);
+      fitAll();
+    }
+    wire(ph);
+  });
+
+  /* Ajuste de cifras Syne al ancho disponible (las métricas reales de la fuente) */
+  function fit(el, max) {
+    if (!el.dataset.base) el.dataset.base = parseFloat(getComputedStyle(el).fontSize);
+    var size = +el.dataset.base, guard = 80;
+    el.style.fontSize = size + 'px';
+    while (el.getBoundingClientRect().width > max && size > 20 && guard--) { size -= 2; el.style.fontSize = size + 'px'; }
+  }
+  function fitAll() {
+    document.querySelectorAll('.tab-c .n, .tab-c .w').forEach(function (el) { fit(el, el.parentNode.clientWidth - 8); });
+    document.querySelectorAll('.ring-in .t').forEach(function (el) { fit(el, 128); });
+    document.querySelectorAll('.hrn b').forEach(function (el) { fit(el, 110); });
+  }
+  fitAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
+  /* Señales de la preparación */
+  document.querySelectorAll('.sig').forEach(function (b) {
+    b.addEventListener('click', function () { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); });
+  });
+
+  /* D2: 3-2-1 con fundido */
+  (function () {
+    var ph = document.getElementById('d2'); if (!ph) return;
+    var num = document.getElementById('d2num'), lab = document.getElementById('d2lab'), sub = document.getElementById('d2sub');
+    var prg = document.getElementById('d2prg'), ring = document.getElementById('d2ring'), btn = document.getElementById('d2play'), btnTxt = btn.querySelector('span');
+    var tabs = ph.querySelectorAll('.seg button'), timers = [], playing = false;
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function seg(s) { tabs.forEach(function (b) { b.setAttribute('aria-selected', b.dataset.s === s); }); }
+    function pop() { if (reduce) return; num.classList.remove('pop'); void num.offsetWidth; num.classList.add('pop'); }
+    function set(s, n) {
+      ring.className = 'ring';
+      if (s === 'a') {
+        ph.classList.remove('fade-b'); ph.classList.remove('zc1'); ph.classList.add('zc4');
+        num.textContent = '0:04'; num.className = 't'; prg.setAttribute('stroke-dasharray', '4 100');
+        lab.textContent = 'Trabajo · Zona 4'; sub.textContent = '158 lpm · objetivo 150–167'; seg('a');
+      } else if (s === 'c') {
+        ph.classList.add('fade-b'); num.textContent = n || '3'; num.className = 't'; num.style.fontSize = '104px';
+        prg.setAttribute('stroke-dasharray', ((4 - (n || 3)) * 33) + ' 100');
+        lab.textContent = 'Ahora: Recuperación · 3:00'; sub.textContent = '7,0 km/h · Zona 1–2'; seg('c'); pop();
+        return;
+      } else {
+        ph.classList.add('fade-b'); ph.classList.remove('zc4'); ph.classList.add('zc1');
+        num.textContent = '3:00'; num.className = 't'; prg.setAttribute('stroke-dasharray', '100 100');
+        lab.textContent = 'Recuperación · Zona 1–2'; sub.textContent = 'Baja a 7,0 km/h · 94–130 lpm'; seg('b');
+      }
+      num.style.fontSize = ''; fit(num, 128);
+    }
+    function clear() { timers.forEach(clearTimeout); timers = []; playing = false; btn.disabled = false; }
+    function play() {
+      clear(); playing = true; btn.disabled = true; btnTxt.textContent = 'Reproduciendo…';
+      set('a');
+      timers.push(setTimeout(function () { set('c', 3); }, 700));
+      timers.push(setTimeout(function () { set('c', 2); }, 1700));
+      timers.push(setTimeout(function () { set('c', 1); }, 2700));
+      timers.push(setTimeout(function () { set('b'); clear(); btnTxt.textContent = 'Reproducir de nuevo'; }, 3700));
+    }
+    btn.addEventListener('click', play);
+    tabs.forEach(function (b) { b.addEventListener('click', function () { clear(); btnTxt.textContent = 'Reproducir'; set(b.dataset.s, 3); }); });
+  })();
+
+  /* F2: mantener para desbloquear */
+  (function () {
+    var hold = document.getElementById('hold'); if (!hold) return;
+    var prog = document.getElementById('hprog'), icon = document.getElementById('hicon'), lab = document.getElementById('hlab');
+    var raf = 0, t0 = 0, done = false, DUR = 1200;
+    function step() {
+      var p = Math.min(1, (performance.now() - t0) / DUR);
+      prog.style.strokeDashoffset = String(100 - p * 100);
+      if (p >= 1) { finish(); } else { raf = requestAnimationFrame(step); }
+    }
+    function start() { if (done) return; hold.classList.add('is-holding'); prog.style.strokeDashoffset = '100'; t0 = performance.now(); raf = requestAnimationFrame(step); }
+    function cancel() { if (done) return; cancelAnimationFrame(raf); hold.classList.remove('is-holding'); prog.style.strokeDashoffset = ''; }
+    function finish() {
+      done = true; icon.innerHTML = '<use href="#i-unlock"/>'; lab.textContent = 'Desbloqueado';
+      setTimeout(function () { done = false; hold.classList.remove('is-holding'); prog.style.strokeDashoffset = ''; icon.innerHTML = '<use href="#i-lock"/>'; lab.textContent = 'Mantén pulsado para desbloquear'; }, 1600);
+    }
+    hold.addEventListener('pointerdown', start);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (e) { hold.addEventListener(e, cancel); });
+    hold.addEventListener('keydown', function (e) { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); start(); } });
+    hold.addEventListener('keyup', function (e) { if (e.key === ' ' || e.key === 'Enter') cancel(); });
+  })();
+
+  /* G1: escala RPE */
+  (function () {
+    var r = document.getElementById('rpe'); if (!r) return;
+    var out = document.getElementById('rpeOut'), anch = document.querySelectorAll('#anch span');
+    var names = ['Muy suave', 'Suave', 'Algo duro', 'Duro', 'Muy duro', 'Máximo'];
+    function idx(v) { return v <= 2 ? 0 : v <= 4 ? 1 : v <= 6 ? 2 : v <= 8 ? 3 : v === 9 ? 4 : 5; }
+    function upd() {
+      var v = +r.value, n = names[idx(v)];
+      r.style.setProperty('--v', ((v - 1) / 9 * 100) + '%');
+      out.textContent = 'RPE ' + v + ' · ' + n;
+      r.setAttribute('aria-valuetext', 'RPE ' + v + ', ' + n);
+      anch.forEach(function (a, i) { a.classList.toggle('on', i === idx(v)); });
+    }
+    r.addEventListener('input', upd); upd();
+  })();
+})();
+</script>
+</body>
+</html>

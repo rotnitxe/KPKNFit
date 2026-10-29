@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Sesión en vivo · todas las instancias</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F2EEE6;--muted:#B5B1AC;--faint:#7A7670;--hair:rgba(255,255,255,.08);--bg:#0B0B0A;--surf:#131312;--inset:#1C1C1B;--green:#7FE3B0;--amber:#FFA15C;--sage:#A9C4B6;--red:#FF9B92}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060606;color:var(--cream);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:flex;gap:44px;padding:34px;align-items:flex-start}
+.rail{width:320px;position:sticky;top:34px;max-height:calc(100vh - 68px);overflow:auto}
+.rail::-webkit-scrollbar{width:3px}.rail::-webkit-scrollbar-thumb{background:#222}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-family:Syne;font-weight:800;font-size:15px}
+.brand b{font-family:Syne;font-weight:800;font-size:18px}.brand small{display:block;color:var(--faint);font-size:10.5px;margin-top:1px}
+.g{font-size:9.5px;letter-spacing:1.4px;color:var(--faint);text-transform:uppercase;margin:16px 0 6px;font-weight:600}
+.it{display:block;width:100%;text-align:left;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;padding:6px 9px;border-radius:8px;cursor:pointer}
+.it.on{background:#171716;color:var(--cream)}
+.it small{display:block;font-size:10px;color:var(--faint);margin-top:1px}
+.phone{width:393px;height:852px;border-radius:46px;background:#000;border:1px solid #222;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65);flex:none}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.status{display:flex;justify-content:space-between;padding:13px 22px 0;font-size:12px;font-weight:600;flex:none}
+.hdr{margin:7px 13px 0;padding:8px 9px 8px 11px;border-radius:999px;background:#141413;display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.05);flex:none}
+.hdr .txt{flex:1;min-width:0}.hdr .t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .s{font-size:10px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.circ{width:29px;height:29px;border-radius:50%;background:#1E1E1D;display:grid;place-items:center;font-size:12px;color:var(--muted);flex:none}
+.restchip{display:flex;align-items:center;gap:5px;height:29px;padding:0 9px;border-radius:15px;background:rgba(242,238,230,.07);font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;flex:none}
+.ring{width:13px;height:13px;border-radius:50%;border:2px solid var(--cream);border-right-color:rgba(242,238,230,.18);transform:rotate(45deg)}
+.actions{display:flex;gap:6px;overflow:auto;padding:8px 14px 0;flex:none}
+.actions::-webkit-scrollbar{display:none}
+.actions span{flex:none;height:26px;padding:0 10px;border-radius:13px;background:rgba(242,238,230,.05);border:1px solid rgba(255,255,255,.06);font-size:10.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.actions span.on{background:var(--cream);color:#0B0B0A;border-color:var(--cream)}
+.zone{flex:1;min-height:0;display:flex;align-items:center;padding:10px 15px 0}
+.card{width:100%;height:452px;background:var(--surf);border:1px solid var(--hair);border-radius:24px;padding:13px 15px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.card.mob{border-color:rgba(169,196,182,.22)}.card.warm{border-color:rgba(255,161,92,.22)}
+.card.fail{border-color:rgba(255,155,146,.45)}
+.head{display:flex;align-items:center;gap:6px;flex:none;height:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--cream)}.card.mob .dot{background:var(--sage)}.card.warm .dot{background:var(--amber)}
+.eyebrow{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.card.mob .eyebrow{color:var(--sage)}.card.warm .eyebrow{color:var(--amber)}
+.head .meta{margin-left:auto;font-size:10px;color:var(--faint)}
+.tag{display:inline-flex;align-items:center;gap:3px;height:19px;padding:0 7px;border-radius:9px;background:rgba(127,227,176,.12);color:var(--green);font-size:9.5px;font-weight:600}
+.tag.r{background:rgba(255,155,146,.14);color:var(--red)}
+.hero{display:flex;align-items:flex-end;gap:6px;flex:none;height:50px;margin-top:9px}
+.hero .v{font-family:Syne;font-weight:800;font-size:40px;line-height:42px;letter-spacing:-1.1px;font-variant-numeric:tabular-nums}
+.hero .u{font-size:11px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.hero .side{margin-left:auto;text-align:right;padding-bottom:2px}
+.hero .side b{font-family:Syne;font-size:16px}.hero .side span{display:block;font-size:9.5px;color:var(--faint);margin-top:1px}
+.sub{font-size:11px;color:var(--faint);flex:none}
+.track{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:8px;flex:none;overflow:hidden}
+.track i{display:block;height:3px;background:var(--sage)}.card.warm .track i{background:var(--amber)}.card.work .track i{background:var(--cream)}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:9px}
+.foot{flex:none;display:flex;flex-direction:column;gap:7px;padding-top:9px;border-top:1px solid var(--hair)}
+.links{display:flex;justify-content:space-between;padding:0 1px}
+.links span{font-size:11px;font-weight:600;color:var(--muted)}
+.kpills{display:flex;gap:5px;flex:none}
+.kpill{flex:1;height:30px;border-radius:9px;background:var(--inset);display:flex;align-items:center;justify-content:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.kpill b{color:var(--cream);font-family:Syne;font-size:11.5px}
+.wheel{display:flex;align-items:center;justify-content:space-between;padding:0 3px;margin-top:6px;flex:none;height:46px}
+.wheel span{font-family:Syne;font-weight:700;font-size:15px;color:var(--faint);width:30px;text-align:center}
+.wheel span.c{font-size:36px;color:var(--cream);width:66px;line-height:42px}
+.wlab{display:flex;justify-content:space-between;padding:0 7px;flex:none}
+.wlab span{font-size:8px;letter-spacing:1px;color:var(--faint);font-weight:600}
+.fire{display:flex;gap:4px;margin-top:7px;flex:none}
+.fire div{flex:1;height:26px;border-radius:7px;background:rgba(242,238,230,.09);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--faint)}
+.fire div.on{background:var(--cream);color:#0B0B0A}.fire div.hot{background:rgba(255,161,92,.16);color:var(--amber);border:1px solid rgba(255,161,92,.4)}
+.hist{margin-top:auto;display:flex;align-items:flex-end;gap:12px;border-top:1px solid var(--hair);padding-top:9px}
+.hlab{font-size:8px;letter-spacing:1px;color:var(--faint);font-weight:600;line-height:13px}
+.hlab b{font-family:Syne;font-size:12.5px;letter-spacing:0;color:var(--cream)}
+.hbars{display:flex;align-items:flex-end;gap:3px;height:30px;margin-left:auto}
+.hbars i{display:block;width:8px;border-radius:3px 3px 1px 1px;background:rgba(242,238,230,.22)}
+.hbars i.on{background:var(--green)}
+.band{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:9px;background:rgba(255,155,146,.10);border:1px solid rgba(255,155,146,.24);font-size:10.5px;color:var(--red);flex:none;margin-top:7px}
+.seg{display:flex;gap:3px;background:#0D0D0C;border-radius:15px;padding:3px;flex:none;margin-top:7px}
+.seg b{flex:1;height:26px;border-radius:12px;display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--faint)}
+.seg b.on{background:var(--cream);color:#0B0B0A}
+.chain{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:11px;background:var(--inset);font-size:10.5px;flex:none;margin-top:8px}
+.chain i{color:var(--faint);font-style:normal}
+.trow{display:flex;align-items:center;padding:4px 1px;flex:1;min-height:0}
+.trow .nm{font-size:11.5px}
+.stepper{display:flex;align-items:center;gap:6px;margin-left:auto}
+.stepper span{width:23px;height:23px;border-radius:7px;background:var(--inset);display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.stepper b{font-family:Syne;font-size:13px;min-width:42px;text-align:center}
+.field{height:32px;border-radius:9px;background:var(--inset);display:flex;align-items:center;padding:0 10px;color:var(--faint);font-size:11.5px;flex:none}
+.mrow{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:8px;flex:1;min-height:0}
+.mrow.on{background:rgba(242,238,230,.06)}.mrow.done .nm{color:var(--faint);text-decoration:line-through}
+.check{width:16px;height:16px;border-radius:50%;border:1px solid rgba(242,238,230,.25);flex:none;display:grid;place-items:center;font-size:8px;color:#0B0B0A}
+.mrow.done .check{background:var(--sage);border-color:var(--sage)}
+.nm{font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dose{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+.wrow{display:grid;grid-template-columns:28px 38px 1fr 40px 34px;align-items:center;gap:7px;padding:5px 6px;border-radius:9px;flex:1;min-height:0}
+.wrow.on{background:rgba(255,161,92,.07);border:1px solid rgba(255,161,92,.22)}
+.wrow.done{opacity:.42}
+.widx{font-size:10px;font-weight:700;color:var(--amber)}.wpct{font-size:10px;color:var(--faint)}
+.wkg{font-family:Syne;font-weight:700;font-size:17px;text-align:right;font-variant-numeric:tabular-nums}
+.wkg em{font-style:normal;font-size:8.5px;color:var(--faint);font-weight:600;margin-left:2px}
+.wreps{font-size:10.5px;color:var(--muted);text-align:right}.wrest{font-size:9.5px;color:var(--faint);text-align:right}
+.bottom{flex:none;margin:9px 13px 11px;padding:10px 11px 9px;border-radius:21px;background:#111110;border:1px solid rgba(255,255,255,.06)}
+.roadhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.roadhead .l{font-size:9.5px;letter-spacing:1.1px;color:var(--faint);font-weight:600;text-transform:uppercase}
+.roadhead .r{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.road{display:flex;gap:3px;height:4px}
+.road i{display:block;border-radius:2px;background:rgba(242,238,230,.10)}
+.road i.done{background:rgba(242,238,230,.55)}.road i.on{background:var(--cream)}
+.roadlabels{display:flex;gap:3px;margin-top:4px}
+.roadlabels span{font-size:7.5px;letter-spacing:.8px;color:var(--faint);font-weight:600;white-space:nowrap;overflow:hidden}
+.roadlabels span.on{color:var(--cream)}
+.navrow{display:flex;align-items:center;gap:9px;margin-top:10px}
+.step{width:42px;height:42px;border-radius:13px;background:var(--inset);display:grid;place-items:center;font-size:15px;color:var(--muted);flex:none}
+.rec{flex:1;height:42px;border-radius:13px;background:var(--cream);color:#0B0B0A;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700}
+.rec .c{width:17px;height:17px;border-radius:50%;background:#0B0B0A;color:var(--cream);display:grid;place-items:center;font-size:9px}
+/* overlays */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:#121211;border-radius:26px 26px 0 0;border-top:1px solid rgba(255,255,255,.09);padding:8px 16px 16px;box-shadow:0 -24px 60px rgba(0,0,0,.6);max-height:82%;overflow:auto}
+.sheet::-webkit-scrollbar{display:none}
+.handle{width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin:0 auto 9px}
+.stitle{font-family:Syne;font-weight:700;font-size:18px}
+.sdesc{font-size:11px;color:var(--faint);margin-top:2px;margin-bottom:10px}
+.srow{display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12px}
+.srow .k{width:22px;text-align:center;color:var(--faint);font-size:11px}
+.srow .x{margin-left:auto;color:var(--faint);font-size:10.5px}
+.srow.on{color:var(--cream)}.srow .x.on{color:var(--green)}
+.chipline{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 12px}
+.chip{height:26px;padding:0 10px;border-radius:13px;border:1px solid rgba(242,238,230,.14);font-size:10.5px;font-weight:600;display:flex;align-items:center;color:var(--muted)}
+.chip.on{background:var(--cream);color:#0B0B0A;border-color:var(--cream)}
+/* mesa */
+.table{flex:1;min-height:0;overflow:auto;padding:8px 13px 0}.table::-webkit-scrollbar{display:none}
+.tghead{display:flex;align-items:baseline;gap:8px;padding:0 2px 5px;border-bottom:1px solid var(--hair);margin-top:8px}
+.tghead .nm{font-size:11px;font-weight:600}.tghead .meta{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.tr{display:grid;grid-template-columns:24px 1fr 70px 40px 16px;align-items:center;gap:7px;padding:6px 3px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10.5px}
+.tr .idx{color:var(--faint);font-size:9.5px;font-variant-numeric:tabular-nums}
+.tr .ex{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .ld{font-family:Syne;font-weight:700;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
+.tr .ef{font-size:9.5px;color:var(--faint);text-align:right}.tr .st{text-align:right;color:var(--faint);font-size:9.5px}
+.tr.done .st{color:var(--green)}
+.tr.active{background:rgba(242,238,230,.055);border-left:2px solid var(--cream);padding-left:5px}
+.tr.active .ex{color:var(--cream);font-weight:600}
+.editor{padding:8px 5px 10px;border-bottom:1px solid var(--hair);background:rgba(242,238,230,.03)}
+.edrow{display:flex;align-items:center;gap:7px}
+.edrow .big{font-family:Syne;font-weight:800;font-size:27px;letter-spacing:-.7px;font-variant-numeric:tabular-nums}
+.edrow .u{font-size:10px;color:var(--faint);padding-top:5px}
+.mini{display:flex;gap:4px;margin-left:auto}
+.mini span{height:26px;min-width:40px;padding:0 7px;border-radius:7px;background:var(--inset);display:grid;place-items:center;font-size:10px;font-weight:600;color:var(--muted)}
+.edrow2{display:flex;align-items:center;gap:5px;margin-top:8px}
+.rir{display:flex;gap:3px}
+.rir span{width:24px;height:22px;border-radius:6px;background:rgba(242,238,230,.08);display:grid;place-items:center;font-size:9.5px;color:var(--faint)}
+.rir span.on{background:var(--cream);color:#0B0B0A;font-weight:700}
+.edrow2 .e1{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.media{flex:1;min-height:0;display:flex;flex-direction:column;gap:9px}
+.mstage{flex:1;min-height:0;border-radius:14px;background:linear-gradient(160deg,#1A1917,#101010);border:1px solid rgba(255,255,255,.07);display:grid;place-items:center;position:relative;overflow:hidden}
+.mstage .ph{font-size:10px;color:var(--faint)}
+.shutter{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;background:var(--cream);border:3px solid rgba(0,0,0,.35);box-shadow:0 0 0 3px rgba(242,238,230,.25)}
+.thumbs{display:flex;gap:6px}
+.thumbs i{flex:1;height:34px;border-radius:8px;background:#191917;border:1px solid rgba(255,255,255,.06);display:grid;place-items:center;font-size:9px;font-style:normal;color:var(--faint)}
+.mode{display:flex;gap:5px}
+.mode b{flex:1;height:28px;border-radius:9px;display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--faint);background:var(--inset)}
+.mode b.on{background:var(--cream);color:#0B0B0A}
+.note{font-size:10.5px;color:var(--faint);line-height:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand"><div class="mark">K</div><div><b>KPKN Fit</b><small>Live · todas las instancias</small></div></div>
+    <div id="index"></div>
+  </aside>
+  <main class="phone" id="phone"></main>
+</div>
+<script>
+/* ───────── inventario real, agrupado por superficie ───────── */
+const G=[
+['Serie · modos',[['reps','Reps','Carga + rueda + esfuerzo + ROM'],['amrap','AMRAP','Mínimo, sin mínimo, calibrador'],['rm','RM','Cifra objetivo y focus'],['soloRpe','Solo RPE','Sin carga numérica'],['time','Tiempo','Reloj por serie'],['distance','Distancia','Cardio y metros'],['custom','Personalizado','Cantidad libre']]],
+['Serie · estados',[['update','Completada','Re-registro y delta'],['failed','Fallida','Error de ejecución'],['pr','Récord','PR de la serie'],['loadReq','Carga requerida','Bloqueo de registro'],['replaced','Volumen reemplazado','Aviso de sustitución'],['uni','Unilateral','Izquierda / derecha'],['skipped','Saltada','Serie omitida']]],
+['Serie · caras y hojas',[['technique','Avanzado','Técnica de la serie'],['media','Modo visual','Foto, vídeo, ficha, galería'],['history','Historial','Progreso del ejercicio'],['tags','Etiquetas','Tag, máquina, sub-tags'],['options','Opciones','Fuerza, cardio, superserie'],['amrapCfg','Config AMRAP','Mínimo y objetivo'],['discomfort','Molestias','Catálogo y buscador']]],
+['Técnicas',[['drop','Drop-set','Tramos encadenados'],['pause','Rest-pause','Pausa y continuación'],['myo','Myo-reps','Activación y mini-series'],['chain','Cadena','Principal → tramo → +']]],
+['Movilidad',[['mobMove','Movimiento','Reloj y dosis'],['mobList','Lista','Checklist de la fase'],['mobGlobal','Global','Objetivo de minutos'],['mobDone','Fin de fase','Omitida o completada'],['mobRest','Descanso','Pausa dentro de prep']]],
+['Aproximación',[['warmList','Escalera','A1–A4 con kg editable'],['warmSkip','Omitida','Fase saltada'],['warmRest','Descanso','Entre aproximaciones'],['warmAdd','Añadir serie','Nueva fila a la escalera']]],
+['Descanso',[['rest','Descanso','Anillo, sugerido, ±15'],['overrun','Tiempo extra','Se pasó el descanso'],['mini','Mini chip','Descanso minimizado'],['game','Juego','Descanso interactivo'],['feedback','Feedback','Cierre de ejercicio']]],
+['Sesión · superficies',[['menu','Menú','Todas las acciones'],['route','Ruta','Bloques de la sesión'],['timer','Temporizador','Global de sesión'],['notes','Notas','Nota rápida'],['milestones','Hitos','Registro del día'],['photos','Fotos','Álbum de sesión'],['calories','Calorías','Cardio únicamente'],['reorder','Reordenar','Cambiar el orden']]],
+['Experimental',[['mesa','Mesa','Registro vivo por filas'],['mesaMedia','Mesa · media','Con modo visual integrado']]]
+];
+
+/* ───────── piezas ───────── */
+const head=(t,s)=>`<div class="status"><span>1:47</span><span>▮▮▮</span></div>
+<div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">${t}</div><div class="s">${s}</div></div>
+<div class="restchip"><span class="ring"></span>1:12</div><div class="circ">⋯</div></div>
+`;
+
+const bottom=(label,zone)=>`<div class="bottom">
+<div class="roadhead"><span class="l">Series · 3 de 9</span><span class="r">Sentadilla 3 / 4</span></div>
+<div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="${zone===2?'on':''}" style="width:53%"></i><i class="${zone===3?'on':''}" style="width:12%"></i></div>
+<div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="${zone===2?'on':''}" style="width:53%">SER</span><span class="${zone===3?'on':''}" style="width:12%">REST</span></div>
+<div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>${label}</div><div class="step">›</div></div></div>`;
+
+const links=a=>`<div class="foot"><div class="links">${a.map(x=>`<span>${x}</span>`).join('')}</div></div>`;
+const hist=`<div class="hist"><div class="hlab">ÚLTIMAS 4 · e1RM<br><b>112,5 kg</b></div><div class="hbars"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i class="on" style="height:94%"></i></div></div>`;
+const wheel=(n)=>`<div class="wheel"><span>${n-2}</span><span>${n-1}</span><span class="c">${n}</span><span>${n+1}</span><span>${n+2}</span></div><div class="wlab"><span>REPS</span><span>OBJETIVO ${n}</span></div>`;
+const fire=(i)=>`<div class="fire">${[0,1,2,3,4].map((x,k)=>`<div class="${k===i?'on':''}">${x}</div>`).join('')}</div><div class="wlab" style="margin-top:4px"><span>RIR</span><span>FALLO</span></div>`;
+const kpills=`<div class="kpills"><div class="kpill">−2,5</div><div class="kpill">Sug <b>102,5</b></div><div class="kpill">+2,5</div></div>`;
+const setCard=(cls,headHtml,heroHtml,bodyHtml,linksArr)=>`<div class="card ${cls}">${headHtml}${heroHtml}<div class="body">${bodyHtml}</div>${links(linksArr)}</div>`;
+const hDet=(label,sub)=>'<div class="head"><span class="dot"></span><span class="eyebrow">'+label+'</span><span class="meta">'+(sub||"")+'</span></div>';
+const hSet=(tag='')=>`<div class="head"><span class="dot"></span><span class="eyebrow">Serie efectiva</span>${tag}<span class="meta">3 / 4</span></div>`;
+const heroKg=(kg,side,sub)=>`<div class="hero"><span class="v">${kg}</span><span class="u">kg</span><span class="side">${side}</span></div>${sub?`<div class="sub">${sub}</div>`:''}`;
+
+/* ───────── escenas ───────── */
+const S={};
+S.reps=()=>setCard('work',hSet('<span class="tag" style="margin-left:6px">★ PR</span>'),heroKg('100','<b>RIR 2</b><span>e1RM 112,5</span>','Objetivo 8 · tempo 2-0-1'),
+ kpills+wheel(8)+fire(2)+`<div class="band" style="background:rgba(242,238,230,.05);border-color:rgba(255,255,255,.08);color:var(--muted)">◉ Vídeo del set · detalle de reps</div>`+hist,
+ ['Avanzado','Modo visual','Historial']);
+S.amrap=()=>setCard('work',hDet('AMRAP','Mínimo 8 · sin techo'),heroKg('100','<b>RIR 0</b><span>al fallo</span>','Serie AMRAP · cuenta al e1RM'),
+ kpills+wheel(10)+`<div class="band">Objetivo mínimo 8 · si bajas, no cuenta</div>`+`<div class="field" style="margin-top:8px">Resultado: 11 reps · e1RM 118,4</div>`+hist,
+ ['Configurar AMRAP','Modo visual','Historial']);
+S.rm=()=>setCard('work',hDet('RM','Serie de referencia'),`<div class="hero"><span class="v">3</span><span class="u">RM</span><span class="side"><b>105 kg</b><span>objetivo</span></span></div><div class="sub">Buscando el máximo de 3 repeticiones</div>`,
+ `<div class="field">Carga objetivo 105 kg · última vez 102,5</div>`+wheel(3)+fire(0)+hist,['Avanzado','Modo visual','Historial']);
+S.soloRpe=()=>setCard('work',hDet('Solo RPE','Sin carga numérica'),`<div class="hero"><span class="v">8,5</span><span class="u">RPE</span><span class="side"><b>× 12</b><span>reps</span></span></div><div class="sub">Peso corporal · dominadas</div>`,
+ `<div class="field">Sin carga externa registrada</div>`+wheel(12)+fire(1)+hist,['Avanzado','Modo visual','Historial']);
+S.time=()=>setCard('work',hDet('Tiempo','Isométrico'),`<div class="hero"><span class="v">00:45</span><span class="u">restante</span><span class="side"><b>45″</b><span>objetivo</span></span></div><div class="sub">Wall sit · 3 series</div>`,
+ `<div class="track"><i style="width:38%"></i></div><div class="field" style="margin-top:10px">Iniciar · pausar · reiniciar</div>`+hist,['Avanzado','Modo visual','Historial']);
+S.distance=()=>setCard('work',hDet('Distancia','Cardio'),`<div class="hero"><span class="v">2,4</span><span class="u">km</span><span class="side"><b>12:10</b><span>ritmo 5′04″</span></span></div><div class="sub">Cinta · zona 2</div>`,
+ `<div class="field">Distancia manual o GPS</div>`+`<div class="kpills" style="margin-top:8px"><div class="kpill">FC 142</div><div class="kpill">kcal 210</div><div class="kpill">Z2</div></div>`+hist,['Avanzado','Modo visual','Historial']);
+S.custom=()=>setCard('work',hDet('Personalizado','Cantidad libre'),`<div class="hero"><span class="v">24</span><span class="u">pasos</span><span class="side"><b>× 3</b><span>rondas</span></span></div><div class="sub">Sled push · unidad propia</div>`,
+ `<div class="field">Unidad personalizada · «pasos»</div>`+fire(2)+hist,['Avanzado','Modo visual','Historial']);
+S.update=()=>setCard('work',hDet('<span class="tag" style="margin-left:6px">editada</span>','antes RIR 3'),heroKg('100','<b>RIR 2</b><span>antes RIR 3</span>','Serie ya registrada'),
+ kpills+wheel(8)+`<div class="band" style="background:rgba(127,227,176,.08);border-color:rgba(127,227,176,.25);color:var(--green)">Actualiza la serie 3 · no crea otra</div>`+hist,['Descartar cambio','Modo visual','Historial']);
+S.failed=()=>setCard('fail',hDet('<span class="tag r" style="margin-left:6px">fallida</span>','rep 6 de 8'),heroKg('100','<b>fallo</b><span>rep 6 de 8</span>','Error de ejecución'),
+ `<div class="seg" style="margin-top:4px"><b class="on">Fallo</b><b>Técnica</b><b>Dolor</b><b>Otro</b></div><div class="field" style="margin-top:8px">Motivo opcional</div><div class="band">La serie no cuenta para el volumen</div>`+hist,['Reintentar','Modo visual','Historial']);
+S.pr=()=>setCard('work',hDet('<span class="tag" style="margin-left:6px">★ PR 112,5</span>','récord'),heroKg('105','<b>RIR 1</b><span>+2,5 kg</span>','Récord de e1RM'),
+ `<div class="band" style="background:rgba(127,227,176,.08);border-color:rgba(127,227,176,.25);color:var(--green)">Nuevo máximo · antes 110,0</div>`+wheel(6)+`<div class="field" style="margin-top:8px">Añadir foto o vídeo del PR</div>`+hist,['Compartir PR','Modo visual','Historial']);
+S.loadReq=()=>setCard('work',hDet('Serie efectiva','3 / 4'),`<div class="hero"><span class="v">—</span><span class="u">kg</span><span class="side"><b>RIR 2</b><span>sin carga</span></span></div><div class="sub">Elige una carga antes de registrar</div>`,
+ kpills+`<div class="band">La serie no se puede registrar sin carga</div>`+wheel(8)+hist,['Avanzado','Modo visual','Historial']);
+S.replaced=()=>setCard('work',hDet('Serie efectiva','3 / 4'),heroKg('100','<b>RIR 2</b><span>reemplazada</span>','Volumen sustituido por técnica'),
+ `<div class="band">Esta serie cuenta como volumen reemplazado</div>`+wheel(8)+fire(2)+hist,['Avanzado','Modo visual','Historial']);
+S.uni=()=>setCard('work',hDet('Serie efectiva','3 / 4'),heroKg('40','<b>RIR 1</b><span>izquierda</span>','Unilateral · lado izquierdo'),
+ `<div class="seg" style="margin-top:4px"><b class="on">Izquierda</b><b>Derecha</b></div>`+kpills+wheel(10)+fire(1)+hist,['Avanzado','Modo visual','Historial']);
+S.skipped=()=>setCard('work',hDet('<span class="tag r" style="margin-left:6px">omitida</span>','saltada'),heroKg('100','<b>—</b><span>sin registrar</span>','Serie saltada'),
+ `<div class="band" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);color:var(--faint)">No cuenta para el volumen de la sesión</div><div class="field" style="margin-top:8px">Motivo: falta de tiempo</div>`+hist,['Recuperar serie','Modo visual','Historial']);
+S.technique=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Técnica de la serie</span><span class="meta">3 / 4</span></div>
+<div class="seg"><b class="on">Normal</b><b>Drop</b><b>Pausa</b><b>Myo</b></div>
+<div class="chain"><b>Principal</b><i>→</i><span>Drop 1</span><i>→</i><span style="color:var(--faint)">Añadir</span></div>
+<div class="body"><div class="trow"><span class="nm">Drop 1</span><div class="stepper"><span>−</span><b>80 kg</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Reps del tramo</span><div class="stepper"><span>−</span><b>6</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Descanso entre tramos</span><div class="stepper"><span>−</span><b>15″</b><span>+</span></div></div>
+<div class="hair" style="height:1px;background:var(--hair);margin:6px 0"></div>
+<div class="field">Nota de la serie</div>
+<div class="band" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);color:var(--faint)">Error de ejecución · PR: foto o vídeo</div></div>
+${links(['Volver a la serie','Ver cadena completa'])}</div>`;
+S.media=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Modo visual</span><span class="meta">3 / 4</span></div>
+<div class="mode" style="margin-top:8px"><b class="on">Foto</b><b>Vídeo</b><b>Ficha</b></div>
+<div class="media"><div class="mstage"><span class="ph">Cámara · encuadre de la serie</span><div class="shutter"></div></div>
+<div class="thumbs"><i>Antes</i><i>Serie 2</i><i>PR</i><i>Álbum</i></div>
+<div class="note">Análisis de técnica disponible para esta serie · 2 fotos guardadas</div></div>
+${links(['Volver a la serie','Ver álbum'])}</div>`;
+S.history=()=>sheet('Historial · Sentadilla trasera','e1RM de las últimas 8 sesiones',[
+ ['1','12 oct','102,5 × 8 · e1RM 110,0'],['2','5 oct','100 × 8 · e1RM 107,4'],['3','28 sep','100 × 7 · e1RM 105,1'],['4','21 sep','97,5 × 8 · e1RM 104,8']
+],'<div class="hist" style="margin-top:14px"><div class="hlab">PROGRESO 4 SESIONES<br><b>+4,7 %</b></div><div class="hbars"><i style="height:40%"></i><i style="height:58%"></i><i style="height:74%"></i><i class="on" style="height:96%"></i></div></div>');
+S.tags=()=>sheet('Etiquetas','Serie 3 · máquina y contexto',[
+ ['◉','Barra libre','actual'],['○','Smith',''],['○','Multipower',''],['○','Polea baja','']
+],`<div class="chipline"><span class="chip on">Fuerza</span><span class="chip">Tempo</span><span class="chip">Pausa</span><span class="chip">Banda</span></div>`);
+S.options=()=>sheet('Opciones del ejercicio','Sentadilla trasera',[
+ ['1','Cambiar ejercicio',''],['2','Saltar ejercicio',''],['3','Quitar de la sesión',''],['4','Crear superserie',''],['5','Ver ficha','']
+]);
+S.amrapCfg=()=>sheet('Configurar AMRAP','Objetivo de la serie',[
+ ['−','Mínimo 8 reps','+'],['−','Sin techo','+'],['1','Cuenta al e1RM','sí'],['2','Aviso al bajar del mínimo','sí']
+]);
+S.discomfort=()=>sheet('Molestias','Se guarda con la serie',[
+ ['○','Sin molestias',''],['○','Rodilla anterior',''],['○','Lumbar',''],['○','Hombro anterior',''],['○','Codo','']
+],`<div class="field" style="margin-top:8px">Buscar molestia</div>`);
+S.drop=()=>S.technique();
+S.pause=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Rest-pause</span><span class="meta">3 / 4</span></div>
+<div class="seg"><b>Normal</b><b>Drop</b><b class="on">Pausa</b><b>Myo</b></div>
+<div class="chain"><b>Principal</b><i>→</i><span>Pausa 15″</span><i>→</i><span style="color:var(--faint)">Añadir</span></div>
+<div class="body"><div class="trow"><span class="nm">Reps del tramo</span><div class="stepper"><span>−</span><b>3</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Pausa</span><div class="stepper"><span>−</span><b>15″</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Tramos</span><div class="stepper"><span>−</span><b>2</b><span>+</span></div></div>
+<div class="field">Nota de la serie</div></div>${links(['Volver a la serie','Ver cadena completa'])}</div>`;
+S.myo=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Myo-reps</span><span class="meta">3 / 4</span></div>
+<div class="seg"><b>Normal</b><b>Drop</b><b>Pausa</b><b class="on">Myo</b></div>
+<div class="chain"><b>Activación</b><i>→</i><span>3 mini-series</span><i>→</i><span style="color:var(--faint)">+</span></div>
+<div class="body"><div class="trow"><span class="nm">Reps de activación</span><div class="stepper"><span>−</span><b>12</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Mini-serie</span><div class="stepper"><span>−</span><b>4</b><span>+</span></div></div>
+<div class="trow"><span class="nm">Pausa</span><div class="stepper"><span>−</span><b>10″</b><span>+</span></div></div>
+<div class="field">Nota de la serie</div></div>${links(['Volver a la serie','Ver cadena completa'])}</div>`;
+S.chain=()=>S.technique();
+S.mobMove=()=>`<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad</span><span class="meta">2 / 6</span></div>
+<div class="hero"><span class="v">02:30</span><span class="u">restante</span><span class="side"><b>3 × 40″</b><span>por lado</span></span></div>
+<div class="sub">Sentadilla profunda con apoyo</div><div class="track"><i style="width:62%"></i></div>
+<div class="body"><div class="mrow done"><span class="check">✓</span><span class="nm">Movilidad de tobillo</span><span class="dose">40″</span></div>
+<div class="mrow on"><span class="check"></span><span class="nm">Sentadilla profunda</span><span class="dose">3 × 40″</span></div>
+<div class="mrow"><span class="check"></span><span class="nm">Apertura de cadera</span><span class="dose">8 reps</span></div>
+<div class="mrow"><span class="check"></span><span class="nm">Isquios en suelo</span><span class="dose">30″</span></div></div>
+${links(['A tu ritmo','Saltar fase'])}</div>`;
+S.mobList=()=>`<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad · lista</span><span class="meta">4 de 6</span></div>
+<div class="hero"><span class="v">4/6</span><span class="u">hechos</span></div>
+<div class="body">${['Tobillo','Aductores','Isquios','Cadera','Tórax','Muñeca'].map((m,i)=>`<div class="mrow ${i<4?'done':''}"><span class="check">${i<4?'✓':''}</span><span class="nm">${m}</span><span class="dose">${i<4?'✓':'—'}</span></div>`).join('')}</div>
+${links(['Volver al movimiento','Saltar fase'])}</div>`;
+S.mobGlobal=()=>`<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad · global</span><span class="meta">objetivo 10 min</span></div>
+<div class="hero"><span class="v">06:12</span><span class="u">de 10:00</span></div><div class="track"><i style="width:62%"></i></div>
+<div class="body"><div class="field">Corre el reloj de toda la fase</div><div class="note" style="margin-top:8px">Pausa, +30 s y reinicio viven aquí; el movimiento seleccionado sigue marcándose en la lista.</div></div>
+${links(['Volver','Terminar movilidad'])}</div>`;
+S.mobDone=()=>`<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad</span><span class="meta">completada</span></div>
+<div class="hero"><span class="v">6/6</span><span class="u">hechos</span></div>
+<div class="body" style="justify-content:center;align-items:center;text-align:center"><div class="eyebrow">FASE COMPLETADA</div><div class="note" style="margin-top:6px">La movilidad no cuenta como volumen de entrenamiento.</div></div>
+${links(['Repasar lista','Saltar'])}</div>`;
+S.mobRest=()=>`<div class="card mob"><div class="head"><span class="dot"></span><span class="eyebrow">Movilidad · descanso</span><span class="meta">0:45</span></div>
+<div class="hero"><span class="v">0:45</span><span class="u">restante</span></div><div class="track"><i style="width:70%"></i></div>
+<div class="body"><div class="field">Saltar descanso · +15 s</div><div class="note" style="margin-top:8px">El descanso de movilidad es opcional y no altera el reloj global.</div></div>
+${links(['Saltar descanso','Continuar'])}</div>`;
+S.warmList=()=>`<div class="card warm"><div class="head"><span class="dot"></span><span class="eyebrow">Aproximación</span><span class="meta">100 kg objetivo</span></div>
+<div class="hero"><span class="v">60</span><span class="u">kg</span><span class="side"><b>× 5</b><span>40 % · 90″</span></span></div>
+<div class="sub">Serie A2 de la escalera</div><div class="track"><i style="width:45%"></i></div>
+<div class="body">${[['A1','20 %','20','× 10','60″','done'],['A2','40 %','60','× 5','90″','on'],['A3','60 %','75','× 3','90″',''],['A4','80 %','90','× 1','120″','']].map(r=>`<div class="wrow ${r[5]}"><span class="widx">${r[0]}</span><span class="wpct">${r[1]}</span><span class="wkg">${r[2]}<em>kg</em></span><span class="wreps">${r[3]}</span><span class="wrest">${r[4]}</span></div>`).join('')}</div>
+${links(['Añadir serie','Continuar con series'])}</div>`;
+S.warmSkip=()=>`<div class="card warm"><div class="head"><span class="dot"></span><span class="eyebrow">Aproximación</span><span class="meta">omitida</span></div>
+<div class="hero"><span class="v">—</span><span class="u"></span><span class="side"><b>0/4</b><span>series</span></span></div>
+<div class="body" style="justify-content:center;align-items:center;text-align:center"><div class="eyebrow">FASE OMITIDA</div><div class="note" style="margin-top:6px">No se registró ninguna aproximación.</div></div>
+${links(['Recuperar fase','Continuar con series'])}</div>`;
+S.warmRest=()=>`<div class="card warm"><div class="head"><span class="dot"></span><span class="eyebrow">Aproximación · descanso</span><span class="meta">1:12</span></div>
+<div class="hero"><span class="v">1:12</span><span class="u">restante</span></div><div class="track"><i style="width:58%"></i></div>
+<div class="body"><div class="field">Siguiente A3 · 75 kg × 3</div><div class="note" style="margin-top:8px">Ajusta el kg de la siguiente fila antes de que acabe.</div></div>
+${links(['Saltar descanso','Continuar'])}</div>`;
+S.warmAdd=()=>sheet('Añadir aproximación','Se inserta al final de la escalera',[['1','A5 · 90 % · 95 kg × 1',''],['2','Calcular desde la serie efectiva','auto']],`<div class="chipline"><span class="chip on">Automática</span><span class="chip">Manual</span></div>`);
+S.rest=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Descanso</span><span class="meta">entre series</span></div>
+<div class="hero"><span class="v">1:12</span><span class="u">restante</span><span class="side"><b>2:00</b><span>total</span></span></div><div class="track"><i style="width:40%"></i></div>
+<div class="body"><div class="band" style="background:rgba(127,227,176,.08);border-color:rgba(127,227,176,.25);color:var(--green)">Sugerido 1:30 · última serie RIR 2</div>
+<div class="field" style="margin-top:8px">−15 s · Saltar · +15 s</div><div class="note" style="margin-top:8px">Siguiente: serie 4 · 100 kg × 8</div></div>
+${links(['Minimizar','Saltar descanso'])}</div>`;
+S.overrun=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Tiempo extra</span><span class="meta">+0:24</span></div>
+<div class="hero"><span class="v">+0:24</span><span class="u">de más</span></div>
+<div class="body"><div class="band">El descanso se pasó; el siguiente set puede verse afectado.</div><div class="field" style="margin-top:8px">Registrar igualmente · reiniciar</div></div>
+${links(['Saltar','Ajustar siguiente'])}</div>`;
+S.mini=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Descanso minimizado</span><span class="meta">1:12</span></div>
+<div class="hero"><span class="v">1:12</span><span class="u">en el chip</span></div>
+<div class="body"><div class="field">Descanso 1:12 · +15 s</div><div class="note" style="margin-top:8px">El chip vive en el header y abre la tarjeta completa.</div></div>
+${links(['Abrir descanso','+15 s'])}</div>`;
+S.game=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Juego de descanso</span><span class="meta">1:12</span></div>
+<div class="hero"><span class="v">1:12</span><span class="u">restante</span></div>
+<div class="body"><div class="field">Mini-juego activo · récord 18</div><div class="note" style="margin-top:8px">Se puede desactivar sin perder el descanso.</div></div>
+${links(['Desactivar juego','Saltar'])}</div>`;
+S.feedback=()=>`<div class="card work"><div class="head"><span class="dot"></span><span class="eyebrow">Feedback del ejercicio</span><span class="meta">4 series</span></div>
+<div class="hero"><span class="v">8</span><span class="u">esfuerzo</span><span class="side"><b>2</b><span>molestias</span></span></div>
+<div class="body"><div class="seg" style="margin-top:4px"><b class="on">Bien</b><b>Regular</b><b>Mal</b></div>
+<div class="field" style="margin-top:8px">Calidad técnica · molestias · nota</div><div class="note" style="margin-top:8px">Se guarda con el ejercicio, no con la serie.</div></div>
+${links(['Saltar feedback','Guardar'])}</div>`;
+S.menu=()=>sheet('Menú de la sesión','Todas las acciones, en un solo sitio',[
+ ['1','Reordenar ejercicios',''],['2','Notas de la sesión',''],['3','Hitos del día',''],['4','Fotos y medios',''],['5','Temporizador global',''],['6','Calorías del cardio',''],['7','Ajustes de la sesión',''],['8','Salir del entreno','']
+]);
+S.route=()=>sheet('Ruta de la sesión','Pierna · Semana 1',[
+ ['1','Movilidad','hecho'],['2','Aproximación','hecho'],['3','Sentadilla trasera','en curso'],['4','Peso muerto rumano',''],['5','Prensa de piernas','']
+]);
+S.timer=()=>sheet('Temporizador','Global de la sesión',[['▶','Correr / pausar','1:47'],['−','−1 min',''],['+','+1 min','']]);
+S.notes=()=>sheet('Nota de la sesión','Se guarda al escribir',[],`<div class="field" style="height:90px;align-items:flex-start;padding-top:10px">Escribe una nota…</div>`);
+S.milestones=()=>sheet('Hitos del día','Solo los reales',[['★','PR e1RM · Sentadilla','112,5 kg'],['★','Meta estrella · Prensa','214 kg'],['—','Sin más hitos','']]);
+S.photos=()=>sheet('Fotos de la sesión','Álbum y captura',[['1','Cámara',''],['2','Álbum','8 fotos'],['3','Vídeo técnico','2'],['4','Compartir historia','']]);
+S.calories=()=>sheet('Calorías','Solo cardio',[['—','Fuerza','sin estimación'],['1','Cinta · 2,4 km','210 kcal'],['2','Método MET','nota al pie']]);
+S.reorder=()=>sheet('Reordenar','Cambia el orden del día',[['≡','Sentadilla trasera',''],['≡','Peso muerto rumano',''],['≡','Prensa de piernas',''],['≡','Curl femoral','']]);
+S.mesa=()=>`<div class="table">${tableRows()}</div>`;
+S.mesaMedia=()=>`<div class="table">${tableRows(true)}</div>`;
+function tableRows(withMedia){return `
+<div class="tghead"><span class="nm">Sentadilla trasera</span><span class="meta">100 kg · 4 series</span></div>
+<div class="tr done"><span class="idx">A1</span><span class="ex">20 %</span><span class="ld">20 × 10</span><span class="ef"></span><span class="st">✓</span></div>
+<div class="tr done"><span class="idx">A2</span><span class="ex">40 %</span><span class="ld">60 × 5</span><span class="ef"></span><span class="st">✓</span></div>
+<div class="tr done"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 3</span><span class="st">✓</span></div>
+<div class="tr done"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">✓</span></div>
+<div class="tr active"><span class="idx">3</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">●</span></div>
+<div class="editor"><div class="edrow"><span class="big">100</span><span class="u">kg</span><div class="mini"><span>−2,5</span><span>+2,5</span></div></div>
+<div class="edrow2"><div class="rir"><span>0</span><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><span class="e1">e1RM 112,5</span></div>
+${withMedia?`<div class="mode" style="margin-top:8px"><b class="on">Foto</b><b>Vídeo</b><b>Ficha</b></div><div class="thumbs" style="margin-top:6px"><i>Antes</i><i>Serie 2</i><i>PR</i><i>Álbum</i></div><div class="note" style="margin-top:6px">Modo visual integrado en la fila activa: no abre otra pantalla.</div>`:''}</div>
+<div class="tr"><span class="idx">4</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">—</span><span class="st">·</span></div>
+<div class="tghead" style="margin-top:10px"><span class="nm">Peso muerto rumano</span><span class="meta">140 kg · 3 series</span></div>
+<div class="tr done"><span class="idx">A1</span><span class="ex">60 %</span><span class="ld">80 × 5</span><span class="ef"></span><span class="st">✓</span></div>
+<div class="tr"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">RIR 2</span><span class="st">·</span></div>
+<div class="tr"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">—</span><span class="st">·</span></div>`}
+function sheet(title,desc,rows,extra=''){return `<div class="scrim"></div><div class="sheet"><div class="handle"></div><div class="stitle">${title}</div><div class="sdesc">${desc}</div>
+${rows.map(r=>`<div class="srow"><span class="k">${r[0]}</span><span>${r[1]}</span><span class="x ${r[2]==='hecho'||r[2]==='sí'?'on':''}">${r[2]}</span></div>`).join('')}${extra}</div>`}
+
+/* ───────── render ───────── */
+const TITLES={mobMove:['Movilidad','Pierna · 6 movimientos'],mobList:['Movilidad','Lista de la fase'],mobGlobal:['Movilidad','Objetivo global'],mobDone:['Movilidad','Fase completada'],mobRest:['Movilidad','Descanso'],warmList:['Aproximación','Sentadilla trasera · A2 de 4'],warmSkip:['Aproximación','Fase omitida'],warmRest:['Aproximación','Descanso'],warmAdd:['Aproximación','Añadir serie'],rest:['Descanso','Entre series'],overrun:['Descanso','Tiempo extra'],mini:['Descanso','Minimizado'],game:['Descanso','Juego'],feedback:['Feedback','Sentadilla trasera'],menu:['Sesión','Menú'],route:['Sesión','Ruta'],timer:['Sesión','Temporizador'],notes:['Sesión','Notas'],milestones:['Sesión','Hitos'],photos:['Sesión','Fotos'],calories:['Sesión','Calorías'],reorder:['Sesión','Reordenar'],mesa:['Pierna · Semana 1','9 ejercicios · 34 series'],mesaMedia:['Pierna · Semana 1','Mesa con modo visual']};
+const ACT={reps:'Registrar serie',amrap:'Registrar AMRAP',rm:'Registrar RM',soloRpe:'Registrar serie',time:'Detener y registrar',distance:'Registrar distancia',custom:'Registrar serie',update:'Guardar cambio',failed:'Registrar fallida',pr:'Registrar PR',loadReq:'Registrar serie',replaced:'Registrar serie',uni:'Registrar izquierda',skipped:'Recuperar serie',technique:'Volver a la serie',media:'Volver a la serie',history:'Registrar serie',tags:'Aplicar etiqueta',options:'Aplicar',amrapCfg:'Guardar configuración',discomfort:'Guardar molestia',drop:'Registrar tramo',pause:'Registrar tramo',myo:'Registrar mini-serie',chain:'Volver a la serie',mobMove:'Hecho · siguiente',mobList:'Volver al movimiento',mobGlobal:'Terminar movilidad',mobDone:'Continuar',mobRest:'Saltar descanso',warmList:'Marcar A2',warmSkip:'Continuar con series',warmRest:'Saltar descanso',warmAdd:'Añadir A5',rest:'Saltar descanso',overrun:'Saltar',mini:'Abrir descanso',game:'Saltar',feedback:'Guardar feedback',menu:'Cerrar',route:'Ir al bloque',timer:'Cerrar',notes:'Guardar nota',milestones:'Cerrar',photos:'Cerrar',calories:'Cerrar',reorder:'Aplicar orden',mesa:'Registrar serie',mesaMedia:'Registrar serie'};
+function render(id){
+  const t=TITLES[id]||['Sentadilla trasera','Serie 3 de 4 · 100 kg'];
+  const isSheet=['history','tags','options','amrapCfg','discomfort','warmAdd','menu','route','timer','notes','milestones','photos','calories','reorder'].includes(id);
+  const isTable=id==='mesa'||id==='mesaMedia';
+  let inner='';
+  if(isTable){ inner=`<div class="zone" style="display:block;align-items:initial;padding:0">${S[id]()}</div>`; }
+  else if(isSheet){ inner=`<div class="zone" style="align-items:center;justify-content:center"><div class="note" style="text-align:center">La hoja se abre sobre la tarjeta</div></div>`; }
+  else { inner=`<div class="zone">${S[id]()}</div>`; }
+  document.getElementById('phone').innerHTML=`<div class="screen">${head(...t)}${inner}${bottom(ACT[id]||'Registrar serie',2)}${isSheet?S[id]():''}</div>`;
+}
+function buildIndex(){
+  const el=document.getElementById('index');
+  el.innerHTML=G.map(([g,items])=>`<div class="g">${g}</div>`+items.map(([id,t,d])=>`<button class="it" data-id="${id}"><span>${t}</span><small>${d}</small></button>`).join('')).join('');
+  el.addEventListener('click',e=>{const b=e.target.closest('.it');if(!b)return;select(b.dataset.id)});
+}
+function select(id){
+  document.querySelectorAll('.it').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+  render(id); location.hash=id;
+}
+buildIndex();
+select(location.hash.replace('#','')||'reps');
+</script>
+</body>
+</html>

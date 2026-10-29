@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zonas de cardio · KPKN Cardio v2</title>
+<link rel="stylesheet" href="kpkn-mock.css">
+<style>
+/* ── Zonas de cardio · piezas específicas de esta pantalla ─────────────── */
+
+/* Zona táctil mínima de 48 px en toda la pantalla */
+.phone .icon-btn { width: 48px; height: 48px; }
+.phone .seg button { height: 48px; }
+
+.scr { padding: 0 16px 12px; }
+.scr > * + * { margin-top: 12px; }
+
+.intro { margin: 0 2px; font-size: 12.5px; line-height: 1.4; color: var(--text-2); }
+.sec-title { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--text-3); }
+.zcap { margin: -2px 0 8px; font-size: 12px; line-height: 1.35; color: var(--text-3); }
+
+/* FC máxima */
+.maxhr { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; }
+.maxhr-num { font-family: var(--font-display); font-weight: 800; font-size: 46px; line-height: 1; letter-spacing: -0.01em; }
+.maxhr-num.is-empty { color: var(--text-3); }
+.maxhr-unit { margin-left: 6px; font-size: 14px; color: var(--text-2); }
+.maxhr .badge { margin-left: auto; }
+.badge-soft { background: var(--primary-soft); color: var(--primary); }
+
+/* Opciones de fórmula */
+.opts { margin-top: 12px; padding: 4px; border-radius: var(--r-md); background: var(--card-2); }
+.opt { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 4px 10px; border-radius: 10px; font-size: 13px; }
+.opt + .opt { margin-top: 2px; }
+.opt.is-selected { background: rgba(208, 188, 255, 0.12); }
+.opt-label { flex: 1; }
+.radio { width: 20px; height: 20px; flex: 0 0 20px; border-radius: 50%; border: 2px solid var(--line-strong); }
+.radio.is-on { border-color: var(--primary); background: radial-gradient(circle at center, var(--primary) 0 4.5px, transparent 5px); }
+
+/* Aviso en línea */
+.notice { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0; font-size: 12.5px; line-height: 1.4; color: var(--text-2); }
+.notice .icon { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; color: var(--primary); }
+
+/* Campos */
+.card .field + .field, .card .notice + .field { margin-top: 12px; }
+.field .input .val { font-weight: 500; }
+.field .input .unit { margin-left: 6px; font-size: 13px; color: var(--text-3); }
+.field .input .chev { width: 20px; height: 20px; margin-left: auto; color: var(--text-3); }
+
+/* Método de zonas */
+.mopts > * + * { margin-top: 6px; }
+.mopt { padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); }
+.mopt.is-selected { background: var(--primary-soft); border-color: transparent; }
+.mopt.is-disabled { opacity: 0.45; }
+.mopt-head { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.mopt-sub { margin: 3px 0 0 30px; font-size: 12px; line-height: 1.35; color: var(--text-3); }
+.mini { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -2px; }
+
+/* Barras de zona */
+.zlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.zbar { padding: 4px 12px; border-radius: 10px; color: #0F0F0F; }
+.zbar .ztop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+.zbar .zsub { font-size: 11.5px; line-height: 1.3; color: rgba(15, 15, 15, 0.72); }
+.zb1 { background: var(--z1); } .zb2 { background: var(--z2); } .zb3 { background: var(--z3); }
+.zb4 { background: var(--z4); } .zb5 { background: var(--z5); }
+.pb1 { background: var(--p1); } .pb2 { background: var(--p2); } .pb3 { background: var(--p3); }
+.pb4 { background: var(--p4); } .pb5 { background: var(--p5); } .pb6 { background: var(--p6); }
+.pb7 { background: var(--p7); }
+
+/* Estado vacío de la vista previa */
+.empty { padding: 20px 16px; border: 1px dashed var(--line-strong); border-radius: var(--r-md); text-align: center; color: var(--text-3); font-size: 12.5px; line-height: 1.45; }
+.empty .icon { width: 28px; height: 28px; margin-bottom: 4px; }
+.empty .zone-tape { max-width: 190px; margin: 14px auto 0; }
+
+/* Perfil (punto de entrada) */
+.profile-row { display: flex; align-items: center; gap: 14px; padding: 4px 4px 0; }
+.avatar { width: 56px; height: 56px; border-radius: 999px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-family: var(--font-display); font-weight: 700; font-size: 22px; }
+.row-link { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 0; }
+.row-link + .row-link { border-top: 1px solid var(--line); }
+.row-link .r-title { font-size: 14px; font-weight: 500; }
+.row-link .r-sub { font-size: 12px; color: var(--text-3); }
+.row-link .r-val { margin-left: auto; font-size: 13px; color: var(--text-2); }
+.row-link .chev { width: 20px; height: 20px; color: var(--text-3); }
+.entry { padding: 6px 12px; border: 1px solid rgba(208, 188, 255, 0.25); border-radius: var(--r-md); background: rgba(208, 188, 255, 0.07); }
+.entry .icon-lead { width: 22px; height: 22px; color: var(--primary); }
+.bottomnav { flex: 0 0 auto; display: flex; justify-content: space-around; padding: 8px 6px; background: var(--surface); border-top: 1px solid var(--line); }
+.bnav { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 64px; padding: 4px 0; color: var(--text-3); font-size: 10.5px; }
+.bnav.is-active { color: var(--primary); }
+
+/* Rueda mm:ss de la hoja inferior */
+.wheel { position: relative; display: flex; justify-content: center; gap: 28px; height: 200px; margin: 10px 0 2px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent); }
+.wheel::before { content: ""; position: absolute; left: 24px; right: 24px; top: 80px; height: 40px; border-radius: 12px; background: var(--primary-soft); }
+.wheel-col { position: relative; width: 72px; text-align: center; }
+.wheel-col span { display: block; height: 40px; line-height: 40px; font-size: 21px; font-weight: 600; color: var(--text-3); }
+.wheel-col span.sel { color: var(--primary); }
+.sheet-actions { display: flex; gap: 10px; margin-top: 14px; }
+.sheet-actions .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <h1>Zonas de cardio</h1>
+  <p>Propuesta de la pantalla de umbrales del atleta y zonas de entrenamiento: pulsaciones, vatios y ritmo. Cada teléfono es un estado distinto de la misma pantalla, con la misma tipografía, superficies y paleta OLED que la app.</p>
+  <p>Los datos son opcionales y las zonas describen sensaciones y esfuerzo, nunca promesas metabólicas. Usa los enlaces de arriba para ver el resto de pantallas de cardio v2.</p>
+  <nav class="page-nav">
+    <a href="index.html">Resumen</a>
+    <a href="editor.html">Editor</a>
+    <a href="live.html">En vivo</a>
+    <a href="transiciones.html">Transiciones</a>
+    <a href="zonas.html" aria-current="page">Zonas</a>
+  </nav>
+</header>
+
+<!-- ══════════ Acceso y primeros datos ══════════ -->
+<section class="section">
+  <h2>Acceso y primeros datos</h2>
+  <p>La pantalla se abre desde Perfil, junto a los datos corporales. Con la edad puesta, las zonas se calculan solas; sin edad, la app la pide con un campo en línea y no inventa ningún valor.</p>
+  <div class="gallery">
+
+    <!-- S1 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="title">Perfil</div>
+            <button class="icon-btn" aria-label="Ajustes"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .3 1.8l.1.2a2 2 0 1 1-2.8 2.8l-.2-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.2.1a2 2 0 1 1-2.8-2.8l.1-.2a1.7 1.7 0 0 0-1.2-2.9 2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.2a2 2 0 1 1 2.8-2.8l.2.1a1.7 1.7 0 0 0 2.9-1.2 2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.2-.1a2 2 0 1 1 2.8 2.8l-.1.2a1.7 1.7 0 0 0 1.2 2.9 2 2 0 1 1 0 4 1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+          </div>
+          <div class="scr">
+            <div class="profile-row">
+              <div class="avatar">V</div>
+              <div>
+                <div class="title-m">Valen</div>
+                <div class="caption num">30 años · 72,4 kg · 178 cm</div>
+              </div>
+            </div>
+
+            <section class="card">
+              <h3 class="sec-title">Datos y objetivo</h3>
+              <div class="row-link"><div><div class="r-title">Peso</div><div class="r-sub">Actualizado hace 3 días</div></div><div class="r-val num">72,4 kg</div><svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+              <div class="row-link"><div><div class="r-title">Altura</div></div><div class="r-val num">178 cm</div><svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+              <div class="row-link"><div><div class="r-title">Objetivo principal</div></div><div class="r-val">Mantenerme en forma</div><svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Cardio</h3>
+              <div class="entry">
+                <div class="row-link">
+                  <svg class="icon icon-lead" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>
+                  <div><div class="r-title">Zonas de cardio</div><div class="r-sub num">FC máx 187 lpm · 5 zonas</div></div>
+                  <svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </div>
+              </div>
+            </section>
+          </div>
+          <nav class="bottomnav">
+            <div class="bnav"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg><span>Inicio</span></div>
+            <div class="bnav"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg><span>Entrenos</span></div>
+            <div class="bnav"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M6 17v-6M12 17V7M18 17v-9"/></svg><span>Progreso</span></div>
+            <div class="bnav is-active"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Perfil</span></div>
+          </nav>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S1 · Punto de entrada en Perfil</strong><span>Resumen «FC máx 187 lpm · 5 zonas» con chevron, junto a los datos corporales.</span></figcaption>
+    </figure>
+
+    <!-- S2 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Frecuencia cardíaca máxima</h3>
+              <div class="maxhr">
+                <div><span class="maxhr-num is-empty num">— —</span><span class="maxhr-unit">lpm</span></div>
+                <span class="badge">Sin edad</span>
+              </div>
+              <div class="seg" role="tablist" aria-label="Modo de FC máxima">
+                <button role="tab" aria-selected="true">Fórmula</button>
+                <button role="tab" aria-selected="false">Manual</button>
+              </div>
+              <div class="notice">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+                <span>Necesitamos tu edad para estimar tu FC máxima.</span>
+              </div>
+              <div class="field">
+                <label for="s2-edad">Tu edad</label>
+                <div class="input" id="s2-edad"><span class="val" style="color:var(--text-3)">Por ejemplo, 30</span><span class="unit">años</span></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <div class="empty">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>
+                <div>Tus zonas aparecerán aquí cuando añadas tu edad.<br>No mostramos valores inventados.</div>
+                <div class="zone-tape" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S2 · Sin edad</strong><span>Se pide la edad en línea y la vista previa queda en un estado vacío amable.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ══════════ Zonas de frecuencia cardíaca ══════════ -->
+<section class="section">
+  <h2>Zonas de frecuencia cardíaca</h2>
+  <p>Cinco zonas con tres métodos. El color fuerte se reserva a las zonas: el resto de la interfaz va en tonos apagados y cada zona se explica con el test del habla, sin promesas metabólicas.</p>
+  <div class="gallery">
+
+    <!-- S3 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Frecuencia cardíaca máxima</h3>
+              <div class="maxhr">
+                <div><span class="maxhr-num num">187</span><span class="maxhr-unit">lpm</span></div>
+                <span class="badge badge-soft">Tanaka · 30 años</span>
+              </div>
+              <div class="seg" role="tablist" aria-label="Modo de FC máxima">
+                <button role="tab" aria-selected="true">Fórmula</button>
+                <button role="tab" aria-selected="false">Manual</button>
+              </div>
+              <div class="opts">
+                <div class="opt is-selected"><span class="radio is-on"></span><span class="opt-label">Tanaka · 208 − 0,7 × edad</span><span class="badge badge-soft">recomendada</span></div>
+                <div class="opt"><span class="radio"></span><span class="opt-label">Clásica · 220 − edad</span></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">94–111 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">112–130 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">131–149 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">150–167 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">168–187 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S3 · Fórmula Tanaka · 30 años</strong><span>FC máx 187 lpm con el método «% de tu FC máxima».</span></figcaption>
+    </figure>
+
+    <!-- S4 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Frecuencia cardíaca máxima</h3>
+              <div class="maxhr">
+                <div><span class="maxhr-num num">192</span><span class="maxhr-unit">lpm</span></div>
+                <span class="badge">Medida por ti</span>
+              </div>
+              <div class="seg" role="tablist" aria-label="Modo de FC máxima">
+                <button role="tab" aria-selected="false">Fórmula</button>
+                <button role="tab" aria-selected="true">Manual</button>
+              </div>
+              <div class="field">
+                <label for="s4-fcmax">FC máxima manual</label>
+                <div class="input" id="s4-fcmax"><span class="val num">192</span><span class="unit">lpm</span></div>
+                <div class="help">Úsala si la conoces de una prueba de esfuerzo</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">96–114 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">115–133 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">134–153 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">154–172 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">173–192 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S4 · FC máxima manual · 192 lpm</strong><span>Las zonas se recalculan al instante al escribir el valor medido.</span></figcaption>
+    </figure>
+
+    <!-- S5 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Método de zonas</h3>
+              <div class="mopts">
+                <div class="mopt">
+                  <div class="mopt-head"><span class="radio"></span><span>% de tu FC máxima</span></div>
+                  <div class="mopt-sub">La más simple · solo usa tu FC máxima</div>
+                </div>
+                <div class="mopt is-selected">
+                  <div class="mopt-head"><span class="radio is-on"></span><span>Reserva de FC (Karvonen)</span></div>
+                  <div class="mopt-sub num">Usa tu FC en reposo: 58 lpm</div>
+                </div>
+                <div class="mopt is-disabled">
+                  <div class="mopt-head"><span class="radio"></span><span>Umbral láctico</span></div>
+                  <div class="mopt-sub"><svg class="mini" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Necesitas tu FC de umbral láctico</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <p class="zcap num">Reserva de FC (Karvonen) · FC máx 187 lpm · FC en reposo 58 lpm</p>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">123–134 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">135–147 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">148–160 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">161–173 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">174–187 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S5 · Reserva de FC (Karvonen)</strong><span>Con FC en reposo 58 lpm las zonas suben y se ajustan a ti.</span></figcaption>
+    </figure>
+
+    <!-- S6 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Método de zonas</h3>
+              <div class="mopts">
+                <div class="mopt is-selected">
+                  <div class="mopt-head"><span class="radio is-on"></span><span>% de tu FC máxima</span></div>
+                  <div class="mopt-sub">La más simple · solo usa tu FC máxima</div>
+                </div>
+                <div class="mopt">
+                  <div class="mopt-head"><span class="radio"></span><span>Reserva de FC (Karvonen)</span></div>
+                  <div class="mopt-sub">Ajusta las zonas según tu FC en reposo</div>
+                </div>
+                <div class="mopt is-disabled">
+                  <div class="mopt-head"><span class="radio"></span><span>Umbral láctico</span></div>
+                  <div class="mopt-sub"><svg class="mini" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Necesitas tu FC de umbral láctico para usarla</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <p class="zcap num">% de tu FC máxima · FC máx 187 lpm</p>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">94–111 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">112–130 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">131–149 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">150–167 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">168–187 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S6 · Umbral láctico no disponible</strong><span>Opción deshabilitada con el motivo a la vista, sin saltos de maqueta.</span></figcaption>
+    </figure>
+
+    <!-- S7 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Otros datos</h3>
+              <div class="field">
+                <label for="s7-umbral">FC de umbral láctico</label>
+                <div class="input" id="s7-umbral"><span class="val num">168</span><span class="unit">lpm</span></div>
+                <div class="help">La que sostienes unos 30 minutos a tope</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <p class="zcap num">Umbral láctico · FC de umbral 168 lpm</p>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">&lt; 143 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">143–150 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">151–159 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">160–167 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">168–187 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S7 · Umbral láctico · 168 lpm</strong><span>Zonas basadas en el esfuerzo que sostienes, con Z1 abierta.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ══════════ Potencia y ritmo ══════════ -->
+<section class="section">
+  <h2>Potencia y ritmo</h2>
+  <p>Si existe FTP aparecen las siete zonas de potencia; si existe ritmo umbral, las cinco zonas de ritmo en min/km. Mismo lenguaje visual, unidades propias de cada métrica.</p>
+  <div class="gallery">
+
+    <!-- S8 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Otros datos</h3>
+              <div class="field">
+                <label for="s8-ftp">FTP en vatios</label>
+                <div class="input" id="s8-ftp"><span class="val num">220</span><span class="unit">W</span></div>
+                <div class="help">La potencia que sostienes cerca de una hora en bici</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de potencia</h3>
+              <p class="zcap num">% de tu FTP · FTP 220 W</p>
+              <ul class="zlist">
+                <li class="zbar pb1"><div class="ztop"><span>Z1 · Recuperación activa</span><span class="num">0–120 W</span></div><div class="zsub">Calentamientos y vueltas fáciles</div></li>
+                <li class="zbar pb2"><div class="ztop"><span>Z2 · Resistencia</span><span class="num">121–164 W</span></div><div class="zsub">Rodajes largos a ritmo cómodo</div></li>
+                <li class="zbar pb3"><div class="ztop"><span>Z3 · Tempo</span><span class="num">165–197 W</span></div><div class="zsub">Esfuerzo medio sostenido</div></li>
+                <li class="zbar pb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">198–230 W</span></div><div class="zsub">Cerca de tu FTP</div></li>
+                <li class="zbar pb5"><div class="ztop"><span>Z5 · VO₂ máx</span><span class="num">231–263 W</span></div><div class="zsub">Series intensas de 3 a 8 minutos</div></li>
+                <li class="zbar pb6"><div class="ztop"><span>Z6 · Capacidad anaeróbica</span><span class="num">264–329 W</span></div><div class="zsub">Sprints de 30 segundos a 3 minutos</div></li>
+                <li class="zbar pb7"><div class="ztop"><span>Z7 · Neuromuscular</span><span class="num">≥ 330 W</span></div><div class="zsub">Sprints máximos muy cortos</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S8 · Zonas de potencia · FTP 220 W</strong><span>Siete zonas con la escala de Coggan y la gama de potencia completa.</span></figcaption>
+    </figure>
+
+    <!-- S9 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Otros datos</h3>
+              <div class="field">
+                <label for="s9-ritmo">Ritmo umbral en min/km</label>
+                <div class="input" id="s9-ritmo"><span class="val num">4:50</span><span class="unit">/km</span><svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+                <div class="help">El ritmo que sostienes cerca de una hora corriendo</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de ritmo</h3>
+              <p class="zcap num">Según tu ritmo umbral · 4:50 /km</p>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Recuperación</span><span class="num">≥ 6:14 /km</span></div><div class="zsub">Trote muy suave y recuperación</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Aeróbico</span><span class="num">5:31–6:13 /km</span></div><div class="zsub">Rodajes largos y cómodos</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Tempo</span><span class="num">5:07–5:30 /km</span></div><div class="zsub">Ritmo medio sostenido</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">4:47–5:06 /km</span></div><div class="zsub">Cerca de tu ritmo umbral</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · VO₂ máx</span><span class="num">≤ 4:46 /km</span></div><div class="zsub">Series rápidas cortas</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S9 · Zonas de ritmo · umbral 4:50 /km</strong><span>Cinco zonas en min/km, del ritmo más lento al más rápido.</span></figcaption>
+    </figure>
+
+    <!-- S10 -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Otros datos</h3>
+              <div class="field">
+                <label for="s10-ritmo">Ritmo umbral en min/km</label>
+                <div class="input" id="s10-ritmo"><span class="val num">4:50</span><span class="unit">/km</span><svg class="icon chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+                <div class="help">El ritmo que sostienes cerca de una hora corriendo</div>
+              </div>
+            </section>
+
+            <div class="scrim"></div>
+            <div class="sheet" role="dialog" aria-label="Elegir ritmo umbral">
+              <div class="title-m">Ritmo umbral</div>
+              <div class="caption" style="margin-top:2px">El ritmo que sostienes cerca de una hora corriendo</div>
+              <div class="wheel" aria-hidden="true">
+                <div class="wheel-col"><span>2</span><span>3</span><span class="sel">4</span><span>5</span><span>6</span></div>
+                <div class="wheel-col"><span>48</span><span>49</span><span class="sel">50</span><span>51</span><span>52</span></div>
+              </div>
+              <div class="sheet-actions">
+                <button class="btn btn-ghost">Cancelar</button>
+                <button class="btn btn-primary">Usar 4:50 /km</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S10 · Selector de ritmo umbral</strong><span>Rueda mm:ss en una hoja inferior; se confirma al terminar.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ══════════ Validación ══════════ -->
+<section class="section">
+  <h2>Validación</h2>
+  <p>Los errores se muestran junto al campo que los produce, con el motivo concreto, y no bloquean el resto de la pantalla. Nunca se calculan zonas con datos inválidos.</p>
+  <div class="gallery">
+
+    <!-- S11a -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Otros datos</h3>
+              <div class="field">
+                <label for="s11-reposo">FC en reposo</label>
+                <div class="input is-error" id="s11-reposo"><span class="val num" style="color:var(--danger)">140</span><span class="unit">lpm</span></div>
+                <div class="help">Mídela al despertar, antes de levantarte</div>
+                <div class="error">Debe ser menor que tu FC máxima (187)</div>
+              </div>
+              <div class="field">
+                <label for="s11-umbral">FC de umbral láctico</label>
+                <div class="input" id="s11-umbral"><span class="val" style="color:var(--text-3)">Sin datos</span><span class="unit">lpm</span></div>
+                <div class="help">La que sostienes unos 30 minutos a tope</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <p class="zcap num">% de tu FC máxima · FC máx 187 lpm</p>
+              <ul class="zlist">
+                <li class="zbar zb1"><div class="ztop"><span>Z1 · Calentamiento</span><span class="num">94–111 lpm</span></div><div class="zsub">Muy fácil: respiras con total comodidad</div></li>
+                <li class="zbar zb2"><div class="ztop"><span>Z2 · Suave</span><span class="num">112–130 lpm</span></div><div class="zsub">Puedes mantener una conversación</div></li>
+                <li class="zbar zb3"><div class="ztop"><span>Z3 · Aeróbico</span><span class="num">131–149 lpm</span></div><div class="zsub">Hablas en frases cortas</div></li>
+                <li class="zbar zb4"><div class="ztop"><span>Z4 · Umbral</span><span class="num">150–167 lpm</span></div><div class="zsub">Solo palabras sueltas</div></li>
+                <li class="zbar zb5"><div class="ztop"><span>Z5 · Máximo</span><span class="num">168–187 lpm</span></div><div class="zsub">No puedes hablar</div></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S11a · Error · FC en reposo 140 lpm</strong><span>El motivo aparece bajo el campo; la ayuda del campo se conserva.</span></figcaption>
+    </figure>
+
+    <!-- S11b -->
+    <figure class="mock">
+      <div class="phone">
+        <div class="statusbar"><span class="num">9:41</span><span class="icons">
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" aria-hidden="true"><path d="M7.5 9.8 9.7 7.6a3.1 3.1 0 0 0-4.4 0L7.5 9.8Zm0-8.6c2.6 0 5 1 6.8 2.7l-1.2 1.2A8 8 0 0 0 7.5 3 8 8 0 0 0 1.9 5.1L.7 3.9A9.6 9.6 0 0 1 7.5 1.2Zm0 3.4c1.7 0 3.3.7 4.5 1.8l-1.2 1.2a4.7 4.7 0 0 0-6.6 0L3 6.4a6.3 6.3 0 0 1 4.5-1.8Z"/></svg>
+          <svg width="22" height="11" viewBox="0 0 22 11" fill="none" aria-hidden="true"><rect x="1" y="1.5" width="17" height="8" rx="2.2" stroke="currentColor" stroke-width="1.2"/><rect x="2.8" y="3.3" width="11" height="4.4" rx="1" fill="currentColor"/><path d="M20 4.2v2.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </span></div>
+        <div class="screen">
+          <div class="topbar">
+            <button class="icon-btn" aria-label="Volver"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div class="title">Zonas de cardio</div>
+          </div>
+          <div class="scr">
+            <p class="intro">Tus zonas convierten objetivos como «Zona 2» u «85 % del FTP» en pulsaciones, vatios o ritmo reales. Todos los datos son opcionales.</p>
+
+            <section class="card">
+              <h3 class="sec-title">Frecuencia cardíaca máxima</h3>
+              <div class="maxhr">
+                <div><span class="maxhr-num is-empty num">— —</span><span class="maxhr-unit">lpm</span></div>
+                <span class="badge">Valor no válido</span>
+              </div>
+              <div class="seg" role="tablist" aria-label="Modo de FC máxima">
+                <button role="tab" aria-selected="false">Fórmula</button>
+                <button role="tab" aria-selected="true">Manual</button>
+              </div>
+              <div class="field">
+                <label for="s11-fcmax">FC máxima manual</label>
+                <div class="input is-error" id="s11-fcmax"><span class="val num" style="color:var(--danger)">260</span><span class="unit">lpm</span></div>
+                <div class="error">Introduce un valor entre 120 y 230 lpm</div>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="sec-title">Tus zonas de FC</h3>
+              <div class="empty">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>
+                <div>Corrige tu FC máxima para ver tus zonas.<br>Mientras tanto no calculamos nada.</div>
+                <div class="zone-tape" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="gesturebar"></div>
+      </div>
+      <figcaption><strong>S11b · Error · FC máxima manual 260 lpm</strong><span>Rango válido 120–230 lpm; sin zonas hasta corregir el valor.</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<div class="note">
+  <ul>
+    <li>Tipografía: Syne solo para el título de pantalla y el número grande de FC máxima; Inter con cifras tabulares para todo lo demás.</li>
+    <li>Color fuerte solo en las zonas (FC y ritmo con 5 tonos, potencia con 7); la estructura va en grises y lavanda apagada.</li>
+    <li>Rangos con raya (–), coma decimal y unidades explícitas: lpm, W y /km. Sin promesas metabólicas.</li>
+    <li>Todos los controles alcanzan 48 px de zona táctil: botón de volver, selector segmentado, opciones, campos y botones de la hoja inferior.</li>
+    <li>La edición se confirma al terminar cada campo (onDone o al perder el foco), tal y como pide la regresión del editor.</li>
+  </ul>
+</div>
+
+</body>
+</html>

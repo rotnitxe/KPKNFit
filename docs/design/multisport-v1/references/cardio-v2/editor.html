@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Cardio v2 · Editor de cardio</title>
+<link rel="stylesheet" href="kpkn-mock.css">
+<style>
+/* ── Ajustes de controles para tocar con el dedo (≥ 48 px) ─────────────── */
+.icon { flex: none; }
+.icon.s { width: 18px; height: 18px; }
+.icon.xs { width: 15px; height: 15px; }
+.sb { width: 14px; height: 14px; fill: currentColor; stroke: none; }
+.icon-btn { width: 48px; height: 48px; flex: none; }
+.seg { padding: 3px; }
+.seg button { height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 6px; white-space: nowrap; }
+.seg.sm button { font-size: 12.5px; }
+.stepper { padding: 3px; }
+.stepper button { width: 48px; height: 48px; display: grid; place-items: center; }
+.stepper output { min-width: 52px; font-variant-numeric: tabular-nums; }
+.btn.sm { padding: 0 14px; font-size: 14px; }
+.btn[disabled] { background: var(--surface-2); color: var(--text-3); cursor: not-allowed; }
+.link-btn { background: none; border: 0; color: var(--primary); font-weight: 600; font-size: 13px; height: 48px; padding: 0 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.chip.lg { height: 48px; padding: 0 16px; font-size: 14px; }
+.chip.kc { height: 44px; padding: 0 14px; font-size: 13.5px; }
+.chip .zone-dot { width: 8px; height: 8px; }
+
+/* ── Galería ───────────────────────────────────────────────────────────── */
+body { padding-bottom: 80px; }
+.page-head p { margin-bottom: 6px; }
+.mock figcaption { padding-right: 6px; }
+.reset { margin-top: 6px; background: none; border: 0; padding: 4px 0; color: var(--primary); font-size: 12.5px; cursor: pointer; }
+.phone .layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.phone .layer > * { pointer-events: auto; }
+.phone .gesturebar { position: relative; z-index: 6; }
+.phone .statusbar { position: relative; z-index: 1; }
+.phone .screen { scroll-behavior: auto; }
+.legend-note { max-width: 1240px; margin: 0 auto; padding: 18px 28px 0; color: var(--text-3); font-size: 13px; }
+
+/* ── Estructura de pantalla ────────────────────────────────────────────── */
+.sc { padding: 0 8px 18px; }
+.sc.g { padding: 0 14px 18px; }
+.topbar { padding: 2px 6px 6px 4px; gap: 2px; }
+.ttl { flex: 1; min-width: 0; padding: 0 4px; }
+.ttl b { display: block; font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl small { display: block; font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl small.err { color: var(--danger); }
+.btn-save { height: 48px; padding: 0 16px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-weight: 600; border: 0; cursor: pointer; flex: none; }
+.btn-save[disabled] { background: var(--surface-2); color: var(--text-3); cursor: not-allowed; }
+.lbl { font-size: 12px; color: var(--text-3); margin: 0 0 6px; }
+.sec-t { font-weight: 600; font-size: 14px; }
+.row-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.sp { flex: 1; }
+.dim { color: var(--text-2); }
+.mut { color: var(--text-3); }
+.card.c { padding: 14px; }
+.hl { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.15; margin: 4px 0 2px; }
+
+/* ── Chips de datos ────────────────────────────────────────────────────── */
+.tchip { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #0F0F0F; background: var(--c, var(--text-3)); align-self: flex-start; max-width: 100%; white-space: nowrap; overflow: hidden; }
+.tchip.mute { background: var(--surface-2); color: var(--text-2); }
+.tchip.sec { background: transparent; border: 1px dashed var(--line-strong); color: var(--text-2); }
+.auge { display: flex; gap: 6px; flex-wrap: wrap; }
+.auge span { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text); }
+.auge span i { width: 8px; height: 8px; border-radius: 99px; background: var(--c); }
+.pill-solo { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(255, 255, 255, 0.08); color: var(--text-2); }
+
+/* ── Perfil de intensidad ──────────────────────────────────────────────── */
+.prof { position: relative; }
+.prof svg { display: block; overflow: visible; }
+.prof .b { transition: opacity 0.2s var(--ease); }
+.prof.has-sel .b:not(.sel) { opacity: 0.32; }
+.prof .hit { fill: transparent; cursor: pointer; }
+.prof text { font-family: var(--font-body); fill: var(--text-3); font-size: 10px; font-variant-numeric: tabular-nums; }
+.prof .zl { font-size: 9px; }
+.prof .bl { fill: var(--text-2); font-size: 10px; font-weight: 600; text-anchor: middle; }
+.tip { position: absolute; z-index: 5; background: #2c2c2e; border: 1px solid var(--line-strong); border-radius: 12px; padding: 8px 10px; font-size: 12px; line-height: 1.35; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); width: 172px; pointer-events: none; }
+.tip b { display: block; font-size: 13px; }
+.tip::after { content: ""; position: absolute; bottom: -6px; left: var(--ax, 50%); width: 10px; height: 10px; background: #2c2c2e; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); transform: translateX(-50%) rotate(45deg); }
+.cap-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--text-3); padding: 0 2px 4px; gap: 8px; }
+.cap-row b { color: var(--text); font-weight: 600; font-size: 13px; }
+.chart-card { position: sticky; top: 0; z-index: 4; background: var(--bg); padding: 0 0 8px; }
+.chart-card .card { padding: 10px 12px 8px; }
+.leg { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12px; color: var(--text-2); }
+.leg span { display: inline-flex; align-items: center; gap: 6px; }
+.leg i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; background: var(--c); }
+.leg i.hx { background: repeating-linear-gradient(135deg, var(--text-2) 0 2px, transparent 2px 5px); border: 1px dashed var(--text-2); }
+.leg i.dt { background: rgba(255, 255, 255, 0.18); border: 1.5px dotted var(--text-2); }
+.leg i.br { background: none; border: 2px solid var(--text-3); border-top: 0; height: 8px; border-radius: 0 0 4px 4px; }
+
+/* ── Árbol de pasos ────────────────────────────────────────────────────── */
+.tree { display: flex; flex-direction: column; gap: 6px; }
+.row { background: var(--card); border-radius: 14px; padding: 5px 0 5px 8px; border: 1.5px solid transparent; position: relative; }
+.row.is-sel { border-color: var(--primary); background: #221F2B; }
+.row.is-chk { border-color: var(--primary); background: #221F2B; }
+.row.is-err { border-color: var(--danger); }
+.row.is-open { border-style: dashed; border-color: var(--line-strong); }
+.row.is-open.is-sel { border-color: var(--primary); }
+.row-in { display: flex; align-items: center; gap: 8px; }
+.row-in .kind-bar { align-self: stretch; margin: 3px 0; }
+.row.is-open .kind-bar { background: repeating-linear-gradient(135deg, var(--kc) 0 3px, transparent 3px 6px); }
+.row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 3px 0; text-align: left; background: none; border: 0; color: var(--text); cursor: pointer; }
+.row-t { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+.row-t span { color: var(--text-2); font-weight: 500; }
+.row-s { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-act { display: flex; flex: none; }
+.row-act button { width: 48px; height: 48px; background: none; border: 0; color: var(--text-2); display: grid; place-items: center; cursor: pointer; border-radius: 999px; }
+.row-act button:hover { background: rgba(255, 255, 255, 0.06); }
+.row-act button[disabled] { opacity: 0.25; cursor: default; }
+.row-err { display: flex; gap: 6px; align-items: flex-start; font-size: 12px; color: var(--danger); padding: 2px 10px 6px 20px; }
+.chk { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--line-strong); display: grid; place-items: center; }
+.row.is-chk .chk, .rep.is-chk .chk { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.row-chk { width: 48px; height: 48px; display: grid; place-items: center; background: none; border: 0; cursor: pointer; }
+
+.rep { border-radius: 16px; background: rgba(208, 188, 255, 0.05); border: 1px solid rgba(208, 188, 255, 0.16); padding: 0 6px 8px 12px; position: relative; }
+.rep::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 12px; border: 3px solid var(--primary); border-right: 0; border-radius: 16px 0 0 16px; opacity: 0.55; pointer-events: none; }
+.rep.is-err { border-color: var(--danger); }
+.rep.is-err::before { border-color: var(--danger); }
+.rep.is-chk { border-color: var(--primary); }
+.rep-h { display: flex; align-items: center; min-height: 52px; }
+.rep-tog { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 48px; background: none; border: 0; text-align: left; padding: 0 2px; color: var(--text); cursor: pointer; }
+.rep-tog .icon { color: var(--text-3); }
+.rep-t { font-weight: 600; font-size: 14.5px; white-space: nowrap; }
+.rep-n { background: var(--primary-soft); color: var(--primary); border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 13px; }
+.rep-s { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rep-body { display: flex; flex-direction: column; gap: 6px; }
+.rep-note { font-size: 12px; color: var(--text-2); display: flex; gap: 6px; align-items: center; padding: 2px 4px 0; }
+.rep-empty { border: 1.5px dashed var(--line-strong); border-radius: 12px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--text-2); }
+.rep.col .rep-h { min-height: 48px; }
+.rep.col { padding-bottom: 0; }
+.add-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.add-row .btn { padding: 0 8px; font-size: 14px; }
+.totals { position: sticky; bottom: 0; z-index: 4; display: flex; align-items: center; gap: 6px; margin: 12px -8px -18px; padding: 4px 6px 4px 16px; background: rgba(21, 21, 23, 0.96); border-top: 1px solid var(--line); min-height: 56px; }
+.totals .tt { flex: 1; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 0 10px; align-items: center; }
+.totals .tt em { font-style: normal; color: var(--text-3); font-weight: 500; font-size: 12px; }
+.banner { border-radius: 14px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; margin-bottom: 8px; }
+.banner.warn { background: rgba(255, 214, 10, 0.1); border: 1px solid rgba(255, 214, 10, 0.3); color: #F3E6A8; }
+.banner.err { background: rgba(255, 107, 94, 0.1); border: 1px solid rgba(255, 107, 94, 0.35); color: #FFC3BC; }
+.banner.info { background: var(--primary-soft); color: var(--text); }
+.banner .icon { margin-top: 1px; }
+.actbar { position: sticky; bottom: 0; z-index: 4; display: flex; gap: 8px; align-items: center; margin: 12px -8px -18px; padding: 10px 10px 8px; background: #1F1B26; border-top: 1px solid var(--line); }
+.actbar .btn { flex: 1; }
+.actbar .icon-btn { background: rgba(255, 255, 255, 0.06); }
+
+/* ── Menú contextual y capas ───────────────────────────────────────────── */
+.scrim { z-index: 1; }
+.menu { position: absolute; z-index: 2; width: 252px; background: #2B2930; border-radius: 16px; padding: 6px 0; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6); }
+.menu button { display: flex; align-items: center; gap: 14px; width: 100%; height: 48px; padding: 0 16px; background: none; border: 0; color: var(--text); font-size: 15px; text-align: left; cursor: pointer; }
+.menu button:hover { background: rgba(255, 255, 255, 0.05); }
+.menu button[disabled] { opacity: 0.35; cursor: default; }
+.menu button.dg { color: var(--danger); }
+.menu hr { border: 0; height: 1px; background: var(--line); margin: 4px 0; }
+.sheet2 { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: var(--surface); border-radius: 28px 28px 0 0; display: flex; flex-direction: column; max-height: calc(100% - 44px); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); }
+.sheet2::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.25); margin: 8px auto 0; flex: none; }
+.sh-head { display: flex; align-items: center; padding: 0 6px 0 18px; min-height: 52px; flex: none; }
+.sh-head .t { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.sh-head small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 12px; color: var(--text-3); }
+.sh-body { flex: 1 1 auto; overflow-y: auto; padding: 0 16px 10px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: none; }
+.sh-body::-webkit-scrollbar { display: none; }
+.sh-foot { flex: none; display: flex; gap: 8px; align-items: center; padding: 10px 16px 24px; border-top: 1px solid var(--line); background: var(--surface); }
+.sh-foot .btn { flex: 1; }
+.sh-foot .icon-btn { background: var(--danger-bg, rgba(255, 107, 94, 0.14)); color: var(--danger); }
+
+.kinds { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; flex: none; }
+.kinds::-webkit-scrollbar { display: none; }
+.kinds .chip { flex: none; }
+.vrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--card); border-radius: 16px; padding: 8px 8px 8px 16px; }
+.vrow .big { font-family: var(--font-display); font-weight: 800; font-size: 32px; line-height: 1; letter-spacing: -0.01em; }
+.vrow .big small { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--text-2); letter-spacing: 0; margin-left: 4px; }
+.vcol { display: flex; flex-direction: column; }
+.sub-note { font-size: 12px; color: var(--text-3); display: flex; gap: 6px; align-items: flex-start; }
+.sub-note .icon { margin-top: 1px; }
+.mach { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mf { background: var(--card); border-radius: 16px; padding: 8px 8px 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+.mf .v { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.mf .v small { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.mf .stepper { align-self: flex-start; margin-left: -4px; }
+.mf .stepper button { width: 48px; }
+.mf.ro { opacity: 0.95; padding: 12px; }
+.open-box { border-radius: 16px; padding: 14px; border: 1.5px dashed var(--line-strong); background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0 6px, transparent 6px 12px); display: flex; gap: 12px; align-items: flex-start; }
+.open-box .ib { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; flex: none; }
+.tcard { background: var(--card); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.tcard.sec { background: transparent; border: 1px dashed var(--line-strong); }
+.tcard .zname { font-size: 13px; color: var(--text-2); }
+.tape7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; height: 8px; }
+.tape7 i { border-radius: 3px; background: var(--c); opacity: 0.3; }
+.tape7 i.on { opacity: 1; }
+.rep-open { background: none; border: 0; height: 48px; padding: 0 2px; cursor: pointer; display: flex; align-items: center; color: var(--text); }
+.cc-h .tx .cm { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); margin-top: 3px; }
+.warn-box { border-radius: 14px; background: rgba(255, 214, 10, 0.1); border: 1px solid rgba(255, 214, 10, 0.3); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #F3E6A8; }
+.warn-box .t { display: flex; gap: 8px; align-items: flex-start; }
+.rpe-rng { width: 100%; height: 48px; margin: 0; }
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: 48px; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--primary) var(--p, 50%), var(--surface-2) var(--p, 50%)); }
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 6px; background: var(--surface-2); }
+input[type="range"]::-moz-range-progress { height: 6px; border-radius: 6px; background: var(--primary); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); margin-top: -9px; border: 3px solid #1A1A1A; box-shadow: 0 0 0 1px var(--primary); }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 3px solid #1A1A1A; }
+.anch { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: -8px; gap: 4px; }
+.anch span { max-width: 25%; }
+.anch span:nth-child(2), .anch span:nth-child(3) { text-align: center; }
+.anch span:last-child { text-align: right; }
+.fld { height: 48px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; padding: 0 14px; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wheels { display: flex; gap: 10px; align-items: center; }
+.wheels .dash { color: var(--text-3); font-size: 18px; }
+.wheel { flex: 1; background: var(--surface-2); border-radius: 14px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.wheel::after { content: ""; position: absolute; left: 5px; right: 5px; top: 44px; height: 48px; border-radius: 10px; background: rgba(208, 188, 255, 0.12); border: 1px solid rgba(208, 188, 255, 0.35); pointer-events: none; }
+.wheel button { height: 44px; border: 0; background: none; color: var(--text-3); font-size: 15px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; }
+.wheel button.s { height: 48px; color: var(--text); font-family: var(--font-display); font-weight: 700; font-size: 21px; position: relative; z-index: 1; }
+.wheel button.s small { font-family: var(--font-body); font-size: 12px; color: var(--text-2); font-weight: 500; margin-left: 3px; }
+.wlab { font-size: 12px; color: var(--text-3); text-align: center; margin-bottom: 4px; }
+.mgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mgrid button { height: 48px; border-radius: 14px; border: 1px solid var(--line-strong); background: transparent; color: var(--text-2); font-size: 13.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 0 4px; }
+.mgrid button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); border-color: transparent; font-weight: 600; }
+.mgrid button[disabled] { opacity: 0.35; }
+.zcard { display: flex; align-items: center; gap: 12px; min-height: 56px; border-radius: 14px; padding: 6px 14px; border: 1.5px solid color-mix(in srgb, var(--c) 42%, transparent); background: color-mix(in srgb, var(--c) 11%, var(--surface)); text-align: left; width: 100%; color: var(--text); cursor: pointer; }
+.zcard.on { background: color-mix(in srgb, var(--c) 26%, var(--surface)); border-color: var(--c); }
+.zcard .zn { width: 30px; height: 30px; border-radius: 10px; background: var(--c); color: #0F0F0F; font-weight: 700; display: grid; place-items: center; font-size: 14px; flex: none; }
+.zcard .zt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.zcard .zt b { font-size: 14px; font-weight: 600; }
+.zcard .zt span { font-size: 11.5px; color: var(--text-2); }
+.zcard .zr { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zlist { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Selector de máquina y tarjetas de plantilla ───────────────────────── */
+.mscroll { display: flex; gap: 8px; overflow-x: auto; margin: 0 -14px; padding: 0 14px; scrollbar-width: none; }
+.mscroll::-webkit-scrollbar { display: none; }
+.mscroll .chip { flex: none; }
+.tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tpl { background: var(--card); border-radius: 18px; padding: 10px 10px 8px; text-align: left; border: 1.5px solid transparent; color: var(--text); display: flex; flex-direction: column; gap: 6px; cursor: pointer; min-height: 100px; }
+.tpl[aria-pressed="true"] { border-color: var(--primary); background: #221F2B; }
+.tpl b { font-size: 14px; font-weight: 600; line-height: 1.2; }
+.tpl .meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.pcard { background: var(--card); border-radius: 20px; padding: 12px 12px 10px; }
+.pcard .tot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.pcard .tot b { color: var(--text); font-weight: 600; }
+.cta-bar { position: sticky; bottom: 0; z-index: 4; margin: 12px -14px -18px; padding: 10px 14px 8px; background: linear-gradient(180deg, rgba(15, 15, 15, 0) 0, var(--bg) 28%); }
+.zbtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.zbtns.five { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.zb { height: 56px; border-radius: 16px; border: 1.5px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.zb small { font-size: 11px; font-weight: 500; color: var(--text-2); }
+.zb[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: #0F0F0F; }
+.zb[aria-pressed="true"] small { color: rgba(0, 0, 0, 0.7); }
+.zread { margin-top: 8px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
+.bigpick { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bigpick .rd { flex: 1; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.01em; }
+.bigpick .rd small { display: block; font-family: var(--font-body); font-weight: 500; font-size: 13px; color: var(--text-2); margin-top: 4px; letter-spacing: 0; }
+.rbtn { width: 56px; height: 56px; border-radius: 999px; border: 0; background: var(--surface-2); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.rbtn.pl { background: var(--primary-soft); color: var(--primary); }
+.rbtns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; justify-items: center; }
+.rpb { width: 48px; height: 48px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: transparent; color: var(--text); font-weight: 700; font-size: 16px; cursor: pointer; }
+.rpb[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: #0F0F0F; }
+.tgl { display: flex; align-items: center; gap: 10px; min-height: 56px; background: var(--card); border-radius: 16px; padding: 6px 12px 6px 14px; text-align: left; width: 100%; border: 0; color: var(--text); cursor: pointer; }
+.tgl[disabled] { opacity: 0.5; cursor: default; }
+.tgl .tx { flex: 1; font-size: 14px; display: flex; flex-direction: column; min-width: 0; }
+.tgl .tx small { font-size: 12px; color: var(--text-3); }
+.sw { width: 48px; height: 28px; border-radius: 999px; background: var(--surface-2); border: 2px solid #5c5862; position: relative; flex: none; }
+.sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 99px; background: #9a96a2; transition: transform 0.2s var(--ease); }
+.tgl[aria-checked="true"] .sw { background: var(--primary); border-color: var(--primary); }
+.tgl[aria-checked="true"] .sw::after { background: var(--on-primary); transform: translateX(20px); width: 18px; height: 18px; top: 3px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { background: var(--card); border-radius: 16px; min-height: 72px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; text-align: left; border: 0; color: var(--text); cursor: pointer; }
+.tile .th { display: flex; justify-content: space-between; align-items: center; color: var(--text-2); }
+.tile span { font-size: 13px; font-weight: 500; }
+.tile .sw { width: 40px; height: 24px; }
+.tile .sw::after { top: 3px; left: 3px; width: 14px; height: 14px; }
+.tile[aria-checked="true"] .sw { background: var(--primary); border-color: var(--primary); }
+.tile[aria-checked="true"] .sw::after { background: var(--on-primary); transform: translateX(16px); top: 2px; width: 16px; height: 16px; }
+.tile[aria-checked="true"] .th { color: var(--primary); }
+.mini-stepper { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 6px; min-width: 0; }
+.mini-stepper .v { font-family: var(--font-display); font-weight: 800; font-size: 28px; line-height: 1; }
+.mini-stepper .btns { display: flex; gap: 6px; width: 100%; }
+.mini-stepper .rbtn { flex: 1 1 0; min-width: 0; width: auto; height: 48px; border-radius: 16px; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.two > * { min-width: 0; }
+.rep .rep .tchip { font-size: 11.5px; padding: 0 6px; }
+.empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 26px 18px 10px; }
+.empty .ill { width: 100%; }
+.empty h3 { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin: 6px 0 0; }
+.empty p { color: var(--text-2); font-size: 14px; margin: 0; max-width: 28ch; }
+.diff { display: flex; flex-direction: column; gap: 8px; }
+.diff div { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.diff b { color: var(--text); font-weight: 600; }
+.diff s { color: var(--text-3); }
+.diff .dotm { width: 8px; height: 8px; border-radius: 99px; background: var(--primary); flex: none; }
+.sess-row { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 10px 12px; min-height: 64px; }
+.sess-row .ix { width: 32px; height: 32px; border-radius: 10px; background: var(--surface-2); display: grid; place-items: center; font-weight: 600; font-size: 14px; color: var(--text-2); flex: none; }
+.sess-row .tx { flex: 1; min-width: 0; }
+.sess-row .tx b { display: block; font-weight: 600; font-size: 15px; }
+.sess-row .tx span { font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.cardio-card { background: var(--card); border-radius: 22px; padding: 12px; border: 1px solid rgba(208, 188, 255, 0.18); display: flex; flex-direction: column; gap: 10px; }
+.cc-h { display: flex; align-items: center; gap: 10px; }
+.cc-ic { width: 44px; height: 44px; border-radius: 14px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; flex: none; }
+.cc-h .tx { flex: 1; min-width: 0; }
+.cc-h .tx b { display: block; font-weight: 600; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-tot { font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.space-h { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 8px; }
+.space-h .t { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.space-h .d { font-size: 12.5px; color: var(--text-3); }
+.sess-top { padding: 0 6px 12px 8px; }
+.sess-top .meta { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 8px; }
+.sess-top .meta span { font-size: 13px; color: var(--text-2); }
+.sess-line { width: 2px; height: 14px; background: var(--line-strong); margin: 0 0 0 28px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) { .prof .b, .sw::after { transition: none; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16z"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 17L17 3l4 4L7 21zM8 12l2 2M11 9l2 2M14 6l2 2"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
+<symbol id="i-select" viewBox="0 0 24 24"><path d="M4 5h5v5H4zM4 14h5v5H4zM13 7.5h7M13 16.5h7"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="i-vibe" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 8v8M20 8v8"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+<symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1 1 16 0M12 18l4-6"/></symbol>
+<symbol id="i-cad" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3-6.2M20 4v4h-4"/></symbol>
+<symbol id="i-speed" viewBox="0 0 24 24"><path d="M3 7h10M3 12h6M3 17h10M17 8l4 4-4 4"/></symbol>
+<symbol id="i-pace" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 9v4l2 2M10 3h4"/></symbol>
+<symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM18 5v14"/></symbol>
+<symbol id="i-treadmill" viewBox="0 0 24 24"><path d="M3 19h14l3-3M16 19L13 5M10 5h6"/></symbol>
+<symbol id="i-bike" viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9l3 7M9 6.5h3"/></symbol>
+<symbol id="i-rower" viewBox="0 0 24 24"><path d="M3 19h18M7 15h4M11 15l4-6M15 9h5M8 12l3 3"/></symbol>
+<symbol id="i-ellip" viewBox="0 0 24 24"><path d="M5 20h14M8 20l2-12M16 20l-2-12M8 8h8M12 4v4"/></symbol>
+<symbol id="i-air" viewBox="0 0 24 24"><circle cx="7" cy="15" r="5"/><path d="M7 15l-2-3M7 15l3-1M7 15l-1 3M12 15h6l2-8M16 7h4M14 15l-2-6"/></symbol>
+<symbol id="i-road" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></symbol>
+<symbol id="i-sig" viewBox="0 0 24 24"><path d="M2 20h3v-4H2zM7 20h3v-8H7zM12 20h3V8h-3zM17 20h3V3h-3z"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M12 20l3.2-3.4a4.6 4.6 0 0 0-6.4 0zM3.6 9.4a12 12 0 0 1 16.8 0l-2.1 2.2a9 9 0 0 0-12.6 0zM7 13a7 7 0 0 1 10 0l-2.1 2.2a4 4 0 0 0-5.8 0z"/></symbol>
+<symbol id="i-bat" viewBox="0 0 24 24"><rect x="1" y="7" width="19" height="10" rx="2.5"/><rect x="21" y="10" width="2" height="4" rx="1"/></symbol>
+</defs>
+</svg>
+
+<header class="page-head">
+  <h1>Editor de cardio</h1>
+  <p>Así se programaría el cardio dentro de una sesión: plantillas y controles grandes para quien empieza, y un árbol de pasos con repeticiones, objetivos por zona y ajustes de máquina para quien quiere afinar. Cada pantalla es un estado real del editor, en un marco de 360 × 780.</p>
+  <p>Datos de ejemplo: 30 años, FC máx 187 lpm, FC en reposo 58 lpm, FTP 220 W, ritmo umbral 4:50 /km, 75 kg. Las pantallas marcadas con «Reiniciar» son interactivas: cambia el modo, abre hojas, reordena con ↑↓.</p>
+  <nav class="page-nav" aria-label="Maquetas de cardio v2">
+    <a href="index.html">Resumen</a>
+    <a href="editor.html" aria-current="page">Editor</a>
+    <a href="live.html">En vivo</a>
+    <a href="transiciones.html">Transiciones</a>
+    <a href="zonas.html">Zonas</a>
+  </nav>
+</header>
+
+<noscript><p class="legend-note">Estas maquetas se generan con JavaScript; actívalo para verlas.</p></noscript>
+
+<section class="section" id="A">
+  <h2>A · El espacio de cardio dentro de una sesión mixta</h2>
+  <p>El cardio vive en un espacio propio de la sesión, al inicio o al final, y se muestra como una tarjeta compacta: nombre, modo, perfil de intensidad, totales y el efecto estimado en los anillos AUGE.</p>
+  <div class="gallery" data-group="A"></div>
+</section>
+
+<section class="section" id="B">
+  <h2>B · Modo guiado</h2>
+  <p>Para quien empieza: elige una plantilla y ajusta lo que importa con controles grandes. El perfil y los totales se recalculan al instante. Todo lo que se hace aquí se puede abrir después en modo avanzado.</p>
+  <div class="gallery" data-group="B"></div>
+</section>
+
+<section class="section" id="C">
+  <h2>C · Modo avanzado: el árbol de pasos</h2>
+  <p>Pasos y repeticiones (con un nivel de anidación) en una lista. El perfil de intensidad queda fijo arriba y resalta el paso seleccionado. Se reordena con ↑↓, sin arrastrar.</p>
+  <div class="gallery" data-group="C"></div>
+</section>
+
+<section class="section" id="D">
+  <h2>D · Ficha del paso (hoja inferior)</h2>
+  <p>Tipo, fin, objetivo principal y secundario, ajustes de máquina, RPE planificado y nota. Cada sección aparece solo cuando aplica a la máquina y a la condición de fin elegidas.</p>
+  <div class="gallery" data-group="D"></div>
+</section>
+
+<section class="section" id="E">
+  <h2>E · Hoja de repetición</h2>
+  <p>Número de vueltas, omitir la última recuperación y vista previa de lo que se repite.</p>
+  <div class="gallery" data-group="E"></div>
+</section>
+
+<section class="section" id="F">
+  <h2>F · Estados especiales</h2>
+  <p>Programa vacío, errores de validación con el guardado bloqueado, tope de pasos, plantilla editada y una máquina sin velocidad.</p>
+  <div class="gallery" data-group="F"></div>
+</section>
+
+<section class="section" id="G">
+  <h2>G · El perfil de intensidad en detalle</h2>
+  <p>El elemento clave del editor: altura por intensidad del objetivo, color por zona (o por tipo de paso), rayado para pasos abiertos, contorno punteado para estimados y corchetes bajo las barras para las repeticiones.</p>
+  <div class="gallery" data-group="G"></div>
+</section>
+
+<script>
+'use strict';
+/* ═══ Utilidades ═══════════════════════════════════════════════════════════ */
+const ic = (n, c = '') => `<svg class="icon ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const mmss = s => { s = Math.round(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const f1 = n => n.toFixed(1).replace('.', ',');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let NID = 100; const uid = () => 'n' + (++NID);
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ═══ Datos del atleta y zonas ═════════════════════════════════════════════ */
+const HRZ = [null,
+  { n: 'Calentamiento', lo: 94, hi: 111, p: '50–60 % de la FC máx' },
+  { n: 'Suave', lo: 112, hi: 130, p: '60–70 % de la FC máx' },
+  { n: 'Aeróbico', lo: 131, hi: 149, p: '70–80 % de la FC máx' },
+  { n: 'Umbral', lo: 150, hi: 167, p: '80–90 % de la FC máx' },
+  { n: 'Máximo', lo: 168, hi: 187, p: '90–100 % de la FC máx' }];
+const PWZ = [null,
+  { n: 'Recuperación activa', r: '0–120 W', p: 'Menos del 55 % del FTP' },
+  { n: 'Resistencia', r: '121–164 W', p: '56–75 % del FTP' },
+  { n: 'Tempo', r: '165–197 W', p: '76–90 % del FTP' },
+  { n: 'Umbral', r: '198–230 W', p: '91–105 % del FTP' },
+  { n: 'VO₂ máx', r: '231–263 W', p: '106–120 % del FTP' },
+  { n: 'Capacidad anaeróbica', r: '264–329 W', p: '121–150 % del FTP' },
+  { n: 'Neuromuscular', r: '≥ 330 W', p: 'Más del 150 % del FTP' }];
+const PCZ = [null,
+  { n: 'Fácil', r: '≥ 6:14 /km', p: 'Muy cómodo' },
+  { n: 'Aeróbico', r: '5:31–6:13 /km', p: 'Puedes hablar con fluidez' },
+  { n: 'Tempo', r: '5:07–5:30 /km', p: 'Constante y controlado' },
+  { n: 'Umbral', r: '4:47–5:06 /km', p: 'Cerca de tu ritmo umbral' },
+  { n: 'Máximo', r: '≤ 4:46 /km', p: 'Más rápido que tu umbral' }];
+const LV = { hr: [0, .22, .38, .56, .76, .96], pw: [0, .18, .32, .46, .6, .75, .9, 1] };
+const RPED = ['', 'Muy suave', 'Suave', 'Ligero', 'Cómodo: hablas con frases', 'Moderado', 'Algo duro', 'Duro: frases cortas', 'Muy duro', 'Casi máximo', 'Máximo'];
+const rz = n => n <= 3 ? 1 : n <= 5 ? 2 : n <= 6 ? 3 : n <= 8 ? 4 : 5;
+const zHr = v => v <= 111 ? 1 : v <= 130 ? 2 : v <= 149 ? 3 : v <= 167 ? 4 : 5;
+const zPw = v => v <= 120 ? 1 : v <= 164 ? 2 : v <= 197 ? 3 : v <= 230 ? 4 : v <= 263 ? 5 : v <= 329 ? 6 : 7;
+const zPace = s => s >= 374 ? 1 : s >= 331 ? 2 : s >= 307 ? 3 : s >= 287 ? 4 : 5;
+
+const KN = { warmup: 'Calentamiento', work: 'Trabajo', recover: 'Recuperación', rest: 'Descanso', cooldown: 'Vuelta a la calma', other: 'Otro' };
+const KC = { warmup: 'var(--k-warmup)', work: 'var(--k-work)', recover: 'var(--k-recover)', rest: 'var(--k-rest)', cooldown: 'var(--k-cooldown)', other: 'var(--k-other)' };
+const MACH = {
+  treadmill: { n: 'Cinta', i: 'treadmill', km: true },
+  bike: { n: 'Bici estática', i: 'bike', km: false },
+  rower: { n: 'Remo', i: 'rower', km: false },
+  ellip: { n: 'Elíptica', i: 'ellip', km: false },
+  airbike: { n: 'Air bike', i: 'air', km: false },
+  road: { n: 'Calle', i: 'road', km: true }
+};
+
+/* Objetivos: {m: hr|pw|pace|speed|cad|rpe, b: zone|range|pct|value, …} */
+const TZ = (m, z, z2) => ({ m, b: 'zone', z, z2 });
+const TR = (m, lo, hi) => ({ m, b: 'range', lo, hi });
+const TP = (m, lo, hi) => ({ m, b: 'pct', lo, hi });
+const TRPE = v => ({ m: 'rpe', b: 'value', v });
+const METRIC_LBL = { hr: 'FC', pace: 'Ritmo', speed: 'Velocidad', pw: 'Potencia', cad: 'Cadencia', rpe: 'RPE' };
+
+function resolve(t, nz) {
+  if (!t) return { t: 'Sin objetivo', c: '', lv: .12, none: true, z: 0 };
+  if (t.m === 'rpe') { const z = rz(t.v); return { t: 'RPE ' + t.v, c: `var(--z${z})`, lv: t.v / 10, sub: RPED[t.v], z }; }
+  if (t.b === 'zone') {
+    if (t.m === 'hr') {
+      const a = t.z, b = t.z2 || t.z, rng = nz ? 'sin rango' : `${HRZ[a].lo}–${HRZ[b].hi} lpm`;
+      return { t: `Zona ${t.z2 ? a + '–' + b : a} · ${rng}`, c: `var(--z${a})`, lv: (LV.hr[a] + LV.hr[b]) / 2, sub: HRZ[a].n, z: a };
+    }
+    if (t.m === 'pw') return { t: `Zona ${t.z} · ${nz ? 'sin rango' : PWZ[t.z].r}`, c: `var(--p${t.z})`, lv: LV.pw[t.z], sub: PWZ[t.z].n, z: t.z };
+    return { t: `Zona ${t.z} · ${nz ? 'sin rango' : PCZ[t.z].r}`, c: `var(--z${t.z})`, lv: LV.hr[t.z], sub: PCZ[t.z].n, z: t.z };
+  }
+  const mid = (t.lo + t.hi) / 2;
+  if (t.b === 'range') {
+    if (t.m === 'hr') { const z = zHr(mid); return { t: `FC ${t.lo}–${t.hi} lpm`, c: `var(--z${z})`, lv: LV.hr[z], z }; }
+    if (t.m === 'pace') { const z = zPace(mid); return { t: `Ritmo ${mmss(t.lo)}–${mmss(t.hi)} /km`, c: `var(--z${z})`, lv: LV.hr[z], sub: `Equivale a la zona ${z}`, z }; }
+    if (t.m === 'pw') { const z = zPw(mid); return { t: `Potencia ${t.lo}–${t.hi} W`, c: `var(--p${z})`, lv: LV.pw[z], z }; }
+    if (t.m === 'speed') return { t: `Velocidad ${f1(t.lo / 10)}–${f1(t.hi / 10)} km/h`, c: 'var(--secondary)', lv: .5 };
+    return { t: `Cadencia ${t.lo}–${t.hi} rpm`, c: 'var(--secondary)', lv: .5 };
+  }
+  if (t.m === 'pw') { const a = Math.round(t.lo * 2.2), b = Math.round(t.hi * 2.2), z = zPw((a + b) / 2); return { t: `${t.lo}–${t.hi} % · ${a}–${b} W`, c: `var(--p${z})`, lv: LV.pw[z], z }; }
+  if (t.m === 'hr') { const a = Math.round(t.lo * 1.68), b = Math.round(t.hi * 1.68), z = zHr((a + b) / 2); return { t: `${t.lo}–${t.hi} % · ${a}–${b} lpm`, c: `var(--z${z})`, lv: LV.hr[z], z }; }
+  if (t.m === 'pace') { const a = 290 / (t.lo / 100), b = 290 / (t.hi / 100), z = zPace((a + b) / 2); return { t: `${t.lo}–${t.hi} % · ${mmss(a)}–${mmss(b)} /km`, c: `var(--z${z})`, lv: LV.hr[z], z }; }
+  return { t: `${t.lo}–${t.hi} %`, c: 'var(--secondary)', lv: .5 };
+}
+
+/* ═══ Modelo de pasos ═════════════════════════════════════════════════════ */
+const tm = s => ({ t: 'time', s });
+const S = (id, kind, end, tgt, x = {}) => ({ type: 'step', id, kind, end, tgt, ...x });
+const R = (id, n, kids, skip = false) => ({ type: 'rep', id, n, kids, skip });
+const endTxt = e => e.t === 'time' ? (e.s == null ? 'sin duración' : mmss(e.s)) : e.t === 'dist' ? (e.m < 1000 ? e.m + ' m' : f1(e.m / 1000) + ' km') : e.t === 'kcal' ? e.k + ' kcal' : 'abierto';
+const stepTitle = n => `${KN[n.kind]} · ${endTxt(n.end)}`;
+function secOf(n) {
+  const e = n.end;
+  if (e.t === 'time') return e.s;
+  if (n.sec) return n.sec;
+  if (e.t === 'lap') return (n.kind === 'warmup' || n.kind === 'cooldown') ? 300 : 180;
+  return 120;
+}
+function machLine(n) {
+  const p = [];
+  if (n.kmh != null) p.push(f1(n.kmh) + ' km/h');
+  if (n.inc != null) p.push(n.inc + ' %');
+  if (n.lvl != null) p.push((n.mk === 'rower' ? 'Resistencia ' : 'Nivel ') + n.lvl);
+  if (n.w != null) p.push(n.w + ' W');
+  if (n.rpm != null) p.push(n.rpm + ' rpm');
+  if (n.hint) p.push(n.hint);
+  if (n.rpe != null) p.push('RPE ' + n.rpe);
+  return p.join(' · ');
+}
+const isRep = n => n.type === 'rep';
+const repLvl = n => { const c = n.kids.filter(isRep); return c.length ? 1 + Math.max(...c.map(repLvl)) : 0; };
+const depthOf = n => isRep(n) ? 1 + Math.max(0, ...n.kids.map(depthOf)) : 0;
+
+function expand(nodes) {
+  const segs = [], brs = [];
+  (function go(list, depth) {
+    list.forEach(n => {
+      if (!isRep(n)) { segs.push({ n, depth }); return; }
+      const start = segs.length;
+      for (let it = 0; it < n.n && segs.length < 500; it++) {
+        const kids = n.kids.slice();
+        if (n.skip && it === n.n - 1 && kids.length) {
+          const l = kids[kids.length - 1];
+          if (!isRep(l) && (l.kind === 'recover' || l.kind === 'rest')) kids.pop();
+        }
+        go(kids, depth + 1);
+      }
+      if (segs.length > start) brs.push({ from: start, to: segs.length - 1, n: n.n, lvl: repLvl(n) });
+    });
+  })(nodes, 0);
+  return { segs, brs };
+}
+function repSeconds(n) {
+  const { segs } = expand([n]);
+  return segs.reduce((a, g) => a + (secOf(g.n) || 0), 0);
+}
+
+function totals(prog, mk) {
+  const { segs } = expand(prog);
+  let sec = 0, km = 0, kcal = 0, open = false;
+  segs.forEach(({ n }) => {
+    const s = secOf(n) || 0; sec += s;
+    if (n.end.t === 'lap') open = true;
+    const ew = n.ew != null ? n.ew : n.w;
+    if (n.end.t === 'kcal') kcal += n.end.k;
+    else if (ew != null) kcal += s * ew / 1000;
+    else if (n.kmh != null) kcal += s / 60 * n.kmh * 1.3125;
+    if (n.end.t === 'dist') km += n.end.m / 1000;
+    else if (n.kmh != null) km += s / 3600 * n.kmh;
+  });
+  const showKm = MACH[mk].km;
+  return { sec, km, kcal: Math.round(kcal / 10) * 10, open, showKm, n: segs.length };
+}
+function durTxt(sec) { const m = Math.round(sec / 60); return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`; }
+function totTxt(t) {
+  const p = [durTxt(t.sec)];
+  if (t.showKm && t.km > 0) p.push(`≈ ${f1(t.km)} km`);
+  if (t.kcal > 0) p.push(`≈ ${t.kcal} kcal`);
+  return p.join(' · ');
+}
+const aChips = a => `<div class="auge"><span style="--c:var(--ring-snc)"><i></i>SNC +${a.snc} %</span><span style="--c:var(--ring-musc)"><i></i>Musc +${a.musc} %</span><span style="--c:var(--ring-esp)"><i></i>Esp +${a.esp} %</span></div>`;
+
+/* ═══ Perfil de intensidad ════════════════════════════════════════════════ */
+let PID = 0;
+function profile(prog, o = {}) {
+  const W = o.w || 300, H = o.h || 60, pt = o.pt != null ? o.pt : 6, pl = o.pl || 0, uidp = 'pf' + (++PID);
+  const { segs, brs } = expand(prog);
+  const y0 = pt + H;
+  if (!segs.length) return `<div class="prof"><svg width="${W}" height="${y0 + 6}" viewBox="0 0 ${W} ${y0 + 6}" role="img" aria-label="Sin pasos"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round"/></svg></div>`;
+  segs.forEach(g => { g.inv = g.n.end.t === 'time' && g.n.end.s == null; g.sec = g.inv ? 60 : secOf(g.n); });
+  const n = segs.length, gap = o.gap != null ? o.gap : (n > 60 ? .5 : n > 20 ? 1.5 : 2.5), mn = o.minW || (n > 60 ? 1 : 3);
+  const total = segs.reduce((a, g) => a + g.sec, 0), avail = W - pl - gap * (n - 1);
+  let fixed = 0, free = 0;
+  segs.forEach(g => { const r = g.sec / total * avail; if (r < mn) { g.w = mn; fixed += mn; } else free += g.sec; });
+  segs.forEach(g => { if (!g.w) g.w = g.sec / free * (avail - fixed); });
+  let x = pl; segs.forEach(g => { g.x = x; x += g.w + gap; });
+  const maxLvl = o.br && brs.length ? Math.max(...brs.map(b => b.lvl)) + 1 : 0;
+  const brY = y0 + 9, axY = o.br && maxLvl ? brY + maxLvl * 17 + 4 : y0 + 6;
+  const Ht = axY + (o.axis ? 16 : 2);
+  let defs = '', pats = {}, out = '';
+  const pat = col => { if (!pats[col]) { pats[col] = `${uidp}h${Object.keys(pats).length}`; defs += `<pattern id="${pats[col]}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="6" style="fill:${col};opacity:.85"/></pattern>`; } return pats[col]; };
+  if (o.grid) {
+    const lv = o.grid === 'pw' ? LV.pw : LV.hr;
+    for (let z = 1; z < lv.length; z++) {
+      const yy = y0 - lv[z] * H, col = o.grid === 'pw' ? `var(--p${z})` : `var(--z${z})`;
+      out += `<line x1="${pl - 2}" x2="${W}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.07)" stroke-dasharray="2 4"/><text class="zl" x="0" y="${yy + 3}" style="fill:${col}">Z${z}</text>`;
+    }
+  }
+  out += `<line x1="${pl}" x2="${W}" y1="${y0 + .5}" y2="${y0 + .5}" stroke="rgba(255,255,255,.16)"/>`;
+  const geo = {};
+  segs.forEach(g => {
+    const st = g.n, r = resolve(st.tgt, st.nz);
+    const lv = st.tgt ? r.lv : (st.kind === 'rest' ? .12 : .2);
+    const col = (o.color === 'kind' || !st.tgt) ? KC[st.kind] : r.c;
+    const bh = Math.max(5, lv * H), y = y0 - bh, rx = Math.min(3, g.w / 2);
+    const sel = o.sel === st.id;
+    let shape;
+    if (g.inv) shape = `<rect x="${g.x}" y="${y0 - 22}" width="${g.w}" height="22" rx="${rx}" fill="none" style="stroke:var(--danger)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    else if (st.end.t === 'lap') shape = `<rect x="${g.x}" y="${y}" width="${g.w}" height="${bh}" rx="${rx}" style="fill:url(#${pat(col)});stroke:${col}" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+    else if (st.end.t === 'dist' || st.end.t === 'kcal') shape = `<rect x="${g.x}" y="${y}" width="${g.w}" height="${bh}" rx="${rx}" style="fill:${col};fill-opacity:.3;stroke:${col}" stroke-width="1.4" stroke-dasharray="1.5 2.6" stroke-linecap="round"/>`;
+    else shape = `<rect x="${g.x}" y="${y}" width="${g.w}" height="${bh}" rx="${rx}" style="fill:${col}"/>`;
+    if (sel) shape += `<rect x="${g.x - 1.5}" y="${y - 1.5}" width="${g.w + 3}" height="${bh + 3}" rx="${rx + 1}" fill="none" stroke="#fff" stroke-width="1.6"/>`;
+    if (o.mark && o.mark.includes(st.id)) shape += `<circle cx="${g.x + g.w / 2}" cy="${y - 5}" r="2.6" style="fill:var(--primary)"/>`;
+    out += `<g class="b${sel ? ' sel' : ''}">${shape}</g>`;
+    if (!geo[st.id]) geo[st.id] = { cx: g.x + g.w / 2, top: y, n: st, r };
+  });
+  if (o.br) brs.forEach(b => {
+    const a = segs[b.from], z = segs[b.to], x1 = a.x, x2 = z.x + z.w, yy = brY + b.lvl * 17;
+    out += `<path d="M${x1} ${yy - 4}V${yy}H${x2}V${yy - 4}" fill="none" stroke="rgba(255,255,255,.34)" stroke-width="1.4" stroke-linejoin="round"/>`;
+    if (x2 - x1 > 26) out += `<rect x="${(x1 + x2) / 2 - 12}" y="${yy - 7}" width="24" height="14" rx="7" fill="#1C1C1E"/><text class="bl" x="${(x1 + x2) / 2}" y="${yy + 3.5}">×${b.n}</text>`;
+  });
+  if (o.axis) {
+    const tk = o.tick || 5, last = Math.floor(total / 60);
+    for (let m = 0; m <= last; m += tk) {
+      let cum = 0, tx = pl;
+      for (const g of segs) { if (m * 60 <= cum + g.sec) { tx = g.x + (m * 60 - cum) / g.sec * g.w; break; } cum += g.sec; tx = g.x + g.w; }
+      out += `<line x1="${tx}" x2="${tx}" y1="${axY - 4}" y2="${axY}" stroke="rgba(255,255,255,.3)"/><text x="${tx}" y="${axY + 10}" text-anchor="${m === 0 ? 'start' : 'middle'}">${m}${m === last - last % tk && o.unit ? ' min' : ''}</text>`;
+    }
+  }
+  if (o.hit) segs.forEach(g => { out += `<rect class="hit" x="${g.x - gap / 2}" y="0" width="${g.w + gap}" height="${y0 + 8}" data-act="pick" data-id="${g.n.id}"/>`; });
+  let tip = '';
+  if (o.tip && geo[o.tip]) {
+    const gg = geo[o.tip], tw = 172, left = clamp(gg.cx - tw / 2, 0, W - tw), r = gg.r, st = gg.n;
+    tip = `<div class="tip" style="left:${left}px;bottom:${Ht - gg.top + 8}px;--ax:${gg.cx - left}px"><b>${stepTitle(st)}</b>${r.none ? 'Sin objetivo' : r.t}<br><span class="mut">${machLine(st) || '—'}</span></div>`;
+  }
+  return `<div class="prof${o.sel ? ' has-sel' : ''}" style="${o.tipSpace ? `padding-top:${o.tipSpace}px` : ''}"><svg width="${W}" height="${Ht}" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Perfil de intensidad"><defs>${defs}</defs>${out}</svg>${tip}</div>`;
+}
+
+/* ═══ Operaciones de árbol ════════════════════════════════════════════════ */
+function loc(list, id, par = null, anc = 0) {
+  for (let i = 0; i < list.length; i++) {
+    const n = list[i];
+    if (n.id === id) return { list, i, n, par, anc };
+    if (isRep(n)) { const r = loc(n.kids, id, n, anc + 1); if (r) return r; }
+  }
+  return null;
+}
+function reId(n) { n.id = uid(); if (isRep(n)) n.kids.forEach(reId); return n; }
+const OP = {
+  move(root, id, d) { const L = loc(root, id); if (!L) return; const j = L.i + d; if (j < 0 || j >= L.list.length) return; [L.list[L.i], L.list[j]] = [L.list[j], L.list[L.i]]; },
+  dup(root, id) { const L = loc(root, id); if (L) L.list.splice(L.i + 1, 0, reId(clone(L.n))); },
+  del(root, id) { const L = loc(root, id); if (L) L.list.splice(L.i, 1); },
+  unwrap(root, id) { const L = loc(root, id); if (L && isRep(L.n)) L.list.splice(L.i, 1, ...L.n.kids); },
+  canWrap(root, ids) {
+    const Ls = ids.map(i => loc(root, i)).filter(Boolean); if (!Ls.length) return false;
+    const idx = Ls.map(l => l.i).sort((a, b) => a - b);
+    if (!Ls.every(l => l.list === Ls[0].list)) return false;
+    if (idx[idx.length - 1] - idx[0] !== idx.length - 1) return false;
+    return Ls[0].anc + 1 + Math.max(...Ls.map(l => depthOf(l.n))) <= 2;
+  },
+  wrap(root, ids) {
+    if (!OP.canWrap(root, ids)) return null;
+    const Ls = ids.map(i => loc(root, i)).sort((a, b) => a.i - b.i), list = Ls[0].list, i0 = Ls[0].i;
+    const nodes = list.splice(i0, Ls.length), rep = R(uid(), 2, nodes, false);
+    list.splice(i0, 0, rep); return rep.id;
+  }
+};
+
+/* ═══ Plantillas y programas ══════════════════════════════════════════════ */
+const q15 = x => Math.max(15, Math.round(x / 15) * 15);
+const NZ = { 3: { kmh: 10.5, rpe: 6 }, 4: { kmh: 12.0, rpe: 8 }, 5: { kmh: 13.5, rpe: 9 } };
+function buildNoru(p) {
+  const D = p.dur * 60, warm = q15(D * .25), cool = q15(D * .125), rem = D - warm - cool;
+  const wk = q15(rem / (p.rounds + .75 * (p.rounds - 1))), rc = q15(wk * .75), z = NZ[p.zone];
+  const rec = p.rec === 'active'
+    ? S('rec', 'recover', tm(rc), TZ('hr', 1, 2), { kmh: 7.0, rpe: 3 })
+    : S('rec', 'rest', tm(rc), null, { kmh: 4.0, hint: 'andar', rpe: 1 });
+  return [
+    S('warm', 'warmup', tm(warm), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 }),
+    R('rep', p.rounds, [S('work', 'work', tm(wk), TZ('hr', p.zone), { kmh: z.kmh, inc: 1, rpe: z.rpe }), rec], true),
+    S('cool', 'cooldown', tm(cool), TZ('hr', 1), { kmh: 6.0, rpe: 2 })
+  ];
+}
+const STZ = { 1: 6.5, 2: 8.5, 3: 9.5, 4: 11, 5: 12.5 };
+const PACE_Z = { 1: [380, 420], 2: [335, 370], 3: [310, 330], 4: [290, 305], 5: [265, 285] };
+function buildSteady(p) {
+  const sp = STZ[p.z], end = p.mode === 'dist' ? { t: 'dist', m: p.km * 1000 } : tm(p.min * 60);
+  const tgt = p.tt === 'hr' ? TZ('hr', p.z) : p.tt === 'pace' ? TZ('pace', p.z) : TRPE(p.rpe);
+  const main = S('main', 'work', end, tgt, { kmh: sp, inc: 1, rpe: p.tt === 'rpe' ? undefined : [0, 2, 4, 6, 8, 9][p.z] });
+  if (p.mode === 'dist') main.sec = p.km / sp * 3600;
+  if (p.mode === 'both') main.hint = `≈ ${f1(p.km)} km`;
+  const out = [];
+  if (p.wc) out.push(S('warm', 'warmup', tm(300), TZ('hr', 1), { kmh: 7.0, rpe: 2 }));
+  out.push(main);
+  if (p.wc) out.push(S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6.0, rpe: 2 }));
+  return out;
+}
+function buildHiit(p) {
+  return [
+    S('warm', 'warmup', tm(300), TRPE(3), { w: 100, rpm: 60, rpe: 3 }),
+    R('rep', p.n, [S('work', 'work', tm(p.wk), TRPE(10), { w: 350, rpm: 100 }), S('rest', 'rest', tm(p.rs), null, { w: 40, rpm: 40 })], false),
+    S('cool', 'cooldown', tm(180), TRPE(2), { w: 80, rpm: 50 })
+  ];
+}
+function buildPir() {
+  const ws = [[60, 4], [120, 4], [180, 5], [120, 4], [60, 4]], out = [S('warm', 'warmup', tm(480), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 })];
+  ws.forEach((w, i) => {
+    out.push(S('w' + i, 'work', tm(w[0]), TZ('hr', w[1]), { kmh: w[1] === 5 ? 13.5 : 12, inc: 1, rpe: w[1] === 5 ? 9 : 8 }));
+    if (i < ws.length - 1) out.push(S('r' + i, 'recover', tm(90), TZ('hr', 1, 2), { kmh: 7.0, rpe: 3 }));
+  });
+  out.push(S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6.0, rpe: 2 }));
+  return out;
+}
+const buildTempo = () => [
+  S('warm', 'warmup', tm(600), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 }),
+  S('main', 'work', tm(1200), TZ('hr', 3), { kmh: 10.5, inc: 1, rpe: 6 }),
+  S('cool', 'cooldown', tm(600), TZ('hr', 1), { kmh: 6.0, rpe: 2 })];
+const buildHills = () => [
+  S('warm', 'warmup', tm(600), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 }),
+  R('rep', 8, [S('work', 'work', tm(60), TZ('hr', 5), { kmh: 9.0, inc: 6, rpe: 9 }), S('rec', 'recover', tm(120), TZ('hr', 1, 2), { kmh: 5.0, inc: 0, rpe: 2 })], true),
+  S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6.0, rpe: 2 })];
+function buildFartlek() {
+  const a = [[120, 3, 10], [60, 2, 8], [90, 4, 11.5], [90, 2, 8], [60, 5, 13.5], [120, 2, 8], [180, 3, 10.5], [60, 4, 12], [120, 2, 8], [90, 4, 11.5], [60, 1, 6.5]];
+  return [S('warm', 'warmup', tm(480), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 })]
+    .concat(a.map((s, i) => S('f' + i, s[1] >= 3 ? 'work' : 'recover', tm(s[0]), TZ('hr', s[1]), { kmh: s[2], inc: 1, rpe: [0, 2, 3, 6, 8, 9][s[1]] })))
+    .concat([S('cool', 'cooldown', tm(360), TZ('hr', 1), { kmh: 6.0, rpe: 2 })]);
+}
+const buildRecup = () => [S('main', 'work', tm(1500), TZ('hr', 1), { kmh: 6.5, rpe: 2 })];
+const DEF = {
+  noru: { dur: 40, zone: 4, rounds: 4, rec: 'active' },
+  steady: { mode: 'time', min: 35, km: 5.0, tt: 'hr', z: 2, rpe: 4, wc: true },
+  hiit: { proto: 'hiit', wk: 20, rs: 10, n: 8, sig: { beep: true, voice: true, vib: false, screen: true } }
+};
+const TPL = [
+  { id: 'fondo', n: 'Fondo suave Z2', d: 'Constante en Zona 2', b: () => buildSteady(DEF.steady) },
+  { id: 'noru', n: 'Noruego 4×4', d: '4 × 4 min en Zona 4', b: () => buildNoru(DEF.noru) },
+  { id: 'tabata', n: 'Tabata', d: '8 × 0:20 / 0:10', b: () => buildHiit(DEF.hiit) },
+  { id: 'pir', n: 'Pirámide', d: '1-2-3-2-1 min', b: buildPir },
+  { id: 'tempo', n: 'Tempo', d: '20 min en Zona 3', b: buildTempo },
+  { id: 'cuestas', n: 'Cuestas', d: '8 × 1 min al 6 %', b: buildHills },
+  { id: 'fartlek', n: 'Fartlek', d: 'Cambios de ritmo libres', b: buildFartlek },
+  { id: 'recup', n: 'Recuperación', d: 'Zona 1, muy suave', b: buildRecup }
+];
+const TPL_MAP = { fondo: 'steady', noru: 'noru', tabata: 'hiit' };
+
+/* ═══ Editor: estado y vistas ═════════════════════════════════════════════ */
+function newState(o) {
+  return Object.assign({
+    mode: 'adv', gk: 'none', m: 'treadmill', title: 'Cinta · Noruego 4×4', sub: 'Sábado · Pierna + cardio',
+    prog: null, pr: clone(DEF.noru), st: clone(DEF.steady), hi: clone(DEF.hiit), tpl: null,
+    pick: null, menu: null, sel: false, chk: [], sheet: null, banner: null, errs: 0, compact: false, full: false, count: '', tip: null
+  }, o || {});
+}
+function curProg(s) {
+  if (s.prog) return s.prog;
+  if (s.gk === 'noru') return buildNoru(s.pr);
+  if (s.gk === 'steady') return buildSteady(s.st);
+  if (s.gk === 'hiit') return buildHiit(s.hi);
+  if (s.gk === 'gallery' && s.tpl) return TPL.find(t => t.id === s.tpl).b();
+  return [];
+}
+function own(s) { if (!s.prog) s.prog = clone(curProg(s)); }
+const tOf = s => totals(curProg(s), s.m);
+function augeOf(s) {
+  if (s.gk === 'noru' && !s.prog) {
+    const p = s.pr, f = { 3: .7, 4: 1, 5: 1.25 }[p.zone], wf = p.rounds * (buildNoru(p)[1].kids[0].end.s) / 960;
+    return { snc: Math.round(9 * f * wf), musc: Math.round(12 * f * wf), esp: Math.max(1, Math.round(4 * f * wf)) };
+  }
+  if (s.gk === 'hiit' && !s.prog) { const m = s.hi.n * s.hi.wk / 60; return { snc: Math.round(m * 3.4), musc: Math.round(m * 2.2), esp: Math.round(m * 1.5) }; }
+  if (s.gk === 'steady' && !s.prog) return { snc: 2, musc: 5, esp: Math.round(s.st.min / 6) };
+  const hi = expand(curProg(s)).segs.reduce((a, g) => a + (resolve(g.n.tgt).lv >= .7 && g.n.tgt ? secOf(g.n) : 0), 0) / 60;
+  return { snc: Math.round(hi * .56), musc: Math.round(hi * .75), esp: Math.round(hi * .25) };
+}
+
+function topbar(s) {
+  if (s.sel) return `<div class="topbar"><button class="icon-btn" data-act="sel-off" aria-label="Salir de la selección">${ic('close')}</button><div class="ttl"><b>${s.chk.length} seleccionado${s.chk.length === 1 ? '' : 's'}</b><small>Toca los pasos que quieras agrupar</small></div><button class="link-btn" data-act="sel-all">Todos</button></div>`;
+  const dis = s.errs > 0 || (s.mode === 'adv' && !curProg(s).length);
+  return `<div class="topbar"><button class="icon-btn" aria-label="Volver">${ic('back')}</button><div class="ttl"><b>${s.title}</b>${s.errs ? `<small class="err">${s.errs} errores por corregir</small>` : `<small>${s.sub}</small>`}</div><button class="btn-save" data-act="save" ${dis ? 'disabled' : ''}>Guardar</button></div>`;
+}
+const modeBar = s => s.sel ? '' : `<div style="padding:0 8px 10px"><div class="seg" role="tablist" aria-label="Modo del editor"><button role="tab" data-act="mode" data-v="guided" aria-selected="${s.mode === 'guided'}">Guiado</button><button role="tab" data-act="mode" data-v="adv" aria-selected="${s.mode === 'adv'}">Avanzado</button></div></div>`;
+
+function edView(s) {
+  const body = s.mode === 'guided' ? gView(s) : aView(s);
+  return { main: topbar(s) + modeBar(s) + body, layer: layerOf(s) };
+}
+
+/* — Guiado — */
+function gView(s) {
+  if (s.prog && s.prog.length) return gCustom(s);
+  return ({ gallery: gGallery, noru: gNoru, steady: gSteady, hiit: gHiit }[s.gk] || gGallery)(s);
+}
+function pvHTML(s, o = {}) {
+  const prog = curProg(s), t = totals(prog, s.m);
+  return profile(prog, { w: 308, h: o.h || 52, br: true, mark: o.mark, pt: o.mark ? 10 : 4 }) + `<div class="tot"><b>${totTxt(t)}</b>${t.open ? '<span class="caption">pasos abiertos incluidos</span>' : ''}</div>`;
+}
+function tplHead(name, s) { return `<div class="row-h"><div><div class="lbl" style="margin:0">Plantilla</div><div class="hl" style="margin:0;font-size:19px">${name}</div></div><button class="link-btn" data-act="to-gallery">Cambiar</button></div>`; }
+
+function gGallery(s) {
+  const mach = Object.keys(MACH).map(k => `<button class="chip lg" aria-pressed="${s.m === k}" data-act="mach" data-v="${k}">${ic(MACH[k].i, 's')}${MACH[k].n}</button>`).join('');
+  const cards = TPL.map(t => {
+    const p = t.b(), tt = totals(p, 'treadmill');
+    return `<button class="tpl" aria-pressed="${s.tpl === t.id}" data-act="tpl" data-v="${t.id}"><b>${t.n}</b>${profile(p, { w: 137, h: 26, pt: 2, gap: 1.2, minW: 2 })}<div class="meta"><span>${durTxt(tt.sec)}</span><span class="mut">${t.d}</span></div></button>`;
+  }).join('');
+  const tn = s.tpl ? TPL.find(t => t.id === s.tpl).n : '';
+  return `<div class="sc g stack"><div><div class="hl" style="margin-top:0">¿Qué quieres entrenar?</div><div class="body-s">Elige máquina y plantilla. Luego la ajustas.</div></div>
+  <div><div class="lbl">Máquina</div><div class="mscroll">${mach}</div></div>
+  <div class="tgrid">${cards}</div>
+  ${s.tpl ? `<div class="cta-bar"><button class="btn btn-primary btn-block" data-act="use-tpl">Usar «${tn}»</button></div>` : ''}</div>`;
+}
+function sw(on) { return `<span class="sw"></span>`; }
+function stepper(act, val, minL, plL, extra = '') {
+  return `<div class="stepper"><button data-act="${act}" data-d="-1" ${extra} aria-label="${minL}">${ic('minus')}</button><output>${val}</output><button data-act="${act}" data-d="1" aria-label="${plL}">${ic('plus')}</button></div>`;
+}
+function gNoru(s) {
+  const p = s.pr, z = NZ[p.zone], a = augeOf(s);
+  const zb = [3, 4, 5].map(k => `<button class="zb" style="--c:var(--z${k})" aria-pressed="${p.zone === k}" data-act="zone" data-v="${k}">Zona ${k}<small>${HRZ[k].lo}–${HRZ[k].hi} lpm</small></button>`).join('');
+  return `<div class="sc g stack">${tplHead('Noruego 4×4', s)}
+  <div class="pcard"><div class="pv">${pvHTML(s)}</div></div>
+  <div class="card c"><div class="row-h"><span class="sec-t">Duración total</span><span class="hl dur-v" style="margin:0">${p.dur} min</span></div>
+    <input type="range" min="20" max="60" step="5" value="${p.dur}" data-in="dur" style="--p:${(p.dur - 20) / 40 * 100}%" aria-label="Duración total en minutos">
+    <div class="anch"><span>20 min</span><span>60 min</span></div><div class="caption" style="margin-top:2px">El patrón se reescala solo: calentamiento, series y vuelta a la calma.</div></div>
+  <div class="card c"><div class="sec-t" style="margin-bottom:8px">Zona de trabajo</div><div class="zbtns">${zb}</div>
+    <div class="zread zr"><span class="tchip" style="--c:var(--z${p.zone})">Zona ${p.zone}</span><span>${HRZ[p.zone].n} · ${z.kmh.toFixed(1).replace('.', ',')} km/h · RPE ${z.rpe}</span></div></div>
+  <div class="card c row-h"><div><div class="sec-t">Rondas</div><div class="caption">Series de trabajo</div></div>${stepper('rounds', p.rounds, 'Menos rondas', 'Más rondas')}</div>
+  <div class="card c"><div class="sec-t" style="margin-bottom:8px">Recuperación entre series</div>
+    <div class="seg"><button data-act="rec" data-v="active" aria-selected="${p.rec === 'active'}">Activa</button><button data-act="rec" data-v="passive" aria-selected="${p.rec === 'passive'}">Pasiva</button></div>
+    <div class="caption" style="margin-top:8px">${p.rec === 'active' ? 'Trotas suave a 7,0 km/h (Zona 1–2).' : 'Andas a 4,0 km/h hasta la siguiente serie.'}</div></div>
+  <div class="card c"><div class="sec-t" style="margin-bottom:8px">Efecto estimado en tus anillos</div><div class="eff">${aChips(a)}</div></div>
+  <div class="cta-bar"><button class="btn btn-tonal btn-block" data-act="go-adv">${ic('edit', 's')}Personalizar en modo avanzado</button></div></div>`;
+}
+function gSteady(s) {
+  const p = s.st, a = augeOf(s);
+  const mseg = [['time', 'Tiempo'], ['dist', 'Distancia'], ['both', 'Ambos']].map(([k, l]) => `<button data-act="smode" data-v="${k}" aria-selected="${p.mode === k}">${l}</button>`).join('');
+  const bp = (val, unit, act, small) => `<div class="bigpick"><button class="rbtn" data-act="${act}" data-d="-1" aria-label="Menos">${ic('minus')}</button><div class="rd" style="${small ? 'font-size:32px' : ''}">${val}<small>${unit}</small></div><button class="rbtn pl" data-act="${act}" data-d="1" aria-label="Más">${ic('plus')}</button></div>`;
+  let vals = p.mode === 'time' ? bp(p.min, 'minutos', 'smin') : p.mode === 'dist' ? bp(f1(p.km), 'kilómetros', 'skm') : `<div class="stack">${bp(p.min, 'minutos', 'smin', 1)}${bp(f1(p.km), 'kilómetros', 'skm', 1)}</div><div class="caption" style="margin-top:8px">Termina por tiempo; la distancia es una referencia.</div>`;
+  const tseg = [['hr', 'Zona de FC'], ['pace', 'Ritmo'], ['rpe', 'RPE']].map(([k, l]) => `<button data-act="tt" data-v="${k}" aria-selected="${p.tt === k}">${l}</button>`).join('');
+  let tp;
+  if (p.tt === 'rpe') {
+    tp = `<div class="rbtns" style="margin-top:12px">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => `<button class="rpb" style="--c:var(--z${rz(v)})" data-act="srpe" data-v="${v}" aria-pressed="${p.rpe === v}">${v}</button>`).join('')}</div><div class="zread"><span class="tchip" style="--c:var(--z${rz(p.rpe)})">RPE ${p.rpe}</span><span>${RPED[p.rpe]}</span></div>`;
+  } else {
+    const zs = [1, 2, 3, 4, 5].map(k => `<button class="zb" style="--c:var(--z${k})" data-act="sz" data-v="${k}" aria-pressed="${p.z === k}">Z${k}</button>`).join('');
+    const rd = p.tt === 'hr' ? `${HRZ[p.z].n} · ${HRZ[p.z].lo}–${HRZ[p.z].hi} lpm` : `${PCZ[p.z].n} · ${PCZ[p.z].r}`;
+    tp = `<div class="zbtns five" style="margin-top:12px">${zs}</div><div class="zread"><span class="tchip" style="--c:var(--z${p.z})">Zona ${p.z}</span><span>${rd}</span></div>`;
+  }
+  return `<div class="sc g stack">${tplHead('Fondo suave Z2', s)}
+  <div class="pcard"><div class="pv">${pvHTML(s, { h: 44 })}</div></div>
+  <div class="card c"><div class="sec-t" style="margin-bottom:8px">¿Cómo quieres medirlo?</div><div class="seg">${mseg}</div><div style="margin-top:12px">${vals}</div></div>
+  <div class="card c"><div class="sec-t" style="margin-bottom:8px">¿A qué intensidad?</div><div class="seg sm">${tseg}</div>${tp}</div>
+  <button class="tgl" role="switch" aria-checked="${p.wc}" data-act="wc"><span class="tx">Calentamiento y vuelta a la calma<small>5 min al principio y 5 min al final</small></span><span class="sw"></span></button></div>`;
+}
+function gHiit(s) {
+  const p = s.hi;
+  const sigs = [['beep', 'bell', 'Pitidos'], ['voice', 'mic', 'Voz'], ['vib', 'vibe', 'Vibración'], ['screen', 'sun', 'Pantalla encendida']];
+  const tiles = sigs.map(([k, i, l]) => `<button class="tile" role="switch" aria-checked="${p.sig[k]}" data-act="sig" data-v="${k}"><div class="th">${ic(i)}<span class="sw"></span></div><span>${l}</span></button>`).join('');
+  const mini = (lab, act, v) => `<div class="card c"><div class="lbl" style="margin:0">${lab}</div><div class="mini-stepper"><span class="v">${mmss(v)}</span><div class="btns"><button class="rbtn" data-act="${act}" data-d="-1" aria-label="Menos ${lab}">${ic('minus')}</button><button class="rbtn pl" data-act="${act}" data-d="1" aria-label="Más ${lab}">${ic('plus')}</button></div></div></div>`;
+  return `<div class="sc g stack"><div class="row-h"><div><div class="lbl" style="margin:0">Plantilla</div><div class="hl" style="margin:0;font-size:19px">${p.proto === 'sit' ? 'Sprints (SIT)' : 'Tabata'}</div></div><button class="link-btn" data-act="to-gallery">Cambiar</button></div>
+  <div class="pcard"><div class="pv">${pvHTML(s, { h: 44 })}</div></div>
+  <div class="card c"><div class="seg" style="margin-bottom:8px"><button data-act="proto" data-v="hiit" aria-selected="${p.proto === 'hiit'}">HIIT</button><button data-act="proto" data-v="sit" aria-selected="${p.proto === 'sit'}">SIT</button></div>
+    <div class="caption">${p.proto === 'hiit' ? 'HIIT: esfuerzos intensos de 20 s a 4 min con descansos cortos.' : 'SIT: sprints de 20–30 s a tope con recuperación larga.'}</div></div>
+  <div class="two">${mini('Trabajo', 'hwk', p.wk)}${mini('Descanso', 'hrs', p.rs)}</div>
+  <div class="card c row-h"><div><div class="sec-t">Rondas</div><div class="caption">Trabajo + descanso</div></div>${stepper('hn', p.n, 'Menos rondas', 'Más rondas')}</div>
+  <div><div class="lbl">Avisos durante el entreno</div><div class="tiles">${tiles}</div></div></div>`;
+}
+function diffOf(s) {
+  const flat = (l, m = {}) => { l.forEach(n => { m[n.id] = n; if (isRep(n)) flat(n.kids, m); }); return m; };
+  const a = flat(buildNoru(s.pr)), b = flat(curProg(s)), out = [], marks = [];
+  const row = t => `<div><i class="dotm"></i><span>${t}</span></div>`;
+  Object.keys(b).forEach(id => {
+    const y = b[id], x = a[id];
+    if (!x) { out.push(row(`Añadido: <b>${isRep(y) ? 'repetición' : stepTitle(y)}</b>`)); marks.push(id); return; }
+    if (isRep(y)) { if (y.n !== x.n) { out.push(row(`Vueltas <s>×${x.n}</s> → <b>×${y.n}</b>`)); } return; }
+    if (x.end.s !== y.end.s) { out.push(row(`${KN[y.kind]} <s>${mmss(x.end.s)}</s> → <b>${mmss(y.end.s)}</b>`)); marks.push(id); }
+    else if (JSON.stringify(x.tgt) !== JSON.stringify(y.tgt)) { out.push(row(`${KN[y.kind]}: <b>${resolve(y.tgt).t}</b>`)); marks.push(id); }
+  });
+  Object.keys(a).forEach(id => { if (!b[id]) out.push(row(`Eliminado: <b>${isRep(a[id]) ? 'repetición' : stepTitle(a[id])}</b>`)); });
+  return { out: out.join(''), marks };
+}
+function gCustom(s) {
+  const base = s.gk !== 'none', d = base ? diffOf(s) : { out: '', marks: [] };
+  const baseName = s.gk === 'noru' ? 'Noruego 4×4' : '';
+  return `<div class="sc g stack"><div><div class="lbl" style="margin:0">Programa</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="hl" style="margin:0">Personalizado</span><span class="badge">Editado</span></div>${base ? `<div class="caption" style="margin-top:2px">Basado en ${baseName}</div>` : ''}</div>
+  <div class="pcard"><div class="pv">${pvHTML(s, { mark: d.marks })}</div></div>
+  <div class="banner info">${ic('info', 's')}<span>Los pasos ya no siguen una plantilla, así que los controles guiados no se aplican. Sigue en modo avanzado; nada se pierde.</span></div>
+  ${base ? `<div class="card c"><div class="sec-t" style="margin-bottom:10px">Cambios respecto a la plantilla</div><div class="diff">${d.out}</div></div>` : ''}
+  <button class="btn btn-primary btn-block" data-act="mode" data-v="adv">${ic('edit', 's')}Seguir en modo avanzado</button>
+  ${base ? `<div><button class="btn btn-ghost btn-block" data-act="restore">${ic('undo', 's')}Volver a «${baseName}»</button><div class="caption" style="text-align:center;margin-top:6px">Descarta tus cambios.</div></div>` : ''}</div>`;
+}
+
+/* — Avanzado — */
+function errText(n) { return n.err || (n.end.t === 'time' && n.end.s == null ? 'Indica la duración del paso.' : ''); }
+function actions(n, s, list, i) {
+  if (s.sel) { const c = s.chk.includes(n.id); return `<button class="row-chk" data-act="chk" data-id="${n.id}" aria-pressed="${c}" aria-label="Seleccionar"><span class="chk">${c ? ic('check', 's') : ''}</span></button>`; }
+  return `<div class="row-act"><button data-act="move" data-d="-1" data-id="${n.id}" aria-label="Mover arriba" ${i === 0 ? 'disabled' : ''}>${ic('up')}</button><button data-act="move" data-d="1" data-id="${n.id}" aria-label="Mover abajo" ${i === list.length - 1 ? 'disabled' : ''}>${ic('down')}</button><button data-act="menu" data-id="${n.id}" aria-label="Más acciones">${ic('more')}</button></div>`;
+}
+function stepRow(n, s, list, i) {
+  const r = resolve(n.tgt, n.nz), sel = s.pick === n.id && !s.sel, chk = s.chk.includes(n.id), open = n.end.t === 'lap', et = errText(n);
+  const cls = ['row', sel ? 'is-sel' : '', chk ? 'is-chk' : '', open ? 'is-open' : '', et ? 'is-err' : ''].join(' ');
+  const chip = n.tgt ? `<span class="tchip" style="--c:${r.c}">${r.t}</span>` : `<span class="tchip mute">Sin objetivo</span>`;
+  const ml = machLine(n);
+  const title = open ? `${KN[n.kind]} <span>· abierto</span>${ic('flag', 'xs')}` : `${KN[n.kind]} <span>· ${n.end.t === 'time' && n.end.s == null ? '—' : endTxt(n.end)}</span>`;
+  const sub = open ? `Pulsa Siguiente${ml ? ' · ' + ml : ''}` : ml;
+  return `<div class="${cls}" data-rowid="${n.id}" style="--kc:${KC[n.kind]}"><div class="row-in"><i class="kind-bar k-${n.kind}"></i><button class="row-main" data-act="pick" data-id="${n.id}"><div class="row-t">${title}</div>${chip}<div class="row-s">${sub}</div></button>${actions(n, s, list, i)}</div>${et ? `<div class="row-err">${ic('warn', 'xs')}<span>${et}</span></div>` : ''}</div>`;
+}
+function repBox(n, s, list, i) {
+  const chk = s.chk.includes(n.id), empty = !n.kids.length, et = empty ? 'Añade pasos a la repetición o elimínala.' : (n.err || '');
+  const lk = n.kids[n.kids.length - 1];
+  const note = n.skip && lk && !isRep(lk) && (lk.kind === 'recover' || lk.kind === 'rest') ? `Sin ${lk.kind === 'rest' ? 'el último descanso' : 'la última recuperación'}` : '';
+  const head = `<div class="rep-h"><button class="rep-tog" data-act="tog" data-id="${n.id}" aria-expanded="${!n.col}" aria-label="${n.col ? 'Expandir' : 'Contraer'} repetición">${ic(n.col ? 'chev-r' : 'chev-d', 's')}<span class="rep-t">Repetir</span></button><button class="rep-open" data-act="rep-open" data-id="${n.id}" aria-label="Editar vueltas"><span class="rep-n">×${n.n}</span></button><span class="rep-s" style="flex:1;padding-left:8px">${empty ? '—' : mmss(repSeconds(n))}</span>${actions(n, s, list, i)}</div>`;
+  let body = '';
+  if (!n.col) {
+    body = `<div class="rep-body">${empty ? `<div class="rep-empty"><span>Repetición vacía</span><button class="btn btn-tonal sm" data-act="add-in" data-id="${n.id}">${ic('plus', 's')}Añadir paso</button></div>` : tree(n.kids, s)}</div>${note ? `<div class="rep-note">${ic('skip', 'xs')}<span>${note}</span></div>` : ''}`;
+  }
+  return `<div class="rep${n.col ? ' col' : ''}${chk ? ' is-chk' : ''}${et ? ' is-err' : ''}" data-rowid="${n.id}">${head}${body}${et ? `<div class="row-err" style="padding-left:6px">${ic('warn', 'xs')}<span>${et}</span></div>` : ''}</div>`;
+}
+function tree(list, s) { return `<div class="tree">${list.map((n, i) => isRep(n) ? repBox(n, s, list, i) : stepRow(n, s, list, i)).join('')}</div>`; }
+
+function aView(s) {
+  const prog = curProg(s);
+  if (!prog.length) return emptyView(s);
+  const node = s.pick && loc(prog, s.pick), t = tOf(s);
+  const chart = s.compact
+    ? `<div class="chart-card"><div class="card" style="padding:8px 12px 4px">${profile(prog, { w: 320, h: 26, pt: 3 })}</div></div>`
+    : `<div class="chart-card"><div class="card"><div class="cap-row"><span>Perfil de intensidad</span>${node && !s.sel ? `<b>${isRep(node.n) ? 'Repetición ×' + node.n.n : stepTitle(node.n)}</b>` : `<span>${durTxt(t.sec)}</span>`}</div>${profile(prog, { w: 320, h: s.hh || 46, pt: 4, br: true, sel: s.sel ? null : s.pick, hit: true })}</div></div>`;
+  const banner = s.banner ? `<div class="banner ${s.banner.k}">${ic(s.banner.k === 'err' ? 'warn' : 'info', 's')}<span>${s.banner.t}</span></div>` : '';
+  const canWrap = OP.canWrap(prog, s.chk);
+  const bar = s.sel
+    ? `<div class="actbar"><button class="btn btn-primary" data-act="wrap-sel" ${canWrap ? '' : 'disabled'}>${ic('repeat', 's')}Envolver en repetición</button><button class="icon-btn" data-act="dup-sel" aria-label="Duplicar" ${s.chk.length ? '' : 'disabled'}>${ic('copy')}</button><button class="icon-btn" data-act="del-sel" aria-label="Eliminar" style="color:var(--danger)" ${s.chk.length ? '' : 'disabled'}>${ic('trash')}</button></div>`
+    : `<div class="totals"><div class="tt"><span>${totTxt(t)}</span>${t.open ? '<em>incluye pasos abiertos</em>' : ''}${s.count ? `<em>${s.count}</em>` : ''}</div><button class="icon-btn" data-act="sel-on" aria-label="Seleccionar varios pasos">${ic('select')}</button></div>`;
+  const add = s.sel ? '' : `<div class="add-row"><button class="btn btn-tonal" data-act="add-step" ${s.full ? 'disabled' : ''}>${ic('plus', 's')}Añadir paso</button><button class="btn btn-tonal" data-act="add-rep" ${s.full ? 'disabled' : ''}>${ic('repeat', 's')}Añadir repetición</button></div>`;
+  return `<div class="sc">${chart}${banner}${tree(prog, s)}${add}${bar}</div>`;
+}
+function emptyView(s) {
+  return `<div class="sc"><div class="empty"><div class="ill">${profile([], { w: 300, h: 70 })}</div><h3>Aún no hay pasos</h3><p>Añade un paso para empezar, o parte de una plantilla y ajústala.</p><div class="stack" style="width:100%;margin-top:6px"><button class="btn btn-primary btn-block" data-act="add-step">${ic('plus', 's')}Añadir paso</button><button class="btn btn-tonal btn-block" data-act="to-gallery">Elegir plantilla</button></div></div>
+  <div class="totals" style="margin-top:130px"><div class="tt"><span>0 min</span></div></div></div>`;
+}
+
+/* ═══ Capas: menú contextual y hojas ══════════════════════════════════════ */
+function layerOf(s) {
+  if (s.sheet) return `<div class="scrim" data-act="sheet-close"></div>` + (s.sheet.t === 'rep' ? repSheet(s) : stepSheet(s));
+  if (s.menu) return `<div class="scrim" data-act="menu-close" style="background:rgba(0,0,0,.35)"></div>` + menuHTML(s);
+  return '';
+}
+function menuHTML(s) {
+  const prog = curProg(s), L = loc(prog, s.menu); if (!L) return '';
+  const n = L.n, rep = isRep(n);
+  const it = (a, i, t, x = '', cl = '') => `<button class="${cl}" role="menuitem" data-act="${a}" data-id="${n.id}" ${x}>${ic(i)}${t}</button>`;
+  return `<div class="menu" role="menu" data-menu>${it('dup', 'copy', 'Duplicar')}${rep ? it('unwrap', 'undo', 'Deshacer repetición') : it('wrap1', 'repeat', 'Envolver en repetición', OP.canWrap(prog, [n.id]) ? '' : 'disabled')}${it('move', 'up', 'Mover arriba', `data-d="-1" ${L.i === 0 ? 'disabled' : ''}`)}${it('move', 'down', 'Mover abajo', `data-d="1" ${L.i === L.list.length - 1 ? 'disabled' : ''}`)}<hr>${it('del', 'trash', 'Eliminar', '', 'dg')}</div>`;
+}
+function repSheet(s) {
+  const sh = s.sheet, L = loc(curProg(s), sh.id), n = L.n, lk = n.kids[n.kids.length - 1];
+  const canSkip = lk && !isRep(lk) && (lk.kind === 'recover' || lk.kind === 'rest');
+  const tmp = { ...clone(n), n: sh.n, skip: sh.skip && canSkip };
+  const one = repSeconds({ ...tmp, n: 1, skip: false }), tot = repSeconds(tmp);
+  const kids = n.kids.map(k => {
+    if (isRep(k)) return '';
+    const r = resolve(k.tgt), gone = tmp.skip && k === lk;
+    return `<div class="row" style="padding:2px 8px;${gone ? 'opacity:.45' : ''}"><div class="row-in" style="min-height:48px"><i class="kind-bar k-${k.kind}"></i><div class="row-main" style="cursor:default;flex-direction:row;align-items:center;gap:8px"><div class="row-t" style="flex:1">${KN[k.kind]} <span>· ${endTxt(k.end)}</span></div>${k.tgt ? `<span class="tchip" style="--c:${r.c}">${r.t.split(' · ')[0]}</span>` : ''}</div></div></div>`;
+  }).join('');
+  return `<div class="sheet2" role="dialog" aria-label="Repetición"><div class="sh-head"><div class="t">Repetición<small>Se repite lo que hay dentro</small></div><button class="icon-btn" data-act="sheet-close" aria-label="Cerrar">${ic('close')}</button></div>
+  <div class="sh-body">
+    <div class="vrow"><div class="vcol"><span class="sec-t">Vueltas</span><span class="caption">Entre 1 y 99</span></div><div class="stepper"><button data-act="rp-n" data-d="-1" aria-label="Menos vueltas">${ic('minus')}</button><output style="font-family:var(--font-display);font-size:26px;min-width:64px">${sh.n}×</output><button data-act="rp-n" data-d="1" aria-label="Más vueltas">${ic('plus')}</button></div></div>
+    <button class="tgl" role="switch" aria-checked="${tmp.skip}" data-act="rp-skip" ${canSkip ? '' : 'disabled'}><span class="tx">Omitir la última recuperación<small>${canSkip ? 'La última vuelta termina en el trabajo.' : 'Solo si la repetición termina en una recuperación.'}</small></span><span class="sw"></span></button>
+    <div class="card c"><div class="lbl">Lo que se repite</div><div class="tree" style="margin-bottom:10px">${kids}</div>${profile([tmp], { w: 296, h: 34, pt: 3, br: true })}<div class="row-h" style="margin-top:6px"><b style="font-size:14px">${mmss(tot)} en total</b><span class="caption num">${sh.n} × ${mmss(one)}${tmp.skip ? ' − ' + mmss(secOf(lk)) : ''}</span></div></div>
+    <div class="caption">«Deshacer repetición» deja los pasos sueltos, en el mismo orden.</div>
+  </div>
+  <div class="sh-foot"><button class="btn btn-danger sm" data-act="rp-undo" style="flex:1.25">${ic('undo', 's')}Deshacer repetición</button><button class="btn btn-primary sm" data-act="rp-ok">Listo</button></div></div>`;
+}
+
+/* — Hoja del paso — */
+const STEP_M = { kmh: .5, inc: .5, w: 10, rpm: 5, lvl: 1 };
+const RNG = { hr: { st: 5, lo: 90, hi: 190, u: 'lpm', f: v => v }, pace: { st: 5, lo: 210, hi: 480, u: '/km', f: v => mmss(v) }, pw: { st: 5, lo: 40, hi: 400, u: 'W', f: v => v }, speed: { st: 5, lo: 40, hi: 220, u: 'km/h', f: v => f1(v / 10) }, cad: { st: 5, lo: 40, hi: 130, u: 'rpm', f: v => v } };
+const RDEF = { hr: [150, 160], pace: [265, 275], pw: [198, 215], speed: [100, 120], cad: [85, 95] };
+const PDEF = { hr: [85, 92], pace: [95, 105], pw: [90, 105], speed: [90, 100], cad: [90, 100] };
+const fnum = n => Number.isInteger(n) ? String(n) : f1(n);
+const wheelH = (k, cur, prev, next, unit = '') => `<div class="wheel" role="spinbutton" aria-valuetext="${cur}"><button data-act="sh-wh" data-k="${k}" data-d="-1" aria-label="Anterior">${prev}</button><button class="s" data-act="sh-wh" data-k="${k}" data-d="0">${cur}${unit ? `<small>${unit}</small>` : ''}</button><button data-act="sh-wh" data-k="${k}" data-d="1" aria-label="Siguiente">${next}</button></div>`;
+function rngWheel(k, m, v) { const r = RNG[m]; return wheelH(k, r.f(v), v - r.st >= r.lo ? r.f(v - r.st) : '', v + r.st <= r.hi ? r.f(v + r.st) : '', ''); }
+function estSec(d) {
+  if (d.end === 'dist') { const t = d.tgt; if (t && t.m === 'pace' && t.b === 'range') return d.dm / 1000 * (t.lo + t.hi) / 2; return d.dm / 1000 / (d.kmh || 10) * 3600; }
+  if (d.end === 'kcal') return d.k * 1000 / (d.w || 250);
+  return 0;
+}
+function tcard(t, d, sec) {
+  if (!t) return `<div class="tcard"><span class="tchip mute">Sin objetivo</span><div class="zname">Este paso no lleva objetivo de intensidad.</div></div>`;
+  const r = resolve(t, d.nz && !sec);
+  if (t.m === 'pace' && t.b === 'range') {
+    const mid = (t.lo + t.hi) / 2;
+    return `<div class="tcard"><div class="wheels"><div style="flex:1"><div class="wlab">Desde</div>${rngWheel('lo', 'pace', t.lo)}</div><span class="dash">–</span><div style="flex:1"><div class="wlab">Hasta</div>${rngWheel('hi', 'pace', t.hi)}</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tchip" style="--c:${r.c}">Zona ${r.z}</span><span class="zname">${PCZ[r.z].r.replace(' /km', '')} · unos ${f1(3600 / mid)} km/h</span></div></div>`;
+  }
+  let tape = '';
+  if (t.b === 'zone' && t.m === 'pw') tape = `<div class="tape7">${[1, 2, 3, 4, 5, 6, 7].map(z => `<i style="--c:var(--p${z})" class="${z === t.z ? 'on' : ''}"></i>`).join('')}</div>`;
+  else if (t.b === 'zone' && t.m !== 'rpe') tape = `<div class="zone-tape">${[1, 2, 3, 4, 5].map(z => `<i class="${z >= t.z && z <= (t.z2 || t.z) ? 'is-on' : ''}"></i>`).join('')}</div>`;
+  const warn = d.nz && !sec ? `<div class="warn-box"><div class="t">${ic('warn', 's')}<span>Configura tus zonas para ver tus pulsaciones reales</span></div><button class="btn btn-tonal sm" data-act="sh-zones">${ic('gear', 's')}Configurar zonas</button></div>` : '';
+  const head = sec ? `<div class="row-h"><span style="font-size:12px;color:var(--text-3)">Objetivo secundario</span><span class="pill-solo">solo guía</span></div>` : '';
+  return `<div class="tcard ${sec ? 'sec' : ''}">${head}<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="tchip" style="--c:${r.c}">${r.t}</span></div>${r.sub && !warn ? `<div class="zname">${sec ? '' : r.sub}</div>` : ''}${tape}${warn}${sec ? `<div class="row-h"><span class="caption" style="flex:1">No genera avisos ni cuenta para el cumplimiento.</span><button class="link-btn" data-act="sh-delsec">Quitar</button></div>` : ''}</div>`;
+}
+function machSec(d) {
+  const mf = (lab, k, v, u) => `<div class="mf"><div class="lbl" style="margin:0">${lab}</div><div class="v">${v} <small>${u}</small></div><div class="stepper"><button data-act="sh-m" data-k="${k}" data-d="-1" aria-label="Menos ${lab}">${ic('minus')}</button><button data-act="sh-m" data-k="${k}" data-d="1" aria-label="Más ${lab}">${ic('plus')}</button></div></div>`;
+  let cells, note = '';
+  if (d.mk === 'airbike') { cells = mf('Potencia en pantalla', 'w', d.w || 250, 'W') + mf('Cadencia', 'rpm', d.rpm || 85, 'rpm'); note = 'Esta máquina solo muestra W y rpm: no hay km/h.'; }
+  else if (d.mk === 'rower') cells = mf('Resistencia', 'lvl', d.lvl || 5, '') + mf('Cadencia', 'rpm', d.rpm || 24, 'rpm');
+  else if (d.mk === 'bike') { cells = mf('Nivel', 'lvl', d.lvl || 6, '') + mf('Cadencia', 'rpm', d.rpm || 85, 'rpm'); note = 'La bici estática trabaja en W y rpm; no hay km/h.'; }
+  else cells = mf('Velocidad', 'kmh', f1(d.kmh || 8), 'km/h') + mf('Inclinación', 'inc', fnum(d.inc || 0), '%');
+  return `<div><div class="lbl">En la máquina</div><div class="mach">${cells}</div>${note ? `<div class="sub-note" style="margin-top:8px">${ic('info', 'xs')}<span>${note}</span></div>` : ''}</div>`;
+}
+function stepSheet(s) {
+  const sh = s.sheet, d = sh.d;
+  if (sh.view === 'pick') return pickSheet(s);
+  const kinds = Object.keys(KN).map(k => `<button class="chip kc" aria-pressed="${d.kind === k}" data-act="sh-kind" data-v="${k}"><span class="zone-dot" style="background:${KC[k]}"></span>${KN[k]}</button>`).join('');
+  const ends = [['time', 'Tiempo'], ['dist', 'Distancia'], ['kcal', 'kcal'], ['lap', 'Abierto']].map(([k, l]) => `<button data-act="sh-end" data-v="${k}" aria-selected="${d.end === k}">${l}</button>`).join('');
+  let val;
+  if (d.end === 'time') val = `<div class="vrow"><div class="vcol"><span class="lbl" style="margin:0">Duración</span><span class="big num">${mmss(d.secs)}</span></div><div class="stepper"><button data-act="sh-sec" data-d="-1" aria-label="Quitar 15 segundos">${ic('minus')}</button><output>15 s</output><button data-act="sh-sec" data-d="1" aria-label="Añadir 15 segundos">${ic('plus')}</button></div></div>`;
+  else if (d.end === 'dist') {
+    const km = Math.floor(d.dm / 1000), m = d.dm % 1000;
+    val = `<div><div class="wheels"><div style="flex:1"><div class="wlab">Kilómetros</div>${wheelH('dkm', km, km > 0 ? km - 1 : '', km + 1, 'km')}</div><div style="flex:1"><div class="wlab">Metros</div>${wheelH('dm', m, m >= 50 ? m - 50 : '', m + 50 <= 950 ? m + 50 : '', 'm')}</div></div><div class="sub-note" style="margin-top:8px">${ic('clock', 'xs')}<span>≈ ${mmss(estSec(d))} a tu ritmo objetivo. Es una estimación.</span></div></div>`;
+  } else if (d.end === 'kcal') val = `<div><div class="vrow"><div class="vcol"><span class="lbl" style="margin:0">Calorías</span><span class="big num">${d.k}<small>kcal</small></span></div><div class="stepper"><button data-act="sh-kc" data-d="-1" aria-label="Menos kcal">${ic('minus')}</button><output>5 kcal</output><button data-act="sh-kc" data-d="1" aria-label="Más kcal">${ic('plus')}</button></div></div><div class="sub-note" style="margin-top:8px">${ic('info', 'xs')}<span>Las kcal se estiman con tu peso (75 kg) y el esfuerzo; en la máquina pueden salir distintas. ≈ ${mmss(estSec(d))} en este paso.</span></div></div>`;
+  else val = `<div class="open-box"><div class="ib">${ic('flag')}</div><div><div class="sec-t">Hasta que pulses Siguiente</div><div class="body-s" style="margin-top:2px">Avanzas cuando pulses Siguiente o digas «siguiente paso».</div><div class="caption" style="margin-top:6px">En el perfil y los totales cuenta como ${d.kind === 'warmup' || d.kind === 'cooldown' ? '5:00' : '3:00'} estimados.</div></div></div>`;
+  const sec = d.t2 ? tcard(d.t2, d, true) : `<button class="btn btn-ghost btn-block" data-act="sh-addsec" style="height:48px">${ic('plus', 's')}Añadir objetivo secundario</button>`;
+  const rpe = d.rpe || 5;
+  return `<div class="sheet2" role="dialog" aria-label="Editar paso"><div class="sh-head"><div class="t">Editar paso<small>${MACH[d.mk].n}</small></div><button class="icon-btn" data-act="sheet-close" aria-label="Cerrar">${ic('close')}</button></div>
+  <div class="sh-body">
+    <div class="kinds" role="group" aria-label="Tipo de paso">${kinds}</div>
+    <div><div class="lbl">Termina por</div><div class="seg sm">${ends}</div></div>
+    ${val}
+    <div><div class="row-h"><span class="sec-t">Objetivo principal</span><button class="link-btn" data-act="sh-pick" data-w="p">Cambiar</button></div>${tcard(d.tgt, d, false)}<div style="margin-top:8px">${sec}</div></div>
+    ${machSec(d)}
+    <div><div class="row-h"><span class="sec-t">Esfuerzo planificado (RPE)</span><span class="tchip rpe-chip" style="--c:var(--z${rz(rpe)})">${rpe} · ${RPED[rpe].split(':')[0]}</span></div>
+      <input type="range" min="1" max="10" step="1" value="${rpe}" data-in="rpe" style="--p:${(rpe - 1) / 9 * 100}%" aria-label="RPE planificado">
+      <div class="anch"><span>1 Muy suave</span><span>4 Cómodo</span><span>7 Duro</span><span>10 Máximo</span></div></div>
+    <div><div class="lbl">Nota (opcional)</div><div class="fld">${d.note ? esc(d.note) : '<span class="mut">Añade una indicación para este paso</span>'}</div></div>
+  </div>
+  <div class="sh-foot"><button class="icon-btn" data-act="sh-del" aria-label="Eliminar paso">${ic('trash')}</button><button class="btn btn-ghost" data-act="sheet-close">Cancelar</button><button class="btn btn-primary" data-act="sh-save">Guardar paso</button></div></div>`;
+}
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+function initPk(t, forW) {
+  const m = t ? t.m : 'hr';
+  return {
+    m, b: t ? (t.b === 'value' ? 'value' : t.b) : 'zone', z: t && t.z || 3, lo: t && t.b === 'range' ? t.lo : RDEF[m] ? RDEF[m][0] : 0, hi: t && t.b === 'range' ? t.hi : RDEF[m] ? RDEF[m][1] : 0,
+    plo: t && t.b === 'pct' ? t.lo : (PDEF[m] || [90, 100])[0], phi: t && t.b === 'pct' ? t.hi : (PDEF[m] || [90, 100])[1], v: t && t.m === 'rpe' ? t.v : 7, w: forW
+  };
+}
+function pkTarget(pk) {
+  if (pk.m === 'rpe') return TRPE(pk.v);
+  if (pk.b === 'zone') return TZ(pk.m, pk.z);
+  if (pk.b === 'range') return TR(pk.m, pk.lo, pk.hi);
+  return TP(pk.m, pk.plo, pk.phi);
+}
+function pickSheet(s) {
+  const sh = s.sheet, pk = sh.pk;
+  const mets = [['hr', 'FC', 'heart'], ['pace', 'Ritmo', 'pace'], ['speed', 'Velocidad', 'speed'], ['pw', 'Potencia', 'bolt'], ['cad', 'Cadencia', 'cad'], ['rpe', 'RPE', 'gauge']];
+  const grid = mets.map(([k, l, i]) => `<button aria-pressed="${pk.m === k}" data-act="pk-m" data-v="${k}">${ic(i, 's')}${l}</button>`).join('');
+  const zoneable = pk.m === 'hr' || pk.m === 'pace' || pk.m === 'pw';
+  const bas = pk.m === 'rpe' ? '' : `<div><div class="lbl">Cómo se define</div><div class="seg sm">${[['zone', 'Zona'], ['range', 'Rango'], ['pct', '% del umbral']].map(([k, l]) => `<button data-act="pk-b" data-v="${k}" aria-selected="${pk.b === k}" ${(k !== 'range' && !zoneable) ? 'disabled style="opacity:.35"' : ''}>${l}</button>`).join('')}</div></div>`;
+  let pane;
+  if (pk.m === 'rpe') pane = `<div><div class="lbl">Esfuerzo percibido</div><div class="rbtns">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => `<button class="rpb" style="--c:var(--z${rz(v)})" data-act="pk-v" data-v="${v}" aria-pressed="${pk.v === v}">${v}</button>`).join('')}</div><div class="zread"><span class="tchip" style="--c:var(--z${rz(pk.v)})">RPE ${pk.v}</span><span>${RPED[pk.v]}</span></div></div>`;
+  else if (pk.b === 'zone' && zoneable) {
+    const n = pk.m === 'pw' ? 7 : 5, base = pk.m === 'hr' ? 'Según tu FC máx de 187 lpm (Tanaka).' : pk.m === 'pw' ? 'Según tu FTP de 220 W.' : 'Según tu ritmo umbral de 4:50 /km.';
+    const cards = Array.from({ length: n }, (_, i) => i + 1).map(z => {
+      const col = pk.m === 'pw' ? `var(--p${z})` : `var(--z${z})`, o = pk.m === 'hr' ? HRZ[z] : pk.m === 'pw' ? PWZ[z] : PCZ[z], rg = pk.m === 'hr' ? `${o.lo}–${o.hi} lpm` : o.r;
+      return `<button class="zcard${pk.z === z ? ' on' : ''}" style="--c:${col}" data-act="pk-z" data-v="${z}" aria-pressed="${pk.z === z}"><span class="zn">${z}</span><span class="zt"><b>${o.n}</b><span>${o.p}</span></span><span class="zr">${rg}</span></button>`;
+    }).join('');
+    pane = `<div><div class="lbl">${base}</div><div class="zlist">${cards}</div></div>`;
+  } else if (pk.b === 'range' || !zoneable) {
+    const r = RNG[pk.m];
+    pane = `<div><div class="lbl">Rango en ${r.u}</div><div class="wheels"><div style="flex:1"><div class="wlab">Desde</div>${rngWheel('plo', pk.m, pk.lo).replace(/data-k="(lo|hi)"/g, 'data-k="$1"')}</div><span class="dash">–</span><div style="flex:1"><div class="wlab">Hasta</div>${rngWheel('phi', pk.m, pk.hi)}</div></div></div>`;
+    pane = pane.replace(/data-k="plo"/g, 'data-k="plo"');
+  } else {
+    const rr = resolve(TP(pk.m, pk.plo, pk.phi));
+    const base = pk.m === 'hr' ? 'umbral de FC de 168 lpm' : pk.m === 'pw' ? 'FTP de 220 W' : 'ritmo umbral de 4:50 /km';
+    const row = (lab, k, v) => `<div class="vrow" style="padding:6px 6px 6px 16px"><span class="sec-t">${lab}</span><div class="stepper"><button data-act="pk-p" data-k="${k}" data-d="-1" aria-label="Menos ${lab}">${ic('minus')}</button><output>${v} %</output><button data-act="pk-p" data-k="${k}" data-d="1" aria-label="Más ${lab}">${ic('plus')}</button></div></div>`;
+    pane = `<div class="stack"><div class="lbl" style="margin:0">Porcentaje de tu ${base}</div>${row('Desde', 'plo', pk.plo)}${row('Hasta', 'phi', pk.phi)}<div class="zread"><span class="tchip" style="--c:${rr.c}">${rr.t.split(' · ')[1] || rr.t}</span><span>en tus datos actuales</span></div></div>`;
+  }
+  const lab = pk.m === 'rpe' ? `RPE ${pk.v}` : pk.b === 'zone' && zoneable ? `Zona ${pk.z}` : pk.b === 'range' || !zoneable ? 'este rango' : 'este %';
+  return `<div class="sheet2" role="dialog" aria-label="Elegir objetivo"><div class="sh-head" style="padding-left:6px"><button class="icon-btn" data-act="sh-pback" aria-label="Volver al paso">${ic('back')}</button><div class="t" style="padding-left:4px">Objetivo del paso<small>${sh.pkFor === 's' ? 'Secundario · solo guía' : 'Principal'}</small></div></div>
+  <div class="sh-body"><div><div class="lbl">Qué quieres medir</div><div class="mgrid">${grid}</div></div>${bas}${pane}</div>
+  <div class="sh-foot"><button class="btn btn-ghost" data-act="sh-pback">Cancelar</button><button class="btn btn-primary" data-act="pk-use">Usar ${lab}</button></div></div>`;
+}
+
+/* ═══ Acciones del editor ═════════════════════════════════════════════════ */
+const nodeOf = (s, id) => { const L = loc(curProg(s), id); return L && L.n; };
+function openStep(s, id) {
+  const n = nodeOf(s, id), e = n.end;
+  s.sheet = { t: 'step', id, view: 'step', d: { kind: n.kind, end: e.t, secs: e.s || 240, dm: e.m || 400, k: e.k || 15, mk: s.m, tgt: n.tgt ? clone(n.tgt) : null, t2: n.t2 ? clone(n.t2) : null, nz: !!n.nz, kmh: n.kmh, inc: n.inc, w: n.w, rpm: n.rpm, lvl: n.lvl, rpe: n.rpe != null ? n.rpe : 5, note: n.userNote || '' } };
+  return s;
+}
+function applySheet(s) {
+  const sh = s.sheet, d = sh.d; own(s);
+  const L = loc(s.prog, sh.id); if (!L) return; const n = L.n;
+  n.kind = d.kind;
+  n.end = d.end === 'time' ? tm(d.secs) : d.end === 'dist' ? { t: 'dist', m: d.dm } : d.end === 'kcal' ? { t: 'kcal', k: d.k } : { t: 'lap' };
+  n.sec = (d.end === 'dist' || d.end === 'kcal') ? Math.round(estSec(d)) : undefined;
+  n.tgt = d.tgt; n.t2 = d.t2; n.rpe = d.rpe; ['kmh', 'inc', 'w', 'rpm', 'lvl'].forEach(k => { if (d[k] != null) n[k] = d[k]; });
+  n.userNote = d.note;
+}
+function addAfter(s, mk) {
+  own(s); const L = s.pick && loc(s.prog, s.pick), nn = mk();
+  if (L && (!isRep(nn) || L.anc < 2)) L.list.splice(L.i + 1, 0, nn); else s.prog.push(nn);
+  s.pick = nn.id;
+}
+const newStep = () => S(uid(), 'work', tm(300), TZ('hr', 2), { kmh: 8.5, inc: 1, rpe: 5 });
+const newRep = () => R(uid(), 2, [S(uid(), 'work', tm(60), TZ('hr', 4), { kmh: 12, inc: 1, rpe: 8 }), S(uid(), 'recover', tm(60), TZ('hr', 1, 2), { kmh: 7, rpe: 3 })]);
+
+function edAct(s, a, d) {
+  const dd = +d.d || 0, sh = s.sheet;
+  switch (a) {
+    case 'mode': s.mode = d.v; s.menu = null; s.sel = false; break;
+    case 'pick':
+      if (s.sel) { const i = s.chk.indexOf(d.id); i < 0 ? s.chk.push(d.id) : s.chk.splice(i, 1); }
+      else if (s.mode === 'adv' && s.pick === d.id && !s.tipOnly && nodeOf(s, d.id) && !isRep(nodeOf(s, d.id))) openStep(s, d.id);
+      else { s.pick = d.id; s.tip = d.id; }
+      break;
+    case 'move': own(s); OP.move(s.prog, d.id, dd); s.menu = null; break;
+    case 'menu': s.menu = d.id; s.pick = d.id; break;
+    case 'menu-close': s.menu = null; break;
+    case 'dup': own(s); OP.dup(s.prog, d.id); s.menu = null; break;
+    case 'del': own(s); OP.del(s.prog, d.id); s.menu = null; s.pick = null; break;
+    case 'wrap1': own(s); s.pick = OP.wrap(s.prog, [d.id]) || s.pick; s.menu = null; break;
+    case 'unwrap': own(s); OP.unwrap(s.prog, d.id); s.menu = null; break;
+    case 'tog': { const n = nodeOf(s, d.id); n.col = !n.col; break; }
+    case 'rep-open': { const n = nodeOf(s, d.id); s.sheet = { t: 'rep', id: d.id, n: n.n, skip: n.skip }; break; }
+    case 'sel-on': s.sel = true; s.menu = null; s.chk = d.id ? [d.id] : []; break;
+    case 'sel-off': s.sel = false; s.chk = []; break;
+    case 'sel-all': s.chk = curProg(s).map(n => n.id); break;
+    case 'chk': { const i = s.chk.indexOf(d.id); i < 0 ? s.chk.push(d.id) : s.chk.splice(i, 1); break; }
+    case 'wrap-sel': { own(s); const id = OP.wrap(s.prog, s.chk); if (id) { s.sel = false; s.chk = []; s.pick = id; } break; }
+    case 'dup-sel': own(s); s.chk.slice().reverse().forEach(id => OP.dup(s.prog, id)); s.sel = false; s.chk = []; break;
+    case 'del-sel': own(s); s.chk.forEach(id => OP.del(s.prog, id)); s.sel = false; s.chk = []; s.pick = null; break;
+    case 'add-step': addAfter(s, newStep); break;
+    case 'add-rep': addAfter(s, newRep); break;
+    case 'add-in': { own(s); const n = nodeOf(s, d.id), st = newStep(); n.kids.push(st); s.pick = st.id; break; }
+    case 'save': return false;
+    case 'to-gallery': s.mode = 'guided'; s.gk = 'gallery'; s.tpl = null; s.prog = null; s.title = 'Nuevo cardio'; break;
+    case 'mach': s.m = d.v; break;
+    case 'tpl': s.tpl = s.tpl === d.v ? null : d.v; break;
+    case 'use-tpl': {
+      const t = TPL.find(x => x.id === s.tpl);
+      if (s.tpl === 'tabata') s.m = 'airbike'; else if (s.m !== 'treadmill' && s.m !== 'road') s.m = 'treadmill';
+      s.title = `${MACH[s.m].n} · ${t.n}`;
+      if (TPL_MAP[s.tpl]) { s.gk = TPL_MAP[s.tpl]; s.prog = null; } else { s.gk = 'none'; s.prog = clone(t.b()); s.mode = 'adv'; }
+      break;
+    }
+    case 'zone': s.pr.zone = +d.v; break;
+    case 'rounds': s.pr.rounds = clamp(s.pr.rounds + dd, 2, 8); break;
+    case 'rec': s.pr.rec = d.v; break;
+    case 'go-adv': s.mode = 'adv'; break;
+    case 'smode': s.st.mode = d.v; break;
+    case 'smin': s.st.min = clamp(s.st.min + dd * 5, 10, 120); break;
+    case 'skm': s.st.km = clamp(Math.round((s.st.km + dd * .5) * 10) / 10, 1, 30); break;
+    case 'tt': s.st.tt = d.v; break;
+    case 'sz': s.st.z = +d.v; break;
+    case 'srpe': s.st.rpe = +d.v; break;
+    case 'wc': s.st.wc = !s.st.wc; break;
+    case 'proto': s.hi = Object.assign(s.hi, d.v === 'sit' ? { proto: 'sit', wk: 30, rs: 240, n: 4 } : { proto: 'hiit', wk: 20, rs: 10, n: 8 }); break;
+    case 'hwk': s.hi.wk = clamp(s.hi.wk + dd * 5, 10, 300); break;
+    case 'hrs': s.hi.rs = clamp(s.hi.rs + dd * (s.hi.proto === 'sit' ? 15 : 5), 5, 600); break;
+    case 'hn': s.hi.n = clamp(s.hi.n + dd, 1, 20); break;
+    case 'sig': s.hi.sig[d.v] = !s.hi.sig[d.v]; break;
+    case 'restore': s.prog = null; break;
+    /* hoja de repetición */
+    case 'sheet-close': s.sheet = null; break;
+    case 'rp-n': sh.n = clamp(sh.n + dd, 1, 99); break;
+    case 'rp-skip': sh.skip = !sh.skip; break;
+    case 'rp-ok': { own(s); const n = nodeOf(s, sh.id); n.n = sh.n; n.skip = sh.skip; s.sheet = null; break; }
+    case 'rp-undo': own(s); OP.unwrap(s.prog, sh.id); s.sheet = null; s.pick = null; break;
+    /* hoja del paso */
+    case 'sh-kind': sh.d.kind = d.v; break;
+    case 'sh-end': sh.d.end = d.v; break;
+    case 'sh-sec': sh.d.secs = Math.max(5, sh.d.secs + dd * 15); break;
+    case 'sh-kc': sh.d.k = Math.max(5, sh.d.k + dd * 5); break;
+    case 'sh-m': { const def = { kmh: 8, inc: 0, w: 250, rpm: 85, lvl: 5 }, v = sh.d[d.k] != null ? sh.d[d.k] : def[d.k]; sh.d[d.k] = Math.max(d.k === 'kmh' ? 1 : 0, Math.round((v + dd * STEP_M[d.k]) * 10) / 10); break; }
+    case 'sh-wh': {
+      if (!dd) break;
+      if (d.k === 'dkm') { sh.d.dm = Math.max(50, (Math.floor(sh.d.dm / 1000) + dd) * 1000 + sh.d.dm % 1000); }
+      else if (d.k === 'dm') { const m = clamp(sh.d.dm % 1000 + dd * 50, 0, 950); sh.d.dm = Math.max(50, Math.floor(sh.d.dm / 1000) * 1000 + m); }
+      else if (d.k === 'lo' || d.k === 'hi') { const t = sh.d.tgt; t[d.k] += dd * 5; if (t.lo > t.hi) { d.k === 'lo' ? t.lo = t.hi : t.hi = t.lo; } }
+      else { const pk = sh.pk, key = d.k === 'plo' ? 'lo' : 'hi', r = RNG[pk.m]; pk[key] = clamp(pk[key] + dd * r.st, r.lo, r.hi); if (pk.lo > pk.hi) { key === 'lo' ? pk.lo = pk.hi : pk.hi = pk.lo; } }
+      break;
+    }
+    case 'sh-pick': sh.view = 'pick'; sh.pkFor = 'p'; sh.pk = initPk(sh.d.tgt); break;
+    case 'sh-addsec': sh.d.t2 = TR('pw', 150, 160); break;
+    case 'sh-delsec': sh.d.t2 = null; break;
+    case 'sh-zones': sh.d.nz = false; break;
+    case 'sh-del': own(s); OP.del(s.prog, sh.id); s.sheet = null; s.pick = null; break;
+    case 'sh-save': applySheet(s); s.sheet = null; break;
+    case 'sh-pback': sh.view = 'step'; break;
+    case 'pk-m': {
+      const pk = sh.pk; pk.m = d.v;
+      pk.b = d.v === 'rpe' ? 'value' : (d.v === 'speed' || d.v === 'cad') ? 'range' : (pk.b === 'value' ? 'zone' : pk.b);
+      pk.z = Math.min(pk.z, d.v === 'pw' ? 7 : 5); if (RDEF[d.v]) { pk.lo = RDEF[d.v][0]; pk.hi = RDEF[d.v][1]; pk.plo = PDEF[d.v][0]; pk.phi = PDEF[d.v][1]; }
+      break;
+    }
+    case 'pk-b': sh.pk.b = d.v; break;
+    case 'pk-z': sh.pk.z = +d.v; break;
+    case 'pk-v': sh.pk.v = +d.v; break;
+    case 'pk-p': { const pk = sh.pk, key = d.k; pk[key] = clamp(pk[key] + dd, 30, 160); if (pk.plo > pk.phi) { key === 'plo' ? pk.plo = pk.phi : pk.phi = pk.plo; } break; }
+    case 'pk-use': { const t = pkTarget(sh.pk); if (sh.pkFor === 's') sh.d.t2 = t; else sh.d.tgt = t; sh.view = 'step'; break; }
+    default: return false;
+  }
+}
+function edInput(s, k, v, ph) {
+  if (k === 'dur') {
+    s.pr.dur = +v;
+    ph.querySelector('.dur-v').textContent = v + ' min';
+    ph.querySelector('input[data-in="dur"]').style.setProperty('--p', ((v - 20) / 40 * 100) + '%');
+    ph.querySelector('.pv').innerHTML = pvHTML(s);
+    ph.querySelector('.eff').innerHTML = aChips(augeOf(s));
+  } else if (k === 'rpe') {
+    s.sheet.d.rpe = +v;
+    const ch = ph.querySelector('.rpe-chip'); ch.textContent = `${v} · ${RPED[v].split(':')[0]}`; ch.style.setProperty('--c', `var(--z${rz(+v)})`);
+    ph.querySelector('input[data-in="rpe"]').style.setProperty('--p', ((v - 1) / 9 * 100) + '%');
+  }
+}
+function edAfter(c) {
+  const ph = c.el, m = ph.querySelector('[data-menu]'); if (!m) return;
+  const row = ph.querySelector(`[data-rowid="${c.s.menu}"]`); if (!row) return;
+  const pr = ph.getBoundingClientRect(), rr = row.getBoundingClientRect(), h = m.offsetHeight;
+  let top = rr.bottom - pr.top - 8;
+  if (top + h > pr.height - 30) top = Math.max(40, rr.top - pr.top - h + 8);
+  m.style.top = top + 'px'; m.style.right = '12px';
+}
+
+/* ═══ A · sesión mixta ════════════════════════════════════════════════════ */
+function cardioCard(s) {
+  const prog = buildNoru(DEF.noru), t = totals(prog, 'treadmill'), a = { snc: 9, musc: 12, esp: 4 };
+  const open = s.open ? `<div class="divider" style="margin:0"></div><div class="seg" role="tablist" aria-label="Modo"><button role="tab" data-act="cc-mode" data-v="guided" aria-selected="${s.cm === 'guided'}">Guiado</button><button role="tab" data-act="cc-mode" data-v="adv" aria-selected="${s.cm === 'adv'}">Avanzado</button></div>
+    <div class="caption">${s.cm === 'guided' ? '4 rondas · Zona 4 · recuperación activa' : '3 pasos · 1 repetición ×4 · sin la última recuperación'}</div><button class="btn btn-tonal btn-block" data-act="cc-edit">${ic('edit', 's')}Abrir editor</button>` : '';
+  return `<div class="cardio-card"><button class="cc-h" data-act="cc-open" aria-expanded="${!!s.open}" style="background:none;border:0;padding:0;text-align:left;color:inherit;width:100%;min-height:48px;cursor:pointer"><span class="cc-ic">${ic('treadmill')}</span><span class="tx"><b>Cinta · Noruego 4×4</b><div class="cm"><span class="badge">${s.cm === 'adv' ? 'Avanzado' : 'Guiado'}</span><span>Cinta</span></div></span>${ic(s.open ? 'chev-d' : 'chev-r')}</button>
+  ${profile(prog, { w: 306, h: 36, pt: 2, gap: 1.8 })}<div class="cc-tot">${totTxt(t)}</div>${aChips(a)}${open}</div>`;
+}
+function sessView(s) {
+  const ex = [['Sentadilla trasera', '4×6 · 100 kg'], ['Peso muerto rumano', '3×8 · 80 kg'], ['Zancada búlgara', '3×10 · 2×16 kg']];
+  const exH = `<div class="stack" style="gap:8px">${ex.map((e, i) => `<div class="sess-row"><span class="ix">${i + 1}</span><div class="tx"><b>${e[0]}</b><span>${e[1]}</span></div>${ic('chev-r')}</div>`).join('')}</div>`;
+  const space = `<div class="space-h"><div class="t">Espacio de cardio</div><div class="seg" role="group" aria-label="Colocación del cardio"><button data-act="place" data-v="start" aria-selected="${s.place === 'start'}">Al inicio</button><button data-act="place" data-v="end" aria-selected="${s.place === 'end'}">Al final</button></div><div class="d">${s.place === 'end' ? 'Se hace después del último ejercicio.' : 'Se hace antes del primer ejercicio.'}</div></div>${cardioCard(s)}`;
+  return {
+    main: `<div class="topbar"><button class="icon-btn" aria-label="Volver">${ic('back')}</button><div class="ttl"><b>Sábado · Pierna + cardio</b><small>3 ejercicios · 1 cardio · ≈ 1 h 25 min</small></div><button class="icon-btn" aria-label="Más opciones">${ic('more')}</button></div>
+    <div class="sc g">${s.place === 'end' ? exH + space : space.replace('<div class="space-h">', '<div class="space-h" style="margin-top:4px">') + `<div style="height:14px"></div>` + exH}<button class="btn btn-ghost btn-block" style="margin-top:14px">${ic('plus', 's')}Añadir ejercicio</button></div>`
+  };
+}
+function sessAct(s, a, d) {
+  if (a === 'place') s.place = d.v; else if (a === 'cc-open') s.open = !s.open; else if (a === 'cc-mode') s.cm = d.v; else return false;
+}
+
+/* ═══ G · perfil en detalle ═══════════════════════════════════════════════ */
+const remoProg = () => [
+  S('warm', 'warmup', { t: 'lap' }, TZ('pw', 2), { lvl: 4, rpm: 20, rpe: 3, mk: 'rower', ew: 140 }),
+  R('out', 2, [
+    R('inn', 3, [
+      S('iw', 'work', tm(60), TZ('pw', 4), { lvl: 6, rpm: 28, rpe: 8, mk: 'rower', ew: 215 }),
+      S('ir', 'recover', tm(60), TZ('pw', 1), { lvl: 3, rpm: 20, rpe: 2, mk: 'rower', ew: 80 })]),
+    S('rs', 'rest', tm(120), null, { hint: 'Sin remar', rpe: 1, ew: 20 })], true),
+  S('dist', 'work', { t: 'dist', m: 500 }, TZ('pw', 5), { lvl: 7, rpm: 30, rpe: 9, mk: 'rower', sec: 120, ew: 240 }),
+  S('kc', 'work', { t: 'kcal', k: 20 }, TZ('pw', 6), { lvl: 8, rpm: 32, rpe: 10, mk: 'rower', sec: 70 }),
+  S('cool', 'cooldown', tm(300), TZ('pw', 1), { lvl: 3, rpm: 18, rpe: 2, mk: 'rower', ew: 90 })];
+function profView(s) {
+  const prog = remoProg(), t = totals(prog, 'rower'), zone = s.color === 'zone';
+  const seg = `<div class="seg" role="group" aria-label="Color de las barras"><button data-act="gcol" data-v="zone" aria-selected="${zone}">Por zona</button><button data-act="gcol" data-v="kind" aria-selected="${!zone}">Por tipo de paso</button></div>`;
+  const chart = profile(prog, { w: 312, h: 150, pt: 8, pl: 24, br: true, axis: true, tick: 5, unit: true, grid: zone ? 'pw' : null, color: s.color, sel: s.sel, tip: s.tip, tipSpace: 74, hit: true });
+  const colors = zone
+    ? [1, 2, 3, 4, 5, 6, 7].map(z => `<span><i style="--c:var(--p${z})"></i>Z${z}</span>`).join('')
+    : Object.keys(KN).map(k => `<span><i style="--c:${KC[k]}"></i>${KN[k]}</span>`).join('');
+  return {
+    main: `<div class="topbar"><button class="icon-btn" aria-label="Volver">${ic('back')}</button><div class="ttl"><b>Perfil de intensidad</b><small>Remo · Escalera en 2 series</small></div></div>
+    <div class="sc g stack">${seg}
+    <div class="card" style="padding:10px 10px 6px">${chart}</div>
+    <div class="card c stack" style="gap:10px"><div class="sec-t" style="font-size:13px">${zone ? 'Color: zona de potencia (FTP 220 W)' : 'Color: tipo de paso'}</div><div class="leg">${colors}</div>
+      <div class="leg"><span><i class="hx"></i>Abierto: hasta Siguiente</span><span><i class="dt"></i>Estimado: distancia o kcal</span><span><i class="br"></i>Repetición</span></div></div>
+    <div class="card c"><div class="row-h"><span class="sec-t">Total estimado</span><b class="num" style="font-size:14px">${durTxt(t.sec)} · ≈ ${t.kcal} kcal</b></div><div class="caption" style="margin-top:4px">Incluye 5:00 estimados del calentamiento abierto. Toca una barra para ver el paso.</div></div></div>`
+  };
+}
+function profAct(s, a, d) { if (a === 'pick') { s.sel = d.id; s.tip = d.id; } else if (a === 'gcol') s.color = d.v; else return false; }
+
+/* ═══ Programas de ejemplo ════════════════════════════════════════════════ */
+const progIntervals = () => [
+  S('warm', 'warmup', tm(480), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 }),
+  S('work', 'work', tm(180), TZ('hr', 4), { kmh: 12, inc: 1, rpe: 8 }),
+  S('rec', 'recover', tm(120), TZ('hr', 1, 2), { kmh: 7, rpe: 3 }),
+  S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6, rpe: 2 })];
+const progErrors = () => {
+  const e4 = R('e4', 2, [S('e5', 'work', tm(60), TRPE(8), { kmh: 12, inc: 1 })]);
+  e4.err = 'Una repetición solo puede ir dentro de otra una vez.';
+  return [R('e1', 3, []), R('e2', 2, [R('e3', 2, [e4])]), S('e6', 'work', { t: 'time', s: null }, TZ('hr', 4), { kmh: 12, inc: 1, rpe: 8 })];
+};
+const progMax = () => {
+  const p = [S('warm', 'warmup', tm(600), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 })];
+  for (let i = 0; i < 32; i++) {
+    const r = R('mr' + i, 2, [S('mw' + i, 'work', tm(60), TZ('hr', i % 2 ? 5 : 4), { kmh: i % 2 ? 13.5 : 12, inc: 1, rpe: i % 2 ? 9 : 8 }), S('mc' + i, 'recover', tm(30), TZ('hr', 1, 2), { kmh: 6.5, rpe: 3 })]);
+    r.col = i > 0; p.push(r);
+  }
+  p.push(S('mx', 'other', tm(60), null, { kmh: 5 }), S('my', 'other', tm(60), null, { kmh: 5 }), S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6, rpe: 2 }));
+  return p;
+};
+const progBike = () => [
+  S('warm', 'warmup', tm(600), TZ('pw', 2), { lvl: 4, rpm: 85, rpe: 3, ew: 142 }),
+  R('rep', 3, [S('work', 'work', tm(480), TZ('pw', 4), { lvl: 7, rpm: 90, rpe: 8, ew: 214 }), S('rec', 'recover', tm(240), TZ('pw', 1), { lvl: 3, rpm: 75, rpe: 2, ew: 80 })], true),
+  S('cool', 'cooldown', tm(300), TZ('pw', 1), { lvl: 3, rpm: 70, rpe: 2, ew: 90 })];
+
+/* ═══ Registro de maquetas ════════════════════════════════════════════════ */
+const COMPS = [];
+function edComp(id, g, name, note, init, more = {}) {
+  COMPS.push(Object.assign({ id, g, name, note, init, view: edView, act: edAct, input: edInput, after: edAfter, lp: true, inter: true }, more));
+}
+const mk = o => () => newState(o);
+const sess = place => () => ({ place, open: false, cm: 'guided' });
+
+COMPS.push({ id: 'A1', g: 'A', name: 'Cardio al final de la sesión', note: 'Tarjeta compacta: nombre, modo, perfil, totales y efecto AUGE. Toca la tarjeta para abrirla.', init: sess('end'), view: sessView, act: sessAct, inter: true });
+COMPS.push({ id: 'A2', g: 'A', name: 'Cardio al inicio de la sesión', note: 'El control «Al inicio / Al final» mueve el espacio; funciona en vivo.', init: sess('start'), view: sessView, act: sessAct, inter: true });
+
+edComp('B1', 'B', 'Galería de plantillas y máquina', 'Ocho plantillas con su perfil y duración; el selector de máquina ajusta las unidades. Toca una para elegirla.',
+  mk({ gk: 'gallery', mode: 'guided', title: 'Nuevo cardio' }));
+edComp('B2', 'B', 'Noruego 4×4 con controles grandes', 'Mueve el deslizador de duración: el patrón se reescala. Cambia zona, rondas o recuperación y mira el perfil y los anillos.',
+  mk({ gk: 'noru', mode: 'guided' }));
+edComp('B3', 'B', 'Cardio constante', 'Tiempo, distancia o ambos, y objetivo por zona de FC, ritmo o RPE con selectores grandes.',
+  mk({ gk: 'steady', mode: 'guided', title: 'Cinta · Fondo suave Z2' }));
+edComp('B4', 'B', 'HIIT · Tabata en air bike', 'Protocolo HIIT o SIT, trabajo/descanso/rondas y avisos. La air bike no usa km/h.',
+  mk({ gk: 'hiit', mode: 'guided', m: 'airbike', title: 'Air bike · Tabata' }));
+
+edComp('C1', 'C', 'Noruego 4×4 como árbol', 'Repetición ×4 con corchete y la nota «Sin la última recuperación». Toca un paso para resaltarlo en el perfil; tócalo otra vez para editarlo. ↑↓ reordena; mantén pulsado para seleccionar.',
+  mk({ gk: 'noru', mode: 'adv', pick: 'work' }));
+edComp('C2', 'C', 'Remo · repetición anidada', 'Repetición ×2 que contiene ×3, calentamiento abierto, paso por distancia y paso por kcal. Desplaza para ver los últimos pasos.',
+  mk({ gk: 'none', mode: 'adv', m: 'rower', title: 'Remo · Escalera en 2 series', prog: remoProg(), pick: 'iw', hh: 40 }));
+edComp('C3', 'C', 'Menú contextual del paso', 'Duplicar, envolver en repetición, mover y eliminar. Funciona con cada ⋯.',
+  mk({ gk: 'noru', mode: 'adv', pick: 'work', menu: 'work' }));
+edComp('C4', 'C', 'Selección múltiple', 'Mantén pulsado un paso para entrar. La barra inferior envuelve los pasos contiguos en una repetición.',
+  mk({ gk: 'none', mode: 'adv', title: 'Cinta · Intervalos 3-2', prog: progIntervals(), sel: true, chk: ['work', 'rec'] }));
+
+const sheetState = (o, id, over, mod) => { const s = newState(Object.assign({ mode: 'adv', pick: id }, o)); openStep(s, id); Object.assign(s.sheet.d, over || {}); if (mod) mod(s); return s; };
+edComp('D1', 'D', 'Paso de trabajo por tiempo', 'Tipo, fin, objetivo de FC con su rango resuelto, máquina, RPE con anclas y nota. Los cambios se aplican al guardar.',
+  () => sheetState({ gk: 'noru' }, 'work', { note: 'Hombros sueltos, zancada corta' }));
+edComp('D2', 'D', 'Fin por distancia y ritmo', 'Selectores de rueda para 400 m y 4:25–4:35 /km, con la zona y la velocidad equivalentes.',
+  () => sheetState({
+    gk: 'none', title: 'Cinta · 6 × 400 m', prog: [
+      S('warm', 'warmup', tm(600), TZ('hr', 2), { kmh: 7.5, inc: 1, rpe: 3 }),
+      R('rep', 6, [S('work', 'work', { t: 'dist', m: 400 }, TR('pace', 265, 275), { kmh: 13.3, inc: 1, rpe: 9, sec: 108 }), S('rec', 'recover', tm(90), TZ('hr', 1, 2), { kmh: 7, rpe: 3 })], true),
+      S('cool', 'cooldown', tm(300), TZ('hr', 1), { kmh: 6, rpe: 2 })]
+  }, 'work'));
+edComp('D3', 'D', 'Fin por calorías en air bike', 'La máquina solo muestra W y rpm; nunca km/h. Las kcal se estiman con tu peso.',
+  () => sheetState({
+    gk: 'none', m: 'airbike', title: 'Air bike · 4 × 15 kcal', prog: [
+      S('warm', 'warmup', tm(300), TRPE(3), { w: 100, rpm: 60, rpe: 3 }),
+      R('rep', 4, [S('work', 'work', { t: 'kcal', k: 15 }, TZ('pw', 5), { w: 250, rpm: 90, rpe: 9, sec: 60 }), S('rest', 'rest', tm(120), null, { w: 40, rpm: 40 })], true),
+      S('cool', 'cooldown', tm(180), TRPE(2), { w: 80, rpm: 50, rpe: 2 })]
+  }, 'work'));
+edComp('D4', 'D', 'Hasta que pulses Siguiente', 'Paso abierto: explica cómo se avanza y cuánto cuenta en los totales.',
+  () => sheetState({ gk: 'none', title: 'Cinta · Noruego 4×4', prog: (() => { const p = buildNoru(DEF.noru); p[0].end = { t: 'lap' }; return p; })() }, 'warm'));
+edComp('D5', 'D', 'Objetivo secundario «solo guía»', 'Principal: FC Zona 2. Secundario: potencia 150–160 W, sin avisos ni cumplimiento.',
+  () => sheetState({
+    gk: 'none', m: 'bike', title: 'Bici estática · Fondo Z2', prog: [
+      S('warm', 'warmup', tm(600), TZ('hr', 1), { lvl: 4, rpm: 80, rpe: 2 }),
+      S('main', 'work', tm(1800), TZ('hr', 2), { lvl: 6, rpm: 85, rpe: 4, t2: TR('pw', 150, 160), ew: 155 }),
+      S('cool', 'cooldown', tm(300), TZ('hr', 1), { lvl: 3, rpm: 70, rpe: 2 })]
+  }, 'main'));
+edComp('D6', 'D', 'Zonas sin configurar', 'La zona se guarda igual, pero sin pulsaciones reales; el aviso lleva directo a configurarlas.',
+  () => sheetState({
+    gk: 'none', prog: (() => { const p = buildNoru(DEF.noru); const mark = l => l.forEach(n => { if (isRep(n)) mark(n.kids); else n.nz = true; }); mark(p); return p; })()
+  }, 'work'));
+edComp('D7', 'D', 'Selector de objetivo', 'Métrica × base: zona, rango o % del umbral. Cambia la métrica y las tarjetas de zona se adaptan.',
+  () => sheetState({ gk: 'noru' }, 'work', null, s => { s.sheet.view = 'pick'; s.sheet.pkFor = 'p'; s.sheet.pk = initPk(s.sheet.d.tgt); }));
+
+edComp('E', 'E', 'Repetición ×4', 'Vueltas, omitir la última recuperación, vista previa de lo que se repite y «Deshacer repetición».',
+  () => { const s = newState({ gk: 'noru', mode: 'adv', pick: 'work' }); s.sheet = { t: 'rep', id: 'rep', n: 4, skip: true }; return s; });
+
+edComp('F1', 'F', 'Programa vacío', 'Sin pasos no se puede guardar. Dos salidas claras: añadir un paso o partir de una plantilla.',
+  mk({ gk: 'gallery', mode: 'adv', title: 'Nuevo cardio', prog: [] }));
+edComp('F2', 'F', 'Errores de validación', 'Mensajes en español dentro de cada elemento; el botón Guardar queda desactivado hasta corregirlos.',
+  mk({ gk: 'none', mode: 'adv', title: 'Cinta · Intervalos', prog: progErrors(), errs: 3, compact: true }));
+edComp('F3', 'F', 'Máximo de pasos alcanzado', 'Aviso con salida (agrupar o eliminar); los botones de añadir se desactivan y las repeticiones se pueden contraer.',
+  mk({ gk: 'none', mode: 'adv', title: 'Cinta · Fartlek largo', prog: progMax(), full: true, count: '100 / 100', hh: 36, banner: { k: 'warn', t: 'Has llegado al máximo de 100 pasos y repeticiones. Elimina o agrupa pasos para añadir más.' } }));
+edComp('F4', 'F', 'Plantilla editada: Personalizado', 'Al editar en Avanzado, el modo guiado deja de aplicar. Se muestran los cambios y se puede volver a la plantilla.',
+  () => { const p = buildNoru(DEF.noru); p[0].end = tm(720); p[1].kids[0].end = tm(270); return newState({ gk: 'noru', mode: 'guided', title: 'Cinta · Personalizado', prog: p }); });
+edComp('F5', 'F', 'Bici estática: W y rpm', 'Potencia y cadencia en cada paso, nunca km/h. Los totales no muestran distancia.',
+  mk({ gk: 'none', mode: 'adv', m: 'bike', title: 'Bici · Umbral 3×8', prog: progBike(), pick: 'work', banner: { k: 'info', t: 'Bici estática: las unidades son W y rpm. No se calcula distancia.' } }));
+
+COMPS.push({ id: 'G', g: 'G', name: 'Perfil de intensidad en detalle', note: 'Toca una barra para ver su paso. Cambia el color entre zona y tipo de paso. Rayado = abierto; punteado = estimado.', init: () => ({ sel: 'iw', tip: 'iw', color: 'zone' }), view: profView, act: profAct, inter: true });
+
+/* ═══ Montaje y eventos ═══════════════════════════════════════════════════ */
+const byId = {};
+const SB = `<div class="statusbar"><span>9:41</span><span class="icons"><svg class="sb" aria-hidden="true"><use href="#i-sig"/></svg><svg class="sb" aria-hidden="true"><use href="#i-wifi"/></svg><svg class="sb" style="width:18px" aria-hidden="true"><use href="#i-bat"/></svg></span></div>`;
+function render(c) {
+  const sc = c.el.querySelector('.screen'), top = sc.scrollTop, sb = c.el.querySelector('.sh-body'), sbt = sb ? sb.scrollTop : 0;
+  const v = c.view(c.s);
+  sc.innerHTML = v.main; c.el.querySelector('.layer').innerHTML = v.layer || '';
+  sc.scrollTop = top; const nb = c.el.querySelector('.sh-body'); if (nb) nb.scrollTop = sbt;
+  if (c.after) c.after(c);
+}
+function mount() {
+  COMPS.forEach(c => {
+    const g = document.querySelector(`[data-group="${c.g}"]`), fig = document.createElement('figure');
+    fig.className = 'mock';
+    fig.innerHTML = `<div class="phone" data-id="${c.id}">${SB}<div class="screen"></div><div class="layer"></div><div class="gesturebar"></div></div><figcaption><strong>${c.id} · ${c.name}</strong><span>${c.note}</span>${c.inter ? `<button class="reset" data-reset="${c.id}">↺ Reiniciar</button>` : ''}</figcaption>`;
+    g.append(fig); c.el = fig.querySelector('.phone'); byId[c.id] = c; c.s = c.init(); render(c);
+  });
+}
+document.addEventListener('click', e => {
+  const rs = e.target.closest('[data-reset]');
+  if (rs) { const c = byId[rs.dataset.reset]; c.s = c.init(); c.el.querySelector('.screen').scrollTop = 0; render(c); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const ph = b.closest('.phone'); if (!ph) return;
+  const c = byId[ph.dataset.id];
+  if (c.skip) { c.skip = false; return; }
+  if (c.act(c.s, b.dataset.act, b.dataset) !== false) render(c);
+});
+document.addEventListener('input', e => {
+  const el = e.target.closest('[data-in]'); if (!el) return;
+  const ph = el.closest('.phone'), c = byId[ph.dataset.id];
+  c.input(c.s, el.dataset.in, el.value, ph);
+});
+let lpT = null;
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('.row-main[data-id]'); if (!b) return;
+  const ph = b.closest('.phone'), c = ph && byId[ph.dataset.id];
+  if (!c || !c.lp || c.s.mode !== 'adv' || c.s.sel || c.s.sheet) return;
+  lpT = setTimeout(() => { c.s.sel = true; c.s.chk = [b.dataset.id]; c.skip = true; setTimeout(() => { c.skip = false; }, 900); render(c); }, 520);
+});
+['pointerup', 'pointercancel', 'pointerleave', 'dragstart'].forEach(t => document.addEventListener(t, () => clearTimeout(lpT), true));
+mount();
+
+</script>
+</body>
+</html>

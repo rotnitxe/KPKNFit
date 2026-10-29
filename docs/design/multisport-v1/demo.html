@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>KPKN Fit · Demo multideporte</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <script defer src="assets/scenarios.js"></script>
+  <script defer src="assets/demo.js"></script>
+</head>
+<body class="demo-page">
+  <a class="skip-link" href="#screen-content">Saltar al contenido de la pantalla</a>
+  <div class="demo-stage">
+    <aside class="demo-aside">
+      <a class="demo-back" href="index.html"><span aria-hidden="true">←</span> Galería de escenarios</a>
+      <h1>KPKN FIT</h1>
+      <p>Prototipo local del sistema multideporte.</p>
+      <p>El recorrido interactivo y las escenas de proyección usan datos de ejemplo. Los controles cambian el estado de esta maqueta; no conectan servicios, sensores ni almacenamiento productivo.</p>
+      <button class="small-button" type="button" data-action="reset-demo">Reiniciar el recorrido</button>
+    </aside>
+
+    <main class="device-frame" aria-label="Prototipo de aplicación móvil KPKN Fit">
+      <div class="statusbar"><span>9:41</span><span class="status-icons" aria-hidden="true"><i></i><i></i><i></i></span></div>
+      <header class="app-topbar">
+        <button class="back-button" type="button" data-action="back" aria-label="Volver">‹</button>
+        <div class="top-context"><strong id="top-title">Home</strong><span id="top-subtitle">Resumen de hoy</span></div>
+        <button class="profile-button" type="button" data-action="go-scene" data-scene="profile" aria-label="Abrir perfil">K</button>
+      </header>
+      <div class="app-scroll" id="screen-content" role="region" aria-live="polite" aria-label="Pantalla de la aplicación" tabindex="-1"></div>
+      <nav class="nav-island" aria-label="Navegación principal">
+        <button class="nav-tab" type="button" data-tab="home" aria-current="page"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m3.5 10 8.5-7 8.5 7v10.5h-6v-6h-5v6h-6z"></path></svg><span>Home</span><i class="nav-dot"></i></button>
+        <button class="nav-tab" type="button" data-tab="training"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"></path></svg><span>Training</span><i class="nav-dot"></i></button>
+        <button class="nav-tab" type="button" data-tab="nutrition"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 13h16a8 8 0 0 1-16 0ZM6 9c1.8 1.3 3.7 1.3 5.5 0M13 7c1.8 1.3 3.7 1.3 5.5 0M12 3v3"></path></svg><span>Nutrition</span><i class="nav-dot"></i></button>
+        <button class="nav-tab" type="button" data-tab="body"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7c1.8-2 4.5-3 8-3s6.2 1 8 3v10c-1.8 2-4.5 3-8 3s-6.2-1-8-3zM12 8v4l3 2"></path></svg><span>Body</span><i class="nav-dot"></i></button>
+      </nav>
+    </main>
+
+    <aside class="demo-aside right">
+      <a class="demo-back" href="references/cardio-v2/index.html">Abrir referencia Cardio v2 <span aria-hidden="true">↗</span></a>
+      <h1 id="scene-index-title">Escenario</h1>
+      <p id="scene-index-detail">Las pantallas futuras son proyecciones evaluables.</p>
+      <p>Usa “Reiniciar el recorrido” para volver al estado inicial del híbrido.</p>
+      <a class="inline-link" href="references/cardio-v2/PROVENANCE.md">Procedencia y hashes de Cardio v2</a>
+    </aside>
+  </div>
+</body>
+</html>

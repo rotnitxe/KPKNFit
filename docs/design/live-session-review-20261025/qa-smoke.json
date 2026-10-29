@@ -1,0 +1,230 @@
+[
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "strength",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "unilateral",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "superset",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "amrap",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "calibrator",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "calibration-result",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "rm",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "solo-rpe",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "time",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "distance",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "custom",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "bodyweight",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "assisted",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "partials",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "rom",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "drops",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "restpause",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "myo",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "guided",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "failed",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "completed",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "empty",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "mobility",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "mobility-move",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "mobility-global",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "warmup",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "warmup-rest",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "cardio",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "intervals",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "rest",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "overrun",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "feedback",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "visual",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "visual-expanded",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "analysis-working",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "analysis-low",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "readiness",
+    "phones": 3
+  },
+  {
+    "empty": false,
+    "horizontalOverflow": false,
+    "id": "finish",
+    "phones": 3
+  }
+]

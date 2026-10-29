@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Sesión en vivo · tarjetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F2EEE6;--muted:#B5B1AC;--faint:#7A7670;--hair:rgba(255,255,255,.08);
+  --bg:#0B0B0A;--surface:#131312;--inset:#1C1C1B;--green:#7FE3B0;--amber:#FFA15C;--sage:#A9C4B6;
+  --card-h:470px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060606;color:var(--cream);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:flex;gap:56px;padding:40px;min-height:100vh;align-items:flex-start}
+.rail{width:296px;position:sticky;top:40px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-family:Syne;font-weight:800;font-size:15px}
+.brand b{font-family:Syne;font-weight:800;font-size:19px;letter-spacing:.4px}
+.brand small{display:block;color:var(--faint);font-size:11px;letter-spacing:.4px;margin-top:1px}
+.rail nav{display:flex;flex-direction:column;gap:2px;margin-top:24px}
+.rail button{display:flex;gap:10px;align-items:baseline;background:none;border:0;color:var(--muted);font:inherit;font-size:13.5px;text-align:left;padding:9px 12px;border-radius:10px;cursor:pointer}
+.rail button i{font-style:normal;font-size:10px;color:var(--faint);letter-spacing:.6px}
+.rail button.on{background:#161615;color:var(--cream)}
+.rail h4{font-size:10px;letter-spacing:1.4px;color:var(--faint);margin:24px 0 8px;text-transform:uppercase}
+.note{font-size:12px;line-height:18px;color:#6f6b66}
+.toggle{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:11.5px;color:var(--faint);cursor:pointer;user-select:none}
+.toggle .sw{width:34px;height:20px;border-radius:10px;background:#242422;position:relative}
+.toggle .sw i{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--faint);transition:.2s}
+.toggle.on .sw{background:var(--cream)}.toggle.on .sw i{left:17px;background:#0B0B0A}
+.phone{width:393px;height:852px;border-radius:46px;background:#000;border:1px solid #222;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.screen.on{display:flex}
+.status{display:flex;justify-content:space-between;padding:13px 22px 0;font-size:12px;font-weight:600}
+.hdr{margin:8px 14px 0;padding:9px 10px 9px 12px;border-radius:999px;background:#141413;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.05)}
+.hdr .txt{flex:1;min-width:0}
+.hdr .t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .s{font-size:10.5px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.circ{width:30px;height:30px;border-radius:50%;background:#1E1E1D;display:grid;place-items:center;font-size:13px;color:var(--muted);flex:none}
+.restchip{display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:15px;background:rgba(242,238,230,.07);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;flex:none}
+.restchip .ring{width:14px;height:14px;border-radius:50%;border:2px solid var(--cream);border-right-color:rgba(242,238,230,.18);transform:rotate(45deg)}
+.cardzone{flex:1;display:flex;align-items:center;padding:12px 16px 0;min-height:0}
+.card{width:100%;height:var(--card-h);background:var(--surface);border:1px solid var(--hair);border-radius:24px;padding:14px 16px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.card.mob{border-color:rgba(169,196,182,.22)}
+.card.warm{border-color:rgba(255,161,92,.22)}
+.card .head{display:flex;align-items:center;gap:7px;flex:none;height:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--cream)}
+.card.mob .dot{background:var(--sage)}.card.warm .dot{background:var(--amber)}
+.eyebrow{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.card.mob .eyebrow{color:var(--sage)}.card.warm .eyebrow{color:var(--amber)}
+.head .meta{margin-left:auto;font-size:10.5px;color:var(--faint)}
+.tag{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:10px;background:rgba(127,227,176,.12);color:var(--green);font-size:10px;font-weight:600}
+.hero{display:flex;align-items:flex-end;gap:7px;flex:none;height:54px;margin-top:10px}
+.hero .v{font-family:Syne;font-weight:800;font-size:42px;line-height:44px;letter-spacing:-1.2px;font-variant-numeric:tabular-nums}
+.hero .u{font-size:12px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.hero .side{margin-left:auto;text-align:right;padding-bottom:3px}
+.hero .side b{font-family:Syne;font-size:17px}
+.hero .side span{display:block;font-size:10px;color:var(--faint);margin-top:1px}
+.sub{font-size:11.5px;color:var(--faint);flex:none}
+.track{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:9px;flex:none;overflow:hidden}
+.track i{display:block;height:3px;background:var(--sage)}
+.card.warm .track i{background:var(--amber)}
+.card.work .track i{background:var(--cream)}`n.card.work .body{justify-content:space-between}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:10px}
+.hair{height:1px;background:var(--hair);margin:8px 0;flex:none}
+.foot{flex:none;display:flex;flex-direction:column;gap:8px;padding-top:12px}
+.btn{height:46px;border-radius:23px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-size:14px;font-weight:700}
+.links{display:flex;justify-content:space-between;padding:0 2px}
+.links span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.mrow{display:flex;align-items:center;gap:9px;padding:6px 5px;border-radius:9px;flex:1;min-height:0}
+.mrow.on{background:rgba(242,238,230,.06)}
+.mrow.done .nm{color:var(--faint);text-decoration:line-through}
+.check{width:17px;height:17px;border-radius:50%;border:1px solid rgba(242,238,230,.25);flex:none;display:grid;place-items:center;font-size:9px;color:#0B0B0A}
+.mrow.done .check{background:var(--sage);border-color:var(--sage)}
+.nm{font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dose{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.wrow{display:grid;grid-template-columns:30px 40px 1fr 42px 36px;align-items:center;gap:8px;padding:6px 7px;border-radius:10px;flex:1;min-height:0}
+.wrow.on{background:rgba(255,161,92,.07);border:1px solid rgba(255,161,92,.22)}
+.wrow.done{opacity:.42}
+.widx{font-size:10.5px;font-weight:700;color:var(--amber)}
+.wpct{font-size:10.5px;color:var(--faint)}
+.wkg{font-family:Syne;font-weight:700;font-size:18px;text-align:right;font-variant-numeric:tabular-nums}
+.wkg em{font-style:normal;font-size:9px;color:var(--faint);font-weight:600;margin-left:2px}
+.wreps{font-size:11px;color:var(--muted);text-align:right}
+.wrest{font-size:10px;color:var(--faint);text-align:right}
+.kpills{display:flex;gap:6px;flex:none;margin-top:4px}
+.kpill{flex:1;height:32px;border-radius:10px;background:var(--inset);display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap}
+.kpill b{color:var(--cream);font-family:Syne;font-size:12px}
+.wheel{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-top:6px;flex:none;height:50px}
+.wheel span{font-family:Syne;font-weight:700;font-size:16px;color:var(--faint);width:32px;text-align:center}
+.wheel span.c{font-size:38px;color:var(--cream);width:70px;line-height:44px}
+.wlab{display:flex;justify-content:space-between;padding:0 8px;flex:none}
+.wlab span{font-size:8.5px;letter-spacing:1.1px;color:var(--faint);font-weight:600}
+.fire{display:flex;gap:5px;margin-top:8px;flex:none}
+.fire div{flex:1;height:28px;border-radius:8px;background:rgba(242,238,230,.09);display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--faint)}
+.fire div.on{background:var(--cream);color:#0B0B0A}
+.seg{display:flex;gap:3px;background:#0D0D0C;border-radius:16px;padding:3px;flex:none;margin-top:8px}
+.seg b{flex:1;height:28px;border-radius:13px;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--faint)}
+.seg b.on{background:var(--cream);color:#0B0B0A}
+.chain{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:12px;background:var(--inset);font-size:11px;flex:none;margin-top:9px}
+.chain i{color:var(--faint);font-style:normal}
+.trow{display:flex;align-items:center;padding:5px 2px;flex:1;min-height:0}
+.trow .nm{font-size:12px}
+.stepper{display:flex;align-items:center;gap:7px;margin-left:auto}
+.stepper span{width:24px;height:24px;border-radius:7px;background:var(--inset);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.stepper b{font-family:Syne;font-size:14px;min-width:44px;text-align:center}
+.hist{margin-top:auto;display:flex;align-items:flex-end;gap:14px;border-top:1px solid var(--hair);padding-top:10px}`n.hlab{font-size:8.5px;letter-spacing:1.1px;color:var(--faint);font-weight:600;line-height:14px}`n.hlab b{font-family:Syne;font-size:13px;letter-spacing:0;color:var(--cream)}`n.hbars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-left:auto}`n.hbars i{display:block;width:9px;border-radius:3px 3px 1px 1px;background:rgba(242,238,230,.22)}`n.hbars i.on{background:var(--green)}`n.last{margin-top:auto;padding-top:10px;font-size:10.5px;color:var(--faint);border-top:1px solid var(--hair)}`n.field{height:34px;border-radius:10px;background:var(--inset);display:flex;align-items:center;padding:0 11px;color:var(--faint);font-size:12px;flex:none}
+.bottom{flex:none;margin:10px 14px 12px;padding:11px 12px 10px;border-radius:22px;background:#111110;border:1px solid rgba(255,255,255,.06)}
+.roadhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.roadhead .l{font-size:10px;letter-spacing:1.2px;color:var(--faint);font-weight:600;text-transform:uppercase}
+.roadhead .r{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.road{display:flex;gap:3px;height:4px}
+.road i{display:block;border-radius:2px;background:rgba(242,238,230,.10)}
+.road i.done{background:rgba(242,238,230,.55)}
+.road i.on{background:var(--cream)}
+.roadlabels{display:flex;gap:3px;margin-top:5px}
+.roadlabels span{font-size:8px;letter-spacing:.9px;color:var(--faint);font-weight:600;white-space:nowrap;overflow:hidden}
+.roadlabels span.on{color:var(--cream)}
+.navrow{display:flex;align-items:center;gap:10px;margin-top:11px}
+.step{width:44px;height:44px;border-radius:14px;background:var(--inset);display:grid;place-items:center;font-size:16px;color:var(--muted);flex:none}
+.rec{flex:1;height:44px;border-radius:14px;background:var(--cream);color:#0B0B0A;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;font-weight:700}
+.rec .c{width:18px;height:18px;border-radius:50%;background:#0B0B0A;color:var(--cream);display:grid;place-items:center;font-size:10px}
+.table{flex:1;min-height:0;overflow:auto;padding:10px 14px 0}
+.table::-webkit-scrollbar{display:none}
+.tgroup{margin-bottom:12px}
+.tghead{display:flex;align-items:baseline;gap:8px;padding:0 2px 6px;border-bottom:1px solid var(--hair)}
+.tghead .nm{font-size:11.5px;font-weight:600;letter-spacing:.2px}
+.tghead .meta{margin-left:auto;font-size:10px;color:var(--faint)}
+.tr{display:grid;grid-template-columns:26px 1fr 74px 44px 18px;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}
+.tr .idx{color:var(--faint);font-size:10px;font-variant-numeric:tabular-nums}
+.tr .ex{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .ld{font-family:Syne;font-weight:700;font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.tr .ef{font-size:10px;color:var(--faint);text-align:right}
+.tr .st{text-align:right;color:var(--faint);font-size:10px}
+.tr.done .st{color:var(--green)}
+.tr.active{background:rgba(242,238,230,.055);border-left:2px solid var(--cream);padding-left:6px}
+.tr.active .ex{color:var(--cream);font-weight:600}
+.editor{padding:10px 6px 12px;border-bottom:1px solid var(--hair);background:rgba(242,238,230,.03)}
+.edrow{display:flex;align-items:center;gap:8px}
+.edrow .big{font-family:Syne;font-weight:800;font-size:30px;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.edrow .u{font-size:10.5px;color:var(--faint);padding-top:6px}
+.mini{display:flex;gap:5px;margin-left:auto}
+.mini span{height:28px;min-width:44px;padding:0 8px;border-radius:8px;background:var(--inset);display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--muted)}
+.edrow2{display:flex;align-items:center;gap:6px;margin-top:9px}
+.rir{display:flex;gap:4px}
+.rir span{width:26px;height:24px;border-radius:7px;background:rgba(242,238,230,.08);display:grid;place-items:center;font-size:10px;color:var(--faint)}
+.rir span.on{background:var(--cream);color:#0B0B0A;font-weight:700}
+.edrow2 .e1{margin-left:auto;font-size:10px;color:var(--faint)}
+.edrow2 .go{height:32px;margin-left:8px;padding:0 14px;border-radius:10px;background:var(--cream);color:#0B0B0A;display:grid;place-items:center;font-size:11.5px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand"><div class="mark">K</div><div><b>KPKN Fit</b><small>Live · tarjetas de serie</small></div></div>
+    <nav id="nav">
+      <button data-go="mob"><i>01</i>Movilidad</button>
+      <button data-go="warm"><i>02</i>Aproximación</button>
+      <button data-go="work"><i>03</i>Serie efectiva</button>
+      <button data-go="back"><i>04</i>Reverso</button>
+      <button data-go="table"><i>05</i>Experimental · Mesa</button>
+    </nav>
+    <h4>Regla dura</h4>
+    <div class="note">Las tres tarjetas miden exactamente lo mismo: 470 dp, con cabecera, héroe, cuerpo flexible y pie en las mismas coordenadas. Cambia el contenido, nunca el marco.</div>
+    <div class="toggle" id="ruler"><span class="sw"><i></i></span>Ver la regla de 470 dp</div>
+    <h4>Header y pie</h4>
+    <div class="note">El header pasa a llevar el ejercicio y el descanso vivo; el pie concentra roadmap, steppers y registro.</div>
+    <h4>Experimental</h4>
+    <div class="note">La mesa: toda la sesión como un registro vivo, con la serie activa expandida en su fila.</div>
+  </aside>
+
+  <main class="phone">
+    <section class="screen" data-screen="mob">
+      <div class="status"><span>1:41</span><span>▮▮▮</span></div>
+      <div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">Movilidad</div><div class="s">Pierna · 6 movimientos</div></div><div class="restchip"><span class="ring"></span>0:45</div><div class="circ">⋯</div></div>
+      <div class="cardzone"><div class="card mob">
+        <div class="head"><span class="dot"></span><span class="eyebrow">Movilidad</span><span class="meta">2 / 6</span></div>
+        <div class="hero"><span class="v">02:30</span><span class="u">restante</span><span class="side"><b>3 × 40″</b><span>por lado</span></span></div>
+        <div class="sub">Sentadilla profunda con apoyo</div>
+        <div class="track"><i style="width:62%"></i></div>
+        <div class="body">
+          <div class="mrow done"><span class="check">✓</span><span class="nm">Movilidad de tobillo</span><span class="dose">40″</span></div>
+          <div class="mrow on"><span class="check"></span><span class="nm">Sentadilla profunda</span><span class="dose">3 × 40″</span></div>
+          <div class="mrow"><span class="check"></span><span class="nm">Apertura de cadera</span><span class="dose">8 reps</span></div>
+          <div class="mrow"><span class="check"></span><span class="nm">Isquios en suelo</span><span class="dose">30″</span></div>
+          <div class="mrow"><span class="check"></span><span class="nm">Tobillo en pared</span><span class="dose">40″</span></div>
+        </div>
+        <div class="foot"><div class="links"><span>A tu ritmo</span><span>Saltar fase</span></div></div>
+      </div></div>
+      <div class="bottom">
+        <div class="roadhead"><span class="l">Series · 0 de 9</span><span class="r">Movilidad 2 / 6</span></div>
+        <div class="road"><i class="on" style="width:15%"></i><i style="width:20%"></i><i style="width:53%"></i><i style="width:12%"></i></div>
+        <div class="roadlabels"><span class="on" style="width:15%">MOV</span><span style="width:20%">APR</span><span style="width:53%">SER</span><span style="width:12%">REST</span></div>
+        <div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>Hecho</div><div class="step">›</div></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="warm">
+      <div class="status"><span>1:44</span><span>▮▮▮</span></div>
+      <div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">Aproximación</div><div class="s">Sentadilla trasera · A2 de 4</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">+</div></div>
+      <div class="cardzone"><div class="card warm">
+        <div class="head"><span class="dot"></span><span class="eyebrow">Aproximación</span><span class="meta">100 kg objetivo</span></div>
+        <div class="hero"><span class="v">60</span><span class="u">kg</span><span class="side"><b>× 5</b><span>40 % · 90″</span></span></div>
+        <div class="sub">Serie A2 de la escalera</div>
+        <div class="track"><i style="width:45%"></i></div>
+        <div class="body">
+          <div class="wrow done"><span class="widx">A1</span><span class="wpct">20 %</span><span class="wkg">20<em>kg</em></span><span class="wreps">× 10</span><span class="wrest">60″</span></div>
+          <div class="wrow on"><span class="widx">A2</span><span class="wpct">40 %</span><span class="wkg">60<em>kg</em></span><span class="wreps">× 5</span><span class="wrest">90″</span></div>
+          <div class="wrow"><span class="widx">A3</span><span class="wpct">60 %</span><span class="wkg">75<em>kg</em></span><span class="wreps">× 3</span><span class="wrest">90″</span></div>
+          <div class="wrow"><span class="widx">A4</span><span class="wpct">80 %</span><span class="wkg">90<em>kg</em></span><span class="wreps">× 1</span><span class="wrest">120″</span></div>
+        </div>
+        <div class="foot"><div class="links"><span>Añadir serie</span><span>Continuar con series</span></div></div>
+      </div></div>
+      <div class="bottom">
+        <div class="roadhead"><span class="l">Series · 0 de 9</span><span class="r">Aproximación A2 / 4</span></div>
+        <div class="road"><i class="done" style="width:15%"></i><i class="on" style="width:20%"></i><i style="width:53%"></i><i style="width:12%"></i></div>
+        <div class="roadlabels"><span style="width:15%">MOV</span><span class="on" style="width:20%">APR</span><span style="width:53%">SER</span><span style="width:12%">REST</span></div>
+        <div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>Marcar A2</div><div class="step">›</div></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="work">
+      <div class="status"><span>1:47</span><span>▮▮▮</span></div>
+      <div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">Sentadilla trasera</div><div class="s">Serie 3 de 4 · 100 kg</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">⋯</div></div>
+      <div class="cardzone"><div class="card work">
+        <div class="head"><span class="dot"></span><span class="eyebrow">Serie efectiva</span><span class="tag" style="margin-left:6px">★ PR</span><span class="meta">3 / 4</span></div>
+        <div class="hero"><span class="v">100</span><span class="u">kg</span><span class="side"><b>RIR 2</b><span>e1RM 112,5</span></span></div>
+        <div class="kpills"><div class="kpill">−2,5</div><div class="kpill">Sug <b>102,5</b></div><div class="kpill">+2,5</div></div>
+        <div class="body">
+          <div class="wheel"><span>6</span><span>7</span><span class="c">8</span><span>9</span><span>10</span></div>
+          <div class="wlab"><span>REPS</span><span>OBJETIVO 8</span></div>
+          <div class="fire"><div>0</div><div>1</div><div class="on">2</div><div>3</div><div>4</div></div>
+          <div class="wlab" style="margin-top:5px"><span>RIR</span><span>FALLO</span></div><div class="hist"><div class="hlab">ÚLTIMAS 4 · e1RM<br><b>112,5 kg</b></div><div class="hbars"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i class="on" style="height:94%"></i></div></div>
+        </div>
+        <div class="foot"><div class="links"><span>Avanzado</span><span>Modo visual</span><span>Historial</span></div></div>
+      </div></div>
+      <div class="bottom">
+        <div class="roadhead"><span class="l">Series · 3 de 9</span><span class="r">Sentadilla 3 / 4</span></div>
+        <div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="on" style="width:53%"></i><i style="width:12%"></i></div>
+        <div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="on" style="width:53%">SER</span><span style="width:12%">REST</span></div>
+        <div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>Registrar serie</div><div class="step">›</div></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="back">
+      <div class="status"><span>1:48</span><span>▮▮▮</span></div>
+      <div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">Sentadilla trasera</div><div class="s">Serie 3 · avanzado</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">↺</div></div>
+      <div class="cardzone"><div class="card work">
+        <div class="head"><span class="dot"></span><span class="eyebrow">Técnica de la serie</span><span class="meta">3 / 4</span></div>
+        <div class="seg"><b class="on">Normal</b><b>Drop</b><b>Pausa</b><b>Myo</b></div>
+        <div class="chain"><b>Principal</b><i>→</i><span>Drop 1</span><i>→</i><span style="color:var(--faint)">Añadir</span></div>
+        <div class="body">
+          <div class="trow"><span class="nm">Drop 1</span><div class="stepper"><span>−</span><b>80 kg</b><span>+</span></div></div>
+          <div class="trow"><span class="nm">Reps</span><div class="stepper"><span>−</span><b>6</b><span>+</span></div></div>
+          <div class="trow"><span class="nm">Descanso entre tramos</span><div class="stepper"><span>−</span><b>15″</b><span>+</span></div></div>
+          <div class="hair"></div>
+          <div class="field">Nota de la serie</div>
+        </div>
+        <div class="foot"><div class="links"><span>Error de ejecución</span><span>PR · foto o vídeo</span></div></div>
+      </div></div>
+      <div class="bottom">
+        <div class="roadhead"><span class="l">Series · 3 de 9</span><span class="r">Técnica · Drop-set</span></div>
+        <div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="on" style="width:53%"></i><i style="width:12%"></i></div>
+        <div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="on" style="width:53%">SER</span><span style="width:12%">REST</span></div>
+        <div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>Volver a la serie</div><div class="step">›</div></div>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="table">
+      <div class="status"><span>1:47</span><span>▮▮▮</span></div>
+      <div class="hdr"><div class="circ">‹</div><div class="txt"><div class="t">Pierna · Semana 1</div><div class="s">9 ejercicios · 34 series · 12.480 kg</div></div><div class="restchip"><span class="ring"></span>1:12</div><div class="circ">⋯</div></div>
+      <div class="table">
+        <div class="tgroup">
+          <div class="tghead"><span class="nm">Sentadilla trasera</span><span class="meta">100 kg · 4 series</span></div>
+          <div class="tr done"><span class="idx">A1</span><span class="ex">20 %</span><span class="ld">20 × 10</span><span class="ef"></span><span class="st">✓</span></div>
+          <div class="tr done"><span class="idx">A2</span><span class="ex">40 %</span><span class="ld">60 × 5</span><span class="ef"></span><span class="st">✓</span></div>
+          <div class="tr done"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 3</span><span class="st">✓</span></div>
+          <div class="tr done"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">✓</span></div>
+          <div class="tr active"><span class="idx">3</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">RIR 2</span><span class="st">●</span></div>
+          <div class="editor">
+            <div class="edrow"><span class="big">100</span><span class="u">kg</span><div class="mini"><span>−2,5</span><span>+2,5</span></div></div>
+            <div class="edrow2"><div class="rir"><span>0</span><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><span class="e1">e1RM 112,5 · última vez 100 × 8</span></div>
+          </div>
+          <div class="tr"><span class="idx">4</span><span class="ex">Efectiva</span><span class="ld">100 × 8</span><span class="ef">—</span><span class="st">·</span></div>
+        </div>
+        <div class="tgroup">
+          <div class="tghead"><span class="nm">Peso muerto rumano</span><span class="meta">140 kg · 3 series</span></div>
+          <div class="tr done"><span class="idx">A1</span><span class="ex">60 %</span><span class="ld">80 × 5</span><span class="ef"></span><span class="st">✓</span></div>
+          <div class="tr"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">RIR 2</span><span class="st">·</span></div>
+          <div class="tr"><span class="idx">2</span><span class="ex">Efectiva</span><span class="ld">140 × 5</span><span class="ef">—</span><span class="st">·</span></div>
+        </div>
+        <div class="tgroup">
+          <div class="tghead"><span class="nm">Prensa de piernas</span><span class="meta">214 kg · 4 series</span></div>
+          <div class="tr"><span class="idx">1</span><span class="ex">Efectiva</span><span class="ld">214 × 10</span><span class="ef">—</span><span class="st">·</span></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="roadhead"><span class="l">Series · 4 de 9</span><span class="r">Sentadilla 3 / 4</span></div>
+        <div class="road"><i class="done" style="width:15%"></i><i class="done" style="width:20%"></i><i class="on" style="width:53%"></i><i style="width:12%"></i></div>
+        <div class="roadlabels"><span style="width:15%">MOV</span><span style="width:20%">APR</span><span class="on" style="width:53%">SER</span><span style="width:12%">REST</span></div>
+        <div class="navrow"><div class="step">‹</div><div class="rec"><span class="c">✓</span>Registrar serie</div><div class="step">›</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const nav=document.getElementById('nav');
+nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.go)});
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.dataset.screen===id));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  location.hash=id;
+}
+const h=location.hash.replace('#','')||'work';
+document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===h));
+show(h);
+const ruler=document.getElementById('ruler');
+ruler.onclick=()=>{
+  const on=ruler.classList.toggle('on');
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.outline=on?'1px dashed rgba(255,161,92,.55)':'';
+  });
+};
+</script>
+</body>
+</html>

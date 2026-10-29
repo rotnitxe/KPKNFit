@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KPKN · Cardio v2 · Propuesta de diseño</title>
+  <link rel="stylesheet" href="kpkn-mock.css">
+  <style>
+    .hero { max-width: 1240px; margin: 0 auto; padding: 56px 28px 12px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; align-items: end; }
+    .hero h1 { font-family: var(--font-display); font-weight: 800; font-size: 64px; line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 18px; }
+    .hero p { color: var(--text-2); max-width: 62ch; margin: 0 0 10px; font-size: 16px; }
+    .profile-art { height: 180px; display: flex; align-items: flex-end; gap: 4px; padding: 0 0 6px; border-bottom: 1px solid var(--line-strong); }
+    .profile-art span { flex: 1; border-radius: 6px 6px 2px 2px; }
+    .profile-art figcaption { display: none; }
+    .art-caption { color: var(--text-3); font-size: 13px; margin-top: 10px; }
+
+    .artifacts { max-width: 1240px; margin: 0 auto; padding: 36px 28px 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
+    .artifact { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--text); background: var(--card); border-radius: var(--r-lg); padding: 22px; border: 1px solid transparent; transition: border-color 160ms var(--ease); }
+    .artifact:hover, .artifact:focus-visible { border-color: var(--line-strong); }
+    .artifact h2 { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0; }
+    .artifact p { margin: 0; color: var(--text-2); font-size: 14px; }
+    .artifact ul { margin: 4px 0 0; padding-left: 18px; color: var(--text-3); font-size: 13px; }
+    .artifact .open { margin-top: auto; padding-top: 8px; color: var(--primary); font-weight: 600; font-size: 14px; }
+
+    .principles { max-width: 1240px; margin: 0 auto; padding: 40px 28px 8px; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 40px; }
+    .principles h2, .data h2 { font-family: var(--font-display); font-weight: 700; font-size: 28px; margin: 0; }
+    .principles dl { margin: 0; display: grid; gap: 18px; }
+    .principles dt { font-weight: 600; }
+    .principles dd { margin: 4px 0 0; color: var(--text-2); max-width: 70ch; }
+
+    .data { max-width: 1240px; margin: 0 auto; padding: 40px 28px 64px; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 40px; }
+    .data p { color: var(--text-2); margin: 10px 0 0; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+    th { color: var(--text-3); font-weight: 500; }
+    td .zone-dot { margin-right: 8px; vertical-align: middle; }
+
+    @media (max-width: 860px) {
+      .hero, .principles, .data { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 46px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <h1>Cardio v2, cómo se vería</h1>
+      <p>Maquetas de la propuesta para el editor de sesiones y la sesión en vivo de KPKN, con todos sus estados: antes de empezar, en curso, en cada tipo de paso, con alertas de zona, al pausar y al guardar.</p>
+      <p>Son pantallas estáticas con algunos elementos interactivos. La implementación final en Compose puede ajustar medidas, pero no la lógica ni el lenguaje visual.</p>
+      <nav class="page-nav" aria-label="Maquetas">
+        <a href="index.html" aria-current="page">Resumen</a>
+        <a href="editor.html">Editor</a>
+        <a href="live.html">En vivo</a>
+        <a href="transiciones.html">Transiciones</a>
+        <a href="zonas.html">Zonas</a>
+      </nav>
+    </div>
+    <figure class="mock" style="width:auto;margin:0">
+      <div class="profile-art" role="img" aria-label="Perfil de intensidad del Noruego 4×4: calentamiento en zona 2, cuatro trabajos en zona 4 con recuperaciones en zona 1 y vuelta a la calma">
+        <span style="height:38%;background:var(--z2)"></span>
+        <span style="height:38%;background:var(--z2)"></span>
+        <span style="height:78%;background:var(--z4)"></span>
+        <span style="height:22%;background:var(--z1)"></span>
+        <span style="height:78%;background:var(--z4)"></span>
+        <span style="height:22%;background:var(--z1)"></span>
+        <span style="height:78%;background:var(--z4)"></span>
+        <span style="height:22%;background:var(--z1)"></span>
+        <span style="height:78%;background:var(--z4)"></span>
+        <span style="height:16%;background:var(--z1)"></span>
+      </div>
+      <div class="art-caption">Noruego 4×4 en cinta: 40 min, el color de cada barra es su zona de FC.</div>
+    </figure>
+  </header>
+
+  <main>
+    <section class="artifacts" aria-label="Artefactos">
+      <a class="artifact" href="editor.html">
+        <h2>Editor</h2>
+        <p>Programar cardio dentro de la sesión, en modo guiado para empezar rápido o en modo avanzado con pasos y repeticiones.</p>
+        <ul>
+          <li>Espacio de cardio en una sesión mixta</li>
+          <li>Plantillas, controles grandes y HIIT</li>
+          <li>Árbol de pasos, repeticiones anidadas y hojas de edición</li>
+          <li>Perfil de intensidad, validaciones y estados vacíos</li>
+        </ul>
+        <span class="open">Abrir el editor</span>
+      </a>
+      <a class="artifact" href="live.html">
+        <h2>En vivo</h2>
+        <p>El espacio propio del cardio durante la sesión: la cifra principal toma el color de tu zona y las páginas se deslizan.</p>
+        <ul>
+          <li>Antes de empezar, con y sin GPS</li>
+          <li>Trabajo, recuperación, Tabata y fondo continuo</li>
+          <li>Pasos abiertos, por distancia y por calorías</li>
+          <li>Alertas de zona, pausa, bloqueo y guardado</li>
+        </ul>
+        <span class="open">Abrir en vivo</span>
+      </a>
+      <a class="artifact" href="transiciones.html">
+        <h2>Transiciones</h2>
+        <p>«Ahora vamos con cardio» y «Ahora vamos con fuerza» en sesiones mixtas, con el gesto de deslizar para empezar.</p>
+        <ul>
+          <li>Descanso con aviso de lo que sigue</li>
+          <li>Paso de fuerza a cardio y de cardio a fuerza</li>
+          <li>Casos sin animación y variantes por máquina</li>
+          <li>Especificación de movimiento</li>
+        </ul>
+        <span class="open">Abrir transiciones</span>
+      </a>
+      <a class="artifact" href="zonas.html">
+        <h2>Zonas</h2>
+        <p>La pantalla donde defines tu FC máxima y tus umbrales para que «Zona 2» se convierta en pulsaciones reales.</p>
+        <ul>
+          <li>Fórmula Tanaka, valor manual y sin edad</li>
+          <li>% de FC máxima, reserva y umbral láctico</li>
+          <li>Zonas de potencia y de ritmo</li>
+          <li>Errores de validación</li>
+        </ul>
+        <span class="open">Abrir zonas</span>
+      </a>
+    </section>
+
+    <section class="principles" aria-labelledby="decisiones">
+      <h2 id="decisiones">Decisiones de diseño</h2>
+      <dl>
+        <div>
+          <dt>El color fuerte es un dato</dt>
+          <dd>Azul, verde, amarillo, naranja y rojo significan siempre una zona de FC, ritmo o potencia. Los tipos de paso (calentamiento, trabajo, recuperación, vuelta a la calma) usan tonos apagados para no competir con ellas.</dd>
+        </div>
+        <div>
+          <dt>Syne para lo que se lee de lejos</dt>
+          <dd>La tipografía de marca de KPKN aparece solo en cifras grandes y títulos, igual que en la app. Todo lo demás va en Inter con números tabulares para que no bailen al cambiar.</dd>
+        </div>
+        <div>
+          <dt>Dos modos en el editor</dt>
+          <dd>Guiado: eliges una plantilla y ajustas tres controles grandes. Avanzado: un árbol con pasos y repeticiones (una repetición puede ir dentro de otra una vez), cada paso con su forma de terminar, su objetivo y los ajustes de la máquina.</dd>
+        </div>
+        <div>
+          <dt>El cardio en vivo tiene su propio espacio</dt>
+          <dd>Ya no es una tarjeta dentro de la pantalla de fuerza. La cifra principal muestra el tiempo que queda del paso, el fondo toma el color de tu zona y siempre ves lo que viene después.</dd>
+        </div>
+        <div>
+          <dt>La transición espera a que deslices</dt>
+          <dd>Solo aparece en sesiones que mezclan fuerza y cardio, te da tiempo de cambiar de máquina y nunca se repite al recuperar una sesión. En sesiones solo cardio no hay animación.</dd>
+        </div>
+        <div>
+          <dt>Sin bandas Bluetooth en esta etapa</dt>
+          <dd>La FC llega desde Health Connect cuando existe; si no, la guía es el RPE y los ajustes de la máquina. El diseño ya muestra cómo se ve cada caso.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="data" aria-labelledby="datos">
+      <div>
+        <h2 id="datos">Datos de ejemplo</h2>
+        <p>Todas las maquetas usan el mismo atleta: 30 años, FC máxima 187 lpm (fórmula Tanaka), FC en reposo 58 lpm, FTP 220 W y ritmo umbral 4:50 /km.</p>
+      </div>
+      <table>
+        <thead><tr><th>Zona</th><th>Nombre</th><th>FC</th><th>Ritmo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="zone-dot" style="background:var(--z1)"></span>Z1</td><td>Calentamiento</td><td class="num">94–111 lpm</td><td class="num">6:14 /km o más lento</td></tr>
+          <tr><td><span class="zone-dot" style="background:var(--z2)"></span>Z2</td><td>Suave</td><td class="num">112–130 lpm</td><td class="num">5:31–6:13 /km</td></tr>
+          <tr><td><span class="zone-dot" style="background:var(--z3)"></span>Z3</td><td>Aeróbico</td><td class="num">131–149 lpm</td><td class="num">5:07–5:30 /km</td></tr>
+          <tr><td><span class="zone-dot" style="background:var(--z4)"></span>Z4</td><td>Umbral</td><td class="num">150–167 lpm</td><td class="num">4:47–5:06 /km</td></tr>
+          <tr><td><span class="zone-dot" style="background:var(--z5)"></span>Z5</td><td>Máximo</td><td class="num">168–187 lpm</td><td class="num">4:46 /km o más rápido</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

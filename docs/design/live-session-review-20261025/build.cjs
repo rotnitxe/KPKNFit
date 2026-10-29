@@ -1,0 +1,10 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const root=path.resolve(__dirname,'../../..');
+const font=(file,family,weight)=>`@font-face{font-family:${family};font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/ttf;base64,${fs.readFileSync(path.join(root,'android-native/app/src/main/res/font',file)).toString('base64')}) format('truetype')}`;
+const fonts=[font('wizard_body_regular.ttf','Inter',400),font('wizard_body_semibold.ttf','Inter',600),font('syne_bold.ttf','Syne',700),font('syne_extrabold.ttf','Syne',800)].join('\n');
+const art='data:image/jpeg;base64,'+fs.readFileSync(path.join(root,'android-native/app/src/main/res/drawable/ic_caupolican_high_bar_bottom_art.jpg')).toString('base64');
+const html=fs.readFileSync(path.join(__dirname,'index.template.html'),'utf8').replace('/*__FONTS__*/',()=>fonts).replace('/*__CSS__*/',()=>fs.readFileSync(path.join(__dirname,'styles.css'),'utf8')).replace('/*__ART__*/',()=>art).replace('/*__JS__*/',()=>fs.readFileSync(path.join(__dirname,'app.js'),'utf8'));
+const result=html.replace('/*__REFINE_CSS__*/',()=>fs.readFileSync(path.join(__dirname,'refinements.css'),'utf8')).replace('/*__REFINE_JS__*/',()=>fs.readFileSync(path.join(__dirname,'refinements.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'arcade.js'),'utf8'));
+fs.writeFileSync(path.join(__dirname,'prototipos.html'),result);
+console.log('Prototipo autocontenido: '+Buffer.byteLength(result)+' bytes');

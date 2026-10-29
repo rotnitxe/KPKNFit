@@ -1,0 +1,2593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPKN · Sesión en vivo · programa de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* KPKN · Sesión en vivo — estudio de revisión y prototipo.
+   Dos capas: el estudio (fuera del teléfono) y la app (dentro, a 393 × 852). */
+
+:root{
+  --ink:#F2EEE6; --muted:#C4BFB6; --faint:#8E8980; --cta:#0B0B0B;
+  --blue:#8FB2FF; --sage:#A9C4B6; --green:#43D18C; --energy:#F7CF73;
+  --muscle:#F49A6E; --danger:#FF9B92; --error:#EF6F64; --replaced:#E53935; --cardio:#E0A13A;
+  --canvas:#000000; --module:#111111; --inset:#1A1A1A; --hero:#1B1B1B;
+  --line:rgba(255,255,255,.07); --divider:rgba(255,255,255,.06);
+  --pw:393px; --ph:852px; --card-w:345px; --card-h:470px; --z:.9;
+  --studio:#060606; --studio-line:rgba(255,255,255,.08);
+  --syne:'Syne',system-ui,sans-serif; --inter:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--studio); color:var(--ink); font-family:var(--inter);
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+::selection{background:rgba(244,154,110,.28)}
+
+/* ───────────────────────── estudio ───────────────────────── */
+.topbar{
+  height:60px; display:flex; align-items:center; gap:26px; padding:0 20px;
+  border-bottom:1px solid var(--studio-line); position:relative; z-index:20;
+  background:linear-gradient(180deg,#080808,#060606);
+}
+.brand{display:flex; align-items:center; gap:10px; min-width:232px}
+.brand-mark{
+  width:30px;height:30px;border-radius:9px;background:var(--ink);color:#0B0B0A;
+  display:grid;place-items:center;font-family:var(--syne);font-weight:800;font-size:14px;
+}
+.brand-txt b{display:block;font-family:var(--syne);font-size:14px;font-weight:800;letter-spacing:-.2px}
+.brand-txt span{display:block;font-size:10.5px;color:var(--faint);margin-top:1px}
+
+.phasebar{display:flex; align-items:center; gap:5px; flex:1; min-width:0; overflow:hidden}
+.phasebar button{
+  display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-radius:7px;
+  font-size:10.5px;font-weight:600;color:var(--faint);white-space:nowrap;
+}
+.phasebar button b{font-family:var(--mono);font-size:9.5px;font-weight:500;color:#5f5b56}
+.phasebar button.on{background:#151514;color:var(--ink)}
+.phasebar button.on b{color:var(--muscle)}
+.phasebar button:hover{background:#101010;color:var(--muted)}
+
+.tools{display:flex;align-items:center;gap:8px;margin-left:auto}
+.tool{
+  display:flex;align-items:center;gap:7px;height:30px;padding:0 10px;border-radius:8px;
+  border:1px solid var(--studio-line);font-size:11px;font-weight:600;color:var(--muted);
+}
+.tool .dot{width:6px;height:6px;border-radius:50%;background:#3a3834}
+.tool[aria-pressed="true"]{border-color:rgba(244,154,110,.45);color:var(--ink);background:rgba(244,154,110,.07)}
+.tool[aria-pressed="true"] .dot{background:var(--muscle);box-shadow:0 0 0 3px rgba(244,154,110,.15)}
+.tool:hover{color:var(--ink);border-color:rgba(255,255,255,.18)}
+.zoom{display:flex;gap:2px;background:#121211;border:1px solid var(--studio-line);border-radius:8px;padding:2px}
+.zoom button{height:24px;padding:0 7px;border-radius:6px;font-size:10px;font-weight:600;color:var(--faint)}
+.zoom button.on{background:var(--ink);color:#0B0B0A}
+.zoom button:hover:not(.on){color:var(--ink)}
+
+.layout{
+  display:grid;grid-template-columns:264px minmax(0,1fr) 372px;
+  height:calc(100vh - 60px);
+}
+
+/* índice */
+.index{display:flex;flex-direction:column;border-right:1px solid var(--studio-line);min-height:0;background:#070707}
+.index-head{padding:14px 14px 10px;border-bottom:1px solid var(--studio-line);position:sticky;top:0;background:#070707;z-index:3}
+.index-title{font-family:var(--syne);font-size:13px;font-weight:800;letter-spacing:.2px;margin-bottom:9px}
+.search{
+  width:100%;height:32px;border-radius:8px;border:1px solid var(--studio-line);background:#0D0D0C;
+  padding:0 10px;font-size:11px;color:var(--ink);outline:none;
+}
+.search::placeholder{color:#66625d}
+.search:focus{border-color:rgba(244,154,110,.45)}
+.filters{display:flex;gap:4px;margin-top:8px}
+.f{height:22px;padding:0 7px;border-radius:6px;font-size:9.5px;font-weight:600;color:var(--faint)}
+.f.on{background:#1A1918;color:var(--ink)}
+.f:hover:not(.on){color:var(--muted)}
+.index-list{flex:1;overflow:auto;padding:6px 8px 14px}
+.index-list::-webkit-scrollbar,.inspector::-webkit-scrollbar{width:4px}
+.index-list::-webkit-scrollbar-thumb,.inspector::-webkit-scrollbar-thumb{background:#232220;border-radius:2px}
+.phase-head{
+  display:flex;align-items:center;gap:7px;padding:14px 6px 5px;
+  font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#6d6963;
+}
+.phase-head b{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--muscle);letter-spacing:0}
+.phase-head span{margin-left:auto;font-family:var(--mono);font-size:8.5px;color:#4d4a46;letter-spacing:0}
+.scene{
+  display:grid;grid-template-columns:7px 1fr;gap:8px;align-items:start;width:100%;
+  text-align:left;padding:6px 7px;border-radius:6px;border-left:2px solid transparent;margin-bottom:1px;
+}
+.scene:hover{background:#0F0F0E}
+.scene.on{background:#151513;border-left-color:var(--ink)}
+.scene .fd{width:5px;height:5px;border-radius:50%;margin-top:5px;background:#3f3c38}
+.scene .fd.exact{background:var(--green)}
+.scene .fd.derived{background:var(--energy)}
+.scene .fd.gap{background:var(--danger)}
+.scene .nm{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:14px}
+.scene.on .nm{color:var(--ink);font-weight:600}
+.scene .sb{display:block;font-size:9.5px;color:#5f5b56;line-height:12.5px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.index-foot{
+  display:flex;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--studio-line);
+  font-size:9px;color:#5f5b56;font-family:var(--mono);
+}
+
+/* escenario */
+.stage{
+  display:flex;flex-direction:column;min-width:0;min-height:0;
+  background:
+    radial-gradient(620px 420px at 50% 28%, rgba(244,154,110,.055), transparent 68%),
+    radial-gradient(900px 600px at 50% 0%, rgba(255,255,255,.025), transparent 70%),
+    #060606;
+}
+.stage-top{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 0;min-height:34px}
+.crumbs{font-family:var(--mono);font-size:9.5px;color:#6c6862;letter-spacing:.2px}
+.crumbs b{color:var(--muted);font-weight:500}
+.fidelity{display:flex;align-items:center;gap:7px;font-size:9.5px;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 8px;border-radius:5px;font-size:9px;letter-spacing:.2px}
+.badge i{width:5px;height:5px;border-radius:50%;font-style:normal}
+.badge.exact{background:rgba(67,209,140,.09);color:var(--green);border:1px solid rgba(67,209,140,.22)}
+.badge.exact i{background:var(--green)}
+.badge.derived{background:rgba(247,207,115,.08);color:var(--energy);border:1px solid rgba(247,207,115,.22)}
+.badge.derived i{background:var(--energy)}
+.badge.gap{background:rgba(255,155,146,.08);color:var(--danger);border:1px solid rgba(255,155,146,.25)}
+.badge.gap i{background:var(--danger)}
+
+.devwrap{
+  flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:14px 0;
+  position:relative;overflow:hidden;
+}
+.device{
+  width:var(--pw);height:var(--ph);flex:none;border-radius:44px;overflow:hidden;
+  background:#000;border:1px solid #262523;position:absolute;top:50%;left:50%;
+  box-shadow:0 34px 90px rgba(0,0,0,.72), 0 0 0 8px #0b0b0a, 0 0 0 9px #1c1b19;
+  transform:translate(-50%,-50%) scale(var(--z));transform-origin:center;
+}
+.pins{
+  position:absolute;top:50%;left:50%;width:var(--pw);height:var(--ph);
+  transform:translate(-50%,-50%) scale(var(--z));transform-origin:center;
+  pointer-events:none;z-index:9;
+}
+.device .k-phone{border-radius:42px}
+
+.stage-bottom{
+  display:flex;align-items:center;gap:12px;padding:0 18px 12px;min-height:66px;
+}
+.navbtn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--studio-line);
+  display:grid;place-items:center;color:var(--muted);font-size:13px;flex:none;
+}
+.navbtn:hover{color:var(--ink);border-color:rgba(255,255,255,.22)}
+.scene-name{text-align:center;flex:1;min-width:0}
+.scene-name b{display:block;font-family:var(--syne);font-size:15px;font-weight:700}
+.scene-name span{display:block;font-size:10.5px;color:var(--faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* inspector */
+.inspector{
+  border-left:1px solid var(--studio-line);overflow:auto;padding:16px 18px 40px;background:#080808;min-height:0;
+}
+.insp-kicker{font-family:var(--mono);font-size:9px;color:#6d6963;letter-spacing:.3px;margin-bottom:7px}
+.insp-title{font-family:var(--syne);font-size:20px;font-weight:800;line-height:1.18;letter-spacing:-.3px}
+.insp-sub{font-size:11px;color:var(--faint);line-height:16px;margin-top:6px}
+.insp-note{
+  margin-top:11px;padding:9px 10px;border-left:2px solid rgba(244,154,110,.5);
+  background:rgba(244,154,110,.055);font-size:10.5px;line-height:15.5px;color:var(--muted);
+}
+.sec{margin-top:16px;padding-top:12px;border-top:1px solid var(--studio-line)}
+.sec h3{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:#6f6b65;font-weight:600;margin-bottom:7px}
+.sec ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.sec li{font-size:10.5px;line-height:15px;color:var(--muted);padding-left:11px;position:relative}
+.sec li:before{content:'';position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%;background:#3c3935}
+.sec li b{color:var(--ink);font-weight:600}
+.sec .mono{font-family:var(--mono);font-size:9.5px;line-height:15px;color:#9a948c}
+.src{display:flex;flex-direction:column;gap:4px}
+.src code{
+  font-family:var(--mono);font-size:9.5px;color:var(--blue);background:rgba(143,178,255,.06);
+  padding:4px 6px;border-radius:4px;border:1px solid rgba(143,178,255,.12);word-break:break-all;
+}
+.copyline{
+  font-size:10.5px;line-height:15px;color:var(--muted);border-left:1px solid #2a2825;padding-left:8px;
+}
+.accept li:before{background:var(--green)}
+.avoid{
+  margin-top:10px;padding:9px 10px;border:1px solid rgba(255,155,146,.18);border-radius:6px;
+  background:rgba(255,155,146,.045);
+}
+.avoid b{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--danger);margin-bottom:4px}
+.avoid span{font-size:10.5px;line-height:15px;color:var(--muted)}
+.measure{display:grid;grid-template-columns:1fr auto;gap:5px 10px;font-size:10.5px;line-height:15px}
+.measure span{color:var(--muted)}
+.measure b{font-family:var(--mono);font-size:9.5px;color:var(--ink);font-weight:500;text-align:right;max-width:198px;white-space:normal;line-height:14px}
+
+/* pines de anotación */
+.pin{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--muscle);color:#0B0B0A;
+  font-family:var(--mono);font-size:9px;font-weight:600;display:grid;place-items:center;
+  box-shadow:0 0 0 2px #060606, 0 0 0 3px rgba(244,154,110,.55);pointer-events:auto;cursor:help}
+.pin:after{content:'';position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(244,154,110,.25)}
+.pin .tip{
+  display:none;position:absolute;left:20px;top:-4px;width:196px;padding:7px 8px;border-radius:5px;
+  background:#161513;border:1px solid rgba(244,154,110,.3);color:var(--ink);font-family:var(--inter);
+  font-size:9.5px;line-height:13px;font-weight:500;z-index:30;
+}
+.pin .tip em{display:block;font-style:normal;font-family:var(--mono);font-size:8.5px;color:var(--muscle);margin-top:3px}
+.pin:hover .tip{display:block}
+.pin.right .tip{left:auto;right:20px}
+
+@media (max-width:1180px){
+  .layout{grid-template-columns:232px minmax(0,1fr) 320px}
+  .brand{min-width:190px}
+}
+@media (max-width:980px){
+  body{overflow:auto}
+  .layout{grid-template-columns:1fr;height:auto}
+  .index{order:2;border-right:0;border-top:1px solid var(--studio-line);max-height:340px}
+  .stage{order:1;min-height:760px}
+  .inspector{order:3;border-left:0;border-top:1px solid var(--studio-line)}
+  .phasebar{display:none}
+  .topbar{position:sticky;top:0}
+}
+
+/* ───────────────────────── app dentro del teléfono ───────────────────────── */
+.k-phone{
+  position:absolute;inset:0;background:var(--canvas);color:var(--ink);
+  font-family:var(--inter);overflow:hidden;
+  --card-w:calc((var(--pw) - 48px));
+}
+.k-phone.compact{--card-w:calc(var(--pw) - 48px)}
+
+.k-statusbar{
+  position:absolute;top:0;left:0;right:0;height:24px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 22px;font-size:11.5px;font-weight:600;z-index:12;
+}
+.k-statusbar .sig{display:flex;align-items:center;gap:5px}
+.k-statusbar .bars{display:flex;align-items:flex-end;gap:2px}
+.k-statusbar .bars i{display:block;width:2.5px;background:var(--ink);border-radius:1px}
+.k-statusbar .bars i:nth-child(1){height:3px;opacity:.5}
+.k-statusbar .bars i:nth-child(2){height:5px;opacity:.7}
+.k-statusbar .bars i:nth-child(3){height:7px;opacity:.85}
+.k-statusbar .bars i:nth-child(4){height:9px}
+.k-statusbar .batt{width:18px;height:9px;border:1px solid rgba(242,238,230,.55);border-radius:2px;position:relative;margin-left:3px}
+.k-statusbar .batt:after{content:'';position:absolute;right:-3px;top:2px;width:2px;height:4px;background:rgba(242,238,230,.55);border-radius:0 1px 1px 0}
+.k-statusbar .batt i{position:absolute;inset:1px;width:70%;background:var(--ink);border-radius:1px}
+
+.k-header{
+  position:absolute;top:0;left:0;right:0;height:119px;z-index:10;
+  background:
+    radial-gradient(260px 180px at 82% 18%, rgba(244,154,110,.16), transparent 72%),
+    radial-gradient(200px 120px at 12% 0%, rgba(143,178,255,.09), transparent 70%),
+    var(--canvas);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 70%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 70%,transparent 100%);
+}
+.k-header:after{
+  content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.42));pointer-events:none;
+}
+.k-header-inner{position:relative;z-index:2;padding:34px 12px 7px}
+.k-hrow{display:flex;align-items:flex-start;gap:4px;height:48px}
+.k-titlecol{flex:1;min-width:0}
+.k-title{font-family:var(--syne);font-size:20px;line-height:24px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.k-title .chip{color:var(--muted);font-weight:700}
+.k-sub{font-size:13px;line-height:18px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-icons{display:flex;flex:none;height:48px}
+.k-icon{width:48px;height:48px;display:grid;place-items:center}
+.k-icon .cir{width:40px;height:40px;border-radius:50%;background:var(--inset);display:grid;place-items:center;color:var(--muted)}
+.k-icon.filled .cir{background:var(--ink);color:#0B0B0A}
+.k-icon svg{display:block}
+.k-chips{display:flex;align-items:center;gap:6px;height:27px;margin-top:3px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 24px),transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 24px),transparent 100%);
+}
+.k-chip{display:inline-flex;align-items:center;gap:4px;height:27px;padding:0 9px;border-radius:999px;background:var(--inset);
+  font-size:12px;line-height:16px;font-weight:600;color:var(--ink);white-space:nowrap;flex:none}
+.k-chip.muted{color:var(--muted)}
+.k-chip .sub{color:var(--muted);font-weight:500}
+.k-chip .x{color:var(--faint);font-size:12px;margin-left:1px}
+.k-chip .dd{color:var(--muted);font-size:10px}
+.k-chip.green{color:var(--green)}
+.k-chip.red{color:var(--red)}
+.k-ring{width:18px;height:18px;border-radius:50%;position:relative;flex:none;
+  background:conic-gradient(var(--muscle) 0 72%, rgba(255,255,255,.20) 72% 100%)}
+.k-ring:before{content:'';position:absolute;inset:1.6px;border-radius:50%;background:var(--inset)}
+.k-ring svg{position:absolute;inset:3.5px;color:var(--muscle)}
+
+.k-stage{position:absolute;top:119px;left:0;right:0;bottom:0;z-index:2}
+.k-phone.compact .k-header{height:95px}
+.k-phone.compact .k-header-inner{padding:24px 12px 0}
+.k-phone.compact .k-hrow{height:44px}
+.k-phone.compact .k-title{font-size:18px;line-height:20px}
+.k-phone.compact .k-sub{font-size:11px;line-height:14px}
+.k-phone.compact .k-icons{height:44px}
+.k-phone.compact .k-icon{width:44px;height:44px}
+.k-phone.compact .k-icon .cir{width:36px;height:36px}
+.k-phone.compact .k-chips{margin-top:0}
+.k-phone.compact .k-stage{top:95px}
+
+/* tarjeta */
+.k-card{
+  position:absolute;top:0;left:calc((var(--pw) - var(--card-w)) / 2);width:var(--card-w);height:var(--card-h);
+  background:var(--module);border:1px solid var(--line);border-radius:28px;overflow:hidden;
+  display:flex;flex-direction:column;color:var(--ink);
+}
+.k-card.flip{animation:kflip .42s cubic-bezier(.2,.7,.2,1)}
+@keyframes kflip{from{transform:rotateY(0)}to{transform:rotateY(180deg)}}
+.k-card.failed .k-card-inner{filter:blur(1.2px)}
+.k-card-inner{display:flex;flex-direction:column;height:100%;min-height:0}
+
+.k-hero{background:var(--hero);border-radius:24px 24px 0 0;padding:12px 16px;min-height:132px;display:flex;flex-direction:column;justify-content:space-between}
+.k-hero-label{font-size:10px;line-height:14px;letter-spacing:1.2px;font-weight:600;color:var(--muted);display:flex;align-items:baseline;gap:6px}
+.k-hero-label .dim{color:var(--faint)}
+.k-hero-main{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+.k-hero-val{font-family:var(--syne);font-size:34px;line-height:44px;font-weight:700;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.k-hero-val.sm{font-size:26px;line-height:36px}
+.k-hero-unit{font-size:13px;font-weight:600;color:var(--muted);padding-bottom:4px}
+.k-hero-side{margin-left:auto;text-align:right;padding-bottom:3px}
+.k-hero-side b{font-family:var(--syne);font-size:15px;font-weight:700}
+.k-hero-side span{display:block;font-size:9px;color:var(--faint);margin-top:1px}
+.k-chips3{display:flex;gap:7px;margin-top:9px}
+.k-chip3{flex:1;height:34px;border-radius:11px;background:#111;border:1px solid rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.k-chip3 span{font-size:9px;line-height:12px;color:var(--faint)}
+.k-chip3 b{font-size:12px;line-height:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.k-hero-foot{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:var(--muted)}
+.k-hero-foot svg{color:var(--muted)}
+
+.k-cardbody{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 16px;gap:6px;overflow:hidden}
+.k-divider{height:1px;background:rgba(255,255,255,.08);flex:none}
+.k-rephead{display:flex;align-items:center;height:24px;flex:none;gap:4px}
+.k-eyebrow{font-size:10px;line-height:14px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.k-plus{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.k-videochip{margin-left:auto;display:flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:999px;background:#1F1F1F;border:1px solid rgba(255,255,255,.12);font-size:11px;color:var(--muted)}
+.k-wheel{display:flex;align-items:center;height:48px;flex:none;padding:0 4px;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);}
+.k-wcell{flex:1;display:grid;place-items:center;font-size:15px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.k-wcell.c{font-family:var(--syne);font-size:19px;font-weight:700;color:#0B0B0A;background:var(--ink);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none}
+.k-wcell.c b{font:inherit;font-weight:700;line-height:1;display:block}
+.k-wcell.dim{color:var(--faint)}
+
+.k-effort{flex:none;margin-top:4px}
+.k-effort-head{display:flex;align-items:baseline;height:20px}
+.k-effort-head .r{margin-left:auto;font-size:13px;font-weight:600;color:var(--ink)}
+.k-effort-head .r small{font-weight:400;color:var(--faint);font-size:11px}
+.k-trackwrap{height:44px;display:flex;align-items:center;position:relative}
+.k-track{height:18px;width:100%;border-radius:999px;background:var(--inset);position:relative;overflow:hidden}
+.k-track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,rgba(247,207,115,.55),rgba(244,154,110,.9))}
+.k-track .plan{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.26)}
+.k-thumb{position:absolute;top:50%;width:26px;height:26px;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);box-shadow:0 4px 10px rgba(0,0,0,.45)}
+.k-effort-labels{display:flex;justify-content:space-between;margin-top:2px;font-size:9px;line-height:14px;font-weight:500;color:var(--faint)}
+.k-effort-labels .on{color:var(--ink);font-weight:600}
+.k-effort-labels .fail{color:var(--muscle);font-weight:600}
+.k-hint{margin-top:4px;font-size:11px;line-height:16px;font-weight:600;text-align:center;color:var(--muted)}
+
+.k-rom{display:flex;align-items:center;gap:10px;height:44px;flex:none}
+.k-rom .val{margin-left:auto;font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;background:var(--inset);font-variant-numeric:tabular-nums}
+.k-slider{flex:1;height:4px;border-radius:2px;background:var(--inset);position:relative}
+.k-slider i{position:absolute;left:0;top:0;bottom:0;background:rgba(242,238,230,.85);border-radius:2px}
+.k-slider b{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%)}
+
+.k-appstatus{font-size:11px;line-height:14px;color:var(--muted);flex:none;padding-bottom:2px}
+.k-appstatus.err{color:var(--error)}
+
+.k-actions{display:flex;gap:6px;padding:7px 16px 11px;border-top:1px solid rgba(255,255,255,.07);flex:none}
+.k-action{height:44px;border-radius:999px;border:1px solid rgba(242,238,230,.24);display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;line-height:14px;font-weight:600;color:var(--muted);flex:1}
+.k-action.icon{width:44px;flex:none;padding:0}
+.k-action:hover{border-color:rgba(242,238,230,.5);color:var(--ink)}
+
+/* bloques condicionales */
+.k-band{display:flex;align-items:center;gap:8px;flex:none;margin:4px 0 0}
+.k-band .ln{flex:1;height:1px;background:rgba(229,57,53,.85)}
+.k-band span{font-size:9px;line-height:12px;letter-spacing:.8px;font-weight:600;color:var(--replaced);text-transform:uppercase;white-space:nowrap}
+.k-band.center{justify-content:center}
+.k-band.center span{font-size:9px;letter-spacing:.8px;text-transform:none;color:rgba(255,255,255,.64);font-weight:600}
+.k-amrapbadge{display:flex;align-items:center;gap:6px;padding:2px 16px;flex:none}
+.k-amrapbadge b{font-size:12px;font-weight:700;color:var(--muscle)}
+.k-amrapbadge span{font-size:11px;line-height:15px;color:rgba(255,255,255,.65);padding:0 0 0 2px}
+.k-loadwarn{padding:2px 10px;text-align:center;font-size:11px;line-height:14px;font-weight:700;color:var(--muscle);flex:none}
+.k-pause{text-align:center;font-size:9px;line-height:12px;font-weight:700;letter-spacing:.8px;color:rgba(255,255,255,.64);flex:none;text-transform:uppercase}
+
+.k-seg{display:flex;gap:6px;background:var(--inset);border-radius:20px;padding:6px;flex:none}
+.k-seg button{flex:1;height:36px;border-radius:14px;border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted)}
+.k-seg button.on{background:var(--ink);color:#0B0B0A;border-color:var(--ink)}
+.k-seg.tech{background:transparent;padding:0;gap:4px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 18px),transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 18px),transparent 100%)}
+.k-seg.tech button{height:30px;border-radius:15px;background:#000;font-size:12px;font-weight:500;color:var(--faint);flex:none;padding:0 10px;min-width:92px}
+.k-seg.tech button.on{background:var(--ink);color:#0B0B0A}
+
+/* tarjeta compacta / modos */
+.k-compactload{display:flex;align-items:center;gap:6px;height:44px;flex:none}
+.k-compactload .lbl{font-size:9px;letter-spacing:.8px;color:var(--faint);font-weight:600}
+.k-compactload .field{height:32px;min-width:80px;border-radius:8px;background:var(--inset);display:flex;align-items:center;padding:0 9px;font-family:var(--syne);font-size:23px;font-weight:700;font-variant-numeric:tabular-nums}
+.k-compactload .mode{margin-left:auto;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:3px}
+
+.k-fieldbig{height:60px;border-radius:12px;background:var(--inset);display:flex;align-items:center;justify-content:center;font-family:var(--syne);font-size:24px;font-weight:700;flex:none;font-variant-numeric:tabular-nums}
+.k-fieldrow{display:flex;gap:8px;flex:none}
+.k-fieldrow .k-fieldbig{flex:1}
+.k-timerbtn{width:48px;height:60px;border-radius:12px;background:var(--inset);display:grid;place-items:center;flex:none;color:var(--ink)}
+
+.k-rmhero{background:var(--hero);border-radius:24px 24px 0 0;padding:14px 16px;flex:none}
+.k-rmhero .top{display:flex;align-items:baseline;gap:6px}
+.k-rmhero .big{font-family:var(--syne);font-size:38px;line-height:42px;font-weight:800}
+.k-rmhero .pct{font-size:23px;font-weight:700;color:var(--muscle)}
+.k-rmhero .sub{font-size:11px;line-height:15px;color:var(--muted);margin-top:2px}
+.k-rmhero .ref{display:flex;justify-content:space-between;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.07);font-size:10.5px;color:var(--muted)}
+.k-rmhero .ref b{color:var(--ink);font-weight:600}
+.k-rmrow{display:flex;align-items:center;gap:8px;height:38px;flex:none;border-bottom:1px solid var(--divider)}
+.k-rmrow .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);font-weight:600}
+.k-rmrow .v{font-family:var(--syne);font-size:22px;line-height:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.k-rmrow .dim{margin-left:auto;font-size:9.5px;color:var(--faint)}
+
+/* caras traseras */
+.k-face{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;padding:12px;overflow:hidden}
+.k-facehead{display:flex;align-items:center;gap:8px;height:32px;flex:none}
+.k-pillbtn{height:32px;border-radius:999px;background:var(--inset);display:flex;align-items:center;gap:2px;padding:0 12px 0 8px;font-size:12px;font-weight:600}
+.k-pillbtn.icon{padding:0;width:32px;justify-content:center}
+.k-facehead .eyebrow{margin-left:auto;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.k-prchip{height:32px;border-radius:999px;background:var(--inset);padding:0 12px;display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--muscle);white-space:nowrap}
+
+.k-chaintitle{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;color:var(--faint);flex:none}
+.k-chain{display:flex;align-items:center;gap:6px;flex:none;overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%)}
+.k-link{width:72px;height:58px;border-radius:16px;background:var(--inset);border:1px solid transparent;padding:4px 6px;display:flex;flex-direction:column;justify-content:center;flex:none}
+.k-link.on{border-color:var(--muscle);background:rgba(244,154,110,.10)}
+.k-link .t{font-size:10px;line-height:12px;letter-spacing:.2px;color:var(--muted)}
+.k-link .v{font-family:var(--syne);font-size:15px;line-height:18px;font-weight:700}
+.k-link .s{font-size:11px;line-height:13px;color:var(--faint)}
+.k-chain .arrow{color:rgba(255,255,255,.35);flex:none}
+.k-addlink{width:44px;height:58px;border-radius:16px;border:1px solid rgba(255,255,255,.24);display:grid;place-items:center;color:var(--muted);flex:none}
+
+.k-stepbox{background:var(--canvas);border-radius:20px;padding:8px;flex:none}
+.k-stepbox .row{display:flex;align-items:center;gap:6px;min-height:32px}
+.k-stepbox .row .t{font-size:14px;line-height:18px;font-weight:600;padding:0 6px 0 4px}
+.k-sug{margin-left:auto;height:24px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap}
+.k-done{width:28px;height:28px;border-radius:50%;background:var(--inset);border:1px solid rgba(242,238,230,.24);display:grid;place-items:center;color:var(--muted)}
+.k-done.on{background:var(--ink);border-color:var(--ink);color:#0B0B0A}
+.k-stepsrow{display:flex;gap:6px;margin-top:6px}
+.k-stepper{flex:1;height:44px;border-radius:14px;background:var(--inset);display:flex;align-items:center;padding:0 4px;gap:4px}
+.k-stepper .b{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:15px;color:var(--muted);flex:none}
+.k-stepper .v{flex:1;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.k-stepper .v small{font-size:10px;color:var(--faint);font-weight:500;display:block;line-height:10px}
+.k-explain{display:flex;gap:6px;align-items:center;flex:none;overflow:hidden}
+.k-explain .blk{height:30px;border-radius:999px;background:var(--inset);padding:0 10px;display:flex;align-items:center;font-size:11px;color:var(--muted);white-space:nowrap}
+.k-explain .blk.last{border:1px solid var(--muscle);color:var(--ink)}
+.k-explain .cap{font-size:11px;color:var(--faint);white-space:nowrap}
+.k-note{flex:none}
+.k-note .lb{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint);margin-bottom:4px}
+.k-input{height:36px;border-radius:8px;background:var(--inset);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--faint)}
+.k-errorpill{height:40px;border-radius:999px;background:var(--inset);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--danger);flex:none}
+
+/* media */
+.k-mstage{flex:1;min-height:0;border-radius:22px;border:1px solid rgba(255,255,255,.06);
+  background:radial-gradient(120% 90% at 50% 40%,#2A2622,#121110);position:relative;overflow:hidden}
+.k-mstage .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:33.33% 33.33%}
+.k-mstage .lbl{position:absolute;left:12px;bottom:12px;font-size:10px;color:rgba(255,255,255,.55)}
+.k-mtop{position:absolute;top:10px;left:10px;right:10px;display:flex;align-items:center;gap:6px;z-index:2}
+.k-switch{display:flex;gap:2px;background:rgba(0,0,0,.45);border-radius:16px;padding:3px}
+.k-switch b{height:26px;padding:0 12px;border-radius:13px;display:grid;place-items:center;font-size:12px;font-weight:600;color:rgba(242,238,230,.7)}
+.k-switch b.on{background:var(--ink);color:#0B0B0A}
+.k-ficha{margin-left:auto;height:32px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(242,238,230,.18);display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink)}
+.k-mbottom{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:flex-end;justify-content:space-between;z-index:2}
+.k-gal{display:flex;flex-direction:column;gap:5px}
+.k-gal .lb{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600}
+.k-thumbs{display:flex;gap:4px}
+.k-thumb2{width:36px;height:36px;border-radius:8px;background:#171715;border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;font-size:8px;color:rgba(255,255,255,.55);position:relative}
+.k-thumb2 .bdg{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;border-radius:5px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;font-size:9px;color:var(--ink)}
+.k-shutter{width:60px;height:60px;border-radius:50%;background:var(--ink);display:grid;place-items:center;box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 0 4px rgba(242,238,230,.2)}
+.k-shutter i{width:44px;height:44px;border-radius:50%;background:var(--ink);border:1px solid rgba(0,0,0,.2)}
+.k-shutter.video i{background:var(--error)}
+.k-mediafoot{height:48px;border-radius:12px;background:var(--inset);display:flex;align-items:center;gap:8px;padding:0 8px;flex:none}
+.k-mediafoot .fit{width:36px;height:36px;border-radius:10px;background:#222;display:grid;place-items:center;color:var(--muted);flex:none}
+.k-mediafoot .ln{font-size:10.5px;line-height:14px;color:var(--muted)}
+.k-mediafoot .ln b{color:var(--ink);font-weight:600}
+
+/* preparación */
+.k-prep{position:absolute;inset:0;padding:14px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.k-prep .head{display:flex;align-items:center;gap:8px;min-height:32px;flex:none}
+.k-prep .head .t{font-family:var(--syne);font-size:20px;line-height:26px;font-weight:700}
+.k-prep .head .chip{margin-left:auto}
+.k-prep .body{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.k-prep .hero{display:flex;align-items:flex-end;gap:6px;flex:none}
+.k-prep .hero .v{font-family:var(--syne);font-size:34px;line-height:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.k-prep .hero .u{font-size:10px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.k-prep .hero .side{margin-left:auto;text-align:right}
+.k-prep .hero .side b{font-family:var(--syne);font-size:15px}
+.k-prep .hero .side span{display:block;font-size:9px;color:var(--faint)}
+.k-prep .sub{font-size:11px;color:var(--faint);flex:none}
+.k-prep .mrows{display:flex;flex-direction:column;gap:2px;overflow:hidden;flex:1}
+.k-mrow{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:8px;min-height:32px}
+.k-mrow.on{background:rgba(242,238,230,.06)}
+.k-mrow .check{width:15px;height:15px;border-radius:50%;border:1px solid rgba(242,238,230,.25);display:grid;place-items:center;font-size:8px;color:#0B0B0A;flex:none}
+.k-mrow.done .check{background:var(--sage);border-color:var(--sage)}
+.k-mrow .nm{flex:1;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-mrow.done .nm{color:var(--faint);text-decoration:line-through}
+.k-mrow .dose{font-size:9.5px;color:var(--faint)}
+.k-prep .actions{display:flex;gap:6px;padding-top:4px;flex:none}
+.k-prepbtn{height:48px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;flex:1;border:1px solid rgba(242,238,230,.24);color:var(--ink)}
+.k-prepbtn.primary{background:var(--ink);color:#0B0B0A;border-color:var(--ink)}
+.k-prepbtn.quiet{border-color:transparent;color:var(--muted)}
+.k-dosecard{background:var(--inset);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px;flex:none}
+.k-dosecard .d{font-family:var(--syne);font-size:34px;line-height:40px;font-weight:700}
+.k-dosecard .l{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);font-weight:600}
+.k-minirow{display:flex;gap:6px;flex:none}
+.k-minibtn{height:34px;padding:0 12px;border-radius:999px;background:var(--inset);display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--muted)}
+.k-warmrow{display:flex;align-items:center;gap:6px;min-height:44px;padding:4px 4px;border-bottom:1px solid var(--divider)}
+.k-warmrow.on{background:rgba(247,207,115,.07);border:1px solid rgba(247,207,115,.22);border-radius:9px;padding:4px 5px}
+.k-warmrow .p{width:26px;font-size:10px;font-weight:700;color:var(--energy)}
+.k-warmrow .r{width:34px;font-size:10px;color:var(--faint)}
+.k-warmrow .kg{flex:1;text-align:right;font-family:var(--syne);font-size:17px;font-weight:700}
+.k-warmrow .x{width:34px;text-align:right;font-size:11px;color:var(--muted)}
+.k-warmrow .rest{width:30px;text-align:right;font-size:10px;color:var(--faint)}
+
+.k-cardio{position:absolute;inset:0;padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.k-cardio .head{display:flex;align-items:baseline;gap:8px}
+.k-cardio .head .eyebrow{font-size:10px}
+.k-cardio .head .nm{font-size:14px;font-weight:600}
+.k-cardio .phase{background:rgba(244,154,110,.10);border:1px solid rgba(244,154,110,.25);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.k-cardio .phase b{font-size:12px;color:var(--muscle)}
+.k-cardio .phase span{font-size:10px;color:var(--muted)}
+.k-cardio .ringbox{display:flex;align-items:center;justify-content:center;padding:4px 0}
+.k-ringbig{width:132px;height:132px;border-radius:50%;position:relative;
+  background:conic-gradient(var(--muscle) 0 58%, rgba(255,255,255,.08) 58% 100%);display:grid;place-items:center}
+.k-ringbig:before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--module)}
+.k-ringbig .in{position:relative;text-align:center}
+.k-ringbig .in span{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.k-ringbig .in b{display:block;font-family:var(--syne);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.k-cardio .metrics{display:flex;gap:6px}
+.k-cardio .metrics .p{flex:1;height:38px;border-radius:10px;background:var(--inset);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.k-cardio .metrics .p b{font-size:12px}
+.k-cardio .metrics .p span{font-size:8.5px;color:var(--faint)}
+.k-chart{display:flex;align-items:flex-end;gap:2px;height:56px;padding:8px;border-radius:10px;background:#0C0C0B;flex:none}
+.k-chart i{display:block;flex:1;border-radius:2px;background:rgba(255,255,255,.12)}
+.k-chart i.w{background:var(--muscle)}
+.k-cardio .splits{font-size:10px;color:var(--faint)}
+
+/* descanso */
+.k-rest{position:absolute;inset:0;padding:14px 10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.k-rest .head{display:flex;align-items:center;gap:6px;min-height:24px}
+.k-rest .head .lb{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--faint)}
+.k-rest .head .mode{margin-left:auto;font-size:9.5px;color:var(--muted)}
+.k-rest .clockwrap{display:flex;justify-content:center;padding:2px 0}
+.k-restclock{width:120px;height:104px;position:relative}
+.k-restclock svg{display:block;width:120px;height:104px;overflow:visible}
+.k-rest-time{text-align:center;margin-top:-6px}
+.k-rest-time b{font-family:var(--syne);font-size:40px;line-height:42px;font-weight:700;font-variant-numeric:tabular-nums}
+.k-rest-time span{display:block;font-size:10px;color:var(--muted)}
+.k-rest .last{background:var(--inset);border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;flex:none}
+.k-rest .last .lb{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);font-weight:600}
+.k-rest .last b{margin-left:auto;font-size:14px;font-variant-numeric:tabular-nums}
+.k-rest .next{background:var(--inset);border-radius:18px;padding:10px 14px;flex:none}
+.k-rest .next .lb{font-size:10px;color:var(--muted)}
+.k-rest .next .v{font-size:13px;font-weight:600;margin-top:1px}
+.k-rest .next .e{font-size:10px;color:var(--faint);margin-top:1px}
+.k-rest .ctrl{display:flex;gap:6px;flex:none}
+.k-rest .ctrl .b{height:44px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--ink);flex:1}
+.k-rest .ctrl .b.skip{flex:1.6;background:var(--ink);color:#0B0B0A}
+.k-rest .hint{font-size:10px;color:var(--faint);text-align:center}
+.k-rest .band{justify-content:center;margin:0}
+.k-playpill{height:44px;border-radius:25px;background:#1B1B1B;border:1px solid rgba(244,154,110,.24);display:flex;align-items:center;gap:8px;padding:0 14px 0 8px;flex:none}
+.k-playpill .c{width:28px;height:28px;border-radius:50%;background:rgba(244,154,110,.14);display:grid;place-items:center;color:var(--muscle)}
+.k-playpill span{font-size:12px;font-weight:600}
+
+.k-minichip{position:absolute;right:16px;top:128px;height:40px;border-radius:999px;background:var(--module);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:10px;padding:0 4px 0 4px;z-index:11}
+.k-minichip .ring{width:32px;height:32px;border-radius:50%;position:relative;background:conic-gradient(var(--muscle) 0 82%,#2A2A2A 82% 100%)}
+.k-minichip .ring:before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--module)}
+.k-minichip .txt{padding-right:4px}
+.k-minichip .txt span{display:block;font-size:9px;color:var(--muted);line-height:10px}
+.k-minichip .txt b{font-size:13px;font-variant-numeric:tabular-nums}
+.k-minichip .plus{height:28px;border-radius:999px;background:var(--inset);display:grid;place-items:center;padding:0 10px;font-size:11px;font-weight:600}
+
+.k-game{position:absolute;inset:0;padding:14px;display:flex;flex-direction:column;gap:8px}
+.k-arena{flex:1;border-radius:28px;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#0E0E0D,#080808)}
+.k-arena .hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.k-arena .hud b{font-size:12px;color:var(--ink)}
+.k-arena .ground{position:absolute;left:0;right:0;bottom:34px;height:1px;background:rgba(255,255,255,.14)}
+.k-runner{position:absolute;left:52px;bottom:35px;width:18px;height:26px;border-radius:5px;background:var(--ink)}
+.k-runner:before,.k-runner:after{content:'';position:absolute;bottom:-8px;width:3px;height:9px;background:var(--ink);border-radius:2px}
+.k-runner:before{left:4px;transform:rotate(14deg)}
+.k-runner:after{right:4px;transform:rotate(-14deg)}
+.k-obs{position:absolute;bottom:35px;width:26px;height:16px;border-radius:4px;background:var(--muscle)}
+.k-obs.b{width:36px;height:12px;background:var(--blue)}
+.k-obs.c{width:10px;height:24px;background:var(--green)}
+
+/* feedback */
+.k-fb{position:absolute;inset:0;padding:14px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.k-fb .head{display:flex;align-items:baseline}
+.k-fb .head .t{font-family:var(--syne);font-size:22px;line-height:26px;font-weight:700}
+.k-fb .head span{margin-left:auto;font-size:10px;color:var(--faint)}
+.k-fb .tech{background:var(--inset);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex:none}
+.k-fb .tech .fig{width:36px;height:42px;border-radius:8px;background:#222;display:grid;place-items:center;color:var(--blue)}
+.k-fb .tech .l{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);font-weight:600}
+.k-fb .tech b{display:block;font-size:18px;line-height:22px}
+.k-fb .tech b small{font-size:11px;color:var(--muted);font-weight:500}
+.k-fb .tech .slider{width:64px;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--muscle),var(--blue));margin-left:auto;position:relative}
+.k-fb .tech .slider i{position:absolute;right:12px;top:50%;width:20px;height:20px;border-radius:50%;background:var(--ink);transform:translateY(-50%)}
+.k-fb .search{height:38px;border-radius:999px;background:#0B0B0B;border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;gap:6px;padding:0 12px;font-size:12px;color:var(--faint);flex:none}
+.k-fb .chips{display:flex;flex-wrap:wrap;gap:6px;flex:none}
+.k-fb .dchip{height:30px;border-radius:999px;background:var(--inset);display:flex;align-items:center;gap:6px;padding:0 10px;font-size:11px;font-weight:600;color:var(--muted)}
+.k-fb .dchip .pt{width:7px;height:7px;border-radius:50%;background:var(--muscle)}
+.k-fb .dchip.on{background:var(--ink);color:#0B0B0A}
+.k-fb .rel{background:rgba(67,209,140,.06);border:1px solid rgba(67,209,140,.20);border-radius:14px;padding:9px 11px;font-size:10.5px;line-height:15px;color:var(--muted);flex:none}
+.k-fb .rel b{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-bottom:3px}
+.k-fb .act{display:flex;gap:6px;margin-top:auto;flex:none}
+.k-fb .act .b{height:48px;border-radius:999px;display:grid;place-items:center;font-size:13px;font-weight:700}
+.k-fb .act .b.inset{background:var(--inset);color:var(--ink);flex:1}
+.k-fb .act .b.primary{background:var(--ink);color:#0B0B0A;flex:1.4}
+
+/* resultado AMRAP */
+.k-result{position:absolute;inset:0;z-index:19;background:#111111;border-radius:28px;border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center}
+.k-result .eyebrowline{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;color:var(--muscle)}
+.k-result .big{font-family:var(--syne);font-size:56px;line-height:60px;font-weight:800;letter-spacing:-1.5px}
+.k-result .big small{font-family:var(--inter);font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0}
+.k-result .subline{font-size:11px;color:var(--muted)}
+.k-result .badge{height:24px;padding:0 10px;border-radius:999px;background:rgba(244,154,110,.12);border:1px solid rgba(244,154,110,.3);display:flex;align-items:center;font-size:10px;font-weight:600;color:var(--muscle)}
+.k-result .row{display:flex;gap:6px;width:100%;margin-top:10px}
+.k-result .row span{flex:1;height:44px;border-radius:999px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.k-result .row span:first-child{background:var(--ink);color:#0B0B0A}
+.k-result .row span:last-child{background:var(--inset);color:var(--ink)}
+
+/* feedback compacto */
+.k-fbstrip{display:flex;align-items:center;gap:8px;background:var(--inset);border-radius:12px;padding:8px 10px;flex:none}
+.k-fbstrip .ring{width:22px;height:22px;border-radius:50%;position:relative;background:conic-gradient(var(--muscle) 0 40%,#2A2A2A 40%)}
+.k-fbstrip .ring:before{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--inset)}
+.k-fbstrip b{font-family:var(--syne);font-size:20px;line-height:22px}
+.k-fbstrip span{font-size:10px;color:var(--faint)}
+
+/* mesa */
+.k-mesa{position:absolute;inset:0;padding:12px 10px 0;display:flex;flex-direction:column;gap:0;overflow:hidden}
+.k-mesa .mtop{display:flex;align-items:baseline;padding:0 4px 8px;flex:none}
+.k-mesa .mtop b{font-family:var(--syne);font-size:17px;font-weight:700}
+.k-mesa .mtop span{margin-left:auto;font-size:9.5px;color:var(--faint)}
+.k-mesa .scroll{flex:1;min-height:0;overflow:auto;padding-bottom:180px}
+.k-mesa .scroll::-webkit-scrollbar{display:none}
+.k-mgroup{display:flex;align-items:center;gap:6px;padding:6px 2px 5px;border-bottom:1px solid var(--line);margin-top:8px}
+.k-mgroup .nm{font-size:11px;font-weight:600}
+.k-mgroup .tag{height:17px;padding:0 6px;border-radius:8px;background:rgba(242,238,230,.08);display:flex;align-items:center;font-size:8.5px;color:var(--muted)}
+.k-mgroup .meta{margin-left:auto;font-size:9px;color:var(--faint)}
+.k-tr{display:grid;grid-template-columns:22px 1fr 68px 40px 14px;align-items:center;gap:6px;padding:6px 3px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.k-tr .idx{color:var(--faint);font-size:9px}
+.k-tr .ex{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-tr .ld{font-family:var(--syne);font-size:11px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.k-tr .ef{font-size:9px;color:var(--faint);text-align:right}
+.k-tr .st{text-align:right;color:var(--faint);font-size:9px}
+.k-tr.done .st{color:var(--green)}
+.k-tr.active{background:rgba(242,238,230,.055);border-left:2px solid var(--ink);padding-left:4px}
+.k-tr.active .ex{color:var(--ink);font-weight:600}
+.k-meditor{padding:7px 5px 8px;border-bottom:1px solid var(--line);background:rgba(242,238,230,.03)}
+.k-meditor .r1{display:flex;align-items:center;gap:6px}
+.k-meditor .big{font-family:var(--syne);font-size:25px;font-weight:800;letter-spacing:-.6px}
+.k-meditor .u{font-size:9.5px;color:var(--faint);padding-top:4px}
+.k-meditor .mini{margin-left:auto;display:flex;gap:4px}
+.k-meditor .mini span{height:24px;min-width:40px;padding:0 6px;border-radius:6px;background:var(--inset);display:grid;place-items:center;font-size:9.5px;font-weight:600;color:var(--muted)}
+.k-meditor .r2{display:flex;align-items:center;gap:5px;margin-top:7px}
+.k-rir{display:flex;gap:3px}
+.k-rir span{width:22px;height:20px;border-radius:5px;background:rgba(242,238,230,.08);display:grid;place-items:center;font-size:9px;color:var(--faint)}
+.k-rir span.on{background:var(--ink);color:#0B0B0A;font-weight:700}
+.k-meditor .e1{margin-left:auto;font-size:9px;color:var(--faint)}
+.k-meditor .acts{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.k-meditor .acts span{height:21px;padding:0 7px;border-radius:10px;border:1px solid rgba(242,238,230,.12);font-size:8.5px;font-weight:600;color:var(--muted);display:flex;align-items:center}
+.k-mesa .foot{position:absolute;left:10px;right:10px;bottom:8px;background:#111110;border:1px solid var(--line);border-radius:18px;padding:9px 10px}
+
+/* hojas */
+.k-scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:30}
+.k-sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;background:#121211;border-radius:26px 26px 0 0;border-top:1px solid rgba(255,255,255,.09);
+  box-shadow:0 -24px 60px rgba(0,0,0,.6);max-height:76%;overflow:auto;padding:8px 16px 16px}
+.k-sheet::-webkit-scrollbar{display:none}
+.k-sheet.tall{max-height:88%}
+.k-sheet.full{max-height:94%}
+.k-handle{width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin:0 auto 9px}
+.k-sheethead{display:flex;align-items:center;gap:8px}
+.k-sheethead .st{flex:1;min-width:0}
+.k-sheetx{height:32px;padding:0 11px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:10.5px;font-weight:600;color:var(--muted);flex:none;margin-left:auto}
+.k-sheetx:hover{background:var(--inset);color:var(--ink)}
+.k-sheet .st{font-family:var(--syne);font-size:20px;line-height:26px;font-weight:700}
+.k-sheet .sd{font-size:10.5px;color:var(--faint);margin:2px 0 9px}
+.k-srow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.055);font-size:11.5px;min-height:40px}
+.k-srow .key{width:18px;color:var(--faint);font-size:10px;flex:none}
+.k-srow .val{flex:1;min-width:0}
+.k-srow .x{margin-left:auto;color:var(--faint);font-size:10px;white-space:nowrap}
+.k-srow .x.on{color:var(--green)}
+.k-srow .sw{width:34px;height:20px;border-radius:10px;background:var(--inset);position:relative;flex:none}
+.k-srow .sw:after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint)}
+.k-srow .sw.on{background:rgba(67,209,140,.3)}
+.k-srow .sw.on:after{left:16px;background:var(--green)}
+.k-sheet .inp{height:40px;border-radius:9px;background:var(--inset);display:flex;align-items:center;padding:0 10px;font-size:11.5px;color:var(--faint);margin-top:8px}
+.k-sheet .rowbtns{display:flex;gap:6px;margin-top:10px}
+.k-sheet .rowbtns .b{flex:1;height:40px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink)}
+.k-sheet .rowbtns .b.primary{background:var(--ink);color:#0B0B0A}
+.k-sheet .rowbtns .b.danger{background:rgba(255,155,146,.12);border:1px solid rgba(255,155,146,.35);color:var(--danger)}
+.k-sheet .sect{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:#6f6b65;margin:12px 0 2px}
+.k-sheet .metric{display:flex;gap:8px;margin-bottom:8px}
+.k-sheet .metric div{flex:1;background:var(--inset);border-radius:10px;padding:8px}
+.k-sheet .metric b{display:block;font-family:var(--syne);font-size:15px}
+.k-sheet .metric span{display:block;font-size:8.5px;color:var(--faint);margin-top:1px}
+.k-sheet .tile{display:flex;gap:8px;margin-top:6px}
+.k-sheet .tile div{flex:1;min-height:64px;border-radius:12px;background:var(--inset);padding:8px;font-size:10px;line-height:14px;color:var(--muted);border:1px solid transparent}
+.k-sheet .tile div.on{border-color:var(--muscle);background:rgba(244,154,110,.08)}
+.k-sheet .tile b{display:block;font-size:11.5px;color:var(--ink);margin-bottom:2px}
+.k-sheet .bars{display:flex;align-items:flex-end;gap:4px;height:44px;margin-top:8px}
+.k-sheet .bars i{flex:1;background:rgba(242,238,230,.2);border-radius:2px}
+.k-sheet .bars i.on{background:var(--green)}
+
+.k-dialog{position:absolute;inset:0;z-index:35;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:26px}
+.k-dialog .box{width:100%;background:#141413;border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:16px}
+.k-dialog .t{font-family:var(--syne);font-size:16px;font-weight:700}
+.k-dialog .d{font-size:10.5px;color:var(--faint);margin:3px 0 10px;line-height:15px}
+.k-dialog .r{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.055);font-size:11px}
+.k-dialog .b{margin-top:10px;height:36px;border-radius:18px;background:var(--ink);color:#0B0B0A;display:grid;place-items:center;font-size:12px;font-weight:700}
+.k-dialog .b.danger{background:rgba(255,155,146,.12);border:1px solid rgba(255,155,146,.35);color:var(--danger)}
+
+/* fallo */
+.k-failoverlay{position:absolute;inset:0;z-index:20;background:rgba(139,30,30,.96);border-radius:28px;padding:14px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.k-failoverlay .t{font-family:var(--syne);font-size:16px;font-weight:700;color:var(--ink)}
+.k-failoverlay .d{font-size:11px;line-height:15px;color:rgba(255,255,255,.92)}
+.k-failoverlay .l{font-size:10px;font-weight:700;letter-spacing:.4px;color:rgba(255,255,255,.9);align-self:flex-start}
+.k-failoverlay .field{width:100%;height:34px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;padding:0 8px;font-size:10px;color:rgba(255,255,255,.7);text-align:left}
+.k-failoverlay .chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.k-failoverlay .chips span{height:23px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;font-size:10px;color:rgba(255,255,255,.92)}
+.k-failoverlay .rev{height:38px;min-width:140px;padding:0 18px;border-radius:10px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--ink)}
+
+/* guiado / asistido */
+.k-guided{position:absolute;left:0;right:0;bottom:0;z-index:18;background:var(--module);border-top:1px solid var(--line);padding:10px;max-height:calc(100% - 112px);overflow:auto}
+.k-guided .eyebrowline{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--muscle)}
+.k-guided .cp{font-size:11px;line-height:15px;color:var(--muted);margin:3px 0 7px}
+.k-guided .fields{display:flex;gap:6px}
+.k-guided .f{flex:1;height:38px;border-radius:9px;background:var(--inset);display:flex;align-items:center;padding:0 9px;font-size:11px;color:var(--faint)}
+.k-guided .sug{font-size:10px;color:var(--faint);margin-top:5px}
+.k-guided .skip{margin-top:8px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
+.k-guided .bigclock{display:flex;align-items:center;gap:8px;margin:2px 0 6px}
+.k-guided .bigclock b{font-family:var(--syne);font-size:28px;font-weight:700}
+.k-guided .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin:6px 0}
+.k-guided .bar i{display:block;height:100%;width:58%;background:var(--muscle)}
+.k-assisted{position:absolute;left:0;right:0;bottom:0;z-index:18;background:#222;padding:10px;display:flex;gap:10px;align-items:center}
+.k-assisted .f{flex:1;height:42px;border-radius:8px;background:#2A2A2A;border:1px solid #555;display:flex;align-items:center;padding:0 9px;font-size:11px;color:rgba(255,255,255,.7)}
+.k-assisted .b{height:38px;padding:0 16px;border-radius:999px;background:var(--muscle);color:#0B0B0A;display:grid;place-items:center;font-size:12px;font-weight:700}
+
+/* undo */
+.k-undo{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);height:40px;padding:0 18px;border-radius:999px;background:var(--ink);color:#0B0B0A;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;z-index:22;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+
+/* sistema / fundamentos */
+.k-found{position:absolute;inset:0;padding:24px 20px;overflow:auto;background:var(--canvas)}
+.k-found h2{font-family:var(--syne);font-size:24px;font-weight:800;letter-spacing:-.4px}
+.k-found .lead{font-size:11px;line-height:16px;color:var(--muted);margin-top:5px}
+.k-found .grp{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+.k-found .grp h3{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:8px}
+.k-found .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.k-found .sw{height:52px;border-radius:8px;border:1px solid rgba(255,255,255,.08);position:relative;padding:6px}
+.k-found .sw span{position:absolute;left:6px;bottom:4px;font-size:7.5px;color:rgba(255,255,255,.7);font-family:var(--mono)}
+.k-found .type{display:flex;flex-direction:column;gap:7px}
+.k-found .type div{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:5px}
+.k-found .type b{font-family:var(--syne);font-size:22px;font-weight:700}
+.k-found .type .sm{font-family:var(--syne);font-size:14px;font-weight:700}
+.k-found .type .in{font-size:11px;color:var(--muted)}
+.k-found .type span{margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--faint)}
+.k-found .rules{display:flex;flex-direction:column;gap:5px}
+.k-found .rules div{font-size:10.5px;line-height:15px;color:var(--muted);padding-left:10px;position:relative}
+.k-found .rules div:before{content:'';position:absolute;left:0;top:6px;width:3px;height:3px;border-radius:50%;background:var(--muscle)}
+
+/* raíl de sesión */
+.k-rail{
+  position:absolute;left:16px;right:16px;bottom:32px;height:112px;border-radius:26px;
+  background:rgba(22,22,22,.90);border:1px solid rgba(242,238,230,.10);
+  padding:6px;display:flex;flex-direction:column;z-index:6;backdrop-filter:blur(14px);
+}
+.k-phone.compact .k-rail{left:16px;right:16px;bottom:26px}
+.k-routerow{height:44px;display:flex;align-items:center;gap:4px;flex:none}
+.k-route{flex:1;height:44px;border-radius:20px;display:flex;align-items:center;gap:6px;padding:0 4px;min-width:0}
+.k-route .txt{flex:1;min-width:0}
+.k-route b{display:block;font-size:13px;line-height:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-route span{display:block;font-size:11px;line-height:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-route svg{color:var(--ink);flex:none}
+.k-addpill{height:28px;min-width:34px;padding:0 10px;border-radius:999px;background:var(--inset);font-size:13px;font-weight:600;color:var(--muted);flex:none}
+.k-miniundo{width:44px;height:44px;border-radius:50%;background:var(--ink);color:#0B0B0A;display:grid;place-items:center;flex:none}
+.k-steprow{height:56px;display:flex;align-items:center;gap:4px;min-width:0;flex:none}
+.k-stepcarril{position:relative;flex:1;height:56px;display:flex;align-items:center;min-width:0;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+.k-stepcarril:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(242,238,230,.14)}
+.k-step{position:relative;width:48px;height:56px;display:grid;place-items:center;flex:none;z-index:1}
+.k-steppill{width:44px;height:34px;border-radius:18px;background:#202020;border:1px solid rgba(242,238,230,.10);
+  display:grid;place-items:center;font-size:11px;line-height:14px;font-weight:600;color:var(--ink)}
+.k-step.active .k-steppill{height:44px;background:var(--ink);color:#0B0B0A;border-color:var(--ink)}
+.k-step.done .k-steppill{color:var(--green)}
+.k-step.skipped .k-steppill{opacity:.4}
+.k-step.cal .k-steppill{border-radius:12px}
+.k-step .cal{font-size:7px;line-height:8px;color:var(--muted);margin-top:1px}
+.k-step.active .cal{color:var(--ink)}
+.k-steprail{display:flex;align-items:center;height:56px;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.k-record{width:52px;height:52px;border-radius:50%;background:var(--muscle);display:grid;place-items:center;color:#0B0B0A;flex:none;border:0}
+.k-record:hover{filter:brightness(1.06)}
+.k-navbar{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:108px;height:4px;border-radius:2px;background:rgba(242,238,230,.35);z-index:8}
+
+/* banda del relator */
+.k-relator{
+  position:absolute;left:54px;right:18px;display:flex;flex-direction:column;justify-content:center;gap:5px;
+  z-index:3;pointer-events:none;
+}
+.k-relator:before{content:'';position:absolute;left:-34px;right:0;top:0;height:1px;background:rgba(255,255,255,.045)}
+.k-relator .rlane{display:flex;align-items:center;gap:5px;height:16px;opacity:.55}
+.k-relator .rlane i{display:block;width:6px;height:6px;border-radius:50%;background:var(--muscle)}
+.k-relator .rlane i:nth-child(2){background:var(--blue);width:5px;height:5px}
+.k-relator .rlane i:nth-child(3){background:var(--energy);width:4px;height:4px}
+.k-relator .rline{font-size:13px;line-height:16px;color:var(--muted)}
+.k-relator .rline b{color:var(--ink);font-weight:600}
+
+/* detalles que faltaban */
+.k-cardbody{overflow:hidden;justify-content:space-between;padding-top:6px}
+.k-title.marquee{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
+.k-band.center{background:rgba(255,255,255,.04);border-radius:8px;padding:3px 8px;gap:0}
+.k-tag{display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:9px;background:rgba(242,238,230,.08);font-size:9px;font-weight:600;color:var(--muted)}
+.k-sheet::-webkit-scrollbar{display:none}
+.k-sheet .rowbtns .b{cursor:pointer}
+.k-srow{cursor:pointer}
+.k-srow:hover{background:rgba(255,255,255,.03)}
+.k-minichip{top:128px}
+.k-phone.compact .k-minichip{top:104px}
+.k-face .k-note{margin-top:auto}
+.k-face .k-errorpill{margin-top:0}
+.k-mesa .scroll::-webkit-scrollbar{display:none}
+.k-tr{padding:6px 3px}
+.k-dialog .b{cursor:pointer}
+.k-failoverlay .rev{cursor:pointer}
+
+/* marquesina del título (solo si desborda) */
+.k-title.marquee span.mq{display:inline-block;white-space:nowrap;animation:kmq var(--dur,13s) linear infinite}
+@keyframes kmq{
+  0%,18%{transform:translateX(0)}
+  42%,58%{transform:translateX(var(--shift,-34px))}
+  82%,100%{transform:translateX(0)}
+}
+
+/* movimiento reducido */
+.reduced *{animation:none!important;transition:none!important}
+.reduced .k-title.marquee span.mq{animation:none!important;transform:none!important}
+
+/* utilitarios */
+.hidden{display:none!important}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">K</div>
+    <div class="brand-txt">
+      <b>KPKN Fit</b>
+      <span>Sesión en vivo · programa de diseño</span>
+    </div>
+  </div>
+  <div class="phasebar" id="phasebar"></div>
+  <div class="tools">
+    <button class="tool" id="toggle-notes" aria-pressed="false"><span class="dot"></span>Anotaciones</button>
+    <button class="tool" id="toggle-motion" aria-pressed="false">Movimiento reducido</button>
+    <div class="zoom" id="zoom">
+      <button data-z="0.75">75</button><button data-z="0.9" class="on">90</button><button data-z="1">100</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="index">
+    <div class="index-head">
+      <div class="index-title">Fases</div>
+      <input id="search" class="search" type="search" placeholder="Buscar estado, modo, hoja…" autocomplete="off">
+      <div class="filters" id="filters">
+        <button class="f on" data-f="all">Todo</button>
+        <button class="f" data-f="exact">Exacto</button>
+        <button class="f" data-f="derived">Derivado</button>
+        <button class="f" data-f="gap">Brecha</button>
+      </div>
+    </div>
+    <nav class="index-list" id="index-list" aria-label="Estados del prototipo"></nav>
+    <div class="index-foot">
+      <span id="count">0 estados</span>
+      <span>← → para navegar</span>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-top">
+      <div class="crumbs" id="crumbs">—</div>
+      <div class="fidelity" id="fidelity"></div>
+    </div>
+    <div class="devwrap" id="devwrap">
+      <div class="device" id="device"></div>
+      <div class="pins" id="pins"></div>
+    </div>
+    <div class="stage-bottom">
+      <button class="navbtn" id="prev" aria-label="Anterior">←</button>
+      <div class="scene-name">
+        <b id="scene-name">—</b>
+        <span id="scene-desc">—</span>
+      </div>
+      <button class="navbtn" id="next" aria-label="Siguiente">→</button>
+    </div>
+  </main>
+
+  <aside class="inspector" id="inspector"></aside>
+</div>
+
+<script>
+/* KPKN · Sesión en vivo — contenido del prototipo.
+   Cada escena declara su fidelidad, su fuente y su ficha técnica.
+   Regla: si no está en FASE0-MAPA o en las fases 1–8, no se dibuja. */
+
+const PHASES = [
+  {n:0, id:'mapa', name:'Mapa', doc:'PHASE0-MAPA.md'},
+  {n:1, id:'sistema', name:'Sistema', doc:'FASE1-SISTEMA.md'},
+  {n:2, id:'esqueleto', name:'Esqueleto', doc:'FASE2-ESQUELETO.md'},
+  {n:3, id:'tarjeta', name:'Tarjeta', doc:'FASE3-TARJETA.md'},
+  {n:4, id:'caras', name:'Caras', doc:'FASE4-CARAS.md'},
+  {n:5, id:'preparacion', name:'Preparación', doc:'FASE5-PREPARACION.md'},
+  {n:6, id:'descanso', name:'Descanso', doc:'FASE6-DESCANSO.md'},
+  {n:7, id:'hojas', name:'Hojas', doc:'FASE7-HOJAS.md'},
+  {n:8, id:'mesa', name:'Mesa y contrato', doc:'FASE8-MESA-Y-CONTRATO.md'},
+];
+
+const CHROME = {
+  exercise:'Sentadilla trasera',
+  chips:['Barra libre','Smith'],
+  protocol:'Fuerza', group:'Pierna', session:'Semana 1',
+  time:'12:34', limit:'45′', timerProgress:.72,
+  railChips:[
+    {type:'timer', label:'12:34', limit:'45′', progress:.72},
+    {label:'ULTRARRÁPIDO', cls:'green'},
+    {label:'Superserie', icon:'swap', cls:'red'},
+    {label:'Barra libre', dd:true},
+    {label:'Smith', x:true},
+  ],
+  steps:[
+    {label:'MOV', state:'done'},
+    {label:'APR', state:'done'},
+    {label:'1', state:'done'},
+    {label:'2', state:'done'},
+    {label:'3', state:'active', calibrated:'100 kg'},
+    {label:'4'},
+    {label:'5'},
+    {label:'6'},
+    {label:'R1'},
+  ],
+  route:'Pierna · Semana 1', routeSub:'12/34 · 3 de 9 bloques',
+  record:'Registrar serie',
+};
+
+const B = {
+  front:{
+    measures:[
+      ['Tarjeta','345 × 470 dp · radio 28'],
+      ['Héroe de carga','#1B1B1B · mínimo 132 dp'],
+      ['Rueda de reps','48 dp · celda 1/5 · círculo 36'],
+      ['Esfuerzo','pista 18 en zona táctil 44 · pulgar 26'],
+      ['Acciones','44 dp · borde tinta 24 %'],
+    ],
+    states:['REPS','AMRAP','Calibrador','RM','Solo RPE','Tiempo','Distancia','Personalizado','Unilateral'],
+    copy:['Registrar serie','Actualizar serie','Marca tu esfuerzo RIR o RPE antes de registrar la serie.'],
+    accept:['La tarjeta no cambia de alto','El esfuerzo no viene marcado','La unidad comparte línea base','Ningún dato ausente se muestra como 0'],
+    avoid:'No añadir bloques que alarguen la tarjeta; cualquier aviso se superpone o se recorta.',
+  },
+  tech:{
+    measures:[
+      ['Contenedor','misma tarjeta · 470 dp · radio 28'],
+      ['Eslabón de cadena','72 × 58 dp · radio 16'],
+      ['Stepper','celda 44 dp · botón 32'],
+      ['Segmentos','alto 30 · táctil 48 · mín. 92 dp'],
+      ['Scroll','interno con fundido de 14 dp'],
+    ],
+    states:['Normal','Drop-set','Rest-pause','Myo-reps','Vacío','Nota','Error'],
+    copy:['CADENA DE LA SERIE','ASÍ SE VE UN DROP-SET','Error de ejecución','Volver a la serie'],
+    accept:['El borrador sobrevive al volver','Myo exige 3–5 reps y 10–30 s','Un tramo sin peso o reps no se guarda','La tarjeta no se alarga'],
+    avoid:'No inventar un tramo sin carga; no cerrar la técnica si falta un campo.',
+  },
+  media:{
+    measures:[
+      ['Escenario','radio 22 compacto / 24 expandido'],
+      ['Obturador','60 dp (68 expandido)'],
+      ['Miniaturas','36 dp (44) · táctil 48'],
+      ['Pie','48 dp'],
+      ['Vista expandida','portal · 320 ms'],
+    ],
+    states:['Foto','Vídeo','Grabando','Análisis','Sin cámara','Álbum','Expandido'],
+    copy:['Activa la cámara para grabar desde esta tarjeta','Se guarda en el álbum con la serie N','Vídeo no concluyente · ver por qué'],
+    accept:['No inventa reps con confianza baja','Grabar abre la vista expandida','Salir de la página detiene la grabación'],
+    avoid:'No disparar una grabación desde la miniatura; no mostrar un recuento sin confianza.',
+  },
+  prep:{
+    measures:[
+      ['Marco','345 × 470 dp · radio 28 · relleno 14/12'],
+      ['Táctil','48 dp'],
+      ['Dosis','34/40 · reloj m:ss'],
+      ['Botón','píldora mín. 48 dp · icono 16'],
+      ['Check','zona 48 · cuadro 22 · radio 6'],
+    ],
+    states:['Movimiento','Lista','Global','Fin','Descanso','Omitida'],
+    copy:['Movimiento N hecho.','Continuar con aproximación','Saltar fase','Fase omitida'],
+    accept:['No avanza sola al terminar el reloj','La fase omitida se ve omitida','La dosis es la real, no una estimación'],
+    avoid:'No alargar la tarjeta; no inventar repeticiones cuando la dosis es por tiempo.',
+  },
+  rest:{
+    measures:[
+      ['Marco','345 × 470 dp · relleno 14/10'],
+      ['Reloj','120 × 104 dp · runnerScale 1,4'],
+      ['Tiempo','máx. 40 sp · prefijo + en extra'],
+      ['Controles','44 dp en zona 48 · pesos 1 / 1,6 / 1'],
+      ['Mini chip','40 dp visual · anillo 32'],
+    ],
+    states:['Torre','Pista','Espiral','Sugerido','Manual','Adaptativo','Tiempo extra','Mini','Juego'],
+    copy:['DESCANSO','TIEMPO EXTRA','Necesito +30 s','Empezar la serie N'],
+    accept:['El tiempo es real','La forma es estable por evento','El extra caduca a los 5 min','El juego no altera el descanso'],
+    avoid:'No enseñar una recuperación inventada; sin datos, «—».',
+  },
+  sheet:{
+    measures:[
+      ['Alto','76 % · Ruta 84 % · Reordenar 88 % · Álbum 93 %'],
+      ['Cabecera','título 20/26 + Cerrar'],
+      ['Filas','mín. 40 dp · separador 1 dp'],
+      ['Cierre','scrim, botón, gesto o atrás'],
+      ['Regla','una hoja a la vez'],
+    ],
+    states:['Abierta','Vacía','Confirmación','Persistencia'],
+    copy:['Cerrar','Cancelar','Aplicar','Listo'],
+    accept:['Toda hoja tiene disparador','Lo destructivo confirma o deshace','El estado se conserva al cambiar de destino'],
+    avoid:'No apilar hojas; no inventar acciones fuera de la tabla de la Fase 7.',
+  },
+  mesa:{
+    measures:[
+      ['Fila','22 + 1fr + 68 + 40 + 14'],
+      ['Editor','carga 25 sp · RIR 5 celdas'],
+      ['Grupo','nombre + etiqueta + meta'],
+      ['Acciones','mismas del pie de la tarjeta'],
+      ['Fondo','tinta 5,5 % en la fila activa'],
+    ],
+    states:['Normal','Activa','Media','Técnica','Molestia','Superserie'],
+    copy:['Registrar serie','Actualizar serie','Opciones de {ejercicio}'],
+    accept:['Fila = CompletedSet','No añade acciones nuevas','Lo hecho no se reordena','Usa la misma validación'],
+    avoid:'No convertirla en pantalla principal; no duplicar la lógica de la tarjeta.',
+  },
+};
+
+function sc(o){
+  const base = B[o.base || 'front'] || B.front;
+  const spec = Object.assign({}, base, o.spec || {});
+  spec.measures = (o.spec && o.spec.measures) || base.measures;
+  const fidelity = o.fidelity || (o.kind === 'mesa' ? 'derived' : 'exact');
+  return Object.assign({phase:3, kind:'front', data:{}}, o, {fidelity:fidelity, spec:spec});
+}
+
+const SCENES = [
+/* ───────── Fase 1 · Sistema ───────── */
+sc({id:'f1-surfaces', phase:1, group:'Sistema', name:'Superficies', sub:'Canvas, módulo, inset y filetes', kind:'found', found:'surfaces',
+  spec:{why:'La sesión vive en negro puro con un módulo #111111. No hay tarjetas grises ni sombras decorativas.',
+    measures:[['Canvas','#000000'],['Módulo','#111111'],['Inset','#1A1A1A'],['Héroe','#1B1B1B'],['Filete','blanco 7 %']],
+    states:['Canvas','Módulo','Inset','Héroe','Filete'],copy:[],accept:['Ningún color fuera de la tabla','Cero sombras decorativas'],
+    avoid:'No usar gris de fondo ni degradados fuera de la portada y el reloj de descanso.'},
+  source:['KpknSurface.kt:12','SetExecutionCard.kt:1937-1942','KpknGlass.kt:49']}),
+sc({id:'f1-type', phase:1, group:'Sistema', name:'Tipografía', sub:'Syne para cifras · Inter para leer', kind:'found', found:'type',
+  spec:{why:'Syne lleva las cifras y los títulos; Inter, todo lo que se lee. Las cifras son tabulares.',
+    measures:[['Título','Syne Bold 20/24 · 18/20 compacto'],['Héroe','Syne Bold 34/44'],['Eyebrow','Inter 10/14 · 1,2 sp'],['Caption','Inter 11/16'],['Acción','Inter 11–14/20']],
+    states:['Título','Héroe','Eyebrow','Caption','Acción'],copy:[],accept:['Cifras tabulares','Unidad en línea base','130 % sigue legible'],
+    avoid:'No usar Syne para párrafos; no poner unidades en superíndice.'},
+  source:['KpknType.kt:13-152','WorkoutHeaderBar.kt:530','SetExecutionCard.kt:2171']}),
+sc({id:'f1-motion', phase:1, group:'Sistema', name:'Movimiento', sub:'Giro, undo, reloj y marquesina', kind:'found', found:'motion',
+  spec:{why:'El movimiento explica un cambio; no decora. Todo tiene una versión reducida.',
+    measures:[['Giro','tween 420 ms'],['Undo','200 ms + 260/200'],['Reloj','4,5 s · 9 s espiral'],['Extra','respira 1,8 s'],['Marquesina','2500 + viaje + 2500']],
+    states:['Normal','Reducido'],copy:[],accept:['Movimiento reducido elimina bucles','Nada se mueve sin motivo'],
+    avoid:'No animar la entrada de cada bloque; no usar rebotes decorativos.'},
+  source:['SetExecutionCard.kt:1898-1902','LiveUndoPill.kt:47','RestRingsClock.kt:191-197','WorkoutHeaderBar.kt:562-581']}),
+
+/* ───────── Fase 2 · Esqueleto ───────── */
+sc({id:'f2-chrome', phase:2, group:'Esqueleto', name:'Chrome completo', sub:'Cabecera, tarjeta y raíl a 393 × 852', kind:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  annotations:[
+    {x:30,y:40,t:'Título: ejercicio · chips, una línea',r:'WorkoutHeaderBar.kt:532-630'},
+    {x:250,y:100,t:'Cronómetro con anillo y objetivo',r:'WorkoutHeaderBar.kt:280-313'},
+    {x:30,y:130,t:'Tarjeta 345 × 470: empieza bajo la cabecera',r:'LiveSessionCardFrame.kt:25-33'},
+    {x:30,y:720,t:'Raíl 112 dp · paso activo centrado',r:'LiveSessionLine.kt:183-219'},
+    {x:320,y:770,t:'Registro 52 dp',r:'LiveSessionLine.kt:243-249'}],
+  spec:{why:'La pantalla tiene tres piezas permanentes: cabecera 119 dp, tarjeta 470 dp y raíl 112 dp.',
+    measures:[['Cabecera','119 dp (95 compacta)'],['Tarjeta','345 × 470'],['Relator','107 dp'],['Raíl','112 + 8 + inset'],['Registro','52 dp']],
+    states:['Normal','Compacta'],copy:['Sentadilla trasera · Barra libre · Smith','Fuerza · Pierna · Semana 1'],
+    accept:['La tarjeta no se centra','No hay botón atrás','El raíl no tapa la tarjeta'],
+    avoid:'No añadir una ‹ en la cabecera: no existe.'},
+  source:['WorkoutHeaderBar.kt:513-520','LiveSessionLine.kt:52,183-249','WorkoutV2Body.kt:348']}),
+sc({id:'f2-compact', phase:2, group:'Esqueleto', name:'Compacta 360 × 740', sub:'Cabecera de 95 dp · título 18/20', kind:'front',
+  device:{w:360,h:740},
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  spec:{why:'Por debajo de 800 dp de alto la cabecera se compacta y la tarjeta baja a 424,5 dp.',
+    measures:[['Lienzo','360 × 740'],['Cabecera','95 dp'],['Tarjeta','312 × 424,5'],['Título','18/20'],['Iconos','44 dp']],
+    states:['Compacta'],copy:['Sentadilla trasera · Barra libre'],accept:['Nada se solapa','El título sigue en una línea'],
+    avoid:'No encoger la tarjeta por debajo de la proporción.'},
+  source:['WorkoutHeaderBar.kt:417,530','LiveSessionCardFrame.kt:25-33']}),
+sc({id:'f2-notags', phase:2, group:'Esqueleto', name:'Sin etiquetas', sub:'El chip pasa a «Sin etiquetas»', kind:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  chrome:{railChips:[{type:'timer',label:'12:34',limit:'45′',progress:.72},{label:'ULTRARRÁPIDO',cls:'green'},{label:'Sin etiquetas',cls:'muted'}]},
+  spec:{why:'Sin etiquetas principales, la cabecera no se queda vacía: ofrece el acceso a la lista.',
+    measures:[['Chip','27 dp · píldora'],['Texto','12/16'],['Descripción','«Sin etiquetas» o «Etiquetas»']],
+    states:['Sin etiquetas','Con etiquetas'],copy:['Etiquetas','Sin etiquetas'],accept:['El chip siempre está','Abre la lista de etiquetas'],
+    avoid:'No ocultar el acceso a etiquetas cuando no hay ninguna.'},
+  source:['WorkoutHeaderBar.kt:812-819']}),
+sc({id:'f2-ultrafast', phase:2, group:'Esqueleto', name:'Ultrarrápido activo', sub:'Chip verde en el rail', kind:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  chrome:{railChips:[{type:'timer',label:'12:34',limit:'45′',progress:.72},{label:'ULTRARRÁPIDO',cls:'green'},{label:'Superserie',icon:'swap',cls:'red'},{label:'Barra libre',dd:true},{label:'Smith',x:true}]},
+  spec:{why:'ULTRARRÁPIDO no es una pantalla: es un estado del rail que abre el tiempo de sesión.',
+    measures:[['Chip','27 dp · verde #43D18C'],['Acción','SessionTimeSheet'],['Estado','aplicado']],
+    states:['Aplicado','No aplicado'],copy:['ULTRARRÁPIDO','Deshacer Ultrarrápido'],accept:['Se ve en el rail','Abre la hoja de tiempo'],
+    avoid:'No crear un modo de pantalla completa para ultrarrápido.'},
+  source:['WorkoutHeaderBar.kt:717','SessionTimeSheet.kt:64-67']}),
+
+/* ───────── Fase 3 · Tarjeta ───────── */
+sc({id:'f3-reps', phase:3, group:'Serie · modos', name:'REPS', sub:'Carga + rueda + esfuerzo', kind:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  annotations:[
+    {x:250,y:250,t:'Héroe #1B1B1B · mínimo 132 dp',r:'SetExecutionCard.kt:2073-2129'},
+    {x:250,y:380,t:'Rueda 48 dp · círculo 36',r:'WorkoutHorizontalWheelPicker.kt:78-79'},
+    {x:250,y:445,t:'Esfuerzo obligatorio · pista 18 en 44',r:'EffortFireSlider.kt:165-448'},
+    {x:250,y:540,t:'Acciones 44 dp',r:'SetExecutionCard.kt:767-781'}],
+  source:['SetExecutionCard.kt:1937-1955,2073-2145','LiveModeSetContent.kt:53']}),
+sc({id:'f3-amrap', phase:3, group:'Serie · modos', name:'AMRAP', sub:'Mínimo y resultado', kind:'front',
+  data:{mode:'AMRAP', load:100, reps:10, rir:0, rom:100, amrapMin:8, result:'11 reps · e1RM 118,4'},
+  spec:{why:'AMRAP añade un mínimo y cuenta todas las reps; el resultado no alarga la tarjeta.',
+    measures:[['Badge','12 sp bold #F49A6E'],['Explicación','11/15 blanco 65 %'],['Resultado','panel superpuesto']],
+    states:['Con mínimo','Sin mínimo','Con resultado'],copy:['Mínimo 8 · AMRAP','Haz al menos 8. Cuenta todas las que completes.','11 reps · e1RM 118,4'],
+    accept:['El resultado no cambia el alto','La reserva se guarda, no un RPE suelto'],
+    avoid:'No convertir AMRAP en un modo de pantalla distinto.'},
+  source:['SetExecutionCard.kt:2020-2026','EffortScale.kt:159-168']}),
+sc({id:'f3-calib', phase:3, group:'Serie · modos', name:'Calibrador', sub:'Sin mínimo, ajusta el 1RM', kind:'front',
+  data:{mode:'CALIB', load:90, reps:8, rir:0, rom:100, result:'Sin mínimo · ajusta el 1RM'},
+  spec:{why:'El calibrador es un AMRAP sin mínimo: sirve para estimar capacidad, no para batir un récord.',
+    measures:[['Badge','«Sin mínimo · Calibrador»'],['Esfuerzo','no obligatorio, pero se registra'],['Cero','válido con esfuerzo']],
+    states:['Sin mínimo','Cero válido'],copy:['Sin mínimo · Calibrador','Cuenta todas las repeticiones que completes.'],
+    accept:['No exige esfuerzo','El cero es válido si hay esfuerzo'],avoid:'No tratarlo como un PR.'},
+  source:['SetExecutionCard.kt:3156,3212','LiveSetMode.kt:21-31']}),
+sc({id:'f3-rm', phase:3, group:'Serie · modos', name:'RM', sub:'Máximo de N repeticiones', kind:'front',
+  data:{mode:'RM', load:105, reps:3, rmPct:89, target:'105 kg', rm:3},
+  spec:{why:'RM no usa el héroe grande: manda el porcentaje y la carga calculada.',
+    measures:[['Carga','38 sp'],['Porcentaje','23 sp #F49A6E'],['Referencia','fila con borde superior'],['Edición','%RM · reps est. · peso 22 sp']],
+    states:['Con referencia','Sin referencia','PR','TM'],copy:['CARGA UTILIZADA · kg','del 1RM','Calculado: 105 kg · 3 reps est.','Sin referencia de 1RM'],
+    accept:['El héroe grande se oculta','El % se acota 40–100'],avoid:'No sustituir el 1RM por el TM sin decirlo.'},
+  source:['LiveModeSetContent.kt:196-262','LiveSetMode.kt:87-91']}),
+sc({id:'f3-solo', phase:3, group:'Serie · modos', name:'Solo RPE', sub:'Sin carga externa', kind:'front',
+  data:{mode:'SOLO', rpe:'8,5', reps:12, load:'—'},
+  spec:{why:'Solo RPE es peso corporal o esfuerzo puro: el esfuerzo sube y la carga se compacta.',
+    measures:[['Esfuerzo','22/28 prominente'],['Carga','campo 80 dp · 23 sp'],['Rueda','48 dp']],
+    states:['Peso corporal','Lastre','Asistido'],copy:['PESO CORPORAL','Sin carga fija. Elige el peso al hacer la serie.','RPE 8,5'],
+    accept:['No hay sugerencia de carga','El esfuerzo va arriba'],avoid:'No inventar un RPE si el plan no lo trae (por defecto 8,0).'},
+  source:['SetExecutionCard.kt:2514-2534','WorkoutEditingRules.kt']}),
+sc({id:'f3-time', phase:3, group:'Serie · modos', name:'Tiempo', sub:'Reloj por serie', kind:'front',
+  data:{mode:'TIME', clock:'00:45', target:'45″', reps:0, rom:0},
+  spec:{why:'En tiempo, la cifra es el reloj; la carga pasa a compacta y el registro exige confirmar.',
+    measures:[['Reloj','44/50'],['Botón','52 dp'],['Campo','60 dp · min:s'],['Barra','objetivo']],
+    states:['Corriendo','Pausado','Objetivo cumplido'],copy:['Restan','Objetivo','Objetivo cumplido · Confirma con ✓ para registrar'],
+    accept:['El reloj se detiene en el objetivo','No se registra sin confirmar'],avoid:'No mostrar la rueda de reps en tiempo.'},
+  source:['LiveModeSetContent.kt:179-192','SetExecutionCard.kt:2530-2536']}),
+sc({id:'f3-dist', phase:3, group:'Serie · modos', name:'Distancia', sub:'Cardio y ritmo', kind:'front',
+  data:{mode:'DIST', load:'—', km:'2,4', pace:'5′04″', reps:0, rom:0},
+  spec:{why:'Distancia usa metros y objetivo, no kilos. La barra es el progreso hacia el objetivo.',
+    measures:[['Cantidad','campo 60 dp'],['Objetivo','fila + barra 2 dp'],['Píldoras','FC · kcal · zona']],
+    states:['Manual','GPS','Objetivo cumplido'],copy:['METROS RECORRIDOS','Objetivo 2.400 m','Restar / Añadir m'],
+    accept:['Sin GPS, el dato es manual','La barra no inventa progreso'],avoid:'No mezclar km y m en la misma cifra.'},
+  source:['SetExecutionCard.kt:92-140','WorkoutCardioSetUiState.kt']}),
+sc({id:'f3-custom', phase:3, group:'Serie · modos', name:'Personalizado', sub:'Unidad propia', kind:'front',
+  data:{mode:'CUSTOM', load:'—', value:24, unit:'pasos', sets:3, reps:0, rom:0},
+  spec:{why:'Personalizado conserva la unidad del ejercicio y no la traduce a reps.',
+    measures:[['Cantidad','campo 60 dp'],['Unidad','texto del ejercicio'],['Estado','unidad o «sin definir»']],
+    states:['Con unidad','Sin unidad'],copy:['CANTIDAD REALIZADA','Unidad del ejercicio: pasos'],
+    accept:['No convierte a reps','Muestra la unidad real'],avoid:'No inventar una unidad si el ejercicio no la tiene.'},
+  source:['SetExecutionCard.kt:2535','LiveSetMode.kt:55-61']}),
+sc({id:'f3-unilateral', phase:3, group:'Serie · estados', name:'Unilateral', sub:'Izquierda / derecha', kind:'front',
+  data:{mode:'UNI', load:40, reps:10, rir:1, side:'left'},
+  spec:{why:'Unilateral no es un modo: es un eje. El selector cambia el lado y el borrador se guarda por lado.',
+    measures:[['Selector','inset · radio 20 · relleno 6'],['Botón','alto 36 · 50 %'],['Fantasmas','por lado']],
+    states:['Izquierda','Derecha','Cambio de lado'],copy:['Izquierda (L)','Derecha (R)'],
+    accept:['Al registrar cambia L→R','El esfuerzo se reinicia para el otro lado'],avoid:'No duplicar la serie al cambiar de lado.'},
+  source:['SetExecutionCard.kt:1966-2017','WorkoutSessionContracts.kt:remap']}),
+sc({id:'f3-done', phase:3, group:'Serie · estados', name:'Completada', sub:'Re-registro con confirmación', kind:'dialog', dialog:'update',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100, done:true},
+  spec:{why:'Una serie completada se actualiza, no se duplica. Al registrar otra vez aparece el diálogo real de confirmación.',
+    measures:[['Botón del raíl','«Actualizar serie»'],['Diálogo','título + texto + 2 botones'],['Campos','rellenados con lo registrado']],
+    states:['Completada','Confirmación','Actualizada'],copy:['Actualizar serie','Esta serie ya estaba registrada. ¿Quieres actualizarla?','Actualizar','Cancelar'],
+    accept:['No crea otra serie','Cancelar conserva lo registrado','El undo no aparece si cambió lo registrado'],avoid:'No mostrar una banda «no crea otra»: la app usa un diálogo.'},
+  source:['WorkoutV2Body.kt:2468-2494','SetExecutionCard.kt:932-973','LiveUndoPill.kt:54-57']}),
+sc({id:'f3-fail', phase:3, group:'Serie · estados', name:'Fallida', sub:'Incomodidad o técnica, no fallo muscular', kind:'front',
+  data:{mode:'FAIL', load:100, reps:6, rir:0, failed:true},
+  spec:{why:'Fallida significa que la técnica o una molestia impidió completar; no es un fallo muscular.',
+    measures:[['Velo','#8B1E1E al 96 %'],['Título','tinta · no negro'],['Desenfoque','7 dp'],['Campo','causa opcional'],['Botón','Revertir']],
+    states:['Con causa','Sin causa'],copy:['Marcaste esta serie como fallida','Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla.','Revertir'],
+    accept:['Explica la diferencia','Se puede revertir'],avoid:'No llamarlo «fallo muscular» ni borrar la serie.'},
+  source:['SetExecutionCard.kt:3596-3611,3620-3707','CompletedSetPatch.kt:24']}),
+sc({id:'f3-pr', phase:3, group:'Serie · estados', name:'Récord', sub:'El PR vive en la trasera, no en la frontal', kind:'tech', base:'tech',
+  data:{segment:'normal', empty:true, pr:true},
+  spec:{why:'La cara frontal no dibuja una insignia de PR: el código solo dispara un háptico. El rastro visible está en la trasera como atajo «PR: foto/video».',
+    measures:[['Frontal','sin insignia'],['Háptico','al registrar'],['Trasera','píldora «PR: foto/video»'],['Dato','e1RM del historial']],
+    states:['PR global','PR de contexto'],copy:['PR: foto/video'],
+    accept:['No se inventa un PR','El atajo no tapa la serie'],avoid:'No dibujar un «★ PR» en la frontal: no existe en el código.'},
+  source:['LiveSetPrPolicy.kt:9-24','SetExecutionCard.kt:1809-1822','SetCardTechniqueBack.kt:533-561']}),
+sc({id:'f3-load', phase:3, group:'Serie · estados', name:'Carga requerida', sub:'Bloqueo de registro', kind:'front',
+  data:{mode:'LOAD', load:'—', reps:8, rir:2, rom:100, loadRequired:true},
+  spec:{why:'Sin carga no se registra. El aviso dice exactamente qué falta.',
+    measures:[['Aviso','11 sp bold acento'],['Placeholder','«Carga a elegir»'],['Toast','«Carga inválida…»']],
+    states:['Carga vacía','Carga 0','Asistido sin peso'],copy:['Elige una carga para 8 reps dejando 2 en reserva y registra la serie.','Carga a elegir','Carga inválida. Revisa el peso antes de registrar.'],
+    accept:['No registra con carga vacía','El aviso nombra reps y RIR'],avoid:'No poner un cero por defecto.'},
+  source:['SetExecutionCard.kt:2049-2071,3201-3208']}),
+sc({id:'f3-replaced', phase:3, group:'Serie · estados', name:'Volumen reemplazado', sub:'Sustitución por técnica', kind:'front',
+  data:{mode:'REPL', load:100, reps:8, rir:2, rom:100, replaced:'Volumen reemplazado'},
+  spec:{why:'El volumen reemplazado se marca con banda roja y no suma volumen normal.',
+    measures:[['Banda','#E53935 al 85 %'],['Texto','9 sp · 0,8 sp'],['Borde del paso','#E53935']],
+    states:['Reemplazado','Pausa técnica'],copy:['Volumen reemplazado','Pausa técnica · 12s'],
+    accept:['No suma volumen normal','La pausa va dentro de la banda'],avoid:'No usar el rojo de error para esta banda.'},
+  source:['SetExecutionCard.kt:2028-2047,107-138','WorkoutVisualModels.kt:28']}),
+sc({id:'f3-pause', phase:3, group:'Serie · estados', name:'Pausa técnica', sub:'Cuenta atrás antes de registrar', kind:'front',
+  data:{mode:'PAUSE', load:100, reps:8, rir:2, rom:100, techPause:12},
+  spec:{why:'La pausa técnica es una cuenta atrás real; no se puede registrar hasta que termina.',
+    measures:[['Cuenta','segundos reales'],['Banda','misma banda que reemplazado'],['Bloqueo','registro deshabilitado']],
+    states:['En pausa','Terminada'],copy:['Pausa técnica · 12s','Espera la pausa técnica antes de continuar.'],
+    accept:['La cuenta baja de uno en uno','No se registra antes'],avoid:'No simular la pausa con una animación sin reloj.'},
+  source:['SetExecutionCard.kt:1529-1534,3242-3248']}),
+sc({id:'f3-longload', phase:3, group:'Serie · estados', name:'Carga larga', sub:'102,5 kg · 7 caracteres', kind:'front',
+  data:{mode:'REPS', load:'102,5', reps:8, rir:2, rom:100, longLoad:true},
+  spec:{why:'La cifra baja de 34 a 26 sp cuando tiene 7 o más caracteres; no se parte.',
+    measures:[['Cifra','26/36 si ≥7 caracteres'],['Unidad','13 sp · línea base'],['Chips','sin cambio']],
+    states:['Corta','Larga'],copy:['102,5 kg'],accept:['No se corta','La unidad sigue alineada'],avoid:'No reducir la legibilidad por debajo de 26 sp.'},
+  source:['SetExecutionCard.kt:409-681']}),
+sc({id:'f3-skipped', phase:3, group:'Serie · estados', name:'Saltada', sub:'No es una tarjeta: raíl + hoja', kind:'sheet', base:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  chrome:{steps:[{label:'MOV',state:'done'},{label:'APR',state:'done'},{label:'1',state:'done'},{label:'2',state:'done'},{label:'3',state:'skipped'},{label:'4',state:'active'},{label:'5'},{label:'6'},{label:'R1'}]},
+  sheetId:'series',
+  spec:{why:'«Saltada» no existe como estado de la tarjeta. Vive en el raíl atenuado y en las opciones de la serie.',
+    measures:[['Raíl','alpha 0,4'],['Hoja','SeriesOptionsSheet'],['Acción','Saltar + Deshacer']],
+    states:['Omitida','Restaurada'],copy:['Saltar','Deshacer omitir','Omitida'],
+    accept:['No se dibuja una tarjeta saltada','El raíl la muestra atenuada'],avoid:'No inventar una tarjeta «skip»: no existe en código.'},
+  source:['LiveSessionLine.kt:282-283,298','SeriesTypeSheet.kt:223-263']}),
+
+/* ───────── Fase 4 · Caras ───────── */
+sc({id:'f4-tech-normal', phase:4, group:'Técnica', name:'Normal', sub:'Sin técnica: cadena vacía', kind:'tech', base:'tech',
+  data:{segment:'normal', empty:true},
+  spec:{why:'Sin drop ni rest-pause, la cadena está vacía y se ofrece elegir una técnica.',
+    measures:[['Segmento','30 dp'],['Cadena','vacía'],['Ayuda','«Elige drop-set o rest-pause»']],
+    states:['Normal','Drop','Pausa','Myo'],copy:['Elige drop-set o rest-pause'],accept:['No hay tramos','Se puede volver'],
+    avoid:'No mostrar un tramo fantasma.'},
+  source:['SetCardTechniqueBack.kt:275-298,434-453']}),
+sc({id:'f4-tech-drop', phase:4, group:'Técnica', name:'Drop-set', sub:'Dos tramos · 80 y 60 kg', kind:'tech', base:'tech',
+  data:{segment:'drop', chain:[{t:'Principal',v:'100 × 6',s:'—',on:false},{t:'Drop 1',v:'80 × 6',s:'6 reps',on:true},{t:'Drop 2',v:'60 × 8',s:'8 reps'}],active:1, weight:'80', reps:'6', suggested:'80 kg', explanation:['100 × 6','80 × 6','60 × 8']},
+  spec:{why:'El drop-set encadena tramos sin descanso; cada tramo exige peso y reps.',
+    measures:[['Máx. tramos','5'],['Sugerido','principal − 5 × i'],['Stepper','44 dp'],['Hecho','28 dp']],
+    states:['Tramo abierto','Hecho','Auto-cierre'],copy:['CADENA DE LA SERIE','Sugerido 80 kg','Hecho','ASÍ SE VE UN DROP-SET'],
+    accept:['Un tramo sin peso o reps no se guarda','Al completar todos se autocierra'],avoid:'No inventar el peso del drop: se sugiere y se edita.'},
+  source:['SetCardTechniqueBack.kt:570-893','GuidedTechniqueFlow.kt:103-119']}),
+sc({id:'f4-tech-rp', phase:4, group:'Técnica', name:'Rest-pause', sub:'Pausa fija de 15 s', kind:'tech', base:'tech',
+  data:{segment:'pause', chain:[{t:'Principal',v:'100 × 6',s:'—',on:true},{t:'Pausa 1',v:'3 reps',s:'15 s'}],active:1, reps:'3', secs:'15', explanation:['100 × 6','15 s','3 reps']},
+  spec:{why:'Rest-pause descansa de pie y repite pocas reps; la pausa se mide en segundos.',
+    measures:[['Reps','±1'],['Pausa','±5 s'],['Por defecto','2 pausas'],['Sugerido','15 s']],
+    states:['Pausa','Reps'],copy:['ASÍ SE VE UN REST-PAUSE','15 s','3 reps'],accept:['La pausa es explícita','No se mezcla con drop'],
+    avoid:'No usar la pausa técnica programada como si fuera rest-pause.'},
+  source:['SetCardTechniqueBack.kt:394-419,827-893']}),
+sc({id:'f4-tech-myo', phase:4, group:'Técnica', name:'Myo-reps', sub:'3–5 reps · 10–30 s', kind:'tech', base:'tech',
+  data:{segment:'myo', chain:[{t:'Principal',v:'80 × 12',s:'—',on:false},{t:'Mini 1',v:'4 reps',s:'15 s',on:true},{t:'Mini 2',v:'4 reps',s:'15 s'}],active:1, reps:'4', secs:'15', explanation:['80 × 12','15 s','4 reps']},
+  spec:{why:'Myo-reps exige reps 3–5 y pausas 10–30 s para poder cerrar.',
+    measures:[['Reps','3–5'],['Pausa','10–30 s'],['Estilo','«myo» al registrar']],
+    states:['Válido','Fuera de rango'],copy:['ASÍ SE VEN LOS MYO-REPS','Activación cerca del fallo y mini-series de 3–5 reps con pausas de 10–30 s.'],
+    accept:['No cierra fuera de rango','El estilo se tiñe al registrar'],avoid:'No permitir 0 reps ni pausas de 0 s.'},
+  source:['SetCardTechniqueBack.kt:195,371','GuidedTechniquePanel.kt:107-138']}),
+sc({id:'f4-media-photo', phase:4, group:'Visual', name:'Modo visual · foto', sub:'Cámara, galería y obturador', kind:'media', base:'media',
+  data:{mode:'photo', thumbs:['1','2','3'],analysis:'idle'},
+  spec:{why:'La foto se toma desde la tarjeta y se guarda con la serie; el álbum está a un toque.',
+    measures:[['Escenario','radio 22'],['Obturador','60 dp'],['Miniaturas','36 dp'],['Pie','48 dp']],
+    states:['Foto','Sin cámara','Guardada'],copy:['Foto','Vídeo','Ficha','Ver álbum','Se guarda en el álbum con la serie 3 · 100 kg · RIR 2.'],
+    accept:['La foto se asocia a la serie','El álbum no abre una pantalla nueva'],avoid:'No inventar una foto si no hay cámara.'},
+  source:['SetCardExerciseMediaBack.kt:331-429,770-905']}),
+sc({id:'f4-media-video', phase:4, group:'Visual', name:'Modo visual · vídeo', sub:'Grabar abre la vista expandida', kind:'media', base:'media',
+  data:{mode:'video', thumbs:['3','4'],analysis:'idle'},
+  spec:{why:'El vídeo no graba desde la miniatura: abre el escenario expandido para encuadrar.',
+    measures:[['Switch','26 dp · radio 13'],['Aro','60 dp'],['Rojo','#EF6F64'],['Expandido','320 ms']],
+    states:['Vídeo','Grabando','Plegado'],copy:['Grabar vídeo','Parar grabación','Modo visual · serie 3','Plegar a la tarjeta'],
+    accept:['No graba desde la miniatura','Salir detiene la grabación'],avoid:'No dejar la cámara activa fuera de la página.'},
+  source:['SetCardExerciseMediaBack.kt:292-295,1122-1231']}),
+sc({id:'f4-media-analysis', phase:4, group:'Visual', name:'Análisis del vídeo', sub:'Cuenta, confianza y corrección', kind:'media', base:'media',
+  data:{mode:'video', thumbs:['3'],analysis:'count',count:8,partials:2,conf:'alta'},
+  spec:{why:'El análisis propone reps, pero no las impone. La confianza baja muestra «?» y no toca parciales.',
+    measures:[['Chip','N/≈N/?/!'],['Banda','48 dp'],['Acciones','corregir · fallo · análisis']],
+    states:['Analizando','Cuenta','Aproximado','No concluyente','Error'],copy:['El vídeo cuenta 8 · ver análisis','El vídeo cuenta ≈ 8 · revisar','Vídeo no concluyente · ver por qué','Registraste 6; el vídeo cuenta 8'],
+    accept:['No inventa con confianza baja','La corrección no borra lo registrado'],avoid:'No marcar fallo automáticamente sin confianza alta.'},
+  source:['VisualModeAnalysis.kt:11-89,126-197','WorkoutCompletedVideoSuggestion.kt:12-36']}),
+sc({id:'f4-failed', phase:4, group:'Overlays', name:'Fallo', sub:'Velo rojo y causa', kind:'front',
+  data:{mode:'FAIL', load:100, reps:6, rir:0, failed:true},
+  spec:{why:'El overlay de fallo es la única superficie roja completa de la sesión.',
+    measures:[['Velo','#8B1E1E 96 %'],['Título','tinta · no negro'],['Radio','28 · mismo que la tarjeta'],['Chips','4 causas'],['Botón','Revertir']],
+    states:['Sin causa','Con causa'],copy:['Marcaste esta serie como fallida','Causa o motivo del fallo (opcional):','Revertir'],
+    accept:['No se confunde con fallo muscular','Revertir restaura la serie'],avoid:'No ocultar el botón de revertir.'},
+  source:['SetExecutionCard.kt:3596-3707']}),
+sc({id:'f4-amrap-result', phase:4, group:'Overlays', name:'Resultado AMRAP', sub:'Panel superpuesto', kind:'front',
+  data:{mode:'AMRAP', load:100, reps:11, rir:0, rom:100, amrapMin:8, result:'11 reps · e1RM 118,4', overlay:'result'},
+  spec:{why:'El resultado se superpone; no alarga la tarjeta ni crea otra pantalla.',
+    measures:[['Panel','matchParentSize'],['Editable','sí'],['Alto','no cambia']],
+    states:['Resultado','Edición'],copy:['11 reps · e1RM 118,4','Fallo alcanzado','Serie fallida'],
+    accept:['La tarjeta sigue midiendo 470','Se puede editar'],avoid:'No empujar el botón de registro fuera de la tarjeta.'},
+  source:['SetExecutionCard.kt:3409-3411','LiveCalibrationResult.kt']}),
+sc({id:'f4-assisted', phase:4, group:'Overlays', name:'Peso corporal asistido', sub:'Pide el peso antes de registrar', kind:'front',
+  data:{mode:'REPS', load:20, reps:8, rir:2, overlay:'assisted'},
+  spec:{why:'El asistido necesita el peso corporal; sin él no se calcula la asistencia.',
+    measures:[['Panel','#222222 · radio 14'],['Campo','peso corporal'],['Botón','Guardar']],
+    states:['Sin peso','Con peso'],copy:['Peso corporal (kg)','Guardar','Ingresa tu peso corporal antes de registrar'],
+    accept:['No registra sin peso','El cálculo usa el peso real'],avoid:'No inventar un peso corporal.'},
+  source:['SetExecutionCard.kt:3446-3497,3148-3153']}),
+sc({id:'f4-guided-drop', phase:4, group:'Guiado', name:'Técnica guiada · drop', sub:'Peso sugerido y reps', kind:'front',
+  data:{mode:'REPS', load:100, reps:6, rir:1, overlay:'guided-drop'},
+  spec:{why:'La guía se superpone a la parte baja de la tarjeta; no la alarga.',
+    measures:[['Panel','máx. alto − 112 · mín. 160'],['Campos','peso y reps'],['Salida','«Saltar técnica…»']],
+    states:['Drop','Cuenta','Reps'],copy:['DROP-SET 1/2','Sin descanso. Baja el peso y completa ~6 reps.','Peso sugerido','Sugerido: 80 kg para ~6 reps','Saltar técnica y registrar solo la serie'],
+    accept:['La tarjeta no se alarga','El panel se puede saltar'],avoid:'No bloquear el registro para siempre.'},
+  source:['GuidedTechniquePanel.kt:47-105','SetExecutionCard.kt:3418-3444']}),
+sc({id:'f4-guided-count', phase:4, group:'Guiado', name:'Técnica guiada · cuenta', sub:'Pausa de myo/rest-pause', kind:'front',
+  data:{mode:'REPS', load:100, reps:6, rir:1, overlay:'guided-count'},
+  spec:{why:'La cuenta atrás de la pausa es un reloj real con barra de progreso.',
+    measures:[['Reloj','22 dp + 28/32'],['Barra','6 dp'],['Pausa','10–30 s myo']],
+    states:['Contando','Reps'],copy:['MYO-REPS 1/3','Pausa fija de 15 s. Luego harás 4 reps.'],
+    accept:['La pausa baja de uno en uno','Al llegar a 0 pide reps'],avoid:'No saltar la pausa sin avisar.'},
+  source:['GuidedTechniquePanel.kt:107-138','SetExecutionCard.kt:1508-1528']}),
+sc({id:'f4-guided-reps', phase:4, group:'Guiado', name:'Técnica guiada · reps', sub:'Confirma las reps de la mini-serie', kind:'front',
+  data:{mode:'REPS', load:100, reps:6, rir:1, overlay:'guided-reps'},
+  spec:{why:'Tras la pausa, la guía pide las reps exactas de la mini-serie.',
+    measures:[['Campo','Repeticiones'],['Mín.','160 dp'],['Salida','misma']],
+    states:['Reps','Cierre'],copy:['REST-PAUSE 2/3','Confirma las 4 reps de esta mini-serie.','Repeticiones'],
+    accept:['No continúa sin reps','El borrador se conserva'],avoid:'No asumir las reps objetivo.'},
+  source:['GuidedTechniquePanel.kt:140-158']}),
+sc({id:'f4-undo', phase:4, group:'Overlays', name:'Undo', sub:'Deshacer el último registro', kind:'front',
+  data:{mode:'DONE', load:100, reps:8, rir:2, rom:100, done:true, undo:'Deshacer registrar serie', undoFull:true},
+  spec:{why:'El undo vive 8 s y solo si lo registrado no cambió.',
+    measures:[['Píldora','40 dp visual · 48 táctil'],['Duración','8 s'],['Animación','200 + 260/200'],['Compacto','44 dp en el raíl']],
+    states:['Completo','Compacto','Oculto'],copy:['Deshacer registrar serie','Deshacer'],
+    accept:['No aparece si lo registrado cambió','Desaparece al registrar otra cosa'],avoid:'No dejar un undo eterno.'},
+  source:['LiveUndoPill.kt:46-113']}),
+sc({id:'f4-god', phase:4, group:'Brechas', name:'Modo dios', sub:'No existe: stub en el código', kind:'gap', fidelity:'gap',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100},
+  gap:{title:'Modo dios no implementado', body:'GodModeSetActionsOverlay devuelve Unit. La tarjeta lo llama con visible = false. Sus acciones reales viven en las opciones de la serie.',replace:['Saltar','Borrar','Tipo de serie','Solo S{n}','Desde S{n}']},
+  spec:{why:'En el worktree es código muerto. Dibujarlo sería inventar una pantalla que no existe.',
+    measures:[['Stub','GodModeChrome.kt:6-25'],['Llamada','visible = false'],['Sustituto','SeriesOptionsSheet']],
+    states:['Brecha'],copy:['Saltar','Borrar','Tipo de serie'],accept:['No se dibuja como pantalla','Las acciones se encuentran en la hoja real'],
+    avoid:'No inventar acciones de corrección que no existan.'},
+  source:['GodModeChrome.kt:6-25','SetExecutionCard.kt:3500-3510','SeriesTypeSheet.kt:223-263']}),
+sc({id:'f4-blocked', phase:4, group:'Brechas', name:'Salir con serie en curso', sub:'Aviso del sistema, no una tarjeta', kind:'dialog', dialog:'blocked',
+  data:{mode:'REPS', load:100, reps:8, rir:2},
+  spec:{why:'El bloqueo de atrás es un aviso del sistema; no se dibuja dentro de la tarjeta.',
+    measures:[['Diálogo','KpknGlassDialog'],['Opciones','4 salidas'],['Back','no cierra']],
+    states:['Bloqueado','Resuelto'],copy:['¿Qué deseas hacer?','Puedes pausar y continuar…','Continuar entrenando','Terminar hasta acá','Pausar y salir','Abandonar sin guardar'],
+    accept:['No se pierde lo registrado','Atrás no sale sin decisión'],avoid:'No cerrar la sesión desde un gesto accidental.'},
+  source:['WorkoutSessionOverlaysHost.kt:123-192','WorkoutBackNavigation.kt']}),
+
+/* ───────── Fase 5 · Preparación ───────── */
+sc({id:'f5-mob-move', phase:5, group:'Movilidad', name:'Movimiento', sub:'Reloj, dosis y siguiente', kind:'prep-mob', base:'prep',
+  data:{view:'move', remaining:'0:28', current:1, dose:'3 × 40″', note:'Talones apoyados, rodillas hacia fuera.'},
+  spec:{why:'La movilidad muestra un movimiento a la vez, con dosis y reloj propio.',
+    measures:[['Marco','345 × 470'],['Dosis','34/40'],['Check','zona 48'],['Reloj','m:ss']],
+    states:['Por tiempo','Por reps','Hecho'],copy:['Movimiento 2 de 6','Tiempo cumplido. Marca el movimiento como hecho.','+30 s','Reiniciar'],
+    accept:['No avanza sola','El reloj se detiene a 0'],avoid:'No marcar hecho automáticamente.'},
+  source:['WarmupMobilityLiveCards.kt:392-462','PrepPhaseLiveLogic.kt:6-24']}),
+sc({id:'f5-mob-list', phase:5, group:'Movilidad', name:'Lista', sub:'N/M movimientos hechos', kind:'prep-mob', base:'prep',
+  data:{view:'list', current:1},
+  spec:{why:'La lista permite saltar a un movimiento sin perder el global.',
+    measures:[['Fila','mín. 68 dp'],['Nombre','12/17'],['Actual','«en pantalla»']],
+    states:['Hecha','Actual','Pendiente'],copy:['3/6 movimientos hechos','en pantalla','Movimiento 2 hecho.'],
+    accept:['El check marca hecho','El actual se distingue'],avoid:'No ocultar la dosis.'},
+  source:['WarmupMobilityLiveCards.kt:466-519']}),
+sc({id:'f5-mob-global', phase:5, group:'Movilidad', name:'Reloj global', sub:'Objetivo de M minutos', kind:'prep-mob', base:'prep',
+  data:{view:'global', remaining:'08:12', total:12},
+  spec:{why:'El reloj global es independiente del movimiento y no se reinicia al cambiar.',
+    measures:[['Tiempo','48/54'],['Botón','ancho completo'],['Objetivo','M min']],
+    states:['Corriendo','Pausado'],copy:['Objetivo global · 12 min','Iniciar','Pausar','Volver al movimiento'],
+    accept:['Sobrevive al cambio de vista','+30 s suma'],avoid:'No reiniciar al abrir la lista.'},
+  source:['WarmupMobilityLiveCards.kt:521-568']}),
+sc({id:'f5-mob-end', phase:5, group:'Movilidad', name:'Fin de movilidad', sub:'Completada u omitida', kind:'prep-mob', base:'prep',
+  data:{view:'end', done:6, total:6},
+  spec:{why:'El fin de fase distingue completada de omitida y ofrece continuar.',
+    measures:[['Título','22/28'],['Detalle','12/18'],['Botón','Continuar']],
+    states:['Completada','Omitida'],copy:['Movilidad completada','Puedes continuar con las aproximaciones.','Fase omitida','Continuar con aproximación'],
+    accept:['No dice completada si se omitió','El siguiente paso es real'],avoid:'No forzar una fase que el usuario saltó.'},
+  source:['WarmupMobilityLiveCards.kt:285-294,1050-1059']}),
+sc({id:'f5-mob-rest', phase:5, group:'Movilidad', name:'Descanso de preparación', sub:'Barra y saltar', kind:'prep-mob', base:'prep',
+  data:{view:'rest', remaining:'0:40', total:60},
+  spec:{why:'El descanso de preparación es una tarjeta dentro de la fase, no el descanso entre series.',
+    measures:[['Tiempo','22/28'],['Barra','5 dp · radio 999'],['Botón','Saltar']],
+    states:['Contando','Saltado'],copy:['Descanso','Saltar'],accept:['No se confunde con el descanso normal'],avoid:'No abrir el juego aquí.'},
+  source:['WarmupMobilityLiveCards.kt:1214-1267']}),
+sc({id:'f5-warm', phase:5, group:'Aproximación', name:'Escalera A1–A4', sub:'Porcentajes, reps y descanso', kind:'prep-warm', base:'prep',
+  data:{active:1, anchor:100, rows:[['A1','40 %','40','× 8','30″'],['A2','60 %','60','× 5','45″'],['A3','80 %','80','× 3','60″'],['A4','90 %','90','× 1','60″']]},
+  spec:{why:'La escalera sale del nivel y del tipo de ejercicio; no es una lista fija.',
+    measures:[['Fila','mín. 60 dp'],['Campo kg','60 dp'],['Reps','19/24'],['Máx.','4 con aviso']],
+    states:['Novato','Intermedio','Avanzado','Muy pesado'],copy:['Primera serie efectiva · 100 kg','A1 · 40 %','Aproximación 2 hecha · 60 kg × 5'],
+    accept:['Los porcentajes son reales','La última ≥85 % avisa'],avoid:'No añadir una quinta aproximación sin aviso.'},
+  source:['ApproachRamp.kt:17-56','WarmupMobilityLiveCards.kt:697-743']}),
+sc({id:'f5-warm-add', phase:5, group:'Aproximación', name:'Añadir aproximación', sub:'Máximo recomendado', kind:'prep-warm', base:'prep',
+  data:{active:2, anchor:100, added:true, rows:[['A1','40 %','40','× 8','30″'],['A2','60 %','60','× 5','45″'],['A3','80 %','80','× 3','60″'],['A4','90 %','90','× 1','60″'],['A5','95 %','95','× 1','90″']]},
+  spec:{why:'Añadir una aproximación avisa si se supera el máximo recomendado o si se acerca a una serie efectiva.',
+    measures:[['Máx.','min(2 × efectivas, 4)'],['Aviso','texto completo'],['Campo','editable']],
+    states:['Dentro del máximo','Fuera'],copy:['Aproximación añadida','Demasiadas aproximaciones: máximo recomendado 4 para 2 series efectivas.','Una aproximación al 85 % o más puede comportarse como una serie efectiva; revisa su carga y repeticiones.'],
+    accept:['El aviso aparece con el número real','No se bloquea la edición'],avoid:'No ocultar el aviso en una nota al pie.'},
+  source:['WarmupRules.kt:8-29,46-66']}),
+sc({id:'f5-warm-skip', phase:5, group:'Aproximación', name:'Aproximación omitida', sub:'Las series siguen pendientes', kind:'prep-warm', base:'prep',
+  data:{skipped:true, active:0, anchor:100, rows:[]},
+  spec:{why:'Omitir la aproximación no completa las series efectivas; el texto debe decirlo.',
+    measures:[['Título','22/28'],['Detalle','12/18'],['Botón','Saltar fase']],
+    states:['Omitida'],copy:['Fase omitida','Las series efectivas siguen pendientes.','Continuar con series'],
+    accept:['No dice completada','Continúa a series'],avoid:'No marcar el paso como hecho.'},
+  source:['WarmupMobilityLiveCards.kt:689-695,755-765']}),
+sc({id:'f5-cardio-int', phase:5, group:'Cardio', name:'Intervalos', sub:'Trabajo / recuperación', kind:'cardio', base:'prep',
+  data:{variant:'intervals', time:'18:24', phase:'TRABAJO', next:'Recuperación 1:00', hr:142, kcal:210, dist:'2,4', pace:'5′04″', splits:['5′04″','5′01″','5′00″']},
+  spec:{why:'El cardio muestra la fase actual, el siguiente bloque y el tiempo real.',
+    measures:[['Aro','132 dp · trazo 8'],['Gráfico','56 dp'],['Tiempo','28 sp'],['Banner','WORK acento']],
+    states:['Trabajo','Recuperación','Calentamiento','Enfriamiento'],copy:['Ahora · Trabajo','Siguiente · Recuperación','Completar bloque','Finalizar y registrar'],
+    accept:['El bloque siguiente es real','El gráfico no inventa intervalos'],avoid:'No usar el acento de fuerza para recuperación.'},
+  source:['CardioLiveCard.kt:111-195','CardioIntervalChart.kt:64-122']}),
+sc({id:'f5-cardio-free', phase:5, group:'Cardio', name:'Cardio libre', sub:'Sin intervalos · 20 min de plan', kind:'cardio', base:'prep',
+  data:{variant:'free', time:'12:08', phase:'ZONA 2', next:'—', hr:'—', kcal:180, dist:'2,1', pace:'5′46″', splits:['5′46″','5′44″']},
+  spec:{why:'Sin intervalos, el objetivo es un plan de 20 min; se muestra como plan, no como dato medido.',
+    measures:[['Plan','20 min por defecto'],['FC','«—» si no hay'],['Ritmo','«--/km» si no hay']],
+    states:['Con FC','Sin FC','Sin GPS'],copy:['Objetivo: RPE 7/10 · ancla','0,00 km','--/km'],
+    accept:['Sin dato se muestra «—»','El plan se etiqueta como plan'],avoid:'No inventar FC ni ritmo.'},
+  source:['CardioLiveCard.kt:82-83,213-220,292-306']}),
+sc({id:'f5-cardio-gps', phase:5, group:'Cardio', name:'Cardio GPS', sub:'Señal, distancia y splits', kind:'cardio', base:'prep',
+  data:{variant:'gps', time:'24:10', phase:'EXTERIOR', next:'—', hr:151, kcal:268, dist:'4,82', pace:'5′01″', splits:['5′02″','4′59″','5′00″','5′03″']},
+  spec:{why:'El GPS añade distancia y splits, pero si la señal se pierde lo dice; no rellena el hueco.',
+    measures:[['Distancia','%.2f km'],['Ritmo','MM:SS/km'],['Splits','km N MM:SS']],
+    states:['Señal activa','Perdida','Pausado','Permiso denegado'],copy:['Señal GPS activa · 4,82 km · 24:10','Señal GPS perdida','Permiso denegado'],
+    accept:['La pérdida de señal es visible','El dato manual se distingue del GPS'],avoid:'No interpolar distancia perdida.'},
+  source:['CardioLiveCard.kt:197-211,474-494']}),
+
+/* ───────── Fase 6 · Descanso ───────── */
+sc({id:'f6-rest-tower', phase:6, group:'Descanso', name:'Torre', sub:'Tres anillos · sugerido', kind:'rest', base:'rest',
+  data:{shape:'tower', remaining:'1:12', total:'2:00', mode:'sugerido', progress:.4},
+  annotations:[
+    {x:200,y:300,t:'Reloj 120 × 104 · runnerScale 1,4',r:'RestLiveCard.kt:189-199'},
+    {x:200,y:420,t:'Siguiente serie real del cursor',r:'RestNextSet.kt:68-106'},
+    {x:200,y:520,t:'−15 / Saltar / +15 · 44 dp en 48',r:'RestControls.kt:55-152'}],
+  spec:{why:'La torre reparte el relleno en tres anillos; el activo es el primero incompleto.',
+    measures:[['Lienzo','120 × 104'],['Anillos','3 · 1/3 cada uno'],['Vuelta','4,5 s'],['Modo','sugerido']],
+    states:['Torre','Pista','Espiral','Sugerido','Manual'],copy:['DESCANSO','de 2:00','· sugerido','Saltar'],
+    accept:['La forma es estable por evento','El tiempo es el real'],avoid:'No cambiar de forma a mitad del descanso.'},
+  source:['RestRingsClock.kt:94-197','RestClockMath.kt:38-128']}),
+sc({id:'f6-rest-track', phase:6, group:'Descanso', name:'Pista', sub:'Recta y curvas', kind:'rest', base:'rest',
+  data:{shape:'track', remaining:'0:48', total:'1:30', mode:'manual', progress:.47},
+  spec:{why:'La pista recorre un perímetro; la cabeza marca el progreso exacto.',
+    measures:[['Recta','140 + 2 curvas r70'],['Vuelta','4,5 s'],['Modo','manual']],
+    states:['Manual','Sugerido'],copy:['DESCANSO','de 1:30','· manual'],accept:['El relleno coincide con el tiempo'],avoid:'No acelerar la vuelta al acercarse al final.'},
+  source:['RestClockMath.kt:38-87','RestRingsClock.kt:162-197']}),
+sc({id:'f6-rest-spiral', phase:6, group:'Descanso', name:'Espiral', sub:'Seis semivueltas', kind:'rest', base:'rest',
+  data:{shape:'spiral', remaining:'2:04', total:'3:00', mode:'sugerido', progress:.31},
+  spec:{why:'La espiral es la forma más lenta; se usa cuando el descanso es largo.',
+    measures:[['Semivueltas','6'],['Vuelta','9 s'],['Progreso','por longitud']],
+    states:['Espiral'],copy:['DESCANSO','de 3:00'],accept:['La longitud es la real'],avoid:'No usarla como decoración en descansos cortos.'},
+  source:['RestClockMath.kt:84-87,144-223']}),
+sc({id:'f6-rest-adaptive', phase:6, group:'Descanso', name:'Adaptativo', sub:'Sugerido por recuperación', kind:'rest', base:'rest',
+  data:{shape:'tower', remaining:'1:12', total:'1:45', mode:'adaptive', progress:.31},
+  spec:{why:'El descanso adaptativo se calcula por dificultad y recuperación; se etiqueta «sugerido».',
+    measures:[['Dificultad','1–5'],['Recuperación','0–1,05'],['Listo','≥0,75'],['Etiqueta','· sugerido']],
+    states:['Sugerido','Aceptado','Manual'],copy:['Descanso sugerido','· sugerido','Plan de sesión · 2:00'],
+    accept:['No se presenta como plan fijo','Se puede ignorar'],avoid:'No esconder que es una sugerencia.'},
+  source:['WorkoutRestRecoveryModel.kt:19-102','RestLiveCard.kt:262-266']}),
+sc({id:'f6-overrun', phase:6, group:'Descanso', name:'Tiempo extra', sub:'+0:34 sobre el plan', kind:'rest', base:'rest',
+  data:{shape:'tower', remaining:'+0:34', total:'2:00', mode:'extra', progress:1, extra:true},
+  spec:{why:'El tiempo extra nace solo si el descanso terminó naturalmente; caduca a los 5 min.',
+    measures:[['Expira','5 min'],['Extender','30 s'],['Velo','canvas 92 % + haze'],['Anillo','250 dp']],
+    states:['Completo','Tarjeta'],copy:['TIEMPO EXTRA','Descanso cumplido','Empezar la serie 4','Necesito +30 s'],
+    accept:['No nace en aproximación','Se puede extender'],avoid:'No dejarlo abierto indefinidamente.'},
+  source:['RestOverrun.kt:28-91','RestOverrunLayer.kt:84-255']}),
+sc({id:'f6-mini', phase:6, group:'Descanso', name:'Mini chip', sub:'Descanso minimizado', kind:'front',
+  data:{mode:'REPS', load:100, reps:8, rir:2, rom:100, mini:true},
+  spec:{why:'El mini chip mantiene el descanso visible sin tapar la tarjeta.',
+    measures:[['Píldora','40 dp en 48'],['Aro','32 · trazo 4'],['+15','caja 56 × 40']],
+    states:['Visible','Oculto'],copy:['Descanso','1:12','+15 s'],accept:['No tapa la acción principal','El +15 suma'],avoid:'No moverlo de sitio al cambiar de ejercicio.'},
+  source:['RestMiniChip.kt:61-172']}),
+sc({id:'f6-game', phase:6, group:'Juego', name:'Runner', sub:'Salta las mancuernas', kind:'game', base:'rest',
+  data:{game:'runner', score:18, best:24, lives:3},
+  spec:{why:'El juego vive dentro de la superficie del descanso y no altera el reloj.',
+    measures:[['Arena','radio 28'],['Suelo','34 dp'],['Saltos','0,77 s / 70 dp'],['Vidas','3 · máx. 5']],
+    states:['Jugando','Fin de partida'],copy:['Saltos','récord 24 · ♥×3','Toca para saltar','Fin de partida','Saltar descanso'],
+    accept:['El descanso sigue corriendo','Se puede saltar el juego'],avoid:'No premiar con datos de entrenamiento.'},
+  source:['RestMiniGame.kt:75-200','RestGameEngine.kt:30-224']}),
+sc({id:'f6-arcade', phase:6, group:'Juego', name:'Arcade', sub:'Runner, Flappy, Shooter', kind:'game', base:'rest',
+  data:{game:'arcade'},
+  spec:{why:'El arcade es un selector de tres juegos; el reloj del descanso siempre está visible.',
+    measures:[['Tesela','mín. 110/128 dp'],['Radio','24'],['Reloj','25/29']],
+    states:['Runner','Flappy','Shooter'],copy:['Jugar mientras descansas','El descanso sigue corriendo','Salta las mancuernas','Entre las pesas','Escuadrón retro'],
+    accept:['El reloj no se tapa','Volver al descanso es inmediato'],avoid:'No convertir el juego en una pantalla principal.'},
+  source:['RestArcade.kt:48-164']}),
+sc({id:'f6-feedback', phase:6, group:'Feedback', name:'Feedback completo', sub:'Técnica 1–10 y molestias', kind:'feedback', base:'rest',
+  data:{score:8, word:'buena', selected:['Rodilla anterior'], related:true},
+  spec:{why:'El feedback combina técnica y molestias; se puede saltar sin puntuar.',
+    measures:[['Escala','1–10 · por defecto 8'],['Slider','6 dp · pulgar 24'],['Chips','34 en 48'],['Acciones','Saltar / Guardar']],
+    states:['Vacío','Con molestia','Relacionada'],copy:['¿Cómo te salió?','CALIDAD TÉCNICA','¿ALGUNA MOLESTIA?','Rodilla, lumbar, hombro…','Saltar descanso','Guardar'],
+    accept:['No obliga a puntuar','Lo guardado conserva RPE y notas'],avoid:'No inventar una molestia ni una técnica.'},
+  source:['WorkoutPostExerciseFeedbackHost.kt:246-335','FeedbackTechnique.kt:270-355','FeedbackDiscomforts.kt:278-476']}),
+sc({id:'f6-feedback-compact', phase:6, group:'Feedback', name:'Feedback compacto', sub:'Dentro de la tarjeta de descanso', kind:'feedback', base:'rest',
+  data:{score:7, word:'aceptable', selected:['Lumbar'], compact:true, related:false},
+  spec:{why:'La variante compacta conserva las mismas preguntas y guarda el mismo borrador.',
+    measures:[['Franja','tiempo + expandir'],['Medio','scroll'],['Botones','fijos']],
+    states:['Compacto','Expandido'],copy:['TÉCNICA','7 / 10 · aceptable','Saltar','Guardar'],
+    accept:['Mismo borrador que la vista completa','Los botones no se mueven'],avoid:'No duplicar preguntas.'},
+  source:['RestFeedbackCard.kt:49-228']}),
+sc({id:'f6-feedback-related', phase:6, group:'Feedback', name:'Molestia relacionada', sub:'Registros anteriores', kind:'feedback', base:'rest',
+  data:{score:6, word:'irregular', selected:['Hombro anterior'], related:true, history:'la reportaste el 3 de septiembre'},
+  spec:{why:'Si una molestia ya se reportó, el feedback lo dice y ofrece seguir o marcar resuelta.',
+    measures:[['Caja','ok 8 % · borde 24 %'],['Fila','etiqueta + fecha'],['Acciones','Sigue / Resuelta']],
+    states:['Sin historial','Con historial'],copy:['Molestias previas relacionadas','la reportaste el 3 de septiembre','Sigue','Resuelta'],
+    accept:['La fecha es real','No diagnostica'],avoid:'No dar consejo médico dentro de la tarjeta.'},
+  source:['FeedbackInsights.kt:28-121','WorkoutPostExerciseFeedbackHost.kt:362-413']}),
+
+/* ───────── Fase 7 · Hojas ───────── */
+sc({id:'f7-menu', phase:7, group:'Hojas', name:'Menú', sub:'Acciones globales', kind:'sheet', base:'sheet', sheetId:'menu'}),
+sc({id:'f7-route', phase:7, group:'Hojas', name:'Ruta', sub:'Bloques y resumen', kind:'sheet', base:'sheet', sheetId:'route'}),
+sc({id:'f7-milestones', phase:7, group:'Hojas', name:'Hitos', sub:'Solo los reales', kind:'sheet', base:'sheet', sheetId:'milestones'}),
+sc({id:'f7-notes', phase:7, group:'Hojas', name:'Notas y tareas', sub:'Nota y checklist', kind:'sheet', base:'sheet', sheetId:'notes'}),
+sc({id:'f7-timer', phase:7, group:'Hojas', name:'Temporizador', sub:'Global e independiente', kind:'sheet', base:'sheet', sheetId:'timer'}),
+sc({id:'f7-rmcalc', phase:7, group:'Hojas', name:'Calculadora RM', sub:'e1RM y tabla', kind:'sheet', base:'sheet', sheetId:'rmcalc'}),
+sc({id:'f7-calories', phase:7, group:'Hojas', name:'Calorías', sub:'Solo cardio', kind:'sheet', base:'sheet', sheetId:'calories'}),
+sc({id:'f7-sessiontime', phase:7, group:'Hojas', name:'Tiempo de sesión', sub:'Objetivo y avisos', kind:'sheet', base:'sheet', sheetId:'sessiontime'}),
+sc({id:'f7-ultrapreview', phase:7, group:'Hojas', name:'Ultrarrápido', sub:'Ahorro y ajustes', kind:'sheet', base:'sheet', sheetId:'ultrapreview'}),
+sc({id:'f7-ultrarecord', phase:7, group:'Hojas', name:'Registro ultrarrápido', sub:'Una serie, un gesto', kind:'sheet', base:'sheet', sheetId:'ultrarecord'}),
+sc({id:'f7-options', phase:7, group:'Hojas', name:'Opciones de ejercicio', sub:'Todas las acciones', kind:'sheet', base:'sheet', sheetId:'options'}),
+sc({id:'f7-series', phase:7, group:'Hojas', name:'Opciones de serie', sub:'Saltar, borrar, tipo', kind:'sheet', base:'sheet', sheetId:'series'}),
+sc({id:'f7-tags', phase:7, group:'Hojas', name:'Etiquetas', sub:'Jerarquía y subetiquetas', kind:'sheet', base:'sheet', sheetId:'tags'}),
+sc({id:'f7-reorder', phase:7, group:'Hojas', name:'Reordenar', sub:'Lo hecho queda fijo', kind:'sheet', base:'sheet', sheetId:'reorder'}),
+sc({id:'f7-album', phase:7, group:'Hojas', name:'Álbum', sub:'Fotos y vídeos', kind:'sheet', base:'sheet', sheetId:'album'}),
+sc({id:'f7-discomfort', phase:7, group:'Hojas', name:'Molestia', sub:'Ficha y registros', kind:'sheet', base:'sheet', sheetId:'discomfort'}),
+sc({id:'f7-history', phase:7, group:'Hojas', name:'Historial', sub:'e1RM por sesión', kind:'sheet', base:'sheet', sheetId:'history'}),
+sc({id:'f7-exit', phase:7, group:'Hojas', name:'Salir', sub:'Cuatro salidas reales', kind:'sheet', base:'sheet', sheetId:'exit'}),
+sc({id:'f7-finish', phase:7, group:'Hojas', name:'Fin de sesión', sub:'Resumen, PRs y notas', kind:'sheet', base:'sheet', sheetId:'finish'}),
+
+/* ───────── Fase 8 · Mesa y contrato ───────── */
+sc({id:'f8-mesa', phase:8, group:'Mesa', name:'Mesa', sub:'Series en filas', kind:'mesa', base:'mesa',
+  data:{expand:'none', active:2},
+  annotations:[
+    {x:30,y:150,t:'Fila = CompletedSet, no un dato nuevo',r:'WorkoutCompletedExercises.kt:90'},
+    {x:30,y:270,t:'Editor en línea: misma validación',r:'CompletedSetPatch.kt:24'},
+    {x:250,y:330,t:'Acciones = las del pie de la tarjeta',r:'SetExecutionCard.kt:767-781'}],
+  spec:{why:'La mesa es una vista derivada: sirve para escanear, no para crear datos.',
+    measures:[['Fila','22 + 1fr + 68 + 40 + 14'],['Editor','carga 25 sp'],['Fondo','tinta 5,5 %'],['Acciones','las mismas']],
+    states:['Normal','Activa','Media','Técnica','Molestia'],copy:['Registrar serie','Actualizar serie','Opciones de Sentadilla'],
+    accept:['No añade acciones','Lo hecho no se reordena','Usa la misma validación'],avoid:'No convertirla en la pantalla principal ni en una segunda app.'},
+  source:['PHASE0-MAPA.md:77-86','WorkoutSetPager.kt','CompletedSetPatch.kt']}),
+sc({id:'f8-mesa-media', phase:8, group:'Mesa', name:'Mesa · media', sub:'Modo visual en la fila', kind:'mesa', base:'mesa',
+  data:{expand:'media', active:2},
+  spec:{why:'La expansión de media reutiliza la cara de media reducida.',measures:[['Expansión','switch + ficha + miniaturas'],['Fila','sigue midiendo lo mismo']],
+    states:['Foto','Vídeo'],copy:['Foto','Vídeo','Ficha','Álbum'],accept:['No abre cámara propia'],avoid:'No duplicar el controlador de captura.'},
+  source:['SetCardExerciseMediaBack.kt:770-905']}),
+sc({id:'f8-mesa-tech', phase:8, group:'Mesa', name:'Mesa · técnica', sub:'Técnica en la fila', kind:'mesa', base:'mesa',
+  data:{expand:'tech', active:2},
+  spec:{why:'La expansión de técnica reutiliza segmentos y cadena.',measures:[['Segmentos','Drop/Pausa/Myo'],['Cadena','misma']],
+    states:['Drop','Pausa','Myo'],copy:['Drop-set','Rest-pause','Myo-reps'],accept:['Misma validación de tramos'],avoid:'No crear una técnica de mesa.'},
+  source:['SetCardTechniqueBack.kt:275-298']}),
+sc({id:'f8-mesa-injury', phase:8, group:'Mesa', name:'Mesa · molestia', sub:'Molestia en la fila', kind:'mesa', base:'mesa',
+  data:{expand:'injury', active:2},
+  spec:{why:'La molestia se muestra en la fila y abre la ficha existente.',measures:[['Banda','molestia reportada'],['Acceso','ficha']],
+    states:['Reportada','Resuelta'],copy:['Molestia: rodilla anterior · hoy'],accept:['No diagnostica'],avoid:'No inventar una molestia.'},
+  source:['DiscomfortSheet.kt:50-171']}),
+sc({id:'f8-mesa-editor', phase:8, group:'Mesa', name:'Mesa · editor', sub:'Corregir una serie', kind:'mesa', base:'mesa',
+  data:{expand:'none', active:2, editing:true},
+  spec:{why:'El editor en línea es la misma tarjeta, comprimida: carga, RIR, técnica y media.',measures:[['Carga','25 sp'],['RIR','5 celdas'],['Acciones','6 chips']],
+    states:['Editando','Guardado'],copy:['100 kg','RIR 2','e1RM 112,5','Guardar'],accept:['No duplica la serie','El PR se conserva'],avoid:'No reimplementar la validación.'},
+  source:['CompletedSetPatch.kt','WorkoutEditingRules.kt']}),
+sc({id:'f8-mesa-superset', phase:8, group:'Mesa', name:'Mesa · superserie', sub:'Dos ejercicios, una fila', kind:'mesa', base:'mesa',
+  data:{expand:'none', active:4, superset:true},
+  spec:{why:'La superserie es una unidad de fila; no se separa en dos tablas.',measures:[['Grupo','dos miembros'],['Acciones','ExerciseOptionsSheet']],
+    states:['Superserie','Rondas'],copy:['Superserie','Ronda 1 de 3'],accept:['El grupo se mueve junto'],avoid:'No mezclar superserie con reordenar.'},
+  source:['WorkoutRoadmapBar.kt:726-847','ReorderSheetModel.kt:28-48']}),
+];
+
+/* Hojas: contenido literal. */
+const SHEETS = {
+  menu:{title:'Sesión',desc:'',simple:true,rows:[
+    ['','Ruta de la sesión',''],['','Hitos',''],['','Fotos y vídeos',''],['','Temporizador',''],
+    ['','Calculadora RM',''],['','Calorías',''],['','Notas y tareas','']],actions:[]},
+  route:{title:'Ruta de la sesión',desc:'',metrics:[['12/34','series'],['1.240 kg','tonelaje'],['RIR 2','medio'],['≈ 210','kcal']],
+    rows:[['✓','Sentadilla trasera · 4/4','4 series · 100 kg'],['✓','Peso muerto rumano · 3/3','3 series · 140 kg'],
+    ['●','Prensa de piernas · 1/4','en curso'],['·','Curl femoral · 0/3','3 series'],['·','Gemelo sentado · 0/4','4 series']],
+    actions:['Añadir ejercicio']},
+  milestones:{title:'Hitos',desc:'',rows:[['★','PR e1RM · Sentadilla','112,5 kg · hoy'],['★','Meta estrella · Prensa','4 series completadas'],['—','Sin más hitos','Aparecen con PRs reales o meta estrella']],actions:[]},
+  notes:{title:'Notas y tareas',desc:'',rows:[['','Notas de sesión','Anotaciones generales…'],['✓','Revisar agarre en la 4.ª','Hecha'],['○','Añadir vídeo del PR','Pendiente']],input:'Escribe una nota…',actions:['Guardar nota']},
+  timer:{title:'Temporizador',desc:'',big:'04:18',rows:[['▶','Iniciar / Pausar',''],['↺','Reiniciar','']],hint:'Independiente del descanso entre series.',actions:[]},
+  rmcalc:{title:'Calculadora RM',desc:'',rows:[['1','Peso (kg)','100'],['2','Lastre (kg)','—'],['3','Asistencia (kg)','—'],['4','Repeticiones','6'],['5','e1RM','118,0 kg'],['6','e1RM equiv.','118,0 kg']],hint:'Peso corporal (solo cálculo): 78 kg',actions:[]},
+  calories:{title:'Calorías',desc:'',big:'≈ 210 kcal',rows:[['—','Fuerza · sin estimación',''],['1','Cinta · 2,4 km · 210 kcal','']],hint:'Método MET. Solo se muestra si hay cardio registrado.',actions:[]},
+  sessiontime:{title:'Tiempo de sesión',desc:'',rows:[['','ULTRARRÁPIDO activo','Deshacer'],['','Duración objetivo','45 min'],['','En marcha','12:34'],['','Avisos','15 y 5 min']],actions:['−5 min','+5 min','Quitar']},
+  ultrapreview:{title:'Ultrarrápido',desc:'',big:'52 → 38 min',rows:[['1','Ahorras ~14 min (27 % más rápida)',''],['2','Sentadilla · 4 → 3 series','Series reducidas'],['3','Peso muerto · 3 → 2 series','Series reducidas'],['4','Superserie propuesta · Prensa + Curl','Misma máquina']],hint:'Reversible: deshaz desde el aviso o el menú de tiempo.',actions:['Cancelar','Aplicar']},
+  ultrarecord:{title:'Ultrarrápido',desc:'Sentadilla trasera · 3 series pendientes',rows:[['S1','100 × 8 · RIR 2','Hecha'],['S2','105 × 6 · RIR 1','En curso'],['S3','—','Pendiente']],fields:['Carga','Reps','RIR'],actions:['Registrar S2']},
+  options:{title:'Sentadilla trasera',desc:'4 series · 4 hechas · 100 kg',rows:[['1','Reemplazar','Ejercicio o variante'],['2','Reordenar','Mover en la sesión'],['3','Crear superserie','Con otro ejercicio'],['4','Historial','e1RM por sesión'],['5','Ultrarrápido','Registrar en un gesto'],['6','Notas','Nota del ejercicio'],['7','Etiquetas','Barra libre · Smith'],['8','Editar','Series y cargas'],['9','Calculadora RM','Referencia']],actions:['Saltar ejercicio','Quitar de la sesión']},
+  series:{title:'Serie 3 · 100 × 8 · RIR 2',desc:'',rows:[['1','Editar',''],['2','Añadir serie',''],['3','Saltar','No cuenta al volumen'],['4','Borrar','']],sect:'Tipo de serie',tiles:[['Normal','Serie estándar'],['Drop-set','Entre las series'],['Rest-pause','Pausa y reps']],actions:['Cancelar','Aplicar']},
+  tags:{title:'Etiquetas',desc:'',rows:[['◉','Barra libre','actual'],['○','Smith',''],['○','Multipower',''],['○','Polea baja','']],sect:'Subetiquetas',subs:['Marco · Smith','Setup · Rack bajo'],input:'Buscar o crear etiqueta…',actions:['Listo']},
+  reorder:{title:'Orden de la sesión',desc:'',rows:[['≡','Sentadilla trasera','fijo'],['≡','Peso muerto rumano','fijo'],['≡','Prensa de piernas','en curso'],['≡','Curl femoral',''],['≡','Gemelo sentado','']],hint:'Arrastra desde el asa. Marca para mover en lote.',actions:['Listo']},
+  album:{title:'Álbum',desc:'Sentadilla trasera · 8 registros',rows:[['1','Serie 3 · 100 × 8','RIR 2 · Vídeo'],['2','Serie 2 · 100 × 8','RIR 2 · Foto'],['3','Serie 1 · 100 × 8','RIR 3'],['4','PR · 12 oct','105 × 6']],actions:['Seleccionar']},
+  discomfort:{title:'Rodilla anterior',desc:'Zona · rodilla',rows:[['1','Explicación','Dolor en la cara anterior de la rodilla'],['2','CAUSAS COMUNES','Sobrecarga, técnica, volumen'],['3','REGISTROS ANTERIORES','3 sep · sentadilla'],['4','QUÉ PUEDES HACER','Ajusta carga y rango']],actions:['Reportar molestia']},
+  history:{title:'Historial',desc:'',rows:[['12 oct','102,5 × 8 · e1RM 110,0','PR'],['5 oct','100 × 8 · e1RM 107,4',''],['28 sep','100 × 7 · e1RM 105,1',''],['21 sep','95 × 8 · e1RM 102,0','']],hint:'Mostrando primero: Barra libre',actions:[]},
+  exit:{title:'¿Qué deseas hacer?',desc:'Puedes pausar y continuar después',rows:[['1','Continuar entrenando',''],['2','Terminar hasta acá','Guarda lo registrado'],['3','Pausar y salir',''],['4','Abandonar sin guardar','No se puede deshacer']],actions:['Continuar entrenando']},
+  finish:{title:'SESIÓN COMPLETADA',desc:'Pierna · Semana 1 · 58 min · 9 ejercicios',metrics:[['34','series'],['4.820 kg','tonelaje'],['58 min','duración'],['8,2','sRPE']],rows:[['1','PR e1RM · Sentadilla','112,5 kg'],['2','Volumen por músculo','Cuádriceps 42 %'],['3','Fotos de la sesión','3'],['4','Notas y tareas','2 pendientes']],toggle:'Compartir al guardar',actions:['Volver a la sesión','Guardar sesión']},
+};
+
+</script>
+<script>
+/* KPKN · motor del prototipo. Sin dependencias. */
+
+window.addEventListener('error', (ev) => {
+  const d = document.createElement('div');
+  d.id = 'js-error';
+  d.textContent = 'Error del prototipo: ' + (ev.message || 'desconocido');
+  d.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:9999;background:#3a1111;color:#fff;padding:8px 12px;border-radius:8px;font:12px monospace';
+  document.body.appendChild(d);
+});
+
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = (s) => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const ICONS = {
+  book:'M4 5.5A2.5 2.5 0 0 1 6.5 3H11v18H6.5A2.5 2.5 0 0 0 4 20.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v18h4.5A2.5 2.5 0 0 1 20 20.5z',
+  mic:'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3M8 21h8',
+  more:'<circle cx="5" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.15" fill="currentColor" stroke="none"/>',
+  timer:'M12 13V9.5M12 13l2.5 1.5M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM9.5 2h5M12 2v3',
+  plus:'M12 5v14M5 12h14',
+  check:'M5 12.5l4.5 4.5L19 7',
+  update:'M4 4v6h6M20 20v-6h-6M5.5 15a7 7 0 0 0 11.8 2.2M18.5 9A7 7 0 0 0 6.7 6.8',
+  undo:'M9 14L4 9l5-5M4 9h9a7 7 0 0 1 0 14H7',
+  chevronLeft:'M15 5l-7 7 7 7',
+  chevronRight:'M9 5l7 7-7 7',
+  chevronDown:'M5 9l7 7 7-7',
+  close:'M6 6l12 12M18 6L6 18',
+  camera:'M4 8h3l2-3h6l2 3h3v11H4zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
+  album:'M3 4h18v16H3zM3 16l5-4 4 3 3-2 6 5M9 8.2a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z',
+  info:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01',
+  expand:'M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6',
+  play:'M8 5.5v13l10-6.5z',
+  pause:'M8 5h2.5v14H8zM13.5 5H16v14h-2.5z',
+  stop:'M6 6h12v12H6z',
+  route:'M6 20v-5a4 4 0 0 1 4-4h4a4 4 0 0 0 4-4V4M6 21.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
+  star:'M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.9l-5.3 2.8 1.1-5.9-4.3-4.1 5.9-.8z',
+  swap:'M4 8h13l-3-3M20 16H7l3 3',
+  history:'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2',
+  arrowLeft:'M4 12h16M4 12l6-6M4 12l6 6',
+  arrowRight:'M20 12H4M20 12l-6-6M20 12l-6 6',
+  video:'M4 7h11v10H4zM15 10l5-3v10l-5-3z',
+  flame:'M12 3c3 4 5 6 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z',
+  search:'M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15zM16 16l4.5 4.5',
+  body:'M12 6.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM12 7v6M12 9l-3.5 3M12 9l3.5 3M12 13l-3 7M12 13l3 7',
+  expand2:'M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6',
+};
+function icon(name, size=16){
+  const p = ICONS[name] || '';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+
+let state = {id:null, face:null, sheet:null, annotations:false, motion:false, filter:'all', q:''};
+let current = null;
+
+const SHEET_SRC = {
+  menu:['LiveSessionSheets.kt:103-108'], route:['LiveSessionSheets.kt:111-119','CockpitSessionSummary.kt:46-154'],
+  milestones:['LiveSessionSheets.kt:121','LiveSessionNotesAndMilestones.kt:28-121'], notes:['LiveSessionNotesAndMilestones.kt:134-233'],
+  timer:['LiveSessionSheets.kt:138-155'], rmcalc:['WorkoutContextComponents.kt:557-691'],
+  calories:['LiveSessionSheets.kt:160-165'], sessiontime:['SessionTimeSheet.kt:32-127'],
+  ultrapreview:['UltraFastSheet.kt:33-141'], ultrarecord:['UltraFastRecordSheet.kt:35-108'],
+  options:['ExerciseOptionsSheet.kt:43-243'], series:['SeriesTypeSheet.kt:84-412'],
+  tags:['WorkoutExerciseSheets.kt:226-502'], reorder:['LiveReorderSheet.kt:98-248'],
+  album:['ExerciseAlbumSheet.kt:81-308'], discomfort:['DiscomfortSheet.kt:50-171'],
+  history:['WorkoutHistorySheetContent.kt:46-197'], exit:['WorkoutSessionOverlaysHost.kt:123-192'],
+  finish:['RecordedSessionFinishSheet.kt:71-217'],
+};
+
+/* ── geometría ── */
+function sceneSize(s){
+  const w = (s.device && s.device.w) || 393;
+  const h = (s.device && s.device.h) || 852;
+  const cw = Math.min(w - 48, 358);
+  return {w, h, cw, ch: cw / (312/425), compact: h < 800};
+}
+function applyGeometry(s){
+  const g = sceneSize(s);
+  const dev = $('#device'), pins = $('#pins');
+  dev.style.width = g.w + 'px'; dev.style.height = g.h + 'px';
+  pins.style.width = g.w + 'px'; pins.style.height = g.h + 'px';
+  dev.style.setProperty('--pw', g.w + 'px');
+  dev.style.setProperty('--ph', g.h + 'px');
+  dev.style.setProperty('--card-w', g.cw + 'px');
+  dev.style.setProperty('--card-h', g.ch + 'px');
+}
+
+/* ── chrome ── */
+function chromeOf(s){ return Object.assign({}, CHROME, s.chrome || {}); }
+
+function statusbar(){
+  return `<div class="k-statusbar"><span>1:47</span><div class="sig">
+    <div class="bars"><i></i><i></i><i></i><i></i></div>
+    <div class="batt"><i></i></div>
+  </div></div>`;
+}
+
+function header(c){
+  const titleChips = (c.chips || []).map(x => `<span class="chip"> · ${esc(x)}</span>`).join('');
+  const sub = [c.protocol, c.group, c.session].filter(Boolean).join(' · ');
+  let chips = '';
+  (c.railChips || []).forEach(ch => {
+    if (ch.type === 'timer') {
+      chips += `<span class="k-chip"><span class="k-ring">${icon('timer',10)}</span>${esc(ch.label)}${ch.limit ? `<span class="sub"> / ${esc(ch.limit)}</span>` : ''}</span>`;
+    } else if (ch.label === 'Superserie') {
+      chips += `<span class="k-chip red">${icon('swap',12)}${esc(ch.label)}</span>`;
+    } else {
+      chips += `<span class="k-chip ${ch.cls||''}">${esc(ch.label)}${ch.dd ? '<span class="dd">▾</span>' : ''}${ch.x ? '<span class="x">×</span>' : ''}</span>`;
+    }
+  });
+  const longTitle = (c.exercise + ' ' + (c.chips||[]).join(' ')).length > 30;
+  return `<div class="k-header"><div class="k-header-inner">
+    <div class="k-hrow">
+      <div class="k-titlecol">
+        <div class="k-title ${longTitle?'marquee':''}"><span class="mq">${esc(c.exercise)}${titleChips}</span></div>
+        <div class="k-sub">${esc(sub)}</div>
+      </div>
+      <div class="k-icons">
+        <div class="k-icon"><div class="cir">${icon('book',20)}</div></div>
+        <div class="k-icon"><div class="cir">${icon('mic',20)}</div></div>
+        <div class="k-icon"><div class="cir">${icon('more',20)}</div></div>
+      </div>
+    </div>
+    <div class="k-chips">${chips}</div>
+  </div></div>`;
+}
+
+function rail(c, d, opts={}){
+  const done = !!(d && d.done);
+  let steps = '';
+  (c.steps || []).forEach(st => {
+    const cls = ['k-step'];
+    if (st.state === 'active') cls.push('active');
+    if (st.state === 'done') cls.push('done');
+    if (st.state === 'skipped') cls.push('skipped');
+    if (st.calibrated) cls.push('cal');
+    const label = st.state === 'done' ? '✓' + st.label : st.label;
+    steps += `<div class="${cls.join(' ')}"><div class="k-steppill">${esc(label)}</div>${st.calibrated ? '<span class="cal">calibrada</span>' : ''}</div>`;
+  });
+  const undo = d && d.undo ? `<div class="k-miniundo" title="${esc(d.undo)}">${icon('undo',18)}</div>` : '';
+  const activeIdx = (c.steps || []).findIndex(st => st.state === 'active');
+  const shift = Math.max(0, (activeIdx < 0 ? 0 : activeIdx) * 48 - 120);
+  return `<div class="k-rail">
+    <div class="k-routerow">
+      <div class="k-route">${icon('route',20)}<div class="txt"><b>${esc(c.route)}</b><span>${esc(c.routeSub)}</span></div>${icon('chevronRight',16)}</div>
+      ${undo}
+      <button class="k-addpill" data-act="sheet:series">+</button>
+    </div>
+    <div class="k-steprow">
+      <div class="k-stepcarril"><div class="k-steprail" style="transform:translateX(-${shift}px)">${steps}</div></div>
+      <button class="k-record" data-act="record" aria-label="${done ? 'Actualizar serie' : 'Registrar serie'}">${icon(done ? 'update' : 'check', 25)}</button>
+    </div>
+  </div>`;
+}
+
+/* ── piezas de tarjeta ── */
+function tagChip(t, cls=''){ return `<span class="k-tag ${cls}">${esc(t)}</span>`; }
+
+function hero(d){
+  const load = d.load == null ? 100 : d.load;
+  const required = !!d.loadRequired;
+  const isDash = load === '—' || required;
+  const text = required ? 'Carga a elegir' : String(load);
+  const long = text.length >= 7;
+  const unit = required ? '' : (d.unit || 'kg');
+  let side = '';
+  if (d.mode === 'AMRAP') side = `<b>Mín. ${d.amrapMin || 8}</b><span>${d.result ? '11 reps' : 'objetivo'}</span>`;
+  else if (d.mode === 'CALIB') side = `<b>Sin mínimo</b><span>ajusta el 1RM</span>`;
+  else if (d.mode === 'DONE' || d.done) side = `<b>RIR ${d.rir == null ? 2 : d.rir}</b><span>e1RM 112,5</span>`;
+  else side = `<b>RIR ${d.rir == null ? 2 : d.rir}</b><span>e1RM 112,5</span>`;
+  const chip = (l,v) => `<div class="k-chip3"><span>${esc(l)}</span><b>${esc(v)}</b></div>`;
+  const baseLoad = parseFloat(String(load).replace(',', '.'));
+  const sug = d.suggested != null
+    ? String(d.suggested).replace('.', ',')
+    : (isFinite(baseLoad) && baseLoad > 0 ? String(baseLoad + 2.5).replace('.', ',') : '—');
+  return `<div class="k-hero">
+    <div class="k-hero-label">${d.solo ? 'PESO CORPORAL' : 'CARGA (kg)'}</div>
+    <div class="k-hero-main"><span class="k-hero-val ${long || required ? 'sm' : ''}" style="${required ? 'color:var(--faint)' : ''}">${esc(text)}</span>${unit ? `<span class="k-hero-unit">${esc(unit)}</span>` : ''}<span class="k-hero-side">${side}</span></div>
+    <div class="k-chips3">${chip('−2,5','')}${chip('Sugerido', isDash ? '—' : sug)}${chip('+2,5','')}</div>
+    <div class="k-hero-foot">${icon('chevronDown',12)} ${d.solo ? 'Corporal' : 'Externa'}</div>
+  </div>`;
+}
+
+function rmHero(d){
+  return `<div class="k-rmhero">
+    <div class="k-hero-label">CARGA UTILIZADA · kg</div>
+    <div class="top"><span class="big">${esc(d.load || 105)}</span><span class="pct">${esc(d.rmPct || 89)} %</span><span class="k-hero-unit" style="padding-bottom:8px">del 1RM</span></div>
+    <div class="sub">Calculado: ${esc(d.target || '105 kg')} · ${esc(d.rm || 3)} reps est.</div>
+    <div class="ref"><span>Tu referencia</span><b>1RM 118,0 kg</b></div>
+  </div>`;
+}
+
+function timeHero(d){
+  return `<div class="k-hero" style="justify-content:center;gap:6px">
+    <div class="k-hero-label">CRONÓMETRO DE LA SERIE</div>
+    <div class="k-hero-main"><span class="k-hero-val">${esc(d.clock || '00:45')}</span><span class="k-hero-side" style="padding-bottom:6px"><b>${esc(d.target || '45″')}</b><span>objetivo</span></span></div>
+    <div class="k-hero-foot" style="justify-content:space-between">${icon('stop',12)} Detener <span style="color:var(--faint)">Tiempo libre</span></div>
+  </div>`;
+}
+
+function compactLoad(d){
+  const solo = d.solo || d.mode === 'SOLO';
+  const v = d.load == null || d.load === '' ? '—' : d.load;
+  return `<div class="k-compactload"><span class="lbl">${solo ? 'PESO CORPORAL' : 'CARGA'}</span><span class="field">${esc(v)}</span><span class="mode">${esc(d.loadMode || (solo ? 'Corporal' : 'Externa'))} ${icon('chevronDown',10)}</span></div>`;
+}
+
+function wheel(d){
+  const reps = Number(d.reps || 8);
+  const vals = [reps-2, reps-1, reps, reps+1, reps+2];
+  return `<div class="k-wheel">${vals.map((v,i) => `<span class="k-wcell ${i===2?'c':(i===0||i===4?'dim':'')}">${i===2?`<b>${v}</b>`:v}</span>`).join('')}</div>`;
+}
+
+function rmControls(d){
+  const pct = d.rmPct || 89;
+  return `<div class="k-rmrow"><span class="l">% RM</span><div class="k-slider" style="flex:1;margin:0 10px"><i style="width:${pct}%"></i><b style="left:${pct}%"></b></div><span class="v">${pct} %</span></div>
+  <div class="k-rmrow"><span class="l">PESO · kg</span><span class="v">${esc(d.load||105)}</span><span class="dim">calculado</span></div>
+  <div class="k-rmrow"><span class="l">REFERENCIA 1RM · kg</span><span class="v" style="font-size:18px">118,0</span></div>`;
+}
+
+function effort(d){
+  const rir = d.rir;
+  const rpe = d.rpe != null ? Number(String(d.rpe).replace(',','.')) : (rir != null ? 10 - Number(rir) : null);
+  let fill = 58, idx = 2, right = 'Sin marcar';
+  if (d.failure) { fill = 100; idx = 5; right = 'Fallo · todo'; }
+  else if (rpe != null) {
+    fill = Math.max(6, Math.min(100, rpe * 10));
+    idx = Math.max(0, Math.min(5, Math.round((rpe - 5) * 1.2)));
+    const words = ['cómodo','firme','exigente','muy duro','al límite','todo'];
+    right = (rir != null ? `RIR ${rir}` : `RPE ${String(d.rpe).replace('.',',')}`) + ' · ' + words[idx];
+  }
+  const labels = ['cómodo','firme','exigente','muy duro','al límite','todo'];
+  const plan = d.planRir != null ? Math.max(4, Math.min(96, (10 - d.planRir) * 10)) : 35;
+  return `<div class="k-effort">
+    <div class="k-effort-head"><span class="k-eyebrow">ESFUERZO</span><span class="r">${esc(right)}</span></div>
+    <div class="k-trackwrap"><div class="k-track"><i class="fill" style="width:${fill}%"></i><i class="plan" style="left:${plan}%"></i><i class="thumb" style="left:${fill}%"></i></div></div>
+    <div class="k-effort-labels">${labels.map((w,i) => `<span class="${i===idx?'on':''} ${w==='todo'?'fail':''}">${w}</span>`).join('')}</div>
+    ${d.hint ? `<div class="k-hint">${esc(d.hint)}</div>` : ''}
+  </div>`;
+}
+
+function romBlock(d){
+  return `<div class="k-rom"><span class="k-eyebrow">ROM</span><div class="k-slider"><i style="width:100%"></i><b style="left:100%"></b></div><span class="val">${esc(d.rom || 100)} %</span></div>`;
+}
+
+function statusLine(d){
+  if (d.status) return `<div class="k-appstatus ${d.statusErr ? 'err' : ''}">${esc(d.status)}</div>`;
+  if (d.loadRequired) return `<div class="k-appstatus">Elige una carga para registrar la serie.</div>`;
+  return `<div class="k-appstatus">Registra el resultado realizado con ✓</div>`;
+}
+
+function actionsFront(){
+  return `<div class="k-actions">
+    <button class="k-action" data-act="flip-tech">Avanzado</button>
+    <button class="k-action" data-act="flip-media">Modo visual</button>
+    <button class="k-action icon" data-act="sheet:history" aria-label="Historial del ejercicio">${icon('history',14)}</button>
+  </div>`;
+}
+
+function failOverlay(){
+  return `<div class="k-failoverlay">
+    <div class="t">Marcaste esta serie como fallida</div>
+    <div class="d">Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.</div>
+    <div class="l">Causa o motivo del fallo (opcional):</div>
+    <div class="field">Ej. Molestia en hombro, fallo técnico, carga excesiva…</div>
+    <div class="chips"><span>Molestia articular</span><span>Fallo técnico</span><span>Carga excesiva</span><span>Pérdida de agarre</span></div>
+    <button class="rev" data-act="revert">Revertir</button>
+  </div>`;
+}
+
+function guided(d, kind){
+  if (kind === 'drop') return `<div class="k-guided">
+    <div class="eyebrowline">DROP-SET 1/2</div>
+    <div class="cp">Sin descanso. Baja el peso y completa ~6 reps.</div>
+    <div class="fields"><div class="f">Peso sugerido</div><div class="f">Repeticiones</div></div>
+    <div class="sug">Sugerido: 80 kg para ~6 reps</div>
+    <div class="skip" data-act="flip-front">Saltar técnica y registrar solo la serie</div>
+  </div>`;
+  if (kind === 'count') return `<div class="k-guided">
+    <div class="eyebrowline">MYO-REPS 1/3</div>
+    <div class="cp">Pausa fija de 15 s. Luego harás 4 reps.</div>
+    <div class="bigclock">${icon('timer',22)} <b>15 s</b></div>
+    <div class="bar"><i></i></div>
+    <div class="skip" data-act="flip-front">Saltar técnica y registrar solo la serie</div>
+  </div>`;
+  return `<div class="k-guided">
+    <div class="eyebrowline">REST-PAUSE 2/3</div>
+    <div class="cp">Confirma las 4 reps de esta mini-serie.</div>
+    <div class="fields"><div class="f">Repeticiones</div></div>
+    <div class="skip" data-act="flip-front">Saltar técnica y registrar solo la serie</div>
+  </div>`;
+}
+
+/* ── caras ── */
+function techFace(s){
+  const d = s.data || {};
+  const segs = ['Normal','Drop-set','Rest-pause','Myo-reps'];
+  const segKey = d.segment || 'normal';
+  const segMap = {normal:0, drop:1, pause:2, myo:3};
+  const seg = segs.map((x,i) => `<button class="${i===segMap[segKey]?'on':''}" data-act="tech:${['normal','drop','pause','myo'][i]}">${x}</button>`).join('');
+  const empty = d.empty || segKey === 'normal';
+  const chain = (d.chain || []).map((l,i) => `<div class="k-link ${l.on?'on':''}"><span class="t">${esc(l.t)}</span><span class="v">${esc(l.v)}</span><span class="s">${esc(l.s||'')}</span></div>`).join('<span class="arrow">→</span>');
+  const head = `<div class="k-facehead"><button class="k-pillbtn" data-act="flip-front">${icon('chevronLeft',16)} Serie 3</button>${d.pr ? '<span class="k-prchip">PR: foto/video</span>' : ''}<span class="eyebrow">AVANZADO</span></div>`;
+  let body = '';
+  if (empty) {
+    body = `<div class="k-chaintitle">CADENA DE LA SERIE</div>
+      <div style="font-size:11px;line-height:15px;color:var(--faint);padding:8px 2px">Elige drop-set o rest-pause</div>
+      <div style="flex:1"></div>
+      <div class="k-note"><div class="lb">NOTA DE LA SERIE</div><div class="k-input">Añadir una nota de esta serie</div></div>
+      <div class="k-errorpill">Error de ejecución</div>`;
+  } else {
+    const open = d.active != null ? d.active : 1;
+    const l = (d.chain || [])[open] || {};
+    const isPause = segKey === 'pause' || segKey === 'myo';
+    body = `<div class="k-chaintitle">CADENA DE LA SERIE</div>
+      <div class="k-chain">${chain || '<div class="k-link on"><span class="t">Principal</span><span class="v">100 × 6</span><span class="s">—</span></div>'}<div class="k-addlink">${icon('plus',16)}</div></div>
+      <div class="k-stepbox">
+        <div class="row"><span class="t">${esc(l.t || (isPause?'Pausa 1':'Drop 1'))}</span><span class="sug">${esc(d.suggested || (isPause?'15 s':'Sugerido 80 kg'))}</span><span class="k-done ${d.doneStep?'on':''}">${icon('check',14)}</span></div>
+        <div class="k-stepsrow">
+          <div class="k-stepper"><span class="b">−</span><span class="v">${esc(isPause ? (d.reps || '3') : (d.weight || '80'))}<small>${isPause?'reps':'kg'}</small></span><span class="b">+</span></div>
+          <div class="k-stepper"><span class="b">−</span><span class="v">${esc(isPause ? (d.secs || '15') : (d.reps || '6'))}<small>${isPause?'s':'reps'}</small></span><span class="b">+</span></div>
+        </div>
+      </div>
+      <div class="k-chaintitle">${segKey==='myo'?'ASÍ SE VEN LOS MYO-REPS':'ASÍ SE VE UN '+(segKey==='pause'?'REST-PAUSE':'DROP-SET')}</div>
+      <div class="k-explain">${(d.explanation || ['100 × 6','80 × 6','60 × 8']).map((x,i) => `<span class="blk ${i===(d.explanation||[]).length-1?'last':''}">${esc(x)}</span>`).join('')}</div>
+      <div class="k-note"><div class="lb">NOTA DE LA SERIE</div><div class="k-input">Añadir una nota de esta serie</div></div>
+      <div class="k-errorpill">Error de ejecución</div>`;
+  }
+  return `<div class="k-card"><div class="k-face">${head}<div class="k-seg tech">${seg}</div>${body}</div></div>`;
+}
+
+function mediaFace(s){
+  const d = s.data || {};
+  const video = d.mode !== 'photo';
+  const analysis = d.analysis || 'idle';
+  let foot = `Se guarda en el álbum con la serie 3 · 100 kg · RIR 2.`;
+  if (analysis === 'count') foot = `El vídeo cuenta ${d.count||8} · ver análisis`;
+  if (analysis === 'unsure') foot = `Vídeo no concluyente · ver por qué`;
+  if (analysis === 'analyzing') foot = `Analizando el vídeo de la serie 3… 64 %`;
+  const thumbs = (d.thumbs || ['1','2','3']).map((t,i) => `<div class="k-thumb2">${t}${i===0?'<span class="bdg">'+(analysis==='count'?(d.count||8):'?')+'</span>':''}</div>`).join('');
+  return `<div class="k-card"><div class="k-face" style="padding:10px">
+    <div class="k-facehead" style="height:32px"><button class="k-pillbtn" data-act="flip-front">${icon('chevronLeft',16)} Serie 3</button><button class="k-pillbtn" style="margin-left:auto" data-act="sheet:album">${icon('album',16)} Álbum</button><button class="k-pillbtn icon" aria-label="Expandir">${icon('expand',14)}</button></div>
+    <div class="k-mstage">
+      <div class="grid"></div>
+      <div class="k-mtop"><div class="k-switch"><b class="${!video?'on':''}" data-act="media:photo">Foto</b><b class="${video?'on':''}" data-act="media:video">Vídeo</b></div><span class="k-ficha">${icon('info',14)} Ficha</span></div>
+      <div class="k-mbottom">
+        <div class="k-gal"><span class="lb">Galería</span><div class="k-thumbs">${thumbs}</div><span style="font-size:10px;color:var(--ink);margin-top:2px">Ver álbum</span></div>
+        <div class="k-shutter ${video?'video':''}" data-act="media:capture"><i></i></div>
+      </div>
+    </div>
+    <div class="k-mediafoot"><div class="fit">${video?icon('video',18):icon('camera',18)}</div><div class="ln">${esc(foot)}${analysis==='analyzing'?'<br><b>Cancelar análisis</b>':''}</div></div>
+  </div></div>`;
+}
+
+/* ── preparación ── */
+function prepMob(s){
+  const d = s.data || {};
+  const view = d.view || 'move';
+  const head = `<div class="head"><span class="t">Movilidad</span><span class="k-chip" style="margin-left:auto">${d.view==='global'?esc(d.remaining):'08:12'}</span><span class="k-chip muted" style="margin-left:0">${view==='list'?'Cerrar lista':'Ver lista'}</span></div>`;
+  let body = '';
+  if (view === 'move') {
+    body = `<div class="body">
+      <div class="hero"><span class="v">${esc(d.remaining || '0:28')}</span><span class="u">restante</span><span class="side"><b>${esc(d.dose || '3 × 40″')}</b><span>por lado</span></span></div>
+      <div class="sub">Sentadilla profunda · Movimiento 2 de 6</div>
+      <div class="dosecard"><span class="l">Dosis</span><span class="d">${esc(d.dose || '3 × 40″')}</span><span style="font-size:10.5px;color:var(--muted)">${esc(d.note || 'Talones apoyados, rodillas hacia fuera.')}</span></div>
+      <div class="k-minirow"><span class="k-minibtn">${icon('play',12)} Iniciar</span><span class="k-minibtn">+30 s</span><span class="k-minibtn">Reiniciar</span></div>
+      <div class="mrows" style="margin-top:2px">
+        <div class="k-mrow done"><span class="check">✓</span><span class="nm">Tobillo</span><span class="dose">40″</span></div>
+        <div class="k-mrow on"><span class="check"></span><span class="nm">Sentadilla profunda</span><span class="dose">3 × 40″</span></div>
+        <div class="k-mrow"><span class="check"></span><span class="nm">Apertura de cadera</span><span class="dose">8 reps</span></div>
+        <div class="k-mrow"><span class="check"></span><span class="nm">Isquios</span><span class="dose">30″</span></div>
+      </div>
+    </div>`;
+  } else if (view === 'list') {
+    body = `<div class="body"><div class="sub" style="color:var(--ink)">3/6 movimientos hechos</div>
+      <div class="mrows">${[['Tobillo','40″','done'],['Sentadilla profunda','3 × 40″','on'],['Apertura de cadera','8 reps',''],['Isquios','30″',''],['Glúteo','40″',''],['Psoas','30″','']].map(r => `<div class="k-mrow ${r[2]}"><span class="check">${r[2]==='done'?'✓':''}</span><span class="nm">${r[0]}</span><span class="dose">${r[1]}${r[2]==='on'?' · en pantalla':''}</span></div>`).join('')}</div></div>`;
+  } else if (view === 'global') {
+    body = `<div class="body" style="justify-content:center;gap:8px">
+      <div class="sub">Objetivo global · 12 min</div>
+      <div style="font-family:var(--syne);font-size:48px;line-height:54px;font-weight:700;font-variant-numeric:tabular-nums">${esc(d.remaining || '08:12')}</div>
+      <div class="k-prepbtn primary" style="width:100%;flex:none">Pausar</div>
+      <div class="k-minirow"><span class="k-minibtn">+30 s</span><span class="k-minibtn">Reiniciar</span></div>
+      <div class="k-prepbtn quiet" style="width:100%;flex:none;margin-top:2px">Volver al movimiento</div>
+    </div>`;
+  } else if (view === 'end') {
+    body = `<div class="body" style="justify-content:center;align-items:center;text-align:center;gap:6px">
+      <div style="font-family:var(--syne);font-size:22px;line-height:28px;font-weight:700">Movilidad completada</div>
+      <div class="sub">Puedes continuar con las aproximaciones.</div>
+      <div class="sub" style="color:var(--faint)">6 de 6 movimientos hechos.</div>
+      <div class="k-prepbtn primary" style="width:100%;flex:none;margin-top:6px">Continuar con aproximación</div>
+    </div>`;
+  } else {
+    body = `<div class="body" style="justify-content:center;gap:8px">
+      <div class="sub">Descanso</div>
+      <div style="font-family:var(--syne);font-size:44px;line-height:48px;font-weight:700">${esc(d.remaining || '0:40')}</div>
+      <div style="height:5px;border-radius:999px;background:var(--inset);overflow:hidden"><i style="display:block;height:100%;width:66%;background:var(--muscle)"></i></div>
+      <div class="k-prepbtn primary" style="width:100%;flex:none;margin-top:4px">Saltar</div>
+    </div>`;
+  }
+  const status = (view==='move'||view==='list') ? `<div class="k-appstatus" style="padding:0 2px 4px">Completa cada movimiento para avanzar.</div>` : '';
+  const actions = view==='move' ? `<div class="actions"><button class="k-prepbtn quiet" data-act="prep:skip">Saltar fase</button><button class="k-prepbtn primary" data-act="prep:done">Hecho</button></div>` : '';
+  return `<div class="k-card"><div class="k-prep">${head}${body}${status}${actions}</div></div>`;
+}
+
+function prepWarm(s){
+  const d = s.data || {};
+  const rows = (d.rows || []).map((r,i) => `<div class="k-warmrow ${i===d.active?'on':''}"><span class="p">${r[0]}</span><span class="r">${r[1]}</span><span class="kg">${r[2]}</span><span class="x">${r[3]}</span><span class="rest">${r[4]}</span></div>`).join('');
+  const skipped = !!d.skipped;
+  return `<div class="k-card"><div class="k-prep">
+    <div class="head"><span class="t">Aproximación</span><span class="k-chip" style="margin-left:auto">${d.rows ? d.rows.length : 0}/4</span><span class="k-chip muted" style="margin-left:0">${icon('plus',12)}</span></div>
+    ${skipped ? `<div class="body" style="justify-content:center;align-items:center;text-align:center;gap:6px"><div style="font-family:var(--syne);font-size:22px;line-height:28px;font-weight:700">Fase omitida</div><div class="sub">Las series efectivas siguen pendientes.</div><div class="k-prepbtn primary" style="width:100%;flex:none;margin-top:6px">Continuar con series</div></div>` : `
+    <div class="sub" style="color:var(--muted)">Primera serie efectiva · ${esc(d.anchor || 100)} kg</div>
+    <div class="body" style="gap:0">${rows}</div>
+    ${d.added ? `<div class="k-loadwarn" style="color:var(--energy);font-size:10px;padding:2px 2px">Demasiadas aproximaciones: máximo recomendado 4 para 2 series efectivas.</div>` : ''}
+    <div class="k-appstatus" style="padding:0 2px 4px">${d.added ? 'Aproximación añadida.' : 'Marca cada aproximación al terminar.'}</div>
+    <div class="actions"><button class="k-prepbtn quiet" data-act="prep:skip">Saltar fase</button><button class="k-prepbtn primary" data-act="prep:next">Continuar con series</button></div>`}
+  </div></div>`;
+}
+
+function cardio(s){
+  const d = s.data || {};
+  const p = ['WORK','RECUPERACIÓN','ZONA 2','EXTERIOR'].includes(d.phase) ? d.phase : 'TRABAJO';
+  const bars = [18,30,22,42,26,36,20,44,24,38,30,46,22,34,26,40,18,32,24,36].map((h,i) => `<i style="height:${h}px" class="${i%4===0?'w':''}"></i>`).join('');
+  return `<div class="k-card"><div class="k-cardio">
+    <div class="head"><span class="k-eyebrow">CARDIO</span><span class="nm">Cinta · intervalos</span></div>
+    <div class="phase"><b>Ahora · ${esc(p)}</b><span>Siguiente · ${esc(d.next || 'Recuperación 1:00')}</span></div>
+    <div class="ringbox"><div class="k-ringbig"><div class="in"><span>Transcurrido</span><b>${esc(d.time || '18:24')}</b></div></div></div>
+    <div class="metrics"><div class="p"><b>${esc(d.hr || '142')}</b><span>FC media</span></div><div class="p"><b>${esc(d.kcal || '210')}</b><span>kcal</span></div><div class="p"><b>${esc(d.dist || '2,4')}</b><span>km</span></div></div>
+    <div class="k-chart">${bars}</div>
+    <div class="splits">Splits ${esc((d.splits||[]).join(' · '))}</div>
+    <div class="k-appstatus" style="padding:0">En curso · 4 realizados · 4 restantes</div>
+    <div class="k-actions" style="padding:0;border:0;margin-top:2px"><button class="k-action" data-act="prep:skip">Pausar</button><button class="k-action" data-act="sheet:calories">Finalizar y registrar</button></div>
+  </div></div>`;
+}
+
+/* ── descanso ── */
+function clockSVG(shape, progress){
+  const p = Math.max(0, Math.min(1, progress));
+  if (shape === 'track') {
+    return `<svg viewBox="0 0 120 104" aria-hidden="true">
+      <rect x="12" y="20" width="96" height="64" rx="32" fill="none" stroke="#242424" stroke-width="2"/>
+      <rect x="12" y="20" width="96" height="64" rx="32" fill="none" stroke="#F2EEE6" stroke-width="2" pathLength="100" stroke-dasharray="${p*100} 100" stroke-linecap="round"/>
+      <circle cx="${12 + 96*Math.min(1,p*1.0)}" cy="${20 + 32}" r="2.6" fill="#F2EEE6"/>
+    </svg>`;
+  }
+  if (shape === 'spiral') {
+    let d = 'M60 52';
+    for (let i=0;i<12;i++){
+      const a0 = Math.PI * (i/6), a1 = Math.PI * ((i+1)/6);
+      const r0 = 8 + i*5, r1 = 8 + (i+1)*5;
+      d += ` L${(60 + r0*Math.cos(a0)).toFixed(1)} ${(52 + r0*Math.sin(a0)).toFixed(1)} L${(60 + r1*Math.cos(a1)).toFixed(1)} ${(52 + r1*Math.sin(a1)).toFixed(1)}`;
+    }
+    return `<svg viewBox="0 0 120 104" aria-hidden="true">
+      <path d="${d}" fill="none" stroke="#242424" stroke-width="2"/>
+      <path d="${d}" fill="none" stroke="#F2EEE6" stroke-width="2" pathLength="100" stroke-dasharray="${p*100} 100" stroke-linecap="round"/>
+    </svg>`;
+  }
+  const rings = [[60,78,48,14],[60,39,11,6],[35,26,8,5]];
+  const pp = p*3;
+  return `<svg viewBox="0 0 120 104" aria-hidden="true">
+    ${rings.map((r,i) => {
+      const fill = Math.max(0, Math.min(1, pp - i));
+      const ang = -Math.PI/2 + fill*Math.PI*2;
+      const cx = r[0] + r[2]*Math.cos(ang), cy = r[1] + r[3]*Math.sin(ang);
+      return `<ellipse cx="${r[0]}" cy="${r[1]}" rx="${r[2]}" ry="${r[3]}" fill="none" stroke="#242424" stroke-width="2"/>
+        <ellipse cx="${r[0]}" cy="${r[1]}" rx="${r[2]}" ry="${r[3]}" fill="none" stroke="#F2EEE6" stroke-width="2" pathLength="100" stroke-dasharray="${fill*100} 100" stroke-linecap="round"/>
+        ${fill>0&&fill<1?`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.6" fill="#F2EEE6"/>`:''}`;
+    }).join('')}
+  </svg>`;
+}
+
+function rest(s){
+  const d = s.data || {};
+  const extra = d.extra || d.mode === 'extra';
+  const label = extra ? 'TIEMPO EXTRA' : 'DESCANSO';
+  const mode = d.mode === 'manual' ? '· manual' : (d.mode === 'adaptive' ? '· sugerido' : '· sugerido');
+  const time = d.remaining || '1:12';
+  return `<div class="k-card"><div class="k-rest">
+    <div class="head"><span class="lb">${label}</span><span class="mode">${extra ? '+0:34 sobre 2:00' : `${mode} · de ${d.total||'2:00'}`}</span></div>
+    <div class="clockwrap"><div class="k-restclock">${clockSVG(d.shape || 'tower', d.progress == null ? .4 : d.progress)}</div></div>
+    <div class="k-rest-time"><b>${esc(time)}</b><span>${extra ? 'sobre 2:00' : 'restante'}</span></div>
+    ${extra ? `<div class="k-band center"><span>El descanso se pasó · la siguiente serie puede verse afectada</span></div>` : ''}
+    <div class="last"><span class="lb">ÚLTIMA SERIE</span><span style="font-size:9px;color:var(--faint)">RIR 2</span><b>100 × 8</b></div>
+    <div class="next"><div class="lb">Siguiente</div><div class="v">Serie 4 · 100 kg × 8</div><div class="e">RIR 2 · 2:00 de descanso</div></div>
+    ${d.play !== false && !extra ? `<div class="k-playpill"><span class="c">${icon('play',15)}</span><span>Jugar mientras descansas</span></div>` : ''}
+    <div class="ctrl">${extra ? `<div class="b skip" style="flex:1.6">Empezar la serie 4</div><div class="b">+30 s</div>` : `<div class="b" data-act="rest:-15">−15 s</div><div class="b skip" data-act="rest:skip">Saltar</div><div class="b" data-act="rest:+15">+15 s</div>`}</div>
+    ${extra ? '<div class="hint">Necesito +30 s</div>' : '<div class="hint">Descanso sugerido · última RIR 2</div>'}
+  </div></div>`;
+}
+
+function game(s){
+  const d = s.data || {};
+  if (d.game === 'arcade') {
+    return `<div class="k-card"><div class="k-game">
+      <div style="display:flex;align-items:baseline;padding:0 2px"><span style="font-family:var(--syne);font-size:17px;font-weight:700">Jugar mientras descansas</span><span style="margin-left:auto;font-size:10px;color:var(--faint)">1:12</span></div>
+      <div class="k-sheet .tile" style="display:flex;gap:6px">
+        <div style="flex:1;min-height:120px;border-radius:18px;background:#111;border:1px solid rgba(255,255,255,.09);padding:12px"><b style="display:block;font-family:var(--syne);font-size:18px">RUNNER</b><span style="font-size:11px;color:var(--muted)">Salta las mancuernas</span></div>
+        <div style="flex:1;min-height:120px;border-radius:18px;background:#111;border:1px solid rgba(255,255,255,.09);padding:12px"><b style="display:block;font-family:var(--syne);font-size:18px">FLAPPY</b><span style="font-size:11px;color:var(--muted)">Entre las pesas</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="height:4px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--muscle),var(--energy))"></div>
+      <div class="ctrl" style="display:flex;gap:6px"><div class="b" style="flex:1;height:44px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:12px;font-weight:600">Volver al descanso</div><div class="b" style="flex:1;height:44px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:12px;font-weight:600">Otra partida</div></div>
+    </div></div>`;
+  }
+  return `<div class="k-card"><div class="k-game">
+    <div class="arena k-arena" style="border-radius:22px">
+      <div class="hud"><span>Saltos<br><b>${d.score||18}</b></span><span style="text-align:right">récord ${d.best||24} · ♥×${d.lives||3}<br><span style="color:var(--faint)">Toca para saltar</span></span></div>
+      <div class="ground"></div>
+      <div class="k-runner"></div>
+      <div class="k-obs" style="left:220px"></div>
+      <div class="k-obs b" style="left:300px"></div>
+      <div class="k-obs c" style="left:150px"></div>
+      <div style="position:absolute;left:12px;bottom:10px;font-size:9px;color:var(--faint)">Salta potente · Velocidad</div>
+    </div>
+    <div style="display:flex;gap:6px"><div style="flex:1;height:44px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:12px;font-weight:600">Saltar descanso</div><div style="width:44px;height:44px;border-radius:999px;background:var(--inset);display:grid;place-items:center">${icon('close',16)}</div></div>
+  </div></div>`;
+}
+
+function feedback(s){
+  const d = s.data || {};
+  const sel = d.selected || [];
+  const chips = ['Rodilla anterior','Lumbar','Hombro anterior','Cadera','Tobillo','Codo'].map(x => `<span class="dchip ${sel.includes(x)?'on':''}"><i class="pt"></i>${x}</span>`).join('');
+  const strip = d.compact ? `<div class="k-fbstrip"><div class="ring"></div><b>1:12</b><span>de 2:00</span><span style="margin-left:auto">Expandir</span></div>` : '';
+  return `<div class="k-card"><div class="k-fb">
+    ${strip}
+    <div class="head"><span class="t">¿Cómo te salió?</span><span>${d.compact?'4 series':'Sentadilla'}</span></div>
+    <div class="tech"><div class="fig">${icon('body',20)}</div><div><div class="l">CALIDAD TÉCNICA</div><b>${d.score||8} <small>/ 10 · ${esc(d.word||'buena')}</small></b></div><div class="slider"><i></i></div></div>
+    <div class="search">${icon('search',14)} Rodilla, lumbar, hombro…</div>
+    <div class="chips">${chips}</div>
+    ${d.related ? `<div class="rel"><b>Molestias previas relacionadas</b>${esc(d.history||'la reportaste el 3 de septiembre')} · Comparten zona y ejercicio. <span style="color:var(--green);font-weight:600">Sigue</span></div>` : ''}
+    ${d.compact ? '<div class="k-appstatus" style="margin-top:2px">El descanso sigue corriendo · 1:12</div>' : '<div class="k-appstatus" style="margin-top:2px">Se guarda con el ejercicio, no con la serie.</div>'}
+    <div class="act"><div class="b inset" data-act="feedback:skip">Saltar${d.compact?' descanso':''}</div><div class="b primary" data-act="feedback:save">Guardar</div></div>
+  </div></div>`;
+}
+
+/* ── mesa ── */
+function mesa(s){
+  const d = s.data || {};
+  const exp = d.expand || 'none';
+  const editor = `<div class="k-meditor">
+    <div class="r1"><span class="big">100</span><span class="u">kg</span><div class="mini"><span>−2,5</span><span>+2,5</span></div></div>
+    <div class="r2"><div class="k-rir"><span>0</span><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><span class="e1">e1RM 112,5</span></div>
+    <div class="acts"><span>Técnica</span><span>ROM</span><span>Molestia</span><span>Nota</span><span>Vídeo</span><span>Foto</span><span>Hist.</span></div>
+    ${exp==='media'?`<div style="display:flex;gap:6px;margin-top:8px;align-items:center"><div class="k-switch"><b class="on">Foto</b><b>Vídeo</b></div><span style="margin-left:auto;font-size:9px;color:var(--muted)">Ficha</span><span style="font-size:9px;color:var(--muted)">Álbum</span></div><div class="k-thumbs" style="margin-top:5px"><div class="k-thumb2">3</div><div class="k-thumb2">2</div><div class="k-thumb2">1</div></div>`:''}
+    ${exp==='tech'?`<div class="k-seg tech" style="margin-top:8px"><button class="on">Drop</button><button>Pausa</button><button>Myo</button></div><div class="k-chain" style="margin-top:6px"><div class="k-link on"><span class="t">Principal</span><span class="v">100 × 8</span></div><span class="arrow">→</span><div class="k-link"><span class="t">Drop 1</span><span class="v">80 × 6</span></div></div>`:''}
+    ${exp==='injury'?`<div class="k-band" style="margin-top:8px"><span>Molestia: rodilla anterior · hoy</span></div>`:''}
+  </div>`;
+  const row = (idx, ex, ld, ef, st, cls='') => `<div class="k-tr ${cls}"><span class="idx">${idx}</span><span class="ex">${ex}</span><span class="ld">${ld}</span><span class="ef">${ef}</span><span class="st">${st}</span></div>`;
+  const groupA = `<div class="k-mgroup"><span class="nm">Sentadilla trasera</span><span class="tag">Barra libre</span><span class="meta">100 kg · 4 series · ⋯</span></div>
+    ${row('A1','20 %','20 × 10','','✓','done')}${row('A2','40 %','60 × 5','','✓','done')}
+    ${row('1','Efectiva','100 × 8','RIR 3','✓','done')}${row('2','Efectiva','100 × 8','RIR 2','✓','done')}
+    ${row('3','Efectiva','100 × 8','RIR 2','●','active')}${editor}${row('4','Efectiva','100 × 8','—','·')}`;
+  const groupB = d.superset
+    ? `<div class="k-mgroup"><span class="nm">Superserie · Prensa + Curl</span><span class="tag">Ronda 1 / 3</span><span class="meta">2 ejercicios · ⋯</span></div>
+       ${row('1','Prensa de piernas','180 × 10','RIR 2','●','active')}${row('2','Curl femoral','60 × 12','RIR 1','·')}${row('3','Prensa de piernas','180 × 10','—','·')}`
+    : `<div class="k-mgroup"><span class="nm">Peso muerto rumano</span><span class="tag">Multipower</span><span class="meta">140 kg · 3 series · ⋯</span></div>
+       ${row('A1','60 %','80 × 5','','✓','done')}${row('1','Efectiva','140 × 5','RIR 2','·')}${row('2','Efectiva','140 × 5','—','·')}`;
+  return `<div class="k-mesa">
+    <div class="mtop"><b>Pierna · Semana 1</b><span>9 ejercicios · 34 series</span></div>
+    <div class="scroll">${groupA}${groupB}
+      <div class="k-mgroup"><span class="nm">Prensa de piernas</span><span class="tag">Máquina</span><span class="meta">180 kg · 4 series · ⋯</span></div>
+      ${row('1','Efectiva','180 × 10','RIR 2','·')}${row('2','Efectiva','180 × 10','—','·')}
+    </div>
+  </div>`;
+}
+
+/* ── hojas ── */
+function sheet(id){
+  const s = SHEETS[id];
+  if (!s) return '';
+  const tall = id==='route'||id==='reorder'?'tall':'';
+  const full = id==='album'||id==='finish'?'full':'';
+  let h = `<div class="k-scrim" data-act="close-sheet"></div><div class="k-sheet ${tall} ${full}">`;
+  h += `<div class="k-handle"></div><div class="k-sheethead"><div class="st">${esc(s.title)}</div><button class="k-sheetx" data-act="close-sheet" aria-label="Cerrar ${esc(s.title)}">Cerrar</button></div>`;
+  if (s.desc) h += `<div class="sd">${esc(s.desc)}</div>`;
+  if (s.big) h += `<div style="font-family:var(--syne);font-size:34px;line-height:38px;font-weight:800;margin:2px 0 8px">${esc(s.big)}</div>`;
+  if (s.metrics) h += `<div class="metric">${s.metrics.map(m => `<div><b>${esc(m[0])}</b><span>${esc(m[1])}</span></div>`).join('')}</div>`;
+  if (s.simple && s.rows) h += s.rows.map(r => `<div class="k-srow"><span class="val" style="font-size:12.5px;font-weight:600">${esc(r[1])}</span><span class="x">${icon('chevronRight',14)}</span></div>`).join('');
+  else if (s.rows && s.rows.length) h += s.rows.map(r => `<div class="k-srow"><span class="key">${esc(r[0])}</span><span class="val">${esc(r[1])}</span>${r[2]?`<span class="x ${r[2]==='Hecha'||r[2]==='PR'?'on':''}">${esc(r[2])}</span>`:''}</div>`).join('');
+  if (s.toggle) h += `<div class="k-srow"><span class="key">↗</span><span class="val">${esc(s.toggle)}</span><span class="sw on"></span></div>`;
+  if (s.sect) h += `<div class="sect">${esc(s.sect)}</div>`;
+  if (s.tiles) h += `<div class="tile">${s.tiles.map((t,i) => `<div class="${i===1?'on':''}"><b>${esc(t[0])}</b>${esc(t[1])}</div>`).join('')}</div>`;
+  if (s.subs) h += `<div class="sect">Subetiquetas</div>` + s.subs.map(x => `<div class="k-srow"><span class="key">×</span><span class="val">${esc(x)}</span><span class="x">Quitar</span></div>`).join('');
+  if (s.fields) h += `<div class="metric" style="margin-top:8px">${s.fields.map(f => `<div><span>${esc(f)}</span><b style="font-size:14px;color:var(--faint)">—</b></div>`).join('')}</div>`;
+  if (s.input) h += `<div class="inp">${esc(s.input)}</div>`;
+  if (s.hint) h += `<div style="font-size:10px;line-height:14px;color:var(--faint);margin-top:8px">${esc(s.hint)}</div>`;
+  if (s.actions && s.actions.length) h += `<div class="rowbtns">${s.actions.map((a,i) => `<div class="b ${i===s.actions.length-1?'primary':''}" data-act="close-sheet">${esc(a)}</div>`).join('')}</div>`;
+  h += `</div>`;
+  return h;
+}
+
+function dialog(kind, s){
+  if (kind === 'update') return `<div class="k-scrim"></div><div class="k-dialog"><div class="box">
+    <div class="t">Actualizar serie</div><div class="d">Esta serie ya estaba registrada. ¿Quieres actualizarla?</div>
+    <div class="rowbtns" style="display:flex;gap:6px;margin-top:10px"><div class="b" style="flex:1;height:40px;border-radius:999px;background:var(--inset);display:grid;place-items:center;font-size:11px;font-weight:700" data-act="close-dialog">Cancelar</div><div class="b" style="flex:1;height:40px;border-radius:999px;background:var(--ink);color:#0B0B0A;display:grid;place-items:center;font-size:11px;font-weight:700" data-act="close-dialog">Actualizar</div></div>
+  </div></div>`;
+  if (kind === 'blocked') return `<div class="k-scrim"></div><div class="k-dialog"><div class="box">
+    <div class="t">¿Qué deseas hacer?</div><div class="d">Puedes pausar y continuar después. Lo registrado se conserva.</div>
+    <div class="r">Continuar entrenando</div><div class="r">Terminar hasta acá</div><div class="r">Pausar y salir</div><div class="r" style="color:var(--danger)">Abandonar sin guardar</div>
+    <div class="b" data-act="close-dialog">Continuar entrenando</div>
+  </div></div>`;
+  return '';
+}
+
+/* ── fundamentos ── */
+function foundations(kind){
+  if (kind === 'type') return `<div class="k-found">
+    <h2>Tipografía</h2><div class="lead">Syne lleva las cifras y los títulos. Inter, todo lo que se lee. Cifras tabulares siempre.</div>
+    <div class="grp"><h3>Roles en vivo</h3><div class="type">
+      <div><b>102,5</b><span>Syne Bold · 34/44 · héroe</span></div>
+      <div><b class="sm">Sentadilla trasera</b><span>Syne Bold · 20/24 · título</span></div>
+      <div><span class="in" style="letter-spacing:1.2px;text-transform:uppercase;font-weight:600">ESFUERZO</span><span>Inter · 10/14 · eyebrow</span></div>
+      <div><span class="in">Elige una carga para 8 reps dejando 2 en reserva.</span><span>Inter · 11/16 · caption</span></div>
+      <div><span class="in" style="font-weight:600">Registrar serie</span><span>Inter · 13/16 · chip</span></div>
+    </div></div>
+    <div class="grp"><h3>Reglas</h3><div class="rules"><div>Una cifra y su unidad comparten línea base.</div><div>Nada de unidades en superíndice.</div><div>Al 130 % una fila puede pasar a dos líneas; nada se corta.</div><div>El mínimo de lectura es 11 sp; 7–10 sp solo para estado del carril.</div></div></div>
+  </div>`;
+  if (kind === 'motion') return `<div class="k-found">
+    <h2>Movimiento</h2><div class="lead">El movimiento explica un cambio. No decora. Todo tiene versión reducida.</div>
+    <div class="grp"><h3>Tiempos</h3><div class="measure">
+      <span>Giro de tarjeta</span><b>420 ms</b><span>Undo</span><b>200 + 260/200</b>
+      <span>Reloj Torre/Pista</span><b>4,5 s</b><span>Espiral</span><b>9 s</b>
+      <span>Tiempo extra</span><b>1,8 s</b><span>Marquesina</span><b>2500 + viaje</b>
+      <span>Pulsación</span><b>0,97</b><span>God mode</span><b>260 / 220</b>
+    </div></div>
+    <div class="grp"><h3>Reglas</h3><div class="rules"><div>Nada se mueve sin motivo.</div><div>La tarjeta nunca cambia de tamaño al animar.</div><div>Con movimiento reducido: solo fundidos, sin bucles.</div></div></div>
+  </div>`;
+  return `<div class="k-found">
+    <h2>Superficies</h2><div class="lead">Negro puro, módulo #111111 y filete blanco al 7 %. Sin sombras decorativas.</div>
+    <div class="grp"><h3>Tokens</h3><div class="swatches">
+      <div class="sw" style="background:#000"><span>#000</span></div>
+      <div class="sw" style="background:#111"><span>#111</span></div>
+      <div class="sw" style="background:#1A1A1A"><span>#1A1A1A</span></div>
+      <div class="sw" style="background:#1B1B1B"><span>#1B1B1B</span></div>
+      <div class="sw" style="background:#F49A6E"><span>#F49A6E</span></div>
+      <div class="sw" style="background:#F7CF73"><span>#F7CF73</span></div>
+      <div class="sw" style="background:#43D18C"><span>#43D18C</span></div>
+      <div class="sw" style="background:#8FB2FF"><span>#8FB2FF</span></div>
+    </div></div>
+    <div class="grp"><h3>Geometría</h3><div class="measure">
+      <span>Lienzo</span><b>393 × 852</b><span>Cabecera</span><b>119 dp</b>
+      <span>Tarjeta</span><b>345 × 470</b><span>Raíl</span><b>112 dp</b>
+      <span>Radio tarjeta</span><b>28 dp</b><span>Filete</span><b>1 dp · 7 %</b>
+    </div></div>
+    <div class="grp"><h3>Reglas</h3><div class="rules"><div>Sin sombras en módulos.</div><div>Sin ripple de Material.</div><div>Dentro de un módulo no hay otra caja.</div></div></div>
+  </div>`;
+}
+
+/* ── escena completa ── */
+function renderPhone(s){
+  const g = sceneSize(s);
+  const c = chromeOf(s);
+  const d = s.data || {};
+  const kind = s.kind === 'front' && state.face ? state.face : s.kind;
+  let inner = '';
+
+  if (kind === 'found') {
+    inner = foundations(s.found);
+    return `<div class="k-phone ${g.compact?'compact':''}" style="--pw:${g.w}px;--ph:${g.h}px">${statusbar()}${inner}</div>`;
+  }
+
+  let content = '';
+  if (kind === 'front') content = frontCard(s);
+  else if (kind === 'tech') content = techFace(s);
+  else if (kind === 'media') content = mediaFace(s);
+  else if (kind === 'prep-mob') content = prepMob(s);
+  else if (kind === 'prep-warm') content = prepWarm(s);
+  else if (kind === 'cardio') content = cardio(s);
+  else if (kind === 'rest') content = rest(s);
+  else if (kind === 'game') content = game(s);
+  else if (kind === 'feedback') content = feedback(s);
+  else if (kind === 'mesa') content = mesa(s);
+  else if (kind === 'sheet' || kind === 'dialog' || kind === 'gap') content = frontCard(Object.assign({}, s, {kind:'front', data: Object.assign({mode:'REPS',load:100,reps:8,rir:2,rom:100}, d)}));
+  else content = frontCard(s);
+
+  const overlaySheet = state.sheet || s.sheetId;
+  const sheetHtml = overlaySheet ? sheet(overlaySheet) : '';
+  const dialogHtml = kind === 'dialog' ? dialog(s.dialog, s) : '';
+  const gapHtml = kind === 'gap' ? gapDialog(s) : '';
+  const floating = `${d.mini ? `<div class="k-minichip"><div class="ring"></div><div class="txt"><span>Descanso</span><b>1:12</b></div><div class="plus">+15 s</div></div>` : ''}${d.undoFull ? `<div class="k-undo">${icon('undo',14)} ${esc(d.undo||'Deshacer')}</div>` : ''}`;
+  const showRelator = !['mesa','sheet','dialog','gap','found'].includes(kind);
+  let relator = '';
+  if (showRelator) {
+    const headerH = g.compact ? 95 : 119;
+    const railTop = g.h - (g.compact ? 26 : 32) - 112;
+    const top = headerH + g.ch + 8;
+    const height = Math.max(0, railTop - top - 8);
+    let line = 'Serie 3 de 4 · 100 kg × 8 <b>RIR 2</b>';
+    if (kind === 'prep-mob') line = 'Movilidad · 3 de 6 movimientos';
+    else if (kind === 'prep-warm') line = 'Aproximación · A2 de 4';
+    else if (kind === 'cardio') line = 'Cinta · 18:24 · zona 2';
+    else if (kind === 'rest') line = 'Descanso · 1:12 restantes';
+    else if (kind === 'game') line = 'Descanso · jugando';
+    else if (kind === 'feedback') line = 'Feedback del ejercicio · 4 series';
+    relator = `<div class="k-relator" style="top:${top}px;height:${height}px"><div class="rlane"><i></i><i></i><i></i></div><div class="rline">${line}</div></div>`;
+  }
+
+  inner = `${header(c)}<div class="k-stage">${content}</div>${relator}${rail(c, d, s)}${floating}${sheetHtml}${dialogHtml}${gapHtml}<div class="k-navbar"></div>`;
+  return `<div class="k-phone ${g.compact?'compact':''}" style="--pw:${g.w}px;--ph:${g.h}px">${statusbar()}${inner}</div>`;
+}
+
+function gapDialog(s){
+  const g = s.gap || {};
+  return `<div class="k-scrim"></div><div class="k-dialog"><div class="box" style="border-color:rgba(255,155,146,.25)">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="badge gap"><i></i>Brecha</span></div>
+    <div class="t">${esc(g.title||'No implementado')}</div>
+    <div class="d">${esc(g.body||'')}</div>
+    <div class="sect" style="margin-top:8px">Sustituto real</div>
+    ${(g.replace||[]).map(x => `<div class="r">${esc(x)}</div>`).join('')}
+    <div class="b" data-act="close-dialog">Entendido</div>
+  </div></div>`;
+}
+
+function frontCard(s){
+  const d = s.data || {};
+  const mode = d.mode || 'REPS';
+  const cls = ['k-card'];
+  if (d.failed) cls.push('failed');
+  let h = `<div class="${cls.join(' ')}"><div class="k-card-inner">`;
+  if (d.cluster) h += `<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);padding:8px 16px 0">Cluster set: próximamente</div>`;
+  if (mode === 'UNI' || d.side) h += `<div style="padding:6px 0 0"><div class="k-seg"><button class="${(!d.side||d.side==='left')?'on':''}" data-act="side:left">${icon('chevronLeft',16)} Izquierda (L)</button><button class="${d.side==='right'?'on':''}" data-act="side:right">Derecha (R) ${icon('chevronRight',16)}</button></div></div>`;
+  if (mode === 'AMRAP' || mode === 'CALIB') h += `<div class="k-amrapbadge"><b>${mode==='CALIB'?'Sin mínimo':('Mínimo '+(d.amrapMin||8))} · ${mode==='CALIB'?'Calibrador':'AMRAP'}</b></div><div style="font-size:11px;line-height:15px;color:rgba(255,255,255,.65);padding:0 16px 3px">${mode==='CALIB'?'Cuenta todas las repeticiones que completes.':'Haz al menos '+(d.amrapMin||8)+'. Cuenta todas las que completes.'}</div>`;
+  if (d.replaced) h += `<div class="k-band"><span>${esc(d.replaced)}</span></div>`;
+  else if (d.techPause) h += `<div class="k-band center"><span>Pausa técnica · ${esc(d.techPause)}s</span></div>`;
+  if (d.loadRequired) h += `<div class="k-loadwarn">Elige una carga para ${esc(d.reps||8)} reps${d.rir!=null?` dejando ${d.rir} en reserva`:''} y registra la serie.</div>`;
+  if (mode === 'RM') h += rmHero(d);
+  else if (mode === 'TIME') h += timeHero(d);
+  else if (mode === 'SOLO' || mode === 'DIST' || mode === 'CUSTOM') h += compactLoad(d);
+  else h += hero(d);
+  if (mode !== 'RM' && mode !== 'TIME' && mode !== 'SOLO' && mode !== 'DIST' && mode !== 'CUSTOM') h += `<div class="k-divider"></div>`;
+  h += `<div class="k-cardbody">`;
+  if (mode === 'RM') {
+    h += `<div class="k-rephead"><span class="k-eyebrow">REPS EST.</span><span class="k-plus">${icon('plus',12)}</span><span class="k-videochip">PR: 105 kg × 3</span></div>`;
+  } else if (mode === 'TIME') {
+    h += `<div class="k-rephead"><span class="k-eyebrow">TIEMPO</span><span style="font-size:11px;color:var(--faint)"> · Restan 00:45</span></div>`;
+  } else if (mode === 'DIST' || mode === 'CUSTOM') {
+    h += `<div class="k-rephead"><span class="k-eyebrow">${mode==='DIST'?'METROS RECORRIDOS':'CANTIDAD REALIZADA'}</span><span style="margin-left:auto;font-size:11px;color:var(--faint)">${mode==='DIST'?'Objetivo 2.400 m':'3 rondas'}</span></div>`;
+  } else {
+    h += `<div class="k-rephead"><span class="k-eyebrow">REPS</span><span class="k-plus">${icon('plus',12)}</span>${d.rom?'<span class="k-videochip">'+icon('video',12)+' Vídeo</span>':''}</div>`;
+  }
+  if (mode === 'TIME') h += `<div class="k-fieldrow"><div class="k-fieldbig">0:45</div><div class="k-timerbtn">${icon('stop',22)}</div></div>`;
+  else if (mode === 'DIST') h += `<div class="k-fieldrow"><div class="k-fieldbig">2.400</div><div class="k-timerbtn">${icon('play',20)}</div></div><div style="height:2px;border-radius:1px;background:var(--inset);margin:4px 0 2px"><i style="display:block;height:100%;width:72%;background:var(--ink)"></i></div>`;
+  else if (mode === 'CUSTOM') h += `<div class="k-fieldbig">24</div><div style="font-size:10px;color:var(--faint);text-align:center">pasos · 3 rondas</div>`;
+  else if (mode === 'SOLO') { h += effort(d); h += wheel(d); }
+  else if (mode !== 'RM') h += wheel(d);
+  if (mode === 'RM') h += rmControls(d);
+  if (mode !== 'SOLO') h += effort(d);
+  if (d.rom && mode !== 'SOLO') h += romBlock(d);
+  if (d.result) h += `<div class="k-band center" style="background:rgba(67,209,140,.08);border-radius:8px;padding:3px 8px"><span style="color:var(--green);text-transform:none;letter-spacing:0;font-size:10.5px">${esc(d.result)}</span></div>`;
+  h += statusLine(d);
+  h += `</div>${actionsFront()}`;
+  h += `</div>`;
+  if (d.failed) h += failOverlay();
+  if (d.overlay === 'guided-drop') h += guided(d,'drop');
+  if (d.overlay === 'guided-count') h += guided(d,'count');
+  if (d.overlay === 'guided-reps') h += guided(d,'reps');
+  if (d.overlay === 'assisted') h += `<div class="k-assisted"><div class="f">Peso corporal (kg)</div><div class="b">Guardar</div></div>`;
+  if (d.overlay === 'result') h += `<div class="k-result">
+    <div class="eyebrowline">RESULTADO AMRAP</div>
+    <div class="big">${esc(d.reps||11)} <small>reps</small></div>
+    <div class="subline">e1RM 118,4 · mínimo ${esc(d.amrapMin||8)}</div>
+    <div class="badge">Fallo alcanzado</div>
+    <div class="row"><span>Guardar resultado</span><span>Editar</span></div>
+  </div>`;
+  h += `</div>`;
+  return h;
+}
+
+/* ── índice e inspector ── */
+function visibleScenes(){
+  return SCENES.filter(s => {
+    if (state.filter !== 'all' && (s.fidelity || (s.kind==='mesa'?'derived':'exact')) !== state.filter) return false;
+    if (!state.q) return true;
+    const hay = [s.name,s.sub,s.group,PHASES.find(p=>p.n===s.phase).name].join(' ').toLowerCase();
+    return hay.includes(state.q.toLowerCase());
+  });
+}
+
+function renderIndex(){
+  const list = $('#index-list');
+  const vis = visibleScenes();
+  let h = '';
+  PHASES.forEach(p => {
+    const items = vis.filter(s => s.phase === p.n);
+    if (!items.length) return;
+    h += `<div class="phase-head"><b>F${p.n}</b>${esc(p.name)}<span>${items.length}</span></div>`;
+    let lastGroup = '';
+    items.forEach(s => {
+      if (s.group !== lastGroup) { lastGroup = s.group; }
+      const fid = s.fidelity || (s.kind==='mesa'?'derived':'exact');
+      h += `<button class="scene ${s.id===state.id?'on':''}" data-id="${s.id}"><span class="fd ${fid}"></span><span><span class="nm">${esc(s.name)}</span><span class="sb">${esc(s.sub)}</span></span></button>`;
+    });
+  });
+  list.innerHTML = h || '<div style="padding:16px;font-size:10.5px;color:var(--faint)">Sin resultados.</div>';
+  $('#count').textContent = `${vis.length} estados`;
+}
+
+function renderPhasebar(){
+  $('#phasebar').innerHTML = PHASES.map(p => `<button data-p="${p.n}" class="${current && current.phase===p.n?'on':''}"><b>F${p.n}</b>${esc(p.name)}</button>`).join('');
+}
+
+function renderInspector(s){
+  const p = PHASES.find(x => x.n === s.phase);
+  const fid = s.fidelity || (s.kind==='mesa'?'derived':'exact');
+  const labels = {exact:'Exacto',derived:'Derivado',gap:'Brecha'};
+  const spec = s.spec || B.front;
+  let h = `<div class="insp-kicker">FASE ${p.n} · ${esc(p.name.toUpperCase())} · ${esc(s.group.toUpperCase())}</div>`;
+  h += `<div class="insp-title">${esc(s.name)}</div><div class="insp-sub">${esc(s.sub)}</div>`;
+  h += `<div style="margin-top:9px"><span class="badge ${fid}"><i></i>${labels[fid]}</span></div>`;
+  const why = spec.why || (s.kind==='sheet' ? 'Hoja real del host de sesión: una a la vez, con estado conservado y cierre explícito.' : '');
+  if (why) h += `<div class="insp-note">${esc(why)}</div>`;
+  if (spec.measures && spec.measures.length) h += `<div class="sec"><h3>Medidas</h3><div class="measure">${spec.measures.map(m => `<span>${esc(m[0])}</span><b>${esc(m[1])}</b>`).join('')}</div></div>`;
+  if (spec.states && spec.states.length) h += `<div class="sec"><h3>Estados</h3><ul>${spec.states.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  if (spec.copy && spec.copy.length) h += `<div class="sec"><h3>Copy literal</h3><div style="display:flex;flex-direction:column;gap:4px">${spec.copy.map(x => `<div class="copyline">${esc(x)}</div>`).join('')}</div></div>`;
+  if (s.kind === 'sheet' && s.sheetId && SHEETS[s.sheetId]) {
+    const sh = SHEETS[s.sheetId];
+    h += `<div class="sec"><h3>Contenido de la hoja</h3><ul><li><b>${esc(sh.title)}</b></li>${(sh.rows||[]).map(r => `<li>${esc(r[0])} · ${esc(r[1])}${r[2]?` · ${esc(r[2])}`:''}</li>`).join('')}</ul></div>`;
+  }
+  const src = (s.source && s.source.length) ? s.source : (s.sheetId ? SHEET_SRC[s.sheetId] : null);
+  if (src && src.length) h += `<div class="sec"><h3>Fuente</h3><div class="src">${src.map(x => `<code>${esc(x)}</code>`).join('')}</div></div>`;
+  if (spec.accept && spec.accept.length) h += `<div class="sec accept"><h3>Aceptación</h3><ul>${spec.accept.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  if (spec.avoid) h += `<div class="avoid"><b>No dibujar</b><span>${esc(spec.avoid)}</span></div>`;
+  h += `<div class="sec"><h3>Documento</h3><div class="src"><code>docs/design/live-session/${esc(p.doc)}</code></div></div>`;
+  $('#inspector').innerHTML = h;
+}
+
+function renderPins(s){
+  const pins = $('#pins');
+  if (!state.annotations || !s.annotations || !s.annotations.length) { pins.innerHTML = ''; return; }
+  pins.innerHTML = s.annotations.map((a,i) => `<div class="pin ${a.x>250?'right':''}" style="left:${a.x}px;top:${a.y}px">${i+1}<span class="tip">${esc(a.t)}<em>${esc(a.r)}</em></span></div>`).join('');
+}
+
+function applyMarquee(){
+  const t = $('.k-title.marquee');
+  if (!t) return;
+  const mq = t.querySelector('.mq');
+  if (!mq) return;
+  const overflow = Math.max(0, mq.scrollWidth - t.clientWidth);
+  t.style.setProperty('--shift', `-${Math.min(overflow + 4, 180)}px`);
+  const dur = Math.max(9, Math.min(22, (overflow / 28) + 8));
+  t.style.setProperty('--dur', `${dur.toFixed(1)}s`);
+}
+
+function renderStage(){
+  const s = current;
+  applyGeometry(s);
+  $('#device').innerHTML = renderPhone(s);
+  renderPins(s);
+  requestAnimationFrame(applyMarquee);
+  const p = PHASES.find(x => x.n === s.phase);
+  $('#crumbs').innerHTML = `<b>Fase ${p.n}</b> · ${esc(p.name)} / ${esc(s.group)}`;
+  const fid = s.fidelity || (s.kind==='mesa'?'derived':'exact');
+  const labels = {exact:'Exacto',derived:'Derivado',gap:'Brecha'};
+  $('#fidelity').innerHTML = `<span class="badge ${fid}"><i></i>${labels[fid]}</span>`;
+  $('#scene-name').textContent = s.name;
+  $('#scene-desc').textContent = `${s.sub} · ${s.id}`;
+  renderInspector(s);
+}
+
+function select(id, face){
+  const s = SCENES.find(x => x.id === id) || SCENES[0];
+  current = s;
+  state.id = s.id;
+  state.face = face || null;
+  state.sheet = null;
+  history.replaceState(null, '', '#' + s.id);
+  renderIndex();
+  renderPhasebar();
+  renderStage();
+  const el = $(`.scene[data-id="${s.id}"]`);
+  if (el) el.scrollIntoView({block:'nearest'});
+}
+
+/* ── interacción ── */
+function refresh(){
+  if (!current) return;
+  renderStage();
+}
+
+document.addEventListener('click', (e) => {
+  const indexBtn = e.target.closest('.scene');
+  if (indexBtn) { select(indexBtn.dataset.id); return; }
+  const phaseBtn = e.target.closest('[data-p]');
+  if (phaseBtn) {
+    const p = Number(phaseBtn.dataset.p);
+    const first = SCENES.find(s => s.phase === p);
+    if (first) select(first.id);
+    return;
+  }
+  const zoomBtn = e.target.closest('[data-z]');
+  if (zoomBtn) {
+    document.documentElement.style.setProperty('--z', zoomBtn.dataset.z);
+    $$('#zoom button').forEach(b => b.classList.toggle('on', b === zoomBtn));
+    return;
+  }
+  const act = e.target.closest('[data-act]');
+  if (act) { handleAct(act.dataset.act); return; }
+});
+
+function handleAct(a){
+  if (!a) return;
+  if (a.startsWith('sheet:')) {
+    state.sheet = a.slice(6);
+    if (!current.sheetId) current.sheetId = state.sheet;
+    renderStage();
+    return;
+  }
+  if (a === 'close-sheet') { state.sheet = null; if (current.kind === 'sheet') current.sheetId = null; renderStage(); return; }
+  if (a === 'close-dialog') { renderStage(); return; }
+  if (a === 'flip-tech') { state.face = 'tech'; refresh(); return; }
+  if (a === 'flip-media') { state.face = 'media'; refresh(); return; }
+  if (a === 'flip-front') { state.face = null; refresh(); return; }
+  if (a.startsWith('tech:')) {
+    const seg = a.slice(5);
+    current.data = Object.assign({}, current.data, {segment:seg, empty:seg==='normal'});
+    state.face = 'tech'; refresh(); return;
+  }
+  if (a.startsWith('media:')) {
+    const m = a.slice(6);
+    if (m === 'photo' || m === 'video') current.data = Object.assign({}, current.data, {mode:m});
+    refresh(); return;
+  }
+  if (a.startsWith('rest:')) {
+    const k = a.slice(5);
+    current.data = Object.assign({}, current.data, {remaining: k==='+15' ? '1:27' : (k==='-15' ? '0:57' : '0:00'), progress: k==='+15' ? .48 : (k==='-15' ? .32 : 1)});
+    if (k === 'skip') { current.data = Object.assign({}, current.data, {mode:'extra', extra:true, remaining:'+0:00'}); }
+    refresh(); return;
+  }
+  if (a === 'record') {
+    current.data = Object.assign({}, current.data, {done:true, undo:'Deshacer registrar serie'});
+    refresh(); return;
+  }
+  if (a === 'revert') {
+    current.data = Object.assign({}, current.data, {failed:false});
+    refresh(); return;
+  }
+  if (a.startsWith('side:')) {
+    current.data = Object.assign({}, current.data, {side:a.slice(5)});
+    refresh(); return;
+  }
+  if (a === 'prep:skip') { current.data = Object.assign({}, current.data, {skipped:true, view:'end'}); refresh(); return; }
+  if (a === 'prep:done') { current.data = Object.assign({}, current.data, {view:'end', done:6, total:6}); refresh(); return; }
+  if (a === 'prep:next') { current.data = Object.assign({}, current.data, {view:'end'}); refresh(); return; }
+  if (a === 'feedback:skip' || a === 'feedback:save') { state.face = null; refresh(); return; }
+}
+
+/* ── arranque ── */
+$('#search').addEventListener('input', (e) => { state.q = e.target.value; renderIndex(); });
+$('#filters').addEventListener('click', (e) => {
+  const b = e.target.closest('.f'); if (!b) return;
+  state.filter = b.dataset.f;
+  $$('#filters .f').forEach(x => x.classList.toggle('on', x === b));
+  renderIndex();
+});
+$('#toggle-notes').addEventListener('click', (e) => {
+  state.annotations = !state.annotations;
+  e.currentTarget.setAttribute('aria-pressed', String(state.annotations));
+  renderPins(current);
+});
+$('#toggle-motion').addEventListener('click', (e) => {
+  state.motion = !state.motion;
+  e.currentTarget.setAttribute('aria-pressed', String(state.motion));
+  document.body.classList.toggle('reduced', state.motion);
+});
+$('#prev').addEventListener('click', () => step(-1));
+$('#next').addEventListener('click', () => step(1));
+function step(d){
+  const vis = visibleScenes();
+  const i = vis.findIndex(x => x.id === state.id);
+  const n = (i + d + vis.length) % vis.length;
+  select(vis[n].id);
+}
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input,textarea')) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+});
+
+const initial = location.hash.replace('#','');
+select(SCENES.some(s => s.id === initial) ? initial : 'f3-reps');
+
+</script>
+</body>
+</html>

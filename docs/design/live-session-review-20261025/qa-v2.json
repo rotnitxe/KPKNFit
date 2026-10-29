@@ -1,0 +1,8103 @@
+{
+  "revision": 2,
+  "date": "2026-10-26",
+  "cards": [
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 49
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 28
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 43
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "360,740",
+      "font": 1.3,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 394,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 312
+        }
+      ],
+      "gap": 16
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 57
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 36
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 50
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "393,852",
+      "font": 1.3,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 470,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 345
+        }
+      ],
+      "gap": 23
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 193
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "strength",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "unilateral",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "superset",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "amrap",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "calibrator",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "calibration-result",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Resultado de calibración",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rm",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "solo-rpe",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "time",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "distance",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "custom",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "bodyweight",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "assisted",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "partials",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rom",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "drops",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "restpause",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "myo",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Detalle avanzado",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "guided",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "failed",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Serie con incidencia",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "completed",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "empty",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "mobility",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "mobility-move",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "mobility-global",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de movilidad",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "warmup",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de aproximaciones",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "warmup-rest",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "cardio",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "intervals",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de cardio",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 187
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rest",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "overrun",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "feedback",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "visual",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "visual-expanded",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "analysis-working",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "analysis-low",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Modo visual",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "video-detail",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "framing",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "framing-warning",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "readiness",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "finish",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rest-card",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rest-suggested",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rest-feedback",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "rest-feedback-full",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "games",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "game-runner",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "game-flappy",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "game-shooter",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de descanso",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "tags",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "tag-setup",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "set-config",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "replacement",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "replacement-preview",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "relator-context",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "alert-effort",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "alert-discomfort",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "alert-save",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "alert-conflict",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "voice-picker",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "voice-conversation",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    },
+    {
+      "size": "412,1007",
+      "font": 1.3,
+      "scene": "voice-review",
+      "cards": [
+        {
+          "height": 488,
+          "name": "Tarjeta de serie",
+          "occluded": false,
+          "outside": [],
+          "overX": 0,
+          "overY": 0,
+          "scroll": [],
+          "width": 363
+        }
+      ],
+      "gap": 160
+    }
+  ],
+  "surfaces": [
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "393,852",
+      "font": "1.3",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "rest",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "rest-feedback-full",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "replay",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "metrics",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "video-detail",
+      "tab": "reps",
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "framing",
+      "contentOver": 0,
+      "over": 0
+    },
+    {
+      "size": "412,1007",
+      "font": "1.3",
+      "scene": "framing-warning",
+      "contentOver": 0,
+      "over": 0
+    }
+  ],
+  "list": [
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "strength",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "unilateral",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "superset",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "amrap",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "calibrator",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "calibration-result",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rm",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "solo-rpe",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "time",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "distance",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "custom",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "bodyweight",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "assisted",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "partials",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rom",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "drops",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "restpause",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "myo",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "guided",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "failed",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "completed",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "empty",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "mobility",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "mobility-move",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "mobility-global",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "warmup",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "warmup-rest",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "cardio",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "intervals",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "overrun",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "feedback",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "visual",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "visual-expanded",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "analysis-working",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "analysis-low",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "video-detail",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "framing",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "framing-warning",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "readiness",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "finish",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest-card",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest-suggested",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest-feedback",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "rest-feedback-full",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "games",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "game-runner",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "game-flappy",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "game-shooter",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "tags",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "tag-setup",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "set-config",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "replacement",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "replacement-preview",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "relator-context",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "alert-effort",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "alert-discomfort",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "alert-save",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "alert-conflict",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "voice-picker",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "voice-conversation",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "360,740",
+      "font": "1.3",
+      "scene": "voice-review",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "strength",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "unilateral",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "superset",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "amrap",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "calibrator",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "calibration-result",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rm",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "solo-rpe",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "time",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "distance",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "custom",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "bodyweight",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "assisted",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "partials",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rom",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "drops",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "restpause",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "myo",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "guided",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "failed",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "completed",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "empty",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "mobility",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "mobility-move",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "mobility-global",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "warmup",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "warmup-rest",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "cardio",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "intervals",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "overrun",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "feedback",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "visual",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "visual-expanded",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "analysis-working",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "analysis-low",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "video-detail",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "framing",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "framing-warning",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "readiness",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "finish",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest-card",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest-suggested",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest-feedback",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "rest-feedback-full",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "games",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "game-runner",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "game-flappy",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "game-shooter",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "tags",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "tag-setup",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "set-config",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "replacement",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "replacement-preview",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "relator-context",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "alert-effort",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "alert-discomfort",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "alert-save",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "alert-conflict",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "voice-picker",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "voice-conversation",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    },
+    {
+      "size": "393,852",
+      "font": "1",
+      "scene": "voice-review",
+      "docks": 0,
+      "overX": 0,
+      "phone": true
+    }
+  ],
+  "interactions": [
+    {
+      "test": "Rest card -> full retains paused clock",
+      "before": "1:32",
+      "after": "1:32"
+    },
+    {
+      "test": "Rest returns to standard card",
+      "cards": 1,
+      "full": 0,
+      "mini": 0
+    },
+    {
+      "test": "Feedback draft shared with full screen",
+      "quality": "Calidad técnica\n9/10"
+    },
+    {
+      "test": "Feedback save returns to clock",
+      "feedback": 0,
+      "clock": 1
+    },
+    {
+      "test": "Cancel voice edit leaves captured values unchanged",
+      "values": "100 kg\n×\n6 reps\nFalta RIR"
+    },
+    {
+      "test": "Incomplete voice capture requires effort",
+      "error": "Completa carga, repeticiones y RIR entre 0 y 10."
+    },
+    {
+      "test": "Voice correction confirmed on same record",
+      "entries": 2,
+      "corrected": "Corregida · v2\n100 kg\n×\n8 reps\nRIR 2\nSentadilla · sq3\nEditar\nAntes: 100 kg × 6 · RIR — · Ver cambios"
+    },
+    {
+      "test": "Bad framing blocks capture start",
+      "status": "PREPARAR CAPTURA",
+      "voiceCommandEnabled": false
+    },
+    {
+      "test": "Spoken guide can be enabled while voice commands off",
+      "guide": "true",
+      "voiceCommandEnabled": false
+    },
+    {
+      "test": "Framing warning is inline and leaves controls visible",
+      "status": "PREPARAR CAPTURA",
+      "toast": 0
+    },
+    {
+      "test": "Voice start after verified mode",
+      "status": "GRABANDO"
+    },
+    {
+      "test": "Voice stop opens detailed analysis",
+      "analysis": 1
+    },
+    {
+      "test": "Per rep correction updates count and selected rep",
+      "result": "Conteo propuesto · demo\n9 + 1 reps",
+      "rep": "Repetición 9\nCompleta · ≈92°\nMarcar parcial"
+    },
+    {
+      "test": "Analysis applies to draft without recording series",
+      "values": "SERIE 3 / 4\nCARGA\nExterna\nkg\n100 × 8 · RIR 2\nREPETICIONES\n7\n8\n9\n10\n11\nESFUERZO\nSin marcar\nRIR 10\nRIR 2 · plan\nFallo\n+1 parciales\nAvanzado\nModo visual",
+      "progress": "SERIES · 2 DE 9\nSentadilla 3 / 4\nMOV\nAPR\nSER\nREST\nRegistrar serie"
+    },
+    {
+      "test": "Superset A1 -> A2 starts inter-exercise rest",
+      "next": "ÚLTIMA\n45 × 12 · RIR 2\nSIGUIENTE\nCurl femoral · 2\n40 kg × 12",
+      "clock": "0:20\nDescansando"
+    },
+    {
+      "test": "Superset continues at A2 within same round",
+      "active": "",
+      "label": "Registrar serie 2",
+      "context": "Curl Femoral Sentado\nMáquina\n·\nEtiquetas"
+    },
+    {
+      "test": "Changing tag previews impact",
+      "preview": "Cambiar contexto\n\nSentadilla Trasera con Barra Alta\n\nCompetición\nTempo\nNUEVA REFERENCIA\n80 × 8 · RIR 2\n\nSe renovará el borrador de las series pendientes de este ejercicio. Los registros realizados se conservan.\n\nCambiar contexto\nMantener el actual\nListo"
+    },
+    {
+      "test": "Changing tag renews pending draft reference",
+      "reference": "80 × 8 · RIR 2",
+      "weight": "80"
+    },
+    {
+      "test": "Series goal configuration persists after reopening",
+      "rest": "150"
+    },
+    {
+      "test": "Replacement starts with independent load",
+      "name": "Sentadilla Frontal\nBarra\n·\nEtiquetas",
+      "weight": "",
+      "reference": "Sin historial del reemplazo"
+    },
+    {
+      "test": "Runner changes score, combo and lives independently of rest",
+      "hud": "32 puntos\nRacha ×1\n0 vidas"
+    },
+    {
+      "test": "Flappy runs with live lives and independent rest",
+      "hud": "0 puntos\nRacha ×1\n0 vidas"
+    },
+    {
+      "test": "Shooter advances waves and automatic scoring",
+      "hud": "60 puntos\nRacha ×1\n3 vidas"
+    }
+  ],
+  "limits": "Web simulation only. No Android, real camera/microphone, physical analysis or device audio validation."
+}
