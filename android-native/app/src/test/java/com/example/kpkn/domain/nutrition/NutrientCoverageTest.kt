@@ -125,4 +125,20 @@ class NutrientCoverageTest {
         val result = NutrientCoverage.summarize(listOf(noEnergy), NutrientKey.SODIUM)
         assertEquals(1, result.declaredCount); assertEquals(0, result.estimatedCount)
     }
+    @Test fun `la parte estimada y los alimentos sin dato se nombran sin contar ceros`() {
+        val foods = listOf(sodium("Declarado", 30.0), sodium("Estimado", 10.0).copy(isUncertain = true), LoggedFood(foodName = "Batido", calories = 100.0))
+        val result = NutrientCoverage.summarize(foods, NutrientKey.SODIUM)
+        assertEquals(40.0, result.totalKnown!!, 0.0)
+        assertEquals(10.0, result.estimatedAmount, 0.0)
+        assertEquals(listOf("Batido"), result.missingFoods)
+    }
+    @Test fun `cobertura por alimento pondera por kcal y separa estimados y sin ficha`() {
+        val foods = listOf(sodium("Ficha", 10.0, 300.0), sodium("Aprox", 10.0, 100.0).copy(isUncertain = true), LoggedFood(foodName = "Rapida", calories = 100.0, isQuickEntry = true))
+        val coverage = NutrientCoverage.foodCoverage(foods)
+        assertEquals(listOf(NutrientDataKind.DECLARED, NutrientDataKind.ESTIMATED, NutrientDataKind.MISSING), coverage.kinds)
+        assertEquals(0.6, coverage.declaredFraction, 1e-9)
+        assertTrue(coverage.weightedByEnergy)
+        assertEquals(1, coverage.foodsWithoutData)
+        assertEquals(NutrientFoodCoverage.EMPTY, NutrientCoverage.foodCoverage(emptyList()))
+    }
 }

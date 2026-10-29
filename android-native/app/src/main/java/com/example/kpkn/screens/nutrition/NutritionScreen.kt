@@ -315,9 +315,9 @@ fun NutritionScreen(
                 }
 
                 if (userStateLoaded) {
-                    item {
-                        KpknTextAction("Nutrientes del día", { showNutrients = true },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                    item(key = "nutrients-day") {
+                        com.example.kpkn.screens.nutrition.nutrients.NutrientsDayModule(nutrients, { showNutrients = true },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                     }
                     item {
                         NutritionDayStateLine(
