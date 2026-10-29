@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.nutrition.recipes.*
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchRow
-import com.example.kpkn.screens.nutrition.design.logger.loggerSearchBasisLabel
+import com.example.kpkn.screens.nutrition.design.logger.loggerSearchPortion
 import com.example.kpkn.screens.nutrition.design.NutritionFoodRow
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.domain.nutrition.RecipeCalculator
@@ -78,13 +78,27 @@ class RecipeRenderSheetTest {
     @Composable private fun logger() {
         val tag = com.example.kpkn.domain.nutrition.loggedFoodToEditableTag(
             RecipeCalculator.portion(noWeight, servings = 0.5)).copy(isExpanded = true)
-        com.example.kpkn.screens.nutrition.design.logger.LoggerFoodItem(
-            tag, false, "", null, null, false, RecipeSamples.loggerActions(), Modifier.padding(16.dp))
+        val logged = tag.loggedFood!!
+        com.example.kpkn.screens.nutrition.design.logger.LoggerFoodCard(
+            name = logged.foodName,
+            subtitle = "${java.text.DecimalFormat("0.##").format(logged.amount)} ${logged.unit}",
+            kcal = kotlin.math.round(logged.calories).toInt().toString(),
+            protein = logged.protein,
+            carbs = logged.carbs,
+            fats = logged.fats,
+            icon = com.example.kpkn.screens.nutrition.design.logger.loggerFoodIcon(logged.foodName),
+            onOpen = {},
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+    @Composable private fun searchRow() {
+        val portion = loggerSearchPortion(noWeight, noWeight.name)
+        LoggerSearchRow(noWeight.name, portion.label, portion.kcal, favorite = false, onToggleFavorite = null, onAdd = {}, onOpen = {})
     }
     @Test fun loggerRations100() = render("logger_rations", 1f) { logger() }
     @Test fun loggerRations130() = render("logger_rations", 1.3f) { logger() }
-    @Test fun searchNoWeight100() = render("search_no_weight", 1f) { LoggerSearchRow(noWeight.name, 200, 1, {}, basisLabel = loggerSearchBasisLabel(noWeight)) }
-    @Test fun searchNoWeight130() = render("search_no_weight", 1.3f) { LoggerSearchRow(noWeight.name, 200, 1, {}, basisLabel = loggerSearchBasisLabel(noWeight)) }
+    @Test fun searchNoWeight100() = render("search_no_weight", 1f) { searchRow() }
+    @Test fun searchNoWeight130() = render("search_no_weight", 1.3f) { searchRow() }
     @Test fun portionNoWeight100() = render("portion_no_weight", 1f) { RecipePortionContent(noWeight, {}, {}) }
     @Test fun portionNoWeight130() = render("portion_no_weight", 1.3f) { RecipePortionContent(noWeight, {}, {}) }
     @Test fun empty100() = render("empty", 1f) { library(true) }

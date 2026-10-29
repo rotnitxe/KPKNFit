@@ -20,7 +20,22 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import com.example.kpkn.screens.nutrition.design.logger.LoggerColors
+import com.example.kpkn.screens.nutrition.design.logger.LoggerIconButton
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.components.KpknGlassVariant
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,6 +85,12 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.MacroColors
+
+/** F-D5: el «+» de «Nutrición de hoy» solo queda sin plan de nutrición (sin meta de kcal); con plan registra la barra «¿Qué comiste?». */
+internal fun homeNutritionShowsAddAction(kcalGoal: Int?): Boolean = kcalGoal == null
+
+/** F-D5: la barra «¿Qué comiste?» de Inicio solo aparece con la nutrición activa y un plan (meta de kcal). */
+internal fun homeShowsQuickLogger(showNutrition: Boolean, kcalGoal: Int?): Boolean = showNutrition && kcalGoal != null && kcalGoal > 0
 
 /** Clave de la memoria de la primera vez: los anillos y la cifra de «Nutrición de hoy». */
 private const val NUTRITION_FIGURE_KEY = "home-nutrition"
@@ -121,14 +142,17 @@ fun HomeNutritionToday(
     KpknModule(modifier = modifier.fillMaxWidth().padding(horizontal = HomeModuleMargin)) {
         KpknModuleHeader(
             label = "Nutrición de hoy",
-            action = {
-                KpknIconButton(
-                    icon = KpknLineIcons.Plus,
-                    contentDescription = "Registrar comida",
-                    onClick = { onAddMeal(null) },
-                    modifier = Modifier.testTag("home-nutrition-add"),
-                )
-            },
+            // Registros v4 (F-D5): con plan, la barra «¿Qué comiste?» de Inicio sustituye al «+»; sin plan, Inicio queda como estaba.
+            action = if (homeNutritionShowsAddAction(goal)) {
+                {
+                    KpknIconButton(
+                        icon = KpknLineIcons.Plus,
+                        contentDescription = "Registrar comida",
+                        onClick = { onAddMeal(null) },
+                        modifier = Modifier.testTag("home-nutrition-add"),
+                    )
+                }
+            } else null,
         )
         if (goal == null) {
             // Sin meta: la cifra a todo el ancho, como en I8, y la acción para definirla (fuera de la zona clicable).
@@ -500,5 +524,72 @@ private fun HomeMealCell(
             color = if (logged) WizardColors.textMuted else WizardColors.textFaint,
             maxLines = 1,
         )
+    }
+}
+
+/**
+ * La barra «¿Qué comiste?» de Inicio (lienzo `qbar`, f-home y f-home-type): píldora de vidrio de 56 dp con el texto (crece hasta tres
+ * líneas), el micrófono «Dictar» y, con algo escrito, «Analizar». Va sobre la barra de navegación; quien la llama decide si se pinta
+ * ([homeShowsQuickLogger]).
+ */
+@Composable
+internal fun HomeQuickLoggerBar(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onAnalyze: () -> Unit,
+    onDictate: () -> Unit,
+    listening: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Normal, fontSize = 14.5.sp, lineHeight = 20.sp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .kpknGlassOrFallback(LocalHazeState.current, RoundedCornerShape(28.dp), variant = KpknGlassVariant.ISLAND)
+            .padding(start = 18.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BasicTextField(
+            value = text,
+            onValueChange = onTextChange,
+            textStyle = style.copy(color = LoggerColors.ink),
+            cursorBrush = SolidColor(LoggerColors.ink),
+            maxLines = 3,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { if (text.isNotBlank()) onAnalyze() }),
+            modifier = Modifier
+                .weight(1f)
+                .semantics { contentDescription = "¿Qué comiste?" },
+            decorationBox = { inner ->
+                Box {
+                    if (text.isEmpty()) {
+                        Text(text = "¿Qué comiste? Escríbelo aquí", style = style, color = LoggerColors.dim, maxLines = 1)
+                    }
+                    inner()
+                }
+            },
+        )
+        LoggerIconButton(
+            icon = KpknLineIcons.Mic,
+            contentDescription = if (listening) "Dejar de dictar" else "Dictar",
+            onClick = onDictate,
+            fill = true,
+            tint = if (listening) LoggerColors.mus else LoggerColors.muted,
+        )
+        if (text.isNotBlank()) {
+            Box(
+                modifier = Modifier
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(LoggerColors.ink)
+                    .clickable(role = Role.Button, onClick = onAnalyze)
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "Analizar", style = style.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
+            }
+        }
     }
 }

@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -30,26 +27,30 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.screens.nutrition.NutritionSamples
+import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.screens.nutrition.design.logger.LoggerDateSheet
-import com.example.kpkn.screens.nutrition.design.logger.LoggerDiscardDialog
-import com.example.kpkn.screens.nutrition.design.logger.LoggerErrorNotice
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodActions
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodDivider
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodItem
-import com.example.kpkn.screens.nutrition.design.logger.LoggerHeader
-import com.example.kpkn.screens.nutrition.design.logger.LoggerMeasuresDialog
-import com.example.kpkn.screens.nutrition.design.logger.LoggerPrivacyDialog
-import com.example.kpkn.screens.nutrition.design.logger.LoggerSaveBar
-import com.example.kpkn.screens.nutrition.design.logger.LoggerSettingsDialog
-import com.example.kpkn.screens.nutrition.design.logger.LoggerTabs
 import com.example.kpkn.screens.nutrition.design.logger.LoggerDescribeField
+import com.example.kpkn.screens.nutrition.design.logger.LoggerDiscardDialog
+import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodCard
+import com.example.kpkn.screens.nutrition.design.logger.LoggerForgetDialog
+import com.example.kpkn.screens.nutrition.design.logger.LoggerHeader
+import com.example.kpkn.screens.nutrition.design.logger.LoggerMeasuresSheet
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSaveBar
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSavedOverlay
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSettingsSheet
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSummaryCard
+import com.example.kpkn.screens.nutrition.design.logger.LoggerToast
+import com.example.kpkn.screens.nutrition.design.logger.LoggerWriteMode
+import com.example.kpkn.screens.nutrition.design.logger.loggerAmountLine
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodIcon
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodKcal
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodSubtitle
+import com.example.kpkn.screens.nutrition.design.logger.loggerQuestionFor
+import com.example.kpkn.screens.nutrition.design.logger.loggerSaveBarLine
+import com.example.kpkn.screens.nutrition.design.logger.loggerSavedLine
+import com.example.kpkn.screens.nutrition.design.logger.loggerUnits
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -63,9 +64,9 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 
 /**
- * HOJA DE DIBUJO del registro de comida, parte de abajo (N3b): los alimentos interpretados (con una aclaración pendiente y una estimación
- * con rango), la barra de total y guardar (total, guardando y el check de éxito), el error de guardado, los cuatro diálogos, el calendario
- * de la fecha y la hoja entera. No comprueba nada: escribe PNG en `KPKN_RENDER_DIR`, a 360 dp, al 100 % y al 130 % de letra. Sin esa
+ * HOJA DE DIBUJO del registro de comida, parte de abajo (Registros v4): el resumen y las tarjetas de alimentos (una con su duda dentro),
+ * la barra de guardar, «Desayuno guardado», el aviso de error, las hojas de ajustes, medidas y fecha, «Olvidar», «Descartar» y la hoja
+ * entera. No comprueba nada: escribe PNG en `KPKN_RENDER_DIR`, a 360 dp, al 100 % y al 130 % de letra. Sin esa
  * variable se salta.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -96,24 +97,6 @@ class FoodLoggerBottomRenderSheetTest {
 
     /** La vista de Compose, para dibujarla a un bitmap. */
     private var hostView: View? = null
-
-    /** Las acciones de las filas, todas vacías: la hoja de render solo dibuja. */
-    private val noActions = LoggerFoodActions(
-        onToggleExpanded = {},
-        onToggleCorrection = {},
-        onCorrectionQueryChange = {},
-        onPickCorrection = {},
-        onPortionChange = {},
-        onPortionOption = {},
-        onGramsChange = {},
-        onMacroChange = { _, _ -> },
-        onRemove = {},
-        onOilLevelChange = {},
-        onCookingChange = {},
-        onIdentityChoice = {},
-        onDeclaredComposition = {},
-        onUnsure = {},
-    )
 
     /** Columna de 360 dp sobre negro con el margen de la hoja (20 dp a los lados), con la etiqueta de la captura. */
     @Composable
@@ -156,60 +139,45 @@ class FoodLoggerBottomRenderSheetTest {
         )
     }
 
-    /** El módulo «Lo que comiste» con sus tres alimentos: uno normal, uno con la aclaración pendiente y uno estimado con rango. */
+    /** Una tarjeta de alimento a partir de una etiqueta de ejemplo, con su duda si la tiene. */
     @Composable
-    private fun FoodsModule(riceExpanded: Boolean = false) {
-        KpknModule {
-            KpknModuleHeader(label = "Lo que comiste")
-            Spacer(Modifier.height(4.dp))
-            Text(text = "Resumen de la comida", style = KpknType.caption, color = WizardColors.textMuted)
-            LoggerFoodItem(
-                tag = NutritionSamples.chickenTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = noActions,
-            )
-            LoggerFoodDivider()
-            LoggerFoodItem(
-                tag = NutritionSamples.tortillaTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = NutritionSamples.tortillaQuestion,
-                matchUncertain = true,
-                actions = noActions,
-            )
-            LoggerFoodDivider()
-            LoggerFoodItem(
-                tag = if (riceExpanded) NutritionSamples.riceTag.copy(isExpanded = true) else NutritionSamples.riceTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = noActions,
-            )
-        }
+    private fun Food(tag: ResolvedTag, index: Int, question: com.example.kpkn.domain.nutrition.ClarificationRequest? = null) {
+        val logged = tag.loggedFood
+        val name = (tag.foodItem?.name ?: tag.tag).replaceFirstChar { it.uppercase() }
+        val grams = tag.amountGrams ?: logged?.amount ?: 0.0
+        val approx = question != null
+        LoggerFoodCard(
+            name = name,
+            subtitle = loggerFoodSubtitle(loggerAmountLine(grams, loggerUnits(name, tag.foodItem, tag.tag)), approx),
+            kcal = loggerFoodKcal(kotlin.math.round(logged?.calories ?: 0.0).toInt(), approx),
+            protein = logged?.protein ?: 0.0,
+            carbs = logged?.carbs ?: 0.0,
+            fats = logged?.fats ?: 0.0,
+            icon = loggerFoodIcon(name),
+            onOpen = {},
+            question = question?.let { loggerQuestionFor(tag, it) },
+            index = index,
+        )
     }
 
-    /** La barra con el total de los tres alimentos (828 kcal, aproximado por la estimación) y la acción de guardar. */
+    /** El resumen y las tres tarjetas: una normal, una con la duda de la tortilla y el arroz. */
     @Composable
-    private fun TotalBar(busy: String? = null, succeeded: Boolean = false) {
+    private fun Foods() {
+        LoggerSummaryCard(kcal = 828, protein = 62.0, carbs = 85.0, fats = 24.0, targetKcal = 2300)
+        Food(NutritionSamples.chickenTag, 0)
+        Food(NutritionSamples.tortillaTag, 1, NutritionSamples.tortillaQuestion)
+        Food(NutritionSamples.riceTag, 2)
+    }
+
+    /** La barra de guardar con los tres alimentos (828 kcal). */
+    @Composable
+    private fun SaveBar(enabled: Boolean = true) {
         LoggerSaveBar(
             kcal = 828,
-            protein = 62,
-            carbs = 85,
-            fats = 24,
-            approximate = true,
-            actionLabel = "Guardar en Almuerzo",
-            enabled = busy == null,
+            line = loggerSaveBarLine(3, 62, if (enabled) 0 else 1),
+            actionLabel = "Guardar en almuerzo",
+            enabled = enabled,
             onAction = {},
-            actionIcon = KpknLineIcons.Check,
-            busyLabel = busy,
-            succeeded = succeeded,
         )
     }
 
@@ -218,44 +186,38 @@ class FoodLoggerBottomRenderSheetTest {
         when (scene) {
             "alimentos" -> Sheet {
                 Header(MealType.LUNCH)
-                FoodsModule()
-                TotalBar()
-            }
-            "alimento_ajustes" -> Sheet {
-                Header(MealType.LUNCH)
-                FoodsModule(riceExpanded = true)
-                TotalBar()
+                Foods()
+                SaveBar()
             }
             "barra_total" -> Sheet {
                 Header(MealType.LUNCH)
-                TotalBar()
+                SaveBar()
             }
-            "barra_guardando" -> Sheet {
+            "barra_apagada" -> Sheet {
                 Header(MealType.LUNCH)
-                TotalBar(busy = "Guardando…")
+                SaveBar(enabled = false)
             }
-            "barra_exito" -> Sheet {
-                Header(MealType.LUNCH)
-                TotalBar(succeeded = true)
+            "guardado" -> Frame {
+                LoggerSavedOverlay(title = "Almuerzo guardado", line = loggerSavedLine(828, 1472))
             }
             "error_guardado" -> Sheet {
                 Header(MealType.LUNCH)
-                FoodsModule()
-                LoggerErrorNotice(
+                Foods()
+                LoggerToast(
                     message = "No se pudo guardar la comida. Tu borrador sigue aquí; vuelve a intentarlo.",
-                    onDismiss = {},
-                    onRetry = {},
+                    actionLabel = "Reintentar",
+                    onAction = {},
                 )
-                TotalBar()
+                SaveBar()
             }
             "dialogo_descartar" -> Frame {
-                LoggerDiscardDialog(isEditing = false, onDiscard = {}, onKeepEditing = {})
+                LoggerDiscardDialog(foodCount = 3, isEditing = false, onDiscard = {}, onKeepEditing = {})
             }
-            "dialogo_configuracion" -> Frame {
-                LoggerSettingsDialog(onAdjustMeasures = {}, onForgetLearned = {}, onClose = {})
+            "hoja_ajustes" -> Frame {
+                LoggerSettingsSheet(onMeasures = {}, onFavoritesAndRecipes = {}, onForget = {}, onDismiss = {})
             }
-            "dialogo_medidas" -> Frame {
-                LoggerMeasuresDialog(
+            "hoja_medidas" -> Frame {
+                LoggerMeasuresSheet(
                     values = mapOf("cucharadita" to 5f, "cucharada" to 15f, "cucharon" to 90f, "taza" to 250f, "vaso" to 200f, "plato" to 260f, "plato_hondo" to 380f, "bol" to 300f, "copa" to 180f),
                     onValueChange = { _, _ -> },
                     onRestore = {},
@@ -263,18 +225,30 @@ class FoodLoggerBottomRenderSheetTest {
                     onDismiss = {},
                 )
             }
-            "dialogo_privacidad" -> Frame {
-                LoggerPrivacyDialog(onClose = {})
+            "dialogo_olvidar" -> Frame {
+                LoggerForgetDialog(onCancel = {}, onForget = {})
             }
             "hoja_fecha" -> Frame {
-                LoggerDateSheet(selected = Today, today = Today, onPick = {}, onDismiss = {})
+                LoggerDateSheet(
+                    selected = Today,
+                    selectedTime = "14:10",
+                    today = Today,
+                    now = java.time.LocalTime.of(14, 10),
+                    onDone = { _, _ -> },
+                    onDismiss = {},
+                )
             }
             "hoja_entera" -> Sheet {
                 Header(MealType.LUNCH)
-                LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = NutritionSamples.DESCRIBE_TEXT, onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
-                FoodsModule()
-                TotalBar()
+                LoggerDescribeField(
+                    text = NutritionSamples.DESCRIBE_TEXT,
+                    onTextChange = {},
+                    onAnalyze = {},
+                    mode = LoggerWriteMode.RESULT,
+                    foodMentions = listOf("pollo a la plancha", "tortilla", "arroz blanco"),
+                )
+                Foods()
+                SaveBar()
             }
         }
     }
@@ -319,9 +293,9 @@ class FoodLoggerBottomRenderSheetTest {
             // Con el reloj parado no hay cuadros: uno para que la escena nueva llegue a la vista antes de capturar.
             rule.mainClock.advanceTimeByFrame()
             rule.waitForIdle()
-            if (sceneName == "barra_exito" || sceneName == "hoja_fecha") {
+            if (sceneName == "guardado" || sceneName == "hoja_fecha" || sceneName == "alimentos" || sceneName == "hoja_entera") {
                 // El check (600 ms) y la hoja de fecha (su entrada con muelle) necesitan reloj para llegar a su cuadro final.
-                rule.mainClock.advanceTimeBy(if (sceneName == "hoja_fecha") 1000L else 700L)
+                rule.mainClock.advanceTimeBy(if (sceneName == "hoja_fecha") 1000L else 1500L)
                 rule.waitForIdle()
             }
             val bounds = rule.onNodeWithTag("sheet").fetchSemanticsNode().boundsInRoot
@@ -345,15 +319,14 @@ class FoodLoggerBottomRenderSheetTest {
         }
         for (name in listOf(
             "alimentos",
-            "alimento_ajustes",
             "barra_total",
-            "barra_guardando",
-            "barra_exito",
+            "barra_apagada",
+            "guardado",
             "error_guardado",
             "dialogo_descartar",
-            "dialogo_configuracion",
-            "dialogo_medidas",
-            "dialogo_privacidad",
+            "hoja_ajustes",
+            "hoja_medidas",
+            "dialogo_olvidar",
             "hoja_fecha",
             "hoja_entera",
         )) {

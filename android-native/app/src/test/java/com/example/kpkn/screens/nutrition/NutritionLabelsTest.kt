@@ -69,8 +69,8 @@ class NutritionLabelsTest {
 
     @Test
     fun `portion presets are named in Spanish and never by their identifier`() {
-        assertEquals("Pequeño", portionPresetLabel(PortionPreset.SMALL))
-        assertEquals("Mediano", portionPresetLabel(PortionPreset.MEDIUM))
+        assertEquals("Pequeña", portionPresetLabel(PortionPreset.SMALL))
+        assertEquals("Mediana", portionPresetLabel(PortionPreset.MEDIUM))
         assertEquals("Grande", portionPresetLabel(PortionPreset.LARGE))
         assertEquals("Extra", portionPresetLabel(PortionPreset.EXTRA))
         PortionPreset.entries.forEach { preset ->

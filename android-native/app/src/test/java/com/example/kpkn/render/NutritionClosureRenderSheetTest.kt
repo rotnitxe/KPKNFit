@@ -60,9 +60,16 @@ import com.example.kpkn.screens.nutrition.design.NutritionWeekTrendModule
 import com.example.kpkn.screens.nutrition.design.editor.NutritionPlanEditorActions
 import com.example.kpkn.screens.nutrition.design.editor.NutritionPlanEditorContent
 import com.example.kpkn.screens.nutrition.design.logger.LoggerDescribeField
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodActions
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodDivider
-import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodItem
+import com.example.kpkn.screens.nutrition.design.logger.LoggerFoodCard
+import com.example.kpkn.screens.nutrition.design.logger.LoggerSummaryCard
+import com.example.kpkn.screens.nutrition.design.logger.LoggerWriteMode
+import com.example.kpkn.screens.nutrition.design.logger.loggerAmountLine
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodIcon
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodKcal
+import com.example.kpkn.screens.nutrition.design.logger.loggerFoodSubtitle
+import com.example.kpkn.screens.nutrition.design.logger.loggerQuestionFor
+import com.example.kpkn.screens.nutrition.design.logger.loggerSaveBarLine
+import com.example.kpkn.screens.nutrition.design.logger.loggerUnits
 import com.example.kpkn.screens.nutrition.design.logger.LoggerHeader
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSaveBar
 import com.example.kpkn.screens.nutrition.design.logger.LoggerTabs
@@ -125,23 +132,6 @@ class NutritionClosureRenderSheetTest {
         /** La misma semana sin meta: sin objetivos y solo seguimiento. */
         private val weekWithoutGoal = NutritionSamples.week(listOf(2120, 2480, 1930, 1240, 0, 0, 0), goal = null)
 
-        /** Las acciones de las filas del registro, todas vacías: la hoja de render solo dibuja. */
-        private val noActions = LoggerFoodActions(
-            onToggleExpanded = {},
-            onToggleCorrection = {},
-            onCorrectionQueryChange = {},
-            onPickCorrection = {},
-            onPortionChange = {},
-            onPortionOption = {},
-            onGramsChange = {},
-            onMacroChange = { _, _ -> },
-            onRemove = {},
-            onOilLevelChange = {},
-            onCookingChange = {},
-            onIdentityChoice = {},
-            onDeclaredComposition = {},
-            onUnsure = {},
-        )
     }
 
     @get:Rule
@@ -346,12 +336,16 @@ class NutritionClosureRenderSheetTest {
             when (name) {
                 "registro_describir_vacio" -> {
                     LoggerTabs(activeTab = 0, onTabSelect = {})
-                    LoggerDescribeField(text = "", onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
-                    KpknPrimaryPill(text = "Interpretar comida", onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth())
+                    LoggerDescribeField(text = "", onTextChange = {}, onAnalyze = {}, onDictate = {})
                 }
                 "registro_alimentos_aclaracion" -> {
-                    LoggerTabs(activeTab = 0, onTabSelect = {})
-                    LoggerDescribeField(text = NutritionSamples.DESCRIBE_TEXT, onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
+                    LoggerDescribeField(
+                        text = NutritionSamples.DESCRIBE_TEXT,
+                        onTextChange = {},
+                        onAnalyze = {},
+                        mode = LoggerWriteMode.RESULT,
+                        foodMentions = listOf("pollo a la plancha", "tortilla", "arroz blanco"),
+                    )
                     LoggerFoodsModule()
                     LoggerTotalBar()
                 }
@@ -363,59 +357,42 @@ class NutritionClosureRenderSheetTest {
         }
     }
 
-    /** Los tres alimentos del registro: uno normal, la tortilla con su aclaración (sin la opción repetida) y el arroz estimado. */
+    /** El resumen y los tres alimentos del registro: uno normal, la tortilla con su duda dentro y el arroz. */
     @Composable
     private fun LoggerFoodsModule() {
-        KpknModule {
-            KpknModuleHeader(label = "Lo que comiste")
-            Spacer(Modifier.height(4.dp))
-            Text(text = "Resumen de la comida", style = KpknType.caption, color = WizardColors.textMuted)
-            LoggerFoodItem(
-                tag = NutritionSamples.chickenTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = noActions,
-            )
-            LoggerFoodDivider()
-            LoggerFoodItem(
-                tag = NutritionSamples.tortillaTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = NutritionSamples.tortillaQuestion,
-                matchUncertain = true,
-                actions = noActions,
-            )
-            LoggerFoodDivider()
-            LoggerFoodItem(
-                tag = NutritionSamples.riceTag,
-                correcting = false,
-                correctionQuery = "",
-                correctionResults = null,
-                pendingQuestion = null,
-                matchUncertain = false,
-                actions = noActions,
+        LoggerSummaryCard(kcal = 828, protein = 62.0, carbs = 85.0, fats = 24.0, targetKcal = 2300)
+        listOf(
+            NutritionSamples.chickenTag to null,
+            NutritionSamples.tortillaTag to NutritionSamples.tortillaQuestion,
+            NutritionSamples.riceTag to null,
+        ).forEachIndexed { index, (tag, question) ->
+            val logged = tag.loggedFood
+            val name = (tag.foodItem?.name ?: tag.tag).replaceFirstChar { it.uppercase() }
+            val grams = tag.amountGrams ?: logged?.amount ?: 0.0
+            LoggerFoodCard(
+                name = name,
+                subtitle = loggerFoodSubtitle(loggerAmountLine(grams, loggerUnits(name, tag.foodItem, tag.tag)), question != null),
+                kcal = loggerFoodKcal(kotlin.math.round(logged?.calories ?: 0.0).toInt(), question != null),
+                protein = logged?.protein ?: 0.0,
+                carbs = logged?.carbs ?: 0.0,
+                fats = logged?.fats ?: 0.0,
+                icon = loggerFoodIcon(name),
+                onOpen = {},
+                question = question?.let { loggerQuestionFor(tag, it) },
+                index = index,
             )
         }
     }
 
-    /** La barra de total y «Guardar en Almuerzo», con el estado de guardado si [busy] trae su texto. */
+    /** La barra de guardar «Guardar en almuerzo»; mientras guarda ([busy]) va apagada. */
     @Composable
     private fun LoggerTotalBar(busy: String? = null) {
         LoggerSaveBar(
             kcal = 828,
-            protein = 62,
-            carbs = 85,
-            fats = 24,
-            approximate = true,
-            actionLabel = "Guardar en Almuerzo",
+            line = loggerSaveBarLine(3, 62, 0),
+            actionLabel = "Guardar en almuerzo",
             enabled = busy == null,
             onAction = {},
-            actionIcon = KpknLineIcons.Check,
-            busyLabel = busy,
         )
     }
 

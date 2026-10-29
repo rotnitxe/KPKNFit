@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
@@ -17,6 +18,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.BarcodeLookup
 import com.example.kpkn.data.models.BarcodeOrigin
@@ -56,6 +60,12 @@ class BarcodeScanUiTest {
         }
     }
 
+    /**
+     * Los botones de la hoja viven en una columna con desplazamiento: en Robolectric el toque simulado no llega al `clickable` dentro de
+     * un contenedor desplazable, así que se invoca su acción de clic (se comprueba que existe y que su zona táctil mide lo que debe).
+     */
+    private fun SemanticsNodeInteraction.tap() = performSemanticsAction(SemanticsActions.OnClick)
+
     @Test fun `sin permiso decidido se explica la cámara y se ofrece pedirla o teclear`() {
         var requested = false
         var manual = false
@@ -65,8 +75,8 @@ class BarcodeScanUiTest {
         )
         rule.onNodeWithText("Usa la cámara para leer el código").assertExists()
         rule.onNodeWithText("La imagen no se guarda ni sale del aparato.", substring = true).assertExists()
-        rule.onNodeWithTag("scan-allow-camera").assertHeightIsAtLeast(48.dp).performClick()
-        rule.onNodeWithTag("scan-type-code").assertHeightIsAtLeast(48.dp).performClick()
+        rule.onNodeWithTag("scan-allow-camera").assertHeightIsAtLeast(48.dp).tap()
+        rule.onNodeWithTag("scan-type-code").assertHeightIsAtLeast(48.dp).tap()
         assertTrue(requested && manual)
     }
 
@@ -107,9 +117,9 @@ class BarcodeScanUiTest {
         rule.onNodeWithTag("scan-denied").assertExists()
         rule.onNodeWithTag("scan-use-camera").assertDoesNotExist()
         rule.onNodeWithText("El código no es válido: revisa los dígitos.").assertExists()
-        rule.onNodeWithTag("scan-open-settings").performClick()
+        rule.onNodeWithTag("scan-open-settings").assertHeightIsAtLeast(48.dp).tap()
         rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("scan-manual-field"))).performTextInput("4006381333931")
-        rule.onNodeWithTag("scan-manual-submit").assertHeightIsAtLeast(48.dp).performClick()
+        rule.onNodeWithTag("scan-manual-submit").assertHeightIsAtLeast(48.dp).tap()
         assertTrue(settings && submitted)
         assertEquals("4006381333931", typed)
     }
@@ -120,11 +130,11 @@ class BarcodeScanUiTest {
             BarcodeScanUiState(access = CameraAccess.GRANTED, manualRequested = true),
             BarcodeScanActions(onShowCamera = { camera = true }),
         )
-        rule.onNodeWithTag("scan-use-camera").performClick()
+        rule.onNodeWithTag("scan-use-camera").assertHeightIsAtLeast(48.dp).tap()
         assertTrue(camera)
     }
 
-    @Test fun `un producto encontrado dice de donde viene el dato y se confirma con los gramos`() {
+    @Test fun `un producto encontrado sube como hoja sobre la camara y se anade con los gramos por defecto`() {
         var confirmed: Pair<FoodItem, Double>? = null
         var another = false
         show(
@@ -132,14 +142,21 @@ class BarcodeScanUiTest {
                 result = BarcodeLookup.Found(leche, BarcodeOrigin.CATALOGO)),
             BarcodeScanActions(onConfirm = { food, grams -> confirmed = food to grams }, onScanAnother = { another = true }),
         )
+        // La cámara y su recuadro siguen detrás de la hoja (no se sale de la cámara).
+        rule.onNodeWithTag("scan-viewfinder").assertExists()
+        rule.onNodeWithText("Centra el código en el recuadro").assertExists()
+        rule.onNodeWithText("ENCONTRADO · BASE GLOBAL").assertExists()
         rule.onNodeWithTag("scan-food-name").assertExists()
         rule.onNodeWithText("Leche entera").assertExists()
-        rule.onNodeWithText("Colún").assertExists()
-        rule.onNodeWithText("Dato de la base global (OFF Chile).").assertExists()
-        rule.onNodeWithText("Código 7801234567894").assertExists()
-        rule.onNodeWithTag("scan-ration").assertExists()
-        rule.onNodeWithTag("scan-confirm").assertIsEnabled().assertHeightIsAtLeast(48.dp).performClick()
-        rule.onNodeWithTag("scan-another").performClick()
+        rule.onNodeWithTag("scan-summary").assertTextContains("Colún", substring = true).assertTextContains("kcal", substring = true)
+        // Lo que el lienzo no tiene ya no se pinta: base global/código/calidad en módulos y el selector de ración.
+        rule.onNodeWithText("Código 7801234567894").assertDoesNotExist()
+        rule.onNodeWithTag("scan-ration").assertDoesNotExist()
+        rule.onNodeWithTag("scan-quality").assertDoesNotExist()
+        rule.onNodeWithText("Agregar a la comida").assertDoesNotExist()
+        rule.onNodeWithText("Probar otro").assertDoesNotExist()
+        rule.onNodeWithTag("scan-confirm").assertIsEnabled().assertHeightIsAtLeast(48.dp).tap()
+        rule.onNodeWithTag("scan-another").assertHeightIsAtLeast(48.dp).tap()
         assertNotNull(confirmed)
         assertEquals(leche, confirmed!!.first)
         assertTrue("los gramos propuestos son positivos", confirmed!!.second > 0.0)
@@ -149,11 +166,10 @@ class BarcodeScanUiTest {
     @Test fun `un alimento propio encontrado lo dice`() {
         val propio = leche.copy(id = "custom_1", isCustom = true, source = "custom", brand = null)
         show(BarcodeScanUiState(access = CameraAccess.GRANTED, phase = ScanPhase.RESULT, result = BarcodeLookup.Found(propio, BarcodeOrigin.PROPIO)))
-        rule.onNodeWithText("Dato propio: lo guardaste tú.").assertExists()
-        rule.onNodeWithText("ALIMENTO PROPIO").assertExists()
+        rule.onNodeWithText("ENCONTRADO · TUS ALIMENTOS").assertExists()
     }
 
-    @Test fun `un producto con datos incompletos lo dice y no se puede agregar`() {
+    @Test fun `un producto con datos incompletos no se puede anadir y ofrece crear el alimento`() {
         var created = false
         val incompleto = leche.copy(calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0, qualityFlags = listOf("INCOMPLETE", "LOW_QUALITY"))
         show(
@@ -161,12 +177,11 @@ class BarcodeScanUiTest {
                 result = BarcodeLookup.Found(incompleto, BarcodeOrigin.CATALOGO)),
             BarcodeScanActions(onCreateOwn = { created = true }),
         )
-        rule.onNodeWithTag("scan-quality").assertExists()
-        rule.onNodeWithText("• Faltan nutrientes: la ficha no declara sus macros.").assertExists()
-        rule.onNodeWithText("• Datos de baja calidad: el nombre o los nutrientes pueden estar mal.").assertExists()
+        rule.onNodeWithText("Sin datos fiables: créalo con su etiqueta").assertExists()
         rule.onNodeWithTag("scan-confirm").assertIsNotEnabled()
+        rule.onNodeWithTag("scan-quality").assertDoesNotExist()
         rule.onNodeWithTag("scan-ration").assertDoesNotExist()
-        rule.onNodeWithTag("scan-create-own").performClick()
+        rule.onNodeWithTag("scan-create-own").assertHeightIsAtLeast(48.dp).tap()
         assertTrue(created)
     }
 
@@ -179,20 +194,15 @@ class BarcodeScanUiTest {
         )
         rule.onNodeWithText("No tengo este producto").assertExists()
         rule.onNodeWithText("Código 7801234567894").assertExists()
-        rule.onNodeWithTag("scan-create-own").assertHeightIsAtLeast(48.dp).performClick()
-        rule.onNodeWithTag("scan-another").assertHeightIsAtLeast(48.dp).performClick()
+        rule.onNodeWithText("Crear alimento").assertExists()
+        rule.onNodeWithText("Escanear otro").assertExists()
+        rule.onNodeWithTag("scan-create-own").assertHeightIsAtLeast(48.dp).tap()
+        rule.onNodeWithTag("scan-another").assertHeightIsAtLeast(48.dp).tap()
         assertTrue(created && another)
     }
 
     @Test fun `mientras busca lo dice`() {
         show(BarcodeScanUiState(access = CameraAccess.GRANTED, phase = ScanPhase.SEARCHING, code = "7801234567894"))
         rule.onNodeWithText("Buscando en tu teléfono…").assertExists()
-    }
-
-    @Test fun `cada bandera de calidad tiene su frase en espanol`() {
-        listOf("INCOMPLETE", "ENERGY_MISMATCH", "LOW_QUALITY", "UNVERIFIED_NUTRIENT_BASIS", "ENERGY_ATWATER", "CARB_CLAMPED").forEach {
-            assertTrue(it, qualityFlagMessage(it) != "Aviso de calidad en la ficha.")
-        }
-        assertEquals("Aviso de calidad en la ficha.", qualityFlagMessage("OTRA"))
     }
 }
