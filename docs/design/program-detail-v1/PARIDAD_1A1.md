@@ -149,3 +149,15 @@ lienzo). Módulo sin datos no se pinta; g-empty solo resumen y fuerza. Volumen s
 indirectas ½ fijas, 9 músculos del lienzo siempre. «Calibrar» → «Revisar mis respuestas». No hecho: ejercicios por rol (no
 existen: los 5 con más sesiones), franja de rangos solo con perfil calibrado, «Semana 5» en chips, artículo en la frase.
 Limpieza: VM programDiscomforts, exerciseDiscomfortAssociations, calibrationAnswers sin uso (tras PD).
+
+### Ola 2 — PD Hojas y menús (fusionado, bc411d6bc; código 6534e1724)
+Compila en su rama; 14 clases / 151 pruebas en verde. Kit común design/ProgramSheetKit.kt; Pendiente abre cada hoja final
+(sesiones sin registrar → ProgramMissedSessionsSheet / ProgramScheduleReviewSheet nuevas); menús de semana y sesión como
+hojas (ProgramWeekMenus.kt); m-split rehecho. Borrados ProgramProposalsModule, ProgramScheduleModule,
+ProgramTransitionModule, ProgramPendingDetailSheet, SplitCurrentModule/TopIsland/TagRow y el banner de transición.
+Distinto al lienzo (para el informe): «Reemplazar» de m-paste apagado por seguridad; «Mover a otro día» sigue como menú
+anclado; menú de semana de Estructura sin tocar; «Seleccionar varios» del reparto como acción de texto; colores de m-split
+del lienzo; varias propuestas → «Aplicar» la primera, «Mantener carga» rechaza todas; «Fin del programa pronto» sin acción.
+Conflictos resueltos: copia desde Versiones guardadas se abre (como Estructura); Pr11PolishRenderSheetTest sin los casos de
+volumen y propuestas (borrados por PB y PD). Limpieza hecha (6a05fe25b). Program Detail COMPLETO en la rama; falta compilar
+la suma (se hará una vez con Registros).
