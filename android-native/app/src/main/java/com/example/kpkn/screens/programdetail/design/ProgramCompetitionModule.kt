@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -188,7 +186,22 @@ private val CompCapStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight =
 /** Los intentos: Syne Bold 15 sp con cifras tabulares. */
 private val CompAttemptsStyle = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 15.sp, lineHeight = 18.sp, fontFeatureSettings = "'tnum' 1")
 
-@OptIn(ExperimentalLayoutApi::class)
+/** Las tres estrategias de m-meet, en el orden del segmentado. */
+private val attemptStrategies = listOf(
+    AttemptStrategy.CONSERVATIVE to "Conservadora",
+    AttemptStrategy.TARGET to "Objetivo",
+    AttemptStrategy.AMBITIOUS to "Ambiciosa",
+)
+
+/** El valor de un campo de intento: «182,5», sin «,0». */
+internal fun competitionFieldText(kg: Double): String = competitionKg(kg)
+
+/**
+ * «Planificar intentos» (lienzo v6, m-meet): el nombre y la fecha de la competición, la estrategia en el segmentado, los tres intentos de cada
+ * levantamiento en una fila (campos de 58 dp), la categoría y el peso objetivo para el pesaje (opcionales) y «Revisar planificación», que se
+ * activa con los intentos completos y en orden. La revisión enseña cada intento con su base y deja «Guardar planificación» o «Editar
+ * planificación». Nada se guarda hasta «Guardar planificación».
+ */
 @Composable
 internal fun CompetitionPlanSheet(state: ProgramCompetitionState,busy: Boolean,
     onSave: (List<PlannedAttempt>,String?,Double?) -> Unit,onDismiss: () -> Unit) {
@@ -199,11 +212,11 @@ internal fun CompetitionPlanSheet(state: ProgramCompetitionState,busy: Boolean,
             val initial = record.plannedAttempts.filter { it.movementType == movement }.ifEmpty {
                 state.expectedMaxes[movement]?.let { AttemptPlanner.plan(movement,it) }.orEmpty()
             }
-            (1..3).forEach { n -> put(movement to n,initial.firstOrNull { it.attemptNumber == n }?.weightKg?.toString().orEmpty()) }
+            (1..3).forEach { n -> put(movement to n,initial.firstOrNull { it.attemptNumber == n }?.weightKg?.let(::competitionFieldText).orEmpty()) }
         }
     } }
     var category by remember(record.id,record.updatedAtMs) { mutableStateOf(record.targetWeightClass.orEmpty()) }
-    var targetText by remember(record.id,record.updatedAtMs) { mutableStateOf(record.targetBodyweightKg?.toString().orEmpty()) }
+    var targetText by remember(record.id,record.updatedAtMs) { mutableStateOf(record.targetBodyweightKg?.let(::competitionFieldText).orEmpty()) }
     var reviewing by remember(record.id,record.updatedAtMs) { mutableStateOf(false) }
     fun number(text: String): Double? = text.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
     val target = number(targetText)
@@ -221,89 +234,151 @@ internal fun CompetitionPlanSheet(state: ProgramCompetitionState,busy: Boolean,
     }
     val descending = attempts.groupBy { it.movementType }.values.any { values -> values.zipWithNext().any { it.first.weightKg > it.second.weightKg } }
     val valid = !partial && !descending && category.length <= 80 && (targetText.isBlank() || target != null)
-    KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.9f) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProgramSheetHeader(title = "Planificar competición", subtitle = "Pesos editables, redondeados a 2,5 kg al proponerlos. Revisa el material y las reglas de tu evento. No son resultados registrados.")
-            if (!reviewing) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(AttemptStrategy.CONSERVATIVE to "Conservadora",AttemptStrategy.TARGET to "Objetivo",AttemptStrategy.AMBITIOUS to "Ambiciosa").forEach { (value,label) ->
-                        FilterChip(selected = strategy == value,enabled = !busy,onClick = {
-                            strategy = value
-                            state.expectedMaxes.forEach { (movement,max) -> AttemptPlanner.plan(movement,max,value).forEach { weights[movement to it.attemptNumber] = it.weightKg.toString() } }
-                        },label = { Text(label) })
+    ProgramLienzoSheet(onDismiss = onDismiss, dismissible = !busy) {
+        LienzoSheetTitle(
+            title = "Planificar intentos",
+            eyebrow = competitionTitleLine(record),
+            sub = "Pesos editables, redondeados a 2,5 kg. No son resultados registrados.",
+        )
+        if (!reviewing) {
+            LienzoSegmented(
+                options = attemptStrategies.map { it.second },
+                selectedIndex = attemptStrategies.indexOfFirst { it.first == strategy }.coerceAtLeast(0),
+                onSelect = { index ->
+                    val value = attemptStrategies[index].first
+                    strategy = value
+                    state.expectedMaxes.forEach { (movement,max) ->
+                        AttemptPlanner.plan(movement,max,value).forEach { weights[movement to it.attemptNumber] = competitionFieldText(it.weightKg) }
                     }
-                }
-                AttemptPlanner.lifts.forEach { movement ->
-                    Text(competitionLiftLabel(movement),style = KpknType.bodyStrong,color = WizardColors.text)
-                    if (movement !in state.expectedMaxes) Text("Sin referencia comparable: introduce los pesos que elijas.",style = KpknType.caption,color = WizardColors.textMuted)
-                    (1..3).forEach { n -> OutlinedTextField(value = weights[movement to n].orEmpty(),
-                        onValueChange = { weights[movement to n] = it },enabled = !busy,singleLine = true,
-                        label = { Text("${competitionLiftLabel(movement)} · intento $n (kg)") },keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth().testTag("meet-attempt:${movement.name}:$n")) }
-                }
-                OutlinedTextField(value = category,onValueChange = { category = it },enabled = !busy,label = { Text("Categoría objetivo (opcional)") },modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = targetText,onValueChange = { targetText = it },enabled = !busy,label = { Text("Peso objetivo para el pesaje, kg (opcional)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),modifier = Modifier.fillMaxWidth().testTag("meet-target-bodyweight"))
-                if (!valid) Text("Completa los tres intentos de cada levantamiento elegido en orden no decreciente y revisa el peso objetivo.",style = KpknType.body,color = WizardColors.text)
-                if (valid && !busy) KpknPrimaryPill(text = "Revisar planificación", onClick = { reviewing = true }, modifier = Modifier.fillMaxWidth())
-            } else {
-                if (attempts.isEmpty()) Text("Se guardará la competición sin intentos planificados.",style = KpknType.body,color = WizardColors.text)
-                attempts.forEach { Text("${competitionLiftLabel(it.movementType)} ${it.attemptNumber}: ${it.weightKg} kg · ${it.basis}",style = KpknType.body,color = WizardColors.text) }
-                Text("Categoría: ${category.ifBlank { "sin objetivo" }} · peso objetivo: ${target?.let { "$it kg" } ?: "sin objetivo"}",style = KpknType.body,color = WizardColors.text)
-                if (!busy) {
-                    KpknPrimaryPill(text = "Guardar planificación", onClick = { onSave(attempts,category.takeIf { it.isNotBlank() },target) }, modifier = Modifier.fillMaxWidth())
-                    KpknSecondaryPill(text = "Editar planificación", onClick = { reviewing = false }, modifier = Modifier.fillMaxWidth())
-                }
+                },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                enabled = !busy,
+            )
+            AttemptPlanner.lifts.forEach { movement ->
+                LienzoRatioRow(label = competitionLiftLabel(movement), trailing = {
+                    (1..3).forEach { n ->
+                        LienzoTextField(
+                            label = null,
+                            value = weights[movement to n].orEmpty(),
+                            onValueChange = { weights[movement to n] = it },
+                            modifier = Modifier.width(58.dp),
+                            numeric = true,
+                            enabled = !busy,
+                            tag = "meet-attempt:${movement.name}:$n",
+                            textAlign = TextAlign.Center,
+                            valueStyle = LienzoFieldValueStyle.copy(fontSize = 14.sp, fontFeatureSettings = "'tnum' 1"),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                            topGap = 0.dp,
+                        )
+                    }
+                })
             }
-            if (busy) Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
-            else KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
+            LienzoTextField(
+                label = "Categoría objetivo (opcional)",
+                value = category,
+                onValueChange = { category = it },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !busy,
+                error = category.length > 80,
+                tag = "meet-target-class",
+            )
+            LienzoTextField(
+                label = "Peso objetivo para el pesaje (opcional)",
+                value = targetText,
+                onValueChange = { targetText = it },
+                modifier = Modifier.fillMaxWidth(),
+                numeric = true,
+                suffix = "kg",
+                enabled = !busy,
+                error = targetText.isNotBlank() && target == null,
+                tag = "meet-target-bodyweight",
+            )
+            ProgramLienzoPill(
+                text = "Revisar planificación",
+                onClick = { reviewing = true },
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                enabled = valid && !busy,
+            )
+        } else {
+            if (attempts.isEmpty()) Text("Se guardará la competición sin intentos planificados.",style = LienzoCapStyle,color = WizardColors.textFaint)
+            attempts.forEach {
+                LienzoRatioRow(label = "${competitionLiftLabel(it.movementType)} · ${it.attemptNumber}", sub = it.basis, value = "${competitionKg(it.weightKg)} kg")
+            }
+            LienzoRatioRow(label = "Categoría", value = category.trim().ifBlank { "Sin objetivo" })
+            LienzoRatioRow(label = "Peso para el pesaje", value = target?.let { "${competitionKg(it)} kg" } ?: "Sin objetivo")
+            ProgramLienzoPill(
+                text = "Guardar planificación",
+                onClick = { onSave(attempts,category.trim().takeIf { it.isNotBlank() },target) },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                enabled = !busy,
+            )
+            ProgramLienzoPill(
+                text = "Editar planificación",
+                onClick = { reviewing = false },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                filled = false,
+                enabled = !busy,
+            )
         }
     }
 }
 
+/**
+ * «Modo competición» (simulación del día): las mismas funciones con la piel de las hojas m-*: por levantamiento, el calentamiento orientativo
+ * y cada intento con sus chips «Válido» / «Nulo» y el siguiente intento. No guarda resultados.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun MeetDaySheet(attempts: List<PlannedAttempt>,onDismiss: () -> Unit) {
     val plans = remember(attempts) { MeetDayPlan.build(attempts) }
     val outcomes = remember(attempts) { mutableStateMapOf<Pair<CompetitionMovementType,Int>,CompetitionAttemptResult>() }
-    KpknSheet(onDismissRequest = onDismiss,stableHeightFraction = 0.9f) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProgramSheetHeader(title = "Modo competición", subtitle = "Consulta y simulación local. Al cerrar no se guardan estos resultados; usa el asistente de competición para registrar los reales.")
-            plans.forEach { plan ->
-                Text(competitionLiftLabel(plan.movement),style = KpknType.bodyStrong,color = WizardColors.text)
-                Text("Calentamiento orientativo: " + plan.warmups.joinToString(" · ") { "${it.weightKg} kg × ${it.reps}" },style = KpknType.body,color = WizardColors.text)
-                listOf(plan.opener,plan.second,plan.third).forEachIndexed { i,kg ->
-                    val n = i + 1
-                    val outcome = outcomes[plan.movement to n]
-                    Text("Intento $n: $kg kg",style = KpknType.body,color = WizardColors.text)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(CompetitionAttemptResult.GOOD_LIFT to "Válido",CompetitionAttemptResult.NO_LIFT to "Nulo").forEach { (result,label) ->
-                            FilterChip(selected = outcome == result,onClick = { outcomes[plan.movement to n] = result },label = { Text(label) },
-                                modifier = Modifier.testTag("meet-simulation:${plan.movement.name}:$n:${result.name}"))
+    ProgramLienzoSheet(onDismiss = onDismiss) {
+        LienzoSheetTitle(
+            title = "Modo competición",
+            sub = "Consulta y simulación local. Al cerrar no se guardan estos resultados; usa el asistente de competición para registrar los reales.",
+        )
+        plans.forEach { plan ->
+            LienzoGroup(competitionLiftLabel(plan.movement))
+            Text("Calentamiento orientativo: " + plan.warmups.joinToString(" · ") { "${competitionKg(it.weightKg)} kg × ${it.reps}" },
+                style = LienzoCapStyle,color = WizardColors.textFaint)
+            listOf(plan.opener,plan.second,plan.third).forEachIndexed { i,kg ->
+                val n = i + 1
+                val outcome = outcomes[plan.movement to n]
+                LienzoRatioRow(
+                    label = "Intento $n · ${competitionKg(kg)} kg",
+                    sub = outcome?.let { MeetDayPlan.nextAttempt(plan,n,it)?.let { next -> "Siguiente intento orientativo: ${competitionKg(next)} kg" }
+                        ?: "Fin de los intentos planificados para este levantamiento." },
+                    trailing = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf(CompetitionAttemptResult.GOOD_LIFT to "Válido",CompetitionAttemptResult.NO_LIFT to "Nulo").forEach { (result,label) ->
+                                LienzoChip(text = label, selected = outcome == result, onClick = { outcomes[plan.movement to n] = result },
+                                    tag = "meet-simulation:${plan.movement.name}:$n:${result.name}")
+                            }
                         }
-                    }
-                    if (outcome != null) Text(MeetDayPlan.nextAttempt(plan,n,outcome)?.let { "Siguiente intento orientativo: $it kg" }
-                        ?: "Fin de los intentos planificados para este levantamiento.",style = KpknType.body,color = WizardColors.text)
-                }
+                    },
+                )
             }
-            KpknPrimaryPill(text = "Cerrar simulación", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
         }
+        ProgramLienzoPill(text = "Cerrar simulación", onClick = onDismiss, modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
     }
 }
 
+/** «Revisar actualización de marcas» (misma lógica, piel m-*): antes → después por levantamiento y «Confirmar marcas» o «Ahora no». */
 @Composable
 internal fun MeetResultReviewSheet(preview: ProgramRepository.MeetResultPreview,busy: Boolean,onConfirm: () -> Unit,onDismiss: () -> Unit) {
-    KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.85f) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProgramSheetHeader(title = "Revisar marcas de competición", subtitle = preview.summary)
-            val before = preview.original.powerliftingProfile
-            val after = preview.result.powerliftingProfile
-            Text("Sentadilla: ${before?.squat1RM ?: "sin marca"} → ${after?.squat1RM ?: "sin marca"} kg\nBanca: ${before?.bench1RM ?: "sin marca"} → ${after?.bench1RM ?: "sin marca"} kg\nPeso muerto: ${before?.deadlift1RM ?: "sin marca"} → ${after?.deadlift1RM ?: "sin marca"} kg",style = KpknType.body,color = WizardColors.text)
-            Text("Se recalculan las referencias y semanas pendientes de la receta. Las sesiones iniciadas, registradas y manuales se conservan, junto con el resultado original.",style = KpknType.body,color = WizardColors.text)
-            if (!busy) {
-                KpknPrimaryPill(text = "Confirmar marcas", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-                KpknSecondaryPill(text = "Ahora no", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
-            } else Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
-        }
+    ProgramLienzoSheet(onDismiss = onDismiss, dismissible = !busy) {
+        LienzoSheetTitle(title = "Revisar marcas de competición", eyebrow = "Competición terminada", sub = preview.summary)
+        val before = preview.original.powerliftingProfile
+        val after = preview.result.powerliftingProfile
+        fun mark(kg: Double?) = kg?.let { "${competitionKg(it)} kg" } ?: "sin marca"
+        listOf(
+            "Sentadilla" to (before?.squat1RM to after?.squat1RM),
+            "Banca" to (before?.bench1RM to after?.bench1RM),
+            "Peso muerto" to (before?.deadlift1RM to after?.deadlift1RM),
+        ).forEach { (label, values) -> LienzoRatioRow(label = label, value = "${mark(values.first)} → ${mark(values.second)}") }
+        Text("Se recalculan las referencias y semanas pendientes de la receta. Las sesiones iniciadas, registradas y manuales se conservan, junto con el resultado original.",
+            style = LienzoCapStyle,color = WizardColors.textFaint,modifier = Modifier.padding(top = 10.dp))
+        ProgramLienzoPill(text = "Confirmar marcas", onClick = onConfirm, modifier = Modifier.fillMaxWidth().padding(top = 16.dp), enabled = !busy)
+        ProgramLienzoPill(text = "Ahora no", onClick = onDismiss, modifier = Modifier.fillMaxWidth().padding(top = 8.dp), filled = false, enabled = !busy)
     }
 }

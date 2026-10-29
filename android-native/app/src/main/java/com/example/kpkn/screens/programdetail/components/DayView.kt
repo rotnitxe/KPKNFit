@@ -46,7 +46,11 @@ import com.example.kpkn.screens.programdetail.design.ProgramRestRunRow
 import com.example.kpkn.screens.programdetail.design.ProgramRestoreSessionDialog
 import com.example.kpkn.screens.programdetail.design.ProgramSessionDragCard
 import com.example.kpkn.screens.programdetail.design.ProgramSessionUi
+import com.example.kpkn.screens.programdetail.design.ProgramSessionMenuSheet
 import com.example.kpkn.screens.programdetail.design.ProgramStartDayDialog
+import com.example.kpkn.screens.programdetail.design.capitalizedDayName
+import com.example.kpkn.screens.programdetail.design.sessionMenuSubtitle
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.screens.programdetail.design.ScheduleCopy
 import com.example.kpkn.screens.programdetail.design.agendaRows
 import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
@@ -364,10 +368,16 @@ fun DayView(
     /** Las acciones del menú de un día: «Añadir sesión», «Cambiar la fecha» o «Empezar la semana este día», según el programa y el día. */
     fun dayMenuItems(dayId: Int): List<ProgramAnchoredMenuItem> = buildList {
         if (dayId !in outsideProgramDays) {
-            add(ProgramAnchoredMenuItem(label = "Añadir sesión", onClick = { onAddSession(dayId) }))
+            add(ProgramAnchoredMenuItem(label = "Añadir sesión", onClick = { onAddSession(dayId) }, icon = KpknLineIcons.Plus))
         }
         if (isCalendarized && selectedWeekId != null) {
-            add(ProgramAnchoredMenuItem(label = "Cambiar la fecha", onClick = { editingDayDate = dayId to scheduledDates[dayId].orEmpty() }))
+            add(
+                ProgramAnchoredMenuItem(
+                    label = "Cambiar la fecha",
+                    onClick = { editingDayDate = dayId to scheduledDates[dayId].orEmpty() },
+                    icon = KpknLineIcons.Calendar,
+                ),
+            )
         }
         if (!isCalendarized && dayId != startDay) {
             add(
@@ -378,6 +388,9 @@ fun DayView(
                         startDayScope = StartDayTemporalScope.ALL_WEEKS
                         startDaySessionMode = StartDaySessionMode.KEEP_DAYS
                     },
+                    icon = KpknLineIcons.Flag,
+                    // El `hr` de m-day: separa el inicio de semana de lo que se hace en el día.
+                    dividerBefore = isNotEmpty(),
                 ),
             )
         }
@@ -449,20 +462,22 @@ fun DayView(
     }
 
     sessionMenu?.let { (sessionId, anchor) ->
-        // La restauración también vive en línea, en la sesión desplegada; el menú la ofrece solo si la sesión está editada y se puede restaurar.
-        val currentDay = dayLayout.firstOrNull { it.session.id == sessionId }?.dayId
+        // m-session: una hoja con el nombre de la sesión, su día, sus ejercicios y su duración. La restauración también vive en línea, en la
+        // sesión desplegada; la hoja la ofrece solo si la sesión está editada y se puede restaurar.
+        val entry = dayLayout.firstOrNull { it.session.id == sessionId }
+        val currentDay = entry?.dayId
         val restorable = sessionId in manuallyCustomizedSessionIds && hasSourceRecipe && sessionId !in restoreBlockedSessionIds
-        val items = buildList {
-            add(ProgramAnchoredMenuItem(label = "Editar sesión", onClick = { onEditSession(sessionId) }))
-            if (days.any { it.id != currentDay }) {
-                add(ProgramAnchoredMenuItem(label = "Mover a otro día", onClick = { moveSessionMenu = sessionId to anchor }))
-            }
-            if (restorable) {
-                add(ProgramAnchoredMenuItem(label = "Restaurar desde el plan", onClick = { pendingRestoreSessionId = sessionId }))
-            }
-            add(ProgramAnchoredMenuItem(label = "Eliminar sesión", destructive = true, onClick = { onDeleteSession(sessionId) }))
-        }
-        ProgramItemMenu(items = items, anchor = anchor, onDismiss = { sessionMenu = null })
+        val dayName = days.firstOrNull { it.id == currentDay }?.name?.let(::capitalizedDayName)
+        val date = currentDay?.let { scheduledDates[it] }?.let { iso -> runCatching { LocalDate.parse(iso.take(10)) }.getOrNull() }
+        ProgramSessionMenuSheet(
+            title = entry?.session?.name.orEmpty(),
+            sub = sessionMenuSubtitle(dayName, date, exercisesById[sessionId] ?: 0, minutesById[sessionId]),
+            onEdit = { onEditSession(sessionId) },
+            onMove = if (days.any { it.id != currentDay }) ({ moveSessionMenu = sessionId to anchor }) else null,
+            onRestore = if (restorable) ({ pendingRestoreSessionId = sessionId }) else null,
+            onDelete = { onDeleteSession(sessionId) },
+            onDismiss = { sessionMenu = null },
+        )
     }
 
     // «Mover a otro día»: la sesión pasa al final del día elegido, con el mismo guardado que arrastrarla.
@@ -473,7 +488,8 @@ fun DayView(
             ProgramItemMenu(
                 items = targets.map { target ->
                     ProgramAnchoredMenuItem(
-                        label = target.name,
+                        label = capitalizedDayName(target.name),
+                        icon = KpknLineIcons.Calendar,
                         onClick = {
                             applyLayout(
                                 moveSessionToDay(

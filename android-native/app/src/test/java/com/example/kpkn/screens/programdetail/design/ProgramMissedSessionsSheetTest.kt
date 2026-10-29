@@ -17,10 +17,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
+/** Las sesiones sin registrar (fila de «Pendiente» → su hoja final) y su revisión antes de confirmar. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34],qualifiers = "w360dp-h900dp-xxhdpi",application = android.app.Application::class)
-class ProgramScheduleModuleTest {
+class ProgramMissedSessionsSheetTest {
     @get:Rule val rule = createComposeRule()
     private val original = Program("p","Plan",runState = ProgramRunState("run",weekId = "w"),
         pendingMissedSessions = MissedSessionsRequest("w","inst_c1_w",listOf("s1","s2"),programRunId = "run"))
@@ -29,9 +30,11 @@ class ProgramScheduleModuleTest {
 
     @Test fun no_record_is_not_presented_as_no_training_and_choice_only_requests_review() {
         var chosen: MissedSessionChoice? = null
-        rule.setContent { ProgramScheduleModule(original,original.pendingMissedSessions,null,false,{ chosen = it },{}) }
-        rule.onNodeWithText("2 sesiones requeridas sin registro · semana indicada").assertExists()
-        rule.onNodeWithText("Las haré esta semana").performClick()
+        rule.setContent { ProgramMissedSessionsSheet(original,original.pendingMissedSessions,null,false,{ chosen = it },{},{}) }
+        rule.mainClock.advanceTimeBy(1_000)
+        rule.onNodeWithText("2 sesiones sin registrar").assertExists()
+        rule.onNodeWithText("Sin registro no quiere decir sin entrenar: elige cómo sigue el plan.").assertExists()
+        rule.onNodeWithText("Hacerlas esta semana").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(MissedSessionChoice.DO_THIS_WEEK,chosen) }
     }
 
@@ -44,17 +47,16 @@ class ProgramScheduleModuleTest {
             }
         }
         rule.mainClock.advanceTimeBy(1_000)
-        rule.onNodeWithText("2 sesiones se declararán saltadas. Los registros de entrenamiento se conservan.",useUnmergedTree = true).performScrollTo()
+        rule.onNodeWithText("2 sesiones se declararán saltadas. Los registros de entrenamiento se conservan.",substring = true,useUnmergedTree = true).performScrollTo()
         rule.runOnIdle { assertEquals(0,confirmed) }
-        rule.onNodeWithText("Confirmar continuidad").performScrollTo().performClick()
+        rule.onNodeWithText("Confirmar").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,confirmed) }
     }
 
-    @Test fun going_back_keeps_the_plan_and_the_originals() {
-        var dismissed = 0
-        rule.setContent { ProgramScheduleReviewSheet(original,result,false,{ fail("sin confirmar") },{ dismissed++ }) }
+    @Test fun the_review_has_no_back_button_and_closing_keeps_the_plan() {
+        rule.setContent { ProgramScheduleReviewSheet(original,result,false,{ fail("sin confirmar") },{}) }
         rule.mainClock.advanceTimeBy(1_000)
-        rule.onNodeWithText("Volver").performScrollTo().performClick()
-        rule.runOnIdle { assertEquals(1,dismissed) }
+        rule.onNodeWithText("Volver").assertDoesNotExist()
+        rule.onNodeWithText("Revisar continuidad").assertExists()
     }
 }

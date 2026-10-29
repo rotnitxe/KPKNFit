@@ -5,7 +5,21 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -45,17 +59,25 @@ import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
-/** Una opción de un menú anclado (P2). [destructive] la pinta en `danger`. [onClick] se ejecuta después de cerrar el menú. */
+/**
+ * Una opción de un menú anclado (P2). [destructive] la pinta en `danger`. [onClick] se ejecuta después de cerrar el menú. Con [icon] el menú
+ * toma la forma `.menu` del lienzo v6 (m-day): 236 dp, filas de 46 dp con el icono de 18 dp delante; [dividerBefore] pone el `hr` encima.
+ */
 internal data class ProgramAnchoredMenuItem(
     val label: String,
     val onClick: () -> Unit,
     val destructive: Boolean = false,
+    val icon: ImageVector? = null,
+    val dividerBefore: Boolean = false,
 )
 
 private val MenuWidth = 228.dp
 private val MenuRowHeight = 52.dp
 private val MenuGap = 8.dp
 private val MenuEdge = 12.dp
+private val LienzoMenuWidth = 236.dp
+private val LienzoMenuRowHeight = 46.dp
+private val LienzoMenuStyle = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp)
 
 /**
  * Menú de vidrio anclado a [anchor] (P2, KPKN_UI_V2 §2): un panel de 228 dp alineado con el borde derecho del ancla, debajo de ella o,
@@ -90,9 +112,11 @@ internal fun ProgramItemMenu(
             )
             val start = origin
             if (start != null) {
-                val widthPx = with(density) { MenuWidth.toPx() }
-                val rowPx = with(density) { MenuRowHeight.toPx() }
-                val heightPx = rowPx * items.size + with(density) { 12.dp.toPx() }
+                val lienzo = items.any { it.icon != null }
+                val menuWidth = if (lienzo) LienzoMenuWidth else MenuWidth
+                val widthPx = with(density) { menuWidth.toPx() }
+                val rowPx = with(density) { (if (lienzo) LienzoMenuRowHeight else MenuRowHeight).toPx() }
+                val heightPx = rowPx * items.size + with(density) { (12.dp + 13.dp * items.count { it.dividerBefore }).toPx() }
                 val gapPx = with(density) { MenuGap.toPx() }
                 val edgePx = with(density) { MenuEdge.toPx() }
                 val screenWidthPx = with(density) { maxWidth.toPx() }
@@ -119,11 +143,26 @@ internal fun ProgramItemMenu(
                 ) {
                     Column(
                         modifier = Modifier
-                            .width(MenuWidth)
-                            .kpknGlassOrFallback(hazeState, KpknShape.module, variant = KpknGlassVariant.ISLAND)
-                            .padding(vertical = 6.dp),
+                            .width(menuWidth)
+                            .kpknGlassOrFallback(hazeState, if (lienzo) RoundedCornerShape(22.dp) else KpknShape.module, variant = KpknGlassVariant.ISLAND)
+                            .padding(horizontal = if (lienzo) 6.dp else 0.dp, vertical = 6.dp),
                     ) {
-                        items.forEach { item -> ProgramAnchoredMenuRow(item = item, onDismiss = onDismiss) }
+                        items.forEach { item ->
+                            if (item.dividerBefore) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 6.dp, horizontal = 8.dp)
+                                        .height(1.dp)
+                                        .background(Color.White.copy(alpha = 0.08f)),
+                                )
+                            }
+                            if (lienzo) {
+                                LienzoAnchoredMenuRow(item = item, onDismiss = onDismiss)
+                            } else {
+                                ProgramAnchoredMenuRow(item = item, onDismiss = onDismiss)
+                            }
+                        }
                     }
                 }
             }
@@ -155,5 +194,34 @@ private fun ProgramAnchoredMenuRow(item: ProgramAnchoredMenuItem, onDismiss: () 
             style = KpknType.bodyStrong,
             color = if (item.destructive) WizardColors.danger else WizardColors.text,
         )
+    }
+}
+
+/** Una fila `.menu button` del lienzo: 46 dp, 12 dp a los lados, el icono de 18 dp y el texto a 12 dp, Inter 14 sp. */
+@Composable
+private fun LienzoAnchoredMenuRow(item: ProgramAnchoredMenuItem, onDismiss: () -> Unit) {
+    val color = if (item.destructive) WizardColors.danger else WizardColors.text
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = LienzoMenuRowHeight)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClick = {
+                    onDismiss()
+                    item.onClick()
+                },
+            )
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item.icon?.let {
+            Icon(it, contentDescription = null, tint = if (item.destructive) WizardColors.danger else WizardColors.textMuted, modifier = Modifier.size(18.dp))
+        }
+        Text(text = item.label, style = LienzoMenuStyle, color = color)
     }
 }

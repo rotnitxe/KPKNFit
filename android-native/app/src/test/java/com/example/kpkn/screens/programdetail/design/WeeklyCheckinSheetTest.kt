@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail.design
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -35,7 +36,7 @@ class WeeklyCheckinSheetTest {
                 onOmit = { fail("no se eligió omitir") }, onDisable = {}, onDismiss = {})
         }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("Revisar propuesta").assertDoesNotExist()
+        rule.onNodeWithText("Revisar propuesta").assertIsNotEnabled()
         rule.onNodeWithText("Fácil, superé el plan").performScrollTo().performClick()
         rule.onNodeWithText("Ninguna").performScrollTo().performClick()
         rule.onNodeWithText("Revisar propuesta").performScrollTo().performClick()
@@ -67,5 +68,20 @@ class WeeklyCheckinSheetTest {
             assertNull(answer!!.globalPerformance)
             assertNull(answer!!.globalSoreness)
         }
+    }
+
+    @Test fun not_asking_again_needs_a_confirmation() {
+        var disabled = 0
+        rule.setContent {
+            WeeklyCheckinSheet(WeeklyCheckinRequest("w", programRunId = "run"), previewDetail = null, busy = false,
+                onPreview = { fail("no se eligió revisar") }, onConfirm = {}, onEdit = {},
+                onOmit = { fail("no se eligió omitir") }, onDisable = { disabled++ }, onDismiss = {})
+        }
+        rule.mainClock.advanceTimeBy(1_000L)
+        rule.onNodeWithText("No volver a preguntar").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(0, disabled) }
+        rule.onNodeWithText("¿No volver a preguntar?").assertExists()
+        rule.onNodeWithText("No volver a preguntar").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(1, disabled) }
     }
 }
