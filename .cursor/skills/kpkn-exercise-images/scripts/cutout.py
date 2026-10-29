@@ -15,7 +15,11 @@ def cutout(src: Path, out: Path, size: int = 1024) -> None:
     if cut.size != (size, size):
         cut = cut.resize((size, size), Image.Resampling.LANCZOS)
     out.parent.mkdir(parents=True, exist_ok=True)
-    cut.save(out)
+    if out.suffix.lower() == ".webp":
+        # Mismo ajuste que los drawables ya convertidos: calidad 90, alfa sin pérdida.
+        cut.save(out, "WEBP", quality=90, method=6, alpha_quality=100)
+    else:
+        cut.save(out)
     px = cut.load()
     w, h = cut.size
     corners = [px[0, 0][3], px[w - 1, 0][3], px[0, h - 1][3], px[w - 1, h - 1][3]]
