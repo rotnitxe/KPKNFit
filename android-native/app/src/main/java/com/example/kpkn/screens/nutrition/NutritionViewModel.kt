@@ -26,6 +26,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.kpkn.domain.habits.HabitStreaks
+import com.example.kpkn.domain.habits.mealRecordDays
+import com.example.kpkn.screens.stories.NutritionStoryMacros
+import com.example.kpkn.screens.stories.NutritionStoryStreak
+import com.example.kpkn.screens.stories.nutritionStoryMacrosOf
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -646,6 +651,25 @@ class NutritionViewModel(
         if (date == null) NutritionDayState(today, editable = false)
         else nutritionDayState(logs, marks, date, today).copy(saving = saving)
     }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, NutritionDayState(_today.value))
+
+    /** «Compartir tu semana» · Racha: la misma racha del hábito «Comidas» que enseña Hábitos (actual y mejor). */
+    val shareStreak: StateFlow<NutritionStoryStreak?> = combine(nutritionLogs, dayMarks, _today) { logs, marks, today ->
+        HabitStreaks.daily(mealRecordDays(logs, marks.values), today).let { NutritionStoryStreak(current = it.current, best = it.best) }
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /** «Compartir tu semana» · Macros: media diaria de los últimos 7 días registrados, con los objetivos de esos días. */
+    val shareMacros: StateFlow<NutritionStoryMacros?> = combine(
+        nutritionLogs,
+        programRepo.settings,
+        activePlan,
+        nutritionRepo.dailyGoalSnapshots,
+        _today,
+    ) { logs, settings, plan, snapshots, end ->
+        val dates = (0L until 7L).map { end.minusDays(it) }
+        val goals = resolveDayGoalsByDate(dates = dates, settings = settings, activePlan = plan, snapshots = snapshots, today = end)
+            .mapValues { (_, dayGoals) -> (dayGoals as? DayGoalsResult.Present)?.goals }
+        nutritionStoryMacrosOf(logs, dates, goals)
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     fun setDayMark(mark: DayMark, source: DayMarkSource = DayMarkSource.USER): Job = changeDayMark(mark, source)
     fun clearDayMark(): Job = changeDayMark(null, DayMarkSource.USER)

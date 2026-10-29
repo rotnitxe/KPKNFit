@@ -8,6 +8,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
+import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.domain.nutrition.MacroGoals
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
@@ -35,6 +39,34 @@ data class NutritionStoryMacros(
 
 /** Racha del hábito «Comidas»: días seguidos registrando ([current]) y la mejor ([best]). */
 data class NutritionStoryStreak(val current: Int, val best: Int)
+
+/**
+ * Media diaria de macros de los días de [dates] con algo registrado (lo planificado no cuenta) y el objetivo medio de esos
+ * mismos días cuando todos lo tienen. Solo cifras: nunca qué comiste. Null si no hay ningún día registrado.
+ */
+fun nutritionStoryMacrosOf(
+    logs: List<NutritionLog>,
+    dates: List<LocalDate>,
+    goalsByDate: Map<LocalDate, MacroGoals?>,
+): NutritionStoryMacros? {
+    val keys = dates.map { it.toString() }.toSet()
+    val byDay = logs.filter { it.status != NutritionStatus.PLANNED && it.date.take(10) in keys }.groupBy { it.date.take(10) }
+    if (byDay.isEmpty()) return null
+    val days = byDay.size
+    fun average(of: (LoggedFood) -> Double): Double = byDay.values.sumOf { day -> day.sumOf { log -> log.foods.sumOf(of) } } / days
+    val goals = byDay.keys.map { goalsByDate[LocalDate.parse(it)] }
+    fun target(of: (MacroGoals) -> Int?): Double? =
+        goals.map { it?.let(of) }.takeIf { all -> all.all { value -> value != null } }?.filterNotNull()?.average()
+    return NutritionStoryMacros(
+        proteinG = average { it.protein },
+        carbsG = average { it.carbs },
+        fatG = average { it.fats },
+        proteinTargetG = target { it.proteinGoal },
+        carbsTargetG = target { it.carbGoal },
+        fatTargetG = target { it.fatGoal },
+        days = days,
+    )
+}
 
 /** Plantillas de Nutrición (escenas h-nutri-week, h-nutri-macros y h-nutri-streak). */
 internal enum class NutritionStoryTemplate(val label: String) {

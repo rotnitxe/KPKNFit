@@ -112,6 +112,8 @@ fun NutritionScreen(
     val activePlan by viewModel.activePlan.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
     val trendData by viewModel.trendData.collectAsState()
+    val shareMacros by viewModel.shareMacros.collectAsState()
+    val shareStreak by viewModel.shareStreak.collectAsState()
     val historySeries by viewModel.historySeries.collectAsState()
     val sharedDescription by viewModel.pendingSharedDescription.collectAsState()
     val sharedTab by viewModel.pendingSharedTab.collectAsState()
@@ -424,6 +426,8 @@ fun NutritionScreen(
                         onSelectDate = { viewModel.setSelectedDate(it) },
                         onOpenHistory = onNavigateToMealHistory,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 9),
+                        shareMacros = shareMacros,
+                        shareStreak = shareStreak,
                     )
                 }
             }

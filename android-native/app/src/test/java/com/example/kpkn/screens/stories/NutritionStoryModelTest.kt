@@ -3,6 +3,10 @@ package com.example.kpkn.screens.stories
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.domain.nutrition.MacroGoals
 import org.junit.Test
 import java.time.LocalDate
 
@@ -62,5 +66,31 @@ class NutritionStoryModelTest {
             nutritionStoryTemplates(semana, macros, NutritionStoryStreak(3, 5)),
         )
         assertTrue(nutritionStoryTemplates(semana.map { it.copy(kcal = null) }, null, NutritionStoryStreak(0, 4)).isEmpty())
+    }
+
+    @Test
+    fun `la media de macros cuenta solo los dias registrados y no lo planificado`() {
+        val lunes = LocalDate.of(2026, 10, 19)
+        val martes = lunes.plusDays(1)
+        val logs = listOf(
+            NutritionLog(date = "2026-10-19", foods = listOf(LoggedFood(protein = 100.0, carbs = 200.0, fats = 50.0))),
+            NutritionLog(date = "2026-10-19T20:00", foods = listOf(LoggedFood(protein = 60.0, carbs = 0.0, fats = 10.0))),
+            NutritionLog(date = "2026-10-20", foods = listOf(LoggedFood(protein = 140.0, carbs = 100.0, fats = 70.0))),
+            NutritionLog(date = "2026-10-21", status = NutritionStatus.PLANNED, foods = listOf(LoggedFood(protein = 999.0))),
+        )
+        val objetivos = mapOf(lunes to MacroGoals(proteinGoal = 160, carbGoal = 200, fatGoal = 60), martes to MacroGoals(proteinGoal = 180))
+        val media = nutritionStoryMacrosOf(logs, listOf(lunes, martes, lunes.plusDays(2)), objetivos)!!
+        assertEquals(2, media.days)
+        assertEquals(150.0, media.proteinG, 0.001)
+        assertEquals(150.0, media.carbsG, 0.001)
+        assertEquals(65.0, media.fatG, 0.001)
+        assertEquals(170.0, media.proteinTargetG!!, 0.001)
+        assertNull("el martes no tiene objetivo de carbohidratos", media.carbsTargetG)
+    }
+
+    @Test
+    fun `sin dias registrados no hay media de macros`() {
+        val lunes = LocalDate.of(2026, 10, 19)
+        assertNull(nutritionStoryMacrosOf(emptyList(), listOf(lunes), emptyMap()))
     }
 }
