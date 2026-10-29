@@ -16,17 +16,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.body.BodyHistoryRow
+import com.example.kpkn.screens.stories.BodyStoryShareSheet
+import com.example.kpkn.screens.stories.bodyStoryAvailable
+import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
@@ -83,12 +91,18 @@ fun LazyListScope.bodyHistoryItems(
                     .padding(start = 16.dp, end = 16.dp, top = 28.dp)
                     .kpknEntrance("body-history", index),
             ) {
-                Text(
-                    text = bodyMonthEs(group.month).uppercase(Locale.forLanguageTag("es")),
-                    style = KpknType.eyebrow,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
-                )
+                val label = bodyMonthEs(group.month).uppercase(Locale.forLanguageTag("es"))
+                if (index == 0) {
+                    // El ⋯ del historial (h-body-sheet) abre «Compartir tu progreso» con todas las mediciones.
+                    BodyHistoryHeadWithMenu(label = label, rows = rows, weightUnit = weightUnit)
+                } else {
+                    Text(
+                        text = label,
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+                    )
+                }
                 KpknModule(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
@@ -105,6 +119,45 @@ fun LazyListScope.bodyHistoryItems(
                         }
                         BodyHistoryRowItem(row = row, unit = weightUnit, onClick = { onOpen(row) })
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Etiqueta del primer mes con el ⋯ a la derecha: su menú tiene «Compartir tu progreso», que abre la hoja de historias de Cuerpo.
+ * Sin datos para una historia, solo la etiqueta (mismo aspecto que los demás meses).
+ */
+@Composable
+private fun BodyHistoryHeadWithMenu(label: String, rows: List<BodyHistoryRow>, weightUnit: WizardMassUnit) {
+    val canShare = remember(rows) { bodyStoryAvailable(rows) }
+    var menu by remember { mutableStateOf(false) }
+    var sharing by remember { mutableStateOf(false) }
+    if (sharing) BodyStoryShareSheet(rows = rows, weightUnit = weightUnit, onDismiss = { sharing = false })
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            style = KpknType.eyebrow,
+            color = WizardColors.textMuted,
+            modifier = Modifier.weight(1f).padding(start = 4.dp, bottom = if (canShare) 0.dp else 8.dp),
+        )
+        if (canShare) {
+            Box {
+                KpknIconButton(
+                    icon = KpknLineIcons.More,
+                    contentDescription = "Más opciones del historial",
+                    onClick = { menu = true },
+                    modifier = Modifier.testTag("body-history-more"),
+                )
+                KpknDropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Compartir tu progreso") },
+                        onClick = {
+                            menu = false
+                            sharing = true
+                        },
+                    )
                 }
             }
         }
