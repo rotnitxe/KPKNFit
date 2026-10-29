@@ -35,7 +35,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
-/** V7 real en su marco312×394; viewport físico distinto en740/880 y clicks nativos. */
+/** V7 real en su marco de 312 dp de ancho; el alto lo fija liveSessionCardHeightDp (394 a 740, 430 a 880). Clicks nativos. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h880dp-mdpi")
@@ -83,7 +83,7 @@ class ApreCardUiTest {
         val screen = rule.onNodeWithTag("apre-scene").getUnclippedBoundsInRoot()
         assertEquals(360f,screen.width.value,.5f); assertEquals(height.toFloat(),screen.height.value,.5f)
         val card = rule.onNodeWithTag("live-card-frame").getUnclippedBoundsInRoot()
-        assertEquals(312f,card.width.value,.5f); assertEquals(394f,card.height.value,.5f)
+        assertEquals(312f,card.width.value,.5f); assertEquals(liveSessionCardHeightDp(360,height).value,card.height.value,.5f)
         listOf("calibration-apply","calibration-keep","calibration-revert","calibration-continue","calibration-edit").forEach { tag ->
             rule.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach {
                 val node = rule.onNodeWithTag(tag).assertIsDisplayed()

@@ -318,7 +318,7 @@ internal fun SetCardTechniqueBack(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text("${rows.size + 1} tramos", style = advancedBody(11.sp), color = AdvancedMuted)
+                    Text("${rows.size + 1} ${if (rows.isEmpty()) "tramo" else "tramos"}", style = advancedBody(11.sp), color = AdvancedMuted)
                     Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = AdvancedMuted)
                 }
             }
@@ -382,7 +382,7 @@ internal fun SetCardTechniqueBack(
             if (dropEnabled || restPauseEnabled) {
                 AdvancedLink("Añadir tramo", KpknLineIcons.Plus, enabled = canAdd, onClick = ::addSegment)
             }
-            AdvancedLink(if (isFailedSet) "Error de ejecución · marcado" else "Error de ejecución", null, danger = true) { failureSheet = true }
+            AdvancedLink(if (isFailedSet) "Error de ejecución · marcado" else "Error de ejecución", KpknLineIcons.Info, danger = true) { failureSheet = true }
         }
         }
         Box(

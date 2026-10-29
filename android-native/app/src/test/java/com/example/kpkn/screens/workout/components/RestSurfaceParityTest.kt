@@ -98,11 +98,11 @@ class RestSurfaceParityTest {
         }
     }
 
-    private fun overlay(taps: Taps, playing: Boolean = false, paused: Boolean = false) = content {
+    private fun overlay(taps: Taps, playing: Boolean = false, paused: Boolean = false, remaining: Int = 161) = content {
         Box(Modifier.size(360.dp, 880.dp).background(Color.Black)) {
             RestTimerOverlay(
                 state = if (paused) rest.copy(pausedRemainingSeconds = 161) else rest,
-                remainingSeconds = 161,
+                remainingSeconds = remaining,
                 hazeState = HazeState(),
                 pendingRestSuggestion = suggestion,
                 lastCompletedSet = CompletedSet(id = "last", weight = 95.0, reps = 6),
@@ -187,15 +187,13 @@ class RestSurfaceParityTest {
     }
 
     @Test
-    fun theFullScreenGameKeepsSkippingTheRestAndGoesBackToTheRest() {
+    fun theFullScreenGameKeepsTheRestClockAndGoesBackToTheRest() {
         val taps = Taps()
         overlay(taps, playing = true)
-        // master opens the arcade picker first; selecting a game keeps the same rest clock active.
+        // Refinamiento 02: se abre el selector de juegos; elegir uno mantiene arriba el mismo reloj del descanso.
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("2:41")
-        rule.onNodeWithTag("rest-end").performClick()
-        assertEquals(1, taps.skip)
-        // Desde el juego, «atrás» vuelve al selector; desde el selector, vuelve al reloj.
+        rule.onNodeWithTag("arcade-rest-clock", useUnmergedTree = true).assertTextEquals("2:41")
+        // Desde el juego, «atrás» vuelve al selector; desde el selector, vuelve al reloj del descanso.
         rule.onNodeWithTag("arcade-back").performClick()
         rule.onNodeWithTag("arcade-back").performClick()
         rule.onNodeWithText("Una pausa antes de la siguiente.").assertExists()
@@ -204,11 +202,22 @@ class RestSurfaceParityTest {
     }
 
     @Test
-    fun theCardGameKeepsSkippingTheRestAndGoesBackToTheCard() {
+    fun theFullScreenGameReturnsToTheSetWhenTheRestEnds() {
+        val taps = Taps()
+        overlay(taps, playing = true, remaining = 0)
+        // Con el descanso cumplido la partida se congela y «Volver a la serie» llama al mismo «saltar» del descanso.
+        rule.onNodeWithText("Salta las mancuernas").performClick()
+        rule.onNodeWithTag("rest-game-rest-over", useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("rest-game-rest-over-primary", useUnmergedTree = true).performClick()
+        assertEquals(1, taps.skip)
+    }
+
+    @Test
+    fun theCardGameKeepsTheRestClockAndGoesBackToTheCard() {
         val taps = Taps()
         card(taps, playing = true)
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithTag("arcade-rest-clock").assertTextEquals("2:41")
+        rule.onNodeWithTag("arcade-rest-clock", useUnmergedTree = true).assertTextEquals("2:41")
         // Desde el juego, «atrás» vuelve al selector; «Volver al descanso» devuelve a la tarjeta con el mismo reloj.
         rule.onNodeWithTag("arcade-back").performClick()
         rule.onNodeWithTag("arcade-return-rest").performClick()
@@ -223,7 +232,7 @@ class RestSurfaceParityTest {
         overlay(Taps())
         rule.onNodeWithText("Jugar mientras descansas").performClick()
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithText("Toca para saltar").assertExists()
+        rule.onNodeWithTag("rest-game-canvas-runner", useUnmergedTree = true).assertExists()
     }
 
     @Test
@@ -231,7 +240,7 @@ class RestSurfaceParityTest {
         card(Taps())
         rule.onNodeWithText("Jugar mientras descansas").performClick()
         rule.onNodeWithText("Salta las mancuernas").performClick()
-        rule.onNodeWithText("Toca para saltar").assertExists()
+        rule.onNodeWithTag("rest-game-canvas-runner", useUnmergedTree = true).assertExists()
     }
 
     @Test

@@ -132,15 +132,15 @@ class LiveSetModesUiTest {
             assertTrue("$next no se registra sin esfuerzo", records.isEmpty())
         }
     }
-    @Test fun allModesAndRomKeep312By394At880() = sameFrames(880, 1f)
-    @Test fun allModesAndRomKeep312By394At740And130PercentText() = sameFrames(740, 1.3f)
+    @Test fun allModesAndRomKeepCardFrameAt880() = sameFrames(880, 1f)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun allModesAndRomKeepCardFrameAt740And130PercentText() = sameFrames(740, 1.3f)
     private fun sameFrames(height: Int, font: Float) {
         show(TrainingMode.REPS, height, font)
         TrainingMode.entries.forEach { next -> for (track in listOf(false, true)) {
             rule.runOnIdle { mode.value = next; rom.value = track }
             val frame = rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot
             assertEquals("$next/$track ancho", 312f, frame.width / density, .5f)
-            assertEquals("$next/$track alto", 394f, frame.height / density, .5f)
+            assertEquals("$next/$track alto", liveSessionCardHeightDp(360, height).value, frame.height / density, .5f)
             val actions = rule.onNodeWithTag("live-card-actions").fetchSemanticsNode().boundsInRoot
             assertEquals("$next/$track/$font acciones completas", 44f, actions.height / density, .5f)
             assertTrue("$next/$track acciones dentro", actions.left >= frame.left && actions.right <= frame.right && actions.bottom <= frame.bottom + 1f)
@@ -397,7 +397,7 @@ class LiveSetModesUiTest {
     @Test fun cal3HasAResultSlotInsideTheAmrapCardWithoutChangingItsFrame() {
         show(TrainingMode.AMRAP, extension = true)
         rule.onNodeWithTag("cal3-slot").scrollToIfScrollable().assertIsDisplayed()
-        assertEquals(394f, rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot.height / density, .5f)
+        assertEquals(liveSessionCardHeightDp(360, 880).value, rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot.height / density, .5f)
         mark(); record(); assertEquals(UnitModeV2.REPS, records.single().unit)
     }
 }

@@ -13,7 +13,14 @@ import com.example.kpkn.domain.workout.isMyoReps
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -1894,7 +1901,11 @@ internal fun SetInputCardV2(
     val workingSetVisualHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     val stableCardHeight = liveSessionCardHeight()
     // Marco de 394 dp (pantallas de 360 de ancho): la misma composición con menos aire, como la clase «compact» del prototipo 02.
-    val tightCard = stableCardHeight < 420.dp
+    // Mismo umbral (440 dp) que el resto de tarjetas del paginador: el Flip (430 dp) conserva las medidas compactas.
+    val tightCard = stableCardHeight < 440.dp
+    // Los dp que la tarjeta compacta gana sobre 394 (hasta 44): se reparten como aire entre los bloques en vez de quedar como hueco abajo.
+    val roomExtra = if (tightCard) (stableCardHeight - 394.dp).coerceIn(0.dp, 44.dp) else 0.dp
+    val reducedMotion = wizardReducedMotion()
     // `.v2-content`: 13/18 de relleno (9/15 en compacto).
     val cardInset = if (tightCard) 15.dp else 18.dp
     var rmSheetOpen by remember(exercise.id, setIndex) { mutableStateOf(false) }
@@ -1947,7 +1958,7 @@ internal fun SetInputCardV2(
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = cardInset)
                 .drawBehind { drawLine(Color(0x10FFFFFF), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
-                .padding(top = if (tightCard) 5.dp else 9.dp, bottom = if (tightCard) 5.dp else 7.dp),
+                .padding(top = (if (tightCard) 5.dp else 9.dp) + roomExtra * .12f, bottom = (if (tightCard) 5.dp else 7.dp) + roomExtra * .08f),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(19.dp),
@@ -1967,7 +1978,10 @@ internal fun SetInputCardV2(
                 )
                 ModeLoadButton()
             }
-            val heroSize = if (tightCard) 40.sp else 47.sp
+            // Una carga larga («1.250,5») encoge la cifra en vez de montarse sobre «kg» y los botones − / +.
+            val heroChars = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() }.length
+            val heroScale = when { heroChars <= 4 -> 1f; heroChars == 5 -> .8f; heroChars == 6 -> .68f; else -> .58f }
+            val heroSize = (if (tightCard) 40.sp else 47.sp) * heroScale
             val heroStyle = TextStyle(
                 fontFamily = WizardFonts.display,
                 fontSize = heroSize,
@@ -1976,7 +1990,9 @@ internal fun SetInputCardV2(
                 fontFeatureSettings = "'lnum' 1, 'tnum' 1",
             )
             Row(
-                modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero"),
+                modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero")
+                    // Modo Voz (v-record): destino del vuelo de la carga dictada; brilla al recibirla.
+                    .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.LOAD)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -2003,7 +2019,7 @@ internal fun SetInputCardV2(
                         },
                     )
                     Text("kg", Modifier.padding(start = 4.dp, bottom = if (tightCard) 9.dp else 11.dp),
-                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint)
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint, maxLines = 1, softWrap = false)
                 }
                 val increment = quickLoadIncrementFor(exercise, currentSet)
                 fun adjust(direction: Int) {
@@ -2144,13 +2160,19 @@ internal fun SetInputCardV2(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (inlineError != null) {
-                Text(inlineError, Modifier.weight(1f).testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
-                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
-            } else {
-                Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
-                    color = Ref02CardMuted)
-                Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
+            // El aviso en línea y el resumen se funden entre sí (nada aparece de golpe al marcar o al fallar el registro).
+            Crossfade(targetState = inlineError, modifier = Modifier.weight(1f), animationSpec = if (reducedMotion) snap() else tween(200, easing = FastOutSlowInEasing),
+                label = "live-card-detail-swap") { shownError ->
+                if (shownError != null) {
+                    Text(shownError, Modifier.fillMaxWidth().testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
+                            color = Ref02CardMuted)
+                        Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
+                    }
+                }
             }
         }
         SetDetailSheetHost()
@@ -2218,7 +2240,7 @@ internal fun SetInputCardV2(
             if (legacyModeLayout) {
                 Row(
                     modifier = Modifier.fillMaxWidth()
-                        .padding(start = cardInset, end = cardInset - 6.dp, top = if (tightCard) 9.dp else 13.dp)
+                        .padding(start = cardInset, end = cardInset - 6.dp, top = (if (tightCard) 9.dp else 13.dp) + roomExtra * .12f)
                         .height(if (tightCard) 27.dp else 29.dp).testTag("live-card-series-kicker"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -2259,14 +2281,6 @@ internal fun SetInputCardV2(
                         contentAlignment = Alignment.Center,
                     ) { Icon(Icons.Default.Tune, null, tint = Ref02CardMuted, modifier = Modifier.size(16.dp)) }
                 }
-            }
-            if (currentSet.plannedIntensityTechniques.any { it.type == TechniqueType.CLUSTER_SET }) {
-                Text(
-                    "Cluster set: próximamente",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f),
-                )
             }
 
             if (!legacyModeLayout && supportsIndependentSides && !sideLocked && guidedPhase == null) {
@@ -2383,7 +2397,7 @@ internal fun SetInputCardV2(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(if (legacyModeLayout) Modifier.weight(1f).padding(horizontal = cardInset) else Modifier.weight(1f)),
+                    .then(if (legacyModeLayout) Modifier.weight(1f).padding(start = cardInset, end = cardInset, top = roomExtra * .08f, bottom = roomExtra * .2f) else Modifier.weight(1f)),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                     val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
@@ -2669,6 +2683,7 @@ internal fun SetInputCardV2(
                                 selectedIndex = effortIndex,
                                 onSelect = { onEffortSelected(it) },
                                 compact = tightCard,
+                                modifier = Modifier.voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.EFFORT)),
                                 hapticsEnabled = hapticFeedbackEnabled,
                                 onClear = {
                                     effortIndex = null
@@ -2748,7 +2763,8 @@ internal fun SetInputCardV2(
                     }
 
                     if (legacyModeLayout) {
-                        ValueStepperBlock(Modifier.fillMaxWidth().padding(top = if (tightCard) 7.dp else 12.dp))
+                        ValueStepperBlock(Modifier.fillMaxWidth().padding(top = (if (tightCard) 7.dp else 12.dp) + roomExtra * .1f)
+                            .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)))
                         // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
                         EffortBlock()
                         LegacyDetailRow()
@@ -3731,31 +3747,59 @@ internal fun SetInputCardV2(
                 onDispose { recordActionHolder.clearIfOwner(recordActionInstanceOwner) }
             }
             }
-            if (legacyModeLayout && !showAmrapResult) {
+            AnimatedVisibility(
+                visible = legacyModeLayout && !showAmrapResult,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = liveFadeIn(reducedMotion),
+                exit = liveFadeOut(reducedMotion),
+            ) {
                 // `.v2-card-footer`: 58 de alto (52 en compacto) con las acciones de 40 tras un filete.
-                Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(if (tightCard) 52.dp else 58.dp).background(Color(0xFF111111))
+                Box(Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp).background(Color(0xFF111111))
                     // Acciones de 40 en el dibujo y 44 de zona táctil: el pie reparte el resto arriba y abajo.
                     .padding(start = cardInset, end = cardInset, top = if (tightCard) 2.dp else 4.dp, bottom = if (tightCard) 6.dp else 10.dp)) {
                     LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
                         onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
                 }
             }
-            if (showAmrapResult) Box(Modifier.matchParentSize()) {
-                amrapResultPanel?.invoke { editingAmrapResult = true }
+            // El resultado del AMRAP se funde por encima de la tarjeta en lugar de saltar.
+            AnimatedVisibility(
+                visible = showAmrapResult,
+                modifier = Modifier.matchParentSize(),
+                enter = liveFadeIn(reducedMotion),
+                exit = liveFadeOut(reducedMotion),
+            ) {
+                Box(Modifier.matchParentSize()) {
+                    amrapResultPanel?.invoke { editingAmrapResult = true }
+                }
             }
             // Ley 1 (LV8): la tarjeta no cambia de tamaño en ningún estado. El panel guiado de drop-set y rest-pause y el aviso del peso
             // corporal del asistido ya no se insertan arriba (la alargaban): van ENCIMA de la parte de abajo, con la carga a la vista.
-            if (scheduledMainCapture != null && !isRecordSubmissionPending && !showAmrapResult) {
+            AnimatedVisibility(
+                visible = scheduledMainCapture != null && !isRecordSubmissionPending && !showAmrapResult,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = liveFadeIn(reducedMotion),
+                exit = liveFadeOut(reducedMotion),
+            ) {
                 androidx.compose.material3.TextButton(
                     onClick = { guidedSkipAction[0]?.invoke() },
-                    modifier = Modifier.align(Alignment.BottomCenter),
                 ) { Text("Terminar técnica con lo realizado") }
             }
             val guidedPhaseNow = guidedPhase
             // Programmed editor techniques are VOLUME_REPLACED and use the existing top band/timeline.  The guided surface belongs
             // to manual techniques, including those selected on an originally normal set; rendering it for a scheduled plan cuts the live card (the bug shown in the
             // beta capture).
-            if (!showAmrapResult && guidedPhaseNow != null && !currentSet.isInlineEditorScheduledTechnique()) {
+            // El panel guiado sube con un fundido y se recuerda su última fase para poder fundirlo al salir.
+            var heldGuidedPhase by remember { mutableStateOf(guidedPhaseNow) }
+            if (guidedPhaseNow != null) heldGuidedPhase = guidedPhaseNow
+            AnimatedVisibility(
+                visible = !showAmrapResult && guidedPhaseNow != null && !currentSet.isInlineEditorScheduledTechnique(),
+                modifier = Modifier.matchParentSize(),
+                enter = if (reducedMotion) androidx.compose.animation.EnterTransition.None
+                else fadeIn(tween(220, easing = FastOutSlowInEasing)) + slideInVertically(tween(280, easing = FastOutSlowInEasing)) { it / 6 },
+                exit = if (reducedMotion) androidx.compose.animation.ExitTransition.None
+                else fadeOut(tween(160, easing = FastOutSlowInEasing)) + slideOutVertically(tween(220, easing = FastOutSlowInEasing)) { it / 6 },
+            ) {
+              heldGuidedPhase?.let { shownPhase ->
                 BoxWithConstraints(modifier = Modifier.matchParentSize()) {
                     Box(
                         modifier = Modifier
@@ -3764,7 +3808,7 @@ internal fun SetInputCardV2(
                             .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp)),
                     ) {
                         GuidedTechniquePanel(
-                            phase = guidedPhaseNow,
+                            phase = shownPhase,
                             loadMode = loadMode,
                             restPauseStyle = if(currentSet.isMyoReps()) "myo" else null,
                             pauseSeconds = activeRestPauseSeconds,
@@ -3784,6 +3828,7 @@ internal fun SetInputCardV2(
                         )
                     }
                 }
+              }
             }
             // El peso corporal de la carga asistida se pide en la hoja «Modo de carga» (prototipo 02), no encima de la tarjeta.
             }
@@ -3805,7 +3850,10 @@ internal fun SetInputCardV2(
                     .matchParentSize()
                     .graphicsLayer { rotationY = 180f },
             ) {
-                when (cardFace) {
+                // Técnica ↔ Modo visual (las dos caras traseras): se funden entre sí; el giro de la tarjeta ya anima Frontal ↔ trasera.
+                val backFace = if (cardFace == SetCardFace.ExerciseMedia) SetCardFace.ExerciseMedia else SetCardFace.Technique
+                AnimatedContent(targetState = backFace, transitionSpec = { liveContentSwap(reducedMotion) }, label = "set-card-back-face") { shownBack ->
+                when (shownBack) {
                     SetCardFace.ExerciseMedia -> SetCardExerciseMediaBack(
                         exercise = exercise,
                         onFlipBack = { cardFace = SetCardFace.Front },
@@ -3881,6 +3929,7 @@ internal fun SetInputCardV2(
                         cardFace = SetCardFace.Front
                     },
                 )
+                }
                 }
             }
         }

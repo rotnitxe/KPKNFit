@@ -37,6 +37,7 @@ import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.WorkoutHeaderBar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.liveLineTestSnapshot
+import com.example.kpkn.screens.workout.liveSessionCardHeightDp
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
@@ -70,14 +71,14 @@ class LiveTarjetasParityRenderTest {
     private val rdl = Exercise("rdl", "Peso Muerto Rumano", sets = List(3) { plannedSet.copy(id = "rdl$it", weight = 140.0, targetReps = 5) })
     private val press = Exercise("press", "Prensa de Piernas", sets = List(2) { plannedSet.copy(id = "press$it", weight = 214.0, targetReps = 10) })
 
-    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun tarjetas360x740() = scene(360, 740, 1f, "tarjetas-360x740-100", 312, 394)
-    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun tarjetas360x740Text130() = scene(360, 740, 1.3f, "tarjetas-360x740-130", 312, 394)
-    @Test @Config(qualifiers = "w393dp-h852dp-xxhdpi") fun tarjetas393x852() = scene(393, 852, 1f, "tarjetas-393x852-100", 345, 470)
-    @Test @Config(qualifiers = "w393dp-h852dp-xxhdpi") fun tarjetas393x852Text130() = scene(393, 852, 1.3f, "tarjetas-393x852-130", 345, 470)
-    @Test @Config(qualifiers = "w412dp-h1007dp-xxhdpi") fun tarjetas412x1007() = scene(412, 1007, 1f, "tarjetas-412x1007-100", 364, 488)
-    @Test @Config(qualifiers = "w412dp-h1007dp-xxhdpi") fun tarjetas412x1007Text130() = scene(412, 1007, 1.3f, "tarjetas-412x1007-130", 364, 488)
-    /** El Z Flip (360 × 880): mismo marco de 312 × 394 y el hueco sobrante entre la tarjeta y el roadmap (decisión 1). */
-    @Test @Config(qualifiers = "w360dp-h880dp-xxhdpi") fun tarjetasFlip360x880() = scene(360, 880, 1f, "tarjetas-360x880-100", 312, 394)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun tarjetas360x740() = scene(360, 740, 1f, "tarjetas-360x740-100", 312, liveSessionCardHeightDp(360, 740).value.toInt())
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun tarjetas360x740Text130() = scene(360, 740, 1.3f, "tarjetas-360x740-130", 312, liveSessionCardHeightDp(360, 740).value.toInt())
+    @Test @Config(qualifiers = "w393dp-h852dp-xxhdpi") fun tarjetas393x852() = scene(393, 852, 1f, "tarjetas-393x852-100", 345, liveSessionCardHeightDp(393, 852).value.toInt())
+    @Test @Config(qualifiers = "w393dp-h852dp-xxhdpi") fun tarjetas393x852Text130() = scene(393, 852, 1.3f, "tarjetas-393x852-130", 345, liveSessionCardHeightDp(393, 852).value.toInt())
+    @Test @Config(qualifiers = "w412dp-h1007dp-xxhdpi") fun tarjetas412x1007() = scene(412, 1007, 1f, "tarjetas-412x1007-100", 364, liveSessionCardHeightDp(412, 1007).value.toInt())
+    @Test @Config(qualifiers = "w412dp-h1007dp-xxhdpi") fun tarjetas412x1007Text130() = scene(412, 1007, 1.3f, "tarjetas-412x1007-130", 364, liveSessionCardHeightDp(412, 1007).value.toInt())
+    /** El Z Flip (360 × 880): marco de 312 × 430 (pantalla alta: +36 dp) y el hueco sobrante entre la tarjeta y el roadmap (decisión 1). */
+    @Test @Config(qualifiers = "w360dp-h880dp-xxhdpi") fun tarjetasFlip360x880() = scene(360, 880, 1f, "tarjetas-360x880-100", 312, liveSessionCardHeightDp(360, 880).value.toInt())
 
     private fun scene(width: Int, height: Int, fontScale: Float, name: String, frameW: Int, frameH: Int) {
         rule.setContent {

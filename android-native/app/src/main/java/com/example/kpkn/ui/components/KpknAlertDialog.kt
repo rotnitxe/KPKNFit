@@ -182,7 +182,8 @@ private fun KpknAlertDialogBody(
                     .padding(horizontal = 28.dp)
                     .widthIn(max = 400.dp)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(hazeState, shape, variant = KpknGlassVariant.SHEET)
+                    // Gris oscuro plano con sombra real de elevación (KpknFloating); sin vidrio ni desenfoque.
+                    .kpknFloatingSurface(shape, KpknFloating.DialogElevation)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,

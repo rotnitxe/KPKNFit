@@ -51,7 +51,9 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
     val exit by animateFloatAsState(if (closing) 1f else 0f, tween(if (reduced) 0 else 180), label = "header-sheet-exit")
     val travel = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     LaunchedEffect(closing) {
-        if (closing) { if (!reduced) delay(180); onDismiss() }
+        // Si `onDismiss` no cierra (p. ej. «Configurar serie» con cambios pide confirmar), la hoja vuelve a su sitio en vez de quedar
+        // invisible bajo el velo; si cierra, la hoja sale de la composición en el mismo cuadro.
+        if (closing) { if (!reduced) delay(180); onDismiss(); closing = false }
     }
     KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, showDragHandle = showDragHandle,
         backdropScrim = scrim, additionalGlassScrim = panelTint,

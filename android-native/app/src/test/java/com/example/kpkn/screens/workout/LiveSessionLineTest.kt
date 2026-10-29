@@ -63,7 +63,7 @@ class LiveSessionLineTest {
     }
 
     /** Roadmap del Refinamiento 02: alto fijo, resumen de la sesión, pista de fases y la fila ‹ registrar › dentro del vidrio. */
-    private fun assertDock(count: Int, active: Int, prep: Boolean) {
+    private fun assertDock(count: Int, active: Int, prep: Boolean, prepInWindow: Boolean = prep) {
         content { Line(liveLineTestSnapshot(count, active, prep)) }
         val bounds = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertEquals(LiveSessionLineHeight.value * density, bounds.height, 1f)
@@ -72,7 +72,7 @@ class LiveSessionLineTest {
         // Iteración 04: raíl de series; el punto en curso está seleccionado y el descanso solo aparece mientras dura.
         assertTrue(rule.onAllNodes(isSelected()).fetchSemanticsNodes().isNotEmpty())
         rule.onNodeWithTag("live-session-phase-rest").assertDoesNotExist()
-        if (prep) {
+        if (prepInWindow) {
             rule.onNodeWithTag("live-session-phase-mov").assertIsDisplayed()
             rule.onNodeWithTag("live-session-phase-apr").assertIsDisplayed()
         } else {
@@ -85,7 +85,9 @@ class LiveSessionLineTest {
     }
     @Test fun oneSeriesShowsTheDockWithRecordInside() = assertDock(1, 0, false)
     @Test fun preparationAddsMovAndAprPhases() = assertDock(4, 0, true)
-    @Test fun fourteenSeriesKeepTheSameDock() = assertDock(14, 7, true)
+    // El raíl enseña una ventana de 7 puntos con el actual en tercera posición (más aire entre puntos, pedido del usuario del 29-oct):
+    // en la serie 8 de 14 MOV y APR quedan fuera de la ventana, a un ‹ de distancia.
+    @Test fun fourteenSeriesKeepTheSameDock() = assertDock(14, 7, true, prepInWindow = false)
     @Test fun lastOfFourteenSeriesShowsItsPosition() = assertDock(14, 13, false)
 
     @Test fun compressionKeepsAllOriginalIndicesExactlyOnce() {

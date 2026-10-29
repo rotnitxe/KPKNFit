@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -41,6 +42,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.workout.RestGameRecordStore
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.PendingRestSuggestion
 import com.example.kpkn.screens.workout.RestClockMath
@@ -98,6 +100,8 @@ internal fun RestLiveCard(
     val progress = RestClockMath.progress(safeTotal, safeRemaining)
     var playing by rememberSaveable(restState?.startedAtMs) { mutableStateOf(initiallyPlaying) }
     var suggestionOpen by remember { mutableStateOf(false) }
+    val gameContext = androidx.compose.ui.platform.LocalContext.current
+    val cardRecordStore = recordStore ?: remember { RestGameRecordStore.from(gameContext) }
     val compact = liveSessionCardHeight() < 440.dp
     val kicker = when (restState?.kind) {
         RestTimerKind.SUPERSET_INTRA -> "DESCANSO · SUPERSERIE"
@@ -112,41 +116,43 @@ internal fun RestLiveCard(
         suggestedSeconds = pendingRestSuggestion?.adaptiveSeconds?.takeIf { onUseAdaptive != null },
         adaptiveActive = isAdaptiveActive,
     )
-    if (playing) {
-        RestRef02Card(compact = compact, modifier = modifier, tag = "rest-card-games") {
-            RestArcade(
-                remainingSeconds = remainingSeconds, totalSeconds = safeTotal, nextSet = nextSet,
-                onBack = { playing = false }, onSkip = onSkip, recordStore = recordStore, runner = gameEngine,
-                running = clockActive && !isPaused, compact = true,
-                isPaused = isPaused, onDecrease = onDecrease, onTogglePause = onTogglePause, onIncrease = onIncrease,
-            )
-        }
-    } else {
-        RestRef02Card(
-            compact = compact,
-            modifier = modifier,
-            footer = {
-                RestRef02Button("Jugar mientras descansas", { playing = true }, primary = false, modifier = Modifier.fillMaxWidth(),
-                    icon = KpknLineIcons.Play, tag = "rest-play-games")
-            },
-        ) {
-            RestRef02CardClockPanel(
+    // Tarjeta del descanso ↔ juegos dentro de la misma tarjeta: se funden entre sí en vez de cambiar de golpe.
+    Crossfade(targetState = playing, modifier = modifier, animationSpec = liveSpec(wizardReducedMotion(), 240), label = "rest-card-games-swap") { showGames ->
+        if (showGames) {
+            RestRef02Card(compact = compact, tag = "rest-card-games") {
+                RestArcade(
+                    remainingSeconds = remainingSeconds, totalSeconds = safeTotal, nextSet = nextSet,
+                    onBack = { playing = false }, onSkip = onSkip, recordStore = cardRecordStore, runner = gameEngine,
+                    running = clockActive && !isPaused, compact = true,
+                    isPaused = isPaused, onDecrease = onDecrease, onTogglePause = onTogglePause, onIncrease = onIncrease,
+                )
+            }
+        } else {
+            RestRef02Card(
                 compact = compact,
-                kicker = kicker,
-                remainingSeconds = safeRemaining,
-                progress = progress,
-                isPaused = isPaused,
-                animationsOn = clockActive,
-                onExpand = onExpand,
-                onDecrease = onDecrease,
-                onTogglePause = onTogglePause,
-                onIncrease = onIncrease,
-                nextTitle = nextSet?.let { restRef02NextTitle(it, restState?.exerciseName.orEmpty(), card = true) },
-                nextDose = nextSet?.let { if (it.cardio) it.durationSeconds?.let { s -> "${s / 60} min" } else it.doseText() },
-                nextNote = if (nextSet?.cardio == true) "Al terminar el descanso pasas al espacio de cardio" else null,
-                suggestion = suggestion,
-                onOpenSuggestion = { suggestionOpen = true },
-            )
+                footer = {
+                    RestRef02Button("Jugar mientras descansas", { playing = true }, primary = false, modifier = Modifier.fillMaxWidth(),
+                        icon = KpknLineIcons.Play, tag = "rest-play-games")
+                },
+            ) {
+                RestRef02CardClockPanel(
+                    compact = compact,
+                    kicker = kicker,
+                    remainingSeconds = safeRemaining,
+                    progress = progress,
+                    isPaused = isPaused,
+                    animationsOn = clockActive,
+                    onExpand = onExpand,
+                    onDecrease = onDecrease,
+                    onTogglePause = onTogglePause,
+                    onIncrease = onIncrease,
+                    nextTitle = nextSet?.let { restRef02NextTitle(it, restState?.exerciseName.orEmpty(), card = true) },
+                    nextDose = nextSet?.let { if (it.cardio) it.durationSeconds?.let { s -> "${s / 60} min" } else it.doseText() },
+                    nextNote = if (nextSet?.cardio == true) "Al terminar el descanso pasas al espacio de cardio" else null,
+                    suggestion = suggestion,
+                    onOpenSuggestion = { suggestionOpen = true },
+                )
+            }
         }
     }
     val pending = pendingRestSuggestion

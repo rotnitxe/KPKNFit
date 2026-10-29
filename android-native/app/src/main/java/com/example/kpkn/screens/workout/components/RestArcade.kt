@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.ExitTransition
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,24 +120,35 @@ internal fun RestArcade(
             onDecrease = onDecrease?.takeIf { !over },
             onTogglePause = onTogglePause,
             onIncrease = onIncrease?.takeIf { !over },
+            compact = compact,
         )
-        val chosen = mode
-        if (chosen == null) {
-            RestGamePicker(recordStore, compact, Modifier.weight(1f)) { mode = it }
-            if (compact) RestRef02Button("Volver al descanso", onBack, primary = false, modifier = Modifier.fillMaxWidth(), tag = "arcade-return-rest")
-        } else {
-            key(chosen) {
-                RestGamePlay(
-                    mode = chosen,
-                    recordStore = recordStore,
-                    paused = isPaused,
-                    restOver = over && !keepPlaying,
-                    nextText = nextText,
-                    onBackToSet = onSkip,
-                    onKeepPlaying = { keepPlaying = true },
-                    onClose = { mode = null },
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                )
+        // Selector ↔ partida: el contenido nuevo se funde sobre el anterior (nada aparece de golpe); con movimiento reducido, corte.
+        val reducedMotion = wizardReducedMotion()
+        AnimatedContent(
+            targetState = mode,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            transitionSpec = { liveContentSwap(reducedMotion) },
+            label = "rest-arcade-mode",
+        ) { chosen ->
+            if (chosen == null) {
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 9.dp)) {
+                    RestGamePicker(recordStore, compact, Modifier.weight(1f)) { mode = it }
+                    if (compact) RestRef02Button("Volver al descanso", onBack, primary = false, modifier = Modifier.fillMaxWidth(), tag = "arcade-return-rest")
+                }
+            } else {
+                key(chosen) {
+                    RestGamePlay(
+                        mode = chosen,
+                        recordStore = recordStore,
+                        paused = isPaused,
+                        restOver = over && !keepPlaying,
+                        nextText = nextText,
+                        onBackToSet = onSkip,
+                        onKeepPlaying = { keepPlaying = true },
+                        onClose = { mode = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
     }
@@ -149,7 +165,12 @@ private fun RestGameTop(
     onDecrease: (() -> Unit)?,
     onTogglePause: (() -> Unit)?,
     onIncrease: (() -> Unit)?,
+    compact: Boolean = false,
 ) {
+    if (compact) {
+        RestGameTopSlim(remainingSeconds, totalSeconds, isPaused, onBack, onDecrease, onTogglePause, onIncrease)
+        return
+    }
     val shape = RoundedCornerShape(29.dp)
     Row(
         Modifier.fillMaxWidth().heightIn(min = 58.dp).clip(shape)
@@ -175,8 +196,10 @@ private fun RestGameTop(
         Column(Modifier.weight(1f)) {
             Text((if (remainingSeconds < 0) "+" else "") + KpknSetFormat.rest(abs(remainingSeconds)),
                 style = ArcadeSyne.copy(fontSize = 18.sp, lineHeight = 23.sp, fontFeatureSettings = "'tnum' 1"), color = ArcadeInk,
-                modifier = Modifier.testTag("arcade-rest-clock"))
-            Text(subtitle, style = ArcadeBody.copy(fontSize = 10.sp, lineHeight = 13.sp), color = LiveSheetTokens.Faint)
+                maxLines = 1, softWrap = false, modifier = Modifier.testTag("arcade-rest-clock"))
+            // `.gtop small` del prototipo: una sola línea con puntos suspensivos («Descanso · siguiente: Se…»).
+            Text(subtitle, style = ArcadeBody.copy(fontSize = 10.sp, lineHeight = 13.sp), color = LiveSheetTokens.Faint,
+                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
         GameTopButton("−15", "Quitar 15 segundos", onDecrease, "arcade-rest-minus")
         GameTopButton(null, if (isPaused) "Reanudar descanso" else "Pausar descanso", onTogglePause, "arcade-rest-pause",
@@ -185,15 +208,57 @@ private fun RestGameTop(
     }
 }
 
+/**
+ * El reloj del descanso dentro de la tarjeta minimizada: una fila fina sin píldora (‹, anillo, tiempo, −15 · pausa · +15) para que el
+ * juego se quede con casi toda la tarjeta. Las mismas etiquetas y acciones que la píldora de pantalla completa.
+ */
+@Composable
+private fun RestGameTopSlim(
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    isPaused: Boolean,
+    onBack: () -> Unit,
+    onDecrease: (() -> Unit)?,
+    onTogglePause: (() -> Unit)?,
+    onIncrease: (() -> Unit)?,
+) {
+    Row(
+        Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Descanso" }.testTag("arcade-rest-top"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(Modifier.size(width = 32.dp, height = 44.dp).clickable(role = Role.Button, onClick = onBack)
+            .semantics { contentDescription = "Volver" }.testTag("arcade-back"), contentAlignment = Alignment.Center) {
+            Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(15.dp), tint = ArcadeInk)
+        }
+        val fraction = if (remainingSeconds <= 0) 0f else (remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
+        Canvas(Modifier.size(22.dp)) {
+            val r = 9.dp.toPx()
+            val stroke = 2.dp.toPx()
+            drawCircle(Color(0x14FFFFFF), r, center, style = Stroke(stroke))
+            drawArc(ArcadeInk, -90f, 360f * fraction, false, Offset(center.x - r, center.y - r), Size(r * 2, r * 2),
+                style = Stroke(stroke, cap = StrokeCap.Round))
+        }
+        Text((if (remainingSeconds < 0) "+" else "") + KpknSetFormat.rest(abs(remainingSeconds)), Modifier.weight(1f).testTag("arcade-rest-clock"),
+            style = ArcadeSyne.copy(fontSize = 16.sp, lineHeight = 20.sp, fontFeatureSettings = "'tnum' 1"),
+            color = if (isPaused) LiveSheetTokens.Muted else ArcadeInk, maxLines = 1, softWrap = false)
+        GameTopButton("−15", "Quitar 15 segundos", onDecrease, "arcade-rest-minus", touch = 44.dp, visual = 32.dp)
+        GameTopButton(null, if (isPaused) "Reanudar descanso" else "Pausar descanso", onTogglePause, "arcade-rest-pause",
+            icon = if (isPaused) KpknLineIcons.Play else KpknLineIcons.Pause, touch = 44.dp, visual = 32.dp)
+        GameTopButton("+15", "Añadir 15 segundos", onIncrease, "arcade-rest-plus", touch = 44.dp, visual = 32.dp)
+    }
+}
+
 @Composable
 private fun GameTopButton(text: String?, description: String, onClick: (() -> Unit)?, tag: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null, touch: androidx.compose.ui.unit.Dp = 44.dp,
+    visual: androidx.compose.ui.unit.Dp = 36.dp) {
     Box(
-        Modifier.size(44.dp).clickable(enabled = onClick != null, role = Role.Button) { onClick?.invoke() }
+        Modifier.size(touch).clickable(enabled = onClick != null, role = Role.Button) { onClick?.invoke() }
             .semantics { contentDescription = description }.testTag(tag),
         contentAlignment = Alignment.Center,
     ) {
-        Box(Modifier.size(36.dp).clip(CircleShape).background(Color(0x0DFFFFFF)), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(visual).clip(CircleShape).background(Color(0x0DFFFFFF)), contentAlignment = Alignment.Center) {
             val ink = ArcadeInk.copy(alpha = if (onClick != null) 1f else .35f)
             if (icon != null) Icon(icon, null, Modifier.size(13.dp), tint = ink)
             else Text(text.orEmpty(), style = ArcadeBody.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold), color = ink)
@@ -222,14 +287,17 @@ private fun RestGamePicker(recordStore: RestGameRecordStore?, compact: Boolean, 
             val shape = RoundedCornerShape(22.dp)
             Row(
                 Modifier.fillMaxWidth().clip(shape).background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), shape)
-                    .clickable(role = Role.Button) { onPick(game) }.padding(13.dp).testTag("rest-game-${game.name.lowercase()}"),
+                    .clickable(role = Role.Button) { onPick(game) }.padding(if (compact) 10.dp else 13.dp)
+                    .then(if (compact) Modifier.semantics { contentDescription = "${game.label}. ${game.hint}" } else Modifier)
+                    .testTag("rest-game-${game.name.lowercase()}"),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Canvas(Modifier.size(if (compact) 64.dp else 84.dp).clip(RoundedCornerShape(16.dp))) { drawGamePreview(game, clock) }
+                Canvas(Modifier.size(if (compact) 52.dp else 84.dp).clip(RoundedCornerShape(16.dp))) { drawGamePreview(game, clock) }
                 Column(Modifier.weight(1f)) {
                     Text(game.label, style = ArcadeSyne.copy(fontSize = 16.sp, lineHeight = 21.sp), color = ArcadeInk)
-                    Text(game.hint, Modifier.padding(top = 5.dp), style = ArcadeBody.copy(fontSize = if (compact) 10.sp else 11.sp, lineHeight = 15.sp),
+                    // En la tarjeta minimizada solo caben el nombre y el récord; la descripción la lee el lector de pantalla.
+                    if (!compact) Text(game.hint, Modifier.padding(top = 5.dp), style = ArcadeBody.copy(fontSize = 11.sp, lineHeight = 15.sp),
                         color = LiveSheetTokens.Muted)
                     Text("Récord ${restGameBest(recordStore, game).formatEs()} · 3 vidas", Modifier.padding(top = 6.dp),
                         style = ArcadeBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint)
@@ -237,7 +305,7 @@ private fun RestGamePicker(recordStore: RestGameRecordStore?, compact: Boolean, 
             }
         }
         Box(Modifier.weight(1f))
-        Text("El descanso manda: al llegar a cero el juego se congela y vuelves a la serie.", Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        if (!compact) Text("El descanso manda: al llegar a cero el juego se congela y vuelves a la serie.", Modifier.fillMaxWidth().padding(bottom = 8.dp),
             style = ArcadeBody.copy(fontSize = 10.5.sp, lineHeight = 15.sp), color = LiveSheetTokens.Faint, textAlign = TextAlign.Center)
     }
 }
@@ -342,16 +410,25 @@ private fun RestGamePlay(
                 !touched && !finished && !restOver -> null to game.hint
                 else -> null
             }
-            message?.let { (title, body) ->
-                Column(Modifier.align(Alignment.Center).padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    title?.let { Text(it, style = ArcadeSyne.copy(fontSize = 18.sp, lineHeight = 23.sp), color = ArcadeInk) }
-                    Text(body, Modifier.padding(top = 6.dp), style = ArcadeBody.copy(fontSize = 12.sp, lineHeight = 17.sp), color = LiveSheetTokens.Muted,
-                        textAlign = TextAlign.Center)
+            // La pista y «En pausa» se funden al cambiar; sin mensaje no se pinta nada.
+            Crossfade(
+                targetState = message,
+                modifier = Modifier.align(Alignment.Center),
+                animationSpec = liveSpec(reduced, 200),
+                label = "rest-game-message",
+            ) { shown ->
+                shown?.let { (title, body) ->
+                    Column(Modifier.padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        title?.let { Text(it, style = ArcadeSyne.copy(fontSize = 18.sp, lineHeight = 23.sp), color = ArcadeInk) }
+                        Text(body, Modifier.padding(top = 6.dp), style = ArcadeBody.copy(fontSize = 12.sp, lineHeight = 17.sp), color = LiveSheetTokens.Muted,
+                            textAlign = TextAlign.Center)
+                    }
                 }
             }
         }
-        when {
-            finished -> GameOverlay(
+        // Las capas de «fin de partida» y «descanso terminado» se funden por encima de la partida en lugar de saltar.
+        AnimatedVisibility(visible = finished, enter = liveFadeIn(reduced), exit = ExitTransition.None) {
+            GameOverlay(
                 eyebrow = "FIN DE LA PARTIDA",
                 title = finalScore.formatEs(),
                 body = "Récord ${restGameBest(recordStore, mode).formatEs()}. El descanso sigue corriendo arriba; reiniciar la partida no lo toca.",
@@ -359,7 +436,9 @@ private fun RestGamePlay(
                 secondary = "Cerrar juego" to onClose,
                 tag = "rest-game-over",
             )
-            restOver -> GameOverlay(
+        }
+        AnimatedVisibility(visible = restOver && !finished, enter = liveFadeIn(reduced), exit = liveFadeOut(reduced)) {
+            GameOverlay(
                 eyebrow = "DESCANSO TERMINADO",
                 title = "Siguiente serie",
                 body = listOfNotNull(nextText, "Tu partida queda congelada con ${(world?.score ?: 0).formatEs()} puntos.").joinToString(". "),

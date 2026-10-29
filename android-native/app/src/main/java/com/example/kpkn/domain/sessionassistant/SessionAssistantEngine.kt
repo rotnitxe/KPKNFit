@@ -7,7 +7,7 @@ import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 
-internal fun reduceRestLabel(seconds: Int): String = "Bajar $seconds s de descanso entre series"
+internal fun reduceRestLabel(seconds: Int): String = "Bajar $seconds s de descanso entre series"
 
 /** Recorded/planned counts and the user's explicit time/structure constraints, never a body-state score. */
 object SessionAssistantEngine {

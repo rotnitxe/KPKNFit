@@ -68,3 +68,59 @@ Respuestas literales del usuario a las dudas de inicio. Precedencia: estas decis
 | 23 | Roadmap | Raíl de series en lugar de la pista MOV/APR/SER/REST. Tocar un punto va a él, arrastrar recorre los puntos con un toque háptico cada uno, y la pulsación larga abre las opciones de la serie. Al registrar: barrido verde del botón, el punto se rellena y traza su ✓, la línea avanza, el contador rueda y crece el anillo de la sesión. El descanso es una píldora que se vacía. El roadmap pasa de 118 a 138 dp. |
 | 24 | Línea bajo el nombre | Se omite todo dato que el nombre ya dice («Barra · Alta» en «Sentadilla Trasera con Barra Alta») y el «Etiquetas ⌄» sin etiquetas activas; si no queda nada, la línea no ocupa espacio. Las etiquetas siguen en Opciones del ejercicio. |
 | 25 | Sin más prototipos | «Integra todo eso, no me mandes otros prototipos, ponte a implementar.» |
+
+## Correcciones del usuario en la QA del Flip5 (28/29-oct-2026)
+
+Sustituyen a las decisiones anteriores donde chocan.
+
+| # | Tema | Decisión |
+|---|---|---|
+| 26 | Juegos en la tarjeta minimizada | El juego ocupa casi toda la tarjeta. El reloj del descanso es una fila fina (‹, anillo, tiempo, −15 · pausa · +15), sin la píldora que se colapsaba en vertical. En la tarjeta, el selector enseña nombre y récord (la descripción la lee el lector de pantalla). A pantalla completa sigue la píldora `.gtop` de la iteración 03. |
+| 27 | Lista | Sin el título grande del ejercicio en curso (repetía el primero y se quedaba fijo); el micrófono y las etiquetas siguen. Textos dos puntos mayores (la Lista se leía como una planilla). Fundido a negro arriba y abajo. La fila activa y el acordeón que abre solo siguen el paso activo de la sesión: durante la preparación no se abre ninguna serie efectiva. |
+| 28 | Hojas, avisos y píldoras | Gris oscuro plano (#1B1B1D) con filete tenue y sombra REAL de elevación de la plataforma; nada de vidrio ni desenfoque (sustituye el desenfoque de la cabecera). Aplica a KpknSheet (y por tanto a todas las LiveSheet), KpknAlertDialog, LiveAlert, la cápsula de la cabecera, el roadmap y la cápsula de voz. |
+| 29 | «Antes de entrenar» | Rehecha con el kit de hojas y el `readiness` del prototipo: ✕, escalas con cifra en Syne, molestia muscular en recuadros que se tocan, molestias previas en píldoras con buscador, voz y «Confirmar y continuar»; mide lo que mide su contenido. Se retiró «Notas y disciplina» (abría un velo amarillo). Anula «readiness nativo intocable». |
+| 30 | Textos de las hojas | Un punto por encima del prototipo (cuerpo 14, secundario 13, rótulos 11). |
+| 31 | Raíl de series | Ventana de 7 nodos (6 + ›) que sigue a la serie en curso; la línea llega al borde cuando quedan puntos fuera; puntos algo mayores (radio 10, número 9 sp). |
+| 32 | Tarjeta | Título del ejercicio a 23 sp. La tarjeta y su pila se centran en el hueco entre el título y el roadmap (anula la decisión 1). Cada tarjeta de la pila proyecta su sombra real. |
+| 33 | Pase entre tarjetas | La que sale se desvanece a mitad del gesto, sin inclinarse ni quedar translúcida encima de la siguiente (anula la animación de la decisión 22); asentado de 240 ms y pases programáticos de 260 ms. |
+| 34 | Acortar sesión | Es el sistema ultrarrápido sin nombrarlo: propone por tipo de ejercicio drop-set, rest-pause o menos series, descansos más cortos y, en cardio, menos tiempo o quitarlo; mínima configuración manual. |
+
+## Lista: correcciones del usuario en el Flip5 (29-oct-2026)
+
+Sustituyen al prototipo (capturas 01, 07 y 08 de la Lista) y a la decisión 27 donde chocan. Numeración propia (L) para no pisar las de otros carriles.
+
+| # | Tema | Decisión |
+|---|---|---|
+| L1 | Cabecera | Fuera por completo el bloque de contexto de arriba («Barra» + micrófono y su hueco). Anula lo que la decisión 27 conservaba (micrófono y etiquetas en la Lista); siguen en la isla y en Opciones del ejercicio. |
+| L2 | Jerarquía | El nombre de cada ejercicio es lo principal: Syne 17 (el resto, 11–15), con el avance «Movilidad 2/2 · Aprox. 1/3 · Series 1/3» debajo, ✓ al terminar, pliegue y ⋯. |
+| L3 | Preparación dentro del ejercicio | Se quita el bloque «PREPARACIÓN» de arriba (duplicaba A1–A3). Cada ejercicio agrupa, en orden: MOVILIDAD, APROXIMACIONES (con «Trabajo · 82,5 kg») y SERIES EFECTIVAS, cada uno con su avance. En superserie, la preparación de cada miembro va al principio del bloque, rotulada A1/A2. |
+| L4 | Unidades y coma | Toda carga dice kg: «32,5 kg × 8», también en las series efectivas («82,5 kg × 8») y en la referencia («Anterior · 80 kg × 8 · RIR 2»). Coma decimal es-CL en todo lo que se lee y se escribe en la Lista (los campos aceptan coma o punto). El porcentaje se normaliza (0,4 o 40 → «40 %»). |
+| L5 | Registrar aproximaciones | Tocar la fila abre su editor con los kg (por defecto, la carga sugerida por `getWarmupSuggestedWeight`, ya redondeada al material, la misma de la tarjeta y la voz) y las reps; registra con `completeWarmupStep(…, usedWeightKg, reportedReps)`. Ya hecha, el editor muestra lo registrado y «Actualizar» corrige con `reportWarmupStep`; «Marcar pendiente» la desmarca. El ✓ de una pendiente registra en el acto con lo sugerido. Sin carga de trabajo no se inventa: «— kg» y el campo vacío. |
+| L6 | Lo registrado se queda | Movilidad, aproximaciones y series registradas siguen en su sitio, atenuadas y con ✓, y se pueden reabrir y editar. |
+| L7 | Transiciones | Aparecer, registrar, plegar y desplegar: `animateItem` (fundido 220/160 ms y recolocación 280 ms), `animateContentSize` y `liveEnter/liveExit/liveContentSwap` de LiveMotion. Con el movimiento reducido, corte inmediato. |
+| L8 | Descanso en la Lista | El de aproximación o movilidad se ve desplegado (la tarjeta del descanso, con «Minimizar») o minimizado (fila compacta con reloj, «+15 s», «Terminar» y desplegar), tras la fila que lo abrió. El de serie efectiva, minimizado, queda en la Lista tras la serie recién registrada (antes desaparecía); desplegado sigue siendo la pantalla completa. «Descanso cumplido» minimizado, igual. Usa el mismo `isRestMinimized` que la tarjeta y Atrás. |
+| L9 | Ejercicio terminado | Al registrar la última serie, ese ejercicio se pliega y se despliega el siguiente; al abrir la Lista, los ya terminados aparecen plegados. El acordeón salta a lo siguiente pendiente (movilidad, aproximación o serie, también del ejercicio siguiente). Los ejercicios por empezar siguen desplegados. |
+| L10 | Separación | Cada ejercicio es una superficie plana #141414 con radio 20 (sin vidrio) y 14 dp entre ejercicios; filas con filete tenue. |
+| L11 | Autodesplazamiento | Lo que toca ahora (descanso que aparece, editor abierto o fila activa) se lleva a la vista con `animateScrollToItem`, con la fila anterior encima como contexto, solo si no se ve entero y nunca mientras la persona arrastra. |
+| L12 | Modo visual | En la Lista abre directamente la vista expandida de la tarjeta (la misma superposición de `SetCardExerciseMediaBack`); al plegarla queda la cara de 350 dp con «Ampliar» para volver a abrirla. |
+| L13 | Toques | Dentro de la Lista la zona táctil no se agranda más allá de lo dibujado (sin el mínimo de 48 dp de Compose, que llevaba un toque en un hueco al campo de la fila vecina) y cada fila y editor absorbe los toques que no caen en un control. Los controles miden 40–48 dp. |
+
+## Correcciones de la madrugada del 29-oct (usuario y QA en el Flip5)
+
+Decididas sin preguntar, por orden del usuario («no me hagas preguntas, decide por mí»).
+
+| # | Tema | Decisión |
+|---|---|---|
+| 35 | Modo Voz | La cápsula es una capa viva, igual que en la iteración 03 (v-listen, v-record, v-review, v-paused, v-speak, v-rest, v-list): transcribe en vivo con los parciales reales de Vosk, convierte la frase en fichas que vuelan a su campo (carga, reps y esfuerzo de la tarjeta; fila en la Lista; reloj en el descanso), se reduce a recibo con «Deshacer» y «Editar», y muestra lo que dice KPKN (el texto real del TTS). Superficie gris plana con sombra real (decisión 28), no vidrio. Con la cápsula a la vista, la serie dictada espera como mucho 2 s a que lleguen los valores antes de registrarse. El reconocedor nativo de respaldo no da parciales: allí no hay transcripción en vivo. |
+| 36 | Modos de voz | Música: «Micrófono del teléfono: la música no pierde calidad, pero acércalo para hablar.» Manos libres: «Micrófono de los auriculares: registras lejos del teléfono; la música suena a llamada.» |
+| 37 | Kg de las aproximaciones | Tarjeta y Lista enseñan siempre la carga en kg. Si el material no está acreditado (sin discos ni barra configurados), el motor sigue dejándola pendiente, y la interfaz muestra el % sobre la carga de trabajo con el redondeo de la app (`getWarmupDisplayWeight`); se corrige antes de registrar. La voz sigue usando solo la carga alcanzable. |
+| 38 | Kg editables en la tarjeta | La tarjeta de aproximaciones tiene un editor de la aproximación elegida (kg en Syne con − / + y reps), y el botón del roadmap registra con esos valores. Al volver a una registrada se ven sus kg y reps. |
+| 39 | Toques que atravesaban la pila | La tarjeta actual absorbe los toques de su superficie y las tarjetas de debajo no reciben ninguno. Antes, una zona vacía de la aproximación caía en el campo de carga de la serie apilada detrás. |
+| 40 | Descanso de preparación | Admite vista expandida (pantalla completa) y minimizada, y −15 s · pausa · +15 s funcionan, en la tarjeta y en la Lista. En el carrusel, «Terminar descanso» queda solo en el roadmap, como en la captura 02 del prototipo. En la Lista, que no tiene roadmap, la tarjeta lo conserva. |
+| 41 | Botón del roadmap en preparación | «Registrar movimiento N», «Registrar aproximación AN», «Ir a la aproximación», «Ir a las series». Si no cabe, el texto se reduce hasta 10 sp en vez de cortarse (antes salía «Continuar con» a secas). |
+| 42 | Volver a la preparación | El salto inicial a la serie efectiva se corrige en el navegador de pasos: una sesión nueva arranca en la movilidad o en la primera aproximación. El paginador ya no bloquea el regreso a la movilidad cuando el destino cambia (‹ o MOV desde una serie). |
+| 43 | Cardio | El reloj circular pasa a un recuadro a todo el ancho con el tiempo ajustado al hueco y una figura animada según la modalidad (corre, camina, pedalea, rema…), al ritmo de la zona. «Manual» pasa a «Añadir pulso», que abre una hoja con validación de 40 a 230 lpm. En cardio no hay roadmap. «Saltar paso» no se pinta cuando no se puede saltar. |
+| 44 | Interfaz vacía | Fuera «Calorías» del menú y «Gasto» de Recorrido: no hay método compatible de energía en vivo y nunca podían mostrar un dato. En su lugar, el tiempo transcurrido. Los récords de los juegos se guardan también en la tarjeta. Los chips de la calculadora RM llevan esa carga a la serie. «Revisar descanso sugerido» solo aparece cuando hay un descanso. La ✕ de «Configurar serie» con cambios vuelve a mostrar la hoja. «Listo» de la etiqueta en Setup cierra la hoja. Fuera «Cluster set: próximamente». Las filas informativas ya no responden al toque. Los controles de descanso que no se pueden usar no se pintan. |
+| 45 | Cifra de carga larga | Con 5 cifras o más, la carga de la tarjeta se reduce en vez de montarse sobre «kg» y sobre − / +. |
+| 46 | Alto de la tarjeta | Los 36 dp extra son solo para la tarjeta estrecha (360 de ancho) en pantallas de 820 dp de alto o más, como el Flip. A 393 × 852 el roadmap tapaba el pie. |
+| 47 | Fundido de la Lista | Las filas no se ven sobre la barra de estado ni alrededor de la isla: aparecen fundidas desde el borde inferior de la isla. |

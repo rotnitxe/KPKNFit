@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.ui.components.kpknFloatingSurface
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -96,6 +97,8 @@ internal fun LiveSessionLine(
     recordVisible: Boolean,
     recordEnabled: Boolean,
     isUpdateMode: Boolean = false,
+    /** Lo que registra el botón en la página activa cuando no es una serie (movilidad, aproximaciones); null = «Registrar serie». */
+    recordLabel: String? = null,
     onAddSet: (() -> Unit)? = null,
     onLongPressPage: ((Int) -> Unit)? = null,
     onNavigateAdjacentExercise: ((Boolean) -> Unit)? = null,
@@ -143,10 +146,8 @@ internal fun LiveSessionLine(
     }
     Box(modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().height(LiveSessionLineHeight).testTag("live-session-line")
-            .shadow(18.dp, glass, clip = false)
-            .clip(glass)
-            .background(Brush.linearGradient(listOf(Color(0xC2333333), Color(0xB3212121))))
-            .border(1.dp, Brush.linearGradient(listOf(Color(0x3DFFFFFF), Color(0x14FFFFFF), Color(0x24FFFFFF))), glass)
+            // Píldora flotante: gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
+            .kpknFloatingSurface(glass, com.example.kpkn.ui.components.KpknFloating.PillElevation)
             .padding(start = 11.dp, end = 11.dp, top = 8.dp, bottom = 9.dp)) {
             Row(Modifier.fillMaxWidth().height(22.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.clip(RoundedCornerShape(10.dp))
@@ -212,6 +213,7 @@ internal fun LiveSessionLine(
                 val endsRest = restActive && onEndRest != null
                 val label = when {
                     endsRest -> "Terminar descanso"
+                    recordLabel != null -> recordLabel
                     isUpdateMode -> "Actualizar serie"
                     else -> "Registrar serie"
                 }
@@ -255,7 +257,9 @@ internal fun LiveSessionLine(
                             else -> KpknLineIcons.Check
                         }, null, Modifier.size(16.dp), tint = WizardColors.ctaContent)
                         Spacer(Modifier.width(7.dp))
-                        Text(label, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp), color = WizardColors.ctaContent, maxLines = 1)
+                        // La etiqueta contextual («Registrar aproximación A1») cabe entera: se reduce un poco antes que cortarse.
+                        BasicText(label, style = KpknType.action.copy(fontSize = 13.sp, lineHeight = 18.sp, color = WizardColors.ctaContent),
+                            maxLines = 1, softWrap = false, autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 13.sp, stepSize = .5.sp))
                     }
                 }
                 DockNavButton(KpknLineIcons.ChevronRight, "Paso siguiente") { step(true) }

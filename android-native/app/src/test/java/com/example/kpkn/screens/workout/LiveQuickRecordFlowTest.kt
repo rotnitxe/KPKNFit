@@ -134,6 +134,13 @@ class LiveQuickRecordFlowTest {
             assertTrue(vm.uiState.value.completedSets.isEmpty())
             assertTrue(runBlocking { fixture!!.storedOngoing() }.completedSets.isEmpty())
             saveLiveQaRender(rule, view, "lv-af-quick-room-error")
+            // Refinamiento 02: el fallo también sale como alerta «No se pudo guardar» (con «Reintentar»); «Volver al registro» la cierra y la hoja sigue con sus valores.
+            rule.onNodeWithTag("live-save-failed").assertIsDisplayed()
+            rule.onNodeWithTag("live-save-failed-secondary").performClick()
+            rule.waitForIdle()
+            rule.onNodeWithTag("live-save-failed").assertDoesNotExist()
+            rule.onNodeWithTag("ultra-record-submit", true).assertIsEnabled()
+            rule.onNodeWithContentDescription("RIR", useUnmergedTree = true).assertTextEquals("2")
         } finally { db.execSQL("DROP TRIGGER fail_quick_record") }
         rule.onNodeWithTag("ultra-record-submit", true).performClick()
         rule.waitUntil(30_000) { vm.uiState.value.completedSets.size == 1 && !vm.uiState.value.showUltraFastSheet }

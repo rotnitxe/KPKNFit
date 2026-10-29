@@ -38,8 +38,13 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
     private var recordCount = 0
     private var continued = false
 
+    /** Alto de la escena mostrada: la tarjeta mide lo que dicta [liveSessionCardHeightDp] para ese alto (394 a 740, 430 a 880). */
+    private var shownHeight = 880
+    private val cardHeight get() = liveSessionCardHeightDp(360, shownHeight).value
+
     fun show(fixture: Cal3Fixture = cal3Fixture(), height: Int = 880, before: Boolean = false, font: Float = 1f,
         normalAmrap: Boolean = false) {
+        shownHeight = height
         exercise = fixture.exercise
         if (normalAmrap) exercise = exercise.copy(sets = exercise.sets.map { it.copy(purpose = if(it.purpose == SetPurpose.CALIBRATOR) SetPurpose.AMRAP else it.purpose) })
         val initial = if (before) fixture.state.copy(completedSets = emptyMap(), calibrationDecisions = emptyList()) else fixture.state
@@ -63,7 +68,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 144f).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0,
                                 isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
@@ -109,7 +114,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
     fun assertFrame() {
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(312f, frame.width / density, .5f); assertEquals(394f, frame.height / density, .5f)
+        assertEquals(312f, frame.width / density, .5f); assertEquals(cardHeight, frame.height / density, .5f)
         assertEquals(LiveSessionLineHeight.value, line.height / density, .5f); assertEquals(12f, (line.top - frame.bottom) / density, .5f)
         listOf("calibration-apply", "calibration-keep", "calibration-revert", "calibration-continue", "calibration-edit").forEach { tag ->
             rule.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach { node ->

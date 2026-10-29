@@ -43,21 +43,21 @@ class LiveSetModesRenderSheetTest {
     private var view: View? = null
     private var density = 1f
     @Test fun reps880() = scene(TrainingMode.REPS, 880)
-    @Test fun reps740() = scene(TrainingMode.REPS, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun reps740() = scene(TrainingMode.REPS, 740)
     @Test fun rm880() = scene(TrainingMode.RM, 880)
-    @Test fun rm740() = scene(TrainingMode.RM, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun rm740() = scene(TrainingMode.RM, 740)
     @Test fun soloRpe880() = scene(TrainingMode.SOLO_RPE, 880)
-    @Test fun soloRpe740() = scene(TrainingMode.SOLO_RPE, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun soloRpe740() = scene(TrainingMode.SOLO_RPE, 740)
     @Test fun time880() = scene(TrainingMode.TIME, 880)
-    @Test fun time740() = scene(TrainingMode.TIME, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun time740() = scene(TrainingMode.TIME, 740)
     @Test fun distance880() = scene(TrainingMode.DISTANCE, 880)
-    @Test fun distance740() = scene(TrainingMode.DISTANCE, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun distance740() = scene(TrainingMode.DISTANCE, 740)
     @Test fun custom880() = scene(TrainingMode.CUSTOM, 880)
-    @Test fun custom740() = scene(TrainingMode.CUSTOM, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun custom740() = scene(TrainingMode.CUSTOM, 740)
     @Test fun rom880() = scene(TrainingMode.REPS, 880, rom = true)
-    @Test fun rom740() = scene(TrainingMode.REPS, 740, rom = true)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun rom740() = scene(TrainingMode.REPS, 740, rom = true)
     @Test fun failureFire880() = scene(TrainingMode.REPS, 880, failure = true)
-    @Test fun rmLinkedEditor740() = scene(TrainingMode.RM, 740, editRm = true)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun rmLinkedEditor740() = scene(TrainingMode.RM, 740, editRm = true)
 
     private fun scene(mode: TrainingMode, height: Int, rom: Boolean = false, failure: Boolean = false, editRm: Boolean = false) {
         assumeTrue(!System.getenv("KPKN_RENDER_DIR").isNullOrBlank())
@@ -104,7 +104,7 @@ class LiveSetModesRenderSheetTest {
         val touch = rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         // Refinamiento 02: la tarjeta ya no pinta el fuego ni su pista de 18 dp; la pista táctil es `EffortSliderTag` (`touch`).
         rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).assertDoesNotExist()
-        assertEquals(312f, frame.width / density, .5f); assertEquals(394f, frame.height / density, .5f)
+        assertEquals(312f, frame.width / density, .5f); assertEquals(liveSessionCardHeightDp(360, height).value, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f); assertEquals(44f, touch.height / density, .5f)
         assertEquals(112f, island.height / density, .5f)
         assertTrue(actions.bottom <= frame.bottom + 1f)

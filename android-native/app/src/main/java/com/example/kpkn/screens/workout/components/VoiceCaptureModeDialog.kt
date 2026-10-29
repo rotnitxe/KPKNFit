@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -200,7 +201,7 @@ fun VoiceCaptureModeDialog(onChosen: (VoiceCaptureMode) -> Unit, onDismissReques
     // Prototipo 02 (`voice`): «Elige cómo entrenar con voz.», Música → Manos libres con su icono y radio, «Entrada de audio»,
     // «Probar este modo»; la prueba con la onda, «Di «Listo»» / «Te escuchamos.» y «Activar modo de voz»; «Ahora no» al pie.
     LiveSheet(title = "Modo de voz", onDismiss = { dismiss() }, modifier = modifier, tag = "voice-mode-sheet", footer = null,
-        showClose = false, dismissible = false) {
+        showClose = onDismissRequest != null, dismissible = false) {
         LiveSheetSubtitle("Elige cómo entrenar con voz.")
         if (step == VoiceCheckStep.CHOICES || step == VoiceCheckStep.INTRO) {
             VoiceModeChoices(selected) { mode ->
@@ -281,25 +282,32 @@ private fun VoiceWaveform(listening: Boolean, passed: Boolean, rms: Float) {
 /** `.v2-voice-choices`: Música y Manos libres, cada una con su icono, título, explicación y radio. */
 @Composable
 internal fun VoiceModeChoices(selected: VoiceCaptureMode?, onSelect: (VoiceCaptureMode) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+    // `.v2-voice-choices`: dos recuadros (#151515, borde #ffffff16, radio 17, alto ≥ 79, 15 de relleno, 9 entre ellos); el elegido
+    // pasa a #222 con borde #ffffff50. El nombre va en Syne 18.
+    Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        // Qué cambia de verdad entre los dos modos: qué micrófono escucha y qué le pasa a la música (texto del usuario, 29-oct).
         listOf(
-            Triple(VoiceCaptureMode.MUSIC, "Música", "Tu audio, con captura de voz."),
-            Triple(VoiceCaptureMode.HANDS_FREE, "Manos libres", "Escucha continua de tus comandos."),
+            Triple(VoiceCaptureMode.MUSIC, "Música", "Micrófono del teléfono: la música no pierde calidad, pero acércalo para hablar."),
+            Triple(VoiceCaptureMode.HANDS_FREE, "Manos libres", "Micrófono de los auriculares: registras lejos del teléfono; la música suena a llamada."),
         ).forEach { (mode, title, hint) ->
             val active = selected == mode
+            val tileShape = RoundedCornerShape(17.dp)
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 70.dp).drawBehind {
-                    drawLine(LiveSheetTokens.Line, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
-                }.clickable(role = Role.RadioButton) { onSelect(mode) }.semantics { this.selected = active }
-                    .testTag("voice-mode-${mode.name.lowercase()}"),
+                Modifier.fillMaxWidth().heightIn(min = 79.dp).clip(tileShape)
+                    .background(if (active) Color(0xFF222222) else Color(0xFF151515))
+                    .border(1.dp, if (active) Color(0x50FFFFFF) else Color(0x16FFFFFF), tileShape)
+                    .clickable(role = Role.RadioButton) { onSelect(mode) }.semantics { this.selected = active }
+                    .padding(15.dp).testTag("voice-mode-${mode.name.lowercase()}"),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(13.dp),
             ) {
                 Icon(if (mode == VoiceCaptureMode.MUSIC) KpknLineIcons.Play else KpknLineIcons.Mic, null, Modifier.size(22.dp),
                     tint = if (active) WizardColors.text else LiveSheetTokens.Muted)
                 Column(Modifier.weight(1f)) {
-                    Text(title, style = VoiceBody.copy(fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
-                    Text(hint, Modifier.padding(top = 5.dp), style = VoiceBody.copy(fontSize = 10.sp, lineHeight = 14.sp), color = LiveSheetTokens.Faint)
+                    Text(title, style = VoiceSyne.copy(fontSize = 18.sp, lineHeight = 23.sp), color = WizardColors.text)
+                    // Dos líneas como máximo, enteras (sin puntos suspensivos): el texto se mide para caber en el recuadro.
+                    Text(hint, Modifier.padding(top = 6.dp).testTag("voice-mode-${mode.name.lowercase()}-hint"),
+                        style = VoiceBody.copy(fontSize = 10.sp, lineHeight = 14.sp), color = LiveSheetTokens.Faint, maxLines = 2)
                 }
                 Box(Modifier.size(17.dp).clip(CircleShape).border(1.dp, if (active) WizardColors.text else Color(0x38FFFFFF), CircleShape)
                     .padding(4.dp)) {

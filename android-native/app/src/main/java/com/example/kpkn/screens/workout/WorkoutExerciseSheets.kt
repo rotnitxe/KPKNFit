@@ -489,7 +489,8 @@ internal fun ExerciseSetupSheetContent(
         ExerciseTagSheetContent(
             currentTag = currentTag,
             onTagSet = onTagSet,
-            onDismiss = {},
+            // «Listo» de la etiqueta también cierra el Setup (antes guardaba y no hacía nada visible).
+            onDismiss = onDismiss,
             userTags = userTags,
             suggestedTag = suggestedTag,
             profiles = profiles,

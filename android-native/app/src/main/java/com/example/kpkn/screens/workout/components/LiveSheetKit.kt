@@ -106,7 +106,9 @@ internal fun LiveSheet(
                         style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 21.sp,
                             lineHeight = 24.sp, letterSpacing = (-0.4).sp), color = WizardColors.text)
                 }
-                if (showClose) Box(Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = close)
+                // Con `dismissible = false` el cierre animado no hace nada (lo bloquea la hoja): la ✕ avisa entonces a `onDismiss`, que decide
+                // cuándo cerrar (p. ej. la hoja de voz tras soltar el micrófono). Antes la ✕ de esas hojas no cerraba.
+                if (showClose) Box(Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = { if (dismissible) close() else onDismiss() })
                     .semantics { contentDescription = "Cerrar panel" }, contentAlignment = Alignment.Center) {
                     Icon(KpknLineIcons.Close, null, Modifier.size(18.dp), tint = LiveSheetTokens.Muted)
                 }
@@ -141,8 +143,9 @@ private fun LiveSheetWindow(content: @Composable () -> Unit) {
     }
 }
 
-private val Body12 = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp, lineHeight = 16.sp)
-private val Body11 = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, lineHeight = 17.sp)
+// Un punto por encima del prototipo (12/11): a su tamaño las hojas se leían como una planilla en el teléfono (pedido del usuario).
+private val Body12 = TextStyle(fontFamily = WizardFonts.body, fontSize = 14.sp, lineHeight = 19.sp)
+private val Body11 = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.sp, lineHeight = 19.sp)
 
 /** `.sheet-subtitle`: 11 sp gris tenue, interlineado 1,55. */
 @Composable
@@ -154,7 +157,7 @@ internal fun LiveSheetSubtitle(text: String, modifier: Modifier = Modifier) {
 @Composable
 internal fun LiveSheetSectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(text.uppercase(), modifier.padding(top = 19.dp, bottom = 6.dp),
-        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp, letterSpacing = 1.2.sp),
+        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 1.2.sp),
         color = LiveSheetTokens.Faint)
 }
 
@@ -162,7 +165,8 @@ internal fun LiveSheetSectionLabel(text: String, modifier: Modifier = Modifier) 
 @Composable
 internal fun LiveSheetMenuRow(
     label: String,
-    onClick: () -> Unit,
+    /** null = fila informativa: no se pulsa ni hace ripple. */
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     icon: ImageVector? = KpknLineIcons.ChevronRight,
     small: String? = null,
@@ -171,7 +175,8 @@ internal fun LiveSheetMenuRow(
     enabled: Boolean = true,
 ) {
     val color = if (danger) LiveSheetTokens.Danger else LiveSheetTokens.Muted
-    Row(modifier.fillMaxWidth().heightIn(min = 48.dp).liveSheetTopLine().clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+    Row(modifier.fillMaxWidth().heightIn(min = 48.dp).liveSheetTopLine()
+        .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick) else Modifier)
         .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         icon?.let { Icon(it, null, Modifier.size(17.dp), tint = color.copy(alpha = if (enabled) 1f else .4f)) }
         Text(label, Modifier.weight(1f), style = Body12, color = color.copy(alpha = if (enabled) 1f else .4f))

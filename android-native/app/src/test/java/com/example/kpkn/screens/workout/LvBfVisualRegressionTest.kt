@@ -41,11 +41,11 @@ class LvBfVisualRegressionTest {
     private lateinit var view: View
     private var density = 1f
 
-    @Test fun rmEditorLeavesTheNarratorVisibleAt740() = scene(TrainingMode.RM, 740)
-    @Test fun rmEditorLeavesTheNarratorVisibleAt740WithLargeText() = scene(TrainingMode.RM, 740, 1.3f)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun rmEditorLeavesTheNarratorVisibleAt740() = scene(TrainingMode.RM, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun rmEditorLeavesTheNarratorVisibleAt740WithLargeText() = scene(TrainingMode.RM, 740, 1.3f)
     @Test fun rmEditorLeavesTheNarratorVisibleAt880() = scene(TrainingMode.RM, 880)
-    @Test fun distanceSeparatesItsTargetAndFitsOrEllipsizesItsTitle() = scene(TrainingMode.DISTANCE, 740)
-    @Test fun customSeparatesItsTargetWithLargeText() = scene(TrainingMode.CUSTOM, 740, 1.3f)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun distanceSeparatesItsTargetAndFitsOrEllipsizesItsTitle() = scene(TrainingMode.DISTANCE, 740)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun customSeparatesItsTargetWithLargeText() = scene(TrainingMode.CUSTOM, 740, 1.3f)
     @Test fun soloRpeEllipsizesItsLongTitleAt880() = scene(TrainingMode.SOLO_RPE, 880)
 
     private fun scene(mode: TrainingMode, height: Int, font: Float = 1f) {
@@ -61,7 +61,7 @@ class LvBfVisualRegressionTest {
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 144f).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                             .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0L,
@@ -98,7 +98,7 @@ class LvBfVisualRegressionTest {
         assertTrue("El relator termina antes de la tarjeta", narratorBounds.bottom <= frame.top)
         assertFalse("La frase del relator queda completa", layout.isLineEllipsized(layout.lineCount - 1))
         assertEquals(312f, frame.width / density, .5f)
-        assertEquals(394f, frame.height / density, .5f)
+        assertEquals(liveSessionCardHeightDp(360, height).value, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f)
         assertEquals(12f, (line.top - frame.bottom) / density, .5f)
         // Refinamiento 02: «Historia» vive en el menú «Tu sesión»; la cabecera conserva voz y ⋯.

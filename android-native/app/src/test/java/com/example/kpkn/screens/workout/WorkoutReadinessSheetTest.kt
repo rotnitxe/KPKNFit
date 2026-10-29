@@ -45,7 +45,10 @@ class WorkoutReadinessSheetTest {
     @Test fun onlyExplicitlyAnsweredFieldsAreCaptured() {
         var stored: DailyWellbeingLog? = null
         show({ stored = it })
-        rule.onNodeWithText("10", useUnmergedTree = true).performClick()
+        // La hoja es desplazable y en Robolectric (sin modo táctil) abre con el cuerpo desplazado: se pulsa la opción por su acción
+        // de accesibilidad, que es lo que comprueba este test (qué se guarda), no la posición del toque.
+        rule.onNodeWithContentDescription("Energía 10").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
+        rule.onNodeWithContentDescription("Energía 10").assertIsSelected()
         rule.onNodeWithTag("readiness-confirm").performClick()
         rule.runOnIdle {
             assertEquals(10, stored!!.energy)

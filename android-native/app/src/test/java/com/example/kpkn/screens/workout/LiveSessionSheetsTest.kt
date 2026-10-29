@@ -42,7 +42,9 @@ class LiveSessionSheetsTest {
         var photos = 0
         var voice = 0
         content { LiveSessionSheetsHost(selected, { selected = it }, onOpenPhotos = { photos++ }, onOpenVoice = { voice++ }) }
-        LiveSessionDestination.entries.filter { it != LiveSessionDestination.MENU }.forEach { item ->
+        // Refinamiento 02: «Entender las métricas del vídeo» (ANALYSIS_HELP) ya no es una fila del menú principal: se abre desde la hoja
+        // «Ayuda y explicaciones» (ASSISTANCE), que sí cuelga del menú. Se comprueba aparte, justo debajo.
+        LiveSessionDestination.entries.filter { it != LiveSessionDestination.MENU && it != LiveSessionDestination.ANALYSIS_HELP }.forEach { item ->
             rule.onNodeWithTag("live-session-menu-${item.name.lowercase()}").performScrollTo().assertIsDisplayed().performClick()
             when (item) {
                 LiveSessionDestination.PHOTOS -> rule.runOnIdle { assertEquals(1, photos); assertNull(selected) }
@@ -52,6 +54,10 @@ class LiveSessionSheetsTest {
             }
             rule.runOnIdle { selected = LiveSessionDestination.MENU }
         }
+        rule.onNodeWithTag("live-session-menu-assistance").performScrollTo().performClick()
+        rule.onNodeWithTag("live-assistance-analysis", true).assertIsDisplayed().performClick()
+        rule.onNodeWithTag("live-session-sheet-analysis_help", true).assertIsDisplayed()
+        rule.runOnIdle { assertEquals(LiveSessionDestination.ANALYSIS_HELP, selected) }
     }
     @Test fun viewSelectorSwitchesCardsAndListWithoutLeavingTheSession() {
         var selected by mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.VIEW)
@@ -155,11 +161,12 @@ class LiveSessionSheetsTest {
         assertEquals(112.5, com.example.kpkn.domain.calculations.calculateHybrid1RM(100.0, 5), .001)
         rule.onNodeWithText("112,5 / 150 kg e1RM", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
-    @Test fun caloriesRetainMissingDataGuidance() {
-        content { LiveSessionSheetsHost(LiveSessionDestination.CALORIES, {}, bodyWeight = null) }
-        val status = sessionCalorieStatus(SessionEnergySummary(), 0, null)
-        assertNull(status.kcal)
-        rule.onNodeWithText(checkNotNull(status.hint)).assertIsDisplayed()
+    /** Sin método de energía compatible en vivo (el antiguo está retirado) la fila «Calorías» no se ofrece: sería interfaz vacía. */
+    @Test fun menuHasNoCaloriesRowWithoutACompatibleEnergyMethod() {
+        content { LiveSessionSheetsHost(LiveSessionDestination.MENU, {}) }
+        rule.onNodeWithTag("live-session-menu-calories").assertDoesNotExist()
+        rule.onNodeWithText("Calorías").assertDoesNotExist()
+        assertNull(sessionCalorieStatus(SessionEnergySummary(), 0, null).kcal)
     }
     @Test fun photoEntryKeepsCameraGalleryPendingRetryAndSelectionInTheExistingAlbum() {
         var retries = 0

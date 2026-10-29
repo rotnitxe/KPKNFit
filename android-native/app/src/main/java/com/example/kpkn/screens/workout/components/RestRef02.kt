@@ -1,6 +1,11 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -210,14 +215,16 @@ internal fun RestRef02Controls(
     decreaseEnabled: Boolean = true,
     increaseEnabled: Boolean = true,
 ) {
+    // Un control que este descanso no admite no se pinta (antes quedaba atenuado y sin efecto: interfaz vacía). Sin ninguno, ni la fila.
+    if (!decreaseEnabled && !pauseEnabled && !increaseEnabled) return
     Row(modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
-        RestControlBox(69.dp, "Restar 15 segundos", onDecrease, decreaseEnabled, "rest-minus") {
+        if (decreaseEnabled) RestControlBox(69.dp, "Restar 15 segundos", onDecrease, true, "rest-minus") {
             Text("−15 s", style = body(12.sp, FontWeight.Medium), color = RestRef02Tokens.Ink)
         }
-        RestControlBox(45.dp, if (isPaused) "Continuar descanso" else "Pausar descanso", onTogglePause, pauseEnabled, "rest-pause") {
+        if (pauseEnabled) RestControlBox(45.dp, if (isPaused) "Continuar descanso" else "Pausar descanso", onTogglePause, true, "rest-pause") {
             Icon(if (isPaused) KpknLineIcons.Play else KpknLineIcons.Pause, null, Modifier.size(18.dp), tint = RestRef02Tokens.Ink)
         }
-        RestControlBox(69.dp, "Sumar 15 segundos", onIncrease, increaseEnabled, "rest-plus") {
+        if (increaseEnabled) RestControlBox(69.dp, "Sumar 15 segundos", onIncrease, true, "rest-plus") {
             Text("+15 s", style = body(12.sp, FontWeight.Medium), color = RestRef02Tokens.Ink)
         }
     }
@@ -341,22 +348,27 @@ internal fun RestRef02Card(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val horizontal = if (compact) 15.dp else 18.dp
+    val reduced = wizardReducedMotion()
+    // El pie (Omitir, Jugar…) aparece y desaparece desplegándose: se recuerda el último para poder fundirlo al salir.
+    var heldFooter by remember { mutableStateOf(footer) }
+    if (footer != null) heldFooter = footer
+    val bottomPadding by animateDpAsState(if (footer == null) 12.dp else 0.dp, liveSpec(reduced, 240), label = "rest-card-bottom")
     Column(
         modifier.fillMaxSize().clip(CardShape).background(RestRef02Tokens.CardFill).border(1.dp, RestRef02Tokens.CardBorder, CardShape)
             .testTag(tag),
     ) {
         Column(
             Modifier.weight(1f).fillMaxWidth()
-                .padding(start = horizontal, end = horizontal, top = if (compact) 9.dp else 13.dp, bottom = if (footer == null) 12.dp else 0.dp),
+                .padding(start = horizontal, end = horizontal, top = if (compact) 9.dp else 13.dp, bottom = bottomPadding),
             content = content,
         )
-        if (footer != null) {
+        AnimatedVisibility(visible = footer != null, enter = liveEnter(reduced), exit = liveExit(reduced)) {
             Box(
                 // Alto mínimo del prototipo (57, 51 en compacto); con la letra grande el pie crece y el contenido, que tiene peso, cede.
                 Modifier.fillMaxWidth().heightIn(min = if (compact) 51.dp else 57.dp)
                     .padding(start = horizontal, end = horizontal, top = if (compact) 4.dp else 6.dp, bottom = if (compact) 9.dp else 12.dp),
                 contentAlignment = Alignment.Center,
-            ) { footer() }
+            ) { heldFooter?.invoke() }
         }
     }
 }
@@ -533,7 +545,9 @@ internal fun ColumnScope.RestRef02FullClockPanel(
         timeSize = if (compact) 40.sp else 53.sp,
         labelSize = 12.sp,
         animationsOn = animationsOn,
-        modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = if (compact) 2.dp else 10.dp).testTag("lr1g-aro"),
+        // Destino del vuelo de la voz: «+15 s» dicho en el descanso vuela a este reloj y lo hace brillar.
+        modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = if (compact) 2.dp else 10.dp).testTag("lr1g-aro")
+            .voiceFlightTarget(VoiceRestClockTargetKey),
     )
     RestRef02Controls(isPaused, onDecrease, onTogglePause, onIncrease, height = 43.dp, pauseEnabled = pauseEnabled,
         decreaseEnabled = decreaseEnabled)
@@ -601,6 +615,9 @@ internal fun ColumnScope.RestRef02CardClockPanel(
 ) {
     val overtime = remainingSeconds < 0
     RestRef02Kicker(kicker, compact, onExpand)
+    // La tarjeta es más alta (pedido del usuario, 29-oct): el aire sobrante se reparte entre los bloques en lugar de quedar abajo.
+    // En pantallas bajas (394 dp) no sobra nada y los pesos valen 0: el reparto compacto de siempre.
+    Spacer(Modifier.weight(.7f))
     RestEclipse(
         progress = if (overtime) 1f else progress,
         time = restRef02Clock(remainingSeconds),
@@ -609,13 +626,16 @@ internal fun ColumnScope.RestRef02CardClockPanel(
         timeSize = if (compact) 30.sp else 34.sp,
         labelSize = 9.sp,
         animationsOn = animationsOn,
-        modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = if (compact) 0.dp else 4.dp),
+        modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = if (compact) 0.dp else 4.dp)
+            .voiceFlightTarget(VoiceRestClockTargetKey),
     )
+    Spacer(Modifier.weight(.5f))
     RestRef02Controls(isPaused, onDecrease, onTogglePause, onIncrease, height = if (compact) 34.dp else 37.dp,
         modifier = Modifier.padding(top = 3.dp, bottom = if (compact) 5.dp else 8.dp), pauseEnabled = pauseEnabled,
         decreaseEnabled = decreaseEnabled, increaseEnabled = increaseEnabled)
+    Spacer(Modifier.weight(.5f))
     RestRef02NextRow(nextTitle, nextDose, compact, nextNote)
-    Spacer(Modifier.weight(1f))
+    Spacer(Modifier.weight(.8f))
     suggestion?.let {
         RestRef02SuggestionRow(it.label, KpknSetFormat.rest(it.seconds), onOpenSuggestion?.takeIf { _ -> it.opensSheet },
             height = if (compact) 35.dp else 38.dp, labelSize = 10.sp, valueSize = 19.sp)

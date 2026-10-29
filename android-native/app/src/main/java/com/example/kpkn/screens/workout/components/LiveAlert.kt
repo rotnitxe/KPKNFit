@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.ui.components.kpknFloatingSurface
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,10 +78,8 @@ internal fun LiveAlert(
         ) {
             Column(
                 Modifier.fillMaxWidth().widthIn(max = 420.dp)
-                    .shadow(28.dp, AlertShape, ambientColor = Color(0xAA000000), spotColor = Color(0xAA000000))
-                    .clip(AlertShape)
-                    .background(Brush.linearGradient(listOf(Color(0xED242424), Color(0xF5121212))))
-                    .border(1.dp, Color(0x26FFFFFF), AlertShape)
+                    // Aviso flotante: gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct).
+                    .kpknFloatingSurface(AlertShape, com.example.kpkn.ui.components.KpknFloating.DialogElevation)
                     .clickable(remember { MutableInteractionSource() }, indication = null) {}
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)

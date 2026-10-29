@@ -167,10 +167,10 @@ internal fun LiveRouteSheetContent(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             RouteMetric("RIR medio", metrics.averageRir?.let(number::format) ?: "—", null, Modifier.weight(1f))
-            RouteMetric("Gasto", metrics.calories.kcal?.let { "≈ $it" } ?: "—", metrics.calories.kcal?.let { "kcal" }, Modifier.weight(1f))
+            RouteMetric("Tiempo", startTimeMs.takeIf { it > 0L }?.let { ((System.currentTimeMillis() - it) / 60_000L).coerceAtLeast(0L).toString() } ?: "—",
+                startTimeMs.takeIf { it > 0L }?.let { "min" }, Modifier.weight(1f))
         }
     }
-    metrics.calories.hint?.let { LiveSheetShortCopy(it) }
     val paceWork = remember(exercises, completedSets, omittedSetKeys) {
         com.example.kpkn.screens.workout.sessionPaceWork(exercises, completedSets, omittedSetKeys)
     }

@@ -4,28 +4,25 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +31,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,20 +50,35 @@ import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.WellbeingSource
-import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.workout.components.liveEnter
+import com.example.kpkn.screens.workout.components.liveExit
+import com.example.kpkn.screens.workout.components.liveSpec
+import com.example.kpkn.screens.workout.components.LiveSheet
+import com.example.kpkn.screens.workout.components.LiveSheetChoiceRow
+import com.example.kpkn.screens.workout.components.LiveSheetField
+import com.example.kpkn.screens.workout.components.LiveSheetPrimary
+import com.example.kpkn.screens.workout.components.LiveSheetSecondary
+import com.example.kpkn.screens.workout.components.LiveSheetSectionLabel
+import com.example.kpkn.screens.workout.components.LiveSheetShortCopy
+import com.example.kpkn.screens.workout.components.LiveSheetSubtitle
+import com.example.kpkn.screens.workout.components.LiveSheetTokens
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 
 private val ReadinessInk = WizardColors.text
-private val ReadinessMuted = WizardColors.textMuted
-private val ReadinessFaint = WizardColors.textFaint
+private val ReadinessBody = TextStyle(fontFamily = WizardFonts.body)
+private val ReadinessSyne = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold)
 
 /**
- * «Antes de entrenar»: estado de llegada del día. Se guarda como observación de bienestar y no
- * cambia cargas ni series. Sin scroll: la hoja mide lo que mide su contenido.
+ * «Antes de entrenar» (`readiness` del prototipo del Refinamiento 02): la hoja de la sesión con «ANTES DE ENTRENAR», «¿Cómo llegas
+ * hoy?» y ✕; energía, sueño y estrés como escalas con la cifra en Syne; la molestia muscular por zona en recuadros que se tocan (0 a 5);
+ * las molestias previas en píldoras con su buscador; el modo de voz y «Confirmar y continuar» al pie. Mide lo que mide su contenido: sin
+ * hueco abajo. Se guarda como observación de bienestar y no cambia cargas ni series.
  */
 @Composable
 internal fun WorkoutReadinessSheet(
@@ -70,7 +86,7 @@ internal fun WorkoutReadinessSheet(
     weekLabel: String?,
     initial: DailyWellbeingLog?,
     previousDiscomforts: List<String> = emptyList(),
-    hazeState: HazeState? = null,
+    @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
     onDismiss: () -> Unit,
     onConfirm: (DailyWellbeingLog) -> Unit,
     saving: Boolean = false,
@@ -78,7 +94,8 @@ internal fun WorkoutReadinessSheet(
     voiceEnabled: Boolean = false,
     captureMode: VoiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
     onVoiceMode: (VoiceCaptureMode) -> Unit = {},
-    onContext: () -> Unit = {},
+    // «Notas y disciplina» se retiró de esta hoja (pedido del usuario); el parámetro se conserva para el llamador.
+    @Suppress("UNUSED_PARAMETER") onContext: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var energy by rememberSaveable(initial) { mutableStateOf(initial?.energy) }
@@ -92,198 +109,102 @@ internal fun WorkoutReadinessSheet(
     var discomfortTouched by rememberSaveable { mutableStateOf(false) }
 
     val muscles = remember(session) { readinessMuscles(session) }
-    val applyVoice: (VoiceCaptureMode) -> Unit = { mode ->
-        onVoiceMode(mode)
-    }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) pendingVoiceMode?.let(applyVoice)
+        if (granted) pendingVoiceMode?.let(onVoiceMode)
         pendingVoiceMode = null
     }
+    val confirm = {
+        if (energy == null && sleep == null && stress == null && doms.isEmpty() && !discomfortTouched) {
+            onDismiss()
+        } else {
+            onConfirm(
+                DailyWellbeingLog(
+                    id = "wellbeing-${LocalDate.now()}",
+                    date = LocalDate.now().toString(),
+                    sleepQuality = sleep ?: 3,
+                    stressLevel = stress ?: 3,
+                    energy = energy,
+                    doms = initial?.doms ?: 1,
+                    muscleDoms = doms,
+                    preWorkoutDiscomforts = discomforts,
+                    source = WellbeingSource.DAILY_CHECK_IN,
+                    capturedFields = buildSet {
+                        if (energy != null) add("energy")
+                        if (sleep != null) add("sleep")
+                        if (stress != null) add("stress")
+                        if (doms.isNotEmpty()) add("muscleDoms")
+                        if (discomfortTouched) add("discomforts")
+                    },
+                ),
+            )
+        }
+    }
 
-    KpknSheet(
-        onDismissRequest = { if (!saving) onDismiss() },
+    LiveSheet(
+        title = "¿Cómo llegas hoy?",
+        eyebrow = "ANTES DE ENTRENAR",
+        onDismiss = { if (!saving) onDismiss() },
         dismissible = !saving,
-        stableHeightFraction = 0.94f,
-        maxHeightFraction = 0.94f,
-        hazeState = hazeState,
+        tag = "readiness-sheet",
+        footer = {
+            LiveSheetPrimary("Confirmar y continuar", { if (!saving) confirm() }, enabled = !saving, icon = KpknLineIcons.Check,
+                tag = "readiness-confirm")
+        },
     ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp)
-                .padding(bottom = 8.dp)
-                .testTag("readiness-sheet"),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text("ANTES DE ENTRENAR", style = KpknType.eyebrow.copy(fontSize = 12.sp), color = ReadinessFaint)
-            AutofitTitle("¿Cómo llegas hoy?")
-            Text(
-                text = listOfNotNull(session.name, weekLabel).joinToString(" · "),
-                style = KpknType.caption.copy(fontSize = 12.sp),
-                color = ReadinessMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        LiveSheetSubtitle(listOfNotNull(session.name, weekLabel).joinToString(" · "))
+        ScaleRow("Energía", energy, 0..10) { energy = it }
+        ScaleRow("Sueño", sleep, 1..5) { sleep = it }
+        ScaleRow("Estrés", stress, 1..5) { stress = it }
 
-            Text("Notas y disciplina", style = KpknType.action, color = ReadinessMuted,
-                modifier = Modifier.clickable(onClick = onContext).testTag("readiness-context"))
-            ScaleRow("ENERGÍA", energy, 0..10) { energy = it }
-            ScaleRow("SUEÑO", sleep, 1..5) { sleep = it }
-            ScaleRow("ESTRÉS", stress, 1..5) { stress = it }
+        if (muscles.isNotEmpty()) {
+            LiveSheetSectionLabel("Molestia muscular · DOMS")
+            DomsGrid(muscles, doms) { muscle, value -> doms = doms + (muscle to value) }
+        }
 
-            DomsGrid(
-                muscles = muscles,
-                values = doms,
-                onChange = { muscle, value -> doms = doms + (muscle to value) },
-            )
-
-            DiscomfortPicker(
-                selected = discomforts,
-                frequent = previousDiscomforts,
-                query = query,
-                onQuery = { query = it },
-                onToggle = { id ->
-                    discomfortTouched = true
-                    discomforts = if (id == "none") {
-                        if (discomforts == listOf("none")) emptyList() else listOf("none")
-                    } else {
-                        val current = discomforts.filter { it != "none" }
-                        if (id in current) current - id else current + id
-                    }
-                },
-            )
-
-            error?.let { Text(it, style = KpknType.caption, color = ReadinessInk) }
-            Row(
-                Modifier.fillMaxWidth().padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Box {
-                    val voiceOn = voiceEnabled
-                    Row(
-                        modifier = Modifier
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .border(1.dp, ReadinessInk.copy(alpha = 0.20f), RoundedCornerShape(24.dp))
-                            .clickable { voiceMenu = true }
-                            .padding(horizontal = 16.dp)
-                            .testTag("readiness-voice"),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = if (voiceOn) voiceLabel(captureMode) else "Habilitar el modo de voz",
-                            style = KpknType.action.copy(fontSize = 13.sp),
-                            color = ReadinessInk,
-                        )
-                    }
-                    DropdownMenu(expanded = voiceMenu, onDismissRequest = { voiceMenu = false }) {
-                        listOf(
-                            VoiceCaptureMode.HANDS_FREE to "Manos libres",
-                            VoiceCaptureMode.MUSIC to "Con música",
-                        ).forEach { (mode, label) ->
-                            DropdownMenuItem(
-                                text = { Text(label, style = KpknType.body, color = ReadinessInk) },
-                                onClick = {
-                                    voiceMenu = false
-                                    val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                                        PackageManager.PERMISSION_GRANTED
-                                    if (granted) applyVoice(mode) else {
-                                        pendingVoiceMode = mode
-                                        permission.launch(Manifest.permission.RECORD_AUDIO)
-                                    }
-                                },
-                            )
-                        }
-                    }
+        LiveSheetSectionLabel("Molestias previas")
+        val chips = remember(previousDiscomforts, query) { discomfortChips(previousDiscomforts, query) }
+        LiveSheetChoiceRow(
+            options = chips,
+            selected = { id -> if (id == "none") discomforts == listOf("none") else id in discomforts },
+            onSelect = { id ->
+                discomfortTouched = true
+                discomforts = if (id == "none") {
+                    if (discomforts == listOf("none")) emptyList() else listOf("none")
+                } else {
+                    val current = discomforts.filter { it != "none" }
+                    if (id in current) current - id else current + id
                 }
-                Spacer(Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(ReadinessInk)
-                        .clickable(enabled = !saving) {
-                            if (energy == null && sleep == null && stress == null && doms.isEmpty() && !discomfortTouched) {
-                                onDismiss()
-                                return@clickable
+            },
+            // Al buscar, las píldoras cambian de número: la altura se ajusta animada.
+            modifier = Modifier.padding(bottom = 0.dp).animateContentSize(),
+            tagPrefix = "readiness-discomfort",
+        )
+        LiveSheetField(query, { query = it }, "Buscar otra molestia", Modifier.fillMaxWidth().padding(bottom = 14.dp),
+            keyboardType = KeyboardType.Text, placeholder = "Buscar otra molestia", tag = "readiness-search")
+
+        // El aviso de error se despliega y se pliega; se recuerda el último texto para poder fundirlo al salir.
+        val motionReduced = wizardReducedMotion()
+        var heldError by remember { mutableStateOf(error) }
+        if (error != null) heldError = error
+        AnimatedVisibility(visible = error != null, enter = liveEnter(motionReduced), exit = liveExit(motionReduced)) {
+            heldError?.let { LiveSheetShortCopy(it, error = true) }
+        }
+        Box {
+            LiveSheetSecondary(if (voiceEnabled) voiceLabel(captureMode) else "Habilitar modo de voz", { voiceMenu = true },
+                icon = KpknLineIcons.Mic, tag = "readiness-voice")
+            DropdownMenu(expanded = voiceMenu, onDismissRequest = { voiceMenu = false }) {
+                listOf(VoiceCaptureMode.HANDS_FREE to "Manos libres", VoiceCaptureMode.MUSIC to "Con música").forEach { (mode, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label, style = KpknType.body, color = ReadinessInk) },
+                        onClick = {
+                            voiceMenu = false
+                            val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                                PackageManager.PERMISSION_GRANTED
+                            if (granted) onVoiceMode(mode) else {
+                                pendingVoiceMode = mode
+                                permission.launch(Manifest.permission.RECORD_AUDIO)
                             }
-                            onConfirm(
-                                DailyWellbeingLog(
-                                    id = "wellbeing-${LocalDate.now()}",
-                                    date = LocalDate.now().toString(),
-                                    sleepQuality = sleep ?: 3,
-                                    stressLevel = stress ?: 3,
-                                    energy = energy,
-                                    doms = initial?.doms ?: 1,
-                                    muscleDoms = doms,
-                                    preWorkoutDiscomforts = discomforts,
-                                    source = WellbeingSource.DAILY_CHECK_IN,
-                                    capturedFields = buildSet {
-                                        if (energy != null) add("energy")
-                                        if (sleep != null) add("sleep")
-                                        if (stress != null) add("stress")
-                                        if (doms.isNotEmpty()) add("muscleDoms")
-                                        if (discomfortTouched) add("discomforts")
-                                    },
-                                ),
-                            )
-                        }
-                        .testTag("readiness-confirm"),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("✓", style = KpknType.title.copy(fontSize = 26.sp), color = WizardColors.background)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AutofitTitle(text: String) {
-    val measurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    val base = KpknType.title.copy(fontSize = 24.sp)
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val available = with(density) { maxWidth.toPx() }
-        val size = remember(available, text) {
-            var sp = 24f
-            while (sp > 18f) {
-                val width = measurer.measure(AnnotatedString(text), base.copy(fontSize = sp.sp), maxLines = 1).size.width
-                if (width <= available) break
-                sp -= 0.5f
-            }
-            sp.sp
-        }
-        Text(text = text, style = base.copy(fontSize = size), color = ReadinessInk, maxLines = 1, softWrap = false)
-    }
-}
-
-@Composable
-private fun ScaleRow(label: String, value: Int?, range: IntRange, onChange: (Int) -> Unit) {
-    Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(label, style = KpknType.eyebrow.copy(fontSize = 12.sp), color = ReadinessFaint)
-            Spacer(Modifier.weight(1f))
-            Text(value?.toString() ?: "—", style = KpknType.metricM.copy(fontSize = 16.sp), color = ReadinessInk)
-        }
-        Spacer(Modifier.height(6.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            range.forEach { option ->
-                val selected = option == value
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (selected) ReadinessInk else ReadinessInk.copy(alpha = 0.13f))
-                        .clickable { onChange(option) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "$option",
-                        style = KpknType.caption.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
-                        color = if (selected) WizardColors.background else ReadinessMuted,
+                        },
                     )
                 }
             }
@@ -291,122 +212,63 @@ private fun ScaleRow(label: String, value: Int?, range: IntRange, onChange: (Int
     }
 }
 
+/** `.readiness-scale`: la etiqueta y la cifra elegida (Syne 19) arriba; debajo las opciones a lo ancho (`.scale-options`). */
 @Composable
-private fun DomsGrid(muscles: List<String>, values: Map<String, Int>, onChange: (String, Int) -> Unit) {
-    Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("AGUJETAS", style = KpknType.eyebrow.copy(fontSize = 12.sp), color = ReadinessFaint)
-            Spacer(Modifier.weight(1f))
-            Text("0–5 por zona", style = KpknType.caption.copy(fontSize = 12.sp), color = ReadinessFaint)
+private fun ScaleRow(label: String, value: Int?, range: IntRange, onChange: (Int) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(label.uppercase(), Modifier.weight(1f), style = ReadinessBody.copy(fontSize = 11.sp, letterSpacing = 1.sp),
+                color = LiveSheetTokens.Faint)
+            Text(value?.toString() ?: "—", style = ReadinessSyne.copy(fontSize = 21.sp, lineHeight = 24.sp), color = ReadinessInk)
         }
-        Spacer(Modifier.height(6.dp))
-        muscles.chunked(2).forEach { pair ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                pair.forEach { muscle ->
-                    Row(
-                        Modifier.weight(1f).padding(vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = muscle,
-                            style = KpknType.caption.copy(fontSize = 12.sp),
-                            color = ReadinessMuted,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f),
-                        )
-                        repeat(5) { index ->
-                            val filled = (values[muscle] ?: 0) > index
-                            Box(
-                                modifier = Modifier
-                                    .padding(start = 3.dp)
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(if (filled) ReadinessInk else ReadinessInk.copy(alpha = 0.16f))
-                                    .clickable {
-                                        onChange(muscle, if (values[muscle] == index + 1) 0 else index + 1)
-                                    },
-                            )
-                        }
-                    }
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            range.forEach { option ->
+                val on = option == value
+                val reduced = wizardReducedMotion()
+                val fill by animateColorAsState(if (on) ReadinessInk else Color(0x0DFFFFFF), liveSpec(reduced, 180), label = "readiness-scale-fill")
+                val ink by animateColorAsState(if (on) Color(0xFF111111) else LiveSheetTokens.Muted, liveSpec(reduced, 180), label = "readiness-scale-ink")
+                Box(
+                    Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(8.dp))
+                        .background(fill)
+                        .clickable(role = Role.RadioButton) { onChange(option) }
+                        .semantics { selected = on; contentDescription = "$label $option" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("$option", style = ReadinessBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                        color = ink)
                 }
-                if (pair.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
 }
 
+/** `.doms-grid`: dos columnas de recuadros (zona y cifra); cada toque sube un punto y del 5 vuelve a 0. */
 @Composable
-private fun DiscomfortPicker(
-    selected: List<String>,
-    frequent: List<String>,
-    query: String,
-    onQuery: (String) -> Unit,
-    onToggle: (String) -> Unit,
-) {
-    Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("MOLESTIAS", style = KpknType.eyebrow.copy(fontSize = 12.sp), color = ReadinessFaint)
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = when {
-                    selected.isEmpty() -> "Ninguna"
-                    selected == listOf("none") -> "Ninguna"
-                    else -> "${selected.size} marcada(s)"
-                },
-                style = KpknType.caption.copy(fontSize = 12.sp),
-                color = ReadinessFaint,
-            )
-        }
-        Spacer(Modifier.height(6.dp))
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(WizardColors.text.copy(alpha = 0.06f))
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            BasicTextField(
-                value = query,
-                onValueChange = onQuery,
-                singleLine = true,
-                textStyle = KpknType.body.copy(fontSize = 14.sp, color = ReadinessInk),
-                modifier = Modifier.fillMaxWidth().testTag("readiness-search"),
-            )
-            if (query.isEmpty()) {
-                Text("Buscar molestia", style = KpknType.body.copy(fontSize = 14.sp), color = ReadinessFaint)
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        val chips = remember(frequent, query) { discomfortChips(frequent, query) }
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            chips.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    row.forEach { (id, label) ->
-                        val isNone = id == "none"
-                        val on = if (isNone) selected == listOf("none") else id in selected
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .height(30.dp)
-                                .clip(RoundedCornerShape(15.dp))
-                                .background(if (on) ReadinessInk else ReadinessInk.copy(alpha = 0.05f))
-                                .border(1.dp, if (on) ReadinessInk else ReadinessInk.copy(alpha = 0.14f), RoundedCornerShape(15.dp))
-                                .clickable { onToggle(id) }
-                                .padding(horizontal = 11.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = label,
-                                style = KpknType.chip.copy(fontSize = 12.sp),
-                                color = if (on) WizardColors.background else ReadinessInk,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+private fun DomsGrid(muscles: List<String>, values: Map<String, Int>, onChange: (String, Int) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        muscles.chunked(2).forEach { pair ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                pair.forEach { muscle ->
+                    val value = values[muscle] ?: 0
+                    val shape = RoundedCornerShape(13.dp)
+                    val reduced = wizardReducedMotion()
+                    val fill by animateColorAsState(if (value > 0) Color(0x09FFFFFF) else Color.Transparent, liveSpec(reduced, 180), label = "readiness-doms-fill")
+                    val line by animateColorAsState(if (value > 0) Color(0x35FFFFFF) else LiveSheetTokens.Line, liveSpec(reduced, 180), label = "readiness-doms-line")
+                    Row(
+                        Modifier.weight(1f).heightIn(min = 56.dp).clip(shape)
+                            .background(fill)
+                            .border(1.dp, line, shape)
+                            .clickable(role = Role.Button) { onChange(muscle, if (value >= 5) 0 else value + 1) }
+                            .semantics { contentDescription = "Molestia muscular en $muscle: ${if (value == 0) "sin molestia" else "$value de 5"}" }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(muscle, Modifier.weight(1f), style = ReadinessBody.copy(fontSize = 13.sp, lineHeight = 17.sp), color = ReadinessInk,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(if (value == 0) "—" else "$value", style = ReadinessSyne.copy(fontSize = 15.sp), color = ReadinessInk)
                     }
                 }
+                if (pair.size == 1) Box(Modifier.weight(1f))
             }
         }
     }
@@ -428,11 +290,11 @@ private fun discomfortChips(frequent: List<String>, query: String): List<Pair<St
     val all = DISCOMFORT_CATALOG_BY_ID.map { (id, entry) -> id to entry.label }
         .filter { normalized.isEmpty() || it.second.lowercase().contains(normalized) }
     val ordered = buildList {
-        add("none" to "Sin molestias")
+        add("none" to "Ninguna")
         frequent.forEach { id -> all.firstOrNull { it.first == id }?.let { add(it) } }
         all.filter { candidate -> none { it.first == candidate.first } }.forEach { add(it) }
     }
-    return ordered.take(if (normalized.isEmpty()) 3 else 6)
+    return ordered.take(if (normalized.isEmpty()) 4 else 7)
 }
 
 private fun voiceLabel(mode: VoiceCaptureMode): String = when (mode) {

@@ -57,8 +57,8 @@ class LiveSessionLineRenderSheetTest {
         rule.waitForIdle()
     }
     @Test fun v1At880With45DpStatusBar() = scene(880, 1f, "lv-a-v1-880")
-    @Test fun v1At740With45DpStatusBar() = scene(740, 1f, "lv-a-v1-740")
-    @Test fun v1At760With45DpStatusBarAnd130PercentText() = scene(760, 1.3f, "lv-a-v1-760-130")
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun v1At740With45DpStatusBar() = scene(740, 1f, "lv-a-v1-740")
+    @Test @Config(qualifiers = "w360dp-h760dp-xxhdpi") fun v1At760With45DpStatusBarAnd130PercentText() = scene(760, 1.3f, "lv-a-v1-760-130")
     private fun scene(height: Int, fontScale: Float, name: String) {
         content(fontScale, compact = height < 800) {
             Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("lv-a-scene")) {
@@ -83,7 +83,7 @@ class LiveSessionLineRenderSheetTest {
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val island = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val rail = rule.onNodeWithTag("live-session-steps").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(312f * density, frame.width, 1f); assertEquals(394f * density, frame.height, 1f)
+        assertEquals(312f * density, frame.width, 1f); assertEquals(liveSessionCardHeightDp(360, height).value * density, frame.height, 1f)
         assertEquals(com.example.kpkn.screens.workout.LiveSessionLineHeight.value * density, island.height, 1f); assertTrue(rail.height > 0f)
         val heading = rule.onNodeWithTag("live-session-header").fetchSemanticsNode().boundsInRoot
         assertTrue("La cabecera no invade la tarjeta", heading.bottom <= frame.top)
@@ -106,7 +106,6 @@ class LiveSessionLineRenderSheetTest {
     @Test fun milestones() = sheet(LiveSessionDestination.MILESTONES)
     @Test fun timer() = sheet(LiveSessionDestination.TIMER)
     @Test fun rm() = sheet(LiveSessionDestination.RM)
-    @Test fun calories() = sheet(LiveSessionDestination.CALORIES)
     @Test fun notes() = sheet(LiveSessionDestination.NOTES)
     @Test fun photos() {
         content { WorkoutSessionAlbumSheet(emptyList(), {}, captureActions = {

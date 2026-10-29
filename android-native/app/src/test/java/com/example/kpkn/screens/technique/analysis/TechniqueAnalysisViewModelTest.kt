@@ -159,7 +159,7 @@ class TechniqueAnalysisViewModelTest {
         analysis.completeDone(item, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), item.weightKg, AnalysisMode.FULL)
         val ready = vm.awaitState { it.status == AnalysisStatusUi.Done }
         val results = ready.results!!
-        assertEquals("2", results.summary.tiles.first { it.id == SummaryTileId.REPS }.figure)
+        assertEquals("2 + 1", results.summary.tiles.first { it.id == SummaryTileId.REPS }.figure)
         assertEquals(2, results.observations.size)
         assertEquals(1, results.observations[0].repPosition)
         assertEquals(3_000_000L, results.observations[0].seekUs)

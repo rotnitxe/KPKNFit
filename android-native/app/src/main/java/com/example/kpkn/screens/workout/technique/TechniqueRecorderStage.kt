@@ -829,7 +829,8 @@ internal fun TechniqueRecorderStageContent(
                     // `.v2-framing-view`: «Vista lateral · cómo encuadrar» abre «Preparar el encuadre».
                     if (!isRecording) Text(
                         "${framingViewLabel(preferredView)} · cómo encuadrar",
-                        Modifier.heightIn(min = 32.dp).wrapContentHeight(Alignment.CenterVertically)
+                        // Con letra grande cede ancho (y pasa a dos líneas) en vez de aplastar «Ver álbum».
+                        Modifier.weight(1f, fill = false).heightIn(min = 32.dp).wrapContentHeight(Alignment.CenterVertically)
                             .clickable(role = Role.Button) { showFramingGuide = true }
                             .clip(RoundedCornerShape(7.dp)).background(Color(0xCC111111)).padding(horizontal = 7.dp, vertical = 5.dp)
                             .testTag("technique_framing_view"),
@@ -955,14 +956,16 @@ private fun FramingCornerFrame(ready: Boolean, modifier: Modifier = Modifier) {
 @Composable
 private fun Ref02RecordControl(isRecording: Boolean, onClick: () -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {
     Box(
+        // El área táctil y la semántica abarcan los 49 dp enteros (antes quedaban dentro del anillo: 47 dp).
         modifier.size(49.dp).alpha(if (enabled) 1f else .45f)
+            .clip(RoundedCornerShape(percent = 50))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = if (isRecording) "Detener grabación" else "Iniciar grabación" }
             .border(1.dp, Color(0x8CF2EEE6), RoundedCornerShape(percent = 50))
             .padding(1.dp)
             .clip(RoundedCornerShape(percent = 50))
             .background(Color(0xFFF2EEE6))
-            .border(3.dp, Color(0xFF111111), RoundedCornerShape(percent = 50))
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = if (isRecording) "Detener grabación" else "Iniciar grabación" },
+            .border(3.dp, Color(0xFF111111), RoundedCornerShape(percent = 50)),
         contentAlignment = Alignment.Center,
     ) {
         androidx.compose.material3.Icon(

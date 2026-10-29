@@ -11,6 +11,7 @@ import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.flow.asStateFlow
 
 class WorkoutTtsManager(context: Context) {
 
@@ -31,6 +32,30 @@ class WorkoutTtsManager(context: Context) {
     private val readyCallbacks = mutableListOf<() -> Unit>()
     private val errorCallbacks = mutableListOf<(String) -> Unit>()
 
+    // Modo Voz como capa (v-speak): el texto que el motor está diciendo AHORA, tal cual se le pasó a `speak`. Se publica al empezar la
+    // locución (onStart) y se retira al terminar, fallar o interrumpirse, así el subtítulo de la cápsula coincide con lo que se oye.
+    private val utteranceTexts = ConcurrentHashMap<String, String>()
+    @Volatile private var speakingUtteranceId: String? = null
+    private val _speakingText = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    /** Lo que KPKN dice en este momento; nulo cuando calla. Solo lectura. */
+    val speakingText: kotlinx.coroutines.flow.StateFlow<String?> = _speakingText.asStateFlow()
+
+    private fun utteranceStarted(utteranceId: String?) {
+        val id = utteranceId ?: return
+        val text = utteranceTexts[id] ?: return
+        speakingUtteranceId = id
+        _speakingText.value = text
+    }
+
+    private fun utteranceEnded(utteranceId: String?) {
+        val id = utteranceId ?: return
+        utteranceTexts.remove(id)
+        if (speakingUtteranceId == id) {
+            speakingUtteranceId = null
+            _speakingText.value = null
+        }
+    }
+
     val isInitialized: Boolean get() = _isInitialized
     val initError: String? get() = _initError
 
@@ -49,18 +74,24 @@ class WorkoutTtsManager(context: Context) {
                 TextToSpeech.SUCCESS -> {
                     val ttsEngine = tts ?: return@TextToSpeech
                     ttsEngine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                        override fun onStart(utteranceId: String?) {}
+                        override fun onStart(utteranceId: String?) {
+                            utteranceStarted(utteranceId)
+                        }
                         override fun onDone(utteranceId: String?) {
+                            utteranceEnded(utteranceId)
                             complete(utteranceId)
                         }
                         @Deprecated("Deprecated in Java")
                         override fun onError(utteranceId: String?) {
+                            utteranceEnded(utteranceId)
                             complete(utteranceId)
                         }
                         override fun onError(utteranceId: String?, errorCode: Int) {
+                            utteranceEnded(utteranceId)
                             complete(utteranceId)
                         }
                         override fun onStop(utteranceId: String?, interrupted: Boolean) {
+                            utteranceEnded(utteranceId)
                             if (interrupted) complete(utteranceId)
                         }
                     })
@@ -335,6 +366,7 @@ class WorkoutTtsManager(context: Context) {
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
         val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
+        utteranceTexts[utteranceId] = text
         openGroupKey?.let { key ->
             completionGroups[key]?.let { group ->
                 group.remaining += 1
@@ -359,12 +391,16 @@ class WorkoutTtsManager(context: Context) {
             )
         }
         if (result != TextToSpeech.SUCCESS) {
+            utteranceEnded(utteranceId)
             complete(utteranceId)
         }
     }
 
     fun stop() {
         tts?.stop()
+        utteranceTexts.clear()
+        speakingUtteranceId = null
+        _speakingText.value = null
     }
 
     fun shutdown() {
@@ -379,6 +415,9 @@ class WorkoutTtsManager(context: Context) {
         tts?.shutdown()
         tts = null
         _isInitialized = false
+        utteranceTexts.clear()
+        speakingUtteranceId = null
+        _speakingText.value = null
     }
 
     private fun complete(utteranceId: String?) {

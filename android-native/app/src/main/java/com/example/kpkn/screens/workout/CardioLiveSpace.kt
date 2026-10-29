@@ -56,6 +56,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -68,13 +70,12 @@ import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.workout.components.CardioActivityFigure
+import com.example.kpkn.screens.workout.components.CardioFigureSpec
 import com.example.kpkn.screens.workout.components.LiveSheetTokens
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlinx.coroutines.delay
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 /*
  * Espacio de cardio (iteración 03, aprobada): todo en crema sobre negro; el único color es el de la zona activa (la corona del anillo,
@@ -146,44 +147,81 @@ internal fun cardioNeedlePercent(hr: Int, maxHr: Int): Float {
     return ((zoneIndex + within) * 20f).coerceIn(1f, 99f)
 }
 
-/** `.ring-box`: corona de la zona, pista tenue, borde de luz que progresa con su punto, y el centro con la cifra. */
+/** Alto del recuadro del reloj para el alto disponible de la página: nunca menos de lo que pide su contenido. */
+internal fun cardioClockPanelHeight(available: Dp, fraction: Float): Dp = (available * fraction).coerceIn(196.dp, 330.dp)
+
+/**
+ * El recuadro del reloj (sustituye al anillo): carbón con radio 24 a todo el ancho y con el alto que le toca. Arriba el rótulo del
+ * paso con el punto de su zona y el total restante; en medio el tiempo del paso en Syne, en una sola línea y con el tamaño que cabe en
+ * el hueco medido (no depende del tamaño de letra del sistema); debajo la figura haciendo la actividad y el avance del paso. El único
+ * color es el de la zona (el punto y un velo tenue al pie).
+ */
 @Composable
-internal fun CardioRing(
-    diameter: Dp,
-    fraction: Float,
-    zoneColor: Color,
+internal fun CardioClockPanel(
     label: String,
-    sub: String,
-    em: String?,
-    showDot: Boolean = true,
+    eyebrow: String,
+    trailing: String?,
+    sub: String?,
+    fraction: Float?,
+    zoneColor: Color,
+    figure: CardioFigureSpec,
+    cadence: Float,
     modifier: Modifier = Modifier,
+    dimmed: Boolean = false,
 ) {
-    Box(modifier.size(diameter).testTag("cardio-ring"), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val r = size.minDimension / 2f - 14.dp.toPx()
-            val c = center
-            drawCircle(zoneColor.copy(alpha = .16f), r, c, style = Stroke(18.dp.toPx()))
-            drawCircle(zoneColor.copy(alpha = .28f), r, c, style = Stroke(8.dp.toPx()))
-            drawCircle(Color(0x10FFFFFF), r, c, style = Stroke(5.dp.toPx()))
-            val f = fraction.coerceIn(0f, 1f)
-            drawArc(CardioInk, -90f, 360f * f, false, Offset(c.x - r, c.y - r), Size(r * 2, r * 2), style = Stroke(4.dp.toPx(), cap = StrokeCap.Round))
-            if (showDot) {
-                val angle = -PI.toFloat() / 2f + f * 2f * PI.toFloat()
-                val dot = Offset(c.x + r * cos(angle), c.y + r * sin(angle))
-                drawCircle(Color.White.copy(alpha = .35f), 7.dp.toPx(), dot)
-                drawCircle(Color.White, 3.2.dp.toPx(), dot)
+    val shape = RoundedCornerShape(24.dp)
+    BoxWithConstraints(
+        modifier.fillMaxWidth().clip(shape).background(Color(0xFF111111))
+            .drawBehind { drawRect(Brush.verticalGradient(.55f to Color.Transparent, 1f to zoneColor.copy(alpha = .10f))) }
+            .border(1.dp, Color(0x10FFFFFF), shape)
+            .testTag("cardio-clock"),
+    ) {
+        val figureHeight = (maxHeight * .36f).coerceIn(52.dp, 124.dp)
+        Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 10.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.size(7.dp).clip(CircleShape).background(zoneColor))
+                Text(eyebrow, Modifier.weight(1f).testTag("cardio-clock-eyebrow"), style = CardioBody.copy(fontSize = 10.sp, letterSpacing = 1.sp,
+                    fontWeight = FontWeight.SemiBold), color = LiveSheetTokens.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                trailing?.let {
+                    Text(it, style = CardioBody.copy(fontSize = 10.sp, letterSpacing = .6.sp), color = LiveSheetTokens.Faint, maxLines = 1,
+                        modifier = Modifier.testTag("cardio-clock-trailing"))
+                }
+            }
+            CardioFittedClock(label, Modifier.weight(1f).fillMaxWidth())
+            sub?.let {
+                Text(it, Modifier.fillMaxWidth(), style = CardioBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted, textAlign = TextAlign.Center,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            CardioActivityFigure(figure, cadence, Modifier.fillMaxWidth().height(figureHeight), dimmed = dimmed)
+            if (fraction != null) {
+                Box(Modifier.fillMaxWidth().padding(top = 6.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x14FFFFFF))) {
+                    Box(Modifier.fillMaxHeight().fillMaxWidth(fraction.coerceIn(0f, 1f)).background(CardioInk).testTag("cardio-clock-progress"))
+                }
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 24.dp)) {
-            Text(label, style = CardioSyne.copy(fontSize = (diameter.value * .2f).coerceIn(28f, 52f).sp, lineHeight = (diameter.value * .26f).coerceIn(36f, 66f).sp,
-                fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "'tnum' 1"), color = CardioInk, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().testTag("cardio-ring-label"))
-            Text(sub, style = CardioBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-            em?.let {
-                Text(it, Modifier.fillMaxWidth().padding(top = 6.dp), style = CardioBody.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold),
-                    color = zoneColor, textAlign = TextAlign.Center)
-            }
+    }
+}
+
+/**
+ * El tiempo en una sola línea, con el tamaño que llena el hueco medido: se mide una plantilla con ceros (las cifras son tabulares, así
+ * que el tamaño no salta cada segundo) y se escala al ancho y al alto disponibles.
+ */
+@Composable
+private fun CardioFittedClock(label: String, modifier: Modifier) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val measurer = rememberTextMeasurer()
+        val base = CardioSyne.copy(fontSize = 100.sp, lineHeight = 100.sp, fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "'tnum' 1")
+        val template = label.map { if (it.isDigit()) '0' else it }.joinToString("")
+        val widthPx = constraints.maxWidth
+        val heightPx = constraints.maxHeight
+        val fontScale = LocalDensity.current.fontScale
+        val sizeSp = remember(template, widthPx, heightPx, fontScale) {
+            val measured = measurer.measure(template, base, maxLines = 1, softWrap = false).size
+            if (measured.width <= 0 || measured.height <= 0 || widthPx <= 0 || heightPx <= 0) 8f
+            else (100f * minOf(widthPx * .9f / measured.width, heightPx * .94f / measured.height)).coerceAtLeast(8f)
         }
+        Text(label, style = base.copy(fontSize = sizeSp.sp, lineHeight = sizeSp.sp), color = CardioInk, textAlign = TextAlign.Center, maxLines = 1,
+            softWrap = false, modifier = Modifier.testTag("cardio-clock-label"))
     }
 }
 
@@ -254,17 +292,34 @@ internal fun CardioStatusLine(icon: androidx.compose.ui.graphics.vector.ImageVec
     }
 }
 
+/**
+ * Ficha de dato (sin borde: no parece un botón) o, con [onClick], ficha de acción: borde visible, icono en tinta y el «+» o el lápiz
+ * de [actionIcon] al final, con 44 dp de alto para el dedo.
+ */
 @Composable
-internal fun CardioChip(text: String, modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, label: String? = null) {
+internal fun CardioChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    label: String? = null,
+    onClick: (() -> Unit)? = null,
+    actionIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    tag: String? = null,
+) {
     val shape = RoundedCornerShape(12.dp)
+    val action = onClick != null
     Row(
-        modifier.heightIn(min = 36.dp).clip(shape).background(Color(0x0DFFFFFF)).border(1.dp, Color(0x0FFFFFFF), shape).padding(horizontal = 10.dp),
+        modifier.heightIn(min = if (action) 44.dp else 36.dp).clip(shape).background(Color(0x0DFFFFFF))
+            .then(if (action) Modifier.border(1.dp, Color(0x38FFFFFF), shape).clickable(role = Role.Button, onClick = onClick!!) else Modifier)
+            .then(if (tag != null) Modifier.testTag(tag) else Modifier)
+            .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        icon?.let { Icon(it, null, Modifier.size(15.dp), tint = LiveSheetTokens.Muted) }
+        icon?.let { Icon(it, null, Modifier.size(15.dp), tint = if (action) CardioInk else LiveSheetTokens.Muted) }
         label?.let { Text(it, style = CardioBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint) }
         Text(text, style = CardioBody.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold), color = CardioInk)
+        actionIcon?.let { Icon(it, null, Modifier.size(14.dp), tint = CardioInk) }
     }
 }
 
@@ -304,7 +359,8 @@ internal fun CardioDock(
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 CardioCtrl("Bloquear", null, onLock, Modifier.weight(1f), lockGlyph = true, tag = "cardio-lock")
                 CardioCtrl(mainLabel, mainIcon, onMain, Modifier.weight(1.3f), main = true, enabled = mainEnabled, tag = "cardio-main")
-                CardioCtrl("Saltar paso", KpknLineIcons.FrameForward, { onSkip?.invoke() }, Modifier.weight(1f), enabled = onSkip != null, tag = "cardio-skip")
+                // Sin pasos que saltar (cardio continuo o aún sin empezar) el mando no se enseña: nada de botones apagados que no hacen nada.
+                if (onSkip != null) CardioCtrl("Saltar paso", KpknLineIcons.FrameForward, onSkip, Modifier.weight(1f), tag = "cardio-skip")
             }
         }
     }
@@ -533,40 +589,59 @@ internal fun CardioTransitionOut(
     val reduced = wizardReducedMotion()
     var shown by remember { mutableStateOf(reduced) }
     LaunchedEffect(Unit) { if (!reduced) { delay(120); shown = true } }
-    Column(modifier.fillMaxSize().background(Color.Black).padding(horizontal = 20.dp).testTag("cardio-transition-out")) {
-        Spacer(Modifier.weight(.6f))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(KpknLineIcons.Run, null, Modifier.size(19.dp), tint = LiveSheetTokens.Muted)
-            Box(Modifier.width(48.dp).height(2.dp).background(Brush.horizontalGradient(listOf(Color(0x40FFFFFF), CardioInk))))
-            Icon(KpknLineIcons.Training, null, Modifier.size(19.dp), tint = CardioInk)
+    // `.trans`: arriba el trayecto (`.trans-top`: carrera en círculo, línea y mancuerna en círculo discontinuo), el titular en Syne 800
+    // con interlineado .98, el resumen medido y, abajo y pegada al deslizador, la tarjeta de la siguiente serie (`.trans-card`).
+    Column(modifier.fillMaxSize().background(Color.Black).padding(horizontal = 18.dp).testTag("cardio-transition-out")) {
+        Spacer(Modifier.weight(.35f))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0x0DFFFFFF)), contentAlignment = Alignment.Center) {
+                Icon(KpknLineIcons.Run, null, Modifier.size(19.dp), tint = CardioInk)
+            }
+            Box(Modifier.weight(1f).height(2.dp).clip(RoundedCornerShape(1.dp)).background(Color(0x1AFFFFFF))) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(if (shown) 1f else 0f).background(CardioInk))
+            }
+            Box(Modifier.size(40.dp).drawBehind {
+                drawCircle(Color(0x40FFFFFF), size.minDimension / 2 - .5.dp.toPx(),
+                    style = Stroke(1.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx()))))
+            }, contentAlignment = Alignment.Center) {
+                Icon(KpknLineIcons.Training, null, Modifier.size(19.dp), tint = CardioInk)
+            }
         }
-        Text("Ahora vamos\ncon fuerza", Modifier.padding(top = 18.dp).alpha(if (shown) 1f else 0f).semantics { heading() },
-            style = CardioSyne.copy(fontSize = 34.sp, lineHeight = 44.sp, fontWeight = FontWeight.ExtraBold), color = CardioInk)
-        lead?.let { Text(it, Modifier.padding(top = 10.dp), style = CardioBody.copy(fontSize = 13.sp, lineHeight = 19.sp), color = LiveSheetTokens.Muted) }
-        val shape = RoundedCornerShape(22.dp)
-        Column(Modifier.fillMaxWidth().padding(top = 18.dp).clip(shape).background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), shape).padding(14.dp)) {
+        Text("Ahora vamos\ncon fuerza", Modifier.padding(top = 12.dp).alpha(if (shown) 1f else 0f).semantics { heading() },
+            style = CardioSyne.copy(fontSize = 34.sp, lineHeight = 33.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-1.6).sp), color = CardioInk)
+        lead?.let { Text(it, Modifier.padding(top = 12.dp), style = CardioBody.copy(fontSize = 13.5.sp, lineHeight = 19.5.sp), color = LiveSheetTokens.Muted) }
+        Spacer(Modifier.weight(1f))
+        val shape = RoundedCornerShape(25.dp)
+        Column(Modifier.fillMaxWidth().clip(shape).background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), shape).padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).background(Color(0x0BFFFFFF)), contentAlignment = Alignment.Center) {
-                    Icon(KpknLineIcons.Training, null, Modifier.size(22.dp), tint = CardioInk)
+                Box(Modifier.size(46.dp).clip(RoundedCornerShape(15.dp)).background(Color(0x0BFFFFFF)), contentAlignment = Alignment.Center) {
+                    Icon(KpknLineIcons.Training, null, Modifier.size(24.dp), tint = CardioInk)
                 }
                 Column {
-                    Text(exerciseName, style = CardioSyne.copy(fontSize = 15.sp, lineHeight = 20.sp), color = CardioInk)
-                    Text(meta, style = CardioBody.copy(fontSize = 10.5.sp), color = LiveSheetTokens.Faint)
+                    Text(exerciseName, style = CardioSyne.copy(fontSize = 17.sp, lineHeight = 20.sp), color = CardioInk)
+                    Text(meta, style = CardioBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint)
                 }
             }
             if (firstSet != null) {
-                Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Primera serie: $firstSet", Modifier.weight(1f), style = CardioBody.copy(fontSize = 12.sp), color = CardioInk)
+                Row(Modifier.fillMaxWidth().padding(top = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(androidx.compose.ui.text.buildAnnotatedString {
+                        append("Primera serie: ")
+                        pushStyle(androidx.compose.ui.text.SpanStyle(color = CardioInk, fontWeight = FontWeight.SemiBold)); append(firstSet); pop()
+                    }, Modifier.weight(1f), style = CardioBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
                     planEffort?.let {
                         Text(it, Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0x0DFFFFFF)).padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = CardioBody.copy(fontSize = 10.sp), color = CardioInk)
+                            style = CardioBody.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold), color = CardioInk)
                     }
                 }
             }
-            lastTime?.let {
-                Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            lastTime?.let { last ->
+                Row(Modifier.fillMaxWidth().padding(top = 10.dp).height(38.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x08FFFFFF))
+                    .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(KpknLineIcons.History, null, Modifier.size(16.dp), tint = LiveSheetTokens.Muted)
-                    Text("Última vez: $it", style = CardioBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
+                    Text(androidx.compose.ui.text.buildAnnotatedString {
+                        append("Última vez: ")
+                        pushStyle(androidx.compose.ui.text.SpanStyle(color = CardioInk, fontWeight = FontWeight.SemiBold)); append(last); pop()
+                    }, style = CardioBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
                 }
             }
             if (chips.isNotEmpty()) {
@@ -580,17 +655,17 @@ internal fun CardioTransitionOut(
                     }
                 }
             }
-            footnote?.let { Text(it, Modifier.padding(top = 6.dp), style = CardioBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint) }
+            footnote?.let { Text(it, Modifier.padding(top = 8.dp), style = CardioBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint) }
         }
-        Spacer(Modifier.weight(1f))
-        CardioSwipeToStart(onContinue, Modifier.padding(bottom = 18.dp), label = "Desliza para continuar", actionLabel = "Continuar con fuerza")
+        CardioSwipeToStart(onContinue, Modifier.padding(top = 14.dp, bottom = 18.dp), label = "Desliza para continuar", actionLabel = "Continuar con fuerza",
+            arrow = true)
     }
 }
 
 /** «Desliza para empezar»: el mando se arrastra hasta el final (con TalkBack, la acción accesible empieza al instante). */
 @Composable
 internal fun CardioSwipeToStart(onDone: () -> Unit, modifier: Modifier = Modifier, label: String = "Desliza para empezar",
-    actionLabel: String = "Empezar") {
+    actionLabel: String = "Empezar", arrow: Boolean = false) {
     val density = LocalDensity.current
     var offsetPx by remember { mutableFloatStateOf(0f) }
     BoxWithConstraints(
@@ -600,7 +675,9 @@ internal fun CardioSwipeToStart(onDone: () -> Unit, modifier: Modifier = Modifie
         val maxPx = with(density) { (maxWidth - 62.dp).toPx() }.coerceAtLeast(1f)
         Box(Modifier.fillMaxHeight().width(with(density) { (offsetPx.toDp() + 62.dp) }).clip(RoundedCornerShape(31.dp)).background(Color(0x1AFFFFFF)))
         Text(label, Modifier.align(Alignment.Center), style = CardioBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
-            color = LiveSheetTokens.Muted)
+            color = if (arrow) LiveSheetTokens.Faint else LiveSheetTokens.Muted)
+        // `.swipe .chev`: las dos flechas tenues a la derecha.
+        if (arrow) Text("»", Modifier.align(Alignment.CenterEnd).padding(end = 20.dp), style = CardioBody.copy(fontSize = 18.sp), color = Color(0x40FFFFFF))
         Box(
             Modifier.offset { IntOffset(offsetPx.roundToInt(), 0) }.size(62.dp).padding(5.dp).clip(CircleShape).background(CardioInk)
                 .pointerInput(maxPx) {
@@ -610,6 +687,17 @@ internal fun CardioSwipeToStart(onDone: () -> Unit, modifier: Modifier = Modifie
                     ) { change, dx -> change.consume(); offsetPx = (offsetPx + dx).coerceIn(0f, maxPx) }
                 },
             contentAlignment = Alignment.Center,
-        ) { Icon(KpknLineIcons.ChevronRight, null, Modifier.size(20.dp), tint = Color(0xFF111111)) }
+        ) {
+            if (arrow) {
+                // La flecha del prototipo (no hay icono de línea con ese trazo).
+                androidx.compose.foundation.Canvas(Modifier.size(18.dp)) {
+                    val w = 1.8.dp.toPx(); val y = size.height / 2
+                    val ink = Color(0xFF111111)
+                    drawLine(ink, androidx.compose.ui.geometry.Offset(2.dp.toPx(), y), androidx.compose.ui.geometry.Offset(size.width - 2.dp.toPx(), y), w, StrokeCap.Round)
+                    drawLine(ink, androidx.compose.ui.geometry.Offset(size.width - 7.dp.toPx(), y - 5.dp.toPx()), androidx.compose.ui.geometry.Offset(size.width - 2.dp.toPx(), y), w, StrokeCap.Round)
+                    drawLine(ink, androidx.compose.ui.geometry.Offset(size.width - 7.dp.toPx(), y + 5.dp.toPx()), androidx.compose.ui.geometry.Offset(size.width - 2.dp.toPx(), y), w, StrokeCap.Round)
+                }
+            } else Icon(KpknLineIcons.ChevronRight, null, Modifier.size(20.dp), tint = Color(0xFF111111))
+        }
     }
 }

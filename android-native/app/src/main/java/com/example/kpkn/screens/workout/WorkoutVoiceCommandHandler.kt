@@ -99,6 +99,23 @@ class WorkoutVoiceCommandHandler(
             expectedExerciseId: String? = null, expectedSetIdx: Int? = null, expectedSide: String? = null,
         ): Boolean
         fun setExerciseTag(exerciseId: String, tag: String)
+        /**
+         * Modo Voz como capa (v-record): la cápsula lleva los valores entendidos a su campo de la tarjeta antes de que la serie se
+         * registre. Vuelve en cuanto llegan (o al instante si no hay cápsula que los lleve). Por defecto no espera.
+         */
+        suspend fun awaitVoiceValuesDelivered() {}
+        /**
+         * Una frase de la sesión de voz terminó en la serie: [registered] si se registró, o «Por revisar» si faltaban datos para
+         * registrarla. [previousDraft] es el borrador de la serie antes de la frase («Descartar» lo devuelve tal cual). Por defecto, nada.
+         */
+        fun onVoiceSessionCapture(
+            interpretation: WorkoutVoiceInterpretation,
+            exerciseId: String,
+            setIdx: Int,
+            side: String?,
+            registered: Boolean,
+            previousDraft: WorkoutSetDraft?,
+        ) {}
         fun skipSet()
         fun skipRemainingCurrentExercise()
         fun prevSet()
@@ -1508,7 +1525,8 @@ class WorkoutVoiceCommandHandler(
         val unitMode = ports.inferUnitMode(exercise, setIdx)
         val programmedLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val loadMode = acceptedInterpretation.loadModeOverride ?: programmedLoadMode
-        val draft = ports.getSetDraft(exercise.id, setIdx, side) ?: WorkoutSetDraft(selectedSide = side)
+        val previousDraft = ports.getSetDraft(exercise.id, setIdx, side)
+        val draft = previousDraft ?: WorkoutSetDraft(selectedSide = side)
         val resolvedSide = acceptedInterpretation.side ?: side ?: draft.selectedSide
         val nextDraft = draft.copy(
             weightText = acceptedInterpretation.weightKg?.toTrimmedNumberString() ?: draft.weightText,
@@ -1534,7 +1552,7 @@ class WorkoutVoiceCommandHandler(
                 workoutVoiceAppliedMessage(acceptedInterpretation, unitMode == UnitModeV2.TIME),
             ),
         ) }
-        scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, acceptedInterpretation, nextDraft, unitMode, loadMode) }
+        scope.launch { persistVoiceSet(exercise, setIdx, resolvedSide, acceptedInterpretation, nextDraft, unitMode, loadMode, previousDraft) }
     }
 
     private fun acceptedIntensityIsWarmupRpe(interpretation: WorkoutVoiceInterpretation): Boolean =
@@ -1544,6 +1562,7 @@ class WorkoutVoiceCommandHandler(
     private suspend fun persistVoiceSet(
         exercise: Exercise, setIdx: Int, resolvedSide: String?, interpretation: WorkoutVoiceInterpretation,
         draft: WorkoutSetDraft, unitMode: UnitModeV2, loadMode: LoadModeV2,
+        previousDraft: WorkoutSetDraft? = null,
     ) {
         val completedSidesBefore = if (exercise.isEffectivelyUnilateral()) {
             listOf("L", "R").count { suffix ->
@@ -1569,6 +1588,8 @@ class WorkoutVoiceCommandHandler(
                 "set_persistence_rejected",
                 mapOf("reason" to "missing_or_invalid_required_values", "value" to value, "weight" to weight),
             )
+            // La frase no se registra como segura: queda «Por revisar» en la cápsula con lo que se entendió.
+            ports.onVoiceSessionCapture(interpretation, exercise.id, setIdx, resolvedSide, registered = false, previousDraft = previousDraft)
             voiceController.onVoiceSetPersistenceFailed(
                 when {
                     missingValue -> "Faltan datos para registrar la serie."
@@ -1588,6 +1609,8 @@ class WorkoutVoiceCommandHandler(
             rom = draft.rom,
         )
         try {
+            // Prototipo v-record: los valores vuelan a su campo y brillan; después se registra y empieza el descanso.
+            ports.awaitVoiceValuesDelivered()
             val recorded = ports.recordSetV2(
                 weight, value, intensity, advanced, loadMode, unitMode, resolvedSide,
                 exercise.id, setIdx, resolvedSide,
@@ -1596,6 +1619,7 @@ class WorkoutVoiceCommandHandler(
                 interpretation.tagName?.takeIf(String::isNotBlank)?.let { tag ->
                     ports.setExerciseTag(exercise.id, tag.take(40))
                 }
+                ports.onVoiceSessionCapture(interpretation, exercise.id, setIdx, resolvedSide, registered = true, previousDraft = previousDraft)
                 WorkoutVoiceDiagnosticLogger.event("set_persistence_succeeded", mapOf(
                     "exerciseId" to exercise.id, "setIndex" to setIdx, "side" to resolvedSide,
                     "interpretation" to interpretation.toString(),

@@ -122,11 +122,15 @@ internal fun liveRailNodes(
  */
 @Composable
 internal fun LiveSessionRail(
-    nodes: List<LiveRailNode>,
+    allNodes: List<LiveRailNode>,
     onLongPress: ((Int) -> Unit)?,
     onScrub: (LiveRailNode?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Con muchas series los puntos quedaban pegados: el raíl enseña una ventana de [RailWindow] nodos que sigue a la serie en curso, y
+    // la línea llega hasta el borde cuando quedan puntos fuera.
+    val window = railWindow(allNodes)
+    val nodes = window.nodes
     val ink = WizardColors.text
     val reduced = wizardReducedMotion()
     val haptics = LocalHapticFeedback.current
@@ -144,8 +148,8 @@ internal fun LiveSessionRail(
             .height(26.dp)
             .testTag("live-session-steps")
             .drawBehind {
-                val first = centers[0] ?: return@drawBehind
-                val last = centers[latestNodes.lastIndex] ?: return@drawBehind
+                val first = if (window.hiddenBefore) 0f else centers[0] ?: return@drawBehind
+                val last = if (window.hiddenAfter) size.width else centers[latestNodes.lastIndex] ?: return@drawBehind
                 val y = size.height / 2f
                 drawLine(ink.copy(alpha = .09f), Offset(first, y), Offset(last, y), 2.dp.toPx(), StrokeCap.Round)
                 if (fill > first) drawLine(ink, Offset(first, y), Offset(fill, y), 2.dp.toPx(), StrokeCap.Round)
@@ -213,7 +217,7 @@ internal fun LiveSessionRail(
                         RailDot(node, index == scrubbing, reduced)
                         // El número va dentro del punto (no debajo): el raíl cabe en el alto de siempre del roadmap.
                         if (!node.done && !node.skipped) {
-                            Text(railDotLabel(node), style = KpknType.caption.copy(fontSize = 8.sp, lineHeight = 10.sp,
+                            Text(railDotLabel(node), style = KpknType.caption.copy(fontSize = 9.sp, lineHeight = 11.sp,
                                 fontWeight = if (node.active) FontWeight.Bold else FontWeight.Medium),
                                 color = if (node.active || index == scrubbing) ink else WizardColors.textFaint, maxLines = 1)
                         }
@@ -222,6 +226,23 @@ internal fun LiveSessionRail(
             }
         }
     }
+}
+
+/** Cuántos nodos caben en el raíl con aire entre los puntos (el › del siguiente ejercicio incluido). */
+internal const val RailWindow = 7
+
+internal data class RailWindowSlice(val nodes: List<LiveRailNode>, val hiddenBefore: Boolean, val hiddenAfter: Boolean)
+
+/** La ventana del raíl: hasta [max] nodos, con el en curso en tercera posición cuando se puede y el › siempre al final. */
+internal fun railWindow(nodes: List<LiveRailNode>, max: Int = RailWindow): RailWindowSlice {
+    if (nodes.size <= max) return RailWindowSlice(nodes, hiddenBefore = false, hiddenAfter = false)
+    val next = nodes.lastOrNull()?.takeIf { it.kind == LiveRailKind.NEXT }
+    val core = if (next != null) nodes.dropLast(1) else nodes
+    val size = max - (if (next != null) 1 else 0)
+    val active = core.indexOfFirst { it.active }.takeIf { it >= 0 } ?: core.indexOfLast { it.done }.coerceAtLeast(0)
+    val start = (active - 2).coerceIn(0, (core.size - size).coerceAtLeast(0))
+    val end = (start + size).coerceAtMost(core.size)
+    return RailWindowSlice(core.subList(start, end) + listOfNotNull(next), hiddenBefore = start > 0, hiddenAfter = end < core.size)
 }
 
 /** Lo que va dentro del punto: el número de la serie («1», «2 I»), «M» o «A» en la preparación y › para el siguiente. */
@@ -250,8 +271,8 @@ private fun RailDot(node: LiveRailNode, scrubbed: Boolean, reduced: Boolean) {
     }, label = "rail-ring")
     val pulse = rememberInfiniteTransition(label = "rail-pulse")
     val halo by pulse.animateFloat(0f, 1f, infiniteRepeatable(tween(1800), RepeatMode.Restart), label = "rail-halo")
-    Canvas(Modifier.size(26.dp)) {
-        val r = 9.dp.toPx() * grow
+    Canvas(Modifier.size(28.dp)) {
+        val r = 10.dp.toPx() * grow
         val c = center
         if (node.active && !reduced) {
             drawCircle(ink.copy(alpha = .28f * (1f - halo)), radius = r + 7.dp.toPx() * halo, center = c)
@@ -288,6 +309,8 @@ private fun RestPill(node: LiveRailNode) {
     Box(
         Modifier.width(56.dp).height(16.dp).drawBehind {
             val radius = CornerRadius(size.height / 2)
+            // Base opaca: sin ella la línea del raíl se ve a través del melocotón translúcido y tacha el tiempo.
+            drawRoundRect(Color(0xFF1C1C1C), cornerRadius = radius)
             drawRoundRect(peach.copy(alpha = .13f), cornerRadius = radius)
             drawRoundRect(peach.copy(alpha = .30f), size = Size(size.width * (1f - progress), size.height), cornerRadius = radius)
             drawRoundRect(peach.copy(alpha = .45f), cornerRadius = radius, style = Stroke(1.dp.toPx()))

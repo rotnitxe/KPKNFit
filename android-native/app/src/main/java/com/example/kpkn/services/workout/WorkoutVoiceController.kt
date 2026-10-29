@@ -50,6 +50,9 @@ class WorkoutVoiceController(
     private val _state = MutableStateFlow(VoiceSessionState())
     val state: StateFlow<VoiceSessionState> = _state.asStateFlow()
 
+    /** Lo que KPKN dice en este momento por el TTS de la sesión (subtítulo «KPKN habla» de la cápsula de Modo Voz). */
+    val spokenText: StateFlow<String?> get() = ttsManager.speakingText
+
     private var scope: CoroutineScope? = null
     private var confirmationJob: Job? = null
     private var idleMonitorJob: Job? = null

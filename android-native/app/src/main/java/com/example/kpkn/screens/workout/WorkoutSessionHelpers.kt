@@ -136,6 +136,15 @@ internal class RecordFabHolder {
     var visible by mutableStateOf(false)
     var isUpdateMode by mutableStateOf(false)
     var activePageKey by mutableStateOf<String?>(null)
+    /** Texto del botón del roadmap cuando la página activa registra otra cosa que una serie («Registrar aproximación A1», «Registrar movimiento 2»). */
+    var label by mutableStateOf<String?>(null)
+        private set
+    private var labelOwner: Any? = null
+
+    fun bindLabel(owner: Any, text: String) { labelOwner = owner; label = text }
+
+    /** Solo quien lo puso lo borra: una tarjeta de preparación fuera de pantalla no pisa a la activa. */
+    fun clearLabel(owner: Any) { if (labelOwner === owner) { labelOwner = null; label = null } }
 }
 
 /** Gate for invoking the floating action from the currently settled page. */

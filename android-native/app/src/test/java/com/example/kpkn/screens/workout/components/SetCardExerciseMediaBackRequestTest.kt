@@ -8,6 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -88,9 +91,11 @@ class SetCardExerciseMediaBackRequestTest {
         assertEquals(8, opened?.reps)
     }
 
-    @Test fun expandir_en_video_monta_la_escena_del_grabador() {
+    @Test fun el_disparador_en_video_expande_y_monta_la_escena_del_grabador() {
+        // Refinamiento 02: la cara ya no tiene «Expandir»; en «Vídeo» el disparador abre el visor expandido con el grabador.
         show()
-        rule.onNodeWithTag("media_expand").performClick()
+        rule.onNodeWithTag(MediaShutterTag).assertContentDescriptionEquals("Grabar vídeo")
+        rule.onNodeWithTag(MediaShutterTag).performClick()
         rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()
         rule.onNodeWithTag(TechniqueRecorderStageTag).assertIsDisplayed()
     }
@@ -98,14 +103,18 @@ class SetCardExerciseMediaBackRequestTest {
     @Test fun foto_desde_el_grabador_pliega_y_deja_la_tarjeta_en_foto() {
         show()
         rule.onNodeWithTag(MediaShutterTag).performClick()
-        rule.onNodeWithContentDescription("Cambiar a foto").performClick()
+        // El interruptor «Vídeo» de la cara sigue debajo del visor: se pulsa el del grabador, que es el de dentro del visor expandido.
+        rule.onNode(hasContentDescription("Cambiar a foto") and hasAnyAncestor(hasTestTag(MediaExpandedTag))).performClick()
         rule.waitForIdle()
         rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
         rule.onNodeWithTag(TechniqueRecorderStageTag).assertDoesNotExist()
         rule.onNodeWithTag(MediaFaceTag).assertExists()
         rule.onNodeWithTag(MediaShutterTag).assertContentDescriptionEquals("Hacer foto")
-        rule.onNodeWithTag("media_expand").performClick()
-        rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()
+        // En «Foto» el disparador hace la foto (sin cámara en la prueba no hace nada) y no abre el visor expandido.
+        rule.onNodeWithTag("media_mode_toggle").assertContentDescriptionEquals("Cambiar a vídeo")
+        rule.onNodeWithTag(MediaShutterTag).performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
         rule.onNodeWithTag(TechniqueRecorderStageTag).assertDoesNotExist()
     }
 

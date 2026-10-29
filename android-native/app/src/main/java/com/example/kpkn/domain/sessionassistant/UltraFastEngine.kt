@@ -345,7 +345,7 @@ object UltraFastEngine {
         return InternalResult(finalFlat, finalSupersets, preview)
     }
 
-    private fun reduceTarget(n: Int): Int = when (n) {
+    internal fun reduceTarget(n: Int): Int = when (n) {
         4 -> 2
         3 -> 2
         2 -> 1
@@ -410,7 +410,7 @@ object UltraFastEngine {
         }
     }
 
-    private fun resolveInfo(
+    internal fun resolveInfo(
         exercise: Exercise,
         index: Map<String, ExerciseMuscleInfo>,
     ): ExerciseMuscleInfo? {
@@ -420,7 +420,7 @@ object UltraFastEngine {
         return index[key] ?: index[exercise.name.lowercase()] ?: index[exercise.exerciseId?.lowercase() ?: ""]
     }
 
-    private fun areGoodAntagonistPair(
+    internal fun areGoodAntagonistPair(
         a: ExerciseMuscleInfo?,
         b: ExerciseMuscleInfo?,
     ): Boolean {

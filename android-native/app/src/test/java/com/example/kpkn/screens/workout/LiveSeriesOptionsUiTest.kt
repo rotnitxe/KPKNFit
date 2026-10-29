@@ -7,7 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -112,11 +115,12 @@ class LiveSeriesOptionsUiTest {
     }
 
     @Test
-    fun theAddTileIsShortOnScreenButTheScreenReaderStillSaysAddSet() {
+    fun theAddRowSaysAddSetOutLoudAndIsAButtonForTheScreenReader() {
         showSeries(SeriesCalls())
 
-        rule.onNodeWithText("Añadir serie").assertExists()
-        rule.onNodeWithContentDescription("Añadir serie").assertExists()
+        // Refinamiento 02: «Añadir serie» es una fila con el rótulo completo; el lector de pantalla lo lee tal cual, como un botón.
+        rule.onNodeWithText("Añadir serie").assertExists().assertHasClickAction()
+        rule.onNode(hasText("Añadir serie") and hasClickAction()).assertExists()
     }
 
     @Test

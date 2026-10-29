@@ -31,7 +31,7 @@ import kotlinx.coroutines.isActive
 
 internal enum class LiveSessionDestination(val title: String) {
     MENU("Sesión"), VIEW("Vista de registro"), VOICE("Conversación de voz"), ROUTE("Ruta de la sesión"), MILESTONES("Hitos"), PHOTOS("Fotos y vídeos"),
-    TIMER("Temporizador"), RM("Calculadora RM"), CALORIES("Calorías"), NOTES("Notas y tareas"),
+    TIMER("Temporizador"), RM("Calculadora RM"), NOTES("Notas y tareas"),
     ASSISTANCE("Asistencia de sesión"), ANALYSIS_HELP("Cómo leer este análisis"),
 }
 
@@ -111,6 +111,8 @@ internal fun LiveSessionSheetsHost(
     onOpenReferenceHistory: (() -> Unit)? = null,
     /** «Revisar descanso sugerido»: solo mientras hay un descanso con sugerencia. */
     onOpenRestSuggestion: (() -> Unit)? = null,
+    /** Pulsar una carga de la calculadora RM la lleva a la serie actual y cierra la hoja. */
+    onUseRmWeight: ((Double) -> Unit)? = null,
 ) {
     val bodyStates = rememberSaveableStateHolder()
     if (destination == null) return
@@ -156,8 +158,6 @@ internal fun LiveSessionSheetsHost(
                         modifier = Modifier.testTag("live-session-menu-milestones"))
                     LiveSheetMenuRow("Calculadora RM", { go(LiveSessionDestination.RM) }, icon = KpknLineIcons.Target,
                         modifier = Modifier.testTag("live-session-menu-rm"))
-                    LiveSheetMenuRow("Calorías", { go(LiveSessionDestination.CALORIES) }, icon = KpknLineIcons.Flame,
-                        modifier = Modifier.testTag("live-session-menu-calories"))
                     LiveSheetMenuRow("Historia de la sesión", { run(onOpenStory) }, icon = KpknLineIcons.Star,
                         modifier = Modifier.testTag("workout-story-header"))
                     LiveSheetMenuRow("Ayuda y explicaciones", { go(LiveSessionDestination.ASSISTANCE) }, icon = KpknLineIcons.Info,
@@ -169,10 +169,11 @@ internal fun LiveSessionSheetsHost(
                     LiveSheetMenuRow("Por qué aparece esta referencia", { onDestination(null); onOpenReferenceHistory?.invoke() },
                         icon = KpknLineIcons.History, enabled = onOpenReferenceHistory != null,
                         modifier = Modifier.testTag("live-assistance-reference"))
-                    LiveSheetMenuRow("Revisar descanso sugerido", { onDestination(null); onOpenRestSuggestion?.invoke() },
-                        icon = KpknLineIcons.Clock, enabled = onOpenRestSuggestion != null,
-                        small = if (onOpenRestSuggestion == null) "Durante el descanso" else null,
-                        modifier = Modifier.testTag("live-assistance-rest"))
+                    // Sin descanso abierto no hay nada que revisar: la fila no se pinta (antes quedaba atenuada para siempre).
+                    if (onOpenRestSuggestion != null) {
+                        LiveSheetMenuRow("Revisar descanso sugerido", { onDestination(null); onOpenRestSuggestion.invoke() },
+                            icon = KpknLineIcons.Clock, modifier = Modifier.testTag("live-assistance-rest"))
+                    }
                     LiveSheetMenuRow("Entender las métricas del vídeo", { onDestination(LiveSessionDestination.ANALYSIS_HELP) }, icon = KpknLineIcons.Info,
                         modifier = Modifier.testTag("live-assistance-analysis"))
                     LiveSessionHelpNote("Explicaciones en su sitio",
@@ -208,9 +209,9 @@ internal fun LiveSessionSheetsHost(
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }
                 LiveSessionDestination.TIMER -> LiveSessionTimerContent(timer)
-                LiveSessionDestination.RM -> WorkoutRmCalcContent(bodyWeight = bodyWeight, sessionAccentColor = sessionAccentColor, softInputs = true)
+                LiveSessionDestination.RM -> WorkoutRmCalcContent(bodyWeight = bodyWeight, sessionAccentColor = sessionAccentColor, softInputs = true,
+                    onWeightSelected = onUseRmWeight?.let { use -> { weight: Double, _ -> use(weight); onDestination(null) } })
                 LiveSessionDestination.VOICE -> LaunchedEffect(Unit) { onDestination(null); onOpenVoice() }
-                LiveSessionDestination.CALORIES -> LiveSessionCaloriesContent(liveEnergySummary, bodyWeight)
                 LiveSessionDestination.NOTES -> LiveSessionNotesContent(sessionNotes, sessionSavedNotes, sessionChecklist,
                     onSessionNotesChange, onSaveSessionNote, onAddChecklistItem, onToggleChecklistItem, onRemoveChecklistItem, sessionAccentColor)
             }
@@ -263,12 +264,3 @@ internal fun LiveSessionTimerContent(timer: LiveSessionTimerState, clock: () -> 
     }
 }
 
-@Composable
-internal fun LiveSessionCaloriesContent(summary: SessionEnergySummary?, bodyWeight: Double?) {
-    val status = sessionCalorieStatus(summary, summary?.exerciseContributions?.sumOf { it.completedSets } ?: 0, bodyWeight)
-    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Energía registrada", style = KpknType.bodyStrong, color = WizardColors.textMuted)
-        status.kcal?.let { Text("≈ $it kcal", style = KpknType.metricXL, color = WizardColors.text) }
-        status.hint?.let { Text(it, style = KpknType.body, color = WizardColors.textMuted) }
-    }
-}

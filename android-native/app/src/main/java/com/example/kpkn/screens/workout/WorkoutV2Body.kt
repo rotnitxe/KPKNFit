@@ -534,8 +534,10 @@ internal fun WorkoutV2Body(
             }
 
             val stageScrollState = rememberScrollState()
+            // Alto visible del escenario: con él la tarjeta se centra entre el título y el roadmap (pedido del usuario, 29-oct).
+            var stageHeightPx by remember { mutableIntStateOf(0) }
             Column(
-                modifier = Modifier.fillMaxSize().then(
+                modifier = Modifier.fillMaxSize().onSizeChanged { stageHeightPx = it.height }.then(
                     if (currentExercise?.isCardio != true && !showingPostExerciseCard && liveSessionView != LiveSessionView.LIST)
                         Modifier.verticalScroll(stageScrollState) else Modifier,
                 ),
@@ -572,24 +574,10 @@ internal fun WorkoutV2Body(
                     ),
                     panelRequest = seriesPanelRequest,
                     onPanelRequestConsumed = { seriesPanelRequest = null },
-                    // El contexto del ejercicio en curso encabeza la lista y se desplaza con ella (prototipo 02).
-                    contextHeader = {
-                        WorkoutExerciseContextBlock(
-                            exerciseName = headerExerciseName,
-                            exerciseChips = headerExerciseChips,
-                            ultraFastApplied = uiState.ultraFastApplied,
-                            onUltraFastClick = { viewModel.previewUltraFast() },
-                            isSuperset = currentExercise?.supersetGroupRefOrLegacyId()
-                                ?.let { groupId -> visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1 } == true,
-                            activeMainTags = currentExerciseActiveMainTags,
-                            activeMainTagLabels = currentExerciseActiveTagLabels,
-                            activeSubTags = currentExerciseActiveSubTags,
-                            onTagClick = { tagId -> tagManagerTagId = tagId },
-                            onOpenTagList = { showTagListOverlay = true },
-                            onToggleVoice = onToggleVoice,
-                            voiceSessionEnabled = uiState.voiceSessionEnabled,
-                        )
-                    },
+                    // Sin cabecera de contexto en la Lista (pedido del usuario, 29-oct): cada ejercicio lleva su propio título.
+                    // El descanso de las series efectivas: desplegado lo cubre la pantalla completa; minimizado queda en la lista.
+                    workingRestRemaining = if (workingRestActive) restTimerRemaining else null,
+                    workingRestTotal = if (workingRestActive) uiState.restModalState?.totalRestSeconds() else null,
                     onOpenExerciseOptions = onOpenExerciseOptions,
                     onOpenSupersetSettings = onOpenSupersetSettings,
                 )
@@ -1174,11 +1162,17 @@ internal fun WorkoutV2Body(
                         }
                         var forcePagerScrollEpoch by remember { mutableStateOf(0) }
                         var forcePagerScrollPage by remember { mutableStateOf<Int?>(null) }
+                        // Último destino canónico atendido: la guarda de movilidad solo vale cuando el destino no cambió (el usuario ya
+                        // deslizó fuera de la movilidad). Si el destino acaba de pasar a movilidad (‹ o el MOV del roadmap desde una
+                        // serie o desde la aproximación) hay que ir: antes la guarda lo bloqueaba y no se podía volver a la movilidad.
+                        var lastCanonicalPage by remember { mutableStateOf<Int?>(null) }
                         LaunchedEffect(activeSwipePageIndex, totalSetPages, uiState.isRestMinimized, workingRestActive, restOverrunOnCard) {
                             if ((workingRestActive || restOverrunOnCard) && uiState.isRestMinimized) return@LaunchedEffect
                             val settledType = setPagerPages.getOrNull(pagerState.settledPage)?.type
                             val targetType = setPagerPages.getOrNull(activeSwipePageIndex)?.type
-                            if (shouldIgnoreCanonicalMobilityScroll(targetType, settledType)) {
+                            val canonicalChanged = lastCanonicalPage != null && lastCanonicalPage != activeSwipePageIndex
+                            lastCanonicalPage = activeSwipePageIndex
+                            if (!canonicalChanged && shouldIgnoreCanonicalMobilityScroll(targetType, settledType)) {
                                 return@LaunchedEffect
                             }
                             if (activeSwipePageIndex in 0 until totalSetPages &&
@@ -1190,7 +1184,7 @@ internal fun WorkoutV2Body(
                                         pagerState.animateScrollToPage(
                                             page = activeSwipePageIndex,
                                             animationSpec = tween(
-                                                durationMillis = 480,
+                                                durationMillis = 260,
                                                 easing = FastOutSlowInEasing,
                                             ),
                                         )
@@ -1208,7 +1202,7 @@ internal fun WorkoutV2Body(
                                 pagerState.animateScrollToPage(
                                     page = page,
                                     animationSpec = tween(
-                                        durationMillis = 480,
+                                        durationMillis = 260,
                                         easing = FastOutSlowInEasing,
                                     ),
                                 )
@@ -1697,6 +1691,12 @@ internal fun WorkoutV2Body(
                         }
                     }
 
+                    // La tarjeta (y su pila) queda centrada en el hueco entre el título y el roadmap, no pegada al título.
+                    val stageHeightDp = with(density) { stageHeightPx.toDp() }
+                    val cardBlockDp = liveSessionCardHeight() +
+                        (if (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= LiveCardStackMinScreenHeightDp) LiveCardStackRoom else 0.dp)
+                    val centerGap = ((stageHeightDp - stageBottomClearance - cardBlockDp) / 2).coerceIn(6.dp, 120.dp)
+                    Spacer(Modifier.height(if (stageHeightPx > 0) centerGap else 6.dp))
                     BoxWithConstraints(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -1741,6 +1741,11 @@ internal fun WorkoutV2Body(
                             verticalAlignment = Alignment.Top,
                             pageSpacing = 14.dp,
                             beyondViewportPageCount = 2,
+                            // Pase entre tarjetas más ágil (pedido del usuario, 29-oct): el asentado dura 240 ms en lugar del muelle lento.
+                            flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(
+                                state = pagerState,
+                                snapAnimationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+                            ),
                             key = { index ->
                                 val page = setPagerPages.getOrNull(index)
                                 val pageExerciseId = page?.exerciseId ?: currentExercise.id
@@ -1772,7 +1777,10 @@ internal fun WorkoutV2Body(
                                 val stackMeasurer = rememberTextMeasurer()
                                 val stackLabelStyle = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, color = WizardColors.textFaint)
                                 val pageStride = with(LocalDensity.current) { (availableWidth - peekPadding * 2 + 14.dp).toPx() }
-                                Box(
+                                // La página absorbe sus toques (no atraviesan a la tarjeta apilada debajo) y, si no es la actual, su
+                                // contenido no recibe ninguno; el deslizamiento del carrusel sigue igual.
+                                LiveCardTouchShield(
+                                    isCurrent = page == pagerState.currentPage,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .zIndex(liveCardStackZ(stackOffset))
@@ -1786,15 +1794,22 @@ internal fun WorkoutV2Body(
                                             alpha = stack.alpha
                                             transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
                                             clip = false
+                                            // Cada tarjeta de la pila proyecta su sombra real de elevación sobre la de debajo (pedido del
+                                            // usuario, 29-oct), con el contorno redondeado de la tarjeta.
+                                            shape = LiveCardShadowShape
+                                            shadowElevation = 16.dp.toPx()
+                                            ambientShadowColor = Color.Black
+                                            spotShadowColor = Color.Black
                                         }
                                         .drawWithContent {
                                             drawContent()
                                             // En la pila: la tarjeta se oscurece y su borde inferior dice qué serie es.
                                             val depth = if (liveCardStackEnabled) stackOffset.coerceIn(0f, 1f) else 0f
                                             if (depth > 0f) {
-                                                drawRect(Color.Black.copy(alpha = .45f * depth))
+                                                val radius = 25.dp.toPx()
+                                                drawRoundRect(Color.Black.copy(alpha = .45f * depth),
+                                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius))
                                                 val strip = 30.dp.toPx()
-                                                val radius = 24.dp.toPx()
                                                 drawRoundRect(Color(0xFF151515).copy(alpha = depth),
                                                     topLeft = Offset(0f, size.height - strip - radius),
                                                     size = androidx.compose.ui.geometry.Size(size.width, strip + radius),
@@ -1830,6 +1845,7 @@ internal fun WorkoutV2Body(
                                 val totalMinutes = prepMobilityMembers.maxOfOrNull { it.mobilityConfig?.totalMinutes ?: 1 } ?: 1
                                 MobilityTimerTickReader(viewModel) { tickRemaining ->
                                 com.example.kpkn.screens.workout.components.MobilityPhaseLiveCard(
+                                    restEndInRoadmap = true,
                                     items = mobilityItems,
                                     completedStepKeys = uiState.mobilityCompletedExerciseIds,
                                     remainingSeconds = if (globalTimer?.isRunning == true) {
@@ -1876,6 +1892,14 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
+                                    // El descanso de movilidad corre en el mismo reloj que el de las series (kind WARMUP): se expande y
+                                    // minimiza con isRestMinimized y acepta ±15 s y pausa igual que el de las series.
+                                    inlineRestPaused = uiState.restModalState?.pausedRemainingSeconds != null,
+                                    inlineRestExpanded = !uiState.isRestMinimized,
+                                    onToggleInlineRestExpanded = { viewModel.toggleRestMinimized() },
+                                    onAdjustInlineRest = { viewModel.addPreparationRestTime(it) },
+                                    onToggleInlineRestPause = { viewModel.toggleRestPause() },
+                                    exerciseName = displayWorkoutExerciseName(firstMobilityEx),
                                     recordActionHolder = recordActionHolder,
                                     recordActionScopeOwner = recordActionScopeOwner,
                                     recordActionPageKey = recordActionPageKey,
@@ -1902,7 +1926,7 @@ internal fun WorkoutV2Body(
                                             // Fuente única (mismo hook que tarjeta y voz):
                                             // kg alcanzables con el inventario real o
                                             // null = porcentaje pendiente, nunca 0.
-                                            val suggestedKg = viewModel.getWarmupSuggestedWeight(
+                                            val suggestedKg = viewModel.getWarmupDisplayWeight(
                                                 exercise = member,
                                                 warmupIndex = warmupIndex,
                                                 activeTag = uiState.exerciseTags[member.id],
@@ -1919,6 +1943,9 @@ internal fun WorkoutV2Body(
                                                     suggestedWeightKg = suggestedKg,
                                                     actualWeightKg = completedSet?.weight?.takeIf { it > 0.0 },
                                                     isCompleted = isCompleted,
+                                                    actualReps = completedSet?.reps?.takeIf { isCompleted && it > 0 },
+                                                    // El mismo paso de −/+ que la carga de la serie efectiva (`quickLoadIncrementFor`).
+                                                    loadIncrementKg = member.sets.firstOrNull()?.let { calibrationIncrement(member, it) } ?: 2.5,
                                                 ),
                                             )
                                         }
@@ -1934,6 +1961,7 @@ internal fun WorkoutV2Body(
                                         ?: warmupWorkingWeight
                                     )?.takeIf { it > 0.0 }
                                 com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard(
+                                    restEndInRoadmap = true,
                                     rows = warmupRows,
                                     sessionAccentColor = sessionAccentColor,
                                     onToggleComplete = { row, completed, weightKg ->
@@ -1943,6 +1971,11 @@ internal fun WorkoutV2Body(
                                             viewModel.markWarmupComplete(row.exerciseId, row.warmup.id, completed = false)
                                         }
                                     },
+                                    // Registrar (la marca o el botón del roadmap) guarda los kg y las reps que muestra la tarjeta.
+                                    onCompleteWithReps = { row, weightKg, reps ->
+                                        viewModel.completeWarmupStep(row.exerciseId, row.warmup.id, usedWeightKg = weightKg, reportedReps = reps)
+                                    },
+                                    exerciseName = displayWorkoutExerciseName(firstWarmupEx),
                                     onSkip = {
                                         viewModel.skipWarmupPreparationForExercises(prepWarmupMembers.map { it.id })
                                     },
@@ -1969,6 +2002,13 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
+                                    // El descanso de aproximación es el mismo reloj que el de las series (kind WARMUP): vista expandida o
+                                    // minimizada con isRestMinimized, ±15 s y pausa con las mismas acciones del ViewModel.
+                                    inlineRestPaused = uiState.restModalState?.pausedRemainingSeconds != null,
+                                    inlineRestExpanded = !uiState.isRestMinimized,
+                                    onToggleInlineRestExpanded = { viewModel.toggleRestMinimized() },
+                                    onAdjustInlineRest = { viewModel.addPreparationRestTime(it) },
+                                    onToggleInlineRestPause = { viewModel.toggleRestPause() },
                                     recordActionHolder = recordActionHolder,
                                     recordActionScopeOwner = recordActionScopeOwner,
                                     recordActionPageKey = recordActionPageKey,
@@ -2591,32 +2631,16 @@ internal fun WorkoutV2Body(
         }
     }
     if (uiState.showShortenSessionSheet) {
-        // Prototipo 02 (`shorten`): actual frente a propuesta en cifras grandes, el cambio por ejercicio y la confirmación.
-        com.example.kpkn.screens.workout.components.LiveSheet(title = "Acortar sesión", onDismiss = viewModel::hideShortenSessionSheet,
-            tag = "live-shorten-sheet", footer = null) { close ->
-            com.example.kpkn.screens.workout.components.LiveSheetSubtitle("Revisa una propuesta para el trabajo pendiente. Lo registrado se conserva.")
-            uiState.ultraFastPreview?.let { preview ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                    listOf("Actual" to preview.beforeSeconds / 60, "Propuesta" to preview.afterSeconds / 60).forEach { (label, minutes) ->
-                        Column(Modifier.weight(1f)) {
-                            Text(label.uppercase(), style = KpknType.caption.copy(fontSize = 10.sp, letterSpacing = .6.sp),
-                                color = WizardColors.textFaint)
-                            Text("$minutes min", Modifier.padding(top = 6.dp),
-                                style = KpknType.display.copy(fontSize = 27.sp, lineHeight = 31.sp), color = WizardColors.text)
-                        }
-                    }
-                }
-                preview.perExercise.forEach { change ->
-                    com.example.kpkn.screens.workout.components.LiveSheetInlineNote(
-                        change.exerciseName + ": " + change.beforeSets + " → " + change.afterSets + " series · " + change.afterTechnique)
-                }
-                com.example.kpkn.screens.workout.components.LiveSheetPrimary("Aplicar propuesta", { viewModel.applyUltraFast() },
-                    Modifier.padding(top = 8.dp), enabled = uiState.recordingSetKey == null)
-            }
-            com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Registro rápido de una serie", viewModel::openQuickRecording,
-                Modifier.padding(top = 12.dp), icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Check)
-            com.example.kpkn.screens.workout.components.LiveSheetTextAction("Cancelar", close)
-        }
+        // «Acortar sesión»: objetivo en píldoras y una línea por cambio que se puede excluir (la propuesta la calcula el ViewModel).
+        com.example.kpkn.screens.workout.components.ShortenSessionSheet(
+            preview = uiState.ultraFastPreview,
+            applyEnabled = uiState.recordingSetKey == null,
+            onGoal = viewModel::setShortenSessionGoal,
+            onToggleItem = viewModel::toggleShortenSessionItem,
+            onApply = { viewModel.applyUltraFast() },
+            onQuickRecord = viewModel::openQuickRecording,
+            onDismiss = viewModel::hideShortenSessionSheet,
+        )
     }
     if (uiState.showUltraFastSheet) {
         val quickExercise = currentExercise

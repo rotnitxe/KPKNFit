@@ -47,6 +47,14 @@ fun mobilityBodyRegionLabel(value: String): String = when (value.lowercase()) {
     "knee" -> "Rodilla"
     "ankle" -> "Tobillo"
     "foot" -> "Pie"
+    // Claves que llegan de otros catálogos (generador, editor): sin esto se enseñaban en inglés.
+    "lower" -> "Tren inferior"
+    "core" -> "Tronco"
+    "thoracic", "thoracic_spine", "upper_back" -> "Columna torácica"
+    "back" -> "Espalda"
+    "lumbar", "lower_back" -> "Zona lumbar"
+    "chest" -> "Pecho"
+    "glute", "glutes" -> "Glúteo"
     else -> value.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
 }
 

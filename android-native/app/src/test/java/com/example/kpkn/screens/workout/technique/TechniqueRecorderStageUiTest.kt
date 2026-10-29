@@ -19,6 +19,10 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import com.example.kpkn.domain.biomechanics.framing.FramingInstruction
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextEquals
@@ -124,7 +128,7 @@ class TechniqueRecorderStageUiTest {
         val controls = rule.onNodeWithTag("technique_controls").fetchSemanticsNode().boundsInRoot
         assertTrue("La guía tapa los controles", guide.bottom < controls.top)
         assertTrue("La guía tapa REC", guide.bottom < record.top)
-        assertTrue(record.width >= 48f * 3f && record.height >= 48f * 3f)
+        assertTrue("REC por debajo de 48 dp: $record", record.width >= 48f * 3f && record.height >= 48f * 3f)
         rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult), useUnmergedTree = true)
             .fetchSemanticsNodes().forEach { node ->
                 val layouts = mutableListOf<TextLayoutResult>()
@@ -210,7 +214,11 @@ class TechniqueRecorderStageUiTest {
 
     @Test fun sin_veredicto_permite_grabar_con_error_explicito() {
         show(1f, status = FramingCheckStatus.UNAVAILABLE, canRecord = true)
-        rule.onNodeWithText("No se pudo comprobar el encuadre", useUnmergedTree = true).assertExists()
+        // El chip del encuadre da la frase completa de la guía; el subtítulo hablado dice lo mismo.
+        rule.onNode(hasText(FramingInstruction.UNAVAILABLE_SPEECH) and hasAnyAncestor(hasTestTag("technique_framing")),
+            useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("technique_spoken_caption", useUnmergedTree = true)
+            .assertTextEquals(FramingInstruction.UNAVAILABLE_SPEECH)
         rule.onNodeWithTag("technique_capture_title").assertTextEquals("Listo para grabar")
         rule.onNodeWithTag("technique_capture_hint")
             .assertTextEquals("No se pudo comprobar el encuadre; puedes grabar igualmente")

@@ -26,9 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasContentDescription
@@ -50,6 +52,12 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.workout.components.liveModeExercise
 import com.example.kpkn.data.models.TrainingMode
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.hasTestTag
 import com.example.kpkn.screens.workout.components.MobilityPhaseLiveCard
 import com.example.kpkn.screens.workout.components.PrepLiveCardTag
 import com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard
@@ -70,7 +78,7 @@ import org.robolectric.annotation.GraphicsMode
 
 /**
  * LV-C: las tarjetas de aproximación (H5) y movilidad (H6) en el marco real de la sesión en vivo. Cada control vive DENTRO de la
- * tarjeta de 312 × 394 dp, a 880 y a 740 dp de alto y con la letra al 100 % y al 130 %.
+ * tarjeta de 312 dp de ancho y alto según `liveSessionCardHeightDp` (394 dp, o 430 dp con pantalla alta), a 880 y a 740 dp de alto y con la letra al 100 % y al 130 %.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -107,13 +115,22 @@ class PrepLiveCardsUiTest {
         }
     }
 
+    /** Alto esperado de la tarjeta (dp) para un viewport de 360 dp de ancho y `height` dp de alto, calculado con la regla de producción. */
+    private fun cardHeight(height: Int): Float = liveSessionCardHeightDp(360, height).value
+
     // ---- Escena: cabecera, relator, tarjeta y línea ---------------------------------------------------------------------
 
     private fun scene(height: Int, font: Float = 1f, card: @Composable () -> Unit) {
         rule.setContent {
             view = LocalView.current
             density = LocalDensity.current.density
+            // El viewport emulado manda también sobre la configuración: la tarjeta decide su alto con `screenHeightDp`.
+            val baseConfiguration = LocalConfiguration.current
+            val viewportConfiguration = remember(baseConfiguration, height) {
+                android.content.res.Configuration(baseConfiguration).apply { screenHeightDp = height }
+            }
             CompositionLocalProvider(
+                LocalConfiguration provides viewportConfiguration,
                 LocalDensity provides Density(density, font),
                 LocalWizardReducedMotion provides true,
                 LocalKpknOverlayHost provides null,
@@ -125,7 +142,7 @@ class PrepLiveCardsUiTest {
                             var headerPx by remember { mutableIntStateOf(0) }
                             val localDensity = LocalDensity.current
                             val header = with(localDensity) { headerPx.toDp() }
-                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 394f, 144f).dp
+                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, cardHeight(height), 144f).dp
                             Box(
                                 Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                                     .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } },
@@ -158,8 +175,10 @@ class PrepLiveCardsUiTest {
     }
 
     private fun bounds(tag: String): Rect = rule.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-    private fun boundsOfDescription(text: String): Rect =
-        rule.onNode(hasContentDescription(text), useUnmergedTree = false).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+    private fun nodeOfTag(tag: String): SemanticsNode = rule.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+    private fun nodeOfDescription(text: String): SemanticsNode =
+        rule.onNode(hasContentDescription(text), useUnmergedTree = false).assertIsDisplayed().fetchSemanticsNode()
+    private fun boundsOfDescription(text: String): Rect = nodeOfDescription(text).boundsInRoot
     private fun boundsOfText(text: String): Rect =
         rule.onNode(hasText(text), useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
 
@@ -172,18 +191,31 @@ class PrepLiveCardsUiTest {
         )
     }
 
-    private fun assertTouch(name: String, b: Rect) {
-        assertTrue("$name mide al menos 48 dp de ancho (${b.width / density})", b.width / density >= 47.5f)
-        assertTrue("$name mide al menos 48 dp de alto (${b.height / density})", b.height / density >= 47.5f)
+    /** Zona que realmente recibe el toque: el visual puede ser menor, Compose añade hasta los 48 dp mínimos alrededor. */
+    private fun assertTouch(name: String, node: SemanticsNode) {
+        val b = node.touchBoundsInRoot
+        assertTrue("$name mide al menos 48 dp de ancho táctil (${b.width / density})", b.width / density >= 47.5f)
+        assertTrue("$name mide al menos 48 dp de alto táctil (${b.height / density})", b.height / density >= 47.5f)
     }
 
-    /** La tarjeta mide 312 × 394 dp, llena el marco y no hay nada pulsable entre el relator y ella ni entre ella y la línea. */
+    /** El mensaje de estado ya no es una línea visible: se anuncia como estado de la zona, con región viva cortés. */
+    private fun assertStatus(tag: String, expected: String) {
+        rule.onNodeWithTag(tag)
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, expected))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+    }
+
+    private fun assertNoStatus(tag: String) {
+        rule.onNodeWithTag(tag).assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription))
+    }
+
+    /** La tarjeta mide 312 dp de ancho y lo que dice `liveSessionCardHeightDp` para el viewport (394 dp, o 430 dp con pantalla alta), llena el marco y no hay nada pulsable entre el relator y ella ni entre ella y la línea. */
     private fun assertFrame(height: Int): Rect {
         val frame = bounds("live-card-frame")
         val card = bounds(PrepLiveCardTag)
         println("LV-C marco a $height dp: frame=$frame card=$card density=$density")
         assertEquals("ancho de la tarjeta a $height", 312f, frame.width / density, .5f)
-        assertEquals("alto de la tarjeta a $height", 394f, frame.height / density, .5f)
+        assertEquals("alto de la tarjeta a $height", cardHeight(height), frame.height / density, .5f)
         assertEquals(frame.width, card.width, 1.5f)
         assertEquals(frame.height, card.height, 1.5f)
         assertEquals(frame.left, card.left, 1.5f)
@@ -219,6 +251,8 @@ class PrepLiveCardsUiTest {
         var drafts = mutableListOf<String>()
         var deferCommit = false
         val holder = RecordActionHolder()
+        val fab = RecordFabHolder()
+        var active by mutableStateOf(true)
         val scope = Any()
     }
 
@@ -251,7 +285,8 @@ class PrepLiveCardsUiTest {
                 recordActionHolder = h.holder,
                 recordActionScopeOwner = h.scope,
                 recordActionPageKey = "warmup-page",
-                isActivePage = true,
+                recordFabHolder = h.fab,
+                isActivePage = h.active,
                 onWeightDraft = { _, text -> h.drafts += text },
                 workingWeightKg = working,
                 effectiveSetCount = effectiveSets,
@@ -259,88 +294,126 @@ class PrepLiveCardsUiTest {
         }
     }
 
-    private fun assertWarmupControlsInside(height: Int, rest: Boolean) {
-        val card = assertFrame(height)
-        listOf("Añadir aproximación").forEach {
-            val b = boundsOfDescription(it)
-            assertInside(card, it, b); assertTouch(it, b)
-        }
-        val skip = bounds("prep-skip"); assertInside(card, "Saltar fase", skip); assertTouch("Saltar fase", skip)
-        assertInside(card, "mensajes", bounds("prep-status"))
-        assertInside(card, "lista", bounds("warmup-list"))
-        if (rest) {
-            assertInside(card, "descanso", bounds("prep-rest"))
-            val b = bounds("prep-rest-skip"); assertInside(card, "Saltar descanso", b); assertTouch("Saltar descanso", b)
-        }
-        // Con el descanso a la vista la lista se acorta y las filas de abajo se desplazan: solo cuentan las visibles enteras.
-        (1..(if (rest) 1 else 3)).forEach { n ->
-            val check = boundsOfDescription("Marcar hecha aproximación $n")
-            assertInside(card, "marca $n", check); assertTouch("marca $n", check)
-            val field = boundsOfDescription("Carga de aproximación $n en kg")
-            assertInside(card, "kg $n", field)
-        }
-        rule.onNodeWithText("Aproximación").assertIsDisplayed()
-        rule.onNodeWithText("Primera serie efectiva · 100 kg").assertIsDisplayed()
+    /** El botón principal del roadmap: lo que hace al pulsarlo y lo que dice (la tarjeta ya no tiene botones de registrar/avanzar). */
+    private fun roadmapPress(holder: RecordActionHolder) {
+        rule.runOnIdle { holder.action?.invoke() }
+        rule.waitForIdle()
     }
 
-    @Test fun h5ControlsStayInsideTheCardAt880() { showWarmup(WarmupHarness(threeRows())); assertWarmupControlsInside(880, false) }
-    @Test fun h5ControlsStayInsideTheCardAt740() { showWarmup(WarmupHarness(threeRows()), 740); assertWarmupControlsInside(740, false) }
-    @Test fun h5ControlsStayInsideTheCardAt880WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 880, 1.3f); assertWarmupControlsInside(880, false) }
-    @Test fun h5ControlsStayInsideTheCardAt740WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 740, 1.3f); assertWarmupControlsInside(740, false) }
+    private fun assertRoadmapLabel(fab: RecordFabHolder, expected: String) {
+        rule.waitForIdle()
+        assertEquals(expected, fab.label)
+    }
+
+    /** Los botones de registrar/avanzar propios de las tarjetas de preparación ya no existen: solo queda «Omitir» mientras la fase sigue viva. */
+    private fun assertNoOwnRecordButtons() {
+        rule.onNodeWithTag("prep-go-working").assertDoesNotExist()
+        rule.onNodeWithTag("prep-continue").assertDoesNotExist()
+        rule.onNodeWithTag("mob-done").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Marcar hecho y avanzar al siguiente movimiento").assertDoesNotExist()
+        rule.onNodeWithText("Ir a efectivas").assertDoesNotExist()
+        rule.onNodeWithText("Continuar").assertDoesNotExist()
+        rule.onNodeWithText("Ir a las series").assertDoesNotExist()
+        rule.onNodeWithText("Ir a la aproximación").assertDoesNotExist()
+    }
+
+    private fun assertWarmupControlsInside(height: Int, h: WarmupHarness) {
+        val card = assertFrame(height)
+        val add = nodeOfDescription("Añadir aproximación")
+        assertInside(card, "Añadir aproximación", add.boundsInRoot); assertTouch("Añadir aproximación", add)
+        val skip = nodeOfTag("prep-skip"); assertInside(card, "Omitir", skip.boundsInRoot); assertTouch("Omitir", skip)
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+        assertInside(card, "lista", bounds("warmup-list"))
+        assertInside(card, "referencia de trabajo", bounds("warmup-anchor"))
+        assertInside(card, "Ajustar", bounds("warmup-adjust"))
+        (1..3).forEach { n ->
+            val check = nodeOfDescription("Completar aproximación A$n")
+            assertInside(card, "marca A$n", check.boundsInRoot); assertTouch("marca A$n", check)
+        }
+        rule.onNodeWithText("APROXIMACIONES").assertIsDisplayed()
+        rule.onNodeWithText("Acércate a tu carga.").assertIsDisplayed()
+        rule.onNodeWithTag("warmup-anchor").assertTextEquals("Trabajo · 100 kg")
+    }
+
+    /** El descanso corto sustituye el contenido de la tarjeta: reloj, siguiente aproximación y «Terminar descanso» en el pie. */
+    private fun assertRestInside(height: Int, kicker: String, time: String) {
+        val card = assertFrame(height)
+        val end = nodeOfTag("prep-rest-skip"); assertInside(card, "Terminar descanso", end.boundsInRoot); assertTouch("Terminar descanso", end)
+        assertInside(card, "reloj del descanso", bounds("rest-eclipse"))
+        assertInside(card, "siguiente", bounds("rest-next"))
+        rule.onNodeWithTag("rest-kicker", useUnmergedTree = true).assertTextEquals(kicker)
+        rule.onNodeWithTag("rest-eclipse-clock", useUnmergedTree = true).assertTextEquals(time)
+    }
+
+    private fun setWarmupKg(index: Int, percent: String, reps: Int, text: String) {
+        rule.onNodeWithTag("warmup-adjust").performClick()
+        rule.onNode(hasContentDescription("A${index + 1} · $percent · × $reps · kg") and hasSetTextAction()).performTextReplacement(text)
+        rule.onNodeWithText("Listo").performClick()
+        rule.waitForIdle()
+    }
+
+    @Test fun h5ControlsStayInsideTheCardAt880() { val h = WarmupHarness(threeRows()); showWarmup(h); assertWarmupControlsInside(880, h) }
+    @Test fun h5ControlsStayInsideTheCardAt740() { val h = WarmupHarness(threeRows()); showWarmup(h, 740); assertWarmupControlsInside(740, h) }
+    @Test fun h5ControlsStayInsideTheCardAt880WithLargeFont() { val h = WarmupHarness(threeRows()); showWarmup(h, 880, 1.3f); assertWarmupControlsInside(880, h) }
+    @Test fun h5ControlsStayInsideTheCardAt740WithLargeFont() { val h = WarmupHarness(threeRows()); showWarmup(h, 740, 1.3f); assertWarmupControlsInside(740, h) }
 
     @Test fun h5ShortRestStaysInsideAt740() {
         val h = WarmupHarness(threeRows()); h.restSeconds = 45
         showWarmup(h, 740)
-        assertWarmupControlsInside(740, true)
-        rule.onNodeWithTag("prep-rest-time", useUnmergedTree = true).assertTextEquals("0:45")
-        rule.onNodeWithContentDescription("Saltar descanso").performClick()
+        assertRestInside(740, "DESCANSO · APROX.", "0:45")
+        rule.onNodeWithText("Aproximación A1").assertIsDisplayed()
+        rule.onNodeWithText("50 kg × 8").assertIsDisplayed()
+        rule.onNodeWithTag("prep-rest-skip").performClick()
         assertEquals(1, h.restSkips)
-        rule.onNodeWithTag("prep-rest", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag("rest-eclipse", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag("warmup-list").assertIsDisplayed()
     }
 
     @Test fun h5ShortRestStaysInsideAt880WithLargeFont() {
         val h = WarmupHarness(threeRows()); h.restSeconds = 45
         showWarmup(h, 880, 1.3f)
-        assertWarmupControlsInside(880, true)
+        assertRestInside(880, "DESCANSO · APROX.", "0:45")
     }
 
     @Test fun h5KgAcceptsACommaAndTheMessageSaysSo() {
         val h = WarmupHarness(threeRows())
         showWarmup(h)
-        rule.onNode(hasContentDescription("Carga de aproximación 1 en kg") and hasSetTextAction()).performTextReplacement("62,5")
+        // Los kg de cada aproximación se ajustan en la hoja «Carga de las aproximaciones», con coma decimal.
+        setWarmupKg(0, "50 %", 8, "62,5")
         assertEquals("62,5", h.drafts.last())
-        rule.onNodeWithContentDescription("Marcar hecha aproximación 1").performClick()
+        rule.onNodeWithContentDescription("Completar aproximación A1").performClick()
         rule.waitForIdle()
         assertEquals(0 to 62.5, h.recorded)
-        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación 1 hecha · 62,5 kg × 8")
-        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("1/3")
+        assertStatus("warmup-list", "Aproximación 1 hecha · 62,5 kg × 8")
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("1 / 3")
         // Desmarcar la devuelve a pendiente.
-        rule.onNodeWithContentDescription("Desmarcar aproximación 1").performClick()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación pendiente")
-        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0/3")
+        rule.onNodeWithContentDescription("Desmarcar aproximación A1").performClick()
+        assertStatus("warmup-list", "Aproximación pendiente")
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0 / 3")
     }
 
     @Test fun h5WaitsForCommittedRowsBeforeClaimingCompletion() {
         val h = WarmupHarness(threeRows()).apply { deferCommit = true }
         showWarmup(h)
-        rule.onNode(hasContentDescription("Carga de aproximación 1 en kg") and hasSetTextAction()).performTextReplacement("62,5")
-        rule.onNodeWithContentDescription("Marcar hecha aproximación 1").performClick()
-        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0/3")
-        rule.onNodeWithTag("prep-status").assertTextEquals("Marca cada aproximación al terminar.")
+        setWarmupKg(0, "50 %", 8, "62,5")
+        rule.onNodeWithContentDescription("Completar aproximación A1").performClick()
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0 / 3")
+        // Sin filas confirmadas no hay mensaje de hecha.
+        assertNoStatus("warmup-list")
         rule.runOnIdle { h.rows[0] = h.rows[0].copy(isCompleted = true, actualWeightKg = 62.5) }
-        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("1/3")
-        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación 1 hecha · 62,5 kg × 8")
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("1 / 3")
+        assertStatus("warmup-list", "Aproximación 1 hecha · 62,5 kg × 8")
     }
 
-    @Test fun h5ShowsRealValuesPercentRepsAndRest() {
+    @Test fun h5ShowsRealValuesPercentAndReps() {
         showWarmup(WarmupHarness(threeRows()))
-        rule.onNodeWithText("A1 · 50 %").assertIsDisplayed()
-        rule.onNodeWithText("A3 · 70 %").assertIsDisplayed()
-        rule.onNodeWithText("× 8").assertIsDisplayed()
-        rule.onNodeWithText("× 4").assertIsDisplayed()
-        // 60 s de descanso cuando la aproximación no trae el suyo, y el suyo (90 s) cuando lo trae.
-        assertTrue(rule.onAllNodesWithText("1:00").fetchSemanticsNodes().size >= 2)
-        rule.onNodeWithText("1:30").assertIsDisplayed()
+        rule.onNodeWithText("A1").assertIsDisplayed()
+        rule.onNodeWithText("50 %").assertIsDisplayed()
+        rule.onNodeWithText("50 kg × 8").assertIsDisplayed()
+        rule.onNodeWithText("A3").assertIsDisplayed()
+        rule.onNodeWithText("70 %").assertIsDisplayed()
+        rule.onNodeWithText("70 kg × 4").assertIsDisplayed()
     }
 
     @Test fun h5AddAppendsARowAndReportsIt() {
@@ -350,8 +423,8 @@ class PrepLiveCardsUiTest {
         rule.waitForIdle()
         assertEquals(1, h.adds)
         assertEquals(4, h.rows.size)
-        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación añadida")
-        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0/4")
+        assertStatus("warmup-list", "Aproximación añadida")
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0 / 4")
     }
 
     @Test fun h5AddingBeyondTheRecommendedMaxUsesTheWarmupRulesText() {
@@ -360,8 +433,7 @@ class PrepLiveCardsUiTest {
         showWarmup(h, effectiveSets = 1)
         rule.onNodeWithContentDescription("Añadir aproximación").performClick()
         rule.waitForIdle()
-        rule.onNodeWithTag("prep-status")
-            .assertTextEquals("Demasiadas aproximaciones: máximo recomendado 4 para 1 series efectivas.")
+        assertStatus("warmup-list", "Demasiadas aproximaciones: máximo recomendado 4 para 1 series efectivas.")
     }
 
     @Test fun h5AddingAtEightyFivePercentOrMoreWarnsLikeTheEditor() {
@@ -370,8 +442,7 @@ class PrepLiveCardsUiTest {
         rule.onNodeWithContentDescription("Añadir aproximación").performClick()
         rule.waitForIdle()
         // 80 % + 15 puntos, con tope de 90 %: la nueva queda por encima del 85 %.
-        rule.onNodeWithTag("prep-status")
-            .assertTextEquals("Una aproximación al 85% o más puede comportarse como una serie efectiva; revisa su carga y repeticiones.")
+        assertStatus("warmup-list", "Una aproximación al 85% o más puede comportarse como una serie efectiva; revisa su carga y repeticiones.")
     }
 
     @Test fun h5SkipPhaseStopsAndShowsTheOmittedPage() {
@@ -382,47 +453,86 @@ class PrepLiveCardsUiTest {
         assertEquals(1, h.skips)
         rule.onNodeWithText("Fase omitida").assertIsDisplayed()
         rule.onNodeWithText("Las series efectivas siguen pendientes.").assertIsDisplayed()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Fase de aproximación omitida")
-        rule.onNodeWithTag("prep-continue").performClick()
+        assertStatus("warmup-skipped-pane", "Fase de aproximación omitida")
+        // Omitida no hay pie ni botón propio: seguir a las series es el botón del roadmap.
+        rule.onNodeWithTag("prep-skip").assertDoesNotExist()
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Ir a las series")
+        assertEquals(0, h.continues)
+        roadmapPress(h.holder)
         assertEquals(1, h.continues)
     }
 
-    @Test fun h5MarkingEverythingOffersContinueAndHidesSkip() {
+    @Test fun h5MarkingEverythingOffersContinueInTheRoadmapAndHidesSkip() {
         val h = WarmupHarness(threeRows())
         showWarmup(h)
-        (1..3).forEach { rule.onNodeWithContentDescription("Marcar hecha aproximación $it").performClick() }
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+        (1..3).forEach { rule.onNodeWithContentDescription("Completar aproximación A$it").performClick() }
         rule.waitForIdle()
         rule.onNodeWithTag("prep-skip").assertDoesNotExist()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación 3 hecha · 70 kg × 4")
-        rule.onNodeWithTag("prep-continue").assertIsDisplayed().performClick()
+        assertStatus("warmup-list", "Aproximación 3 hecha · 70 kg × 4")
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Ir a las series")
+        assertEquals(0, h.continues)
+        roadmapPress(h.holder)
         assertEquals(1, h.continues)
-        assertInside(bounds(PrepLiveCardTag), "Continuar", bounds("prep-continue"))
     }
 
-    @Test fun h5LongListScrollsInsideTheCard() {
+    @Test fun h5RoadmapLabelFollowsTheFirstPendingRow() {
+        val h = WarmupHarness(threeRows())
+        showWarmup(h)
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+        rule.onNodeWithContentDescription("Completar aproximación A1").performClick()
+        assertRoadmapLabel(h.fab, "Registrar aproximación A2")
+        // Marcar A3 antes que A2 no cambia la primera pendiente.
+        rule.onNodeWithContentDescription("Completar aproximación A3").performClick()
+        assertRoadmapLabel(h.fab, "Registrar aproximación A2")
+        rule.onNodeWithContentDescription("Completar aproximación A2").performClick()
+        assertRoadmapLabel(h.fab, "Ir a las series")
+    }
+
+    @Test fun h5RoadmapLabelIsClearedWhenThePageIsNotActive() {
+        val h = WarmupHarness(threeRows())
+        showWarmup(h)
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+        rule.runOnIdle { h.active = false }
+        rule.waitForIdle()
+        assertEquals(null, h.fab.label)
+        assertEquals(null, h.holder.action)
+        rule.runOnIdle { h.active = true }
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+    }
+
+    @Test fun h5LongListPagesInsideTheCard() {
+        // La lista muestra tres filas por página y se recorre con la paginación del pie, siempre dentro de la tarjeta.
         val rows = (0 until 12).map { warmupRow(it, 0.3 + it * 0.05, 5) }
         val h = WarmupHarness(rows)
         showWarmup(h, 740)
         val card = assertFrame(740)
         val list = bounds("warmup-list")
         assertInside(card, "lista", list)
-        rule.onNodeWithContentDescription("Marcar hecha aproximación 12").assertIsNotDisplayed()
-        rule.onNodeWithTag("warmup-list").performScrollToNode(hasContentDescription("Marcar hecha aproximación 12"))
-        val last = boundsOfDescription("Marcar hecha aproximación 12")
-        assertTrue("La última fila queda dentro de la lista tras desplazar: $last frente a $list",
+        rule.onNodeWithContentDescription("Completar aproximación A12").assertDoesNotExist()
+        rule.onNodeWithText("1/4").assertIsDisplayed()
+        val next = nodeOfDescription("Página siguiente")
+        assertInside(card, "Página siguiente", next.boundsInRoot); assertTouch("Página siguiente", next)
+        repeat(3) { rule.onNodeWithContentDescription("Página siguiente").performClick() }
+        rule.onNodeWithText("4/4").assertIsDisplayed()
+        val last = boundsOfDescription("Completar aproximación A12")
+        assertTrue("La última fila queda dentro de la lista en su página: $last frente a $list",
             last.top >= list.top - 1.5f && last.bottom <= list.bottom + 1.5f)
-        // El pie y los mensajes no se mueven con la lista.
-        assertInside(card, "Saltar fase", bounds("prep-skip"))
-        assertInside(card, "mensajes", bounds("prep-status"))
+        // El pie y la paginación no se mueven con la lista.
+        assertInside(card, "Omitir", bounds("prep-skip"))
+        assertInside(card, "Página anterior", boundsOfDescription("Página anterior"))
     }
 
-    @Test fun h5CheckInTheLineMarksTheNextRow() {
+    @Test fun h5RoadmapActionMarksTheNextRow() {
         val h = WarmupHarness(threeRows())
         showWarmup(h)
-        rule.runOnIdle { h.holder.action?.invoke() }
-        rule.waitForIdle()
+        assertRoadmapLabel(h.fab, "Registrar aproximación A1")
+        roadmapPress(h.holder)
         assertEquals(0 to 50.0, h.recorded)
         assertTrue(h.rows[0].isCompleted)
+        assertRoadmapLabel(h.fab, "Registrar aproximación A2")
     }
 
     // ---- H6 · movilidad -------------------------------------------------------------------------------------------------
@@ -440,6 +550,8 @@ class PrepLiveCardsUiTest {
         var continues = 0
         var restSeconds by mutableIntStateOf(-1)
         val holder = RecordActionHolder()
+        val fab = RecordFabHolder()
+        var active by mutableStateOf(true)
         val scope = Any()
     }
 
@@ -469,86 +581,106 @@ class PrepLiveCardsUiTest {
                 recordActionHolder = h.holder,
                 recordActionScopeOwner = h.scope,
                 recordActionPageKey = "mobility-page",
-                isActivePage = true,
+                recordFabHolder = h.fab,
+                isActivePage = h.active,
                 nextIsWarmup = nextIsWarmup,
             )
         }
     }
 
-    private fun assertMobilityControlsInside(height: Int, rest: Boolean = false) {
-        val card = assertFrame(height)
-        listOf("Abrir reloj global de movilidad", "Ver lista de movimientos", "Marcar hecho y avanzar al siguiente movimiento").forEach {
-            val b = boundsOfDescription(it); assertInside(card, it, b); assertTouch(it, b)
-        }
-        val skip = bounds("prep-skip"); assertInside(card, "Saltar fase", skip); assertTouch("Saltar fase", skip)
-        assertInside(card, "mensajes", bounds("prep-status"))
-        assertInside(card, "panel del movimiento", bounds("mob-movement-pane"))
-        if (rest) {
-            assertInside(card, "descanso", bounds("prep-rest"))
-            val b = bounds("prep-rest-skip"); assertInside(card, "Saltar descanso", b); assertTouch("Saltar descanso", b)
-        }
-        rule.onNodeWithText("Movilidad").assertIsDisplayed()
-    }
 
-    private fun selectFromList(name: String) {
-        rule.onNodeWithContentDescription("Ver lista de movimientos").performClick()
-        rule.onNodeWithContentDescription("Seleccionar $name").performClick()
+    /** Pestañas de la tarjeta: Checklist (la que abre), Movimiento (0) y Articulaciones (2). */
+    private fun openMovement() { rule.onNodeWithTag("mob-view-0").performClick() }
+
+    /** La guía de un movimiento (con su reloj, si es de tiempo) vive en su hoja; se abre desde el «i» de la fila del Checklist. */
+    private fun openGuide(name: String) {
+        rule.onNodeWithContentDescription("Detalle de $name").performClick()
         rule.waitForIdle()
     }
 
-    @Test fun h6RepsMovementControlsStayInsideAt880() { showMobility(MobilityHarness(mobilityItems())); assertMobilityControlsInside(880) }
-    @Test fun h6RepsMovementControlsStayInsideAt740() { showMobility(MobilityHarness(mobilityItems()), 740); assertMobilityControlsInside(740) }
-    @Test fun h6RepsMovementControlsStayInsideAt880WithLargeFont() { showMobility(MobilityHarness(mobilityItems()), 880, 1.3f); assertMobilityControlsInside(880) }
-    @Test fun h6RepsMovementControlsStayInsideAt740WithLargeFont() { showMobility(MobilityHarness(mobilityItems()), 740, 1.3f); assertMobilityControlsInside(740) }
+    private fun assertMobilityControlsInside(height: Int, h: MobilityHarness) {
+        val card = assertFrame(height)
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Registrar movimiento 1")
+        val skip = nodeOfTag("prep-skip"); assertInside(card, "Omitir", skip.boundsInRoot); assertTouch("Omitir", skip)
+        (0..2).forEach { assertInside(card, "pestaña $it", bounds("mob-view-$it")) }
+        assertInside(card, "mensajes", bounds("mob-status"))
+        assertInside(card, "lista", bounds("mob-list-pane"))
+        rule.onNodeWithText("MOVILIDAD").assertIsDisplayed()
+        rule.onNodeWithText("Prepara el movimiento.").assertIsDisplayed()
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("0 / 3")
+        openMovement()
+        assertInside(card, "panel del movimiento", bounds("mob-movement-pane"))
+        val guide = nodeOfTag("mob-open-guide"); assertInside(card, "Ver guía", guide.boundsInRoot); assertTouch("Ver guía", guide)
+    }
 
-    @Test fun h6TimedMovementControlsStayInsideAt740WithLargeFont() {
-        showMobility(MobilityHarness(mobilityItems()), 740, 1.3f)
-        selectFromList("Movilidad de cadera")
-        assertMobilityControlsInside(740)
-        val card = bounds(PrepLiveCardTag)
-        listOf("Iniciar temporizador del movimiento", "Añadir treinta segundos al movimiento", "Reiniciar el temporizador del movimiento").forEach {
-            val b = boundsOfDescription(it); assertInside(card, it, b); assertTouch(it, b)
+    /** El descanso corto sustituye el contenido de la tarjeta de movilidad. */
+    private fun assertMobilityRestInside(height: Int) = assertRestInside(height, "DESCANSO · MOVILIDAD", "0:20")
+
+    @Test fun h6RepsMovementControlsStayInsideAt880() { val h = MobilityHarness(mobilityItems()); showMobility(h); assertMobilityControlsInside(880, h) }
+    @Test fun h6RepsMovementControlsStayInsideAt740() { val h = MobilityHarness(mobilityItems()); showMobility(h, 740); assertMobilityControlsInside(740, h) }
+    @Test fun h6RepsMovementControlsStayInsideAt880WithLargeFont() { val h = MobilityHarness(mobilityItems()); showMobility(h, 880, 1.3f); assertMobilityControlsInside(880, h) }
+    @Test fun h6RepsMovementControlsStayInsideAt740WithLargeFont() { val h = MobilityHarness(mobilityItems()); showMobility(h, 740, 1.3f); assertMobilityControlsInside(740, h) }
+
+    @Test fun h6TimedMovementClockLivesInTheGuideSheetWithTouchTargets() {
+        val h = MobilityHarness(mobilityItems())
+        showMobility(h, 740, 1.3f)
+        assertMobilityControlsInside(740, h)
+        rule.onNodeWithTag("mob-view-1").performClick()
+        openGuide("Movilidad de cadera")
+        listOf("mob-play", "mob-plus", "mob-reset").forEach {
+            val node = rule.onNodeWithTag(it).assertIsDisplayed().fetchSemanticsNode()
+            assertTouch(it, node)
         }
     }
 
     @Test fun h6ShortRestStaysInsideAt740() {
         val h = MobilityHarness(mobilityItems()); h.restSeconds = 20
         showMobility(h, 740)
-        assertMobilityControlsInside(740, rest = true)
+        assertMobilityRestInside(740)
+        rule.onNodeWithText("Gato-vaca").assertIsDisplayed()
+        rule.onNodeWithTag("prep-rest-skip").performClick()
+        rule.onNodeWithTag("rest-eclipse", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test fun h6ShowsTheExerciseNameWhenTheBlockMixesSeveralExercises() {
         val mixed = mobilityItems().mapIndexed { i, item -> if (i == 1) item.copy(exerciseId = "otro", exerciseName = "Peso muerto") else item }
         showMobility(MobilityHarness(mixed))
-        rule.onNodeWithText("Movimiento 1 de 3 · Sentadilla trasera").assertIsDisplayed()
+        rule.onNodeWithText("Gato-vaca · Sentadilla trasera").assertIsDisplayed()
+        rule.onNodeWithText("Movilidad de cadera · Peso muerto").assertIsDisplayed()
     }
 
     @Test fun h6ARepsMovementShowsItsDoseAndHasNoClock() {
         showMobility(MobilityHarness(mobilityItems()))
-        rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("10 reps")
-        rule.onNodeWithText("A tu ritmo").assertIsDisplayed()
-        rule.onNodeWithTag("mob-plus").assertDoesNotExist()
-        rule.onNodeWithTag("mob-play").assertDoesNotExist()
+        assertNoStatus("mob-status")
+        openMovement()
+        rule.onNodeWithTag("mob-movement-pane").assertIsDisplayed()
+        rule.onNodeWithText("10 reps").assertIsDisplayed()
+        rule.onNodeWithText("Gato-vaca").assertIsDisplayed()
+        rule.onNodeWithTag("mob-open-guide").performClick()
+        rule.waitForIdle()
         rule.onNodeWithTag("mob-dose-summary", useUnmergedTree = true).assertTextEquals("10 reps")
-        rule.onNodeWithText("Movimiento 1 de 3").assertIsDisplayed()
         rule.onNodeWithText("Respira con calma.").assertIsDisplayed()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Completa cada movimiento para avanzar.")
+        rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithTag("mob-play").assertDoesNotExist()
+        rule.onNodeWithTag("mob-plus").assertDoesNotExist()
     }
 
     @Test fun h6MovementClockStartsPausesResetsAndFinishesWithoutAdvancing() {
         val h = MobilityHarness(mobilityItems())
         showMobility(h)
-        selectFromList("Movilidad de cadera")
+        openGuide("Movilidad de cadera")
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:30")
         rule.onNodeWithTag("mob-dose-summary", useUnmergedTree = true).assertTextEquals("30 s")
 
-        rule.onNodeWithContentDescription("Iniciar temporizador del movimiento").performClick()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Temporizador en marcha")
+        rule.onNodeWithTag("mob-play").performClick()
+        assertStatus("mob-status", "Temporizador en marcha")
         rule.mainClock.advanceTimeBy(10_100)
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:20")
 
-        rule.onNodeWithContentDescription("Pausar temporizador del movimiento").performClick()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Temporizador en pausa")
+        rule.onNodeWithTag("mob-play").performClick()
+        assertStatus("mob-status", "Temporizador en pausa")
         rule.mainClock.advanceTimeBy(10_000)
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:20")
 
@@ -557,105 +689,127 @@ class PrepLiveCardsUiTest {
 
         rule.onNodeWithTag("mob-reset").performClick()
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:30")
-        rule.onNodeWithTag("prep-status").assertTextEquals("Temporizador reiniciado")
+        assertStatus("mob-status", "Temporizador reiniciado")
 
         // Finalizar: llega a cero, avisa y NO avanza ni marca nada.
-        rule.onNodeWithContentDescription("Iniciar temporizador del movimiento").performClick()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Temporizador en marcha")
+        rule.onNodeWithTag("mob-play").performClick()
+        assertStatus("mob-status", "Temporizador en marcha")
         rule.mainClock.advanceTimeBy(31_500)
         rule.waitForIdle()
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:00")
-        rule.onNodeWithTag("prep-status").assertTextEquals("Tiempo cumplido. Marca el movimiento como hecho.")
-        rule.onNodeWithText("Movimiento 2 de 3").assertIsDisplayed()
+        assertStatus("mob-status", "Tiempo cumplido. Marca el movimiento como hecho.")
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("0 / 3")
         assertTrue("llegar a cero no marca el movimiento", h.toggles.isEmpty())
-        // Con el reloj global intacto: es independiente.
-        rule.onNodeWithText("5:00").assertIsDisplayed()
+        // El reloj del movimiento es propio de la tarjeta: no toca el de la sesión.
         assertEquals(0, h.starts)
     }
 
-    @Test fun h6DoneMarksTheMovementAndAdvancesToTheNext() {
+    @Test fun h6RoadmapActionMarksTheMovementAndAdvancesToTheNext() {
         val h = MobilityHarness(mobilityItems())
         showMobility(h)
-        rule.onNodeWithContentDescription("Marcar hecho y avanzar al siguiente movimiento").performClick()
-        rule.waitForIdle()
+        assertRoadmapLabel(h.fab, "Registrar movimiento 1")
+        roadmapPress(h.holder)
         assertEquals(listOf("m1" to true), h.toggles)
-        rule.onNodeWithTag("prep-status").assertTextEquals("Movimiento 1 hecho.")
-        rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertTextEquals("0:30")
-        rule.onNodeWithText("Movimiento 2 de 3").assertIsDisplayed()
+        assertStatus("mob-status", "Movimiento 1 hecho.")
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("1 / 3")
+        assertRoadmapLabel(h.fab, "Registrar movimiento 2")
+        // El movimiento en pantalla pasa al siguiente pendiente.
+        openMovement()
+        rule.onNodeWithText("Movilidad de cadera").assertIsDisplayed()
+    }
+
+    @Test fun h6RoadmapLabelEndsWithContinueToWarmup() {
+        val h = MobilityHarness(mobilityItems())
+        showMobility(h)
+        repeat(3) { roadmapPress(h.holder) }
+        assertEquals(listOf("m1" to true, "m2" to true, "m3" to true), h.toggles)
+        assertRoadmapLabel(h.fab, "Ir a la aproximación")
+        assertEquals(0, h.continues)
+        roadmapPress(h.holder)
+        assertEquals(1, h.continues)
+    }
+
+    @Test fun h6RoadmapLabelEndsWithContinueToSetsWhenNoWarmupFollows() {
+        val h = MobilityHarness(mobilityItems())
+        showMobility(h, nextIsWarmup = false)
+        repeat(3) { roadmapPress(h.holder) }
+        assertRoadmapLabel(h.fab, "Ir a las series")
+        roadmapPress(h.holder)
+        assertEquals(1, h.continues)
+    }
+
+    @Test fun h6RoadmapLabelIsClearedWhenThePageIsNotActive() {
+        val h = MobilityHarness(mobilityItems())
+        showMobility(h)
+        assertRoadmapLabel(h.fab, "Registrar movimiento 1")
+        rule.runOnIdle { h.active = false }
+        rule.waitForIdle()
+        assertEquals(null, h.fab.label)
+        assertEquals(null, h.holder.action)
+        rule.runOnIdle { h.active = true }
+        assertRoadmapLabel(h.fab, "Registrar movimiento 1")
+    }
+
+    @Test fun h6JointsShowTheZonesInSpanish() {
+        val zoned = mobilityItems().mapIndexed { i, item ->
+            when (i) {
+                0 -> item.copy(mobility = item.mobility.copy(bodyZones = listOf("lower", "thoracic_spine")))
+                1 -> item.copy(mobility = item.mobility.copy(bodyZones = listOf("hip", "lower")))
+                else -> item
+            }
+        }
+        showMobility(MobilityHarness(zoned))
+        rule.onNodeWithTag("mob-view-2").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Tren inferior").assertIsDisplayed()
+        rule.onNodeWithText("Columna torácica").assertIsDisplayed()
+        rule.onNodeWithText("Cadera").assertIsDisplayed()
+        rule.onNodeWithText("lower").assertDoesNotExist()
+        rule.onNodeWithText("thoracic_spine").assertDoesNotExist()
+        // La hoja de la zona usa el mismo rótulo en español.
+        rule.onNodeWithTag("mob-joint-lower").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("mob-joint-sheet", useUnmergedTree = true).assertExists()
+        // El título de la hoja y la fila de la lista dicen lo mismo: «Tren inferior», nunca «lower».
+        assertTrue(rule.onAllNodesWithText("Tren inferior", useUnmergedTree = true).fetchSemanticsNodes().size >= 2)
+        rule.onAllNodesWithText("lower", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test fun h6ListPageShowsEveryMovementAndMarksFromIt() {
         val h = MobilityHarness(mobilityItems())
         showMobility(h)
-        rule.onNodeWithContentDescription("Ver lista de movimientos").performClick()
-        rule.onNodeWithText("0/3 movimientos hechos").assertIsDisplayed()
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("0 / 3")
         rule.onNodeWithText("Gato-vaca").assertIsDisplayed()
         rule.onNodeWithText("Movilidad de cadera").assertIsDisplayed()
-        rule.onNodeWithText("30 s").assertIsDisplayed()
-        rule.onNodeWithText("8 reps").assertIsDisplayed()
+        rule.onNodeWithText("Bisagra con palo").assertIsDisplayed()
         val card = bounds(PrepLiveCardTag)
         assertInside(card, "lista", bounds("mob-list-pane"))
-        val check = boundsOfDescription("Marcar hecho Bisagra con palo"); assertTouch("marca de lista", check); assertInside(card, "marca de lista", check)
-        rule.onNodeWithContentDescription("Marcar hecho Bisagra con palo").performClick()
+        val row = nodeOfTag("mob-row-m3"); assertTouch("fila de lista", row); assertInside(card, "fila de lista", row.boundsInRoot)
+        rule.onNodeWithTag("mob-row-m3").performClick()
         rule.waitForIdle()
         assertEquals(listOf("m3" to true), h.toggles)
-        // Vuelve al movimiento (el primero pendiente) y la lista cuenta uno hecho.
-        rule.onNodeWithTag("mob-movement-pane").assertIsDisplayed()
-        rule.onNodeWithContentDescription("Ver lista de movimientos").performClick()
-        rule.onNodeWithText("1/3 movimientos hechos").assertIsDisplayed()
-        rule.onNodeWithContentDescription("Cerrar lista de movimientos").performClick()
-        rule.onNodeWithTag("mob-movement-pane").assertIsDisplayed()
+        assertStatus("mob-status", "Movimiento 3 hecho.")
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("1 / 3")
+        // Volver a tocar la fila la devuelve a pendiente.
+        rule.onNodeWithTag("mob-row-m3").performClick()
+        rule.waitForIdle()
+        assertEquals(listOf("m3" to true, "m3" to false), h.toggles)
+        assertStatus("mob-status", "Movimiento pendiente")
+        rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("0 / 3")
     }
 
     @Test fun h6LongListScrollsInsideTheCard() {
         val h = MobilityHarness(mobilityItems(14))
         showMobility(h, 740)
-        rule.onNodeWithContentDescription("Ver lista de movimientos").performClick()
         val card = assertFrame(740)
         val list = bounds("mob-list-pane")
         assertInside(card, "lista", list)
-        rule.onNodeWithContentDescription("Seleccionar Movimiento largo 14").assertIsNotDisplayed()
-        rule.onNodeWithTag("mob-list-pane").performScrollToNode(hasContentDescription("Seleccionar Movimiento largo 14"))
-        val last = boundsOfDescription("Seleccionar Movimiento largo 14")
+        rule.onNodeWithTag("mob-row-m14").assertIsNotDisplayed()
+        rule.onNodeWithTag("mob-list-pane").performScrollToNode(hasTestTag("mob-row-m14"))
+        val last = bounds("mob-row-m14")
         assertTrue("La última fila queda dentro de la lista tras desplazar", last.top >= list.top - 1.5f && last.bottom <= list.bottom + 1.5f)
-        assertInside(card, "Saltar fase", bounds("prep-skip"))
-        assertInside(card, "mensajes", bounds("prep-status"))
-    }
-
-    @Test fun h6GlobalClockPageHasItsOwnIndependentControls() {
-        val h = MobilityHarness(mobilityItems())
-        showMobility(h, 740)
-        rule.onNodeWithContentDescription("Abrir reloj global de movilidad").performClick()
-        val card = assertFrame(740)
-        rule.onNodeWithText("Objetivo global · 5 min").assertIsDisplayed()
-        rule.onNodeWithTag("mob-global-time", useUnmergedTree = true).assertTextEquals("5:00")
-        // Si la página no cupiera entera, el último botón se alcanza desplazando por dentro de la tarjeta.
-        rule.onNodeWithTag("mob-global-pane").performScrollToNode(androidx.compose.ui.test.hasTestTag("mob-global-back"))
-        listOf("mob-global-play", "mob-global-plus", "mob-global-reset", "mob-global-back").forEach {
-            val b = bounds(it); assertInside(card, it, b); assertTouch(it, b)
-        }
-        rule.onNodeWithTag("mob-global-play").performClick()
-        assertEquals(1, h.starts)
-        rule.onNodeWithContentDescription("Pausar temporizador global").performClick()
-        assertEquals(1, h.pauses)
-        rule.onNodeWithTag("mob-global-plus").performClick()
-        assertEquals(listOf(30), h.added)
-        rule.onNodeWithTag("mob-global-time", useUnmergedTree = true).assertTextEquals("5:30")
-        rule.onNodeWithTag("mob-global-reset").performClick()
-        assertEquals(1, h.resets)
-        rule.onNodeWithTag("mob-global-time", useUnmergedTree = true).assertTextEquals("5:00")
-        // El reloj del movimiento no se tocó: sigue sin marcar nada y vuelve a su página.
-        rule.onNodeWithTag("mob-global-back").performClick()
-        rule.onNodeWithTag("mob-movement-pane").assertIsDisplayed()
-        assertTrue(h.toggles.isEmpty())
-    }
-
-    @Test fun h6GlobalClockReachingZeroOffersToStartAgain() {
-        val h = MobilityHarness(mobilityItems()); h.globalRemaining = 0
-        showMobility(h)
-        rule.onNodeWithContentDescription("Abrir reloj global de movilidad").performClick()
-        rule.onNodeWithTag("mob-global-time", useUnmergedTree = true).assertTextEquals("0:00")
-        rule.onNodeWithContentDescription("Iniciar temporizador global").assertIsDisplayed()
+        assertInside(card, "Omitir", bounds("prep-skip"))
+        assertInside(card, "mensajes", bounds("mob-status"))
     }
 
     @Test fun h6SkipPhaseCallsTheSkipAndShowsTheOmittedPage() {
@@ -666,29 +820,37 @@ class PrepLiveCardsUiTest {
         assertEquals(1, h.skips)
         rule.onNodeWithText("Fase omitida").assertIsDisplayed()
         rule.onNodeWithText("Puedes continuar con las aproximaciones.").assertIsDisplayed()
-        rule.onNodeWithTag("prep-status").assertTextEquals("Fase de movilidad omitida")
-        rule.onNodeWithText("Continuar con aproximación").performClick()
+        assertStatus("mob-status", "Fase de movilidad omitida")
+        // Omitida no hay pie ni botón propio: seguir a la aproximación es el botón del roadmap.
+        rule.onNodeWithTag("prep-skip").assertDoesNotExist()
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Ir a la aproximación")
+        assertEquals(0, h.continues)
+        roadmapPress(h.holder)
         assertEquals(1, h.continues)
     }
 
-    @Test fun h6FinishingEverythingOffersContinueWithoutAutoAdvance() {
+    @Test fun h6FinishingEverythingOffersContinueInTheRoadmapWithoutAutoAdvance() {
         val h = MobilityHarness(mobilityItems()); h.completed = h.items.map { it.stepKey }.toSet()
         showMobility(h, nextIsWarmup = false)
         rule.onNodeWithText("Movilidad completada").assertIsDisplayed()
         rule.onNodeWithText("3 de 3 movimientos hechos.").assertIsDisplayed()
+        // Terminada no hay pie: ni «Omitir» ni «Continuar» dentro de la tarjeta.
+        rule.onNodeWithTag("prep-skip").assertDoesNotExist()
+        assertNoOwnRecordButtons()
+        assertRoadmapLabel(h.fab, "Ir a las series")
         assertEquals(0, h.continues)
-        rule.onNodeWithText("Continuar con series").performClick()
+        roadmapPress(h.holder)
         assertEquals(1, h.continues)
-        assertInside(bounds(PrepLiveCardTag), "Continuar", bounds("prep-continue"))
     }
 
-    @Test fun h6CheckInTheLineMarksTheMovementOnScreen() {
+    @Test fun h6RoadmapActionMarksTheMovementOnScreen() {
         val h = MobilityHarness(mobilityItems())
         showMobility(h)
-        rule.runOnIdle { h.holder.action?.invoke() }
-        rule.waitForIdle()
+        roadmapPress(h.holder)
         assertEquals(listOf("m1" to true), h.toggles)
     }
+
 
     // ---- Renders de H5 y H6 (solo escriben PNG si hay KPKN_RENDER_DIR) ---------------------------------------------------
 
@@ -701,12 +863,12 @@ class PrepLiveCardsUiTest {
     @Test fun renderH5At740WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 740, 1.3f); assertFrame(740); render("h5-740-130") }
     @Test fun renderH6RepsAt880() { showMobility(MobilityHarness(mobilityItems())); assertFrame(880); render("h6-reps-880") }
     @Test fun renderH6RepsAt740() { showMobility(MobilityHarness(mobilityItems()), 740); assertFrame(740); render("h6-reps-740") }
-    @Test fun renderH6TimedAt880() { showMobility(MobilityHarness(mobilityItems())); selectFromList("Movilidad de cadera"); assertFrame(880); render("h6-tiempo-880") }
-    @Test fun renderH6TimedAt740() { showMobility(MobilityHarness(mobilityItems()), 740); selectFromList("Movilidad de cadera"); assertFrame(740); render("h6-tiempo-740") }
-    @Test fun renderH6ListAt880() { showMobility(MobilityHarness(mobilityItems(8))); rule.onNodeWithContentDescription("Ver lista de movimientos").performClick(); assertFrame(880); render("h6-lista-880") }
-    @Test fun renderH6ListAt740() { showMobility(MobilityHarness(mobilityItems(8)), 740); rule.onNodeWithContentDescription("Ver lista de movimientos").performClick(); assertFrame(740); render("h6-lista-740") }
-    @Test fun renderH6GlobalAt880() { showMobility(MobilityHarness(mobilityItems())); rule.onNodeWithContentDescription("Abrir reloj global de movilidad").performClick(); assertFrame(880); render("h6-global-880") }
-    @Test fun renderH6GlobalAt740() { showMobility(MobilityHarness(mobilityItems()), 740); rule.onNodeWithContentDescription("Abrir reloj global de movilidad").performClick(); assertFrame(740); render("h6-global-740") }
+    @Test fun renderH6MovementAt880() { showMobility(MobilityHarness(mobilityItems())); openMovement(); assertFrame(880); render("h6-movimiento-880") }
+    @Test fun renderH6MovementAt740() { showMobility(MobilityHarness(mobilityItems()), 740); openMovement(); assertFrame(740); render("h6-movimiento-740") }
+    @Test fun renderH6ListAt880() { showMobility(MobilityHarness(mobilityItems(8))); assertFrame(880); render("h6-lista-880") }
+    @Test fun renderH6ListAt740() { showMobility(MobilityHarness(mobilityItems(8)), 740); assertFrame(740); render("h6-lista-740") }
+    @Test fun renderH6JointsAt880() { showMobility(MobilityHarness(mobilityItems())); rule.onNodeWithTag("mob-view-2").performClick(); assertFrame(880); render("h6-articulaciones-880") }
+    @Test fun renderH6JointsAt740() { showMobility(MobilityHarness(mobilityItems()), 740); rule.onNodeWithTag("mob-view-2").performClick(); assertFrame(740); render("h6-articulaciones-740") }
     @Test fun renderH6FinishedAt740() { val h = MobilityHarness(mobilityItems()); h.completed = h.items.map { it.stepKey }.toSet(); showMobility(h, 740); assertFrame(740); render("h6-fin-740") }
 
     @Test fun cardKeepsTheSetCardSkin() {

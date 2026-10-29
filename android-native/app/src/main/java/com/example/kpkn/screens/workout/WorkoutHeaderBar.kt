@@ -55,10 +55,12 @@ import kotlinx.coroutines.delay
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.ui.components.kpknCoverGlassOrFallback
+import com.example.kpkn.ui.components.kpknFloatingSurface
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -444,20 +446,8 @@ internal fun WorkoutHeaderBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = if (compactHeader) 2.dp else 8.dp, bottom = cs(6.dp))
-                    .shadow(14.dp, capsuleShape, clip = false, ambientColor = Color(0x88000000), spotColor = Color(0x88000000))
-                    .clip(capsuleShape)
-                    .then(
-                        if (bodyHazeState != null) {
-                            Modifier.kpknCoverGlassOrFallback(bodyHazeState, capsuleShape, withBorder = false)
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .background(Brush.linearGradient(listOf(Color(0xB03A3A3A), Color(0xA8202020))), capsuleShape)
-                    .drawBehind {
-                        drawLine(Color(0x13FFFFFF), Offset(size.height / 2, 1.dp.toPx()), Offset(size.width - size.height / 2, 1.dp.toPx()), 1.dp.toPx())
-                    }
-                    .border(1.dp, Color(0x21FFFFFF), capsuleShape)
+                    // Píldora flotante: gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
+                    .kpknFloatingSurface(capsuleShape, com.example.kpkn.ui.components.KpknFloating.PillElevation)
                     .heightIn(min = if (compactHeader) 53.dp else 60.dp)
                     .padding(start = 15.dp, end = 8.dp),
                 contentAlignment = Alignment.CenterStart,
@@ -557,15 +547,18 @@ internal fun WorkoutExerciseContextBlock(
     onToggleVoice: (() -> Unit)?,
     voiceSessionEnabled: Boolean,
     modifier: Modifier = Modifier,
+    /** En la Lista cada ejercicio ya lleva su cabecera: el título grande repetía el primero y se quedaba fijo, así que no se pinta. */
+    showTitle: Boolean = true,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(
+            // Título del ejercicio más presente (pedido del usuario, 29-oct): 23 sp en lugar de 18.
+            if (showTitle) Text(
                 exerciseName,
-                style = KpknType.title.copy(fontSize = 18.sp, lineHeight = 21.sp, letterSpacing = (-0.35).sp),
+                style = KpknType.title.copy(fontSize = 23.sp, lineHeight = 27.sp, letterSpacing = (-0.45).sp),
                 color = WizardColors.text,
                 modifier = Modifier.testTag("workout-header-exercise"),
             )

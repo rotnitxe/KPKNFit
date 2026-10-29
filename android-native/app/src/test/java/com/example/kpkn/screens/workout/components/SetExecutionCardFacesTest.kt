@@ -186,7 +186,8 @@ class SetExecutionCardFacesTest {
         rule.waitForIdle()
         rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
 
-        rule.onNodeWithTag("media_expand").performClick()
+        // Refinamiento 02: ya no hay «Expandir» en la cara; en «Vídeo» el disparador abre el visor expandido encima de todo.
+        rule.onNodeWithTag(MediaShutterTag).performClick()
         rule.waitForIdle()
 
         rule.onNodeWithTag(MediaExpandedTag).assertExists()
@@ -230,13 +231,16 @@ class SetExecutionCardFacesTest {
     }
 
     @Test
-    fun laCabeceraDeModoVisualTieneVolverAlbumYExpandirYLaLineaDelAlbum() {
+    fun laCabeceraDeModoVisualTieneVolverElDisparadorYLaLineaDelAlbum() {
         mostrar()
         rule.onNodeWithTag("secondary_pill_modo_visual").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithText("Serie 3").assertExists()
-        rule.onNodeWithText("Expandir").assertExists()
+        rule.onNodeWithTag("media_back").assertExists()
+        rule.onNodeWithContentDescription("Volver a la serie").assertExists()
+        // En «Vídeo» el disparador es el que lleva al visor expandido.
+        rule.onNodeWithContentDescription("Grabar vídeo").assertExists()
         // Sin esfuerzo marcado, la línea nombra la serie y su carga, sin RIR.
         rule.onNodeWithText("Se guarda en el álbum con la serie 3", substring = true).assertExists()
     }

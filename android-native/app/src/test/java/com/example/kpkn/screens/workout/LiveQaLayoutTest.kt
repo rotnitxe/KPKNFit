@@ -174,20 +174,20 @@ class LiveQaLayoutTest {
                 )
             }
         }
-        rule.onNodeWithContentDescription("Nombre", useUnmergedTree = true).performScrollTo().performTextReplacement("Máquina B")
-        tap("Guardar nombre")
-        tap("Set-up · Mostrar")
-        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).performScrollTo().performTextReplacement("25,5")
-        tap("Guardar set-up")
-        tap("Reiniciar historial")
+        // Refinamiento 02: el formulario (nombre y carga base) está siempre a la vista y un único «Guardar etiqueta» en el pie guarda
+        // el nombre y el set-up a la vez y cierra la hoja; «Reiniciar referencia de historial» pide confirmación antes de reiniciar.
+        rule.onNodeWithTag("live-tag-new-name", useUnmergedTree = true).performScrollTo().performTextReplacement("Máquina B")
+        rule.onNodeWithTag("live-tag-base", useUnmergedTree = true).performScrollTo().performTextReplacement("25,5")
+        tap("Reiniciar referencia de historial")
         assertEquals(0, resets)
-        rule.onNodeWithText("Los registros de sesión no se borran.", substring = true, useUnmergedTree = true).assertExists()
-        tap("Reiniciar")
+        rule.onNodeWithText("Los registros originales se conservan.", substring = true, useUnmergedTree = true).assertExists()
+        tap("Reiniciar referencia")
+        assertEquals(1, resets)
+        rule.onNodeWithTag("live-tag-setup-sheet-body", true).assertIsDisplayed()
+        save("qa-manager", "manager-${(scale * 100).toInt()}")
+        tap("Guardar etiqueta")
         assertEquals("Máquina B", renamed)
         assertEquals(25.5, saved!!.baseLoadKg!!, 0.0)
-        assertEquals(1, resets)
-        rule.onNodeWithTag("live-header-sheet-body", true).assertIsDisplayed()
-        save("qa-manager", "manager-${(scale * 100).toInt()}")
     }
 
     private fun tap(label: String) {

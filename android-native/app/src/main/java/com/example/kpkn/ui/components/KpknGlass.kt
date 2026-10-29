@@ -1,5 +1,7 @@
 package com.example.kpkn.ui.components
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +48,25 @@ enum class KpknGlassVariant { ISLAND, SHEET }
  * Usa siempre [Modifier.kpknGlass] o [Modifier.kpknGlassOrFallback] (o [Modifier.kpknHazeEffect]). Las llamadas existentes no cambian
  * de firma: sin `variant` son islas. `kpknCoverGlass` (la cabecera del entreno sobre el arte) no pasa a la v2.
  */
+/**
+ * Superficie flotante de hojas, avisos y píldoras (pedido del usuario, 29-oct): gris oscuro plano, sin desenfoque, con un filete tenue y
+ * una sombra REAL de elevación de la plataforma (`graphicsLayer.shadowElevation`), no una sombra pintada.
+ */
+object KpknFloating {
+    val Surface = Color(0xFF1B1B1D)
+    val Border = Color(0x14FFFFFF)
+    val SheetElevation = 28.dp
+    val DialogElevation = 24.dp
+    val PillElevation = 14.dp
+}
+
+/** [KpknFloating]: sombra de elevación real, relleno gris plano y filete, recortado a [shape]. */
+fun Modifier.kpknFloatingSurface(shape: Shape, elevation: Dp, withBorder: Boolean = true): Modifier = this
+    .shadow(elevation, shape, clip = false, ambientColor = Color.Black, spotColor = Color.Black)
+    .clip(shape)
+    .background(KpknFloating.Surface)
+    .then(if (withBorder) Modifier.border(1.dp, KpknFloating.Border, shape) else Modifier)
+
 object KpknGlass {
     /** Desenfoque de la isla v2: 36 dp. */
     val IslandBlur = 36.dp

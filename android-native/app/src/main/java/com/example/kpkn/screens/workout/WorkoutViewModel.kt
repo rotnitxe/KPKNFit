@@ -57,6 +57,8 @@ import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.domain.workout.isSetDoneWithSides
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.domain.sessionassistant.UltraFastEngine
+import com.example.kpkn.domain.sessionassistant.UltraFastPlanner
+import com.example.kpkn.domain.sessionassistant.ShortenGoal
 import com.example.kpkn.domain.sessionassistant.applyMarkedSeriesTechnique
 import com.example.kpkn.domain.sessionassistant.withSeriesTechniqueRange
 import com.example.kpkn.domain.sessionassistant.withTechnique
@@ -806,6 +808,15 @@ class WorkoutViewModel(
                     return result.succeeded
                 }
                 override fun setExerciseTag(exerciseId: String, tag: String) = this@WorkoutViewModel.setExerciseTag(exerciseId, tag)
+                override suspend fun awaitVoiceValuesDelivered() = this@WorkoutViewModel.awaitVoiceValuesDelivered()
+                override fun onVoiceSessionCapture(
+                    interpretation: WorkoutVoiceInterpretation,
+                    exerciseId: String,
+                    setIdx: Int,
+                    side: String?,
+                    registered: Boolean,
+                    previousDraft: WorkoutSetDraft?,
+                ) = recordVoiceSessionCapture(interpretation, exerciseId, setIdx, side, registered, previousDraft)
                 override fun skipSet() = stepNavigator.skipSet()
                 override fun skipRemainingCurrentExercise() = stepNavigator.skipRemainingCurrentExercise()
                 override fun prevSet() = stepNavigator.prevSet()
@@ -2306,6 +2317,122 @@ class WorkoutViewModel(
         _voiceHistoryNotice.value = null
     }
 
+    /**
+     * Modo Voz como capa: lo que la cápsula muestra en vivo. La frase parcial del reconocedor mientras el usuario habla y el texto que
+     * KPKN está diciendo por el TTS (el mismo que se oye). El nivel del micrófono va aparte ([voiceLevelDb]) para que la onda no
+     * recomponga el resto de la cápsula.
+     */
+    val voiceLive: StateFlow<com.example.kpkn.screens.workout.components.VoiceLiveFeed> = combine(
+        voiceController.state.map { it.partialText to it.stage }.distinctUntilChanged(),
+        voiceController.spokenText,
+    ) { (partial, stage), spoken ->
+        com.example.kpkn.screens.workout.components.VoiceLiveFeed(
+            partialText = partial,
+            listening = stage == VoicePipelineStage.LISTENING || stage == VoicePipelineStage.PROCESSING ||
+                stage == VoicePipelineStage.CONFIRM_WAIT,
+            spokenText = spoken?.takeIf { it.isNotBlank() },
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), com.example.kpkn.screens.workout.components.VoiceLiveFeed())
+
+    /** Nivel real del micrófono (dB, ≤ 0; 0 = sin dato) para la onda del orbe de la cápsula. */
+    val voiceLevelDb: StateFlow<Float> = voiceController.state.map { it.rmsLevel }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0f)
+
+    /** «Detener» de la cápsula mientras KPKN habla: corta la locución y vuelve a escuchar. */
+    fun stopVoiceSpeech() = voiceController.stopSpeaking()
+
+    // v-record: con la cápsula a la vista, la serie dictada espera a que los valores lleguen a su campo (como mucho
+    // VOICE_FLIGHT_MAX_MS) antes de registrarse. Sin cápsula, o con movimiento reducido, no espera nada.
+    @Volatile private var voiceFlightArmed = false
+    @Volatile private var voiceFlightDone: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
+    fun setVoiceFlightArmed(armed: Boolean) {
+        voiceFlightArmed = armed
+        if (!armed) voiceFlightDone?.complete(Unit)
+    }
+
+    @Volatile private var voiceValuesDeliveredAtMs = 0L
+
+    /** La cápsula avisa de que los valores ya brillan en su campo (o de que esta frase no tiene valores que llevar). */
+    fun onVoiceValuesDelivered() {
+        voiceValuesDeliveredAtMs = android.os.SystemClock.elapsedRealtime()
+        voiceFlightDone?.complete(Unit)
+    }
+
+    private suspend fun awaitVoiceValuesDelivered() {
+        if (!voiceFlightArmed) return
+        // La cápsula pudo avisar antes de que esta espera empezara (frase sin valores que volar).
+        if (android.os.SystemClock.elapsedRealtime() - voiceValuesDeliveredAtMs < 400L) return
+        val done = kotlinx.coroutines.CompletableDeferred<Unit>()
+        voiceFlightDone = done
+        try {
+            kotlinx.coroutines.withTimeoutOrNull(VOICE_FLIGHT_MAX_MS) { done.await() }
+        } finally {
+            if (voiceFlightDone === done) voiceFlightDone = null
+        }
+    }
+
+    // Borrador de cada serie antes de una frase que quedó «Por revisar»: «Descartar» lo devuelve tal cual.
+    private val voiceReviewPreviousDrafts = mutableMapOf<String, WorkoutSetDraft?>()
+
+    /**
+     * Una frase de la sesión de voz (manos libres / música) terminó en una serie. Registrada: su captura entra como «Registrada»
+     * (la cápsula enseña el recibo). Sin datos suficientes: entra «Por revisar» con lo entendido y la serie sin registrar.
+     */
+    private fun recordVoiceSessionCapture(
+        interpretation: WorkoutVoiceInterpretation,
+        exerciseId: String,
+        setIdx: Int,
+        side: String?,
+        registered: Boolean,
+        previousDraft: WorkoutSetDraft?,
+    ) {
+        if (interpretation.transcript.isBlank()) return
+        val key = currentVoiceHistoryKey() ?: return
+        val historySide = voiceHistorySide(side)
+        // Una revisión anterior de la misma serie queda sustituida por esta frase (nunca dos capturas para una serie).
+        val replaced = _voiceHistory.value.filter {
+            it.status == VoiceHistoryStatus.REVIEW && it.exerciseId == exerciseId && it.setIdx == setIdx && it.side == historySide
+        }.map { it.id }
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId }
+        val unitMode = exercise?.sets?.getOrNull(setIdx)?.let { inferUnitMode(exercise, it) }
+        val metric = interpretation.resolvedMetricValue
+        val now = System.currentTimeMillis()
+        val entry = VoiceHistoryEntry(
+            id = UUID.randomUUID().toString(),
+            sessionKey = key,
+            exerciseId = exerciseId,
+            exerciseName = exercise?.name ?: exerciseId,
+            setIdx = setIdx,
+            side = historySide,
+            transcript = interpretation.transcript,
+            values = VoiceHistoryValues(
+                weightKg = interpretation.weightKg,
+                reps = if (unitMode == UnitModeV2.REPS) metric?.roundToInt() else null,
+                seconds = if (unitMode == UnitModeV2.TIME) metric?.roundToInt() else null,
+                distanceKm = interpretation.distanceKm,
+                averageHeartRate = interpretation.averageHeartRate,
+                intensityValue = interpretation.intensityValue,
+                intensityKind = interpretation.intensityKind?.name,
+                reachedFailure = interpretation.reachedFailure,
+                isFailedSet = interpretation.isFailedSet,
+                helpedReps = interpretation.helpedReps,
+            ),
+            status = if (registered) VoiceHistoryStatus.REGISTERED else VoiceHistoryStatus.REVIEW,
+            createdAtEpochMs = now,
+            updatedAtEpochMs = now,
+        )
+        val previous = if (registered) null else (replaced.firstOrNull()?.let { voiceReviewPreviousDrafts[it] } ?: previousDraft)
+        replaced.forEach { voiceReviewPreviousDrafts.remove(it) }
+        if (!registered) voiceReviewPreviousDrafts[entry.id] = previous
+        viewModelScope.launch {
+            runCatching {
+                replaced.forEach { voiceHistoryRepository.delete(it) }
+                voiceHistoryRepository.record(entry)
+            }
+        }
+    }
+
     fun speakVoiceExample() {
         if (!_uiState.value.voiceSessionEnabled) return
         voiceController.speakAnnouncement("Registrar cien kilos, ocho repeticiones, RIR dos.")
@@ -2356,6 +2483,18 @@ class WorkoutViewModel(
     fun discardVoiceHistoryCapture(entryId: String) {
         val entry = _voiceHistory.value.firstOrNull { it.id == entryId } ?: return
         if (entry.status != VoiceHistoryStatus.REVIEW) return
+        // La frase de la sesión de voz ya había llevado sus valores al borrador: se devuelve el borrador de antes de la frase.
+        if (voiceReviewPreviousDrafts.containsKey(entry.id)) {
+            val previous = voiceReviewPreviousDrafts.remove(entry.id)
+            val alreadyDone = _uiState.value.completedSets.keys.any { key ->
+                key == workoutSetKey(entry.exerciseId, entry.setIdx, entry.side) || key == workoutSetKey(entry.exerciseId, entry.setIdx)
+            }
+            if (!alreadyDone) {
+                if (previous != null) updateSetDraft(entry.exerciseId, entry.setIdx, entry.side, previous)
+                else clearDraftForSet(entry.exerciseId, entry.setIdx, entry.side)
+                persistOngoingState()
+            }
+        }
         viewModelScope.launch { voiceHistoryRepository.delete(entry.id) }
     }
 
@@ -3778,20 +3917,59 @@ class WorkoutViewModel(
         updateUiState { it.copy(seriesTypeTarget = null) }
     }
 
-    // ── Modo Ultrarrápido ─────────────────────────────────────────────────
+    // ── Acortar sesión (modo ultrarrápido guiado por un objetivo) ─────────
 
+    /**
+     * Abre «Acortar sesión» con un objetivo que propone el motor (lo que falta y el límite de la sesión). La persona solo cambia el
+     * objetivo o excluye una línea; el resto lo decide [UltraFastPlanner].
+     */
     fun previewUltraFast() {
-        val state = _uiState.value
-        val base = state.session ?: return
+        val result = planShortenSession(_uiState.value, goal = null, excluded = emptySet()) ?: return
+        updateUiState { it.copy(ultraFastPreview = result.preview, showShortenSessionSheet = true) }
+    }
+
+    /** Cambia el objetivo (píldoras «−10 min», «Lo mínimo eficaz»…) y recalcula; conserva las exclusiones. */
+    fun setShortenSessionGoal(goal: ShortenGoal) {
+        val current = _uiState.value.ultraFastPreview
+        val result = planShortenSession(_uiState.value, goal, current?.excludedItemIds.orEmpty()) ?: return
+        updateUiState { it.copy(ultraFastPreview = result.preview) }
+    }
+
+    /** Excluye (o devuelve) una línea de la propuesta; el motor compensa con las demás para seguir cerca del objetivo. */
+    fun toggleShortenSessionItem(itemId: String) {
+        val current = _uiState.value.ultraFastPreview ?: return
+        val excluded = if (itemId in current.excludedItemIds) current.excludedItemIds - itemId else current.excludedItemIds + itemId
+        val result = planShortenSession(_uiState.value, current.goal, excluded) ?: return
+        updateUiState { it.copy(ultraFastPreview = result.preview) }
+    }
+
+    private fun planShortenSession(
+        state: WorkoutUiState,
+        goal: ShortenGoal?,
+        excluded: Set<String>,
+    ): com.example.kpkn.domain.sessionassistant.UltraFastApplyResult? {
+        val base = state.session ?: return null
         val modeSession = sessionForActiveMode(base, state.activeMode)
-        val preview = UltraFastEngine.preview(
+        // Lo registrado y lo omitido nunca cambia ni cuenta como pendiente.
+        val recorded = protectedRecordedSetIds(modeSession, state.completedSets)
+        val protectedIds = modeSession.allExercises().associate { ex ->
+            ex.id to (recorded[ex.id].orEmpty() + ex.sets.filterIndexed { index, _ ->
+                ex.completionKeysForSet(index).any { it in state.omittedSetKeys }
+            }.map { it.id })
+        }
+        val current = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        return UltraFastPlanner.plan(
             session = modeSession,
             exerciseIndex = catalogExerciseIndex(),
-            manualOverrides = state.ultraFastManualOverrides,
-            completedSetCountByExercise = loggedWorkingSetCounts(modeSession.allExercises(), state.completedSets),
-            protectedSetIdsByExercise = protectedRecordedSetIds(modeSession, state.completedSets),
+            goal = goal,
+            excludedItemIds = excluded,
+            protectedSetIdsByExercise = protectedIds,
+            lockedExerciseIds = setOfNotNull(state.cardioTimerState?.exerciseId),
+            ignoredExerciseIds = state.skippedExerciseIds,
+            currentExerciseId = current?.id,
+            elapsedSeconds = ((System.currentTimeMillis() - state.startTimeMs) / 1000).toInt().coerceAtLeast(0),
+            sessionLimitMinutes = state.targetDurationMinutes ?: base.targetDurationMinutes,
         )
-        updateUiState { it.copy(ultraFastPreview = preview, showShortenSessionSheet = true) }
     }
 
     fun openQuickRecording() { updateUiState { it.copy(showShortenSessionSheet = false, showUltraFastSheet = true) } }
@@ -3825,33 +4003,27 @@ class WorkoutViewModel(
         }
     }
 
-    fun applyUltraFast(customSetCounts: Map<String, Int> = emptyMap()) {
+    /** Aplica la propuesta vigente (su objetivo y sus exclusiones), recalculada sobre lo registrado en este momento. */
+    fun applyUltraFast() {
         if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val modeSession = sessionForActiveMode(base, state.activeMode)
         // Snapshot for revert
         val snapshot = modeSession
-        val result = UltraFastEngine.apply(
-            modeSession,
-            catalogExerciseIndex(),
-            state.ultraFastManualOverrides,
-            loggedWorkingSetCounts(modeSession.allExercises(), state.completedSets),
-            customSetCounts,
-            protectedSetIdsByExercise = modeSession.allExercises().associate { ex -> ex.id to ex.sets.filterIndexed { index, _ -> ex.completionKeysForSet(index).any { it in state.completedSets } }.map { it.id }.toSet() },
-        )
+        val shown = state.ultraFastPreview
+        val result = planShortenSession(state, shown?.goal, shown?.excludedItemIds.orEmpty()) ?: return
         // Re-inject transformed flat back into session structure (parts vs loose)
         val flatById = result.transformedExercises.associateBy { it.id }
         val supersets = result.supersetGroups
         val updatedBase = withModeSession(base, state.activeMode) { ms ->
-            // Map exercises + parts
             val newLoose = ms.exercises.map { ex -> flatById[ex.id] ?: ex }
             val newParts = ms.parts.map { part -> part.copy(exercises = part.exercises.map { ex -> flatById[ex.id] ?: ex }) }
-            // Handle exercises that were re-associated to supersets: supersetGroups at session level
-            ms.copy(exercises = newLoose, parts = newParts, supersetGroups = supersets)
+            val mapped = ms.copy(exercises = newLoose, parts = newParts, supersetGroups = supersets)
+            // El cardio accesorio que la propuesta quita sale de la sesión de hoy; «Deshacer» lo devuelve con la instantánea.
+            if (result.removedExerciseIds.isEmpty()) mapped
+            else WorkoutStructuralEditor.removeExercisesByIds(mapped, result.removedExerciseIds)
         }
-        // Also need to handle transformed exercises that were loose vs part — flat handles
-        // For any new superset members, their refs already applied via flatById
         structuralPersistence.applySessionMutation(updatedBase, candidateTransform = {
             it.copy(ultraFastSnapshot = snapshot, ultraFastCompletedSetsSnapshot = emptyMap(),
                 ultraFastPreview = result.preview, ultraFastApplied = true,
@@ -6251,6 +6423,16 @@ class WorkoutViewModel(
 
     fun addRestTime(seconds: Int) = restOrchestrator.addTime(seconds)
 
+    /**
+     * ±15 s del descanso de preparación (aproximación o movilidad): el mismo ajuste que [addRestTime], pero sin cambiar la vista. Ajustar
+     * el tiempo reinicia el reloj y eso lo expande; desde la tarjeta minimizada se queda minimizado.
+     */
+    fun addPreparationRestTime(seconds: Int) {
+        val wasMinimized = _uiState.value.isRestMinimized
+        restOrchestrator.addTime(seconds)
+        if (wasMinimized) updateUiState { if (it.isRestTimerRunning) it.copy(isRestMinimized = true) else it }
+    }
+
     fun pauseRestTimer() = restOrchestrator.pause()
 
     fun resumeRestTimer() = restOrchestrator.resume()
@@ -7654,6 +7836,26 @@ class WorkoutViewModel(
         return plan.entries.getOrNull(warmupIndex)?.realizedKg?.takeIf { it > 0.0 }
     }
 
+    /**
+     * Carga que se ENSEÑA en cada aproximación (tarjeta y Lista): la alcanzable con el material real si la hay; si el material no
+     * está acreditado (sin discos ni barra configurados), el porcentaje sobre la carga de trabajo con el redondeo de la app. El usuario
+     * la corrige antes de registrar (pedido del 29-oct: «los pesos van en kg»). Sin carga de trabajo o sin carga externa: null.
+     */
+    fun getWarmupDisplayWeight(
+        exercise: Exercise,
+        warmupIndex: Int,
+        activeTag: String? = null,
+        workingWeightAnchor: Double? = null,
+    ): Double? {
+        getWarmupSuggestedWeight(exercise, warmupIndex, activeTag, workingWeightAnchor)?.let { return it }
+        val warmup = exercise.warmupSets.getOrNull(warmupIndex) ?: return null
+        val loadMode = effectiveLoadModeForExercise(exercise, 0)
+        if (loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.ASSISTED) return null
+        val working = (workingWeightAnchor ?: getWarmupWorkingWeightAnchor(exercise, activeTag))?.takeIf { it > 0.0 } ?: return null
+        val percent = warmup.percentageOfWorkingWeight.let { if (it <= 1.0) it * 100.0 else it }.takeIf { it > 0.0 } ?: return null
+        return roundWorkoutLoadSuggestion(working * percent / 100.0).takeIf { it > 0.0 }
+    }
+
     /** First effective-load anchor after approximation feedback is recorded. */
     fun getCalibratedWorkingWeight(
         exercise: Exercise,
@@ -7871,3 +8073,6 @@ class WorkoutViewModel(
 }
 
 private const val SAVE_FAILED_PREFIX = "No se pudo guardar la serie."
+
+/** Tope de la espera de una serie dictada mientras sus valores vuelan a la tarjeta (v-record: 0,5 s + vuelo escalonado de 1,16 s). */
+private const val VOICE_FLIGHT_MAX_MS = 2_000L

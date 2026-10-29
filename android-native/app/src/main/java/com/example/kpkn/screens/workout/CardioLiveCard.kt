@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +48,16 @@ import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.workout.components.CardioFigureSpec
+import com.example.kpkn.screens.workout.components.LiveSheet
+import com.example.kpkn.screens.workout.components.LiveSheetLabeledField
+import com.example.kpkn.screens.workout.components.LiveSheetPrimary
+import com.example.kpkn.screens.workout.components.LiveSheetShortCopy
+import com.example.kpkn.screens.workout.components.LiveSheetSubtitle
 import com.example.kpkn.screens.workout.components.LiveSheetTokens
+import com.example.kpkn.screens.workout.components.cardioFigureCadence
+import com.example.kpkn.screens.workout.components.cardioFigureIcon
+import com.example.kpkn.screens.workout.components.cardioFigureSpec
 import com.example.kpkn.screens.workout.components.RestRef02Button
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
@@ -87,6 +97,9 @@ private class CardioMeasures(stepCount: Int) {
     var hrSum = 0L
     var hrCount = 0
     var hrMax = 0
+    /** Pulsos tomados a mano (sin reloj): cada uno es una muestra suelta, no tiempo en zona. */
+    var manualSum = 0L
+    var manualCount = 0
     var pausedSeconds by mutableIntStateOf(0)
     var tick by mutableIntStateOf(0)
     var stepStartHr: Int? = null
@@ -161,7 +174,13 @@ internal fun CardioLiveCard(
     val stepFraction = step?.let { 1f - stepLeft.toFloat() / it.seconds.coerceAtLeast(1) } ?: 0f
     val totalLeft = (plannedDurationSeconds - elapsed).coerceAtLeast(0)
     val rounds = steps.count { it.block?.type == CardioBlockType.WORK }
-    val hr = liveHeartRateBpm?.takeIf { it in 30..240 }
+    val watchHr = liveHeartRateBpm?.takeIf { it in 30..240 }
+    // Pulso manual: sin reloj, el usuario lo anota; se enseña con su zona como el del reloj y con su antigüedad en tiempo activo.
+    var manualHr by rememberSaveable { mutableStateOf<Int?>(null) }
+    var manualHrAtSeconds by rememberSaveable { mutableIntStateOf(0) }
+    var showManualHrSheet by remember { mutableStateOf(false) }
+    val hr = watchHr ?: manualHr
+    val hrIsManual = watchHr == null && manualHr != null
     val maxHr = maxHeartRateBpm?.takeIf { it in 120..230 }
     val liveZone = if (hr != null && maxHr != null) cardioZoneForPercent(hr * 100 / maxHr) else null
     val targetZone = step?.zone ?: 2
@@ -178,8 +197,9 @@ internal fun CardioLiveCard(
     val measures = remember(details) { CardioMeasures(steps.size.coerceAtLeast(1)) }
     val running = status == CardioExecutionStatus.RUNNING || (gpsMode && gpsState?.status == CardioGpsStatus.RECORDING)
     val latestStep by rememberUpdatedState(stepIndex)
-    val latestHr by rememberUpdatedState(hr)
-    val latestZone by rememberUpdatedState(liveZone)
+    // Solo el reloj cuenta segundos en zona: un pulso manual es una lectura suelta y no se reparte por el tiempo.
+    val latestHr by rememberUpdatedState(watchHr)
+    val latestZone by rememberUpdatedState(liveZone.takeIf { watchHr != null })
     val latestTarget by rememberUpdatedState(targetZone)
     LaunchedEffect(running) {
         while (running) {
@@ -233,7 +253,14 @@ internal fun CardioLiveCard(
         if (countdown > 0) { delay(900); countdown--; if (countdown == 0) startOrResume() }
     }
 
-    val avgHr = if (measures.hrCount > 0) (measures.hrSum / measures.hrCount).toInt() else null
+    val watchAvgHr = if (measures.hrCount > 0) (measures.hrSum / measures.hrCount).toInt() else null
+    val manualAvgHr = if (measures.manualCount > 0) (measures.manualSum / measures.manualCount).toInt() else null
+    val avgHr = watchAvgHr ?: manualAvgHr
+    // Al terminar: lo medido por el reloj manda; si no, lo que se corrija en «FC media» y, si no, la media de los pulsos manuales.
+    val finishHr = watchAvgHr ?: heartRateText.toIntOrNull() ?: manualAvgHr
+    val manualHrAgeSeconds = (durationSeconds - manualHrAtSeconds).coerceAtLeast(0)
+    val figureSpeedKmh = step?.block?.speedKmh ?: details.targetPaceSecondsPerKm?.takeIf { it > 0 }?.let { 3600.0 / it }
+    val figure = cardioFigureSpec(details.type, figureSpeedKmh)
     val estimatedKm = remember(details, elapsed) {
         if (details.hasIntervals()) {
             var acc = 0; var km = 0.0
@@ -289,7 +316,7 @@ internal fun CardioLiveCard(
                 distanceKm = recordedDistanceKm,
                 estimatedKm = estimatedKm.takeIf { recordedDistanceKm == null },
                 distanceSource = if (gpsHasData) "km · GPS" else if (distanceKm != null) "km · registrada" else "km · cinta (estimada)",
-                avgHr = avgHr ?: heartRateText.toIntOrNull(),
+                avgHr = finishHr,
                 maxHr = measures.hrMax.takeIf { it > 0 },
                 kcal = kcal,
                 steps = steps,
@@ -299,7 +326,7 @@ internal fun CardioLiveCard(
                 plannedRpe = plannedRpe,
                 onRpe = { rpe = it; recordSaveFailed = false },
                 onEditDistance = if (gpsHasData) null else ({ showDistancePicker = true }),
-                onEditHeartRate = if (hr != null) null else ({ showHeartRatePicker = true }),
+                onEditHeartRate = if (watchAvgHr != null) null else ({ showHeartRatePicker = true }),
                 saving = isSavingRecord,
                 failed = recordSaveFailed,
                 onSave = {
@@ -308,7 +335,7 @@ internal fun CardioLiveCard(
                     scope.launch {
                         isSavingRecord = true; recordSaveFailed = false
                         try {
-                            val heart = avgHr ?: heartRateText.toIntOrNull()
+                            val heart = finishHr
                             val saved = onRecordWithRpe?.invoke(durationSeconds, recordedDistanceKm ?: estimatedKm, heart, chosen.toDouble())
                                 ?: onRecord(durationSeconds, recordedDistanceKm ?: estimatedKm, heart)
                             if (saved) finishing = false else recordSaveFailed = true
@@ -340,6 +367,7 @@ internal fun CardioLiveCard(
                 gpsMode = gpsMode,
                 gpsState = gpsState,
                 keepScreenOn = details.keepScreenOn,
+                figure = cardioFigureSpec(details.type, steps.firstOrNull()?.block?.speedKmh ?: figureSpeedKmh),
                 onStart = { countdown = 3 },
                 onSeePlan = { page = 1 },
             )
@@ -373,7 +401,8 @@ internal fun CardioLiveCard(
                             elapsed = durationSeconds, planned = plannedDurationSeconds,
                             distance = recordedDistanceKm?.let { cardioDecimal(it) } ?: estimatedKm?.let { "≈ ${cardioDecimal(it)}" } ?: "—",
                             distanceNote = if (gpsHasData) "km · GPS" else if (estimatedKm != null) "km · cinta (estimada)" else "km",
-                            avgHr = avgHr, kcal = kcal, zoneSeconds = measures.zoneSeconds,
+                            avgHr = avgHr, avgHrNote = if (watchAvgHr == null && manualAvgHr != null) "lpm · manual" else null,
+                            kcal = kcal, zoneSeconds = measures.zoneSeconds,
                             inZonePercent = measures.stepSamples.sum().takeIf { it > 0 }?.let { measures.stepInZone.sum() * 100 / it },
                         )
                         else -> CardioNowPage(
@@ -396,6 +425,15 @@ internal fun CardioLiveCard(
                             gpsState = gpsState,
                             targetDistanceKm = details.targetDistanceKm,
                             distanceKm = recordedDistanceKm,
+                            rounds = rounds,
+                            figure = figure,
+                            figureCadence = cardioFigureCadence(figure.kind, targetZone,
+                                moving = running, rpm = step?.block?.rpm),
+                            figureDimmed = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED),
+                            hrIsManual = hrIsManual,
+                            hrFromWatch = watchHr != null,
+                            manualHrAgeSeconds = manualHrAgeSeconds,
+                            onAddManualHr = { showManualHrSheet = true },
                         )
                     }
                     // Bloqueo: la pantalla no responde a toques accidentales; el dock enseña «Mantén para desbloquear».
@@ -444,10 +482,24 @@ internal fun CardioLiveCard(
             },
         )
     }
+    if (showManualHrSheet) {
+        CardioManualHeartRateSheet(
+            initial = manualHr,
+            maxHr = maxHr,
+            onSave = { bpm ->
+                manualHr = bpm
+                manualHrAtSeconds = durationSeconds
+                measures.manualSum += bpm
+                measures.manualCount++
+                measures.hrMax = maxOf(measures.hrMax, bpm)
+            },
+            onDismiss = { showManualHrSheet = false },
+        )
+    }
     if (showHeartRatePicker) {
         com.example.kpkn.screens.sessioneditor.components.CardioIntWheelDialog(
             title = "FC media",
-            initial = heartRateText.toIntOrNull() ?: 140,
+            initial = heartRateText.toIntOrNull() ?: manualAvgHr ?: 140,
             range = 80..220,
             unit = "bpm",
             accentColor = WizardColors.text,
@@ -465,7 +517,11 @@ private fun estimatedTotalKm(details: CardioDetails): Double? =
     if (!details.hasIntervals()) details.targetDistanceKm
     else CardioIntervalEngine.expandedBlocks(details).sumOf { (it.speedKmh ?: 0.0) * it.durationSeconds / 3600.0 }.takeIf { it > 0.0 }
 
-/** Página «Ahora»: el anillo del paso, el pulso y su objetivo, la cinta, el estado, los mandos de la máquina, el siguiente paso y el perfil. */
+/**
+ * Página «Ahora»: el recuadro del reloj con la figura, el pulso y su objetivo, la cinta, el estado, los mandos de la máquina (con
+ * «Añadir pulso» sin reloj), el siguiente paso y el perfil.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CardioNowPage(
     step: CardioStep?,
@@ -487,21 +543,33 @@ private fun CardioNowPage(
     gpsState: CardioGpsState?,
     targetDistanceKm: Double?,
     distanceKm: Double?,
+    rounds: Int,
+    figure: CardioFigureSpec,
+    figureCadence: Float,
+    figureDimmed: Boolean,
+    hrIsManual: Boolean,
+    hrFromWatch: Boolean,
+    manualHrAgeSeconds: Int,
+    onAddManualHr: () -> Unit,
 ) {
     val zone = step?.zone ?: 2
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val diameter = minOf(maxWidth * .56f, maxHeight * .42f).coerceAtLeast(150.dp)
+        val panelHeight = cardioClockPanelHeight(maxHeight, .46f)
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             val byDistance = gpsMode && targetDistanceKm != null && targetDistanceKm > 0
             val kmLeft = if (byDistance) (targetDistanceKm!! - (distanceKm ?: 0.0)).coerceAtLeast(0.0) else null
-            CardioRing(
-                diameter = diameter,
+            CardioClockPanel(
+                label = kmLeft?.let { cardioDecimal(it, 2) } ?: cardioClock(stepLeft),
+                eyebrow = step?.let { s -> (s.name + (s.round?.takeIf { rounds > 1 }?.let { " · $it de $rounds" } ?: "")).uppercase() } ?: "CARDIO",
+                trailing = if (kmLeft != null) "DE ${cardioDecimal(targetDistanceKm!!, 2)} KM" else "QUEDAN ${cardioClock(totalLeft)}",
+                sub = if (kmLeft != null) "km restantes" else if (steps.size > 1) "restante del paso" else "restante",
                 fraction = if (kmLeft != null) (1.0 - kmLeft / targetDistanceKm!!).toFloat() else stepFraction,
                 zoneColor = cardioZoneColor(ringZone),
-                label = kmLeft?.let { cardioDecimal(it, 2) } ?: cardioClock(stepLeft),
-                sub = if (kmLeft != null) "km restantes" else "restante",
-                em = if (kmLeft != null) "DE ${cardioDecimal(targetDistanceKm!!, 2)} KM" else "QUEDAN ${cardioClock(totalLeft)}",
+                figure = figure,
+                cadence = figureCadence,
+                dimmed = figureDimmed,
+                modifier = Modifier.height(panelHeight),
             )
             // `.vitals`: el pulso a la izquierda y el objetivo a la derecha (sin pulso, la guía por esfuerzo).
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -512,7 +580,7 @@ private fun CardioNowPage(
                     Text(pace?.let { "${it / 60}:${(it % 60).toString().padStart(2, '0')}" } ?: hr?.toString() ?: "—",
                         style = CSyne.copy(fontSize = 30.sp, lineHeight = 39.sp, fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.text, modifier = Modifier.testTag("cardio-hr"))
-                    Text(if (pace != null) "/km" else if (hr != null) "lpm" else "sin pulso", Modifier.padding(bottom = 6.dp),
+                    Text(if (pace != null) "/km" else if (hr != null) (if (hrIsManual) "lpm · manual" else "lpm") else "sin pulso", Modifier.padding(bottom = 6.dp),
                         style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint)
                 }
                 Column(horizontalAlignment = Alignment.End) {
@@ -536,7 +604,7 @@ private fun CardioNowPage(
                 CardioTape((1..10).map { "$it" }, List(10) { WizardColors.text }, target, null)
             }
             when {
-                hr == null -> CardioStatusLine(KpknLineIcons.Info, "Sin datos de pulso", "Conecta el reloj", null)
+                hr == null -> CardioStatusLine(KpknLineIcons.Info, "Sin datos de pulso", "Añádelo a mano", null)
                 maxHr == null -> CardioStatusLine(KpknLineIcons.Info, "$hr lpm", "Añade tu edad para ver la zona", null)
                 shownZone == null || shownZone == zone -> CardioStatusLine(KpknLineIcons.Check,
                     if (step?.block?.type == CardioBlockType.RECOVER) "Recuperando bien" else "En tu zona",
@@ -544,8 +612,9 @@ private fun CardioNowPage(
                 shownZone > zone -> CardioStatusLine(KpknLineIcons.ChevronDown, "Baja el ritmo", "$hr lpm · sobre Z$zone", cardioZoneColor(shownZone))
                 else -> CardioStatusLine(KpknLineIcons.ChevronUp, "Sube el ritmo", "$hr lpm · bajo Z$zone", cardioZoneColor(shownZone))
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                step?.cue?.takeIf { it.isNotBlank() }?.let { CardioChip(it, icon = KpknLineIcons.Run) }
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically) {
+                step?.cue?.takeIf { it.isNotBlank() }?.let { CardioChip(it, icon = cardioFigureIcon(figure.kind)) }
                 step?.block?.inclinePercent?.let { CardioChip("${cardioDecimal(it, 0)} %", icon = KpknLineIcons.TrendUp) }
                 if (gpsMode) CardioChip(when (gpsState?.status) {
                     CardioGpsStatus.RECORDING -> "GPS activo"
@@ -553,8 +622,14 @@ private fun CardioNowPage(
                     CardioGpsStatus.PAUSED -> "GPS en pausa"
                     else -> "GPS"
                 }, icon = KpknLineIcons.Route)
-                Spacer(Modifier.weight(1f))
-                CardioChip(if (hr != null) "Reloj" else "Manual", icon = KpknLineIcons.Pulse)
+                // Con reloj, el pulso llega solo (dato); sin él, la ficha abre la hoja para anotarlo y luego actualizarlo.
+                when {
+                    hrFromWatch -> CardioChip("Reloj", icon = KpknLineIcons.Pulse, tag = "cardio-hr-source")
+                    hrIsManual -> CardioChip(cardioManualHeartRateLabel(manualHrAgeSeconds), icon = KpknLineIcons.Pulse, onClick = onAddManualHr,
+                        actionIcon = KpknLineIcons.Edit, tag = "cardio-hr-manual")
+                    else -> CardioChip("Añadir pulso", icon = KpknLineIcons.Pulse, onClick = onAddManualHr, actionIcon = KpknLineIcons.Plus,
+                        tag = "cardio-hr-add")
+                }
             }
             nextStep?.let { next ->
                 CardioChip(listOfNotNull(next.name, cardioClock(next.seconds), next.cue.takeIf { it.isNotBlank() }).joinToString(" · "),
@@ -591,13 +666,13 @@ private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds
 /** Página «Resumen»: solo datos medidos; la energía lleva «≈». Tiempo por zona y el porcentaje dentro del objetivo. */
 @Composable
 private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, distanceNote: String, avgHr: Int?, kcal: Double?, zoneSeconds: IntArray,
-    inZonePercent: Int?) {
+    inZonePercent: Int?, avgHrNote: String? = null) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp).testTag("cardio-summary")) {
         CardioPageTitle("EN CURSO · DATOS MEDIDOS")
         CardioSumGrid(listOf(
             Triple("TIEMPO ACTIVO", cardioClock(elapsed), "de ${cardioClock(planned)}"),
             Triple("DISTANCIA", distance, distanceNote),
-            Triple("FC MEDIA", avgHr?.toString() ?: "—", if (avgHr != null) "lpm" else "sin pulso"),
+            Triple("FC MEDIA", avgHr?.toString() ?: "—", if (avgHr != null) avgHrNote ?: "lpm" else "sin pulso"),
             Triple("ENERGÍA", kcal?.let { "≈ ${it.roundToInt()}" } ?: "—", if (kcal != null) "kcal estimadas" else "sin peso corporal"),
         ))
         CardioPageTitle("TIEMPO POR ZONA", Modifier.padding(top = 14.dp))
@@ -630,7 +705,7 @@ private fun CardioSumGrid(cells: List<Triple<String, String, String>>, onClick: 
     }
 }
 
-/** «Antes de empezar»: el anillo con la duración, las comprobaciones (pulso, lugar, pantalla), el primer bloque y «Empezar». */
+/** «Antes de empezar»: el recuadro con la duración y la figura, las comprobaciones (pulso, lugar, pantalla), el primer bloque y «Empezar». */
 @Composable
 private fun CardioReadyView(
     exerciseName: String,
@@ -640,13 +715,14 @@ private fun CardioReadyView(
     gpsMode: Boolean,
     gpsState: CardioGpsState?,
     keepScreenOn: Boolean,
+    figure: CardioFigureSpec,
     onStart: () -> Unit,
     onSeePlan: () -> Unit,
 ) {
     val first = steps.firstOrNull()
     Column(Modifier.fillMaxSize().testTag("cardio-ready")) {
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val diameter = minOf(maxWidth * .5f, maxHeight * .4f).coerceAtLeast(140.dp)
+            val panelHeight = cardioClockPanelHeight(maxHeight, .40f)
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(exerciseName, style = CSyne.copy(fontSize = 17.sp, lineHeight = 22.sp), color = WizardColors.text)
@@ -654,8 +730,10 @@ private fun CardioReadyView(
                     Box(Modifier.size(7.dp).clip(CircleShape).background(cardioZoneColor(first?.zone ?: 2)))
                     Text("Antes de empezar · ${steps.size} ${if (steps.size == 1) "paso" else "pasos"}", style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
                 }
-                CardioRing(diameter, 0f, cardioZoneColor(first?.zone ?: 2), cardioClock(plannedSeconds), "duración", "EMPIEZA EN Z${first?.zone ?: 2}",
-                    showDot = false, modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp))
+                // Antes de empezar, la figura espera quieta en su máquina: se mueve al arrancar.
+                CardioClockPanel(label = cardioClock(plannedSeconds), eyebrow = "DURACIÓN", trailing = "EMPIEZA EN Z${first?.zone ?: 2}", sub = null,
+                    fraction = null, zoneColor = cardioZoneColor(first?.zone ?: 2), figure = figure, cadence = 0f,
+                    modifier = Modifier.padding(vertical = 4.dp).height(panelHeight))
                 CardioStatusLine(KpknLineIcons.Pulse, "Pulso", if (hasLiveHr) "Reloj · listo" else "Sin reloj · guía por esfuerzo", null)
                 CardioStatusLine(KpknLineIcons.Route, "Lugar", when {
                     !gpsMode -> "Interior · sin GPS"
@@ -814,3 +892,57 @@ internal fun cardioDistancePillText(
 
 private fun formatCardioDistance(distanceKm: Double?): String =
     distanceKm?.takeIf { it >= 0.0 }?.let { "%.2f km".format(it) } ?: "0.00 km"
+
+/** Límites del pulso manual (lpm): fuera de ellos es casi seguro un error al teclear. */
+internal val CardioManualHeartRateRange = 40..230
+
+/** El pulso tecleado, o null si no es un número de lpm válido. */
+internal fun cardioManualHeartRateOrNull(text: String): Int? = text.trim().toIntOrNull()?.takeIf { it in CardioManualHeartRateRange }
+
+/** El mensaje de la hoja para lo tecleado; null si se puede guardar. */
+internal fun cardioManualHeartRateError(text: String): String? = when {
+    text.isBlank() -> "Escribe tu pulso en lpm."
+    text.trim().toIntOrNull() == null -> "Escribe solo números (lpm)."
+    cardioManualHeartRateOrNull(text) == null ->
+        "El pulso tiene que estar entre ${CardioManualHeartRateRange.first} y ${CardioManualHeartRateRange.last} lpm."
+    else -> null
+}
+
+/** La ficha del pulso manual: «Manual · hace 0:30» (en tiempo activo del cardio). */
+internal fun cardioManualHeartRateLabel(ageSeconds: Int): String = "Manual · hace ${cardioClock(ageSeconds)}"
+
+/**
+ * «Añadir pulso» sin reloj: el campo de lpm (40–230, con aviso si no vale) y «Guardar pulso». Lo guardado se enseña con su zona como
+ * el del reloj y cuenta en la FC media del cardio.
+ */
+@Composable
+private fun CardioManualHeartRateSheet(initial: Int?, maxHr: Int?, onSave: (Int) -> Unit, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf(initial?.toString().orEmpty()) }
+    var tried by remember { mutableStateOf(false) }
+    val error = if (tried) cardioManualHeartRateError(text) else null
+    LiveSheet(
+        title = if (initial == null) "Añadir pulso" else "Actualizar pulso",
+        onDismiss = onDismiss,
+        eyebrow = "PULSO MANUAL",
+        tag = "cardio-hr-sheet",
+        footer = { close ->
+            LiveSheetPrimary("Guardar pulso", {
+                tried = true
+                val bpm = cardioManualHeartRateOrNull(text)
+                if (bpm != null) { onSave(bpm); close() }
+            }, enabled = text.isNotBlank(), tag = "cardio-hr-save")
+        },
+    ) {
+        LiveSheetSubtitle("Míralo en la pantalla de la máquina o cuenta tus latidos 15 s en la muñeca y multiplícalos por 4.")
+        LiveSheetLabeledField("Pulso (lpm)", text, { value -> text = value.filter(Char::isDigit).take(3); tried = false },
+            keyboardType = KeyboardType.Number, placeholder = "140", tag = "cardio-hr-input")
+        val preview = cardioManualHeartRateOrNull(text)
+        when {
+            error != null -> LiveSheetShortCopy(error, Modifier.testTag("cardio-hr-error"), error = true)
+            preview != null && maxHr != null -> {
+                val zone = cardioZoneForPercent(preview * 100 / maxHr)
+                LiveSheetShortCopy("Con $preview lpm estás en zona $zone · ${CardioZoneNames[zone - 1]}.")
+            }
+        }
+    }
+}

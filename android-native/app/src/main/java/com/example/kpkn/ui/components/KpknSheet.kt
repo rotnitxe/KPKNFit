@@ -297,16 +297,8 @@ private fun KpknSheetBody(
                     else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
                 )
                 .offset { IntOffset(0, totalOffsetPx.roundToInt()) }
-                .graphicsLayer {
-                    clip = true
-                    shape = sheetShape
-                }
-                .kpknGlassOrFallback(
-                    hazeState = hazeState,
-                    shape = sheetShape,
-                    additionalScrim = additionalGlassScrim,
-                    variant = KpknGlassVariant.SHEET,
-                )
+                // Gris oscuro plano con sombra real de elevación (KpknFloating); sin vidrio ni desenfoque.
+                .kpknFloatingSurface(sheetShape, KpknFloating.SheetElevation)
                 .clickable(
                     interactionSource = panelInteraction,
                     indication = null,

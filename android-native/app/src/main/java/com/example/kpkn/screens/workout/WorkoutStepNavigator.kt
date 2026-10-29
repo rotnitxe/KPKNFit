@@ -144,7 +144,9 @@ class WorkoutStepNavigator(
         )
         val start = when {
             currentStepIdx < 0 -> 0
-            includeCurrent -> currentStepIdx
+            // Sin paso activo (sesión recién abierta) la posición solo conoce la serie efectiva: la movilidad y las
+            // aproximaciones programadas para ese ejercicio van antes y no se pueden saltar.
+            includeCurrent -> if (state.activeStepKey.isNullOrBlank()) leadingPreparationIndex(steps, currentStepIdx) else currentStepIdx
             else -> currentStepIdx + 1
         }
         val later = if (start <= 0) steps else steps.drop(start)
@@ -771,6 +773,22 @@ class WorkoutStepNavigator(
         val exerciseIdx = visible.indexOfFirst { it.id == exerciseId }
         if (exerciseIdx < 0) return null
         return exerciseIdx to (setIndex ?: 0)
+    }
+
+    /** Índice del primer paso de preparación (movilidad/aproximaciones) contiguo e inmediatamente anterior al paso [index]. */
+    private fun leadingPreparationIndex(steps: List<WorkoutStep>, index: Int): Int {
+        val exerciseId = steps.getOrNull(index)?.exerciseId ?: return index
+        var first = index
+        while (first > 0) {
+            val previous = steps[first - 1]
+            val isPreparation = previous.type == WorkoutStepType.WARMUP ||
+                previous.type == WorkoutStepType.MOBILITY ||
+                previous.type == WorkoutStepType.MOBILITY_GROUP ||
+                previous.type == WorkoutStepType.MOBILITY_TOTAL
+            if (previous.exerciseId != exerciseId || !isPreparation) break
+            first--
+        }
+        return first
     }
 
     private fun stepPositionIndex(

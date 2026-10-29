@@ -91,6 +91,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.resolveUnitModeV2
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSetupDetails
@@ -1048,7 +1049,10 @@ fun WorkoutScreen(
             liveSessionView = liveSessionView,
             sessionTimeRequest = sessionTimeRequest,
             )
-            if (liveSessionView == LiveSessionView.CARDS) {
+            // El cardio tiene su espacio propio a pantalla completa (iteración 03): el roadmap no se pinta encima (salía vacío al empezar
+            // un cardio desde la Lista y empujaba los controles del cardio).
+            val emptyCardioDock = currentExercise?.isCardio == true
+            if (liveSessionView == LiveSessionView.CARDS && !emptyCardioDock) {
             val livePaceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
                 sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
             }
@@ -1079,6 +1083,7 @@ fun WorkoutScreen(
                     finishSheetOpen = uiState.showFinishSheet,
                 ),
                 isUpdateMode = recordFabHolder.isUpdateMode,
+                recordLabel = recordFabHolder.label,
                 onRecord = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
                 pendingActions = buildList {
                     if (readinessPending) add(RoadmapPendingAction("Estado previo") { readinessSheetDismissed = false })
@@ -1110,6 +1115,7 @@ fun WorkoutScreen(
         supersetGroups = modeSession.allSupersetGroups(),
         liveEnergySummary = uiState.liveEnergySummary,
         bodyWeight = viewModel.currentBodyWeight(),
+        onUseRmWeight = { rmSelectedWeight.value = it },
         startTimeMs = uiState.startTimeMs,
         targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
         onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
@@ -1604,6 +1610,25 @@ fun WorkoutScreen(
             com.example.kpkn.services.workout.TechniqueCaptureVoiceLink.guideSpeechShown()
         }
     }
+    // La capa viva lee la frase parcial, el nivel del micrófono y el TTS solo dentro de la cápsula (no recomponen la pantalla).
+    val voiceLive = viewModel.voiceLive.collectAsStateWithLifecycle()
+    val voiceLevelDb = viewModel.voiceLevelDb.collectAsStateWithLifecycle()
+    // La frase que el parser acaba de llevar al borrador de una serie: «Entendido» y el vuelo de sus valores a su campo.
+    val voiceApplied = uiState.voiceUiState as? WorkoutVoiceUiState.Applied
+    val voiceHeard = remember(voiceApplied) {
+        voiceApplied?.let { applied ->
+            val exercise = visibleExercises.firstOrNull { it.id == applied.exerciseId }
+            val unit = when (exercise?.let { ex -> ex.sets.getOrNull(applied.setIdx)?.resolveUnitModeV2(ex.trainingMode) }) {
+                com.example.kpkn.data.models.UnitModeV2.TIME -> "s"
+                com.example.kpkn.data.models.UnitModeV2.DISTANCE -> "m"
+                com.example.kpkn.data.models.UnitModeV2.CUSTOM -> exercise?.customUnit?.takeIf { it.isNotBlank() } ?: "u"
+                else -> "reps"
+            }
+            com.example.kpkn.screens.workout.components.voiceHeardCapture(
+                applied, exercise?.let(::displayWorkoutExerciseName) ?: applied.exerciseId, unit, System.currentTimeMillis(),
+            )
+        }
+    }
     if (voiceCapsuleVisible || showVoiceConversation) {
         com.example.kpkn.screens.workout.components.VoiceCapsuleLayer(
             entries = voiceHistory,
@@ -1618,6 +1643,9 @@ fun WorkoutScreen(
                 },
                 resting = uiState.isRestTimerRunning,
                 capturing = recorderOpen,
+                listView = liveSessionView == LiveSessionView.LIST,
+                restRemainingSeconds = restTimerRemaining.takeIf { uiState.isRestTimerRunning },
+                plannedReps = currentExercise?.sets?.getOrNull(uiState.currentSetIdx)?.targetReps,
             ),
             expanded = showVoiceConversation,
             onExpandedChange = { showVoiceConversation = it },
@@ -1641,6 +1669,12 @@ fun WorkoutScreen(
             onUndo = viewModel::undoVoiceHistoryCapture,
             onDiscard = viewModel::discardVoiceHistoryCapture,
             modifier = Modifier.navigationBarsPadding(),
+            live = voiceLive,
+            levelDb = voiceLevelDb,
+            heard = voiceHeard,
+            onStopSpeech = viewModel::stopVoiceSpeech,
+            onFlightArmedChange = viewModel::setVoiceFlightArmed,
+            onValuesDelivered = viewModel::onVoiceValuesDelivered,
         )
     }
 }
