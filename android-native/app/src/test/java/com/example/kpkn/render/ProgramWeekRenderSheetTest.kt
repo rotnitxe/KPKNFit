@@ -30,12 +30,10 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.NativeProgressionCardUi
 import com.example.kpkn.screens.programdetail.NativeProgressionItemUi
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
-import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
 import com.example.kpkn.screens.programdetail.design.ProgramDayModule
 import com.example.kpkn.screens.programdetail.design.ProgramDayUi
 import com.example.kpkn.screens.programdetail.design.ProgramPhase
 import com.example.kpkn.screens.programdetail.design.ProgramPhasesModule
-import com.example.kpkn.screens.programdetail.design.ProgramTransitionModule
 import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
 import com.example.kpkn.screens.programdetail.design.ProgramWeekHeader
 import com.example.kpkn.screens.programdetail.design.ProgramWeekStats
@@ -77,7 +75,7 @@ class ProgramWeekRenderSheetTest {
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     /** Los casos de la hoja, en orden. */
-    private val cases = listOf("fases", "simple", "dia", "descanso", "dosSesiones", "avisos", "hojaSemana")
+    private val cases = listOf("fases", "simple", "dia", "descanso", "dosSesiones", "hojaSemana")
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
@@ -112,7 +110,6 @@ class ProgramWeekRenderSheetTest {
         "dia" -> 470
         "descanso" -> 200
         "dosSesiones" -> 720
-        "avisos" -> 720
         "hojaSemana" -> 420
         else -> 600
     }
@@ -231,51 +228,6 @@ class ProgramWeekRenderSheetTest {
             "dosSesiones" -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 Spacer(Modifier.height(12.dp))
                 DayCase(day = twoSessionsDay, expanded = true)
-            }
-            "avisos" -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Spacer(Modifier.height(12.dp))
-                ProgramTransitionModule(
-                    message = "Toca descargar: después de cuatro semanas de bloque, la quinta baja la carga.",
-                    primaryLabel = "Aceptar descarga",
-                    onPrimary = {},
-                    secondaryLabel = "Rechazar",
-                    onSecondary = {},
-                    dismissLabel = "Más tarde: el programa espera tu decisión",
-                    onDismiss = {},
-                )
-                Spacer(Modifier.height(12.dp))
-                AutoregulationProposalsCard(
-                    program = ProgramDetailSamples.active,
-                    nativeCard = NativeProgressionCardUi(
-                        proposals = listOf(
-                            NativeProgressionItemUi(
-                                id = "p1",
-                                title = "Press banca: +2,5 kg",
-                                body = "Cumpliste las series con 2 repeticiones en reserva dos semanas seguidas.",
-                            ),
-                            NativeProgressionItemUi(
-                                id = "p2",
-                                title = "Sentadilla: repetir la carga",
-                                body = "La última semana fue más pesada de lo previsto.",
-                            ),
-                        ),
-                        notices = listOf(
-                            NativeProgressionItemUi(
-                                id = "n1",
-                                title = "Cambio aplicado",
-                                body = "Peso muerto: carga ajustada a 140 kg.",
-                            ),
-                        ),
-                    ),
-                    onAccept = {},
-                    onAcceptProposal = {},
-                    onReject = {},
-                    onAcceptNative = {},
-                    onRejectNative = {},
-                    onDismissNativeNotice = {},
-                    onOpenTm = {},
-                    onRematerialize = {},
-                )
             }
             "hojaSemana" -> Box(Modifier.fillMaxWidth().height(420.dp)) {
                 ProgramWeekEditSheet(

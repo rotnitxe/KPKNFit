@@ -40,7 +40,7 @@ class ProgramContinuationSheetTest {
             }
         }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("1 semana · 1 sesión prevista",useUnmergedTree = true).performScrollTo()
+        rule.onNodeWithText("Mitad de series, RIR 4",substring = true,useUnmergedTree = true).performScrollTo()
         rule.runOnIdle { assertEquals(0,accepted) }
         rule.onNodeWithText("Crear y activar").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,accepted) }
@@ -49,7 +49,7 @@ class ProgramContinuationSheetTest {
         var dismissed = 0
         rule.setContent { ProgramContinuationSheet(preview(),false,{ fail("sin confirmar") },{ dismissed++ }) }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("Volver").performScrollTo().performClick()
+        rule.onNodeWithText("Cancelar").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,dismissed) }
     }
 }

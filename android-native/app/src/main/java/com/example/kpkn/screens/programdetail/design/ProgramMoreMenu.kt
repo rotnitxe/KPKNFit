@@ -203,7 +203,7 @@ private val MenuGroupStyle = TextStyle(
 internal val MoreMenuSparkIcon: ImageVector = lineIcon("KpknLine.ProgramSpark", listOf("M12 3.5l1.8 5.2 5.2 1.8-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8z"))
 
 /** Un icono de línea del lienzo: trazo de 1,75 dp con extremos y uniones redondeados, retícula de 24. */
-private fun lineIcon(name: String, paths: List<String>): ImageVector = ImageVector.Builder(
+internal fun lineIcon(name: String, paths: List<String>): ImageVector = ImageVector.Builder(
     name = name,
     defaultWidth = 24.dp,
     defaultHeight = 24.dp,

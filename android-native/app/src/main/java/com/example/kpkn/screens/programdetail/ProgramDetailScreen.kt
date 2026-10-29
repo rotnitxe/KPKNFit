@@ -86,13 +86,11 @@ import com.example.kpkn.screens.programdetail.design.ProgramIslandBottom
 import com.example.kpkn.screens.programdetail.design.ProgramMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramMoreMenu
 import com.example.kpkn.screens.programdetail.design.ProgramOneRmSheet
-import com.example.kpkn.screens.programdetail.design.ProgramPendingDetailSheet
 import com.example.kpkn.screens.programdetail.design.ProgramPendingItem
 import com.example.kpkn.screens.programdetail.design.ProgramPendingKind
 import com.example.kpkn.screens.programdetail.design.ProgramPendingSheet
 import com.example.kpkn.screens.programdetail.design.ProgramPlanSheet
 import com.example.kpkn.screens.programdetail.design.ProgramRibbonWeek
-import com.example.kpkn.screens.programdetail.design.ProgramScheduleModule
 import com.example.kpkn.screens.programdetail.design.programEditDraftOf
 import com.example.kpkn.screens.programdetail.design.programHeaderPrimaryOf
 import com.example.kpkn.screens.programdetail.design.programHeaderStatusOf
@@ -114,7 +112,6 @@ import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.domain.training.ProgramDetailHelpers
-import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
 import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramCopyWeekSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDeleteSessionDialog
@@ -122,7 +119,6 @@ import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseBlockUi
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseWeekUi
 import com.example.kpkn.screens.programdetail.design.ProgramPhasesModule
-import com.example.kpkn.screens.programdetail.design.ProgramTransitionModule
 import com.example.kpkn.screens.programdetail.design.ProgramWeekEditSheet
 import com.example.kpkn.screens.programdetail.design.ProgramWeekHeader
 import com.example.kpkn.screens.programdetail.design.ProgramWeekStrip
@@ -255,7 +251,13 @@ fun ProgramDetailScreen(
     var showShareSheet by rememberSaveable { mutableStateOf(false) }
     // «Pendiente»: la lista (desde la campana o ⋯) y la hoja de detalle de un aviso, por su tipo.
     var showPending by remember { mutableStateOf(false) }
-    var pendingDetail by remember { mutableStateOf<ProgramPendingKind?>(null) }
+    // Las hojas finales que abre cada fila de «Pendiente» (H-S2): sesiones sin registrar, al terminar, cambio de bloque y propuestas.
+    var showMissedSessions by remember { mutableStateOf(false) }
+    var showContinueChoice by remember { mutableStateOf(false) }
+    var showBlockChange by remember { mutableStateOf(false) }
+    var proposalSheetKind by remember { mutableStateOf<ProgramPendingKind?>(null) }
+    // «Cargas de referencia»: la abre Estructura y también la fila «Falta el TM…» de «Pendiente».
+    val exerciseTmSheetState = rememberSaveable(program?.id) { mutableStateOf(false) }
     var showEditSheet by rememberSaveable { mutableStateOf(false) }
     // Id de la entrada del catálogo cuya hoja «Cómo funciona» está abierta (solo lectura); null = cerrada.
     var planInfoEntryId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -364,95 +366,159 @@ fun ProgramDetailScreen(
                 minutes = com.example.kpkn.domain.training.SessionDurationEstimator.estimate(other).totalMinutes,
             )
         }
-    // «Pendiente»: lo que espera una decisión, con los mismos avisos de siempre. Cada uno abre su hoja de detalle; el check-in abre el suyo.
-    fun openPendingDetail(kind: ProgramPendingKind): () -> Unit = { showPending = false; pendingDetail = kind }
+    // «Pendiente» (lienzo v6, p-pending): una fila por tipo de aviso (H-D3) y cada fila abre directamente su hoja final (H-S2). Orden:
+    // bloqueantes, propuestas del motor (la primera se resuelve ahí mismo), preguntas y, al final, lo que llega más adelante.
+    fun fromPending(action: () -> Unit): () -> Unit = {
+        showPending = false
+        action()
+    }
+    val exerciseTmTargets = remember(p) { exerciseTrainingMaxTargets(p) }
+    val missingTmNames = remember(p, exerciseTmTargets) {
+        com.example.kpkn.screens.programdetail.design.structure.trainingMaxMissingNames(p, exerciseTmTargets)
+    }
+    val usesTm = p.sourceRecipe?.let { usesTrainingMax(it) } ?: (p.powerliftingProfile != null)
+    val profileTmUnset = trainingMaxRowOf(usesTm, p.powerliftingProfile) == TrainingMaxRow.Unset
+    val autoregAction = p.runState?.pendingAction?.takeIf { it.type == PendingProgramActionType.CONFIRM_AUTOREGULATION }
+    val programExercises = remember(allProgramWeeks) { allProgramWeeks.flatMap { it.sessions }.flatMap { it.allExercises() } }
     val pendingItems = buildList<ProgramPendingItem> {
-        if (pendingMissedSessions != null || inactivityNotice != null) {
+        val banner = blockTransitionBanner
+        val bannerAutoreg = banner?.requiresExplicitConfirmation == true && banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION
+        // El test de fin de bloque abre «Registrar tus máximos» (m-onerm), que ya trae «Omitir el test».
+        if (banner != null && banner.requiresExplicitConfirmation && !bannerAutoreg) {
             add(
                 ProgramPendingItem(
-                    kind = ProgramPendingKind.MISSED_SESSIONS,
-                    title = "Sesiones pendientes",
-                    detail = "Elige cómo retomar el plan",
-                    onOpen = openPendingDetail(ProgramPendingKind.MISSED_SESSIONS),
+                    kind = ProgramPendingKind.ONE_RM_TEST,
+                    title = "Registrar tus máximos",
+                    detail = "Test de fin de bloque",
+                    onOpen = fromPending { showOneRmDialog = true },
                 ),
             )
         }
-        // El banner de transición de bloque: explícito y de autorregulación, explícito de 1RM, o un cambio de bloque sin confirmar.
-        blockTransitionBanner?.let { banner ->
-            val kind = when {
-                !banner.requiresExplicitConfirmation -> ProgramPendingKind.BLOCK_REVIEW
-                banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION -> ProgramPendingKind.AUTOREGULATION
-                else -> ProgramPendingKind.ONE_RM_TEST
-            }
-            val title = when (kind) {
-                ProgramPendingKind.AUTOREGULATION -> "Propuesta de ajuste"
-                ProgramPendingKind.ONE_RM_TEST -> "Test de 1RM pendiente"
-                else -> "Cambio de bloque"
-            }
-            add(ProgramPendingItem(kind = kind, title = title, detail = banner.message, onOpen = openPendingDetail(kind)))
+        if (pendingMissedSessions != null || inactivityNotice != null) {
+            val missed = pendingMissedSessions
+            add(
+                ProgramPendingItem(
+                    kind = ProgramPendingKind.MISSED_SESSIONS,
+                    title = missed?.let { com.example.kpkn.screens.programdetail.design.missedSessionsTitle(it.sessionIds.size) } ?: "Vuelta al plan",
+                    detail = if (missed != null) "Elige cómo sigue el plan" else inactivityNotice?.message.orEmpty(),
+                    onOpen = fromPending { showMissedSessions = true },
+                ),
+            )
         }
-        val autoregPending = p.runState?.pendingAction?.type == PendingProgramActionType.CONFIRM_AUTOREGULATION
-        if (nativeProgressionCard.pendingLabel != null || autoregPending) {
+        // Los TM que faltan: los máximos del programa (TM global sin fijar) o las cargas de referencia de cada ejercicio.
+        if (profileTmUnset || missingTmNames.isNotEmpty()) {
+            add(
+                ProgramPendingItem(
+                    kind = ProgramPendingKind.MISSING_TM,
+                    title = com.example.kpkn.screens.programdetail.design.missingTmTitle(if (profileTmUnset) emptyList() else missingTmNames),
+                    detail = com.example.kpkn.screens.programdetail.design.missingTmDetail(if (profileTmUnset) 2 else missingTmNames.size),
+                    onOpen = fromPending { if (profileTmUnset) showTmEditor = true else exerciseTmSheetState.value = true },
+                ),
+            )
+        }
+        // Propuestas del motor: una fila por tipo; la primera de cada una lleva «Aplicar» y «Mantener carga», y «y N más» si hay varias.
+        nativeProgressionCard.proposals.firstOrNull()?.let { first ->
+            val delta = p.nativeProgressionProposals.firstOrNull { it.proposalId == first.id }
+                ?.let { com.example.kpkn.screens.programdetail.design.sessionProposalLabel(programExercises, listOf(it)) }
             add(
                 ProgramPendingItem(
                     kind = ProgramPendingKind.PROGRESSION,
-                    title = nativeProgressionCard.pendingLabel ?: "Propuestas de progresión",
-                    detail = "Revisa y aplica o mantén la carga",
-                    onOpen = openPendingDetail(ProgramPendingKind.PROGRESSION),
+                    title = delta?.let { "${first.title}: $it" } ?: first.title,
+                    detail = com.example.kpkn.screens.programdetail.design.pendingDetailWithMore(first.body, nativeProgressionCard.proposals.size - 1),
+                    onOpen = fromPending { proposalSheetKind = ProgramPendingKind.PROGRESSION },
+                    primaryLabel = "Aplicar",
+                    onPrimary = { viewModel.acceptNativeProgressionProposal(first.id) },
+                    secondaryLabel = "Mantener carga",
+                    onSecondary = { viewModel.rejectNativeProgressionProposal(first.id) },
+                ),
+            )
+        }
+        if (autoregAction != null) {
+            val firstProposal = autoregAction.proposals.firstOrNull()
+            add(
+                ProgramPendingItem(
+                    kind = ProgramPendingKind.AUTOREGULATION,
+                    title = firstProposal?.explanation ?: autoregAction.message,
+                    detail = com.example.kpkn.screens.programdetail.design.pendingDetailWithMore(
+                        if (firstProposal != null) autoregAction.message else "",
+                        (autoregAction.proposals.size - 1).coerceAtLeast(0),
+                    ),
+                    onOpen = fromPending { proposalSheetKind = ProgramPendingKind.AUTOREGULATION },
+                    primaryLabel = "Aplicar",
+                    onPrimary = { viewModel.acceptAutoregulation(firstProposal) },
+                    secondaryLabel = "Mantener carga",
+                    onSecondary = { viewModel.rejectAutoregulation() },
+                ),
+            )
+        } else if (bannerAutoreg) {
+            // El aviso de autorregulación sin propuesta guardada: se lee y se entiende.
+            add(
+                ProgramPendingItem(
+                    kind = ProgramPendingKind.AUTOREGULATION,
+                    title = "Propuesta de ajuste",
+                    detail = banner?.message.orEmpty(),
+                    onOpen = fromPending { showBlockChange = true },
                 ),
             )
         }
         pendingBlockReview?.let { pending ->
+            val alternative = pending.adjustment == null && pending.alternatives.isNotEmpty()
             add(
                 ProgramPendingItem(
                     kind = ProgramPendingKind.BLOCK_REVIEW,
                     title = "Revisión de bloque",
-                    detail = pending.review.summary,
-                    onOpen = openPendingDetail(ProgramPendingKind.BLOCK_REVIEW),
+                    detail = "${pending.review.blockName} terminado",
+                    onOpen = fromPending { viewModel.reviewBlockAdjustment(pending, if (alternative) 0 else null) },
+                ),
+            )
+        }
+        if (banner != null && !banner.requiresExplicitConfirmation) {
+            add(
+                ProgramPendingItem(
+                    kind = ProgramPendingKind.BLOCK_CHANGE,
+                    title = "Cambio de bloque",
+                    detail = banner.message,
+                    onOpen = fromPending { showBlockChange = true },
                 ),
             )
         }
         pendingWeeklyCheckin?.let { request ->
-            // «Responder» abre el check-in de siempre, con la lista cerrada; «Omitir» hace la misma llamada que antes.
-            val answer: () -> Unit = { showPending = false; viewModel.clearWeeklyCheckinPreview(); showWeeklyCheckin = true }
+            val weekNumber = allProgramWeeks.indexOfFirst { it.id == (request.feedbackWeekId ?: request.weekId) }.takeIf { it >= 0 }?.plus(1)
             add(
                 ProgramPendingItem(
                     kind = ProgramPendingKind.WEEKLY_CHECKIN,
-                    title = "Check-in de la semana",
-                    detail = "¿Cómo fue la semana pasada?",
-                    onOpen = answer,
-                    primaryLabel = "Responder",
-                    onPrimary = answer,
-                    secondaryLabel = "Omitir esta semana",
-                    onSecondary = {
-                        viewModel.omitWeeklyCheckin(
-                            com.example.kpkn.domain.training.cycle.WeeklyCheckin(
-                                request.weekId, request.cycleNumber, System.currentTimeMillis(), skipped = true,
-                                programRunId = request.programRunId, feedbackWeekId = request.feedbackWeekId,
-                                feedbackCycleNumber = request.feedbackCycleNumber,
-                            ),
-                        )
+                    title = weekNumber?.let { "Check-in de la semana $it" } ?: "Check-in de la semana",
+                    detail = "Responder u omitir",
+                    onOpen = fromPending {
+                        viewModel.clearWeeklyCheckinPreview()
+                        showWeeklyCheckin = true
                     },
                 ),
             )
         }
-        pendingContinuation?.let {
+        if (pendingContinuation != null) {
             add(
                 ProgramPendingItem(
                     kind = ProgramPendingKind.CONTINUATION,
                     title = "Programa terminado",
                     detail = "Elige cómo seguir",
-                    onOpen = openPendingDetail(ProgramPendingKind.CONTINUATION),
+                    onOpen = fromPending { showContinueChoice = true },
                 ),
             )
+        } else if (!repeatingWeek) {
+            com.example.kpkn.screens.programdetail.design.programEndSoonTitle(programLine?.weekIndex, programLine?.weekCount)?.let { title ->
+                add(
+                    ProgramPendingItem(
+                        kind = ProgramPendingKind.PROGRAM_END_SOON,
+                        title = title,
+                        detail = "Te preguntaremos cómo seguir",
+                        onOpen = {},
+                    ),
+                )
+            }
         }
     }
-    val pendingKinds = pendingItems.map { it.kind }
-    // Si el aviso de una hoja de detalle se resuelve, la hoja se cierra sola.
-    LaunchedEffect(pendingKinds) {
-        val open = pendingDetail
-        if (open != null && pendingKinds.none { it == open }) pendingDetail = null
-    }
+    val pendingCount = com.example.kpkn.screens.programdetail.design.pendingDecisionCount(pendingItems)
     val headerState = ProgramHeaderState(
         name = p.name,
         status = status,
@@ -499,7 +565,7 @@ fun ProgramDetailScreen(
             viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         },
         onShare = { showShareSheet = true },
-        pendingCount = pendingItems.size,
+        pendingCount = pendingCount,
         onPending = { showPending = true },
     )
     val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
@@ -579,6 +645,7 @@ fun ProgramDetailScreen(
                         onOpenProgram = onOpenProgram,
                         onOpenSplitPage = { showSplitPage = true },
                         copiedWeekState = copiedWeekState,
+                        exerciseTmSheetState = exerciseTmSheetState,
                     )
                 }
             }
@@ -595,7 +662,7 @@ fun ProgramDetailScreen(
                     onSelect = { viewModel.setStructureSubTab(it) },
                     onBack = onBack,
                     onMore = { showMoreMenu = true },
-                    pendingDot = pendingItems.isNotEmpty() && headerOut,
+                    pendingDot = pendingCount > 0 && headerOut,
                 )
             }
         }
@@ -629,6 +696,13 @@ fun ProgramDetailScreen(
             onDismiss = { showPlanSheet = false },
             // «Ver cómo funciona» cierra esta hoja y abre la de solo lectura de la biblioteca.
             onOpenPlanInfo = { entryId -> showPlanSheet = false; planInfoEntryId = entryId },
+            description = p.description,
+            calendarRange = com.example.kpkn.domain.training.ProgramCalendarEngine.takeIf { it.isCalendarized(p) }?.let {
+                com.example.kpkn.screens.programdetail.design.planCalendarRange(
+                    allProgramWeeks.flatMap { week -> week.trainingDayDates.values }
+                        .mapNotNull { iso -> runCatching { java.time.LocalDate.parse(iso.take(10)) }.getOrNull() },
+                )
+            },
         )
     }
     exerciseSwapRequest?.let { request ->
@@ -659,7 +733,11 @@ fun ProgramDetailScreen(
     }
     blockReviewPreview?.let { preview ->
         com.example.kpkn.screens.programdetail.design.ProgramBlockReviewSheet(preview, blockReviewBusy,
-            viewModel::confirmBlockReview, viewModel::clearBlockReviewPreview)
+            viewModel::confirmBlockReview, viewModel::clearBlockReviewPreview,
+            onKeepPlan = {
+                viewModel.clearBlockReviewPreview()
+                pendingBlockReview?.let { viewModel.keepBlockPlan(it) }
+            })
     }
     if (showDecisions) {
         ProgramDecisionsSheet(decisions = progressReport?.decisions.orEmpty(), onDismiss = { showDecisions = false })
@@ -667,72 +745,65 @@ fun ProgramDetailScreen(
     if (showPending && pendingItems.isNotEmpty()) {
         ProgramPendingSheet(items = pendingItems, onDismiss = { showPending = false })
     }
-    // La hoja de detalle de un aviso: dentro, el mismo módulo que antes se pintaba en la portada o en la pestaña Semana.
-    pendingDetail?.let { kind ->
-        ProgramPendingDetailSheet(
-            title = pendingItems.firstOrNull { it.kind == kind }?.title ?: "Pendiente",
-            onDismiss = { pendingDetail = null },
-        ) {
-            when (kind) {
-                ProgramPendingKind.MISSED_SESSIONS -> ProgramScheduleModule(
-                    p,
-                    pendingMissedSessions,
-                    inactivityNotice,
-                    scheduleBusy,
-                    onChoice = { viewModel.reviewScheduleContinuation(it) },
-                    onSoftReturn = { viewModel.reviewScheduleContinuation() },
-                )
-                ProgramPendingKind.ONE_RM_TEST, ProgramPendingKind.AUTOREGULATION -> blockTransitionBanner?.let { banner ->
-                    BlockTransitionBannerModule(
-                        banner = banner,
-                        viewModel = viewModel,
-                        onOpenOneRmDialog = { showOneRmDialog = true },
-                        onOpenProposals = { pendingDetail = ProgramPendingKind.PROGRESSION },
-                    )
-                }
-                ProgramPendingKind.BLOCK_REVIEW -> {
-                    blockTransitionBanner?.takeIf { !it.requiresExplicitConfirmation }?.let { banner ->
-                        BlockTransitionBannerModule(
-                            banner = banner,
-                            viewModel = viewModel,
-                            onOpenOneRmDialog = { showOneRmDialog = true },
-                            onOpenProposals = { pendingDetail = ProgramPendingKind.PROGRESSION },
-                        )
-                    }
-                    pendingBlockReview?.let { pending ->
-                        val alternative = pending.adjustment == null && pending.alternatives.isNotEmpty()
-                        ProgramTransitionModule(message = pending.review.summary,
-                            primaryLabel = if (alternative) "Revisar inicio suave" else "Revisar bloque",
-                            onPrimary = { viewModel.reviewBlockAdjustment(pending, if (alternative) 0 else null) },
-                            secondaryLabel = "Conservar plan", onSecondary = { viewModel.keepBlockPlan(pending) },
-                            dismissLabel = "Ver decisiones", onDismiss = { showDecisions = true })
-                    }
-                }
-                ProgramPendingKind.PROGRESSION -> AutoregulationProposalsCard(
-                    program = p,
-                    nativeCard = nativeProgressionCard,
-                    onAccept = { viewModel.acceptAutoregulation() },
-                    onAcceptProposal = { viewModel.acceptAutoregulation(it) },
-                    onReject = { viewModel.rejectAutoregulation() },
-                    onAcceptNative = { viewModel.acceptNativeProgressionProposal(it) },
-                    onRejectNative = { viewModel.rejectNativeProgressionProposal(it) },
-                    onDismissNativeNotice = { viewModel.dismissNativeProgressionNotice(it) },
-                    onOpenTm = { showTmEditor = true },
-                    onRematerialize = { viewModel.rematerializePending() },
-                )
-                ProgramPendingKind.CONTINUATION -> pendingContinuation?.let { pending ->
-                    ProgramTransitionModule(message = "Programa terminado. Elige cómo seguir.",
-                        primaryLabel = "Repetir programa",onPrimary = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.REPEAT_WITH_NEW_MAXES) },
-                        secondaryLabel = "Elegir catálogo",onSecondary = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.PICK_FROM_CATALOG) },
-                        dismissLabel = "Semana de mantenimiento",onDismiss = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.MAINTENANCE_WEEK) })
-                }
-                else -> Unit
-            }
+    // Sesiones sin registrar o vuelta tras días sin entrenar: elegir cómo sigue el plan abre su revisión («Revisar continuidad»).
+    if (showMissedSessions && schedulePreview == null && (pendingMissedSessions != null || inactivityNotice != null)) {
+        com.example.kpkn.screens.programdetail.design.ProgramMissedSessionsSheet(
+            program = p,
+            request = pendingMissedSessions,
+            notice = inactivityNotice,
+            busy = scheduleBusy,
+            onChoice = { choice ->
+                showMissedSessions = false
+                viewModel.reviewScheduleContinuation(choice)
+            },
+            onSoftReturn = {
+                showMissedSessions = false
+                viewModel.reviewScheduleContinuation()
+            },
+            onDismiss = { showMissedSessions = false },
+        )
+    }
+    // Al terminar el programa (m-continue): el resumen de Progreso y las tres salidas; cada una lleva a su confirmación.
+    if (showContinueChoice && continuationPreview == null) {
+        pendingContinuation?.let { pending ->
+            val report = progressReport
+            com.example.kpkn.screens.programdetail.design.ProgramContinueChoiceSheet(
+                summary = com.example.kpkn.screens.programdetail.design.continuationSummary(
+                    gains = report?.lifts.orEmpty().map { it.exerciseName to (it.lastE1rmKg - it.firstE1rmKg) },
+                    adherencePercent = report?.adherencePercent,
+                    weekCount = weekCount,
+                ),
+                busy = continuationBusy,
+                onChoose = { choice ->
+                    showContinueChoice = false
+                    viewModel.reviewContinuation(pending, choice)
+                },
+                onDismiss = { showContinueChoice = false },
+            )
+        }
+    }
+    // Un cambio de bloque (o una propuesta de ajuste ya sin propuestas): se lee y se entiende.
+    if (showBlockChange) {
+        blockTransitionBanner?.let { banner ->
+            com.example.kpkn.screens.programdetail.design.ProgramNoticeSheet(
+                title = if (banner.requiresExplicitConfirmation) "Propuesta de ajuste" else "Cambio de bloque",
+                message = banner.message,
+                onAcknowledge = { viewModel.dismissBlockTransitionBanner() },
+                onDismiss = { showBlockChange = false },
+            )
+        }
+    }
+    // Una propuesta que no es la destacada: su hoja corta con «Aplicar» y «Mantener carga».
+    proposalSheetKind?.let { kind ->
+        pendingItems.firstOrNull { it.kind == kind && it.onPrimary != null }?.let { item ->
+            com.example.kpkn.screens.programdetail.design.ProgramProposalSheet(item = item, onDismiss = { proposalSheetKind = null })
         }
     }
     if (showWeeklyCheckin) pendingWeeklyCheckin?.let { request ->
         WeeklyCheckinSheet(
             request = request,
+            weekLabel = allProgramWeeks.indexOfFirst { it.id == (request.feedbackWeekId ?: request.weekId) }
+                .takeIf { it >= 0 }?.let { "Semana ${it + 1}" },
             previewDetail = weeklyCheckinPreview?.takeIf { it.answer.weekId == request.weekId && it.answer.programRunId == request.programRunId }
                 ?.result?.programDecisions?.lastOrNull()?.detail,
             busy = weeklyCheckinBusy,
@@ -758,12 +829,15 @@ fun ProgramDetailScreen(
                 bundled = bundledCover.takeIf { coverKind == HeroCoverKind.BUNDLED },
             ),
             items = buildList<ProgramMenuItem> {
-                if (pendingItems.isNotEmpty()) {
+                if (pendingCount > 0) {
                     add(
                         ProgramMenuItem(
                             icon = KpknLineIcons.Bell,
-                            label = "Pendiente · ${pendingItems.size}",
-                            detail = com.example.kpkn.screens.programdetail.design.pendingMenuDetail(pendingItems.map { it.title }),
+                            label = "Pendiente · $pendingCount",
+                            detail = com.example.kpkn.screens.programdetail.design.pendingMenuDetail(
+                                com.example.kpkn.screens.programdetail.design.orderedPending(pendingItems)
+                                    .filter { !it.kind.later }.map { it.title },
+                            ),
                             onClick = { showPending = true },
                         ),
                     )
@@ -819,9 +893,14 @@ fun ProgramDetailScreen(
     if (showVersions) {
         com.example.kpkn.screens.programdetail.design.structure.ProgramHistorySheet(
             snapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
+            today = java.time.LocalDate.now(),
             onRestore = { snapshotId ->
                 viewModel.restoreProgramSnapshot(snapshotId)
                 showVersions = false
+            },
+            onSaveCopy = {
+                showVersions = false
+                viewModel.addProgramCopy(p.copy(id = java.util.UUID.randomUUID().toString(), name = "${p.name} (copia)", isDraft = true))
             },
             onDismiss = { showVersions = false },
         )
@@ -902,6 +981,10 @@ fun ProgramDetailScreen(
                 showOneRmDialog = false
             },
             onDismiss = { showOneRmDialog = false },
+            onSkip = {
+                viewModel.skipPendingOneRmTest()
+                showOneRmDialog = false
+            },
             lifts = testLifts.map(::markOf),
             prefilled = testPrefill.isNotEmpty(),
             onSaveMarks = { values ->
@@ -958,6 +1041,7 @@ private fun TrainingPanel(
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
     copiedWeekState: MutableState<String?> = remember(program.id) { mutableStateOf(null) },
+    exerciseTmSheetState: MutableState<Boolean> = remember(program.id) { mutableStateOf(false) },
 ) {
     val volumeEvidence by viewModel.volumeEvidence.collectAsStateWithLifecycle()
     val closedCycleEvidence by viewModel.closedCycleEvidence.collectAsStateWithLifecycle()
@@ -1126,7 +1210,7 @@ private fun TrainingPanel(
         }
 
         // Cargas de referencia (TM) por ejercicio: viven en Estructura («Del programa») y se editan en su hoja.
-        var showExerciseTmSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+        var showExerciseTmSheet by exerciseTmSheetState
         val exerciseTmTargets = remember(program) { exerciseTrainingMaxTargets(program) }
         if (showExerciseTmSheet) {
             KpknSheet(onDismissRequest = { showExerciseTmSheet = false }, stableHeightFraction = 0.85f) {
@@ -1523,12 +1607,21 @@ private fun TrainingPanel(
             onDismiss = { showPlanningVolumeTargets = false },
         )
     }
-    if (showCopyWeekDialog) {
+    val pasteSource = copiedRoadmapWeekId
+    val pasteTarget = pasteTargetWeekId
+    if (showCopyWeekDialog && pasteSource != null && pasteTarget != null) {
+        val targetBlockIndex = phaseBlocks.indexOfFirst { block -> block.weeks.any { it.id == pasteTarget } }
+        val sourceWeek = allProgramWeeks.firstOrNull { it.id == pasteSource }
+        val sourcePhase = phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == pasteSource } }?.phase?.label
         ProgramCopyWeekSheet(
             weeks = allProgramWeeks,
-            currentBlockWeekIds = currentWeeks.map { it.id }.toSet(),
-            selectedWeekId = copiedRoadmapWeekId ?: selectedWeekId,
-            initialTargetWeekId = pasteTargetWeekId,
+            sourceWeekId = pasteSource,
+            targetWeekId = pasteTarget,
+            blockWeekIds = phaseBlocks.getOrNull(targetBlockIndex)?.weeks?.map { it.id }.orEmpty(),
+            blockNumber = targetBlockIndex.takeIf { it >= 0 && !program.isSimpleProgram }?.plus(1),
+            sourceSub = sourceWeek?.let { week ->
+                listOfNotNull("${week.sessions.size} ${if (week.sessions.size == 1) "sesión" else "sesiones"}", sourcePhase).joinToString(" · ")
+            },
             conflictsFor = { source, targets -> viewModel.previewWeekCopyConflicts(source, targets) },
             onCopy = { source, targets, replace -> viewModel.copyWeekSessions(source, targets, replace) },
             onDismiss = {
@@ -1552,46 +1645,35 @@ private fun TrainingPanel(
         )
     }
 
-    // Menú de la semana (⋯ del navegador, o pulsación larga de una semana en la hoja «Semanas»).
-    weekMenu?.let { (weekId, anchor) ->
+    // El ⋯ de la semana (m-week): del navegador o de la pulsación larga de una semana en la hoja «Semanas». Una hoja con sus grupos.
+    weekMenu?.let { (weekId, _) ->
         val menuWeek = allProgramWeeks.firstOrNull { it.id == weekId } ?: currentWeeks.firstOrNull { it.id == weekId }
         val copied = copiedRoadmapWeekId
         val copiedIndex = navWeeks.indexOfFirst { it.id == copied }
-        ProgramItemMenu(
-            items = buildList<ProgramAnchoredMenuItem> {
-                menuWeek?.let { week ->
-                    add(
-                        ProgramAnchoredMenuItem(
-                            label = "Nombre y nota de la semana",
-                            onClick = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
-                        ),
-                    )
-                }
-                if (weekId == selectedWeekId) {
-                    add(ProgramAnchoredMenuItem(label = "Cambiar reparto", onClick = onOpenSplitPage))
-                }
-                add(ProgramAnchoredMenuItem(label = "Copiar esta semana", onClick = { copiedRoadmapWeekId = weekId }))
-                if (copied != null && copied != weekId) {
-                    val pasteLabel = if (copiedIndex >= 0) "Pegar la semana ${copiedIndex + 1} aquí" else "Pegar semana aquí"
-                    add(ProgramAnchoredMenuItem(label = pasteLabel, onClick = { pasteWeek(weekId) }))
-                }
-                add(
-                    ProgramAnchoredMenuItem(
-                        label = "Añadir una semana después",
-                        onClick = {
-                            if (program.isSimpleProgram) {
-                                viewModel.addWeekToSimpleProgram()
-                            } else {
-                                phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == weekId } }?.let { addWeekToBlock(it.id) }
-                            }
-                        },
-                    ),
-                )
-                if (navWeeks.size > 1) {
-                    add(ProgramAnchoredMenuItem(label = "Eliminar esta semana", onClick = { pendingDeleteWeek = weekId }, destructive = true))
+        val weekIndex = navWeeks.indexOfFirst { it.id == weekId }
+        val phase = phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == weekId } }?.phase?.label
+        com.example.kpkn.screens.programdetail.design.ProgramWeekMenuSheet(
+            title = if (weekIndex >= 0) "Semana ${weekIndex + 1}" else menuWeek?.name.orEmpty(),
+            sub = com.example.kpkn.screens.programdetail.design.weekMenuSubtitle(if (program.isSimpleProgram) null else phase, menuWeek?.dateRangeLabel),
+            onEditMeta = menuWeek?.let { week ->
+                { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) }
+            },
+            onChangeSplit = if (weekId == selectedWeekId) onOpenSplitPage else null,
+            onCopy = { copiedRoadmapWeekId = weekId },
+            pasteLabel = if (copied != null && copied != weekId) {
+                if (copiedIndex >= 0) "Pegar la semana ${copiedIndex + 1} aquí" else "Pegar la semana aquí"
+            } else {
+                null
+            },
+            onPaste = { pasteWeek(weekId) },
+            onAddAfter = {
+                if (program.isSimpleProgram) {
+                    viewModel.addWeekToSimpleProgram()
+                } else {
+                    phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == weekId } }?.let { addWeekToBlock(it.id) }
                 }
             },
-            anchor = anchor,
+            onDelete = if (navWeeks.size > 1) ({ pendingDeleteWeek = weekId }) else null,
             onDismiss = { weekMenu = null },
         )
     }
@@ -1600,7 +1682,7 @@ private fun TrainingPanel(
     addSessionMenu?.let { anchor ->
         ProgramItemMenu(
             items = getDynamicDays(program.startDay ?: 1, program.weekDays ?: 7).map { day ->
-                ProgramAnchoredMenuItem(label = day.name, onClick = { addSessionOnDay(day.id) })
+                ProgramAnchoredMenuItem(label = day.name, onClick = { addSessionOnDay(day.id) }, icon = KpknLineIcons.Calendar)
             },
             anchor = anchor,
             onDismiss = { addSessionMenu = null },
@@ -1608,17 +1690,16 @@ private fun TrainingPanel(
     }
 
     pendingDeleteWeek?.let { weekId ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingDeleteWeek = null },
-            title = "¿Eliminar esta semana?",
-            text = "Se quitan sus sesiones. Tus registros se conservan.",
+        com.example.kpkn.screens.programdetail.design.ProgramConfirmSheet(
+            title = "Eliminar esta semana",
+            sub = "Se quitan sus sesiones. Tus registros se conservan.",
             confirmLabel = "Eliminar",
             onConfirm = {
                 viewModel.deleteWeekFromRoadmap(weekId)
                 pendingDeleteWeek = null
             },
-            dismissLabel = "Cancelar",
-            destructive = true,
+            onDismiss = { pendingDeleteWeek = null },
+            confirmTag = "delete_week_confirm",
         )
     }
 
@@ -1721,43 +1802,6 @@ private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
     else -> "día"
 }
 
-/**
- * El aviso de transición de bloque, con las mismas acciones de siempre. Vive en la hoja «Pendiente»: antes lo pintaba la pestaña Semana.
- */
-@Composable
-private fun BlockTransitionBannerModule(
-    banner: BlockTransitionBanner,
-    viewModel: ProgramDetailViewModel,
-    onOpenOneRmDialog: () -> Unit,
-    onOpenProposals: () -> Unit,
-) {
-    val explicit = banner.requiresExplicitConfirmation
-    val isAutoreg = explicit && banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION
-    ProgramTransitionModule(
-        message = banner.message,
-        primaryLabel = when {
-            isAutoreg -> "Ver propuesta"
-            explicit -> "Registrar resultado"
-            else -> null
-        },
-        onPrimary = {
-            when {
-                // «Ver propuesta» abre la hoja «Pendiente» de progresiones; aquí no se acepta ni se rechaza nada.
-                isAutoreg -> onOpenProposals()
-                else -> onOpenOneRmDialog()
-            }
-        },
-        secondaryLabel = when {
-            explicit && !isAutoreg -> "Omitir"
-            else -> null
-        },
-        onSecondary = {
-            viewModel.skipPendingOneRmTest()
-        },
-        dismissLabel = if (explicit) "Más tarde: el programa espera tu decisión" else "Entendido",
-        onDismiss = { viewModel.dismissBlockTransitionBanner() },
-    )
-}
 
 /**
  * Los avisos del ViewModel llegan como texto: los fallos y rechazos se pintan de rojo, «No se

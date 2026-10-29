@@ -35,7 +35,6 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
 import com.example.kpkn.screens.programdetail.NativeProgressionCardUi
 import com.example.kpkn.screens.programdetail.NativeProgressionItemUi
-import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
 import com.example.kpkn.screens.programdetail.design.ProgramHeader
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderActions
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
@@ -84,7 +83,7 @@ class Pr11PolishRenderSheetTest {
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     /** Los casos de la hoja, en orden. */
-    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "propuestasSinTm", "propuestasSinTmConTm", "grasaDosPesajes")
+    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "grasaDosPesajes")
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
@@ -116,7 +115,6 @@ class Pr11PolishRenderSheetTest {
     private fun heightOf(name: String): Int = when (name) {
         "pdDescanso", "pdSinSiguiente" -> 560
         "volumenSinCalibrar" -> 1700
-        "propuestasSinTm", "propuestasSinTmConTm" -> 460
         "grasaDosPesajes" -> 560
         else -> 800
     }
@@ -228,42 +226,6 @@ class Pr11PolishRenderSheetTest {
                     expandedMuscle = null,
                     onToggleMuscle = {},
                     breakdown = null,
-                )
-            }
-            "propuestasSinTm" -> Frame {
-                AutoregulationProposalsCard(
-                    program = noTmProgram,
-                    nativeCard = NativeProgressionCardUi(
-                        proposals = listOf(
-                            NativeProgressionItemUi(
-                                id = "sentadilla",
-                                title = "Sentadilla: +2,5 kg",
-                                body = "Tres sesiones seguidas con la carga completa y una repetición de reserva.",
-                            ),
-                        ),
-                    ),
-                    onAccept = {},
-                    onAcceptProposal = {},
-                    onReject = {},
-                    onAcceptNative = {},
-                    onRejectNative = {},
-                    onDismissNativeNotice = {},
-                    onOpenTm = {},
-                    onRematerialize = {},
-                )
-            }
-            "propuestasSinTmConTm" -> Frame {
-                AutoregulationProposalsCard(
-                    program = tmUnsetProgram,
-                    nativeCard = NativeProgressionCardUi(),
-                    onAccept = {},
-                    onAcceptProposal = {},
-                    onReject = {},
-                    onAcceptNative = {},
-                    onRejectNative = {},
-                    onDismissNativeNotice = {},
-                    onOpenTm = {},
-                    onRematerialize = {},
                 )
             }
             "grasaDosPesajes" -> Frame {

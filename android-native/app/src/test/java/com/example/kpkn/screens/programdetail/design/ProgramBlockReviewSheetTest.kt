@@ -40,16 +40,17 @@ class ProgramBlockReviewSheetTest {
             }
         }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("Esta elección conserva la prescripción vigente.",useUnmergedTree = true).performScrollTo()
+        rule.onNodeWithText("3 de 4 sesiones registradas",substring = true,useUnmergedTree = true).performScrollTo()
         rule.runOnIdle { assertEquals(0,confirmed) }
         rule.onNodeWithText("Confirmar").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,confirmed) }
     }
-    @Test fun going_back_keeps_the_proposal_unresolved() {
-        var dismissed = 0
-        rule.setContent { ProgramBlockReviewSheet(preview(),false,{ fail("sin confirmar") },{ dismissed++ }) }
+    @Test fun keeping_the_plan_is_its_own_action_and_there_is_no_back_button() {
+        var kept = 0
+        rule.setContent { ProgramBlockReviewSheet(preview(),false,{ fail("sin confirmar") },{},onKeepPlan = { kept++ }) }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("Volver").performScrollTo().performClick()
-        rule.runOnIdle { assertEquals(1,dismissed) }
+        rule.onNodeWithText("Volver").assertDoesNotExist()
+        rule.onNodeWithText("Conservar el plan").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(1,kept) }
     }
 }

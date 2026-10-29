@@ -41,10 +41,8 @@ internal fun ProgramSheetHeader(title: String, modifier: Modifier = Modifier, ey
  */
 @Composable
 internal fun ProgramUnavailableSheet(eyebrow: String, message: String, onDismiss: () -> Unit) {
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            ProgramSheetHeader(title = "No disponible", eyebrow = eyebrow, subtitle = message)
-            KpknSecondaryPill(text = "Cerrar", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
-        }
+    ProgramLienzoSheet(onDismiss = onDismiss) {
+        LienzoSheetTitle(title = "No disponible", eyebrow = eyebrow, sub = message)
+        ProgramLienzoPill(text = "Cerrar", onClick = onDismiss, modifier = Modifier.fillMaxWidth(), filled = false)
     }
 }

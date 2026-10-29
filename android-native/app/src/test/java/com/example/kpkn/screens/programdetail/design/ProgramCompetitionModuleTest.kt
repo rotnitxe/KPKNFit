@@ -60,7 +60,7 @@ class ProgramCompetitionModuleTest {
         rule.setContent { MeetDaySheet(attempts) { closed++ } }
         rule.mainClock.advanceTimeBy(1_000)
         rule.onNodeWithTag("meet-simulation:SQUAT:1:NO_LIFT").performScrollTo().performClick()
-        rule.onNodeWithText("Siguiente intento orientativo: 182.5 kg",useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Siguiente intento orientativo: 182,5 kg",useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0,closed) }
         rule.onNodeWithText("Cerrar simulación").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,closed) }

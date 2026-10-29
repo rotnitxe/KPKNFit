@@ -168,7 +168,7 @@ class ProgramDayModuleTest {
         setDayView(manualProgram())
         composeRule.onNodeWithText("Sesión editada").performClick()
         composeRule.onNodeWithText(RESTORE_LABEL).performClick()
-        composeRule.onNodeWithText("Restaurar sesión").assertIsDisplayed()
+        composeRule.onNodeWithText("Se pierden los cambios que hiciste en esta sesión.").assertIsDisplayed()
     }
 
     @Test

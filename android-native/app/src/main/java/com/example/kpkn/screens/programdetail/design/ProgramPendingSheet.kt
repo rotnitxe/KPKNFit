@@ -122,132 +122,144 @@ internal fun ProgramPendingBell(count: Int, onClick: () -> Unit, modifier: Modif
 }
 
 /**
- * La hoja «Pendiente», la misma hoja KPKN que las decisiones. Lo más urgente va en un recuadro, con sus acciones si las tiene; el resto
- * va agrupado por plazo. Tocar una fila abre lo que la resuelve.
+ * La hoja «Pendiente» (lienzo v6, p-pending): «Pendiente» y cuántas cosas esperan; la primera propuesta del motor en un recuadro con
+ * «Aplicar» y «Mantener carga»; el resto en filas `.mi` que abren directamente su hoja; y, al final, «Más adelante». Una fila por tipo.
  */
 @Composable
 internal fun ProgramPendingSheet(items: List<ProgramPendingItem>, onDismiss: () -> Unit) {
-    val ordered = orderedPending(items)
-    KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.85f) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text("Pendiente", style = KpknType.dialogTitle, color = WizardColors.text)
-            Text(pendingSubtitle(ordered.size), style = KpknType.caption, color = WizardColors.textMuted)
-            ordered.firstOrNull()?.let { PendingFeatured(it) }
-            groupedPending(ordered.drop(1)).forEach { (group, members) ->
-                Column {
-                    Text(
-                        text = group.uppercase(Locale("es")),
-                        style = KpknType.eyebrow,
-                        color = WizardColors.textFaint,
-                        modifier = Modifier.padding(start = 2.dp, top = 4.dp, bottom = 4.dp),
-                    )
-                    members.forEachIndexed { index, item -> PendingRow(item = item, divider = index > 0) }
-                }
+    val featured = featuredPending(items)
+    val now = pendingNowRows(items)
+    val later = pendingLaterRows(items)
+    ProgramLienzoSheet(onDismiss = onDismiss) {
+        LienzoSheetTitle(title = "Pendiente", sub = pendingSubtitle(pendingDecisionCount(items)))
+        featured?.let { PendingFeatured(it) }
+        now.forEachIndexed { index, item ->
+            LienzoMenuRow(icon = pendingIconOf(item.kind), title = item.title, sub = item.detail, onClick = item.onOpen, divider = index > 0)
+        }
+        if (later.isNotEmpty()) {
+            LienzoGroup("Más adelante")
+            later.forEachIndexed { index, item ->
+                LienzoMenuRow(
+                    icon = pendingIconOf(item.kind),
+                    title = item.title,
+                    sub = item.detail,
+                    onClick = item.onOpen,
+                    divider = now.isNotEmpty() || index > 0,
+                )
             }
         }
     }
 }
 
-/** «3 cosas esperan tu decisión.»; en singular, «1 cosa espera tu decisión.». */
-private fun pendingSubtitle(count: Int): String =
-    if (count == 1) "1 cosa espera tu decisión." else "$count cosas esperan tu decisión."
-
-/** El primero de la lista, en un recuadro: icono, título y detalle. Sus acciones, si las tiene, van en píldoras debajo. */
+/**
+ * La primera propuesta (`.mod` de p-pending): fondo blanco al 3 %, filete al 8 %, 14 × 16 dp de relleno; su icono, su título y su detalle,
+ * y debajo «Aplicar» y «Mantener carga» en píldoras pequeñas que la resuelven ahí mismo.
+ */
 @Composable
 private fun PendingFeatured(item: ProgramPendingItem) {
-    val shape = RoundedCornerShape(20.dp)
-    val interaction = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(24.dp)
     val primary = item.primaryLabel?.let { label -> item.onPrimary?.let { action -> label to action } }
     val secondary = item.secondaryLabel?.let { label -> item.onSecondary?.let { action -> label to action } }
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 6.dp)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.03f), shape)
-            .border(1.dp, Color.White.copy(alpha = 0.08f), shape)
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = item.onOpen)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .background(Color.White.copy(alpha = 0.031f), shape)
+            .border(1.dp, Color.White.copy(alpha = 0.078f), shape)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PendingIcon(kind = item.kind)
+            Box(
+                modifier = Modifier.size(38.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.063f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(imageVector = pendingIconOf(item.kind), contentDescription = null, modifier = Modifier.size(19.dp), tint = WizardColors.textMuted)
+            }
             Spacer(Modifier.width(12.dp))
-            PendingTexts(title = item.title, detail = item.detail, modifier = Modifier.weight(1f))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.title, style = PendingTitleStyle, color = WizardColors.text)
+                if (item.detail.isNotBlank()) Text(text = item.detail, style = LienzoCapStyle, color = WizardColors.textFaint)
+            }
         }
         if (primary != null || secondary != null) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 primary?.let { (label, action) ->
-                    KpknCompactPill(text = label, onClick = action, modifier = Modifier.weight(1f))
+                    ProgramLienzoPill(text = label, onClick = action, modifier = Modifier.weight(1f), small = true, tag = "pending_apply")
                 }
                 secondary?.let { (label, action) ->
-                    KpknCompactPill(text = label, onClick = action, modifier = Modifier.weight(1f), filled = false)
+                    ProgramLienzoPill(
+                        text = label,
+                        onClick = action,
+                        modifier = Modifier.weight(1f),
+                        filled = false,
+                        small = true,
+                        tag = "pending_keep",
+                    )
                 }
             }
         }
     }
 }
 
-/** Una fila del resto: icono, título y detalle, 54 dp como mínimo. Un filete la separa de la anterior; tocarla abre lo que la resuelve. */
-@Composable
-private fun PendingRow(item: ProgramPendingItem, divider: Boolean) {
-    val interaction = remember { MutableInteractionSource() }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (divider) {
-            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 54.dp)
-                .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = item.onOpen)
-                .padding(vertical = 4.dp, horizontal = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            PendingIcon(kind = item.kind)
-            Spacer(Modifier.width(14.dp))
-            PendingTexts(title = item.title, detail = item.detail, modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-/** Título y, si lo hay, detalle en `textFaint`. */
-@Composable
-private fun PendingTexts(title: String, detail: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(text = title, style = PendingTitleStyle, color = WizardColors.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        if (detail.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(text = detail, style = KpknType.caption, color = WizardColors.textFaint)
-        }
-    }
-}
-
-/** Icono de una fila: círculo de 38 dp con fondo blanco al 6 % e icono en `textMuted`. */
-@Composable
-private fun PendingIcon(kind: ProgramPendingKind) {
-    Box(
-        modifier = Modifier
-            .size(38.dp)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.06f), CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(imageVector = pendingIconOf(kind), contentDescription = null, modifier = Modifier.size(19.dp), tint = WizardColors.textMuted)
-    }
-}
-
-/** El icono de cada tipo. «Diana» para el TM: es lo más parecido que hay en KpknLineIcons. */
-private fun pendingIconOf(kind: ProgramPendingKind): ImageVector = when (kind) {
+/** El icono de cada tipo (p-pending: `trendUp`, `target`, `check`, `repeat`). */
+internal fun pendingIconOf(kind: ProgramPendingKind): ImageVector = when (kind) {
     ProgramPendingKind.PROGRESSION, ProgramPendingKind.AUTOREGULATION -> KpknLineIcons.TrendUp
     ProgramPendingKind.MISSING_TM -> KpknLineIcons.Target
     ProgramPendingKind.WEEKLY_CHECKIN -> KpknLineIcons.Check
-    ProgramPendingKind.CONTINUATION -> KpknLineIcons.Repeat
-    ProgramPendingKind.ONE_RM_TEST, ProgramPendingKind.MISSED_SESSIONS -> KpknLineIcons.Calendar
-    ProgramPendingKind.BLOCK_REVIEW -> KpknLineIcons.Sliders
+    ProgramPendingKind.CONTINUATION, ProgramPendingKind.PROGRAM_END_SOON -> KpknLineIcons.Repeat
+    ProgramPendingKind.ONE_RM_TEST -> KpknLineIcons.Flag
+    ProgramPendingKind.MISSED_SESSIONS -> KpknLineIcons.Calendar
+    ProgramPendingKind.BLOCK_REVIEW, ProgramPendingKind.BLOCK_CHANGE -> KpknLineIcons.Sliders
+}
+
+/**
+ * Una propuesta del motor que no es la destacada (p-pending: «los demás abren la hoja que abren hoy»), con el patrón corto de las hojas m-*:
+ * su título, su detalle y «Aplicar» o «Mantener carga».
+ */
+@Composable
+internal fun ProgramProposalSheet(item: ProgramPendingItem, onDismiss: () -> Unit) {
+    ProgramLienzoSheet(onDismiss = onDismiss) {
+        LienzoSheetTitle(title = item.title, eyebrow = "Propuesta", sub = item.detail.ifBlank { null })
+        item.primaryLabel?.let { label ->
+            ProgramLienzoPill(
+                text = label,
+                onClick = {
+                    onDismiss()
+                    item.onPrimary?.invoke()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                tag = "proposal_apply",
+            )
+        }
+        item.secondaryLabel?.let { label ->
+            ProgramLienzoPill(
+                text = label,
+                onClick = {
+                    onDismiss()
+                    item.onSecondary?.invoke()
+                },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                filled = false,
+                tag = "proposal_keep",
+            )
+        }
+    }
+}
+
+/** Un aviso sin decisión que tomar (el cambio de bloque, una propuesta ya vista) con el patrón corto: título, mensaje y «Entendido». */
+@Composable
+internal fun ProgramNoticeSheet(title: String, message: String, onAcknowledge: () -> Unit, onDismiss: () -> Unit) {
+    ProgramLienzoSheet(onDismiss = onDismiss) {
+        LienzoSheetTitle(title = title, sub = message)
+        ProgramLienzoPill(
+            text = "Entendido",
+            onClick = {
+                onDismiss()
+                onAcknowledge()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            tag = "notice_ack",
+        )
+    }
 }
