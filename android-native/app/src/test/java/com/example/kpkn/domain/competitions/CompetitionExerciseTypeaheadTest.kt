@@ -23,7 +23,7 @@ class CompetitionExerciseTypeaheadTest {
 
     @Test
     fun unmatched_name_uses_custom_prefix_via_smart_creator() {
-        val created = PowerliftingWizardDraft.createCustomExercise("Press de trineo lunar", index.values.toList())
+        val created = CompetitionDraft.createCustomExercise("Press de trineo lunar", index.values.toList())
         assertTrue(created.id.startsWith(CompetitionExerciseTypeahead.CUSTOM_PREFIX))
         assertTrue(created.isCustom)
         assertFalse(index.containsKey(created.id.lowercase()))

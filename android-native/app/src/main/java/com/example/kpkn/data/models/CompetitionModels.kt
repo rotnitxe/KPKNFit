@@ -64,6 +64,8 @@ data class PlannedAttempt(
     val attemptNumber: Int,
     val weightKg: Double,
     val basis: String = "",
+    /** Escrito a mano en el plan: cambiar de estrategia no lo pisa sin preguntar (Registros v4, c-plan). */
+    val manual: Boolean = false,
 )
 
 @Serializable
@@ -104,6 +106,46 @@ data class CompetitionRecord(
     val targetWeightClass: String? = null,
     val targetBodyweightKg: Double? = null,
     val meetResultAppliedAtMs: Long? = null,
+    /** Disciplina de la competencia (id de `CompetitionDiscipline`); null en los registros anteriores: se deduce de [sportType]. */
+    val discipline: String? = null,
+    /** Estrategia del plan de intentos (`AttemptStrategy.name`). */
+    val attemptStrategy: String? = null,
+    /** «Algo más» del puesto: ids de `CompetitionExtra` (varios). */
+    val extras: List<String> = emptyList(),
+    /** Participantes de la categoría o del cuadro («2.º de 14»). */
+    val fieldSize: Int? = null,
+    /** Contra el reloj: distancia en km, tiempo final, objetivo, parciales por km y posiciones. */
+    val distanceKm: Double? = null,
+    val finishTimeSeconds: Double? = null,
+    val targetTimeSeconds: Double? = null,
+    val splitsSeconds: List<Double> = emptyList(),
+    val overallPlace: Int? = null,
+    val overallField: Int? = null,
+    val categoryPlace: Int? = null,
+    /** Marca en metros (saltos). */
+    val markMeters: Double? = null,
+    /** Combates y partidos: ronda, resultado y método o marcador. */
+    val bouts: List<CompetitionBout> = emptyList(),
+    /** Escalada: tops y zonas. */
+    val climbing: CompetitionClimbingResult? = null,
+    /** Pareja o equipo (pádel, tenis de dobles). */
+    val partner: String? = null,
+)
+
+@Serializable
+data class CompetitionBout(
+    val id: String,
+    val round: String,
+    val won: Boolean,
+    val method: String = "",
+)
+
+@Serializable
+data class CompetitionClimbingResult(
+    val topsDone: Int = 0,
+    val topsTotal: Int = 0,
+    val zonesDone: Int = 0,
+    val zonesTotal: Int = 0,
 )
 
 @Serializable
@@ -190,6 +232,8 @@ data class BodybuildingCompetitionDetails(
     val stageWeightKg: Double? = null,
     val conditionNotes: String? = null,
     val posingNotes: String? = null,
+    /** Rondas de la tarima («Prejuicio y final»). */
+    val rounds: String? = null,
     val judgesFeedback: String? = null,
     val personalReflection: String? = null,
 )

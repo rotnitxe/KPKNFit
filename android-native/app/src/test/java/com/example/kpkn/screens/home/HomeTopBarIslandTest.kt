@@ -56,11 +56,6 @@ class HomeTopBarIslandTest {
     /** Progreso del relevo de la sesión: la prueba del contexto discreto lo cambia fuera de la composición. */
     private var sessionProgress by mutableStateOf(0f)
 
-    /** La competición de hoy que la isla recibe (IMP-08); nula en las demás pruebas. */
-    private var competition by mutableStateOf<com.example.kpkn.domain.training.HomeCompetitionState?>(null)
-    private var registeredRecord: String? = null
-    private var openedProgram: String? = null
-
     /** La vista de Compose, para dibujarla a un bitmap y medir el avatar. */
     private var hostView: View? = null
 
@@ -82,13 +77,10 @@ class HomeTopBarIslandTest {
                     
                     
                     primarySession = null,
-                    homeCompetition = competition,
                     isRestDay = true,
                     dailyCalorieGoal = 2300,
                     consumedCalories = 1240,
                     onStartWorkout = { _, _ -> },
-                    onRegisterCompetition = { registeredRecord = it },
-                    onOpenCompetitionProgram = { openedProgram = it },
                     onCreateProgram = {},
                     onAddMeal = {},
                     onNavigateToProfile = onProfile,
@@ -193,39 +185,6 @@ class HomeTopBarIslandTest {
         rule.waitForIdle()
         headings().assertCountEquals(1)
         rule.onNodeWithText("Día de descanso").assertExists()
-    }
-
-    private fun meet(phase: com.example.kpkn.domain.training.CompetitionHomePhase) = com.example.kpkn.domain.training.HomeCompetitionState(
-        recordId = "rec-1", programId = "prog-1", programName = "Fuerza", title = "Copa Nacional", competitionDate = "2026-11-01",
-        competitionDateLabel = "1 nov", daysUntil = 0, countdownLabel = "Hoy", competitionWeekLabel = null, phase = phase,
-    )
-
-    @Test
-    fun elDiaDelMeetLaAccionPrincipalDeLaBarraEsElModoCompeticion() {
-        barAlpha = 1f
-        sessionProgress = 0.8f
-        competition = meet(com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
-        rule.setContent { Island(onProfile = {}) }
-        rule.waitForIdle()
-        rule.onNodeWithText("Modo competición").performClick()
-        assertEquals("prog-1", openedProgram)
-        assertEquals(null, registeredRecord)
-        // «Registrar resultado» sigue ahí como acción secundaria.
-        rule.onNodeWithContentDescription("Registrar resultado").performClick()
-        assertEquals("rec-1", registeredRecord)
-    }
-
-    @Test
-    fun despuesDelMeetLaBarraSigueOfreciendoSoloRegistrar() {
-        barAlpha = 1f
-        sessionProgress = 0.8f
-        competition = meet(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER)
-        rule.setContent { Island(onProfile = {}) }
-        rule.waitForIdle()
-        rule.onNodeWithText("Modo competición").assertDoesNotExist()
-        rule.onNodeWithText("Registrar").performClick()
-        assertEquals("rec-1", registeredRecord)
-        assertEquals(null, openedProgram)
     }
 
     @Test

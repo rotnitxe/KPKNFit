@@ -33,12 +33,15 @@ object CompetitionScoring {
         return PowerliftingPointsFormula.fromId(fromFed) ?: PowerliftingPointsFormula.DOTS
     }
 
-    fun bestValidKg(block: CompetitionTechnicalBlock): Double? =
-        block.attempts
-            .filter { it.resultType == CompetitionAttemptResult.GOOD_LIFT }
-            .mapNotNull { it.weightKg }
-            .maxOrNull()
-            ?: block.bestValidWeightKg
+    /**
+     * Mejor intento válido de [block]. El valor guardado solo vale para registros antiguos sin pesos en sus intentos: si el último
+     * válido pasa a nulo, el mejor baja (C-F6; antes reutilizaba el guardado y el total no bajaba).
+     */
+    fun bestValidKg(block: CompetitionTechnicalBlock): Double? {
+        val weighed = block.attempts.filter { it.weightKg != null }
+        if (weighed.isEmpty()) return block.bestValidWeightKg
+        return weighed.filter { it.resultType == CompetitionAttemptResult.GOOD_LIFT }.mapNotNull { it.weightKg }.maxOrNull()
+    }
 
     fun withBestValids(blocks: List<CompetitionTechnicalBlock>): List<CompetitionTechnicalBlock> =
         blocks.map { it.copy(bestValidWeightKg = bestValidKg(it)) }
@@ -99,11 +102,12 @@ object CompetitionScoring {
             PowerliftingPointsFormula.DOTS -> details?.dotsPoints
             PowerliftingPointsFormula.WILKS -> details?.wilksPoints
         }
-        if (stored != null && stored > 0.0) {
+        val computedTotal = totalKg(record.technicalBlocks)
+        if (stored != null && stored > 0.0 && (computedTotal == null || computedTotal == details?.totalKg)) {
             return CompetitionPoints(formula, stored)
         }
         return calculatePoints(
-            totalKg = details?.totalKg ?: totalKg(record.technicalBlocks),
+            totalKg = computedTotal ?: details?.totalKg,
             bodyweightKg = record.bodyweightKg,
             sex = scoringSex(record),
             formula = formula,
