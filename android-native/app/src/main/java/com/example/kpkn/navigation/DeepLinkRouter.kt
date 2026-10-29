@@ -44,10 +44,10 @@ object DeepLinkRouter {
         return when (first) {
             "home", "inicio", "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.Home.route)
             "training", "entreno" -> ResolvedRoute(KpknRoute.Training.route)
-            "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Profile.route)
+            "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Competitions.create())
             "competition" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.CompetitionDetail.create(it)) }
-                ?: ResolvedRoute(KpknRoute.Profile.route)
+                ?: ResolvedRoute(KpknRoute.Competitions.create())
             "nutrition", "nutricion", "nutrición" -> resolveNutrition(second, third)
             "settings", "ajustes" -> resolveSettings(second)
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)

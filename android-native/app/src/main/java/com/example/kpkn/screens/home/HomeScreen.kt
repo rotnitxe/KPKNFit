@@ -136,6 +136,8 @@ fun HomeScreen(
     onCreateProgram: () -> Unit = {},
     onStartWorkout: (Session, Program) -> Unit = { _, _ -> },
     onRegisterCompetition: (String) -> Unit = {},
+    onOpenCompetitionToday: (String) -> Unit = {},
+    onOpenCompetitions: () -> Unit = {},
     onResumeWorkout: () -> Unit = {},
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
@@ -291,13 +293,10 @@ fun HomeScreen(
              nutritionProgress = if (showNutrition) nutritionProgress else 0f,
             hasPrograms = uiState.hasActiveProgram,
             primarySession = uiState.primarySession,
-            homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
              dailyCalorieGoal = if (showNutrition) uiState.dailyCalorieGoal else null,
              consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
-            onRegisterCompetition = onRegisterCompetition,
-            onOpenCompetitionProgram = onNavigateToProgram,
             onCreateProgram = openCreate,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
@@ -349,6 +348,8 @@ fun HomeScreen(
                 onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
+                onOpenCompetitionToday = onOpenCompetitionToday,
+                onOpenCompetitions = onOpenCompetitions,
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onNavigateToProgram = onNavigateToProgram,
@@ -441,6 +442,8 @@ private fun HomeWithProgram(
     onNutritionAnchorPositionChanged: (Float) -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
+    onOpenCompetitionToday: (String) -> Unit,
+    onOpenCompetitions: () -> Unit,
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToProgram: (String) -> Unit,
@@ -584,6 +587,8 @@ private fun HomeWithProgram(
                     hasActiveProgram = hasActiveProgram,
                     onStartWorkout = onStartWorkout,
                     onRegisterCompetition = onRegisterCompetition,
+                    onOpenCompetitionToday = onOpenCompetitionToday,
+                    onOpenCompetitions = onOpenCompetitions,
                     onResumeWorkout = onResumeWorkout,
                     onEditSession = onEditSession,
                     onCreateProgram = onCreateProgram,
@@ -694,12 +699,10 @@ internal fun HomeTopBar(
     nutritionProgress: Float,
     hasPrograms: Boolean,
     primarySession: TodaySessionItem?,
-    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     dailyCalorieGoal: Int?,
     consumedCalories: Int,
     onStartWorkout: (Session, Program) -> Unit,
-    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -707,8 +710,6 @@ internal fun HomeTopBar(
     onBottomPositionChanged: (Float) -> Unit,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
-    /** Abre el programa enlazado a la competición (id del programa): la acción principal de la barra el día del meet. */
-    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     // Histéresis (§3): aparece en ≥ 0,55 y se va en ≤ 0,45; entre ambos conserva lo que tenía.
     val shownState = remember { mutableStateOf(false) }
@@ -839,12 +840,9 @@ internal fun HomeTopBar(
                                     HomeBarContext.SESSION -> MiniSessionCard(
                                         hasPrograms = hasPrograms,
                                         primarySession = primarySession,
-                                        homeCompetition = homeCompetition,
                                         isRestDay = isRestDay,
                                         onStartWorkout = onStartWorkout,
-                                        onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
-                                        onOpenCompetitionProgram = onOpenCompetitionProgram,
                                     )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
@@ -1053,18 +1051,12 @@ internal fun fitHomeGreeting(
 private fun MiniSessionCard(
     hasPrograms: Boolean,
     primarySession: TodaySessionItem?,
-    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     onStartWorkout: (Session, Program) -> Unit,
-    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
-    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
-    val registerPhase = homeCompetition?.phase in setOf(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER,
-        com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
-    // IMP-08: el día del meet todavía no hay resultado que registrar; la acción principal es abrir el modo competición.
-    val meetDay = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY
+    // Registros v4 (C-D2): la competencia del día vive en el héroe de Inicio; la barra ya no repite «Registrar».
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1078,40 +1070,6 @@ private fun MiniSessionCard(
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text("Crear programa", style = HomeTypography.barLabel, maxLines = 1)
-            }
-        } else if (registerPhase && homeCompetition != null) {
-            Text(
-                homeCompetition.title,
-                style = HomeTypography.barLabel,
-                color = WizardColors.text,
-                maxLines = 1,
-                modifier = Modifier.weight(1f).semantics { heading() },
-            )
-            if (meetDay) {
-                TextButton(
-                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                    modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Registrar resultado" },
-                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.textMuted),
-                ) {
-                    Text("Registrar", style = HomeTypography.barLabel)
-                }
-                Button(
-                    onClick = { onOpenCompetitionProgram(homeCompetition.programId) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp),
-                ) {
-                    Text("Modo competición", style = HomeTypography.barLabel, maxLines = 1)
-                }
-            } else {
-                TextButton(
-                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
-                ) {
-                    Text("Registrar", style = HomeTypography.barLabel)
-                }
             }
         } else if (isRestDay || primarySession == null) {
             Text(

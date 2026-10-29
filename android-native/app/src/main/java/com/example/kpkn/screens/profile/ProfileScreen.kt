@@ -55,7 +55,7 @@ import com.example.kpkn.domain.training.NutritionGoalProgress
 import com.example.kpkn.domain.training.StarredExerciseProgress
 import com.example.kpkn.domain.training.buildNutritionGoalProgress
 import com.example.kpkn.domain.training.buildStarredExerciseProgress
-import com.example.kpkn.screens.competitions.ProfileCompetitionsArchive
+import com.example.kpkn.screens.competitions.ProfileCompetitionsEntry
 import com.example.kpkn.screens.technique.hub.design.TechniqueRecentVideo
 import com.example.kpkn.screens.technique.hub.design.techniqueConclusion
 import com.example.kpkn.screens.technique.hub.design.techniqueDate
@@ -231,8 +231,7 @@ internal enum class ProfileSheet { PHOTO, EDIT }
 fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
-    onOpenCompetition: (String) -> Unit = {},
-    onCreateCompetition: () -> Unit = {},
+    onOpenCompetitions: () -> Unit = {},
     onOpenAlbums: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel(),
     onOpenTechnique: () -> Unit = {},
@@ -291,12 +290,9 @@ fun ProfileScreen(
                 ProfileTechniqueCard(state.technique, onOpenTechnique, onOpenTechniqueAnalysis)
             }
             ProfileSection("Tu archivo") { ProfileArchiveTiles(onOpenAlbums, onOpenHabits) }
-            // El archivo de competiciones conserva su componente (su rediseño interno es de la propuesta Registros v1).
+            // Competencias (Registros v4, C-D1): una sola fila con la próxima y su cuenta atrás que abre la página «Competencias».
             Box(Modifier.padding(top = 30.dp).fillMaxWidth().tourAnchor(TourAnchors.PROFILE_COMPETICION)) {
-                ProfileCompetitionsArchive(
-                    onOpenCompetition = onOpenCompetition,
-                    onCreateCompetition = onCreateCompetition,
-                )
+                ProfileCompetitionsEntry(onOpen = onOpenCompetitions)
             }
             Spacer(Modifier.height(48.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
