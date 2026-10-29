@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.home.design
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.snap
@@ -28,6 +30,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.example.kpkn.screens.nutrition.design.logger.LoggerColors
@@ -107,6 +110,9 @@ private val NutritionRingSize = 112.dp
 /** Aire entre los anillos y la columna de la cifra con su lectura. */
 private val NutritionRingGap = 16.dp
 
+/** Curva del rebote del lienzo (`.bump`): cubic-bezier(.3, 1.6, .5, 1), con sobrepaso. */
+private val HomeBumpEasing = CubicBezierEasing(0.3f, 1.6f, 0.5f, 1f)
+
 /**
  * «Nutrición de hoy»: un módulo con su cabecera (el «+» registra una comida). Con meta, los anillos de macros a la izquierda y, a la
  * derecha, las kcal con su lectura (I12); si «12.345 kcal» no cabe junto a los anillos, la cifra va a todo el ancho y los anillos debajo.
@@ -122,8 +128,19 @@ fun HomeNutritionToday(
     modifier: Modifier = Modifier,
     /** Abre el editor del plan de nutrición: la acción «Definir objetivos», sin meta de kcal. */
     onDefineGoals: () -> Unit = {},
+    /** f-home-done: cambia cada vez que se guarda una comida desde Inicio; 0 = nada guardado aún. */
+    savedPulse: Int = 0,
 ) {
     val reduced = wizardReducedMotion()
+    // f-home-done: al guardar desde Inicio, la cifra cuenta hasta el nuevo total y el anillo da un pequeño rebote (lienzo `.bump`:
+    // 1 → 1,08 en el 40 % y vuelta a 1, 0,8 s con cubic-bezier(.3, 1.6, .5, 1) por tramo).
+    val bump = remember { Animatable(1f) }
+    LaunchedEffect(savedPulse) {
+        if (savedPulse == 0 || reduced) return@LaunchedEffect
+        bump.snapTo(1f)
+        bump.animateTo(1.08f, tween(durationMillis = 320, easing = HomeBumpEasing))
+        bump.animateTo(1f, tween(durationMillis = 480, easing = HomeBumpEasing))
+    }
     // Anillos y cifra se animan solo la primera vez que se ven en el proceso.
     val firstSeen = remember { HomeFigureMemory.firstTime(NUTRITION_FIGURE_KEY) }
     var appeared by remember { mutableStateOf(!firstSeen) }
@@ -175,6 +192,7 @@ fun HomeNutritionToday(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
+                    .graphicsLayer { scaleX = bump.value; scaleY = bump.value }
                     .clickable(role = Role.Button, onClickLabel = "Ver el día de hoy", onClick = onOpenDay),
             ) {
                 val ringsAndGapPx = with(density) { (NutritionRingSize + NutritionRingGap).roundToPx() }

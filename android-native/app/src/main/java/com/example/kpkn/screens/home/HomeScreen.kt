@@ -336,6 +336,8 @@ fun HomeScreen(
             latestHeaderOverlayChange(owned, null)
         }
     }
+    // f-home-done: cada comida guardada desde Inicio hace rebotar el anillo de «Nutrición de hoy».
+    var nutritionSavedPulse by remember { mutableIntStateOf(0) }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
             HomeWithProgram(
                 viewModel = viewModel,
@@ -373,6 +375,7 @@ fun HomeScreen(
                  onOpenProfile = onNavigateToProfile,
                  todayMeals = todayMeals,
                  onNavigateToNutritionEditor = onNavigateToNutritionEditor,
+                 nutritionSavedPulse = nutritionSavedPulse,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -457,6 +460,7 @@ fun HomeScreen(
                         quickLoggerText = ""
                         quickLoggerSaved = saved
                     }
+                    nutritionSavedPulse++
                 },
             )
         }
@@ -559,6 +563,8 @@ private fun HomeWithProgram(
     /** Canal con el detalle de RINGS abierto, su cambio y el guardado del ajuste manual (lo cablea HomeScreen). */
     /** Abre el editor del plan de nutrición: la acción «Definir objetivos» de «Nutrición de hoy» (sin meta de kcal). */
     onNavigateToNutritionEditor: () -> Unit = {},
+    /** f-home-done: sube con cada comida guardada desde Inicio; el anillo de «Nutrición de hoy» da su rebote. */
+    nutritionSavedPulse: Int = 0,
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -721,6 +727,7 @@ private fun HomeWithProgram(
                         onAddMeal = onAddMeal,
                         onOpenDay = onOpenNutritionOverlay,
                         onDefineGoals = onNavigateToNutritionEditor,
+                        savedPulse = nutritionSavedPulse,
                         modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
                     )
                 }
