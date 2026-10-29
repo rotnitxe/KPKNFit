@@ -170,3 +170,13 @@ vídeo MP4 6 s), cuerpo (Cambio, Medidas) y nutrición (Semana, Macros, Racha); 
 Competencias → CompetitionStoryShareSheet(competition, allCompetitions, onDismiss[, startWithNext]) cuando llegue R-C.
 Decisiones para el informe: medalla solo 1-3; «Guardar · Más apps» guarda y abre el selector; culturismo sin foto → sin
 historia; en objetivo = 85-110 %; Medidas sin «con la misma fuerza» (no hay dato).
+
+### Registros — R-M Vitaminas y minerales (fusionado, 9f938cf3d; código 5e1e885a9)
+Compila en su rama; NutrientFootprintModelTest 18, NutrientsSheetTest 10, NutrientGroups/Coverage/CustomFoodForm en verde.
+Huella de 24 en tres bandas, módulo del día bajo NutritionDayModule, hoja del día con «A vigilar», hoja por nutriente con
+«De dónde sale» y referencias. Piezas para los huecos de R-FS (paquete screens.nutrition.nutrients): NutrientFootprints.food /
+fromPer100g / fromFoods / meal / savedLine; NutrientFootprintSection (ficha y ajuste, height Edit), NutrientFoodListContent,
+NutrientMealModule + NutrientMealListSheet (registro), NutrientSavedLine (guardado), NutrientHomeLine (Inicio); perfil de
+DriTargets.profileFor(settings, plan), energyKcal = kcal objetivo del día. Pendiente: «Completar con una ficha propia» →
+customfood. Decisiones para el informe: cifras con fmtN del lienzo; cobertura sin artículo; notas a mano convertidas en
+reglas; unidades cortas («µg»); 13 sp mínimo.
