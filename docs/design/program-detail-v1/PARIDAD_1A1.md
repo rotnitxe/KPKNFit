@@ -188,3 +188,15 @@ y el archivo de Perfil. Conectado por mí (commit siguiente): onShare → Compet
 recorridos; en Program Detail «Planificar intentos» → c-plan y «Modo competición» → c-today de la competencia enlazada.
 Decisiones para el informe: barra de pasos solo donde el lienzo la dibuja; hero de Inicio solo «Modo competición»; hora de
 carrera en hoja h/m/s (no rueda); «Comparar» solo en carga/reloj con historial; Room intacto (JSON con valores por defecto).
+
+### Registros — R-FS Comida y búsqueda (fusionado, c04c77109; código 5577ae66e)
+Compila en su rama; pruebas de logger, búsqueda, recetas, plantillas y escáner en verde (BarcodeScanUiTest en verde al
+repetirlo solo). Describir (f-*), Buscar (s-*) y la media hoja QUICK de Inicio con «¿Qué comiste?»; retiradas las piezas que el
+lienzo no contempla. Conectado por mí (7748a4296): huella de R-M en todos los huecos (n-reg + n-reg-list, n-edit, n-ficha con
+«Ver todos» y «Completar con una ficha propia», n-home «Esta comida», n-saved «Lo que más sumó»), con la instantánea del
+catálogo puesta antes de guardar (fuera del hilo principal); objetivo de kcal del día en el registro de Nutrición; menú ⋯ con
+«Editar», línea de estado y «Mover a… · Otro día…» (día y hora en la hoja «¿Cuándo fue?»); «Agregar» → «Añadir» en Inicio.
+Decisiones para el informe: «con mantequilla» = aceite «poco»; Recientes sin estrella; «Ver todos» de la ficha abre la lista
+en una hoja encima (la ficha es una ranura, no puede cambiar su propio contenido); «Otro día…» como último destino de «Mover
+a…» (el lienzo solo dice «Otra comida u otro día»); el comentario de PlanGoalMatcher sigue siendo cierto (la hoja de la
+biblioteca conserva ese nombre), no se toca. No hecho: el rebote del anillo de Inicio al guardar.
