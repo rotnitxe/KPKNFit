@@ -55,7 +55,7 @@ private const val STATIC_ART_PERIOD = 86_400f
 internal const val IMPORT_TEXT_EXAMPLE = "Día 1 — Pierna\nSentadilla 4x6 @120kg\nPrensa 3x10"
 
 /** Carpeta de caché de las fotos de la cámara (la declara `provider_paths.xml`). Cada foto se borra al leerla. */
-private const val IMPORT_PHOTO_DIR = "import_photos"
+internal const val IMPORT_PHOTO_DIR = "import_photos"
 
 /** Lo que se muestra mientras se lee un archivo o un texto. */
 internal const val IMPORT_READING_TEXT = "Leyendo el programa…"
@@ -206,7 +206,7 @@ internal fun ImportSourceChoices(
 }
 
 /** La uri de [file] para la cámara, por el proveedor de la app (la carpeta que declara `provider_paths.xml`). */
-private fun photoUriOf(context: Context, file: File): Uri =
+internal fun photoUriOf(context: Context, file: File): Uri =
     FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 
 /**

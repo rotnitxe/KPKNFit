@@ -66,11 +66,11 @@ internal data class ProgramCycleDraft(
     val cadence: Int,
 )
 
-/** Icono KPKN de cada tipo de ciclo (sustituye a los emojis de `LoopEngine`): descarga = luna, test = bandera, evento = calendario, otro = repetición. */
+/** Icono del lienzo (e-cycles) para cada tipo de ciclo: descarga = repetir, test = diana, competición = bandera, otro = repetir. */
 internal fun loopTypeIcon(type: LoopType): ImageVector = when (type) {
-    LoopType.DELOAD -> KpknLineIcons.Moon
-    LoopType.ONE_RM_TEST -> KpknLineIcons.Flag
-    LoopType.COMPETITION -> KpknLineIcons.Calendar
+    LoopType.DELOAD -> KpknLineIcons.Repeat
+    LoopType.ONE_RM_TEST -> KpknLineIcons.Target
+    LoopType.COMPETITION -> KpknLineIcons.Flag
     LoopType.CUSTOM -> KpknLineIcons.Repeat
 }
 

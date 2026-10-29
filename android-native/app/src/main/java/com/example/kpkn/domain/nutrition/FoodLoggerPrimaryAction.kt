@@ -14,12 +14,16 @@ object FoodLoggerPrimaryAction {
         return descriptionFingerprint(current) != descriptionFingerprint(lastAnalyzed)
     }
 
+    /**
+     * Un solo verbo (lienzo f-typed): «Analizar», «Volver a analizar» si el texto cambió después de analizar y «Guardar» con
+     * alimentos. La búsqueda va sola al escribir, así que en Buscar no hay verbo propio.
+     */
+    @Suppress("UNUSED_PARAMETER")
     fun label(hasTags: Boolean, descriptionEdited: Boolean, isSearchMode: Boolean): String {
         return when {
-            descriptionEdited -> "Actualizar y buscar"
+            descriptionEdited -> "Volver a analizar"
             hasTags -> "Guardar"
-            isSearchMode && !hasTags -> "Buscar"
-            else -> "Registrar"
+            else -> "Analizar"
         }
     }
 }

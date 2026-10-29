@@ -116,9 +116,9 @@ class DeepLinkRouterTest {
     }
 
     @Test
-    fun competitionsListGoesToProfileAndDetailKeepsRecordPage() {
-        assertEquals(KpknRoute.Profile.route, DeepLinkRouter.resolve(Uri.parse("kpkn://competitions"))?.route)
-        assertEquals(KpknRoute.Profile.route, DeepLinkRouter.resolve(Uri.parse("kpkn://competencias"))?.route)
+    fun competitionsListGoesToCompetitionsPageAndDetailKeepsRecordPage() {
+        assertEquals(KpknRoute.Competitions.create(), DeepLinkRouter.resolve(Uri.parse("kpkn://competitions"))?.route)
+        assertEquals(KpknRoute.Competitions.create(), DeepLinkRouter.resolve(Uri.parse("kpkn://competencias"))?.route)
         assertEquals(
             KpknRoute.CompetitionDetail.create("rec-1"),
             DeepLinkRouter.resolve(Uri.parse("kpkn://competition/rec-1"))?.route,
@@ -131,8 +131,9 @@ class DeepLinkRouterTest {
 
     @Test
     fun setupModuleScopesRouteToDirectEditorsOrHome() {
+        // CR-D4: el enlace de solo entreno abre «A tu medida» en la instancia «Nuevo programa» del asistente.
         assertEquals(
-            KpknRoute.ProgramEditor.create(),
+            KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM"),
             DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY"))?.route,
         )
         assertEquals(
@@ -181,9 +182,9 @@ class DeepLinkRouterTest {
             KpknRoute.SetupWizard.create(mode = "RESUME"),
             DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=RESUME"))?.route,
         )
-        // Los scopes directos no admiten borrador: no inventan ruta con draftId.
+        // La instancia «Nuevo programa» retoma su propio borrador (CR-D5): el draftId del enlace no viaja.
         assertEquals(
-            KpknRoute.ProgramEditor.create(),
+            KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM"),
             DeepLinkRouter.resolve(
                 Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY&draftId=draft-123"),
             )?.route,

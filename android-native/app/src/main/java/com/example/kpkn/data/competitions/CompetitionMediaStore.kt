@@ -27,4 +27,19 @@ object CompetitionMediaStore {
             kind = kind,
         )
     }
+
+    /** Borra el archivo de una foto o vídeo copiado al archivo de la app (las quitadas no quedan huérfanas). */
+    fun delete(context: Context, photo: CompetitionPhoto): Boolean {
+        val path = runCatching { Uri.parse(photo.uri).path }.getOrNull() ?: return false
+        val root = File(context.filesDir, "competition_media").canonicalFile
+        val file = File(path).canonicalFile
+        if (!file.path.startsWith(root.path + File.separator)) return false
+        return file.delete()
+    }
+
+    /** Borra todas las fotos de una competencia (al eliminarla). */
+    fun deleteAll(context: Context, recordId: String): Boolean {
+        if (recordId.isBlank() || recordId.contains("..") || recordId.contains('/')) return false
+        return File(context.filesDir, "competition_media/$recordId").deleteRecursively()
+    }
 }

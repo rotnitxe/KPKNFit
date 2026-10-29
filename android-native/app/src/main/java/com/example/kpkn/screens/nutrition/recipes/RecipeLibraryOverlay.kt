@@ -146,7 +146,7 @@ internal fun RecipePortionContent(food: FoodItem, onAdd: (LoggedFood) -> Unit, o
         Text("Se añadirá como borrador. La comida se guarda cuando la confirmes en el registrador.",
             style = KpknType.body, color = WizardColors.textMuted)
         Spacer(Modifier.weight(1f))
-        KpknPrimaryPill("Agregar a la comida", {
+        KpknPrimaryPill("Añadir a la comida", {
             if (!added) preview.getOrNull()?.let { added = true; onAdd(it) }
         }, enabled = preview.isSuccess && !added,
             modifier = Modifier.fillMaxWidth(), tag = "recipe-add")

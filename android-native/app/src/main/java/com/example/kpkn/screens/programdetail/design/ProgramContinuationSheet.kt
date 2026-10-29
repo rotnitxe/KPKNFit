@@ -1,47 +1,89 @@
 package com.example.kpkn.screens.programdetail.design
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.domain.training.block.ContinuationChoice
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSecondaryPill
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 
+/**
+ * El resumen de m-continue: «Sentadilla +7,5 kg, banca +4 kg y 92 % de cumplimiento en 6 semanas.». [gains] son los levantamientos que
+ * subieron (nombre y kg ganados), de los que se toman los dos primeros; sin subidas, solo el cumplimiento. null si no hay nada que decir.
+ */
+internal fun continuationSummary(gains: List<Pair<String, Double>>, adherencePercent: Int?, weekCount: Int?): String? {
+    val lifts = gains.filter { it.second > 0.05 }.take(2).mapIndexed { index, (name, kg) ->
+        val label = if (index == 0) name else name.replaceFirstChar { it.lowercase(java.util.Locale("es")) }
+        "$label +${blockReviewNumber(kg)} kg"
+    }
+    val adherence = adherencePercent?.let { percent ->
+        val weeks = weekCount?.takeIf { it > 0 }?.let { " en $it ${if (it == 1) "semana" else "semanas"}" }.orEmpty()
+        "$percent % de cumplimiento$weeks"
+    }
+    val parts = lifts + listOfNotNull(adherence)
+    if (parts.isEmpty()) return null
+    val sentence = if (parts.size == 1) parts[0] else parts.dropLast(1).joinToString(", ") + " y " + parts.last()
+    return sentence.replaceFirstChar { it.uppercase() } + "."
+}
+
+/**
+ * Al terminar el programa (lienzo v6, m-continue): «Programa terminado», «¿Cómo sigues?», el resumen y las tres salidas como filas `.mi` con
+ * su explicación. Cada una pide su vista previa; «Elegir otro del catálogo» abre el catálogo directamente.
+ */
 @Composable
-internal fun ProgramContinuationSheet(preview: ProgramRepository.ContinuationPreview,busy: Boolean,onConfirm: () -> Unit,onDismiss: () -> Unit) {
+internal fun ProgramContinueChoiceSheet(
+    summary: String?,
+    busy: Boolean,
+    onChoose: (ContinuationChoice) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ProgramLienzoSheet(onDismiss = onDismiss, dismissible = !busy) {
+        LienzoSheetTitle(title = "¿Cómo sigues?", eyebrow = "Programa terminado", sub = summary)
+        LienzoMenuRow(
+            icon = KpknLineIcons.Repeat,
+            title = "Repetir con tus nuevas marcas",
+            sub = "Misma estructura; los registros de este quedan guardados",
+            onClick = { onChoose(ContinuationChoice.REPEAT_WITH_NEW_MAXES) },
+            divider = false,
+            enabled = !busy,
+        )
+        LienzoMenuRow(
+            icon = KpknLineIcons.Book,
+            title = "Elegir otro del catálogo",
+            onClick = { onChoose(ContinuationChoice.PICK_FROM_CATALOG) },
+            enabled = !busy,
+        )
+        LienzoMenuRow(
+            icon = KpknLineIcons.Pause,
+            title = "Una semana de mantenimiento",
+            sub = "Mitad de series, RIR 4, carga por elegir",
+            onClick = { onChoose(ContinuationChoice.MAINTENANCE_WEEK) },
+            enabled = !busy,
+        )
+    }
+}
+
+/**
+ * La confirmación de una continuación (la «hoja de confirmación» de las notas de m-continue), con el patrón corto de m-offdate: qué se crea
+ * y «Crear y activar». Si la opción no prepara un programa nuevo, lo dice y deja cerrar.
+ */
+@Composable
+internal fun ProgramContinuationSheet(preview: ProgramRepository.ContinuationPreview, busy: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val next = preview.nextProgram ?: run {
         ProgramUnavailableSheet("Programa terminado", "No hay un programa nuevo que preparar con esta opción.", onDismiss)
         return
     }
-    val weeks = ProgramHierarchyIndex(next).orderedWeeks()
-    val sessionCount = weeks.sumOf { it.week.sessions.size }
     val maintenance = preview.choice == ContinuationChoice.MAINTENANCE_WEEK
-    KpknSheet(onDismissRequest = { if (!busy) onDismiss() },stableHeightFraction = 0.9f) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProgramSheetHeader(title = if (maintenance) "Preparar mantenimiento" else "Repetir el programa", eyebrow = "Programa terminado", subtitle = next.name)
-            Text("${weeks.size} ${if (weeks.size == 1) "semana" else "semanas"} · $sessionCount ${if (sessionCount == 1) "sesión prevista" else "sesiones previstas"}",style = KpknType.body,color = WizardColors.text)
-            Text("El programa terminado conserva sus registros y decisiones. Al confirmar se crea y activa una copia nueva.",style = KpknType.body,color = WizardColors.text)
-            Text(if (maintenance) "Mantenimiento de fuerza: aproximadamente la mitad de las series, RIR 4 y carga por elegir al entrenar. El cardio conserva su prescripción; revísalo antes de continuar." else
-                if (preview.original.sourceRecipe != null) "Repite la receta fuente con tus marcas confirmadas. Las modificaciones manuales y fechas anteriores quedan en el programa terminado." else
-                    "Repite la estructura y los ejercicios con tus referencias guardadas. Las fechas anteriores quedan en el programa terminado.",style = KpknType.body,color = WizardColors.text)
-            weeks.take(1).flatMap { it.week.sessions }.forEach { session ->
-                val sets = session.allExercises().flatMap { it.sets }.filterNot { it.isIneffective }
-                Text("${session.name}: ${sets.size} series · RIR ${sets.mapNotNull { it.targetRIR }.distinct().sorted().joinToString("/").ifEmpty { "según la receta" }}",
-                    style = KpknType.body,color = WizardColors.text)
-            }
-            if (!busy) {
-                KpknPrimaryPill(text = "Crear y activar", onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-                KpknSecondaryPill(text = "Volver", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
-            } else Text("Guardando…",style = KpknType.caption,color = WizardColors.textMuted)
-        }
-    }
+    ProgramConfirmSheet(
+        title = if (maintenance) "Una semana de mantenimiento" else "Repetir con tus nuevas marcas",
+        eyebrow = next.name,
+        sub = if (maintenance) {
+            "Mitad de series, RIR 4 y carga por elegir al entrenar. El programa terminado conserva sus registros."
+        } else {
+            "Misma estructura con tus marcas confirmadas. El programa terminado conserva sus registros y decisiones."
+        },
+        confirmLabel = "Crear y activar",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        busy = busy,
+        confirmTag = "continuation_confirm",
+    )
 }

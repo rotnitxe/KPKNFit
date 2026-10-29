@@ -191,6 +191,7 @@ fun BodyProgressScreen(
                         today = today,
                         weightUnit = weightUnit,
                         onRangeChange = bodyViewModel::selectRange,
+                        shareHistory = history,
                         onAdd = { openNewRecord() },
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 6.dp)

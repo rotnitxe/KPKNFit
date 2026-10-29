@@ -7,7 +7,7 @@ const own=f=>fs.readFileSync(path.join(__dirname,'src',f),'utf8');
 const base=f=>fs.readFileSync(path.join(__dirname,'../program-detail-v1/src',f),'utf8');
 const font=(file,family,weight)=>`@font-face{font-family:${family};font-style:normal;font-weight:${weight};font-display:swap;src:url(data:font/ttf;base64,${fs.readFileSync(path.join(root,'android-native/app/src/main/res/font',file)).toString('base64')}) format('truetype')}`;
 const fonts=[font('wizard_body_regular.ttf','Inter',400),font('wizard_body_medium.ttf','Inter',500),font('wizard_body_semibold.ttf','Inter',600),font('syne_bold.ttf','Syne',700),font('syne_extrabold.ttf','Syne',800)].join('\n');
-const scenes=['base.js','scenes-decisiones.js','scenes-competencias.js','scenes-crear.js','scenes-comida.js','scenes-busqueda.js','scenes-historias.js']
+const scenes=['base.js','scenes-decisiones.js','scenes-competencias.js','scenes-crear.js','scenes-comida.js','scenes-busqueda.js','scenes-micro.js','scenes-historias.js']
   .filter(f=>fs.existsSync(path.join(__dirname,'src',f))).map(own).join('\n');
 // Capturas REALES de la app (NewProgramRealRenderSheetTest + importador), reducidas a JPEG en real-web/; solo las que usan las escenas.
 const webDir=path.join(__dirname,'real-web');

@@ -191,24 +191,6 @@ class ProgramDetailViewModelTest {
         return plan
     }
 
-    @Test fun season_context_refreshes_from_committed_nutrition_without_mutating_training_or_accounting() = runBlocking {
-        val id = nextId()
-        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
-        repository.addProgram(p)
-        repository.flushPendingWrites()
-        val plan = seedSeasonNutrition()
-        val vm = vmFor(id)
-        val first = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2000 } }!!
-        assertEquals(2400,first.input.maintenanceKcal)
-        assertTrue(first.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
-        repository.databaseForTests().nutritionDao().upsertPlan(plan.copy(calorieTarget = 2200).toEntity())
-        val changed = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2200 } }!!
-        assertFalse(changed.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
-        assertEquals(p.macrocycles,repository.getProgramById(id)!!.macrocycles)
-        assertTrue(repository.getLogsForProgram(id).isEmpty())
-        assertEquals(plan.id,repository.databaseForTests().nutritionDao().getActiveState()?.activePlanId)
-    }
-
     @Test fun nutrition_changed_in_the_commit_lane_invalidates_a_weekly_preview_before_program_write() = runBlocking {
         val id = nextId()
         val base = materializedRestoreProgram(id)
@@ -389,19 +371,6 @@ class ProgramDetailViewModelTest {
         assertEquals("Edición posterior",repository.getProgramById(p.id)!!.name)
         assertEquals(ongoing,repository.ongoingWorkout.value)
         assertTrue(repository.getProgramById(p.id)!!.manualSessionOverrides.isEmpty())
-    }
-
-    @Test fun planned_load_uses_the_next_prescribed_week_and_disappears_after_completion(): Unit = runBlocking {
-        val id = nextId()
-        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
-        repository.addProgram(p)
-        repository.flushPendingWrites()
-        val vm = vmFor(id)
-        val projection = withTimeout(10_000) { vm.plannedLoadProjection.first { it != null } }!!
-        assertEquals("${id}_w2",projection.weekId)
-        assertFalse(projection.nextCycleTemplate)
-        assertTrue(repository.mutateProgramNow(id) { it.copy(runState = it.runState!!.copy(status = ProgramRunStatus.COMPLETED)) })
-        withTimeout(10_000) { vm.plannedLoadProjection.first { it == null } }
     }
 
     private fun completedContinuationProgram(): Program {
@@ -3338,20 +3307,21 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun verPropuesta_opens_the_progression_sheet_and_never_accepts_the_proposal() {
+    fun theAutoregulationRowResolvesTheFirstProposalAndTheBannerAloneNeverAcceptsAnything() {
         val source = programDetailScreenSource()
-        // El aviso de transición (módulo KPKN) enseña «Ver propuesta» en tipo frase; su acción principal abre la hoja de progresiones.
-        val label = source.indexOf("isAutoreg -> \"Ver propuesta\"")
-        assertTrue("el botón Ver propuesta existe", label > 0)
-        val handler = source.substring(source.indexOf("onPrimary = {", label), source.indexOf("onSecondary", label))
-        val branch = handler.substringAfter("isAutoreg ->").substringBefore("isDeload ->")
-
-        assertTrue(branch, branch.contains("onOpenProposals()"))
-        assertFalse(branch, branch.contains("setStructureSubTab"))
-        assertFalse(branch, branch.contains("acceptAutoregulation"))
-        assertFalse(branch, branch.contains("rejectAutoregulation"))
-        assertTrue("«Ver propuesta» abre la hoja PROGRESSION", source.contains("onOpenProposals = { pendingDetail = ProgramPendingKind.PROGRESSION }"))
-        // La decisión se toma en la hoja «Pendiente» (progresiones): la tarjeta de propuestas ya no vive en la pestaña Semana.
+        // La fila de «Pendiente» (p-pending): «Aplicar» aplica la primera propuesta y «Mantener carga» la rechaza; nada se acepta al abrir.
+        val autoreg = source.substringAfter("if (autoregAction != null) {").substringBefore("} else if (bannerAutoreg) {")
+        assertTrue(autoreg, autoreg.contains("primaryLabel = \"Aplicar\""))
+        assertTrue(autoreg, autoreg.contains("onPrimary = { viewModel.acceptAutoregulation(firstProposal) }"))
+        assertTrue(autoreg, autoreg.contains("secondaryLabel = \"Mantener carga\""))
+        assertTrue(autoreg, autoreg.contains("onSecondary = { viewModel.rejectAutoregulation() }"))
+        assertTrue(autoreg, autoreg.contains("onOpen = fromPending { proposalSheetKind = ProgramPendingKind.AUTOREGULATION }"))
+        // Sin propuesta guardada, el aviso de autorregulación se lee y se entiende: no acepta, no rechaza ni cambia de pestaña.
+        val bannerOnly = source.substringAfter("} else if (bannerAutoreg) {").substringBefore("pendingBlockReview?.let")
+        assertFalse(bannerOnly, bannerOnly.contains("acceptAutoregulation"))
+        assertFalse(bannerOnly, bannerOnly.contains("rejectAutoregulation"))
+        assertFalse(bannerOnly, bannerOnly.contains("setStructureSubTab"))
+        // La decisión se toma en «Pendiente»: la tarjeta de propuestas ya no existe y no vive en la pestaña Semana.
         val weekBranch = source.substringAfter("if (structureSubTab == StructureSubTab.SEMANA) {")
             .substringBefore("\n        } else {")
         // El TM por ejercicio pasó a Estructura › «Cargas de referencia (TM)», en su hoja (P5): ya no ocupa la Semana.
@@ -3359,8 +3329,8 @@ class ProgramDetailViewModelTest {
         val tmSheet = source.substringAfter("if (showExerciseTmSheet) {").substringBefore("\n        }\n")
         assertTrue("TM en la hoja de cargas de referencia", tmSheet.contains("ExerciseTrainingMaxPanel("))
         assertTrue("Estructura abre la hoja de TM", source.contains("onOpenTrainingMaxes = if (exerciseTmTargets.isNotEmpty()) ({ showExerciseTmSheet = true }) else null"))
-        assertFalse("la tarjeta de propuestas sale de Semana", weekBranch.contains("AutoregulationProposalsCard("))
-        assertTrue("las propuestas se revisan en la hoja Pendiente", source.contains("ProgramPendingKind.PROGRESSION -> AutoregulationProposalsCard("))
+        assertTrue("«Falta el TM» abre la misma hoja", source.contains("exerciseTmSheetState.value = true"))
+        assertFalse("la tarjeta de propuestas ya no existe", source.contains("AutoregulationProposalsCard("))
     }
 
     // ─── B.S5 · usesTrainingMax: la tarjeta de TM sale con toda progresión que lo mueve ───

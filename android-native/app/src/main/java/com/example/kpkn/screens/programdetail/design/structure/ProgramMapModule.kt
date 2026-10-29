@@ -14,17 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.programdetail.design.ProgramPhase
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -66,9 +60,9 @@ internal fun programMapDateLabel(date: LocalDate?): String? = date?.format(MapDa
 private val MapDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM", Locale("es"))
 
 /**
- * El mapa del programa en la pestaña Estructura: una barra con un tramo por bloque, de ancho proporcional a sus semanas y del color de su
- * fase, y debajo el inicio, la semana en curso y el fin. «Fechas» abre el calendario del programa. Sin estado: los tramos y las fechas llegan
- * ya calculados.
+ * e-map, módulo «Mapa»: la cabecera con «Fechas» (icono de calendario, en `--muted`), la barra `.tline` (34 dp, radio 12, 2 dp entre
+ * tramos, 12 dp por encima) con un tramo por bloque, de ancho proporcional a sus semanas y del color de su fase, y debajo el inicio, la
+ * semana en curso y el fin en `.cap` tabular. Sin estado: los tramos y las fechas llegan ya calculados.
  */
 @Composable
 internal fun ProgramMapModule(
@@ -79,18 +73,18 @@ internal fun ProgramMapModule(
     onDates: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    KpknModule(modifier = modifier.testTag("estructura_mapa")) {
-        KpknModuleHeader(
+    StructureModule(modifier = modifier.testTag("estructura_mapa")) {
+        StructureModuleHeader(
             label = "Mapa",
-            action = { KpknTextAction(text = "Fechas", onClick = onDates, icon = KpknLineIcons.Calendar) },
+            action = { StructureAction(text = "Fechas", onClick = onDates, leadingIcon = KpknLineIcons.Calendar, faint = true) },
         )
         if (segments.isNotEmpty()) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(28.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .height(34.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 segments.forEach { segment ->
@@ -98,16 +92,17 @@ internal fun ProgramMapModule(
                         modifier = Modifier
                             .weight(segment.weeks.toFloat())
                             .fillMaxHeight()
-                            .background((segment.phase?.color ?: WizardColors.textFaint).copy(alpha = 0.85f)),
+                            .background(structurePhaseColor(segment.phase)),
                         contentAlignment = Alignment.Center,
                     ) {
                         segment.label?.let { label ->
                             Text(
                                 text = label,
-                                style = KpknType.caption,
-                                color = Color.Black.copy(alpha = 0.8f),
+                                style = StructureTimelineStyle,
+                                color = StructureOnInk,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.Clip,
+                                softWrap = false,
                             )
                         }
                     }
@@ -115,22 +110,18 @@ internal fun ProgramMapModule(
             }
         }
         if (startLabel != null || nowLabel != null || endLabel != null) {
-            Spacer(Modifier.height(if (segments.isNotEmpty()) 6.dp else 10.dp))
+            Spacer(Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                listOfNotNull(startLabel, nowLabel, endLabel).forEach { MapDateText(text = it) }
+                listOfNotNull(startLabel, nowLabel, endLabel).forEach { label ->
+                    Text(
+                        text = label,
+                        style = StructureCaptionStyle.tabular(),
+                        color = StructureFaint,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
-}
-
-/** Una fecha o el aviso de la semana en curso, bajo la barra: `caption` en `textMuted`, con cifras tabulares. */
-@Composable
-private fun MapDateText(text: String) {
-    Text(
-        text = text,
-        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-        color = WizardColors.textMuted,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
 }

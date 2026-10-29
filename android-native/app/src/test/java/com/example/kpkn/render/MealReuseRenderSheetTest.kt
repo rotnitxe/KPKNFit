@@ -34,7 +34,6 @@ import com.example.kpkn.screens.nutrition.reuse.PlannedMealsModule
 import com.example.kpkn.screens.nutrition.reuse.QuickEntryContent
 import com.example.kpkn.screens.nutrition.reuse.RepeatYesterdayDialog
 import com.example.kpkn.screens.nutrition.reuse.ReuseDayActions
-import com.example.kpkn.screens.nutrition.reuse.ReuseLoggerEntries
 import com.example.kpkn.screens.nutrition.reuse.TemplateRowState
 import com.example.kpkn.screens.nutrition.reuse.TemplatesContent
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
@@ -141,8 +140,7 @@ class MealReuseRenderSheetTest {
     )
 
     @Composable private fun quick(form: QuickEntryForm, showErrors: Boolean) = QuickEntryContent(
-        form = form, validation = QuickEntry.validate(form, "q"), showErrors = showErrors, mealType = MealType.LUNCH,
-        onChange = {}, onMealChange = {}, onSubmit = {}, onClose = {},
+        form = form, validation = QuickEntry.validate(form, "q"), showErrors = showErrors, onChange = {}, onSubmit = {},
     )
 
     @Composable private fun quickRows() = Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -162,7 +160,6 @@ class MealReuseRenderSheetTest {
             logs = listOf(lunch.copy(id = "P3", date = "${today}T12:00:00.000Z")),
             canMarkConsumed = true, onMarkConsumed = {}, onRemove = {},
         )
-        ReuseLoggerEntries(onTemplates = {}, onQuickEntry = {}, modifier = Modifier.padding(horizontal = 8.dp))
     }
 
     @Test fun copySheet100() = render("copy_sheet", 1f, 1050) { copySheet() }
@@ -181,10 +178,10 @@ class MealReuseRenderSheetTest {
     @Test fun templatesEdit130() = render("templates_edit", 1.3f, 1250) {
         templates(listOf(summaries[0].copy(renaming = true, renameText = "Almuerzo de la semana"), summaries[1].copy(confirmingDelete = true), summaries[2]))
     }
-    @Test fun quickAdd100() = render("quick_add", 1f, 1050) { quick(QuickEntryForm(name = "Café con leche", kcal = "120", protein = "4", carbs = "10", fats = "6"), showErrors = false) }
-    @Test fun quickAdd130() = render("quick_add", 1.3f, 1500) { quick(QuickEntryForm(name = "Café con leche", kcal = "120", protein = "4", carbs = "10", fats = "6"), showErrors = false) }
-    @Test fun quickError100() = render("quick_add_error", 1f, 1100) { quick(QuickEntryForm(name = "Pizza", kcal = "900", protein = "10", carbs = "x", fats = "5"), showErrors = true) }
-    @Test fun quickError130() = render("quick_add_error", 1.3f, 1600) { quick(QuickEntryForm(name = "Pizza", kcal = "900", protein = "10", carbs = "x", fats = "5"), showErrors = true) }
+    @Test fun quickAdd100() = render("quick_add", 1f, 560) { quick(QuickEntryForm(name = "Café con leche", kcal = "120", protein = "4", carbs = "10", fats = "6"), showErrors = false) }
+    @Test fun quickAdd130() = render("quick_add", 1.3f, 760) { quick(QuickEntryForm(name = "Café con leche", kcal = "120", protein = "4", carbs = "10", fats = "6"), showErrors = false) }
+    @Test fun quickError100() = render("quick_add_error", 1f, 660) { quick(QuickEntryForm(name = "Pizza", kcal = "900", protein = "10", carbs = "x", fats = "5"), showErrors = true) }
+    @Test fun quickError130() = render("quick_add_error", 1.3f, 880) { quick(QuickEntryForm(name = "Pizza", kcal = "900", protein = "10", carbs = "x", fats = "5"), showErrors = true) }
     @Test fun quickRow100() = render("quick_row", 1f, 330) { quickRows() }
     @Test fun quickRow130() = render("quick_row", 1.3f, 440) { quickRows() }
     @Test fun dayActions100() = render("day_actions", 1f, 760) { dayActions() }

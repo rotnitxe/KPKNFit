@@ -87,7 +87,7 @@ internal fun ProgramMoreSheet(
         add(ProgramMenuEntry(KpknLineIcons.Edit, "Editar nombre y portada", null, false, onEdit))
         if (canQueue) add(ProgramMenuEntry(KpknLineIcons.Repeat, "Añadir a la cola", "Empieza cuando termine el actual", false, onQueue))
         add(ProgramMenuEntry(ProgramShareIcon, "Compartir en historias", null, false, onShare))
-        add(ProgramMenuEntry(KpknLineIcons.Layers, "Archivar", "Lo quitas de la lista sin borrarlo", false, onArchive))
+        add(ProgramMenuEntry(ProgramLineIcons.Upload, "Archivar", "Lo quitas de la lista sin borrarlo", false, onArchive))
         add(
             ProgramMenuEntry(
                 icon = KpknLineIcons.Trash,
@@ -117,7 +117,13 @@ internal fun ProgramMoreSheet(
             Spacer(Modifier.height(14.dp))
             entries.forEachIndexed { index, entry ->
                 if (index > 0) MenuDivider()
-                ProgramMenuRow(entry)
+                ProgramSheetRow(
+                    icon = entry.icon,
+                    title = entry.title,
+                    subtitle = entry.subtitle,
+                    danger = entry.danger,
+                    onClick = entry.onClick,
+                )
             }
         }
     }
@@ -144,9 +150,6 @@ internal fun ArchivedProgramsSheet(
                 color = WizardColors.textMuted,
             )
             Spacer(Modifier.height(12.dp))
-            if (programs.isEmpty()) {
-                Text(text = "No tienes programas archivados.", style = KpknType.body, color = WizardColors.textFaint)
-            }
             programs.forEachIndexed { index, program ->
                 if (index > 0) MenuDivider()
                 Row(
@@ -193,19 +196,30 @@ internal fun ProgramDeleteDialog(
     )
 }
 
+/**
+ * Una fila `.mi` del lienzo: icono de 20 dp en un círculo de 38 dp, título y, si hay, la línea que lo explica. Mínimo 54 dp. La usan la
+ * hoja ⋯ y la de Importar. [danger] la pinta en rojo.
+ */
 @Composable
-private fun ProgramMenuRow(entry: ProgramMenuEntry) {
+internal fun ProgramSheetRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    danger: Boolean = false,
+) {
     val interaction = remember { MutableInteractionSource() }
-    val ink = if (entry.danger) WizardColors.danger else WizardColors.text
+    val ink = if (danger) WizardColors.danger else WizardColors.text
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 54.dp)
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 role = Role.Button,
-                onClick = entry.onClick,
+                onClick = onClick,
             )
             .padding(vertical = 6.dp, horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -215,23 +229,24 @@ private fun ProgramMenuRow(entry: ProgramMenuEntry) {
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = entry.icon,
+                imageVector = icon,
                 contentDescription = null,
-                tint = if (entry.danger) WizardColors.danger else WizardColors.textMuted,
+                tint = if (danger) WizardColors.danger else WizardColors.textMuted,
                 modifier = Modifier.size(20.dp),
             )
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = entry.title, style = KpknType.bodyStrong, color = ink)
-            entry.subtitle?.let { subtitle ->
+            Text(text = title, style = KpknType.bodyStrong, color = ink)
+            subtitle?.let { subtitle ->
                 Text(text = subtitle, style = KpknType.caption, color = WizardColors.textFaint)
             }
         }
     }
 }
 
+/** El filete entre dos filas de una hoja (`border-top` de `.mi`). */
 @Composable
-private fun MenuDivider() {
+internal fun MenuDivider() {
     Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
 }

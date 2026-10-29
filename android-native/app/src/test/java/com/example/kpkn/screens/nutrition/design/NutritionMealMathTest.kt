@@ -45,7 +45,7 @@ class NutritionMealMathTest {
         val grams = NutritionLog(id = "a", foods = listOf(LoggedFood(foodName = "Avena", amount = 150.0, unit = "g")))
         assertEquals("150 g", logPortionText(grams))
         val preset = NutritionLog(id = "b", foods = listOf(LoggedFood(foodName = "Pan", portionPreset = PortionPreset.MEDIUM)))
-        assertEquals("Mediano", logPortionText(preset))
+        assertEquals("Mediana", logPortionText(preset))
         val several = NutritionLog(id = "c", foods = listOf(LoggedFood(foodName = "Pan"), LoggedFood(foodName = "Queso")))
         assertEquals("2 alimentos", logPortionText(several))
         assertNull(logPortionText(NutritionLog(id = "d")))

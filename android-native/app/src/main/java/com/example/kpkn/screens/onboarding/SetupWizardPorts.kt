@@ -94,6 +94,12 @@ interface SetupWizardEnvironment {
      * never throw: a refresh failure must not turn a real commit into a lie.
      */
     suspend fun refreshBodyProgress()
+
+    /** «Listo para empezar» (instancia «Nuevo programa»): el programa en curso o en pausa; null = ninguno. */
+    fun readyCurrentProgram(): com.example.kpkn.screens.programs.ProgramReadyCurrent? = null
+
+    /** Aplica la opción de «Listo para empezar» al programa recién guardado (empezar, en cola o sin activar). */
+    fun applyReadyChoice(programId: String, choice: ProgramReadyChoice) = Unit
 }
 
 /** Real adapter over the [ProgramRepository]/[NutritionRepository] singletons. */
@@ -121,6 +127,12 @@ class RealSetupWizardEnvironment(
     override fun nutritionPlan(id: String): NutritionPlan? =
         NutritionRepository.getInstance().nutritionPlans.value.firstOrNull { it.id == id }
 
+
+    override fun readyCurrentProgram(): com.example.kpkn.screens.programs.ProgramReadyCurrent? =
+        com.example.kpkn.screens.programs.ProgramReadyActions.currentProgram()
+
+    override fun applyReadyChoice(programId: String, choice: ProgramReadyChoice) =
+        com.example.kpkn.screens.programs.ProgramReadyActions.apply(programId, choice)
 
     override suspend fun refreshBodyProgress() {
         try {

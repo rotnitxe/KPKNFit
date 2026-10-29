@@ -98,7 +98,6 @@ data class ProgramDetailUiState(
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
     val selectedBlockId: String? = null,
     val selectedWeekId: String? = null,
-    val macrocycleRoadmapExpanded: Boolean? = null,
     val macrocycleKeyDatesSheetOpen: Boolean? = null,
     val macrocycleLibrarySheetOpen: Boolean? = null,
     val macrocycleLoopsSheetOpen: Boolean? = null,
@@ -146,9 +145,6 @@ data class ProgramCompetitionState(
     val weeklyWeightRateKg: Double? = null,
     val supportsSbdPlanning: Boolean = true,
 )
-
-data class ProgramSeasonState(val input: com.example.kpkn.domain.season.SeasonInput,
-    val advice: List<com.example.kpkn.domain.season.SeasonAdvice>)
 
 class ProgramDetailViewModel(
     private val programId: String,
@@ -199,14 +195,6 @@ class ProgramDetailViewModel(
     private val competitionRecords = runCatching { CompetitionRepository.getInstance().records }.getOrElse {
         MutableStateFlow<List<com.example.kpkn.data.models.CompetitionRecord>>(emptyList()).asStateFlow()
     }
-    val seasonState: StateFlow<ProgramSeasonState?> = combine(program,repository.settings,repository.seasonContextChanges) { p,_,_ ->
-        p?.let {
-            val zone = java.time.ZoneId.systemDefault()
-            val context = repository.seasonInput(it.id,appClock.today(zone),zone)
-            ProgramSeasonState(context,com.example.kpkn.domain.season.SeasonAdvisor.advise(context))
-        }
-    }.flowOn(kotlinx.coroutines.Dispatchers.IO).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
-
     val competitionState: StateFlow<ProgramCompetitionState?> = combine(program,competitionRecords,repository.settings,repository.seasonContextChanges) { p,records,settings,_ ->
         if (p == null) null else {
             val today = appClock.today(java.time.ZoneId.systemDefault())
@@ -357,11 +345,6 @@ class ProgramDetailViewModel(
         p?.let { ProgramProgressReportEngine.build(it, logs.filter { log -> log.programId == it.id }, exerciseCatalogSnapshot()) }
     }.flowOn(kotlinx.coroutines.Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    val plannedLoadProjection: StateFlow<com.example.kpkn.domain.training.planning.PlannedLoadProjection?> = program.map { p ->
-        p?.let { com.example.kpkn.domain.training.planning.PlannedLoadProjector.next(it,exerciseCatalogSnapshot()) }
-    }.flowOn(kotlinx.coroutines.Dispatchers.Default)
-        .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
 
     private val _exerciseSwapRequest = MutableStateFlow<ProgramRepository.ExerciseSwapRequest?>(null)
     val exerciseSwapRequest = _exerciseSwapRequest.asStateFlow()
@@ -576,25 +559,6 @@ class ProgramDetailViewModel(
     val volumeProfileResponses: StateFlow<VolumeCalibrationResponses?> = repository.settings
         .map { it.volumeCalibrationProfile?.responses }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    /** IMP-02: respuestas del calibrador con su origen; la declarada gana, si no valen los registros y al final lo sugerido. */
-    val calibrationAnswers: StateFlow<List<com.example.kpkn.domain.training.calibration.ResolvedCalibrationAnswer>> =
-        combine(program, history, repository.settings, feedbacks) { p, logs, settings, feedbackList ->
-            val zone = java.time.ZoneId.systemDefault()
-            val derived = p?.let {
-                val profile = it.powerliftingProfile
-                com.example.kpkn.domain.training.calibration.CalibrationEvidence.derive(
-                    com.example.kpkn.domain.training.calibration.CalibrationDerivationInput(logs, it.id, it.runState?.runId,
-                        LocalDate.now(zone), zone,
-                        plannedSessionsLastFourWeeks = com.example.kpkn.domain.training.calibration.CalibrationEvidence.typicalSessionsPerWeek(it)?.times(4),
-                        squat1RmKg = profile?.let { pl -> pl.squat1RM ?: pl.squatE1RM },
-                        bench1RmKg = profile?.let { pl -> pl.bench1RM ?: pl.benchE1RM },
-                        deadlift1RmKg = profile?.let { pl -> pl.deadlift1RM ?: pl.deadliftE1RM },
-                        bodyWeightKg = settings.userVitals.weight, feedbacks = feedbackList))
-            }
-            com.example.kpkn.domain.training.calibration.CalibrationEvidence.resolve(settings.volumeCalibrationProfile?.responses, derived)
-        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _planningVolumeTargetBusy = MutableStateFlow(false)
     val planningVolumeTargetBusy = _planningVolumeTargetBusy.asStateFlow()
@@ -859,18 +823,6 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-    val programDiscomforts: StateFlow<List<com.example.kpkn.domain.training.DiscomfortEntry>> =
-        history
-            .map { h -> ProgramDetailHelpers.computeProgramDiscomforts(h, programId) }
-            .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val exerciseDiscomfortAssociations: StateFlow<List<com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry>> =
-        history
-            .map { h -> ProgramDetailHelpers.computeExerciseDiscomfortAssociations(h, programId) }
-            .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
     val isActiveProgram: StateFlow<Boolean> = activeProgramState
         .map { state -> state?.programId == programId && state.status == ProgramStatus.ACTIVE }
         .distinctUntilChanged()
@@ -960,10 +912,6 @@ class ProgramDetailViewModel(
 
     fun setStructureSubTab(tab: StructureSubTab) {
         _uiState.update { it.copy(structureSubTab = tab) }
-    }
-
-    fun setMacrocycleRoadmapExpanded(expanded: Boolean) {
-        _uiState.update { it.copy(macrocycleRoadmapExpanded = expanded) }
     }
 
     fun setMacrocycleKeyDatesSheetOpen(open: Boolean) {

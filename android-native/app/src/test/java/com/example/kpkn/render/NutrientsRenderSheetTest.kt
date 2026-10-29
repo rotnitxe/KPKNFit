@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.nutrition.nutrients.*
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchRow
-import com.example.kpkn.screens.nutrition.design.logger.loggerSearchBasisLabel
 import com.example.kpkn.screens.nutrition.design.NutritionFoodRow
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.domain.nutrition.NutrientKey
@@ -62,8 +61,11 @@ class NutrientsRenderSheetTest {
         File(dir, "nutrients_${name}_${(scale * 100).toInt()}.png").outputStream().use { crop.compress(Bitmap.CompressFormat.PNG, 100, it) }
         crop.recycle(); bitmap.recycle()
     }
-    @Composable private fun sheet(name: String, details: Boolean = false) = NutrientsContent(
-        NutrientsSamples.state(name), if (details) setOf(NutrientKey.FIBER) else emptySet(), {}, {}, Modifier.fillMaxSize())
+    @Composable private fun sheet(name: String, details: Boolean = false) {
+        val state = NutrientsSamples.state(name)
+        if (details) NutrientDetailContent(NutrientFootprints.detail(state.rows.first { it.nutrient == NutrientKey.FIBER }, state.profile, state.energyKcal, "hoy"))
+        else Column(Modifier.fillMaxSize()) { NutrientsDayModule(state, {}); NutrientsContent(state, {}, Modifier.fillMaxSize()) }
+    }
     @Test fun completeAt100() {
         assumeTrue(System.getenv("KPKN_RENDER_DIR") != null)
         render("complete", 1f) { sheet("complete") }

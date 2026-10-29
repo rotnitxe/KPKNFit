@@ -37,7 +37,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,8 +45,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import com.example.kpkn.data.models.WeightUnit
-import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
@@ -67,10 +64,6 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
-import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
-import com.example.kpkn.screens.programs.ProgramsViewModel
-import com.example.kpkn.screens.programs.ProtocolDetailSheet
-import com.example.kpkn.screens.programs.TrainingMaxWizard
 import com.example.kpkn.screens.monthsummary.MonthlySummaryNotice
 import com.example.kpkn.screens.monthsummary.MonthlySummaryScreen
 import com.example.kpkn.screens.monthsummary.homeNoticeMonth
@@ -78,7 +71,6 @@ import com.example.kpkn.screens.monthsummary.monthlyNoticeLine
 import com.example.kpkn.screens.monthsummary.monthlyNoticeTitle
 import com.example.kpkn.screens.monthsummary.summaryKey
 import com.example.kpkn.screens.stories.MonthShareSheet
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.KpknModalTracker
 import com.example.kpkn.ui.components.KpknGlass
@@ -91,7 +83,6 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
@@ -122,7 +113,6 @@ import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -146,6 +136,8 @@ fun HomeScreen(
     onCreateProgram: () -> Unit = {},
     onStartWorkout: (Session, Program) -> Unit = { _, _ -> },
     onRegisterCompetition: (String) -> Unit = {},
+    onOpenCompetitionToday: (String) -> Unit = {},
+    onOpenCompetitions: () -> Unit = {},
     onResumeWorkout: () -> Unit = {},
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
@@ -165,15 +157,8 @@ fun HomeScreen(
     @Suppress("UNUSED_VARIABLE")
     val unusedTheme = themeMode to onThemeChange
 
-    val programsVm: ProgramsViewModel = viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
-    val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
-    val pendingProgramName by viewModel.pendingProgramName.collectAsState()
-    var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
-    var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
-    var templateError by remember { mutableStateOf<String?>(null) }
-    val createScope = rememberCoroutineScope()
     val openCreate = onCreateProgram
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
@@ -243,6 +228,7 @@ fun HomeScreen(
                             showNutritionOverlay = false
                             showFoodLogger = true
                         },
+                        showAddMeal = !com.example.kpkn.screens.home.design.homeShowsQuickLogger(showNutrition, uiState.dailyCalorieGoal),
                     )
                 }
             } else {
@@ -308,13 +294,10 @@ fun HomeScreen(
              nutritionProgress = if (showNutrition) nutritionProgress else 0f,
             hasPrograms = uiState.hasActiveProgram,
             primarySession = uiState.primarySession,
-            homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
              dailyCalorieGoal = if (showNutrition) uiState.dailyCalorieGoal else null,
              consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
-            onRegisterCompetition = onRegisterCompetition,
-            onOpenCompetitionProgram = onNavigateToProgram,
             onCreateProgram = openCreate,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
@@ -353,6 +336,8 @@ fun HomeScreen(
             latestHeaderOverlayChange(owned, null)
         }
     }
+    // f-home-done: cada comida guardada desde Inicio hace rebotar el anillo de «Nutrición de hoy».
+    var nutritionSavedPulse by remember { mutableIntStateOf(0) }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
             HomeWithProgram(
                 viewModel = viewModel,
@@ -366,6 +351,8 @@ fun HomeScreen(
                 onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
+                onOpenCompetitionToday = onOpenCompetitionToday,
+                onOpenCompetitions = onOpenCompetitions,
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onNavigateToProgram = onNavigateToProgram,
@@ -388,6 +375,7 @@ fun HomeScreen(
                  onOpenProfile = onNavigateToProfile,
                  todayMeals = todayMeals,
                  onNavigateToNutritionEditor = onNavigateToNutritionEditor,
+                 nutritionSavedPulse = nutritionSavedPulse,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -395,6 +383,61 @@ fun HomeScreen(
 
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
         KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
+
+        // Registros v4 (F-D5, f-home…f-home-done): con plan de nutrición, la barra «¿Qué comiste?» registra sin salir de Inicio. Lo
+        // escrito abre la media hoja; al guardar, la hoja baja y queda el aviso con «Deshacer» 4 s. Sin plan, Inicio queda como estaba.
+        var quickLoggerText by rememberSaveable { mutableStateOf("") }
+        var quickLoggerDescription by rememberSaveable { mutableStateOf<String?>(null) }
+        var quickLoggerSaved by remember { mutableStateOf<NutritionLog?>(null) }
+        val quickLoggerDictation = com.example.kpkn.screens.nutrition.design.logger.rememberLoggerDictation(
+            current = { quickLoggerText },
+            onText = { quickLoggerText = it },
+        )
+        LaunchedEffect(quickLoggerSaved) {
+            if (quickLoggerSaved != null) {
+                kotlinx.coroutines.delay(4_000)
+                quickLoggerSaved = null
+            }
+        }
+        if (com.example.kpkn.screens.home.design.homeShowsQuickLogger(showNutrition, uiState.dailyCalorieGoal) && !showFoodLogger) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .imePadding()
+                    .navigationBarsPadding()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 86.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                quickLoggerSaved?.let { saved ->
+                    com.example.kpkn.screens.nutrition.design.logger.LoggerToast(
+                        message = com.example.kpkn.screens.nutrition.design.logger.loggerSavedTitle(saved.mealType) + " · " +
+                            com.example.kpkn.screens.nutrition.design.logger.loggerThousands(
+                                kotlin.math.round(saved.foods.sumOf { it.calories }).toInt(),
+                            ) + " kcal",
+                        actionLabel = "Deshacer",
+                        onAction = {
+                            nutritionRepo.deleteNutritionLog(saved.id)
+                            quickLoggerSaved = null
+                        },
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+                com.example.kpkn.screens.home.design.HomeQuickLoggerBar(
+                    text = quickLoggerText,
+                    onTextChange = { quickLoggerText = it },
+                    onAnalyze = {
+                        if (quickLoggerText.isNotBlank()) {
+                            quickLoggerDescription = quickLoggerText.trim()
+                            loggerMealChoice = null
+                            showFoodLogger = true
+                        }
+                    },
+                    onDictate = { quickLoggerDictation.toggle() },
+                    listening = quickLoggerDictation.listening,
+                )
+            }
+        }
 
         if (showFoodLogger) {
             // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
@@ -408,89 +451,16 @@ fun HomeScreen(
                 onDismiss = {
                     showFoodLogger = false
                     loggerMealChoice = null
+                    quickLoggerDescription = null
                 },
-            )
-        }
-        if (showCreateProgramSheet) {
-            CreateProgramTemplateSheet(
-                onDismiss = viewModel::dismissCreateProgramSheet,
-                onCreateBlank = {
-                    val id = programsVm.createBlankProgram()
-                    viewModel.onProgramCreated(id, activate = pendingProgramName != null)
-                    onNavigateToProgram(id)
-                },
-                onCreateFromTemplate = { template ->
-                    createScope.launch {
-                        when (val outcome = programsVm.createProgramFromTemplateGated(template.id)) {
-                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
-                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
-                                onNavigateToProgram(outcome.programId)
-                            }
-                        }
+                quickDescription = quickLoggerDescription,
+                dailyKcalTarget = if (showNutrition) uiState.dailyCalorieGoal else null,
+                onSaved = { saved ->
+                    if (quickLoggerDescription != null) {
+                        quickLoggerText = ""
+                        quickLoggerSaved = saved
                     }
-                },
-                onSelectProtocol = { protocol ->
-                    viewModel.dismissCreateProgramSheet()
-                    selectedProtocol = protocol
-                },
-                // E-18: con el asistente disponible, TODA tarjeta de la biblioteca (plan propio, de autor, plantilla o
-                // método) sigue al asistente con el plan elegido; el atajo directo ya no se ofrece desde aquí.
-                onSelectPlan = { entry ->
-                    viewModel.dismissCreateProgramSheet()
-                    onOpenSetupWizard(entry.id)
-                },
-                onOpenConcept = onOpenConcept?.let { open ->
-                    { conceptId ->
-                        viewModel.dismissCreateProgramSheet()
-                        open(conceptId)
-                    }
-                },
-            )
-        }
-        selectedProtocol?.let { protocol ->
-            ProtocolDetailSheet(
-                protocol = protocol,
-                onDismiss = { selectedProtocol = null },
-                onContinue = {
-                    selectedProtocol = null
-                    protocolForTm = protocol
-                },
-            )
-        }
-        protocolForTm?.let { protocol ->
-            TrainingMaxWizard(
-                initial = programsVm.estimatedProfileFromHistory(),
-                trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
-                unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
-                onDismiss = {
-                    val id = programsVm.createProgramFromProtocol(protocol.id, preferredName = pendingProgramName)
-                    protocolForTm = null
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    } else {
-                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
-                    }
-                },
-                onConfirm = { profile ->
-                    val id = programsVm.createProgramFromProtocol(protocol.id, profile, pendingProgramName)
-                    protocolForTm = null
-                    if (id != null) {
-                        viewModel.onProgramCreated(id, activate = true)
-                        onNavigateToProgram(id)
-                    } else {
-                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
-                    }
-                },
-            )
-        }
-        templateError?.let { message ->
-            KpknAlertDialog(
-                onDismissRequest = { templateError = null },
-                title = { Text("No se pudo aplicar la plantilla", fontWeight = FontWeight.Black) },
-                text = { Text(message) },
-                confirmButton = {
-                    TextButton(onClick = { templateError = null }) { Text("Entendido") }
+                    nutritionSavedPulse++
                 },
             )
         }
@@ -513,8 +483,20 @@ private fun HomeFoodLoggerHost(
     nutritionRepo: NutritionRepository,
     selectedMealForLogger: MealType,
     onDismiss: () -> Unit,
+    /** Lo escrito en la barra «¿Qué comiste?»: abre la media hoja (QUICK) y lo analiza; null abre el registro completo. */
+    quickDescription: String? = null,
+    dailyKcalTarget: Int? = null,
+    onSaved: (NutritionLog) -> Unit = {},
 ) {
     val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
+    // La referencia de la huella de vitaminas y minerales: el perfil DRI del plan activo (null = cantidades relativas).
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
+    val plans by nutritionRepo.nutritionPlans.collectAsState()
+    val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
+    val driProfile = remember(settings, plans, activePlanId) {
+        com.example.kpkn.domain.nutrition.DriTargets.profileFor(settings, activePlanId?.let { id -> plans.find { it.id == id } })
+    }
+    val energyKcal = dailyKcalTarget?.toDouble()
     FoodLoggerDrawer(
         nutritionRepo = nutritionRepo,
         isOpen = true,
@@ -523,8 +505,24 @@ private fun HomeFoodLoggerHost(
         foodDatabase = foodDatabase,
         initialDate = LocalDate.now().toString(),
         initialMealType = selectedMealForLogger,
-        initialDescription = null,
+        initialDescription = quickDescription,
         initialTab = 0,
+        presentation = if (quickDescription != null) {
+            com.example.kpkn.screens.nutrition.components.FoodLoggerPresentation.QUICK
+        } else {
+            com.example.kpkn.screens.nutrition.components.FoodLoggerPresentation.FULL
+        },
+        dailyKcalTarget = dailyKcalTarget,
+        onSaved = onSaved,
+        mealFootprint = { mealName, foods ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientMealSlot(mealName, foods, driProfile, energyKcal)
+        },
+        foodFootprint = { food -> com.example.kpkn.screens.nutrition.nutrients.NutrientFoodSlot(food, driProfile, energyKcal) },
+        catalogFootprint = { food, grams, completeWithOwnFood ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientCatalogSlot(food, grams, driProfile, energyKcal, completeWithOwnFood)
+        },
+        homeLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.NutrientHomeSlot(foods, driProfile, energyKcal) },
+        savedNutrientsLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.nutrientSavedLineOf(foods, driProfile, energyKcal) },
     )
 }
 
@@ -541,6 +539,8 @@ private fun HomeWithProgram(
     onNutritionAnchorPositionChanged: (Float) -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
+    onOpenCompetitionToday: (String) -> Unit,
+    onOpenCompetitions: () -> Unit,
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToProgram: (String) -> Unit,
@@ -563,6 +563,8 @@ private fun HomeWithProgram(
     /** Canal con el detalle de RINGS abierto, su cambio y el guardado del ajuste manual (lo cablea HomeScreen). */
     /** Abre el editor del plan de nutrición: la acción «Definir objetivos» de «Nutrición de hoy» (sin meta de kcal). */
     onNavigateToNutritionEditor: () -> Unit = {},
+    /** f-home-done: sube con cada comida guardada desde Inicio; el anillo de «Nutrición de hoy» da su rebote. */
+    nutritionSavedPulse: Int = 0,
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -684,6 +686,8 @@ private fun HomeWithProgram(
                     hasActiveProgram = hasActiveProgram,
                     onStartWorkout = onStartWorkout,
                     onRegisterCompetition = onRegisterCompetition,
+                    onOpenCompetitionToday = onOpenCompetitionToday,
+                    onOpenCompetitions = onOpenCompetitions,
                     onResumeWorkout = onResumeWorkout,
                     onEditSession = onEditSession,
                     onCreateProgram = onCreateProgram,
@@ -723,6 +727,7 @@ private fun HomeWithProgram(
                         onAddMeal = onAddMeal,
                         onOpenDay = onOpenNutritionOverlay,
                         onDefineGoals = onNavigateToNutritionEditor,
+                        savedPulse = nutritionSavedPulse,
                         modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
                     )
                 }
@@ -794,12 +799,10 @@ internal fun HomeTopBar(
     nutritionProgress: Float,
     hasPrograms: Boolean,
     primarySession: TodaySessionItem?,
-    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     dailyCalorieGoal: Int?,
     consumedCalories: Int,
     onStartWorkout: (Session, Program) -> Unit,
-    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -807,8 +810,6 @@ internal fun HomeTopBar(
     onBottomPositionChanged: (Float) -> Unit,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
-    /** Abre el programa enlazado a la competición (id del programa): la acción principal de la barra el día del meet. */
-    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
     // Histéresis (§3): aparece en ≥ 0,55 y se va en ≤ 0,45; entre ambos conserva lo que tenía.
     val shownState = remember { mutableStateOf(false) }
@@ -939,12 +940,9 @@ internal fun HomeTopBar(
                                     HomeBarContext.SESSION -> MiniSessionCard(
                                         hasPrograms = hasPrograms,
                                         primarySession = primarySession,
-                                        homeCompetition = homeCompetition,
                                         isRestDay = isRestDay,
                                         onStartWorkout = onStartWorkout,
-                                        onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
-                                        onOpenCompetitionProgram = onOpenCompetitionProgram,
                                     )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
@@ -1153,18 +1151,12 @@ internal fun fitHomeGreeting(
 private fun MiniSessionCard(
     hasPrograms: Boolean,
     primarySession: TodaySessionItem?,
-    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     onStartWorkout: (Session, Program) -> Unit,
-    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
-    onOpenCompetitionProgram: (String) -> Unit = {},
 ) {
-    val registerPhase = homeCompetition?.phase in setOf(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER,
-        com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
-    // IMP-08: el día del meet todavía no hay resultado que registrar; la acción principal es abrir el modo competición.
-    val meetDay = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY
+    // Registros v4 (C-D2): la competencia del día vive en el héroe de Inicio; la barra ya no repite «Registrar».
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1178,40 +1170,6 @@ private fun MiniSessionCard(
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text("Crear programa", style = HomeTypography.barLabel, maxLines = 1)
-            }
-        } else if (registerPhase && homeCompetition != null) {
-            Text(
-                homeCompetition.title,
-                style = HomeTypography.barLabel,
-                color = WizardColors.text,
-                maxLines = 1,
-                modifier = Modifier.weight(1f).semantics { heading() },
-            )
-            if (meetDay) {
-                TextButton(
-                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                    modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Registrar resultado" },
-                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.textMuted),
-                ) {
-                    Text("Registrar", style = HomeTypography.barLabel)
-                }
-                Button(
-                    onClick = { onOpenCompetitionProgram(homeCompetition.programId) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp),
-                ) {
-                    Text("Modo competición", style = HomeTypography.barLabel, maxLines = 1)
-                }
-            } else {
-                TextButton(
-                    onClick = { onRegisterCompetition(homeCompetition.recordId) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    colors = ButtonDefaults.textButtonColors(contentColor = WizardColors.text),
-                ) {
-                    Text("Registrar", style = HomeTypography.barLabel)
-                }
             }
         } else if (isRestDay || primarySession == null) {
             Text(
@@ -1295,7 +1253,7 @@ private fun MiniNutritionCard(
                 ) {}
             }
         }
-        HomeBarInkAction(icon = KpknLineIcons.Plus, contentDescription = "Agregar", onClick = onAddMeal)
+        HomeBarInkAction(icon = KpknLineIcons.Plus, contentDescription = "Añadir", onClick = onAddMeal)
     }
 }
 
@@ -1309,6 +1267,7 @@ internal fun NutritionTodayGlassOverlay(
     meals: List<NutritionLog>,
     onDismiss: () -> Unit,
     onAddMeal: () -> Unit,
+    showAddMeal: Boolean = true,
 ) {
     // Capa abierta: la isla superior se oculta mientras esté, como con una hoja o un diálogo (I12).
     DisposableEffect(Unit) {
@@ -1392,11 +1351,14 @@ internal fun NutritionTodayGlassOverlay(
                         }
                     }
                 }
-                HomePrimaryPill(
-                    text = "Registrar comida",
-                    onClick = onAddMeal,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                // Registros v4 (F-D5): con plan, registra la barra «¿Qué comiste?» de Inicio y la píldora no se pinta.
+                if (showAddMeal) {
+                    HomePrimaryPill(
+                        text = "Registrar comida",
+                        onClick = onAddMeal,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }

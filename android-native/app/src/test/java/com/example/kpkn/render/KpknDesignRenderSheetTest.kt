@@ -228,12 +228,10 @@ class KpknDesignRenderSheetTest {
                 
                 
                 primarySession = primarySession,
-                homeCompetition = null,
                 isRestDay = false,
                 dailyCalorieGoal = 2300,
                 consumedCalories = 1240,
                 onStartWorkout = { _, _ -> },
-                onRegisterCompetition = {},
                 onCreateProgram = {},
                 onAddMeal = {},
                 onNavigateToProfile = {},

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programs.importer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import androidx.compose.ui.unit.sp
@@ -28,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +55,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.entreno.EntrenoPlanNotice
+import com.example.kpkn.screens.programs.ProgramReadyOverlay
 import com.example.kpkn.screens.programs.pluralDias
 import com.example.kpkn.screens.programs.pluralSesiones
 import com.example.kpkn.ui.entitlements.LocalPlan
@@ -80,8 +83,21 @@ fun ImportProgramScreen(
     var warningsReveal by rememberSaveable { mutableStateOf(0) }
     // «Añadir ejercicio» de la isla de abajo: el catálogo contextual del importador, sobre la pantalla.
     var addingExercise by rememberSaveable { mutableStateOf(false) }
+    // cr-imp8: el programa ya guardado espera en «Listo para empezar»; null = aún en la revisión.
+    var savedProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
     val pickFile = rememberImportFilePicker { uri -> viewModel.importFromPicked(uri) }
+    // Lo que la persona eligió en la hoja «Importar» de Programas: se recoge una vez al abrirse y arranca la lectura.
+    var handoff by remember { mutableStateOf(ImportHandoff.take()) }
+    LaunchedEffect(handoff) {
+        when (val request = handoff) {
+            is ImportRequest.File -> viewModel.importFromPicked(request.uri)
+            is ImportRequest.Photo -> viewModel.importFromPicked(request.uri, photo = true, takenFile = request.takenFile)
+            ImportRequest.PasteText -> pasting = true
+            null -> Unit
+        }
+        handoff = null
+    }
     val imported = state.imported
     val resolutions = state.resolutions
     val issues = remember(imported, resolutions) {
@@ -90,6 +106,10 @@ fun ImportProgramScreen(
     // Sin ningún día de entrenamiento no se guarda: la revisión lo dice y «Guardar programa» queda desactivado.
     val weekdaysMissing = imported != null && state.weekdays.isEmpty()
     val canSave = issues.isEmpty() && !weekdaysMissing
+    // Sin programa leído, ni leyendo ni pegando, la pantalla es la hoja «Importar un programa» (pr-import), sin cabecera propia.
+    val showSources = imported == null && !state.busy && !pasting && handoff == null
+    // Pegar no encierra: atrás (gesto o botón del sistema) vuelve a la hoja de fuentes para elegir un archivo o una foto.
+    BackHandler(enabled = imported == null && pasting && !state.busy) { pasting = false }
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         // Lo que se desplaza: bajo la barra de estado. Con la isla de abajo, el contenido deja sitio para ella; sin programa
         // leído, termina sobre la barra de navegación del sistema.
@@ -102,7 +122,7 @@ fun ImportProgramScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (imported == null) 12.dp else ISLAND_CLEARANCE + 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Column {
+            if (!showSources) Column {
             // Atrás y el título, en una fila (G3): el botón redondo mide 48 dp de alto táctil.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(
@@ -131,11 +151,6 @@ fun ImportProgramScreen(
             if (imported != null) state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
             }
             if (imported == null) {
-                ImportSourceChoices(
-                    onChooseFile = pickFile,
-                    onPaste = { pasting = true },
-                    onPhoto = { uri, takenFile -> viewModel.importFromPicked(uri, photo = true, takenFile = takenFile) },
-                )
                 if (pasting) {
                     ImportPasteField(
                         text = pasted,
@@ -196,14 +211,32 @@ fun ImportProgramScreen(
                 }
             }
             if (state.busy) ImportReadingNotice(text = state.progress ?: IMPORT_READING_TEXT, onCancel = viewModel::cancelImport)
-            state.error?.let { EntrenoPlanNotice(text = it) }
-            state.notice?.let { EntrenoPlanNotice(text = it, error = false) }
+            if (!showSources) {
+                state.error?.let { EntrenoPlanNotice(text = it) }
+                state.notice?.let { EntrenoPlanNotice(text = it, error = false) }
+            }
+        }
+        if (showSources) {
+            ImportSourceSheet(
+                onDismiss = onBack,
+                onFile = { uri -> viewModel.importFromPicked(uri) },
+                onPhoto = { uri, takenFile -> viewModel.importFromPicked(uri, photo = true, takenFile = takenFile) },
+                onPaste = { pasting = true },
+                notice = if (state.error != null || state.notice != null) {
+                    {
+                        state.error?.let { EntrenoPlanNotice(text = it) }
+                        state.notice?.let { EntrenoPlanNotice(text = it, error = false) }
+                    }
+                } else {
+                    null
+                },
+            )
         }
         if (imported != null) {
             ImportBottomIsland(
                 canSave = canSave,
                 onAddExercise = { addingExercise = true },
-                onSave = { scope.launch { viewModel.save(level)?.let(onSaved) } },
+                onSave = { scope.launch { viewModel.save(level)?.let { savedProgramId = it } } },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
             if (addingExercise) {
@@ -218,6 +251,14 @@ fun ImportProgramScreen(
                 )
             }
         }
+    }
+    // «Listo para empezar» (cr-listo): ya guardado, sin activar; atrás lo deja guardado y abre el programa igual.
+    savedProgramId?.let { programId ->
+        ProgramReadyOverlay(
+            programId = programId,
+            onDone = { id -> savedProgramId = null; onSaved(id) },
+            onBack = { savedProgramId = null; onSaved(programId) },
+        )
     }
 }
 

@@ -19,6 +19,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.MealType
@@ -154,9 +155,9 @@ class MealReuseScreensTest {
         menu({ copied++ }, { saved++ })
         rule.onNodeWithText("Duplicar").assertExists()
         rule.onNodeWithText("Eliminar").assertExists()
-        rule.onNodeWithText("Copiar a…").performClick()
+        rule.onNodeWithText("Copiar a…").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
         assertEquals(1, copied)
-        rule.onNodeWithText("Guardar como plantilla").performClick()
+        rule.onNodeWithText("Guardar como plantilla").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
         assertEquals(1, saved)
     }
 
@@ -235,8 +236,8 @@ class MealReuseScreensTest {
         CompositionLocalProvider(LocalWizardReducedMotion provides true) {
             val validation = QuickEntry.validate(quickForm, "q-1")
             QuickEntryContent(
-                form = quickForm, validation = validation, showErrors = quickShowErrors, mealType = MealType.LUNCH,
-                onChange = { quickForm = it }, onMealChange = {}, onClose = {},
+                form = quickForm, validation = validation, showErrors = quickShowErrors,
+                onChange = { quickForm = it },
                 onSubmit = {
                     quickShowErrors = true
                     if (validation.isValid) {
@@ -276,10 +277,57 @@ class MealReuseScreensTest {
         val form = QuickEntryForm(kcal = "900", protein = "10", carbs = "10", fats = "5")
         val validation = QuickEntry.validate(form, "q")
         rule.setContent {
-            QuickEntryContent(form, validation, showErrors = false, mealType = MealType.DINNER, onChange = {}, onMealChange = {}, onSubmit = {}, onClose = {})
+            QuickEntryContent(form, validation, showErrors = false, onChange = {}, onSubmit = {})
         }
         rule.onNodeWithTag("quick-entry-warning").assertExists()
         assertTrue(validation.isValid)
+    }
+
+    @Test
+    fun `la entrada rapida es la hoja del lienzo sin los modulos de la pantalla antigua`() {
+        showQuick()
+        rule.onNodeWithText("Entrada rápida").assertExists()
+        rule.onNodeWithText("Para cuando solo sabes las calorías.").assertExists()
+        rule.onNodeWithText("MACROS (OPCIONAL)").assertExists()
+        rule.onNodeWithText("Proteína").assertExists()
+        rule.onNodeWithText("Carbos").assertExists()
+        rule.onNodeWithText("Grasa").assertExists()
+        rule.onNodeWithText("Nombre (opcional)").assertExists()
+        rule.onNodeWithText("Menú del día").assertExists()
+        rule.onNodeWithText("Añadir a la comida").assertExists()
+        // La comida la decide el registro: ya no hay selector de comida ni módulos de Energía/Macros.
+        rule.onNodeWithText("Comida").assertDoesNotExist()
+        rule.onNodeWithTag("quick-entry-meal-LUNCH").assertDoesNotExist()
+        rule.onNodeWithText("Agregar a la comida").assertDoesNotExist()
+    }
+
+    @Test
+    fun `mas y menos de la entrada rapida mueven las kcal de diez en diez`() {
+        showQuick()
+        rule.onNodeWithContentDescription("Más calorías").performClick()
+        rule.onNodeWithContentDescription("Más calorías").performClick()
+        assertEquals("20", quickForm.kcal)
+        rule.onNodeWithContentDescription("Menos calorías").performClick()
+        assertEquals("10", quickForm.kcal)
+        rule.onNodeWithContentDescription("Menos calorías").performClick()
+        assertEquals("", quickForm.kcal)
+    }
+
+    @Test
+    fun `las macros de la entrada rapida se escriben en sus tres campos`() {
+        showQuick()
+        quickField("quick-entry-kcal").performTextInput("500")
+        quickField("quick-entry-protein").performTextInput("30")
+        quickField("quick-entry-carbs").performTextInput("40")
+        quickField("quick-entry-fats").performTextInput("10")
+        quickField("quick-entry-name").performTextInput("Menú")
+        rule.onNodeWithTag("quick-entry-submit").performClick()
+        val food = quickAdded
+        assertNotNull(food)
+        assertEquals(30.0, food!!.protein, 0.0)
+        assertEquals(40.0, food.carbs, 0.0)
+        assertEquals(10.0, food.fats, 0.0)
+        assertEquals("Menú", food.foodName)
     }
 
     // ─── Etiqueta «rápida» en el diario ──────────────────────────────────────

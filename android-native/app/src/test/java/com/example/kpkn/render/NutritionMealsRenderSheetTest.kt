@@ -209,6 +209,10 @@ class NutritionMealsRenderSheetTest {
                                 onMove = {},
                                 onDelete = {},
                                 onDismiss = {},
+                                onCopyTo = {},
+                                onSaveTemplate = {},
+                                log = NutritionSamples.mealGroups.first { it.mealType == MealType.BREAKFAST }.logs.first(),
+                                onEdit = {},
                             )
                         }
                     }

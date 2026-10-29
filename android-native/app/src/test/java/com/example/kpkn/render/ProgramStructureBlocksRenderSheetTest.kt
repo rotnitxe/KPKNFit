@@ -190,58 +190,50 @@ class ProgramStructureBlocksRenderSheetTest {
         val noop2: (String, String) -> Unit = { _, _ -> }
         val noop3: (String, String, Rect) -> Unit = { _, _, _ -> }
         when (name) {
-            "blocksFour" -> Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            "blocksFour" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 ProgramBlockList(
                     blocks = ProgramStructureSamples.programaCuatroBloques,
-                    isSimple = false,
-                    selectedWeekId = "s4",
+                    expandedBlockId = ProgramStructureSamples.intensificacion.id,
+                    progressionOf = { "Top set a RPE 8 y dos series de back-off al 90 %. Sube 2,5 kg cuando el top set sale a RPE 7 o menos." },
+                    onToggleBlock = noop1,
                     onFocusWeek = noop2,
                     onWeekLongPress = noop3,
                     onBlockMore = { _, _ -> },
-                    onEditMeso = { _, _ -> },
                     onAddWeekToBlock = noop1,
-                    onAddMesoToBlock = noop1,
-                    onAddBlock = noop,
-                    onConvert = noop,
                 )
             }
-            "simpleCycle" -> Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            "simpleCycle" -> Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 ProgramBlockList(
                     blocks = listOf(ProgramStructureSamples.simpleCiclo),
-                    isSimple = true,
-                    selectedWeekId = "s2",
+                    expandedBlockId = null,
+                    progressionOf = { "Top set a RPE 8 y dos series de back-off al 90 %. Sube 2,5 kg cuando el top set sale a RPE 7 o menos." },
+                    onToggleBlock = noop1,
                     onFocusWeek = noop2,
                     onWeekLongPress = noop3,
                     onBlockMore = { _, _ -> },
-                    onEditMeso = { _, _ -> },
                     onAddWeekToBlock = noop1,
-                    onAddMesoToBlock = noop1,
-                    onAddBlock = noop,
-                    onConvert = noop,
                 )
             }
             "weekMenu" -> Box(Modifier.fillMaxWidth()) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     ProgramBlockList(
-                        blocks = listOf(ProgramStructureSamples.acumulacion),
-                        isSimple = false,
-                        selectedWeekId = "s4",
-                        onFocusWeek = noop2,
-                        onWeekLongPress = noop3,
-                        onBlockMore = { _, _ -> },
-                        onEditMeso = { _, _ -> },
-                        onAddWeekToBlock = noop1,
-                        onAddMesoToBlock = noop1,
-                        onAddBlock = noop,
-                        onConvert = noop,
-                    )
+                    blocks = listOf(ProgramStructureSamples.acumulacion),
+                    expandedBlockId = null,
+                    progressionOf = { "Top set a RPE 8 y dos series de back-off al 90 %. Sube 2,5 kg cuando el top set sale a RPE 7 o menos." },
+                    onToggleBlock = noop1,
+                    onFocusWeek = noop2,
+                    onWeekLongPress = noop3,
+                    onBlockMore = { _, _ -> },
+                    onAddWeekToBlock = noop1,
+                )
                 }
                 ProgramItemMenu(
                     items = listOf(
-                        ProgramAnchoredMenuItem(label = "Editar semana", onClick = noop),
-                        ProgramAnchoredMenuItem(label = "Copiar semana", onClick = noop),
-                        ProgramAnchoredMenuItem(label = "Pegar aquí", onClick = noop),
-                        ProgramAnchoredMenuItem(label = "Eliminar semana", onClick = noop, destructive = true),
+                        ProgramAnchoredMenuItem(label = "Nombre y nota de la semana", onClick = noop),
+                        ProgramAnchoredMenuItem(label = "Copiar esta semana", onClick = noop),
+                        ProgramAnchoredMenuItem(label = "Pegar la semana 2 aquí", onClick = noop),
+                        ProgramAnchoredMenuItem(label = "Añadir una semana después", onClick = noop),
+                        ProgramAnchoredMenuItem(label = "Eliminar esta semana", onClick = noop, destructive = true),
                     ),
                     anchor = Rect(left = 200f, top = 330f, right = 240f, bottom = 370f),
                     onDismiss = noop,
@@ -249,6 +241,7 @@ class ProgramStructureBlocksRenderSheetTest {
             }
             "blockNew" -> ProgramBlockSheet(
                 block = null,
+                subtitle = null,
                 suggestedName = "Bloque 5",
                 preview = null,
                 onSave = { _, _, _, _ -> },
@@ -256,13 +249,16 @@ class ProgramStructureBlocksRenderSheetTest {
             )
             "blockEdit" -> ProgramBlockSheet(
                 block = ProgramStructureSamples.bloqueEditable,
+                subtitle = "Semanas 4 y 5 · 29 oct – 9 nov",
                 suggestedName = "",
                 preview = "Carga +2,5 kg cada semana hasta la cuarta.",
                 onSave = { _, _, _, _ -> },
                 onDismiss = noop,
+                onDelete = noop,
             )
             "mesoEdit" -> ProgramMesoSheet(
                 meso = ProgramStructureSamples.bloqueEditable.mesocycles[1],
+                subtitle = "Acumulación 1",
                 suggestedName = "Mesociclo 3",
                 canDelete = true,
                 onSave = { _, _ -> },
@@ -289,15 +285,10 @@ class ProgramStructureBlocksRenderSheetTest {
                     program = structureProgram,
                     onUpdateProgram = {},
                     onFocusWeek = noop2,
-                    selectedWeekId = "s4",
-                    copiedWeekId = "s2",
-                    onCopyWeek = noop1,
-                    onPasteWeek = noop1,
+                    onWeekLongPress = { _, _ -> },
                     onUpdateBlock = { _, _, _, _, _ -> },
                     blockProgressionPreview = { null },
                     onDeleteBlock = noop1,
-                    onUpdateWeek = { _, _, _ -> },
-                    onDeleteWeek = noop1,
                     onAddSimpleWeek = noop,
                 )
             }

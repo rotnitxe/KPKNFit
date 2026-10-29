@@ -1,26 +1,23 @@
 package com.example.kpkn.screens.programdetail.design
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknModuleHeader
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import java.util.Locale
 
 /** Un bloque del módulo «Fases» (P2): su eyebrow en el color de su fase y sus semanas en orden. */
@@ -32,9 +29,9 @@ internal data class ProgramPhaseBlockUi(
 )
 
 /**
- * Módulo «Fases» de la pestaña Semana (P2, KPKN_UI_V2 §1): un módulo con cada bloque del programa. El eyebrow de cada bloque va en el
- * color de su fase (Competición lleva bandera) y debajo está su fila de semanas. [onAddWeek], si hay, añade un «+» al final de cada
- * bloque. Sin estado: la elección y la pulsación larga van a la pantalla.
+ * Los bloques de la hoja «Semanas» (lienzo v6, s-weeks): cada bloque con su rótulo (`.mgroup`) en el color de su fase y debajo su fila de
+ * semanas, directamente en la hoja, sin módulo ni cabecera «Fases». [onAddWeek], si hay, añade un «+» al final de cada bloque. Sin estado:
+ * la elección y la pulsación larga van a la pantalla.
  */
 @Composable
 internal fun ProgramPhasesModule(
@@ -45,16 +42,13 @@ internal fun ProgramPhasesModule(
     modifier: Modifier = Modifier,
     onAddWeek: ((blockId: String) -> Unit)? = null,
 ) {
-    KpknModule(modifier = modifier.fillMaxWidth()) {
-        // Las fases son círculos interactivos: el resumen va en la cabecera para quien no los recorre uno a uno.
-        KpknModuleHeader(
-            label = "Fases",
-            modifier = Modifier.semantics { contentDescription = "Fases del programa. ${phasesSummary(blocks)}" },
-        )
+    // Las fases son círculos interactivos: el resumen va en la columna para quien no los recorre uno a uno.
+    Column(modifier = modifier.fillMaxWidth().semantics { contentDescription = "Fases del programa. ${phasesSummary(blocks)}" }) {
         blocks.forEachIndexed { index, block ->
-            Spacer(Modifier.height(if (index == 0) 12.dp else 18.dp))
+            // `.mgroup`: 16 dp arriba (tras el subtítulo, que deja 12, faltan 4) y 8 hasta su fila.
+            Spacer(Modifier.height(if (index == 0) 4.dp else 16.dp))
             PhaseEyebrow(block)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             val add: (() -> Unit)? = onAddWeek?.let { callback -> { callback(block.id) } }
             ProgramWeekStrip(
                 weeks = block.weeks,
@@ -78,25 +72,24 @@ internal fun phasesSummary(blocks: List<ProgramPhaseBlockUi>): String =
         "${block.eyebrow.lowercase(Locale("es"))}, $weeks$current"
     }
 
-/** El eyebrow de un bloque: su nombre en mayúsculas, en el color de su fase (o en `textMuted` si no se sabe). */
+/** El rótulo de un bloque (`.mgroup`): su nombre en mayúsculas, en el color de su fase (o en `textFaint` si no se sabe). */
 @Composable
 private fun PhaseEyebrow(block: ProgramPhaseBlockUi) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (block.phase == ProgramPhase.COMPETITION) {
-            Icon(
-                imageVector = KpknLineIcons.Flag,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = WizardColors.danger,
-            )
-            Spacer(Modifier.width(6.dp))
-        }
-        Text(
-            text = block.eyebrow.uppercase(Locale("es")),
-            style = KpknType.eyebrow,
-            color = block.phase?.color ?: WizardColors.textMuted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    Text(
+        text = block.eyebrow.uppercase(Locale("es")),
+        style = PhaseGroupStyle,
+        color = block.phase?.color ?: WizardColors.textFaint,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(horizontal = 2.dp),
+    )
 }
+
+/** `.mgroup`: Inter SemiBold 10,5 / 14 con 1,3 sp de espaciado. */
+private val PhaseGroupStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 10.5.sp,
+    lineHeight = 14.sp,
+    letterSpacing = 1.3.sp,
+)

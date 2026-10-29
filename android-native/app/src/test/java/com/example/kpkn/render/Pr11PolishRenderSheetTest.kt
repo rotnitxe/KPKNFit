@@ -27,25 +27,17 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.screens.body.design.BodyChartPoint
 import com.example.kpkn.screens.body.design.BodyTrendChart
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor
-import com.example.kpkn.screens.programdetail.NativeProgressionCardUi
-import com.example.kpkn.screens.programdetail.NativeProgressionItemUi
-import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
 import com.example.kpkn.screens.programdetail.design.ProgramHeader
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderActions
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderPrimary
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderState
 import com.example.kpkn.screens.programdetail.design.ProgramHeaderStatus
 import com.example.kpkn.screens.programdetail.design.ProgramNextSession
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationInvite
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeModule
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
-import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -59,8 +51,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 
 /**
- * HOJA DE DIBUJO del pulido de la Pre Release 11 (Q3): Program Detail en un día sin sesión (con y sin «Siguiente»), el volumen sin
- * calibrar con los músculos sin series al final, Propuestas sin ningún TM y la gráfica de grasa con dos pesajes del mismo día. No
+ * HOJA DE DIBUJO del pulido de la Pre Release 11 (Q3): Program Detail en un día sin sesión (con y sin «Siguiente») y la gráfica de grasa con dos pesajes del mismo día. No
  * comprueba nada: escribe PNG. Pinta a 360 dp, con la letra al 100 % y al 130 %, sin movimiento. Solo corre con `KPKN_RENDER_DIR`.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -84,7 +75,7 @@ class Pr11PolishRenderSheetTest {
     private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
 
     /** Los casos de la hoja, en orden. */
-    private val cases = listOf("pdDescanso", "pdSinSiguiente", "volumenSinCalibrar", "propuestasSinTm", "propuestasSinTmConTm", "grasaDosPesajes")
+    private val cases = listOf("pdDescanso", "pdSinSiguiente", "grasaDosPesajes")
 
     /** El caso que se dibuja ahora, y la escala de letra. Fuera de la composición para poder cambiarlos desde la prueba. */
     private var current by mutableIntStateOf(0)
@@ -115,8 +106,6 @@ class Pr11PolishRenderSheetTest {
     /** Alto de la hoja de cada caso: lo bastante para que el contenido entero quepa al 130 %. */
     private fun heightOf(name: String): Int = when (name) {
         "pdDescanso", "pdSinSiguiente" -> 560
-        "volumenSinCalibrar" -> 1700
-        "propuestasSinTm", "propuestasSinTmConTm" -> 460
         "grasaDosPesajes" -> 560
         else -> 800
     }
@@ -134,59 +123,22 @@ class Pr11PolishRenderSheetTest {
     private fun headerState(nextSession: ProgramNextSession?) = ProgramHeaderState(
         name = program.name,
         status = ProgramHeaderStatus.ACTIVE,
-        meta = "Semana que se repite · Fuerza y músculo",
+        meta = "Músculo · Rutina · 3 días",
         identity = coverIdentityFor(program.id, null),
         photoUrl = null,
         bundled = null,
-        weekCount = 1,
-        currentWeekIndex = null,
-        progressLabel = "Semana que se repite · ciclo 1",
+        progressLabel = null,
         primary = ProgramHeaderPrimary.None,
         nextSession = nextSession,
     )
 
     private val nextThursday = ProgramNextSession(
         dayOfWeek = 4,
-        label = "Jueves · Pierna A",
+        label = "Siguiente: jueves · Pierna A",
         description = "Siguiente sesión: jueves, Pierna A",
     )
 
-    private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onStartPause = {}, onEdit = {}, onOpenNextSession = {})
-
-    /** Un volumen sin calibrar: ningún músculo tiene zonas, y tres no tienen series esta semana. */
-    private val uncalibratedMuscles = listOf(
-        ProgramVolumeMuscle("Glúteos", 20.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Deltoides", 19.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuádriceps", 19.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Dorsales", 14.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Isquiosurales", 12.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Pectorales", 8.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Trapecio", 7.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuello", 0.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Bíceps", 0.0, null, null,   scaleMax = 20.0),
-        ProgramVolumeMuscle("Tríceps", 0.0, null, null,   scaleMax = 20.0),
-    )
-
-    private val volumeScope = ProgramVolumeScope(
-        label = "S1 · Semana repetible",
-        detail = "Conteo exacto de esa semana.",
-        kinds = listOf("Semana"),
-        selectedKind = 0,
-        canPrevious = false,
-        canNext = false,
-    )
-
-    /** Un programa sin perfil de TM: la fila de TM no debe pintarse, y la propuesta nativa sí. */
-    private val noTmProgram = Program(id = "fuerza-libre", name = "Fuerza libre", description = "", mode = ProgramMode.HYPERTROPHY)
-
-    /** Un programa que usa TM sin ningún máximo fijado: Propuestas invita a fijarlos con «Añadir». */
-    private val tmUnsetProgram = Program(
-        id = "fuerza-tm",
-        name = "Fuerza con TM",
-        description = "",
-        mode = ProgramMode.POWERLIFTING,
-        powerliftingProfile = PowerliftingProfile(),
-    )
+    private val noopHeaderActions = ProgramHeaderActions(onPrimary = {}, onOpenNextSession = {})
 
     /** Dos pesajes del mismo día (13 de octubre) y uno del 14: el eje debe decir «13 oct» y «14 oct», una sola vez cada uno. */
     private val fatPoints = listOf(
@@ -215,58 +167,6 @@ class Pr11PolishRenderSheetTest {
             }
             "pdSinSiguiente" -> Frame {
                 ProgramHeader(state = headerState(null), actions = noopHeaderActions)
-            }
-            "volumenSinCalibrar" -> Frame {
-                ProgramVolumeCalibrationInvite(
-                    onCalibrate = {},
-                    note = "Sin calibrar: las zonas aparecen al calibrar",
-                )
-                ProgramVolumeModule(
-                    muscles = uncalibratedMuscles,
-                    scope = volumeScope,
-                    onSelectKind = {},
-                    onPreviousScope = {},
-                    onNextScope = {},
-                    expandedMuscle = null,
-                    onToggleMuscle = {},
-                    breakdown = null,
-                )
-            }
-            "propuestasSinTm" -> Frame {
-                AutoregulationProposalsCard(
-                    program = noTmProgram,
-                    nativeCard = NativeProgressionCardUi(
-                        proposals = listOf(
-                            NativeProgressionItemUi(
-                                id = "sentadilla",
-                                title = "Sentadilla: +2,5 kg",
-                                body = "Tres sesiones seguidas con la carga completa y una repetición de reserva.",
-                            ),
-                        ),
-                    ),
-                    onAccept = {},
-                    onAcceptProposal = {},
-                    onReject = {},
-                    onAcceptNative = {},
-                    onRejectNative = {},
-                    onDismissNativeNotice = {},
-                    onOpenTm = {},
-                    onRematerialize = {},
-                )
-            }
-            "propuestasSinTmConTm" -> Frame {
-                AutoregulationProposalsCard(
-                    program = tmUnsetProgram,
-                    nativeCard = NativeProgressionCardUi(),
-                    onAccept = {},
-                    onAcceptProposal = {},
-                    onReject = {},
-                    onAcceptNative = {},
-                    onRejectNative = {},
-                    onDismissNativeNotice = {},
-                    onOpenTm = {},
-                    onRematerialize = {},
-                )
             }
             "grasaDosPesajes" -> Frame {
                 BodyTrendChart(

@@ -9,7 +9,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.example.kpkn.domain.training.progress.LiftTrendStatus
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,38 +33,44 @@ class ProgramProgressPiecesTest {
 
         composeRule.onNodeWithText("92 %").assertIsDisplayed()
         composeRule.onNodeWithText("12 de 13 sesiones").assertIsDisplayed()
+        composeRule.onNodeWithText("de 264 planificadas").assertIsDisplayed()
+        composeRule.onNodeWithText("+9 % vs bloque 1").assertIsDisplayed()
     }
 
-    /** Una fila estancada muestra «Estancado», y «Todos» aparece porque hay más ejercicios que filas. */
+    /** Con tendencia, una fila estancada muestra «Estancado» y la cabecera ofrece «Todos» (la lista entera, con buscador). */
     @Test
-    fun fuerzaMuestraEstancadoYTodosCuandoHayMasEjercicios() {
+    fun fuerzaMuestraEstancadoYTodosConTendencia() {
         composeRule.setContent {
-            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), allCount = 6, onSeeAll = {}) }
+            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), early = false, onSeeAll = {}, onOpenLift = {}) }
         }
 
         composeRule.onNodeWithText("Estancado").assertIsDisplayed()
         composeRule.onNodeWithText("Todos").assertIsDisplayed()
+        composeRule.onNodeWithText("e1RM = repetición máxima estimada de tu mejor serie de cada sesión.").assertIsDisplayed()
     }
 
-    /** Si la lista ya tiene todos los ejercicios, no hay «Todos». */
+    /** Recién empezado (g-empty), la lista no lleva «Todos» ni la nota del e1RM. */
     @Test
-    fun fuerzaNoOfreceTodosSiLaListaTieneTodosLosEjercicios() {
+    fun recienEmpezadoNoOfreceTodosNiLaNota() {
         composeRule.setContent {
-            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), allCount = 1, onSeeAll = {}) }
+            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), early = true, onSeeAll = {}, onOpenLift = {}) }
         }
 
         composeRule.onAllNodesWithText("Todos").assertCountEquals(0)
+        composeRule.onAllNodesWithText("e1RM = repetición máxima estimada de tu mejor serie de cada sesión.").assertCountEquals(0)
     }
 
-    /** Cada fila se describe entera para lectores de pantalla: nombre, estado y último valor; el cambio cero se lee «±0». */
+    /** Cada fila se describe entera para lectores de pantalla: nombre, estado y último valor; el cambio cero se lee «±0». Al tocarla, abre su hoja. */
     @Test
-    fun cadaFilaDeFuerzaSeDescribeConNombreEstadoYValor() {
+    fun cadaFilaDeFuerzaSeDescribeConNombreEstadoYValorYAbreSuHoja() {
+        var opened: ProgressLiftRow? = null
         composeRule.setContent {
-            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), allCount = 1, onSeeAll = {}) }
+            MaterialTheme { ProgressLiftsModule(rows = listOf(stagnantRow()), early = false, onSeeAll = {}, onOpenLift = { opened = it }) }
         }
 
-        composeRule.onNodeWithContentDescription("Press banca: Estancado, 142,5 kg").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Press banca: Estancado, 142,5 kg").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("±0").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals("name:press banca", opened?.key) }
     }
 
     /** Con semanas, cada barra lleva su etiqueta y la cabecera suma las series hechas frente a las previstas. */
@@ -96,7 +104,8 @@ class ProgramProgressPiecesTest {
     /** El resumen de 12 de 13 sesiones, con 212 de 264 series y 42,4 t de tonelaje. */
     private fun summaryUi() = ProgramProgressUi(
         periodLabel = "En 2 semanas",
-        headline = "Subes en 1 de 2 ejercicios.",
+        headline = "Subes en 1 de 2 básicos.",
+        early = false,
         kpis = ProgressKpis(
             sessionsDone = 12,
             sessionsPlanned = 13,
@@ -104,14 +113,21 @@ class ProgramProgressPiecesTest {
             setsPlanned = 264,
             tonnageKg = 42_400.0,
         ),
+        tonnageFooter = "+9 % vs bloque 1",
         lifts = emptyList(),
-        allLiftsCount = 0,
+        allLifts = emptyList(),
         weeks = emptyList(),
         weekNote = null,
+        totals = ProgressWorkTotals(tonnageKg = 42_400.0, reps = 0, minutes = 0, sessions = 12, weeks = emptyList()),
+        adherence = null,
+        effort = null,
+        discomforts = null,
+        liftDetails = emptyMap(),
     )
 
     /** Una fila estancada: último e1RM de 142,5 kg y sin cambio desde la primera sesión. */
     private fun stagnantRow() = ProgressLiftRow(
+        key = "name:press banca",
         name = "Press banca",
         status = LiftTrendStatus.STAGNANT,
         currentKg = 142.5,

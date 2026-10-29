@@ -5,6 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,14 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,8 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
@@ -57,10 +59,11 @@ internal data class ProgramPhaseWeekUi(
 )
 
 /**
- * Fila de semanas (P2): círculos de 40 dp en una `LazyRow`. La elegida se rellena de tinta con el número en negro; la actual lleva anillo
- * de tinta; las hechas, un punto `done` debajo. Al entrar, la elegida queda visible con dos semanas de margen, como antes. [onAdd], si hay,
- * añade un «+» al final. Una pulsación larga entrega la posición del círculo para su menú.
+ * Fila de semanas de la hoja «Semanas» (lienzo v6, `.wkrow`): círculos de 40 dp con 6 dp entre ellos, que bajan de línea cuando no caben.
+ * La elegida se rellena de tinta con el número en negro; la actual lleva anillo de tinta; las hechas, un punto `done` debajo. [onAdd], si
+ * hay, añade un «+» punteado al final. Una pulsación larga entrega la posición del círculo para su menú.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ProgramWeekStrip(
     weeks: List<ProgramPhaseWeekUi>,
@@ -70,28 +73,34 @@ internal fun ProgramWeekStrip(
     modifier: Modifier = Modifier,
     onAdd: (() -> Unit)? = null,
 ) {
-    val listState = rememberLazyListState()
-    val selectedIndex = weeks.indexOfFirst { it.id == selectedWeekId }
-    LaunchedEffect(selectedIndex) {
-        if (selectedIndex >= 0) listState.animateScrollToItem(maxOf(0, selectedIndex - 2))
-    }
-    LazyRow(
-        state = listState,
+    FlowRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        items(weeks, key = { it.id }) { week ->
+        weeks.forEach { week ->
             ProgramWeekCircle(
                 week = week,
                 isSelected = week.id == selectedWeekId,
                 onClick = { onSelectWeek(week.id) },
                 onLongClick = { anchor -> onLongPressWeek(week.id, anchor) },
+                modifier = Modifier.circleSlot(),
             )
         }
         if (onAdd != null) {
-            item(key = "add-week") { ProgramAddWeekCircle(onClick = onAdd) }
+            ProgramAddWeekCircle(onClick = onAdd, modifier = Modifier.circleSlot())
         }
     }
+}
+
+/**
+ * El hueco de un círculo en la fila: ocupa sus 40 dp visibles aunque la zona táctil sea de 48, para que entre círculo y círculo queden los
+ * 6 dp del lienzo.
+ */
+private fun Modifier.circleSlot(): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = androidx.compose.ui.unit.Constraints.Infinity))
+    val trim = 8.dp.roundToPx()
+    layout((placeable.width - trim).coerceAtLeast(0), placeable.height) { placeable.place(-trim / 2, 0) }
 }
 
 /** Un círculo de semana: 40 dp dentro de una zona táctil de 48 dp, con su punto de «hecha» debajo. */
@@ -183,11 +192,11 @@ internal fun ProgramWeekCircle(
     }
 }
 
-/** Círculo «+» al final de una fila: agrega una semana. Ocupa el mismo alto que un círculo de semana. */
+/** Círculo «+» al final de una fila (`.wkc.add`): sin fondo, con borde punteado blanco al 19 %. Agrega una semana. */
 @Composable
-private fun ProgramAddWeekCircle(onClick: () -> Unit) {
+private fun ProgramAddWeekCircle(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(48.dp)
             .defaultMinSize(minHeight = 48.dp)
             .clickable(role = Role.Button, onClick = onClick)
@@ -195,13 +204,22 @@ private fun ProgramAddWeekCircle(onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(40.dp).clip(CircleShape).background(KpknSurface.inset, CircleShape),
+            modifier = Modifier
+                .size(40.dp)
+                .drawBehind {
+                    val stroke = 1.dp.toPx()
+                    drawCircle(
+                        color = AddWeekEdge,
+                        radius = size.minDimension / 2f - stroke / 2f,
+                        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx()))),
+                    )
+                },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = KpknLineIcons.Plus,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(16.dp),
                 tint = WizardColors.textMuted,
             )
         }
@@ -209,3 +227,6 @@ private fun ProgramAddWeekCircle(onClick: () -> Unit) {
         Spacer(Modifier.size(4.dp))
     }
 }
+
+/** El borde punteado del «+» (`#ffffff30`). */
+private val AddWeekEdge = Color(0x30FFFFFF)

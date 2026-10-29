@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -33,7 +34,7 @@ class ProgramCompetitionModuleTest {
         rule.setContent { ProgramCompetitionModule(state,false,{ fail("SBD no aplica") },{ fail("SBD no aplica") },
             { fail("SBD no aplica") },{ opened++ }) }
         rule.onNodeWithText("Planificar intentos").assertDoesNotExist()
-        rule.onNodeWithText("Ficha de competición").performClick()
+        rule.onNodeWithContentDescription("Ficha de competición").performClick()
         rule.runOnIdle { assertEquals(1,opened) }
     }
 
@@ -59,7 +60,7 @@ class ProgramCompetitionModuleTest {
         rule.setContent { MeetDaySheet(attempts) { closed++ } }
         rule.mainClock.advanceTimeBy(1_000)
         rule.onNodeWithTag("meet-simulation:SQUAT:1:NO_LIFT").performScrollTo().performClick()
-        rule.onNodeWithText("Siguiente intento orientativo: 182.5 kg",useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("Siguiente intento orientativo: 182,5 kg",useUnmergedTree = true).assertExists()
         rule.runOnIdle { assertEquals(0,closed) }
         rule.onNodeWithText("Cerrar simulación").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,closed) }

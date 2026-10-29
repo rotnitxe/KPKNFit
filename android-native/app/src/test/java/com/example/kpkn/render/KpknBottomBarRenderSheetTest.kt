@@ -140,12 +140,10 @@ class KpknBottomBarRenderSheetTest {
                 // Con cobertura de datos la isla enseña las tres cifras, no «Sin calibrar».
                 
                 primarySession = primarySession,
-                homeCompetition = null,
                 isRestDay = false,
                 dailyCalorieGoal = 2300,
                 consumedCalories = 1240,
                 onStartWorkout = { _, _ -> },
-                onRegisterCompetition = {},
                 onCreateProgram = {},
                 onAddMeal = {},
                 onNavigateToProfile = {},

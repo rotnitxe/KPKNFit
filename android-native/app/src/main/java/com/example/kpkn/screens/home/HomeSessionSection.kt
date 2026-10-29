@@ -62,6 +62,10 @@ fun HomeSessionSection(
     hasActiveProgram: Boolean = true,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit = {},
+    /** El día de la competencia: abre su modo competición por id (Registros v4, c-today). */
+    onOpenCompetitionToday: (String) -> Unit = {},
+    /** La cuenta atrás de la competencia abre la página «Competencias». */
+    onOpenCompetitions: () -> Unit = {},
     /** Programa activo al que pedir la fecha de competición («Sí, sin fecha»); null si no toca (C4c). */
     competitionDatePromptProgramId: String? = null,
     onOpenProgramForCompetitionDate: (String) -> Unit = {},
@@ -119,10 +123,11 @@ fun HomeSessionSection(
             onChooseProgram = onChooseProgram,
             onCreateProgram = onCreateProgram,
             onRegister = { homeCompetition?.let { onRegisterCompetition(it.recordId) } },
-            // El día del meet el héroe ofrece «Modo competición» (abre el programa enlazado), como la barra superior.
+            // Registros v4 (C-D2): el día de la competencia el héroe abre su modo competición (c-today), no el programa.
             onOpenCompetition = homeCompetition
                 ?.takeIf { it.phase == CompetitionHomePhase.MEET_DAY }
-                ?.let { competition -> { onNavigateToProgram(competition.programId) } },
+                ?.let { competition -> { if (competition.recordId.isBlank()) onOpenCompetitions() else onOpenCompetitionToday(competition.recordId) } },
+            onOpenCountdown = onOpenCompetitions,
         )
     }
 
@@ -244,7 +249,7 @@ private fun homeHeroPages(
                     mode = HomeHeroMode.REGISTER,
                     kicker = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Competición hoy" else homeHeroKicker(HomeHeroMode.REGISTER, day, null, null),
                     title = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Hoy compites · ${competition.title}" else "¿Cómo te fue en ${competition.title}?",
-                    body = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Abre el modo competición desde tu programa." else null,
+                    body = null,
                     meta = "${competition.countdownLabel} · ${competition.competitionDateLabel}",
                 ),
                 item = null,

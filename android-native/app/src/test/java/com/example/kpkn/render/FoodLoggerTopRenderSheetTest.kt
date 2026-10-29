@@ -33,6 +33,9 @@ import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchEmpty
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchField
 import com.example.kpkn.screens.nutrition.design.logger.LoggerSearchRow
 import com.example.kpkn.screens.nutrition.design.logger.LoggerTabs
+import com.example.kpkn.screens.nutrition.design.logger.LoggerNoticeKind
+import com.example.kpkn.screens.nutrition.design.logger.LoggerWriteMode
+import com.example.kpkn.screens.nutrition.design.logger.loggerNoticeText
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.design.KpknSurface
 import org.junit.Assume.assumeTrue
@@ -112,55 +115,51 @@ class FoodLoggerTopRenderSheetTest {
             "describir_vacio" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
                 LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = "", onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
+                LoggerDescribeField(text = "", onTextChange = {}, onAnalyze = {}, onDictate = {})
             }
             "describir_texto" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
                 LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = describeText, onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
+                LoggerDescribeField(text = describeText, onTextChange = {}, onAnalyze = {}, onDictate = {})
             }
             "analizando" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
-                LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = describeText, onTextChange = {}, onImeDone = {}, onPrivacyInfo = {}, enabled = false)
-                LoggerAnalysisPanel(interpreting = true, elapsedMs = 0L)
+                LoggerDescribeField(text = describeText, onTextChange = {}, onAnalyze = {}, mode = LoggerWriteMode.READING, readingIndex = 1)
+                LoggerAnalysisPanel(text = describeText, readingIndex = 1)
             }
             "error" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
-                LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = describeText, onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
-                LoggerAnalysisNotice(
-                    title = "No se pudo analizar esta descripción",
-                    message = "Inténtalo de nuevo o registra los alimentos manualmente.",
-                    onRetry = {},
-                    technicalDetail = "IllegalStateException: dataset de porciones no cargado",
-                    detailShown = false,
-                )
+                LoggerDescribeField(text = describeText, onTextChange = {}, onAnalyze = {}, mode = LoggerWriteMode.RESULT, fontSize = 16f)
+                val notice = loggerNoticeText(LoggerNoticeKind.NOTHING, emptyList())
+                LoggerAnalysisNotice(title = notice.title, message = notice.message, onRetry = {}, onSearch = {})
             }
             "buscar_5" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
                 LoggerTabs(activeTab = 1, onTabSelect = {})
-                LoggerSearchField(query = "pan", onQueryChange = {}, onImeSearch = {})
-                NutritionSamples.panResults.forEach { row ->
+                LoggerSearchField(query = "pan", onQueryChange = {}, onScan = {})
+                NutritionSamples.panResults.forEachIndexed { index, row ->
                     LoggerSearchRow(
                         name = row.name,
+                        caption = row.caption.orEmpty(),
                         kcal = row.kcal,
-                        basisGrams = row.basisGrams,
-                        caption = row.caption,
+                        favorite = index == 0,
+                        onToggleFavorite = {},
                         onAdd = {},
+                        onOpen = {},
+                        divider = index > 0,
                     )
                 }
             }
             "buscar_sin" -> Sheet {
                 Header("Registrar comida", MealType.LUNCH, "Hoy · lun 13 oct")
                 LoggerTabs(activeTab = 1, onTabSelect = {})
-                LoggerSearchField(query = "xyz", onQueryChange = {}, onImeSearch = {})
-                LoggerSearchEmpty(query = "xyz", onDescribeInstead = {})
+                LoggerSearchField(query = "xyz", onQueryChange = {}, onScan = {})
+                LoggerSearchEmpty(query = "xyz", onDescribe = {}, onCreate = {})
             }
             "editar" -> Sheet {
                 Header("Editar comida", MealType.DINNER, "lun 13 oct")
                 LoggerTabs(activeTab = 0, onTabSelect = {})
-                LoggerDescribeField(text = "Arroz con pollo y ensalada", onTextChange = {}, onImeDone = {}, onPrivacyInfo = {})
+                LoggerDescribeField(text = "Arroz con pollo y ensalada", onTextChange = {}, onAnalyze = {})
             }
         }
     }

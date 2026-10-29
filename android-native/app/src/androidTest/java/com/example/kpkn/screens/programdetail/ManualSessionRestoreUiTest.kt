@@ -126,7 +126,6 @@ class ManualSessionRestoreUiTest {
                     onStartWorkout = {},
                     onApplySessionsLayout = {},
                     onUpdateStartDay = { _, _, _ -> },
-                    onUpdateWeekMetadata = { _, _, _ -> },
                     onRestoreManualSessionFromPlan = { restored = it },
                     restoreBlockedSessionIds = blocked,
                 )

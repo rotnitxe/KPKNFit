@@ -14,8 +14,8 @@ import org.robolectric.annotation.Config
 class PostDischargeRoutingTest {
 
     @Test
-    fun tailoredLibraryEntryUsesTrainingOnlyWithoutACatalogPreselection() {
-        assertEquals(KpknRoute.SetupWizard.create(mode = "TRAINING_ONLY"),
+    fun tailoredLibraryEntryUsesTheNewProgramInstanceWithoutACatalogPreselection() {
+        assertEquals(KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM"),
             PostDischargeRouting.libraryPlanRoute(onboardingCompleted = true))
         assertEquals(KpknRoute.SetupWizard.create(mode = "FULL"),
             PostDischargeRouting.libraryPlanRoute(onboardingCompleted = false))
@@ -44,14 +44,14 @@ class PostDischargeRoutingTest {
     // ─── H8 · «Configurar este plan» desde la biblioteca ─────────────────────────────────────────
 
     @Test
-    fun libraryPlanRoute_completed_onboarding_opens_the_training_only_wizard_with_the_plan() {
+    fun libraryPlanRoute_completed_onboarding_opens_the_new_program_instance_with_the_plan() {
         val route = PostDischargeRouting.libraryPlanRoute(onboardingCompleted = true, planId = "native:muscle-foundation-v2")
 
-        // Con el alta hecha: asistente de SOLO entrenamiento, con el plan como intención.
-        assertEquals(KpknRoute.SetupWizard.create(mode = "TRAINING_ONLY", planId = "native:muscle-foundation-v2"), route)
+        // Con el alta hecha: instancia «Nuevo programa» del asistente, con el plan como intención.
+        assertEquals(KpknRoute.SetupWizard.create(mode = "NEW_PROGRAM", planId = "native:muscle-foundation-v2"), route)
         assertTrue(route.startsWith(KpknRoute.SetupWizard.BASE_ROUTE))
         val uri = Uri.parse(route)
-        assertEquals("TRAINING_ONLY", uri.getQueryParameter(KpknRoute.SetupWizard.ARG_MODE))
+        assertEquals("NEW_PROGRAM", uri.getQueryParameter(KpknRoute.SetupWizard.ARG_MODE))
         assertEquals("native:muscle-foundation-v2", uri.getQueryParameter(KpknRoute.SetupWizard.ARG_PLAN_ID))
         // Sin borrador que reanudar: el asistente decide cuál usa.
         assertEquals("", uri.getQueryParameter(KpknRoute.SetupWizard.ARG_DRAFT_ID))
@@ -93,7 +93,7 @@ class PostDischargeRoutingTest {
 
         assertEquals(
             "mismo plan y mismo borrador: solo cambia el modo",
-            incomplete.replace("mode=FULL", "mode=TRAINING_ONLY"),
+            incomplete.replace("mode=FULL", "mode=NEW_PROGRAM"),
             completed,
         )
     }

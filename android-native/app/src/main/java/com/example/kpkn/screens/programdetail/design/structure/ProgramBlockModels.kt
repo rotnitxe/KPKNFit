@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -20,23 +21,31 @@ internal data class ProgramMesoUi(
 internal const val SIMPLE_WEEK_NAME = "Semana que se repite"
 
 /**
- * Un bloque para su módulo (P3b). [eyebrow] es la fase («Intensificación») o, en un programa simple calendarizado, «Calendarizado»; null si
- * no se sabe, y entonces el eyebrow no se pinta. [phase] da su color y la bandera de competición. [macroIndex] y [blockIndex] sitúan el
- * bloque en el programa, para sus cambios.
+ * Un bloque para su tarjeta (e-blocks). [phaseLabel] es la fase («Intensificación») o, si no hay fase, el objetivo; null si no se sabe.
+ * [schemeLabel] es su método de progresión («Carga lineal»); null si no tiene. [phase] da el color de la franja. [macroIndex] y
+ * [blockIndex] sitúan el bloque en el programa, para sus cambios.
  */
 internal data class ProgramBlockUi(
     val id: String,
     val name: String,
     val macroIndex: Int,
     val blockIndex: Int,
-    val eyebrow: String?,
+    val phaseLabel: String?,
     val phase: ProgramPhase?,
     val mesocycles: List<ProgramMesoUi>,
     val weeks: List<ProgramPhaseWeekUi>,
-    val sessionCount: Int,
-    /** «Ciclo 5» bajo las semanas de un programa simple, si el programa tiene ciclo guardado. */
+    val schemeLabel: String? = null,
+    /** «Ciclo 5» de un programa simple, si el programa tiene ciclo guardado. */
     val cycleLabel: String? = null,
 )
+
+/** «Intensificación · 2 semanas · Top set + back-off»: la línea bajo el nombre del bloque. Lo que falta no se pinta. Pura. */
+internal fun blockSummaryLine(block: ProgramBlockUi): String =
+    listOfNotNull(
+        block.phaseLabel,
+        if (block.weeks.size == 1) "1 semana" else "${block.weeks.size} semanas",
+        block.schemeLabel,
+    ).joinToString(" · ")
 
 /**
  * Los bloques del programa en su orden, con cada semana numerada en orden global (como el módulo «Fases» de Semana). Pura: [currentWeekId]
@@ -60,7 +69,7 @@ internal fun programBlockUis(program: Program, currentWeekId: String?, cycle: In
             name = if (simple) SIMPLE_WEEK_NAME else block.name,
             macroIndex = roadmapBlock.macroIndex,
             blockIndex = roadmapBlock.blockIndex,
-            eyebrow = when {
+            phaseLabel = when {
                 simple -> if (program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) "Calendarizado" else null
                 phase != null -> phase.label
                 goal != null && goal != BlockGoal.CUSTOM -> blockGoalLabel(goal)
@@ -81,7 +90,7 @@ internal fun programBlockUis(program: Program, currentWeekId: String?, cycle: In
                     isCompetition = week.keyDateType == KeyDateType.COMPETITION,
                 )
             },
-            sessionCount = weeks.sumOf { it.sessions.size },
+            schemeLabel = block.progressionScheme?.takeIf { it != BlockProgressionScheme.NONE }?.let(::blockProgressionLabel),
             cycleLabel = if (simple) cycle?.let { "Ciclo $it" } else null,
         )
     }

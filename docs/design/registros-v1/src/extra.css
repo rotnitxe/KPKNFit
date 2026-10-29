@@ -204,3 +204,35 @@
 .realhead{position:sticky;top:0;z-index:2}
 .realsh img{width:100%;display:block;border-radius:12px}
 .realmiss{padding:40px 20px;color:#f49a6e;font-size:13px}
+/* v4 · vitaminas y minerales: huella, filas y cobertura */
+.huella{display:block;width:100%;height:auto;overflow:visible}
+.huella .hb{transform-box:fill-box;transform-origin:50% 100%;animation:hgrow .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes hgrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.huella .hb{animation:none}}
+.huella text{font:600 8.5px Inter;letter-spacing:1px;fill:var(--faint)}
+.huella text.hl{font:700 9.5px Inter;letter-spacing:0;fill:var(--mus)}
+.nhi{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.nhi>span:not(.cap){display:inline-flex;gap:6px;align-items:center;height:30px;padding:0 11px;border-radius:15px;background:#f49a6e12;border:1px solid #f49a6e30;font-size:calc(12.5px*var(--fs));color:var(--ink)}
+.nhi b{font:700 calc(12.5px*var(--fs)) Syne;color:var(--mus);font-variant-numeric:tabular-nums}
+.nhi>span.w{background:#ff9b9212;border-color:#ff9b9240}.nhi>span.w b{color:var(--danger)}
+.nrow{padding:10px 0 11px;border-top:1px solid var(--div)}
+.nrow .t{display:flex;align-items:baseline;gap:8px}
+.nrow .t strong{flex:1;font-weight:500;font-size:calc(14px*var(--fs));min-width:0}
+.nrow .t .v{font-size:calc(13px*var(--fs));color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.nrow .t .p{font:700 calc(13px*var(--fs)) Syne;min-width:44px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nrow .t .p small{font:500 calc(11px*var(--fs)) Inter;color:var(--faint)}
+.nbar{position:relative;height:5px;border-radius:3px;background:#ffffff0e;margin-top:7px}
+.nbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--ink)}
+.nbar i.est{background:repeating-linear-gradient(135deg,#f2eee6b0 0 2px,transparent 2px 5px)}
+.nbar.lim i{background:none;border:1px solid #f2eee6b0;box-sizing:border-box}
+.nbar.lim.over i{border-color:var(--danger)}
+.nbar u{position:absolute;right:-1px;top:-3px;bottom:-3px;width:2px;background:#ffffff45;border-radius:1px}
+.nbar em{position:absolute;right:-9px;top:50%;width:0;height:0;margin-top:-4px;border:4px solid transparent;border-left:5px solid var(--ink)}
+.nrow.miss .t .v{color:var(--dim);font-style:italic}
+.nrow.miss .nbar{background:none;border-top:1.5px dashed #ffffff22;height:0;border-radius:0;margin-top:9px}
+.nrow .note{font-size:calc(11.5px*var(--fs));color:var(--faint);margin-top:6px;line-height:1.35}
+.ncount{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.ncount .kpi span{white-space:nowrap}
+.ncov{display:flex;gap:8px;align-items:center;font-size:calc(12px*var(--fs));color:var(--faint);margin-top:10px;line-height:1.35}
+.ncov .dots{display:flex;gap:3px;flex-shrink:0}.ncov .dots i{width:7px;height:7px;border-radius:50%;background:var(--ink);box-sizing:border-box}
+.ncov .dots i.e{background:none;border:1.2px dashed var(--ink)}

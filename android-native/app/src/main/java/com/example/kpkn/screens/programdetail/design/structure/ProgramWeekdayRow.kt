@@ -28,24 +28,7 @@ import com.example.kpkn.ui.design.KpknType
 private val NOMBRES_DIA = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
 /**
- * Fila de los siete días (L M X J V S D, desde [startDay]) en solo lectura, con círculos de 28 dp: los días de entreno van en tinta con
- * la letra en negro y el resto con anillo. Sin [startDay], la semana empieza en lunes.
- */
-@Composable
-internal fun ProgramWeekdayRow(
-    trainingDays: Set<Int>,
-    modifier: Modifier = Modifier,
-    startDay: Int = 1,
-) {
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        weekdaysFrom(startDay).forEach { day ->
-            WeekdayDot(day = day, selected = day in trainingDays, size = 28.dp, onToggle = null)
-        }
-    }
-}
-
-/**
- * La misma fila, tocable: cada círculo mide 44 dp y marca o desmarca un día de entreno (`Role.Checkbox`, con su día en la descripción).
+ * Fila de los siete días (L M X J V S D, desde [startDay]), tocable: cada círculo mide 44 dp y marca o desmarca un día de entreno (`Role.Checkbox`, con su día en la descripción).
  * Si la fila no cabe en el ancho, los círculos se encogen en lugar de salirse de la hoja.
  */
 @Composable

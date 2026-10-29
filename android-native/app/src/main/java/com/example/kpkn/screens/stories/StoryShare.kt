@@ -51,6 +51,39 @@ internal object StoryShare {
     }
 
     /**
+     * Comparte el vídeo [file] (MP4 de la caché, bajo el FileProvider): a Instagram Stories si está instalado y, si no, al selector
+     * del sistema con el título «Compartir historia».
+     */
+    suspend fun shareVideo(context: Context, file: File) {
+        val uri = withContext(Dispatchers.IO) { FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file) }
+        withContext(Dispatchers.Main) {
+            val instagram = Intent("com.instagram.share.ADD_TO_STORY").apply {
+                setDataAndType(uri, "video/mp4")
+                setPackage(INSTAGRAM_PACKAGE)
+                clipData = ClipData.newRawUri("competition_story", uri)
+                putExtra("source_application", context.packageName)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val opened = hasInstagram(context) && runCatching { context.startActivity(instagram) }.isSuccess
+            if (!opened) {
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "video/mp4"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = ClipData.newRawUri("competition_story", uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(
+                    Intent.createChooser(send, "Compartir historia").apply {
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    },
+                )
+            }
+        }
+    }
+
+    /**
      * true si Instagram está instalado. En Android 11 o posterior, la app solo lo ve si el manifiesto lo declara en `<queries>`.
      */
     fun hasInstagram(context: Context): Boolean = runCatching {

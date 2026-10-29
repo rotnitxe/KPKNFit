@@ -44,10 +44,10 @@ object DeepLinkRouter {
         return when (first) {
             "home", "inicio", "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.Home.route)
             "training", "entreno" -> ResolvedRoute(KpknRoute.Training.route)
-            "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Profile.route)
+            "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Competitions.create())
             "competition" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.CompetitionDetail.create(it)) }
-                ?: ResolvedRoute(KpknRoute.Profile.route)
+                ?: ResolvedRoute(KpknRoute.Competitions.create())
             "nutrition", "nutricion", "nutrición" -> resolveNutrition(second, third)
             "settings", "ajustes" -> resolveSettings(second)
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
@@ -98,7 +98,7 @@ object DeepLinkRouter {
         val cleanDraftId = draftId?.trim()?.takeIf { it.isNotEmpty() }
         if (com.example.kpkn.data.compatibility.LegacyTrainingImport.isRetiredSetupMode(normalizedMode)) return ResolvedRoute(KpknRoute.Home.route)
         return when (normalizedMode) {
-            "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.ProgramEditor.create())
+            "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.SetupWizard.create(mode = PostDischargeRouting.MODE_NEW_PROGRAM))
             "NUTRITION_ONLY" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
             "RESUME" -> ResolvedRoute(
                 KpknRoute.SetupWizard.create(mode = "RESUME", draftId = cleanDraftId),

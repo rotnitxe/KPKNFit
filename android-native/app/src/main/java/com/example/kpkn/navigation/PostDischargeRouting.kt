@@ -31,7 +31,8 @@ object PostDischargeRouting {
      * Ruta del asistente para «Configurar este plan» desde la biblioteca de planes (E-18, H8): lleva el plan
      * [planId] al asistente como intención.
      *
-     * - Alta completada: asistente de SOLO ENTRENAMIENTO (`TRAINING_ONLY`). La persona ya dio sus datos y ya tiene
+     * - Alta completada: la instancia «Nuevo programa» del asistente (`NEW_PROGRAM`, Registros v4: solo entreno, con
+     *   «Lo que ya sabemos» plegado y el cierre «Listo para empezar»). La persona ya dio sus datos y ya tiene
      *   (o decidió no tener) su nutrición y sus anillos: el asistente completo le volvería a pedir un plan de
      *   nutrición y la calibración de Rings, y al activar los pisaría. Con `TRAINING_ONLY` el alta solo escribe el
      *   programa y su parche de Ajustes (`onboardingProgramDone`); no toca nutrición ni marca el alta como completa
@@ -39,17 +40,17 @@ object PostDischargeRouting {
      * - Alta incompleta: asistente completo (`FULL`), como siempre.
      *
      * Cómo esquiva el guardia de este objeto: el guardia es de CREACIÓN de programa ([createProgramRoute]) y de los
-     * enlaces externos (`DeepLinkRouter` manda `kpkn://setup/wizard?mode=TRAINING_ONLY` al editor directo, y no se
-     * toca). Esta ruta es navegación interna con un plan elegido, no pasa por `DeepLinkRouter`, y el plan viaja en
+     * enlaces externos (`DeepLinkRouter` manda `kpkn://setup/wizard?mode=TRAINING_ONLY` a «A tu medida» en la instancia
+     * nueva, CR-D4). Esta ruta es navegación interna con un plan elegido, no pasa por `DeepLinkRouter`, y el plan viaja en
      * `planId`. Sin preselección evalúa los programas a medida de las respuestas.
      */
     fun libraryPlanRoute(onboardingCompleted: Boolean, planId: String? = null): String =
         KpknRoute.SetupWizard.create(
-            mode = if (onboardingCompleted) MODE_TRAINING_ONLY else MODE_FULL,
+            mode = if (onboardingCompleted) MODE_NEW_PROGRAM else MODE_FULL,
             planId = planId,
         )
 
     /** Valores de `SetupWizardMode` que viajan en la ruta del asistente (el nombre del enum). */
-    private const val MODE_TRAINING_ONLY = "TRAINING_ONLY"
+    const val MODE_NEW_PROGRAM = "NEW_PROGRAM"
     private const val MODE_FULL = "FULL"
 }

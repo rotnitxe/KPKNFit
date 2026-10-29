@@ -49,7 +49,7 @@ class LibraryCardModelTest {
             assertEquals("${entry.id}: título", entry.displayName, card.title)
             assertEquals("${entry.id}: procedencia", PlanLabels.provenanceLabel(entry), card.provenance)
             assertEquals("${entry.id}: resumen", entry.summary, card.summary)
-            assertEquals("${entry.id}: metadatos", PlanLabels.metaLine(entry), card.meta)
+            assertEquals("${entry.id}: metadatos", libraryCardMeta(entry), card.meta)
             assertEquals("${entry.id}: atribución", entry.attributionLine, card.attribution)
         }
     }
@@ -68,13 +68,16 @@ class LibraryCardModelTest {
             assertTrue("${entry.id}: «${card.title}» mide más de $MAX_TITLE", card.title.length <= MAX_TITLE)
             assertFalse("${entry.id}: «${card.provenance}» es la etiqueta antigua", card.provenance.startsWith("Método ·"))
             assertFalse("${entry.id}: «${card.provenance}» no declara procedencia", card.provenance.contains("procedencia heredada"))
-            assertTrue(
-                "${entry.id}: «${card.meta}» no dice los días por semana",
-                card.meta.contains("por semana"),
+            // Escena pr-catalog: «4 días · 16 semanas · Fuerza»; ni «por semana» ni el nivel.
+            assertTrue("${entry.id}: «${card.meta}» no empieza por los días", Regex("""^\d(–\d)? días?( · |$)""").containsMatchIn(card.meta))
+            assertFalse("${entry.id}: «${card.meta}» dice «por semana»", card.meta.contains("por semana"))
+            assertFalse(
+                "${entry.id}: «${card.meta}» dice el nivel",
+                LEVEL_LABELS.any { label -> card.meta.contains(label) },
             )
             assertTrue(
-                "${entry.id}: «${card.meta}» no dice el nivel en español",
-                LEVEL_LABELS.any { label -> card.meta.contains(label) },
+                "${entry.id}: «${card.meta}» no dice semanas ni rutina",
+                card.meta.contains("semana") || card.meta.contains("Rutina"),
             )
         }
     }
@@ -95,7 +98,8 @@ class LibraryCardModelTest {
     fun a_third_party_card_names_the_method_author_in_its_provenance_and_never_affiliates_kpkn() {
         val texas = LibraryCardModel(entry("protocol:texas-method-3d"))
         assertTrue(texas.provenance, texas.provenance.startsWith("Versión KPKN del método de "))
-        assertTrue(texas.meta, texas.meta.startsWith("3 días por semana · "))
+        assertTrue(texas.meta, texas.meta.startsWith("3 días · "))
+        assertTrue(texas.meta, texas.meta.endsWith(" · Fuerza"))
         assertTrue(requireNotNull(texas.attribution).contains("No afiliado a"))
         listed.forEach { entry ->
             assertFalse(

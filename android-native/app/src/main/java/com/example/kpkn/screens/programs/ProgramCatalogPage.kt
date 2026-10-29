@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -65,6 +66,7 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import kotlin.math.abs
@@ -142,9 +144,8 @@ internal fun ProgramCatalogPage(
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Atrás", onClick = onBack)
                         Spacer(Modifier.weight(1f))
-                        // No hay icono de filtro en el set: «Más opciones» es el que queda, como manda la guía de la página.
                         KpknIconButton(
-                            icon = KpknLineIcons.More,
+                            icon = ProgramLineIcons.Filter,
                             contentDescription = "Filtros",
                             onClick = { showFilters = true },
                         )
@@ -167,6 +168,7 @@ internal fun ProgramCatalogPage(
                     ) {
                         LibraryProfileFilter.entries.forEach { profile ->
                             KpknChip(
+                                height = 30.dp,
                                 text = profile.label,
                                 selected = profile == profileFilter,
                                 onClick = { profileFilter = profile },
@@ -176,18 +178,22 @@ internal fun ProgramCatalogPage(
                 }
                 item(key = "dias-duracion") {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Cada chip muestra su valor elegido; sin elegir, «Días: Todos» y «Duración: Todas».
+                        // Cada chip lleva su icono y muestra su valor elegido («4 días», «8–12 semanas»); sin elegir, solo su nombre.
                         KpknChip(
-                            text = daysFilter?.let(::pluralDias) ?: "Días: Todos",
+                            height = 30.dp,
+                            text = daysFilter?.let(::pluralDias) ?: "Días",
                             selected = daysFilter != null,
+                            leadingIcon = KpknLineIcons.Calendar,
                             onClick = { openMenu = CatalogMenu.DAYS },
                             modifier = Modifier
                                 .onGloballyPositioned { daysBounds = it.boundsInWindow() }
                                 .testTag("catalog-days"),
                         )
                         KpknChip(
-                            text = durationFilter?.let(::catalogDurationLabel) ?: "Duración: Todas",
+                            height = 30.dp,
+                            text = durationFilter?.let(::catalogDurationLabel) ?: "Duración",
                             selected = durationFilter != null,
+                            leadingIcon = KpknLineIcons.Clock,
                             onClick = { openMenu = CatalogMenu.DURATION },
                             modifier = Modifier
                                 .onGloballyPositioned { durationBounds = it.boundsInWindow() }
@@ -220,11 +226,11 @@ internal fun ProgramCatalogPage(
         }
     }
 
-    // Menú de días: 1 a 6 o «Todos»; se ancla al chip de días.
+    // Menú de días: 1 a 7 o «Todos» (CR-F7, como el asistente); se ancla al chip de días.
     if (openMenu == CatalogMenu.DAYS) {
         daysBounds?.let { anchor ->
             ProgramItemMenu(
-                items = (listOf<Int?>(null) + (1..6).toList()).map { option ->
+                items = (listOf<Int?>(null) + (1..7).toList()).map { option ->
                     ProgramAnchoredMenuItem(
                         label = option?.let(::pluralDias) ?: "Todos",
                         onClick = { daysFilter = option },
@@ -269,6 +275,7 @@ internal fun ProgramCatalogPage(
                     ) {
                         LibraryOriginFilter.entries.forEach { origin ->
                             KpknChip(
+                                height = 30.dp,
                                 text = origin.label,
                                 selected = origin == originFilter,
                                 onClick = { originFilter = origin },
@@ -307,17 +314,18 @@ internal fun ProgramCatalogPage(
 }
 
 /**
- * Una tarjeta del catálogo: miniatura de portada de líneas (56 × 70 dp), nombre, meta y procedencia. Al tocarla se abre su hoja.
+ * Una tarjeta del catálogo (`.pcard` del lienzo): miniatura de portada de líneas (64 × 80 dp), nombre en Syne, meta y procedencia. Al tocarla se abre su hoja.
  * La miniatura sale del id del plan, así que cada plan se ve siempre igual.
  */
 @Composable
 private fun CatalogPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
     val model = remember(entry.id) { LibraryCardModel(entry) }
-    val shape = RoundedCornerShape(20.dp)
+    val shape = KpknShape.module
     val interaction = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 96.dp)
             .testTag("catalog-plan-${entry.id}")
             .clip(shape)
             .background(KpknSurface.module, shape)
@@ -338,13 +346,13 @@ private fun CatalogPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
                 seed = abs(entry.id.hashCode()) % 9 + 1,
                 weekLoads = emptyList(),
             ),
-            modifier = Modifier.size(width = 56.dp, height = 70.dp).clip(RoundedCornerShape(12.dp)),
+            modifier = Modifier.size(width = 64.dp, height = 80.dp).clip(RoundedCornerShape(14.dp)),
         )
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = model.title,
-                style = KpknType.bodyStrong,
+                style = ProgramRowNameStyle,
                 color = WizardColors.text,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -352,7 +360,7 @@ private fun CatalogPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
             Text(
                 text = model.meta,
                 style = KpknType.caption,
-                color = WizardColors.textMuted,
+                color = WizardColors.textFaint,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -369,7 +377,7 @@ private fun CatalogPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
             imageVector = KpknLineIcons.ChevronRight,
             contentDescription = null,
             tint = WizardColors.textFaint,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(18.dp),
         )
     }
 }

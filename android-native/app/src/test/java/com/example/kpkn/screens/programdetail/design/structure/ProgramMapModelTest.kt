@@ -22,11 +22,10 @@ class ProgramMapModelTest {
         name = id,
         macroIndex = 0,
         blockIndex = 0,
-        eyebrow = phase?.label,
+        phaseLabel = phase?.label,
         phase = phase,
         mesocycles = emptyList(),
         weeks = weeks,
-        sessionCount = weeks.size,
     )
 
     @Test
@@ -71,5 +70,20 @@ class ProgramMapModelTest {
     fun laFechaCortaVaEnEspanolSinAnioNiPuntoFinal() {
         assertEquals("6 oct", programMapDateLabel(LocalDate.of(2026, 10, 6)))
         assertNull(programMapDateLabel(null))
+    }
+
+    @Test
+    fun laLineaDelBloqueJuntaFaseSemanasYMetodo() {
+        val block = block("b", weeks(1, 2), ProgramPhase.INTENSIFICATION).copy(schemeLabel = "Top set + back-off")
+        assertEquals("Intensificación · 2 semanas · Top set + back-off", blockSummaryLine(block))
+        assertEquals("1 semana", blockSummaryLine(block("c", weeks(1, 1), null)))
+    }
+
+    @Test
+    fun elSubtituloDeLaHojaDeBloqueNombraSusSemanasYFechas() {
+        assertEquals("Semana 4", blockSheetSubtitle(listOf(4), null))
+        assertEquals("Semanas 4 y 5 · 29 oct – 9 nov", blockSheetSubtitle(listOf(5, 4), "29 oct – 9 nov"))
+        assertEquals("Semanas 1 a 3", blockSheetSubtitle(listOf(1, 2, 3), null))
+        assertNull(blockSheetSubtitle(emptyList(), null))
     }
 }

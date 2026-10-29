@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,16 +30,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,14 +49,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +68,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WeightUnit
@@ -75,13 +84,15 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdenti
 import com.example.kpkn.screens.programdetail.components.HeroCoverKind
 import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseRibbon
+import com.example.kpkn.screens.programs.importer.ImportHandoff
+import com.example.kpkn.screens.programs.importer.ImportRequest
+import com.example.kpkn.screens.programs.importer.ImportSourceSheet
 import com.example.kpkn.screens.stories.ProgramShareSheet
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.rememberProgramCover
-import com.example.kpkn.ui.design.KpknCompactPill
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
@@ -126,9 +137,12 @@ fun ProgramsScreen(
     var showCreateSheet by remember { mutableStateOf(false) }
     var showCatalog by remember { mutableStateOf(false) }
     var showBlankSheet by remember { mutableStateOf(false) }
+    var showImportSheet by remember { mutableStateOf(false) }
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
+    // «Listo para empezar» (cr-listo) de los caminos sin asistente: el programa ya guardado que espera la decisión.
+    var readyProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     val createScope = rememberCoroutineScope()
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
@@ -267,6 +281,10 @@ fun ProgramsScreen(
         ProgramShareSheet(program = prog, logs = logs.filter { it.programId == prog.id }, onDismiss = { shareProgram = null })
     }
 
+    // P-D3: la hoja de Archivados se cierra sola al quedarse sin programas (restaurar o borrar el último).
+    LaunchedEffect(showArchived, archivedPrograms.isEmpty()) {
+        if (showArchived && archivedPrograms.isEmpty()) showArchived = false
+    }
     if (showArchived) {
         ArchivedProgramsSheet(
             programs = archivedPrograms,
@@ -307,12 +325,26 @@ fun ProgramsScreen(
             },
             onImport = {
                 showCreateSheet = false
-                onImportProgram()
+                showImportSheet = true
             },
             onBlank = {
                 showCreateSheet = false
                 showBlankSheet = true
             },
+        )
+    }
+    // «Importar» es una hoja con filas sobre la lista: elegir una fuente deja la petición y abre la lectura.
+    if (showImportSheet) {
+        val startImport: (ImportRequest) -> Unit = { request ->
+            ImportHandoff.pending = request
+            showImportSheet = false
+            onImportProgram()
+        }
+        ImportSourceSheet(
+            onDismiss = { showImportSheet = false },
+            onFile = { uri -> startImport(ImportRequest.File(uri)) },
+            onPhoto = { uri, taken -> startImport(ImportRequest.Photo(uri, taken)) },
+            onPaste = { startImport(ImportRequest.PasteText) },
         )
     }
     // La página «Catálogo» va por encima de Programas (no es una ruta): lo que antes hacía la hoja de la biblioteca.
@@ -325,7 +357,7 @@ fun ProgramsScreen(
                     when (val outcome = viewModel.createProgramFromTemplateGated(template.id)) {
                         is ProgramsViewModel.TemplateApplyOutcome.Created -> {
                             showCatalog = false
-                            onNavigateToProgram(outcome.programId)
+                            readyProgramId = outcome.programId
                         }
                     }
                 }
@@ -355,7 +387,8 @@ fun ProgramsScreen(
             onCreate = { name, mode, coverImage ->
                 val id = viewModel.createBlankProgram(name = name, mode = mode, coverImage = coverImage)
                 showBlankSheet = false
-                onNavigateToProgram(id)
+                // cr-cero: «Crear y abrir» lleva al programa vacío; si hay uno en curso, antes pasa por «Listo para empezar».
+                if (activeProgram != null) readyProgramId = id else onNavigateToProgram(id)
             },
         )
     }
@@ -374,6 +407,7 @@ fun ProgramsScreen(
     protocolForTm?.let { protocol ->
         TrainingMaxWizard(
             initial = viewModel.estimatedProfileFromHistory(),
+            initialFromHistory = true,
             trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
             unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
             // Cerrar (arrastrar, atrás) ya no crea el programa: solo lo crean «Crear sin TM» y «Aplicar y crear».
@@ -383,7 +417,7 @@ fun ProgramsScreen(
                 val id = viewModel.createProgramFromProtocol(protocol.id)
                 protocolForTm = null
                 if (id != null) {
-                    onNavigateToProgram(id)
+                    readyProgramId = id
                 } else {
                     templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
@@ -392,10 +426,24 @@ fun ProgramsScreen(
                 val id = viewModel.createProgramFromProtocol(protocol.id, profile)
                 protocolForTm = null
                 if (id != null) {
-                    onNavigateToProgram(id)
+                    readyProgramId = id
                 } else {
                     templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
+            },
+        )
+    }
+    readyProgramId?.let { programId ->
+        ProgramReadyOverlay(
+            programId = programId,
+            onDone = { id ->
+                readyProgramId = null
+                onNavigateToProgram(id)
+            },
+            onBack = { readyProgramId = null },
+            onEditProgram = { id ->
+                readyProgramId = null
+                onEditProgram(id)
             },
         )
     }
@@ -411,8 +459,8 @@ fun ProgramsScreen(
 }
 
 /**
- * La cabecera de Programas: el título y «+ Nuevo». Va en una línea mientras cabe; con letra grande, «+ Nuevo» baja a su propia
- * fila. El título no se parte por dentro de la palabra.
+ * La cabecera de Programas: el título y la píldora «Nuevo» con su plus. Va en una línea mientras cabe; con letra grande, «Nuevo» baja
+ * a su propia fila. El título no se parte por dentro de la palabra.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -431,7 +479,48 @@ internal fun ProgramsHeader(onNew: () -> Unit, modifier: Modifier = Modifier) {
                 softWrap = false,
             )
         }
-        KpknCompactPill(text = "+ Nuevo", onClick = onNew, height = 40.dp)
+        ProgramSmallPill(text = "Nuevo", onClick = onNew, icon = KpknLineIcons.Plus)
+    }
+}
+
+/**
+ * La píldora pequeña del lienzo (`.pill.sm`): 40 dp de alto, texto de 13 sp semibold y, si hay [icon], de 16 dp delante con 8 dp de
+ * hueco. Rellena (`pri`) es de tinta con texto negro; sin rellenar (`sec`) lleva el filete de tinta al 24 %. Su zona táctil mide 48 dp.
+ */
+@Composable
+internal fun ProgramSmallPill(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    filled: Boolean = true,
+    fullWidth: Boolean = false,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val ink = if (filled) WizardColors.ctaContent else WizardColors.text
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
+                .height(40.dp)
+                .clip(KpknShape.pill)
+                .background(if (filled) WizardColors.text else Color.Transparent, KpknShape.pill)
+                .then(if (!filled) Modifier.border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill) else Modifier)
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (icon != null) {
+                Icon(imageVector = icon, contentDescription = null, tint = ink, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(text = text, style = KpknType.chip, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -444,7 +533,7 @@ private fun ProgramsEmptyModule(
 ) {
     ProgramModuleSurface(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 22.dp, top = 24.dp, end = 22.dp, bottom = 22.dp),
+        contentPadding = PaddingValues(start = 20.dp, top = 24.dp, end = 20.dp, bottom = 24.dp),
     ) {
         Text(text = "Empieza tu primer programa", style = ProgramEmptyTitleStyle, color = WizardColors.text)
         Spacer(Modifier.height(8.dp))
@@ -454,7 +543,12 @@ private fun ProgramsEmptyModule(
             color = WizardColors.textMuted,
         )
         Spacer(Modifier.height(18.dp))
-        KpknPrimaryPill(text = "Crear a mi medida", onClick = onCreateTailored, modifier = Modifier.fillMaxWidth())
+        KpknPrimaryPill(
+            text = "Crear a mi medida",
+            onClick = onCreateTailored,
+            modifier = Modifier.fillMaxWidth(),
+            icon = ProgramLineIcons.Spark,
+        )
         Spacer(Modifier.height(8.dp))
         KpknSecondaryPill(text = "Ver todas las opciones", onClick = onSeeAll, modifier = Modifier.fillMaxWidth())
     }
@@ -533,7 +627,7 @@ private fun ActiveProgramCard(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = summary?.progressLabel ?: "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
+                text = summary?.progressLabel ?: programListMeta(program, stats),
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
@@ -548,19 +642,17 @@ private fun ActiveProgramCard(
             ) {
                 if (todaySession != null) {
                     // Igual que el play de hoy de antes: reanuda si está pausado; si no, abre el programa.
-                    KpknCompactPill(
+                    ProgramSmallPill(
                         text = "Hoy: $todaySession",
                         onClick = { if (isPaused) onResume() else onNavigate(program.id) },
                         modifier = Modifier.weight(1f),
+                        icon = KpknLineIcons.PlayFilled,
                         fullWidth = true,
                     )
-                    KpknCompactPill(
-                        text = "Ver programa",
-                        onClick = { onNavigate(program.id) },
-                        filled = false,
-                    )
+                    ProgramSmallPill(text = "Ver programa", onClick = { onNavigate(program.id) }, filled = false)
                 } else {
-                    KpknCompactPill(
+                    // P-D2: un día sin sesión, «Ver programa» es la acción primaria y ocupa todo el ancho.
+                    ProgramSmallPill(
                         text = "Ver programa",
                         onClick = { onNavigate(program.id) },
                         modifier = Modifier.weight(1f),
@@ -579,16 +671,17 @@ private fun ProgramStatusChip(label: String, dot: Color, modifier: Modifier = Mo
         modifier = modifier
             .clip(KpknShape.pill)
             .background(Color.Black.copy(alpha = 0.73f), KpknShape.pill)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .height(30.dp)
+            .padding(horizontal = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(dot))
-        Spacer(Modifier.width(7.dp))
+        Spacer(Modifier.width(6.dp))
         Text(text = label, style = KpknType.chip, color = WizardColors.text)
     }
 }
 
-/** «En cola»: el orden de salida, con subir y bajar. Se quita con la cruz. */
+/** «En cola»: el orden de salida, que se cambia arrastrando el asa de cada programa. Se quita con la cruz. */
 @Composable
 private fun ProgramQueueSection(
     queue: List<Program>,
@@ -597,18 +690,76 @@ private fun ProgramQueueSection(
     onRemove: (String) -> Unit,
 ) {
     ProgramGroupLabel(text = "En cola", trailing = "Empieza al terminar")
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val spacing = 10.dp
+    val spacingPx = with(LocalDensity.current) { spacing.toPx() }
+    // El alto de cada fila, para saber cuántos puestos se ha movido la que se arrastra.
+    val heights = remember { mutableStateMapOf<String, Int>() }
+    var draggingId by remember { mutableStateOf<String?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
         queue.forEachIndexed { index, program ->
-            ProgramQueueRow(
-                index = index,
-                count = queue.size,
-                program = program,
-                stats = viewModel.getProgramStats(program),
-                onMove = onMove,
-                onRemove = onRemove,
-            )
+            key(program.id) {
+                val dragging = draggingId == program.id
+                ProgramQueueRow(
+                    index = index,
+                    count = queue.size,
+                    program = program,
+                    stats = viewModel.getProgramStats(program),
+                    dragging = dragging,
+                    dragOffsetPx = if (dragging) dragOffset else 0f,
+                    onHeight = { heights[program.id] = it },
+                    onDragStart = {
+                        draggingId = program.id
+                        dragOffset = 0f
+                    },
+                    onDrag = { dy -> dragOffset += dy },
+                    onDragEnd = {
+                        val steps = queueDragSteps(
+                            offsetPx = dragOffset,
+                            index = index,
+                            heightsPx = queue.map { (heights[it.id] ?: 0).toFloat() },
+                            spacingPx = spacingPx,
+                        )
+                        draggingId = null
+                        dragOffset = 0f
+                        if (steps != 0) onMove(program.id, steps)
+                    },
+                    onMove = onMove,
+                    onRemove = onRemove,
+                )
+            }
         }
     }
+}
+
+/**
+ * Cuántos puestos se mueve una fila de la cola que se arrastra [offsetPx] hacia abajo (positivo) o arriba (negativo): cada fila que
+ * cruza más de la mitad cuenta un puesto. Se queda dentro de la cola. [heightsPx] es el alto de cada fila, en el orden de la cola.
+ */
+internal fun queueDragSteps(offsetPx: Float, index: Int, heightsPx: List<Float>, spacingPx: Float): Int {
+    if (heightsPx.isEmpty() || index !in heightsPx.indices) return 0
+    var remaining = kotlin.math.abs(offsetPx)
+    var steps = 0
+    if (offsetPx > 0f) {
+        var next = index + 1
+        while (next < heightsPx.size) {
+            val stride = heightsPx[next] + spacingPx
+            if (remaining <= stride / 2f) break
+            remaining -= stride
+            steps++
+            next++
+        }
+        return steps
+    }
+    var previous = index - 1
+    while (previous >= 0) {
+        val stride = heightsPx[previous] + spacingPx
+        if (remaining <= stride / 2f) break
+        remaining -= stride
+        steps--
+        previous--
+    }
+    return steps
 }
 
 @Composable
@@ -617,19 +768,61 @@ private fun ProgramQueueRow(
     count: Int,
     program: Program,
     stats: ProgramStats,
+    dragging: Boolean,
+    dragOffsetPx: Float,
+    onHeight: (Int) -> Unit,
+    onDragStart: () -> Unit,
+    onDrag: (Float) -> Unit,
+    onDragEnd: () -> Unit,
     onMove: (String, Int) -> Unit,
     onRemove: (String) -> Unit,
 ) {
-    ProgramModuleSurface(contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
+    // TalkBack no arrastra: las mismas dos acciones que antes eran flechas pasan a acciones de accesibilidad de la fila.
+    val moveActions = buildList {
+        if (index > 0) add(CustomAccessibilityAction("Subir ${program.name}") { onMove(program.id, -1); true })
+        if (index < count - 1) add(CustomAccessibilityAction("Bajar ${program.name}") { onMove(program.id, 1); true })
+    }
+    ProgramModuleSurface(
+        modifier = Modifier
+            .zIndex(if (dragging) 1f else 0f)
+            .graphicsLayer {
+                translationY = dragOffsetPx
+                if (dragging) {
+                    scaleX = 1.02f
+                    scaleY = 1.02f
+                }
+            }
+            .onSizeChanged { onHeight(it.height) }
+            .semantics { customActions = moveActions },
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // El asa es decorativa: el orden se cambia con las flechas.
-            Icon(
-                imageVector = KpknLineIcons.Grip,
-                contentDescription = null,
-                tint = WizardColors.textFaint,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(10.dp))
+            // El asa: se reordena arrastrándola. Zona táctil de 44 dp, como el `ib` del lienzo.
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .semantics { contentDescription = "Reordenar ${program.name}" }
+                    .pointerInput(program.id) {
+                        detectDragGestures(
+                            onDragStart = { onDragStart() },
+                            onDrag = { change, amount ->
+                                change.consume()
+                                onDrag(amount.y)
+                            },
+                            onDragEnd = onDragEnd,
+                            onDragCancel = onDragEnd,
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = KpknLineIcons.Grip,
+                    contentDescription = null,
+                    tint = WizardColors.textFaint,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(Modifier.width(12.dp))
             ProgramCoverThumb(program = program, width = 40.dp, height = 50.dp, shape = RoundedCornerShape(10.dp))
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -646,60 +839,12 @@ private fun ProgramQueueRow(
                     color = WizardColors.textFaint,
                 )
             }
-            Column {
-                QueueMoveButton(
-                    icon = KpknLineIcons.ChevronUp,
-                    description = "Subir ${program.name}",
-                    enabled = index > 0,
-                    onClick = { onMove(program.id, -1) },
-                )
-                QueueMoveButton(
-                    icon = KpknLineIcons.ChevronDown,
-                    description = "Bajar ${program.name}",
-                    enabled = index < count - 1,
-                    onClick = { onMove(program.id, 1) },
-                )
-            }
             KpknIconButton(
                 icon = KpknLineIcons.Close,
                 contentDescription = "Quitar ${program.name} de la cola",
                 onClick = { onRemove(program.id) },
             )
         }
-    }
-}
-
-/** Una flecha de reordenar: zona táctil de 36 dp, apagada si no hay a dónde ir. */
-@Composable
-private fun QueueMoveButton(
-    icon: ImageVector,
-    description: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .semantics {
-                contentDescription = description
-                if (!enabled) disabled()
-            }
-            .clickable(
-                interactionSource = interaction,
-                indication = null,
-                enabled = enabled,
-                role = Role.Button,
-                onClick = onClick,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) WizardColors.textMuted else WizardColors.textFaint.copy(alpha = 0.38f),
-            modifier = Modifier.size(20.dp),
-        )
     }
 }
 
@@ -734,7 +879,7 @@ private fun InactiveProgramCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
+                    text = programListMeta(program, stats),
                     style = KpknType.caption,
                     color = WizardColors.textFaint,
                 )
@@ -890,18 +1035,6 @@ private fun programStateWord(
     else -> programListStatusLabel(completed = programIsFinished(program), completedOn = lastTrained)
 }
 
-/** Entrada al asistente sin preselección de catálogo; crear en blanco conserva su acción propia. */
-@Composable
-internal fun CreateTailoredProgramCard(onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Crear mi programa a medida", style = MaterialTheme.typography.titleMedium)
-            Text("KPKN arma un programa con tu material, tus días y tu objetivo",
-                style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
 /** Portadas que dibuja el motor en la lista: las de estudio y líneas, y sin portada la de líneas por defecto (como la cabecera). */
 private val PROGRAM_ART_COVERS = setOf(HeroCoverKind.STUDIO, HeroCoverKind.GRADIENT)
 
@@ -931,7 +1064,7 @@ private val ProgramActiveNameStyle = TextStyle(
     letterSpacing = (-0.5).sp,
 )
 
-private val ProgramRowNameStyle = TextStyle(
+internal val ProgramRowNameStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
     fontSize = 17.sp,

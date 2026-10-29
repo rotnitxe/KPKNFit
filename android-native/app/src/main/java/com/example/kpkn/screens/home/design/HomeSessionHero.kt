@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.home.design
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -79,9 +80,12 @@ internal data class HomeHeroActions(
     val onOpenProgram: (() -> Unit)? = null,
     val onChooseProgram: () -> Unit = {},
     val onCreateProgram: () -> Unit = {},
+    /** «Registrar resultados»: el registro de la competencia (Registros v4, c-log). */
     val onRegister: () -> Unit = {},
-    /** Abre el programa de la competición. Solo el día del meet (MEET_DAY): ahí es la acción principal y registrar queda secundaria. */
+    /** El día de la competencia (MEET_DAY): «Modo competición» abre el modo competición de la propia competencia (c-today, C-D2). */
     val onOpenCompetition: (() -> Unit)? = null,
+    /** Tocar la cuenta atrás abre la página «Competencias» (c-hub). */
+    val onOpenCountdown: (() -> Unit)? = null,
 )
 
 /** Días de la semana en español, de lunes a domingo, en minúscula (para «Siguiente: jueves»). */
@@ -129,7 +133,7 @@ internal fun HomeSessionHero(
         }
         state.countdown?.let {
             Spacer(Modifier.height(12.dp))
-            HeroCountdown(countdown = it)
+            HeroCountdown(countdown = it, onClick = actions.onOpenCountdown)
         }
         if (muscles.isNotEmpty()) HomeMuscleChips(muscles = muscles, onOpen = onOpenMuscles)
         val buttons = heroButtons(mode = state.mode, actions = actions)
@@ -349,8 +353,11 @@ private fun HeroMeta(text: String) {
 
 /** La cuenta atrás de la competición: la cifra en `metricM` con su unidad, y la etiqueta en `caption` a su lado. */
 @Composable
-private fun HeroCountdown(countdown: HomeHeroCountdown) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun HeroCountdown(countdown: HomeHeroCountdown, onClick: (() -> Unit)? = null) {
+    Row(
+        modifier = if (onClick != null) Modifier.heightIn(min = 48.dp).clickable(onClickLabel = "Abrir Competencias", onClick = onClick) else Modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         KpknMetric(
             value = countdown.value,
             unit = countdown.unit,
@@ -402,11 +409,8 @@ private fun heroButtons(mode: HomeHeroMode, actions: HomeHeroActions): List<Hero
         HeroButton("Crear o importar", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onCreateProgram),
     )
     HomeHeroMode.REGISTER -> actions.onOpenCompetition?.let { openCompetition ->
-        // Día del meet (coherente con la barra, F-45): todavía no hay resultados que registrar.
-        listOf(
-            HeroButton("Modo competición", "home-hero-start", HeroButtonKind.PRIMARY, openCompetition),
-            HeroButton("Registrar", "home-hero-secondary", HeroButtonKind.SECONDARY, actions.onRegister),
-        )
+        // Día de la competencia (C-D2): el botón abre el modo competición, que guarda cada intento.
+        listOf(HeroButton("Modo competición", "home-hero-start", HeroButtonKind.PRIMARY, openCompetition))
     } ?: listOf(
         HeroButton("Registrar resultados", "home-hero-start", HeroButtonKind.PRIMARY, actions.onRegister),
     )
@@ -537,6 +541,6 @@ internal fun homeHeroNextLine(
 ): String? {
     if (weekDays.isEmpty()) return null
     if (next != null) return "Siguiente: ${weekdaysEs[next.date.dayOfWeek.value - 1]} ${next.date.dayOfMonth} · ${next.sessionName}"
-    if (programNext != null) return "Siguiente: ${programNext.label.replaceFirstChar { it.lowercaseChar() }}"
+    if (programNext != null) return programNext.label
     return "Siguiente: la próxima semana"
 }

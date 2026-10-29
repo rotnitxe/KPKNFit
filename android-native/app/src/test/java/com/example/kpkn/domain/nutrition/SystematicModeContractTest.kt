@@ -133,9 +133,10 @@ class SystematicModeContractTest {
 
     @Test
     fun `S6 drawer usa eatenGrams no servingSize por quantity y boton por fingerprint`() {
-        assertEquals("Registrar", FoodLoggerPrimaryAction.label(hasTags = false, descriptionEdited = false, isSearchMode = false))
+        assertEquals("Analizar", FoodLoggerPrimaryAction.label(hasTags = false, descriptionEdited = false, isSearchMode = false))
+        assertEquals("Analizar", FoodLoggerPrimaryAction.label(hasTags = false, descriptionEdited = false, isSearchMode = true))
         assertEquals("Guardar", FoodLoggerPrimaryAction.label(hasTags = true, descriptionEdited = false, isSearchMode = false))
-        assertEquals("Actualizar y buscar", FoodLoggerPrimaryAction.label(hasTags = true, descriptionEdited = true, isSearchMode = false))
+        assertEquals("Volver a analizar", FoodLoggerPrimaryAction.label(hasTags = true, descriptionEdited = true, isSearchMode = false))
         assertFalse(
             FoodLoggerPrimaryAction.isDescriptionEdited("arroz  con  pollo", "arroz con pollo", hasTags = true, describeTab = true),
         )

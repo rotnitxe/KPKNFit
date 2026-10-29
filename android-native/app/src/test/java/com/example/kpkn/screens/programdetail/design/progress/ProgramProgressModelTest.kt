@@ -118,15 +118,18 @@ class ProgramProgressModelTest {
         assertEquals(0, ui.kpis.compliancePct)
     }
 
-    /** Con registros pero sin ejercicio con tendencia, la cabecera pide más datos y la fila dice que aún no hay tendencia. */
+    /** Con registros pero sin ejercicio con tendencia (g-empty), la cabecera lo dice y la fila cuenta su única sesión. */
     @Test
     fun conRegistrosSinTendenciaLoDice() {
         val logs = listOf(sessionLog("l1", "w1", "w1-a"))
 
         val ui = buildProgramProgress(program, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w1")
 
-        assertEquals("Aún no hay datos para ver tendencias.", ui.headline)
-        assertEquals("1 sesión: aún sin tendencia", ui.lifts.single().caption)
+        assertEquals("Aún no hay tendencia. Con 2 sesiones de cada ejercicio empezamos a comparar.", ui.headline)
+        assertEquals("1 sesión", ui.lifts.single().caption)
+        assertTrue(ui.early)
+        assertEquals("Semana 1", ui.periodLabel)
+        assertEquals("esta semana", ui.tonnageFooter)
     }
 
     /** Con la segunda semana en curso cuentan las dos primeras (4 sesiones previstas); 3 hechas dan el 75 %. */
@@ -164,7 +167,7 @@ class ProgramProgressModelTest {
 
         val ui = buildProgramProgress(program, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w4")
 
-        assertEquals("Subes en 1 de 1 ejercicios.", ui.headline)
+        assertEquals("Subes en 1 de 1 básicos.", ui.headline)
         assertEquals(1, ui.allLiftsCount)
         assertEquals(LiftTrendStatus.UP, ui.lifts.single().status)
         assertEquals("6 sesiones", ui.lifts.single().caption)
@@ -180,7 +183,7 @@ class ProgramProgressModelTest {
 
         val ui = buildProgramProgress(program, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w4")
 
-        assertEquals("Subes en 0 de 2 ejercicios. Press banca lleva 5 semanas parado y Sentadilla baja.", ui.headline)
+        assertEquals("Subes en 0 de 2 básicos. Press banca lleva 5 semanas parado y Sentadilla baja.", ui.headline)
     }
 
     /** La lista enseña cinco ejercicios como mucho, y el contador cuenta todos los que tienen sesiones. */
@@ -208,20 +211,20 @@ class ProgramProgressModelTest {
         val ui = buildProgramProgress(program, logs, ProgressScope.WEEK, null, selectedWeekId = "w2", currentWeekId = "w2")
 
         assertTrue(ui.weeks.isEmpty())
-        assertEquals("Esta semana", ui.periodLabel)
+        assertEquals("Semana 2", ui.periodLabel)
         assertEquals(1, ui.kpis.sessionsDone)
         assertEquals(2, ui.kpis.sessionsPlanned)
         assertEquals(3, ui.kpis.setsDone)
     }
 
-    /** Una semana empezada, y no la actual, con seis series menos de las previstas se anota. */
+    /** Una semana empezada, y no la actual, con seis series menos de las previstas se anota con las sesiones que faltaron. */
     @Test
     fun laPrimeraSemanaConSeisSeriesMenosSeAnota() {
         val logs = listOf(sessionLog("l1", "w2", "w2-a"), sessionLog("l2", "w2", "w2-b"))
 
         val ui = buildProgramProgress(program, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w3")
 
-        assertEquals("Semana 1: 6 series menos de lo planificado.", ui.weekNote)
+        assertEquals("Semana 1: 6 series menos de lo planificado (faltaron 2 sesiones).", ui.weekNote)
     }
 
     /** La semana actual no se anota aunque vaya atrasada, y una semana anterior al día tampoco. */
@@ -270,7 +273,7 @@ class ProgramProgressModelTest {
         )
 
         assertEquals(listOf("S3", "S4"), ui.weeks.map { it.label })
-        assertEquals("En el bloque", ui.periodLabel)
+        assertEquals("Aún sin empezar", ui.periodLabel)
         assertEquals(0, ui.kpis.sessionsPlanned)
         assertEquals(1, ui.kpis.sessionsDone)
     }

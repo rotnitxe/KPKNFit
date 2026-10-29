@@ -87,7 +87,10 @@ import com.example.kpkn.screens.home.rememberHomeViewModel
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.home.ConceptosClaveScreen
-import com.example.kpkn.screens.competitions.CompetitionLogScreen
+import com.example.kpkn.screens.competitions.CompetitionDetailScreen
+import com.example.kpkn.screens.competitions.CompetitionFlowScreen
+import com.example.kpkn.screens.competitions.CompetitionsHubScreen
+import com.example.kpkn.screens.stories.CompetitionStoryShareHost
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
@@ -552,7 +555,9 @@ fun KPKNApp(
         currentRoute == KpknRoute.ImportProgram.route ||
         currentRoute == KpknRoute.EquipmentInventory.route ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
-        resolvedRoute?.startsWith("competition/") == true
+        resolvedRoute?.startsWith("competition/") == true ||
+        currentRoute == KpknRoute.CompetitionFlow.route ||
+        resolvedRoute?.startsWith("competition-flow/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
@@ -563,8 +568,9 @@ fun KPKNApp(
         currentRoute?.startsWith("program-import") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("session-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("workout") == true -> KpknRoute.Training.route
-        currentRoute?.startsWith(KpknRoute.Competitions.route) == true -> KpknRoute.Training.route
+        currentRoute?.startsWith(KpknRoute.Competitions.BASE_ROUTE) == true -> KpknRoute.Training.route
         currentRoute?.startsWith("competition/") == true -> KpknRoute.Training.route
+        currentRoute?.startsWith("competition-flow/") == true -> KpknRoute.Training.route
         currentRoute == KpknRoute.ProgramDetail.route -> KpknRoute.Training.route
         currentRoute == "log-workout" -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.BodyProgress.route) == true -> KpknRoute.BodyProgress.route
@@ -1026,7 +1032,12 @@ private fun KPKNNavGraph(
             val openCreateProgram = {
                 val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
                 if (onboardingCompleted) {
-                    homeViewModel.openCreateProgramSheet()
+                    // Registros v4 (cr-new): Inicio abre la misma hoja «Nuevo programa» de cuatro caminos, la de Programas.
+                    ProgramCreationRequests.openSheet = true
+                    navController.navigate(KpknRoute.Training.route) {
+                        popUpTo(KpknRoute.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 } else {
                     createProgramAndOpen(navController)
                 }
@@ -1065,14 +1076,19 @@ private fun KPKNNavGraph(
                 onStartWorkout = { session, program ->
                     navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
+                // Registros v4 (C-D2): «¿Cómo te fue…?» abre el registro (c-log) y «Modo competición» el modo competición (c-today).
                 onRegisterCompetition = { recordId ->
                     val route = if (recordId.isBlank()) {
-                        KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)
+                        KpknRoute.Competitions.create(openNew = true)
                     } else {
-                        KpknRoute.CompetitionDetail.create(recordId)
+                        KpknRoute.CompetitionFlow.log(recordId)
                     }
                     navController.navigate(route) { launchSingleTop = true }
                 },
+                onOpenCompetitionToday = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionFlow.today(recordId)) { launchSingleTop = true }
+                },
+                onOpenCompetitions = { navController.navigate(KpknRoute.Competitions.create()) { launchSingleTop = true } },
                 onResumeWorkout = {
                     val ongoing = ProgramRepository.getInstance().ongoingWorkout.value
                     if (ongoing != null) {
@@ -1204,29 +1220,84 @@ private fun KPKNNavGraph(
                 onUseCatalogProgram = { planId -> openLibraryPlanInWizard(navController, planId) },
             )
         }
-        composable(KpknRoute.Competitions.route) {
-            ProfileScreen(
+        // Competencias (Registros v4): la página, la ficha y los recorridos. «Compartir» queda para el paquete de Historias.
+        composable(
+            route = KpknRoute.Competitions.route,
+            arguments = listOf(navArgument(KpknRoute.Competitions.ARG_NEW) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }),
+        ) { backStack ->
+            CompetitionsHubScreen(
+                openNew = backStack.arguments?.getString(KpknRoute.Competitions.ARG_NEW) == "true",
                 onBack = { navController.popBackStack() },
-                onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
-                onOpenCompetition = { recordId ->
-                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                onOpenCompetition = { id -> navController.navigate(KpknRoute.CompetitionDetail.create(id)) { launchSingleTop = true } },
+                onStartFlow = { id, mode, discipline ->
+                    navController.navigate(KpknRoute.CompetitionFlow.create(id, mode, discipline)) { launchSingleTop = true }
                 },
-                onCreateCompetition = {
-                    navController.navigate(KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)) {
-                        launchSingleTop = true
-                    }
-                },
-                onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
-                onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
-                onOpenTechniqueAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+                onOpenBodyweight = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
             val competitionId = backStack.arguments
                 ?.getString(KpknRoute.CompetitionDetail.ARG_COMPETITION_ID)
-            CompetitionLogScreen(
-                competitionId = competitionId,
+                .orEmpty()
+            if (competitionId.isBlank() || competitionId == KpknRoute.CompetitionDetail.NEW_ID) {
+                CompetitionsHubScreen(
+                    openNew = true,
+                    onBack = { navController.popBackStack() },
+                    onOpenCompetition = { id -> navController.navigate(KpknRoute.CompetitionDetail.create(id)) { launchSingleTop = true } },
+                    onStartFlow = { id, mode, discipline ->
+                        navController.navigate(KpknRoute.CompetitionFlow.create(id, mode, discipline)) { launchSingleTop = true }
+                    },
+                    onOpenBodyweight = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
+                )
+            } else {
+                var sharingId by remember { mutableStateOf<String?>(null) }
+                CompetitionDetailScreen(
+                    competitionId = competitionId,
+                    onBack = { navController.popBackStack() },
+                    onStartFlow = { id, mode -> navController.navigate(KpknRoute.CompetitionFlow.create(id, mode)) { launchSingleTop = true } },
+                    onShare = { id -> sharingId = id },
+                )
+                sharingId?.let { id -> CompetitionStoryShareHost(competitionId = id, onDismiss = { sharingId = null }) }
+            }
+        }
+        composable(
+            route = KpknRoute.CompetitionFlow.route,
+            arguments = listOf(
+                navArgument(KpknRoute.CompetitionFlow.ARG_COMPETITION_ID) { type = NavType.StringType },
+                navArgument(KpknRoute.CompetitionFlow.ARG_MODE) { type = NavType.StringType },
+                navArgument(KpknRoute.CompetitionFlow.ARG_DISCIPLINE) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStack ->
+            val args = backStack.arguments
+            var sharingId by remember { mutableStateOf<String?>(null) }
+            sharingId?.let { id -> CompetitionStoryShareHost(competitionId = id, onDismiss = { sharingId = null }) }
+            CompetitionFlowScreen(
+                competitionId = args?.getString(KpknRoute.CompetitionFlow.ARG_COMPETITION_ID).orEmpty(),
+                mode = args?.getString(KpknRoute.CompetitionFlow.ARG_MODE).orEmpty(),
+                disciplineId = args?.getString(KpknRoute.CompetitionFlow.ARG_DISCIPLINE),
                 onBack = { navController.popBackStack() },
+                onFinished = { id ->
+                    val previous = navController.previousBackStackEntry
+                    val backToRecord = previous?.destination?.route == KpknRoute.CompetitionDetail.route &&
+                        previous.arguments?.getString(KpknRoute.CompetitionDetail.ARG_COMPETITION_ID) == id
+                    if (backToRecord) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(KpknRoute.CompetitionDetail.create(id)) {
+                            popUpTo(KpknRoute.CompetitionFlow.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onShare = { id -> sharingId = id },
             )
         }
         composable(KpknRoute.Nutrition.route) {
@@ -1362,6 +1433,8 @@ private fun KPKNNavGraph(
                     }
                 },
                 onCancel = { navController.popBackStack() },
+                // Instancia «Nuevo programa»: tras «Listo para empezar», Programas con el programa nuevo abierto.
+                onProgramCreated = { programId -> openCreatedProgram(navController, programId) },
             )
         }
         composable(KpknRoute.BodyProgress.route) {
@@ -1439,14 +1512,7 @@ private fun KPKNNavGraph(
             ProfileScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
-                onOpenCompetition = { recordId ->
-                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
-                },
-                onCreateCompetition = {
-                    navController.navigate(KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)) {
-                        launchSingleTop = true
-                    }
-                },
+                onOpenCompetitions = { navController.navigate(KpknRoute.Competitions.create()) { launchSingleTop = true } },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
                 onOpenTechniqueAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
@@ -1635,6 +1701,12 @@ private fun KPKNNavGraph(
                 },
                 onOpenCompetition = { recordId ->
                     navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                },
+                onOpenCompetitionPlan = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionFlow.plan(recordId)) { launchSingleTop = true }
+                },
+                onOpenCompetitionToday = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionFlow.today(recordId)) { launchSingleTop = true }
                 },
             )
             }
@@ -1855,6 +1927,15 @@ private fun openLibraryPlanInWizard(navController: androidx.navigation.NavHostCo
     navController.navigate(
         com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute(onboardingCompleted, planId),
     ) { launchSingleTop = true }
+}
+
+/** Al terminar de crear un programa: Programas y, encima, el programa nuevo abierto (atrás vuelve a Programas). */
+private fun openCreatedProgram(navController: androidx.navigation.NavHostController, programId: String) {
+    navController.navigate(KpknRoute.Training.route) {
+        popUpTo(KpknRoute.Home.route) { inclusive = false }
+        launchSingleTop = true
+    }
+    navController.navigate(KpknRoute.ProgramDetail.create(programId)) { launchSingleTop = true }
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {

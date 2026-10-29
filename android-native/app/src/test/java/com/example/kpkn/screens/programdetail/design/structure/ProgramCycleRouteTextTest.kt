@@ -1,8 +1,8 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
-import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.LoopType
-import com.example.kpkn.domain.training.ProgramKeyDateEngine
+import com.example.kpkn.domain.training.ProgramSnapshot
+import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import com.example.kpkn.screens.programdetail.design.numberWithUnit
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import org.junit.Assert.assertEquals
@@ -14,20 +14,16 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /**
- * Las cuentas y los textos con número de las hojas de Ciclos, de Ruta, de Plantillas y de Historial (P3c), y el icono de cada tipo de
- * ciclo. Son funciones puras: se prueban en la JVM, sin Robolectric.
+ * Las cuentas y los textos con número de Estructura (lienzo v6): ciclos, semana base, versiones guardadas, biblioteca, TM y la hoja
+ * «Fechas», y el icono de cada tipo de ciclo. Son funciones puras: se prueban en la JVM, sin Robolectric.
  */
 class ProgramCycleRouteTextTest {
 
-    private val needsMore = ProgramKeyDateEngine.KeyDateFitStatus.NEEDS_MORE_WEEKS
-    private val hasSurplus = ProgramKeyDateEngine.KeyDateFitStatus.HAS_SURPLUS_WEEKS
-    private val fits = ProgramKeyDateEngine.KeyDateFitStatus.FITS
-
     @Test
     fun cada_tipo_de_ciclo_tiene_su_icono_kpkn() {
-        assertSame(KpknLineIcons.Moon, loopTypeIcon(LoopType.DELOAD))
-        assertSame(KpknLineIcons.Flag, loopTypeIcon(LoopType.ONE_RM_TEST))
-        assertSame(KpknLineIcons.Calendar, loopTypeIcon(LoopType.COMPETITION))
+        assertSame(KpknLineIcons.Repeat, loopTypeIcon(LoopType.DELOAD))
+        assertSame(KpknLineIcons.Target, loopTypeIcon(LoopType.ONE_RM_TEST))
+        assertSame(KpknLineIcons.Flag, loopTypeIcon(LoopType.COMPETITION))
         assertSame(KpknLineIcons.Repeat, loopTypeIcon(LoopType.CUSTOM))
     }
 
@@ -68,95 +64,78 @@ class ProgramCycleRouteTextTest {
     }
 
     @Test
-    fun el_encaje_de_la_competicion_dice_cuantas_semanas_faltan_o_sobran() {
-        assertEquals(
-            "Tu competición cae ${numberWithUnit("2 semanas")} después del final del programa.",
-            competitionFitLine(needsMore, 2),
-        )
-        assertEquals(
-            "Tu competición cae ${numberWithUnit("1 semana")} después del final del programa.",
-            competitionFitLine(needsMore, 1),
-        )
-        assertEquals(
-            "Tu competición cae ${numberWithUnit("3 semanas")} antes del final del programa.",
-            competitionFitLine(hasSurplus, 3),
-        )
-        assertEquals("Tu competición cae en la última semana del programa.", competitionFitLine(fits, 0))
-        assertNull(competitionFitLine(null, 0))
+    fun la_fila_de_un_ciclo_dice_su_cadencia_en_semanas() {
+        assertEquals("Descarga cada 4 semanas", cycleRowTitle("Descarga", LoopType.DELOAD, cadence = 4, cycleWeeks = 1))
+        assertEquals("Test de 1RM cada 8 semanas", cycleRowTitle("Test de 1RM", LoopType.ONE_RM_TEST, cadence = 4, cycleWeeks = 2))
+        assertEquals("Descarga cada semana", cycleRowTitle("Descarga", LoopType.DELOAD, cadence = 1, cycleWeeks = 1))
     }
 
     @Test
-    fun la_accion_de_encaje_es_corta_y_dice_en_que_bloque_se_aplica() {
-        assertEquals("Añadir " + numberWithUnit("2 semanas"), competitionFixLabel(needsMore, 2))
-        assertEquals("Quitar " + numberWithUnit("1 semana"), competitionFixLabel(hasSurplus, 1))
-        assertEquals("Se suman al último bloque.", competitionFixNote(needsMore, 2))
-        assertEquals("Se quitan del último bloque.", competitionFixNote(hasSurplus, 1))
-        assertNull(competitionFixLabel(fits, 0))
-        assertNull(competitionFixNote(fits, 0))
-        assertEquals(2, competitionFixDelta(needsMore, 2))
-        assertEquals(-2, competitionFixDelta(hasSurplus, 2))
-        assertEquals(0, competitionFixDelta(fits, 0))
+    fun la_proxima_vez_concuerda_con_el_tipo_de_ciclo() {
+        assertEquals("Próxima: semana 8", cycleRowDetail(LoopType.DELOAD, nextWeek = 8, cancelled = false))
+        assertEquals("Próximo: semana 8", cycleRowDetail(LoopType.ONE_RM_TEST, nextWeek = 8, cancelled = false))
+        assertEquals("Cancelado", cycleRowDetail(LoopType.DELOAD, nextWeek = 8, cancelled = true))
+        assertNull(cycleRowDetail(LoopType.CUSTOM, nextWeek = null, cancelled = false))
     }
 
     @Test
-    fun la_linea_de_inicio_del_bloque_lleva_el_nombre_si_el_titulo_es_la_fase() {
-        val block = ProgramRouteBlock(
-            id = "block-2",
-            name = "Bloque 2",
-            firstWeekIndex = 3,
-            weeks = 3,
-            start = LocalDate.of(2026, 11, 3),
-            firstWeekId = "week-4",
-            color = Color.Unspecified,
-            phaseLabel = "Intensificación",
+    fun la_semana_base_cuenta_sesiones_y_duracion_aproximada() {
+        assertEquals("4 sesiones · ≈ 3 h 10", baseWeekHeadline(sessions = 4, minutes = 190))
+        assertEquals("1 sesión · ≈ 45 min", baseWeekHeadline(sessions = 1, minutes = 45))
+        assertEquals("≈ 3 h", approximateDurationLabel(180))
+        assertEquals("≈ 1 h 05", approximateDurationLabel(65))
+        assertEquals("Sin sesiones", baseWeekHeadline(sessions = 0, minutes = 0))
+    }
+
+    @Test
+    fun la_fecha_de_una_copia_es_relativa_a_hoy() {
+        val zone = ZoneId.of("UTC")
+        val today = LocalDate.of(2026, 10, 28)
+        assertEquals("Hoy 08:12", programCopyStamp(Instant.parse("2026-10-28T08:12:00Z").toEpochMilli(), today, zone))
+        assertEquals("Lun 26 oct", programCopyStamp(Instant.parse("2026-10-26T18:00:00Z").toEpochMilli(), today, zone))
+        assertEquals("1 oct", programCopyStamp(Instant.parse("2026-10-01T09:00:00Z").toEpochMilli(), today, zone))
+        assertEquals("1 oct 2025", programCopyStamp(Instant.parse("2025-10-01T09:00:00Z").toEpochMilli(), today, zone))
+    }
+
+    @Test
+    fun la_linea_de_versiones_dice_la_ultima_copia_y_su_motivo() {
+        val zone = ZoneId.of("UTC")
+        val today = LocalDate.of(2026, 10, 28)
+        val snapshot = ProgramSnapshot(
+            id = "s",
+            programId = "p",
+            program = ProgramDetailSamples.active,
+            savedAtMs = Instant.parse("2026-10-28T08:12:00Z").toEpochMilli(),
+            reason = "Antes de aplicar la propuesta",
         )
-        // La fecha no se parte: «mar 3 nov» va con espacios sin corte.
-        assertEquals("Bloque 2 · empieza el mar 3 nov", blockStartLine(block))
+        assertEquals("Última: hoy 08:12, antes de aplicar la propuesta", programLatestCopyLine(listOf(snapshot), today, zone))
+        assertEquals("Aún no hay versiones guardadas", programLatestCopyLine(emptyList(), today, zone))
     }
 
     @Test
-    fun sin_fase_la_linea_de_inicio_no_repite_el_nombre() {
-        val block = ProgramRouteBlock(
-            id = "block-2",
-            name = "Bloque 2",
-            firstWeekIndex = 3,
-            weeks = 3,
-            start = LocalDate.of(2026, 11, 3),
-            firstWeekId = "week-4",
-            color = Color.Unspecified,
-        )
-        assertEquals("empieza el mar 3 nov", blockStartLine(block))
+    fun la_biblioteca_dice_los_dias_de_la_plantilla_y_la_primera_frase_del_metodo() {
+        assertEquals("4 sesiones por semana", libraryFrequencyLine(4..4))
+        assertEquals("De 3 a 5 sesiones por semana", libraryFrequencyLine(3..5))
+        assertEquals("1 sesión por semana", libraryFrequencyLine(1..1))
+        assertEquals("Ondas de 3 semanas", libraryMethodLine("Ondas de 3 semanas. Sube el peso al final."))
+        assertNull(libraryMethodLine("  "))
     }
 
     @Test
-    fun el_resumen_de_la_ruta_cuenta_bloques_semanas_y_fechas() {
-        // Las fechas van con espacios sin corte: «25 ene 2027» no se parte en dos líneas.
-        assertEquals(
-            numberWithUnit("4 bloques") + " · " + numberWithUnit("12 semanas") + " · 6 oct → 25 ene 2027",
-            routeSummaryLine(4, 12, LocalDate.of(2026, 10, 6), LocalDate.of(2027, 1, 25)),
-        )
+    fun la_linea_de_tm_nombra_lo_que_falta() {
+        assertEquals("4 ejercicios · falta press militar", trainingMaxRowLine(4, listOf("Press militar")))
+        assertEquals("3 ejercicios · faltan sentadilla y banca", trainingMaxRowLine(3, listOf("Sentadilla", "Banca")))
+        assertEquals("5 ejercicios · faltan 3", trainingMaxRowLine(5, listOf("a", "b", "c")))
+        assertEquals("1 ejercicio", trainingMaxRowLine(1, emptyList()))
     }
 
     @Test
-    fun la_linea_de_bloques_y_semanas_omite_lo_que_no_hay() {
-        assertEquals(numberWithUnit("3 bloques") + " · " + numberWithUnit("12 semanas"), programBlocksAndWeeksLine(3, 12))
-        assertEquals(numberWithUnit("12 semanas"), programBlocksAndWeeksLine(0, 12))
-        assertNull(programBlocksAndWeeksLine(0, 0))
-    }
-
-    @Test
-    fun la_fecha_de_una_copia_lleva_dia_mes_y_hora() {
-        val millis = Instant.parse("2026-10-13T10:42:00Z").toEpochMilli()
-        assertEquals("mar 13 oct · 10:42", programCopyStamp(millis, ZoneId.of("UTC")))
-    }
-
-    @Test
-    fun el_pie_del_historial_cuenta_las_copias_y_sin_ellas_no_dice_nada() {
-        assertNull(programHistoryCaption(0))
-        assertEquals(
-            numberWithUnit("3 copias guardadas") + ". Restaurar sustituye el programa actual.",
-            programHistoryCaption(3),
-        )
+    fun la_hoja_fechas_escribe_la_fecha_larga_y_la_competicion() {
+        assertEquals("Martes 6 oct 2026", datesFieldLabel(LocalDate.of(2026, 10, 6)))
+        assertEquals("Open regional · 16 nov", competitionRowDetail(LocalDate.of(2026, 11, 16), "Open regional", hasStart = true))
+        assertEquals("16 nov", competitionRowDetail(LocalDate.of(2026, 11, 16), "Competición", hasStart = true))
+        assertEquals("Elige antes cuándo empieza el programa", competitionRowDetail(null, null, hasStart = false))
+        assertEquals("Sin fecha", competitionRowDetail(null, null, hasStart = true))
     }
 
     private fun cycle(id: String, title: String, cadence: Int) = ProgramCycleLoop(

@@ -26,17 +26,15 @@ class ProgramHeaderNextPillComposeTest {
         val state = ProgramHeaderState(
             name = "Base sólida",
             status = ProgramHeaderStatus.ACTIVE,
-            meta = "Semana que se repite",
+            meta = "Rutina",
             identity = coverIdentityFor("base-solida", null),
             photoUrl = null,
             bundled = null,
-            weekCount = 1,
-            currentWeekIndex = null,
             progressLabel = null,
             primary = ProgramHeaderPrimary.None,
             nextSession = ProgramNextSession(
                 dayOfWeek = 4,
-                label = "Jueves · Pierna A",
+                label = "Siguiente: jueves · Pierna A",
                 description = "Siguiente sesión: jueves, Pierna A",
             ),
         )
@@ -45,8 +43,6 @@ class ProgramHeaderNextPillComposeTest {
                 state = state,
                 actions = ProgramHeaderActions(
                     onPrimary = {},
-                    onStartPause = {},
-                    onEdit = {},
                     onOpenNextSession = { opened = true },
                 ),
             )

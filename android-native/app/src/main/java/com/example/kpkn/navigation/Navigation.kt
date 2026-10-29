@@ -123,11 +123,35 @@ sealed class KpknRoute(val route: String) {
         const val ARG_INITIAL_QUERY = "initialQuery"
     }
 
-    object Competitions : KpknRoute("competitions")
+    /** La página «Competencias» (Registros v4, c-hub). `?new=true` abre «Nueva competencia» al entrar. */
+    object Competitions : KpknRoute("competitions?new={new}") {
+        const val BASE_ROUTE = "competitions"
+        const val ARG_NEW = "new"
+        fun create(openNew: Boolean = false) = if (openNew) "competitions?new=true" else BASE_ROUTE
+    }
+    /** La ficha de una competencia (c-detail o la de una próxima); `NEW_ID` abre «Nueva competencia» en la página. */
     object CompetitionDetail : KpknRoute("competition/{competitionId}") {
         fun create(competitionId: String) = "competition/$competitionId"
         const val ARG_COMPETITION_ID = "competitionId"
         const val NEW_ID = "new"
+    }
+    /**
+     * Los recorridos de una competencia (Registros v4): `next`, `done`, `plan` (c-plan), `today` (c-today, modo competición), `log` y
+     * `edit`. [plan] y [today] son públicos para abrirlos por id desde Program Detail (C-D3).
+     */
+    object CompetitionFlow : KpknRoute("competition-flow/{competitionId}/{mode}?discipline={discipline}") {
+        const val BASE_ROUTE = "competition-flow"
+        const val ARG_COMPETITION_ID = "competitionId"
+        const val ARG_MODE = "mode"
+        const val ARG_DISCIPLINE = "discipline"
+        fun create(competitionId: String, mode: String, discipline: String? = null) =
+            "competition-flow/$competitionId/$mode" + (discipline?.let { "?discipline=$it" } ?: "")
+        /** c-plan: los nueve intentos y el pesaje de la competencia [competitionId]. */
+        fun plan(competitionId: String) = create(competitionId, "plan")
+        /** c-today: el modo competición de la competencia [competitionId] (guarda cada intento). */
+        fun today(competitionId: String) = create(competitionId, "today")
+        /** Registrar el resultado de una competencia planificada. */
+        fun log(competitionId: String) = create(competitionId, "log")
     }
 
     object Settings : KpknRoute("settings")

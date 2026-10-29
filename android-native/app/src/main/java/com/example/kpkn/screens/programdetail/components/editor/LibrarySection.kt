@@ -1,57 +1,68 @@
 package com.example.kpkn.screens.programdetail.components.editor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.example.kpkn.data.programs.CatalogEntry
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.protocols.Protocol
-import com.example.kpkn.domain.onboarding.PlanGoalMatcher
-import com.example.kpkn.domain.onboarding.PlanGoalProfile
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryCard
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryProfile
-import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryTraits
+import com.example.kpkn.screens.programdetail.design.structure.ProgramLibraryItem
 import com.example.kpkn.screens.programdetail.design.structure.ProgramTemplatesSheet
-import com.example.kpkn.screens.programdetail.design.structure.programBlocksAndWeeksLine
-import com.example.kpkn.screens.programs.LibraryOriginFilter
+import com.example.kpkn.screens.programdetail.design.structure.libraryFrequencyLine
+import com.example.kpkn.screens.programdetail.design.structure.libraryMethodLine
 import com.example.kpkn.screens.programs.isLibraryFamilyEntry
 import com.example.kpkn.screens.programs.libraryOrder
-import com.example.kpkn.screens.programs.originMatches
 import com.example.kpkn.screens.programs.visibleProtocolOf
 
 /**
- * La hoja «Plantillas» del editor (P3c): reúne las plantillas y los protocolos de la biblioteca publicada, con el mismo orden y la misma
- * selección que antes. Una plantilla vuelve a [onApplyTemplate] y un protocolo, a [onApplyProtocol]; la hoja solo cambia cómo se ve.
+ * e-library, «Aplicar plantilla o método»: las plantillas y los métodos de progresión de la biblioteca publicada, en su orden. Tocar uno lo
+ * aplica en el momento con el interruptor «Sustituir semanas con sesiones» como esté (apagado de salida: no se pisa nada) y cierra la hoja.
  */
 @Composable
 internal fun LibrarySection(
-    onApplyTemplate: (ProgramTemplateOption) -> Unit,
-    onApplyProtocol: (Protocol) -> Unit,
+    onApplyTemplate: (template: ProgramTemplateOption, replace: Boolean) -> Unit,
+    onApplyProtocol: (protocol: Protocol, replace: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val library = remember { programLibrary() }
+    var replace by rememberSaveable { mutableStateOf(false) }
     ProgramTemplatesSheet(
-        templates = library.templateCards,
-        protocols = library.protocolCards,
-        onPickTemplate = { key -> library.templates[key]?.let(onApplyTemplate) },
-        onPickProtocol = { key -> library.protocols[key]?.let(onApplyProtocol) },
+        templates = library.templateItems,
+        methods = library.methodItems,
+        replace = replace,
+        onReplaceChange = { replace = it },
+        onPickTemplate = { key ->
+            library.templates[key]?.let { template ->
+                onApplyTemplate(template, replace)
+                onDismiss()
+            }
+        },
+        onPickMethod = { key ->
+            library.protocols[key]?.let { protocol ->
+                onApplyProtocol(protocol, replace)
+                onDismiss()
+            }
+        },
         onDismiss = onDismiss,
     )
 }
 
-/** Lo que la hoja necesita: las tarjetas y, por cada una, lo que se aplica al tocarla. */
+/** Lo que la hoja necesita: las filas y, por cada una, lo que se aplica al tocarla. */
 private class ProgramLibrary(
-    val templateCards: List<ProgramLibraryCard>,
-    val protocolCards: List<ProgramLibraryCard>,
+    val templateItems: List<ProgramLibraryItem>,
+    val methodItems: List<ProgramLibraryItem>,
     val templates: Map<String, ProgramTemplateOption>,
     val protocols: Map<String, Protocol>,
 )
 
 /**
- * La biblioteca del editor. Una entrada con plantilla es una plantilla (como antes, tiene prioridad); una entrada del catálogo de tipo
- * protocolo, sin plantilla, es un protocolo con ficha. El resto no se puede aplicar desde el editor y no aparece.
+ * La biblioteca del editor. Una entrada con plantilla es una plantilla (tiene prioridad); una entrada del catálogo de tipo protocolo, sin
+ * plantilla, es un método de progresión. El resto no se puede aplicar desde el editor y no aparece.
  */
 private fun programLibrary(): ProgramLibrary {
     val entries = libraryOrder(
@@ -64,47 +75,13 @@ private fun programLibrary(): ProgramLibrary {
         visibleProtocolOf(entry)?.let { protocol -> entry to protocol }
     }
     return ProgramLibrary(
-        templateCards = templateEntries.map { (entry, template) ->
-            ProgramLibraryCard(
-                key = entry.id,
-                name = template.name,
-                description = template.description,
-                caption = programBlocksAndWeeksLine(template.blockNames.size, template.weeks),
-                traits = traitsOf(entry),
-            )
+        templateItems = templateEntries.map { (entry, template) ->
+            ProgramLibraryItem(key = entry.id, name = template.name, detail = libraryFrequencyLine(entry.supportedFrequencies))
         },
-        protocolCards = protocolEntries.map { (entry, protocol) ->
-            ProgramLibraryCard(
-                key = entry.id,
-                name = protocol.name,
-                description = protocol.description,
-                caption = programBlocksAndWeeksLine(protocol.blocks.size, protocol.blocks.sumOf { it.weeks }),
-                traits = traitsOf(entry),
-            )
+        methodItems = protocolEntries.map { (entry, protocol) ->
+            ProgramLibraryItem(key = entry.id, name = protocol.name, detail = libraryMethodLine(protocol.description))
         },
         templates = templateEntries.associate { (entry, template) -> entry.id to template },
         protocols = protocolEntries.associate { (entry, protocol) -> entry.id to protocol },
-    )
-}
-
-/**
- * Los filtros que cumple un plan: sus perfiles (con «Otros» si no encaja en ninguno de los cuatro objetivos), sus días, su duración y sus
- * procedencias. Es la misma regla que tenía la biblioteca.
- */
-private fun traitsOf(entry: CatalogEntry): ProgramLibraryTraits {
-    val goals = mapOf(
-        ProgramLibraryProfile.STRENGTH to PlanGoalProfile.STRENGTH,
-        ProgramLibraryProfile.MUSCLE to PlanGoalProfile.MUSCLE,
-        ProgramLibraryProfile.STRENGTH_MUSCLE to PlanGoalProfile.STRENGTH_MUSCLE,
-        ProgramLibraryProfile.COMPLETE_ATHLETE to PlanGoalProfile.COMPLETE_ATHLETE,
-    )
-    val matched = goals.filterValues { goal -> PlanGoalMatcher.matches(entry, goal) }.keys
-    return ProgramLibraryTraits(
-        profiles = if (matched.isEmpty()) setOf(ProgramLibraryProfile.OTHER) else matched,
-        frequencies = entry.supportedFrequencies,
-        duration = entry.duration,
-        origins = LibraryOriginFilter.entries
-            .filter { origin -> origin != LibraryOriginFilter.ALL && originMatches(entry, origin) }
-            .toSet(),
     )
 }

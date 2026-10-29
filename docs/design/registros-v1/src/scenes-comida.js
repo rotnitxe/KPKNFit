@@ -48,13 +48,14 @@ scene({tab:'comida',id:'f-ana',title:'Analizando',after:ph=>{animateIn(ph)},html
 scene({tab:'comida',id:'f-result',title:'Lo que comiste',after:drawAfter,html:()=>`<div class="lg">${lgHead()}${mealChips()}
   <div class="write" style="min-height:0;padding:12px 14px"><div class="txt" style="font-size:calc(14px*var(--fs));color:var(--muted)">${textWithTokens('all')}</div></div>
   <div class="pending">${ic('qmark',16)}2 dudas: tócalas para afinar o guarda con la estimación</div>
-  <div style="margin-top:12px">${sumCard()}</div>
+  <div style="margin-top:12px">${sumCard()}</div>${mealMicro()}
   ${FOODS.map((f,i)=>foodCard(f,i)).join('')}
   <button class="act" style="margin-top:8px">${ic('plus',16)}Añadir otro alimento</button></div>${saveBar()}`,
  notes:{tags:[['new','Resumen con anillo'],['fix','Todas las dudas a la vista']],
   p:['Arriba, el anillo de calorías con los tres macros como arcos (cuenta al aparecer). Cada alimento es una tarjeta con su icono, cantidad legible («2 huevos · 110 g»), calorías y una barra de macros.',
      '<b>Las dudas viven en su tarjeta</b>, con fondo cálido y chips de respuesta. Hoy solo se ve la primera duda de la primera tarjeta y las demás quedan ocultas.',
-     'Se puede guardar con dudas: cada una tiene su respuesta por defecto («Seguir con “nada”»). Hoy el guardado queda bloqueado con un aviso.']}});
+     'Se puede guardar con dudas: cada una tiene su respuesta por defecto («Seguir con “nada”»). Hoy el guardado queda bloqueado con un aviso.',
+     'v4: bajo el anillo, las vitaminas y minerales de la comida entera (ver la pestaña «Vitaminas y minerales»).']}});
 
 scene({tab:'comida',id:'f-edit',title:'Ajustar un alimento',html:()=>`<div class="lg">${lgHead()}${sumCard()}${FOODS.slice(0,2).map((f,i)=>foodCard(f,i)).join('')}</div>${sheet(`<div style="display:flex;gap:12px;align-items:center"><span class="fi" style="width:48px;height:48px;border-radius:16px;background:#ffffff0a;display:flex;align-items:center;justify-content:center">${ic('egg',26)}</span><div style="flex:1"><h3>Huevos revueltos</h3><div class="cap">Coincidencia alta · base KPKN</div></div><button class="act">Cambiar</button></div>
   <div class="mgroup">Cantidad</div><div class="stepper"><button aria-label="Menos">−</button><b>2<small>huevos</small></b><button aria-label="Más">+</button></div>

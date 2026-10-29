@@ -3,6 +3,7 @@ package com.example.kpkn.screens.programdetail.design
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -38,20 +39,21 @@ class ProgramSwapSheetTest {
         }
         rule.mainClock.advanceTimeBy(1_000L)
         rule.onNodeWithTag("swap-option:target").performScrollTo().performClick()
-        rule.onNodeWithText("Todo el programa").performScrollTo().performClick()
-        rule.onNodeWithText("Revisar cambio").assertDoesNotExist()
+        rule.onNodeWithText("Todo").performScrollTo().performClick()
+        rule.onNodeWithText("Revisar cambio").assertIsNotEnabled()
         rule.onNodeWithTag("swap-equipment-confirmation").performScrollTo().performClick()
         rule.onNodeWithText("Revisar cambio").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(SwapScope.WHOLE_PROGRAM,scopeChosen); assertEquals(0,confirmed) }
         rule.onNodeWithText("Confirmar cambio").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(1,confirmed) }
     }
-    @Test fun going_back_keeps_the_program_unchanged() {
-        var dismissed = 0
-        rule.setContent { ProgramSwapSheet("Banca",listOf(option),false,null,false,
-            { _,_,_ -> fail("sin revisar") },{ fail("sin confirmar") },{},{ dismissed++ }) }
+    @Test fun editing_from_the_review_goes_back_without_applying() {
+        var edits = 0
+        rule.setContent { ProgramSwapSheet("Banca",listOf(option),false,"Cambio propuesto en 3 sesiones.",false,
+            { _,_,_ -> fail("sin revisar") },{ fail("sin confirmar") },{ edits++ },{}) }
         rule.mainClock.advanceTimeBy(1_000L)
-        rule.onNodeWithText("Volver").performScrollTo().performClick()
-        rule.runOnIdle { assertEquals(1,dismissed) }
+        rule.onNodeWithText("Volver").assertDoesNotExist()
+        rule.onNodeWithText("Editar selección").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(1,edits) }
     }
 }

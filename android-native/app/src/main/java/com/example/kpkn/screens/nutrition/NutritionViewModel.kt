@@ -26,6 +26,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.kpkn.domain.habits.HabitStreaks
+import com.example.kpkn.domain.habits.mealRecordDays
+import com.example.kpkn.screens.stories.NutritionStoryMacros
+import com.example.kpkn.screens.stories.NutritionStoryStreak
+import com.example.kpkn.screens.stories.nutritionStoryMacrosOf
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -239,6 +244,11 @@ class NutritionViewModel(
         com.example.kpkn.screens.nutrition.nutrients.buildNutrientsSheetState(date, logs, DriTargets.profileFor(settings, plan))
     }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily,
         com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState())
+
+    /** Perfil DRI del plan (la referencia del 100 % de la huella en el registro); null = cantidades relativas. */
+    val driProfile: StateFlow<com.example.kpkn.domain.nutrition.DriProfile?> = combine(programRepo.settings, activePlan) { settings, plan ->
+        DriTargets.profileFor(settings, plan)
+    }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // ─── Derived: Daily Totals ──────────────────────────────────────────────
 
@@ -636,6 +646,23 @@ class NutritionViewModel(
         }
     }
 
+    /** «Mover a… otro día» (s-rowmenu): la misma comida (mismo id) pasa a [day] a la hora [time] («HH:mm»). */
+    fun moveLogToDay(logId: String, day: LocalDate, time: String) {
+        val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId } ?: return
+        val moved = log.copy(date = com.example.kpkn.domain.nutrition.MealTime.stamp(day, time, java.time.ZoneId.systemDefault()))
+        if (moved.date == log.date) return
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.updateNutritionLog(moved) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
+                _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
+            }
+        }
+    }
+
     private val _dayMarkSaving = MutableStateFlow(false)
     val dayMarks = nutritionRepo.dayMarks
 
@@ -646,6 +673,25 @@ class NutritionViewModel(
         if (date == null) NutritionDayState(today, editable = false)
         else nutritionDayState(logs, marks, date, today).copy(saving = saving)
     }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, NutritionDayState(_today.value))
+
+    /** «Compartir tu semana» · Racha: la misma racha del hábito «Comidas» que enseña Hábitos (actual y mejor). */
+    val shareStreak: StateFlow<NutritionStoryStreak?> = combine(nutritionLogs, dayMarks, _today) { logs, marks, today ->
+        HabitStreaks.daily(mealRecordDays(logs, marks.values), today).let { NutritionStoryStreak(current = it.current, best = it.best) }
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    /** «Compartir tu semana» · Macros: media diaria de los últimos 7 días registrados, con los objetivos de esos días. */
+    val shareMacros: StateFlow<NutritionStoryMacros?> = combine(
+        nutritionLogs,
+        programRepo.settings,
+        activePlan,
+        nutritionRepo.dailyGoalSnapshots,
+        _today,
+    ) { logs, settings, plan, snapshots, end ->
+        val dates = (0L until 7L).map { end.minusDays(it) }
+        val goals = resolveDayGoalsByDate(dates = dates, settings = settings, activePlan = plan, snapshots = snapshots, today = end)
+            .mapValues { (_, dayGoals) -> (dayGoals as? DayGoalsResult.Present)?.goals }
+        nutritionStoryMacrosOf(logs, dates, goals)
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     fun setDayMark(mark: DayMark, source: DayMarkSource = DayMarkSource.USER): Job = changeDayMark(mark, source)
     fun clearDayMark(): Job = changeDayMark(null, DayMarkSource.USER)

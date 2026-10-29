@@ -1,15 +1,26 @@
 package com.example.kpkn.screens.body.design
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.body.BodyHistoryRow
+import com.example.kpkn.screens.stories.BodyStoryShareSheet
+import com.example.kpkn.screens.stories.StoryShareIcon
+import com.example.kpkn.screens.stories.bodyStoryAvailable
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.data.models.BodyChartRange
 import com.example.kpkn.domain.body.BodyWeightSummary
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -40,6 +51,8 @@ private val RANGE_LABELS = listOf("1M", "3M", "6M", "1A", "Todo")
  * @param weightUnit unidad de Ajustes: las cifras, la gráfica y la meta se muestran en ella; los datos siguen en kg.
  * @param onRangeChange recibe el rango elegido en el selector.
  * @param onAdd abre el registro de un pesaje.
+ * @param shareHistory mediciones del historial para «Compartir tu progreso» (h-body-sheet): con datos para una historia, a la
+ *   derecha de la cifra sale el botón compartir que abre la hoja. Vacío, no hay botón.
  */
 @Composable
 fun BodyWeightModule(
@@ -52,8 +65,12 @@ fun BodyWeightModule(
     onRangeChange: (BodyChartRange) -> Unit,
     onAdd: () -> Unit,
     modifier: Modifier = Modifier,
+    shareHistory: List<BodyHistoryRow> = emptyList(),
 ) {
     val unit = weightUnit.code
+    val canShare = remember(shareHistory) { bodyStoryAvailable(shareHistory) }
+    var sharing by remember { mutableStateOf(false) }
+    if (sharing) BodyStoryShareSheet(rows = shareHistory, weightUnit = weightUnit, onDismiss = { sharing = false })
     // La serie se pasa a la unidad de Ajustes una vez por cambio de unidad: la gráfica solo ve cifras que se muestran.
     val chartPoints = remember(points, weightUnit) { points.map { it.inUnit(weightUnit) } }
     val current = summary.current
@@ -97,7 +114,22 @@ fun BodyWeightModule(
             style = KpknType.caption,
             color = WizardColors.textMuted,
         )
-        KpknMetric(value = bodyWeightValue(trendKg ?: current, weightUnit), unit = unit, style = KpknType.metricXL)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            KpknMetric(
+                value = bodyWeightValue(trendKg ?: current, weightUnit),
+                unit = unit,
+                style = KpknType.metricXL,
+                modifier = Modifier.weight(1f),
+            )
+            if (canShare) {
+                KpknIconButton(
+                    icon = StoryShareIcon,
+                    contentDescription = "Compartir tu progreso",
+                    onClick = { sharing = true },
+                    modifier = Modifier.testTag("body-weight-share"),
+                )
+            }
+        }
         summary.currentDate?.let { day ->
             val since = bodyRelativeDayEs(day, today)
             Text(

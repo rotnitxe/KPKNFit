@@ -1,8 +1,10 @@
 package com.example.kpkn.screens.programdetail.design
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -31,14 +34,17 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknType
+
+/** Un segmento de la mini-cinta de una rutina (s-simple): su color, si ya pasó y si es la semana que se ve. */
+internal data class ProgramMiniRibWeek(val color: Color, val done: Boolean, val selected: Boolean)
 
 /**
- * Navegador de la semana (pestaña Semana): ‹ y › a los lados y, en el centro, el título («Semana 4»), con la fase y el rango de fechas debajo.
- * Tocar el centro abre la hoja «Semanas» ([onOpenWeeks]). Con [name] y [description] van el nombre y la nota de la semana; con [stats], una fila
- * de tres cifras: sesiones, series y tiempo. Sin estado: la pantalla decide la semana, las flechas y la hoja.
+ * Navegador de la semana (lienzo v6, `weekHead`): un módulo con ‹ y › a los lados y, en el centro, el título («Semana 4») con el punto de la
+ * fase, la fase y el rango de fechas debajo. Tocar el centro abre la hoja «Semanas» ([onOpenWeeks]). En una rutina, [miniRibbon] pinta la
+ * mini-cinta de sus 12 semanas bajo el título (s-simple). Con [stats], la fila de tres cifras: sesiones, series y tiempo; una semana vacía
+ * va sin ella (s-empty). Sin estado: la pantalla decide la semana, las flechas y la hoja.
  */
 @Composable
 internal fun ProgramWeekHeader(
@@ -52,13 +58,23 @@ internal fun ProgramWeekHeader(
     onNext: () -> Unit,
     onOpenWeeks: () -> Unit,
     modifier: Modifier = Modifier,
-    name: String? = null,
-    description: String? = null,
+    miniRibbon: List<ProgramMiniRibWeek> = emptyList(),
 ) {
     val titleInteraction = remember { MutableInteractionSource() }
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            KpknIconButton(
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(KpknShape.module)
+            .background(KpknSurface.module, KpknShape.module)
+            .border(1.dp, KpknSurface.moduleBorder, KpknShape.module)
+            .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            ProgramRoundButton(
                 icon = KpknLineIcons.ChevronLeft,
                 contentDescription = "Semana anterior",
                 onClick = onPrev,
@@ -86,15 +102,10 @@ internal fun ProgramWeekHeader(
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!subtitle.isNullOrBlank()) {
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (phaseColor != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(phaseColor, CircleShape),
-                            )
+                            Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(phaseColor, CircleShape))
                             Spacer(Modifier.width(6.dp))
                         }
                         Text(
@@ -108,34 +119,15 @@ internal fun ProgramWeekHeader(
                     }
                 }
             }
-            KpknIconButton(
+            ProgramRoundButton(
                 icon = KpknLineIcons.ChevronRight,
                 contentDescription = "Semana siguiente",
                 onClick = onNext,
                 enabled = canNext,
             )
         }
-        if (!name.isNullOrBlank()) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = name,
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (!description.isNullOrBlank()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = description,
-                style = KpknType.body,
-                color = WizardColors.textMuted,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
+        if (miniRibbon.isNotEmpty()) {
+            ProgramMiniRibbon(weeks = miniRibbon, modifier = Modifier.padding(start = 2.dp, top = 12.dp, end = 2.dp))
         }
         if (stats != null) {
             Spacer(Modifier.height(14.dp))
@@ -145,6 +137,38 @@ internal fun ProgramWeekHeader(
                 ProgramWeekStatCell(value = stats.setsLabel, label = "series", modifier = Modifier.weight(1f))
                 ProgramWeekStatCell(value = stats.minutesLabel, label = "en total", modifier = Modifier.weight(1f))
             }
+        }
+    }
+}
+
+/**
+ * La mini-cinta de una rutina (`.mini-rib`): un segmento de 4 dp por semana con 2 dp de hueco; las pasadas al 70 %, las futuras al 25 % y la
+ * que se ve, entera y con un filete de tinta de 2 dp separado 1 dp.
+ */
+@Composable
+private fun ProgramMiniRibbon(weeks: List<ProgramMiniRibWeek>, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(2.dp)
+    Row(modifier = modifier.fillMaxWidth().height(10.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+        weeks.forEach { week ->
+            val alpha = when {
+                week.selected -> 1f
+                week.done -> 0.7f
+                else -> 0.25f
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (week.selected) {
+                            Modifier.border(2.dp, WizardColors.text, RoundedCornerShape(5.dp)).padding(3.dp)
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .height(4.dp)
+                    .clip(shape)
+                    .background(week.color.copy(alpha = alpha), shape),
+            )
         }
     }
 }
@@ -171,12 +195,12 @@ private fun ProgramWeekStatCell(value: String, label: String, modifier: Modifier
     }
 }
 
-/** El título de la semana: Syne Bold 20 / 24, con −0,4 sp de espaciado. */
+/** El título de la semana: Syne Bold 20 / 22, con −0,4 sp de espaciado. */
 private val WeekTitleStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
     fontSize = 20.sp,
-    lineHeight = 24.sp,
+    lineHeight = 22.sp,
     letterSpacing = (-0.4).sp,
 )
 
