@@ -74,10 +74,11 @@ fun loggerSavedLine(kcal: Int, remainingToday: Int?): String {
 
 /**
  * Guardado (lienzo `.savedone`): velo negro al 80 % sobre el registro, el check verde de 140 dp que se dibuja (círculo y luego el trazo,
- * 0,5 s después), [title] en Syne 26 y [line] debajo. Con movimiento reducido sale dibujado.
+ * 0,5 s después), [title] en Syne 26 y [line] debajo; [extra] (n-saved, «Lo que más sumó: …») va una línea más abajo, en tinta tenue.
+ * Con movimiento reducido sale dibujado.
  */
 @Composable
-fun LoggerSavedOverlay(title: String, line: String, modifier: Modifier = Modifier) {
+fun LoggerSavedOverlay(title: String, line: String, modifier: Modifier = Modifier, extra: String? = null) {
     val reduced = wizardReducedMotion()
     val circle = remember { Animatable(if (reduced) 1f else 0f) }
     val tick = remember { Animatable(if (reduced) 1f else 0f) }
@@ -120,5 +121,8 @@ fun LoggerSavedOverlay(title: String, line: String, modifier: Modifier = Modifie
         }
         Text(text = title, style = SavedTitleStyle, color = LoggerColors.ink, textAlign = TextAlign.Center)
         Text(text = line, style = SavedLineStyle, color = LoggerColors.muted, textAlign = TextAlign.Center)
+        if (extra != null) {
+            Text(text = extra, style = SavedLineStyle, color = LoggerColors.faint, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
+        }
     }
 }

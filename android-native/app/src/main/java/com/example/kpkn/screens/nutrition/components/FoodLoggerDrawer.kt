@@ -188,12 +188,19 @@ fun FoodLoggerDrawer(
     dailyKcalTarget: Int? = null,
     /** Lo guardado, después de guardar (Inicio enseña su aviso con «Deshacer»). */
     onSaved: ((NutritionLog) -> Unit)? = null,
-    /** Punto de conexión: la huella de vitaminas y minerales de la comida (f-result), bajo la tarjeta resumen. */
-    mealFootprint: (@Composable (List<LoggedFood>) -> Unit)? = null,
+    /** Punto de conexión: la huella de vitaminas y minerales de la comida (n-reg), bajo la tarjeta resumen: el nombre de la comida y sus alimentos. */
+    mealFootprint: (@Composable (String, List<LoggedFood>) -> Unit)? = null,
     /** Punto de conexión: la huella de un alimento en su hoja de ajuste (f-edit). */
     foodFootprint: (@Composable (LoggedFood) -> Unit)? = null,
-    /** Punto de conexión: la huella de una ficha del buscador (s-detail) para los gramos elegidos. */
-    catalogFootprint: (@Composable (FoodItem, Double) -> Unit)? = null,
+    /**
+     * Punto de conexión: la huella de una ficha del buscador (s-detail, n-ficha) para los gramos elegidos; el tercer argumento abre
+     * «Completar con una ficha propia» (n-ficha-label).
+     */
+    catalogFootprint: (@Composable (FoodItem, Double, () -> Unit) -> Unit)? = null,
+    /** Punto de conexión: la línea «Esta comida» de la media hoja de Inicio (n-home), tras las tarjetas. */
+    homeLine: (@Composable (List<LoggedFood>) -> Unit)? = null,
+    /** Punto de conexión: «Lo que más sumó: …» bajo la línea de guardado (n-saved); null si no hay nada que decir. */
+    savedNutrientsLine: ((List<LoggedFood>) -> String?)? = null,
 ) {
     val programRepo = ProgramRepository.getInstance()
     val settings by programRepo.settings.collectAsState()
@@ -1307,6 +1314,7 @@ fun FoodLoggerDrawer(
     var savedLogSnapshot by remember { mutableStateOf<NutritionLog?>(null) }
     var savedKcal by remember { mutableIntStateOf(0) }
     var savedRemaining by remember { mutableStateOf<Int?>(null) }
+    var savedExtra by remember { mutableStateOf<String?>(null) }
 
     fun saveLog() {
         if (isSaving || showSuccess) return
@@ -1347,6 +1355,7 @@ fun FoodLoggerDrawer(
                 savedLogSnapshot = log
                 savedKcal = mealKcal
                 savedRemaining = dailyKcalTarget?.let { target -> target - kotlin.math.round(before).toInt() - mealKcal }
+                savedExtra = savedNutrientsLine?.invoke(foods)
                 NutritionTelemetry.event("save_log", mapOf("foodCount" to foods.size, "tagCount" to activeTags.size, "edited" to (original != null)))
                 showSuccess = true
                 reviewRequired = false
@@ -1851,7 +1860,7 @@ fun FoodLoggerDrawer(
                             }
                             mealFootprint?.let { footprint ->
                                 item(key = "meal_footprint") {
-                                    Box(gutter) { footprint(activeTagsNow.mapNotNull { it.loggedFood }) }
+                                    Box(gutter) { footprint(mealLabel, activeTagsNow.mapNotNull { it.loggedFood }) }
                                 }
                             }
                             itemsIndexed(tags, key = { _, tag -> "food_" + tag.id }) { index, tag ->
@@ -1985,6 +1994,7 @@ fun FoodLoggerDrawer(
                 LoggerSavedOverlay(
                     title = loggerSavedTitle(mealType, isEditing),
                     line = loggerSavedLine(savedKcal, savedRemaining),
+                    extra = savedExtra,
                 )
             }
         }
@@ -2055,6 +2065,9 @@ fun FoodLoggerDrawer(
                 }
                 if (quickAppend) {
                     WriteBox(Modifier.padding(top = 8.dp))
+                }
+                if (hasTagsNow) homeLine?.let { line ->
+                    Box(Modifier.padding(top = 12.dp)) { line(activeTagsNow.mapNotNull { it.loggedFood }) }
                 }
                 Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LoggerPill(
@@ -2242,7 +2255,16 @@ fun FoodLoggerDrawer(
                 else { customFoodToEdit = food; showCustomForm = true }
             }) else null,
             editLabel = if (food.recipe != null) "Editar receta" else "Editar alimento propio",
-            footprint = catalogFootprint?.let { footprint -> { grams -> footprint(food, grams) } },
+            footprint = catalogFootprint?.let { footprint ->
+                { grams ->
+                    footprint(food, grams) {
+                        detailFood = null
+                        customFoodToEdit = null
+                        createPrefill = food.name
+                        showCustomForm = true
+                    }
+                }
+            },
         )
     }
 

@@ -485,6 +485,14 @@ private fun HomeFoodLoggerHost(
     onSaved: (NutritionLog) -> Unit = {},
 ) {
     val foodDatabase by nutritionRepo.foodDatabase.collectAsState()
+    // La referencia de la huella de vitaminas y minerales: el perfil DRI del plan activo (null = cantidades relativas).
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
+    val plans by nutritionRepo.nutritionPlans.collectAsState()
+    val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
+    val driProfile = remember(settings, plans, activePlanId) {
+        com.example.kpkn.domain.nutrition.DriTargets.profileFor(settings, activePlanId?.let { id -> plans.find { it.id == id } })
+    }
+    val energyKcal = dailyKcalTarget?.toDouble()
     FoodLoggerDrawer(
         nutritionRepo = nutritionRepo,
         isOpen = true,
@@ -502,6 +510,15 @@ private fun HomeFoodLoggerHost(
         },
         dailyKcalTarget = dailyKcalTarget,
         onSaved = onSaved,
+        mealFootprint = { mealName, foods ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientMealSlot(mealName, foods, driProfile, energyKcal)
+        },
+        foodFootprint = { food -> com.example.kpkn.screens.nutrition.nutrients.NutrientFoodSlot(food, driProfile, energyKcal) },
+        catalogFootprint = { food, grams, completeWithOwnFood ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientCatalogSlot(food, grams, driProfile, energyKcal, completeWithOwnFood)
+        },
+        homeLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.NutrientHomeSlot(foods, driProfile, energyKcal) },
+        savedNutrientsLine = { foods -> com.example.kpkn.screens.nutrition.nutrients.nutrientSavedLineOf(foods, driProfile, energyKcal) },
     )
 }
 
@@ -1229,7 +1246,7 @@ private fun MiniNutritionCard(
                 ) {}
             }
         }
-        HomeBarInkAction(icon = KpknLineIcons.Plus, contentDescription = "Agregar", onClick = onAddMeal)
+        HomeBarInkAction(icon = KpknLineIcons.Plus, contentDescription = "Añadir", onClick = onAddMeal)
     }
 }
 

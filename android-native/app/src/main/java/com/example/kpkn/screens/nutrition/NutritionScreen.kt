@@ -101,6 +101,9 @@ fun NutritionScreen(
     val nutrients by viewModel.nutrients.collectAsState()
     val checkinAvailability by viewModel.checkinAvailability.collectAsState()
     val goals by viewModel.goals.collectAsState()
+    val driProfile by viewModel.driProfile.collectAsState()
+    // El objetivo de kcal del día que se registra: el aro del registro, «te quedan N» y la escala de la huella.
+    val loggerKcalTarget = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 }
     // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(Unit) { tourHost?.startTour(TourIds.NUTRITION, TourScripts.nutrition) }
@@ -210,6 +213,7 @@ fun NutritionScreen(
     }
     // El menú de una fila (N2): abierto desde la pulsación larga; «Mover a…» se despliega dentro del mismo menú.
     var foodMenu by remember { mutableStateOf<NutritionFoodMenuState?>(null) }
+    var moveDayLog by remember { mutableStateOf<NutritionLog?>(null) }
     var copyTarget by remember { mutableStateOf<NutritionCopyTarget?>(null) }
     var templateDialog by remember { mutableStateOf<NutritionTemplateDialogState?>(null) }
 
@@ -501,6 +505,24 @@ fun NutritionScreen(
             } else {
                 null
             },
+            log = menu.log,
+            onEdit = { viewModel.requestFoodLoggerOpen(tab = 0, editLogId = menu.log.id) },
+            onMoveToDay = { moveDayLog = menu.log },
+        )
+    }
+
+    // «Mover a… otro día»: el día y la hora de la comida en la hoja de «¿Cuándo fue?» del registro.
+    moveDayLog?.let { log ->
+        com.example.kpkn.screens.nutrition.design.logger.LoggerDateSheet(
+            selected = runCatching { LocalDate.parse(log.date.take(10)) }.getOrDefault(today),
+            selectedTime = com.example.kpkn.domain.nutrition.MealTime.label(log.date),
+            today = today,
+            now = java.time.LocalTime.now(),
+            onDone = { day, time ->
+                moveDayLog = null
+                viewModel.moveLogToDay(log.id, day, time)
+            },
+            onDismiss = { moveDayLog = null },
         )
     }
 
@@ -571,6 +593,20 @@ fun NutritionScreen(
         initialDescription = foodLoggerInitialDescription,
         initialTab = foodLoggerInitialTab,
         initialLog = editingLog,
+        dailyKcalTarget = loggerKcalTarget,
+        mealFootprint = { mealName, foods ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientMealSlot(mealName, foods, driProfile, loggerKcalTarget?.toDouble(), nutritionHazeState)
+        },
+        foodFootprint = { food ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientFoodSlot(food, driProfile, loggerKcalTarget?.toDouble())
+        },
+        catalogFootprint = { food, grams, completeWithOwnFood ->
+            com.example.kpkn.screens.nutrition.nutrients.NutrientCatalogSlot(food, grams, driProfile, loggerKcalTarget?.toDouble(), completeWithOwnFood,
+                nutritionHazeState)
+        },
+        savedNutrientsLine = { foods ->
+            com.example.kpkn.screens.nutrition.nutrients.nutrientSavedLineOf(foods, driProfile, loggerKcalTarget?.toDouble())
+        },
     )
 
     CreatineSaturationOverlay(

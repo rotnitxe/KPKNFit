@@ -57,6 +57,8 @@ fun NutritionFoodMenu(
     log: NutritionLog? = null,
     /** «Editar» (abre la comida en el registro). Null = la hoja no lo ofrece. */
     onEdit: (() -> Unit)? = null,
+    /** «Otro día…» al final de los destinos de «Mover a…» (abre el día y la hora). Null = solo otras comidas. */
+    onMoveToDay: (() -> Unit)? = null,
 ) {
     KpknSheet(onDismissRequest = onDismiss, backdropScrim = Color.Black.copy(alpha = 0.67f)) {
         Column(
@@ -122,6 +124,15 @@ fun NutritionFoodMenu(
                         onClick = {
                             onDismiss()
                             onMove(meal)
+                        },
+                    )
+                }
+                if (onMoveToDay != null) {
+                    MoveTargetRow(
+                        label = "Otro día…",
+                        onClick = {
+                            onDismiss()
+                            onMoveToDay()
                         },
                     )
                 }

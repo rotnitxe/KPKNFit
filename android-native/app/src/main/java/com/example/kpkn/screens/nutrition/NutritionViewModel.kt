@@ -245,6 +245,11 @@ class NutritionViewModel(
     }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily,
         com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState())
 
+    /** Perfil DRI del plan (la referencia del 100 % de la huella en el registro); null = cantidades relativas. */
+    val driProfile: StateFlow<com.example.kpkn.domain.nutrition.DriProfile?> = combine(programRepo.settings, activePlan) { settings, plan ->
+        DriTargets.profileFor(settings, plan)
+    }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     // ─── Derived: Daily Totals ──────────────────────────────────────────────
 
     val dailyTotals: StateFlow<DailyMacroTotals> = todayLogs
@@ -629,6 +634,23 @@ class NutritionViewModel(
         val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId } ?: return
         if (log.mealType == mealType) return
         val moved = log.copy(mealType = mealType)
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.updateNutritionLog(moved) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
+                _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    /** «Mover a… otro día» (s-rowmenu): la misma comida (mismo id) pasa a [day] a la hora [time] («HH:mm»). */
+    fun moveLogToDay(logId: String, day: LocalDate, time: String) {
+        val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId } ?: return
+        val moved = log.copy(date = com.example.kpkn.domain.nutrition.MealTime.stamp(day, time, java.time.ZoneId.systemDefault()))
+        if (moved.date == log.date) return
         viewModelScope.launch {
             try {
                 withContext(NonCancellable) { nutritionRepo.updateNutritionLog(moved) }
