@@ -16,6 +16,9 @@ object NutrientsSamples {
         micronutrients = NutrientKey.entries.mapNotNull { key ->
             (DriTargets.lookup(key, profile)?.value?.times(0.5) ?: withoutDri[key])?.let { Micronutrient(key.label, it, key.unit) }
         })
+    private val estimatedCoffee = LoggedFood(foodName = "Café con leche", amount = 240.0, calories = 90.0, isUncertain = true,
+        micronutrients = listOf(Micronutrient("Calcio", 240.0, "mg"), Micronutrient("Yodo", 30.0, "µg"), Micronutrient("Cafeína", 64.0, "mg")))
+
     fun state(name: String): NutrientsSheetState {
         val foods = when (name) {
             "complete" -> listOf(declared)
@@ -25,4 +28,10 @@ object NutrientsSamples {
         }
         return buildNutrientsSheetState("2026-10-24", listOf(NutritionLog(date = "2026-10-24T12:00:00-03:00", foods = foods)), profile)
     }
+
+    /** Una ración con ficha completa, para la ficha y su lista. */
+    fun food(): NutrientFoodModel = NutrientFootprints.food(declared, "1 ración · 200 g", profile, 2000.0)
+
+    /** Una comida con un alimento estimado, para el módulo del registro y su lista. */
+    fun meal(): NutrientMealModel = NutrientFootprints.meal("Desayuno", listOf(declared, estimatedCoffee), profile, 2000.0)
 }

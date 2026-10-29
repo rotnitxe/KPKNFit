@@ -19,7 +19,24 @@ data class NutrientDayTotal(
     val nutrient: NutrientKey, val totalKnown: Double?, val declaredCount: Int, val estimatedCount: Int,
     val missingCount: Int, val declaredFraction: Double, val weightedByEnergy: Boolean,
     val state: NutrientCoverageState, val contributors: List<NutrientContribution>,
+    /** Parte del total que viene de alimentos estimados (se dibuja rayada o en contorno discontinuo). */
+    val estimatedAmount: Double = 0.0,
+    /** Nombres de los alimentos que no traen dato de este nutriente (no cuentan como 0). */
+    val missingFoods: List<String> = emptyList(),
 )
+
+/** Cobertura de un conjunto de alimentos: qué parte de las kcal tiene dato declarado y cuántos alimentos no traen ficha. */
+data class NutrientFoodCoverage(
+    val declaredFraction: Double, val weightedByEnergy: Boolean,
+    /** Un valor por alimento, en el orden recibido: DECLARED = ficha completa, ESTIMATED = estimado, MISSING = sin ficha. */
+    val kinds: List<NutrientDataKind>,
+) {
+    val foods: Int get() = kinds.size
+    val declaredFoods: Int get() = kinds.count { it == NutrientDataKind.DECLARED }
+    val estimatedFoods: Int get() = kinds.count { it == NutrientDataKind.ESTIMATED }
+    val foodsWithoutData: Int get() = kinds.count { it == NutrientDataKind.MISSING }
+    companion object { val EMPTY = NutrientFoodCoverage(0.0, false, emptyList()) }
+}
 
 /** Solo suma lo declarado o estimado: una entrada rápida y una ausencia nunca son ceros. */
 object NutrientCoverage {
@@ -38,10 +55,34 @@ object NutrientCoverage {
             NutrientContribution(foods[index].foodName.ifBlank { "Alimento sin nombre" }, amount, data[index].kind == NutrientDataKind.ESTIMATED)
         } }.sortedByDescending { it.amount }
         val total = contributions.takeIf { it.isNotEmpty() }?.sumOf { it.amount }?.takeIf { it.isFinite() }
+        val estimatedAmount = contributions.filter { it.estimated }.sumOf { it.amount }.takeIf { it.isFinite() } ?: 0.0
+        val missingFoods = foods.indices.filter { data[it].kind == NutrientDataKind.MISSING }.map { foods[it].foodName.ifBlank { "Alimento sin nombre" } }
         val visible = if (contributions.size <= 5) contributions else contributions.take(4) + NutrientContribution(
             "Otros alimentos", contributions.drop(4).sumOf { it.amount }, contributions.drop(4).any { it.estimated }, contributions.size - 4)
         return NutrientDayTotal(nutrient, total, declared, estimated, foods.size - declared - estimated, fraction, maxEnergy > 0.0,
-            when { total == null -> NutrientCoverageState.NO_DATA; fraction >= 0.9 - 1e-12 -> NutrientCoverageState.COMPLETE; else -> NutrientCoverageState.PARTIAL }, visible)
+            when { total == null -> NutrientCoverageState.NO_DATA; fraction >= 0.9 - 1e-12 -> NutrientCoverageState.COMPLETE; else -> NutrientCoverageState.PARTIAL }, visible,
+            estimatedAmount, missingFoods)
+    }
+
+    /**
+     * Cobertura por alimento: un alimento sin ningún dato de nutrientes (entrada rápida, sin ficha) es MISSING; con algún dato estimado,
+     * ESTIMATED; si todo lo que trae es declarado, DECLARED. La fracción declarada se pondera por kcal (o por alimento si no hay kcal).
+     */
+    fun foodCoverage(foods: List<LoggedFood>): NutrientFoodCoverage {
+        if (foods.isEmpty()) return NutrientFoodCoverage.EMPTY
+        val kinds = foods.map { food ->
+            val read = NutrientKey.entries.map { read(food, it).kind }.filter { it != NutrientDataKind.MISSING }
+            when {
+                read.isEmpty() -> NutrientDataKind.MISSING
+                read.any { it == NutrientDataKind.ESTIMATED } -> NutrientDataKind.ESTIMATED
+                else -> NutrientDataKind.DECLARED
+            }
+        }
+        val energies = foods.map { it.calories.takeIf { kcal -> kcal.isFinite() && kcal > 0.0 } ?: 0.0 }
+        val byEnergy = energies.sum() > 0.0
+        val weights = if (byEnergy) energies else foods.map { 1.0 }
+        val fraction = kinds.indices.filter { kinds[it] == NutrientDataKind.DECLARED }.sumOf { weights[it] } / weights.sum()
+        return NutrientFoodCoverage(fraction, byEnergy, kinds)
     }
     private fun read(food: LoggedFood, key: NutrientKey): Datum {
         val missing = Datum(null, NutrientDataKind.MISSING)

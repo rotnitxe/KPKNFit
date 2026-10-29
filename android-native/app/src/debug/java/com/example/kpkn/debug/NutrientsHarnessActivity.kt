@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.domain.nutrition.NutrientKey
 import com.example.kpkn.screens.nutrition.nutrients.*
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.design.KpknSurface
@@ -29,11 +28,9 @@ class NutrientsHarnessActivity : ComponentActivity() {
         val reduced = extra("reducedMotion")?.toBooleanStrictOrNull() ?: false
         setContent { KPKNTheme {
             val density = LocalDensity.current
-            var expanded by remember { mutableStateOf(emptySet<NutrientKey>()) }
             CompositionLocalProvider(LocalDensity provides Density(density.density, scale), LocalWizardReducedMotion provides reduced) {
                 Box(Modifier.fillMaxSize().background(KpknSurface.canvas).statusBarsPadding().navigationBarsPadding()) {
-                    NutrientsContent(state, expanded, { key -> expanded = if (key in expanded) expanded - key else expanded + key }, { finish() },
-                        Modifier.widthIn(max = width.dp).fillMaxSize())
+                    NutrientsContent(state, {}, Modifier.widthIn(max = width.dp).fillMaxSize())
                 }
             }
         } }
