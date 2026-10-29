@@ -200,3 +200,8 @@ Decisiones para el informe: «con mantequilla» = aceite «poco»; Recientes sin
 en una hoja encima (la ficha es una ranura, no puede cambiar su propio contenido); «Otro día…» como último destino de «Mover
 a…» (el lienzo solo dice «Otra comida u otro día»); el comentario de PlanGoalMatcher sigue siendo cierto (la hoja de la
 biblioteca conserva ese nombre), no se toca. Rebote del anillo de Inicio al guardar (f-home-done) hecho por mí.
+
+### Progreso de una rutina por semana de calendario (28-oct, decisión del usuario)
+«Sí: que el Progreso de una rutina cuente por semana de calendario.» Semanas de lunes a domingo desde la del primer registro; cada
+una con el plan de la plantilla; cifras de todas las semanas y gráficas de las 12 últimas; alcance de semana = «Esta semana».
+Pruebas en ProgramProgressModelTest (rutina por calendario, alcance de semana, sin registros, 14 semanas → 12 barras).

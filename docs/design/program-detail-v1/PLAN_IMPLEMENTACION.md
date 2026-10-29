@@ -164,9 +164,12 @@ El usuario se fue a dormir con la orden de no parar ni preguntar y de decidir lo
   de líneas como la cabecera (pintaba el degradado), y `kpkn-lines://` deja de tratarse como foto remota.
   Revisión del plan: un valor largo («37,8 / sec 14,0 / estab 2,0») va bajo el nombre (lo partía letra a letra). «Guardar
   imagen» pasa a «Guardar» (se cortaba con texto grande). Inicio lee los resúmenes vistos fuera del hilo principal (StrictMode).
-- **Pendiente de decidir con el usuario: Progreso de una rutina.** Una rutina repite la misma semana, así que todas sus
-  repeticiones caen en «S1» («178 / 127» series, «En 1 semana»). Lo correcto parece contar por semana del calendario, pero cambia
-  qué significan las cifras del prototipo; no lo invento sin su visto bueno.
+- **Progreso de una rutina por semana de calendario (decidido por el usuario el 28-oct).** Una rutina (programa simple de una sola
+  semana) ya no apila sus repeticiones en «S1»: cada semana de lunes a domingo, desde la del primer registro hasta la de hoy, copia
+  las sesiones, series y RIR de la plantilla, y los registros caen en la suya por su fecha (`routineCalendarOf`). Las cifras cuentan
+  todas las semanas; las barras, el tonelaje por semana, el cumplimiento y el esfuerzo dibujan las 12 últimas. El alcance de semana
+  es la de hoy y se llama «Esta semana» (chip y periodo), igual que el periodo de una rutina con una sola semana: «Semana N»
+  chocaría con el número de ciclo de la cabecera. Series por músculo no cambia: su ventana ya es la semana de hoy por fechas.
 - **Fallos de la suite completa que vienen de master (no de esta rama).** 96 de 15.044 pruebas fallan en archivos que esta rama
   no toca (migraciones de Room 37, Nutrición, vídeo, editor de sesiones, hojas de dibujo de VT, recorrido de Inicio). Ninguno
   está en Program Detail, Programas, historias ni resumen del mes.

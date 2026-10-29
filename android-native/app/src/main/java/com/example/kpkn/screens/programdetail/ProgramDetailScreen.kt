@@ -1488,7 +1488,8 @@ private fun TrainingPanel(
                     ProgressScopeChips(
                         selected = progressScope,
                         blockLabel = blockLabel,
-                        weekLabel = weekLabel,
+                        // Una rutina cuenta por semana de calendario: su alcance de semana es la de hoy.
+                        weekLabel = if (progressUi.isRoutine) com.example.kpkn.screens.programdetail.design.progress.ROUTINE_WEEK_LABEL else weekLabel,
                         onSelect = { progressScope = it },
                     )
                     Spacer(Modifier.height(12.dp))

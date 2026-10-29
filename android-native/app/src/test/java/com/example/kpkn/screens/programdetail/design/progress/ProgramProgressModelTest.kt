@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
@@ -19,6 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 /*
  * Programa de prueba: bloque 1 (acumulación) con las semanas w1 y w2; bloque 2 (intensificación) con w3 y w4. Cada semana tiene dos
@@ -37,6 +39,14 @@ private val program = Program(
             ),
         ),
     ),
+)
+
+/** Una rutina: un programa simple de una sola semana (w1, con las sesiones w1-a y w1-b) que se repite cada semana. */
+private val routine = Program(
+    id = "p",
+    name = "Rutina",
+    structure = ProgramStructure.SIMPLE,
+    macrocycles = listOf(Macrocycle(id = "m", name = "Macrociclo", blocks = listOf(block("b1", BlockGoal.ACCUMULATION, week("w1"))))),
 )
 
 /** Un bloque con su objetivo y sus semanas en un único mesociclo. */
@@ -285,5 +295,78 @@ class ProgramProgressModelTest {
 
         assertEquals(programPhaseColor(programPhaseOf(BlockGoal.ACCUMULATION, hasCompetitionWeek = false)), ui.weeks[0].color)
         assertEquals(programPhaseColor(programPhaseOf(BlockGoal.INTENSIFICATION, hasCompetitionWeek = false)), ui.weeks[2].color)
+    }
+
+    /** Una rutina reparte sus entrenos por semana de calendario (de lunes a domingo), cada una con sus 6 series y sus 2 sesiones. */
+    @Test
+    fun unaRutinaCuentaPorSemanaDeCalendario() {
+        val logs = listOf(
+            sessionLog("l1", "w1", "w1-a", date = "2026-01-05"),
+            sessionLog("l2", "w1", "w1-b", date = "2026-01-07"),
+            sessionLog("l3", "w1", "w1-a", date = "2026-01-13"),
+            sessionLog("l4", "w1", "w1-a", date = "2026-01-20"),
+        )
+
+        val ui = buildProgramProgress(routine, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w1", today = LocalDate.of(2026, 1, 21))
+
+        assertTrue(ui.isRoutine)
+        assertEquals(listOf("S1", "S2", "S3"), ui.weeks.map { it.label })
+        assertEquals(listOf(6, 3, 3), ui.weeks.map { it.done })
+        assertEquals(listOf(6, 6, 6), ui.weeks.map { it.planned })
+        assertEquals(listOf(false, false, true), ui.weeks.map { it.isCurrent })
+        assertEquals("En 3 semanas", ui.periodLabel)
+        assertEquals(4, ui.kpis.sessionsDone)
+        assertEquals(6, ui.kpis.sessionsPlanned)
+        assertEquals(12, ui.kpis.setsDone)
+        assertEquals(18, ui.kpis.setsPlanned)
+    }
+
+    /** El alcance de semana de una rutina es la semana de hoy, se elija la que se elija, y se llama «Esta semana». */
+    @Test
+    fun elAlcanceDeSemanaDeUnaRutinaEsLaDeHoy() {
+        val logs = listOf(sessionLog("l1", "w1", "w1-a", date = "2026-01-13"), sessionLog("l2", "w1", "w1-b", date = "2026-01-20"))
+
+        val ui = buildProgramProgress(
+            routine,
+            logs,
+            ProgressScope.WEEK,
+            null,
+            selectedWeekId = "w1",
+            currentWeekId = "w1",
+            today = LocalDate.of(2026, 1, 21),
+        )
+
+        assertTrue(ui.weeks.isEmpty())
+        assertEquals("Esta semana", ui.periodLabel)
+        assertEquals(1, ui.kpis.sessionsDone)
+        assertEquals(2, ui.kpis.sessionsPlanned)
+        assertEquals(3, ui.kpis.setsDone)
+    }
+
+    /** Sin registros, una rutina solo tiene la semana de hoy. */
+    @Test
+    fun unaRutinaSinRegistrosSoloTieneEstaSemana() {
+        val ui = buildProgramProgress(routine, emptyList(), ProgressScope.PROGRAM, null, null, currentWeekId = "w1", today = LocalDate.of(2026, 1, 21))
+
+        assertEquals(listOf("S1"), ui.weeks.map { it.label })
+        assertTrue(ui.weeks.single().isCurrent)
+        assertEquals("Esta semana", ui.periodLabel)
+        assertEquals(2, ui.kpis.sessionsPlanned)
+    }
+
+    /** Una rutina de 14 semanas dibuja sus 12 últimas, pero sus cifras cuentan las 14. */
+    @Test
+    fun unaRutinaLargaDibujaSoloSusUltimasDoceSemanas() {
+        val start = LocalDate.of(2026, 1, 5)
+        val logs = List(14) { sessionLog("l$it", "w1", "w1-a", date = start.plusWeeks(it.toLong()).toString()) }
+
+        val ui = buildProgramProgress(routine, logs, ProgressScope.PROGRAM, null, null, currentWeekId = "w1", today = start.plusWeeks(13))
+
+        assertEquals((3..14).map { "S$it" }, ui.weeks.map { it.label })
+        assertEquals(12, ui.totals.weeks.size)
+        assertEquals(12, ui.adherence!!.weeks.size)
+        assertEquals("En 14 semanas", ui.periodLabel)
+        assertEquals(14, ui.kpis.sessionsDone)
+        assertEquals(28, ui.kpis.sessionsPlanned)
     }
 }
