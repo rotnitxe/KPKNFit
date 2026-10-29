@@ -171,6 +171,9 @@ fun ProgramDetailScreen(
     onOpenCatalog: () -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
     onOpenCompetition: ((String) -> Unit)? = null,
+    /** «Planificar intentos» y «Modo competición» viven en la competencia (Registros, c-plan y c-today): abren su recorrido. */
+    onOpenCompetitionPlan: ((String) -> Unit)? = null,
+    onOpenCompetitionToday: ((String) -> Unit)? = null,
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
@@ -612,7 +615,8 @@ fun ProgramDetailScreen(
                     if (competition != null) {
                         Spacer(Modifier.height(18.dp))
                         com.example.kpkn.screens.programdetail.design.ProgramCompetitionModule(competition,competitionBusy,
-                            onPlan = { planningCompetition = competition },onMeetDay = { meetDayAttempts = competition.record.plannedAttempts },
+                            onPlan = { onOpenCompetitionPlan?.invoke(competition.record.id) ?: run { planningCompetition = competition } },
+                            onMeetDay = { onOpenCompetitionToday?.invoke(competition.record.id) ?: run { meetDayAttempts = competition.record.plannedAttempts } },
                             onReviewResult = { viewModel.reviewMeetResult(competition.record.id) },
                             onOpenRecord = onOpenCompetition?.let { open -> { open(competition.record.id) } })
                     } else {

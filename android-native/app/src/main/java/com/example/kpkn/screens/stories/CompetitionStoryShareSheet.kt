@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,6 +28,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.kpkn.data.models.CompetitionRecord
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import java.time.ZoneId
@@ -37,6 +39,18 @@ import java.time.ZoneId
  */
 fun competitionStoryAvailable(competition: CompetitionRecord, allCompetitions: List<CompetitionRecord>): Boolean =
     competitionStoryAvailability(competition, allCompetitions, SystemAppClock.today(ZoneId.systemDefault())).templates.isNotEmpty()
+
+/** «Compartir» de una competencia por su id (ficha, menú y celebración): la busca en el repositorio y abre su hoja. */
+@Composable
+fun CompetitionStoryShareHost(competitionId: String, onDismiss: () -> Unit) {
+    val all by CompetitionRepository.getInstance().records.collectAsState()
+    val competition = all.firstOrNull { it.id == competitionId }
+    if (competition == null) {
+        if (all.isNotEmpty()) LaunchedEffect(competitionId) { onDismiss() }
+        return
+    }
+    CompetitionStoryShareSheet(competition = competition, allCompetitions = all, onDismiss = onDismiss)
+}
 
 /**
  * La hoja «Compartir tu competencia» (escena h-meet-sheet): vista previa de 176, plantillas (Total · Intentos · Foto · Próxima en

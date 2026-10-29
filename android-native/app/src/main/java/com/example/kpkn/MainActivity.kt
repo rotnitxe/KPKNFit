@@ -90,6 +90,7 @@ import com.example.kpkn.screens.home.ConceptosClaveScreen
 import com.example.kpkn.screens.competitions.CompetitionDetailScreen
 import com.example.kpkn.screens.competitions.CompetitionFlowScreen
 import com.example.kpkn.screens.competitions.CompetitionsHubScreen
+import com.example.kpkn.screens.stories.CompetitionStoryShareHost
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
@@ -1253,12 +1254,14 @@ private fun KPKNNavGraph(
                     onOpenBodyweight = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
                 )
             } else {
+                var sharingId by remember { mutableStateOf<String?>(null) }
                 CompetitionDetailScreen(
                     competitionId = competitionId,
                     onBack = { navController.popBackStack() },
                     onStartFlow = { id, mode -> navController.navigate(KpknRoute.CompetitionFlow.create(id, mode)) { launchSingleTop = true } },
-                    onShare = { /* Punto de conexión: las historias de la competencia (paquete Historias). */ },
+                    onShare = { id -> sharingId = id },
                 )
+                sharingId?.let { id -> CompetitionStoryShareHost(competitionId = id, onDismiss = { sharingId = null }) }
             }
         }
         composable(
@@ -1274,6 +1277,8 @@ private fun KPKNNavGraph(
             ),
         ) { backStack ->
             val args = backStack.arguments
+            var sharingId by remember { mutableStateOf<String?>(null) }
+            sharingId?.let { id -> CompetitionStoryShareHost(competitionId = id, onDismiss = { sharingId = null }) }
             CompetitionFlowScreen(
                 competitionId = args?.getString(KpknRoute.CompetitionFlow.ARG_COMPETITION_ID).orEmpty(),
                 mode = args?.getString(KpknRoute.CompetitionFlow.ARG_MODE).orEmpty(),
@@ -1292,7 +1297,7 @@ private fun KPKNNavGraph(
                         }
                     }
                 },
-                onShare = { /* Punto de conexión: las historias de la competencia (paquete Historias). */ },
+                onShare = { id -> sharingId = id },
             )
         }
         composable(KpknRoute.Nutrition.route) {
@@ -1696,6 +1701,12 @@ private fun KPKNNavGraph(
                 },
                 onOpenCompetition = { recordId ->
                     navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                },
+                onOpenCompetitionPlan = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionFlow.plan(recordId)) { launchSingleTop = true }
+                },
+                onOpenCompetitionToday = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionFlow.today(recordId)) { launchSingleTop = true }
                 },
             )
             }
