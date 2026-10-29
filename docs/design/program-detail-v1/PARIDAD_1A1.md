@@ -199,4 +199,4 @@ catálogo puesta antes de guardar (fuera del hilo principal); objetivo de kcal d
 Decisiones para el informe: «con mantequilla» = aceite «poco»; Recientes sin estrella; «Ver todos» de la ficha abre la lista
 en una hoja encima (la ficha es una ranura, no puede cambiar su propio contenido); «Otro día…» como último destino de «Mover
 a…» (el lienzo solo dice «Otra comida u otro día»); el comentario de PlanGoalMatcher sigue siendo cierto (la hoja de la
-biblioteca conserva ese nombre), no se toca. No hecho: el rebote del anillo de Inicio al guardar.
+biblioteca conserva ese nombre), no se toca. Rebote del anillo de Inicio al guardar (f-home-done) hecho por mí.
