@@ -44,6 +44,13 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.stories.NutritionStoryDay
+import com.example.kpkn.screens.stories.NutritionStoryMacros
+import com.example.kpkn.screens.stories.NutritionStoryShareSheet
+import com.example.kpkn.screens.stories.NutritionStoryStreak
+import com.example.kpkn.screens.stories.StoryShareIcon
+import com.example.kpkn.screens.stories.nutritionStoryAvailable
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknTextAction
@@ -90,6 +97,11 @@ internal fun buildNutritionWeekBars(
     }
 }
 
+/** Los días de la historia «Semana»: fecha, kcal y meta de cada barra (las fechas que no se leen se saltan). */
+internal fun nutritionStoryDays(bars: List<NutritionWeekBar>): List<NutritionStoryDay> = bars.mapNotNull { bar ->
+    runCatching { LocalDate.parse(bar.date) }.getOrNull()?.let { NutritionStoryDay(it, bar.kcal, bar.goal) }
+}
+
 /** La línea de abajo: «Media de los días registrados: 2.050 kcal · 5 de 7 días»; sin días, «Aún no hay días registrados». */
 internal fun weekAverageLine(bars: List<NutritionWeekBar>): String {
     val registered = bars.mapNotNull { it.kcal }
@@ -128,7 +140,14 @@ fun NutritionWeekTrendModule(
     onSelectDate: (String) -> Unit,
     onOpenHistory: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    shareMacros: NutritionStoryMacros? = null,
+    shareStreak: NutritionStoryStreak? = null,
 ) {
+    // «Compartir tu semana» (h-nutri-sheet): kcal y meta de cada día, la media de macros y la racha; nunca qué comiste.
+    val shareDays = remember(bars) { nutritionStoryDays(bars) }
+    val canShare = remember(shareDays, shareMacros, shareStreak) { nutritionStoryAvailable(shareDays, shareMacros, shareStreak) }
+    var sharing by remember { mutableStateOf(false) }
+    if (sharing) NutritionStoryShareSheet(days = shareDays, macros = shareMacros, streak = shareStreak, onDismiss = { sharing = false })
     val reduced = wizardReducedMotion()
     val firstSeen = remember { NutritionFigureMemory.firstTime(NUTRITION_TREND_KEY) }
     var grown by remember { mutableStateOf(!firstSeen) }
@@ -139,8 +158,23 @@ fun NutritionWeekTrendModule(
     val peak = bars.maxOfOrNull { maxOf(it.kcal ?: 0, it.kcalMax ?: 0, it.goal ?: 0) } ?: 0
     val scale = (peak * 1.15).coerceAtLeast(1.0)
     KpknModule(modifier = modifier) {
-        if (onOpenHistory != null) {
-            KpknModuleHeader(label = "Últimos 7 días", action = { NutritionHistoryAction(onOpen = onOpenHistory) })
+        if (onOpenHistory != null || canShare) {
+            KpknModuleHeader(
+                label = "Últimos 7 días",
+                action = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (canShare) {
+                            KpknIconButton(
+                                icon = StoryShareIcon,
+                                contentDescription = "Compartir tu semana",
+                                onClick = { sharing = true },
+                                modifier = Modifier.testTag("nutrition-week-share"),
+                            )
+                        }
+                        if (onOpenHistory != null) NutritionHistoryAction(onOpen = onOpenHistory)
+                    }
+                },
+            )
         } else {
             KpknModuleHeader(label = "Últimos 7 días")
         }
