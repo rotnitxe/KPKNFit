@@ -1,0 +1,12 @@
+/* rs-: pestaña «Resumen» (documentos, sin teléfono) */
+.rs-pill{display:inline-block;font:600 10px Inter;letter-spacing:1.2px;padding:4px 8px;border-radius:8px;background:#ffffff0d;color:var(--muted);white-space:nowrap}
+.rs-pill.d{background:#43d18c17;color:var(--done)}
+.rs-pill.p{background:#f7cf731a;color:var(--ene)}
+.rs-pill.dp{background:#8fb2ff1a;color:var(--col)}
+.rs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0}
+.rs-grid>div{background:#0d0d0d;border:1px solid #ffffff12;border-radius:18px;padding:16px 18px}
+.rs-grid b{display:block;font:700 15px/1.2 Syne;margin-bottom:6px;color:var(--ink)}
+.rs-grid p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.rs-ask{background:#0d0d0d;border:1px solid #ffffff12;border-left:3px solid var(--ene);border-radius:14px;padding:14px 18px;margin:10px 0}
+.rs-ask b{display:block;font:600 14px Inter;color:var(--ink);margin-bottom:4px}
+.rs-ask p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
