@@ -3,6 +3,8 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.isFocused
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.theme.KPKNTheme
 import androidx.compose.foundation.layout.width
@@ -192,33 +194,32 @@ class PreparationChipsComposeTest {
         rule.onNodeWithTag("mobility-chip-m1")
             .assertWidthIsEqualTo(85.dp)
             .assertHeightIsEqualTo(76.dp)
+        // La ficha «+» es de la misma altura y de 56 dp de ancho (`ed-sc add`).
         rule.onNodeWithTag("warmup-chip-add")
-            .assertWidthIsEqualTo(85.dp)
+            .assertWidthIsEqualTo(56.dp)
             .assertHeightIsEqualTo(76.dp)
         rule.onNodeWithTag("mobility-chip-add")
-            .assertWidthIsEqualTo(85.dp)
+            .assertWidthIsEqualTo(56.dp)
             .assertHeightIsEqualTo(76.dp)
     }
 
     @Test
-    fun laMiniaturaUsaLaIdentidadGuardadaYElNombreCompletoSigueAccesible() {
+    fun elNombreCompletoDeLaMovilidadSigueAccesibleEnLaFicha() {
         val movement = MobilityExerciseCatalog.getAllMobilityExercises().first {
             ReviewedExerciseTechniqueImages.mobilityImage(it.id) != null
         }
         rule.setContent {
             MobilityPreparationChips(exerciseId = "press", series = listOf(
                 MobilitySeries(id = "recorded", name = movement.name, catalogConfigurationId = movement.id, durationSeconds = 45),
-                MobilitySeries(id = "unknown", name = movement.name, durationSeconds = 45),
             ), onUpdate = { _, _ -> }, onMove = { _, _ -> }, onRemove = {}, onAdd = {})
         }
-        rule.onNodeWithTag("mobility-chip-reviewed-art-recorded", useUnmergedTree = true).assertExists()
-        rule.onNodeWithTag("mobility-chip-placeholder-unknown", useUnmergedTree = true).assertExists()
+        // Lienzo (ed-preparacion): la ficha de movilidad es texto (M1 · nombre · dosis), sin miniatura.
         rule.onNodeWithTag("mobility-chip-recorded", useUnmergedTree = true)
             .assertContentDescriptionEquals("${movement.name}, ${KpknSetFormat.doseTime(45)}")
     }
 
     @Test
-    fun losContadoresDePreparacionSeLeenCompletosConFuenteAlCientoTreinta() {
+    fun losEncabezadosDePreparacionSeLeenCompletosConFuenteAlCientoTreinta() {
         rule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
@@ -233,12 +234,12 @@ class PreparationChipsComposeTest {
                 }
             }
         }
-        listOf("MOVILIDAD · 1", "APROXIMACIÓN · 1").forEach { header ->
+        listOf("MOVILIDAD", "APROXIMACIÓN").forEach { header ->
             val layouts = mutableListOf<TextLayoutResult>()
             rule.onNodeWithText(header, useUnmergedTree = true).assertIsDisplayed()
                 .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
             assertTrue("Se debe medir el texto de $header", layouts.isNotEmpty())
-            assertTrue("Debe leerse completo: $header", layouts.none { it.hasVisualOverflow })
+            assertTrue("Debe leerse completo: $header", layouts.all { it.lineCount == 1 && !it.isLineEllipsized(0) && !it.didOverflowHeight })
         }
         rule.onNodeWithTag("mobility-global-time").assertIsDisplayed()
         rule.onNodeWithTag("warmup-common-rest").assertIsDisplayed()
@@ -271,7 +272,7 @@ class PreparationChipsComposeTest {
     fun laCargaSugeridaSaleDelPesoDeTrabajoYNoDelUnoRm() {
         renderExercise(baseExercise.copy(warmupSets = listOf(warmup())))
         rule.onNodeWithText("50 %").assertExists()
-        rule.onNodeWithText("8 × 50 kg").assertExists()
+        rule.onNodeWithText("8 reps").assertExists()
         rule.onNodeWithTag("warmup-chip-w1").performClick()
         rule.onNodeWithText("Sugerida: 50 kg · entre 10 % y 95 % · al menos 1 repetición").assertExists()
     }
@@ -283,7 +284,8 @@ class PreparationChipsComposeTest {
             warmupSets = listOf(warmup()),
         )
         renderExercise(exercise)
-        rule.onNodeWithText("8 × 52,5 kg").assertExists()
+        rule.onNodeWithTag("warmup-chip-w1").performClick()
+        rule.onNodeWithText("Sugerida: 52,5 kg · entre 10 % y 95 % · al menos 1 repetición").assertExists()
     }
 
     @Test
@@ -296,15 +298,17 @@ class PreparationChipsComposeTest {
     }
 
     @Test
-    fun editarLosKgDelFocoRecalculaElPorcentajeSobreLaSerieObjetivo() {
+    fun elMasDeLaCargaDelFocoSumaCincoPorCiento() {
         var latest: Exercise? = null
         renderStatefulExercise(baseExercise.copy(warmupSets = listOf(warmup()))) { latest = it }
         rule.onNodeWithTag("warmup-chip-w1").performClick()
-        rule.onNodeWithTag("warmup-focus-kg").performTextReplacement("60")
-        rule.onNodeWithTag("warmup-focus-kg").performImeAction()
+        rule.onNodeWithContentDescription("Más carga").performClick()
         rule.waitForIdle()
-        assertEquals(0.6, latest!!.warmupSets.single().percentageOfWorkingWeight, 0.0001)
-        rule.onNodeWithText("60 %").assertExists()
+        assertEquals(0.55, latest!!.warmupSets.single().percentageOfWorkingWeight, 0.0001)
+        rule.onNodeWithText("55 %").assertExists()
+        rule.onNodeWithContentDescription("Más repeticiones de la aproximación").performClick()
+        rule.waitForIdle()
+        assertEquals(9, latest!!.warmupSets.single().targetReps)
     }
 
     @Test
@@ -312,20 +316,23 @@ class PreparationChipsComposeTest {
         var latest: Exercise? = null
         renderStatefulExercise(baseExercise.copy(warmupSets = listOf(warmup()))) { latest = it }
         rule.onNodeWithTag("warmup-chip-w1").performClick()
-        rule.onNodeWithTag("warmup-focus-percent").performTextReplacement("1")
-        rule.onNodeWithTag("warmup-focus-percent").performImeAction()
+        // El campo se edita con el teclado al tocar la cifra.
+        rule.onNodeWithTag("warmup-focus-percent").performClick()
+        rule.onNode(hasSetTextAction() and isFocused()).performTextReplacement("1")
+        rule.onNode(hasSetTextAction() and isFocused()).performImeAction()
         rule.waitForIdle()
         assertEquals(0.1, latest!!.warmupSets.single().percentageOfWorkingWeight, 0.0001)
         rule.onNodeWithText("10 %").assertExists()
     }
 
     @Test
-    fun unaCargaMayorQueElPesoDeTrabajoSeLimitaAlNoventaYCincoPorCiento() {
+    fun unaCargaMayorQueElMaximoSeLimitaAlNoventaYCincoPorCiento() {
         var latest: Exercise? = null
         renderStatefulExercise(baseExercise.copy(warmupSets = listOf(warmup()))) { latest = it }
         rule.onNodeWithTag("warmup-chip-w1").performClick()
-        rule.onNodeWithTag("warmup-focus-kg").performTextReplacement("120")
-        rule.onNodeWithTag("warmup-focus-kg").performImeAction()
+        rule.onNodeWithTag("warmup-focus-percent").performClick()
+        rule.onNode(hasSetTextAction() and isFocused()).performTextReplacement("120")
+        rule.onNode(hasSetTextAction() and isFocused()).performImeAction()
         rule.waitForIdle()
         assertEquals(0.95, latest!!.warmupSets.single().percentageOfWorkingWeight, 0.0001)
         rule.onNodeWithText("95 %").assertExists()

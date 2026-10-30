@@ -68,6 +68,13 @@ import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
+import com.example.kpkn.screens.sessioneditor.components.EdFlexRow
+import com.example.kpkn.screens.sessioneditor.components.EdPresetButton
+import com.example.kpkn.screens.sessioneditor.components.EdPrimaryButton
+import com.example.kpkn.screens.sessioneditor.components.EdRestField
+import com.example.kpkn.screens.sessioneditor.components.EdSection
+import com.example.kpkn.screens.sessioneditor.components.EdSheet
+import com.example.kpkn.screens.sessioneditor.components.EdSheetHeader
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSetList
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
 import androidx.compose.runtime.getValue
@@ -177,85 +184,61 @@ internal fun RestSheet(
 ) {
     var primary by remember(initialPrimarySeconds) { mutableStateOf(initialPrimarySeconds.coerceAtLeast(0)) }
     var side by remember(initialSideSeconds) { mutableStateOf(initialSideSeconds?.coerceAtLeast(0)) }
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("Descanso", style = KpknType.dialogTitle, color = WizardColors.text)
-                Text(
-                    if (initialSideSeconds != null) "Series y entre lados, en un solo sitio." else "Cuánto esperas antes de la siguiente serie.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
+    // `ed-descanso-ejercicio`: el mismo campo −15 · tiempo · +15 que la serie, con los atajos de siempre.
+    EdSheet(onDismiss = onDismiss) {
+        EdSheetHeader(
+            "Descanso",
+            if (initialSideSeconds != null) "Series y entre lados, en un solo sitio." else "Cuánto esperas antes de la siguiente serie.",
+        )
+        RestSection(
+            label = primaryLabel,
+            seconds = primary,
+            step = 15,
+            presets = listOf(15, 30, 45, 60, 90, 120, 180),
+            onChange = { primary = it },
+        )
+        if (initialSideSeconds != null) {
             RestSection(
-                label = primaryLabel,
-                seconds = primary,
-                accentColor = accentColor,
-                presets = listOf(15, 30, 45, 60, 90, 120, 180),
-                onChange = { primary = it },
-            )
-            if (initialSideSeconds != null) {
-                RestSection(
-                    label = "Entre lados",
-                    seconds = side ?: 0,
-                    accentColor = accentColor,
-                    presets = listOf(5, 10, 15, 30),
-                    onChange = { side = it },
-                )
-            }
-            KpknPrimaryPill(
-                text = "Listo",
-                onClick = {
-                    onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null)
-                },
-                modifier = Modifier.fillMaxWidth(),
+                label = "Entre lados",
+                seconds = side ?: 0,
+                step = 5,
+                presets = listOf(5, 10, 15, 30),
+                onChange = { side = it },
             )
         }
+        EdPrimaryButton(
+            text = "Listo",
+            onClick = {
+                onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null)
+            },
+        )
     }
 }
 
-/** Un bloque de la hoja de descanso: rótulo, valor, −/+ de 15 s y presets. */
+/** Un bloque de la hoja de descanso: rótulo, campo −/+ con el tiempo y atajos (que pasan a la línea siguiente si no caben). */
 @Composable
 private fun RestSection(
     label: String,
     seconds: Int,
-    accentColor: Color,
+    step: Int,
     presets: List<Int>,
     onChange: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(label, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
-            KpknIconButton(
-                icon = KpknLineIcons.Minus,
-                contentDescription = "Quitar 15 segundos a $label",
-                onClick = { onChange((seconds - 15).coerceAtLeast(0)) },
-            )
-            Text(
-                KpknSetFormat.doseTime(seconds),
-                style = KpknType.metricM,
-                color = accentColor,
-                modifier = Modifier.padding(horizontal = 10.dp),
-            )
-            KpknIconButton(
-                icon = KpknLineIcons.Plus,
-                contentDescription = "Sumar 15 segundos a $label",
-                onClick = { onChange(seconds + 15) },
-            )
-        }
-        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    EdSection(label = label, headerMin = 0.dp) {
+        EdRestField(
+            seconds = seconds,
+            onStep = { direction -> onChange((seconds + direction * step).coerceIn(0, 900)) },
+            stepLabel = step,
+            scrubbable = false,
+            description = "$label ${KpknSetFormat.doseTime(seconds)}",
+            minusDescription = "Quitar $step segundos a $label",
+            plusDescription = "Sumar $step segundos a $label",
+        )
+        EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 6.dp, lineGap = 6.dp) {
             presets.forEach { preset ->
-                KpknChip(
-                    text = KpknSetFormat.doseTime(preset),
-                    selected = seconds == preset,
+                EdPresetButton(
+                    text = if (preset < 60) "$preset s" else KpknSetFormat.rest(preset),
+                    on = seconds == preset,
                     onClick = { onChange(preset) },
                 )
             }
