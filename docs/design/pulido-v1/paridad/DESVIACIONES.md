@@ -106,7 +106,7 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 
 ## DESV-404
 - Filas: ed-T07
-- Qué cambia: la tarjeta abierta se despliega con el `AnimatedVisibility` por defecto (fundido + `expandVertically` con resorte), no con `grid-template-rows` en 0,3 s `--ed-ease`. Pendiente de una pasada corta de movimiento (una línea: `expandVertically(tween(280, Estandar))`).
+- Qué cambia: (RESUELTA en la pasada B/C: ed-T07 está [x]; la tarjeta usa `expandVertically`/`shrinkVertically` de 300 ms `--ed-ease`, ver ExerciseEditorCard.kt:320.) Antes: despliegue con el `AnimatedVisibility` por defecto.
 - Captura: paridad/capturas/DESV-404.png
 - Aprobada por: pendiente
 
@@ -268,4 +268,34 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Filas: (escenas ce-duracion-teclado y ce-duracion-error; sin fila propia)
 - Qué cambia: el lienzo dibuja un teclado de maqueta (3 × 4 más «Listo») para enseñar el estado «escribiendo». En la app escribe el teclado del sistema (`KeyboardType.Number` o `Decimal`) y la hoja enseña la cifra, el cursor de 3 × 52 dp que parpadea (familia `pulso`), la ayuda o el error y el botón «Listo»; Robolectric no dibuja el teclado del sistema, por eso el error medio de estas dos escenas (17,6–23,4/255) es el teclado que falta.
 - Captura: paridad/capturas/DESV-506.png
+- Aprobada por: pendiente
+
+## DESV-450
+- Filas: ed-T24 (`.ed-seg button`, transition background/color 0,2 s)
+- Qué cambia: `.ed-seg` es una regla CSS que ninguna escena del lienzo pinta (no hay conmutador de 44 dp en ninguna de las 18 escenas de las series ni de las hojas), y la app tampoco tiene ese componente (el pequeño de «Fijas | Rango» es `.ed-sm`, ed-T26, ya cerrado). No hay nada que animar.
+- Captura: paridad/capturas/DESV-450.png (ed-serie: lienzo | app; el conmutador que sí existe es `.ed-sm`)
+- Aprobada por: pendiente
+
+## DESV-451
+- Filas: objetivos táctiles (transversal: flechas de día y siete días de la hoja de la semana de A2; controles de las series)
+- Qué cambia: lo que se ve conserva el tamaño del lienzo y el área táctil llega a 48 × 48 dp con el mínimo de Compose (`touchBoundsInRoot`, el criterio de `LiveHeaderTouchTargetsTest`), no agrandando la caja: crecer 4 dp por control movería todo el ritmo vertical del lienzo. Los siete días caben a 42 dp de ancho en 294 dp; 48 dp de ancho no caben sin scroll, así que su área táctil se solapa 3 dp con la vecina (Compose elige la más cercana).
+- Captura: paridad/capturas/DESV-451.png
+- Aprobada por: pendiente
+
+## DESV-452
+- Filas: ed-A06 (`.ed-focus.anim`, `.ed-presets.anim`, `.ed-tcfg.anim`: `ed-in` 0,26 s `--ed-ease`)
+- Qué cambia: la entrada de 6 dp con fundido se hace con el `@keyframes` y la duración exactos, pero el foco de la serie solo se anima al elegir otra ficha o al cambiar Fijas/Rango, no al abrir la tarjeta (el lienzo sí, porque la redibuja con `anim=true`): al abrir ya la mueve el despliegue de 300 ms y animarlo al componer repetiría el efecto cada vez que la lista perezosa vuelve a componer la tarjeta. Los atajos de descanso y la configuración de técnica sí entran al aparecer.
+- Captura: paridad/capturas/DESV-452.png
+- Aprobada por: pendiente
+
+## DESV-453
+- Filas: ed-A10 (`.ed-sc.flash`: `ed-flash` 0,6 s)
+- Qué cambia: tras «Aplicar a todas» destellan las fichas de las series (fondo #f2eee633 y escala 1,04 que vuelven en 600 ms); las fichas de aproximación y de movilidad, que el lienzo también marca (`.ed-sc:not(.add)` de toda la tarjeta), no destellan porque su estado vive en el carrusel de preparación, fuera de la lista de series.
+- Captura: paridad/capturas/DESV-453.png
+- Aprobada por: pendiente
+
+## DESV-454
+- Filas: ed-J05 (`closeLayer`: la hoja queda 230 ms con `.out` y se desmonta)
+- Qué cambia: la hoja del editor es `KpknSheet(lienzo = EdSheetSpec)` y se desmonta cuando termina su salida de 240 ms (10 ms más que los 230 ms del lienzo); los botones de dentro cierran con `LocalEdSheetClose` y lo que confirman corre después, como `closeLayer(cb)`. Las demás hojas del editor (cardio, catálogo, asistente) no son de este paquete.
+- Captura: paridad/capturas/DESV-454.png
 - Aprobada por: pendiente
