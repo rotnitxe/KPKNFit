@@ -158,7 +158,7 @@ class LiveSetModesUiTest {
                 assertTrue("$next/$track el slider de ROM no queda bajo las acciones", detail.bottom <= actions.top + 1f)
                 openDetail()
                 rule.onNodeWithTag("live-set-detail-rom").scrollToIfScrollable().assertIsDisplayed()
-                assertTrue("$next/$track campo de ROM de 44 dp", rule.onNodeWithTag("live-set-detail-rom").fetchSemanticsNode().boundsInRoot.height / density >= 43.5f)
+                assertTrue("$next/$track campo de ROM de 42 dp (lienzo)", rule.onNodeWithTag("live-set-detail-rom").fetchSemanticsNode().boundsInRoot.height / density >= 41.5f)
                 closeSheet()
             } else {
                 rule.onNodeWithTag("live-rom-slider").assertDoesNotExist()

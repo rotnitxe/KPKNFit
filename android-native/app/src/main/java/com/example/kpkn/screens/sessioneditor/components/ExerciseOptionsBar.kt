@@ -1,6 +1,21 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.Text
+import com.example.kpkn.screens.workout.components.RomSwitch
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -112,12 +127,12 @@ internal fun ExerciseOptionsBar(
                         },
                     )
                 }
-                // Pulido v1 (15): el mismo dato que el interruptor «Registrar ROM» de «Detalle del registro» en la sesión en vivo
-                // (`Exercise.trackRom`). Lienzo: la fila se activa y desactiva ahí mismo, sin cerrar la hoja.
-                EdMenuRow(
-                    title = if (exercise.trackRom) "Desactivar medir ROM" else "Medir ROM",
-                    icon = EdIcons.Rom,
-                    onClick = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
+                // Pulido v1 (15) · `lv-rom-editor`: «Medir ROM» pasa a ser el interruptor «Registrar ROM» (el mismo nombre que en «Detalle del
+                // registro» de la sesión en vivo) y NO cierra la hoja. Es `Exercise.trackRom`: activo, la tarjeta de cada serie del ejercicio
+                // lleva el deslizador de ROM al 100 %; apagado, sin ROM.
+                RomSwitchMenuRow(
+                    checked = exercise.trackRom,
+                    onToggle = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
                 )
                 EdMenuRow(
                     title = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
@@ -418,5 +433,29 @@ internal fun SideOptionsModule(
             text = "Entre lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}",
             onClick = onOpenSideRest,
         )
+    }
+}
+
+/** `Registrar ROM` de la hoja «Opciones del ejercicio»: título, línea de ayuda y el interruptor del lienzo (`.lv-sw`). */
+@Composable
+private fun RomSwitchMenuRow(checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp).clip(RoundedCornerShape(14.dp))
+            .clickable(role = Role.Switch, onClick = onToggle)
+            .semantics {
+                toggleableState = ToggleableState(checked)
+                stateDescription = if (checked) "Activado" else "Desactivado"
+            }
+            .testTag("exercise-options-rom-switch")
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Registrar ROM", style = edText(14.5f, FontWeight.SemiBold, EdColors.ink, 18.1f))
+            Text("Añade un deslizador de ROM a la tarjeta de cada serie de este ejercicio.",
+                style = edText(12f, FontWeight.Medium, EdColors.faint, 16.2f))
+        }
+        RomSwitch(checked)
     }
 }

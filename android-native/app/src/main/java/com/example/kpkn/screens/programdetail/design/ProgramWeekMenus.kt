@@ -24,7 +24,7 @@ internal fun sessionMenuSubtitle(dayName: String?, date: LocalDate?, exercises: 
 }
 
 /**
- * El ⋯ de la semana (m-week): «Nombre y nota de la semana» y «Cambiar reparto»; «Copiar» con copiar y pegar; «Semanas» con añadir una
+ * El ⋯ de la semana (m-week): «Nombre y nota de la semana», «Cambiar reparto» y, si hay un cambio de reparto que deshacer, «Deshacer el cambio de reparto»; «Copiar» con copiar y pegar; «Semanas» con añadir una
  * después y eliminar. [pasteLabel] es «Pegar la semana 3 aquí» (null si no hay nada copiado o es esta misma).
  */
 @Composable
@@ -33,6 +33,7 @@ internal fun ProgramWeekMenuSheet(
     sub: String?,
     onEditMeta: (() -> Unit)?,
     onChangeSplit: (() -> Unit)?,
+    onUndoSplit: (() -> Unit)? = null,
     onCopy: () -> Unit,
     pasteLabel: String?,
     onPaste: () -> Unit,
@@ -53,6 +54,17 @@ internal fun ProgramWeekMenuSheet(
         }
         onChangeSplit?.let {
             LienzoMenuRow(icon = LienzoDumbbellIcon, title = "Cambiar reparto", sub = "Qué entrena cada día", onClick = run(it), divider = !first, tag = "week_menu_split")
+            first = false
+        }
+        onUndoSplit?.let {
+            LienzoMenuRow(
+                icon = com.example.kpkn.screens.programdetail.design.split.RpUndoIcon,
+                title = "Deshacer el cambio de reparto",
+                sub = "Devuelve la semana a como estaba",
+                onClick = run(it),
+                divider = !first,
+                tag = "week_menu_undo_split",
+            )
             first = false
         }
         LienzoGroup("Copiar")

@@ -90,7 +90,7 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.workout.components.LiveSetDetailSheet
-import com.example.kpkn.screens.workout.components.RomReportSlider
+import com.example.kpkn.screens.workout.components.RomBand
 import com.example.kpkn.screens.workout.components.liveSetInitialRom
 import com.example.kpkn.screens.workout.components.liveSetRomLabel
 import com.example.kpkn.screens.workout.components.LiveSheet
@@ -1197,6 +1197,16 @@ private fun InlineSetEditor(
     // Pulido v1 (15): igual que en la tarjeta, el plan del ejercicio (`trackRom`) decide el valor de partida; lo ya guardado manda.
     var rom by rememberSaveable(row.key) { mutableStateOf(liveSetInitialRom(row.exercise.trackRom, savedDraft?.rom, row.completed?.rom)) }
     var note by rememberSaveable(row.key) { mutableStateOf(savedDraft?.notes.orEmpty()) }
+    // El ROM sigue a `Exercise.trackRom` (la única verdad): si el editor, la tarjeta o la hoja de otra serie lo cambian, esta fila también.
+    var seenTracksRom by remember(row.key) { mutableStateOf(row.exercise.trackRom) }
+    LaunchedEffect(row.exercise.trackRom) {
+        val on = row.exercise.trackRom
+        if (on != seenTracksRom) {
+            seenTracksRom = on
+            rom = if (on) rom ?: 100 else if (row.completed?.rom != null) rom else null
+        }
+    }
+    var saveRomToProgram by remember(row.exercise.id) { mutableStateOf(false) }
     var showDetail by remember(row.key) { mutableStateOf(false) }
     var showScale by remember(row.key) { mutableStateOf(false) }
     var busy by remember(row.key) { mutableStateOf(false) }
@@ -1444,33 +1454,15 @@ private fun InlineSetEditor(
                     maxLines = if (rom != null) 1 else Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
                 )
                 if (rom != null) {
-                    // Pulido v1 (15): con ROM activo, el slider ocupa el hueco de «Parciales / ayuda» (misma altura de 26 dp) y «Detalle ›» abre la hoja.
-                    RomReportSlider(
+                    // Pulido v1 (15): con ROM activo el hueco de «Parciales / ayuda» lleva la misma banda de 36 dp que la tarjeta
+                    // (ROM y valor, deslizador de 10 a 100 % y «Detalle ›», con un punto si hay parciales o ayuda).
+                    RomBand(
                         value = rom ?: 100,
                         onValueChange = { rom = it; persist() },
-                        accentColor = WizardColors.text,
-                        modifier = Modifier.weight(1.2f).padding(horizontal = 6.dp),
-                        rowHeight = 26.dp,
-                        compact = true,
+                        hasDetail = partials > 0 || assisted > 0,
+                        onOpenDetail = { showDetail = true },
+                        modifier = Modifier.weight(1.6f).padding(start = 8.dp),
                     )
-                    Row(
-                        Modifier.heightIn(min = 26.dp).clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button) { showDetail = true }
-                            .testTag("live-list-detail-${row.key}"),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            when {
-                                partials > 0 && assisted > 0 -> "+$partials parc. · $assisted ayuda"
-                                partials > 0 -> "+$partials parc."
-                                assisted > 0 -> "$assisted ayuda"
-                                else -> "Detalle"
-                            },
-                            Modifier.widthIn(max = 84.dp), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            style = Body.copy(fontSize = 12.sp), color = WizardColors.textMuted,
-                        )
-                        Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = WizardColors.textMuted)
-                    }
                 } else {
                     Text(
                         when {
@@ -1554,9 +1546,14 @@ private fun InlineSetEditor(
                 rom = if (on) (rom ?: 100) else null
                 persist()
                 // Igual que en la tarjeta: el ejercicio registra ROM como si el editor lo dijera, para el resto de la sesión.
-                if (on != row.exercise.trackRom) viewModel.setExerciseTrackRom(row.exercise.id, on)
+                if (on != row.exercise.trackRom) viewModel.setExerciseTrackRom(row.exercise.id, on, saveRomToProgram)
             },
-            onRom = { rom = it.coerceIn(0, 100); persist() },
+            onRom = { rom = com.example.kpkn.domain.workout.LiveRom.fromTyped(it); persist() },
+            saveToProgram = saveRomToProgram,
+            onSaveToProgramChange = { toProgram ->
+                saveRomToProgram = toProgram
+                viewModel.setExerciseTrackRom(row.exercise.id, rom != null, toProgram)
+            },
             note = note,
             onNote = { note = it; persist() },
             onDismiss = { showDetail = false },

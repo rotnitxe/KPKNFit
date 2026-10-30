@@ -211,3 +211,21 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: rasterización del texto (Chrome frente a Skia: DESV-202), iconos de la app en lugar de los del lienzo (`KpknLineIcons` para ‹ › ⌃ y cronómetro; `Icons.Default.Update` para «Actualizar serie» frente al icono de refrescar del lienzo) y tamaño exacto de las sombras. Error medio del recorte de la isla (360 × 140–156 dp, comparado con `tools/compare.cjs` y alineado 1 px por el marco del teléfono del lienzo): 6,9–8,4/255 en las escenas A y B de 360 × 880 (3,9–4,5 con 1,5 px de desenfoque, que quita la diferencia de texto), 10,8–11,7 en «prep» (la píldora «Estado previo» y su texto), 10–14,4 en las densas de 740 dp y 130 % (el recorte incluye las tarjetas fantasma del lienzo, que no son del roadmap); la «Ruta»: 7,6 y 6,8/255. No llega al objetivo de 2,5/255 porque el recorte es todo texto y bordes; no se pudo medir el vidrio (el roadmap es plano) ni el Flip5.
 - Captura: paridad/capturas/DESV-656.png
 - Aprobada por: pendiente (orquestador)
+
+## DESV-600
+- Filas: lv-A04 (`.lv-edrow .tx small .rm`, `lv-pin` 0,34 s al encender «Registrar ROM»)
+- Qué cambia: el «ROM» de la línea resumen del ejercicio en el editor (`exerciseSummary`, `SessionEditorUiUtils`) es un trozo de una cadena unida con « · », no un elemento propio; para animarlo (escala 0,86 → 1 con `aparece-escala`) hay que partir esa línea en texto con estilos (`AnnotatedString` con un tramo animado), cosa que toca la fila del editor (paquete `ed`). El interruptor, el dato y el texto «· ROM» sí están; solo falta el rebote de entrada.
+- Captura: paridad/capturas/DESV-600.png (lv-rom-editor: lienzo | app | diferencias)
+- Aprobada por: pendiente
+
+## DESV-601
+- Filas: lv-S21 (`.lv-sh`: `0 -14px 44px #000c` + filete superior; panel #1b1b1d)
+- Qué cambia: la hoja «Detalle del registro» (y la de historial) usa el marco de `LiveSheetKit` (`HeaderSheet`: velo #99000000, panel #F5141513, asa de 33 × 3, título Syne 21): es el mismo marco que comparten las demás hojas de la sesión en vivo y de otros paquetes, así que su sombra y su color no se tocan aquí. El contenido de las hojas del paquete (filas, campos, interruptor, zonas, deslizador) sí es el del lienzo. Diferencia medida: la hoja de la app arranca ~30 dp más abajo y su panel es algo más oscuro.
+- Captura: paridad/capturas/DESV-601.png (lv-rom-hoja-on: lienzo | app | diferencias)
+- Aprobada por: pendiente
+
+## DESV-602
+- Filas: lv-G02, lv-G03, lv-S31
+- Qué cambia: son reglas base de las hojas comunes del lienzo (`.split7 i.on`, `.story .st-week i.on`, `.tok.on`) que el inventario asocia a `lv-rom-hoja-on` pero que no tienen ningún elemento en las escenas del paquete: no hay nada que dibujar.
+- Captura: no aplica
+- Aprobada por: pendiente

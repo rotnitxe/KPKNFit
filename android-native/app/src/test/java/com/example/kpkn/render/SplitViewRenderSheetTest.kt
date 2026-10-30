@@ -32,8 +32,6 @@ import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import com.example.kpkn.screens.programdetail.design.split.SplitApplySheet
-import com.example.kpkn.screens.programdetail.design.split.SplitCatalogMode
-import com.example.kpkn.screens.programdetail.design.split.SplitCatalogScreen
 import com.example.kpkn.screens.programdetail.design.split.SplitCompareSheet
 import com.example.kpkn.screens.programdetail.design.split.SplitCustomEditorSheet
 import org.junit.Assume.assumeTrue
@@ -77,9 +75,6 @@ class SplitViewRenderSheetTest {
 
     /** Los casos de la hoja, en orden. */
     private val cases = listOf(
-        "pagina",
-        "paginaComparar",
-        "noDisponible",
         "comparar",
         "aplicarImpacto",
         "aplicarSemanas",
@@ -99,9 +94,6 @@ class SplitViewRenderSheetTest {
     private val fullBody: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "fullbody_x3" }
     private val pplX6: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "ppl_x6" }
     private val broSplit: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "bro_split" }
-
-    /** El catálogo de la página: cuatro repartos de los que se publican. */
-    private val catalog: List<SplitTemplate> = listOf(ulX4, pplUl, fullBody, pplX6)
 
     private fun save(tag: String, name: String) {
         val dir = File(System.getenv("KPKN_RENDER_DIR")!!)
@@ -125,8 +117,6 @@ class SplitViewRenderSheetTest {
 
     /** Alto del lienzo de cada caso, en dp. */
     private fun heightOf(name: String): Int = when (name) {
-        "pagina", "paginaComparar" -> 2600
-        "noDisponible" -> 1100
         "comparar" -> 1500
         "aplicarImpacto", "aplicarSemanas" -> 2100
         "editor", "editorDesplegado" -> 2100
@@ -149,62 +139,11 @@ class SplitViewRenderSheetTest {
         else -> null
     }
 
-    /** Página del catálogo con los datos de muestra; los parámetros cambian solo lo que cada caso muestra. */
-    @Composable
-    private fun Page(
-        splits: List<SplitTemplate>,
-        mode: SplitCatalogMode,
-        selectedIds: List<String>,
-        unavailableReason: (SplitTemplate) -> String?,
-    ) {
-        SplitCatalogScreen(
-            current = ulX4,
-            startDay = 1,
-            query = "",
-            onQueryChange = {},
-            selectedTag = null,
-            onSelectTag = {},
-            splits = splits,
-            customSplit = null,
-            unavailableReason = unavailableReason,
-            isCurrent = { split -> split.id == ulX4.id },
-            mode = mode,
-            selectedIds = selectedIds,
-            onBack = {},
-            onToggleCompareMode = {},
-            onToggleMultiMode = {},
-            onApply = {},
-            onToggleSelect = {},
-            onEditCustom = {},
-            onApplyCustom = {},
-            onCompare = {},
-            onApplySelected = {},
-        )
-    }
-
     /** Pinta el caso [name]. */
     @Composable
     private fun Case(name: String) {
         val program = ProgramDetailSamples.splitProgram(weeks = 1)
         when (name) {
-            "pagina" -> Page(
-                splits = catalog,
-                mode = SplitCatalogMode.BROWSE,
-                selectedIds = emptyList(),
-                unavailableReason = { null },
-            )
-            "paginaComparar" -> Page(
-                splits = catalog,
-                mode = SplitCatalogMode.COMPARE,
-                selectedIds = listOf(ulX4.id, pplUl.id),
-                unavailableReason = { null },
-            )
-            "noDisponible" -> Page(
-                splits = listOf(broSplit),
-                mode = SplitCatalogMode.BROWSE,
-                selectedIds = emptyList(),
-                unavailableReason = { "Piernas: sin plantilla compatible" },
-            )
             "comparar" -> SplitCompareSheet(
                 first = ulX4,
                 second = pplUl,

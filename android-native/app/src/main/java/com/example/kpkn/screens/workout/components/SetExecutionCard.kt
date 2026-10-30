@@ -9,6 +9,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
 import com.example.kpkn.domain.training.VariantLoadEstimates
+import com.example.kpkn.domain.workout.LiveRom
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknShadow
+import com.example.kpkn.domain.workout.RepsCarouselMath
 import com.example.kpkn.domain.workout.isMyoReps
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
@@ -943,8 +947,11 @@ internal fun SetInputCardV2(
     amrapResultPanel: (@Composable (() -> Unit) -> Unit)? = null,
     clockNowMillis: () -> Long = { android.os.SystemClock.elapsedRealtime() },
     equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
-    /** «Registrar ROM» de «Detalle del registro»: además de esta serie, lo fija en el ejercicio de la sesión (`Exercise.trackRom`). */
-    onTrackRomChange: ((Boolean) -> Unit)? = null,
+    /**
+     * «Registrar ROM» de «Detalle del registro»: además de esta serie, lo fija en el ejercicio de la sesión (`Exercise.trackRom`). El
+     * segundo valor es «Guardar también en el programa» (sin él, vale solo para esta sesión).
+     */
+    onTrackRomChange: ((Boolean, Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
@@ -1162,6 +1169,17 @@ internal fun SetInputCardV2(
     var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf<Int?>(liveSetInitialRom(tracksRom, restoredDraft?.rom, sessionCompletedSet?.rom))
     }
+    // Si el interruptor del editor (o la hoja de otra serie) cambia `trackRom` con la tarjeta a la vista, esta serie lo sigue: se enciende al
+    // 100 % o se apaga, salvo que ya lleve un ROM registrado (editar nunca borra un dato guardado).
+    var seenTracksRom by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(tracksRom) }
+    LaunchedEffect(tracksRom) {
+        if (tracksRom != seenTracksRom) {
+            seenTracksRom = tracksRom
+            romValue = if (tracksRom) romValue ?: DEFAULT_ROM_PERCENT else if (sessionCompletedSet?.rom != null) romValue else null
+        }
+    }
+    // «Guardar también en el programa» de la hoja: por defecto, el ROM vale solo para esta sesión.
+    var saveRomToProgram by remember(exercise.id) { mutableStateOf(false) }
     var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
     val sideKey = if (supportsIndependentSides) lockedSide ?: selectedSide else "B"
     var quantityError by remember(exercise.id, setIndex, sideKey) { mutableStateOf<String?>(null) }
@@ -1906,12 +1924,14 @@ internal fun SetInputCardV2(
     val stableCardHeight = liveSessionCardHeight()
     // Marco de 394 dp (pantallas de 360 de ancho): la misma composición con menos aire, como la clase «compact» del prototipo 02.
     // Mismo umbral (440 dp) que el resto de tarjetas del paginador: el Flip (430 dp) conserva las medidas compactas.
-    val tightCard = stableCardHeight < 440.dp
+    // Pulido v1 (lienzo `lvDims`): compacta solo por debajo de 404 dp de alto o con menos de 350 dp de ancho; el Flip (430) usa la tarjeta amplia.
+    val tightCard = stableCardHeight < 404.dp || androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 350
     // Los dp que la tarjeta compacta gana sobre 394 (hasta 44): se reparten como aire entre los bloques en vez de quedar como hueco abajo.
     val roomExtra = if (tightCard) (stableCardHeight - 394.dp).coerceIn(0.dp, 44.dp) else 0.dp
     val reducedMotion = wizardReducedMotion()
     // `.v2-content`: 13/18 de relleno (9/15 en compacto).
-    val cardInset = if (tightCard) 15.dp else 18.dp
+    // El lienzo deja 15 dp a cada lado en todas las alturas (`.lv-kick`, `.lv-load`, `.lv-body`).
+    val cardInset = 15.dp
     var rmSheetOpen by remember(exercise.id, setIndex) { mutableStateOf(false) }
     fun selectLiveLoadMode(selectedMode: LoadModeV2) {
         if (loadMode != selectedMode) updateActiveWeightText("")
@@ -2052,10 +2072,13 @@ internal fun SetInputCardV2(
                         bodyLoad -> "${liveLoadModeLabel(loadMode)} · corporal $bodyWeightText kg"
                         else -> ghostSet?.let { previous ->
                             buildString {
+                                append("Anterior · ")
                                 append(previous.weight.toTrimmedNumberString())
                                 append(" × ")
                                 append(previous.reps)
                                 previous.rir?.let { append(" · RIR $it") }
+                                // Pulido v1 (15): el ROM de la serie anterior («Anterior · 120 × 5 · ROM 100 %»).
+                                previous.rom?.let { append(" · ").append(liveSetRomLabel(it)) }
                             }
                         } ?: "Sin historial anterior"
                     } + (if (!bodyLoad && exercise.loadEstimate != null) " · ${VariantLoadEstimates.PRESCRIPTION_LABEL}" else ""),
@@ -2137,9 +2160,16 @@ internal fun SetInputCardV2(
             onRomToggle = { on ->
                 romValue = if (on) (romValue ?: DEFAULT_ROM_PERCENT) else null
                 // El ejercicio registra ROM igual que si el editor lo dijera: el resto de sus series nacen con el slider.
-                if (on != tracksRom) onTrackRomChange?.invoke(on)
+                if (on != tracksRom) onTrackRomChange?.invoke(on, saveRomToProgram)
             },
-            onRom = { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) },
+            onRom = { romValue = LiveRom.fromTyped(it) },
+            saveToProgram = saveRomToProgram,
+            onSaveToProgramChange = onTrackRomChange?.let { change ->
+                { toProgram: Boolean ->
+                    saveRomToProgram = toProgram
+                    change(romValue != null, toProgram)
+                }
+            },
             note = setNoteText,
             onNote = { setNoteText = it },
             onDismiss = { showFeedbackExtrasPopup = false },
@@ -2149,28 +2179,22 @@ internal fun SetInputCardV2(
 
     @Composable
     fun LegacyDetailRow() {
-        // `.v2-detail-line`: el resumen de parciales, ayuda y ROM (o «Parciales, ayuda y ROM ›»); si hay que avisar, el aviso en línea.
-        // Pulido v1 (15): con ROM activo (el plan lo registra o se encendió en la hoja) el hueco lleva el slider de ROM (0–100 %, 100 por
-        // defecto) y a su derecha «Detalle ›», que abre la hoja. La fila mide lo mismo con o sin slider: la tarjeta no cambia de tamaño.
+        // `.lv-det` / `.lv-rom` del lienzo. Sin ROM, el resumen de parciales y ayuda (o «Parciales, ayuda y ROM ›»); si hay que avisar, el
+        // aviso en línea. Con ROM (el ejercicio lo registra: `Exercise.trackRom`, o se encendió en la hoja) ese mismo hueco lleva la banda
+        // de 36 dp: ROM y valor, el deslizador de 10 a 100 % y «Detalle ›», que abre la hoja. La tarjeta no cambia de tamaño.
         val partials = partialSets.sum().coerceAtLeast(0)
         val romOn = romValue != null
         val rowMin = if (tightCard) 26.dp else 27.dp
         val summary = buildList {
             if (partials > 0) add("+$partials parciales")
             if (assistedRepsValue > 0) add("$assistedRepsValue con ayuda")
-            romValue?.let { add(liveSetRomLabel(it)) }
         }.joinToString(" · ").ifBlank { "Parciales, ayuda y ROM" }
-        // A la derecha del slider solo cabe un resumen corto de lo que no se ve en él.
-        val detailLabel = buildList {
-            if (partials > 0) add("+$partials parc.")
-            if (assistedRepsValue > 0) add("$assistedRepsValue ayuda")
-        }.joinToString(" · ").ifBlank { "Detalle" }
         val inlineError = quantityError ?: if (effortHintVisible && !hasChosenReportedEffort) "Marca tu esfuerzo antes de registrar." else null
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = rowMin)
-                // Con el slider la fila no es un botón entera (arrastrar el slider no puede abrir la hoja): abre «Detalle ›».
+                // Con la banda la fila no es un botón entera (arrastrar el deslizador no puede abrir la hoja): abre «Detalle ›».
                 .then(if (inlineError == null && !romOn) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") {
                     showFeedbackExtrasPopup = true
                 } else Modifier)
@@ -2185,28 +2209,14 @@ internal fun SetInputCardV2(
                     Text(shownError, Modifier.fillMaxWidth().testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
                         style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
                 } else if (romOn) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        RomReportSlider(
-                            value = romValue ?: DEFAULT_ROM_PERCENT,
-                            onValueChange = { romValue = it },
-                            accentColor = sessionAccentColor,
-                            modifier = Modifier.weight(1f),
-                            rowHeight = rowMin,
-                            compact = true,
-                        )
-                        Row(
-                            Modifier.heightIn(min = rowMin).clip(RoundedCornerShape(8.dp))
-                                .clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") { showFeedbackExtrasPopup = true }
-                                .padding(start = 4.dp)
-                                .testTag("live-card-detail-open"),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            Text(detailLabel, modifier = Modifier.widthIn(max = 84.dp), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Ref02CardMuted)
-                            Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
-                        }
-                    }
+                    // pulido:lv-A11 lv-T08
+                    RomBand(
+                        value = romValue ?: LiveRomFullPercent,
+                        onValueChange = { romValue = it },
+                        hasDetail = partials > 0 || assistedRepsValue > 0,
+                        onOpenDetail = { showFeedbackExtrasPopup = true },
+                        hapticsEnabled = hapticFeedbackEnabled,
+                    )
                 } else {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
@@ -2245,6 +2255,8 @@ internal fun SetInputCardV2(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxSize()
+                    // Sombra de la tarjeta (`aviso`: `0 14px 34px #000c`). pulido:lv-S06
+                    .kpknShadow(KpknShadow.Aviso, RoundedCornerShape(25.dp))
                     .onSizeChanged { size ->
                         if (cardFace == SetCardFace.Front && size.height > 0) {
                             publishLivePagerWorkingSetVisualHeight(workingSetVisualHeightHolder, size.height)
@@ -2259,6 +2271,7 @@ internal fun SetInputCardV2(
                     ),
                 // Módulo KPKN (LR1a): radio 24 dp, relleno `module` y filete blanco al 7 %, sin sombra ni brillo.
                 // `.v2-card`: radio 25 (Refinamiento 02), como la tarjeta del descanso que comparte el paginador.
+                // pulido:lv-S06 (sombra de la tarjeta: `0 14px 34px #000c`)
                 shape = RoundedCornerShape(25.dp),
                 color = Color(0xFF111111),
                 tonalElevation = 0.dp,
@@ -2452,6 +2465,15 @@ internal fun SetInputCardV2(
                             val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
                             val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
                             var showVideoMenu by remember(exercise.id, setIndex, sideKey, videoAnalysis?.mediaId) { mutableStateOf(false) }
+                            // El plan frente a lo marcado (cabecera del carrusel de repeticiones). pulido:lv-A03
+                            val ghostForPlan = if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost
+                            val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: ghostForPlan.toIntOrNull() ?: 0
+                            val planMinReps: Int? = if (isAmrap) amrapMinimumReps else (plannedRepRange?.min ?: plannedTarget?.takeIf { it > 0 })
+                            val planMaxReps: Int? = if (isAmrap) null else (plannedRepRange?.max ?: planMinReps)
+                            val repsPlanLabel = RepsCarouselMath.label(
+                                value = currentReps, min = planMinReps, max = planMaxReps, amrap = isAmrap, failed = isFailedSet,
+                                noPlan = if (isAmrap) (if (currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR) "0 reps permitido" else "Sin mínimo") else "",
+                            )
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -2511,10 +2533,26 @@ internal fun SetInputCardV2(
                                     }
                                 }
                                 Spacer(Modifier.weight(1f))
-                                // A la derecha de la cabecera: el reloj de la serie por tiempo, o el mínimo del AMRAP / calibrador, atenuado.
+                                // A la derecha de la cabecera: el reloj de la serie por tiempo o, en repeticiones, el plan frente a lo marcado
+                                // («Plan 4–6 ✓», «Plan 5 · −1», «Mínimo 8», «Serie fallida»). pulido:lv-J04
                                 if (legacyModeLayout && isTimeMode) {
                                     Ref02SetClockButton(timerRunning, if (timerRunning && plannedTarget != null) timerRemainingSeconds else timerElapsedSeconds,
                                         ::toggleSetTimer)
+                                } else if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
+                                    Row(
+                                        Modifier.semantics(mergeDescendants = true) {}.testTag(if (isAmrap) "amrap-purpose-badge" else "live-card-plan-label"),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        if (repsPlanLabel.inPlan) Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = WizardColors.text)
+                                        Text(
+                                            repsPlanLabel.text,
+                                            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                                fontFeatureSettings = "'tnum' 1, 'lnum' 1"),
+                                            color = if (repsPlanLabel.inPlan) WizardColors.text else Ref02CardFaint,
+                                            maxLines = 1, softWrap = false,
+                                        )
+                                    }
                                 } else if (legacyModeLayout && isAmrap) {
                                     Text(
                                         when {
@@ -2613,265 +2651,57 @@ internal fun SetInputCardV2(
                                         updateActiveValueText(ref02Quantity((current + step).coerceAtLeast(0.0)))
                                     },
                                 )
-                            } else if (legacyModeLayout) {
-                                val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: quantityGhost.toIntOrNull() ?: 0
-                                // El ✓ lee las repeticiones del centro de la selección (antes, la rueda): se mantiene en la cifra que se ve.
-                                SideEffect { repsWheelCenterIndex.intValue = currentReps }
-                                Ref02RepButtons(currentReps, tightCard, enabled = !isFailedSet) { value ->
-                                    updateActiveValueText(value.toString())
-                                    repsWheelCenterIndex.intValue = value
-                                }
-                            } else if (isTimeMode) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    WorkoutStepperField(
-                                        value = if (isFailedSet) "0" else reportValueText,
-                                        onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
-                                        onDecrement = {
-                                            val ghostBase = if (supportsIndependentSides) {
-                                                if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                            } else {
-                                                plannedValueGhost
-                                            }
-                                            val current = reportValueText.toIntOrNull()
-                                                ?: ghostBase.toIntOrNull()
-                                                ?: 0
-                                            updateActiveValueText((current - 1).coerceAtLeast(0).toString())
-                                        },
-                                        onIncrement = {
-                                            val ghostBase = if (supportsIndependentSides) {
-                                                if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                            } else {
-                                                plannedValueGhost
-                                            }
-                                            val current = reportValueText.toIntOrNull()
-                                                ?: ghostBase.toIntOrNull()
-                                                ?: 0
-                                            updateActiveValueText((current + 1).toString())
-                                        },
-                                        buttonsEnabled = !isFailedSet,
-                                        textInputEnabled = !isFailedSet,
-                                        isError = isFailedSet,
-                                        textStyle = MaterialTheme.typography.titleLarge,
-                                        accentColor = sessionAccentColor,
-                                        roomier = roomyStepper,
-                                        placeholder = if (supportsIndependentSides) {
-                                            if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                        } else {
-                                            plannedValueGhost
-                                        }.takeIf { it.isNotBlank() },
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    // El temporizador va junto al valor (LV8): así la tarjeta de un ejercicio por tiempo mide lo mismo que la de reps.
-                                    TimerToggleButton(
-                                        running = timerRunning,
-                                        accentColor = sessionAccentColor,
-                                        onClick = {
-                                            toggleSetTimer()
-                                        },
-                                    )
-                                }
                             } else {
-                                val ghostBase = if (supportsIndependentSides) {
-                                    if (selectedSide == "left") leftValueGhost else rightValueGhost
-                                } else {
-                                    plannedValueGhost
-                                }
-                                val ghostReps = ghostBase.toIntOrNull() ?: 0
-                                val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: ghostReps
-                                val repsMax = buildRepsCarouselMax(currentReps, ghostReps)
-                                val repsItems = remember(repsMax) { (0..repsMax).map { it.toString() } }
-                                val repsSelectedIndex = repsCarouselIndexFromValue(
-                                    if (isFailedSet) "0" else reportValueText.ifBlank { ghostBase },
-                                    repsMax,
+                                // El ✓ lee las repeticiones del centro del carrusel: se mantiene en la cifra que se ve.
+                                SideEffect { repsWheelCenterIndex.intValue = currentReps }
+                                RepsCarousel(
+                                    value = currentReps,
+                                    onValueChange = { next ->
+                                        updateActiveValueText(next.toString())
+                                        repsWheelCenterIndex.intValue = next
+                                    },
+                                    planMin = planMinReps,
+                                    planMax = planMaxReps,
+                                    amrap = isAmrap,
+                                    failed = isFailedSet,
+                                    lastValue = RepsCarouselMath.lastValue(currentReps, quantityGhost.toIntOrNull() ?: planMaxReps),
+                                    modifier = Modifier.padding(top = 4.dp),
+                                    enabled = !isFailedSet,
+                                    belowPlanColor = sessionAccentColor,
+                                    hapticsEnabled = hapticFeedbackEnabled,
+                                    reducedMotion = reducedMotion,
                                 )
-                                val repsCarouselTone = carouselToneForRepEvaluation(
-                                    evaluateRepRange(
-                                        actual = currentReps.toDouble(),
-                                        range = plannedRepRange ?: plannedTarget?.toInt()?.let { RepRange(it, it) },
-                                        amrapActive = isAmrap,
-                                        amrapMinimum = amrapMinimumReps,
-                                    ),
-                                ).let { tone ->
-                                    if (reportValueText.isBlank() && !isFailedSet) CarouselValueTone.OnPlan else tone
-                                }
-                                key(repsInputGeneration, sessionCompletedSet) {
-                                    WorkoutHorizontalWheelPicker(
-                                        items = repsItems,
-                                        selectedIndex = repsSelectedIndex,
-                                        onSelectedIndexChange = { index ->
-                                            if (!isFailedSet) updateActiveValueText(index.toString())
-                                        },
-                                        enabled = !isFailedSet,
-                                        isError = isFailedSet,
-                                        accentColor = sessionAccentColor,
-                                        roomier = roomyStepper,
-                                        centerGlowColor = carouselGlowForTone(repsCarouselTone, sessionAccentColor),
-                                        centeredIndexHolder = repsWheelCenterIndex,
-                                        modifier = Modifier.fillMaxWidth(),
-                                    )
-                                }
                             }
                         }
                     }
 
                     @Composable
                     fun EffortBlock() {
-                        if (legacyModeLayout) {
-                            LiveEffortRange(
-                                scale = effortScale,
-                                selectedIndex = effortIndex,
-                                onSelect = { onEffortSelected(it) },
-                                compact = tightCard,
-                                modifier = Modifier.voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.EFFORT)),
-                                hapticsEnabled = hapticFeedbackEnabled,
-                                onClear = {
-                                    effortIndex = null
-                                    intensityText = ""
-                                    reachedFailure = false
-                                },
-                            )
-                            return
-                        }
-                        // El esfuerzo (LV8): un slider de fuego que empieza en el mínimo y marca el plan. Sale en TODAS las series de
-                        // fuerza, también las que no traen objetivo de esfuerzo: registrar exige haberlo marcado.
-                        EffortFireSlider(
+                        // Pulido v1 (13): un solo esfuerzo, el del lienzo (`.lv-effb`); el viejo deslizador de fuego ya no se pinta.
+                        LiveEffortRange(
                             scale = effortScale,
                             selectedIndex = effortIndex,
                             onSelect = { onEffortSelected(it) },
-                            enabled = true,
-                            hint = EffortRequiredHint.takeIf { effortHintVisible && !hasChosenReportedEffort },
-                            wobbleKey = effortWobbleKey,
-                            animate = effortAnimate,
+                            compact = tightCard,
+                            modifier = Modifier.voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.EFFORT)),
                             hapticsEnabled = hapticFeedbackEnabled,
-                            forcedFireSeconds = effortFireSecondsOverride,
-                            prominent = liveMode == LiveSetCardMode.SOLO_RPE,
-                            compact = legacyModeLayout,
+                            // Un fotograma fijado (hojas de render y pruebas) o la tarjeta fuera de pantalla: el calor no corre.
+                            animate = effortAnimate && effortFireSecondsOverride == null,
                             onClear = {
                                 effortIndex = null
                                 intensityText = ""
                                 reachedFailure = false
                             },
-                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
-                    @Composable fun VideoBlock() {
-                    videoAnalysis?.let { analysis ->
-                        com.example.kpkn.screens.workout.design.WorkoutVideoRepsSuggestion(
-                            value = analysis,
-                            onUse = { result ->
-                                if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
-                                    updateActiveValueText(result.reps.toString())
-                                    repsWheelCenterIndex.intValue = result.reps
-                                    // «Usar» sustituye también el scroll anterior: el centro viejo no puede sobrescribir el borrador.
-                                    repsInputGeneration++
-                                    if (result.partialConfidence != CountConfidence.BAJA) {
-                                        partialSets = listOf(result.partials.coerceAtLeast(0))
-                                        showPartialsMode = result.partials > 0
-                                    }
-                                    if (tracksRom) result.romPercent?.let { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) }
-                                }
-                            },
-                            onCorrect = onVideoCorrect,
-                            onMarkFailure = {
-                                if (sessionCompletedSet != null) onVideoMarkFailure()
-                                else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let(::onEffortSelected)
-                            },
-                            onOpenAnalysis = onOpenAnalysis,
-                            onRetryAnalysis = onRetryAnalysis,
-                        )
-                    }
-                    }
-
-                    @Composable fun RomBlock() {
-                    if (romValue != null) {
-                        RomReportSlider(
-                            value = romValue ?: DEFAULT_ROM_PERCENT,
-                            onValueChange = { romValue = it },
-                            accentColor = sessionAccentColor,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    }
-
-                    @Composable fun ActionsBlock() {
-                    LiveSetCardActions(
-                        onAdvanced = { cardFace = SetCardFace.Technique },
-                        onVisual = { cardFace = SetCardFace.ExerciseMedia },
-                        onHistory = onShowHistory,
-                    )
-                    }
-
-                    if (legacyModeLayout) {
-                        ValueStepperBlock(Modifier.fillMaxWidth().padding(top = (if (tightCard) 7.dp else 12.dp) + roomExtra * .1f)
-                            .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)))
-                        // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
-                        EffortBlock()
-                        LegacyDetailRow()
-                        modeResultContent?.invoke(liveMode)
-                    } else {
-                        LiveModeSetContent(liveMode, setIndex + 1, actions = { ActionsBlock() }) {
-                            if (liveMode == LiveSetCardMode.RM) {
-                                LiveRmFocus(rmValues, reportWeightText,
-                                    onWeight = { typed ->
-                                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                                        updateActiveWeightText(typed)
-                                        val weight = typed.replace(',', '.').toDoubleOrNull()
-                                        val reference = rmValues.loadReference
-                                        if (weight != null && weight.isFinite() && weight > 0 && reference != null) rmPercent = weight / reference * 100
-                                    },
-                                    onPercent = ::applyRmPercent,
-                                    onEstimatedReps = { reps ->
-                                        val percentOfRm = estimatePercent1RM(reps)
-                                        val next = if (rmValues.usesTrainingMax && rmValues.oneRm != null && rmValues.trainingMax != null)
-                                            percentOfRm * rmValues.oneRm / rmValues.trainingMax else percentOfRm
-                                        applyRmPercent(next)
-                                    },
-                                    onReference = { reference ->
-                                        rmReference = reference
-                                        liveRmValues(exercise, currentSet, rmPercent, reference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
-                                    },
-                                    prLabel = exercise.prFor1RM?.takeIf { rmReference == pristineRmReference }?.let { "PR: ${it.weight.toLiveNumberString()} kg × ${it.reps}" },
-                                    fallbackWeight = plannedWeightGhost,
-                                    modeButton = { ModeLoadButton() })
-                            }
-                            if (liveMode == LiveSetCardMode.TIME) {
-                                LiveSetClockHero(timerElapsedSeconds, timerRemainingSeconds, plannedTarget, timerRunning, ::toggleSetTimer)
-                            }
-                            if (liveMode == LiveSetCardMode.SOLO_RPE) EffortBlock()
-                            if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
-                                ValueStepperBlock(Modifier.fillMaxWidth())
-                            } else {
-                                LiveQuantityInput(reportValueText, ::updateActiveValueText, resolvedPlannedUnitMode, exercise.customUnit,
-                                    if (isTimeMode) plannedTarget?.toDouble() else activeSideTarget?.targetValue ?: currentSet.plannedTargetV2 ?: plannedTarget?.toDouble(),
-                                    enabled = !timerRunning)
-                            }
-                            if (liveMode != LiveSetCardMode.RM) {
-                                LiveCompactLoadInput(reportWeightText, { typed ->
-                                    loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                                    updateActiveWeightText(typed)
-                                }, loadFieldLabel, plannedWeightGhost, loadMode) { ModeLoadButton() }
-                            }
-                            // El video conserva sus acciones en el chip de la cabecera; no se duplica ni desplaza el esfuerzo.
-                            if (liveMode != LiveSetCardMode.SOLO_RPE) EffortBlock()
-                            RomBlock()
-                            modeResultContent?.invoke(liveMode)
-                            val status = quantityError ?: when {
-                                timeGoalComplete -> "Objetivo cumplido · Confirma con ✓ para registrar"
-                                liveMode == LiveSetCardMode.SOLO_RPE -> "Sin carga fija. Elige el peso al hacer la serie."
-                                liveMode == LiveSetCardMode.CUSTOM -> "Unidad del ejercicio: ${exercise.customUnit?.takeIf { it.isNotBlank() } ?: "sin definir"}"
-                                else -> "Registra el resultado realizado con ✓"
-                            }
-                            val statusView = remember { BringIntoViewRequester() }
-                            LaunchedEffect(quantityError, timeGoalComplete) { if (quantityError != null || timeGoalComplete) statusView.bringIntoView() }
-                            Text(status, Modifier.testTag("live-mode-status").bringIntoViewRequester(statusView), style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
-                                color = if (quantityError != null) Color(0xFFEF6F64) else WizardColors.textMuted)
-                        }
-                    }
+                    // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
+                    // Sin aire propio arriba: el cuerpo reparte el sobrante entre los bloques (`.lv-body` space-between).
+                    ValueStepperBlock(Modifier.fillMaxWidth().padding(top = roomExtra * .1f)
+                        .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)))
+                    EffortBlock()
+                    LegacyDetailRow()
+                    modeResultContent?.invoke(liveMode)
                 }
 
 
@@ -4050,86 +3880,6 @@ internal fun SetInputCardV2(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun RomReportSlider(
-    value: Int,
-    onValueChange: (Int) -> Unit,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    /** Alto de la fila: 44 dp sueltos; en el hueco de «Parciales, ayuda y ROM» de la tarjeta (27 dp) la tarjeta no cambia de tamaño. */
-    rowHeight: Dp = 44.dp,
-    /** En la tarjeta: el rótulo y la cifra con la letra pequeña del resumen que sustituyen. */
-    compact: Boolean = false,
-) {
-    // Pista fina y pulgar de 18 dp dentro de la fila. De 0 a 100 %, igual que el campo de «Detalle del registro».
-    val clampedValue = value.coerceIn(0, DEFAULT_ROM_PERCENT)
-    val sliderColors = SliderDefaults.colors(
-        thumbColor = WizardColors.text,
-        activeTrackColor = WizardColors.text.copy(alpha = 0.85f),
-        inactiveTrackColor = KpknSurface.inset,
-        activeTickColor = Color.Transparent,
-        inactiveTickColor = Color.Transparent,
-        disabledActiveTickColor = Color.Transparent,
-        disabledInactiveTickColor = Color.Transparent,
-    )
-    Row(
-        modifier = modifier.height(rowHeight).testTag("live-rom-slider"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 10.dp),
-    ) {
-        Row(
-            // El ancho no baila al pasar de 100 a 95 %: el slider no se desplaza mientras se arrastra.
-            modifier = if (compact) Modifier.widthIn(min = 60.dp) else Modifier,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp),
-        ) {
-            Text(
-                text = "ROM",
-                style = if (compact) {
-                    TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
-                } else {
-                    KpknType.eyebrow
-                },
-                color = if (compact) Ref02CardMuted else WizardColors.textMuted,
-                maxLines = 1,
-            )
-            Text(
-                text = "$clampedValue %",
-                style = if (compact) {
-                    TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp, fontFeatureSettings = "'tnum' 1")
-                } else {
-                    KpknType.chip.copy(fontFeatureSettings = "'tnum' 1")
-                },
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-        }
-        CompositionLocalProvider(
-            LocalMinimumInteractiveComponentSize provides rowHeight,
-        ) {
-            Slider(
-                value = clampedValue.toFloat(),
-                onValueChange = { onValueChange(it.roundToInt().coerceIn(0, DEFAULT_ROM_PERCENT)) },
-                valueRange = 0f..DEFAULT_ROM_PERCENT.toFloat(),
-                steps = 0,
-                colors = sliderColors,
-                thumb = { Box(Modifier.size(18.dp).background(WizardColors.text, CircleShape)) },
-                track = {
-                    Box(Modifier.fillMaxWidth().height(4.dp).clip(CircleShape).background(KpknSurface.inset)) {
-                        Box(Modifier.fillMaxWidth(clampedValue / DEFAULT_ROM_PERCENT.toFloat()).height(4.dp).background(WizardColors.text.copy(alpha = .85f)))
-                    }
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(rowHeight)
-                    // Para TalkBack: sin descripción el slider solo diría el número.
-                    .semantics { contentDescription = "ROM, recorrido de la serie" },
-            )
-        }
-    }
-}
-
 private val Ref02CardMuted = Color(0xFFB9B5AE)
 private val Ref02CardFaint = Color(0xFF92908A)
 
@@ -4148,36 +3898,6 @@ private fun Ref02StepButton(
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick).semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) { Icon(icon, null, Modifier.size(15.dp), tint = Ref02CardMuted.copy(alpha = if (enabled) 1f else .4f)) }
-}
-
-/**
- * `.wheel-track` del prototipo: cinco botones redondos alrededor de las repeticiones (dos menos, la actual y dos más). La actual va en tinta
- * con la cifra más grande; tocar cualquiera la elige.
- */
-@Composable
-private fun Ref02RepButtons(current: Int, compact: Boolean, enabled: Boolean, onSelect: (Int) -> Unit) {
-    val start = (current - 2).coerceAtLeast(0)
-    val size = if (compact) 40.dp else 44.dp
-    Row(
-        Modifier.fillMaxWidth().padding(top = 4.dp).height(if (compact) 43.dp else 46.dp).testTag("live-card-reps"),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        (start until start + 5).forEach { value ->
-            val selected = value == current
-            Box(
-                Modifier.size(size).clip(CircleShape).background(if (selected) WizardColors.text else Color(0x04FFFFFF))
-                    .clickable(enabled = enabled, role = Role.Button) { onSelect(value) }
-                    .semantics { contentDescription = "$value repeticiones"; this.selected = selected }
-                    .testTag("live-card-reps-$value"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(value.toString(), style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold,
-                    fontSize = if (selected) 24.sp else 19.sp, fontFeatureSettings = "'tnum' 1"),
-                    color = if (selected) Color(0xFF111111) else Ref02CardMuted)
-            }
-        }
-    }
 }
 
 /** `.v2-quantity-input`: la cantidad en Syne de 36 (ancho 130), su unidad y −/+ de 1 a la derecha. */

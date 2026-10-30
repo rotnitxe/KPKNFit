@@ -255,6 +255,7 @@ class LiveSessionRefineRenderSheetTest {
                                     .testTag(CARD_TAG),
                             ) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = SAMPLE_EXERCISE,
                                     setIndex = 0,
                                     currentSet = SAMPLE_SET,
@@ -438,6 +439,7 @@ class LiveSessionRefineRenderSheetTest {
                         ) {
                             Box(Modifier.width(272.dp)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = SAMPLE_EXERCISE,
                                     setIndex = 0,
                                     currentSet = SAMPLE_SET,

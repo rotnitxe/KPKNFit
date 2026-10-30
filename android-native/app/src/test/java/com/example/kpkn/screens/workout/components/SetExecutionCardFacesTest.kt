@@ -91,6 +91,7 @@ class SetExecutionCardFacesTest {
                         Box(Modifier.width(360.dp).height(880.dp).background(Color.Black)) {
                             Box(Modifier.align(Alignment.TopCenter).width(272.dp).testTag(TARJETA)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = ejercicio(conRom),
                                     setIndex = 2,
                                     currentSet = serie,
