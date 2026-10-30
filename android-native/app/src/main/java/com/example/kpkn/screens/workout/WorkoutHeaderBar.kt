@@ -67,6 +67,14 @@ import androidx.compose.ui.text.TextStyle
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.depth.KpknGlassPreset
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknGlassPreset
+import com.example.kpkn.ui.design.depth.kpknShadow
+import com.example.kpkn.screens.workout.components.FreeClockBanner
+import com.example.kpkn.screens.workout.components.pillClock
+import com.example.kpkn.screens.workout.components.rememberFreeClockBinding
+import com.example.kpkn.screens.workout.components.rememberFreeClockDismiss
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
@@ -196,6 +204,9 @@ internal fun WorkoutChronometer(
     onRevertUltraFast: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     openSessionTimeRequest: Int = 0,
+    /** Pestaña con la que se abre la hoja «Tiempo» (0 Sesión · 1 Cronómetro · 2 Temporizador); la franja del fin del temporizador abre la 2. */
+    initialClockTab: Int = 0,
+    onInitialClockTabConsumed: () -> Unit = {},
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
     var showAdjustDialog by remember { mutableStateOf(false) }
@@ -245,6 +256,7 @@ internal fun WorkoutChronometer(
     val countdownMessage = pacingAlertMessage?.takeIf { it in SessionTimeCues.ALL }
 
     fun closeOverlay() {
+        onInitialClockTabConsumed()
         pendingChange = null
         showAdjustDialog = false
         showTimePicker = false
@@ -284,30 +296,39 @@ internal fun WorkoutChronometer(
     // `.timer-pill` del prototipo 02: 40 dp de alto, radio 19, blanco al 3 %, relleno 9, icono de cronómetro de 15 dp y el tiempo
     // transcurrido en tinta (11 sp, 600). El objetivo, el ritmo y los avisos viven en la hoja «Tiempo de sesión»; la píldora solo
     // tiñe el icono cuando el ritmo pide atención (excedido, retrasado o adelantado).
-    Row(
+    // Pulido v1 · punto 16 (`lx-t-coexiste`): con un cronómetro o un temporizador libre en marcha la píldora pasa a DOS líneas
+    // (`.lx-pill.lx-two`: 46 dp, radio 20): el tiempo de la sesión arriba y el reloj libre debajo. El descanso no se toca.
+    val (freeClock, freeClockActions) = com.example.kpkn.screens.workout.components.rememberFreeClockBinding()
+    val pillClock = freeClock.pillClock()
+    val twoLines = pillClock != null
+    val pillShape = RoundedCornerShape(if (twoLines) 20.dp else 19.dp)
+    Column(
         modifier = modifier
-            .clip(RoundedCornerShape(19.dp))
+            .clip(pillShape)
             .background(Color(0x07FFFFFF))
             .clickable(onClickLabel = "Tiempo de la sesión") { showAdjustDialog = true }
             .semantics { contentDescription = "Tiempo de la sesión: $text" + if (hasLimit) " de ${liveTargetMinutes ?: resolvedTargetMinutes} minutos" else "" }
-            .height(40.dp)
+            .height(if (twoLines) 46.dp else 40.dp)
             .padding(horizontal = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = if (twoLines) Arrangement.spacedBy(1.dp, Alignment.CenterVertically) else Arrangement.Center,
+        horizontalAlignment = Alignment.Start,
     ) {
-        Icon(
-            imageVector = KpknLineIcons.Timer,
-            contentDescription = null,
-            modifier = Modifier.size(15.dp),
-            tint = if (accent == PaceChipNeutral) WizardColors.text else accent,
-        )
-        Text(
-            text = text,
-            style = KpknType.action.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
-            color = WizardColors.text,
-            maxLines = 1,
-            softWrap = false,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Icon(
+                imageVector = KpknLineIcons.Timer,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                tint = if (accent == PaceChipNeutral) WizardColors.text else accent,
+            )
+            Text(
+                text = text,
+                style = KpknType.action.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
+                color = WizardColors.text,
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
+        if (pillClock != null) com.example.kpkn.screens.workout.components.FreeClockPillLine(freeClock, pillClock)
     }
 
     if (showAdjustDialog) {
@@ -328,6 +349,7 @@ internal fun WorkoutChronometer(
             onUltraFastPreview = onUltraFastPreview?.let { callback -> { closeOverlay(); callback() } },
             onRevertUltraFast = onRevertUltraFast?.let { callback -> { closeOverlay(); callback() } },
             onDismiss = ::closeOverlay,
+            freeClock = freeClock, clockActions = freeClockActions, initialTab = initialClockTab,
         )
     }
 
@@ -440,6 +462,7 @@ internal fun WorkoutHeaderBar(
             verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
         ) {
             var openSessionTimeRequest by remember { mutableIntStateOf(0) }
+            var clockTab by remember { mutableIntStateOf(0) }
             LaunchedEffect(sessionTimeRequest) { if (sessionTimeRequest > 0) openSessionTimeRequest++ }
             // Isla del prototipo 02 (`.phone > .island`): 60 dp de alto (53 en pantallas bajas), radio 30, relleno 15 / 8, degradado
             // gris a 135° con borde blanco al 13 %, reflejo interior arriba y sombra. Título y subtítulo a la izquierda, en una línea;
@@ -452,9 +475,20 @@ internal fun WorkoutHeaderBar(
                     // Tarjetas: píldora flotante de gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
                     // Lista: la lista pasa POR DEBAJO de la isla, así que es vidrio con desenfoque real (Haze) sobre las filas
                     // (pedido del usuario, 29-oct, punto 19); sin fuente de desenfoque cae al velo oscuro del vidrio.
+                    // Valores EXACTOS del lienzo (`.lx-cap`): Tarjetas = #1B1B1D con borde al 6 % y sombra «flotante» (0 8 28 #000a, `lx-S03`);
+                    // Lista = #1B1B1D al 68 % sobre `vidrio-isla` (desenfoque 22, saturación 1,5; `lx-V02`), borde al 12 % y sombra
+                    // `isla-vidrio` con realce interior (`lx-S04`). El vidrio de la Lista usa la lista como fuente de desenfoque.
                     .then(
-                        if (glassCapsule) Modifier.kpknGlassOrFallback(bodyHazeState, capsuleShape)
-                        else Modifier.kpknFloatingSurface(capsuleShape, com.example.kpkn.ui.components.KpknFloating.PillElevation),
+                        if (glassCapsule) Modifier
+                            .kpknShadow(KpknShadow.IslaVidrio, capsuleShape)
+                            .kpknGlassPreset(bodyHazeState, KpknGlassPreset.VidrioIsla, capsuleShape)
+                            .background(Color(0xAD1B1B1D), capsuleShape)
+                            .border(1.dp, Color(0x1FFFFFFF), capsuleShape)
+                        else Modifier
+                            .kpknShadow(KpknShadow.Flotante, capsuleShape)
+                            .clip(capsuleShape)
+                            .background(Color(0xFF1B1B1D))
+                            .border(1.dp, Color(0x10FFFFFF), capsuleShape),
                     )
                     .heightIn(min = if (compactHeader) 53.dp else 60.dp)
                     .padding(start = 15.dp, end = 8.dp),
@@ -507,6 +541,8 @@ internal fun WorkoutHeaderBar(
                         ultraFastSavedSeconds = ultraFastSavedSeconds,
                         onRevertUltraFast = onRevertUltraFast,
                         openSessionTimeRequest = openSessionTimeRequest,
+                        initialClockTab = clockTab,
+                        onInitialClockTabConsumed = { clockTab = 0 },
                     )
                     onMoreClick?.let { more ->
                         KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
@@ -515,6 +551,9 @@ internal fun WorkoutHeaderBar(
                 }
             }
             }
+            // Fin del temporizador libre con la hoja cerrada: franja de vidrio persistente con «Listo» (`lx-t-coexiste`).
+            val (headerFreeClock, _) = rememberFreeClockBinding()
+            if (headerFreeClock.bannerPending) FreeClockBanner(bodyHazeState, rememberFreeClockDismiss(), onOpen = { clockTab = 2; openSessionTimeRequest++ })
             // Contexto del ejercicio fuera de la cápsula (prototipo 02): nombre en Syne 18 y una sola línea de contexto. En la Lista lo
             // pinta la propia lista, para que se desplace con ella.
             if (showExerciseContext) {

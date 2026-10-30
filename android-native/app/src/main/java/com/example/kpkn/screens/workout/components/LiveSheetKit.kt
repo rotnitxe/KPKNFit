@@ -132,7 +132,7 @@ internal fun LiveSheet(
  * ventana propia a pantalla completa: nunca dentro de la fila o la tarjeta desde la que se abrió.
  */
 @Composable
-private fun LiveSheetWindow(content: @Composable () -> Unit) {
+internal fun LiveSheetWindow(content: @Composable () -> Unit) {
     if (com.example.kpkn.ui.components.LocalKpknOverlayHost.current != null) {
         content()
     } else {

@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.Density
@@ -55,7 +57,7 @@ class LiveStoryEntryTest {
                         // Refinamiento 02: «Historia» vive en «Tu sesión» (menú), no en la cabecera.
                         var menu by remember { mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.MENU) }
                         LiveSessionSheetsHost(menu, { menu = it }, onOpenStory = { menu = null; open = true })
-                        if (open) RecordedSessionFinishSheet(name="Pierna A",completedExercises=emptyList(),durationMinutes=1,
+                        if (open) RecordedSessionFinishSheet(name="Pierna A",completedExercises=listOf(CompletedExercise("e","Press",sets=listOf(CompletedSet("s",weight=50.0,reps=5,rir=1)))),durationMinutes=1,
                             initialNotes="",saving=false,onNotes={},onAlbum={},onConfirm={_,_->confirmed++},onDismiss={open=false})
 
                         if (host.entries.isNotEmpty()) Box(Modifier.fillMaxSize().zIndex(400f)) { KpknOverlayHostContent(host) }
@@ -75,13 +77,15 @@ class LiveStoryEntryTest {
         rule.waitUntil(15_000) { rule.onNodeWithTag("story-preview", true).isDisplayed() }
         val preview = rule.onNodeWithTag("story-preview", true).fetchSemanticsNode().boundsInRoot
         assertEquals(9f / 16f, preview.width / preview.height, .01f)
-        for (label in listOf("Guardar imagen", "Compartir en historias")) {
+        // «Guardar imagen» es ahora un botón solo con icono (lo anuncia su descripción); «Compartir en historias» sigue con texto.
+        rule.onNodeWithContentDescription("Guardar imagen").assertIsDisplayed()
+        for (label in listOf("Compartir en historias")) {
             val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
             val text = rule.onNodeWithText(label, useUnmergedTree = true)
             text.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }
             val layout = layouts.single()
             val textBounds = text.fetchSemanticsNode().boundsInRoot
-            val button = rule.onNodeWithTag(if (label == "Guardar imagen") "story-save-image" else "story-share")
+            val button = rule.onNodeWithTag("story-share")
                 .fetchSemanticsNode().boundsInRoot
             // Tight native text boxes can report hasVisualOverflow from fractional rounding.
             // Check the actual visible characters and every laid-out line instead.

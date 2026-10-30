@@ -127,6 +127,7 @@ class RestTimerController private constructor(
         alertSink.cancelRestAlerts()
         activeRestTimerId = null
         scheduledEndMs = 0L
+        com.example.kpkn.services.workout.RestEndSignal.endsAtMs = 0L
         restReferenceSet = null
         restReferenceAdvanced = null
         restStartedAtMs = null
@@ -217,6 +218,7 @@ class RestTimerController private constructor(
         timerJob?.cancel()
         val generation = ++timerGeneration
         scheduledEndMs = endMs
+        com.example.kpkn.services.workout.RestEndSignal.endsAtMs = endMs
         val initialElapsed = ((System.currentTimeMillis() - restStartMs) / 1000L).toInt().coerceAtLeast(0)
         _recovery.value = WorkoutRestRecoveryModel.fromLastSet(
             elapsedSeconds = initialElapsed,
