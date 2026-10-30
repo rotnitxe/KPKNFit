@@ -53,7 +53,7 @@ class SessionCardioEditorDoseLineTest {
                 targetRpe = 9.0,
             ),
         )
-        assertEquals("8 × 30 s / 30 s · RPE 9", cardioDoseLine(details))
+        assertEquals("8 × 0:30 / 0:30 · RPE 9", cardioDoseLine(details))
     }
 
     @Test
@@ -69,7 +69,7 @@ class SessionCardioEditorDoseLineTest {
                 targetRpe = 8.0,
             ),
         )
-        assertEquals("4 × 20 s · RPE 8", cardioDoseLine(details))
+        assertEquals("4 × 0:20 · RPE 8", cardioDoseLine(details))
     }
 
     @Test

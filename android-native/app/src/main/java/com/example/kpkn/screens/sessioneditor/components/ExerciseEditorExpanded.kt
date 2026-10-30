@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -154,6 +155,33 @@ internal fun ExerciseEditorExpanded(
     val goalLambda: () -> Unit = { local.showGoalSheet.value = true }
     val openGoal: (() -> Unit)? = if (exercise.cardioDetails == null) goalLambda else null
 
+    // Pulido v1 · cardio del editor: la tarjeta de un cardio es otra (`CardioEditorCard`), con su propio marco de 4 · 16 · 20 dp y el fondo de la fila abierta.
+    exercise.cardioDetails?.let { details ->
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("exercise-editor-expanded")
+                .background(CeColors.open)
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 20.dp),
+        ) {
+            CardioEditorCard(
+                details = details,
+                accentColor = accentColor,
+                exerciseName = exercise.name,
+                history = cardioHistory,
+                onChange = { updated ->
+                    onUpdateExercise { current ->
+                        current.copy(
+                            cardioDetails = updated,
+                            targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+                        )
+                    }
+                },
+            )
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,25 +190,6 @@ internal fun ExerciseEditorExpanded(
             .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-            exercise.cardioDetails?.let { details ->
-                CardioEditorCard(
-                    details = details,
-                    accentColor = accentColor,
-                    exerciseName = exercise.name,
-                    cardioFirst = cardioFirst,
-                    showPlacementChip = showCardioPlacementChip,
-                    onTogglePlacement = onToggleCardioPlacement,
-                    history = cardioHistory,
-                    onChange = { updated ->
-                        onUpdateExercise { current ->
-                            current.copy(
-                                cardioDetails = updated,
-                                targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
-                            )
-                        }
-                    },
-                )
-            }
             if (exercise.cardioDetails == null) {
                 // R1 §4.1: movilidad y aproximación a la vista, en su orden. Con contenido, cada una es un bloque plegable con su
                 // contador; lo que falta sigue como píldora punteada debajo, para no tener que buscarlo.

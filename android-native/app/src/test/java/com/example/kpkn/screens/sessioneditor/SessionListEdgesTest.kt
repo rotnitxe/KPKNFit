@@ -51,8 +51,9 @@ class SessionListEdgesTest {
         )
         val items = buildSessionListItems(session)
 
+        // Pulido v1 · cardio del editor: sin «Añadir cardio» dentro del módulo, el último cardio cierra el módulo.
         assertEquals(SessionModuleEdge.TOP, cardioEdge(items, "c1"))
-        assertEquals(SessionModuleEdge.MIDDLE, cardioEdge(items, "c2"))
+        assertEquals(SessionModuleEdge.BOTTOM, cardioEdge(items, "c2"))
         // Los divisores y las acciones de fuerza van sobre el negro: no llevan borde.
         assertEquals(
             null,

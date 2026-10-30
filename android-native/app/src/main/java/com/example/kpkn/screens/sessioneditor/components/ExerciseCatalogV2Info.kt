@@ -193,7 +193,18 @@ internal fun sessionExerciseFallbackDetailModel(exercise: Exercise, info: Exerci
  * pinta la misma `ExerciseCatalogInfoDialog` sin el pie «Añadir/Quitar».
  */
 @Composable
-internal fun SessionExerciseDetailSheet(exercise: Exercise, onDismiss: () -> Unit, onShowHistory: (() -> Unit)? = null) {
+internal fun SessionExerciseDetailSheet(
+    exercise: Exercise,
+    onDismiss: () -> Unit,
+    onShowHistory: (() -> Unit)? = null,
+    /** La última sesión de ese cardio, para «Ver progreso» de su ficha propia (Pulido v1 · cardio del editor). */
+    cardioHistory: com.example.kpkn.domain.cardio.CardioTypeHistory? = null,
+) {
+    // Los cardios no tienen ficha de catálogo: tienen la suya (qué es, qué entrena, esfuerzo, formatos y seguridad).
+    exercise.cardioDetails?.let { details ->
+        CardioFicha(exercise = exercise, details = details, history = cardioHistory, onDismiss = onDismiss)
+        return
+    }
     val context = LocalContext.current
     var catalogEntry by remember { mutableStateOf(CatalogV2ProcessCache.peek()) }
     LaunchedEffect(context) {

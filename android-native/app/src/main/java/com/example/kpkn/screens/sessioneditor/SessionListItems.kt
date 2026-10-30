@@ -165,15 +165,14 @@ fun buildSessionListItems(
     // Un solo control para la colocación (ED-D · Añadido del orquestador): el selector «Al inicio / Al final» está siempre a la vista
     // cuando la sesión tiene Fuerza y Cardio, y los rótulos FUERZA/CARDIO no ofrecen «Mover…». La función no se pierde: se mueve con
     // el selector, y el chip del cardio desplegado sigue funcionando igual.
-    if (hasBothSpaces) items += SessionListItem.CardioPlacement
 
     if (showCardioFirst) {
         // --- 1. BLOQUE CARDIO ARRIBA ---
-        if (!cardioOnly) items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = false)
+        items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = hasBothSpaces)
         cardioParts.forEach { part ->
             appendCardioPartExercises(items, part)
         }
-        items += SessionListItem.CardioAddActions
+        if (cardioParts.none { it.exercises.isNotEmpty() }) items += SessionListItem.CardioAddActions
 
         // --- 2. BLOQUE FUERZA ABAJO ---
         if (emitStrengthDivider) items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = false)
@@ -218,11 +217,11 @@ fun buildSessionListItems(
 
         // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
         if (hasCardio) {
-            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = false)
+            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = hasBothSpaces)
             cardioParts.forEach { part ->
                 appendCardioPartExercises(items, part)
             }
-            items += SessionListItem.CardioAddActions
+            if (cardioParts.none { it.exercises.isNotEmpty() }) items += SessionListItem.CardioAddActions
         }
     }
 

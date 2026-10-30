@@ -42,7 +42,8 @@ import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.sessioneditor.components.SessionEditorCardioPlacementControl
+import com.example.kpkn.screens.sessioneditor.components.CardioEmptyModule
+import com.example.kpkn.screens.sessioneditor.components.CardioSpaceLabel
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpace
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpaceOption
@@ -550,10 +551,10 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.CardioAddActions -> {
+            // Pulido v1 · cardio del editor (punto 11): sin «Añadir cardio» dentro del módulo. El alta sale del «+» del rótulo, del menú de la
+            // barra «Añadir» y del menú de pulsación larga; este pie solo existe cuando no hay ningún cardio (el estado vacío).
             val cardioPart = session.parts.firstOrNull { it.isCardioPart() }
             val targetPartId = cardioPart?.id
-            // Sin ningún cardio, el pie va solo en su módulo; con cardios, es el último trozo.
-            val hasCardioExercises = session.parts.any { it.isCardioPart() && it.exercises.isNotEmpty() }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -565,33 +566,18 @@ internal fun SessionEditorListItem(
                         }
                     },
             ) {
-                SessionModuleSlot(edge = if (hasCardioExercises) SessionModuleEdge.BOTTOM else SessionModuleEdge.ONLY) {
-                    KpknTextAction(
-                        text = "Añadir cardio",
-                        onClick = { viewModel.openCardioPicker(targetPartId) },
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        leadingIcon = KpknLineIcons.Plus,
-                    )
-                }
+                CardioEmptyModule(onAdd = { viewModel.openCardioPicker(targetPartId) })
             }
         }
 
         is SessionListItem.CardioDivider -> {
-            // «CARDIO · AL FINAL ——— Mover al inicio», como en Main (ED-A · A1); sin los dos espacios, solo «CARDIO».
-            SessionGroupLabel(
-                label = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "CARDIO · AL INICIO" else "CARDIO · AL FINAL"
-                } else {
-                    "CARDIO"
-                },
-                moveLabel = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "Mover al final" else "Mover al inicio"
-                } else {
-                    null
-                },
+            // «CARDIO · AL FINAL ——— ↑ +» (punto 26): la posición vive en el rótulo, con una flecha pequeña que lo pasa antes o después de la
+            // fuerza; sin los dos espacios, solo «CARDIO». El «+» es el alta de otro cardio.
+            CardioSpaceLabel(
+                canMove = listItem.canMove,
+                cardioFirst = listItem.showCardioFirst,
                 onMove = viewModel::toggleCardioPlacement,
-                accent = SymbolPalette.columna,
-                showRule = true,
+                onAdd = { viewModel.openCardioPicker(session.parts.firstOrNull { it.isCardioPart() }?.id) },
             )
         }
 
@@ -611,16 +597,8 @@ internal fun SessionEditorListItem(
             }
         }
 
-        SessionListItem.CardioPlacement -> {
-            val atStart = uiState.cardioSpacePlacement?.let { it == CardioSpacePlacement.START } ?: session.cardioFirst
-            SessionEditorCardioPlacementControl(
-                atStart = atStart,
-                onChange = { start ->
-                    viewModel.setCardioPlacement(if (start) CardioSpacePlacement.START else CardioSpacePlacement.END)
-                },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
+        // El selector grande «Al inicio / Al final» desaparece (punto 26): la posición vive en el rótulo CARDIO.
+        SessionListItem.CardioPlacement -> Unit
 
         // Los ejercicios sueltos se nombran cuando la sesión tiene grupos, para que no parezcan un grupo huérfano (ER2b).
         SessionListItem.LooseGroupLabel -> SessionGroupLabel(label = "SIN GRUPO")
