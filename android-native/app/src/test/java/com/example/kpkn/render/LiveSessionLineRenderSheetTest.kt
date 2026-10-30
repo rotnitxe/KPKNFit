@@ -68,7 +68,7 @@ class LiveSessionLineRenderSheetTest {
                         onToggleVoice = {}, onStoryClick = {}, onMoreClick = {}, compactLayout = height < 800,
                         statusBarInsets = WindowInsets(0, 0, 0, 0))
                 }
-                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp + com.example.kpkn.screens.workout.LiveSessionLineHeight + 12.dp).width(312.dp)) {
+                Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp + liveSessionLineHeight() + 12.dp).width(312.dp)) {
                     LiveSessionCardFrame {
                         SetInputCardV2(exercise, 1, set, null, null,
                             onShowHistory = {}, onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
@@ -82,9 +82,8 @@ class LiveSessionLineRenderSheetTest {
         }
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val island = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val rail = rule.onNodeWithTag("live-session-steps").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertEquals(312f * density, frame.width, 1f); assertEquals(liveSessionCardHeightDp(360, height).value * density, frame.height, 1f)
-        assertEquals(com.example.kpkn.screens.workout.LiveSessionLineHeight.value * density, island.height, 1f); assertTrue(rail.height > 0f)
+        assertEquals(liveRoadmapVariantFor(height).height.value * density, island.height, 1f)
         val heading = rule.onNodeWithTag("live-session-header").fetchSemanticsNode().boundsInRoot
         assertTrue("La cabecera no invade la tarjeta", heading.bottom <= frame.top)
         assertTrue("La isla no invade la tarjeta", frame.bottom + 11f * density <= island.top)
@@ -94,7 +93,7 @@ class LiveSessionLineRenderSheetTest {
         assertEquals("La fila de acciones queda completa dentro de la tarjeta", 44f * density, actions.height, 1f)
         assertTrue("Las acciones no se salen por abajo", actions.bottom <= frame.bottom + 1f)
         val measurements = "viewport=360x$height dp; status=45 dp; navigation=24 dp; fontScale=$fontScale\n" +
-            listOf("card" to frame, "line" to island, "steps" to rail, "actions" to actions).joinToString("\n") { (label, rect) ->
+            listOf("card" to frame, "line" to island, "actions" to actions).joinToString("\n") { (label, rect) ->
                 "$label: x=${rect.left / density}, y=${rect.top / density}, width=${rect.width / density}, height=${rect.height / density} dp"
             }
         val folder = File(checkNotNull(System.getenv("KPKN_RENDER_DIR"))).apply { mkdirs() }

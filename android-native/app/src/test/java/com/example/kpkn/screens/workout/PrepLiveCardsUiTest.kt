@@ -142,7 +142,7 @@ class PrepLiveCardsUiTest {
                             var headerPx by remember { mutableIntStateOf(0) }
                             val localDensity = LocalDensity.current
                             val header = with(localDensity) { headerPx.toDp() }
-                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, cardHeight(height), 144f).dp
+                            val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, cardHeight(height), 32f + liveSessionLineHeight().value).dp
                             Box(
                                 Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                                     .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } },
@@ -158,7 +158,7 @@ class PrepLiveCardsUiTest {
                                 "Prepara la carga antes de tus series efectivas.", "prep", reduceMotionOverride = true,
                                 modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("prep-relator"),
                             )
-                            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
+                            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
                                 LiveSessionCardFrame {
                                     Box(Modifier.fillMaxSize()) { card() }
                                 }

@@ -332,7 +332,8 @@ fun WorkoutScreen(
     val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
     var storyFromHeader by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(uiState.showFinishSheet) { if (!uiState.showFinishSheet) storyFromHeader = false }
-    val dockBottomClearance = LiveSessionLineHeight + 8.dp
+    // El roadmap mide 132 dp (B) en ventanas de 820 dp de alto o más y 112 dp (A) en las demás.
+    val dockBottomClearance = liveSessionLineHeight() + 8.dp
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
@@ -1047,8 +1048,6 @@ fun WorkoutScreen(
                     structureSheets.exerciseContextForceMemberActions = false
                     structureSheets.exerciseContextExerciseId = id
                 },
-                onAddSet = liveSetStepperHolder.onAddSet,
-                onLongPressPage = liveSetStepperHolder.onLongPressPage,
                 onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
                 recordVisible = recordFabHolder.visible && uiState.seriesTypeTarget == null,
                 recordEnabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
@@ -1069,6 +1068,7 @@ fun WorkoutScreen(
                 },
                 undoStack = uiState.godModeUndoStack,
                 completedSets = uiState.completedSets,
+                omittedSetKeys = uiState.omittedSetKeys,
                 onUndo = { index -> viewModel.revertGodModeChange(index) },
                 sessionCompletedCount = livePaceWork.completed,
                 sessionTotalCount = livePaceWork.total,
@@ -1090,6 +1090,7 @@ fun WorkoutScreen(
         completedExercises = completedExercisesForSummary,
         omittedSetKeys = uiState.omittedSetKeys,
         currentExerciseId = currentExercise?.id,
+        currentSetNumber = liveRoadmapActiveSetNumber(liveSetStepperHolder.snapshot),
         supersetGroups = modeSession.allSupersetGroups(),
         liveEnergySummary = uiState.liveEnergySummary,
         bodyWeight = viewModel.currentBodyWeight(),

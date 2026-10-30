@@ -58,7 +58,7 @@ class Cal3CardUiTest {
         val f = cal3Fixture()
         val applied = resolveCalibration(f.state, f.record.id, CalibrationStatus.APPLIED, 1_790_000_003_000L)
         state(f.copy(state = applied), "applied", 740, 1.3f)
-        rule.onAllNodesWithContentDescription("calibrada", substring = true).assertCountEquals(3)
+        // Pulido v1: la carga calibrada ya no es una marca del raíl; se dice en la «Ruta» («S1 · 120 kg · calibrada»).
         // Iteración 04: en el raíl de series la carga calibrada es una marca melocotón en el punto; el texto vive en su descripción.
     }
     @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun aFailedDecisionIsVisibleInsideItsOwnCardAndCanBeRetried() {
