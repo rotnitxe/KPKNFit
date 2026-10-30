@@ -158,6 +158,11 @@ data class Program(
     /** Saltos declarados por ejecución/ciclo/semana/sesión; nunca entrenamientos ficticios. */
     val skippedSessionKeys: List<String> = emptyList(),
     val pendingMissedSessions: com.example.kpkn.domain.training.schedule.MissedSessionsRequest? = null,
+    /**
+     * Instantánea del último cambio de reparto, para «Deshacer» (`SplitMigrationPlanner`). null = nada que deshacer.
+     * Campo con valor por defecto en el JSON del programa (`ignoreUnknownKeys`): sin migración de Room.
+     */
+    val lastSplitChange: SplitChangeSnapshot? = null,
 )
 
 /** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */

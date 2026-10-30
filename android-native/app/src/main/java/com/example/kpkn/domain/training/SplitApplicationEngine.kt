@@ -3,7 +3,10 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
@@ -24,6 +27,11 @@ import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateQualityRules
 import com.example.kpkn.domain.templates.SessionTemplateSuggestionEngine
 import com.example.kpkn.domain.templates.SuggestionPrefs
+import com.example.kpkn.domain.training.split.ExerciseTraitResolver
+import com.example.kpkn.domain.training.split.MigrationPlan
+import com.example.kpkn.domain.training.split.MigrationRequest
+import com.example.kpkn.domain.training.split.SplitMigrationPlanner
+import com.example.kpkn.domain.training.split.SplitRedistributor
 import java.util.UUID
 
 enum class SplitTemporalScope { CURRENT_WEEK, SELECTED_WEEKS, CURRENT_BLOCK, WHOLE_PROGRAM }
@@ -112,6 +120,19 @@ data class SplitApplicationRequest(
      * it fails closed instead of silently falling back to hidden/user data.
      */
     val generationTemplates: List<SessionTemplate>? = null,
+    /**
+     * Resolutor de rasgos de ejercicios. Con él, «Conservar y reubicar» ([SessionMigrationMode.MIGRATE]) **reparte los
+     * ejercicios** entre los días del reparto con `SplitMigrationPlanner` (sin perder series, repeticiones, RIR ni descansos
+     * y con el volumen intacto) en vez de reasignar sesiones enteras. Sin él (null) se conserva el comportamiento de
+     * siempre. Si el motor rechaza la semana (autor, competición, pocas sesiones…) también se usa el de siempre.
+     */
+    val traitResolver: ExerciseTraitResolver? = null,
+    /** Días de la semana (1..7) de los días de entreno del reparto, en su orden; null = los de `proposeWeekdays`. */
+    val weekdays: List<Int>? = null,
+    /** Sesiones ya hechas: el motor no las toca (ver `MigrationRequest.completedSessionIds`). */
+    val completedSessionIds: Set<String> = emptySet(),
+    /** Hoy (1..7) para la semana en curso. */
+    val todayWeekday: Int? = null,
 )
 
 object SplitApplicationEngine {
@@ -175,6 +196,7 @@ object SplitApplicationEngine {
     ): Program {
         val blockAssignments = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) request.perBlockSelections else emptyMap()
         val selectedSplit = resolveRequestedSplit(request, request.selectedSplit.id)
+        migrateWithPlanner(request, selectedSplit)?.let { return it }
         val effectiveStartDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
             request.program.resolvedSchedulePlan().weekStartDay ?: request.program.startDay ?: request.startDay
         } else {
@@ -265,6 +287,41 @@ object SplitApplicationEngine {
             }
         )
         return reconcileSchedule(applied, effectiveStartDay)
+    }
+
+    /**
+     * «Conservar y reubicar» con el motor de migración: reparte los ejercicios de las semanas destino entre los días del
+     * reparto (R6: el volumen no cambia, por eso no se escala al MAV). null = no aplica (sin resolutor, otro modo, por
+     * bloques) o el motor rechazó la semana base: [apply] sigue por el camino de siempre.
+     */
+    private fun migrateWithPlanner(request: SplitApplicationRequest, selectedSplit: SplitTemplate): Program? {
+        val resolver = request.traitResolver ?: return null
+        if (request.migrationMode != SessionMigrationMode.MIGRATE || request.advancedMode == AdvancedSplitMode.PER_BLOCK) return null
+        val targets = buildWeekOptions(request.program).filter { shouldApplyToWeek(request, it.blockId, it.id) }
+        val base = targets.firstOrNull { it.sessions.isNotEmpty() } ?: return null
+        val startDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
+            request.program.resolvedSchedulePlan().weekStartDay ?: request.program.startDay ?: request.startDay
+        } else {
+            request.startDay
+        }
+        val weekdays = request.weekdays
+            ?: SplitMigrationPlanner.proposeWeekdays(request.program, base.id, selectedSplit, startDay)
+        val plan = SplitMigrationPlanner.plan(
+            MigrationRequest(
+                program = request.program,
+                split = selectedSplit,
+                weekdays = weekdays,
+                resolver = resolver,
+                baseWeekId = base.id,
+                scopeWeekIds = targets.map { it.id },
+                scope = request.temporalScope,
+                blockId = request.selectedBlockId,
+                startDay = startDay,
+                completedSessionIds = request.completedSessionIds,
+                todayWeekday = request.todayWeekday,
+            ),
+        )
+        return (plan as? MigrationPlan.Ok)?.program
     }
 
     /**
@@ -396,6 +453,8 @@ object SplitApplicationEngine {
         prefs: SuggestionPrefs = SuggestionPrefs(),
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
         exerciseIndex: Map<String, ExerciseMuscleInfo> = runtimeApprovedExerciseIndex(),
+        /** Con resolutor, «Conservar y reubicar» reparte los ejercicios con [SplitRedistributor] (volumen intacto). */
+        traitResolver: ExerciseTraitResolver? = null,
     ): List<Session> {
         // A custom pattern is user data, not the historical "all-rest" catalog
         // sentinel. Reject it before deriving trainingDays so an empty result
@@ -500,6 +559,11 @@ object SplitApplicationEngine {
             return normalizeMainSessions(trainingDays.map(::blankSession))
         }
 
+        if (traitResolver != null) {
+            redistributedSessions(splitId, pattern, sessionDescriptions, startDay, existingSessions, traitResolver)
+                ?.let { return normalizeMainSessions(it) }
+        }
+
         val unassignedDays = trainingDays.toMutableList()
         val reassigned = existingSessions.map { session ->
             val target = bestTrainingDayForSession(session, unassignedDays.ifEmpty { trainingDays })
@@ -518,6 +582,36 @@ object SplitApplicationEngine {
         }
 
         return normalizeMainSessions(reassigned)
+    }
+
+    /**
+     * «Conservar y reubicar» de una semana con [SplitRedistributor]: los ejercicios de [existingSessions] se reparten entre
+     * los días del patrón (desde [startDay]) con todo lo suyo. null = el motor no puede (autor, competición, pocos
+     * ejercicios…): quien llama usa la reasignación de sesiones enteras de siempre.
+     */
+    private fun redistributedSessions(
+        splitId: String?,
+        pattern: List<String>,
+        sessionDescriptions: Map<String, String>,
+        startDay: Int,
+        existingSessions: List<Session>,
+        resolver: ExerciseTraitResolver,
+    ): List<Session>? {
+        val split = splitId?.let { id -> SPLIT_TEMPLATES.firstOrNull { it.id == id } }
+            ?: SplitTemplate(id = splitId ?: "custom", name = "Mi split", description = "", pattern = pattern, sessionDescriptions = sessionDescriptions)
+        if (!split.isVisibleForApplication && split.id != "custom") return null
+        val weekdays = patternToTrainingDays(pattern, startDay).map { it.dayOfWeek }
+        val week = ProgramWeek(id = "migrate-w", name = "Semana", sessions = existingSessions)
+        val program = Program(
+            id = "migrate",
+            name = "migrate",
+            macrocycles = listOf(
+                Macrocycle("migrate-m", "m", listOf(Block("migrate-b", "b", mesocycles = listOf(Mesocycle("migrate-me", "me", weeks = listOf(week)))))),
+            ),
+        )
+        val result = SplitRedistributor.redistribute(program, split, weekdays, resolver)
+        if (!result.compatible) return null
+        return result.program.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions
     }
 
     private fun resolveSplitForSuggestion(splitId: String?, pattern: List<String>): SplitTemplate? {

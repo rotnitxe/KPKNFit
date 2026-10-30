@@ -1,0 +1,42 @@
+package com.example.kpkn.domain.training.split
+
+/** Los 35 nombres llanos del lienzo aprobado (Pulido v1, punto 23): la tarjeta del catálogo debe llevar exactamente estos. */
+internal object SplitCatalogApprovedNames {
+    val names: Map<String, String> = mapOf(
+        "ul_x4" to "Torso y pierna, 4 días",
+        "ppl_ul" to "Empuje, tirón, pierna y torso",
+        "fullbody_x3" to "Cuerpo completo, 3 días",
+        "ppl_x6" to "Empuje, tirón y pierna, 6 días",
+        "ul_x6" to "Torso y pierna, 6 días",
+        "ppl_arnold" to "Empuje, tirón y pierna con énfasis",
+        "phat_hybrid" to "Torso, pierna y cuerpo completo",
+        "ant_post_x4" to "Cadena anterior y posterior, 4 días",
+        "arnold_ul" to "Estético y torso/pierna",
+        "ant_post_x6" to "Cadena anterior y posterior, 6 días",
+        "bro_split" to "Un grupo por día",
+        "hybrid_fb_ap" to "Cuerpo completo y cadenas",
+        "minimalist_x2" to "Dos días, lo esencial",
+        "weekend_warrior" to "Fin de semana",
+        "glute_focus" to "Énfasis en glúteos",
+        "beach_body" to "Más torso",
+        "fullbody_x5" to "Cuerpo completo, 5 días",
+        "push_pull_x4" to "Empuje y tirón, 4 días",
+        "texas_method" to "Estilo Texas",
+        "smolov_base" to "Smolov Jr. (especialización)",
+        "pl_sbd_x3" to "SBD Full Body x3",
+        "pl_hf_bench" to "PL: Bench Freq 4",
+        "pl_classic_4" to "PL: Clásico 4 Días",
+        "sheiko_3day" to "Sheiko Clásico (3 Días)",
+        "westside_conjugate" to "Westside (Conjugado)",
+        "cube_method" to "Método Cubo",
+        "531_bbb" to "5/3/1 Boring But Big",
+        "madcow_5x5" to "Madcow 5x5",
+        "korte_3x3" to "Korte 3x3",
+        "nsuns_4day" to "nSuns 4 días",
+        "ul_arms" to "Upper / Lower + Brazos",
+        "heavy_light" to "Pesado / Liviano x3",
+        "ppl_x3" to "Push / Pull / Legs x3",
+        "fullbody_x4" to "Cuerpo Completo x4",
+        "ul_fb_x3" to "Upper / Lower + Cuerpo Completo",
+    )
+}
