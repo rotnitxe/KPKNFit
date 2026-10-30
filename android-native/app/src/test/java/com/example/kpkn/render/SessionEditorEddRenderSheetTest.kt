@@ -39,8 +39,6 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
-import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
-import com.example.kpkn.screens.sessioneditor.components.CardioEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.sheets.SupersetMemberPickerSheet
 import com.example.kpkn.ui.design.KpknSurface
@@ -174,12 +172,6 @@ class SessionEditorEddRenderSheetTest {
         }
     }
 
-    /** Abre el panel «Avanzado» del cardio y deja a la vista sus avisos. */
-    private fun openAdvanced() {
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
-    }
-
     // ───────────────────────────── escenas ─────────────────────────────
 
     @Test
@@ -245,79 +237,6 @@ class SessionEditorEddRenderSheetTest {
         renderBothScales("c3_rondas")
         renderBothScales("c3_rondas_descanso") {
             rule.onNodeWithText("Usar el base").performScrollTo()
-        }
-    }
-
-    @Test
-    fun renderC4() {
-        host {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                CardioEditorCard(
-                    details = continuo,
-                    accentColor = SymbolPalette.columna,
-                    exerciseName = "Bici estática",
-                    onChange = {},
-                )
-            }
-        }
-        openAdvanced()
-        rule.onNodeWithText("AVISOS Y PANTALLA").performScrollTo()
-        rule.waitForIdle()
-        renderBothScales("c4_cardio_continuo") {
-            rule.onNodeWithText("Pantalla encendida").performScrollTo()
-        }
-    }
-
-    @Test
-    fun renderC5() {
-        host {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                CardioEditorCard(
-                    details = series,
-                    accentColor = SymbolPalette.columna,
-                    exerciseName = "Remo ergómetro",
-                    onChange = {},
-                )
-            }
-        }
-        openAdvanced()
-        rule.onNodeWithText("OBJETIVO DE TRABAJO").performScrollTo()
-        rule.waitForIdle()
-        renderBothScales("c5_cardio_series") {
-            rule.onNodeWithText("m por esfuerzo").performScrollTo()
-        }
-    }
-
-    @Test
-    fun renderC6() {
-        host {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                CardioEditorCard(
-                    details = intervalos,
-                    accentColor = SymbolPalette.columna,
-                    exerciseName = "Cinta de correr",
-                    onChange = {},
-                )
-            }
-        }
-        rule.onNodeWithText("PATRÓN DE INTERVALO").performScrollTo()
-        rule.waitForIdle()
-        renderBothScales("c6_cardio_intervalos") {
-            rule.onNodeWithText("Añadir bloque").performScrollTo()
-        }
-    }
-
-    @Test
-    fun renderC7() {
-        host {
-            CardioCatalogSheet(onAdd = {})
-        }
-        rule.onNodeWithText("AL AIRE LIBRE").performScrollTo()
-        rule.waitForIdle()
-        renderBothScales("c7_selector_cardio") {
-            rule.onNodeWithText("AL AIRE LIBRE").performScrollTo()
-            rule.waitForIdle()
-            rule.onAllNodesWithText("GPS en vivo")[0].performScrollTo()
         }
     }
 }

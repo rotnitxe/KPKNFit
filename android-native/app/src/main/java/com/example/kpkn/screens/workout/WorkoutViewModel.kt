@@ -25,6 +25,7 @@ import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.cardio.CardioCueRules
+import com.example.kpkn.domain.cardio.cueFlags
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
@@ -5909,16 +5910,16 @@ class WorkoutViewModel(
                         val prev = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
                         val curr = CardioIntervalEngine.progressAt(details, updated.elapsedSeconds)
                         if (curr != null) {
-                            val transition = CardioCueRules.transitionCue(prev, curr, details.hiit)
+                            val transition = CardioCueRules.transitionCue(prev, curr, details)
                             val countdown = curr.currentBlock?.let {
-                                CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details.hiit)
+                                CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details)
                             }
                             val settings = repository.settings.value
                             if (settings.soundsEnabled || settings.hapticFeedbackEnabled) {
                                 cardioCuePlayer.play(transition)
                                 countdown?.let(cardioCuePlayer::play)
                             }
-                            if (voiceController.isEnabled() && transition.speech != null && details.hiit?.voiceCuesEnabled != false) {
+                            if (voiceController.isEnabled() && transition.speech != null && details.cueFlags().voice) {
                                 voiceController.speakAnnouncement(transition.speech)
                             } else if (voiceController.isEnabled() && prev?.currentIndex != curr.currentIndex && curr.currentBlock != null && !curr.isComplete && details.hiit == null) {
                                 val b = curr.currentBlock

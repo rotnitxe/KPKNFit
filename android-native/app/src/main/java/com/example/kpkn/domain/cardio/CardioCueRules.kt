@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.cardio
 
 import com.example.kpkn.data.models.CardioBlockType
+import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioHiitConfig
 import com.example.kpkn.data.models.HiitRestNature
 
@@ -13,19 +14,69 @@ data class CardioCuePlan(
     val speech: String? = null,
 )
 
+/**
+ * Los tres avisos de fase de un cardio (sonidos, voz y vibración). Salen de [CardioDetails.cueFlags]: lo que el usuario fijó para ese cardio
+ * (también en «Intervalos», que no tiene [CardioHiitConfig]) y, si no fijó nada, lo de su protocolo por series o «activo».
+ */
+data class CardioCueFlags(
+    val beeps: Boolean = true,
+    val voice: Boolean = true,
+    val vibration: Boolean = true,
+) {
+    companion object {
+        fun of(hiit: CardioHiitConfig?): CardioCueFlags = CardioCueFlags(
+            beeps = hiit?.beepsEnabled ?: true,
+            voice = hiit?.voiceCuesEnabled ?: true,
+            vibration = hiit?.vibrationEnabled ?: true,
+        )
+    }
+}
+
+/** Los avisos de fase de este cardio: el valor propio, o el del protocolo por series, o activo. */
+fun CardioDetails.cueFlags(): CardioCueFlags = CardioCueFlags(
+    beeps = beepsEnabled ?: hiit?.beepsEnabled ?: true,
+    voice = voiceCuesEnabled ?: hiit?.voiceCuesEnabled ?: true,
+    vibration = vibrationEnabled ?: hiit?.vibrationEnabled ?: true,
+)
+
 /** Pure cue policy; platform playback and settings gates live outside this class. */
 object CardioCueRules {
     fun transitionCue(
         prev: CardioIntervalEngine.Progress?,
         curr: CardioIntervalEngine.Progress,
+        details: CardioDetails,
+    ): CardioCuePlan = transitionCue(prev, curr, details.hiit, details.cueFlags())
+
+    fun countdownCue(
+        remainingInBlock: Int,
+        blockType: CardioBlockType,
+        details: CardioDetails,
+    ): CardioCuePlan = countdownCue(remainingInBlock, blockType, details.hiit, details.cueFlags())
+
+    fun transitionCue(
+        prev: CardioIntervalEngine.Progress?,
+        curr: CardioIntervalEngine.Progress,
         hiit: CardioHiitConfig?,
+    ): CardioCuePlan = transitionCue(prev, curr, hiit, CardioCueFlags.of(hiit))
+
+    fun countdownCue(
+        remainingInBlock: Int,
+        blockType: CardioBlockType,
+        hiit: CardioHiitConfig?,
+    ): CardioCuePlan = countdownCue(remainingInBlock, blockType, hiit, CardioCueFlags.of(hiit))
+
+    private fun transitionCue(
+        prev: CardioIntervalEngine.Progress?,
+        curr: CardioIntervalEngine.Progress,
+        hiit: CardioHiitConfig?,
+        flags: CardioCueFlags,
     ): CardioCuePlan {
         val changed = prev?.currentIndex != curr.currentIndex
         if (!changed || curr.currentBlock == null) return CardioCuePlan()
         val block = curr.currentBlock
-        val voiceEnabled = hiit?.voiceCuesEnabled ?: true
-        val beepsEnabled = hiit?.beepsEnabled ?: true
-        val vibrationEnabled = hiit?.vibrationEnabled ?: true
+        val voiceEnabled = flags.voice
+        val beepsEnabled = flags.beeps
+        val vibrationEnabled = flags.vibration
         val speech = if (voiceEnabled) {
             val target = CardioPrescriptionFormatter.targetBits(block)?.let { " · $it" } ?: ""
             when (block.type) {
@@ -57,13 +108,14 @@ object CardioCueRules {
         )
     }
 
-    fun countdownCue(
+    private fun countdownCue(
         remainingInBlock: Int,
         blockType: CardioBlockType,
         hiit: CardioHiitConfig?,
+        flags: CardioCueFlags,
     ): CardioCuePlan {
-        val beepsEnabled = hiit?.beepsEnabled ?: true
-        val vibrationEnabled = hiit?.vibrationEnabled ?: true
+        val beepsEnabled = flags.beeps
+        val vibrationEnabled = flags.vibration
         val beeps = if (beepsEnabled && remainingInBlock in 1..3) listOf(remainingInBlock) else emptyList()
         val vibration = if (vibrationEnabled && remainingInBlock == 1) VibCue.SHORT_TICK else null
         return CardioCuePlan(countdownBeeps = beeps, vibration = vibration)

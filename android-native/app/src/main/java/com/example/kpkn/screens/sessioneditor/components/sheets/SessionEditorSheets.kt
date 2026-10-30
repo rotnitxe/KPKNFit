@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import com.example.kpkn.screens.sessioneditor.hasStrengthContent
 import android.content.Intent
 import android.graphics.Color as AndroidColor
 import android.widget.NumberPicker
@@ -246,7 +247,6 @@ import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
-import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.CoverSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
@@ -360,6 +360,8 @@ internal fun SessionEditorSheets(
     onQuickActionDelete: () -> Unit,
     /** «Duplicar ejercicio» de las acciones rápidas (ER1f): sin esto la fila no hacía nada. */
     onQuickActionDuplicate: () -> Unit = {},
+    /** «Pasar el cardio antes / después de la fuerza» del menú de un cardio (Pulido v1 · cardio del editor). */
+    onToggleCardioPlacement: () -> Unit = {},
     onQuickActionCreateSuperset: () -> Unit,
     onQuickActionManageSuperset: () -> Unit,
     onLinkExerciseRelativeTo: (String?, String, String?) -> Unit,
@@ -541,6 +543,38 @@ internal fun SessionEditorSheets(
          return
      }
 
+    // Pulido v1 · cardio del editor: las hojas del cardio son planas (`.pl-sheet`) y traen su propia hoja, como el catálogo de fuerza.
+    if (uiState.sheet == SessionEditorSheet.CARDIO_PICKER) {
+        val replacing = uiState.pickerTargetExerciseId?.let { id -> session.allExercises().firstOrNull { it.id == id } }
+        com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet(
+            isReplacing = uiState.pickerTargetExerciseId != null,
+            currentType = replacing?.cardioDetails?.type,
+            onDismiss = onDismiss,
+            onAdd = onAddCardio,
+        )
+        return
+    }
+    if (uiState.sheet == SessionEditorSheet.QUICK_ACTIONS && quickActionExercise?.cardioDetails != null) {
+        com.example.kpkn.screens.sessioneditor.components.CardioQuickActionsSheet(
+            exercise = quickActionExercise,
+            canMovePlacement = session.hasStrengthContent(),
+            cardioFirst = session.cardioFirst,
+            onOpenFicha = {
+                onDismiss()
+                onOpenExerciseDetail(quickActionExercise.id)
+            },
+            onChange = onQuickActionOpenPicker,
+            onDuplicate = onQuickActionDuplicate,
+            onTogglePlacement = {
+                onDismiss()
+                onToggleCardioPlacement()
+            },
+            onDelete = onQuickActionDelete,
+            onDismiss = onDismiss,
+        )
+        return
+    }
+
     KpknSheet(onDismissRequest = onDismiss) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
@@ -577,10 +611,7 @@ internal fun SessionEditorSheets(
                 onRemove = onRemoveMobilityExercise,
                 onDismiss = onDismiss,
             )
-            SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(
-                isReplacing = uiState.pickerTargetExerciseId != null,
-                onAdd = onAddCardio,
-            )
+            SessionEditorSheet.CARDIO_PICKER -> Unit // lo dibuja `CardioCatalogSheet` arriba, con su propia hoja
             SessionEditorSheet.CARDIO_PLACEMENT -> Unit
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = uiState.supersetManagerSupersetId

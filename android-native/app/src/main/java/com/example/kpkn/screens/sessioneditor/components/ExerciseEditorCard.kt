@@ -81,7 +81,7 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.sessionExerciseListDose
 import com.example.kpkn.screens.sessioneditor.design.EdSwipeDeleteRow
-import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
+import com.example.kpkn.screens.sessioneditor.design.CardioThumb
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
@@ -220,6 +220,7 @@ internal fun ExerciseEditorCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (cardio != null) Modifier.cardioFreshFlash(exercise.id) else Modifier)
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             // Al ordenar, la fila que se arrastra se queda vacía: su sitio lo ocupa el hueco punteado y la ficha levantada flota encima.
             .graphicsLayer { alpha = if (isDragging) 0f else 1f },
@@ -284,7 +285,7 @@ internal fun ExerciseEditorCard(
                 starActive = if (cardio == null) (exercise.isStarTarget || exercise.goal1RM != null) else null,
                 onStar = { showGoalSheet = true },
                 below = {
-                    if (cardio != null && cardio.hasIntervals()) {
+                    if (cardio != null && cardio.hasIntervals() && !expanded) {
                         com.example.kpkn.screens.workout.CardioIntervalChart(
                             details = cardio,
                             accentColor = accentColor,
@@ -403,6 +404,11 @@ internal fun Thumbnail(
     pattern: ExercisePattern,
     dimension: Dp = 40.dp,
 ) {
+    // Pulido v1 · cardio del editor (punto 5): un cardio lleva su ilustración a medida en una baldosa de 56 dp, no el icono de línea.
+    if (cardio != null) {
+        CardioThumb(type = cardio, tile = 56.dp)
+        return
+    }
     Box(
         modifier = Modifier
             .size(dimension)
@@ -411,7 +417,6 @@ internal fun Thumbnail(
         contentAlignment = Alignment.Center,
     ) {
         when {
-            cardio != null -> CardioTypeIcon(type = cardio, tint = WizardColors.text)
             imageRes != null -> Image(
                 painter = painterResource(imageRes),
                 contentDescription = null,

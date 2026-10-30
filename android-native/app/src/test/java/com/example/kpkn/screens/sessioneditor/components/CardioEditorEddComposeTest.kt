@@ -2,20 +2,23 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioBlockType
 import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioDetails
@@ -23,10 +26,9 @@ import com.example.kpkn.data.models.CardioHiitConfig
 import com.example.kpkn.data.models.CardioIntervalBlock
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.HiitWorkTarget
-import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
-import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -35,8 +37,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * ED-D · C4 a C7: el cardio continuo con sus avisos, el objetivo de trabajo del cardio por series, el circuito de intervalos y el
- * selector de cardio del catálogo.
+ * Pulido v1 · cardio del editor: la tarjeta de un cardio abierto (Continuo · Series · Intervalos), sus hojas (avisos, protocolo, selector) y el
+ * catálogo de «Añadir cardio». Antes: ED-D · C4 a C7 sobre el panel «Avanzado», que desaparece.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h1800dp-xxhdpi")
@@ -47,36 +49,30 @@ class CardioEditorEddComposeTest {
 
     @Composable
     private fun Card(details: CardioDetails, onChange: (CardioDetails) -> Unit) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            CardioEditorCard(
-                details = details,
-                accentColor = SymbolPalette.columna,
-                onChange = onChange,
-            )
+        Inline {
+            // Sin desplazamiento: la ventana de prueba mide 1.800 dp y las hojas en línea llevan el suyo (no se anidan dos).
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            ) {
+                CardioEditorCard(details = details, onChange = onChange)
+            }
         }
     }
 
-    private fun continuo() = CardioDetails(
-        type = CardioType.BIKE_STATIONARY,
-        targetDurationSeconds = 20 * 60,
-    )
+    /** Las hojas se pintan en línea: dentro de `KpknSheet` los toques no llegan en Robolectric. */
+    @Composable
+    private fun Inline(content: @Composable () -> Unit) {
+        CompositionLocalProvider(LocalCardioSheetInline provides true) { EditorOverlayTestHost(content) }
+    }
+
+    private fun continuo() = CardioDetails(type = CardioType.BIKE_STATIONARY, targetDurationSeconds = 20 * 60)
 
     private fun series() = CardioDetails(
         type = CardioType.ROW_MACHINE,
-        // Sin celda de distancia: «Distancia» es solo el segmento del objetivo de trabajo.
         supportsDistance = false,
-        hiit = CardioHiitConfig(
-            warmupSeconds = 300,
-            workSeconds = 30,
-            restSeconds = 60,
-            rounds = 8,
-            cooldownSeconds = 180,
-            targetRpe = 9.0,
-        ),
+        hiit = CardioHiitConfig(warmupSeconds = 300, workSeconds = 30, restSeconds = 60, rounds = 8, cooldownSeconds = 180, targetRpe = 9.0),
     )
 
     private fun intervalos() = CardioDetails(
@@ -91,130 +87,283 @@ class CardioEditorEddComposeTest {
         intervalRounds = 1,
     )
 
-    // ───────────────────────────── C4 · cardio continuo ─────────────────────────────
+    /** Las hojas entran con una animación: se deja pasar el reloj de pruebas antes de tocar dentro de ellas (como hacen las demás pruebas de hojas). */
+    private fun settle() {
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+    }
+
+    private fun switchNamed(text: String) = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Switch) and hasText(text)
+
+    // ───────────────────────────── Continuo ─────────────────────────────
 
     @Test
-    fun elCardioContinuoMuestraLosAvisosConLaPantallaEncendida() {
+    fun elCardioContinuoSeDistribuyeEnFormaMagnitudesEsfuerzoYObjetivos() {
         var details by mutableStateOf(continuo())
         rule.setContent { Card(details) { details = it } }
 
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
-
-        rule.onNodeWithText("AVISOS Y PANTALLA").assertIsDisplayed()
-        rule.onNodeWithText("Beeps").assertExists()
-        rule.onNodeWithText("Voz").assertExists()
-        rule.onNodeWithText("Vibra").assertExists()
-        rule.onNodeWithText("Pantalla encendida").assertExists()
-        // Sin protocolo no hay cambio de fase que avisar: los avisos de fase quedan apagados y se explica.
-        rule.onNodeWithText("Los avisos de fase son del cardio por series.").assertExists()
-    }
-
-    @Test
-    fun laPantallaEncendidaSeApagaYSeEnciendeEnElCardioContinuo() {
-        var details by mutableStateOf(continuo())
-        rule.setContent { Card(details) { details = it } }
-
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
-
-        assertTrue(details.keepScreenOn)
-        rule.onNodeWithText("Pantalla encendida").performScrollTo().performClick()
-        rule.waitForIdle()
-        assertFalse(details.keepScreenOn)
-
-        rule.onNodeWithText("Pantalla encendida").performScrollTo().performClick()
-        rule.waitForIdle()
-        assertTrue(details.keepScreenOn)
-    }
-
-    @Test
-    fun losAvisosDeFaseSoloSeEnciendenEnElCardioPorSeries() {
-        var details by mutableStateOf(series())
-        rule.setContent { Card(details) { details = it } }
-
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
-
-        rule.onNodeWithText("AVISOS Y PANTALLA").assertExists()
-        rule.onAllNodesWithText("Los avisos de fase son del cardio por series.").assertCountEquals(0)
-        // Con protocolo, el aviso de fase se puede apagar.
-        rule.onNodeWithText("Beeps").performScrollTo().performClick()
-        rule.waitForIdle()
-        assertFalse(details.hiit?.beepsEnabled ?: true)
-    }
-
-    // ───────────────────────────── C5 · cardio por series ─────────────────────────────
-
-    @Test
-    fun elCardioPorSeriesEnseñaElObjetivoDeTrabajo() {
-        var details by mutableStateOf(series())
-        rule.setContent { Card(details) { details = it } }
-
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
-
-        rule.onNodeWithText("OBJETIVO DE TRABAJO").assertExists()
-        rule.onNodeWithText("Tiempo").assertExists()
-        rule.onNodeWithText("kcal").assertExists()
+        rule.onNodeWithText("FORMA").assertExists()
+        rule.onNodeWithText("Plantillas").assertExists()
+        rule.onNodeWithText("Duración").assertExists()
         rule.onNodeWithText("Distancia").assertExists()
-        rule.onNodeWithText("Con kcal o distancia, cada esfuerzo termina al llegar a la cifra. Por defecto, el tiempo de arriba.").assertExists()
+        rule.onNodeWithText("ESFUERZO (RPE)").assertExists()
+        rule.onNodeWithText("OBJETIVOS").assertExists()
+        rule.onNodeWithText("Zona de pulso").assertExists()
+        rule.onNodeWithText("Avisos y pantalla").assertExists()
+        // Lo que el lienzo no tiene se elimina: ni «Avanzado», ni «Añadir series», ni «Añadir cardio» dentro de la tarjeta, ni el chip de posición.
+        rule.onAllNodesWithText("Avanzado").assertCountEquals(0)
+        rule.onAllNodesWithText("Añadir series").assertCountEquals(0)
+        rule.onAllNodesWithText("Añadir cardio").assertCountEquals(0)
+        rule.onAllNodesWithText("Al final").assertCountEquals(0)
+        // La bici estática no corre ni camina: no hay ritmo objetivo.
+        rule.onAllNodesWithText("Ritmo").assertCountEquals(0)
     }
 
     @Test
-    fun elegirElObjetivoDeTrabajoCambiaElTipoDelEsfuerzo() {
+    fun elRitmoSoloApareceDondeSeCorreOSeCamina() {
+        var details by mutableStateOf(CardioDetails(type = CardioType.TREADMILL, targetDurationSeconds = 20 * 60))
+        rule.setContent { Card(details) { details = it } }
+        rule.onNodeWithText("Ritmo").assertExists()
+    }
+
+    @Test
+    fun elSelectorDeDuracionAplicaUnAtajo() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Duración").performClick()
+        settle()
+        rule.onNodeWithText("Arrastra la regla, usa − y + o toca la cifra para escribir.").assertExists()
+        rule.onNodeWithText("30 min").performClick()
+        rule.onNodeWithText("Aplicar").performClick()
+        settle()
+
+        assertEquals(30 * 60, details.targetDurationSeconds)
+    }
+
+    @Test
+    fun elAtajoLibreQuitaElObjetivoDeTiempo() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Duración").performClick()
+        settle()
+        rule.onNodeWithText("Libre").performClick()
+        rule.onNodeWithText("Aplicar").performClick()
+        settle()
+
+        assertNull(details.targetDurationSeconds)
+    }
+
+    @Test
+    fun cancelarElSelectorNoCambiaNada() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Duración").performClick()
+        settle()
+        rule.onNodeWithText("45 min").performClick()
+        rule.onNodeWithText("Cancelar").performClick()
+        settle()
+
+        assertEquals(20 * 60, details.targetDurationSeconds)
+    }
+
+    @Test
+    fun laZonaDeLaHojaSeGuardaComoElPuntoMedioDeSuBanda() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Zona de pulso").performClick()
+        settle()
+        rule.onNodeWithText("Z3 · Tempo").performClick()
+        rule.onNodeWithText("Aplicar").performClick()
+        settle()
+
+        assertEquals(75, details.targetHrPercent)
+    }
+
+    // ───────────────────────────── Avisos y pantalla ─────────────────────────────
+
+    @Test
+    fun enContinuoLosAvisosDeFaseSeExplicanYLaPantallaEncendidaSeCambia() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Avisos y pantalla").performClick()
+        settle()
+
+        rule.onNodeWithText("Sonidos").assertExists()
+        rule.onNodeWithText("Vibración").assertExists()
+        rule.onNodeWithText("Los avisos de fase son del cardio por series o por intervalos: en Continuo no hay cambios de fase que avisar.").assertExists()
+        assertTrue(details.keepScreenOn)
+        rule.onNode(switchNamed("Pantalla encendida")).performClick()
+        settle()
+        assertFalse(details.keepScreenOn)
+    }
+
+    @Test
+    fun losAvisosDeFaseSeGuardanPorCardioEnSeries() {
         var details by mutableStateOf(series())
         rule.setContent { Card(details) { details = it } }
 
-        rule.onNodeWithText("Avanzado").performScrollTo().performClick()
-        rule.waitForIdle()
+        rule.onNodeWithText("Avisos y pantalla").performClick()
+        settle()
+        rule.onNode(switchNamed("Sonidos")).performClick()
+        settle()
 
-        assertEquals(HiitWorkTarget.TIME, details.hiit?.workTargetType)
-        rule.onNodeWithText("kcal").performScrollTo().performClick()
-        rule.waitForIdle()
-        assertEquals(HiitWorkTarget.KCAL, details.hiit?.workTargetType)
-
-        rule.onNodeWithText("Distancia").performScrollTo().performClick()
-        rule.waitForIdle()
-        assertEquals(HiitWorkTarget.DISTANCE, details.hiit?.workTargetType)
+        assertFalse(details.hiit?.beepsEnabled ?: true)
+        assertEquals(false, details.beepsEnabled)
     }
 
-    // ───────────────────────────── C6 · cardio por intervalos ─────────────────────────────
-
     @Test
-    fun elCircuitoDeIntervalosEnseñaSusBloquesSusRondasYSuModo() {
+    fun losAvisosDeFaseSeGuardanPorCardioTambienEnIntervalos() {
         var details by mutableStateOf(intervalos())
         rule.setContent { Card(details) { details = it } }
 
-        rule.onNodeWithText("MODO INTERVALOS").assertExists()
-        // `formatMinutes` usa el espacio duro de la casa entre la cifra y la unidad.
-        val diecisiete = CardioPrescriptionFormatter.formatDuration(17 * 60).replace(' ', '\u00A0')
-        rule.onNodeWithText("5 bloques · 1 ronda · $diecisiete").assertExists()
-        rule.onNodeWithText("PATRÓN DE INTERVALO").assertExists()
-        rule.onNodeWithText("PELDAÑOS DEL CIRCUITO (5)").assertExists()
+        rule.onNodeWithText("Avisos y pantalla").performClick()
+        settle()
+        rule.onNode(switchNamed("Voz")).performClick()
+        settle()
+
+        assertNull(details.hiit)
+        assertEquals(false, details.voiceCuesEnabled)
+        assertNull(details.beepsEnabled)
     }
 
-    // ───────────────────────────── C7 · selector de cardio ─────────────────────────────
+    // ───────────────────────────── Series ─────────────────────────────
+
+    @Test
+    fun elCardioPorSeriesTieneCincoFilasYLoRaroVaEnElProtocolo() {
+        var details by mutableStateOf(series())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Calentamiento").assertExists()
+        rule.onNodeWithText("Esfuerzo").assertExists()
+        rule.onNodeWithText("Pausa").assertExists()
+        rule.onNodeWithText("Rondas").assertExists()
+        rule.onNodeWithText("Enfriamiento").assertExists()
+        rule.onNodeWithText("Protocolo").assertExists()
+        // Se van el chip HIIT/SIT, Omitir/Libre sueltos y la distancia dentro de Series.
+        rule.onAllNodesWithText("HIIT").assertCountEquals(0)
+        rule.onAllNodesWithText("Omitir").assertCountEquals(0)
+        rule.onAllNodesWithText("Distancia").assertCountEquals(0)
+    }
+
+    @Test
+    fun elegirElObjetivoDeTrabajoEnElProtocoloCambiaElTipoDelEsfuerzo() {
+        var details by mutableStateOf(series())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Protocolo").performClick()
+        settle()
+        rule.onNodeWithText("PAUSA ENTRE ESFUERZOS").assertExists()
+        rule.onNodeWithText("CADA ESFUERZO TERMINA POR").assertExists()
+
+        assertEquals(HiitWorkTarget.TIME, details.hiit?.workTargetType)
+        rule.onNodeWithText("kcal").performClick()
+        settle()
+        assertEquals(HiitWorkTarget.KCAL, details.hiit?.workTargetType)
+        rule.onNodeWithText("Distancia").performClick()
+        settle()
+        assertEquals(HiitWorkTarget.DISTANCE, details.hiit?.workTargetType)
+    }
+
+    @Test
+    fun elCalentamientoPuedeSerLibreOOmitirDesdeElSelector() {
+        var details by mutableStateOf(series())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Calentamiento").performClick()
+        settle()
+        rule.onNodeWithText("Libre").performClick()
+        rule.onNodeWithText("Aplicar").performClick()
+        settle()
+        assertTrue(details.hiit?.warmupOpen == true)
+
+        rule.onNodeWithText("Calentamiento").performClick()
+        settle()
+        rule.onNodeWithText("Omitir").performClick()
+        rule.onNodeWithText("Aplicar").performClick()
+        settle()
+        assertEquals(0, details.hiit?.warmupSeconds)
+        assertFalse(details.hiit?.warmupOpen == true)
+    }
+
+    // ───────────────────────────── Intervalos ─────────────────────────────
+
+    @Test
+    fun elCircuitoDeIntervalosEnseñaLaGraficaLasRondasYElInspector() {
+        var details by mutableStateOf(intervalos())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Toca una barra para editarla. Altura = intensidad, ancho = duración.").assertExists()
+        rule.onNodeWithText("Rondas del circuito").assertExists()
+        rule.onNodeWithText("1/5").assertExists()
+        rule.onNodeWithText("Añadir bloque").assertExists()
+        // La cinta admite velocidad e inclinación; ni «Peldaños del circuito» ni «Modo intervalos» ni el carrusel de patrones.
+        rule.onNodeWithText("Velocidad").assertExists()
+        rule.onNodeWithText("Inclinación").assertExists()
+        rule.onAllNodesWithText("PELDAÑOS DEL CIRCUITO (5)").assertCountEquals(0)
+        rule.onAllNodesWithText("MODO INTERVALOS").assertCountEquals(0)
+    }
+
+    @Test
+    fun anadirUnBloqueLoElige() {
+        var details by mutableStateOf(intervalos())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Añadir bloque").performClick()
+        settle()
+
+        assertEquals(6, details.intervalBlocks.size)
+        rule.onNodeWithText("6/6").assertExists()
+        assertEquals(details.intervalBlocks.sumOf { it.durationSeconds }, details.targetDurationSeconds)
+    }
+
+    // ───────────────────────────── Plantillas ─────────────────────────────
+
+    @Test
+    fun laHojaDePlantillasAplicaUnaYCierra() {
+        var details by mutableStateOf(continuo())
+        rule.setContent { Card(details) { details = it } }
+
+        rule.onNodeWithText("Plantillas").performClick()
+        settle()
+        rule.onNodeWithText("Elige una base y ajústala después.").assertExists()
+        rule.onNodeWithText("Tabata").performClick()
+        settle()
+
+        assertTrue(details.hasIntervals())
+        assertEquals(8, details.hiit?.rounds)
+    }
+
+    // ───────────────────────────── Selector de cardio ─────────────────────────────
 
     @Test
     fun elSelectorDeCardioAgrupaLasMaquinasYTocaUnaLaAnade() {
         var added: CardioCatalogItem? = null
-        rule.setContent {
-            CardioCatalogSheet(onAdd = { added = it })
-        }
+        rule.setContent { Inline { CardioCatalogSheet(onAdd = { added = it }) } }
+        settle()
 
         rule.onNodeWithText("CARDIO").assertExists()
         rule.onNodeWithText("Añadir cardio").assertExists()
         rule.onNodeWithText("EN INTERIOR").assertExists()
-        rule.onNodeWithText("AL AIRE LIBRE").assertExists()
-        rule.onNodeWithText("SPRINT Y POTENCIA").assertExists()
         rule.onNodeWithText("Cinta de correr").assertExists()
-        // Las tres máquinas al aire libre llevan su insignia de GPS.
-        rule.onAllNodesWithText("GPS en vivo").assertCountEquals(3)
 
         rule.onNodeWithText("Cinta de correr").performClick()
-        rule.waitForIdle()
+        settle()
 
         assertEquals("cardio_treadmill", added?.id)
+    }
+
+    @Test
+    fun alCambiarLaModalidadSeDiceQueSeSeleccionaLaNueva() {
+        rule.setContent {
+            Inline { CardioCatalogSheet(isReplacing = true, currentType = CardioType.ELLIPTICAL, onAdd = {}) }
+        }
+        settle()
+        rule.onNodeWithText("Cambiar ejercicio de cardio").assertExists()
+        rule.onNodeWithText("Selecciona la nueva modalidad.").assertExists()
     }
 }
