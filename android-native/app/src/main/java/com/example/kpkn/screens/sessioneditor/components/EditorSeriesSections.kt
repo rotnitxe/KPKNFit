@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -38,6 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import kotlinx.coroutines.launch
 import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -79,6 +86,14 @@ internal fun EdLoadSection(
     val type = edLoadTypes.first { it.mode == mode }
     var open by remember { mutableStateOf(false) }
     var anchor by remember { mutableStateOf<Rect?>(null) }
+    // pulido:ed-J08 `smart`: la cifra parpadea (`t.animate([{opacity:.4},{opacity:1}],{duration:240})`, lineal) al tocarla
+    val blink = remember { Animatable(1f) }
+    val blinkScope = rememberCoroutineScope()
+    val reduced = wizardReducedMotion()
+    // pulido:ed-T30 .ed-tp borde 0,16 s ease (abierto = #f2eee699)
+    val typeBorder = edTransitionColor(if (open) EdColors.open else EdColors.line2, 160)
+    // pulido:ed-T31 .ed-tp svg giro 0,2 s --ed-ease · ed-X07 rotate(180deg) con el menú abierto
+    val chevronTurn = edChevronRotation(open)
     EdSection(label = "Carga", hint = type.hint, modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
@@ -91,8 +106,7 @@ internal fun EdLoadSection(
                     .height(44.dp)
                     .clip(shape)
                     .background(EdColors.field, shape)
-                    // pulido:ed-T30 .ed-tp borde 0,16 s (abierto = #f2eee699)
-                    .border(1.dp, if (open) EdColors.open else EdColors.line2, shape)
+                    .border(1.dp, typeBorder, shape)
                     .edAnchor { anchor = it }
                     .clickable(role = Role.Button, onClickLabel = "Elegir el tipo de carga") { open = !open }
                     .semantics { contentDescription = "Tipo de carga: ${type.spoken}" }
@@ -101,18 +115,25 @@ internal fun EdLoadSection(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(type.label, style = edText(14f, FontWeight.SemiBold, EdColors.ink, 17.5f), maxLines = 1)
-                // pulido:ed-T31 .ed-tp svg giro 0,2 s · ed-X07 rotate(180deg) con el menú abierto
-                Icon(KpknLineIcons.ChevronDown, null, tint = EdColors.muted, modifier = Modifier.width(16.dp).height(16.dp).rotate(if (open) 180f else 0f))
+                Icon(KpknLineIcons.ChevronDown, null, tint = EdColors.muted, modifier = Modifier.width(16.dp).height(16.dp).rotate(chevronTurn))
             }
             Row(
                 modifier = Modifier
                     .weight(1f)
                     .heightIn(min = 44.dp)
+                    .graphicsLayer { alpha = blink.value }
                     .then(
-                        if (onOpenSmartLoad != null) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir la carga inteligente", onClick = onOpenSmartLoad)
+                        if (onOpenSmartLoad != null) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir la carga inteligente") {
+                            if (!reduced) {
+                                blinkScope.launch {
+                                    blink.snapTo(0.4f)
+                                    blink.animateTo(1f, tween(240, easing = LinearEasing))
+                                }
+                            }
+                            onOpenSmartLoad()
+                        }
                         else Modifier,
                     )
-                    // pulido:ed-J08 smart: parpadeo de la cifra (0,24 s, opacidad .4 → 1) al tocarla
                     .semantics(mergeDescendants = true) { contentDescription = "Carga de la serie" },
                 horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically,
@@ -266,6 +287,11 @@ internal fun EdIntensitySection(
     }
     var open by remember { mutableStateOf(false) }
     var anchor by remember { mutableStateOf<Rect?>(null) }
+    val (unitSource, unitPressed) = rememberEdPressed()
+    // pulido:ed-T33 .ed-unit fondo 0,16 s ease (#ffffff08 → `:active{background:#ffffff14}`)
+    val unitFill = edTransitionColor(Color.White.copy(alpha = if (unitPressed) 0.078f else 0.031f), 160)
+    // pulido:ed-T34 .ed-unit svg giro 0,2 s --ed-ease · ed-X09 rotate(180deg) con el menú abierto
+    val unitChevronTurn = edChevronRotation(open)
     EdSection(label = "Intensidad", hint = hint, modifier = modifier) {
         if (current == null) {
             EdGhostButton(text = "Añadir intensidad", onClick = onAdd)
@@ -286,17 +312,15 @@ internal fun EdIntensitySection(
                         modifier = Modifier
                             .width(96.dp)
                             .fillMaxHeight()
-                            // pulido:ed-T33 .ed-unit fondo 0,16 s (#ffffff08)
-                            .background(Color.White.copy(alpha = 0.031f))
+                            .background(unitFill)
                             .edAnchor { anchor = it }
-                            .clickable(role = Role.Button, onClickLabel = "Elegir la unidad de intensidad") { open = !open }
+                            .clickable(interactionSource = unitSource, indication = null, role = Role.Button, onClickLabel = "Elegir la unidad de intensidad") { open = !open }
                             .semantics { contentDescription = "Unidad de intensidad: ${current.second}" },
                         horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(current.second, style = edText(14f, FontWeight.SemiBold, EdColors.ink, 17.5f), maxLines = 1)
-                        // pulido:ed-T34 .ed-unit svg giro 0,2 s · ed-X09 rotate(180deg) con el menú abierto
-                        Icon(KpknLineIcons.ChevronDown, null, tint = EdColors.muted, modifier = Modifier.width(16.dp).height(16.dp).rotate(if (open) 180f else 0f))
+                        Icon(KpknLineIcons.ChevronDown, null, tint = EdColors.muted, modifier = Modifier.width(16.dp).height(16.dp).rotate(unitChevronTurn))
                     }
                     Box(Modifier.width(1.dp).fillMaxHeight().background(EdColors.line2))
                 },
@@ -389,9 +413,10 @@ internal fun EdRestSection(
             description = "Descanso ${edRest(seconds)}: toca para elegir uno rápido",
         )
         if (presetsOpen) {
-            // pulido:ed-A06 .ed-presets.anim entrada 0,26 s (6 px + fundido)
+            // pulido:ed-A06 .ed-presets.anim ed-in 0,26 s --ed-ease (6 dp hacia arriba con fundido) al abrir los atajos
             Row(
                 modifier = Modifier
+                    .edEnter()
                     .fillMaxWidth()
                     .padding(bottom = 2.dp)
                     .horizontalScroll(rememberScrollState()),
@@ -441,7 +466,7 @@ internal fun EdRestField(
         centerContent = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 EdIcon(KpknLineIcons.Timer, 18.dp, EdColors.muted)
-                Text(edRest(seconds), style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true), maxLines = 1)
+                Text(edRest(seconds), modifier = Modifier.edBump(), style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true), maxLines = 1)
             }
         },
     )

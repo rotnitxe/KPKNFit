@@ -105,6 +105,7 @@ internal fun ExerciseOptionsBar(
 
     if (showExerciseOptionsMenu) {
         EdSheet(onDismiss = { showExerciseOptionsMenu = false }) {
+            val closeExerciseMenu = LocalEdSheetClose.current
             EdSheetHeader("Opciones del ejercicio")
             Column(modifier = Modifier.edBleed(8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 // B1/B8: bilateral es el valor por defecto; la lateralidad vive aquí, no como un segmentado fijo en la barra.
@@ -113,8 +114,11 @@ internal fun ExerciseOptionsBar(
                     subtitle = if (unilateral) "Unilateral" else "Bilateral",
                     icon = EdIcons.SideLR,
                     onClick = {
-                        showExerciseOptionsMenu = false
-                        showLateralitySheet = true
+                        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                        closeExerciseMenu {
+                            showExerciseOptionsMenu = false
+                            showLateralitySheet = true
+                        }
                     },
                 )
                 if (exercise.trainingMode in listOf(TrainingMode.REPS, TrainingMode.RM, TrainingMode.AMRAP)) {
@@ -122,8 +126,11 @@ internal fun ExerciseOptionsBar(
                         title = "Bloque APRE",
                         icon = EdIcons.Target2,
                         onClick = {
-                            showExerciseOptionsMenu = false
-                            showApreSheet = true
+                            // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                            closeExerciseMenu {
+                                showExerciseOptionsMenu = false
+                                showApreSheet = true
+                            }
                         },
                     )
                 }
@@ -138,11 +145,14 @@ internal fun ExerciseOptionsBar(
                     title = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
                     icon = KpknLineIcons.Link,
                     onClick = {
-                        showExerciseOptionsMenu = false
-                        if (exercise.relativeToCanonicalExerciseId == null) {
-                            onOpenRelationshipPicker()
-                        } else {
-                            onClearRelationship()
+                        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                        closeExerciseMenu {
+                            showExerciseOptionsMenu = false
+                            if (exercise.relativeToCanonicalExerciseId == null) {
+                                onOpenRelationshipPicker()
+                            } else {
+                                onClearRelationship()
+                            }
                         }
                     },
                 )
@@ -152,8 +162,11 @@ internal fun ExerciseOptionsBar(
                         title = if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie",
                         icon = KpknLineIcons.Layers,
                         onClick = {
-                            showExerciseOptionsMenu = false
-                            onOpenSuperset()
+                            // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                            closeExerciseMenu {
+                                showExerciseOptionsMenu = false
+                                onOpenSuperset()
+                            }
                         },
                     )
                 }
@@ -161,8 +174,11 @@ internal fun ExerciseOptionsBar(
                     title = "Unidad personalizada",
                     icon = EdIcons.Ruler2,
                     onClick = {
-                        showExerciseOptionsMenu = false
-                        onOpenCustomUnit()
+                        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                        closeExerciseMenu {
+                            showExerciseOptionsMenu = false
+                            onOpenCustomUnit()
+                        }
                     },
                 )
                 if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
@@ -170,8 +186,11 @@ internal fun ExerciseOptionsBar(
                         title = "Carga inteligente",
                         icon = EdIcons.Bolt,
                         onClick = {
-                            showExerciseOptionsMenu = false
-                            onOpenSmartLoad()
+                            // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                            closeExerciseMenu {
+                                showExerciseOptionsMenu = false
+                                onOpenSmartLoad()
+                            }
                         },
                     )
                 }
@@ -180,8 +199,11 @@ internal fun ExerciseOptionsBar(
                         title = "Meta",
                         icon = EdIcons.Star,
                         onClick = {
-                            showExerciseOptionsMenu = false
-                            onOpenGoal()
+                            // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
+                            closeExerciseMenu {
+                                showExerciseOptionsMenu = false
+                                onOpenGoal()
+                            }
                         },
                     )
                 }
@@ -273,12 +295,14 @@ internal fun ExerciseModeSheet(
 ) {
     var selected by remember(current) { mutableStateOf(current) }
     EdSheet(onDismiss = onDismiss) {
+        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después se aplica el modo elegido
+        val close = LocalEdSheetClose.current
         ExerciseModeSheetBody(
             current = current,
             selected = selected,
             onSelect = { selected = it },
             onConfirm = {
-                if (selected != current) onSelect(selected) else onDismiss()
+                close { if (selected != current) onSelect(selected) else onDismiss() }
             },
         )
     }

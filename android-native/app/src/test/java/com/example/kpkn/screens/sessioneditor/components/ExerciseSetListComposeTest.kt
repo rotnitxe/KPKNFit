@@ -243,6 +243,9 @@ class ExerciseSetListComposeTest {
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
         rule.onNodeWithText("Aplicar").assertIsDisplayed().performClick()
+        // La hoja baja (230 ms) y solo entonces se aplica (`closeLayer(cb)` del lienzo).
+        rule.mainClock.advanceTimeBy(1_000)
+        rule.waitForIdle()
         assertEquals(setOf("s2", "s3"), updated.keys)
         assertEquals(8, updated.getValue("s2").targetReps)
         assertEquals(2, updated.getValue("s3").targetRIR)

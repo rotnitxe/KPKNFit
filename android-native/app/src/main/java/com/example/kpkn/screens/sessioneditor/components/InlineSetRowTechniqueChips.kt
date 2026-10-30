@@ -566,11 +566,11 @@ private fun TechniqueBlock(set: ExerciseSet, onUpdate: ((ExerciseSet) -> Exercis
                 onUpdate { it.withMyoRepsToggled() }
             }
         }
-        // pulido:ed-A06 .ed-tcfg.anim entrada 0,26 s al elegir una técnica
+        // pulido:ed-A06 .ed-tcfg.anim ed-in 0,26 s --ed-ease (6 dp hacia arriba con fundido) al elegir una técnica
         if (drop != null) {
             val count = (drop.params["count"]?.toIntOrNull() ?: drop.params["weightPcts"]?.split(",")?.size ?: DropSetPlanDefaults.DefaultDrops)
                 .coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.edEnter(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 EdHelpText("¿Cuántos drops después de la serie normal?")
                 NumberRow((DropSetPlanDefaults.MinDrops..DropSetPlanDefaults.MaxDrops).toList(), count, "") { n ->
                     onUpdate { current ->
@@ -588,7 +588,7 @@ private fun TechniqueBlock(set: ExerciseSet, onUpdate: ((ExerciseSet) -> Exercis
         } else if (restPause != null) {
             val count = (restPause.params["count"]?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
                 .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.edEnter(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 EdHelpText("¿Cuántas mini-series tras la principal?")
                 NumberRow((RestPausePlanDefaults.MinCount..RestPausePlanDefaults.MaxCount).toList(), count, "") { n ->
                     onUpdate { current ->
@@ -622,13 +622,15 @@ private fun TechniqueBlock(set: ExerciseSet, onUpdate: ((ExerciseSet) -> Exercis
 @Composable
 private fun TechniqueCard(title: String, summary: String, on: Boolean, tone: Color, modifier: Modifier, onClick: () -> Unit) {
     val shape = RoundedCornerShape(16.dp)
+    // pulido:ed-T32 .ed-tq borde y fondo 0,16 s ease (`.on{background:#f49a6e1c;border-color:var(--mus)}`)
+    val fill = edTransitionColor(if (on) tone.copy(alpha = 0.11f) else EdColors.field, 160)
+    val borderColor = edTransitionColor(if (on) tone else EdColors.line2, 160)
     Column(
         modifier = modifier
             .heightIn(min = 76.dp)
             .clip(shape)
-            // pulido:ed-T32 .ed-tq borde y fondo 0,16 s
-            .background(if (on) tone.copy(alpha = 0.11f) else EdColors.field, shape)
-            .border(1.dp, if (on) tone else EdColors.line2, shape)
+            .background(fill, shape)
+            .border(1.dp, borderColor, shape)
             .clickable(role = androidx.compose.ui.semantics.Role.Checkbox, onClick = onClick)
             .padding(horizontal = 9.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),

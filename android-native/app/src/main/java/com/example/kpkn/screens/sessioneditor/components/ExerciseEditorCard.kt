@@ -2,6 +2,11 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import com.example.kpkn.ui.design.motion.KpknDuration
+import com.example.kpkn.ui.design.motion.KpknMotion
+import com.example.kpkn.ui.design.motion.kpknTween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -311,7 +316,13 @@ internal fun ExerciseEditorCard(
         }
 
         // Inline expanded editor
-        AnimatedVisibility(expanded && !removal.pending) {
+        // pulido:ed-T07 .ed-cardw grid-template-rows 0,3 s --ed-ease: la tarjeta crece y se pliega recortada, sin fundido ni resorte.
+        // pulido:ed-J07 al plegar, el contenido sigue montado durante la salida (el lienzo lo vacía a los 320 ms).
+        AnimatedVisibility(
+            visible = expanded && !removal.pending,
+            enter = expandVertically(kpknTween<androidx.compose.ui.unit.IntSize>(KpknDuration(300), KpknMotion.Estandar)),
+            exit = shrinkVertically(kpknTween<androidx.compose.ui.unit.IntSize>(KpknDuration(300), KpknMotion.Estandar)),
+        ) {
             ExerciseEditorExpanded(
                 exercise = exercise,
                 local = local,

@@ -121,6 +121,8 @@ class KpknSheetSpec(
     val scrimOutMs: Int,
     val heightMs: Int,
     val heightEasing: Easing,
+    /** Curva del velo al salir (`ed-fadeout` usa `ease` y el velo entra con `--ed-ease`); null = la de [scrimEasing]. */
+    val scrimOutEasing: Easing? = null,
 )
 
 /**
@@ -262,7 +264,7 @@ private fun KpknSheetBody(
                 contentIn.animateTo(0f, tween(KpknSheetMotion.REDUCED_MS))
             } else if (lienzo != null) {
                 // El lienzo cierra con la hoja entera (contenido incluido) bajando `outTravel` de su alto; solo el velo se funde aparte.
-                launch { scrimAlpha.animateTo(0f, tween(lienzo.scrimOutMs, easing = lienzo.scrimEasing)) }
+                launch { scrimAlpha.animateTo(0f, tween(lienzo.scrimOutMs, easing = lienzo.scrimOutEasing ?: lienzo.scrimEasing)) }
                 enterOffset.animateTo(lienzo.outTravel, tween(lienzo.outMs, easing = lienzo.outEasing))
             } else {
                 launch { scrimAlpha.animateTo(0f, tween(KpknSheetMotion.SCRIM_OUT_MS, easing = KpknSheetMotion.EaseIn)) }

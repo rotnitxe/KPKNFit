@@ -48,7 +48,6 @@ import com.example.kpkn.screens.sessioneditor.dayInitial
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
@@ -60,6 +59,8 @@ import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.sessioneditor.components.EdColors
+import com.example.kpkn.screens.sessioneditor.components.EdSheetSpec
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.screens.sessioneditor.components.edDisplay
 import com.example.kpkn.screens.sessioneditor.components.edText
 import com.example.kpkn.ui.design.depth.KpknShadow
@@ -103,8 +104,10 @@ internal fun SessionEditorFrameWeekSheet(
     onDeleteActiveVariant: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    // pulido:vidrio ed-S07 .ed-sheet #1B1B1D plano (sombra de hoja y entrada 0,34 s de la hoja común)
-    KpknSheet(onDismissRequest = onDismiss, surfaceColor = com.example.kpkn.screens.sessioneditor.components.EdColors.sheet, maxHeightFraction = 0.88f) {
+    // pulido:sombra ed-S07 .ed-sheet plano con la sombra `hoja`, entrada 0,34 s y salida 0,24 s: `KpknSheet(lienzo = EdSheetSpec)`
+    KpknSheet(onDismissRequest = onDismiss, surfaceColor = EdColors.sheet, maxHeightFraction = 0.88f, lienzo = EdSheetSpec) {
+        // pulido:animacion ed-J05 closeLayer('day'): tras una elección la hoja baja y se desmonta
+        val closeSheet = com.example.kpkn.ui.components.LocalKpknSheetDismiss.current ?: onDismiss
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,7 +137,7 @@ internal fun SessionEditorFrameWeekSheet(
                 onSelectVariant = onSelectVariant,
                 onCreateVariant = onCreateVariant,
                 onDeleteActiveVariant = onDeleteActiveVariant,
-                onDone = onDismiss,
+                onDone = closeSheet,
             )
         }
     }
