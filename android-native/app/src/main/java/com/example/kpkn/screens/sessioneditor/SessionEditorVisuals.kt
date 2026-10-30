@@ -9,6 +9,23 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.snap
+import androidx.compose.ui.text.AnnotatedString
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.sessioneditor.components.EdExerciseRow
+import com.example.kpkn.screens.sessioneditor.components.Thumbnail
+import com.example.kpkn.screens.sessioneditor.components.edDashedBorder
+import com.example.kpkn.screens.sessioneditor.components.edRowTitle
+import com.example.kpkn.screens.sessioneditor.frame.EdMotion
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.KpknShadowSpec
+import com.example.kpkn.ui.design.depth.kpknRing
+import com.example.kpkn.ui.design.depth.kpknShadow
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -154,6 +171,12 @@ internal fun resolveExerciseAccentHex(
     partColor: String?,
 ): String = partColor?.takeIf { it.isNotBlank() } ?: resolveCoverAccentId(session.background)
 
+/**
+ * La fila levantada al ordenar (`.ed-ex.lifted`, Pulido v1 · EDITOR · A2): la propia fila (asa en tinta, miniatura, nombre, dosis, estrella y
+ * flecha) sobre una capa gris #1B1B1D de radio 20, con la sombra `levantado` (`0 24 48 #000d` y un anillo de 1 dp), que crece a 1,06 y se
+ * asienta en 1,025 (0,34 s, resorte) y lanza una vez un anillo de tinta que se expande 14 dp y se apaga (0,46 s). Sigue al dedo por
+ * [offsetProvider]. Un bloque de superserie se levanta como una sola ficha con [titleOverride] y [subtitleOverride].
+ */
 @Composable
 internal fun DragLiftPreview(
     exercise: Exercise,
@@ -163,62 +186,114 @@ internal fun DragLiftPreview(
     modifier: Modifier = Modifier,
     subtitleOverride: String? = null,
     titleOverride: String? = null,
+    exerciseInfo: ExerciseMuscleInfo? = null,
+    /** Pasos congelados de la animación (hojas de render y pruebas): escala de la ficha y avance del anillo (0..1). Nulo = corre sola. */
+    frozenScale: Float? = null,
+    frozenRing: Float? = null,
+    /** La fila ya se ha soltado y se asienta en el hueco: sin escala, sin sombra y sin anillo (`.ed-ex.settle`, ed-S04). */
+    settled: Boolean = false,
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
+    val reduced = wizardReducedMotion()
     val baseX = rect.left - root.left
     val baseY = rect.top - root.top
-    var lifted by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { lifted = true }
-    val liftScale by animateFloatAsState(
-        targetValue = if (lifted) 1.05f else 1f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
-        label = "drag-lift-scale",
-    )
-    Surface(
+    val scale = remember { Animatable(frozenScale ?: 1f) }
+    val ring = remember { Animatable(frozenRing ?: 0f) }
+    LaunchedEffect(Unit) {
+        if (frozenScale != null || frozenRing != null || reduced) {
+            scale.snapTo(frozenScale ?: 1.025f)
+            ring.snapTo(frozenRing ?: 1f)
+            return@LaunchedEffect
+        }
+        // pulido:animacion ed-A07 .ed-list.drag .ed-ex.lifted ed-lift 0,34 s --ed-spring (escala 1 → 1,06 al 35 % → 1,025)
+        launch { ring.animateTo(1f, tween(460, easing = EdMotion.EaseOut)) }
+        scale.animateTo(1.06f, tween(119, easing = EdMotion.Spring))
+        scale.animateTo(1.025f, tween(221, easing = EdMotion.Spring))
+    }
+    val shape = RoundedCornerShape(20.dp)
+    val displayParts = remember(exercise, exerciseInfo) { exerciseDisplayParts(exercise, exerciseInfo) }
+    val thumbnailRes = remember(exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+        ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = null,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId ?: exercise.id,
+        )
+    }
+    val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    val dose = remember(exercise) { sessionExerciseListDose(exercise, includeRest = true) }
+    val title = remember(displayParts, titleOverride) {
+        if (titleOverride != null) {
+            AnnotatedString(titleOverride)
+        } else {
+            edRowTitle(displayParts.parentName, displayParts.chips, exercise.isEffectivelyUnilateral())
+        }
+    }
+    // El anillo de tinta (`.ed-pulse`, ed-A09): 0 → 14 dp de extensión y 0,47 → 0 de opacidad.
+    // pulido:animacion ed-A09 .ed-pulse ed-ring 0,46 s ease-out forwards (0 0 0 0 #f2eee677 → 0 0 0 14px #f2eee600)
+    val ringSpec = KpknShadowSpec.of(spread = (14f * ring.value).dp, color = Color(0xFFF2EEE6).copy(alpha = 0.467f * (1f - ring.value)))
+    Box(
         modifier = modifier
             .offset {
                 val currentOffset = offsetProvider()
-                IntOffset((baseX + currentOffset.x).roundToInt(), (baseY + currentOffset.y).roundToInt())
+                IntOffset((baseX + currentOffset.x + with(density) { 16.dp.toPx() }).roundToInt(), (baseY + currentOffset.y).roundToInt())
             }
-            .width(with(density) { rect.width.toDp() })
-            .heightIn(min = 70.dp)
+            .width(with(density) { (rect.width - 32.dp.toPx()).toDp() })
             .zIndex(100f)
             .graphicsLayer {
-                scaleX = liftScale
-                scaleY = liftScale
-                alpha = 0.96f
-                shadowElevation = 18.dp.toPx()
-            },
-        shape = RoundedCornerShape(24.dp),
-        color = KpknSurface.module,
-        shadowElevation = 28.dp,
-        tonalElevation = 10.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(KpknLineIcons.Grip, contentDescription = null, tint = WizardColors.textMuted)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    subtitleOverride
-                        ?: "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = WizardColors.textMuted,
-                )
+                val s = if (settled) 1f else scale.value
+                scaleX = s
+                scaleY = s
             }
-        }
+            // pulido:sombra ed-S03 .ed-list.drag .ed-ex.lifted 0 24px 48px #000d + anillo de 1 px (preset levantado) · ed-S04 .settle sin sombra (preset ninguna)
+            .then(if (settled) Modifier else Modifier.kpknShadow(KpknShadow.Levantado, shape).kpknRing(ringSpec, shape))
+            .background(Color(0xFF1B1B1D), shape),
+    ) {
+        EdExerciseRow(
+            title = title,
+            dose = subtitleOverride ?: dose,
+            thumbnail = { Thumbnail(cardio = exercise.cardioDetails?.type, imageRes = thumbnailRes, pattern = pattern) },
+            expanded = false,
+            onToggle = {},
+            onLongPress = {},
+            gripLifted = true,
+            starActive = if (exercise.cardioDetails == null && titleOverride == null) (exercise.isStarTarget || exercise.goal1RM != null) else null,
+        )
     }
+}
+
+/**
+ * El hueco donde caerá la fila (`.ed-slot`): recuadro de radio 18 con filete punteado de 1,5 dp (#f2eee688) y un velo de tinta al 6 %, a 8 dp
+ * de los lados del módulo. Se desplaza al nuevo destino en 260 ms con `--ed-ease` (ed-T25).
+ */
+@Composable
+internal fun DragSlotHole(
+    slot: Rect?,
+    rootBounds: Rect?,
+    modifier: Modifier = Modifier,
+) {
+    val root = rootBounds ?: return
+    val target = slot ?: return
+    val density = LocalDensity.current
+    val reduced = wizardReducedMotion()
+    // pulido:transicion ed-T25 .ed-slot transform 0,26 s --ed-ease
+    val y by animateFloatAsState(
+        targetValue = target.top - root.top,
+        animationSpec = if (reduced) snap() else tween(260, easing = EdMotion.Standard),
+        label = "edSlotY",
+    )
+    val inset = with(density) { 25.dp.toPx() }
+    Box(
+        modifier = modifier
+            .offset { IntOffset((target.left - root.left + inset).roundToInt(), y.roundToInt()) }
+            .size(
+                width = with(density) { (target.width - 2 * inset).toDp() },
+                height = with(density) { target.height.toDp() },
+            )
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0x0FF2EEE6))
+            .edDashedBorder(Color(0x88F2EEE6), radius = 18.dp, width = 1.5.dp, dash = 4.5.dp, gap = 3.dp),
+    )
 }
 
 @Composable

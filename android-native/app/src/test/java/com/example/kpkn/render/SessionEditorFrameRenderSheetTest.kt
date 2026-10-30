@@ -157,7 +157,6 @@ class SessionEditorFrameRenderSheetTest {
                         limitMinutes = 60,
                         onAdd = {},
                         onAssistant = {},
-                        onRules = {},
                         onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
@@ -170,7 +169,6 @@ class SessionEditorFrameRenderSheetTest {
                         limitMinutes = 60,
                         onAdd = {},
                         onAssistant = {},
-                        onRules = {},
                         onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
@@ -183,7 +181,6 @@ class SessionEditorFrameRenderSheetTest {
                         limitMinutes = 60,
                         onAdd = {},
                         onAssistant = {},
-                        onRules = {},
                         onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
@@ -196,7 +193,6 @@ class SessionEditorFrameRenderSheetTest {
                         limitMinutes = 60,
                         onAdd = {},
                         onAssistant = {},
-                        onRules = {},
                         onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )

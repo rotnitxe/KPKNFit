@@ -107,13 +107,14 @@ internal fun SessionEditorFrameHeader(
                     },
                 )
             }
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 14.dp),
+        // Pulido v1 · EDITOR · A2: los huecos son los de `.ed-head` (ceja → título 2 dp, título → descripción 4, descripción → fichas 12).
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         if (!protocolLabel.isNullOrBlank()) {
             Text(
                 text = protocolLabel.uppercase(),
-                style = KpknType.eyebrow,
+                style = KpknType.eyebrow.copy(lineHeight = 13.2.sp),
                 color = WizardColors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -132,7 +133,7 @@ private fun SummaryChips(chips: List<String>) {
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = 12.dp)
             .testTag("session_header_summary"),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -178,7 +179,7 @@ private fun NameField(sessionId: String, name: String, onCommit: (String) -> Uni
     DisposableEffect(sessionId) {
         onDispose { if (localName != name) latestCommit(localName) }
     }
-    val style: TextStyle = KpknType.display.copy(fontSize = sizeSp.sp, lineHeight = (sizeSp + 6).sp, color = WizardColors.text)
+    val style: TextStyle = KpknType.display.copy(fontSize = sizeSp.sp, lineHeight = (sizeSp * 1.12f).sp, color = WizardColors.text)
     BasicTextField(
         value = localName,
         // Un nombre largo se parte en las líneas que haga falta en vez de cortarse; el salto de línea no forma parte del nombre.
@@ -189,6 +190,7 @@ private fun NameField(sessionId: String, name: String, onCommit: (String) -> Uni
         keyboardActions = KeyboardActions(onDone = { latestCommit(localName) }),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = 2.dp, bottom = 4.dp)
             .semantics { heading() }
             .onFocusChanged { state ->
                 if (state.isFocused) {
@@ -230,7 +232,7 @@ private fun DescriptionField(sessionId: String, description: String, onCommit: (
         value = localDescription,
         // La descripción también se parte en las líneas que haga falta y no se corta en el borde.
         onValueChange = { localDescription = it.replace("\n", "") },
-        textStyle = KpknType.body.copy(color = WizardColors.textMuted),
+        textStyle = KpknType.body.copy(color = WizardColors.textMuted, fontSize = 14.sp, lineHeight = 20.3.sp),
         cursorBrush = SolidColor(WizardColors.text),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { latestCommit(localDescription) }),
@@ -248,7 +250,7 @@ private fun DescriptionField(sessionId: String, description: String, onCommit: (
                 if (localDescription.isBlank()) {
                     Text(
                         text = "Añadir descripción",
-                        style = KpknType.body,
+                        style = KpknType.body.copy(fontSize = 14.sp, lineHeight = 20.3.sp),
                         color = WizardColors.textFaint,
                     )
                 }
