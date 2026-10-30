@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.design.depth.KpknGlassPreset
+import com.example.kpkn.ui.design.depth.kpknBackdropAdjust
+import com.example.kpkn.ui.design.depth.kpknGlassPresetStyle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -175,11 +178,22 @@ fun Modifier.kpknGlass(
     withBorder: Boolean = true,
     additionalScrim: Color = Color.Transparent,
     variant: KpknGlassVariant = KpknGlassVariant.ISLAND,
-): Modifier = this
-    .clip(shape)
-    .kpknHazeEffect(hazeState, variant)
-    .then(additionalScrimModifier(additionalScrim))
-    .kpknGlassBorder(variant, shape, withBorder)
+    preset: KpknGlassPreset? = null,
+): Modifier = if (preset != null) {
+    // Vidrio del catálogo de Pulido v1 (ui/design/depth): solo desenfoque + saturación + brillo, sin tinte ni ruido.
+    this
+        .kpknBackdropAdjust(preset.saturation, preset.brightness)
+        .clip(shape)
+        .hazeEffect(state = hazeState, style = kpknGlassPresetStyle(preset)) { alpha = 1f }
+        .then(additionalScrimModifier(additionalScrim))
+        .kpknGlassBorder(variant, shape, withBorder)
+} else {
+    this
+        .clip(shape)
+        .kpknHazeEffect(hazeState, variant)
+        .then(additionalScrimModifier(additionalScrim))
+        .kpknGlassBorder(variant, shape, withBorder)
+}
 
 /**
  * Cover-specific glass: preserves the selected session artwork instead of
@@ -262,6 +276,7 @@ fun Modifier.kpknGlassOrFallback(
     withBorder: Boolean = true,
     additionalScrim: Color = Color.Transparent,
     variant: KpknGlassVariant = KpknGlassVariant.ISLAND,
+    preset: KpknGlassPreset? = null,
 ): Modifier = if (hazeState != null) {
     kpknGlass(
         hazeState,
@@ -269,6 +284,7 @@ fun Modifier.kpknGlassOrFallback(
         withBorder = withBorder,
         additionalScrim = additionalScrim,
         variant = variant,
+        preset = preset,
     )
 } else {
     this
