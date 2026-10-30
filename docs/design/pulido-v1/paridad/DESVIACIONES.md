@@ -26,7 +26,8 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Filas: vidrio (`backdrop-filter`) de todas las filas con preset `vidrio-isla`, `vidrio-hoja`, `vidrio-barra`, `vidrio-editor`, `velo-desenfoque`, `vidrio-interruptor` o `velo-suave` (`paridad/*.md`)
 - Qué cambia: (1) el desenfoque real de Haze solo se pinta con `RenderEffect` en un teléfono con Android 12 o más; en la hoja de Robolectric (lienzo de software) sale el velo de respaldo, así que NO se pudo medir el vidrio real de Haze: se midió su equivalente por software (σ = B, saturate/brightness de CSS, borde espejo del navegador): 0,7–2,1/255 en el interior de las franjas, y el cálculo contra el lienzo confirma σ = 1,0 × B. (2) No se comprobó qué borde usa Haze en el recorte (Chrome: espejo): puede cambiar el color de los ~30 dp del borde de la franja. (3) Debajo de Android 12 no hay desenfoque (velo `KpknGlass.VeilFallback`; decisión aprobada). (4) Con hijos dentro del nodo del vidrio, la saturación y el brillo también les afectan: poner el vidrio en un nodo de fondo sin contenido.
 - Captura: paridad/capturas/DESV-100.png
-- Aprobada por: pendiente (se mide en el Flip5, puerta 4)
+- **Medida real (30-oct, 07:00, emulador «ZFlip5_QA» = 1080×2640 a 480 dpi, Android 16, Haze con `RenderEffect`; el teléfono no estaba conectado)**: `DesignSheetsHarnessActivity` con `cm-vid-1` contra el lienzo (`tools/depth-zones.cjs`): error medio DENTRO de las muestras 17,0 (isla), 18,4 (hoja), 17,8 (barra), 19,6 (editor), 11,1 (velo-desenfoque), 16,1 (interruptor) y 4,7 (velo-suave) sobre 255, con 20–24 % de píxeles por encima de 28/255 en los vidrios con saturación; imagen completa 11,55/255 (12,2 % de píxeles). El desenfoque, los bordes y la geometría coinciden a la vista; la diferencia es de **color**: el vidrio real sale más saturado y menos lavado que el del lienzo sobre las franjas de prueba (la hoja de prueba lleva franjas saturadas para exagerarlo; sobre fondos oscuros de pantallas reales se notará poco). Falta calibrar en dispositivo el camino de saturación/brillo (`kpknBackdropAdjust` se emuló en Robolectric pero sobre Haze real no afecta igual al fondo desenfocado). Captura lado a lado: `paridad/capturas/DESV-100-emulador-ZFlip5.png`.
+- Aprobada por: pendiente (se mide en el Flip5, puerta 4; queda abierta la calibración del color)
 
 ## DESV-101
 - Filas: filtros `halo-desenfoque` y `resplandor-desenfoque` (`filter: blur(20px / 26px)`)
@@ -228,4 +229,43 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Filas: lv-G02, lv-G03, lv-S31
 - Qué cambia: son reglas base de las hojas comunes del lienzo (`.split7 i.on`, `.story .st-week i.on`, `.tok.on`) que el inventario asocia a `lv-rom-hoja-on` pero que no tienen ningún elemento en las escenas del paquete: no hay nada que dibujar.
 - Captura: no aplica
+- Aprobada por: pendiente
+
+
+---
+
+## DESV-500
+- Filas: ce-V02 (y el vidrio de ce-S07)
+- Qué cambia: el botón de cierre de la ficha del cardio es un círculo de vidrio (`vidrio-isla`: `blur(22px) saturate(1.5)`) que se pinta con `kpknGlassPreset(null, …)`: el portal de la ficha no tiene fuente de Haze debajo, así que sale el velo de respaldo de `KpknGlass` (como DESV-100 punto 3) y no un desenfoque real. Debajo solo hay el héroe oscuro de la ficha (viñeta casi negra), donde el desenfoque no se vería. La sombra `isla-vidrio` y el borde sí son los exactos (ce-S07). Medición en Robolectric: el botón queda dentro del error general de la ficha (10,9/255); el vidrio real solo se mide en el Flip5.
+- Captura: paridad/capturas/DESV-500.png
+- Aprobada por: pendiente
+
+## DESV-502
+- Filas: ce-A04, ce-J01
+- Qué cambia: los avisos breves de la maqueta («Plantilla aplicada: Tabata.», «Cardio duplicado.», «El cardio se hace antes de la fuerza.»…) salen en la snackbar común del editor (`KpknSnackbar`, la misma de «Versión restaurada»), con su propio movimiento y su propia duración, no con `.ce-toast` (`ce-in` 0,25 s y 2,4 s). No se construyó un toast propio para no tener dos sistemas de avisos en la misma pantalla; los textos son los del lienzo.
+- Captura: paridad/capturas/DESV-502.png (la franja del aviso no se dibuja en la hoja de render: lo pinta el `Scaffold` del editor)
+- Aprobada por: pendiente
+
+## DESV-503
+- Filas: ce-J02, ce-S06
+- Qué cambia: «Ejercicio eliminado · Deshacer» es el aviso común de borrado blando de fuerza y de cardio (`SessionExerciseUndoNotice` y el temporizador del ViewModel, tanda A2 del paquete editor). Su tiempo de espera y su sombra (`flotante`) no son los de `.ce-undo` (4,2 s) porque lo ocupan los dos tipos de ejercicio; se igualan allí, no en el cardio.
+- Captura: paridad/capturas/DESV-503.png
+- Aprobada por: pendiente
+
+## DESV-504
+- Filas: ce-J03
+- Qué cambia: la pulsación larga de una fila de cardio abre su menú con el umbral del sistema (`combinedClickable`, 400 ms) y no con los 520 ms del prototipo; la fila es de la tanda A2 del editor. El menú que abre sí es el del lienzo (`CardioQuickActionsSheet`).
+- Captura: paridad/capturas/DESV-504.png
+- Aprobada por: pendiente
+
+## DESV-505
+- Filas: ce-S08
+- Qué cambia: las hojas del cardio (añadir, cambiar, selector, zona, protocolo, avisos, plantillas, menú) son la hoja común `KpknSheet` en plano (`#1B1B1D`, asa de 36 × 4, filete superior de 1 dp). Esa hoja común no dibuja la caída `0 -14px 44px #000c` del preset `hoja`: es de todas las hojas de la app y se cierra una sola vez en `KpknSheet`, no en cada paquete. En la captura se ve como un borde algo más seco sobre el velo.
+- Captura: paridad/capturas/DESV-505.png
+- Aprobada por: pendiente
+
+## DESV-506
+- Filas: (escenas ce-duracion-teclado y ce-duracion-error; sin fila propia)
+- Qué cambia: el lienzo dibuja un teclado de maqueta (3 × 4 más «Listo») para enseñar el estado «escribiendo». En la app escribe el teclado del sistema (`KeyboardType.Number` o `Decimal`) y la hoja enseña la cifra, el cursor de 3 × 52 dp que parpadea (familia `pulso`), la ayuda o el error y el botón «Listo»; Robolectric no dibuja el teclado del sistema, por eso el error medio de estas dos escenas (17,6–23,4/255) es el teclado que falta.
+- Captura: paridad/capturas/DESV-506.png
 - Aprobada por: pendiente
