@@ -195,21 +195,13 @@ internal object SessionAdvisor {
                 notes = listOf("$head Ningún ajuste cambia el tiempo sin tocar los movimientos principales o la estructura que elegiste."),
             )
         }
-        val accepted = details.filter { it.defaultAccepted }
-        val afterDefaults = accepted.fold(session) { acc, detail -> SessionAssistantActions.apply(acc, detail.action, params) }
-        val remaining = SessionAssistantActions.durationSeconds(afterDefaults) - available
-        val saved = context.clockSeconds - SessionAssistantActions.durationSeconds(afterDefaults)
-        val tail = when {
-            accepted.isEmpty() -> "Elige qué opciones quieres aplicar."
-            remaining <= 0 -> "Con las opciones marcadas la sesión cabría en tu tiempo."
-            else -> "Con las opciones marcadas ahorras ${formatSpan(saved)}; la sesión seguiría ${formatSpan(remaining)} por encima del objetivo."
-        }
         return RuleOutput(
             card = AssistantSuggestion(
                 id = "time_overage",
                 type = AssistantActionType.COMPOSITE,
                 title = "Ajustar al tiempo que fijaste",
-                message = "$head $tail",
+                // pulido:as-sug-lista — el efecto de las casillas marcadas lo cuenta la caja «Duración» (AssistantSuggestionPreview), no este texto.
+                message = head,
                 priority = 2,
                 details = details,
                 kind = AssistantNoticeKind.USER_LIMIT,
@@ -241,7 +233,7 @@ internal object SessionAdvisor {
                 val count = restTargets.size
                 details += AssistantSuggestionDetail(
                     id = "time_detail_rest",
-                    label = "${reduceRestLabel(REST_CUT_SECONDS)} en ${if (count == 1) "1 accesorio" else "$count accesorios"} · ahorra ${formatSpan(-effect.deltaSeconds)}",
+                    label = "${reduceRestLabel(REST_CUT_SECONDS)} en ${if (count == 1) "1 accesorio" else "$count accesorios"}",
                     action = action,
                     defaultAccepted = true,
                     effect = effect,
@@ -262,7 +254,7 @@ internal object SessionAdvisor {
             val (pair, action, effect) = bestPair
             details += AssistantSuggestionDetail(
                 id = "time_detail_superset_${pair.first.id}",
-                label = "Unir ${pair.first.name} con ${pair.second.name} en superserie · ahorra ${formatSpan(-effect.deltaSeconds)}",
+                label = "Unir ${pair.first.name} con ${pair.second.name} en superserie",
                 action = action,
                 defaultAccepted = false,
                 effect = effect,
@@ -282,7 +274,7 @@ internal object SessionAdvisor {
             val (ex, action, effect) = bestSet
             details += AssistantSuggestionDetail(
                 id = "time_detail_reduce_${ex.id}",
-                label = "Quitar 1 serie de ${ex.name} · ahorra ${formatSpan(-effect.deltaSeconds)}",
+                label = "Quitar 1 serie de ${ex.name}",
                 action = action,
                 defaultAccepted = false,
                 effect = effect,

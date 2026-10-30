@@ -192,7 +192,7 @@ class LiveSessionSheetsTest {
         rule.onNodeWithText("Recorrido de la sesión").assertIsDisplayed()
         rule.onNodeWithContentDescription("Opciones de Zancada + Curl").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(first.id, options) }
-        rule.onNodeWithText("Zancada + Curl").performScrollTo().performClick()
+        rule.onNodeWithText("Superserie de 2").performScrollTo().performClick()
         rule.runOnIdle { assertEquals("super", selected) }
     }
 }

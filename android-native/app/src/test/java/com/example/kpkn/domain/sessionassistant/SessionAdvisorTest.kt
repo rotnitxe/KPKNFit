@@ -136,7 +136,7 @@ class SessionAdvisorTest {
             val saved = before - clockSeconds(after)
             assertTrue("«${detail.label}» debe ahorrar tiempo y ahorra $saved s", saved >= 15)
             assertEquals("el efecto anunciado es el real", -saved, detail.effect!!.deltaSeconds)
-            assertTrue(detail.label, detail.label.contains("ahorra"))
+            assertFalse("el ahorro sale en su propia columna, no en el texto: ${detail.label}", detail.label.contains("ahorra"))
         }
         assertTrue(card.details.isNotEmpty())
     }
@@ -279,8 +279,13 @@ class SessionAdvisorTest {
         assertTrue(clockSeconds(applied) < clockSeconds(session))
         // El mensaje cuenta lo que pasaría de verdad con las opciones marcadas.
         val remaining = clockSeconds(applied) - 25 * 60
-        if (remaining > 0) assertTrue(card.message, card.message.contains("por encima del objetivo"))
-        else assertTrue(card.message, card.message.contains("cabría"))
+        val preview = AssistantSuggestionPreview.duration(
+            baseMinutes = (clockSeconds(session) / 60.0).let { kotlin.math.ceil(it).toInt() },
+            limitMinutes = 25,
+            accepted = card.details.filter { it.defaultAccepted },
+        )
+        assertTrue("la caja «Duración» cuenta lo que ahorran las casillas marcadas: ${preview.text}", preview.savedMinutes > 0 && preview.afterMinutes < preview.baseMinutes)
+        if (remaining >= 60) assertTrue(preview.text, preview.text.contains("por encima del objetivo"))
     }
 
     @Test

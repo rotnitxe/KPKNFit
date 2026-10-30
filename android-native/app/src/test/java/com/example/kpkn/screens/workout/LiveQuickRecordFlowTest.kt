@@ -105,11 +105,8 @@ class LiveQuickRecordFlowTest {
             rule.waitUntil(30_000) { vm.uiState.value.recordingSetKey == null }
             rule.runOnIdle { vm.stopRestTimer() }
             rule.onNodeWithTag("ultra-record-submit", true).assertDoesNotExist()
-            // Raíl de series del roadmap: la serie registrada queda «Completada» y la siguiente, en curso.
-            rule.waitUntil(10_000) {
-                rule.onAllNodes(hasContentDescription("S${index + 1}") and hasStateDescription("Completada")).fetchSemanticsNodes().isNotEmpty()
-            }
-            rule.onNode(hasContentDescription("S${index + 2}") and isSelected()).assertIsDisplayed()
+            // Banda 1 del roadmap: tras registrar, la serie en curso pasa a la siguiente («Serie 2 de 4»).
+            rule.waitUntil(10_000) { rule.onAllNodes(hasText("Serie ${index + 2} de 4")).fetchSemanticsNodes().isNotEmpty() }
             val stored = runBlocking { fixture!!.storedOngoing() }
             assertEquals(index + 1, stored.completedSets.size)
             assertEquals(4, stored.session.allExercises().single().sets.size)

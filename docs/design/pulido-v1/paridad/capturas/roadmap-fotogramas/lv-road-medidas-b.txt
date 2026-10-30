@@ -1,0 +1,7 @@
+variante=B ventana=880 dp
+isla: ancho 328.0 alto 132.0 · margen izq 16.0 der 16.0
+banda 1: zona táctil 42.0 (banda 30.0) · arriba 6.0 (12 − 6 = 6)
+banda 2: botón alto 48.0 · arriba 72.0 · abajo 12.0
+tira: zona táctil 44.0 · centro 57.0 (esperado 12+30+8+7 = 57)
+segmento actual: alto 14.0 (14) · otro: alto 8.0 (8)
+alto del roadmap según la medida de la ventana: 132.0.dp
