@@ -1,29 +1,17 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
+import androidx.compose.foundation.background
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,1082 +19,556 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioBlockType
 import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
-import com.example.kpkn.data.models.CardioFeaturedTemplate
 import com.example.kpkn.data.models.CardioFeaturedTemplates
-import com.example.kpkn.data.models.CardioHiitTemplates
 import com.example.kpkn.data.models.CardioIntensity
-import com.example.kpkn.data.models.HiitProtocol
-import com.example.kpkn.data.models.HiitRestNature
 import com.example.kpkn.data.models.HiitWorkTarget
-import com.example.kpkn.screens.sessioneditor.design.sessionLazyRowEdgeFade
 import com.example.kpkn.domain.cardio.CardioAuthoringShape
-import com.example.kpkn.domain.cardio.CardioPaceBandEngine
+import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
 import com.example.kpkn.domain.cardio.CardioRepeatGrammar
 import com.example.kpkn.domain.cardio.CardioTypeHistory
 import com.example.kpkn.domain.cardio.CardioUniformRepeat
+import com.example.kpkn.domain.cardio.CardioValueKind
+import com.example.kpkn.domain.cardio.CardioZones
 import com.example.kpkn.domain.workout.CardioProgressionEngine
 import com.example.kpkn.domain.workout.CardioProgressionInput
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.workout.CardioIntervalChart
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknSegmentedControl
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
-import java.util.Locale
+import com.example.kpkn.screens.workout.CardioZoneColors
+import com.example.kpkn.ui.design.motion.KpknAnimation
+import com.example.kpkn.ui.design.motion.KpknDirection
+import com.example.kpkn.ui.design.motion.KpknDuration
+import com.example.kpkn.ui.design.motion.KpknFill
+import com.example.kpkn.ui.design.motion.KpknMotion
+import com.example.kpkn.ui.design.motion.kpknAnimate
+import com.example.kpkn.ui.design.motion.kpknKeyframes
 import kotlin.math.roundToInt
 
-private enum class CardioEditorPicker {
-    STEADY_MINUTES,
-    WARMUP,
-    WORK,
-    REST,
-    COOLDOWN,
-    DISTANCE,
-    PACE,
-    HR,
-    WATTS,
-    SPEED,
-    INCLINE,
-    RPM,
-    SETS_REST,
-    WORK_KCAL,
-    WORK_METERS,
+/*
+ * Pulido v1 · CARDIO DEL EDITOR · la tarjeta de un cardio abierto (puntos 6, 7 y 11). Es el cuerpo de `ceBody` de `scenes-ce.js`: Forma →
+ * magnitudes → esfuerzo → objetivos → accesos, en una sola columna de 18 dp. Sin la dosis repetida en grande, sin el chip «Al final», sin el
+ * carrusel de plantillas (van en la hoja «Plantillas») y sin el panel «Avanzado» (ritmo / FC / vatios / velocidad / inclinación / RPM sueltos,
+ * el chip HIIT/SIT y la distancia dentro de Series: el motor no los usaba o los pisaba; los campos del modelo siguen en los datos).
+ * Su firma es la de siempre menos lo del chip: la usan el editor de la sesión y el cajón «Editar series» de la sesión en vivo.
+ */
+
+/** `ce-in`: opacidad 0 → 1 y 8 dp de subida (familia `entrada-sube` con el valor exacto de la fila: 260 ms, sin relleno). */
+private val CeInKeyframes = kpknKeyframes(
+    "ce-in",
+    "@keyframes ce-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }",
+) {
+    at(0f) { alpha(0f); translateY(8f) }
+    at(1f) { alpha(1f); transformNone() }
 }
 
-/**
- * Editor de un cardio, en el orden del original: la dosis en grande y la gráfica, el historial y las plantillas, la forma
- * (Continuo · Series · Intervalos), la intensidad (RPE) y «Avanzado». Su firma no cambia: la usan el editor de la sesión y el cajón
- * «Editar series» de la sesión en vivo. Va dentro de un contenedor de la pantalla, así que sus bloques son `inset` y no módulos.
- */
-@OptIn(ExperimentalLayoutApi::class)
+/** La entrada del cuerpo de la tarjeta (`.ce-bd`, ce-A01): 0,26 s con `estandar`. */
+internal val CardioBodyEnter = KpknAnimation(CeInKeyframes, KpknDuration(260), KpknMotion.Estandar, KpknDuration(0), 1f, KpknDirection.Normal, KpknFill.None)
+
+/** Lo que la tarjeta tiene abierto encima: un selector, la zona de pulso o una de sus hojas. */
+private sealed interface CardLayer {
+    class Value(val request: CardioValueRequest) : CardLayer
+    class Zone(val current: Int, val apply: (Int) -> Unit) : CardLayer
+    data object Protocol : CardLayer
+    data object Avisos : CardLayer
+    data object Templates : CardLayer
+    data object BlockMenu : CardLayer
+}
+
 @Composable
 internal fun CardioEditorCard(
     details: CardioDetails,
-    accentColor: Color,
-    exerciseName: String? = null,
+    @Suppress("UNUSED_PARAMETER") accentColor: Color = CeColors.col,
+    @Suppress("UNUSED_PARAMETER") exerciseName: String? = null,
     onChange: (CardioDetails) -> Unit,
-    cardioFirst: Boolean = false,
-    showPlacementChip: Boolean = false,
-    onTogglePlacement: (() -> Unit)? = null,
     history: CardioTypeHistory? = null,
+    /** Bloque que el inspector de «Intervalos» tiene elegido al abrir (el lienzo abre en el segundo). */
+    initialBlockIndex: Int = 0,
 ) {
     val shape = remember(details) { CardioRepeatGrammar.shape(details) }
     val form = remember(details) { cardioFormOf(details) }
     val catalog = remember(details.type) { CardioCatalog.findByType(details.type) }
-    val rpe = details.resolvedRpe().toInt().coerceIn(1, 10)
-    val dose = remember(details) { cardioDoseLine(details) }
-    var picker by remember { mutableStateOf<CardioEditorPicker?>(null) }
-    var showBlocks by remember { mutableStateOf(shape is CardioAuthoringShape.Irregular) }
-    var showAdvanced by remember { mutableStateOf(false) }
+    val typeName = catalog?.name ?: CardioPrescriptionFormatter.typeLabel(details.type)
+    var layer by remember { mutableStateOf<CardLayer?>(null) }
+    var selectedBlock by remember { mutableIntStateOf(initialBlockIndex) }
 
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        // La prescripción, en grande: el tipo, la dosis en Syne y la gráfica a todo el ancho.
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = CardioPrescriptionFormatter.typeLabel(details.type).uppercase(Locale.forLanguageTag("es")),
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = dose,
-                style = KpknType.title,
-                color = WizardColors.text,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (details.hasIntervals()) {
-                CardioIntervalChart(
-                    details = details,
-                    accentColor = accentColor,
-                    compact = true,
-                    showLabels = false,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+    fun openValue(request: CardioValueRequest) { layer = CardLayer.Value(request) }
+    fun openZone(current: Int, apply: (Int) -> Unit) { layer = CardLayer.Zone(current, apply) }
+
+    Column(
+        // ce-A01 `.ce-bd` entrada 0,26 s `estandar` (opacidad y 8 dp de subida) al abrir la tarjeta
+        modifier = Modifier.fillMaxWidth().kpknAnimate(CardioBodyEnter),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        // La forma: el rótulo con «Plantillas» a su lado y el segmentado. El rótulo se pega 8 dp al segmentado (margin-bottom: -8px).
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                CeEyebrow("Forma")
+                CeLink("Plantillas", onClick = { layer = CardLayer.Templates })
             }
-            if (showPlacementChip && onTogglePlacement != null) {
-                KpknChip(
-                    text = if (cardioFirst) "Al inicio" else "Al final",
-                    selected = true,
-                    onClick = onTogglePlacement,
-                )
-            }
-        }
-
-        history?.takeUnless { it.isEmpty }?.let { stats ->
-            CardioHistoryPanel(
-                history = stats,
-                onApplyLast = {
-                    onChange(
-                        details.copy(
-                            targetDurationSeconds = stats.lastDurationSeconds ?: details.targetDurationSeconds,
-                            targetDistanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
-                            intensityLevel = stats.lastRpe?.roundToInt() ?: details.intensityLevel,
-                        ),
-                    )
-                },
-                onApplyProgression = {
-                    val suggestion = CardioProgressionEngine.suggest(
-                        CardioProgressionInput(
-                            durationSeconds = stats.lastDurationSeconds ?: details.effectiveDurationSeconds(),
-                            distanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
-                            intensity = details.intensity,
-                            rpe = stats.lastRpe ?: details.resolvedRpe(),
-                        ),
-                    )
-                    val updated = when (val current = CardioRepeatGrammar.shape(details)) {
-                        is CardioAuthoringShape.Uniform -> {
-                            val extraRound = if (suggestion.durationSeconds > details.effectiveDurationSeconds()) 1 else 0
-                            CardioRepeatGrammar.applyUniform(
-                                details,
-                                current.repeat.copy(rounds = (current.repeat.rounds + extraRound).coerceIn(1, 99)),
-                            )
-                        }
-                        else -> details.copy(
-                            targetDurationSeconds = suggestion.durationSeconds,
-                            targetDistanceKm = suggestion.distanceKm,
-                            intensity = suggestion.intensity,
-                            intensityLevel = suggestion.intensity.defaultRpe.roundToInt().coerceIn(1, 10),
-                        )
-                    }
-                    onChange(updated)
-                },
-            )
-        }
-
-        CardioTemplatesRow(details = details, accentColor = accentColor, onChange = onChange)
-
-        // La forma: el control segmentado y, debajo, las filas de su forma.
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("FORMA", style = KpknType.eyebrow, color = WizardColors.textMuted)
-            KpknSegmentedControl(
+            CeSegmented(
                 options = listOf("Continuo", "Series", "Intervalos"),
-                selectedIndex = form.ordinal,
+                selected = form.ordinal,
                 onSelect = { index ->
-                    val target = CardioForm.entries[index]
-                    switchCardioForm(details, target)?.let { next ->
-                        if (target == CardioForm.INTERVALOS) showBlocks = true
+                    switchCardioForm(details, CardioForm.entries[index])?.let { next ->
+                        selectedBlock = 0
                         onChange(next)
                     }
                 },
             )
-            when (shape) {
-                is CardioAuthoringShape.Steady -> CardioSteadyForm(
-                    details = details,
-                    onChange = onChange,
-                    onOpenPicker = { picker = it },
-                )
-                is CardioAuthoringShape.Uniform -> CardioSeriesForm(
-                    details = details,
-                    repeat = shape.repeat,
-                    accentColor = accentColor,
-                    onChange = onChange,
-                    onOpenPicker = { picker = it },
-                )
-                is CardioAuthoringShape.Irregular -> KpknChip(
-                    text = if (showBlocks) "Ocultar bloques" else "Ajustar bloques",
-                    selected = showBlocks,
-                    onClick = { showBlocks = !showBlocks },
-                )
-            }
         }
 
-        // La intensidad: el RPE 1–10 como deslizador KPKN, con la cifra en Syne y su zona en palabras.
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("RPE", style = KpknType.eyebrow, color = WizardColors.textMuted)
-                Text("$rpe", style = KpknType.metricM, color = WizardColors.text)
-                Text(
-                    "· ${CardioPrescriptionFormatter.rpeAnchor(rpe)}",
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Slider(
-                value = rpe.toFloat(),
-                onValueChange = { value ->
-                    val level = value.roundToInt().coerceIn(1, 10)
-                    val updated = when (val current = CardioRepeatGrammar.shape(details)) {
-                        is CardioAuthoringShape.Uniform -> CardioRepeatGrammar.applyUniform(
-                            details,
-                            current.repeat.copy(targetRpe = level.toDouble()),
-                        )
-                        else -> details.copy(
-                            intensityLevel = level,
-                            intensity = CardioIntensity.fromLevel(level),
-                            hiit = details.hiit?.copy(targetRpe = level.toDouble()),
-                        )
-                    }
-                    onChange(updated)
-                },
-                valueRange = 1f..10f,
-                steps = 8,
-                colors = SliderDefaults.colors(
-                    thumbColor = WizardColors.text,
-                    activeTrackColor = WizardColors.text,
-                    inactiveTrackColor = Color.White.copy(alpha = 0.08f),
-                    activeTickColor = KpknSurface.canvas,
-                    inactiveTickColor = Color.White.copy(alpha = 0.24f),
-                ),
-            )
-        }
-
-        if (shape is CardioAuthoringShape.Irregular && showBlocks) {
-            CardioIntervalsEditor(
+        when (shape) {
+            is CardioAuthoringShape.Steady -> SteadyForm(
                 details = details,
-                accentColor = accentColor,
+                supportsPace = catalog?.supportsPace == true,
+                typeName = typeName,
                 onChange = onChange,
+                onOpenValue = ::openValue,
+                onOpenZone = ::openZone,
+                onOpenAvisos = { layer = CardLayer.Avisos },
             )
-        }
-
-        // «Avanzado»: un módulo plegado con su flecha.
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 48.dp)
-                    .clickable(role = Role.Button) { showAdvanced = !showAdvanced },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("Avanzado", style = KpknType.bodyStrong, color = WizardColors.text)
-                Icon(
-                    imageVector = if (showAdvanced) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
-                    contentDescription = if (showAdvanced) "Ocultar avanzado" else "Mostrar avanzado",
-                    tint = WizardColors.text,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-            if (showAdvanced) {
-                CardioAdvancedPanel(
+            is CardioAuthoringShape.Uniform -> SeriesForm(
+                details = details,
+                repeat = shape.repeat,
+                typeName = typeName,
+                onChange = onChange,
+                onOpenValue = ::openValue,
+                onOpenProtocol = { layer = CardLayer.Protocol },
+                onOpenAvisos = { layer = CardLayer.Avisos },
+            )
+            is CardioAuthoringShape.Irregular -> {
+                CardioIntervalsSection(
                     details = details,
-                    shape = shape,
-                    catalogSupportsSpeed = catalog?.supportsSpeed == true,
-                    catalogSupportsIncline = catalog?.supportsIncline == true,
-                    catalogSupportsRpm = catalog?.supportsRpm == true,
-                    catalogSupportsWatts = catalog?.supportsWatts == true,
-                    accentColor = accentColor,
+                    selected = selectedBlock,
+                    onSelect = { selectedBlock = it },
                     onChange = onChange,
-                    onOpenPicker = { picker = it },
+                    onOpenValue = ::openValue,
+                    onOpenZone = ::openZone,
+                    onOpenBlockMenu = { layer = CardLayer.BlockMenu },
+                    typeName = typeName,
+                )
+                Column {
+                    CeLinkRow(CeIcons.Sun, "Avisos y pantalla", cardioAvisosSummary(details), onClick = { layer = CardLayer.Avisos }, topRule = true)
+                }
+            }
+        }
+
+        history?.takeUnless { it.isEmpty }?.let { stats -> HistoryPanel(details, stats, onChange) }
+    }
+
+    when (val current = layer) {
+        null -> Unit
+        is CardLayer.Value -> {
+            val request = current.request
+            CardioValueSheet(
+                kind = request.kind,
+                subtitle = request.subtitle,
+                initialN = request.n,
+                initialMode = request.mode,
+                onApply = { n, mode ->
+                    layer = null
+                    request.apply(n, mode)
+                },
+                onDismiss = { layer = null },
+            )
+        }
+        is CardLayer.Zone -> CardioZoneSheet(
+            typeName = typeName,
+            initialZone = current.current,
+            onApply = { zone ->
+                layer = null
+                current.apply(zone)
+            },
+            onDismiss = { layer = null },
+        )
+        CardLayer.Protocol -> {
+            val repeat = (shape as? CardioAuthoringShape.Uniform)?.repeat
+            if (repeat != null) {
+                CardioProtocolSheet(
+                    typeName = typeName,
+                    dose = cardioDoseLine(details),
+                    repeat = repeat,
+                    onChange = { onChange(CardioRepeatGrammar.applyUniform(details, it)) },
+                    onOpenValue = { kind ->
+                        layer = null
+                        openValue(protocolRequest(kind, details, repeat, typeName, onChange))
+                    },
+                    onDismiss = { layer = null },
                 )
             }
         }
-    }
-
-    val uniform = (shape as? CardioAuthoringShape.Uniform)?.repeat
-    when (picker) {
-        CardioEditorPicker.STEADY_MINUTES -> CardioMinutesWheelDialog(
-            title = "Duración",
-            initialSeconds = details.targetDurationSeconds ?: 20 * 60,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(details.copy(targetDurationSeconds = it.takeIf { seconds -> seconds > 0 }))
-                picker = null
+        CardLayer.Avisos -> CardioAvisosSheet(typeName = typeName, details = details, onChange = onChange, onDismiss = { layer = null })
+        CardLayer.Templates -> CardioTemplatesSheet(
+            details = details,
+            onPickTemplate = { id ->
+                layer = null
+                selectedBlock = 0
+                onChange(CardioFeaturedTemplates.apply(id, details))
+                CardioMessages.post("Plantilla aplicada: ${CardioFeaturedTemplates.all.firstOrNull { it.id == id }?.name.orEmpty()}.")
             },
-        )
-        CardioEditorPicker.WARMUP -> if (uniform != null) CardioMinutesSecondsWheelDialog(
-            title = "Calentamiento",
-            initialSeconds = uniform.warmupSeconds,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(warmupSeconds = it, warmupOpen = false)))
-                picker = null
-            },
-        )
-        CardioEditorPicker.WORK -> if (uniform != null) CardioSecondsWheelDialog(
-            title = "Esfuerzo",
-            initialSeconds = uniform.workSeconds,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(workSeconds = it.coerceAtLeast(5))))
-                picker = null
-            },
-            minSeconds = 5,
-            maxSeconds = 600,
-        )
-        CardioEditorPicker.REST -> if (uniform != null) CardioSecondsWheelDialog(
-            title = "Pausa",
-            initialSeconds = uniform.restSeconds,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restSeconds = it)))
-                picker = null
-            },
-            minSeconds = 0,
-            maxSeconds = 600,
-        )
-        CardioEditorPicker.COOLDOWN -> if (uniform != null) CardioMinutesSecondsWheelDialog(
-            title = "Enfriamiento",
-            initialSeconds = uniform.cooldownSeconds,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(cooldownSeconds = it, cooldownOpen = false)))
-                picker = null
-            },
-        )
-        CardioEditorPicker.DISTANCE -> CardioDistanceWheelDialog(
-            title = "Distancia",
-            initialKm = details.targetDistanceKm,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(details.copy(targetDistanceKm = it))
-                picker = null
-            },
-        )
-        CardioEditorPicker.PACE -> CardioPaceWheelDialog(
-            title = "Ritmo objetivo",
-            initialSecondsPerKm = details.targetPaceSecondsPerKm,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
+            onPickPattern = { spec ->
+                layer = null
+                selectedBlock = 0
+                CardioMessages.post("Patrón aplicado: ${spec.label}.")
                 onChange(
-                    details.copy(
-                        targetPaceSecondsPerKm = it,
-                        intervalBlocks = details.intervalBlocks.map { block ->
-                            if (block.type == CardioBlockType.WORK) {
-                                block.copy(targetPaceSecondsPerKm = it)
-                            } else block
-                        },
+                    CardioIntervalProgramBuilder.buildDetails(
+                        pattern = spec.pattern,
+                        totalSeconds = details.effectiveDurationSeconds().coerceAtLeast(20 * 60),
+                        type = details.type,
+                        baseLevel = details.resolvedIntensityLevel(),
+                        base = details.copy(hiit = null),
                     ),
                 )
-                picker = null
             },
+            onDismiss = { layer = null },
         )
-        CardioEditorPicker.HR -> CardioIntWheelDialog(
-            title = "% FC",
-            initial = details.targetHrPercent ?: 75,
-            range = 50..100,
-            unit = "%",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(
-                    details.copy(
-                        targetHrPercent = it,
-                        intervalBlocks = details.intervalBlocks.map { block ->
-                            if (block.type == CardioBlockType.WORK) {
-                                block.copy(targetHrPercent = it)
-                            } else block
-                        },
-                    ),
-                )
-                picker = null
+        CardLayer.BlockMenu -> CardioBlockMenuSheet(
+            typeName = typeName,
+            details = details,
+            selected = selectedBlock,
+            onChange = { updated, newSelected ->
+                layer = null
+                selectedBlock = newSelected
+                onChange(updated)
             },
-            allowZeroAsNone = false,
+            onDismiss = { layer = null },
         )
-        CardioEditorPicker.WATTS -> CardioIntWheelDialog(
-            title = "Vatios",
-            initial = details.intervalBlocks.firstOrNull { it.watts != null }?.watts ?: 120,
-            range = 0..500,
-            unit = "W",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { watts ->
-                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(watts = watts) }))
-                picker = null
-            },
-        )
-        CardioEditorPicker.SPEED -> CardioTenthsWheelDialog(
-            title = "Velocidad",
-            initial = details.intervalBlocks.firstOrNull { it.speedKmh != null }?.speedKmh ?: 8.0,
-            wholeRange = 3..25,
-            unit = "km/h",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { speed ->
-                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(speedKmh = speed) }))
-                picker = null
-            },
-        )
-        CardioEditorPicker.INCLINE -> CardioTenthsWheelDialog(
-            title = "Inclinación",
-            initial = details.intervalBlocks.firstOrNull { it.inclinePercent != null }?.inclinePercent ?: 1.0,
-            wholeRange = 0..20,
-            unit = "%",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { incline ->
-                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(inclinePercent = incline) }))
-                picker = null
-            },
-        )
-        CardioEditorPicker.RPM -> CardioIntWheelDialog(
-            title = "Cadencia",
-            initial = details.intervalBlocks.firstOrNull { it.rpm != null }?.rpm ?: 80,
-            range = 40..130,
-            unit = "rpm",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { rpm ->
-                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(rpm = rpm) }))
-                picker = null
-            },
-            allowZeroAsNone = false,
-        )
-        CardioEditorPicker.SETS_REST -> if (uniform != null) CardioMinutesSecondsWheelDialog(
-            title = "Descanso entre series",
-            initialSeconds = uniform.restBetweenSetsSeconds,
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = {
-                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restBetweenSetsSeconds = it)))
-                picker = null
-            },
-        )
-        CardioEditorPicker.WORK_KCAL -> if (uniform != null) CardioIntWheelDialog(
-            title = "Objetivo kcal",
-            initial = uniform.workTargetValue?.toInt() ?: 12,
-            range = 0..80,
-            unit = "kcal",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { kcal ->
-                onChange(
-                    CardioRepeatGrammar.applyUniform(
-                        details,
-                        uniform.copy(
-                            workTargetType = if (kcal == null) HiitWorkTarget.TIME else HiitWorkTarget.KCAL,
-                            workTargetValue = kcal?.toDouble(),
-                        ),
-                    ),
-                )
-                picker = null
-            },
-        )
-        CardioEditorPicker.WORK_METERS -> if (uniform != null) CardioIntWheelDialog(
-            title = "Objetivo metros",
-            initial = uniform.workTargetValue?.toInt() ?: 200,
-            range = 0..2000,
-            unit = "m",
-            accentColor = accentColor,
-            onDismiss = { picker = null },
-            onConfirm = { meters ->
-                onChange(
-                    CardioRepeatGrammar.applyUniform(
-                        details,
-                        uniform.copy(
-                            workTargetType = if (meters == null) HiitWorkTarget.TIME else HiitWorkTarget.DISTANCE,
-                            workTargetValue = meters?.toDouble(),
-                        ),
-                    ),
-                )
-                picker = null
-            },
-        )
-        null -> Unit
     }
 }
 
-/** Continuo: tiempo, distancia y GPS en celdas, y «Añadir series», que pasa a la forma de series. */
-@Composable
-private fun CardioSteadyForm(
-    details: CardioDetails,
-    onChange: (CardioDetails) -> Unit,
-    onOpenPicker: (CardioEditorPicker) -> Unit,
-) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        val (timeValue, timeUnit) = durationCellParts(details.targetDurationSeconds)
-        CardioMagnitudeCell(
-            label = "Tiempo",
-            value = timeValue,
-            unit = timeUnit,
-            onClick = { onOpenPicker(CardioEditorPicker.STEADY_MINUTES) },
-            modifier = Modifier.weight(1f),
-        )
-        if (details.supportsDistance) {
-            val (distanceValue, distanceUnit) = distanceCellParts(details.targetDistanceKm)
-            CardioMagnitudeCell(
-                label = "Distancia",
-                value = distanceValue,
-                unit = distanceUnit,
-                onClick = { onOpenPicker(CardioEditorPicker.DISTANCE) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-        if (cardioShowsGpsCell(details)) CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
-    }
-    KpknTextAction(
-        text = "Añadir series",
-        onClick = { switchCardioForm(details, CardioForm.SERIES)?.let(onChange) },
-        leadingIcon = KpknLineIcons.Plus,
-    )
-}
-
-/** Series: calentamiento, esfuerzo y pausa, las rondas con su stepper, enfriamiento y el protocolo HIIT/SIT. */
-@Composable
-private fun CardioSeriesForm(
+/** El selector de un objetivo de la hoja «Protocolo» (descanso entre series, kcal o metros por esfuerzo). */
+private fun protocolRequest(
+    kind: CardioValueKind,
     details: CardioDetails,
     repeat: CardioUniformRepeat,
-    accentColor: Color,
+    typeName: String,
     onChange: (CardioDetails) -> Unit,
-    onOpenPicker: (CardioEditorPicker) -> Unit,
-) {
-    CardioStructureRow(
-        title = "Calentamiento",
-        value = when {
-            repeat.warmupOpen -> "Libre"
-            repeat.warmupSeconds <= 0 -> "Omitir"
-            else -> CardioPrescriptionFormatter.formatDuration(repeat.warmupSeconds)
-        },
-        onValueClick = { onOpenPicker(CardioEditorPicker.WARMUP) },
-        extras = {
-            KpknChip(
-                text = "Omitir",
-                selected = repeat.warmupSeconds <= 0 && !repeat.warmupOpen,
-                onClick = {
-                    onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(warmupSeconds = 0, warmupOpen = false)))
-                },
-            )
-            KpknChip(
-                text = "Libre",
-                selected = repeat.warmupOpen,
-                onClick = {
-                    onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(warmupOpen = true, warmupSeconds = 0)))
-                },
-            )
-        },
-    )
+): CardioValueRequest = when (kind) {
+    CardioValueKind.REST_BETWEEN_SETS -> CardioValueRequest(kind, kind.nOf(repeat.restBetweenSetsSeconds).coerceIn(kind.min, kind.max), typeName) { n, _ ->
+        onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(restBetweenSetsSeconds = kind.valueOf(n))))
+    }
+    CardioValueKind.WORK_KCAL -> CardioValueRequest(kind, (repeat.workTargetValue?.toInt() ?: 12).coerceIn(kind.min, kind.max), "$typeName · cada esfuerzo") { n, _ ->
+        onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(workTargetType = if (n == 0) HiitWorkTarget.TIME else HiitWorkTarget.KCAL, workTargetValue = n.takeIf { it > 0 }?.toDouble())))
+    }
+    else -> CardioValueRequest(kind, ((repeat.workTargetValue?.toInt() ?: 200) / 50).coerceIn(kind.min, kind.max), "$typeName · cada esfuerzo") { n, _ ->
+        onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(workTargetType = if (n == 0) HiitWorkTarget.TIME else HiitWorkTarget.DISTANCE, workTargetValue = n.takeIf { it > 0 }?.let { kind.valueOf(it).toDouble() })))
+    }
+}
 
-    // Las rondas, con su stepper, y el esfuerzo y la pausa a los lados.
-    // Sin fondo propio: el stepper lleva sus botones en `inset` y no se perderían sobre otro `inset`.
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val (workValue, workUnit) = durationCellParts(repeat.workSeconds)
-            CardioMagnitudeCell(
-                label = "Esfuerzo",
-                value = workValue,
-                unit = workUnit,
-                onClick = { onOpenPicker(CardioEditorPicker.WORK) },
+// ───────────────────────────── Continuo ─────────────────────────────
+
+/** Continuo: duración y distancia en celdas, GPS en las modalidades de exterior, esfuerzo, objetivos (ritmo y zona) y el acceso a avisos. */
+@Composable
+private fun SteadyForm(
+    details: CardioDetails,
+    supportsPace: Boolean,
+    typeName: String,
+    onChange: (CardioDetails) -> Unit,
+    onOpenValue: (CardioValueRequest) -> Unit,
+    onOpenZone: (Int, (Int) -> Unit) -> Unit,
+    onOpenAvisos: () -> Unit,
+) {
+    val distance = details.targetDistanceKm?.takeIf { it > 0.0 }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val (timeValue, timeUnit) = durationCellParts(details.targetDurationSeconds)
+            CeCell(
+                label = "Duración",
+                value = timeValue,
+                unit = timeUnit,
+                dim = distance != null,
                 modifier = Modifier.weight(1f),
+                onClick = {
+                    val kind = CardioValueKind.DURATION
+                    onOpenValue(CardioValueRequest(kind, ((details.targetDurationSeconds ?: 0) / 60).coerceIn(kind.min, kind.max), typeName) { n, _ ->
+                        onChange(details.copy(targetDurationSeconds = n.takeIf { it > 0 }?.let { it * 60 }))
+                    })
+                },
             )
-            val (restValue, restUnit) = durationCellParts(repeat.restSeconds)
-            CardioMagnitudeCell(
-                label = "Pausa",
-                value = restValue,
-                unit = restUnit,
-                onClick = { onOpenPicker(CardioEditorPicker.REST) },
-                modifier = Modifier.weight(1f),
+            if (details.supportsDistance) {
+                val (distanceValue, distanceUnit) = distanceCellParts(details.targetDistanceKm?.takeIf { it > 0.0 })
+                CeCell(
+                    label = "Distancia",
+                    value = distanceValue,
+                    unit = distanceUnit,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        val kind = CardioValueKind.DISTANCE
+                        onOpenValue(CardioValueRequest(kind, Math.round((details.targetDistanceKm ?: 0.0) * 10).toInt().coerceIn(kind.min, kind.max), typeName) { n, _ ->
+                            onChange(details.copy(targetDistanceKm = n.takeIf { it > 0 }?.let { it / 10.0 }))
+                        })
+                    },
+                )
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
+        }
+        if (distance != null) CeHint("Con distancia, manda la distancia: el tiempo no se lee.")
+    }
+    if (cardioShowsGpsCell(details)) {
+        CeSwitchRow(
+            icon = CeIcons.Gps,
+            title = "Seguir con GPS",
+            sub = if (details.requiresGps) "Distancia y ritmo en vivo." else "Sin GPS: distancia estimada.",
+            on = details.requiresGps,
+            onToggle = { onChange(details.copy(requiresGps = !details.requiresGps)) },
+            topRule = true,
+        )
+    }
+    EffortMeter(details, onChange)
+    Column(modifier = Modifier.padding(top = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            CeEyebrow("Objetivos")
+            Text("opcional", modifier = Modifier.padding(start = 6.dp), style = edText(10.5f, FontWeight.Medium, EdColors.dim, 12.6f))
+        }
+        Column {
+            var first = true
+            if (supportsPace) {
+                val pace = details.targetPaceSecondsPerKm
+                CeRow(topRule = true, controlRow = true, onClick = {
+                    val kind = CardioValueKind.PACE
+                    onOpenValue(CardioValueRequest(kind, pace ?: 360, typeName) { n, _ ->
+                        onChange(details.copy(targetPaceSecondsPerKm = n.takeIf { it > 0 }))
+                    })
+                }) {
+                    CeRowLabel("Ritmo")
+                    CeValue(if (pace != null) "${CardioValueKind.mmss(pace)} /km" else "—", onClick = {
+                        val kind = CardioValueKind.PACE
+                        onOpenValue(CardioValueRequest(kind, pace ?: 360, typeName) { n, _ ->
+                            onChange(details.copy(targetPaceSecondsPerKm = n.takeIf { it > 0 }))
+                        })
+                    })
+                }
+                first = false
+            }
+            val zone = details.targetHrPercent?.let(CardioZones::zoneOfPercent)
+            val openZone = {
+                onOpenZone(zone ?: 0) { z -> onChange(details.copy(targetHrPercent = z.takeIf { it > 0 }?.let(CardioZones::midpointPercent))) }
+            }
+            CeRow(topRule = first, controlRow = true, onClick = openZone) {
+                CeRowLabel("Zona de pulso")
+                CeValue(if (zone != null) "Z$zone" else "—", onClick = openZone, dot = zone?.let { CardioZoneColors[it - 1] })
+            }
+        }
+    }
+    Column {
+        CeLinkRow(CeIcons.Sun, "Avisos y pantalla", cardioAvisosSummary(details), onClick = onOpenAvisos, topRule = true)
+    }
+}
+
+/** El esfuerzo del cardio: el RPE de la dosis (o el del protocolo por series) en diez barras con las zonas reales. */
+@Composable
+private fun EffortMeter(details: CardioDetails, onChange: (CardioDetails) -> Unit) {
+    val rpe = details.resolvedRpe().toInt().coerceIn(1, 10)
+    CeRpeMeter(rpe = rpe, onChange = { level ->
+        val updated = when (val current = CardioRepeatGrammar.shape(details)) {
+            is CardioAuthoringShape.Uniform -> CardioRepeatGrammar.applyUniform(details, current.repeat.copy(targetRpe = level.toDouble()))
+            else -> details.copy(
+                intensityLevel = level,
+                intensity = CardioIntensity.fromLevel(level),
+                hiit = details.hiit?.copy(targetRpe = level.toDouble()),
             )
         }
-        CompactRoundStepper(
-            rounds = repeat.rounds,
-            accentColor = accentColor,
-            onRoundsChange = { onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(rounds = it))) },
-            modifier = Modifier.fillMaxWidth(),
-            minRounds = 1,
-            maxRounds = 99,
-            label = "Rondas",
+        if (updated != details) onChange(updated)
+    })
+}
+
+// ───────────────────────────── Series ─────────────────────────────
+
+/** `mv` del lienzo: «Libre», «Omitir» o la cifra del calentamiento y el enfriamiento. */
+internal fun cardioPhaseText(seconds: Int, open: Boolean): String = when {
+    open -> "Libre"
+    seconds <= 0 -> "Omitir"
+    else -> durationCellParts(seconds).let { (value, unit) -> if (unit != null) "$value $unit" else value }
+}
+
+/** Series: la gráfica con el total y cinco filas (calentamiento, esfuerzo, pausa, rondas, enfriamiento), el esfuerzo y los accesos. */
+@Composable
+private fun SeriesForm(
+    details: CardioDetails,
+    repeat: CardioUniformRepeat,
+    typeName: String,
+    onChange: (CardioDetails) -> Unit,
+    onOpenValue: (CardioValueRequest) -> Unit,
+    onOpenProtocol: () -> Unit,
+    onOpenAvisos: () -> Unit,
+) {
+    fun apply(updated: CardioUniformRepeat) = onChange(CardioRepeatGrammar.applyUniform(details, updated))
+    val efforts = repeat.rounds * repeat.sets
+
+    Column {
+        CeBlockChart(cardioBars(details), height = 60.dp)
+        Text(
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = EdColors.ink, fontWeight = FontWeight.SemiBold)) {
+                    append(CardioPrescriptionFormatter.formatDuration(details.totalIntervalSeconds()))
+                }
+                append(" en total · $efforts ${if (efforts == 1) "esfuerzo" else "esfuerzos"}")
+            },
+            modifier = Modifier.padding(top = 10.dp),
+            style = edText(13f, FontWeight.Normal, EdColors.muted, 18.2f, true),
         )
     }
 
-    CardioStructureRow(
-        title = "Enfriamiento",
-        value = when {
-            repeat.cooldownOpen -> "Libre"
-            repeat.cooldownSeconds <= 0 -> "Omitir"
-            else -> CardioPrescriptionFormatter.formatDuration(repeat.cooldownSeconds)
-        },
-        onValueClick = { onOpenPicker(CardioEditorPicker.COOLDOWN) },
-        extras = {
-            KpknChip(
-                text = "Omitir",
-                selected = repeat.cooldownSeconds <= 0 && !repeat.cooldownOpen,
-                onClick = {
-                    onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(cooldownSeconds = 0, cooldownOpen = false)))
+    // Calentamiento y enfriamiento tienen tres modos (con duración, libre, omitir); el resto es un valor.
+    fun phaseRequest(kind: CardioValueKind, seconds: Int, open: Boolean, write: (Int, Boolean) -> CardioUniformRepeat) {
+        val mode = when {
+            open -> CardioValueMode.FREE
+            seconds <= 0 -> CardioValueMode.OFF
+            else -> CardioValueMode.VALUE
+        }
+        onOpenValue(CardioValueRequest(kind, kind.nOf(seconds).coerceIn(kind.min, kind.max), typeName, mode) { n, m ->
+            apply(
+                when {
+                    m == CardioValueMode.FREE -> write(0, true)
+                    m == CardioValueMode.OFF || n == 0 -> write(0, false)
+                    else -> write(kind.valueOf(n), false)
                 },
             )
-            KpknChip(
-                text = "Libre",
-                selected = repeat.cooldownOpen,
-                onClick = {
-                    onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(cooldownOpen = true, cooldownSeconds = 0)))
-                },
-            )
-        },
-    )
+        })
+    }
+    fun valueRequest(kind: CardioValueKind, seconds: Int, write: (Int) -> CardioUniformRepeat) {
+        onOpenValue(CardioValueRequest(kind, kind.nOf(seconds).coerceIn(kind.min, kind.max), typeName) { n, _ -> apply(write(kind.valueOf(n))) })
+    }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KpknChip(
-            text = if (repeat.protocol == HiitProtocol.SIT) "SIT" else "HIIT",
-            selected = true,
-            onClick = {
-                val sit = repeat.protocol != HiitProtocol.SIT
-                onChange(
-                    CardioRepeatGrammar.applyUniform(
-                        details,
-                        repeat.copy(
-                            protocol = if (sit) HiitProtocol.SIT else HiitProtocol.HIIT,
-                            targetRpe = if (sit) 10.0 else 9.0,
-                        ),
-                    ),
-                )
-            },
-        )
-        if (details.supportsDistance) {
-            val (distanceValue, distanceUnit) = distanceCellParts(details.targetDistanceKm)
-            CardioMagnitudeCell(
-                label = "Distancia",
-                value = distanceValue,
-                unit = distanceUnit,
-                onClick = { onOpenPicker(CardioEditorPicker.DISTANCE) },
-                modifier = Modifier.weight(1f),
+    Column {
+        ValueRow("Calentamiento", cardioPhaseText(repeat.warmupSeconds, repeat.warmupOpen), top = true) {
+            phaseRequest(CardioValueKind.WARMUP, repeat.warmupSeconds, repeat.warmupOpen) { s, open -> repeat.copy(warmupSeconds = s, warmupOpen = open) }
+        }
+        ValueRow("Esfuerzo", CardioValueKind.mmss(repeat.workSeconds)) {
+            valueRequest(CardioValueKind.WORK, repeat.workSeconds) { repeat.copy(workSeconds = it.coerceAtLeast(5)) }
+        }
+        ValueRow("Pausa", if (repeat.restSeconds > 0) CardioValueKind.mmss(repeat.restSeconds) else "Sin pausa") {
+            valueRequest(CardioValueKind.REST, repeat.restSeconds) { repeat.copy(restSeconds = it) }
+        }
+        CeRow(controlRow = true) {
+            CeRowLabel("Rondas")
+            CeStepper(
+                value = repeat.rounds,
+                onMinus = { apply(repeat.copy(rounds = (repeat.rounds - 1).coerceAtLeast(1))) },
+                onPlus = { apply(repeat.copy(rounds = (repeat.rounds + 1).coerceAtMost(99))) },
+                canMinus = repeat.rounds > 1,
+                canPlus = repeat.rounds < 99,
+                label = "rondas",
             )
         }
-        if (cardioShowsGpsCell(details)) CardioGpsCell(details = details, onChange = onChange, modifier = Modifier.weight(1f))
+        ValueRow("Enfriamiento", cardioPhaseText(repeat.cooldownSeconds, repeat.cooldownOpen)) {
+            phaseRequest(CardioValueKind.COOLDOWN, repeat.cooldownSeconds, repeat.cooldownOpen) { s, open -> repeat.copy(cooldownSeconds = s, cooldownOpen = open) }
+        }
+    }
+
+    EffortMeter(details, onChange)
+
+    val target = when (repeat.workTargetType) {
+        HiitWorkTarget.TIME -> ""
+        HiitWorkTarget.KCAL -> " · por kcal"
+        HiitWorkTarget.DISTANCE -> " · por metros"
+    }
+    Column {
+        CeLinkRow(
+            CeIcons.Sliders,
+            "Protocolo",
+            "${repeat.sets} ${if (repeat.sets == 1) "serie" else "series"} · pausa ${if (repeat.restNature == com.example.kpkn.data.models.HiitRestNature.ACTIVE) "activa" else "pasiva"}$target",
+            onClick = onOpenProtocol,
+            topRule = true,
+        )
+        CeLinkRow(CeIcons.Sun, "Avisos y pantalla", cardioAvisosSummary(details), onClick = onOpenAvisos)
+    }
+}
+
+/** `ceValRow`: una fila con su rótulo y el valor en un campo que abre el selector. */
+@Composable
+private fun ValueRow(label: String, value: String, top: Boolean = false, onClick: () -> Unit) {
+    CeRow(topRule = top, onClick = onClick, controlRow = true) {
+        CeRowLabel(label)
+        CeValue(value, onClick)
+    }
+}
+
+// ───────────────────────────── Historial ─────────────────────────────
+
+/** `.ce-hist`: la última vez y los récords del tipo de cardio, con «Usar última» y «Progresar». */
+@Composable
+private fun HistoryPanel(details: CardioDetails, stats: CardioTypeHistory, onChange: (CardioDetails) -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    val lastBits = listOfNotNull(
+        stats.lastDurationSeconds?.let { CardioPrescriptionFormatter.formatDuration(it) },
+        stats.lastDistanceKm?.let { "${cellNumber(it)} km" },
+        stats.lastPaceSecondsPerKm?.let { CardioPrescriptionFormatter.formatPace(it) },
+        stats.lastRpe?.let { "RPE ${it.toInt()}" },
+    ).joinToString(" · ")
+    val prBits = listOfNotNull(
+        stats.bestPaceSecondsPerKm?.let { "Ritmo ${CardioPrescriptionFormatter.formatPace(it)}" },
+        stats.longestDistanceKm?.let { "${cellNumber(it)} km" },
+        stats.longestTimeSeconds?.let { CardioPrescriptionFormatter.formatDuration(it) },
+    ).joinToString(" · ")
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(shape).background(CeColors.cell, shape).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        CeEyebrow("Historial")
+        if (lastBits.isNotBlank()) {
+            Text(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = EdColors.ink, fontWeight = FontWeight.SemiBold)) { append("Última vez") }
+                    append(" · $lastBits")
+                },
+                style = edText(13f, FontWeight.Normal, EdColors.muted, 18.9f, true),
+            )
+        }
+        if (prBits.isNotBlank()) Text("Récords · $prBits", style = edText(13f, FontWeight.Normal, EdColors.muted, 18.9f, true))
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CePill("Usar última", onClick = {
+                CardioMessages.post("Aplicado lo de la última vez.")
+                onChange(
+                    details.copy(
+                        targetDurationSeconds = stats.lastDurationSeconds ?: details.targetDurationSeconds,
+                        targetDistanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
+                        intensityLevel = stats.lastRpe?.roundToInt() ?: details.intensityLevel,
+                    ),
+                )
+            })
+            CePill("Progresar", onClick = {
+                CardioMessages.post("Progresión aplicada.")
+                onChange(progressedCardio(details, stats))
+            })
+        }
+    }
+}
+
+/** «Progresar»: la sugerencia del motor de progresión aplicada a la forma que tiene el cardio (una ronda más en series, más tiempo en continuo). */
+internal fun progressedCardio(details: CardioDetails, stats: CardioTypeHistory): CardioDetails {
+    val suggestion = CardioProgressionEngine.suggest(
+        CardioProgressionInput(
+            durationSeconds = stats.lastDurationSeconds ?: details.effectiveDurationSeconds(),
+            distanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
+            intensity = details.intensity,
+            rpe = stats.lastRpe ?: details.resolvedRpe(),
+        ),
+    )
+    return when (val current = CardioRepeatGrammar.shape(details)) {
+        is CardioAuthoringShape.Uniform -> {
+            val extraRound = if (suggestion.durationSeconds > details.effectiveDurationSeconds()) 1 else 0
+            CardioRepeatGrammar.applyUniform(details, current.repeat.copy(rounds = (current.repeat.rounds + extraRound).coerceIn(1, 99)))
+        }
+        else -> details.copy(
+            targetDurationSeconds = suggestion.durationSeconds,
+            targetDistanceKm = suggestion.distanceKm,
+            intensity = suggestion.intensity,
+            intensityLevel = suggestion.intensity.defaultRpe.roundToInt().coerceIn(1, 10),
+        )
     }
 }
 
 /**
  * La celda GPS aparece solo en los cardios al aire libre, los que admiten GPS en el catálogo (ER2b). Un cardio de interior que ya tuviera
- * GPS puesto conserva la celda, para poder quitarlo.
+ * GPS puesto conserva la fila, para poder quitarlo.
  */
 internal fun cardioShowsGpsCell(details: CardioDetails): Boolean =
     details.requiresGps || CardioCatalog.items.any { it.type == details.type && it.requiresGps }
-
-/** GPS como celda: su estado en la cifra y un toque lo cambia. */
-@Composable
-private fun CardioGpsCell(
-    details: CardioDetails,
-    onChange: (CardioDetails) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    CardioMagnitudeCell(
-        label = "GPS",
-        value = if (details.requiresGps) "Sí" else "No",
-        unit = null,
-        onClick = { onChange(details.copy(requiresGps = !details.requiresGps)) },
-        modifier = modifier,
-    )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun CardioStructureRow(
-    title: String,
-    value: String,
-    onValueClick: () -> Unit,
-    extras: @Composable () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(CardioCellShape)
-            .background(KpknSurface.inset, CardioCellShape)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
-            Box(
-                modifier = Modifier
-                    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                    .clickable(role = Role.Button, onClick = onValueClick),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                Text(value, style = KpknType.metricM, color = WizardColors.text)
-            }
-        }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) { extras() }
-    }
-}
-
-/** Historial del tipo de cardio: la última vez, los récords y las bandas, con «Usar última» y «Progresar». */
-@Composable
-private fun CardioHistoryPanel(
-    history: CardioTypeHistory,
-    onApplyLast: () -> Unit,
-    onApplyProgression: () -> Unit,
-) {
-    val bands = history.bestPaceSecondsPerKm?.let { CardioPaceBandEngine.fromAnchorPace(it) }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(CardioCellShape)
-            .background(KpknSurface.inset, CardioCellShape)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("HISTORIAL", style = KpknType.eyebrow, color = WizardColors.textMuted)
-        val lastBits = listOfNotNull(
-            history.lastDurationSeconds?.let { CardioPrescriptionFormatter.formatDuration(it) },
-            history.lastDistanceKm?.let { CardioPrescriptionFormatter.formatDistanceKm(it) },
-            history.lastPaceSecondsPerKm?.let { CardioPrescriptionFormatter.formatPace(it) },
-            history.lastRpe?.let { "RPE ${it.toInt()}" },
-        ).joinToString(" · ")
-        if (lastBits.isNotBlank()) {
-            Text("Última vez · $lastBits", style = KpknType.caption, color = WizardColors.text)
-        }
-        val prBits = listOfNotNull(
-            history.bestPaceSecondsPerKm?.let { "Ritmo ${CardioPrescriptionFormatter.formatPace(it)}" },
-            history.longestDistanceKm?.let { "Dist ${CardioPrescriptionFormatter.formatDistanceKm(it)}" },
-            history.longestTimeSeconds?.let { "Tiempo ${CardioPrescriptionFormatter.formatDuration(it)}" },
-        ).joinToString(" · ")
-        if (prBits.isNotBlank()) {
-            Text("PRs · $prBits", style = KpknType.caption, color = WizardColors.text)
-        }
-        bands?.let {
-            Text(
-                "Bandas · easy ${CardioPrescriptionFormatter.formatPace(it.easySecondsPerKm)} · tempo ${CardioPrescriptionFormatter.formatPace(it.tempoSecondsPerKm)} · 5K ${CardioPrescriptionFormatter.formatPace(it.fiveKSecondsPerKm)}",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            KpknChip(text = "Usar última", selected = false, onClick = onApplyLast)
-            KpknChip(text = "Progresar", selected = false, onClick = onApplyProgression)
-        }
-    }
-}
-
-/** Plantillas destacadas: una fila de tarjetas con su mini gráfica y su dosis. Tocar una la aplica. */
-@Composable
-private fun CardioTemplatesRow(
-    details: CardioDetails,
-    accentColor: Color,
-    onChange: (CardioDetails) -> Unit,
-) {
-    val templates = remember(details) {
-        CardioFeaturedTemplates.all.map { template -> template to CardioFeaturedTemplates.apply(template.id, details) }
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("PLANTILLAS", style = KpknType.eyebrow, color = WizardColors.textMuted)
-        val templatesState = rememberLazyListState()
-        LazyRow(
-            state = templatesState,
-            // ER2b: la orilla se funde como en las filas de chips, para que una plantilla cortada no quede en seco.
-            modifier = Modifier.sessionLazyRowEdgeFade(templatesState),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(templates, key = { it.first.id }) { (template, preview) ->
-                CardioTemplateCard(
-                    template = template,
-                    preview = preview,
-                    selected = templateSelected(template, details),
-                    accentColor = accentColor,
-                    onClick = { onChange(CardioFeaturedTemplates.apply(template.id, details)) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CardioTemplateCard(
-    template: CardioFeaturedTemplate,
-    preview: CardioDetails,
-    selected: Boolean,
-    accentColor: Color,
-    onClick: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .width(176.dp)
-            .clip(CardioCellShape)
-            .background(KpknSurface.inset, CardioCellShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                template.name,
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            if (selected) {
-                Icon(
-                    imageVector = KpknLineIcons.Check,
-                    contentDescription = "Plantilla elegida",
-                    tint = WizardColors.text,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
-        // Con intervalos, la gráfica de sus bloques; en continuo, una barra del color del esfuerzo.
-        if (preview.hasIntervals()) {
-            CardioIntervalChart(
-                details = preview,
-                accentColor = accentColor,
-                sparkline = true,
-                showLabels = false,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(28.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(accentColor.copy(alpha = 0.5f)),
-            )
-        }
-        Text(
-            cardioDoseLine(preview),
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/** Una plantilla figura como elegida si su materialización coincide con lo que hay en el editor (la lógica de siempre). */
-private fun templateSelected(template: CardioFeaturedTemplate, details: CardioDetails): Boolean {
-    val hiitId = template.hiitId
-    return if (hiitId != null) {
-        val config = CardioHiitTemplates.findById(hiitId)?.toConfig()
-        val hiit = details.hiit
-        hiit != null && config != null && hiit.workSeconds == config.workSeconds && hiit.rounds == config.rounds
-    } else {
-        !details.hasIntervals() && details.targetDurationSeconds == (template.steadyMinutes ?: 0) * 60
-    }
-}
-
-/** «Avanzado»: ritmo, FC, vatios, velocidad, inclinación y cadencia; las series, la pausa, las kcal y los metros; y los avisos. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun CardioAdvancedPanel(
-    details: CardioDetails,
-    shape: CardioAuthoringShape,
-    catalogSupportsSpeed: Boolean,
-    catalogSupportsIncline: Boolean,
-    catalogSupportsRpm: Boolean,
-    catalogSupportsWatts: Boolean,
-    accentColor: Color,
-    onChange: (CardioDetails) -> Unit,
-    onOpenPicker: (CardioEditorPicker) -> Unit,
-) {
-    val uniform = (shape as? CardioAuthoringShape.Uniform)?.repeat
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(CardioCellShape)
-            .background(KpknSurface.inset, CardioCellShape)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            val (paceValue, paceUnit) = paceCellParts(details.targetPaceSecondsPerKm)
-            CardioMagnitudeCell(
-                label = "Ritmo",
-                value = paceValue,
-                unit = paceUnit,
-                onClick = { onOpenPicker(CardioEditorPicker.PACE) },
-                modifier = Modifier.width(144.dp),
-            )
-            val hr = details.targetHrPercent
-            CardioMagnitudeCell(
-                label = "FC",
-                value = hr?.toString() ?: "—",
-                unit = hr?.let { "%" },
-                onClick = { onOpenPicker(CardioEditorPicker.HR) },
-                modifier = Modifier.width(144.dp),
-            )
-            if (catalogSupportsWatts) {
-                val watts = details.intervalBlocks.firstOrNull { it.watts != null }?.watts
-                CardioMagnitudeCell(
-                    label = "Vatios",
-                    value = watts?.toString() ?: "—",
-                    unit = watts?.let { "W" },
-                    onClick = { onOpenPicker(CardioEditorPicker.WATTS) },
-                    modifier = Modifier.width(144.dp),
-                )
-            }
-            if (catalogSupportsSpeed) {
-                val speed = details.intervalBlocks.firstOrNull { it.speedKmh != null }?.speedKmh
-                CardioMagnitudeCell(
-                    label = "Velocidad",
-                    value = speed?.let { cellNumber(it) } ?: "—",
-                    unit = speed?.let { "km/h" },
-                    onClick = { onOpenPicker(CardioEditorPicker.SPEED) },
-                    modifier = Modifier.width(144.dp),
-                )
-            }
-            if (catalogSupportsIncline) {
-                val incline = details.intervalBlocks.firstOrNull { it.inclinePercent != null }?.inclinePercent
-                CardioMagnitudeCell(
-                    label = "Inclinación",
-                    value = incline?.let { cellNumber(it) } ?: "—",
-                    unit = incline?.let { "%" },
-                    onClick = { onOpenPicker(CardioEditorPicker.INCLINE) },
-                    modifier = Modifier.width(144.dp),
-                )
-            }
-            if (catalogSupportsRpm) {
-                val rpm = details.intervalBlocks.firstOrNull { it.rpm != null }?.rpm
-                CardioMagnitudeCell(
-                    label = "RPM",
-                    value = rpm?.toString() ?: "—",
-                    unit = null,
-                    onClick = { onOpenPicker(CardioEditorPicker.RPM) },
-                    modifier = Modifier.width(144.dp),
-                )
-            }
-        }
-        if (uniform != null) {
-            CompactRoundStepper(
-                rounds = uniform.sets,
-                accentColor = accentColor,
-                onRoundsChange = { onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(sets = it))) },
-                modifier = Modifier.fillMaxWidth(),
-                minRounds = 1,
-                maxRounds = 5,
-                label = "Series",
-            )
-            if (uniform.sets > 1) {
-                val (restValue, restUnit) = durationCellParts(uniform.restBetweenSetsSeconds)
-                CardioMagnitudeCell(
-                    label = "Entre series",
-                    value = restValue,
-                    unit = restUnit,
-                    onClick = { onOpenPicker(CardioEditorPicker.SETS_REST) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip(
-                    text = if (uniform.restNature == HiitRestNature.PASSIVE) "Pausa pasiva" else "Pausa activa",
-                    selected = true,
-                    onClick = {
-                        val next = if (uniform.restNature == HiitRestNature.ACTIVE) HiitRestNature.PASSIVE else HiitRestNature.ACTIVE
-                        onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restNature = next)))
-                    },
-                )
-            }
-            // C5 · El objetivo de cada esfuerzo: tiempo (el de arriba), kcal o distancia. Cambiarlo no inventa una cifra: la
-            // que hubiera se conserva y la celda de abajo la pone quien programa.
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("OBJETIVO DE TRABAJO", style = KpknType.eyebrow, color = WizardColors.textMuted)
-                KpknSegmentedControl(
-                    options = listOf("Tiempo", "kcal", "Distancia"),
-                    selectedIndex = when (uniform.workTargetType) {
-                        HiitWorkTarget.TIME -> 0
-                        HiitWorkTarget.KCAL -> 1
-                        HiitWorkTarget.DISTANCE -> 2
-                    },
-                    onSelect = { index ->
-                        val target = when (index) {
-                            1 -> HiitWorkTarget.KCAL
-                            2 -> HiitWorkTarget.DISTANCE
-                            else -> HiitWorkTarget.TIME
-                        }
-                        onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(workTargetType = target)))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    "Con kcal o distancia, cada esfuerzo termina al llegar a la cifra. Por defecto, el tiempo de arriba.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CardioMagnitudeCell(
-                    label = "kcal por esfuerzo",
-                    value = if (uniform.workTargetType == HiitWorkTarget.KCAL) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
-                    unit = null,
-                    onClick = { onOpenPicker(CardioEditorPicker.WORK_KCAL) },
-                    modifier = Modifier.weight(1f),
-                )
-                CardioMagnitudeCell(
-                    label = "m por esfuerzo",
-                    value = if (uniform.workTargetType == HiitWorkTarget.DISTANCE) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
-                    unit = null,
-                    onClick = { onOpenPicker(CardioEditorPicker.WORK_METERS) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-
-        // C4 · Los avisos del cardio. Los de fase (pitos, voz y vibración) son del protocolo por series: sin protocolo no hay
-        // cambio de fase que avisar, así que se muestran apagados. La pantalla encendida vale para cualquier cardio.
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("AVISOS Y PANTALLA", style = KpknType.eyebrow, color = WizardColors.textMuted)
-            val config = details.hiit
-            val hasProtocol = config != null
-            val beepsOn = config?.beepsEnabled ?: true
-            val voiceOn = config?.voiceCuesEnabled ?: true
-            val vibrationOn = config?.vibrationEnabled ?: true
-            val keepScreenOn = details.keepScreenOn && (config?.keepScreenOn != false)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip(
-                    text = "Beeps",
-                    selected = beepsOn,
-                    enabled = hasProtocol,
-                    onClick = { onChange(details.copy(hiit = config?.copy(beepsEnabled = !beepsOn))) },
-                )
-                KpknChip(
-                    text = "Voz",
-                    selected = voiceOn,
-                    enabled = hasProtocol,
-                    onClick = { onChange(details.copy(hiit = config?.copy(voiceCuesEnabled = !voiceOn))) },
-                )
-                KpknChip(
-                    text = "Vibra",
-                    selected = vibrationOn,
-                    enabled = hasProtocol,
-                    onClick = { onChange(details.copy(hiit = config?.copy(vibrationEnabled = !vibrationOn))) },
-                )
-                KpknChip(
-                    text = "Pantalla encendida",
-                    selected = keepScreenOn,
-                    onClick = {
-                        val next = !keepScreenOn
-                        onChange(
-                            details.copy(
-                                keepScreenOn = next,
-                                hiit = details.hiit?.copy(keepScreenOn = next),
-                            ),
-                        )
-                    },
-                )
-            }
-            if (!hasProtocol) {
-                Text(
-                    "Los avisos de fase son del cardio por series.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-        }
-    }
-}

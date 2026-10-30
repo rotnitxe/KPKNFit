@@ -90,9 +90,9 @@ object CardioRepeatGrammar {
     fun applyUniform(details: CardioDetails, repeat: CardioUniformRepeat): CardioDetails {
         val existing = details.hiit
         val config = repeat.toConfig().copy(
-            beepsEnabled = existing?.beepsEnabled ?: true,
-            voiceCuesEnabled = existing?.voiceCuesEnabled ?: true,
-            vibrationEnabled = existing?.vibrationEnabled ?: true,
+            beepsEnabled = details.beepsEnabled ?: existing?.beepsEnabled ?: true,
+            voiceCuesEnabled = details.voiceCuesEnabled ?: existing?.voiceCuesEnabled ?: true,
+            vibrationEnabled = details.vibrationEnabled ?: existing?.vibrationEnabled ?: true,
             keepScreenOn = existing?.keepScreenOn ?: true,
         )
         return CardioHiitProgramBuilder.buildDetails(config, details.type, details)

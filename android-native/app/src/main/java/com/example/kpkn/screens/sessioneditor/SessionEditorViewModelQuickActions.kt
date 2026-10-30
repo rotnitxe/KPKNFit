@@ -13,8 +13,15 @@ fun SessionEditorViewModel.duplicateQuickActionExercise() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
     val partId = state.quickActionsPartId
+    val before = (state.activeVariantSession ?: state.session)?.allExercises()?.map { it.id }?.toSet().orEmpty()
     updateSession(reason = "Duplicar ejercicio") { session ->
         duplicateExerciseInSession(session = session, partId = partId, exerciseId = exerciseId)
+    }
+    // Pulido v1 · cardio del editor: la copia de un cardio destella en su fila y un aviso lo dice.
+    val copy = (currentUiState.activeVariantSession ?: currentUiState.session)?.allExercises()?.firstOrNull { it.id !in before }
+    if (copy?.cardioDetails != null) {
+        com.example.kpkn.screens.sessioneditor.components.CardioFreshFlash.mark(copy.id)
+        updateUi { it.copy(snackbarMessage = "Cardio duplicado.") }
     }
     updateUi {
         it.copy(

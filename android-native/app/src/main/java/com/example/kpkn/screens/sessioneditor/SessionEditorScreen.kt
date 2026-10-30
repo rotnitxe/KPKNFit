@@ -246,6 +246,11 @@ fun SessionEditorScreen(
 
     val hazeState = remember { HazeState() }
 
+    // Pulido v1 · cardio del editor: los avisos de la tarjeta de cardio (plantilla aplicada, bloque duplicado…) salen en la misma snackbar.
+    LaunchedEffect(viewModel) {
+        com.example.kpkn.screens.sessioneditor.components.CardioMessages.flow.collect { viewModel.showCardioMessage(it) }
+    }
+
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
@@ -1272,6 +1277,7 @@ fun SessionEditorScreen(
         onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionDuplicate = viewModel::duplicateQuickActionExercise,
+        onToggleCardioPlacement = viewModel::toggleCardioPlacement,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
         onQuickActionManageSuperset = viewModel::triggerQuickActionManageSuperset,
         onLinkExerciseRelativeTo = viewModel::linkExerciseRelativeTo,
@@ -1324,6 +1330,7 @@ fun SessionEditorScreen(
             SessionExerciseDetailSheet(
                 exercise = detailExercise,
                 onDismiss = { editorDetailExerciseId = null },
+                cardioHistory = detailExercise.cardioDetails?.type?.let { uiState.cardioHistoryByType[it] },
             )
         }
     }

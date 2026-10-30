@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.HiitWorkTarget
 import com.example.kpkn.domain.cardio.CardioAuthoringShape
 import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
 import com.example.kpkn.domain.cardio.CardioRepeatGrammar
+import com.example.kpkn.domain.cardio.CardioValueKind
 import com.example.kpkn.domain.cardio.CardioUniformRepeat
 import com.example.kpkn.ui.design.KpknSetFormat
 import kotlin.math.roundToInt
@@ -51,9 +52,10 @@ private fun uniformDose(repeat: CardioUniformRepeat, rpe: Double): String {
     val work = when {
         target != null && repeat.workTargetType == HiitWorkTarget.DISTANCE -> "${target.toInt()} m"
         target != null && repeat.workTargetType == HiitWorkTarget.KCAL -> "${target.toInt()} kcal"
-        else -> KpknSetFormat.doseTime(repeat.workSeconds)
+        // Pulido v1 · cardio del editor: siempre «m:ss» (`ceM` del lienzo): «8 × 0:20 / 0:10», no «8 × 20 s / 10 s».
+        else -> CardioValueKind.mmss(repeat.workSeconds)
     }
-    val rest = if (repeat.restSeconds > 0) " / ${KpknSetFormat.doseTime(repeat.restSeconds)}" else ""
+    val rest = if (repeat.restSeconds > 0) " / ${CardioValueKind.mmss(repeat.restSeconds)}" else ""
     val sets = if (repeat.sets > 1) " · ${repeat.sets} series" else ""
     return "${repeat.rounds} × $work$rest$sets · RPE ${rpe.roundToInt().coerceIn(1, 10)}"
 }
