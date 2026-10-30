@@ -9,7 +9,6 @@ enum class SessionEditorSheet {
     QUICK_ACTIONS,
     BACKGROUND,
     HISTORY,
-    RULES,
     TRANSFER,
     SAVE,
     ASSISTANT,

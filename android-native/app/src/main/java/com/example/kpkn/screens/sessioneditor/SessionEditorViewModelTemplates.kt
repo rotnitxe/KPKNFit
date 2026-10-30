@@ -8,6 +8,7 @@ import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.domain.sessionassistant.TemplatePreviewBuilder
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import com.example.kpkn.domain.templates.TemplateSaveValidationException
 import com.example.kpkn.domain.templates.TemplateSaveValidationIssue
@@ -220,6 +221,22 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         return
     }
     val activeVariant = state.activeVariant
+    // Desde el asistente la hoja se queda abierta: «Aplicando» y después «Plantilla aplicada» con su «Deshacer» (pulido:as-pla-aplicando).
+    val fromAssistant = state.sheet == SessionEditorSheet.ASSISTANT
+    val sessionBefore = session
+    if (fromAssistant) {
+        updateUi {
+            it.copy(
+                templateApplyDecision = null,
+                templateApplyProgress = TemplateApplyProgress.Applying(
+                    templateName = template.name,
+                    mode = mode,
+                    currentExercises = TemplatePreviewBuilder.totals(session).exercises,
+                    templateExercises = TemplatePreviewBuilder.totals(template.session).exercises,
+                ),
+            )
+        }
+    }
     val expectedSessionId = session.id
     val expectedContentHash = session.contentHashForEditor()
     if (!SessionTemplateEngine.canApplyTemplate(template, session)) {
@@ -267,6 +284,7 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
             updateUi {
                 it.copy(
                     templateApplyDecision = null,
+                    templateApplyProgress = null,
                     snackbarMessage = "La sesión cambió mientras se aplicaba la plantilla; no se sobrescribieron tus cambios.",
                 )
             }
@@ -296,13 +314,33 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         } else {
             ""
         }
-        updateUi {
-            it.copy(
-                sheet = SessionEditorSheet.NONE,
-                templateApplyDecision = null,
-                templateSearchQuery = "",
-                snackbarMessage = "Plantilla \"${template.name}\" aplicada.$omittedNote$scaledNote",
-            )
+        if (fromAssistant && currentUiState.sheet == SessionEditorSheet.ASSISTANT) {
+            val after = currentUiState.activeVariantSession ?: currentUiState.session
+            updateUi {
+                it.copy(
+                    templateApplyDecision = null,
+                    templateSearchQuery = "",
+                    templateApplyProgress = TemplateApplyProgress.Done(
+                        templateName = template.name,
+                        mode = mode,
+                        before = sessionBefore,
+                        variant = activeVariant,
+                        stamp = after?.lastModifiedAtMs,
+                        previous = TemplatePreviewBuilder.totals(sessionBefore),
+                        now = after?.let(TemplatePreviewBuilder::totals) ?: TemplatePreviewBuilder.totals(result),
+                        note = (omittedNote + scaledNote).trim(),
+                    ),
+                )
+            }
+        } else {
+            updateUi {
+                it.copy(
+                    sheet = SessionEditorSheet.NONE,
+                    templateApplyDecision = null,
+                    templateSearchQuery = "",
+                    snackbarMessage = "Plantilla \"${template.name}\" aplicada.$omittedNote$scaledNote",
+                )
+            }
         }
     }
 }

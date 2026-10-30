@@ -241,17 +241,14 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.screens.sessioneditor.SessionEditorSheet
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
-import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
-import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.CoverSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
-import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SaveSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.WarmupSheet
@@ -348,31 +345,12 @@ internal fun SessionEditorSheets(
     onMultiSelectExercises: (List<ExerciseMuscleInfo>) -> List<String>,
     onToggleExerciseSelection: (String) -> Unit,
     onClearExerciseSelection: () -> Unit,
-    onApplyRules: (String?) -> ApplyRulesOutcome,
     onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
     onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
     onSave: (SessionSaveScope) -> Unit,
-    onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
-    onRuleDefaultsChange: (String?, Int?, Int?, Double?, Int?, Int?, Int?, Int?, Boolean?, DefaultIntensityType?) -> Unit,
-    onRuleLimitsChange: (Double?, Int?) -> Unit,
-    onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
-    onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
-    setTargetDuration: (Int?) -> Unit,
-    setPartTargetDuration: (String, Int?) -> Unit,
-    setExerciseTargetDuration: (String, Int?) -> Unit,
-    onDistributeTargetAcrossParts: () -> Unit = {},
-    onApplyRuleTemplate: (String, String?) -> Unit = { _, _ -> },
-    onSaveRuleTemplate: (String) -> Unit = {},
-    onRenameRuleTemplate: (String, String) -> Unit = { _, _ -> },
-    onDeleteRuleTemplate: (String) -> Unit = {},
-    onPatchRuleDefaults: (String?, (com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> Unit = { _, _ -> },
-    onApplyTimeCoachSuggestion: (String) -> Unit = {},
-    onDismissTimeCoachSuggestion: (String) -> Unit = {},
-    onRefreshTimeCoach: () -> Unit = {},
-    onRulesInitialTabConsumed: () -> Unit = {},
     onQuickActionOpenPicker: () -> Unit,
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionOpenMobility: () -> Unit,
@@ -563,10 +541,7 @@ internal fun SessionEditorSheets(
          return
      }
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        stableHeightFraction = if (uiState.sheet == SessionEditorSheet.RULES) 0.82f else null,
-    ) {
+    KpknSheet(onDismissRequest = onDismiss) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
             SessionEditorSheet.BACKGROUND -> CoverSheet(
@@ -584,28 +559,6 @@ internal fun SessionEditorSheets(
                 onLabelPositionChange = onLabelPositionChange,
             )
             SessionEditorSheet.HISTORY -> HistorySheet(uiState, onRestoreSnapshot)
-            SessionEditorSheet.RULES -> RulesSheet(
-                uiState = uiState,
-                onApplyRules = onApplyRules,
-                onRuleDefaultsChange = onRuleDefaultsChange,
-                onRuleLimitsChange = onRuleLimitsChange,
-                onAdvancedRuleLimitsChange = onAdvancedRuleLimitsChange,
-                onApplyGlobalIntensityAdjustment = onApplyGlobalIntensityAdjustment,
-                setTargetDuration = setTargetDuration,
-                setPartTargetDuration = setPartTargetDuration,
-                setExerciseTargetDuration = setExerciseTargetDuration,
-                onDistributeTargetAcrossParts = onDistributeTargetAcrossParts,
-                onApplyRuleTemplate = onApplyRuleTemplate,
-                onSaveRuleTemplate = onSaveRuleTemplate,
-                onRenameRuleTemplate = onRenameRuleTemplate,
-                onDeleteRuleTemplate = onDeleteRuleTemplate,
-                onPatchRuleDefaults = onPatchRuleDefaults,
-                onApplyTimeCoachSuggestion = onApplyTimeCoachSuggestion,
-                onDismissTimeCoachSuggestion = onDismissTimeCoachSuggestion,
-                onRefreshTimeCoach = onRefreshTimeCoach,
-                onInitialTabConsumed = onRulesInitialTabConsumed,
-                onDismiss = onDismiss,
-            )
             SessionEditorSheet.TRANSFER -> SessionClonerSheet(
                 uiState = uiState,
                 onCloneCurrentToTargets = onCloneCurrentToTargets,

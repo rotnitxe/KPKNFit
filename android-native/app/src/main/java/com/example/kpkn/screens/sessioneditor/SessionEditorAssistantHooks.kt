@@ -4,19 +4,16 @@ package com.example.kpkn.screens.sessioneditor
  * Ganchos entre la barra inferior del editor y el Asistente (Pulido v1 · EDITOR · A2).
  *
  * Decisión del lienzo: «Reglas» sale de la barra y pasa a ser la 4.ª pestaña del Asistente, y tocar los minutos de la barra abre
- * Asistente › Reglas › Tiempo. Mientras la hoja del Asistente (paquete `as`) no exponga ese destino, el gancho abre la hoja de reglas en su
- * pestaña de tiempo, que es donde vivía el anillo de minutos y desde donde se llega a las demás pestañas de reglas. Cuando el Asistente tenga
- * su 4.ª pestaña, se cambia SOLO el cuerpo de estas dos funciones y la barra no se toca.
+ * Asistente › Reglas › Tiempo. El Asistente (paquete `as`) ya tiene su 4.ª pestaña y estas dos funciones lo abren directamente en ella.
  */
 
-/** Los minutos de la barra: abre Asistente › Reglas › Tiempo (hoy, la hoja de reglas en la pestaña de tiempo). */
+/** Los minutos de la barra: abre Asistente › Reglas › Tiempo . */
 internal fun SessionEditorViewModel.openAssistantRulesTime() {
-    // TODO(as): sustituir por la apertura del Asistente en su pestaña «Reglas» con la sección «Tiempo».
-    openRulesSheet(initialTab = 1)
+    // Paquete `as` (pasada B/C): `openRulesSheet` ya abre el Asistente en su 4.ª pestaña, Reglas, con la sección Tiempo.
+    openAssistant(AssistantEntry(tab = AssistantTab.RULES, rules = RulesSection.TIME))
 }
 
-/** Las reglas de la sesión: Asistente › Reglas (hoy, la hoja de reglas en su primera pestaña). */
+/** Las reglas de la sesión: Asistente › Reglas . */
 internal fun SessionEditorViewModel.openAssistantRules() {
-    // TODO(as): sustituir por la apertura del Asistente en su pestaña «Reglas».
-    openRulesSheet(initialTab = 0)
+    openAssistant(AssistantEntry(tab = AssistantTab.RULES, rules = RulesSection.VALUES))
 }
