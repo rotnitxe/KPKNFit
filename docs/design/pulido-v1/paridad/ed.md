@@ -14,9 +14,9 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 | ed-S02 | `.ed-glass` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 30px, rgba(255, 255, 255, 0.094) 0px 1px inset → preset isla-vidrio | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | EditorGlass.kt:104 | [x] |
 | ed-S03 | `.ed-list.drag .ed-ex.lifted` | box-shadow: rgba(0, 0, 0, 0.867) 0px 24px 48px, rgba(255, 255, 255, 0.15) 0px 0px 0px 1px → preset levantado | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorVisuals.kt:249 | [x] |
 | ed-S04 | `.ed-list.drag .ed-ex.settle` | box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px → preset ninguna | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorVisuals.kt:249 | [x] |
-| ed-S05 | `.ed-pop` | box-shadow: rgba(0, 0, 0, 0.867) 0px 18px 44px → preset popover | — |  | [ ] |
-| ed-S06 | `.ed-range::-webkit-slider-thumb` | box-shadow: rgba(0, 0, 0, 0.667) 0px 2px 8px → preset asa-deslizador | ed-serie-rm, ed-serie-solorpe |  | [ ] |
-| ed-S07 | `.ed-sheet` | box-shadow: rgba(0, 0, 0, 0.8) 0px -14px 44px, rgba(255, 255, 255, 0.063) 0px 1px inset → preset hoja | — |  | [ ] |
+| ed-S05 | `.ed-pop` | box-shadow: rgba(0, 0, 0, 0.867) 0px 18px 44px → preset popover | — | EditorSeriesPrimitives.kt:886 | [x] |
+| ed-S06 | `.ed-range::-webkit-slider-thumb` | box-shadow: rgba(0, 0, 0, 0.667) 0px 2px 8px → preset asa-deslizador | ed-serie-rm, ed-serie-solorpe | EditorSeriesPrimitives.kt:768 | [x] |
+| ed-S07 | `.ed-sheet` | box-shadow: rgba(0, 0, 0, 0.8) 0px -14px 44px, rgba(255, 255, 255, 0.063) 0px 1px inset → preset hoja | — | EditorSheetHost.kt:34 | [x] |
 | ed-S08 | `.ed-wd.comp i` | box-shadow: 0 0 0 1.5px var(--ene) → preset anillo-energia-1p5 | — | SessionEditorFrameWeekSheet.kt:520 | [x] |
 | ed-S09 | `.tok.on` (base) | box-shadow: rgb(244, 154, 110) 0px -2px inset → preset subrayado-musculo | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-401 | [~] |
 
@@ -31,7 +31,7 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
-| ed-G01 | `.ed-range::-webkit-slider-runnable-track` | background-image: linear-gradient(90deg,var(--ink) var(--p,50%),#ffffff1f var(--p,50%)) → preset relleno-horizontal-crema-1 | ed-serie-rm, ed-serie-solorpe |  | [ ] |
+| ed-G01 | `.ed-range::-webkit-slider-runnable-track` | background-image: linear-gradient(90deg,var(--ink) var(--p,50%),#ffffff1f var(--p,50%)) → preset relleno-horizontal-crema-1 | ed-serie-rm, ed-serie-solorpe | EditorSeriesPrimitives.kt:779 | [x] |
 | ed-G02 | `.ed-topfade` | background-image: linear-gradient(rgb(0, 0, 0) 20%, rgba(0, 0, 0, 0)) → preset velo-negro-sale-1 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorScreen.kt:877 | [x] |
 | ed-G03 | `.split7 i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgb(207, 201, 191)) → preset relleno-crema | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-401 | [~] |
 | ed-G04 | `.story .st-week i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgba(242, 238, 230, 0.8)) → preset relleno-crema-suave | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-401 | [~] |
@@ -45,16 +45,16 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 | ed-A03 | `.ed-delpill.pop` | animation: ed-pop · 0.26s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s · repite 1 · normal · none → preset rebote · curva resorte · dur 240 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:259 | [x] |
 | ed-A04 | `.ed-delta` | animation: ed-delta · 1.3s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · forwards → preset aviso · curva estandar · dur 1300 | — | SessionEditorFrameBottomBar.kt:317 | [x] |
 | ed-A05 | `.ed-ex.fresh` | animation: ed-fresh · 0.5s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset despliegue-fila · curva estandar · dur 520 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-402 | [~] |
-| ed-A06 | `.ed-focus.anim, .ed-presets.anim, .ed-tcfg.anim` | animation: ed-in · 0.26s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset entrada-sube · curva estandar · dur 240 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-A06 | `.ed-focus.anim, .ed-presets.anim, .ed-tcfg.anim` | animation: ed-in · 0.26s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset entrada-sube · curva estandar · dur 240 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | DESV-452 | [~] |
 | ed-A07 | `.ed-list.drag .ed-ex.lifted` | animation: ed-lift · 0.34s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s · repite 1 · normal · forwards → preset rebote · curva resorte · dur 320 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorVisuals.kt:211 | [x] |
-| ed-A08 | `.ed-pop` | animation: ed-popin · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset entrada-baja · curva estandar · dur 200 | — |  | [ ] |
+| ed-A08 | `.ed-pop` | animation: ed-popin · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset entrada-baja · curva estandar · dur 200 | — | EditorSeriesPrimitives.kt:864 | [x] |
 | ed-A09 | `.ed-pulse` | animation: ed-ring · 0.46s · ease-out · retardo 0s · repite 1 · normal · forwards → preset onda-anillo · curva salida · dur 460 | — | SessionEditorVisuals.kt:210 | [x] |
-| ed-A10 | `.ed-sc.flash` | animation: ed-flash · 0.6s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset destello · curva estandar · dur 600 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-A11 | `.ed-scrim` | animation: ed-fadein · 0.22s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset fundido-entrada · curva estandar · dur 200 | — |  | [ ] |
-| ed-A12 | `.ed-scrim.out` | animation: ed-fadeout · 0.2s · ease · retardo 0s · repite 1 · normal · forwards → preset fundido-salida · curva suave · dur 200 | — |  | [ ] |
-| ed-A13 | `.ed-sheet` | animation: ed-up · 0.34s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset hoja-sube · curva estandar · dur 320 | — |  | [ ] |
-| ed-A14 | `.ed-sheet.out` | animation: ed-down · 0.24s · cubic-bezier(0.5, 0, 0.9, 0.5) · retardo 0s · repite 1 · normal · forwards → preset hoja-baja · curva cae · dur 240 | — |  | [ ] |
-| ed-A15 | `.ed-stv.bump b` | animation: ed-bump · 0.24s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s · repite 1 · normal · none → preset aparece-escala · curva resorte · dur 240 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-A10 | `.ed-sc.flash` | animation: ed-flash · 0.6s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset destello · curva estandar · dur 600 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | DESV-453 | [~] |
+| ed-A11 | `.ed-scrim` | animation: ed-fadein · 0.22s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset fundido-entrada · curva estandar · dur 200 | — | EditorSheetHost.kt:34 | [x] |
+| ed-A12 | `.ed-scrim.out` | animation: ed-fadeout · 0.2s · ease · retardo 0s · repite 1 · normal · forwards → preset fundido-salida · curva suave · dur 200 | — | EditorSheetHost.kt:34 | [x] |
+| ed-A13 | `.ed-sheet` | animation: ed-up · 0.34s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset hoja-sube · curva estandar · dur 320 | — | EditorSheetHost.kt:34 | [x] |
+| ed-A14 | `.ed-sheet.out` | animation: ed-down · 0.24s · cubic-bezier(0.5, 0, 0.9, 0.5) · retardo 0s · repite 1 · normal · forwards → preset hoja-baja · curva cae · dur 240 | — | EditorSheetHost.kt:34 | [x] |
+| ed-A15 | `.ed-stv.bump b` | animation: ed-bump · 0.24s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s · repite 1 · normal · none → preset aparece-escala · curva resorte · dur 240 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:416 | [x] |
 | ed-A16 | `.ed-time.tick b` | animation: ed-bump · 0.36s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s · repite 1 · normal · none → preset aparece-escala · curva resorte · dur 320 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:288 | [x] |
 | ed-A17 | `.ed-undo` | animation: ed-fadein · 0.22s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset fundido-entrada · curva estandar · dur 200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:242 | [x] |
 | ed-A18 | `.wr-bars i.on::after` (base) | animation: wrbar · 6s · linear · retardo 0s · repite 1 · normal · forwards → preset crece-x · curva lineal · dur 6000 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-401 | [~] |
@@ -63,15 +63,15 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
-| ed-T01 | `.ed-act` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-T01 | `.ed-act` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:685 | [x] |
 | ed-T02 | `.ed-addw .chv svg` | transition: transform · 0.22s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:341 | [x] |
 | ed-T03 | `.ed-addw button` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:355 | [x] |
 | ed-T04 | `.ed-arrow` | transition: color, transform · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorFrameTopBar.kt:235 | [x] |
 | ed-T05 | `.ed-asi` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:410 | [x] |
 | ed-T06 | `.ed-bar` | transition: opacity, transform · 0.22s, 0.3s · ease, cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s, 0s → preset curva suave/estandar · dur 200/280 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:119 | [x] |
-| ed-T07 | `.ed-cardw` | transition: grid-template-rows · 0.3s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 280 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-404 | [~] |
-| ed-T08 | `.ed-chip` | transition: border-color, background · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T09 | `.ed-dash` | transition: border-color, color · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-T07 | `.ed-cardw` | transition: grid-template-rows · 0.3s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 280 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | ExerciseEditorCard.kt:320 | [x] |
+| ed-T08 | `.ed-chip` | transition: border-color, background · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:559 | [x] |
+| ed-T09 | `.ed-dash` | transition: border-color, color · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | PreparationCarouselCards.kt:526 | [x] |
 | ed-T10 | `.ed-daybtn svg` | transition: transform · 0.22s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorFrameTopBar.kt:121 | [x] |
 | ed-T11 | `.ed-delpill .lb` | transition: opacity, max-width · 0.16s, 0.2s · ease, cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s, 0s → preset curva suave/estandar · dur 160/200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:162 | [x] |
 | ed-T12 | `.ed-delpill svg` | transition: transform · 0.18s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s → preset curva resorte · dur 160 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:124 | [x] |
@@ -81,22 +81,22 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 | ed-T16 | `.ed-list.drag .ed-ex` | transition: transform · 0.26s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 240 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorScrollRenderer.kt:647 | [x] |
 | ed-T17 | `.ed-list.drag .ed-ex.lifted` | transition: box-shadow, background · 0.2s, 0.2s · ease, ease · retardo 0s, 0s → preset curva suave · dur 200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-403 | [~] |
 | ed-T18 | `.ed-list.drag .ed-ex.settle` | transition: transform, box-shadow, background · 0.34s, 0.3s, 0.3s · cubic-bezier(0.3, 1.5, 0.5, 1), ease, ease · retardo 0s, 0s, 0s → preset curva resorte/suave · dur 320/280 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | DESV-403 | [~] |
-| ed-T19 | `.ed-mi` | transition: background · 0.14s · ease · retardo 0s → preset curva suave · dur 140 | — |  | [ ] |
-| ed-T20 | `.ed-presets button` | transition: background, color · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie-descanso |  | [ ] |
+| ed-T19 | `.ed-mi` | transition: background · 0.14s · ease · retardo 0s → preset curva suave · dur 140 | — | EditorSeriesPrimitives.kt:816 | [x] |
+| ed-T20 | `.ed-presets button` | transition: background, color · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie-descanso | EditorSeriesPrimitives.kt:626 | [x] |
 | ed-T21 | `.ed-row.out` | transition: transform · 0.22s · cubic-bezier(0.5, 0, 0.9, 0.5) · retardo 0s → preset curva cae · dur 200 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:235 | [x] |
 | ed-T22 | `.ed-row.snap` | transition: transform · 0.34s · cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s → preset curva resorte · dur 320 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:251 | [x] |
-| ed-T23 | `.ed-sc` | transition: border-color, background, transform · 0.18s, 0.18s, 0.18s · ease, ease, cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s, 0s, 0s → preset curva suave/resorte · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T24 | `.ed-seg button` | transition: background, color · 0.2s, 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1), ease · retardo 0s, 0s → preset curva estandar/suave · dur 200 | — |  | [ ] |
+| ed-T23 | `.ed-sc` | transition: border-color, background, transform · 0.18s, 0.18s, 0.18s · ease, ease, cubic-bezier(0.3, 1.5, 0.5, 1) · retardo 0s, 0s, 0s → preset curva suave/resorte · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | SessionEditorSeriesChip.kt:72 | [x] |
+| ed-T24 | `.ed-seg button` | transition: background, color · 0.2s, 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1), ease · retardo 0s, 0s → preset curva estandar/suave · dur 200 | — | DESV-450 | [~] |
 | ed-T25 | `.ed-slot` | transition: transform · 0.26s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 240 | — | SessionEditorVisuals.kt:280 | [x] |
-| ed-T26 | `.ed-sm button` | transition: background, color · 0.18s, 0.18s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T27 | `.ed-st` | transition: border-color · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T28 | `.ed-stb` | transition: background, color · 0.12s, 0.12s · ease, ease · retardo 0s, 0s → preset curva suave · dur 120 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-T26 | `.ed-sm button` | transition: background, color · 0.18s, 0.18s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:603 | [x] |
+| ed-T27 | `.ed-st` | transition: border-color · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:433 | [x] |
+| ed-T28 | `.ed-stb` | transition: background, color · 0.12s, 0.12s · ease, ease · retardo 0s, 0s → preset curva suave · dur 120 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesPrimitives.kt:361 | [x] |
 | ed-T29 | `.ed-time` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-barra | SessionEditorFrameBottomBar.kt:248 | [x] |
-| ed-T30 | `.ed-tp` | transition: border-color · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T31 | `.ed-tp svg` | transition: transform · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T32 | `.ed-tq` | transition: border-color, background · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie-fallo |  | [ ] |
-| ed-T33 | `.ed-unit` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
-| ed-T34 | `.ed-unit svg` | transition: transform · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-T30 | `.ed-tp` | transition: border-color · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:93 | [x] |
+| ed-T31 | `.ed-tp svg` | transition: transform · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:95 | [x] |
+| ed-T32 | `.ed-tq` | transition: border-color, background · 0.16s, 0.16s · ease, ease · retardo 0s, 0s → preset curva suave · dur 160 | ed-serie-fallo | InlineSetRowTechniqueChips.kt:625 | [x] |
+| ed-T33 | `.ed-unit` | transition: background · 0.16s · ease · retardo 0s → preset curva suave · dur 160 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:291 | [x] |
+| ed-T34 | `.ed-unit svg` | transition: transform · 0.2s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s → preset curva estandar · dur 200 | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:293 | [x] |
 
 ## Transformaciones, máscaras y mezcla (9)
 
@@ -108,23 +108,23 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 18 · transicione
 | ed-X04 | `.ed-ex.open .ed-ib2 svg.chev` | transform: rotate(180deg) | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorExerciseRow.kt:231 | [x] |
 | ed-X05 | `.ed-list.drag .ed-ex` | will-change: transform | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionEditorScrollRenderer.kt:659 | [x] |
 | ed-X06 | `.ed-row` | will-change: transform | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | EditorSwipeDelete.kt:98 | [x] |
-| ed-X07 | `.ed-tp[aria-expanded="true"] svg` | transform: rotate(180deg) | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-X07 | `.ed-tp[aria-expanded="true"] svg` | transform: rotate(180deg) | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:95 | [x] |
 | ed-X08 | `.ed-undo .cd i` | transform: scaleX(var(--cd,1)) | ed-lista, ed-lista-scroll, ed-dia, ed-pildora-mas, ed-anadir, ed-borrar | SessionExerciseUndoNotice.kt:124 | [x] |
-| ed-X09 | `.ed-unit[aria-expanded="true"] svg` | transform: rotate(180deg) | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso |  | [ ] |
+| ed-X09 | `.ed-unit[aria-expanded="true"] svg` | transform: rotate(180deg) | ed-serie, ed-serie-carga, ed-serie-rango, ed-serie-intensidad, ed-serie-fallo, ed-serie-descanso | EditorSeriesSections.kt:293 | [x] |
 
 ## Movimiento y estilos hechos en JavaScript (41)
 
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
-| ed-J01 | `scenes-ed.js:106` | declaración CSS dentro del marcado · parts.push(`<div class="ed-focus" style="animation:none"><div class="ed-fh"><b>Aproximación ${ex.warmSel+1}</b><div class="nav"><button data-a="wnav"  | — |  | [ ] |
+| ed-J01 | `scenes-ed.js:106` | declaración CSS dentro del marcado · parts.push(`<div class="ed-focus" style="animation:none"><div class="ed-fh"><b>Aproximación ${ex.warmSel+1}</b><div class="nav"><button data-a="wnav"  | — | PreparationChips.kt:329 | [x] |
 | ed-J02 | `scenes-ed.js:245` | declaración CSS dentro del marcado · return `<button class="ed-time" data-a="time" aria-label="${desc}"><svg class="ed-rg" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><c | — | SessionEditorFrameBottomBar.kt:239 | [x] |
-| ed-J03 | `scenes-ed.js:324` | declaración CSS dentro del marcado · const sec=(lbl,val,presets,key)=>`<div class="ed-sec"><span class="ed-eyebrow">${lbl}</span><div class="ed-st ed-restf" data-fld="${key}"><button clas | — |  | [ ] |
+| ed-J03 | `scenes-ed.js:324` | declaración CSS dentro del marcado · const sec=(lbl,val,presets,key)=>`<div class="ed-sec"><span class="ed-eyebrow">${lbl}</span><div class="ed-st ed-restf" data-fld="${key}"><button clas | — | SessionEditorControls.kt:242 | [x] |
 | ed-J04 | `scenes-ed.js:380` | setTimeout · if(delta){const d=document.createElement('span');d.className='ed-delta'+(delta<0?' neg':'');d.textContent=(delta>0?'+':'−')+Math.abs(delta)+' min';t.a | — | SessionEditorFrameBottomBar.kt:131 | [x] |
-| ed-J05 | `scenes-ed.js:386` | setTimeout · if(['day','modo','exmenu','restex','apply'].includes(l.kind)){l.out=true;drawLayer();setTimeout(()=>{if(st.layer===l){st.layer=null;drawLayer();if(cb) | — |  | [ ] |
-| ed-J06 | `scenes-ed.js:425` | setTimeout · const sv=root.querySelector(`[data-card="${ex.id}"] [data-scrub="${f}"]`);if(sv){sv.classList.add('bump');setTimeout(()=>sv.classList.remove('bump'),2 | — |  | [ ] |
-| ed-J07 | `scenes-ed.js:438` | setTimeout · if(!ex.open){const c=root.querySelector(`[data-card="${ex.id}"]`);setTimeout(()=>{if(!ex.open&&c)c.innerHTML=''},320)} | — |  | [ ] |
-| ed-J08 | `scenes-ed.js:452` | WAAPI .animate() · case 'smart':{t.animate([{opacity:.4},{opacity:1}],{duration:240});return} | — |  | [ ] |
-| ed-J09 | `scenes-ed.js:467` | setInterval · st.timing.iv=setInterval(()=>{if(!root.isConnected\|\|!st.timing){clearInterval(st.timing&&st.timing.iv);return}st.timing.left--;if(st.timing.left<=0){c | — |  | [ ] |
+| ed-J05 | `scenes-ed.js:386` | setTimeout · if(['day','modo','exmenu','restex','apply'].includes(l.kind)){l.out=true;drawLayer();setTimeout(()=>{if(st.layer===l){st.layer=null;drawLayer();if(cb) | — | DESV-454 | [~] |
+| ed-J06 | `scenes-ed.js:425` | setTimeout · const sv=root.querySelector(`[data-card="${ex.id}"] [data-scrub="${f}"]`);if(sv){sv.classList.add('bump');setTimeout(()=>sv.classList.remove('bump'),2 | — | EditorSeriesPrimitives.kt:416 | [x] |
+| ed-J07 | `scenes-ed.js:438` | setTimeout · if(!ex.open){const c=root.querySelector(`[data-card="${ex.id}"]`);setTimeout(()=>{if(!ex.open&&c)c.innerHTML=''},320)} | — | ExerciseEditorCard.kt:320 | [x] |
+| ed-J08 | `scenes-ed.js:452` | WAAPI .animate() · case 'smart':{t.animate([{opacity:.4},{opacity:1}],{duration:240});return} | — | EditorSeriesSections.kt:89 | [x] |
+| ed-J09 | `scenes-ed.js:467` | setInterval · st.timing.iv=setInterval(()=>{if(!root.isConnected\|\| SetModeGoals.kt:62 | [x] |  | [ ] |
 | ed-J10 | `scenes-ed.js:493` | WAAPI .animate() · case 'back':t.animate([{transform:'scale(.9)'},{transform:'none'}],{duration:200});return; | — | SessionEditorFrameTopBar.kt:105 | [x] |
 | ed-J11 | `scenes-ed.js:498` | WAAPI .animate() · sc.animate([{opacity:.0,transform:`translateX(${d*40}px)`},{opacity:1,transform:'none'}],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)'}); | — | SessionEditorScreen.kt:773 | [x] |
 | ed-J12 | `scenes-ed.js:517` | WAAPI .animate() · case 'time':case 'asistente':{t.animate([{transform:'scale(.94)'},{transform:'none'}],{duration:220});return} | — | SessionEditorFrameBottomBar.kt:248 | [x] |

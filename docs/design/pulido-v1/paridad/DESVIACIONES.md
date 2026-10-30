@@ -299,3 +299,9 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: la hoja del editor es `KpknSheet(lienzo = EdSheetSpec)` y se desmonta cuando termina su salida de 240 ms (10 ms más que los 230 ms del lienzo); los botones de dentro cierran con `LocalEdSheetClose` y lo que confirman corre después, como `closeLayer(cb)`. Las demás hojas del editor (cardio, catálogo, asistente) no son de este paquete.
 - Captura: paridad/capturas/DESV-454.png
 - Aprobada por: pendiente
+
+## DESV-455
+- Filas: escenas completas de las series (`ed-serie`…`ed-descanso-ejercicio`) con profundidad y movimiento
+- Qué cambia: el error medio de las 18 escenas con Robolectric es 11,5–24,9/255 (6–15 % de píxeles); lejos del 2,5 pedido. Misma causa que DESV-400: Inter/Syne no se rasterizan como en Chrome, el lienzo incluye barra de estado y marco del teléfono, y el vidrio, el desenfoque y las sombras de gran radio no se miden en Robolectric. Las más altas son `ed-modo` (24,9, la hoja con velo), `ed-serie-descanso` (22,7) y `ed-preparacion` (18,2). Pasar por el Flip.
+- Captura: paridad/capturas/DESV-455.png
+- Aprobada por: pendiente (Flip5)
