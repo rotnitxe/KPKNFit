@@ -117,7 +117,7 @@ class NutritionQuickSaveTest {
     fun `el fallo de Room en el atajo no publica creatina ni abre el onboarding`() {
         rejectInserts("nutrition_logs")
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
         runBlocking {
@@ -130,7 +130,7 @@ class NutritionQuickSaveTest {
     fun `una base cerrada avisa del fallo del atajo sin publicar exito`() {
         db.close()
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
     }
@@ -140,7 +140,7 @@ class NutritionQuickSaveTest {
         seedActivePlan()
         rejectInserts("daily_goal_snapshots")
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
         runBlocking {
@@ -165,7 +165,7 @@ class NutritionQuickSaveTest {
 
         saveMutex.lock()
         try {
-            vm.quickAddCreatine()
+            vm.takeSupplement("creatina", 5.0, "08:00")
             assertTrue(repository.nutritionLogs.value.isEmpty())
             assertTrue(db.nutritionDao().getAllLogs().isEmpty())
             assertFalse(vm.showCreatineOverlay.value)
@@ -191,7 +191,7 @@ class NutritionQuickSaveTest {
         val yesterday = LocalDate.now().minusDays(1).toString()
         vm.setSelectedDate(yesterday)
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
         awaitState("el guardado termina y puede abrir el onboarding") { vm.showCreatineOverlay.value }
 
         assertEquals(yesterday, repository.nutritionLogs.value.single().date)
