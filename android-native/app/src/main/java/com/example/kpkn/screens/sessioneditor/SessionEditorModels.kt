@@ -199,8 +199,12 @@ data class SessionEditorUiState(
     val savedRuleExtras: SessionEditorGlobalRuleExtras = SessionEditorGlobalRuleExtras(),
     /** Plantillas de reglas (defaults) persistidas en el dispositivo. */
     val ruleTemplates: List<RuleTemplate> = emptyList(),
-    /** 0 = REGLAS, 1 = TIEMPO al abrir el sheet. */
-    val rulesSheetInitialTab: Int = 0,
+    /** Dónde abrir el asistente (por ejemplo Reglas › Tiempo desde el anillo de minutos). Se consume al leerlo. */
+    val assistantEntry: AssistantEntry? = null,
+    /** Sugerencias del asistente aplicadas o descartadas, plegadas en una línea con «Deshacer». */
+    val assistantOutcomes: List<AssistantSuggestionOutcome> = emptyList(),
+    /** Aplicando / aplicada de una plantilla, dentro de la hoja del asistente. */
+    val templateApplyProgress: TemplateApplyProgress? = null,
     /** Sugerencias del coach de tiempo (estimado vs límite). */
     val timeCoachSuggestions: List<com.example.kpkn.domain.sessionassistant.TimeCoachSuggestion> = emptyList(),
     val dismissedTimeCoachIds: Set<String> = emptySet(),

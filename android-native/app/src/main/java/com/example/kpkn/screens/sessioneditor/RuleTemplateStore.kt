@@ -53,11 +53,20 @@ class RuleTemplateStore(context: Context) {
         }
     }
 
+    /**
+     * Añade las de fábrica que falten y pone al día las guardadas: las de fábrica no se editan, así que lo guardado se sustituye por la
+     * definición actual (es lo que corrige «Tiempo corto», que se guardó con RPE 8,0 bajo el tipo RIR y se leía «RIR 8»).
+     */
     private fun mergeMissingFactoryPresets(stored: List<RuleTemplate>): List<RuleTemplate> {
         val factories = factoryPresets()
-        val missing = factories.filter { factory -> stored.none { it.id == factory.id } }
-        if (missing.isEmpty()) return stored
-        val merged = stored + missing
+        val factoryById = factories.associateBy { it.id }
+        val refreshed = stored.map { saved ->
+            val current = factoryById[saved.id]
+            if (current != null && saved.isFactory && saved.defaults != current.defaults) saved.copy(defaults = current.defaults) else saved
+        }
+        val missing = factories.filter { factory -> refreshed.none { it.id == factory.id } }
+        if (missing.isEmpty() && refreshed == stored) return stored
+        val merged = refreshed + missing
         persist(merged)
         return merged
     }
@@ -151,7 +160,8 @@ class RuleTemplateStore(context: Context) {
                     defaults = SessionEditorRuleDefaults(
                         setCount = 3,
                         reps = 10,
-                        rpe = 8.0,
+                        // pulido:as-reg-valores — con RIR el valor es 2 repeticiones en reserva (antes 8,0: se leía «RIR 8»).
+                        rpe = 2.0,
                         normalRestSeconds = 60,
                         betweenSidesRestSeconds = 0,
                         supersetBetweenRestSeconds = 30,

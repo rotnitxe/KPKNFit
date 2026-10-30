@@ -33,8 +33,6 @@ import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
 import kotlinx.coroutines.delay
 
-/** Pista del análisis que aparece solo si tarda más de este tiempo: un cálculo rápido no parpadea con texto. */
-private const val AnalysisHintDelayMillis = 600L
 
 /** Eyebrow de una sección dentro de un módulo: mayúsculas, en `textMuted`. */
 @Composable
@@ -81,26 +79,6 @@ internal fun SheetTag(
             .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
             .padding(horizontal = 12.dp, vertical = 6.dp),
     )
-}
-
-/**
- * Esqueleto mientras el asistente o las reglas calculan (KPKN_UI_V2): dos bloques de carga. Si el cálculo tarda más de 600 ms, debajo
- * sale «Calculando análisis…» en `caption`.
- */
-@Composable
-internal fun SheetLoadingSkeleton(modifier: Modifier = Modifier) {
-    var showHint by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(AnalysisHintDelayMillis)
-        showHint = true
-    }
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        KpknSkeleton(modifier = Modifier.fillMaxWidth().height(96.dp))
-        KpknSkeleton(modifier = Modifier.fillMaxWidth().height(72.dp))
-        if (showHint) {
-            SheetCaption(text = "Calculando análisis…", modifier = Modifier.padding(top = 4.dp))
-        }
-    }
 }
 
 /**

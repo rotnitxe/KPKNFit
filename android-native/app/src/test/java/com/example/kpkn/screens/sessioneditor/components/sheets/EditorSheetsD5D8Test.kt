@@ -31,44 +31,6 @@ class EditorSheetsD5D8Test {
         targetDurationMinutes = 45,
     )
 
-    @Test fun reglasConservaLimitesEIntensidadEnFilasPlegadas() {
-        rule.setContent {
-            RulesSheet(
-                uiState = SessionEditorUiState(session = session),
-                onApplyRules = { ApplyRulesOutcome.NoChanges },
-                onRuleDefaultsChange = { _, _, _, _, _, _, _, _, _, _ -> },
-                onRuleLimitsChange = { _, _ -> },
-                onAdvancedRuleLimitsChange = { _, _, _, _ -> },
-                onApplyGlobalIntensityAdjustment = { _, _, _ -> },
-                setTargetDuration = {},
-                setPartTargetDuration = { _, _ -> },
-                setExerciseTargetDuration = { _, _ -> },
-            )
-        }
-        rule.onNodeWithText("RPE máximo").assertDoesNotExist()
-        rule.onNodeWithText("Límites").performScrollTo().performClick()
-        rule.onNodeWithText("RPE máximo").assertExists()
-        rule.onNodeWithText("Modificar intensidad").performScrollTo().performClick()
-        rule.onNodeWithText("Aplicar intensidad").assertExists()
-    }
-
-    @Test fun tiempoOfreceLimiteYEstimadoDesdeElReloj() {
-        var selected: Int? = null
-        rule.setContent {
-            RulesTimeTab(
-                uiState = SessionEditorUiState(session = session, estimatedDurationMinutes = 58),
-                setTargetDuration = { selected = it },
-                onOpenDuration = {},
-                onDistributeTargetAcrossParts = {},
-                onApplyTimeCoachSuggestion = {},
-                onDismissTimeCoachSuggestion = {},
-            )
-        }
-        rule.onNodeWithText("Estimado", useUnmergedTree = true).assertExists()
-        rule.onNodeWithText("60 min").performScrollTo().performClick()
-        assertEquals(60, selected)
-    }
-
     @Test fun versionesPideConfirmacionSiHayCambiosSinGuardar() {
         var restored = 0
         val version = SessionDraftSnapshot(

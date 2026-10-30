@@ -86,6 +86,8 @@ import java.util.UUID
 
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
+import com.example.kpkn.screens.sessioneditor.components.assistant.AsRulesActions
+import com.example.kpkn.screens.sessioneditor.components.assistant.AssistantCallbacks
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBlockNotice
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBar
@@ -977,39 +979,81 @@ fun SessionEditorScreen(
                 uiState = uiState,
                 templates = allTemplates,
                 hazeState = hazeState,
-                onDismiss = viewModel::closeSheet,
-                onApplyAssistantSuggestion = { suggestionId, detailIds ->
-                    viewModel.applyAssistantSuggestion(suggestionId, detailIds)
-                    scope.launch {
-                        snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-                    }
-                },
-                onTemplateSearchChange = viewModel::setTemplateSearchQuery,
-                onSelectTemplate = viewModel::selectTemplate,
-                onConfirmApplyTemplate = viewModel::confirmTemplateApply,
-                onCancelTemplateApply = viewModel::cancelTemplateApply,
+                exerciseIndex = viewModel.exerciseIndex,
                 archivedUserTemplates = archivedUserTemplates,
                 templatesReady = templatesReady,
                 corruptTemplateIds = corruptTemplateIds,
-                onArchiveUserTemplate = viewModel::archiveUserTemplate,
-                onRestoreUserTemplate = viewModel::restoreUserTemplate,
-                onDeleteUserTemplate = viewModel::deleteUserTemplate,
-                onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
-                    viewModel.updateUserTemplateMetadataNow(
-                        template = template,
-                        name = name,
-                        description = description,
-                        difficulty = difficulty,
-                        focusCategory = focus,
-                        durationClass = duration,
-                        splitIds = splitIds,
-                        splitDayLabels = dayLabels,
-                        autoGenerationEligible = autoGeneration,
-                    )
-                },
-                onSaveCurrentTemplate = { name, description ->
-                    viewModel.saveCurrentSessionAsTemplateNow(name, description)
-                },
+                callbacks = AssistantCallbacks(
+                    onDismiss = viewModel::closeSheet,
+                    onApplySuggestion = { suggestion, detailIds, position -> viewModel.applyAssistantSuggestionUndoable(suggestion, detailIds, position) },
+                    onDismissSuggestion = viewModel::dismissAssistantSuggestion,
+                    onUndoOutcome = viewModel::undoAssistantOutcome,
+                    onTemplateSearchChange = viewModel::setTemplateSearchQuery,
+                    onSelectTemplate = viewModel::selectTemplate,
+                    onConfirmApplyTemplate = viewModel::confirmTemplateApply,
+                    onCancelTemplateApply = viewModel::cancelTemplateApply,
+                    onUndoTemplateApply = viewModel::undoTemplateApply,
+                    onFinishTemplateApply = viewModel::finishTemplateApply,
+                    onArchiveUserTemplate = viewModel::archiveUserTemplate,
+                    onRestoreUserTemplate = viewModel::restoreUserTemplate,
+                    onDeleteUserTemplate = viewModel::deleteUserTemplate,
+                    onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
+                        viewModel.updateUserTemplateMetadataNow(
+                            template = template,
+                            name = name,
+                            description = description,
+                            difficulty = difficulty,
+                            focusCategory = focus,
+                            durationClass = duration,
+                            splitIds = splitIds,
+                            splitDayLabels = dayLabels,
+                            autoGenerationEligible = autoGeneration,
+                        )
+                    },
+                    onSaveCurrentTemplate = { name, description -> viewModel.saveCurrentSessionAsTemplateNow(name, description) },
+                    onRefreshTimeCoach = viewModel::refreshTimeCoachSuggestions,
+                    onConsumeEntry = viewModel::consumeAssistantEntry,
+                    rules = AsRulesActions(
+                        onApplyRules = viewModel::applyRuleDefaultsToSession,
+                        onRuleDefaultsChange = { partId, setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew, intensityType ->
+                            viewModel.updateRuleDefaults(
+                                partId = partId,
+                                setCount = setCount,
+                                reps = reps,
+                                rpe = rpe,
+                                normalRestSeconds = normalRest,
+                                betweenSidesRestSeconds = sideRest,
+                                supersetBetweenRestSeconds = supersetBetween,
+                                supersetRoundRestSeconds = supersetRound,
+                                applyToNewItems = applyToNew,
+                                intensityType = intensityType,
+                            )
+                        },
+                        onPatchRuleDefaults = viewModel::patchRuleDefaults,
+                        onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
+                            viewModel.updateRuleLimits(maxRPE = maxRPE, maxExercisesPerMuscle = maxExercisesPerMuscle)
+                        },
+                        onAdvancedRuleLimitsChange = { maxSessionVolume, maxWeeklyVolume, maxPattern, rigid ->
+                            viewModel.updateAdvancedRuleLimits(
+                                maxVolumePerMuscleSession = maxSessionVolume,
+                                maxVolumePerMuscleWeekly = maxWeeklyVolume,
+                                maxSamePatternPerSession = maxPattern,
+                                rigidLimits = rigid,
+                            )
+                        },
+                        onApplyGlobalIntensityAdjustment = viewModel::applyGlobalIntensityAdjustment,
+                        setTargetDuration = viewModel::setTargetDuration,
+                        setPartTargetDuration = viewModel::setPartTargetDuration,
+                        setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
+                        onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
+                        onApplyRuleTemplate = { templateId, partId -> viewModel.applyRuleTemplate(templateId, partId) },
+                        onSaveRuleTemplate = viewModel::saveCurrentRulesAsTemplate,
+                        onRenameRuleTemplate = viewModel::renameRuleTemplate,
+                        onDeleteRuleTemplate = viewModel::deleteRuleTemplate,
+                        onApplyTimeCoachSuggestion = viewModel::applyTimeCoachSuggestion,
+                        onDismissTimeCoachSuggestion = viewModel::dismissTimeCoachSuggestion,
+                    ),
+                ),
             )
         }
     }
@@ -1048,30 +1092,6 @@ fun SessionEditorScreen(
         },
         onToggleExerciseSelection = viewModel::toggleExerciseSelection,
         onClearExerciseSelection = viewModel::clearExerciseSelection,
-        onApplyRules = { partId ->
-            val outcome = viewModel.applyRuleDefaultsToSession(partId)
-            scope.launch {
-                when (outcome) {
-                    is ApplyRulesOutcome.Applied -> {
-                        val target = if (partId == null) "la sesión" else "el grupo"
-                        val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
-                        snackbarHostState.showKpknSnackbar(
-                            "Ajustes por defecto aplicados a $target (${outcome.exercisesChanged} $noun)",
-                            SnackbarType.SUCCESS,
-                        )
-                    }
-                    ApplyRulesOutcome.NoChanges -> snackbarHostState.showKpknSnackbar(
-                        "Sin cambios: las tarjetas ya tienen estos valores",
-                        SnackbarType.SUGGESTION,
-                    )
-                    is ApplyRulesOutcome.ScopeNotFound -> snackbarHostState.showKpknSnackbar(
-                        "Ese grupo no existe en esta sesión",
-                        SnackbarType.DANGER,
-                    )
-                }
-            }
-            outcome
-        },
         onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
             // «Se copia ahora»: al confirmar, la copia va al programa en el acto (no «al guardar»).
             val staged = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
@@ -1123,12 +1143,6 @@ fun SessionEditorScreen(
                 }
             }
         },
-        onApplyAssistantSuggestion = { suggestionId, detailIds ->
-            viewModel.applyAssistantSuggestion(suggestionId, detailIds)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-            }
-        },
         onDiscardSwitch = if (uiState.pendingSessionSwitchId != null) viewModel::discardAndSwitchPendingSession else null,
         onWarmupSave = { exerciseId, sets ->
             val partId = session.parts.firstOrNull { part -> part.exercises.any { it.id == exerciseId } }?.id
@@ -1136,40 +1150,6 @@ fun SessionEditorScreen(
             viewModel.closeSheet()
         },
         onRestoreSnapshot = viewModel::restoreDraftSnapshot,
-        onRuleDefaultsChange = { partId, setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew, intensityType ->
-            viewModel.updateRuleDefaults(
-                partId = partId,
-                setCount = setCount,
-                reps = reps,
-                rpe = rpe,
-                normalRestSeconds = normalRest,
-                betweenSidesRestSeconds = sideRest,
-                supersetBetweenRestSeconds = supersetBetween,
-                supersetRoundRestSeconds = supersetRound,
-                applyToNewItems = applyToNew,
-                intensityType = intensityType,
-            )
-        },
-        onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
-            viewModel.updateRuleLimits(maxRPE = maxRPE, maxExercisesPerMuscle = maxExercisesPerMuscle)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Límites guardados", SnackbarType.SUCCESS)
-            }
-        },
-        onAdvancedRuleLimitsChange = { maxSessionVolume, maxWeeklyVolume, maxPattern, rigid ->
-            viewModel.updateAdvancedRuleLimits(
-                maxVolumePerMuscleSession = maxSessionVolume,
-                maxVolumePerMuscleWeekly = maxWeeklyVolume,
-                maxSamePatternPerSession = maxPattern,
-                rigidLimits = rigid,
-            )
-        },
-        onApplyGlobalIntensityAdjustment = { mode, value, muscles ->
-            viewModel.applyGlobalIntensityAdjustment(mode, value, muscles)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Modificación global aplicada", SnackbarType.SUCCESS)
-            }
-        },
         onQuickActionOpenPicker = viewModel::triggerQuickActionOpenPicker,
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
@@ -1233,19 +1213,6 @@ fun SessionEditorScreen(
         onSaveCurrentTemplate = { name, description ->
             viewModel.saveCurrentSessionAsTemplateNow(name, description)
         },
-        setTargetDuration = viewModel::setTargetDuration,
-        setPartTargetDuration = viewModel::setPartTargetDuration,
-        setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
-        onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
-        onApplyRuleTemplate = { templateId, partId -> viewModel.applyRuleTemplate(templateId, partId) },
-        onSaveRuleTemplate = viewModel::saveCurrentRulesAsTemplate,
-        onRenameRuleTemplate = viewModel::renameRuleTemplate,
-        onDeleteRuleTemplate = viewModel::deleteRuleTemplate,
-        onPatchRuleDefaults = viewModel::patchRuleDefaults,
-        onApplyTimeCoachSuggestion = viewModel::applyTimeCoachSuggestion,
-        onDismissTimeCoachSuggestion = viewModel::dismissTimeCoachSuggestion,
-        onRefreshTimeCoach = viewModel::refreshTimeCoachSuggestions,
-        onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
     // La ficha de un ejercicio de la sesión (ER1f): el mismo cuerpo que la del catálogo, sin «Añadir/Quitar».

@@ -114,45 +114,6 @@ class EditorSheetsEdeTest {
 
 
 
-    @Test fun reglasAplicaLaIntensidadGlobalConFalloComoValorCero() {
-        var applied: Triple<IntensityMode, Double, Set<String>?>? = null
-        rule.setContent {
-            RulesSheet(
-                uiState = SessionEditorUiState(session = session),
-                onApplyRules = { ApplyRulesOutcome.NoChanges },
-                onRuleDefaultsChange = { _, _, _, _, _, _, _, _, _, _ -> },
-                onRuleLimitsChange = { _, _ -> },
-                onAdvancedRuleLimitsChange = { _, _, _, _ -> },
-                onApplyGlobalIntensityAdjustment = { mode, value, muscles -> applied = Triple(mode, value, muscles) },
-                setTargetDuration = {},
-                setPartTargetDuration = { _, _ -> },
-                setExerciseTargetDuration = { _, _ -> },
-            )
-        }
-        rule.onNodeWithText("Modificar intensidad").performScrollTo().performClick()
-        // «Fallo» también es un chip de Valores de serie: el de la fila plegada es el último del árbol.
-        rule.onAllNodesWithText("Fallo").onLast().performScrollTo().performClick()
-        rule.onNodeWithText("Aplicar intensidad").performScrollTo().performClick()
-        assertEquals(IntensityMode.FAILURE, applied?.first)
-        assertEquals(0.0, applied?.second ?: -1.0, 0.0)
-        assertNull(applied?.third)
-    }
-
-    @Test fun tiempoReparteElPresupuestoPorGrupoConSuLeyenda() {
-        rule.setContent {
-            RulesTimeTab(
-                uiState = SessionEditorUiState(session = session, sessionTimeBreakdown = breakdown, estimatedDurationMinutes = 58),
-                setTargetDuration = {},
-                onOpenDuration = {},
-                onDistributeTargetAcrossParts = {},
-                onApplyTimeCoachSuggestion = {},
-                onDismissTimeCoachSuggestion = {},
-            )
-        }
-        rule.onNodeWithText("Principal 25 min · Accesorios 15 min").assertExists()
-        rule.onNodeWithText("40 de 45 min asignados (5 min libres)").assertExists()
-    }
-
     @Test fun transferirAvisaDelReemplazoSobreElBotonYUsaAnadir() {
         val target = SessionCloneDayOption(
             key = "dia-2", macroIndex = 0, mesoIndex = 0, weekId = "semana", dayOfWeek = 3,
