@@ -31,6 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.kpkn.ui.design.depth.KpknGradient
+import com.example.kpkn.ui.design.depth.kpknGradient
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -203,10 +206,10 @@ internal fun AssistantRulesPane(
         }
         if (footer) {
             val count = if (activePartId != null) session?.parts?.firstOrNull { it.id == activePartId }?.exercises?.size ?: 0 else session?.allExercises()?.size ?: 0
-            // pulido:as-G01 as-foot — degradado de #1b1b1d00 a #1b1b1d al 30 % sobre el contenido
+            // as-G01 as-foot — `linear-gradient(#1b1b1d00, #1b1b1d 30%)` sobre el contenido (preset velo-hoja)
             Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                    .background(Brush.verticalGradient(0f to Color.Transparent, 0.3f to AsColors.sheet, 1f to AsColors.sheet))
+                    .kpknGradient(KpknGradient.VeloHoja)
                     .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 30.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -341,7 +344,7 @@ private fun ValuesSection(
 
 @Composable
 private fun StepperFor(value: String, label: String, onMinus: () -> Unit, onPlus: () -> Unit) =
-    // pulido:as-A05 as-flash — la cifra que cambia parpadea del color de músculo a la tinta en 0,6 s
+    // as-A05 as-flash — la cifra que cambia parpadea del color de músculo a la tinta en 0,6 s (lo hace `AsStepper` con `asFlashColor`)
     AsStepper(value, label, onMinus, onPlus)
 
 @Composable
@@ -463,9 +466,9 @@ private fun IntensityModule(uiState: SessionEditorUiState, defaults: SessionEdit
     AsModule {
         FoldHeader("Modificar intensidad", "Cambia la intensidad de toda la sesión, o de un músculo.", open) { open = !open }
         if (open) {
-            // pulido:as-A06 as-fold.open as-fb2 — el cuerpo plegable entra en 0,22 s (asIn, dx 0)
+            // as-A06 as-fold.open as-fb2 — el cuerpo plegable entra en 0,22 s (asIn, dx 0)
             val modes = listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo", IntensityMode.SOLO_RM to "% RM")
-            Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.asEnter(AsAnim.FoldBodyIn).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 AsSegmented(modes.map { it.second }, modes.indexOfFirst { it.first == mode }.coerceAtLeast(0), {
                     mode = modes[it].first
                     value = if (mode == IntensityMode.RPE) defaults.rpe else if (mode == IntensityMode.SOLO_RM) 80.0 else 2.0
@@ -504,8 +507,9 @@ private fun FoldHeader(title: String, sub: String, open: Boolean, onClick: () ->
             AsText(title, 14.5f, weight = FontWeight.SemiBold)
             AsText(sub, 12f, Modifier.padding(top = 2.dp), color = AsColors.faint)
         }
-        // pulido:as-X03 as-fold.open as-fd .c — el chevron gira 180° · pulido:as-T04 as-fd .c — 0,22 s cubic-bezier(.2,.8,.2,1)
-        AsIcon(AsIcons.Down, 20.dp, AsColors.dim, Modifier.rotate(if (open) 180f else 0f))
+        // as-X03 as-fold.open as-fd .c — el chevron gira 180° · as-T04 as-fd .c — 0,22 s cubic-bezier(.2,.8,.2,1)
+        val chevron = asFloatState(if (open) 180f else 0f, 220, AsAnim.Std)
+        AsIcon(AsIcons.Down, 20.dp, AsColors.dim, Modifier.asRotation(chevron))
     }
 }
 
@@ -720,7 +724,12 @@ private fun ClockStat(label: String, value: String, unit: String?, color: Color,
 
 @Composable
 private fun CoachCard(title: String, explanation: String, minutes: Int, fatigue: String, onApply: () -> Unit, onDismiss: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(AsColors.module).border(1.dp, AsColors.line, RoundedCornerShape(22.dp)).padding(horizontal = 17.dp, vertical = 15.dp)) {
+    // as-J05 coach-ok — al aplicar, la tarjeta queda al 40 % de opacidad y deja de responder (`style.opacity='.4'; pointerEvents='none'`)
+    var applied by remember { mutableStateOf(false) }
+    Column(
+        Modifier.fillMaxWidth().graphicsLayer { alpha = if (applied) 0.4f else 1f }
+            .clip(RoundedCornerShape(22.dp)).background(AsColors.module).border(1.dp, AsColors.line, RoundedCornerShape(22.dp)).padding(horizontal = 17.dp, vertical = 15.dp),
+    ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
             AsText(title, 14.5f, Modifier.weight(1f), weight = FontWeight.SemiBold, lineHeight = 1.3f)
             AsText("−$minutes min", 14f, color = AsColors.done, weight = FontWeight.SemiBold, maxLines = 1)
@@ -730,8 +739,8 @@ private fun CoachCard(title: String, explanation: String, minutes: Int, fatigue:
             AsText(fatigue, 11.5f, color = AsColors.muted, weight = FontWeight.SemiBold, maxLines = 1)
         }
         Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AsButton("Aplicar", Modifier.weight(1f), small = true, onClick = onApply)
-            AsButton("Descartar", Modifier.weight(1f), small = true, kind = AsButtonKind.GHOST, onClick = onDismiss)
+            AsButton("Aplicar", Modifier.weight(1f), small = true, onClick = { if (!applied) { applied = true; onApply() } })
+            AsButton("Descartar", Modifier.weight(1f), small = true, kind = AsButtonKind.GHOST, onClick = { if (!applied) onDismiss() })
         }
     }
 }
@@ -742,7 +751,7 @@ private fun GroupTimesModule(session: com.example.kpkn.data.models.Session, limi
     AsModule {
         FoldHeader("Tiempos por grupos y ejercicios", "Por grupo o ejercicio. El del grupo vale.", open) { open = !open }
         if (open) {
-            Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.asEnter(AsAnim.FoldBodyIn).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (session.parts.size >= 2 && (limit ?: 0) > 0) AsChip("Repartir global en grupos", on = false, onClick = actions.onDistributeTargetAcrossParts)
                 session.parts.forEach { part ->
                     TimeRow(part.name, part.targetDurationMinutes, bold = true, indented = false) {

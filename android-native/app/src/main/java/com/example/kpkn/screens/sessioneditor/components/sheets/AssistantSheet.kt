@@ -48,10 +48,8 @@ internal fun AssistantGlassOverlay(
     val facets by produceState(emptyMap<String, SessionTemplateFacets>(), templates) {
         value = withContext(Dispatchers.Default) { runCatching { SessionTemplateFacetsCache.getOrBuild(templates, facetsIndex) }.getOrDefault(emptyMap()) }
     }
-    // pulido:as-A13 as-root.in as-head/tabs/body — el contenido entra 0,3 s con 0,16 s de retardo (KpknSheet: 120 ms + 340 ms; calibrar en la pasada C)
-    // pulido:as-T09 as-scrim — el fondo cambia de opacidad en 0,22 s · pulido:as-X06 as-root.closed as-sheet — al cerrar la hoja baja al 102 %
-    // pulido:as-T13 as-sheet — la altura cambia en 0,32 s cubic-bezier(.2,.8,.2,1) · pulido:as-A15 as-root.in as-sheet — sube 0,42 s · pulido:as-A14 — fondo en 0,22 s
-    // pulido:as-S05 as-sheet — sombra 0 -14px 44px #000000cc + filete interior blanco al 6 %
+    // La hoja lleva los valores exactos del lienzo en `AsSheetSpec` (AssistantMotion.kt): as-S05 sombra (preset `hoja`), as-A13 contenido (0,3 s con 0,16 s
+    // de retardo), as-A14 / as-T09 velo (0,22 s ease), as-A15 hoja (sube 0,42 s), as-T13 altura (0,32 s) y as-X06 cierre (baja el 102 %).
     KpknSheet(
         onDismissRequest = callbacks.onDismiss,
         showDragHandle = false,
@@ -59,6 +57,7 @@ internal fun AssistantGlassOverlay(
         stableHeightFraction = if (full) ASSISTANT_FULL_HEIGHT else ASSISTANT_MEDIUM_HEIGHT,
         surfaceColor = AsColors.sheet,
         backdropScrim = AsColors.scrim,
+        lienzo = com.example.kpkn.screens.sessioneditor.components.assistant.AsSheetSpec,
     ) {
         AssistantSheetContent(
             uiState = uiState,

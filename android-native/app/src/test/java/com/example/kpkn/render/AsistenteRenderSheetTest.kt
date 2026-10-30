@@ -73,6 +73,11 @@ import com.example.kpkn.screens.sessioneditor.RulesSection
 import com.example.kpkn.screens.sessioneditor.SessionEditorRuleLimits
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.components.assistant.AsApplyModel
+import com.example.kpkn.screens.sessioneditor.components.assistant.AsSheetSpec
+import com.example.kpkn.screens.sessioneditor.components.assistant.LocalAsFrozenMs
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknInset
+import com.example.kpkn.ui.design.depth.kpknRing
 import com.example.kpkn.screens.sessioneditor.components.assistant.AsColors
 import com.example.kpkn.screens.sessioneditor.components.assistant.AsDecisionModel
 import com.example.kpkn.screens.sessioneditor.components.assistant.AsDuration
@@ -178,7 +183,7 @@ class AsistenteRenderSheetTest {
                     Box(
                         Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                             .height((frameHeight * (if (full) 0.93f else 0.62f)).dp)
-                            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(AsColors.sheet),
+                            .sheetSurface(),
                     ) { content() }
                 }
             }
@@ -197,6 +202,105 @@ class AsistenteRenderSheetTest {
                 rule.waitForIdle()
             }
             save("as_${id}_$suffix")
+        }
+    }
+
+    /** `.as-sheet`: fondo `#1b1b1d`, esquinas de 28 y `box-shadow: 0 -14px 44px #000c, inset 0 1px #ffffff10` (as-S05, preset `hoja`), como la hoja de la app. */
+    private fun Modifier.sheetSurface(): Modifier {
+        val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        return this.kpknRing(KpknShadow.Hoja.spec, shape).clip(shape).background(AsColors.sheet).kpknInset(KpknShadow.Hoja.spec, shape)
+    }
+
+    /** Congela el reloj de las animaciones del asistente y deja que el cambio llegue hasta el dibujo (varios cuadros alternados). */
+    private fun settle() {
+        rule.waitForIdle()
+        repeat(4) {
+            rule.mainClock.advanceTimeByFrame()
+            rule.waitForIdle()
+        }
+    }
+
+    private val frozenMs = androidx.compose.runtime.mutableFloatStateOf(0f)
+
+    /**
+     * FOTOGRAMAS (pasada B/C): la escena [id] con TODAS las animaciones del asistente paradas en cada instante de [instants] (ms desde que entra el
+     * elemento), con el movimiento activado. Escribe `asf_<id>_t<ms>.png` (360 × 880, letra al 100 %) para compararlo con `node tools/shots.cjs shot as-<id> --t=<ms>`.
+     */
+    private fun renderFrames(id: String, instants: List<Int>, full: Boolean, content: @Composable () -> Unit) {
+        onlyWhenAsked()
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            val density = LocalDensity.current
+            hostView = LocalView.current
+            CompositionLocalProvider(
+                LocalDensity provides Density(density.density, fontScale = 1f),
+                LocalWizardReducedMotion provides false,
+                LocalAsFrozenMs provides frozenMs.floatValue,
+                LocalContentColor provides Color.White,
+            ) {
+                Box(Modifier.testTag("frame").width(360.dp).height(880.dp).background(Color.Black)) {
+                    EditorBackdrop()
+                    Box(Modifier.fillMaxSize().background(AsColors.scrim))
+                    Box(
+                        Modifier.align(Alignment.BottomCenter).fillMaxWidth().height((880 * (if (full) 0.93f else 0.62f)).dp).sheetSurface(),
+                    ) { content() }
+                }
+            }
+        }
+        for (ms in instants) {
+            rule.runOnIdle { frozenMs.floatValue = ms.toFloat() }
+            settle()
+            save(String.format("asf_%s_t%05d", id, ms))
+        }
+    }
+
+    @Test fun framesShimmer() = renderFrames("sug-carga", listOf(0, 350, 700, 1050, 1400), full = false) {
+        Suggestions(state(report = report()), badge = null, loading = true)
+    }
+
+    @Test fun framesApplying() = renderFrames("pla-aplicando", listOf(0, 50, 100, 150, 200, 275, 550, 825, 1100), full = true) {
+        Frame(AssistantTab.TEMPLATES) {
+            Templates(view = AsPlaView.DETAIL, detail = true, applying = AsApplyModel("Aplicando «Leg Day · Cuádriceps»…", "Cambiando 6 ejercicios por los de la plantilla.", false))
+        }
+    }
+
+    @Test fun framesDecision() = renderFrames("pla-aplicar", listOf(0, 90, 180, 270, 360), full = true) {
+        Frame(AssistantTab.TEMPLATES) { Templates(view = AsPlaView.DETAIL, detail = true, decision = decisionModel) }
+    }
+
+    @Test fun framesMetrics() = renderFrames("met-completa", listOf(0, 175, 350, 525, 700), full = true) { Metrics(state(), open = "Glúteos") }
+
+    @Test fun framesFlash() = renderFrames("reg-valores", listOf(0, 150, 300, 450, 600), full = true) { Rules(state(), RulesSection.VALUES) }
+
+    @Test fun framesPane() = renderFrames("met-media", listOf(0, 65, 130, 195, 260), full = false) { Metrics(state()) }
+
+    /** La hoja de verdad (`KpknSheet` con los valores del lienzo): velo, hoja y contenido entrando, con el reloj de cuadros real parado y avanzado a mano. */
+    @Test fun framesSheetEntrance() {
+        onlyWhenAsked()
+        rule.mainClock.autoAdvance = false
+        rule.setContent {
+            val density = LocalDensity.current
+            hostView = LocalView.current
+            CompositionLocalProvider(
+                LocalDensity provides Density(density.density, fontScale = 1f),
+                LocalWizardReducedMotion provides false,
+                LocalContentColor provides Color.White,
+            ) {
+                Box(Modifier.testTag("frame").width(360.dp).height(880.dp).background(Color.Black)) {
+                    EditorBackdrop()
+                    com.example.kpkn.ui.components.KpknSheet(
+                        onDismissRequest = {}, showDragHandle = false, maxHeightFraction = 0.93f, stableHeightFraction = 0.62f,
+                        surfaceColor = AsColors.sheet, backdropScrim = AsColors.scrim, lienzo = AsSheetSpec,
+                    ) { Metrics(state()) }
+                }
+            }
+        }
+        var elapsed = 0
+        for (ms in listOf(0, 55, 110, 165, 220, 330, 460, 600)) {
+            rule.mainClock.advanceTimeBy((ms - elapsed).toLong(), ignoreFrameDuration = true)
+            elapsed = ms
+            rule.waitForIdle()
+            save(String.format("asf_entrada_t%05d", ms))
         }
     }
 

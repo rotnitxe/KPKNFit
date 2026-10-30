@@ -95,11 +95,12 @@ internal fun AssistantSheetContent(
     LaunchedEffect(uiState.assistantEntry) { if (uiState.assistantEntry != null) callbacks.onConsumeEntry() }
     LaunchedEffect(currentTab, currentSection) { if (currentTab == AssistantTab.RULES && currentSection == RulesSection.TIME) callbacks.onRefreshTimeCoach() }
 
-    // pulido:as-J02 toast() del lienzo — el aviso se cierra solo a los 2,2 s
+    // as-J02 `toast(t, sub, ms=2200)` del lienzo — el aviso se cierra solo a los 2,2 s (cada aviso nuevo reinicia la cuenta, como `clearTimeout`)
     var toast by remember { mutableStateOf<Triple<String, String?, Int>?>(null) }
-    LaunchedEffect(toast?.third) { if (toast != null) { delay(2200); toast = null } }
-    fun showToast(title: String, sub: String?) { toast = Triple(title, sub, (toast?.third ?: 0) + 1) }
-    // pulido:as-J04 reg-apply — tras aplicar las reglas el aviso se ve 1,7 s y la hoja se cierra
+    var toastMs by remember { mutableIntStateOf(2200) }
+    LaunchedEffect(toast?.third) { if (toast != null) { delay(toastMs.toLong()); toast = null } }
+    fun showToast(title: String, sub: String?) { toastMs = 2200; toast = Triple(title, sub, (toast?.third ?: 0) + 1) }
+    // as-J04 `reg-apply` — el aviso de «Reglas aplicadas» dura 1,5 s y a los 1,7 s la hoja se cierra (`setTimeout(() => H.scrim(), 1700)`)
     var closeAt by remember { mutableIntStateOf(0) }
     LaunchedEffect(closeAt) { if (closeAt > 0) { delay(1700); callbacks.onDismiss() } }
 
@@ -160,7 +161,7 @@ internal fun AssistantSheetContent(
                     onSection = { section = it.ordinal },
                     onGoSuggestions = { tab = AssistantTab.SUGGESTIONS.ordinal },
                     onToast = ::showToast,
-                    onApplied = { closeAt += 1 },
+                    onApplied = { toastMs = 1500; closeAt += 1 },
                 )
             }
         }

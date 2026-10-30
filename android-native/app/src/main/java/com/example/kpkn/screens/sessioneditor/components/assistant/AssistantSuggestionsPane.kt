@@ -26,7 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.translate
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.design.depth.KpknGradient
+import com.example.kpkn.ui.design.depth.drawKpknGradient
+import com.example.kpkn.ui.design.motion.KpknChannel
+import com.example.kpkn.ui.design.motion.KpknPose
+import com.example.kpkn.ui.design.motion.rememberKpknPose
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -126,7 +132,7 @@ internal fun AssistantSuggestionsPane(
 
 @Composable
 private fun SuggestionsLoading() {
-    // pulido:as-A18 as-sk-l i — destello de 1,4 s lineal, infinito · pulido:as-G02 as-sk-l i — degradado del esqueleto
+    // as-A18 as-sk-l i (barrido de 1,4 s lineal, infinito) y as-G02 (degradado del esqueleto): ver SkeletonBar
     val bars = listOf(
         listOf(0.34f to 12.dp, 0.78f to 16.dp, 0.92f to 12.dp, 0.60f to 12.dp),
         listOf(0.40f to 12.dp, 0.70f to 16.dp, 0.88f to 12.dp),
@@ -148,15 +154,40 @@ private fun SuggestionsLoading() {
     AsText("Comparando la sesión con tu tiempo y tus límites…", 12f, Modifier.fillMaxWidth(), color = AsColors.faint, lineHeight = 1.4f, align = TextAlign.Center)
 }
 
+/**
+ * `.as-sk-l i`: barra del esqueleto. as-G02: `linear-gradient(90deg, #ffffff0a 20%, #ffffff1c 50%, #ffffff0a 80%)` (preset brillo-esqueleto-1) con
+ * `background-size: 220% 100%` y as-A18 (`asSh` 1,4 s lineal, infinito: la posición va de 120 % a −120 %, la imagen se repite). Con movimiento
+ * reducido el lienzo apaga la animación y pinta `#ffffff10` liso.
+ */
 @Composable
 private fun SkeletonBar(fraction: Float, height: androidx.compose.ui.unit.Dp, radius: androidx.compose.ui.unit.Dp = 6.dp) {
+    val frozen = LocalAsFrozenMs.current
+    val reduced = wizardReducedMotion() && frozen == null
+    val pose = rememberKpknPose(AsAnim.Shimmer)
+    val scratch = remember { KpknPose() }
+    val spec = remember { KpknGradient.BrilloEsqueleto1.spec() }
     Box(
         Modifier.fillMaxWidth(fraction).height(height).clip(RoundedCornerShape(radius))
-            .background(
-                Brush.horizontalGradient(
-                    0.2f to AsColors.white(0x0a), 0.5f to AsColors.white(0x1c), 0.8f to AsColors.white(0x0a),
-                ),
-            ),
+            .drawBehind {
+                if (reduced) {
+                    drawRect(AsColors.white(0x10))
+                    return@drawBehind
+                }
+                val shift = if (frozen != null) {
+                    AsAnim.Shimmer.poseAt(frozen, scratch)
+                    scratch[KpknChannel.BackgroundShiftPct]
+                } else {
+                    pose.pose()[KpknChannel.BackgroundShiftPct]
+                }
+                val tile = size.width * 2.2f
+                var x = (size.width - tile) * shift / 100f
+                x %= tile
+                if (x > 0f) x -= tile
+                while (x < size.width) {
+                    translate(left = x) { drawKpknGradient(spec, Offset.Zero, androidx.compose.ui.geometry.Size(tile, size.height)) }
+                    x += tile
+                }
+            },
     )
 }
 
@@ -232,7 +263,8 @@ private fun SuggestionCard(
     }
     val checked = suggestion.details.filter { accepted[it.id] ?: it.defaultAccepted }
     val fx = if (suggestion.details.isEmpty()) null else fxFor(suggestion, checked)
-    // pulido:as-T11 as-sg — la tarjeta se funde y se desplaza 0,26 s al plegarse
+    // as-T11 as-sg — `transition: opacity .26s ease, transform .26s estándar`. En el lienzo `.applied`/`.dismissed` ponen `display:none` en la tarjeta, así que
+    // esa transición no llega a verse: la tarjeta sale al instante y la línea plegada entra con asIn (as-A17, FoldedRow). Aquí queda igual.
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(AsColors.module)
             .border(1.dp, AsColors.line, RoundedCornerShape(22.dp))
@@ -269,7 +301,8 @@ private fun SuggestionCard(
 
 @Composable
 private fun FxBox(fx: AsFx) {
-    // pulido:as-T05 as-fx .bar i — el ancho del relleno cambia en 0,32 s cubic-bezier(.2,.8,.2,1)
+    // as-T05 as-fx .bar i — el ancho del relleno cambia en 0,32 s cubic-bezier(.2,.8,.2,1)
+    val barFraction by asFloatState(fx.barFraction.coerceIn(0f, 1f), 320, AsAnim.Std)
     Column(
         Modifier.padding(top = 14.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(AsColors.card)
             .border(1.dp, AsColors.line, RoundedCornerShape(16.dp)).padding(horizontal = 15.dp, vertical = 13.dp),
@@ -284,7 +317,7 @@ private fun FxBox(fx: AsFx) {
         BoxWithConstraints(Modifier.padding(top = 10.dp, bottom = 8.dp).fillMaxWidth().height(6.dp)) {
             val w = maxWidth
             Box(Modifier.matchParentSize().clip(RoundedCornerShape(3.dp)).background(AsColors.white(0x0d))) {
-                Box(Modifier.width(w * fx.barFraction.coerceIn(0f, 1f)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
+                Box(Modifier.width(w * barFraction).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
             }
             Box(
                 Modifier.offset(x = w * fx.limitFraction.coerceIn(0f, 1f), y = (-4).dp).size(width = 2.dp, height = 14.dp)
@@ -299,7 +332,10 @@ private fun FxBox(fx: AsFx) {
 private fun DetailRow(detail: AssistantSuggestionDetail, on: Boolean, first: Boolean, onToggle: () -> Unit) {
     val savedMin = detail.effect?.let { (-it.deltaSeconds / 60.0).let { m -> Math.round(m).toInt() } } ?: 0
     val savedSets = detail.effect?.let { -it.deltaSets } ?: 0
-    // pulido:as-T03 as-ck — fondo, borde y color 0,18 s ease
+    // as-T03 as-ck — fondo, borde y color de la marca 0,18 s ease
+    val ckBg by asColorState(if (on) AsColors.ink else AsColors.ink.copy(alpha = 0f), 180)
+    val ckBorder by asColorState(if (on) AsColors.ink else AsColors.white(0x40), 180)
+    val ckMark by asColorState(if (on) AsColors.onInk else AsColors.onInk.copy(alpha = 0f), 180)
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(vertical = 8.dp)
             .then(if (first) Modifier else Modifier.drawBehind { drawLine(AsColors.line, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) })
@@ -310,10 +346,10 @@ private fun DetailRow(detail: AssistantSuggestionDetail, on: Boolean, first: Boo
     ) {
         Box(
             Modifier.size(24.dp).clip(RoundedCornerShape(8.dp))
-                .background(if (on) AsColors.ink else androidx.compose.ui.graphics.Color.Transparent)
-                .border(1.75.dp, if (on) AsColors.ink else AsColors.white(0x40), RoundedCornerShape(8.dp)),
+                .background(ckBg)
+                .border(1.75.dp, ckBorder, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center,
-        ) { if (on) AsIcon(AsIcons.Check, 15.dp, AsColors.onInk) }
+        ) { AsIcon(AsIcons.Check, 15.dp, ckMark) }
         AsText(detail.label, 13.5f, Modifier.weight(1f), color = if (on) AsColors.ink else AsColors.muted, lineHeight = 1.35f)
         if (savedMin > 0 || savedSets > 0) {
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -327,9 +363,9 @@ private fun DetailRow(detail: AssistantSuggestionDetail, on: Boolean, first: Boo
 @Composable
 private fun FoldedRow(row: AsOutcomeRow, onUndo: () -> Unit) {
     val applied = row.applied
-    // pulido:as-A17 as-done — entrada de 0,26 s (asIn, dx 0)
+    // as-A17 as-done — entrada de 0,26 s (asIn, dx 0) al plegarse la tarjeta
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp))
+        Modifier.asEnter(AsAnim.FoldedOutcomeIn).fillMaxWidth().clip(RoundedCornerShape(22.dp))
             .background(if (applied) AsColors.tint(AsColors.done, 0x0f) else AsColors.white(0x08))
             .border(1.dp, if (applied) AsColors.tint(AsColors.done, 0x33) else AsColors.line, RoundedCornerShape(22.dp))
             .padding(horizontal = 17.dp, vertical = 15.dp),
@@ -348,7 +384,7 @@ private fun FoldedRow(row: AsOutcomeRow, onUndo: () -> Unit) {
             )
         }
         Row(
-            Modifier.heightIn(min = 44.dp).padding(horizontal = 6.dp).asClick(onClick = onUndo),
+            Modifier.height(44.dp).asClick(onClick = onUndo).padding(horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {

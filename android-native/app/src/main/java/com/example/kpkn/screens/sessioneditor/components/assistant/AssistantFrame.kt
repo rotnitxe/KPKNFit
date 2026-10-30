@@ -2,6 +2,14 @@ package com.example.kpkn.screens.sessioneditor.components.assistant
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknShadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,13 +66,18 @@ internal fun AssistantSheetFrame(
     body: @Composable () -> Unit,
 ) {
     Column(modifier.fillMaxSize()) {
-        // .as-grab: 30 de alto, asa de 40 × 4 en blanco al 20 %
+        // .as-grab: 30 de alto, asa de 40 × 4 en blanco al 20 %; con el puntero encima (`:hover`) o al pulsar, al 33 %
+        val grabSource = remember { MutableInteractionSource() }
+        val grabHovered by grabSource.collectIsHoveredAsState()
+        val grabPressed by grabSource.collectIsPressedAsState()
+        // as-T06 as-grab i — el asa cambia de fondo en 0,2 s (ease)
+        val grabColor by asColorState(if (grabHovered || grabPressed) AsColors.white(0x55) else AsColors.white(0x33), 200)
         Box(
-            Modifier.fillMaxWidth().height(30.dp).semantics { contentDescription = "Cambiar la altura de la hoja" }.asClick(onClick = onGrab),
+            Modifier.fillMaxWidth().height(30.dp).hoverable(grabSource).semantics { contentDescription = "Cambiar la altura de la hoja" }
+                .asClick(source = grabSource, onClick = onGrab),
             contentAlignment = Alignment.Center,
         ) {
-            // pulido:as-T06 as-grab i — el asa cambia de fondo en 0,2 s (ease)
-            Box(Modifier.size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(AsColors.white(0x33)))
+            Box(Modifier.size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(grabColor))
         }
         // .as-head
         Row(
@@ -83,18 +96,24 @@ internal fun AssistantSheetFrame(
         ) {
             AssistantTab.entries.forEach { entry ->
                 val on = entry == tab
-                // pulido:as-T16 as-tabs button — color 0,2 s ease · pulido:as-T17 as-tabs button::after — el indicador entra con scaleX 0,26 s · pulido:as-X09/as-X10
+                // as-T16 as-tabs button — color 0,2 s ease · as-T17 as-tabs button::after — el indicador pasa de scaleX(0) a scaleX(1) en 0,26 s (as-X09 / as-X10)
+                val tabColor by asColorState(if (on) AsColors.ink else AsColors.faint, 200)
+                val indicator = asFloatState(if (on) 1f else 0f, 260, AsAnim.Std)
                 Row(
                     Modifier.height(46.dp).padding(horizontal = 2.dp)
                         .semantics { role = Role.Tab; selected = on }
                         .drawBehind {
-                            if (on) drawRoundRect(AsColors.ink, Offset(0f, size.height - 2.dp.toPx()), Size(size.width, 2.dp.toPx()), CornerRadius(1.dp.toPx()))
+                            val scale = indicator.value
+                            if (scale > 0f) {
+                                val w = size.width * scale
+                                drawRoundRect(AsColors.ink, Offset((size.width - w) / 2f, size.height - 2.dp.toPx()), Size(w, 2.dp.toPx()), CornerRadius(1.dp.toPx()))
+                            }
                         }
                         .asClick(role = Role.Tab, onClick = { onTab(entry) }),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
-                    AsText(entry.label, 14f, color = if (on) AsColors.ink else AsColors.faint, weight = FontWeight.SemiBold, cap = 1.08f, maxLines = 1)
+                    AsText(entry.label, 14f, color = tabColor, weight = FontWeight.SemiBold, cap = 1.08f, maxLines = 1)
                     when (val badge = badges[entry]) {
                         is AsTabBadge.Count -> Box(
                             Modifier.heightIn(min = 18.dp).widthIn(min = 18.dp).clip(RoundedCornerShape(9.dp)).background(AsColors.energy).padding(horizontal = 5.dp),
@@ -106,7 +125,8 @@ internal fun AssistantSheetFrame(
                 }
             }
         }
-        Box(Modifier.weight(1f).fillMaxWidth()) { body() }
+        // as-A11 `.as-pane.on` — cada pestaña entra con asIn de 0,26 s (10 px desde la derecha) al mostrarse
+        Box(Modifier.weight(1f).fillMaxWidth().asEnter(AsAnim.PaneIn, key = tab)) { body() }
     }
 }
 
@@ -119,9 +139,9 @@ internal fun AsScrollPane(
     bottomPadding: Dp = 36.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    // pulido:as-X07 as-sc — máscara de degradado en los últimos 26 px del scroll · pulido:as-A11 as-pane.on — entrada de 0,26 s
+    // as-X07 as-sc — máscara de degradado en los últimos 26 px del scroll (la máscara va antes del scroll: cae sobre la ventana)
     Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier.fillMaxSize().asBottomMask(26.dp).verticalScroll(rememberScrollState())
             .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = bottomPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) { content() }
@@ -130,10 +150,11 @@ internal fun AsScrollPane(
 /** `.as-toast`: aviso dentro de la hoja (Reglas aplicadas, Sin cambios…). */
 @Composable
 internal fun AsToast(title: String, sub: String?, modifier: Modifier = Modifier) {
-    // pulido:as-S07 as-toast — sombra 0 12px 34px #000000cc · pulido:as-A19 as-toast.open — entra con asRise de 0,3 s
+    // as-S07 as-toast — sombra 0 12px 34px #000000cc (preset aviso) · as-A19 as-toast.open — entra con asRise de 0,3 s al abrirse
+    val shape = RoundedCornerShape(20.dp)
     Row(
-        modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp)).background(AsColors.toast)
-            .border(1.dp, AsColors.white(0x14), RoundedCornerShape(20.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
+        modifier.fillMaxWidth().padding(horizontal = 20.dp).asEnter(AsAnim.ToastRise).kpknShadow(KpknShadow.Aviso, shape).clip(shape).background(AsColors.toast)
+            .border(1.dp, AsColors.white(0x14), shape).padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

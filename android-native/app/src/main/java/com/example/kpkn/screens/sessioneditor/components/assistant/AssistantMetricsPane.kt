@@ -42,6 +42,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionPreview
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknRing
 
 /** Un aporte de un ejercicio a un músculo: «4 × 0,5 = 2». */
 internal data class AsContribution(val exercise: String, val sets: Int, val weight: Double) {
@@ -265,9 +267,9 @@ private fun MuscleVolumeModule(
             )
         }
         if (showAll) {
-            // pulido:as-A16 as-root[data-mall=1] as-un — entrada de 0,22 s (asIn, dx 0)
+            // as-A16 as-root[data-mall=1] as-un — entrada de 0,22 s (asIn, dx 0)
             Column(
-                Modifier.fillMaxWidth().padding(top = 14.dp).drawBehind {
+                Modifier.asEnter(AsAnim.UnworkedIn).fillMaxWidth().padding(top = 14.dp).drawBehind {
                     drawLine(AsColors.line, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx())
                 }.padding(top = 12.dp),
             ) {
@@ -296,7 +298,8 @@ private fun MuscleRow(
     onToggle: () -> Unit,
 ) {
     val over = limit != null && muscle.value > limit
-    // pulido:as-A10 as-mrow.open as-mdet — la ficha entra en 0,22 s (asIn, dx 0) · pulido:as-T07 as-mtop .c — el chevron gira 0,22 s · pulido:as-X04 as-mrow.open .as-mtop .c — rotate(180°)
+    // as-A10 as-mrow.open as-mdet — la ficha entra en 0,22 s (asIn, dx 0) · as-T07 as-mtop .c — el chevron gira 0,22 s · as-X04 as-mrow.open .as-mtop .c — rotate(180°)
+    val chevron = asFloatState(if (open) 180f else 0f, 220, AsAnim.Std)
     Column(
         Modifier
             .fillMaxWidth()
@@ -313,7 +316,7 @@ private fun MuscleRow(
                 color = if (over) AsColors.energy else AsColors.ink,
                 weight = FontWeight.SemiBold, cap = 1.2f, tabular = true, align = TextAlign.End, maxLines = 1,
             )
-            AsIcon(AsIcons.Down, 16.dp, AsColors.dim, Modifier.rotate(if (open) 180f else 0f))
+            AsIcon(AsIcons.Down, 16.dp, AsColors.dim, Modifier.asRotation(chevron))
         }
         VolumeBar(value = muscle.value, top = top, limit = limit, modifier = Modifier.padding(top = 9.dp))
         if (open) MuscleDetail(muscle, over, limit, weeklyLimit)
@@ -324,19 +327,19 @@ private fun MuscleRow(
 @Composable
 private fun VolumeBar(value: Double, top: Double, limit: Double?, modifier: Modifier = Modifier) {
     val fraction = { v: Double -> if (top <= 0) 0f else (v / top).toFloat().coerceIn(0f, 1f) }
-    // pulido:as-A08 as-mbar i — crece de izquierda a derecha en 0,7 s cubic-bezier(.2,.8,.2,1)
+    // as-A08 as-mbar i — crece de izquierda a derecha (`transform-origin:left`) en 0,7 s cubic-bezier(.2,.8,.2,1), al aparecer la fila
     BoxWithConstraints(modifier.fillMaxWidth().height(6.dp)) {
         val w = maxWidth
         val over = limit != null && value > limit
         Box(Modifier.matchParentSize().clip(RoundedCornerShape(3.dp)).background(AsColors.white(0x0d))) {
             if (over && limit != null) {
-                Box(Modifier.width(w * fraction(limit)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
+                Box(Modifier.asEnter(AsAnim.BarGrow, AsAnim.Left).width(w * fraction(limit)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
                 Box(
-                    Modifier.offset(x = w * fraction(limit)).width(w * (fraction(value) - fraction(limit)))
+                    Modifier.offset(x = w * fraction(limit)).asEnter(AsAnim.BarGrow, AsAnim.Left).width(w * (fraction(value) - fraction(limit)))
                         .fillMaxHeight().clip(RoundedCornerShape(topEnd = 3.dp, bottomEnd = 3.dp)).background(AsColors.energy),
                 )
             } else {
-                Box(Modifier.width(w * fraction(value)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
+                Box(Modifier.asEnter(AsAnim.BarGrow, AsAnim.Left).width(w * fraction(value)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(AsColors.ink))
             }
         }
         if (limit != null) {
@@ -353,7 +356,7 @@ private fun VolumeBar(value: Double, top: Double, limit: Double?, modifier: Modi
 private fun MuscleDetail(muscle: AsMuscle, over: Boolean, limit: Double?, weeklyLimit: Double?) {
     val dash = androidx.compose.runtime.remember { PathEffect.dashPathEffect(floatArrayOf(4f, 3f)) }
     Column(
-        Modifier.fillMaxWidth().padding(top = 12.dp)
+        Modifier.asEnter(AsAnim.MuscleDetailIn).fillMaxWidth().padding(top = 12.dp)
             .drawBehind {
                 drawLine(AsColors.white(0x18), Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx(), pathEffect = dash)
             }
@@ -411,7 +414,7 @@ private fun TimeModule(model: AsMetricsModel, onGoTimeRules: () -> Unit) {
     }
     AsModule {
         AsModuleHeader("Tiempo") { AsStatusPill(pill.first, pill.second) }
-        // pulido:as-S06 as-tlim — halo de 2 px del color del módulo alrededor de la marca del límite
+        // as-S06 as-tlim — `0 0 0 2px var(--as-mod)`: el anillo de 2 px del color del módulo que corta la barra alrededor de la marca del límite
         BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 2.dp)) {
             val w = maxWidth
             Row(
@@ -425,7 +428,9 @@ private fun TimeModule(model: AsMetricsModel, onGoTimeRules: () -> Unit) {
             if (limit != null && scale > 0) {
                 Box(
                     Modifier.offset(x = w * (limit / scale).toFloat().coerceIn(0f, 1f), y = (-4).dp)
-                        .size(width = 2.dp, height = 18.dp).clip(RoundedCornerShape(1.dp)).background(AsColors.energy),
+                        .size(width = 2.dp, height = 18.dp)
+                        .kpknRing(KpknShadow.CorteHoja.spec.copyLayer(0) { it.copy(color = AsColors.module) }, RoundedCornerShape(1.dp))
+                        .clip(RoundedCornerShape(1.dp)).background(AsColors.energy),
                 )
             }
         }

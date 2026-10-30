@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,13 +49,52 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknInset
 
-/** Pulsable sin onda: los estados de pulsación del lienzo (`:active`) son de la pasada B/C. */
+/**
+ * Área táctil de 48 dp: en cada eje de tamaño FIJO menor de 48 (44, 40, 36, 34, 30 del lienzo) el contenido pulsable se mide con 48 y se
+ * centra sobre el dibujo, desbordándolo; el elemento sigue ocupando lo mismo en la maqueta. Un eje que se ajusta al contenido o ya mide
+ * 48 o más no se toca. El contenido de dentro debe ir centrado en ese eje.
+ */
+internal fun Modifier.asTouch48(): Modifier = this.layout { measurable, constraints ->
+    val min = 48.dp.roundToPx()
+    val fixedW = constraints.minWidth == constraints.maxWidth && constraints.maxWidth < min
+    val fixedH = constraints.minHeight == constraints.maxHeight && constraints.maxHeight < min
+    if (!fixedW && !fixedH) {
+        val p = measurable.measure(constraints)
+        layout(p.width, p.height) { p.place(0, 0) }
+    } else {
+        val p = measurable.measure(
+            androidx.compose.ui.unit.Constraints(
+                minWidth = if (fixedW) min else constraints.minWidth,
+                maxWidth = if (fixedW) min else constraints.maxWidth,
+                minHeight = if (fixedH) min else constraints.minHeight,
+                maxHeight = if (fixedH) min else constraints.maxHeight,
+            ),
+        )
+        val w = if (fixedW) constraints.maxWidth else p.width
+        val h = if (fixedH) constraints.maxHeight else p.height
+        layout(w, h) { p.place((w - p.width) / 2, (h - p.height) / 2) }
+    }
+}
+
+/**
+ * Pulsable sin onda, con área táctil de 48 dp ([asTouch48]). Los estados `:active` los lleva cada pieza con [source]
+ * (`collectIsPressedAsState`).
+ */
 @OptIn(ExperimentalFoundationApi::class)
-internal fun Modifier.asClick(role: Role = Role.Button, label: String? = null, onLongClick: (() -> Unit)? = null, onClick: () -> Unit): Modifier = composed {
+internal fun Modifier.asClick(
+    role: Role = Role.Button,
+    label: String? = null,
+    onLongClick: (() -> Unit)? = null,
+    source: MutableInteractionSource? = null,
+    onClick: () -> Unit,
+): Modifier = composed {
     Modifier
+        .asTouch48()
         .combinedClickable(
-            interactionSource = remember { MutableInteractionSource() },
+            interactionSource = source ?: remember { MutableInteractionSource() },
             indication = null,
             role = role,
             onLongClick = onLongClick,
@@ -126,7 +167,7 @@ internal fun AsLink(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier.heightIn(min = minHeight).asClick(onClick = onClick),
+        modifier.height(minHeight).asClick(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -179,12 +220,14 @@ internal fun AsSegmented(
         options.forEachIndexed { index, label ->
             val on = index == selected
             // pulido:as-T10 as-seg button — transición de fondo y color de 0,2 s (ease)
+            val segBg by asColorState(if (on) AsColors.segOn else AsColors.segOn.copy(alpha = 0f), 200)
+            val segFg by asColorState(if (on) AsColors.ink else AsColors.faint, 200)
             Box(
                 Modifier
                     .weight(1f)
                     .height(if (big) 40.dp else 34.dp)
                     .clip(RoundedCornerShape(inner))
-                    .background(if (on) AsColors.segOn else Color.Transparent)
+                    .background(segBg)
                     .semantics { this.selected = on; this.role = Role.Tab; descriptions?.getOrNull(index)?.let { contentDescription = it } }
                     .asClick(role = Role.Tab) { onSelect(index) }
                     .padding(horizontal = 6.dp),
@@ -193,7 +236,7 @@ internal fun AsSegmented(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsText(
                         label, 12.5f,
-                        color = if (on) AsColors.ink else AsColors.faint,
+                        color = segFg,
                         weight = FontWeight.SemiBold, cap = 1.12f, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                     if (index in dots) Box(Modifier.padding(start = 4.dp).size(7.dp).clip(CircleShape).background(AsColors.energy))
@@ -218,11 +261,13 @@ internal fun AsChip(
     // pulido:as-T02 as-chip — fondo y color 0,2 s ease
     val shape = RoundedCornerShape(18.dp)
     val dash = remember { PathEffect.dashPathEffect(floatArrayOf(4f, 3f)) }
+    val chipBg by asColorState(if (on) AsColors.ink else if (ghost) AsColors.cell.copy(alpha = 0f) else AsColors.cell, 200)
+    val chipFg by asColorState(if (on) AsColors.onInk else AsColors.muted, 200)
     Row(
         modifier
             .height(36.dp)
             .clip(shape)
-            .background(if (on) AsColors.ink else if (ghost) Color.Transparent else AsColors.cell)
+            .background(chipBg)
             .then(
                 if (ghost) Modifier.drawBehind {
                     drawRoundRect(
@@ -240,13 +285,13 @@ internal fun AsChip(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (leading != null) AsIcon(leading, 14.dp, if (on) AsColors.onInk else AsColors.muted)
+        if (leading != null) AsIcon(leading, 14.dp, chipFg)
         AsText(
             text, 13f,
-            color = if (on) AsColors.onInk else AsColors.muted,
+            color = chipFg,
             weight = if (on) FontWeight.SemiBold else FontWeight.Medium, cap = 1.15f, maxLines = 1,
         )
-        if (trailing != null) AsIcon(trailing, 14.dp, if (on) AsColors.onInk else AsColors.muted)
+        if (trailing != null) AsIcon(trailing, 14.dp, chipFg)
     }
 }
 
@@ -326,17 +371,20 @@ internal fun AsIconButton(icon: ImageVector, label: String, modifier: Modifier =
 @Composable
 internal fun AsSwitch(checked: Boolean, label: String, modifier: Modifier = Modifier, onChange: (Boolean) -> Unit) {
     // pulido:as-T14 as-sw — fondo 0,2 s ease · pulido:as-T15 as-sw::after — «left» 0,2 s cubic-bezier(.2,.8,.2,1)
+    val trackColor by asColorState(if (checked) AsColors.done else AsColors.white(0x26), 200)
+    val thumbX by asFloatState(if (checked) 23f else 3f, 200, AsAnim.Std)
     Box(
         modifier
             .size(width = 50.dp, height = 30.dp)
             .clip(RoundedCornerShape(15.dp))
-            .background(if (checked) AsColors.done else AsColors.white(0x26))
+            .background(trackColor)
             .semantics { this.role = Role.Switch; this.contentDescription = label; this.stateDescription = if (checked) "Activado" else "Desactivado" }
             .asClick(role = Role.Switch) { onChange(!checked) },
     ) {
         Box(
             Modifier
-                .padding(start = if (checked) 23.dp else 3.dp, top = 3.dp)
+                .align(Alignment.CenterStart)
+                .offset { androidx.compose.ui.unit.IntOffset(thumbX.dp.roundToPx(), 0) }
                 .size(24.dp)
                 .clip(CircleShape)
                 .background(Color.White),
@@ -367,7 +415,8 @@ internal fun AsStepper(
         val minWidth = if (muted) (9f * 0.6f * 13f * minOf(fs, 1.12f) / fs).dp else (3.4f * 0.6f * 16f * minOf(fs, 1.2f) / fs).dp
         Box(Modifier.widthIn(min = minWidth), contentAlignment = Alignment.Center) {
             if (muted) AsText(value, 13f, color = AsColors.faint, weight = FontWeight.Medium, cap = 1.12f, align = TextAlign.Center, maxLines = 1)
-            else AsText(value, 16f, color = AsColors.ink, weight = FontWeight.SemiBold, cap = 1.2f, tabular = true, align = TextAlign.Center, maxLines = 1)
+            // as-A05 as-flash: al cambiar la cifra parpadea del color de músculo a la tinta (0,6 s ease)
+            else AsText(value, 16f, color = asFlashColor(value, AsColors.ink), weight = FontWeight.SemiBold, cap = 1.2f, tabular = true, align = TextAlign.Center, maxLines = 1)
         }
         Box(Modifier.size(width = 44.dp, height = 40.dp).clip(RoundedCornerShape(20.dp)).asClick(label = "Más $label", onClick = onPlus), contentAlignment = Alignment.Center) {
             AsIcon(AsIcons.Plus, 18.dp, AsColors.muted)
@@ -388,7 +437,8 @@ internal fun AsPicker(text: String, label: String, modifier: Modifier = Modifier
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        AsText(text, 15f, color = AsColors.ink, weight = FontWeight.SemiBold, cap = 1.2f, tabular = true, maxLines = 1)
+        // as-A05 as-flash: el valor del selector (descanso, tiempo) también parpadea al cambiar
+        AsText(text, 15f, color = asFlashColor(text, AsColors.ink), weight = FontWeight.SemiBold, cap = 1.2f, tabular = true, maxLines = 1)
         AsIcon(AsIcons.Forward, 14.dp, AsColors.dim)
     }
 }
@@ -412,8 +462,10 @@ internal fun AsEmpty(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // as-S03: `inset 0 0 0 1.5px` (borde-interior con su valor exacto; el color lo pone el estado: blanco al 15 %, o verde en «todo en orden»)
         Box(
-            Modifier.size(iconSize).clip(CircleShape).border(1.5.dp, ringColor, CircleShape),
+            Modifier.size(iconSize).clip(CircleShape)
+                .kpknInset(KpknShadow.BordeInterior.spec.copyLayer(0) { it.copy(spread = 1.5.dp, color = ringColor) }, CircleShape),
             contentAlignment = Alignment.Center,
         ) { AsIcon(icon, if (iconSize > 50.dp) 24.dp else 24.dp, iconTint) }
         AsText(title, 18f, Modifier.padding(top = 4.dp), weight = FontWeight.Bold, family = AsSyne, lineHeight = 1.2f, letterSpacing = -0.3f, align = TextAlign.Center)

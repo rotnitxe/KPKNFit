@@ -40,6 +40,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.kpkn.ui.design.depth.KpknGradient
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknGradient
+import com.example.kpkn.ui.design.depth.kpknInset
+import com.example.kpkn.ui.design.depth.kpknShadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -229,10 +239,10 @@ internal fun AssistantTemplatesPane(
             }
         }
         if (footer) {
-            // pulido:as-G01 as-foot — degradado de #1b1b1d00 a #1b1b1d al 30 % sobre el contenido
+            // as-G01 as-foot — `linear-gradient(#1b1b1d00, #1b1b1d 30%)` sobre el contenido (preset velo-hoja)
             Column(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                    .background(Brush.verticalGradient(0f to Color.Transparent, 0.3f to AsColors.sheet, 1f to AsColors.sheet))
+                    .kpknGradient(KpknGradient.VeloHoja)
                     .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 30.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -274,9 +284,9 @@ private fun CatalogList(
         SearchBox(filters.query, onQueryChange, Modifier.weight(1f))
         FilterButton(open = panelOpen, count = filters.activeCount, onClick = onPanel)
     }
-    // pulido:as-X02 as-chips — máscara de degradado en los bordes de la fila de tipos
+    // as-X02 as-chips — `mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 28px), transparent)` sobre la fila de tipos (antes del scroll)
     Row(
-        Modifier.asBleed(20.dp).horizontalScrollRow().padding(horizontal = 20.dp),
+        Modifier.asBleed(20.dp).asEdgeMask(20.dp, 28.dp).horizontalScrollRow().padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         AsTypeChips.forEach { name -> AsChip(name, on = filters.type == name, onClick = { onType(name) }) }
@@ -312,16 +322,17 @@ private fun CatalogList(
         else -> AsTemplateCatalog.sections(shown, filters.group).forEach { section ->
             val closed = section.key in shut
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // as-T12 as-sh .c — el chevron gira 0,22 s cubic-bezier(.2,.8,.2,1) · as-X08 as-sec.shut .as-sh .c — −90° al plegar
+                val sectionChevron = asFloatState(if (closed) -90f else 0f, 220, AsAnim.Std)
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = 44.dp).asClick(role = Role.Button, onClick = { onToggleSection(section.key) }),
+                    Modifier.fillMaxWidth().height(44.dp).asClick(role = Role.Button, onClick = { onToggleSection(section.key) }),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     AsText(section.key, 15f, weight = FontWeight.Bold, family = AsSyne, letterSpacing = -0.2f)
                     AsText("${section.cards.size}", 12f, color = AsColors.faint, tabular = true)
                     Box(Modifier.weight(1f).height(1.dp).background(AsColors.line))
-                    // pulido:as-T12 as-sh .c — el chevron gira 0,22 s · pulido:as-X08 as-sec.shut .as-sh .c — −90° al plegar
-                    AsIcon(AsIcons.Down, 18.dp, AsColors.dim, Modifier.rotate(if (closed) -90f else 0f))
+                    AsIcon(AsIcons.Down, 18.dp, AsColors.dim, Modifier.asRotation(sectionChevron))
                 }
                 if (!closed) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -339,10 +350,11 @@ private fun Modifier.horizontalScrollRow(): Modifier = composed {
 
 @Composable
 private fun SearchBox(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    // pulido:as-focus as-in:focus-within — borde #f2eee655 al enfocar (estado de la pasada B/C)
+    // as-focus `.as-in:focus-within` — el borde pasa a #f2eee655 (sin transición en el lienzo)
+    var focused by remember { mutableStateOf(false) }
     Row(
         modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).background(AsColors.inset)
-            .border(1.dp, AsColors.white(0x14), RoundedCornerShape(24.dp)).padding(horizontal = 16.dp),
+            .border(1.dp, if (focused) AsColors.ink.copy(alpha = 0x55 / 255f) else AsColors.white(0x14), RoundedCornerShape(24.dp)).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -355,7 +367,7 @@ private fun SearchBox(query: String, onQueryChange: (String) -> Unit, modifier: 
                 textStyle = TextStyle(color = AsColors.ink, fontFamily = AsInter, fontSize = asSp(15f, 1.15f)),
                 cursorBrush = SolidColor(AsColors.ink),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Buscar plantilla" },
+                modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }.semantics { contentDescription = "Buscar plantilla" },
             )
             if (query.isEmpty()) AsText("Buscar plantilla…", 15f, color = AsColors.faint, cap = 1.15f, maxLines = 1)
         }
@@ -384,9 +396,9 @@ private fun FilterButton(open: Boolean, count: Int, onClick: () -> Unit) {
 
 @Composable
 private fun FilterPanel(filters: AsTemplateFilters, onLevel: (Int?) -> Unit, onDuration: (AsDuration?) -> Unit, onGroup: (AsGroupMode) -> Unit) {
-    // pulido:as-A07 as-fp.open — entrada de 0,22 s (asIn, dx 0)
+    // as-A07 as-fp.open — entrada de 0,22 s (asIn, dx 0) al abrirse el panel
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(AsColors.module)
+        Modifier.asEnter(AsAnim.FilterPanelIn).fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(AsColors.module)
             .border(1.dp, AsColors.line, RoundedCornerShape(22.dp)).padding(horizontal = 17.dp, vertical = 15.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -412,12 +424,15 @@ private fun PanelLabel(text: String) =
 
 @Composable
 private fun TemplateCardRow(card: AsTemplateCard, onClick: () -> Unit) {
-    // pulido:as-T18 as-tc — fondo y transformación 0,18 s al pulsar (:active #161618)
+    // as-T18 as-tc — `transition: background .18s, transform .18s` (ease); `:active` = fondo #161618 (el lienzo no define transform en :active)
+    val source = remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val cardBg by asColorState(if (pressed) AsColors.pressed else AsColors.module, 180)
     Row(
         Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min)
-            .clip(RoundedCornerShape(22.dp)).background(AsColors.module)
+            .clip(RoundedCornerShape(22.dp)).background(cardBg)
             .border(1.dp, AsColors.line, RoundedCornerShape(22.dp))
-            .asClick(label = card.name, onClick = onClick)
+            .asClick(label = card.name, source = source, onClick = onClick)
             .padding(11.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -462,8 +477,9 @@ private fun LevelMarks(level: Int) {
 /** `.as-cv`: la portada de líneas de la plantilla. */
 @Composable
 private fun TemplateCover(card: AsTemplateCard, modifier: Modifier, radius: Int) {
-    // pulido:as-S01 as-cv — anillo interior de 1 px blanco al 8 % sobre la portada
-    Box(modifier.clip(RoundedCornerShape(radius.dp)).background(Color(0xFF111111)).border(1.dp, AsColors.white(0x14), RoundedCornerShape(radius.dp))) {
+    // as-S01 as-cv — `inset 0 0 0 1px #ffffff14` (preset borde-interior): anillo interior bajo la portada, que lo cubre, como en el lienzo
+    val shape = RoundedCornerShape(radius.dp)
+    Box(modifier.clip(shape).background(Color(0xFF111111)).kpknInset(KpknShadow.BordeInterior, shape)) {
         LineCoverArt(spec = card.cover, modifier = Modifier.matchParentSize())
     }
 }
@@ -575,11 +591,12 @@ private fun DetailFigures(card: AsTemplateCard) {
 
 @Composable
 private fun BottomOverlay(onScrim: () -> Unit, content: @Composable () -> Unit) {
-    // pulido:as-A04 as-dec.open — el fondo aparece en 0,2 s · pulido:as-A03 as-dec > div — el panel sube 0,36 s cubic-bezier(.2,.8,.2,1)
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0xa6 / 255f)).asClick(role = Role.Button, onClick = onScrim), contentAlignment = Alignment.BottomCenter) {
-        // pulido:as-S02 as-dec > div — sombra 0 -10px 30px #000000bb
+    // as-A04 as-dec.open — el fondo (y el panel con él) aparece en 0,2 s ease · as-A03 as-dec > div — el panel sube 0,36 s cubic-bezier(.2,.8,.2,1)
+    Box(Modifier.fillMaxSize().asEnter(AsAnim.OverlayFade).background(Color.Black.copy(alpha = 0xa6 / 255f)).asClick(role = Role.Button, onClick = onScrim), contentAlignment = Alignment.BottomCenter) {
+        // as-S02 as-dec > div — sombra 0 -10px 30px #000000bb (preset pie-sube)
+        val panelShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
         Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)).background(AsColors.decision)
+            Modifier.fillMaxWidth().asEnter(AsAnim.DecisionRise).kpknShadow(KpknShadow.PieSube, panelShape).clip(panelShape).background(AsColors.decision)
                 .asClick(role = Role.Button, onClick = {})
                 .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -618,11 +635,13 @@ private fun DecisionOverlay(model: AsDecisionModel, onConfirm: (SessionTemplateA
 
 @Composable
 private fun DecisionOption(on: Boolean, title: String, tag: String?, description: String, totals: SessionTotals, over: Int?, onClick: () -> Unit) {
-    // pulido:as-T08 as-op — borde y fondo 0,18 s ease
+    // as-T08 as-op — `transition: border-color .18s, background .18s` (ease)
     val shape = RoundedCornerShape(20.dp)
+    val opBg by asColorState(if (on) AsColors.ink.copy(alpha = 0x0d / 255f) else AsColors.white(0x08), 180)
+    val opBorder by asColorState(if (on) AsColors.ink else AsColors.white(0x12), 180)
     Row(
-        Modifier.fillMaxWidth().clip(shape).background(if (on) AsColors.ink.copy(alpha = 0x0d / 255f) else AsColors.white(0x08))
-            .border(1.5.dp, if (on) AsColors.ink else AsColors.white(0x12), shape)
+        Modifier.fillMaxWidth().clip(shape).background(opBg)
+            .border(1.5.dp, opBorder, shape)
             .semantics { role = Role.RadioButton; selected = on }
             .asClick(role = Role.RadioButton, onClick = onClick).padding(15.5.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -675,31 +694,43 @@ private fun ConfirmDeleteOverlay(name: String, onConfirm: () -> Unit, onCancel: 
     }
 }
 
-/** pulido:as-J03 dec-go / pulido:as-J06 apTimer — en la app, «aplicando» dura lo que tarda el motor (no un temporizador de 1,3 s). */
+/**
+ * as-J03 `dec-go` / as-J06 `apTimer`: en la app, «aplicando» dura lo que tarda el motor (no el temporizador de 1,3 s del lienzo) y pasa a «aplicada»
+ * cuando `done` cambia. Las animaciones son las del lienzo: entrada del panel (as-A02, 0,2 s), giro del arco (as-A12, 1,1 s lineal, infinito), marca
+ * que crece de 0,6 a 1 con fundido (as-X01 + as-T01, `transition: all .35s`) y entrada de los botones (as-A01, 0,3 s).
+ */
 @Composable
 private fun ApplyingOverlay(model: AsApplyModel, onFinish: () -> Unit, onUndo: () -> Unit) {
-    // pulido:as-A02 as-ap.open — entrada de 0,2 s · pulido:as-A12 as-rg .sp — giro de 1,1 s lineal, infinito (aquí, quieto)
-    // pulido:as-X01 as-ap .ok — escala 0,6 → 1 · pulido:as-T01 as-ap.done .ok — 0,35 s · pulido:as-A01 as-ap.done .after — entrada de 0,3 s
+    // as-T01 as-ap.done .ok — opacity 0 → 1 y scale(.6) → none en 0,35 s cubic-bezier(.2,.8,.2,1)
+    val okAlpha = asFloatState(if (model.done) 1f else 0f, 350, AsAnim.Std)
+    val okScale = asFloatState(if (model.done) 1f else 0.6f, 350, AsAnim.Std)
     Column(
-        Modifier.fillMaxSize().background(AsColors.sheet).asClick(role = Role.Button, onClick = {}).padding(horizontal = 36.dp),
+        Modifier.fillMaxSize().asEnter(AsAnim.OverlayFade).background(AsColors.sheet).asClick(role = Role.Button, onClick = {}).padding(horizontal = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
     ) {
         Box(Modifier.size(84.dp), contentAlignment = Alignment.Center) {
+            // `<circle cx=42 cy=42 r=36 stroke-width=5>` en un lienzo de 84: el trazo va centrado en el borde del rectángulo, a 6 del lado
+            val stroke = 5.dp
+            val inset = 6.dp
             androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-                val stroke = 5.dp.toPx()
-                val inset = stroke / 2f + 6.dp.toPx()
-                val arcSize = androidx.compose.ui.geometry.Size(size.width - 2 * inset, size.height - 2 * inset)
-                drawArc(AsColors.white(0x14), 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
-                if (!model.done) drawArc(AsColors.ink, -90f, 127f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+                val arcSize = androidx.compose.ui.geometry.Size(size.width - 2 * inset.toPx(), size.height - 2 * inset.toPx())
+                drawArc(AsColors.white(0x14), 0f, 360f, false, Offset(inset.toPx(), inset.toPx()), arcSize, style = Stroke(stroke.toPx()))
             }
-            if (model.done) AsIcon(AsIcons.Check, 40.dp, AsColors.done)
+            // as-A12 as-rg .sp — el arco (`stroke-dasharray="60 170"` sobre una circunferencia de 226 = 95,5°, desde las 3 en punto) gira 1,1 s lineal, infinito (quieto con movimiento reducido); al terminar se apaga sin transición
+            if (!model.done) {
+                androidx.compose.foundation.Canvas(Modifier.matchParentSize().asEnter(AsAnim.Spin)) {
+                    val arcSize = androidx.compose.ui.geometry.Size(size.width - 2 * inset.toPx(), size.height - 2 * inset.toPx())
+                    drawArc(AsColors.ink, 0f, 95.5f, false, Offset(inset.toPx(), inset.toPx()), arcSize, style = Stroke(stroke.toPx(), cap = StrokeCap.Round))
+                }
+            }
+            AsIcon(AsIcons.Check, 40.dp, AsColors.done, Modifier.graphicsLayer { alpha = okAlpha.value; scaleX = okScale.value; scaleY = okScale.value })
         }
         AsText(model.title, 19f, weight = FontWeight.Bold, family = AsSyne, lineHeight = 1.2f, letterSpacing = -0.3f, align = TextAlign.Center)
         AsText(model.body, 13.5f, color = AsColors.muted, lineHeight = 1.45f, align = TextAlign.Center)
         if (model.note.isNotEmpty()) AsCaption(model.note, align = TextAlign.Center)
         if (model.done) {
-            Column(Modifier.fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.asEnter(AsAnim.ApplyAfterIn).fillMaxWidth().padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 AsButton("Ver mi sesión", Modifier.fillMaxWidth(), onClick = onFinish)
                 AsTextAction("Deshacer", leading = AsIcons.Undo, onClick = onUndo)
             }
@@ -768,7 +799,7 @@ private fun MineRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Column(Modifier.weight(1f).asClick(label = row.name, onClick = onOpen)) {
+            Column(Modifier.weight(1f).heightIn(min = 48.dp).asClick(label = row.name, onClick = onOpen), verticalArrangement = Arrangement.Center) {
                 AsText(row.name, 14.5f, color = if (row.archived) AsColors.muted else AsColors.ink, weight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 AsText(if (row.archived) "Archivada" else "Disponible · ${row.exercises} ejercicios", 12f, Modifier.padding(top = 2.dp), color = AsColors.faint)
             }
@@ -776,9 +807,10 @@ private fun MineRow(
             AsIconButton(AsIcons.More, "Más acciones de ${row.name}", onClick = onMenu)
         }
         if (menuOpen) {
-            // pulido:as-S04 as-menu — sombra 0 14px 40px #000000cc · pulido:as-A09 as-menu.open — entrada de 0,18 s
+            // as-S04 as-menu — sombra 0 14px 40px #000000cc (preset menu) · as-A09 as-menu.open — entrada de 0,18 s (asIn, dx 0)
             Column(
-                Modifier.floating(top = 62.dp, end = 10.dp).width(224.dp).clip(RoundedCornerShape(20.dp)).background(AsColors.menu)
+                Modifier.floating(top = 74.dp, end = (-4).dp).asEnter(AsAnim.MenuIn).width(224.dp)
+                    .kpknShadow(KpknShadow.Menu, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(AsColors.menu)
                     .border(1.dp, AsColors.white(0x14), RoundedCornerShape(20.dp)).padding(7.dp),
             ) {
                 MenuItem(AsIcons.Edit, "Editar", false, onEdit)
@@ -794,7 +826,7 @@ private fun MineRow(
 private fun MenuItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, danger: Boolean, onClick: () -> Unit, enabled: Boolean = true) {
     val color = if (danger) AsColors.danger else AsColors.ink
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 46.dp).clip(RoundedCornerShape(14.dp)).then(if (enabled) Modifier.asClick(onClick = onClick) else Modifier).padding(horizontal = 12.dp),
+        Modifier.fillMaxWidth().height(46.dp).clip(RoundedCornerShape(14.dp)).then(if (enabled) Modifier.asClick(onClick = onClick) else Modifier).padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
