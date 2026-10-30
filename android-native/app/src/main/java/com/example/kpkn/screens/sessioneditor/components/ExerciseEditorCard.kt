@@ -80,7 +80,7 @@ import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.sessionExerciseListDose
-import com.example.kpkn.ui.components.SwipeToDeleteCard
+import com.example.kpkn.screens.sessioneditor.design.EdSwipeDeleteRow
 import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
@@ -207,208 +207,110 @@ internal fun ExerciseEditorCard(
         if (autoExpand) { expanded = true; onAutoExpandHandled() }
     }
 
+    // Pulido v1 · EDITOR · A2: el borrado pendiente de esta fila (lo provee la lista) y si hay otra fila en el aire (se pliegan las abiertas).
+    val removal = LocalEdRemoval.current
+    val listDragging = LocalEdListDragging.current
+    LaunchedEffect(listDragging, removal.pending) {
+        if ((listDragging || removal.pending) && expanded) expanded = false
+    }
+    val rowTitle = remember(displayParts, exercise.isEffectivelyUnilateral()) {
+        edRowTitle(displayParts.parentName, displayParts.chips, exercise.isEffectivelyUnilateral())
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
-            .graphicsLayer {
-                scaleX = if (isDragging) 1.02f else 1f
-                scaleY = if (isDragging) 1.02f else 1f
-                alpha = if (isDragging) 0.22f else 1f
-                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
-            }
-            .zIndex(if (isDragging) 12f else 0f),
+            // Al ordenar, la fila que se arrastra se queda vacía: su sitio lo ocupa el hueco punteado y la ficha levantada flota encima.
+            .graphicsLayer { alpha = if (isDragging) 0f else 1f },
     ) {
-        // Fila plegada. El asa va fuera del deslizamiento, para que borrar no cancele la pulsación larga.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 64.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (enableDrag) {
-                var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
-                val latestOnDragStart = rememberUpdatedState(onDragStart)
-                val latestOnDrag = rememberUpdatedState(onDrag)
-                val latestOnDragEnd = rememberUpdatedState(onDragEnd)
-                val latestOnDragCancel = rememberUpdatedState(onDragCancel)
-                Box(
-                    modifier = Modifier
-                        .size(width = 48.dp, height = 64.dp)
-                        .onGloballyPositioned { coords ->
-                            val b = coords.boundsInWindow()
-                            handleWindowOrigin = Offset(b.left, b.top)
-                        }
-                        .pointerInput(exercise.id) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = { offset ->
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    latestOnDragStart.value(handleWindowOrigin + offset)
-                                },
-                                onDragCancel = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    latestOnDragCancel.value()
-                                },
-                                onDragEnd = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    latestOnDragEnd.value()
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
-                                },
-                            )
-                        }
-                        .semantics { contentDescription = "Arrastra para reordenar ejercicio" },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = KpknLineIcons.Grip,
-                        contentDescription = null,
-                        tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            } else {
-                Spacer(Modifier.width(48.dp).height(64.dp))
-            }
-
-            // Un miembro de superserie lleva su caja de fondo en toda la fila, flecha y estrella incluidas (ED-D · C1 + añadido del
-            // orquestador): la caja es de este contenedor y lleva el mismo margen a ambos lados; el resto de ejercicios la lleva dentro
-            // de la zona que se desliza.
+        // Fila plegada (`.ed-row`): el asa, la miniatura, el texto, la estrella y la flecha se deslizan juntos para borrar; el asa tiene su gesto.
+        EdSwipeDeleteRow(
+            removal = removal,
+            onCommit = onDeleteExercise,
+            enabled = !isDragging,
+        ) { swipeModifier ->
+            // Un miembro de superserie lleva su caja de fondo en toda la fila, flecha y estrella incluidas (ED-D · C1): la caja es de este
+            // contenedor y lleva el mismo margen a ambos lados.
             val memberBox = memberBadge != null
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .then(
-                        if (memberBox) {
-                            Modifier
-                                .padding(horizontal = 8.dp)
-                                .background(KpknSurface.module, RoundedCornerShape(12.dp))
-                        } else {
-                            Modifier
+            var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
+            val latestOnDragStart = rememberUpdatedState(onDragStart)
+            val latestOnDrag = rememberUpdatedState(onDrag)
+            val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+            val latestOnDragCancel = rememberUpdatedState(onDragCancel)
+            EdExerciseRow(
+                title = rowTitle,
+                dose = dose,
+                expanded = expanded,
+                onToggle = { expanded = !expanded },
+                onLongPress = onOpenQuickActions,
+                showGrip = enableDrag,
+                gripLifted = isDragging,
+                gripModifier = Modifier
+                    .onGloballyPositioned { coords ->
+                        val b = coords.boundsInWindow()
+                        handleWindowOrigin = Offset(b.left, b.top)
+                    }
+                    .edGripDrag(
+                        key = exercise.id,
+                        onDragStart = { offset ->
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            latestOnDragStart.value(handleWindowOrigin + offset)
+                        },
+                        onDrag = { delta -> latestOnDrag.value(delta) },
+                        onDragEnd = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            latestOnDragEnd.value()
+                        },
+                        onDragCancel = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            latestOnDragCancel.value()
                         },
                     ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // La zona que se desliza es el texto, la miniatura y la estrella; la flecha va aparte.
-                SwipeToDeleteCard(
-                    onDelete = onDeleteExercise,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .then(
-                                if (memberBox) Modifier else Modifier.background(KpknSurface.module, RoundedCornerShape(12.dp)),
-                            )
-                            .padding(vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (memberBadge != null) {
-                            SupersetMemberBadge(label = memberBadge)
-                        } else {
-                            Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .combinedClickable(
-                                    onClick = { expanded = !expanded },
-                                    onLongClick = onOpenQuickActions,
-                                ),
-                        ) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(SpanStyle(color = WizardColors.text)) {
-                                        append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
-                                    }
-                                    displayParts.chips.forEach { chip ->
-                                        withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                            append(" · ")
-                                            append(chip)
-                                        }
-                                    }
-                                    // B1: la lateralidad sigue visible también con el marco memberBox de ED-D.
-                                    if (exercise.isEffectivelyUnilateral()) {
-                                        withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                            append(" · Unilateral")
-                                        }
-                                    }
-                                },
-                                style = KpknType.bodyStrong,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                text = dose,
-                                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                                color = WizardColors.textMuted,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            if (cardio != null && cardio.hasIntervals()) {
-                                com.example.kpkn.screens.workout.CardioIntervalChart(
-                                    details = cardio,
-                                    accentColor = accentColor,
-                                    sparkline = true,
-                                    compact = true,
-                                    showLabels = false,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 6.dp),
-                                )
-                            }
-                            if (isCompetitionMovement) {
-                                Text(
-                                    text = "MOVIMIENTO DE COMPETICIÓN",
-                                    style = KpknType.eyebrow,
-                                    color = WizardColors.textMuted,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                        if (cardio == null) {
-                            val starActive = exercise.isStarTarget || exercise.goal1RM != null
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clickable(role = Role.Button) { showGoalSheet = true }
-                                    .semantics { contentDescription = "Meta del ejercicio" },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = if (starActive) Icons.Default.Star else Icons.Default.StarBorder,
-                                    contentDescription = null,
-                                    tint = if (starActive) SymbolPalette.energia else WizardColors.textMuted,
-                                    modifier = Modifier.size(20.dp),
-                                )
-                            }
-                        }
+                bodyModifier = if (memberBox) {
+                    swipeModifier
+                        .padding(horizontal = 8.dp)
+                        .background(KpknSurface.module, RoundedCornerShape(12.dp))
+                } else {
+                    swipeModifier
+                },
+                thumbnail = {
+                    if (memberBadge != null) {
+                        SupersetMemberBadge(label = memberBadge)
+                    } else {
+                        Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable(role = Role.Button) { expanded = !expanded }
-                        .semantics { contentDescription = if (expanded) "Plegar" else "Desplegar" },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
-                        contentDescription = null,
-                        tint = WizardColors.textMuted,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
+                },
+                starActive = if (cardio == null) (exercise.isStarTarget || exercise.goal1RM != null) else null,
+                onStar = { showGoalSheet = true },
+                below = {
+                    if (cardio != null && cardio.hasIntervals()) {
+                        com.example.kpkn.screens.workout.CardioIntervalChart(
+                            details = cardio,
+                            accentColor = accentColor,
+                            sparkline = true,
+                            compact = true,
+                            showLabels = false,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp),
+                        )
+                    }
+                    if (isCompetitionMovement) {
+                        Text(
+                            text = "MOVIMIENTO DE COMPETICIÓN",
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                },
+            )
         }
 
         // Inline expanded editor
-        AnimatedVisibility(expanded) {
+        AnimatedVisibility(expanded && !removal.pending) {
             ExerciseEditorExpanded(
                 exercise = exercise,
                 local = local,
