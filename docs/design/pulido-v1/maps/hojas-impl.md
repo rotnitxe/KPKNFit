@@ -1,0 +1,3 @@
+# Hojas · implementación (30-oct)
+- Roadmap (DESV-653): `LiveRouteSheetSpec` (`LiveSheetKit.kt:80`): sombra Hoja, velo 240/200 ms (Estandar/Acelera), entrada 420 ms ResorteSuave, salida 260 ms Acelera, panel `#1b1b1d` liso, velo `#000000a8`. `LiveSheet` y `HeaderSheet` aceptan `lienzo`; solo `ROUTE` lo pasa (`LiveSessionSheets.kt:133`, con `key` para reabrir al venir del menú). Con `lienzo`, `HeaderSheet` cierra con `LocalKpknSheetDismiss` (sin su salida de 180 ms).
+- Reparto (DESV-1000): `RpSheetSpec` (`SplitFlowSheets.kt:68`): sombra Hoja; el lienzo no define tiempos para `.pl-sheet` del reparto, se conservan los de `KpknSheetMotion`.

@@ -70,6 +70,7 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: la hoja del lienzo (`.pl-sheet`: `0 -14px 44px #000c` + filete interior `0 1px #ffffff10`) la pinta `KpknSheet`, el componente compartido de hojas, que hoy no dibuja la sombra de caída hacia arriba (solo el velo `#000000a8` y su filete superior); las hojas del reparto (`RpSheet`: decisiones y resumen) la usan tal cual. Tocar `KpknSheet` afecta a todas las pantallas de la app y queda fuera de este paquete. En la captura se ve en la hoja de «Antes de aplicar» (a la izquierda el lienzo, en medio la app: sin halo sobre el borde de la hoja; en la hoja de render, además, la hoja se dibuja a mano y con otra altura).
 - Captura: paridad/capturas/DESV-1000.png (`rp-decisiones`, 360 × 880)
 - Aprobada por: pendiente
+- Estado: **Resuelta el 30-oct por pasar KpknSheetSpec**: `RpSheet` pasa `RpSheetSpec` (sombra hoja) a `KpknSheet`.
 
 
 ## DESV-300
@@ -194,6 +195,7 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: la hoja «Recorrido de la sesión» se abre con `LiveSheet` / `HeaderSheet` / `KpknSheet`, el contenedor común de todas las hojas de la sesión en vivo (paquete «vivo-resto»), no con una hoja propia. Por eso la entrada (resorte de 420 ms), la salida (260 ms), el velo (240/200 ms), la sombra «hoja» y el panel (`#141513` al 96 % sobre desenfoque frente a `#1B1B1D` plano) son los de esa hoja y no los de `.lv2-sheet`; el título lleva 15 dp de margen izquierdo (el lienzo, 19). El CONTENIDO de la hoja sí es 1:1 (ver la captura: 7,6/255 en el recorte frente al lienzo; la hoja de prueba dibuja la cabecera del lienzo). Pendiente de decidir con quien lleve «vivo-resto» si `KpknSheet` admite el movimiento de la ruta.
 - Captura: paridad/capturas/DESV-653.png
 - Aprobada por: pendiente (orquestador)
+- Estado: **Resuelta el 30-oct por pasar KpknSheetSpec**: la «Ruta» pasa `LiveRouteSheetSpec` a `LiveSheet`/`HeaderSheet`/`KpknSheet` (panel `#1b1b1d` liso, velo `#000000a8`).
 
 ## DESV-654
 - Filas: lv-J22
