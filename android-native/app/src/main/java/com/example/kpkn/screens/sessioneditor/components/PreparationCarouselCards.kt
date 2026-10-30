@@ -513,8 +513,8 @@ private fun normalizeWarmupPercentage(rawPercentage: Double): Double {
 }
 
 /**
- * Píldora de borde punteado (filete blanco al 24 %, 40 dp) para añadir lo que falta en la preparación («+ Movilidad», «+ Aproximación»).
- * Es un objetivo táctil de 40 dp de alto, como las píldoras de la barra de opciones.
+ * `ed-dash`: píldora de borde punteado (1,5 dp, blanco al 18 %) de 44 dp para añadir lo que falta en la preparación («Movilidad»,
+ * «Aproximación»), con un «+» delante. Crece para repartirse el ancho de la línea.
  */
 @Composable
 internal fun PreparationDashedPill(
@@ -522,26 +522,18 @@ internal fun PreparationDashedPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val edge = Color.White.copy(alpha = 0.24f)
-    Box(
+    // pulido:ed-T09 .ed-dash borde y color 0,16 s al pulsar (#f2eee688 / tinta)
+    androidx.compose.foundation.layout.Row(
         modifier = modifier
-            .heightIn(min = 40.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .heightIn(min = 44.dp)
+            .clip(RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
-            .drawBehind {
-                val stroke = 1.dp.toPx()
-                drawRoundRect(
-                    color = edge,
-                    topLeft = Offset(stroke / 2f, stroke / 2f),
-                    size = Size(size.width - stroke, size.height - stroke),
-                    cornerRadius = CornerRadius(20.dp.toPx()),
-                    style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))),
-                )
-            }
-            // ER1f: a 130 % el texto de dos líneas rozaba el borde punteado; el aire vertical lo evita.
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center,
+            .edDashedBorder(EdColors.dashed, 22.dp, 1.5.dp)
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text, style = KpknType.chip, color = WizardColors.text, maxLines = 2, textAlign = TextAlign.Center)
+        EdIcon(com.example.kpkn.ui.components.icons.KpknLineIcons.Plus, 16.dp, EdColors.muted)
+        Text(text, style = edText(13.5f, androidx.compose.ui.text.font.FontWeight.SemiBold, EdColors.muted, 16.9f), maxLines = 1)
     }
 }

@@ -1,11 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,32 +12,49 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
-import com.example.kpkn.ui.design.KpknSetFormat
-import com.example.kpkn.ui.design.KpknTextAction
-import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlinx.coroutines.delay
 
-/** B3c: solo un objetivo de esfuerzo, sin pedir una carga fija. */
+/*
+ * Dosis de los modos que no son Reps (escenas ed-serie-solorpe, ed-serie-tiempo y ed-serie-distancia). Mismos campos con − y + que
+ * el resto de la serie; la lógica de lo que se guarda no cambia (un único targetRPE, un único targetDuration en segundos, un
+ * único valor de distancia o de unidad).
+ */
+
+/** B3c · `ed-serie-solorpe`: solo un objetivo de esfuerzo (1–10, de medio en medio), con campo y deslizador, sin pedir una carga fija. */
 @Composable
 internal fun SoloRpeGoal(value: Double?, onChange: (Double) -> Unit) {
-    var slider by remember(value) { mutableStateOf((value ?: 8.0).toFloat().coerceIn(1f, 10f)) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SetValueCell(label = "RPE objetivo", value = formatEditableNumber(value), stateKey = "solo-rpe", listSkin = true,
-            modifier = Modifier.fillMaxWidth(), keyboardType = KeyboardType.Decimal,
-            onCommit = { input -> input.safeDoubleOrNull()?.takeIf { it.isFinite() && it in 1.0..10.0 }?.let(onChange) })
-        Slider(value = slider, onValueChange = { slider = it }, onValueChangeFinished = { onChange(slider.toDouble()) },
-            valueRange = 1f..10f, steps = 17, colors = inkSliderColors(), modifier = Modifier.fillMaxWidth())
-        Text("Sin carga fija · esfuerzo de 1 a 10", style = KpknType.caption, color = WizardColors.textMuted)
+    val current = (value ?: 8.0).coerceIn(1.0, 10.0)
+    var slider by remember(value) { mutableStateOf(current.toFloat()) }
+    fun commit(raw: Double) = onChange((kotlin.math.round(raw * 2.0) / 2.0).coerceIn(1.0, 10.0))
+    EdSection(label = "RPE objetivo", hint = "sin carga fija · esfuerzo de 1 a 10") {
+        EdStepperField(
+            text = edNumber(slider.toDouble()),
+            label = "RPE objetivo",
+            onStep = { direction -> commit(current + direction * 0.5) },
+            canDecrement = slider > 1f,
+            canIncrement = slider < 10f,
+            keyboard = KeyboardType.Decimal,
+            onCommitText = { input -> input.safeDoubleOrNull()?.takeIf { it.isFinite() }?.let { commit(it) } },
+            minusDescription = "Menos RPE",
+            plusDescription = "Más RPE",
+        )
+        EdSlider(
+            value = slider,
+            onValueChange = { slider = it },
+            onValueChangeFinished = { commit(slider.toDouble()) },
+            valueRange = 1f..10f,
+            steps = 17,
+            description = "RPE objetivo",
+            startLabel = "1",
+            endLabel = "10",
+        )
     }
 }
 
-/** B3d: los dos campos guardan un único targetDuration, en segundos. La prueba no modifica la prescripción. */
+/** B3d · `ed-serie-tiempo`: los dos campos guardan un único targetDuration, en segundos. La prueba no modifica la prescripción. */
 @Composable
 internal fun DurationGoal(seconds: Int?, onChange: (Int) -> Unit) {
     val duration = seconds?.coerceAtLeast(0) ?: 0
@@ -53,34 +67,59 @@ internal fun DurationGoal(seconds: Int?, onChange: (Int) -> Unit) {
             running = false
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Duración objetivo", style = KpknType.caption, color = WizardColors.textMuted)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SetValueCell(label = "Minutos", value = (duration / 60).toString(), stateKey = "duration-minutes", listSkin = true,
-                modifier = Modifier.weight(1f), keyboardType = KeyboardType.Number, onCommit = { input ->
-                    input.safeIntOrNull()?.takeIf { it >= 0 && it.toLong() * 60 + duration % 60 <= Int.MAX_VALUE }?.let { onChange(it * 60 + duration % 60) }
-                })
-            SetValueCell(label = "Segundos", value = (duration % 60).toString(), stateKey = "duration-seconds", listSkin = true,
-                modifier = Modifier.weight(1f), keyboardType = KeyboardType.Number, onCommit = { input ->
-                    input.safeIntOrNull()?.takeIf { it in 0..59 }?.let { onChange(duration / 60 * 60 + it) }
-                })
+    fun commit(total: Int) = onChange(total.coerceIn(0, 3599))
+    EdSection(label = "Duración objetivo", hint = "en vivo · ${edRest(if (running) remaining else duration)}") {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            EdStepperField(
+                text = (duration / 60).toString(),
+                label = "Minutos",
+                small = "min",
+                compact = true,
+                onStep = { direction -> commit(duration + direction * 60) },
+                canDecrement = duration >= 60,
+                canIncrement = duration < 3540,
+                onCommitText = { input -> input.safeIntOrNull()?.takeIf { it >= 0 }?.let { commit(it * 60 + duration % 60) } },
+                modifier = Modifier.weight(1f),
+                minusDescription = "Menos minutos",
+                plusDescription = "Más minutos",
+            )
+            EdStepperField(
+                text = (duration % 60).toString(),
+                label = "Segundos",
+                small = "s",
+                compact = true,
+                onStep = { direction -> commit(duration + direction * 5) },
+                canDecrement = duration > 0,
+                canIncrement = duration < 3599,
+                onCommitText = { input -> input.safeIntOrNull()?.takeIf { it in 0..59 }?.let { commit(duration / 60 * 60 + it) } },
+                modifier = Modifier.weight(1f),
+                minusDescription = "Menos segundos",
+                plusDescription = "Más segundos",
+            )
         }
-        Text("Así se cronometrará en vivo · ${KpknSetFormat.doseTime(if (running) remaining else duration)}",
-            style = KpknType.caption, color = WizardColors.textMuted)
-        KpknTextAction(text = if (running) "Detener prueba" else "Probar cronómetro", onClick = { running = !running })
+        EdTextLink(
+            text = if (running) "Detener prueba" else "Probar cronómetro",
+            icon = if (running) KpknLineIcons.Pause else EdIcons.Play,
+            onClick = { running = !running },
+        )
     }
 }
 
-/** B3e/B3f: metros en distancia; la unidad confirmada del ejercicio en personalizado. */
+/** B3e/B3f · `ed-serie-distancia`: metros (de 5 en 5) en distancia; la unidad confirmada del ejercicio (de 1 en 1) en personalizado. */
 @Composable
-internal fun MetricGoal(label: String, value: Double?, step: Double, onChange: (Double) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
-        KpknIconButton(icon = KpknLineIcons.Minus, contentDescription = "Reducir $label",
-            onClick = { onChange(((value ?: 0.0) - step).coerceAtLeast(0.0)) })
-        SetValueCell(label = label, value = formatEditableNumber(value), stateKey = "metric-goal", listSkin = true,
-            modifier = Modifier.weight(1f), keyboardType = KeyboardType.Decimal,
-            onCommit = { input -> input.safeDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }?.let(onChange) })
-        KpknIconButton(icon = KpknLineIcons.Plus, contentDescription = "Aumentar $label",
-            onClick = { onChange((value ?: 0.0) + step) })
+internal fun MetricGoal(label: String, hint: String, unit: String?, value: Double?, step: Double, onChange: (Double) -> Unit) {
+    fun commit(raw: Double) = onChange(raw.coerceAtLeast(0.0).coerceAtMost(99999.0))
+    EdSection(label = label, hint = hint) {
+        EdStepperField(
+            text = edNumber(value ?: 0.0),
+            label = label,
+            unit = unit,
+            onStep = { direction -> commit((value ?: 0.0) + direction * step) },
+            canDecrement = (value ?: 0.0) > 0.0,
+            keyboard = KeyboardType.Decimal,
+            onCommitText = { input -> input.safeDoubleOrNull()?.takeIf { it.isFinite() && it >= 0.0 }?.let { commit(it) } },
+            minusDescription = "Reducir $label",
+            plusDescription = "Aumentar $label",
+        )
     }
 }

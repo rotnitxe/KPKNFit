@@ -432,7 +432,7 @@ object SplitRedistributor {
     // ─── Comprobaciones ─────────────────────────────────────────────────────────────────────────
 
     /** Motivo por el que una semana no se puede redistribuir, o null. */
-    private fun weekProblem(week: ProgramWeek): String? = when {
+    internal fun weekProblem(week: ProgramWeek): String? = when {
         week.sessions.any { it.isCompetitionMeet } -> "La semana incluye una competición."
         week.sessions.any { it.sessionB != null || it.sessionC != null || it.sessionD != null } ->
             "La semana tiene sesiones con variantes (B, C o D)."
@@ -440,7 +440,7 @@ object SplitRedistributor {
     }
 
     /** Un levantamiento que pide algún día del reparto (`foci`) y que el programa no trae, o null si los trae todos. */
-    private fun missingLift(foci: List<String>, units: List<MovableUnit>): String? {
+    internal fun missingLift(foci: List<String>, units: List<MovableUnit>): String? {
         foci.forEach { focus ->
             if (focusName(focus) != null && units.none { satisfies(focus, it) }) return focusName(focus)
         }

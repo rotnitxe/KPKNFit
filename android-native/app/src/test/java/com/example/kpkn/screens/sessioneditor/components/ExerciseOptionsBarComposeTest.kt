@@ -78,12 +78,13 @@ class ExerciseOptionsBarComposeTest {
                 onOpenRest = {},
             )
         }
-        rule.onNodeWithText("Modo: Reps ▾").assertExists()
-        rule.onNodeWithText("Descanso 1:30").assertExists()
+        rule.onNodeWithText("Modo: Reps").assertExists()
+        rule.onNodeWithContentDescription("Descanso del ejercicio").assertExists()
+        rule.onNodeWithText("1:30").assertExists()
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
-        rule.onNodeWithText("Lateralidad: Bilateral").assertExists().performClick()
+        rule.onNodeWithText("Lateralidad").assertExists().performClick()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
         rule.onNodeWithText("Bilateral").assertExists()
@@ -116,7 +117,7 @@ class ExerciseOptionsBarComposeTest {
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
-        rule.onNodeWithText("Lateralidad: Bilateral").performClick()
+        rule.onNodeWithText("Lateralidad").performClick()
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
@@ -149,14 +150,14 @@ class ExerciseOptionsBarComposeTest {
             )
         }
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
-        listOf("Registrar ROM", "Relacionar ejercicio", "Superserie", "Unidad personalizada", "Carga inteligente", "Meta").forEach { label ->
+        listOf("Medir ROM", "Relacionar ejercicio", "Superserie", "Unidad personalizada", "Carga inteligente", "Meta").forEach { label ->
             rule.onNodeWithText(label).assertExists()
         }
     }
 
-    /** Pulido v1 (15): «Registrar ROM» del menú ⋯ cambia `Exercise.trackRom`, el dato del plan que lee la tarjeta en vivo. */
+    /** Pulido v1 (15): «Medir ROM» del menú ⋯ cambia `Exercise.trackRom`, el dato del plan que lee la tarjeta en vivo. */
     @Test
-    fun registrarRomDelMenuActivaElDatoDelPlan() {
+    fun medirRomDelMenuActivaElDatoDelPlan() {
         var result: Exercise? = null
         setEditorContent {
             val local = rememberExerciseEditorLocalState(press)
@@ -180,7 +181,7 @@ class ExerciseOptionsBarComposeTest {
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
-        rule.onNodeWithText("Registrar ROM").performClick()
+        rule.onNodeWithText("Medir ROM").performClick()
         rule.waitForIdle()
         assertTrue(result!!.trackRom)
     }
@@ -196,11 +197,11 @@ class ExerciseOptionsBarComposeTest {
                 onOpenSideRest = {},
             )
         }
-        // B5: el orden de lados se dice en L/R, nunca I/D.
-        rule.onNodeWithText("Orden L/R").assertExists()
+        // B5: el orden de lados se dice en L y R (con flecha, como el lienzo), nunca I/D.
+        rule.onNodeWithText("Orden L → R").assertExists()
         rule.onNodeWithText("Lados iguales").assertExists()
         rule.onNodeWithText("Entre lados 0:15").assertExists()
-        rule.onNodeWithText("Orden L/R").performClick()
+        rule.onNodeWithText("Orden L → R").performClick()
         assertEquals(
             com.example.kpkn.data.models.UnilateralSideOrder.RIGHT_LEFT,
             orderToggled!!.unilateralSideOrder,

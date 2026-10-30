@@ -155,6 +155,8 @@ internal fun InlineSetRow(
     onTechniqueConfigExpandedChange: (Boolean) -> Unit = {},
     fillHeight: Boolean = true,
     presentation: SetRowPresentation = SetRowPresentation.Card,
+    /** Abre la hoja de la carga inteligente (la cifra de carga de la fila es su botón). Sin callback, la cifra no es un botón. */
+    onOpenSmartLoad: (() -> Unit)? = null,
 ) {
     if (set.isEmptySlot) {
         Surface(
@@ -458,235 +460,6 @@ internal fun InlineSetRow(
             commitMode(updater)
         }
     }
-    val intensityOptions = listOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE)
-    val intensitySelectedIndex = when (set.intensityMode ?: IntensityMode.RPE) {
-        IntensityMode.RPE -> 0
-        IntensityMode.RIR -> 1
-        IntensityMode.FAILURE -> 2
-        else -> -1
-    }
-
-    // Piezas de la fila: cada una tiene la piel de la tarjeta (Card) o la de la fila (List).
-    /**
-     * Tipo de carga de la fila (ER1c1, pulido): un segmentado compacto «Externa · Corporal · Lastre · Asistido». Si al tamaño de letra
-     * actual el texto más largo no cabe en su segmento, pasa a una rejilla 2 × 2 de celdas iguales (nunca chips desiguales).
-     */
-    @Composable
-    fun LoadTypeRow() {
-        val loadOptions = listOf(LoadModeV2.LOAD, LoadModeV2.BODYWEIGHT, LoadModeV2.LASTRE, LoadModeV2.ASSISTED)
-        val labels = listOf("Externa", "Corporal", "Lastre", "Asistido")
-        val spokenNames = listOf("Carga externa", "Peso corporal", "Lastre", "Asistido")
-        val selectedIndex = loadOptions.indexOf(set.loadModeV2 ?: LoadModeV2.LOAD)
-        val measurer = rememberTextMeasurer()
-        val density = LocalDensity.current
-        val segmentStyle = KpknType.segment.copy(fontSize = 13.sp, lineHeight = 18.sp)
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            // Cada segmento necesita su texto más ancho con 6 dp de aire a cada lado; la pista añade 4 dp por cada borde.
-            val widest = with(density) { labels.maxOf { measurer.measure(it, segmentStyle).size.width }.toDp() }
-            val fitsOnOneLine = maxWidth >= (widest + 12.dp) * 4f + 8.dp
-            if (fitsOnOneLine) {
-                KpknSegmentedControl(
-                    options = labels,
-                    selectedIndex = selectedIndex,
-                    onSelect = { index -> commitEditedField { current -> current.copy(loadModeV2 = loadOptions[index]) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    size = KpknSegmentedSize.Compact,
-                    descriptions = spokenNames,
-                )
-            } else {
-                // ER2a: las cuatro celdas ocupan todo el ancho y cada píldora llena la suya: miden lo mismo.
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(0 to 1, 2 to 3).forEach { (first, second) ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(first, second).forEach { index ->
-                                LoadTypeCell(
-                                    text = labels[index],
-                                    selected = selectedIndex == index,
-                                    onClick = { commitEditedField { current -> current.copy(loadModeV2 = loadOptions[index]) } },
-                                    modifier = Modifier.weight(1f),
-                                    testTag = "load-type-$index",
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /** Intensidad de la fila (segunda línea de la fila): el segmentado RPE / RIR / Fallo a todo el ancho, o «+ Intensidad» si no hay. */
-    @Composable
-    fun IntensityRow(options: List<IntensityMode>, selectedIndex: Int) {
-        if (!showPlannedIntensity) {
-            KpknChip(
-                text = "+ Intensidad",
-                selected = false,
-                onClick = {
-                    showPlannedIntensity = true
-                    commitEditedField { current ->
-                        current.copy(
-                            intensityMode = IntensityMode.RPE,
-                            targetRPE = current.targetRPE ?: 8.0,
-                            targetRIR = null,
-                            isFailure = false,
-                            purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
-                        )
-                    }
-                },
-            )
-            return
-        }
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text("Intensidad", style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
-            KpknSegmentedControl(
-                options = listOf("RPE", "RIR", "Fallo"),
-                selectedIndex = selectedIndex,
-                onSelect = { index -> applyIntensityMode(options[index]) },
-                modifier = Modifier.fillMaxWidth(),
-                size = KpknSegmentedSize.Compact,
-            )
-        }
-    }
-
-    /**
-     * Cifras de la fila en lista (ER1c1, pulido): una rejilla de columnas iguales, cada rótulo justo encima de su celda. La intensidad
-     * va debajo, a todo el ancho, porque el segmentado no cabe en una columna.
-     */
-    @Composable
-    fun ListFieldsGrid() {
-        if (isSoloRpeMode) {
-            SoloRpeGoal(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE })) { onSoloRpeCommit(it.toString()) }
-            return
-        }
-        val showValue = !isAmrapMode && !isRmMode && showPlannedIntensity &&
-            (set.intensityMode == IntensityMode.RIR || set.intensityMode == IntensityMode.RPE || set.intensityMode == null)
-        if (trainingMode == TrainingMode.TIME || trainingMode == TrainingMode.DISTANCE || trainingMode == TrainingMode.CUSTOM) {
-            if (trainingMode == TrainingMode.TIME) {
-                DurationGoal(metricValue.safeIntOrNull()) { onMetricCommit(it.toString()) }
-            } else {
-                MetricGoal(if (trainingMode == TrainingMode.DISTANCE) "Distancia (m)" else customUnit?.ifBlank { "Unidad" } ?: "Unidad",
-                    metricValue.safeDoubleOrNull(), if (trainingMode == TrainingMode.DISTANCE) 5.0 else 1.0) { onMetricCommit(it.toString()) }
-            }
-            if (showValue) SetValueCell(label = intensityValueLabel, value = intensityValue,
-                stateKey = "intensity-${set.id}-$setStateKeySuffix", listSkin = true, modifier = Modifier.fillMaxWidth(),
-                keyboardType = KeyboardType.Decimal, onCommit = onIntensityValueCommit)
-            IntensityRow(intensityOptions, intensitySelectedIndex)
-            return
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (isRmMode) {
-                SetValueCell(
-                    label = if (usesExplicitTmPercent) "% del TM" else "%RM",
-                    value = formatEditableNumber(set.targetPercentageRM ?: sliderPercent),
-                    stateKey = "percent-${set.id}",
-                    listSkin = true,
-                    modifier = Modifier.weight(1f),
-                    keyboardType = KeyboardType.Decimal,
-                    onCommit = onPercentCommit,
-                )
-                if (rmDetailed) {
-                    SetValueCell(
-                        label = "Reps",
-                        value = rmRange?.format() ?: uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString().orEmpty(),
-                        stateKey = "rm-reps-${set.id}-$setStateKeySuffix",
-                        listSkin = true,
-                        modifier = Modifier.weight(1f),
-                        keyboardType = KeyboardType.Ascii,
-                        onCommit = onMetricCommit,
-                    )
-                    SetValueCell(
-                        label = "RIR",
-                        value = rmRir?.toString().orEmpty(),
-                        stateKey = "rm-rir-${set.id}-$setStateKeySuffix",
-                        listSkin = true,
-                        modifier = Modifier.weight(1f),
-                        keyboardType = KeyboardType.Number,
-                        onCommit = onRmRirCommit,
-                    )
-                } else {
-                    SetValueCell(
-                        label = metricLabel,
-                        value = metricValue,
-                        stateKey = "metric-${set.id}",
-                        listSkin = true,
-                        modifier = Modifier.weight(1f),
-                        enabled = false,
-                        onCommit = {},
-                    )
-                }
-            } else if (isSoloRpeMode) {
-                SetValueCell(
-                    label = metricLabel,
-                    value = metricValue,
-                    stateKey = "metric-${set.id}-${setStateKeySuffix}",
-                    listSkin = true,
-                    modifier = Modifier.weight(1f),
-                    keyboardType = KeyboardType.Decimal,
-                    onCommit = onSoloRpeCommit,
-                )
-            } else {
-                SetValueCell(
-                    label = metricLabel,
-                    value = metricValue,
-                    stateKey = "metric-${set.id}-${setStateKeySuffix}",
-                    listSkin = true,
-                    modifier = Modifier.weight(1f),
-                    keyboardType = if (trainingMode == TrainingMode.REPS || trainingMode == TrainingMode.AMRAP) KeyboardType.Ascii else KeyboardType.Number,
-                    onCommit = onMetricCommit,
-                )
-                if (isAmrapMode) {
-                    // Columna sin cifra: el rótulo en blanco mantiene la píldora a la altura de la celda de al lado.
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(" ", style = KpknType.caption, maxLines = 1)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            AmrapTag(calibrator = (set.purpose == SetPurpose.CALIBRATOR), modifier = Modifier.fillMaxWidth())
-                        }
-                    }
-                }
-                if (showValue) {
-                    SetValueCell(
-                        label = intensityValueLabel,
-                        value = intensityValue,
-                        stateKey = "intensity-${set.id}-${setStateKeySuffix}",
-                        listSkin = true,
-                        modifier = Modifier.weight(1f),
-                        keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
-                        onCommit = onIntensityValueCommit,
-                    )
-                }
-            }
-        }
-        if (rmDetailed) {
-            // Lo que antes era el campo «Reps est.» (ER2a): una línea de ayuda con las reps que salen al %RM.
-            estimatedMetric?.let { estimated ->
-                val reps = estimated.toInt()
-                Text(
-                    text = "≈ $reps ${if (reps == 1) "rep" else "reps"} máx. al " +
-                        "${formatMax2Decimals(set.targetPercentageRM ?: sliderPercent).replace('.', ',')} %",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                )
-            }
-        }
-        if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
-            IntensityRow(intensityOptions, intensitySelectedIndex)
-        }
-    }
-
     @Composable
     fun FieldsRow() {
         val metricWeight = if (listSkin) {
@@ -895,31 +668,6 @@ internal fun InlineSetRow(
     @Composable
     fun EstimateBox() {
         if (isSoloRpeMode) return
-        if (listSkin) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(KpknSurface.inset, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    estimateLine(listSkin = true),
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                )
-                if (isRmMode) {
-                    Slider(
-                        value = localSliderPercent,
-                        onValueChange = { localSliderPercent = it },
-                        onValueChangeFinished = onSliderFinished,
-                        valueRange = 45f..100f,
-                        enabled = percentReference != null,
-                        colors = inkSliderColors(),
-                    )
-                }
-            }
-        } else {
             Surface(
                 shape = RoundedCornerShape(if (isNarrowScreen) 12.dp else 14.dp),
                 color = estimatedSurface,
@@ -945,7 +693,6 @@ internal fun InlineSetRow(
                     }
                 }
             }
-        }
     }
 
     LaunchedEffect(set.isFailure, set.intensityMode) {
@@ -955,7 +702,8 @@ internal fun InlineSetRow(
     @Composable
     fun TechniqueSection() {
         if (!set.isFailure && set.intensityMode != IntensityMode.FAILURE) return
-        Text("¿Vas más allá del fallo?", style = KpknType.bodyStrong, color = WizardColors.text)
+        // En la fila de la lista el rótulo «¿Vas más allá del fallo?» lo dibuja el propio bloque de técnicas (ed-tech).
+        if (!listSkin) Text("¿Vas más allá del fallo?", style = KpknType.bodyStrong, color = WizardColors.text)
         InlineSetRowTechniqueChips(
             set = set,
             onUpdate = onUpdate,
@@ -965,14 +713,99 @@ internal fun InlineSetRow(
     }
 
     if (listSkin) {
+        // `ed-serie` (Pulido v1 · EDITOR): carga, dosis e intensidad como en el lienzo. El encabezado «Serie N de M», el descanso y las
+        // acciones los pone quien contiene la serie (ExerciseSetList, el cajón en vivo, las rondas de superserie).
+        val repRange = if (isUnilateral) activeSideTarget?.targetRepsRange else set.targetRepsRange
+        val plannedReps = uniOrSetInt({ it.targetReps }, { it?.targetReps })
+        var rangeMode by remember(set.id, activeUniSide) { mutableStateOf(repRange != null && repRange.min != repRange.max) }
+        LaunchedEffect(repRange?.min, repRange?.max) {
+            if (repRange != null && repRange.min != repRange.max) rangeMode = true
+        }
+        val baseReps = plannedReps ?: repRange?.max ?: 8
+        val rMin = repRange?.min ?: (baseReps - 2).coerceAtLeast(1)
+        val rMax = repRange?.max ?: baseReps
+        fun commitRange(min: Int, max: Int) = commitEditedField(
+            if (isUnilateral) updateUniSet { it.copy(targetReps = max, targetRepsRange = RepRange(min, max)) }
+            else { current -> current.copy(targetReps = max, targetRepsRange = RepRange(min, max)) },
+        )
+        val intensityUnit = set.intensityMode ?: IntensityMode.RPE
+        val intensityNumber: Double? = when (intensityUnit) {
+            IntensityMode.RPE -> uniOrSetDbl({ it.targetRPE }, { it?.targetRPE })
+            IntensityMode.RIR -> uniOrSetInt({ it.targetRIR }, { it?.targetRIR })?.toDouble()
+            else -> null
+        }
+        val intensityIsRpe = intensityUnit == IntensityMode.RPE
+        fun commitIntensity(raw: Double) {
+            val bounded = if (intensityIsRpe) (kotlin.math.round(raw * 2.0) / 2.0).coerceIn(1.0, 10.0) else kotlin.math.round(raw).coerceIn(0.0, 5.0)
+            onIntensityValueCommit(formatMax2Decimals(bounded))
+        }
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            if (!isSoloRpeMode) LoadTypeRow()
-            ListFieldsGrid()
-            EstimateBox()
-            TechniqueSection()
+            if (!isSoloRpeMode) {
+                EdLoadSection(
+                    mode = set.loadModeV2 ?: LoadModeV2.LOAD,
+                    weightKg = displayedWeight,
+                    onChangeMode = { mode -> commitEditedField { current -> current.copy(loadModeV2 = mode) } },
+                    onOpenSmartLoad = onOpenSmartLoad,
+                )
+            }
+            when {
+                isSoloRpeMode -> SoloRpeGoal(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE })) { onSoloRpeCommit(it.toString()) }
+                trainingMode == TrainingMode.TIME -> DurationGoal(metricValue.safeIntOrNull()) { onMetricCommit(it.toString()) }
+                trainingMode == TrainingMode.DISTANCE || trainingMode == TrainingMode.CUSTOM -> MetricGoal(
+                    label = if (trainingMode == TrainingMode.DISTANCE) "Distancia (m)" else customUnit?.ifBlank { "Unidad" } ?: "Unidad",
+                    hint = if (trainingMode == TrainingMode.DISTANCE) "metros por serie"
+                        else if (customUnit.isNullOrBlank()) "unidad por configurar" else "valor por serie",
+                    unit = if (trainingMode == TrainingMode.DISTANCE) "m" else null,
+                    value = metricValue.safeDoubleOrNull(),
+                    step = if (trainingMode == TrainingMode.DISTANCE) 5.0 else 1.0,
+                ) { onMetricCommit(it.toString()) }
+                else -> EdRepsSection(
+                    rangeMode = rangeMode,
+                    reps = plannedReps ?: repRange?.max,
+                    rangeMin = rMin,
+                    rangeMax = rMax,
+                    onRangeModeChange = { toRange ->
+                        rangeMode = toRange
+                        if (toRange) commitRange((baseReps - 2).coerceAtLeast(1), baseReps) else onMetricCommit(rMax.toString())
+                    },
+                    onStepReps = { direction -> onMetricCommit((baseReps + direction).coerceIn(1, 100).toString()) },
+                    onCommitReps = { input -> onMetricCommit(input) },
+                    onStepMin = { direction -> commitRange((rMin + direction).coerceIn(1, rMax), rMax) },
+                    onCommitMin = { input -> input.safeIntOrNull()?.let { commitRange(it.coerceIn(1, rMax), rMax) } },
+                    onStepMax = { direction -> commitRange(rMin, (rMax + direction).coerceIn(rMin, 100)) },
+                    onCommitMax = { input -> input.safeIntOrNull()?.let { commitRange(rMin, it.coerceIn(rMin, 100)) } },
+                )
+            }
+            if (!isSoloRpeMode && !isAmrapMode && !isRmMode) {
+                EdIntensitySection(
+                    unit = if (showPlannedIntensity) intensityUnit else null,
+                    valueText = intensityNumber?.let(::edNumber).orEmpty(),
+                    canDecrement = intensityNumber == null || intensityNumber > (if (intensityIsRpe) 1.0 else 0.0),
+                    canIncrement = intensityNumber == null || intensityNumber < (if (intensityIsRpe) 10.0 else 5.0),
+                    onAdd = {
+                        showPlannedIntensity = true
+                        commitEditedField { current ->
+                            current.copy(
+                                intensityMode = IntensityMode.RPE,
+                                targetRPE = current.targetRPE ?: 8.0,
+                                targetRIR = null,
+                                isFailure = false,
+                                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
+                            )
+                        }
+                    },
+                    onPickUnit = { mode -> applyIntensityMode(mode) },
+                    onStep = { direction ->
+                        val base = intensityNumber ?: if (intensityIsRpe) 8.0 else 2.0
+                        commitIntensity(base + direction * if (intensityIsRpe) 0.5 else 1.0)
+                    },
+                    onCommitText = { input -> input.safeDoubleOrNull()?.let { commitIntensity(it) } },
+                    beyondFailure = { TechniqueSection() },
+                )
+            }
         }
         return
     }
@@ -1094,55 +927,6 @@ internal fun InlineSetRow(
                 EstimateBox()
                 TechniqueSection()
             }
-        }
-    }
-}
-
-/**
- * Celda de la rejilla del tipo de carga (ER2a): la píldora de [KpknChip] con sus mismos tokens, pero ocupando toda su celda. Así las
- * cuatro celdas miden lo mismo aunque cada rótulo tenga otra anchura.
- */
-@Composable
-internal fun LoadTypeCell(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier,
-    testTag: String,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    val ink = if (selected) WizardColors.ctaContent else WizardColors.text
-    val edge = if (selected) Color.Transparent else Color.White.copy(alpha = 0.08f)
-    Box(
-        modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .testTag(testTag)
-            .selectable(
-                selected = selected,
-                interactionSource = interaction,
-                indication = null,
-                role = Role.RadioButton,
-                onClick = onClick,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .clip(KpknShape.pill)
-                .background(if (selected) WizardColors.text else KpknSurface.inset, KpknShape.pill)
-                .border(width = 1.dp, color = edge, shape = KpknShape.pill)
-                .padding(horizontal = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = text,
-                style = KpknType.chip,
-                color = ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
     }
 }

@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.WarmupSetDefinition
@@ -151,22 +153,19 @@ internal fun ExercisePreparationSection(
             }
         }
         if (!hasMobility || !hasWarmup) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
                 if (!hasMobility) {
                     PreparationDashedPill(
-                        text = "+ Movilidad",
+                        text = "Movilidad",
                         onClick = onOpenMobility,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.edFlex(grow = true),
                     )
                 }
                 if (!hasWarmup) {
                     PreparationDashedPill(
-                        text = "+ Aproximación",
+                        text = "Aproximación",
                         onClick = { onAddWarmup(onUpdateExercise) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.edFlex(grow = true),
                     )
                 }
             }
@@ -181,7 +180,11 @@ internal fun ExercisePreparationSection(
 internal fun targetWorkingWeightKg(sets: List<ExerciseSet>): Double? =
     sets.firstNotNullOfOrNull { set -> set.weight?.takeIf { !set.isEmptySlot && it.isFinite() && it > 0.0 } }
 
-/** Bloque plegable de la preparación (R1 §4.1): la ceja con su contador («APROXIMACIÓN · 3») y, desplegado, sus fichas. */
+/**
+ * Bloque de la preparación (`ed-pbh`): la ceja con su contador («MOVILIDAD 2») y, a la derecha, su ajuste común («Total · 2 min ⌄»,
+ * «Descanso común 1:00 ⌄»); debajo, sus fichas. En el lienzo no hay caja ni se pliega: [expanded] y [onToggle] se conservan en la firma
+ * por compatibilidad, pero el bloque siempre está a la vista.
+ */
 @Composable
 internal fun PreparationBlock(
     title: String,
@@ -191,48 +194,26 @@ internal fun PreparationBlock(
     trailing: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val stackTrailing = LocalDensity.current.fontScale >= 1.2f
-    KpknModule(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("preparation-block-${title.lowercase()}"),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+        // `.ed-pbh` y sus fichas van pegadas (las fichas ya traen 2 dp de aire); los bloques se separan 10 dp entre sí.
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .clickable(onClick = onToggle),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                "$title · $count",
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (!stackTrailing) trailing?.invoke()
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
-                tint = WizardColors.textMuted,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        if (stackTrailing && trailing != null) {
-            Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterEnd) {
-                trailing.invoke()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(title.uppercase(), style = edText(11f, FontWeight.SemiBold, EdColors.muted, 13.2f).copy(letterSpacing = 1.3.sp), maxLines = 1)
+                Text(count.toString(), style = edText(11f, FontWeight.SemiBold, EdColors.faint, 13.2f).copy(letterSpacing = 1.3.sp), maxLines = 1)
             }
+            // El ajuste común se encoge (con puntos suspensivos) antes de que el rótulo del bloque pierda una letra.
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { trailing?.invoke() }
         }
-        AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier = Modifier.padding(top = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) { content() }
-        }
+        content()
     }
 }
 

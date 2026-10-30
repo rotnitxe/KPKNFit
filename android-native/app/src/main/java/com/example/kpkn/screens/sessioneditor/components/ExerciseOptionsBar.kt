@@ -1,28 +1,16 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -32,25 +20,18 @@ import com.example.kpkn.data.models.UnilateralIntensityMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isInSuperset
-import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.RestBundleDialog
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
-import com.example.kpkn.ui.components.KpknDropdownMenu
-import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknModule
-import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSetFormat
-import com.example.kpkn.ui.design.KpknType
 
 /**
- * Barra de opciones del ejercicio desplegado (ER1c1, R1 §4.2): una fila de píldoras con rótulo que pasa a una segunda línea si no cabe.
- * «Modo» abre la hoja de los 7 modos; «Descanso» abre el mismo selector encadenado del original; y «⋯» reúne lo que quedaba
- * escondido (lateralidad, ROM, relación, superserie, unidad, carga inteligente y meta). Bilateral es el valor por defecto (B1).
+ * `ed-serie` · Barra de opciones del ejercicio desplegado (ER1c1, R1 §4.2): «Modo: Reps ⌄», el descanso del ejercicio (un reloj y el
+ * tiempo; en unilateral «Series 3:00 · Lados 0:15») y «⋯», que reúne lo que no cabe (lateralidad, APRE, ROM, relación, superserie,
+ * unidad, carga inteligente y meta). El descanso y «⋯» van al final de la línea; si no caben pasan a la siguiente. Bilateral es el valor
+ * por defecto (B1).
  */
 @Composable
 internal fun ExerciseOptionsBar(
@@ -77,69 +58,70 @@ internal fun ExerciseOptionsBar(
     val unilateral = exercise.isEffectivelyUnilateral()
     val chainWithSides = unilateral && !isSupersetExercise
 
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        KpknChip(
-            text = "Modo: ${trainingModeLabel(exercise.trainingMode)} ▾",
-            selected = false,
+    EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
+        EdChip(
+            text = "Modo: ${trainingModeLabel(exercise.trainingMode)}",
+            trailingIcon = KpknLineIcons.ChevronDown,
             onClick = { showModeSheet = true },
+            description = "Modo del ejercicio: ${trainingModeLabel(exercise.trainingMode)}",
         )
         if (!suppressIndividualRest) {
-            KpknChip(
+            EdChip(
                 text = if (chainWithSides) {
                     "Series ${KpknSetFormat.rest(restSelectionSeconds)} · Lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}"
                 } else {
-                    "Descanso ${KpknSetFormat.rest(restSelectionSeconds)}"
+                    KpknSetFormat.rest(restSelectionSeconds)
                 },
-                selected = false,
+                icon = KpknLineIcons.Timer,
                 onClick = onOpenRest,
+                modifier = Modifier.edFlex(autoStart = true),
+                description = "Descanso del ejercicio",
             )
         }
-        Box {
-            KpknIconButton(
-                icon = KpknLineIcons.More,
-                contentDescription = "Más opciones del ejercicio",
-                onClick = { showExerciseOptionsMenu = true },
-            )
-            if (showExerciseOptionsMenu) KpknSheet(onDismissRequest = { showExerciseOptionsMenu = false }) {
-                Text("Opciones del ejercicio", style = KpknType.dialogTitle, color = WizardColors.text,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
+        EdChip(
+            text = null,
+            icon = KpknLineIcons.More,
+            iconOnly = true,
+            onClick = { showExerciseOptionsMenu = true },
+            modifier = if (suppressIndividualRest) Modifier.edFlex(autoStart = true) else Modifier,
+            description = "Más opciones del ejercicio",
+        )
+    }
+
+    if (showExerciseOptionsMenu) {
+        EdSheet(onDismiss = { showExerciseOptionsMenu = false }) {
+            EdSheetHeader("Opciones del ejercicio")
+            Column(modifier = Modifier.edBleed(8.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 // B1/B8: bilateral es el valor por defecto; la lateralidad vive aquí, no como un segmentado fijo en la barra.
-                DropdownMenuItem(
-                    text = { Text("Lateralidad: ${if (unilateral) "Unilateral" else "Bilateral"}") },
+                EdMenuRow(
+                    title = "Lateralidad",
+                    subtitle = if (unilateral) "Unilateral" else "Bilateral",
+                    icon = EdIcons.SideLR,
                     onClick = {
                         showExerciseOptionsMenu = false
                         showLateralitySheet = true
                     },
                 )
                 if (exercise.trainingMode in listOf(TrainingMode.REPS, TrainingMode.RM, TrainingMode.AMRAP)) {
-                    DropdownMenuItem(text = { Text("Bloque APRE") }, onClick = {
-                        showExerciseOptionsMenu = false
-                        showApreSheet = true
-                    })
+                    EdMenuRow(
+                        title = "Bloque APRE",
+                        icon = EdIcons.Target2,
+                        onClick = {
+                            showExerciseOptionsMenu = false
+                            showApreSheet = true
+                        },
+                    )
                 }
                 // Pulido v1 (15): el mismo dato que el interruptor «Registrar ROM» de «Detalle del registro» en la sesión en vivo
-                // (`Exercise.trackRom`). Activo, cada serie del ejercicio nace con el slider de ROM al 100 %; apagado, sin ROM.
-                DropdownMenuItem(
-                    text = { Text(if (exercise.trackRom) "Registrar ROM · activo" else "Registrar ROM") },
-                    trailingIcon = if (exercise.trackRom) ({
-                        Icon(
-                            imageVector = KpknLineIcons.Check,
-                            contentDescription = "ROM activo",
-                            tint = WizardColors.text,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }) else null,
-                    onClick = {
-                        showExerciseOptionsMenu = false
-                        onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }
-                    },
+                // (`Exercise.trackRom`). Lienzo: la fila se activa y desactiva ahí mismo, sin cerrar la hoja.
+                EdMenuRow(
+                    title = if (exercise.trackRom) "Desactivar medir ROM" else "Medir ROM",
+                    icon = EdIcons.Rom,
+                    onClick = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
                 )
-                DropdownMenuItem(
-                    text = { Text(relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio") },
+                EdMenuRow(
+                    title = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
+                    icon = KpknLineIcons.Link,
                     onClick = {
                         showExerciseOptionsMenu = false
                         if (exercise.relativeToCanonicalExerciseId == null) {
@@ -151,24 +133,27 @@ internal fun ExerciseOptionsBar(
                 )
                 // ER1f: sin callback (un miembro de la superserie configurándose) no hay ítem que ofrecer.
                 if (onOpenSuperset != null) {
-                    DropdownMenuItem(
-                        text = { Text(if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie") },
+                    EdMenuRow(
+                        title = if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie",
+                        icon = KpknLineIcons.Layers,
                         onClick = {
                             showExerciseOptionsMenu = false
                             onOpenSuperset()
                         },
                     )
                 }
-                DropdownMenuItem(
-                    text = { Text("Unidad personalizada") },
+                EdMenuRow(
+                    title = "Unidad personalizada",
+                    icon = EdIcons.Ruler2,
                     onClick = {
                         showExerciseOptionsMenu = false
                         onOpenCustomUnit()
                     },
                 )
                 if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                    DropdownMenuItem(
-                        text = { Text("Carga inteligente") },
+                    EdMenuRow(
+                        title = "Carga inteligente",
+                        icon = EdIcons.Bolt,
                         onClick = {
                             showExerciseOptionsMenu = false
                             onOpenSmartLoad()
@@ -176,8 +161,9 @@ internal fun ExerciseOptionsBar(
                     )
                 }
                 if (onOpenGoal != null) {
-                    DropdownMenuItem(
-                        text = { Text("Meta") },
+                    EdMenuRow(
+                        title = "Meta",
+                        icon = EdIcons.Star,
                         onClick = {
                             showExerciseOptionsMenu = false
                             onOpenGoal()
@@ -211,8 +197,9 @@ internal fun ExerciseOptionsBar(
 }
 
 /**
- * Selector de descansos encadenado del original (R1 §4.2): el descanso de las series y, en unilateral, el de entre lados. Lo abren la
- * barra de opciones («Descanso» o «Series · Lados») y el módulo «Lados» («Entre lados»). Guarda igual que el botón de descansos original.
+ * `ed-descanso-ejercicio` · Selector de descansos encadenado del original (R1 §4.2): el descanso de las series y, en unilateral, el de entre
+ * lados. Lo abren la barra de opciones («Descanso» o «Series · Lados») y el módulo «Lados» («Entre lados»). Guarda igual que el botón de
+ * descansos original.
  */
 @Composable
 internal fun ExerciseRestChain(
@@ -260,7 +247,7 @@ private val exerciseModeOptions: List<Triple<TrainingMode, String, String>> = li
 )
 
 /**
- * Hoja «Modo» (R1 §4.2 / B4): elegir un modo solo lo marca; «Aplicar modo» confirma antes de tocarlo y lo hace con
+ * `ed-modo` · Hoja «Modo» (R1 §4.2 / B4): elegir un modo solo lo marca; «Aplicar modo» confirma antes de tocarlo y lo hace con
  * [withTrainingMode], que conserva el propósito AMRAP y su mínimo al entrar en AMRAP y los limpia al salir.
  */
 @Composable
@@ -270,7 +257,7 @@ internal fun ExerciseModeSheet(
     onDismiss: () -> Unit,
 ) {
     var selected by remember(current) { mutableStateOf(current) }
-    KpknSheet(onDismissRequest = onDismiss) {
+    EdSheet(onDismiss = onDismiss) {
         ExerciseModeSheetBody(
             current = current,
             selected = selected,
@@ -290,45 +277,25 @@ internal fun ExerciseModeSheetBody(
     onSelect: (TrainingMode) -> Unit,
     onConfirm: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Text("Modo del ejercicio", style = KpknType.dialogTitle, color = WizardColors.text)
-        Text("Cómo se prescriben sus series", style = KpknType.caption, color = WizardColors.textMuted)
-        exerciseModeOptions.forEach { (mode, label, description) ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .clickable { onSelect(mode) }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(label, style = KpknType.bodyStrong, color = WizardColors.text)
-                    Text(description, style = KpknType.caption, color = WizardColors.textMuted)
-                }
-                if (mode == selected) {
-                    Icon(
-                        imageVector = KpknLineIcons.Check,
-                        contentDescription = if (mode == current) "Modo actual" else "Modo elegido",
-                        tint = WizardColors.text,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        EdSheetHeader("Modo del ejercicio", "Cómo se prescriben sus series")
+        Column(
+            modifier = Modifier.edBleed(8.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            exerciseModeOptions.forEach { (mode, label, description) ->
+                EdMenuRow(
+                    title = label,
+                    subtitle = description,
+                    checked = mode == selected,
+                    description = if (mode == selected) "$label, ${if (mode == current) "modo actual" else "modo elegido"}" else label,
+                    onClick = { onSelect(mode) },
+                )
             }
         }
-        KpknPrimaryPill(
+        EdPrimaryButton(
             text = if (selected == current) "Listo" else "Aplicar ${trainingModeLabel(selected)}",
             onClick = onConfirm,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
         )
     }
 }
@@ -343,7 +310,7 @@ internal fun LateralitySheet(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    KpknSheet(onDismissRequest = onDismiss) {
+    EdSheet(onDismiss = onDismiss) {
         LateralitySheetBody(
             exercise = exercise,
             onUpdateExercise = onUpdateExercise,
@@ -360,66 +327,41 @@ internal fun LateralitySheetBody(
     onDismiss: () -> Unit,
 ) {
     val unilateral = exercise.isEffectivelyUnilateral()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Text("Lateralidad", style = KpknType.dialogTitle, color = WizardColors.text)
-        Text("Si el ejercicio se hace con los dos lados a la vez o de a uno", style = KpknType.caption, color = WizardColors.textMuted)
-        listOf(
-            false to ("Bilateral" to "Los dos lados a la vez, una sola serie."),
-            true to ("Unilateral" to "Un lado por serie, con registro L y R."),
-        ).forEach { (isUnilateral, option) ->
-            val (label, description) = option
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .clickable {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        EdSheetHeader("Lateralidad", "Si el ejercicio se hace con los dos lados a la vez o de a uno")
+        Column(modifier = Modifier.edBleed(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            listOf(
+                false to ("Bilateral" to "Los dos lados a la vez, una sola serie."),
+                true to ("Unilateral" to "Un lado por serie, con registro L y R."),
+            ).forEach { (isUnilateral, option) ->
+                val (label, description) = option
+                EdMenuRow(
+                    title = label,
+                    subtitle = description,
+                    checked = isUnilateral == unilateral,
+                    description = if (isUnilateral == unilateral) "$label, lateralidad actual" else label,
+                    onClick = {
                         if (isUnilateral != unilateral) {
                             onUpdateExercise { current -> current.toggledBilateralUnilateral() }
                         }
                         onDismiss()
-                    }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(label, style = KpknType.bodyStrong, color = WizardColors.text)
-                    Text(description, style = KpknType.caption, color = WizardColors.textMuted)
-                }
-                if (isUnilateral == unilateral) {
-                    Icon(
-                        imageVector = KpknLineIcons.Check,
-                        contentDescription = "Lateralidad actual",
-                        tint = WizardColors.text,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+                    },
+                )
             }
         }
         if (unilateral) {
-            Text(
-                "ORDEN DE LADOS",
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-                modifier = Modifier.padding(top = 12.dp),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip(
+            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                EdNumberPill(
                     text = "L → R",
-                    selected = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT,
+                    on = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT,
                     onClick = {
                         onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.LEFT_RIGHT) }
                         onDismiss()
                     },
                 )
-                KpknChip(
+                EdNumberPill(
                     text = "R → L",
-                    selected = exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT,
+                    on = exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT,
                     onClick = {
                         onUpdateExercise { it.copy(unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT) }
                         onDismiss()
@@ -431,7 +373,8 @@ internal fun LateralitySheetBody(
 }
 
 /**
- * Módulo «Lados» de un ejercicio unilateral (R1 §4.2): orden L/R, lados iguales o aparte y el descanso entre lados, en un solo módulo.
+ * `ed-unilateral` · Fila «Lados» de un ejercicio unilateral (R1 §4.2): orden L → R / R → L, lados iguales o aparte y el descanso entre
+ * lados, tres píldoras bajo las opciones. Si son iguales, lo que editas en un lado se copia al otro.
  */
 @Composable
 internal fun SideOptionsModule(
@@ -440,107 +383,40 @@ internal fun SideOptionsModule(
     onOpenSideRest: () -> Unit,
 ) {
     val shared = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
-    KpknModule(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Text("LADOS", style = KpknType.eyebrow, color = WizardColors.textMuted)
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            KpknChip(
-                text = if (exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) "Orden L/R" else "Orden R/L",
-                selected = false,
-                onClick = {
-                    onUpdateExercise { current ->
-                        current.copy(
-                            unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                UnilateralSideOrder.RIGHT_LEFT
-                            } else {
-                                UnilateralSideOrder.LEFT_RIGHT
-                            },
-                        )
-                    }
-                },
-            )
-            KpknChip(
-                text = if (shared) "Lados iguales" else "Lados aparte",
-                selected = shared,
-                onClick = {
-                    onUpdateExercise { current ->
-                        current.copy(
-                            unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                                UnilateralIntensityMode.INDEPENDENT
-                            } else {
-                                UnilateralIntensityMode.SHARED
-                            },
-                        )
-                    }
-                },
-            )
-            KpknChip(
-                text = "Entre lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}",
-                selected = false,
-                onClick = onOpenSideRest,
-            )
-        }
-    }
-}
-
-/** Módulo «Carga inteligente» de una línea (R1 §4.2). No sale en Solo RPE. */
-@Composable
-internal fun SmartLoadModule(
-    accentColor: Color,
-    onOpen: () -> Unit,
-) {
-    KpknModule(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onOpen,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = KpknLineIcons.Training,
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                "Carga inteligente",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-            Icon(
-                imageVector = KpknLineIcons.ChevronRight,
-                contentDescription = null,
-                tint = WizardColors.textMuted,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-    }
-}
-
-/** Módulo «Unidad personalizada» del modo Personalizado (R1 §4.2): abre el diálogo de la unidad. */
-@Composable
-internal fun CustomUnitModule(
-    customUnit: String,
-    onOpen: () -> Unit,
-) {
-    KpknModule(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onOpen,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Text("UNIDAD PERSONALIZADA", style = KpknType.eyebrow, color = WizardColors.textMuted)
-        Text(
-            customUnit.ifBlank { "Presiona para configurar" },
-            style = KpknType.bodyStrong,
-            color = if (customUnit.isBlank()) WizardColors.textMuted else WizardColors.text,
+    EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
+        EdChip(
+            text = if (exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) "Orden L → R" else "Orden R → L",
+            onClick = {
+                onUpdateExercise { current ->
+                    current.copy(
+                        unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                            UnilateralSideOrder.RIGHT_LEFT
+                        } else {
+                            UnilateralSideOrder.LEFT_RIGHT
+                        },
+                    )
+                }
+            },
+            description = "Orden de los lados",
+        )
+        EdChip(
+            text = if (shared) "Lados iguales" else "Lados aparte",
+            on = shared,
+            onClick = {
+                onUpdateExercise { current ->
+                    current.copy(
+                        unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+                            UnilateralIntensityMode.INDEPENDENT
+                        } else {
+                            UnilateralIntensityMode.SHARED
+                        },
+                    )
+                }
+            },
+        )
+        EdChip(
+            text = "Entre lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}",
+            onClick = onOpenSideRest,
         )
     }
 }

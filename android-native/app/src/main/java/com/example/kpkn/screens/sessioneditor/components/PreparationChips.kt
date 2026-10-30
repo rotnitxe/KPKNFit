@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -92,7 +94,8 @@ private fun normalizePercentage(rawPercentage: Double): Double {
 /** Descripción de una dosis de movilidad, como la cuenta el tablero H2/H4. */
 internal fun mobilityDoseText(series: MobilitySeries): String {
     val dose = if (mobilityIsTimed(series)) {
-        series.durationSeconds?.takeIf { it > 0 }?.let { KpknSetFormat.doseTime(it) } ?: "—"
+        // Lienzo (ed-preparacion): «45 s», «60 s»; los segundos no pasan a m:ss.
+        series.durationSeconds?.takeIf { it > 0 }?.let { "$it s" } ?: "—"
     } else {
         series.reps?.takeIf { it.isNotBlank() }?.let { "$it reps" } ?: "—"
     }
@@ -104,48 +107,37 @@ private fun mobilityIsTimed(series: MobilitySeries): Boolean =
 
 // ───────────────────────────── fichas ─────────────────────────────
 
-/** Ficha «Añadir» de borde punteado, con la misma medida que las demás. */
+/** Ficha «+» de borde punteado, con la misma medida que las demás (`ed-sc add`, 56 × 76). */
 @Composable
 private fun AddPreparationChip(
     text: String,
     tag: String,
     onClick: () -> Unit,
 ) {
-    val edge = Color.White.copy(alpha = 0.24f)
-    Column(
+    EditorAddChip(
+        label = null,
+        width = 56.dp,
+        plusSize = 22.dp,
+        description = if (tag.startsWith("mobility")) "Añadir movilidad" else "Añadir aproximación",
+        tag = tag,
+        onClick = onClick,
+    )
+}
+
+/** `ed-pbh button`: acción de texto de la cabecera de un bloque («Descanso común 1:00 ⌄», «Total · 2 min ⌄»), 44 dp de alto. */
+@Composable
+private fun PreparationHeaderButton(text: String, tag: String, onClick: () -> Unit) {
+    Row(
         modifier = Modifier
-            .testTag(tag)
-            .size(SessionEditorChipMetrics.width, SessionEditorChipMetrics.height)
-            .clip(RoundedCornerShape(SessionEditorChipMetrics.radius))
+            .height(44.dp)
             .clickable(role = Role.Button, onClick = onClick)
-            .drawBehind {
-                val stroke = 1.dp.toPx()
-                drawRoundRect(
-                    color = edge,
-                    topLeft = Offset(stroke / 2f, stroke / 2f),
-                    size = Size(size.width - stroke, size.height - stroke),
-                    cornerRadius = CornerRadius(SessionEditorChipMetrics.radius.toPx()),
-                    style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))),
-                )
-            }
-            .padding(horizontal = 4.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 4.dp)
+            .testTag(tag),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(
-            imageVector = KpknLineIcons.Plus,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.62f),
-            modifier = Modifier.size(20.dp),
-        )
-        Text(
-            text = text,
-            color = Color.White.copy(alpha = 0.72f),
-            fontSize = 11.sp,
-            lineHeight = 16.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Text(text = text, style = edText(12.5f, FontWeight.SemiBold, EdColors.muted, 15.6f), maxLines = 1)
+        EdIcon(KpknLineIcons.ChevronDown, 14.dp, EdColors.muted)
     }
 }
 
@@ -160,30 +152,7 @@ internal fun WarmupCommonRestButton(
         sets.groupingBy { it.restBetween ?: 60 }.eachCount().maxByOrNull { it.value }?.key ?: 60
     }
     var showPicker by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier
-            .heightIn(min = SessionEditorChipMetrics.minTouchTarget)
-            .clip(RoundedCornerShape(24.dp))
-            .background(KpknInset)
-            .clickable(role = Role.Button) { showPicker = true }
-            .padding(horizontal = 10.dp)
-            .testTag("warmup-common-rest"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(
-            imageVector = KpknLineIcons.Clock,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.62f),
-            modifier = Modifier.size(15.dp),
-        )
-        Text(
-            text = formatRestSummary(common),
-            style = KpknType.chip,
-            color = KpknInk,
-            maxLines = 1,
-        )
-    }
+    PreparationHeaderButton(text = "Descanso común ${KpknSetFormat.rest(common)}", tag = "warmup-common-rest", onClick = { showPicker = true })
     if (showPicker) {
         KpknNativeTimePickerDialog(
             title = "Descanso común de aproximaciones",
@@ -209,30 +178,11 @@ internal fun MobilityGlobalTimeButton(
 ) {
     var showTimer by remember { mutableStateOf(false) }
     val totalMinutes = (mobilityConfig?.totalMinutes ?: 0).coerceAtLeast(0)
-    Row(
-        modifier = Modifier
-            .heightIn(min = SessionEditorChipMetrics.minTouchTarget)
-            .clip(RoundedCornerShape(24.dp))
-            .background(KpknInset)
-            .clickable(role = Role.Button) { showTimer = true }
-            .padding(horizontal = 10.dp)
-            .testTag("mobility-global-time"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(
-            imageVector = KpknLineIcons.Clock,
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.62f),
-            modifier = Modifier.size(15.dp),
-        )
-        Text(
-            text = if (totalMinutes > 0) "Total · $totalMinutes min" else "Definir tiempo",
-            style = KpknType.chip,
-            color = KpknInk,
-            maxLines = 1,
-        )
-    }
+    PreparationHeaderButton(
+        text = if (totalMinutes > 0) "Total · $totalMinutes min" else "Definir tiempo",
+        tag = "mobility-global-time",
+        onClick = { showTimer = true },
+    )
     if (showTimer) {
         KpknNativeTimePickerDialog(
             title = "Tiempo de movilidad",
@@ -284,25 +234,22 @@ internal fun WarmupPreparationChips(
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(SessionEditorChipMetrics.gap),
-        contentPadding = PaddingValues(0.dp),
+        contentPadding = PaddingValues(vertical = 2.dp),
     ) {
         items(ordered, key = { it.id }) { warmup ->
             val index = ordered.indexOfFirst { it.id == warmup.id }
             val fraction = normalizePercentage(warmup.percentageOfWorkingWeight)
-            val rest = warmup.restBetween ?: 60
-            val suffix = if (rest != commonRest) " · ${formatRestSummary(rest)}" else ""
             val load = warmupLoadKg(fraction, workingWeightKg, capacityKg)
             EditorPreparationChip(
-                label = "A${index + 1}$suffix",
+                label = "A${index + 1}",
                 value = "${percentageText(fraction)} %",
-                detail = if (load != null) {
-                    "${warmup.targetReps} × ${formatEditableNumber(load).replace('.', ',')} kg"
-                } else {
-                    "${warmup.targetReps} reps"
-                },
-                valueColor = if (fraction >= WARMUP_EFFECTIVE_THRESHOLD) KpknDanger else KpknInk,
+                detail = "${warmup.targetReps} reps",
+                valueColor = KpknInk,
                 selected = warmup.id == expandedId,
                 tag = "warmup-chip-${warmup.id}",
+                description = "Aproximación ${index + 1}: ${percentageText(fraction)} %, ${warmup.targetReps} reps" +
+                    (load?.let { ", ${kilogramsText(it)}" } ?: "") +
+                    (warmup.restBetween?.takeIf { it != commonRest }?.let { ", descanso ${formatRestSummary(it)}" } ?: ""),
                 onClick = { expandedId = if (expandedId == warmup.id) null else warmup.id },
             )
         }
@@ -312,14 +259,7 @@ internal fun WarmupPreparationChips(
     }
 
     val focused = ordered.firstOrNull { it.id == expandedId }
-    if (focused == null) {
-        Text(
-            text = "Sin aproximaciones abiertas. Toca una ficha para ajustar su carga.",
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-    } else {
+    if (focused != null) {
         val focusedIndex = ordered.indexOfFirst { it.id == focused.id }
         WarmupFocusPanel(
             warmup = focused,
@@ -340,23 +280,24 @@ internal fun WarmupPreparationChips(
     }
 
     warmupValidationMessages(sets, effectiveSetCount).forEach { message ->
-        Text(
+        EdHelpText(
             text = message,
-            style = KpknType.caption,
             color = KpknDanger,
             modifier = Modifier
                 .padding(top = 2.dp)
                 .testTag("warmup-warning"),
         )
     }
-    Text(
+    EdHelpText(
         text = "Máximo recomendado: ${recommendedWarmupMax(effectiveSetCount)} aproximaciones para $effectiveSetCount series efectivas.",
-        style = KpknType.caption,
-        color = WizardColors.textMuted,
         modifier = Modifier.testTag("warmup-max-recommended"),
     )
 }
 
+/**
+ * `ed-preparacion` · foco de una aproximación: «Aproximación N» con ‹ ›, los dos campos con − y + (carga en % de 5 en 5 y repeticiones),
+ * la carga sugerida debajo y dos botones, «Quitar» y «Listo». El descanso es el común del bloque (la cabecera).
+ */
 @Composable
 private fun WarmupFocusPanel(
     warmup: WarmupSetDefinition,
@@ -372,163 +313,103 @@ private fun WarmupFocusPanel(
 ) {
     val fraction = normalizePercentage(warmup.percentageOfWorkingWeight)
     val suggestedLoad = warmupLoadKg(fraction, workingWeightKg, capacityKg)
-    val basis = warmupBaseLoadKg(workingWeightKg, capacityKg)
-    var showRestPicker by remember(warmup.id) { mutableStateOf(false) }
-    val restSeconds = warmup.restBetween ?: 60
-    val shape = RoundedCornerShape(22.dp)
+    val percent = (fraction * 100.0).let { kotlin.math.round(it * 10.0) / 10.0 }
+    val lineColor = Color.White.copy(alpha = 0.063f)
+
+    fun setPercent(value: Double) = onUpdate(warmup.id) { it.copy(percentageOfWorkingWeight = (value / 100.0).coerceIn(0.1, 0.95)) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp)
-            .clip(shape)
-            .background(Color(0xFF0E0E0E))
-            .border(1.dp, Color.White.copy(alpha = 0.10f), shape)
-            .padding(12.dp)
-            .testTag("warmup-focus"),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .testTag("warmup-focus")
+            .drawBehind { drawLine(lineColor, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
+            .padding(top = 13.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Aproximación ${index + 1}",
-                    style = KpknType.bodyStrong,
-                    color = KpknInk,
+        // pulido:ed-J01 la aproximación abierta se pinta con `animation:none` · ed-A06 .ed-focus.anim al cambiar de ficha
+        Box(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
+            Text("Aproximación ${index + 1}", style = edText(14f, FontWeight.SemiBold, EdColors.ink, 17.5f), maxLines = 1)
+            Row(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(align = Alignment.CenterVertically, unbounded = true),
+                horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
+            ) {
+                PreparationNavButton(
+                    icon = KpknLineIcons.ChevronLeft,
+                    contentDescription = "Aproximación anterior",
+                    enabled = onPrevious != null,
+                    onClick = { onPrevious?.invoke() },
                 )
-                Text(
-                    text = if (count == 1) "1 aproximación" else "$count aproximaciones",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
+                PreparationNavButton(
+                    icon = KpknLineIcons.ChevronRight,
+                    contentDescription = "Aproximación siguiente",
+                    enabled = onNext != null,
+                    onClick = { onNext?.invoke() },
                 )
-            }
-            PreparationNavButton(
-                icon = KpknLineIcons.ChevronLeft,
-                contentDescription = "Aproximación anterior",
-                enabled = onPrevious != null,
-                onClick = { onPrevious?.invoke() },
-            )
-            PreparationNavButton(
-                icon = KpknLineIcons.ChevronRight,
-                contentDescription = "Aproximación siguiente",
-                enabled = onNext != null,
-                onClick = { onNext?.invoke() },
-            )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-            EditorMiniField(
-                label = "Carga (%)",
-                value = percentageText(fraction),
-                stateKey = "warmup-focus-percent-${warmup.id}",
-                keyboardType = KeyboardType.Decimal,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("warmup-focus-percent"),
-            ) { input ->
-                parseDecimal(input)?.let { value ->
-                    onUpdate(warmup.id) { it.copy(percentageOfWorkingWeight = (value / 100.0).coerceIn(0.1, 0.95)) }
-                }
-            }
-            EditorMiniField(
-                label = "Reps",
-                value = warmup.targetReps.toString(),
-                stateKey = "warmup-focus-reps-${warmup.id}",
-                keyboardType = KeyboardType.Number,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("warmup-focus-reps"),
-            ) { input ->
-                input.trim().toIntOrNull()?.let { value ->
-                    onUpdate(warmup.id) { it.copy(targetReps = value.coerceAtLeast(1)) }
-                }
-            }
-            EditorMiniField(
-                label = "Kg",
-                value = suggestedLoad?.let { formatEditableNumber(it).replace('.', ',') }.orEmpty(),
-                stateKey = "warmup-focus-kg-${warmup.id}",
-                keyboardType = KeyboardType.Decimal,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("warmup-focus-kg"),
-            ) { input ->
-                val kg = parseDecimal(input)
-                if (kg != null && kg > 0.0 && basis != null) {
-                    onUpdate(warmup.id) {
-                        it.copy(percentageOfWorkingWeight = (kg / basis).coerceIn(0.1, 0.95))
-                    }
-                }
             }
         }
-        Slider(
-            value = (fraction * 100.0).toFloat(),
-            onValueChange = { value ->
-                onUpdate(warmup.id) { it.copy(percentageOfWorkingWeight = (value.toDouble() / 100.0).coerceIn(0.1, 0.95)) }
-            },
-            valueRange = 10f..95f,
-            colors = SliderDefaults.colors(
-                thumbColor = KpknEnergy,
-                activeTrackColor = KpknEnergy,
-                inactiveTrackColor = Color.White.copy(alpha = 0.16f),
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = SessionEditorChipMetrics.minTouchTarget)
-                .testTag("warmup-focus-slider"),
-        )
-        Text(
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            EdSection(label = "Carga (%)", modifier = Modifier.weight(1f)) {
+                EdStepperField(
+                    text = percentageText(fraction),
+                    label = "Carga en por ciento",
+                    compact = true,
+                    onStep = { direction -> setPercent(percent + direction * 5.0) },
+                    canDecrement = percent > 10.0,
+                    canIncrement = percent < 95.0,
+                    keyboard = KeyboardType.Decimal,
+                    onCommitText = { input -> parseDecimal(input)?.let { setPercent(it) } },
+                    minusDescription = "Menos carga",
+                    plusDescription = "Más carga",
+                    // Como el lienzo (el flex de `.ed-sec` lo deja en 25 px); los botones conservan su zona táctil de 48 dp.
+                    height = 25.dp,
+                    modifier = Modifier.testTag("warmup-focus-percent"),
+                )
+            }
+            EdSection(label = "Reps", modifier = Modifier.weight(1f)) {
+                EdStepperField(
+                    text = warmup.targetReps.toString(),
+                    label = "Repeticiones",
+                    compact = true,
+                    onStep = { direction ->
+                        onUpdate(warmup.id) { it.copy(targetReps = (it.targetReps + direction).coerceIn(1, 30)) }
+                    },
+                    canDecrement = warmup.targetReps > 1,
+                    canIncrement = warmup.targetReps < 30,
+                    onCommitText = { input ->
+                        input.trim().toIntOrNull()?.let { value -> onUpdate(warmup.id) { it.copy(targetReps = value.coerceIn(1, 30)) } }
+                    },
+                    minusDescription = "Menos repeticiones de la aproximación",
+                    plusDescription = "Más repeticiones de la aproximación",
+                    height = 25.dp,
+                    modifier = Modifier.testTag("warmup-focus-reps"),
+                )
+            }
+        }
+        EdHelpText(
             text = suggestedLoad?.let { "Sugerida: ${kilogramsText(it)} · entre 10 % y 95 % · al menos 1 repetición" }
                 ?: "${percentageText(fraction)} % de la carga de la primera serie efectiva · entre 10 % y 95 %",
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
         )
         if (fraction >= WARMUP_EFFECTIVE_THRESHOLD) {
-            Text(
+            EdHelpText(
                 text = "Una aproximación al 85 % o más puede comportarse como una serie efectiva; revisa su carga y repeticiones.",
-                style = KpknType.caption,
                 color = KpknDanger,
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = SessionEditorChipMetrics.minTouchTarget)
-                .clip(RoundedCornerShape(12.dp))
-                .background(KpknInset)
-                .clickable(role = Role.Button) { showRestPicker = true }
-                .padding(horizontal = 10.dp)
-                .testTag("warmup-focus-rest"),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = KpknLineIcons.Clock,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.62f),
-                modifier = Modifier.size(16.dp),
+        EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
+            EdActionButton(
+                text = "Quitar",
+                icon = null,
+                onClick = { onRemove(warmup.id) },
+                modifier = Modifier.edFlex(grow = true).testTag("warmup-focus-remove"),
+                color = EdColors.danger,
             )
-            Text(
-                text = "Descanso · ${formatRestSummary(restSeconds)}",
-                style = KpknType.caption,
-                color = KpknInk,
+            EdActionButton(
+                text = "Listo",
+                icon = null,
+                onClick = onClose,
+                modifier = Modifier.edFlex(grow = true).testTag("warmup-focus-done"),
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            FocusAction(text = "Quitar", color = KpknDanger, tag = "warmup-focus-remove") { onRemove(warmup.id) }
-            FocusAction(text = "Cerrar", color = KpknInk, tag = "warmup-focus-close", onClick = onClose)
-            FocusAction(text = "Listo", color = Color(0xFF0B0B0B), fill = KpknInk, tag = "warmup-focus-done", onClick = onClose)
-        }
-    }
-    if (showRestPicker) {
-        KpknNativeTimePickerDialog(
-            title = "Descanso de aproximación",
-            initialHour = (restSeconds / 60).coerceIn(0, 23),
-            initialMinute = (restSeconds % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                onUpdate(warmup.id) { it.copy(restBetween = (minutes * 60 + seconds).coerceAtLeast(0)) }
-                showRestPicker = false
-            },
-            onDismiss = { showRestPicker = false },
-        )
     }
 }
 
@@ -542,7 +423,7 @@ private fun PreparationNavButton(
 ) {
     Box(
         modifier = Modifier
-            .size(SessionEditorChipMetrics.minTouchTarget)
+            .size(44.dp)
             .clip(CircleShape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -550,7 +431,7 @@ private fun PreparationNavButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = if (enabled) KpknInk else WizardColors.textFaint,
+            tint = if (enabled) KpknInk else EdColors.dim,
             modifier = Modifier.size(20.dp),
         )
     }
@@ -608,7 +489,7 @@ internal fun MobilityPreparationChips(
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(SessionEditorChipMetrics.gap),
-        contentPadding = PaddingValues(0.dp),
+        contentPadding = PaddingValues(vertical = 2.dp),
     ) {
         items(series, key = { it.id }) { mobility ->
             val index = series.indexOfFirst { it.id == mobility.id }
@@ -620,19 +501,6 @@ internal fun MobilityPreparationChips(
                 selected = mobility.id == expandedId,
                 tag = "mobility-chip-${mobility.id}",
                 description = "${mobility.name}, ${mobilityDoseText(mobility)}",
-                content = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        MobilityArt(mobility, 20.dp, "chip")
-                        Text("M${index + 1}", color = WizardColors.textMuted, fontSize = 10.sp, lineHeight = 12.sp,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    Text(shortMobilityName(mobility.name), color = KpknInk, fontFamily = WizardFonts.body,
-                        fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 15.sp,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(mobilityDoseText(mobility), color = KpknEnergy, fontFamily = WizardFonts.display,
-                        fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 17.sp,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                },
                 onClick = { expandedId = if (expandedId == mobility.id) null else mobility.id },
             )
         }
@@ -641,30 +509,8 @@ internal fun MobilityPreparationChips(
         }
     }
 
-    if (series.isNotEmpty()) {
-        Text(
-            text = mobilityTotalSummary(series),
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            modifier = Modifier
-                .padding(top = 6.dp)
-                .testTag("mobility-total-summary"),
-        )
-    }
-
     val focused = series.firstOrNull { it.id == expandedId }
-    if (focused == null) {
-        Text(
-            text = if (series.isEmpty()) {
-                "Sin movimientos. Elige uno del catálogo."
-            } else {
-                "Toca una ficha para ajustar su dosis."
-            },
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-    } else {
+    if (focused != null) {
         val focusedIndex = series.indexOfFirst { it.id == focused.id }
         Column(
             modifier = Modifier

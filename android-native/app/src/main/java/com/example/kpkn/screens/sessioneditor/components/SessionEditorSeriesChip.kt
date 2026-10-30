@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 
 private val KpknInk = Color(0xFFF2EEE6)
-private val KpknInset = Color(0xFF111111)
+/** `.ed-sc`: el fondo de la ficha es #0D0D0D (más hondo que el módulo #111). */
+private val KpknInset = Color(0xFF0D0D0D)
 
 /**
  * Medidas de una ficha de la preparación (H1/H2, R5): exactamente la misma ficha que las series efectivas del tablero
@@ -61,6 +62,7 @@ internal fun EditorPreparationChip(
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(SessionEditorChipMetrics.radius)
+    // pulido:ed-T23 .ed-sc borde y fondo 0,18 s + escala con rebote (0,18 s) · ed-A10 .ed-sc.flash 0,6 s tras «Aplicar a todas»
     val density = androidx.compose.ui.platform.LocalDensity.current
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val available = with(density) { (SessionEditorChipMetrics.width - 16.dp).toPx() }
@@ -79,7 +81,7 @@ internal fun EditorPreparationChip(
             .background(if (selected) Color(0xFF232323) else KpknInset)
             .border(
                 width = 1.dp,
-                color = if (selected) KpknInk else Color.White.copy(alpha = 0.10f),
+                color = if (selected) KpknInk else Color.White.copy(alpha = 0.102f),
                 shape = shape,
             )
             .selectable(selected = selected, enabled = enabled, role = Role.Button, onClick = onClick)
@@ -93,7 +95,7 @@ internal fun EditorPreparationChip(
             Text(
                 text = label,
                 color = Color.White.copy(alpha = 0.62f),
-                fontSize = 10.sp,
+                fontSize = 10.5.sp,
                 lineHeight = 12.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -143,4 +145,48 @@ internal fun EffectiveSeriesChip(
         enabled = enabled,
         onClick = onClick,
     )
+}
+
+/**
+ * `.ed-sc.add`: ficha punteada de la misma altura (76 dp) que las demás. Sin [label] es «+ Añadir serie» (56 dp); con él, la ficha
+ * de un lado que falta en un ejercicio unilateral («R3», 64 dp) con el nombre encima del «+».
+ */
+@Composable
+internal fun EditorAddChip(
+    label: String?,
+    width: androidx.compose.ui.unit.Dp,
+    plusSize: androidx.compose.ui.unit.Dp,
+    description: String,
+    tag: String,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(SessionEditorChipMetrics.radius)
+    Column(
+        modifier = Modifier
+            .testTag(tag)
+            .semantics { contentDescription = description }
+            .size(width, SessionEditorChipMetrics.height)
+            .clip(shape)
+            .selectable(selected = false, role = Role.Button, onClick = onClick)
+            .edDashedBorder(Color.White.copy(alpha = 0.2f), SessionEditorChipMetrics.radius, 1.dp)
+            .padding(horizontal = 8.dp, vertical = 7.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (label != null) {
+            Text(
+                text = label,
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.5.sp,
+                lineHeight = 12.sp,
+                maxLines = 1,
+            )
+        }
+        androidx.compose.material3.Icon(
+            imageVector = com.example.kpkn.ui.components.icons.KpknLineIcons.Plus,
+            contentDescription = null,
+            tint = Color(0xFFC4BFB6),
+            modifier = Modifier.size(plusSize),
+        )
+    }
 }

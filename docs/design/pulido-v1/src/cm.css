@@ -1,0 +1,68 @@
+/* CIMIENTOS (cm): hojas de calibración. Todas las clases y @keyframes empiezan por cm-. */
+/* La hoja ocupa el teléfono entero a 360 × 880: sin marco, sin esquinas redondeadas y sin barra de estado, velo ni barra de inicio. */
+.phone:has(.cm-sheet){border:0;border-radius:0;box-shadow:none}
+.phone:has(.cm-sheet) .statusbar,.phone:has(.cm-sheet) .veil,.phone:has(.cm-sheet) .homebar{display:none}
+.cm-sheet{position:absolute;inset:0;background:#0B0B0C;overflow:hidden;font-family:Inter,Arial,sans-serif;color:#c4bfb6;font-size:10px;isolation:isolate}
+.cm-sheet *{box-sizing:border-box}
+.cm-h{position:absolute;left:0;right:0;top:0;height:56px;padding:14px 16px 0;background:#0B0B0C;display:flex;flex-direction:column;gap:3px;z-index:5;pointer-events:none}
+.cm-h b{font:700 11px/1.1 Syne,Inter,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#f2eee6}
+.cm-h span{font:500 10px/1.2 Inter;color:#8e8980}
+/* Muestras de sombra: 140 × 84, radio 24, superficie #1B1B1D */
+.cm-s{position:absolute;width:140px;height:84px;border-radius:24px;background:#1B1B1D}
+.cm-st{background:#9a968f;display:flex;align-items:center;justify-content:center}
+.cm-st span{font:700 24px/1 Inter;color:#fff;font-variant-numeric:tabular-nums lining-nums}
+.cm-l{position:absolute;font:500 10px/1.25 Inter;color:#c4bfb6;overflow:hidden;z-index:3}
+.cm-l b{display:inline;font-weight:600;font-size:11px;color:#f2eee6}
+.cm-l em{font-style:normal;color:#8e8980;font-size:9.5px;margin-left:6px}
+.cm-l i{display:block;font-style:normal;font-size:9.5px;color:#8e8980;font-variant-numeric:tabular-nums;word-break:break-word;margin-top:1px}
+.cm-l1 i{display:block}
+.cm-l:not(.cm-l1){max-height:54px}
+/* Degradados */
+.cm-gs{position:absolute;width:140px;height:84px;border-radius:24px}
+/* Vidrio: fondo con detalle (barras de color y texto fijos) */
+.cm-pat{position:absolute;inset:0;z-index:0}
+.cm-bars{position:absolute;inset:0;background:linear-gradient(90deg,#e5484d 0 12.5%,#f7cf73 12.5% 25%,#43d18c 25% 37.5%,#8fb2ff 37.5% 50%,#a98bff 50% 62.5%,#f49a6e 62.5% 75%,#f2eee6 75% 87.5%,#2a2a2d 87.5% 100%)}
+.cm-txt{position:absolute;inset:0;overflow:hidden;font:700 13px/18px Inter;letter-spacing:.6px;color:#fff;word-break:break-all;mix-blend-mode:normal;opacity:.92}
+.cm-gl{position:absolute;border-radius:24px;box-shadow:inset 0 0 0 1px #ffffff2e;z-index:2}
+.cm-gt{position:absolute;font:500 10px/1.25 Inter;color:#fff;background:#0000008c;padding:2px 6px;border-radius:6px;z-index:3;width:auto!important;max-width:296px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm-gt b{font-weight:700}
+.cm-fs{position:absolute;width:140px;height:84px;border-radius:24px;overflow:hidden;background:#0B0B0C}
+.cm-fsi{position:absolute;inset:0}
+.cm-fsi .cm-pat{position:absolute;inset:0}
+.cm-fs .cm-bars{background:linear-gradient(90deg,#e5484d 0 12.5%,#f7cf73 12.5% 25%,#43d18c 25% 37.5%,#8fb2ff 37.5% 50%,#a98bff 50% 62.5%,#f49a6e 62.5% 75%,#f2eee6 75% 87.5%,#2a2a2d 87.5% 100%)}
+/* Movimiento: círculo de 40 dp que recorre 200 dp */
+.cm-row{position:absolute;left:0;right:0;height:64px}
+.cm-rl{position:absolute;left:16px;top:0;font:500 10px/1.2 Inter;color:#8e8980;white-space:nowrap}
+.cm-rl b{color:#f2eee6;font-weight:600}
+.cm-trk{position:absolute;left:60px;top:18px;width:240px;height:40px}
+.cm-trk::before{content:'';position:absolute;left:0;right:0;top:19px;height:2px;background:#ffffff14;border-radius:1px}
+.cm-ghost{position:absolute;left:200px;top:0;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 1px #ffffff33}
+.cm-ball{position:absolute;left:0;top:0;width:40px;height:40px;border-radius:50%;background:#F2EEE6;will-change:transform}
+/* Familias de @keyframes */
+.cm-cell{position:absolute;border-radius:18px;background:#111;overflow:hidden}
+.cm-cl{position:absolute;left:12px;right:10px;top:10px;display:flex;flex-direction:column;gap:2px}
+.cm-cl b{font:600 11px/1.15 Inter;color:#f2eee6}
+.cm-cl span{font:500 9px/1.25 Inter;color:#8e8980;word-break:break-word}
+.cm-stage{position:absolute;left:0;right:0;bottom:6px;height:64px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cm-d{animation:var(--cm-an)}
+.cm-dot{width:26px;height:26px;border-radius:50%;background:#F2EEE6}
+.cm-chip{height:28px;padding:0 12px;border-radius:14px;background:#262628;color:#f2eee6;font:600 12px/28px Inter;white-space:nowrap}
+.cm-spin{width:30px;height:30px;border-radius:50%;border:3px solid #ffffff22;border-top-color:#F2EEE6}
+.cm-sk{width:110px;height:26px;border-radius:10px;background:linear-gradient(100deg,#0f0f0f 30%,#2a2a2a 50%,#0f0f0f 70%);background-size:220% 100%;background-position:120% 0}
+.cm-bar{width:110px;height:10px;border-radius:5px;background:#ffffff14;overflow:hidden}
+.cm-bary{width:26px;height:54px;border-radius:5px;background:#ffffff14;overflow:hidden}
+.cm-box{position:relative;width:120px;height:52px;border-radius:12px;background:#0B0B0C;overflow:hidden}
+.cm-vid{width:110px;height:52px;border-radius:12px;background:linear-gradient(135deg,#8fb2ff,#f49a6e)}
+.cm-dsv{display:block}
+/* Cuenta de cifras */
+.cm-num{position:absolute;left:24px;right:24px;display:flex;flex-direction:column;gap:4px}
+.cm-num i{font:500 11px/1 Inter;font-style:normal;color:#8e8980;letter-spacing:.6px;text-transform:uppercase}
+.cm-num b{font:800 40px/1.05 Inter;color:#f2eee6;font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.5px}
+.cm-hint{position:absolute;left:24px;right:24px;font:500 11px/1.4 Inter;color:#8e8980}
+.cm-hint code,.cm-code{font:500 11px/1.4 ui-monospace,Consolas,monospace;color:#c4bfb6}
+.cm-code{word-break:break-word;white-space:normal}
+.cm-doc h2{font:700 22px/1.15 Syne,Inter,sans-serif;margin:0 0 12px;color:var(--ink)}
+.cm-doc h3{font-size:10px;letter-spacing:1.5px;color:var(--faint);font-weight:600;margin:22px 0 8px;text-transform:uppercase}
+.cm-doc ul{margin:0 0 12px;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.55}
+.cm-doc .dtable td{vertical-align:top;font-size:12px;line-height:1.45;padding:8px 12px;border-bottom:1px solid #ffffff0d;color:var(--muted)}
+.cm-doc .dtable td b{color:var(--ink)}

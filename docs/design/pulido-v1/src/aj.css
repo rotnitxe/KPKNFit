@@ -1,0 +1,144 @@
+/* ===== Ajustes · paquete aj (Pulido v1, punto 22). Todas las clases y animaciones empiezan por aj-. ===== */
+.aj-root{position:absolute;inset:0}
+.aj-page{padding:104px 16px 64px}
+.aj-h1{font:700 calc(28px*var(--fs))/1.08 Syne;letter-spacing:-.8px;overflow-wrap:anywhere;margin:0 4px 4px;text-wrap:balance}
+.aj-lead{font-size:calc(13.5px*var(--fs));color:var(--muted);line-height:1.5;margin:8px 4px 0}
+.aj-grp{font-size:calc(11px*var(--fs));letter-spacing:1.4px;font-weight:600;color:var(--faint);text-transform:uppercase;margin:28px 4px 4px}
+.aj-list{display:flex;flex-direction:column}
+.aj-row{display:flex;align-items:center;gap:14px;min-height:64px;padding:8px 4px;width:100%;text-align:left;position:relative;color:var(--ink)}
+.aj-row+.aj-row::before{content:"";position:absolute;top:0;left:58px;right:4px;height:1px;background:var(--div)}
+.aj-row:active:not(:disabled){transform:none;background:#ffffff08}
+.aj-ic{width:40px;height:40px;border-radius:50%;background:#ffffff0d;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0}
+.aj-tx{flex:1;min-width:0}
+.aj-tx strong{display:block;font-size:calc(15.5px*var(--fs));font-weight:600;line-height:1.25}
+.aj-tx span{display:block;font-size:calc(12.5px*var(--fs));color:var(--faint);margin-top:2px;line-height:1.35}
+.aj-val{font-size:calc(14px*var(--fs));color:var(--muted);display:inline-flex;align-items:center;gap:7px;flex-shrink:1;max-width:44%;text-align:right;line-height:1.25}
+.aj-val.aj-wn{color:var(--ene)}.aj-val.aj-bd{color:var(--danger)}.aj-val.aj-ok{color:var(--done)}
+.aj-val i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.aj-row>svg:last-child{color:var(--dim)}
+.aj-row.aj-bad .aj-ic{background:#ff9b9212;color:var(--danger)}.aj-row.aj-bad .aj-tx strong{color:var(--danger)}
+.aj-danger{margin-top:34px;border-top:1px solid var(--div);padding-top:6px}
+.aj-danger .aj-row+.aj-row::before{display:none}
+.aj-back{pointer-events:auto}
+/* módulos con controles (recordatorios, carpeta de diagnóstico) */
+.aj-mod{background:var(--module);border:1px solid #ffffff12;border-radius:24px;padding:4px 16px;margin-top:12px}
+.aj-mh{display:flex;align-items:center;gap:14px;min-height:72px;padding:10px 0;width:100%;text-align:left;color:var(--ink)}
+.aj-mh .aj-tx strong{font-size:calc(16px*var(--fs))}
+.aj-sub{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;border-top:1px solid var(--div);padding:6px 0;width:100%;color:var(--ink)}
+.aj-sub>span:first-child{font-size:calc(14.5px*var(--fs));color:var(--muted)}
+.aj-time{font:600 calc(17px*var(--fs)) Inter;font-variant-numeric:tabular-nums lining-nums;background:var(--inset);border-radius:14px;min-height:44px;min-width:84px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--ink)}
+.aj-time svg{color:var(--faint)}
+.aj-note{font-size:calc(12.5px*var(--fs));color:var(--faint);line-height:1.45;padding:2px 0 14px}
+.aj-note q{quotes:"«" "»";color:var(--muted)}
+.aj-foot{font-size:calc(12.5px*var(--fs));color:var(--faint);line-height:1.5;margin:18px 4px 0}
+/* interruptor (52 × 32, pulgar 24: el de la app) */
+.aj-sw{width:52px;height:32px;border-radius:16px;background:#2a2a2a;position:relative;flex-shrink:0;transition:background .18s}
+.aj-sw i{position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:var(--faint);transition:transform .22s cubic-bezier(.2,.8,.2,1),background .18s}
+.aj-sw.aj-on{background:var(--ink)}.aj-sw.aj-on i{transform:translateX(20px);background:#111}
+/* aviso de permiso arriba de Recordatorios */
+.aj-warn{background:var(--module);border:1px solid #f7cf7338;border-radius:24px;padding:16px;margin-top:20px;display:flex;flex-direction:column;gap:12px}
+.aj-warn.aj-bd{border-color:#ff9b9238}
+.aj-warn .aj-wr{display:flex;gap:12px;align-items:flex-start}
+.aj-warn .aj-wr svg{color:var(--ene);margin-top:1px}.aj-warn.aj-bd .aj-wr svg{color:var(--danger)}
+.aj-warn p{margin:0;font-size:calc(13.5px*var(--fs));line-height:1.45;color:var(--muted)}.aj-warn p b{color:var(--ink);font-weight:600}
+/* botones */
+.aj-btn{min-height:calc(52px*var(--fs));padding:0 22px;border-radius:999px;background:var(--ink);color:#111;font:600 calc(15px*var(--fs)) Inter;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.2}
+.aj-btn.aj-gh{background:#ffffff0f;color:var(--ink);border:1px solid #ffffff1f}
+.aj-btn.aj-bd{background:#ff9b9214;color:var(--danger);border:1px solid #ff9b9233}
+.aj-btn.aj-sm{min-height:44px;font-size:calc(13.5px*var(--fs));padding:0 16px}
+.aj-btn.aj-fl{width:100%}
+.aj-btn:disabled{opacity:.38;cursor:default}
+.aj-btn.aj-ln{background:transparent;border:1px solid #f2eee63d;color:var(--ink)}
+.aj-txt{min-height:44px;padding:0 12px;font:600 calc(14px*var(--fs)) Inter;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+/* estado de un permiso */
+.aj-st{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px*var(--fs));font-weight:600;color:var(--done);flex-shrink:0}
+.aj-bl{color:var(--danger);font-size:calc(12.5px*var(--fs));margin-top:3px;line-height:1.35;display:block}
+/* hojas */
+.aj-sheet{max-height:90%;overflow-y:auto;scrollbar-width:none}.aj-sheet::-webkit-scrollbar{display:none}
+.aj-sheet.aj-tall{height:82%}
+.aj-sh-t{font:700 calc(22px*var(--fs))/1.15 Syne;letter-spacing:-.4px;margin:2px 0 0;text-wrap:balance}
+.aj-sh-s{font-size:calc(13.5px*var(--fs));color:var(--muted);line-height:1.5;margin:0}
+.aj-opt{display:flex;align-items:center;gap:14px;min-height:64px;padding:8px 2px;width:100%;text-align:left;border-top:1px solid var(--div);color:var(--ink)}
+.aj-opt:first-of-type{border-top:0}
+.aj-opt .aj-tx strong{font-size:calc(15.5px*var(--fs))}
+.aj-opt .aj-tx span{margin-top:3px}
+.aj-rad{width:22px;height:22px;border-radius:50%;border:2px solid #ffffff40;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .16s}
+.aj-rad i{width:10px;height:10px;border-radius:50%;background:var(--ink);transform:scale(0);transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.aj-opt.aj-on .aj-rad{border-color:var(--ink)}.aj-opt.aj-on .aj-rad i{transform:scale(1)}
+.aj-chk{width:22px;height:22px;border-radius:7px;border:2px solid #ffffff40;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#111}
+.aj-opt.aj-on .aj-chk{background:var(--ink);border-color:var(--ink)}
+.aj-chk svg{opacity:0}.aj-opt.aj-on .aj-chk svg{opacity:1}
+.aj-opt:disabled{opacity:.5}
+.aj-sh-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.aj-x{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
+.aj-sh-body{overflow-y:auto;scrollbar-width:none;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}.aj-sh-body::-webkit-scrollbar{display:none}
+.aj-err{font-size:calc(13.5px*var(--fs));color:var(--danger);line-height:1.4}
+.aj-lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.aj-lines li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--div);font-size:calc(14px*var(--fs));line-height:1.4;color:var(--ink)}
+.aj-lines li:first-child{border-top:0}
+.aj-lines li svg{color:var(--danger);margin-top:1px}
+.aj-lines.aj-keep li svg{color:var(--done)}
+.aj-file{display:flex;gap:12px;align-items:center;background:var(--inset);border-radius:18px;padding:12px 14px}
+.aj-file b{display:block;font-size:calc(14px*var(--fs));font-weight:600;word-break:break-all}.aj-file span{font-size:calc(12px*var(--fs));color:var(--faint)}
+/* hora (dos columnas) */
+.aj-drum{display:flex;justify-content:center;align-items:center;gap:10px;padding:2px 0 6px}
+.aj-dcol{display:flex;flex-direction:column;align-items:center;width:96px}
+.aj-dcol .aj-dn{width:96px;height:44px;display:flex;align-items:center;justify-content:center;font:500 calc(22px*var(--fs)) Inter;font-variant-numeric:tabular-nums lining-nums;color:var(--dim)}
+.aj-dcol .aj-dn.aj-cur{height:60px;font:700 calc(36px*var(--fs)) Inter;font-variant-numeric:tabular-nums lining-nums;color:var(--ink);background:var(--inset);border-radius:18px}
+.aj-dcol .aj-dn.aj-far{opacity:.55;font-size:calc(19px*var(--fs))}
+.aj-dcol button.aj-dn:active{transform:none;background:#ffffff0a;border-radius:14px}
+.aj-dsep{font:700 calc(34px*var(--fs)) Inter;color:var(--faint);padding-bottom:3px}
+.aj-dcol .aj-dc{height:40px;width:96px;display:flex;align-items:center;justify-content:center;color:var(--faint)}
+/* diálogo del sistema (permiso) */
+.aj-sysbg{position:absolute;inset:0;z-index:90;background:#000b;display:flex;align-items:center;justify-content:center;padding:0 28px}
+.aj-sys{background:#2b2a2f;border-radius:28px;padding:24px 24px 18px;width:100%;max-width:300px;color:#e6e1e5;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;box-shadow:0 20px 60px #000c}
+.aj-sys .aj-sic{width:40px;height:40px;color:#cac4d0;display:flex;align-items:center;justify-content:center}
+.aj-sys p{margin:0;font-size:calc(16px*var(--fs));line-height:1.4;font-weight:500}
+.aj-sys button{width:100%;min-height:46px;border-radius:23px;background:#38363d;color:#d0bcff;font:600 calc(14.5px*var(--fs)) Inter}
+.aj-sys small{font-size:calc(11px*var(--fs));letter-spacing:.4px;color:#938f99}
+/* toast */
+.aj-toast{position:absolute;left:16px;right:16px;bottom:40px;z-index:95;min-height:54px;border-radius:27px;display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:calc(13.5px*var(--fs));line-height:1.35}
+.aj-toast.aj-bd svg{color:var(--danger)}.aj-toast.aj-ok svg{color:var(--done)}
+/* mantener pulsado */
+.aj-hold{position:relative;overflow:hidden;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.aj-hold b{position:absolute;inset:0;transform-origin:left center;transform:scaleX(0);background:#ff9b9240;transition:transform .2s ease-out;pointer-events:none}
+.aj-hold.aj-holding b{transform:scaleX(1);transition:transform 1.2s linear}
+.aj-hold span{position:relative}
+.aj-spin{width:18px;height:18px;border-radius:50%;border:2px solid #ffffff30;border-top-color:var(--ink);animation:aj-spin .8s linear infinite;display:inline-block}
+@keyframes aj-spin{to{transform:rotate(360deg)}}
+/* entradas (solo al abrir; el reposo es el estado estático) */
+.aj-in-sheet.pl-sheet{animation:aj-sheet .36s cubic-bezier(.2,.8,.2,1) both}
+.aj-in-scrim{animation:aj-fade .22s ease-out both}
+.aj-in-push .aj-page{animation:aj-push .3s cubic-bezier(.2,.8,.2,1) both}
+.aj-in-pop .aj-page{animation:aj-pop .3s cubic-bezier(.2,.8,.2,1) both}
+.aj-in-toast{animation:aj-toast .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes aj-sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes aj-fade{from{opacity:0}to{opacity:1}}
+@keyframes aj-push{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes aj-pop{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes aj-toast{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+/* lector de avisos de licencia */
+.aj-mono{font:400 calc(12px*var(--fs))/1.55 ui-monospace,Menlo,Consolas,monospace;color:var(--muted);white-space:pre-wrap;margin:0}
+.aj-skel{display:flex;flex-direction:column;gap:9px;padding-top:4px}.aj-skel i{display:block;height:9px;border-radius:5px;background:#ffffff12}
+/* versión (Ayuda) */
+.aj-ver{display:flex;flex-direction:column;gap:6px;padding:8px 4px 0}
+.aj-ver .aj-wm{font:800 calc(34px*var(--fs))/1 Syne;letter-spacing:-1.4px}
+.aj-ver .aj-wm span{font:400 calc(11px*var(--fs)) Inter;letter-spacing:2px;margin-left:8px}
+.aj-ver small{font-size:calc(13px*var(--fs));color:var(--muted)}
+/* documento de veredictos */
+.aj-doc-t{border-collapse:collapse;width:100%;min-width:860px;font-size:13px}
+.aj-doc-t th{text-align:left;font-size:10px;letter-spacing:1.3px;color:var(--faint);font-weight:600;padding:12px 14px;border-bottom:1px solid #ffffff12;text-transform:uppercase;background:#0d0d0d}
+.aj-doc-t td{padding:11px 14px;border-bottom:1px solid #ffffff0b;vertical-align:top;color:var(--muted);line-height:1.45}
+.aj-doc-t td:first-child{color:var(--ink);font-weight:600;width:22%}.aj-doc-t td:nth-child(2){width:15%;white-space:nowrap}
+.aj-doc-t tr:last-child td{border-bottom:0}
+.aj-doc-t code{font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--faint)}
+.aj-ask{background:#0d0d0d;border:1px solid #ffffff12;border-radius:18px;padding:16px 20px;margin:0 0 12px}
+.aj-ask b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}.aj-ask p{margin:0;font-size:13.5px}
+
+/* fila de permiso: título y estado arriba, el para qué debajo a todo el ancho */
+.aj-prow{display:grid;grid-template-columns:40px 1fr auto;column-gap:14px;row-gap:2px;align-items:center;width:100%;text-align:left;padding:12px 4px;position:relative;color:var(--ink);min-height:68px}
+.aj-prow+.aj-prow::before{content:"";position:absolute;top:0;left:58px;right:4px;height:1px;background:var(--div)}
+.aj-prow .aj-ic{grid-row:1}
+.aj-prow>strong{font-size:calc(15.5px*var(--fs));font-weight:600;line-height:1.25;min-width:0}
+.aj-prow .aj-pd{grid-column:2/4;font-size:calc(12.5px*var(--fs));color:var(--faint);line-height:1.4;margin-top:2px}
+.aj-prow .aj-bl{margin-top:4px}
