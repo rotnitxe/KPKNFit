@@ -1,560 +1,420 @@
 package com.example.kpkn.screens.settings
 
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.saveable.rememberSaveable
-import com.example.kpkn.screens.settings.export.*
-import com.example.kpkn.data.export.CsvExportService
-import com.example.kpkn.data.db.KpknDatabase
-import com.example.kpkn.data.repository.ProgramRepository
-
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
-import android.widget.Toast
+import android.provider.OpenableColumns
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.SettingsBackupRestore
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.core.content.ContextCompat
+import com.example.kpkn.BuildConfig
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import com.example.kpkn.data.export.CsvExportService
+import com.example.kpkn.data.models.WeightUnit
+import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.nutrition.areMealRemindersAvailable
+import com.example.kpkn.screens.settings.export.CsvExportSheet
+import com.example.kpkn.screens.settings.export.CsvExportViewModel
 import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.workout.PermissionGuideHelper
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
-import com.example.kpkn.ui.components.KpknAlertDialog
-import java.io.File
+import com.example.kpkn.ui.design.motion.KpknAnimation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Pantallas de Ajustes (paquete `aj`): la principal y cinco subpantallas. El atrás cierra primero hoja y aviso, luego sube un nivel. */
+internal enum class AjRoute(val parent: AjRoute?) {
+    Main(null), Reminders(Main), Permissions(Main), Copy(Main), Help(Main), Diagnostics(Help),
+}
+
+private enum class AjSheetKind { Units, Time, Save, Restore, Csv, Sources, Delete }
+
+private class AjToastData(val id: Int, val message: String, val kind: AjToastKind)
+
+private const val PermissionPrefs = "aj_permissions"
+
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
     healthConnectAvailable: Boolean = false,
     onOpenHealthConnect: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
-    onOpenEquipmentInventory: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val ioScope = rememberCoroutineScope()
-    val csvModel: CsvExportViewModel = androidx.lifecycle.viewmodel.compose.viewModel(key = "csv-export") {
+    val scope = rememberCoroutineScope()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
+    LaunchedEffect(context) { viewModel.setContext(context) }
+
+    // --- navegación y hojas ---
+    var routeName by rememberSaveable { mutableStateOf(AjRoute.Main.name) }
+    val route = AjRoute.valueOf(routeName)
+    var lastNav by remember { mutableStateOf<KpknAnimation?>(null) }
+    var sheetName by rememberSaveable { mutableStateOf<String?>(null) }
+    val sheet = sheetName?.let { AjSheetKind.valueOf(it) }
+    var timeKey by rememberSaveable { mutableStateOf("w") }
+    fun openSheet(kind: AjSheetKind) { sheetName = kind.name }
+    fun closeSheet() { sheetName = null }
+    fun go(next: AjRoute) { lastNav = AjMotion.Push; routeName = next.name }
+    fun goBack() {
+        val parent = route.parent
+        if (parent == null) onBack() else { lastNav = AjMotion.Pop; routeName = parent.name }
+    }
+    BackHandler(enabled = route != AjRoute.Main) { goBack() }
+
+    // --- avisos (aj-J01: 2,9 s) ---
+    var toast by remember { mutableStateOf<AjToastData?>(null) }
+    var toastCount by remember { mutableIntStateOf(0) }
+    fun flash(message: String, kind: AjToastKind = AjToastKind.Neutral) { toastCount++; toast = AjToastData(toastCount, message, kind) }
+    LaunchedEffect(toast?.id) { if (toast != null) { delay(AjMotion.ToastMs); toast = null } }
+    fun reason(error: String) = error.replaceFirstChar { it.lowercase() }.trimEnd('.') + "."
+
+    // --- permisos ---
+    var refreshToken by remember { mutableIntStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) refreshToken++ }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { refreshToken++ }
+    val permissionStates = remember(refreshToken, context) { AjPerm.entries.associateWith { permissionState(context, it) } }
+    val pending = permissionStates.values.count { it != AjPermState.GRANTED }
+    val exactAlarms = remember(refreshToken, context) { PermissionGuideHelper.isExactAlarmGranted(context) }
+    fun onPerm(perm: AjPerm) {
+        when {
+            permissionStates[perm] == AjPermState.GRANTED -> Unit
+            perm == AjPerm.Alarms ->
+                if (!exactAlarms) PermissionGuideHelper.openExactAlarmSettings(context) else PermissionGuideHelper.openBatteryOptimizationSettings(context)
+            permissionStates[perm] == AjPermState.BLOCKED -> PermissionGuideHelper.openAllPermissionSettings(context)
+            else -> {
+                markRequested(context, perm)
+                permissionLauncher.launch(permissionNames(perm))
+            }
+        }
+    }
+
+    // --- CSV (conserva su modelo) ---
+    val csvModel: CsvExportViewModel = viewModel(key = "csv-export") {
         CsvExportViewModel(CsvExportService(context.applicationContext, ProgramRepository.getInstance()) { KpknDatabase.getInstance(context.applicationContext) })
     }
     val csvState by csvModel.state.collectAsStateWithLifecycle()
-    var showCsvExport by rememberSaveable { mutableStateOf(false) }
     val csvLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { csvModel.destinationChosen(it) }
     val csvZipLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { csvModel.destinationChosen(it) }
     LaunchedEffect(csvState.request?.token) {
         csvState.request?.let { request ->
             csvModel.acknowledge(request.token)
-            showCsvExport = false
             if (request.mimeType == "application/zip") csvZipLauncher.launch(request.name) else csvLauncher.launch(request.name)
         }
     }
     LaunchedEffect(csvState.notice) {
-        csvState.notice?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show(); csvModel.consumeNotice() }
-    }
-    if (showCsvExport) CsvExportSheet(csvState, csvModel::prepare, { showCsvExport = false })
-
-    val trainingSettings by viewModel.settings.collectAsStateWithLifecycle()
-
-    var refreshToken by remember { mutableStateOf(0) }
-    var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
-    var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showNutritionSources by rememberSaveable { mutableStateOf(false) }
-    val localTelemetryPath = remember(context) { File(context.filesDir, "kpkn_logs").absolutePath }
-
-    LaunchedEffect(context) {
-        viewModel.setContext(context)
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) refreshToken++
+        csvState.notice?.let { notice ->
+            if (sheet == AjSheetKind.Csv && csvState.error == null) closeSheet()
+            flash(notice, if (csvState.error != null) AjToastKind.Bad else AjToastKind.Ok)
+            csvModel.consumeNotice()
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        refreshToken++
-    }
-    val backupExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+    // --- guardar y restaurar copias ---
+    var saveKind by rememberSaveable { mutableStateOf(AjBackupKind.Json.name) }
+    var saveBusy by remember { mutableStateOf(false) }
+    val jsonExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        viewModel.exportData(context, uri,
-            onSuccess = { Toast.makeText(context, "Backup exportado correctamente", Toast.LENGTH_LONG).show() },
-            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
+        saveBusy = true
+        viewModel.exportData(
+            context, uri,
+            onSuccess = { saveBusy = false; closeSheet(); flash("Copia guardada.", AjToastKind.Ok) },
+            onError = { saveBusy = false; closeSheet(); flash("No se pudo guardar: ${reason(it)}", AjToastKind.Bad) },
         )
     }
-    val backupImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        pendingImport = uri
-    }
-    val dbSnapshotExportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/x-sqlite3"),
-    ) { uri ->
+    val dbExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-sqlite3")) { uri ->
         uri ?: return@rememberLauncherForActivityResult
+        saveBusy = true
         viewModel.exportDatabaseSnapshot(
-            context = context,
-            destination = uri,
-            onSuccess = { Toast.makeText(context, "Copia .db exportada correctamente", Toast.LENGTH_LONG).show() },
-            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
+            context, uri,
+            onSuccess = { saveBusy = false; closeSheet(); flash("Copia completa guardada.", AjToastKind.Ok) },
+            onError = { saveBusy = false; closeSheet(); flash("No se pudo guardar: ${reason(it)}", AjToastKind.Bad) },
         )
     }
-    val dbSnapshotImportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
+    var restoreKind by rememberSaveable { mutableStateOf(AjBackupKind.Json.name) }
+    var restoreUri by remember { mutableStateOf<Uri?>(null) }
+    var restoreName by remember { mutableStateOf("") }
+    var restoreBusy by remember { mutableStateOf(false) }
+    val restorePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        viewModel.importDatabaseSnapshot(
-            context = context,
-            uri = uri,
-            onSuccess = { Toast.makeText(context, "Base de datos restaurada", Toast.LENGTH_LONG).show() },
-            onError = { error -> Toast.makeText(context, "No se pudo importar: $error", Toast.LENGTH_LONG).show() },
+        restoreUri = uri
+        restoreName = displayName(context, uri)
+    }
+    fun restore() {
+        val uri = restoreUri ?: return
+        restoreBusy = true
+        if (restoreKind == AjBackupKind.Json.name) {
+            viewModel.importBackupJson(
+                context, uri,
+                onSuccess = { restoreBusy = false; restoreUri = null; closeSheet(); flash("Copia restaurada.", AjToastKind.Ok) },
+                onError = { restoreBusy = false; restoreUri = null; closeSheet(); flash("No se pudo restaurar: ${reason(it)}", AjToastKind.Bad) },
+            )
+        } else {
+            viewModel.importDatabaseSnapshot(
+                context, uri,
+                onSuccess = { restoreBusy = false; restoreUri = null; closeSheet(); flash("Base de datos restaurada.", AjToastKind.Ok) },
+                onError = { restoreBusy = false; restoreUri = null; closeSheet(); flash("No se pudo restaurar: ${reason(it)}", AjToastKind.Bad) },
+            )
+        }
+    }
+
+    // --- álbumes, diagnóstico y borrado ---
+    val mediaZipLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        viewModel.exportWorkoutMediaZip(
+            context, uri,
+            onSuccess = { count ->
+                if (count == 0) flash("No había medios para exportar.")
+                else flash("ZIP exportado ($count ${if (count == 1) "archivo" else "archivos"}).", AjToastKind.Ok)
+            },
+            onError = { flash("No se pudo exportar: ${reason(it)}", AjToastKind.Bad) },
         )
+    }
+    var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
+    val diagnosticsExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch(Dispatchers.IO) {
+            KpknDiagnosticLogger.flushSync()
+            val exported = KpknDiagnosticLogger.exportAllTo(context, uri)
+            withContext(Dispatchers.Main) {
+                if (exported) flash("ZIP de registros exportado.", AjToastKind.Ok) else flash("No se pudo exportar el registro.", AjToastKind.Bad)
+            }
+        }
     }
     val telemetryFolderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         KpknDiagnosticStorage.configure(context, uri)
-            .onSuccess { label ->
-                telemetryFolder = label
-                Toast.makeText(context, "Ruta JSONL configurada en $label", Toast.LENGTH_LONG).show()
-            }
-            .onFailure { error ->
-                Toast.makeText(context, "No se pudo configurar la ruta: ${error.message ?: "error desconocido"}", Toast.LENGTH_LONG).show()
-            }
+            .onSuccess { label -> telemetryFolder = label; flash("Carpeta configurada: $label.", AjToastKind.Ok) }
+            .onFailure { error -> flash("No se pudo configurar la carpeta: ${reason(error.message ?: "error desconocido")}", AjToastKind.Bad) }
     }
-    val mediaZipLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip"),
-    ) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        viewModel.exportWorkoutMediaZip(
+    var deleting by remember { mutableStateOf(false) }
+    fun deleteAll() {
+        deleting = true
+        viewModel.clearAllAppData(
             context,
-            uri,
-            onSuccess = { count ->
-                Toast.makeText(
-                    context,
-                    if (count == 0) "No había medios para exportar" else "ZIP exportado ($count archivos)",
-                    Toast.LENGTH_LONG,
-                ).show()
-            },
-            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
+            onSuccess = { deleting = false; telemetryFolder = null; closeSheet(); lastNav = null; routeName = AjRoute.Main.name; flash("La app volvió a cero.", AjToastKind.Ok) },
+            onError = { deleting = false; flash("No se pudo borrar todo: ${reason(it)}", AjToastKind.Bad) },
         )
     }
-    val diagnosticsExportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip"),
-    ) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        ioScope.launch(Dispatchers.IO) {
-            KpknDiagnosticLogger.flushSync()
-            val exported = KpknDiagnosticLogger.exportAllTo(context, uri)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    context,
-                    if (exported) "ZIP JSONL exportado" else "No se pudo exportar el JSONL",
-                    Toast.LENGTH_LONG,
-                ).show()
-            }
+
+    // --- recordatorios ---
+    fun toggle(which: AjReminder, on: Boolean) = viewModel.update {
+        when (which) {
+            AjReminder.Workout -> it.copy(workoutReminderEnabled = on)
+            AjReminder.Meals -> it.copy(mealReminderEnabled = on)
+            AjReminder.Sleep -> it.copy(sleepReminderEnabled = on)
         }
     }
+    val showMeals = areMealRemindersAvailable(settings)
+    val enter = lastNav
 
-    val runtimePermissions = remember(refreshToken, context) { permissionRows(context, healthConnectAvailable) }
-    val systemPermissionState = remember(refreshToken, context) { PermissionGuideHelper.getPermissionState(context) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Ajustes", fontWeight = FontWeight.Black) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
+    Box(Modifier.fillMaxSize()) {
+        when (route) {
+            AjRoute.Main -> AjMainScreen(
+                unit = settings.weightUnit,
+                activeReminders = ajActiveReminders(settings.workoutReminderEnabled, settings.mealReminderEnabled, settings.sleepReminderEnabled, showMeals),
+                pendingPermissions = pending,
+                healthAvailable = healthConnectAvailable,
+                onBack = ::goBack, onUnits = { openSheet(AjSheetKind.Units) }, onReminders = { go(AjRoute.Reminders) },
+                onPermissions = { go(AjRoute.Permissions) }, onHealth = onOpenHealthConnect, onCopy = { go(AjRoute.Copy) },
+                onHelp = { go(AjRoute.Help) }, onDelete = { openSheet(AjSheetKind.Delete) }, enter = enter,
             )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                SettingsIntroCard()
-            }
-            item { TrainingSettingsBlock(trainingSettings,viewModel::update) }
-            item {
-                SettingsBlockTitle("Material")
-                SettingsCard {
-                    SettingsActionRow(
-                        icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Training,
-                        title = "Mi material",
-                        description = "Barra, discos y cargas disponibles en tu gimnasio.",
-                        actionLabel = "Editar",
-                        onClick = onOpenEquipmentInventory,
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Nutrición")
-                SettingsCard {
-                    SettingsActionRow(
-                        icon = Icons.Default.Info,
-                        title = "Fuentes y licencias de los datos",
-                        description = "De dónde salen los datos de alimentos y bajo qué licencias se usan.",
-                        actionLabel = "Ver",
-                        onClick = { showNutritionSources = true },
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Permisos")
-                SettingsCard {
-                    runtimePermissions.forEach { row ->
-                        PermissionRow(
-                            icon = row.icon,
-                            title = row.title,
-                            description = row.description,
-                            granted = row.granted,
-                            onClick = {
-                                when (row.action) {
-                                    PermissionAction.REQUEST -> permissionLauncher.launch(row.permissions)
-                                    PermissionAction.HEALTH_CONNECT -> onOpenHealthConnect()
-                                }
-                            },
-                        )
-                    }
-                    PermissionRow(
-                        icon = Icons.Default.Timer,
-                        title = "Recordatorios y temporizadores",
-                        description = "Permite alarmas precisas y evita que el sistema detenga los avisos.",
-                        granted = systemPermissionState.allOk,
-                        onClick = {
-                            if (!systemPermissionState.exactAlarmOk) PermissionGuideHelper.openExactAlarmSettings(context)
-                            else PermissionGuideHelper.openBatteryOptimizationSettings(context)
-                        },
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Recorridos")
-                SettingsCard {
-                    SettingsActionRow(
-                        icon = Icons.Default.Restore,
-                        title = "Repetir el recorrido",
-                        description = "Vuelve a mostrar las explicaciones de cada pantalla la próxima vez que entres.",
-                        actionLabel = "Repetir",
-                        onClick = {
-                            viewModel.resetTours()
-                            Toast.makeText(context, "Recorridos restablecidos", Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Datos")
-                SettingsCard {
-                    SettingsActionRow(
-                        icon = Icons.Default.Folder,
-                        title = "Exportar álbumes (ZIP)",
-                        description = "Copia las fotos y vídeos privados de entrenamiento a un archivo ZIP.",
-                        actionLabel = "Exportar",
-                        onClick = { mediaZipLauncher.launch("kpkn-workout-media.zip") },
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Backup")
-                SettingsCard {
-                    SettingsActionRow(
-                        icon = Icons.Default.Backup,
-                        title = "Exportar backup (JSON)",
-                        description = "Rutinas, historial, nutrición, observaciones originales, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
-                        actionLabel = "Exportar",
-                        onClick = { backupExportLauncher.launch("kpkn-backup.json") },
-                    )
-                    SettingsActionRow(
-                        icon = Icons.Default.Folder,
-                        title = "Exportar datos (CSV)",
-                        description = if (csvState.busy) "Preparando exportación…" else "Elige comidas, cuerpo, entrenos o tu biblioteca.",
-                        actionLabel = "Elegir",
-                        onClick = { if (!csvState.busy) showCsvExport = true },
-                    )
-                    SettingsActionRow(
-                        icon = Icons.Default.Restore,
-                        title = "Importar backup (JSON)",
-                        description = "Restaura lo que trae el archivo. Datos no incluidos en backups antiguos (competiciones, tags, etc.) se conservan. Antes de importar se guarda un snapshot local para deshacer si falla.",
-                        actionLabel = "Importar",
-                        onClick = { backupImportLauncher.launch(arrayOf("application/json", "text/plain")) },
-                    )
-                    SettingsActionRow(
-                        icon = Icons.Default.SettingsBackupRestore,
-                        title = "Copia completa (.db)",
-                        description = "Snapshot binario de toda la base Room (incluye catálogo global y WikiLab). Recomendado para migrar de dispositivo.",
-                        actionLabel = "Exportar .db",
-                        onClick = { dbSnapshotExportLauncher.launch("kpkn-backup.db") },
-                    )
-                    SettingsActionRow(
-                        icon = Icons.Default.SettingsBackupRestore,
-                        title = "Restaurar copia (.db)",
-                        description = "Reemplaza la base local por un archivo .db exportado antes. Crea un snapshot de rollback automático.",
-                        actionLabel = "Importar .db",
-                        onClick = { dbSnapshotImportLauncher.launch(arrayOf("application/x-sqlite3", "application/octet-stream", "*/*")) },
-                    )
-                }
-            }
-            item {
-                SettingsBlockTitle("Telemetría JSONL")
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f)),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                            Spacer(Modifier.size(8.dp))
-                            Text("Ruta especial de JSONL", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onErrorContainer)
-                        }
-                        Text(
-                            (telemetryFolder?.let { "Espejo externo: $it\n" } ?: "Sin carpeta externa.\n") +
-                                "Copia local: $localTelemetryPath\n" +
-                                "Áreas: workout, voice, nutrition y app (cada una con su JSONL diario).\n" +
-                                "Escritura asíncrona en lotes cada 250 ms para no bloquear la sesión.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { telemetryFolderLauncher.launch(null) }) {
-                                Icon(Icons.Default.Folder, contentDescription = null)
-                                Spacer(Modifier.size(4.dp))
-                                Text("Configurar ruta")
-                            }
-                            if (telemetryFolder != null) {
-                                TextButton(onClick = {
-                                    ioScope.launch(Dispatchers.IO) {
-                                        KpknDiagnosticLogger.flushSync()
-                                        KpknDiagnosticStorage.mirrorRecoveryFiles(context)
-                                    }
-                                    Toast.makeText(context, "Sincronización iniciada", Toast.LENGTH_SHORT).show()
-                                }) {
-                                    Icon(Icons.Default.Sync, contentDescription = null)
-                                    Spacer(Modifier.size(4.dp))
-                                    Text("Sincronizar")
-                                }
-                                TextButton(onClick = {
-                                    KpknDiagnosticStorage.clear(context)
-                                    telemetryFolder = null
-                                }) { Text("Desvincular") }
-                            }
-                            TextButton(onClick = {
-                                diagnosticsExportLauncher.launch(KpknDiagnosticLogger.suggestedFileName())
-                            }) {
-                                Icon(Icons.Default.Backup, contentDescription = null)
-                                Spacer(Modifier.size(4.dp))
-                                Text("Exportar ZIP")
-                            }
-                        }
-                    }
-                }
-            }
-            item {
-                SettingsBlockTitle("Eliminar todos los datos")
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.44f)),
-                ) {
-                    SettingsActionRow(
-                        icon = Icons.Default.DeleteForever,
-                        title = "Volver a empezar",
-                        description = "Borra tu progreso, rutinas, nutrición, foto y configuraciones de la app.",
-                        actionLabel = "Eliminar todo",
-                        destructive = true,
-                        onClick = { showDeleteDialog = true },
-                    )
-                }
-            }
-            item { Spacer(Modifier.height(40.dp)) }
+            AjRoute.Reminders -> AjRemindersScreen(
+                notifications = permissionStates[AjPerm.Notifications] ?: AjPermState.DENIED,
+                exactAlarmsGranted = exactAlarms,
+                workoutOn = settings.workoutReminderEnabled, workoutTime = settings.workoutReminderTime,
+                showMeals = showMeals, mealsOn = settings.mealReminderEnabled,
+                breakfast = settings.mealReminderBreakfast, lunch = settings.mealReminderLunch, dinner = settings.mealReminderDinner,
+                sleepOn = settings.sleepReminderEnabled, sleepTime = settings.sleepReminderTime,
+                onBack = ::goBack, onToggle = ::toggle,
+                onPickTime = { key -> timeKey = key; openSheet(AjSheetKind.Time) },
+                onNotifications = { onPerm(AjPerm.Notifications) },
+                onAlarmSettings = { PermissionGuideHelper.openExactAlarmSettings(context) },
+                enter = enter,
+            )
+            AjRoute.Permissions -> AjPermissionsScreen(permissionStates, ::goBack, ::onPerm, enter)
+            AjRoute.Copy -> AjCopyScreen(
+                onBack = ::goBack,
+                onSave = { openSheet(AjSheetKind.Save) },
+                onRestore = { restoreUri = null; restoreBusy = false; openSheet(AjSheetKind.Restore) },
+                onCsv = { openSheet(AjSheetKind.Csv) },
+                onZip = { mediaZipLauncher.launch("kpkn-workout-media.zip") },
+                enter = enter,
+            )
+            AjRoute.Help -> AjHelpScreen(
+                versionLine = "${BuildConfig.VERSION_NAME} · versión ${BuildConfig.VERSION_CODE}",
+                hasFolder = telemetryFolder != null,
+                onBack = ::goBack,
+                onTours = { viewModel.resetTours(); flash("Recorridos restablecidos.", AjToastKind.Ok) },
+                onSources = { openSheet(AjSheetKind.Sources) },
+                onDiagnostics = { go(AjRoute.Diagnostics) },
+                enter = enter,
+            )
+            AjRoute.Diagnostics -> AjDiagnosticsScreen(
+                folderLabel = telemetryFolder,
+                onBack = ::goBack,
+                onExportZip = { diagnosticsExportLauncher.launch(KpknDiagnosticLogger.suggestedFileName()) },
+                onPickFolder = { telemetryFolderLauncher.launch(null) },
+                onSync = {
+                    scope.launch(Dispatchers.IO) { KpknDiagnosticLogger.flushSync(); KpknDiagnosticStorage.mirrorRecoveryFiles(context) }
+                    flash("Sincronización iniciada.")
+                },
+                onUnlink = { KpknDiagnosticStorage.clear(context); telemetryFolder = null },
+                enter = enter,
+            )
         }
-    }
 
-    if (showNutritionSources) NutritionSourcesDialog(onDismiss = { showNutritionSources = false })
-
-    pendingImport?.let { uri ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingImport = null },
-            title = { Text("¿Importar este backup?") },
-            text = {
-                Text(
-                    "Se restaurarán rutinas, historial, nutrición y observaciones originales según el JSON. " +
-                        "Si el archivo es antiguo, competiciones y datos de contexto no listados se mantienen. " +
-                        "Se crea un snapshot local antes de importar por si algo falla.",
+        when (sheet) {
+            AjSheetKind.Units -> AjUnitsSheet(
+                settings.weightUnit,
+                // aj-J02: la hoja se cierra sola 280 ms después de elegir, para ver el valor marcado
+                { unit -> viewModel.update { it.copy(weightUnit = unit) }; scope.launch { delay(280); closeSheet() } },
+                ::closeSheet,
+            )
+            AjSheetKind.Time -> {
+                val current = when (timeKey) {
+                    "w" -> settings.workoutReminderTime
+                    "s" -> settings.sleepReminderTime
+                    "b" -> settings.mealReminderBreakfast
+                    "l" -> settings.mealReminderLunch
+                    else -> settings.mealReminderDinner
+                }
+                val (h, m) = ajParseTime(current)
+                AjTimeSheet(
+                    title = when (timeKey) { "w" -> "Entrenar"; "b" -> "Desayuno"; "l" -> "Almuerzo"; "d" -> "Cena"; else -> "Dormir" },
+                    hour = h, minute = m,
+                    onDone = { nh, nm ->
+                        val value = ajFormatTime(nh, nm)
+                        viewModel.update {
+                            when (timeKey) {
+                                "w" -> it.copy(workoutReminderTime = value)
+                                "s" -> it.copy(sleepReminderTime = value)
+                                "b" -> it.copy(mealReminderBreakfast = value)
+                                "l" -> it.copy(mealReminderLunch = value)
+                                else -> it.copy(mealReminderDinner = value)
+                            }
+                        }
+                    },
+                    onDismiss = ::closeSheet,
                 )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    pendingImport = null
-                    viewModel.importBackupJson(
-                        context = context,
-                        uri = uri,
-                        onSuccess = { Toast.makeText(context, "Backup importado correctamente", Toast.LENGTH_LONG).show() },
-                        onError = { error -> Toast.makeText(context, "No se pudo importar: $error", Toast.LENGTH_LONG).show() },
-                    )
-                }) { Text("Importar") }
-            },
-            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text("Cancelar") } },
-        )
-    }
-
-    if (showDeleteDialog) {
-        KpknAlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("¿Eliminar todos los datos?") },
-            text = { Text("Se borrarán de forma irreversible tus rutinas, historial, nutrición, progreso, foto y configuraciones. Los archivos de backup guardados fuera de la app no se tocarán.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.clearAllAppData(
-                        context = context,
-                        onSuccess = {
-                            showDeleteDialog = false
-                            telemetryFolder = null
-                            Toast.makeText(context, "La app volvió a cero", Toast.LENGTH_LONG).show()
-                        },
-                        onError = { error -> Toast.makeText(context, "No se pudo borrar todo: $error", Toast.LENGTH_LONG).show() },
-                    )
-                }) { Text("Eliminar todo", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar") } },
-        )
-    }
-}
-
-@Composable
-private fun SettingsIntroCard() {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.48f))) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Lo esencial para que KPKN funcione", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-            Text("Aquí puedes conceder accesos, guardar tus datos y configurar la carpeta de telemetría. No hay ajustes técnicos ocultos en esta pantalla.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            AjSheetKind.Save -> AjSaveSheet(
+                kind = AjBackupKind.valueOf(saveKind), busy = saveBusy,
+                onKind = { saveKind = it.name },
+                onSave = { if (saveKind == AjBackupKind.Json.name) jsonExportLauncher.launch("kpkn-backup.json") else dbExportLauncher.launch("kpkn-backup.db") },
+                onDismiss = ::closeSheet,
+            )
+            AjSheetKind.Restore -> AjRestoreSheet(
+                confirming = restoreUri != null, kind = AjBackupKind.valueOf(restoreKind), fileName = restoreName, busy = restoreBusy,
+                onKind = { restoreKind = it.name },
+                onPickFile = {
+                    if (restoreKind == AjBackupKind.Json.name) restorePicker.launch(arrayOf("application/json", "text/plain"))
+                    else restorePicker.launch(arrayOf("application/x-sqlite3", "application/octet-stream", "*/*"))
+                },
+                onRestore = ::restore,
+                onDismiss = { restoreUri = null; closeSheet() },
+            )
+            AjSheetKind.Csv -> CsvExportSheet(csvState, csvModel::prepare, ::closeSheet)
+            AjSheetKind.Sources -> NutritionSourcesSheet(::closeSheet)
+            AjSheetKind.Delete -> AjDeleteSheet(
+                deleting = deleting,
+                onSaveFirst = { openSheet(AjSheetKind.Save) },
+                onConfirm = ::deleteAll,
+                onDismiss = ::closeSheet,
+            )
+            null -> Unit
         }
+
+        toast?.let { t -> Box(Modifier.align(Alignment.BottomCenter)) { AjToast(t.message, t.kind) } }
     }
 }
 
-@Composable
-private fun SettingsBlockTitle(text: String) {
-    Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = MaterialTheme.colorScheme.primary)
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* Permisos del sistema                                                                                                            */
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+private fun permissionNames(perm: AjPerm): Array<String> = when (perm) {
+    AjPerm.Notifications -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()
+    AjPerm.Microphone -> arrayOf(Manifest.permission.RECORD_AUDIO)
+    AjPerm.Location -> arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+    AjPerm.Bluetooth -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(Manifest.permission.BLUETOOTH_CONNECT) else emptyArray()
+    AjPerm.Camera -> arrayOf(Manifest.permission.CAMERA)
+    AjPerm.Alarms -> emptyArray()
 }
 
-@Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f))) {
-        Column(Modifier.fillMaxWidth(), content = content)
-    }
+private fun has(context: Context, permission: String): Boolean =
+    ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+private fun isGranted(context: Context, perm: AjPerm): Boolean = when (perm) {
+    AjPerm.Notifications -> Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || has(context, Manifest.permission.POST_NOTIFICATIONS)
+    AjPerm.Microphone -> has(context, Manifest.permission.RECORD_AUDIO)
+    AjPerm.Location -> has(context, Manifest.permission.ACCESS_FINE_LOCATION) || has(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+    AjPerm.Bluetooth -> WorkoutVoicePermissionHelper.hasBluetoothConnectPermission(context)
+    AjPerm.Camera -> has(context, Manifest.permission.CAMERA)
+    AjPerm.Alarms -> PermissionGuideHelper.getPermissionState(context).allOk
 }
 
-@Composable
-private fun PermissionRow(icon: ImageVector, title: String, description: String, granted: Boolean, onClick: () -> Unit) {
-    SettingsActionRow(
-        icon = icon,
-        title = title,
-        description = description,
-        actionLabel = if (granted) "Concedido" else "Activar",
-        onClick = onClick,
-        destructive = !granted,
-    )
+/**
+ * Concedido / activar / bloqueado. Bloqueado = ya se pidió alguna vez y el sistema ya no ofrece el motivo (`shouldShowRequestPermissionRationale`
+ * es falso): a partir de ahí solo se recupera desde los ajustes del sistema.
+ */
+private fun permissionState(context: Context, perm: AjPerm): AjPermState {
+    if (isGranted(context, perm)) return AjPermState.GRANTED
+    val names = permissionNames(perm)
+    val activity = context.findActivity()
+    val requested = context.getSharedPreferences(PermissionPrefs, Context.MODE_PRIVATE).getStringSet("requested", emptySet()).orEmpty()
+    val blocked = names.isNotEmpty() && activity != null && perm.name in requested &&
+        names.none { ActivityCompat.shouldShowRequestPermissionRationale(activity, it) }
+    return if (blocked) AjPermState.BLOCKED else AjPermState.DENIED
 }
 
-@Composable
-private fun SettingsActionRow(icon: ImageVector, title: String, description: String, actionLabel: String, onClick: () -> Unit, destructive: Boolean = false) {
-    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary, modifier = Modifier.size(23.dp))
-        Spacer(Modifier.size(12.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, fontWeight = FontWeight.Bold)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun markRequested(context: Context, perm: AjPerm) {
+    val prefs = context.getSharedPreferences(PermissionPrefs, Context.MODE_PRIVATE)
+    prefs.edit().putStringSet("requested", prefs.getStringSet("requested", emptySet()).orEmpty() + perm.name).apply()
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun displayName(context: Context, uri: Uri): String =
+    runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
         }
-        TextButton(onClick = onClick) { Text(actionLabel, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) }
-    }
-}
-
-private enum class PermissionAction { REQUEST, HEALTH_CONNECT }
-
-private data class PermissionRowModel(
-    val icon: ImageVector,
-    val title: String,
-    val description: String,
-    val granted: Boolean,
-    val permissions: Array<String> = emptyArray(),
-    val action: PermissionAction = PermissionAction.REQUEST,
-)
-
-private fun permissionRows(context: Context, healthConnectAvailable: Boolean): List<PermissionRowModel> = buildList {
-    add(PermissionRowModel(Icons.Default.Notifications, "Notificaciones", "Recordatorios, avisos de descanso y estado de la sesión.", hasPermission(context, Manifest.permission.POST_NOTIFICATIONS, Build.VERSION_CODES.TIRAMISU), arrayOf(Manifest.permission.POST_NOTIFICATIONS)))
-    add(PermissionRowModel(Icons.Default.Mic, "Micrófono", "Control por voz durante el entrenamiento.", hasPermission(context, Manifest.permission.RECORD_AUDIO), arrayOf(Manifest.permission.RECORD_AUDIO)))
-    add(PermissionRowModel(Icons.Default.LocationOn, "Ubicación", "Rastreo GPS para sesiones de cardio.", hasAnyPermission(context, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)))
-    add(PermissionRowModel(Icons.Default.Bluetooth, "Bluetooth", "Conexión con audífonos y accesorios compatibles.", WorkoutVoicePermissionHelper.hasBluetoothConnectPermission(context), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(Manifest.permission.BLUETOOTH_CONNECT) else emptyArray()))
-    add(PermissionRowModel(Icons.Default.CameraAlt, "Cámara", "Fotos opcionales de ejercicios y seguimiento.", hasPermission(context, Manifest.permission.CAMERA), arrayOf(Manifest.permission.CAMERA)))
-    if (healthConnectAvailable) {
-        add(PermissionRowModel(Icons.Default.SettingsBackupRestore, "Health Connect", "Sincronización opcional de salud y medidas corporales.", false, action = PermissionAction.HEALTH_CONNECT))
-    }
-    return@buildList
-}
-
-private fun hasPermission(context: Context, permission: String, minSdk: Int = 0): Boolean =
-    Build.VERSION.SDK_INT < minSdk || ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-
-private fun hasAnyPermission(context: Context, vararg permissions: String): Boolean = permissions.any { hasPermission(context, it) }
+    }.getOrNull() ?: (uri.lastPathSegment ?: "copia")

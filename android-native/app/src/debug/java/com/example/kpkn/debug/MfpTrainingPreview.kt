@@ -14,7 +14,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.catalogv2.*
 import com.example.kpkn.domain.workout.MyoRepsPreset
 import com.example.kpkn.screens.sessioneditor.components.*
-import com.example.kpkn.screens.settings.TrainingSettingsBlock
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -41,12 +40,6 @@ internal object MfpTrainingPreview {
             initialCatalogDefinitionId=if(state=="no_suggestions") null else definition.id,
             initialCatalogConfigurationId=if(state=="no_suggestions") null else config.id,opaqueSurface=true,
             replacement=CatalogReplacementContext(exerciseName=exercise.name,planSummary="3 × 8 · RIR 2",exercise=if(state=="no_suggestions") exercise.copy(catalogConfigurationId=null) else exercise))
-    }
-    @Composable fun Settings(state: String) {
-        var settings by remember { mutableStateOf(if(state=="custom") Settings(restTimerDefaultSeconds=180,autoStartRestAfterRecording=false) else Settings()) }
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            TrainingSettingsBlock(settings,{transform -> settings=transform(settings)})
-        }
     }
     @Composable fun Myo(state: String) {
         val myo=MyoRepsPreset.applyTo(ExerciseSet("fixture-set",targetReps=12,targetRIR=1,weight=100.0))

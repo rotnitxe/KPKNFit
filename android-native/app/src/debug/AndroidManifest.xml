@@ -23,11 +23,6 @@
             android:name="com.example.kpkn.debug.NutritionDayStateHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
-        <!-- SOLO DEPURACIÓN: inventario de material con repositorio en memoria. -->
-        <activity
-            android:name="com.example.kpkn.debug.EquipmentHarnessActivity"
-            android:exported="true"
-            android:theme="@style/Theme.KPKN" />
         <!-- SOLO DEPURACIÓN: vista previa de los símbolos de Entreno (lugares e implementos); no se integra. -->
         <activity
             android:name="com.example.kpkn.debug.EntrenoSymbolsPreviewActivity"
@@ -122,7 +117,6 @@
     <activity android:name="com.example.kpkn.debug.ExerciseProgressHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.ExerciseSwapHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.MyoRepsPlatesHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
-        <activity android:name="com.example.kpkn.debug.TrainingSettingsHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
 
     </application>
 </manifest>

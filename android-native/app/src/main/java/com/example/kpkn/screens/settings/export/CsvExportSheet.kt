@@ -1,71 +1,94 @@
 package com.example.kpkn.screens.settings.export
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.export.CsvExportDomain
-import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.*
+import com.example.kpkn.screens.settings.AjButton
+import com.example.kpkn.screens.settings.AjColors
+import com.example.kpkn.screens.settings.AjIcons
+import com.example.kpkn.screens.settings.AjOption
+import com.example.kpkn.screens.settings.AjSheet
+import com.example.kpkn.screens.settings.AjSheetSub
+import com.example.kpkn.screens.settings.AjSheetTitle
+import com.example.kpkn.screens.settings.AjType
 
+/** Hoja «Exportar datos» de Ajustes (aj-csv): la hoja gris plana de la app con el cuerpo en filas con casilla y filete. */
 @Composable
 fun CsvExportSheet(state: CsvExportUiState, onExport: (Set<CsvExportDomain>) -> Unit, onDismiss: () -> Unit) {
     var names by rememberSaveable { mutableStateOf(listOf(CsvExportDomain.MEALS.name)) }
     val selected = names.map { CsvExportDomain.valueOf(it) }.toSet()
-    KpknSheet(onDismissRequest = onDismiss, dismissible = !state.busy) {
+    AjSheet(onDismiss, tall = true, dismissible = !state.busy) {
         CsvExportContent(selected, { domain -> names = (if (domain in selected) selected - domain else selected + domain).map { it.name } },
-            state.busy, state.error, null, { onExport(selected) }, onDismiss, Modifier.fillMaxHeight(0.85f))
+            state.busy, state.error, null, { onExport(selected) }, onDismiss, Modifier.weight(1f))
     }
 }
 
+/**
+ * Contenido de la hoja: título con su cierre de 44 dp, cuerpo con scroll (explicación, una fila con casilla por dominio y el aviso de ZIP),
+ * el error sobre el botón y «Exportar», desactivado sin selección y mientras trabaja.
+ */
 @Composable
 fun CsvExportContent(selected: Set<CsvExportDomain>, onToggle: (CsvExportDomain) -> Unit, busy: Boolean,
     error: String?, hasData: Boolean?, onExport: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Exportar datos", style = KpknType.title, color = WizardColors.text, modifier = Modifier.weight(1f))
-            if (!busy) KpknIconButton(KpknLineIcons.Close, "Cerrar exportación CSV", onDismiss)
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.weight(1f)) { AjSheetTitle("Exportar datos") }
+            if (!busy) {
+                Box(
+                    Modifier.size(44.dp).semantics { contentDescription = "Cerrar exportación CSV"; role = Role.Button }
+                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+                    contentAlignment = Alignment.Center,
+                ) { Icon(AjIcons.Close, contentDescription = null, tint = AjColors.Muted, modifier = Modifier.size(20.dp)) }
+            }
         }
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Elige los datos que quieres llevar a una hoja de cálculo. Después elegirás dónde guardarlos.", style = KpknType.body, color = WizardColors.textMuted)
-            if (hasData == false) Text("No hay registros; se exportarán archivos con sus cabeceras.", style = KpknType.body, color = WizardColors.textMuted)
-            KpknModule(Modifier.fillMaxWidth()) {
-                CsvExportDomain.entries.forEach { domain ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("csv-domain-${domain.name}")
-                        .toggleable(domain in selected, enabled = !busy, role = Role.Checkbox, onValueChange = { onToggle(domain) })
-                        .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(domain.label, style = KpknType.bodyStrong, color = WizardColors.text)
-                            Text(when (domain) {
-                                CsvExportDomain.MEALS -> "Alimentos registrados, hora y estado del día"
-                                CsvExportDomain.BODY -> "Mediciones y unidades de Ajustes"
-                                CsvExportDomain.WORKOUTS -> "Sesiones, series, repeticiones y notas"
-                                CsvExportDomain.LIBRARY -> "Ejercicios, alimentos y recetas propios"
-                            }, style = KpknType.caption, color = WizardColors.textMuted)
-                        }
-                        Checkbox(domain in selected, onCheckedChange = null, enabled = !busy)
-                    }
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            AjSheetSub("Elige los datos que quieres llevar a una hoja de cálculo. Después elegirás dónde guardarlos.")
+            if (hasData == false) AjSheetSub("No hay registros; se exportarán archivos con sus cabeceras.")
+            Column {
+                CsvExportDomain.entries.forEachIndexed { i, domain ->
+                    AjOption(
+                        domain.label, domain in selected, { onToggle(domain) }, check = true, enabled = !busy, divider = i > 0, tag = "csv-domain-${domain.name}",
+                        sub = when (domain) {
+                            CsvExportDomain.MEALS -> "Alimentos registrados, hora y estado del día"
+                            CsvExportDomain.BODY -> "Mediciones y unidades de Ajustes"
+                            CsvExportDomain.WORKOUTS -> "Sesiones, series, repeticiones y notas"
+                            CsvExportDomain.LIBRARY -> "Ejercicios, alimentos y recetas propios"
+                        },
+                    )
                 }
             }
-            Text("Una selección produce un CSV; varias se agrupan en ZIP. Mi biblioteca incluye dos CSV y siempre se entrega en ZIP.",
-                style = KpknType.caption, color = WizardColors.textMuted)
-            if (busy) Text("Preparando exportación…", style = KpknType.bodyStrong, color = WizardColors.text)
+            Text(
+                "Una selección produce un CSV; varias se agrupan en ZIP. Mi biblioteca incluye dos CSV y siempre se entrega en ZIP.",
+                style = AjType.note,
+            )
         }
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            error?.let { Text(it, style = KpknType.body, color = WizardColors.danger) }
-            KpknPrimaryPill(if (busy) "Preparando…" else "Exportar", onExport, enabled = selected.isNotEmpty() && !busy,
-                modifier = Modifier.fillMaxWidth(), tag = "csv-export")
-        }
+        if (error != null) Text(error, style = AjType.error)
+        AjButton(
+            if (busy) "Preparando…" else "Exportar", onExport, fill = true, busy = busy,
+            enabled = selected.isNotEmpty() && !busy, tag = "csv-export",
+        )
     }
 }
