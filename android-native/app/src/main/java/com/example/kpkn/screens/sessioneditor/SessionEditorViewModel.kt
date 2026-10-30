@@ -1119,7 +1119,6 @@ calculateSessionTimeBreakdown(
                     globalMobilitySeries = session.parts
                         .filter { it.isMobilityGroup }
                         .flatMap { it.mobilitySeries },
-                    restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch
             val suggestions = runCatching {

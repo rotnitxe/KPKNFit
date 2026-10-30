@@ -637,11 +637,11 @@ class WorkoutSetRecorderDurableRoomTest {
         assertTrue(record() is RecordSetResult.Created)
         assertEquals(1,rests)
     }
-    @Test fun disablingNewAutoStartKeepsDurableRecordingWithoutStartingRest() = runBlocking {
+    @Test fun theRetiredAutoStartFlagNoLongerDisablesRest() = runBlocking {
         repository.updateSettings { it.copy(autoStartRestAfterRecording=false) }
         withTimeout(5000) { repository.settings.first { !it.autoStartRestAfterRecording } }
         assertTrue(record() is RecordSetResult.Created)
-        assertEquals(0,rests);assertEquals(1,room().completedSets.size);assertEquals(1,advances)
+        assertEquals(1,rests);assertEquals(1,room().completedSets.size);assertEquals(1,advances)
     }
     @Test fun miniSeriesMyoSeGuardanComoRestPauseConSuVarianteEnRoom() = runBlocking {
         val original=state.session!!

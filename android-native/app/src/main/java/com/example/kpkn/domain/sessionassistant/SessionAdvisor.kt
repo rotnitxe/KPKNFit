@@ -58,7 +58,7 @@ internal object SessionAdvisor {
             exerciseIndex = input.exerciseIndex,
             supersetBetweenRestSeconds = input.supersetBetweenRestSeconds,
             supersetRoundRestSeconds = input.supersetRoundRestSeconds,
-            defaultRestSeconds = input.settings.restTimerDefaultSeconds.takeIf { it > 0 } ?: 90,
+            defaultRestSeconds = com.example.kpkn.domain.workout.RestDefaults.SECONDS,
             newGroupId = { "assistant_superset_preview" },
         )
         val outputs = buildList<RuleOutput> {

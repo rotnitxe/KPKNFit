@@ -794,7 +794,7 @@ class WorkoutSetRecorder(
                         phaseIndex = scheduledPhase,
                         currentLoad = weight,
                         normalRestSeconds = exercise.restTime?.takeIf { seconds -> seconds > 0 }
-                            ?: repository.settings.value.restTimerDefaultSeconds,
+                            ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS,
                         unitMode = resolvedUnitMode,
                         phaseCountOverride = scheduledPhaseCount,
                         actualIntensityMode = completedSet.actualIntensityMode,
@@ -814,7 +814,7 @@ class WorkoutSetRecorder(
                 ports.nextSet(stopRest = false)
             }
 
-            val baseRest = exercise.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
+            val baseRest = exercise.restTime?.takeIf { it > 0 } ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS
             val scheduledPhaseForRest = if (scheduledPlan != null &&
                 plannedSet?.isInlineEditorScheduledTechnique() == true &&
                 completedSet.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
@@ -961,7 +961,7 @@ class WorkoutSetRecorder(
                     advancedFeedback = report,
                 )
                 updateState { it.copy(pendingRestSuggestion = pendingSuggestion) }
-                if (repository.settings.value.autoStartRestAfterRecording && effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
+                if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
                     ports.startRestTimer(
                         seconds = effectivePlanned,
                         advanceOnFinish = false,

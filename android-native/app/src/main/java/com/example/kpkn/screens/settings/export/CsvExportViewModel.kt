@@ -44,7 +44,7 @@ class CsvExportViewModel(private val port: CsvExportPort, private val io: Corout
             try {
                 withContext(io) { port.write(destination, prepared) }
                 val skipped = if (prepared.issues.isEmpty()) "" else " Se omitieron ${prepared.issues.size} registros ilegibles; los originales se conservan."
-                _state.value = CsvExportUiState(notice = "Exportación completada (${prepared.files.size} archivos).$skipped")
+                _state.value = CsvExportUiState(notice = "Exportación completada (${prepared.files.size} ${if (prepared.files.size == 1) "archivo" else "archivos"}).$skipped")
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) { fail("No se pudo exportar: ${error.message ?: "error desconocido"}") }
             finally { writing = false; bundle = null }
