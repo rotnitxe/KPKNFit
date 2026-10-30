@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail
 
+import com.example.kpkn.ui.design.depth.kpknBackdropAdjust
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -249,6 +250,8 @@ fun ProgramDetailScreen(
         onOpenProgram(id)
     }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
+    // Resumen del último reparto aplicado (con «Deshacer» y «Rehacer»): se pinta sobre la semana al cerrar la página de repartos.
+    var splitApplied by remember { mutableStateOf<com.example.kpkn.screens.programdetail.components.RpAppliedState?>(null) }
     // Semana copiada (para pegarla en otra): común a las pestañas, que AnimatedContent recrea al cambiar.
     val copiedWeekState = rememberSaveable(program?.id) { mutableStateOf<String?>(null) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
@@ -575,10 +578,40 @@ fun ProgramDetailScreen(
         moreDot = pendingCount > 0,
     )
     val planSummary = remember(p) { buildProgramPlanDisplaySummary(p) }
+    // Tras aplicar un reparto: el resumen sobre la semana, con «Deshacer» (devuelve la semana exactamente) y, tras deshacer, «Rehacer».
+    splitApplied?.let { applied ->
+        com.example.kpkn.screens.programdetail.design.split.RpAppliedSheet(
+            model = com.example.kpkn.screens.programdetail.design.split.SplitFlowModels.appliedModel(applied.summary, applied.undone),
+            actions = com.example.kpkn.screens.programdetail.design.split.RpAppliedActions(
+                onUndo = {
+                    val restored = if (applied.viaPlanner) {
+                        com.example.kpkn.domain.training.split.SplitMigrationPlanner.undo(p, force = true)
+                    } else {
+                        applied.before
+                    }
+                    viewModel.updateProgram(restored)
+                    splitApplied = applied.copy(undone = true)
+                },
+                onRedo = {
+                    viewModel.updateProgram(applied.after)
+                    splitApplied = applied.copy(undone = false)
+                },
+                onDone = { splitApplied = null },
+            ),
+            onDismiss = { splitApplied = null },
+        )
+    }
 
-    Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
+    // rp-J02: con la hoja del reparto aplicado, la semana de detrás baja a brillo 0,55 (`filter: brightness(.55)` del lienzo), además del velo de la hoja.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(KpknSurface.canvas)
+            .then(if (splitApplied != null) Modifier.kpknBackdropAdjust(1f, 0.55f) else Modifier),
+    ) {
         if (showSplitPage) {
             // La página de repartos hace su propio scroll (y su isla); aquí solo se reserva la barra de estado.
+            val splitWeekIndex = allProgramWeeks.indexOfFirst { it.id == uiState.selectedWeekId }
             SplitView(
                 program = p,
                 selectedBlockId = uiState.selectedBlockId,
@@ -588,6 +621,15 @@ fun ProgramDetailScreen(
                     showSplitPage = false
                 },
                 onBack = { showSplitPage = false },
+                completedSessionIds = completedSessionIds,
+                weekLabel = if (splitWeekIndex >= 0) "Semana ${splitWeekIndex + 1}" else "Semana",
+                weekRange = selectedWeekMeta?.dateRangeLabel,
+                // El reparto aplicado sube su resumen sobre la semana: la página se cierra y la hoja la pinta esta pantalla.
+                onApplied = { applied ->
+                    viewModel.updateProgram(applied.after)
+                    splitApplied = applied
+                    showSplitPage = false
+                },
                 modifier = Modifier.fillMaxSize().statusBarsPadding(),
             )
         } else {
@@ -1758,6 +1800,11 @@ private fun TrainingPanel(
                 { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) }
             },
             onChangeSplit = if (weekId == selectedWeekId) onOpenSplitPage else null,
+            onUndoSplit = if (weekId == selectedWeekId && com.example.kpkn.domain.training.split.SplitMigrationPlanner.undoState(program) == com.example.kpkn.domain.training.split.UndoState.AVAILABLE) {
+                { viewModel.updateProgram(com.example.kpkn.domain.training.split.SplitMigrationPlanner.undo(program)) }
+            } else {
+                null
+            },
             onCopy = { copiedRoadmapWeekId = weekId },
             pasteLabel = if (copied != null && copied != weekId) {
                 if (copiedIndex >= 0) "Pegar la semana ${copiedIndex + 1} aquí" else "Pegar la semana aquí"
