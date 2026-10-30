@@ -1407,7 +1407,8 @@ fun WorkoutScreen(
     LaunchedEffect(uiState.finishWarning) {
         val warning = uiState.finishWarning
         if (warning != null) {
-            android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
+            // Con la hoja de cierre abierta el aviso se lee dentro de ella (en rojo suave sobre «Guardar sesión»), no en un toast.
+            if (!uiState.showFinishSheet) android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
             viewModel.consumeFinishWarning()
         }
     }
@@ -1429,6 +1430,9 @@ fun WorkoutScreen(
             initialNotes = uiState.sessionNotes,
             saving = uiState.isFinishingWorkout,
             calibrationDecisions = uiState.calibrationDecisions,
+            plannedSets = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys).total,
+            targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
+            errorMessage = uiState.finishWarning,
             discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
             presentation = viewModel.finishPresentationContext(),
             checklist = uiState.sessionChecklist,

@@ -95,10 +95,8 @@ internal fun finishAverageRir(completed: List<CompletedExercise>): Double? = com
     .filter { !it.skipped && !it.isWarmup }.mapNotNull(::finishActualRir)
     .takeIf { it.isNotEmpty() }?.average()
 
-internal fun finishNumber(value: Double, decimals: Int = 1): String = NumberFormat.getNumberInstance(Locale.forLanguageTag("es-CL")).apply {
-    maximumFractionDigits = decimals
-    minimumFractionDigits = 0
-}.format(value).replace('.', ' ')
+/** «8.420», «7,5»: punto de millar y coma decimal (antes devolvía «8 420», con espacio). */
+internal fun finishNumber(value: Double, decimals: Int = 1): String = finishGrouped(value, decimals)
 
 internal fun finishSetLabel(set: CompletedSet?): String = when {
     set == null -> "Sin serie de fuerza comparable"

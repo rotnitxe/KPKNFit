@@ -387,10 +387,10 @@ internal fun WorkoutV2Body(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            // La Lista llega hasta el borde inferior real (sobre la barra de navegación o el teclado) y funde ahí;
-                            // el hueco del dock solo existe en las Tarjetas.
+                            // La Lista llega hasta el borde físico inferior (bajo la barra de gestos; solo cede ante el teclado) y funde ahí
+                            // 28 dp; el hueco del dock solo existe en las Tarjetas.
                             .padding(
-                                bottom = if (liveSessionView == LiveSessionView.LIST) maxOf(navigationBottom, imeBottom)
+                                bottom = if (liveSessionView == LiveSessionView.LIST) imeBottom
                                 else stageBottomClearance + 12.dp,
                             ),
                     ) {

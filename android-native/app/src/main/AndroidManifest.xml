@@ -128,6 +128,11 @@
             android:exported="false" />
 
         <receiver
+            android:name=".services.workout.FreeClockTimerReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
             android:name=".services.workout.TimerNotificationActionReceiver"
             android:enabled="true"
             android:exported="false" />

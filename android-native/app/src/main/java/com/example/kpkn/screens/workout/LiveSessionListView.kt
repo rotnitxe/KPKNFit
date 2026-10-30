@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.ime
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import androidx.compose.foundation.layout.size
@@ -515,8 +517,9 @@ internal fun LiveSessionListView(
     }?.key
     val focusKey = restKey ?: expandedKey?.takeIf { key -> entries.any { it.key == key } } ?: activeKey
     val density = androidx.compose.ui.platform.LocalDensity.current
-    // Alto de la barra de estado: la lista llega hasta el borde de la pantalla y su fundido de arriba empieza justo debajo de ella.
-    val statusTopPx = WindowInsets.statusBars.getTop(density)
+    val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+    val imeBottomDp = with(density) { WindowInsets.ime.getBottom(this).toDp() }
+    val listBottomPadding = (navBottomDp - imeBottomDp).coerceAtLeast(0.dp) + 24.dp
     LaunchedEffect(focusKey) {
         val key = focusKey ?: return@LaunchedEffect
         // Deja que el editor o el descanso terminen de desplegarse antes de medir.
@@ -548,34 +551,18 @@ internal fun LiveSessionListView(
     LiveListStrictTouch {
     LazyColumn(
         state = listState,
-        // Desvanecido solo en los dos bordes REALES de la lista (pedido del usuario, 29-oct): la lista llega hasta el borde de la pantalla
-        // (arriba, bajo la barra de estado; abajo, justo sobre la barra de navegación) y se funde en ListEdgeFade pegado a cada borde.
-        // La isla de arriba es vidrio: las filas pasan por debajo y se ven desenfocadas a través de ella, sin corte.
+        // Desvanecido solo en los dos bordes REALES de la lista (pedido del usuario, 29-oct; contrato `lx-l-medidas`): la lista ocupa toda la
+        // pantalla (bajo la barra de estado, bajo la isla y bajo la barra de gestos) y se funde 24 dp arriba (desde y = 0) y 28 dp abajo (hasta el
+        // borde físico). La isla de arriba es vidrio: las filas pasan por debajo y se ven desenfocadas a través de ella, sin corte.
         modifier = modifier.fillMaxSize()
-            .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                val h = size.height
-                if (h > 0f) {
-                    val fade = ListEdgeFade.toPx()
-                    // Arriba: nada sobre la barra de estado y, desde su borde, las filas aparecen fundidas.
-                    val topEnd = (statusTopPx + fade).coerceAtMost(h * .4f)
-                    val topStart = statusTopPx.toFloat().coerceAtMost(topEnd)
-                    // Abajo: fundido de pocos dp contra el borde inferior real.
-                    val bottomStart = (h - fade).coerceAtLeast(h * .6f)
-                    drawRect(
-                        Brush.verticalGradient(0f to Color.Transparent, topStart / h to Color.Transparent, topEnd / h to Color.Black,
-                            bottomStart / h to Color.Black, 1f to Color.Transparent),
-                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                    )
-                }
-            }
+            .liveListEdgeMask()
             // La fuente del desenfoque de la isla va DESPUÉS del desvanecido (más adentro): graba las filas sin fundir, así el vidrio
             // las desenfoca también donde, a la vista, ya se han fundido.
             .then(if (hazeState != null) Modifier.hazeSource(state = hazeState) else Modifier)
             .testTag("live-list"),
-        // El pie reserva lo que antes dejaba el hueco del dock (16 + 28 dp): al final de la lista lo último queda donde estaba.
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 14.dp, end = 14.dp, top = topInset, bottom = 72.dp),
+        // Arriba: cabecera + 14 dp (`topInset`). Abajo: el inset de navegación + 24 dp, para que el último ejercicio pueda subir hasta quedar
+        // entero sobre el desvanecido (`lx-l-medidas`). Con el teclado abierto la lista ya termina sobre él: solo quedan los 24 dp.
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 14.dp, end = 14.dp, top = topInset, bottom = listBottomPadding),
     ) {
         items(entries, key = { it.key }, contentType = { it::class }) { entry ->
             // Toda aparición, desaparición y recolocación se funde y se desliza (corte inmediato con el movimiento reducido).
@@ -1369,20 +1356,11 @@ private fun InlineSetEditor(
             }
         } else if (shownFace == EDITOR_FACE_VISUAL) {
             // `inline-editor` con `mediaContent()` a 350 de alto: la cámara, el álbum y el análisis de esa serie. Al entrar se abre la vista
-            // expandida de la tarjeta (la misma superposición, por encima de todo); al plegarla queda esta cara, con «Ampliar» para volver.
+            // expandida de la tarjeta (la misma superposición, por encima de todo); al plegarla queda esta cara, que ya trae su propio «Expandir» (un solo nombre para la misma acción).
             Column(Modifier.fillMaxWidth().listTapGuard().testTag("live-list-visual-${row.key}")) {
             Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("Modo visual · serie ${row.label}", Modifier.weight(1f).padding(start = 4.dp), style = Body.copy(fontSize = 12.sp),
                     color = WizardColors.textFaint)
-                Row(
-                    Modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(11.dp)).clickable(role = Role.Button) { visualAutoExpand = true; visualExpandRequest++ }
-                        .padding(horizontal = 10.dp).testTag("live-list-visual-expand-${row.key}"),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    Icon(KpknLineIcons.Camera, null, Modifier.size(14.dp), tint = WizardColors.text)
-                    Text("Ampliar", style = Body.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium), color = WizardColors.text)
-                }
             }
             Box(Modifier.fillMaxWidth().height(350.dp).padding(bottom = 6.dp)) {
                 androidx.compose.runtime.key(visualExpandRequest) {
