@@ -184,6 +184,8 @@ class EdbFocusControlsTest {
         rule.onNodeWithContentDescription("Sumar 5 segundos a Entre lados").performClick()
         assertNull(confirmed)
         rule.onNodeWithText("Listo").performClick()
+        // La hoja baja (230 ms) y solo entonces se guarda (`closeLayer(cb)` del lienzo).
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
         assertEquals(135 to 20, confirmed)
     }
@@ -301,6 +303,7 @@ class EdbFocusControlsTest {
         rule.waitForIdle()
         assertNull(picked)
         rule.onNodeWithText("Aplicar Tiempo").performClick()
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
         assertEquals(TrainingMode.TIME, picked)
     }

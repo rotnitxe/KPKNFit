@@ -70,6 +70,7 @@ import kotlin.math.abs
 import kotlin.math.min
 import com.example.kpkn.screens.sessioneditor.components.EdFlexRow
 import com.example.kpkn.screens.sessioneditor.components.EdPresetButton
+import com.example.kpkn.screens.sessioneditor.components.LocalEdSheetClose
 import com.example.kpkn.screens.sessioneditor.components.EdPrimaryButton
 import com.example.kpkn.screens.sessioneditor.components.EdRestField
 import com.example.kpkn.screens.sessioneditor.components.EdSection
@@ -206,10 +207,12 @@ internal fun RestSheet(
                 onChange = { side = it },
             )
         }
+        val close = LocalEdSheetClose.current
         EdPrimaryButton(
             text = "Listo",
             onClick = {
-                onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null)
+                // pulido:ed-J05 closeLayer(cb): baja la hoja y después se guarda el descanso
+                close { onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null) }
             },
         )
     }

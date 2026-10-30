@@ -522,18 +522,21 @@ internal fun PreparationDashedPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // pulido:ed-T09 .ed-dash borde y color 0,16 s al pulsar (#f2eee688 / tinta)
+    val (source, pressed) = rememberEdPressed()
+    // pulido:ed-T09 .ed-dash borde y color 0,16 s ease al pulsar (`:active{border-color:#f2eee688;color:var(--ink)}`)
+    val borderColor = edTransitionColor(if (pressed) EdColors.ink.copy(alpha = 0.533f) else EdColors.dashed, 160)
+    val contentColor = edTransitionColor(if (pressed) EdColors.ink else EdColors.muted, 160)
     androidx.compose.foundation.layout.Row(
         modifier = modifier
             .heightIn(min = 44.dp)
             .clip(RoundedCornerShape(22.dp))
-            .clickable(onClick = onClick)
-            .edDashedBorder(EdColors.dashed, 22.dp, 1.5.dp)
+            .clickable(interactionSource = source, indication = null, onClick = onClick)
+            .edDashedBorder(borderColor, 22.dp, 1.5.dp)
             .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        EdIcon(com.example.kpkn.ui.components.icons.KpknLineIcons.Plus, 16.dp, EdColors.muted)
-        Text(text, style = edText(13.5f, androidx.compose.ui.text.font.FontWeight.SemiBold, EdColors.muted, 16.9f), maxLines = 1)
+        EdIcon(com.example.kpkn.ui.components.icons.KpknLineIcons.Plus, 16.dp, contentColor)
+        Text(text, style = edText(13.5f, androidx.compose.ui.text.font.FontWeight.SemiBold, contentColor, 16.9f), maxLines = 1)
     }
 }

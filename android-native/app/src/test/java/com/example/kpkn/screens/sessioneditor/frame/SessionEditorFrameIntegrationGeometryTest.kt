@@ -118,21 +118,27 @@ class SessionEditorFrameIntegrationGeometryTest {
         }
     }
 
-    private fun target(node: SemanticsNodeInteraction, minWidth: Float = 48f) {
+    /**
+     * Objetivo táctil de 48 dp como mínimo. Con [touch] se mide el área táctil real (`touchBoundsInRoot`, que incluye el mínimo de 48 dp de
+     * Compose): lo que se ve conserva el tamaño del lienzo (flecha de 44, día de 42) y el dedo cuenta con 48 × 48.
+     */
+    private fun target(node: SemanticsNodeInteraction, minWidth: Float = 48f, touch: Boolean = false) {
         node.assertIsDisplayed()
-        val bounds = node.fetchSemanticsNode().boundsInRoot
+        val semantics = node.fetchSemanticsNode()
+        val bounds = semanticsBounds(semantics, touch)
         assertTrue("Objetivo estrecho: $bounds", bounds.width / density >= minWidth - 0.01f)
         assertTrue("Objetivo bajo: $bounds", bounds.height / density >= 48f - 0.01f)
         val screen = rule.onNodeWithTag("frame_geometry_screen").fetchSemanticsNode().boundsInRoot
-        assertTrue("Objetivo fuera: $bounds / $screen", bounds.left >= screen.left - 1f && bounds.right <= screen.right + 1f &&
-            bounds.top >= screen.top - 1f && bounds.bottom <= screen.bottom + 1f)
+        val layout = semantics.boundsInRoot
+        assertTrue("Objetivo fuera: $layout / $screen", layout.left >= screen.left - 1f && layout.right <= screen.right + 1f &&
+            layout.top >= screen.top - 1f && layout.bottom <= screen.bottom + 1f)
     }
 
     private fun frameGeometry(scale: Float, name: String) {
         mount(scale)
         listOf("Atrás", "Más opciones").forEach { target(rule.onNodeWithContentDescription(it)) }
-        // Las flechas de día miden 44 × 48 dp, como en el lienzo (`.ed-arrow`).
-        listOf("Día anterior", "Día siguiente").forEach { target(rule.onNodeWithContentDescription(it), minWidth = 44f) }
+        // Las flechas de día se ven de 44 × 48 dp, como en el lienzo (`.ed-arrow`), y el dedo cuenta con 48 × 48.
+        listOf("Día anterior", "Día siguiente").forEach { target(rule.onNodeWithContentDescription(it), touch = true) }
         target(rule.onNodeWithTag("session_editor_open_week"))
         fullText("Jue · Semana 3")
         val tags = listOf("time", "add", "assistant").map { "session_editor_bar_$it" }
@@ -166,8 +172,8 @@ class SessionEditorFrameIntegrationGeometryTest {
         // Los siete días deben verse simultáneamente a360: no hacer scroll horizontal para alcanzarlos.
         val days = (1..7).map { day ->
             val node = rule.onNodeWithTag("session_week_day_$day")
-            // `.ed-wd` encoge en el lienzo (flex): siete días en 294 dp son 42 dp de ancho por 48 de alto.
-            target(node, minWidth = 42f)
+            // `.ed-wd` encoge en el lienzo (flex): siete días en 294 dp se ven de 42 dp de ancho por 48 de alto; el área táctil es de 48 × 48.
+            target(node, touch = true)
             node.fetchSemanticsNode().boundsInRoot
         }
         days.zipWithNext().forEach { (left, right) -> assertTrue(left.right <= right.left + 1f) }
@@ -262,3 +268,6 @@ class SessionEditorFrameIntegrationGeometryTest {
         image.recycle()
     }
 }
+
+private fun semanticsBounds(node: androidx.compose.ui.semantics.SemanticsNode, touch: Boolean) =
+    if (touch) node.touchBoundsInRoot else node.boundsInRoot

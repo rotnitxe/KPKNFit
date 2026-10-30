@@ -66,11 +66,13 @@ internal fun EditorConfirmationSheet(
     onDismissRequest: () -> Unit = onDismiss,
 ) {
     EdSheet(onDismiss = onDismissRequest) {
+        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y solo entonces corre lo que confirma o cancela
+        val close = LocalEdSheetClose.current
         androidx.compose.material3.Text(title, style = edDisplay(20f, androidx.compose.ui.text.font.FontWeight.Bold, EdColors.ink, -0.4f).copy(lineHeight = 23.sp))
         androidx.compose.material3.Text(text, style = edText(13.5f, androidx.compose.ui.text.font.FontWeight.Normal, EdColors.muted, 19.6f))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            EdPrimaryButton(text = confirmLabel, onClick = onConfirm)
-            EdPrimaryButton(text = dismissLabel, onClick = onDismiss, ghost = true)
+            EdPrimaryButton(text = confirmLabel, onClick = { close(onConfirm) })
+            EdPrimaryButton(text = dismissLabel, onClick = { close(onDismiss) }, ghost = true)
         }
     }
 }

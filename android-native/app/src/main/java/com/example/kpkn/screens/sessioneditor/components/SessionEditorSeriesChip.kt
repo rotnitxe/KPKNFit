@@ -25,6 +25,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.design.motion.KpknChannel
+import com.example.kpkn.ui.design.motion.kpknCssColorLerp
+import com.example.kpkn.ui.design.motion.kpknPulse
+import com.example.kpkn.ui.design.motion.rememberKpknPose
+import androidx.compose.ui.draw.drawBehind
 
 private val KpknInk = Color(0xFFF2EEE6)
 /** `.ed-sc`: el fondo de la ficha es #0D0D0D (más hondo que el módulo #111). */
@@ -58,11 +63,17 @@ internal fun EditorPreparationChip(
     tag: String,
     description: String? = null,
     enabled: Boolean = true,
+    /** Cuántas veces se ha pedido el destello `.flash` (0 = ninguna): cada subida lo repite. */
+    flashKey: Int = 0,
     content: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(SessionEditorChipMetrics.radius)
-    // pulido:ed-T23 .ed-sc borde y fondo 0,18 s + escala con rebote (0,18 s) · ed-A10 .ed-sc.flash 0,6 s tras «Aplicar a todas»
+    // pulido:ed-T23 .ed-sc borde y fondo 0,18 s ease (la parte `transform .18s --ed-spring` no tiene disparador en el lienzo: ninguna regla mueve la ficha)
+    val borderColor = edTransitionColor(if (selected) KpknInk else Color.White.copy(alpha = 0.102f), 180)
+    val fillColor = edTransitionColor(if (selected) Color(0xFF232323) else KpknInset, 180)
+    // pulido:ed-A10 .ed-sc.flash ed-flash 0,6 s --ed-ease: fondo #f2eee633 y escala 1,04 que vuelven a su estado
+    val flash = if (flashKey > 0) rememberKpknPose(EdAnimations.Flash, key = flashKey) else null
     val density = androidx.compose.ui.platform.LocalDensity.current
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val available = with(density) { (SessionEditorChipMetrics.width - 16.dp).toPx() }
@@ -77,13 +88,14 @@ internal fun EditorPreparationChip(
             .testTag(tag)
             .semantics { description?.let { contentDescription = it } }
             .size(SessionEditorChipMetrics.width, SessionEditorChipMetrics.height)
+            .then(if (flash != null) Modifier.kpknPulse(flash) else Modifier)
             .clip(shape)
-            .background(if (selected) Color(0xFF232323) else KpknInset)
-            .border(
-                width = 1.dp,
-                color = if (selected) KpknInk else Color.White.copy(alpha = 0.102f),
-                shape = shape,
-            )
+            .drawBehind {
+                val pose = flash?.pose()
+                val color = if (pose != null && pose.active) kpknCssColorLerp(Color(0x33F2EEE6), fillColor, pose[KpknChannel.ColorMix]) else fillColor
+                drawRect(color)
+            }
+            .border(width = 1.dp, color = borderColor, shape = shape)
             .selectable(selected = selected, enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 7.dp),
         verticalArrangement = Arrangement.Center,
@@ -132,6 +144,7 @@ internal fun EffectiveSeriesChip(
     tag: String = "effective-series-chip-$label",
     description: String? = null,
     enabled: Boolean = true,
+    flashKey: Int = 0,
     onClick: () -> Unit = {},
 ) {
     EditorPreparationChip(
@@ -143,6 +156,7 @@ internal fun EffectiveSeriesChip(
         tag = tag,
         description = description,
         enabled = enabled,
+        flashKey = flashKey,
         onClick = onClick,
     )
 }

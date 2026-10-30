@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -95,6 +96,8 @@ internal fun ExerciseSetList(
     var openKey by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
     var pendingApply by remember(exercise.id) { mutableStateOf<PendingApply?>(null) }
     var deletedSet by remember(exercise.id) { mutableStateOf<DeletedSet?>(null) }
+    // pulido:ed-A10 `applyok`: tras cerrar la hoja, todas las fichas (menos «+») destellan 0,6 s; cada «Aplicar» sube la cuenta
+    var flashCount by remember(exercise.id) { mutableIntStateOf(0) }
     val unilateral = exercise.isEffectivelyUnilateral()
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
@@ -156,6 +159,8 @@ internal fun ExerciseSetList(
         val lineColor = Color.White.copy(alpha = 0.063f)
         Column(
             modifier = Modifier
+                // pulido:ed-A06 .ed-focus.anim ed-in 0,26 s --ed-ease (6 dp hacia arriba con fundido) al elegir otra serie o cambiar Fijas/Rango
+                .edEnterOnChange(rowKey to (set.targetRepsRange != null))
                 .fillMaxWidth()
                 .testTag("set-focus-$rowKey")
                 // .ed-focus: filete superior de 1 dp (#ffffff10) y 12 dp de aire antes del primer dato
@@ -163,7 +168,6 @@ internal fun ExerciseSetList(
                 .padding(top = 13.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // pulido:ed-A06 .ed-focus.anim entrada 0,26 s (6 px + fundido) al cambiar de serie
             Box(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
                 Text(
                     "Serie ${index + 1} de ${exercise.sets.size}${side?.let { " · $it" } ?: ""}",
@@ -261,6 +265,7 @@ internal fun ExerciseSetList(
                     enabled = !set.isEmptySlot,
                     selected = selectedSlot != null && keyOf(selectedSlot.first, selectedSlot.third) == rowKey,
                     tag = "set-row-$rowKey",
+                    flashKey = flashCount,
                     onClick = { if (!set.isEmptySlot) openKey = rowKey },
                 )
             }
@@ -319,6 +324,7 @@ internal fun ExerciseSetList(
             onConfirm = {
                 request.onApply()
                 pendingApply = null
+                flashCount += 1
             },
             dismissLabel = "Cancelar",
             onDismiss = { pendingApply = null },

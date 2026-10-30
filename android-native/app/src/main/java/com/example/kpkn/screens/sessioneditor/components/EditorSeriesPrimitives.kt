@@ -33,6 +33,7 @@ import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -49,10 +50,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
@@ -88,8 +91,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.ui.design.depth.KpknGradient
+import com.example.kpkn.ui.design.depth.KpknGradientArgs
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknGradient
+import com.example.kpkn.ui.design.depth.kpknShadow
+import com.example.kpkn.ui.design.motion.KpknPose
+import com.example.kpkn.ui.design.motion.rememberKpknClockMs
 import com.example.kpkn.ui.components.KpknPortal
-import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlin.math.abs
 import kotlin.math.max
@@ -347,19 +357,23 @@ private fun EdStepButton(
     onClick: () -> Unit,
     text: String? = null,
 ) {
+    val (source, pressed) = rememberEdPressed()
+    // pulido:ed-T28 .ed-stb fondo y color 0,12 s ease al pulsar (`:active{background:#ffffff12;color:var(--ink)}`)
+    val background = edTransitionColor(if (pressed && enabled) Color.White.copy(alpha = 0.071f) else Color.White.copy(alpha = 0f), 120)
+    val tint = edTransitionColor(if (!enabled) EdColors.dim else if (pressed) EdColors.ink else EdColors.muted, 120)
     Box(
         modifier = Modifier
             .width(width)
             .fillMaxHeight()
-            .clickable(enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick)
+            .background(background)
+            .clickable(interactionSource = source, indication = null, enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        // pulido:ed-T28 .ed-stb fondo y color 0,12 s al pulsar
         if (text != null) {
-            Text(text, style = edText(12.5f, FontWeight.SemiBold, if (enabled) EdColors.muted else EdColors.dim), maxLines = 1)
+            Text(text, style = edText(12.5f, FontWeight.SemiBold, tint), maxLines = 1)
         } else {
-            EdIcon(icon, 20.dp, if (enabled) EdColors.muted else EdColors.dim)
+            EdIcon(icon, 20.dp, tint)
         }
     }
 }
@@ -399,6 +413,12 @@ internal fun EdStepperField(
     val shape = RoundedCornerShape(16.dp)
     val haptic = LocalHapticFeedback.current
     val currentStep by rememberUpdatedState(onStep)
+    // pulido:ed-A15 / ed-J06 `stepField`: la cifra rebota 0,24 s (`.ed-stv.bump b`) con cada paso o arrastre, no al aparecer
+    val bumps = remember { mutableIntStateOf(0) }
+    val stepAndBump: (Int) -> Unit = { direction ->
+        bumps.intValue += 1
+        currentStep(direction)
+    }
     var editing by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(TextFieldValue()) }
     var sawFocus by remember { mutableStateOf(false) }
@@ -410,18 +430,20 @@ internal fun EdStepperField(
         onCommitText?.invoke(draft.text)
     }
     androidx.compose.runtime.LaunchedEffect(editing) { if (editing) focus.requestFocus() }
+    // pulido:ed-T27 .ed-st borde 0,16 s ease (.edit = #f2eee6aa)
+    val borderColor = edTransitionColor(if (highlighted || editing) EdColors.ink.copy(alpha = 0.667f) else EdColors.line, 160)
+    EdBumpProvider(bumps.intValue) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
             .clip(shape)
             .background(EdColors.field, shape)
-            // pulido:ed-T27 .ed-st borde 0,16 s (.edit = #f2eee6aa)
-            .border(1.dp, if (highlighted || editing) EdColors.ink.copy(alpha = 0.667f) else EdColors.line, shape),
+            .border(1.dp, borderColor, shape),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         leading?.invoke(this)
-        if (showSteppers) EdStepButton(KpknLineIcons.Minus, minusDescription, stepWidth, canDecrement, { onStep(-1) }, minusText)
+        if (showSteppers) EdStepButton(KpknLineIcons.Minus, minusDescription, stepWidth, canDecrement, { stepAndBump(-1) }, minusText)
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -441,7 +463,7 @@ internal fun EdStepperField(
                             while (abs(accumulated) >= stepPx) {
                                 val direction = if (accumulated > 0f) 1 else -1
                                 accumulated -= direction * stepPx
-                                currentStep(direction)
+                                stepAndBump(direction)
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             }
                         }
@@ -459,8 +481,8 @@ internal fun EdStepperField(
                     contentDescription = label
                     stateDescription = text + (unit?.let { " $it" } ?: "")
                     customActions = listOf(
-                        CustomAccessibilityAction("Aumentar") { onStep(1); true },
-                        CustomAccessibilityAction("Disminuir") { onStep(-1); true },
+                        CustomAccessibilityAction("Aumentar") { stepAndBump(1); true },
+                        CustomAccessibilityAction("Disminuir") { stepAndBump(-1); true },
                     )
                 },
             contentAlignment = Alignment.Center,
@@ -486,19 +508,19 @@ internal fun EdStepperField(
             } else if (compact) {
                 // .ed-st2 .ed-stv: columna, cifra de 19 px y rótulo de 11 px sin interlineado
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text, style = edText(19f, FontWeight.SemiBold, EdColors.ink, 22f, true), maxLines = 1)
+                    Text(text, modifier = Modifier.edBump(), style = edText(19f, FontWeight.SemiBold, EdColors.ink, 22f, true), maxLines = 1)
                     if (small != null) Text(small, style = edText(11f, FontWeight.Medium, EdColors.muted, 11f), maxLines = 1)
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // pulido:ed-A15 .ed-stv.bump b rebote 0,24 s al cambiar de valor
-                    Text(text, style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true), maxLines = 1, overflow = TextOverflow.Clip)
+                    Text(text, modifier = Modifier.edBump(), style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true), maxLines = 1, overflow = TextOverflow.Clip)
                     val extra = unit ?: small
                     if (extra != null) Text(extra, style = edText(12f, FontWeight.Medium, EdColors.muted, 14f), maxLines = 1)
                 }
             }
         }
-        if (showSteppers) EdStepButton(KpknLineIcons.Plus, plusDescription, stepWidth, canIncrement, { onStep(1) }, plusText)
+        if (showSteppers) EdStepButton(KpknLineIcons.Plus, plusDescription, stepWidth, canIncrement, { stepAndBump(1) }, plusText)
+    }
     }
 }
 
@@ -534,14 +556,16 @@ internal fun EdChip(
     description: String? = null,
 ) {
     val shape = RoundedCornerShape(22.dp)
+    // pulido:ed-T08 .ed-chip borde y fondo 0,16 s ease (`.on{border-color:#f2eee699}`)
+    val borderColor = edTransitionColor(if (on) EdColors.open else EdColors.line, 160)
+    val fill = edTransitionColor(EdColors.field, 160)
     Row(
         modifier = modifier
             .height(44.dp)
             .then(if (iconOnly) Modifier.width(44.dp) else Modifier)
             .clip(shape)
-            .background(EdColors.field, shape)
-            // pulido:ed-T08 .ed-chip borde y fondo 0,16 s
-            .border(1.dp, if (on) EdColors.open else EdColors.line, shape)
+            .background(fill, shape)
+            .border(1.dp, borderColor, shape)
             .clickable(role = Role.Button, onClick = onClick)
             .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier)
             .padding(horizontal = if (iconOnly) 0.dp else 14.dp),
@@ -576,18 +600,20 @@ internal fun EdMiniSegmented(
     ) {
         options.forEachIndexed { index, label ->
             val on = index == selected
+            // pulido:ed-T26 .ed-sm button fondo y color 0,18 s ease
+            val fill = edTransitionColor(if (on) EdColors.segOn else EdColors.segOn.copy(alpha = 0f), 180)
+            val ink = edTransitionColor(if (on) EdColors.ink else EdColors.faint, 180)
             Box(
                 modifier = Modifier
                     .height(32.dp)
                     .defaultMinSize(minWidth = 56.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    // pulido:ed-T26 .ed-sm button fondo y color 0,18 s
-                    .background(if (on) EdColors.segOn else Color.Transparent)
+                    .background(fill)
                     .selectable(selected = on, role = Role.RadioButton, onClick = { onSelect(index) })
                     .padding(horizontal = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(label, style = edText(12.5f, FontWeight.SemiBold, if (on) EdColors.ink else EdColors.faint), maxLines = 1)
+                Text(label, style = edText(12.5f, FontWeight.SemiBold, ink), maxLines = 1)
             }
         }
     }
@@ -597,15 +623,17 @@ internal fun EdMiniSegmented(
 @Composable
 internal fun EdPresetButton(text: String, on: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, dashed: Boolean = false, icon: ImageVector? = null) {
     val shape = RoundedCornerShape(20.dp)
+    // pulido:ed-T20 .ed-presets button fondo y color 0,16 s ease (el filete cambia al instante: `.on{border-color:transparent}`)
+    val fill = edTransitionColor(if (on) EdColors.ink else EdColors.field, 160)
+    val textColor = edTransitionColor(if (on) EdColors.onInk else if (dashed) EdColors.muted else EdColors.ink, 160)
     Row(
         modifier = modifier
             .height(40.dp)
             .clip(shape)
             .then(
                 if (dashed) Modifier.edDashedBorder(EdColors.dashed.copy(alpha = 0.2f), 20.dp, 1.dp)
-                else Modifier.background(if (on) EdColors.ink else EdColors.field, shape).then(if (on) Modifier else Modifier.border(1.dp, EdColors.line, shape)),
+                else Modifier.background(fill, shape).then(if (on) Modifier else Modifier.border(1.dp, EdColors.line, shape)),
             )
-            // pulido:ed-T20 .ed-presets button fondo y color 0,16 s
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -614,7 +642,7 @@ internal fun EdPresetButton(text: String, on: Boolean, onClick: () -> Unit, modi
         if (icon != null) EdIcon(icon, 14.dp, EdColors.muted)
         Text(
             text,
-            style = edText(13f, FontWeight.SemiBold, if (on) EdColors.onInk else if (dashed) EdColors.muted else EdColors.ink, 16f, true),
+            style = edText(13f, FontWeight.SemiBold, textColor, 16f, true),
             maxLines = 1,
         )
     }
@@ -653,15 +681,17 @@ internal fun EdActionButton(
     iconTint: Color = EdColors.muted,
 ) {
     val shape = RoundedCornerShape(22.dp)
+    val (source, pressed) = rememberEdPressed()
+    // pulido:ed-T01 .ed-act fondo 0,16 s ease (`#ffffff0d` → `:active{background:#ffffff1c}`); el filete abierto cambia al instante
+    val fill = edTransitionColor(Color.White.copy(alpha = if (pressed) 0.110f else 0.051f), 160)
     Row(
         modifier = modifier
             .height(44.dp)
             .then(if (iconOnly) Modifier.width(44.dp) else Modifier)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.051f), shape)
-            // pulido:ed-T01 .ed-act fondo 0,16 s
+            .background(fill, shape)
             .border(1.dp, if (expanded) EdColors.open else EdColors.line3, shape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = source, indication = null, role = Role.Button, onClick = onClick)
             .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier)
             .padding(horizontal = if (iconOnly) 0.dp else 10.dp),
         horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
@@ -735,22 +765,28 @@ internal fun EdSlider(
             enabled = enabled,
             modifier = Modifier.fillMaxWidth().height(44.dp).semantics { contentDescription = "Deslizador de $description" },
             thumb = {
-                // pulido:ed-S06 .ed-range::-webkit-slider-thumb sombra 0 2px 8px #000a
-                Box(Modifier.size(24.dp).background(if (enabled) EdColors.ink else EdColors.faint, CircleShape))
+                // pulido:ed-S06 .ed-range::-webkit-slider-thumb sombra 0 2px 8px #000a (preset asa-deslizador, valor de la fila)
+                Box(
+                    Modifier
+                        .size(24.dp)
+                        .kpknShadow(KpknShadow.AsaDeslizador, CircleShape)
+                        .background(if (enabled) EdColors.ink else EdColors.faint, CircleShape),
+                )
             },
             track = { state: SliderState ->
                 val span = (state.valueRange.endInclusive - state.valueRange.start).coerceAtLeast(0.0001f)
                 val fraction = ((state.value - state.valueRange.start) / span).coerceIn(0f, 1f)
-                // pulido:ed-G01 .ed-range::-webkit-slider-runnable-track degradado duro tinta | #ffffff1f al valor
+                // pulido:ed-G01 .ed-range::-webkit-slider-runnable-track linear-gradient(90deg, tinta p, #ffffff1f p): parada dura al valor
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.122f)),
-                ) {
-                    Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(if (enabled) EdColors.ink else EdColors.faint))
-                }
+                        .kpknGradient(
+                            KpknGradient.RellenoHorizontalCrema1,
+                            RoundedCornerShape(2.dp),
+                            KpknGradientArgs(ink = if (enabled) EdColors.ink else EdColors.faint, progress = fraction),
+                        ),
+                )
             },
         )
         Row(Modifier.fillMaxWidth().offset(y = (-6).dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -776,13 +812,16 @@ internal fun EdMenuRow(
     description: String? = null,
 ) {
     val color = if (danger) EdColors.danger else EdColors.ink
+    val (source, pressed) = rememberEdPressed()
+    // pulido:ed-T19 .ed-mi fondo 0,14 s ease al pulsar (`:active{background:#ffffff12}`)
+    val fill = edTransitionColor(Color.White.copy(alpha = if (pressed && enabled) 0.071f else 0f), 140)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 52.dp)
             .clip(RoundedCornerShape(14.dp))
-            // pulido:ed-T19 .ed-mi fondo 0,14 s al pulsar
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .background(fill)
+            .clickable(interactionSource = source, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier)
             .padding(horizontal = 12.dp, vertical = 6.dp)
             .then(if (enabled) Modifier else Modifier.background(Color.Transparent)),
@@ -821,6 +860,10 @@ internal fun EdAnchoredMenu(
 ) {
     var origin by remember { mutableStateOf<Offset?>(null) }
     val density = LocalDensity.current
+    val reduced = wizardReducedMotion()
+    // pulido:ed-A08 .ed-pop `ed-popin` 0,2 s --ed-ease (opacidad 0→1, escala .92→1, desplazamiento de 6 dp desde el ancla)
+    val popClock = rememberKpknClockMs(running = !reduced, key = "ed-pop", endMs = EdAnimations.PopInDown.endMs)
+    val popPose = remember { KpknPose() }
     KpknPortal {
         Box(
             modifier = Modifier
@@ -840,10 +883,11 @@ internal fun EdAnchoredMenu(
                 Layout(
                     modifier = Modifier.fillMaxSize(),
                     content = {
-                        // pulido:ed-S05 .ed-pop sombra 0 18px 44px #000d · ed-A08 entrada 0,2 s (escala .92 + 6 px)
+                        // pulido:ed-S05 .ed-pop sombra 0 18px 44px #000d (preset popover); va antes del recorte para que no se corte
                         Column(
                             modifier = Modifier
                                 .width(width)
+                                .kpknShadow(KpknShadow.Popover, shape)
                                 .clip(shape)
                                 .background(EdColors.sheet, shape)
                                 .border(1.dp, Color.White.copy(alpha = 0.110f), shape)
@@ -867,7 +911,19 @@ internal fun EdAnchoredMenu(
                     val flip = relBottom + estimatedHeight.roundToPx() > constraints.maxHeight - bar
                     val y = if (!flip) below.roundToInt()
                     else (relTop - gap - menu.height).roundToInt().coerceAtLeast(edge)
-                    layout(constraints.maxWidth, constraints.maxHeight) { menu.place(IntOffset(x, y)) }
+                    val originX = (anchor.center.x - start.x - x).coerceIn(20.dp.toPx(), (menu.width - 20.dp.toPx()).coerceAtLeast(20.dp.toPx()))
+                    layout(constraints.maxWidth, constraints.maxHeight) {
+                        menu.placeWithLayer(IntOffset(x, y)) {
+                            // `.ed-pop`: transform-origin `--ox` `--oy` (arriba si abre debajo, abajo si abre encima) y `--dy` ∓6 dp
+                            (if (flip) EdAnimations.PopInUp else EdAnimations.PopInDown).poseAt(popClock.value, popPose, reduced)
+                            alpha = popPose.alpha
+                            scaleX = popPose.scaleX
+                            scaleY = popPose.scaleY
+                            translationY = popPose.translateYDp * this.density
+                            transformOrigin = TransformOrigin(originX / menu.width.coerceAtLeast(1), if (flip) 1f else 0f)
+                            compositingStrategy = CompositingStrategy.ModulateAlpha
+                        }
+                    }
                 }
             }
         }
@@ -887,21 +943,6 @@ internal fun Modifier.edBleed(amount: Dp): Modifier = layout { measurable, const
         ),
     )
     layout(constraints.maxWidth.coerceAtMost(placeable.width), placeable.height) { placeable.placeRelative(-extra, 0) }
-}
-
-/** `.ed-sheet`: la hoja del editor (#1B1B1D plana, radio 28, asa de 40 × 4) con 20 dp a los lados y 14 de separación. */
-@Composable
-internal fun EdSheet(onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    // pulido:ed-S07 .ed-sheet sombra 0 -14px 44px · ed-A13 entrada 0,34 s · ed-A14 salida 0,24 s · ed-A11 velo · ed-A12 velo de salida · ed-J05 cierre 230 ms
-    KpknSheet(onDismissRequest = onDismiss, surfaceColor = EdColors.sheet, maxHeightFraction = 0.88f) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 26.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            content = content,
-        )
-    }
 }
 
 /** `h3` + `p` de una hoja del editor. */
