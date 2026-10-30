@@ -332,3 +332,22 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: el aviso usa la barra de avisos de Nutrición (`SnackbarDuration.Short`, ~4 s) en lugar de un toast propio de 5 s; el «Deshacer» sí quita la toma.
 - Captura: n/a
 - Aprobada por: pendiente
+
+
+## DESV-1400
+- Filas: aj-S01, aj-G01
+- Qué cambia: `.aj-sys` es el diálogo de permisos del propio Android (la app llama a `RequestMultiplePermissions`, no lo dibuja), así que no hay sombra `modal` propia que reproducir. `.food.ask` (degradado `tinte-hacia-modulo-2`) solo existe en la escena documento «Veredictos», que no es una pantalla de la app. La escena `aj-permiso-dialogo` se renderiza sin el diálogo.
+- Captura: paridad/capturas/DESV-1400.png (permisos, lienzo con el diálogo | app sin él)
+- Aprobada por: pendiente
+
+## DESV-1401
+- Filas: aj-A04
+- Qué cambia: el lienzo sube la hoja 40 px con fundido (`aj-sheet`, 0,36 s `cubic-bezier(.2,.8,.2,1)`); `KpknSheet` solo sabe subirla desde el borde inferior con esa misma duración y curva (`AjSheetSpec`). Velo (0,22 s ease-out) y sombra sí coinciden. No hay hojas con salida en el lienzo: la salida usa la del cimiento (0,24 s `cae`).
+- Captura: no aplica (es movimiento; no se midió fotograma a fotograma)
+- Aprobada por: pendiente
+
+## DESV-1402
+- Filas: render completo de las 19 escenas con `compare.cjs`
+- Qué cambia: error medio 3,6–13/255 (csv 7,4 y csv-error 8,6 tras alinear el botón al fondo de la hoja alta) (objetivo 2,5) y 3–10 % de píxeles > 28/255 en 360×880. Causa: Inter/Syne no se rasterizan como en Chrome (el texto se desplaza 1–3 px y envuelve distinto), el lienzo trae marco de teléfono y barra de estado, y el vidrio/sombras de gran radio no se miden en Robolectric. La estructura (medidas, orden, textos, estados) coincide a la vista. Más altas: permisos 12,9 (filas 3–4 px más separadas), borrar 11,2 (texto más ancho: una línea menos).
+- Captura: paridad/capturas/DESV-1402-permisos.png, DESV-1402-borrar.png, DESV-1402-csv.png
+- Aprobada por: pendiente (Flip5)
