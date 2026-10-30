@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.TextUnit
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetSpec
+import com.example.kpkn.ui.components.LocalKpknSheetDismiss
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
@@ -45,6 +47,8 @@ import kotlinx.coroutines.delay
 @Composable
 internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, dismissible: Boolean = true, stableHeightFraction: Float? = null,
     showDragHandle: Boolean = false, scrim: Color = LiveSheetTokens.Veil, panelTint: Color = LiveSheetTokens.Panel,
+    /** Hoja plana del lienzo (la «Ruta»): color liso y tiempos propios; la salida la anima `KpknSheet`, no esta capa. */
+    surfaceColor: Color? = null, lienzo: KpknSheetSpec? = null,
     content: @Composable (close: () -> Unit) -> Unit) {
     var closing by remember { mutableStateOf(false) }
     val reduced = wizardReducedMotion()
@@ -56,9 +60,10 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
         if (closing) { if (!reduced) delay(180); onDismiss(); closing = false }
     }
     KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, showDragHandle = showDragHandle,
-        backdropScrim = scrim, additionalGlassScrim = panelTint,
-        modifier = modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
-        content { if (dismissible) closing = true }
+        backdropScrim = scrim, additionalGlassScrim = panelTint, surfaceColor = surfaceColor, lienzo = lienzo,
+        modifier = if (lienzo != null) modifier.imePadding() else modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
+        val animatedDismiss = LocalKpknSheetDismiss.current
+        content { if (lienzo != null && animatedDismiss != null) animatedDismiss() else if (dismissible) closing = true }
     }
 }
 

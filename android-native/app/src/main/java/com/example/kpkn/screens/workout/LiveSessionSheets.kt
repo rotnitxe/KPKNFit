@@ -122,12 +122,15 @@ internal fun LiveSessionSheetsHost(
     val title = liveSessionSheetTitle(destination)
     val withFooter = destination !in setOf(LiveSessionDestination.MENU, LiveSessionDestination.VIEW, LiveSessionDestination.ROUTE,
         LiveSessionDestination.ASSISTANCE)
+    // La «Ruta» es otra hoja (plana, con su entrada y salida del lienzo): al pasar del menú a ella se abre de nuevo, no se transforma.
+    key(destination == LiveSessionDestination.ROUTE) {
     LiveSheet(
         title = title,
         onDismiss = { onDestination(null) },
         tag = "live-session-sheet-${destination.name.lowercase()}",
         stableHeightFraction = if (destination == LiveSessionDestination.ROUTE) .84f else null,
         footer = if (withFooter) { close -> LiveSheetPrimary("Listo", close) } else null,
+        lienzo = if (destination == LiveSessionDestination.ROUTE) LiveRouteSheetSpec else null,
     ) { close ->
         bodyStates.SaveableStateProvider(destination.name) {
             when (destination) {
@@ -219,6 +222,7 @@ internal fun LiveSessionSheetsHost(
                     onSessionNotesChange, onSaveSessionNote, onAddChecklistItem, onToggleChecklistItem, onRemoveChecklistItem, sessionAccentColor)
             }
         }
+    }
     }
 }
 

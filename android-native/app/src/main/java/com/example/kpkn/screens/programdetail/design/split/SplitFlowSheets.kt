@@ -39,6 +39,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetSpec
+import androidx.compose.animation.core.CubicBezierEasing
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.depth.KpknGradient
@@ -47,6 +49,7 @@ import com.example.kpkn.ui.design.depth.KpknShadowSpec
 import com.example.kpkn.ui.design.depth.kpknInset
 import com.example.kpkn.ui.design.depth.kpknGradient
 import com.example.kpkn.ui.design.depth.kpknShadow
+import com.example.kpkn.ui.design.motion.KpknMotion
 import com.example.kpkn.ui.design.motion.kpknAnimate
 
 /*
@@ -58,6 +61,29 @@ import com.example.kpkn.ui.design.motion.kpknAnimate
 internal val RpSheetSurface = Color(0xFF1B1B1D)
 private val RpSheetScrim = Color(0xA8000000)
 
+/**
+ * pulido:rp-S03 `.pl-sheet`: sombra `0 -14px 44px #000c` + filete interior `0 1px #ffffff10` (preset hoja). Las escenas del reparto no
+ * definen tiempos propios (la hoja base no anima), así que la entrada y la salida siguen siendo las de `KpknSheetMotion`.
+ */
+private val RpSheetSpec = KpknSheetSpec(
+    shadow = KpknShadow.Hoja.spec,
+    scrimInMs = 220,
+    scrimEasing = KpknMotion.Salida,
+    sheetInMs = 420,
+    sheetEasing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f),
+    contentDelayMs = 120,
+    contentInMs = 340,
+    contentEasing = KpknMotion.Salida,
+    contentRise = 10.dp,
+    outMs = 260,
+    outEasing = CubicBezierEasing(0.64f, 0f, 0.78f, 0f),
+    outTravel = 1f,
+    scrimOutMs = 220,
+    heightMs = 1,
+    heightEasing = KpknMotion.Lineal,
+    scrimOutEasing = KpknMotion.EaseIn,
+)
+
 /** La hoja `.pl-sheet` con su contenido desplazable y, si hay [sticky], su píldora fija abajo con el velo `velo-hoja`. */
 @Composable
 internal fun RpSheet(
@@ -67,7 +93,7 @@ internal fun RpSheet(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // pulido:profundidad rp-S03 (hoja: 0 -14 44 #000c + inset 0 1 #ffffff10) · entrada de la hoja: KpknSheet
-    KpknSheet(onDismissRequest = onDismiss, surfaceColor = RpSheetSurface, backdropScrim = RpSheetScrim, modifier = modifier) {
+    KpknSheet(onDismissRequest = onDismiss, surfaceColor = RpSheetSurface, backdropScrim = RpSheetScrim, lienzo = RpSheetSpec, modifier = modifier) {
         RpSheetColumn(sticky = sticky, content = content)
     }
 }

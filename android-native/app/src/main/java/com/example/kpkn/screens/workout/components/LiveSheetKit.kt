@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSheetSpec
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.motion.KpknMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 
 /*
@@ -62,6 +65,36 @@ internal object LiveSheetTokens {
     val Muted = Color(0xFFB9B5AE)
     val Faint = WizardColors.textFaint
 }
+
+/** La hoja `.lv2-sheet` de la «Ruta»: velo `rgba(0,0,0,.66)` (`.lv2-scrim`) y panel `#1b1b1d` liso. */
+internal object LiveRouteTokens {
+    val Veil = Color(0xA8000000)
+    val Panel = Color(0xFF1B1B1D)
+}
+
+/**
+ * pulido:lv-S28 sombra hoja · lv-T16 velo 240 ms `cubic-bezier(.2,.8,.2,1)` · lv-T17 entrada 420 ms `cubic-bezier(.22,1.12,.36,1)` ·
+ * lv-T18 velo al salir 200 ms `cubic-bezier(.4,0,1,1)` · lv-T21 salida 260 ms `cubic-bezier(.4,0,1,1)` · lv-X16 `translateY(100%)`.
+ * El contenido sube con la hoja entera (sin retardo ni subida aparte) y la altura (84 %) no cambia.
+ */
+internal val LiveRouteSheetSpec = KpknSheetSpec(
+    shadow = KpknShadow.Hoja.spec,
+    scrimInMs = 240,
+    scrimEasing = KpknMotion.Estandar,
+    sheetInMs = 420,
+    sheetEasing = KpknMotion.ResorteSuave,
+    contentDelayMs = 0,
+    contentInMs = 1,
+    contentEasing = KpknMotion.Lineal,
+    contentRise = 0.dp,
+    outMs = 260,
+    outEasing = KpknMotion.Acelera,
+    outTravel = 1f,
+    scrimOutMs = 200,
+    heightMs = 1,
+    heightEasing = KpknMotion.Lineal,
+    scrimOutEasing = KpknMotion.Acelera,
+)
 
 private val PanelShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
@@ -86,11 +119,14 @@ internal fun LiveSheet(
     showClose: Boolean = true,
     /** false: ni arrastrar ni tocar el velo la cierran (p. ej. mientras se libera el micrófono). */
     dismissible: Boolean = true,
+    /** Hoja plana con los tiempos y la sombra de un lienzo (la «Ruta»: [LiveRouteSheetSpec]); null = el vidrio de siempre. */
+    lienzo: KpknSheetSpec? = null,
     content: @Composable ColumnScope.(close: () -> Unit) -> Unit,
 ) {
     LiveSheetWindow {
     HeaderSheet(onDismiss = onDismiss, modifier = modifier, stableHeightFraction = stableHeightFraction, showDragHandle = false,
-        scrim = LiveSheetTokens.Veil, panelTint = LiveSheetTokens.Panel, dismissible = dismissible) { close ->
+        scrim = if (lienzo != null) LiveRouteTokens.Veil else LiveSheetTokens.Veil, panelTint = LiveSheetTokens.Panel, dismissible = dismissible,
+        surfaceColor = if (lienzo != null) LiveRouteTokens.Panel else null, lienzo = lienzo) { close ->
         Column(Modifier.fillMaxWidth().testTag(tag)) {
             Box(Modifier.fillMaxWidth().padding(top = 9.dp, bottom = 4.dp), contentAlignment = Alignment.Center) {
                 Box(Modifier.size(width = 33.dp, height = 3.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x30FFFFFF)))
