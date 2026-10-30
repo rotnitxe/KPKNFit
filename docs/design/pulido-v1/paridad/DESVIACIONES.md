@@ -70,3 +70,59 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Captura: paridad/capturas/DESV-1000.png (`rp-decisiones`, 360 × 880)
 - Aprobada por: pendiente
 
+
+## DESV-300
+- Filas: as-X05 (`.as-root .as-reopen`, `transform: translateX(-50%)`)
+- Qué cambia: «Abrir asistente» (`.as-reopen`, centrado con `left:50%` y `translateX(-50%)`) es un control del prototipo para repetir la entrada tras cerrar la hoja (lo dice la nota de la escena). En la app no existe: la hoja se reabre desde los accesos del propio editor (anillo de minutos, botón del asistente), que son de otro paquete; no hay nada que centrar.
+- Captura: paridad/capturas/DESV-300.png (as-entrada: lienzo | app | diferencias; la píldora solo existe con la hoja cerrada, que el lienzo no tiene como escena)
+- Aprobada por: pendiente
+
+---
+
+## DESV-400
+- Filas: todas las de `ed` cerradas en A2 con vidrio, texto o composición completa (escenas `ed-lista`, `ed-lista-scroll`, `ed-dia`, `ed-pildora-mas`, `ed-anadir`, `ed-barra`, `ed-borrar*`, `ed-ordenar*`)
+- Qué cambia: el error medio de las escenas completas con Robolectric es 13–17/255 a 100 % (11–25 a 130 %), lejos del objetivo de 2,5. La estructura cuadra a ±2–4 dp (isla, cabecera, módulo, filas de 68 dp, pie, barra, aviso, ficha levantada y hueco), pero tres causas no se pueden medir ni cerrar con esta hoja: (1) el texto: la hoja de Robolectric no dibuja Inter/Syne con los pesos de Chrome (los nombres de ejercicio salen más finos y caben más), (2) el vidrio: sin Haze real detrás de las islas y los popovers hay un velo casi negro (DESV-100), y (3) el lienzo incluye la barra de estado del teléfono simulado y el marco de la pantalla. La barra inferior, que no tiene texto de nombres, baja a 7,2/255 (5,4 % de píxeles). Se ve el contraste real en el Flip (puerta 4).
+- Captura: paridad/capturas/DESV-400.png
+- Aprobada por: pendiente (Flip5)
+
+## DESV-401
+- Filas: ed-S09, ed-G03, ed-G04, ed-A18
+- Qué cambia: son reglas de la hoja base del lienzo (`.tok.on`, `.split7 i.on`, `.story .st-week i.on`, `.wr-bars i.on::after`) que el inventario asocia a las escenas del editor, pero ningún elemento de las escenas de A2 las usa (la barra de intervalos del cardio es del paquete `ce`). No hay nada que dibujar en la lista, las islas ni la barra.
+- Captura: paridad/capturas/DESV-401.png
+- Aprobada por: pendiente
+
+## DESV-402
+- Filas: ed-A05
+- Qué cambia: la fila recién añadida (`ed-fresh`: 0,5 s, crece de 0 a su alto con fondo de tinta al 12 %) entra con el `animateItem` de la lista (fundido de 260 ms y las vecinas se apartan 260 ms), sin el destello de fondo ni el crecimiento de alto exacto de la familia `despliegue-fila` (el motor no tiene canal de alto aplicable a un ítem perezoso).
+- Captura: paridad/capturas/DESV-402.png
+- Aprobada por: pendiente
+
+## DESV-403
+- Filas: ed-T17, ed-T18
+- Qué cambia: la sombra y el fondo de la fila levantada aparecen (y se van al asentarse) de golpe, no en 200 ms / 300 ms; sí se animan el movimiento de asentamiento (340 ms, resorte), la escala (1 → 1,06 → 1,025) y el anillo de tinta (460 ms). La sombra `levantado` es la de los cimientos (no se hace fundido de capas por el coste de la capa de sombra durante el arrastre).
+- Captura: paridad/capturas/DESV-403.png
+- Aprobada por: pendiente
+
+## DESV-404
+- Filas: ed-T07
+- Qué cambia: la tarjeta abierta se despliega con el `AnimatedVisibility` por defecto (fundido + `expandVertically` con resorte), no con `grid-template-rows` en 0,3 s `--ed-ease`. Pendiente de una pasada corta de movimiento (una línea: `expandVertically(tween(280, Estandar))`).
+- Captura: paridad/capturas/DESV-404.png
+- Aprobada por: pendiente
+
+## DESV-405
+- Filas: ed-J23
+- Qué cambia: el borrado se confirma a los 5,0 s (la ventana del `ViewModel`, `EXERCISE_REMOVAL_UNDO_WINDOW_MS`) y no a los 5,23 s del lienzo; el aviso aparece a los 230 ms y su cuenta atrás dura 4,77 s para que la línea acabe justo cuando el ejercicio se quita. Cambiar la ventana tocaría los tests y el `ViewModel` del asistente.
+- Captura: paridad/capturas/DESV-405.png
+- Aprobada por: pendiente
+
+## DESV-406
+- Filas: ed-J27
+- Qué cambia: al soltar sin llegar al umbral, la píldora se recoge siguiendo a la fila (rebote de 340 ms), no con su propia transición de 0,3 s de ancho y 0,2 s de opacidad.
+- Captura: paridad/capturas/DESV-406.png
+- Aprobada por: pendiente
+
+## DESV-407
+- Filas: ed-J39, ed-J40, ed-J41
+- Qué cambia: son utilidades de la demostración del lienzo (`sleep`, `raf`, `freezeUndo`); la app no las necesita. Su equivalente son los estados congelados de la hoja de render (`EditorListRenderSheetTest`).
+- Captura: paridad/capturas/DESV-407.png
+- Aprobada por: pendiente
