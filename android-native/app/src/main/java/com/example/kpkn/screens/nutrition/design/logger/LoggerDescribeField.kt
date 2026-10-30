@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.nutrition.design.logger
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -106,6 +107,8 @@ fun LoggerDescribeField(
     showAnalyze: Boolean = text.isNotBlank(),
     onDictate: (() -> Unit)? = null,
     listening: Boolean = false,
+    dictationReady: Boolean = false,
+    dictationLevel: Float = 0f,
     foodMentions: List<String> = emptyList(),
     onEditRequest: (() -> Unit)? = null,
     focusRequester: FocusRequester? = null,
@@ -177,7 +180,17 @@ fun LoggerDescribeField(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (onDictate != null) DictateButton(listening = listening, onClick = onDictate)
+                    if (onDictate != null) {
+                        DictateButton(listening = listening, level = dictationLevel, onClick = onDictate)
+                        if (listening) {
+                            Text(
+                                text = if (dictationReady) "Escuchando…" else "Preparando…",
+                                style = LoggerText.cap,
+                                color = LoggerColors.muted,
+                                maxLines = 1,
+                            )
+                        }
+                    }
                     Spacer(Modifier.weight(1f))
                     if (showAnalyze) AnalyzePill(label = analyzeLabel, onClick = onAnalyze)
                 }
@@ -202,12 +215,20 @@ fun LoggerDescribeField(
     }
 }
 
-/** `.np .ib.fill`: el micrófono, botón redondo de 44 dp con fondo de superficie 2 (zona táctil de 48). Dictando, pasa a superficie 3. */
+/**
+ * `.np .ib.fill`: el micrófono, botón redondo de 44 dp con fondo de superficie 2 (zona táctil de 48). Dictando pasa a tinta con un
+ * cuadrado de «parar» y un aro que respira con el volumen de la voz ([level], 0..1; fijo con movimiento reducido).
+ */
 @Composable
-private fun DictateButton(listening: Boolean, onClick: () -> Unit) {
+private fun DictateButton(listening: Boolean, level: Float, onClick: () -> Unit) {
+    val reduced = wizardReducedMotion()
+    val pulse by animateFloatAsState(if (reduced) 0.4f else level.coerceIn(0f, 1f), tween(120), label = "loggerDictateLevel")
     Box(
         modifier = Modifier
             .size(48.dp)
+            .drawBehind {
+                if (listening) drawCircle(LoggerColors.ink.copy(alpha = 0.16f), radius = (22.dp + 12.dp * pulse).toPx())
+            }
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = if (listening) "Dejar de dictar" else "Dictar" },
         contentAlignment = Alignment.Center,
@@ -216,15 +237,19 @@ private fun DictateButton(listening: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(if (listening) LoggerColors.surface3 else LoggerColors.surface2, CircleShape),
+                .background(if (listening) LoggerColors.ink else LoggerColors.surface2, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                KpknLineIcons.Mic,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = if (listening) LoggerColors.ink else LoggerColors.muted,
-            )
+            if (listening) {
+                Box(Modifier.size(14.dp).background(LoggerColors.onInk, RoundedCornerShape(3.dp)))
+            } else {
+                Icon(
+                    KpknLineIcons.Mic,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = LoggerColors.muted,
+                )
+            }
         }
     }
 }

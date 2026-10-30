@@ -186,8 +186,9 @@ class SetExecutionCardFacesTest {
         rule.waitForIdle()
         rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
 
-        // Refinamiento 02: ya no hay «Expandir» en la cara; en «Vídeo» el disparador abre el visor expandido encima de todo.
-        rule.onNodeWithTag(MediaShutterTag).performClick()
+        // Pulido v1 (17): «Expandir» vuelve a la cabecera de la cara; en «Vídeo» abre el visor expandido con el grabador, encima de todo.
+        rule.onNodeWithTag("media_expand").assertExists()
+        rule.onNodeWithTag("media_expand").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithTag(MediaExpandedTag).assertExists()

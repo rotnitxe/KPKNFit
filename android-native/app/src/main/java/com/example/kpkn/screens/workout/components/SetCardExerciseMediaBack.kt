@@ -395,6 +395,24 @@ internal fun SetCardExerciseMediaBack(
                             contentAlignment = Alignment.Center,
                         ) { Text("Álbum", style = mediaRef02Body(11.sp), color = MediaRef02Muted) }
                     }
+                    // «Expandir» (ley del 16-oct, pedido del 29-oct): siempre a la vista en la cabecera de la cara, en Foto, Vídeo, con o sin
+                    // cámara, grabando o con análisis. Lleva la vista a casi toda la pantalla encima de todo; allí se vuelve con «Plegar a la
+                    // tarjeta» (arriba a la derecha), «Volver al registro» (pie) o Atrás. Con la letra muy grande queda solo el icono.
+                    Row(
+                        Modifier.heightIn(min = 30.dp).clip(RoundedCornerShape(15.dp))
+                            .clickable(role = Role.Button) { openExpanded() }
+                            .padding(horizontal = 4.dp)
+                            .semantics { contentDescription = "Expandir" }
+                            .testTag("media_expand"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        ExpandGlyph(expand = true)
+                        // El rótulo cede su sitio al icono si hay dos cámaras (el botón de cambiar mide 48 dp) o la letra es grande.
+                        if (fontScale <= 1.15f && !cameraChoice.canSwitch) {
+                            Text("Expandir", style = mediaRef02Body(11.sp), color = WizardColors.text, maxLines = 1)
+                        }
+                    }
                 }
                 Stage(
                     stageModifier = Modifier.weight(1f).fillMaxWidth().padding(top = 8.dp),

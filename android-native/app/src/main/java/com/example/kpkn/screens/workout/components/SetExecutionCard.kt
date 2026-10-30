@@ -943,6 +943,8 @@ internal fun SetInputCardV2(
     amrapResultPanel: (@Composable (() -> Unit) -> Unit)? = null,
     clockNowMillis: () -> Long = { android.os.SystemClock.elapsedRealtime() },
     equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
+    /** «Registrar ROM» de «Detalle del registro»: además de esta serie, lo fija en el ejercicio de la sesión (`Exercise.trackRom`). */
+    onTrackRomChange: ((Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
@@ -1149,14 +1151,16 @@ internal fun SetInputCardV2(
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
     var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
-    // ROM is reported only by exercises that track it (the slider is hidden
-    // otherwise).  Without tracking there is no default: a hidden 100 would be
-    // sent as a fake measurement on every set.  A value already stored on a
-    // completed set is kept so editing it never erases recorded data.
+    // Pulido v1 (15) · ROM de punta a punta. El plan decide el valor de partida: si el ejercicio registra ROM (`Exercise.trackRom`, el
+    // interruptor del editor) cada serie nace con el slider al 100 %; si no, nace sin ROM (un 100 oculto se enviaría como una medición falsa).
+    // La hoja «Detalle del registro» y el slider de la tarjeta son el MISMO estado (`romValue`): activar «Registrar ROM» en la hoja lo
+    // enciende para esta serie (y, vía `onTrackRomChange`, para el resto de series del ejercicio en la sesión); apagarlo deja la serie sin ROM.
+    // Un valor ya guardado en una serie registrada o en el borrador se conserva: editar nunca borra un dato registrado.
     val tracksRom = exercise.trackRom
     val pristineRomValue: Int? = sessionCompletedSet?.rom ?: (if (tracksRom) DEFAULT_ROM_PERCENT else null)
-    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet, tracksRom) {
-        mutableStateOf<Int?>((if (tracksRom) restoredDraft?.rom else null) ?: pristineRomValue)
+    // `tracksRom` no entra en las claves: al activarlo desde la hoja el plan cambia a mitad de la serie y no debe reiniciar lo que se está editando.
+    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+        mutableStateOf<Int?>(liveSetInitialRom(tracksRom, restoredDraft?.rom, sessionCompletedSet?.rom))
     }
     var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
     val sideKey = if (supportsIndependentSides) lockedSide ?: selectedSide else "B"
@@ -2130,8 +2134,12 @@ internal fun SetInputCardV2(
             onAssisted = { next -> assistedRepsValue = next.coerceAtMost(reportValueText.toIntOrNull() ?: next) },
             romOn = romValue != null,
             rom = romValue,
-            onRomToggle = { on -> romValue = if (on) (romValue ?: DEFAULT_ROM_PERCENT) else null },
-            onRom = { romValue = it },
+            onRomToggle = { on ->
+                romValue = if (on) (romValue ?: DEFAULT_ROM_PERCENT) else null
+                // El ejercicio registra ROM igual que si el editor lo dijera: el resto de sus series nacen con el slider.
+                if (on != tracksRom) onTrackRomChange?.invoke(on)
+            },
+            onRom = { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) },
             note = setNoteText,
             onNote = { setNoteText = it },
             onDismiss = { showFeedbackExtrasPopup = false },
@@ -2142,18 +2150,28 @@ internal fun SetInputCardV2(
     @Composable
     fun LegacyDetailRow() {
         // `.v2-detail-line`: el resumen de parciales, ayuda y ROM (o «Parciales, ayuda y ROM ›»); si hay que avisar, el aviso en línea.
+        // Pulido v1 (15): con ROM activo (el plan lo registra o se encendió en la hoja) el hueco lleva el slider de ROM (0–100 %, 100 por
+        // defecto) y a su derecha «Detalle ›», que abre la hoja. La fila mide lo mismo con o sin slider: la tarjeta no cambia de tamaño.
         val partials = partialSets.sum().coerceAtLeast(0)
+        val romOn = romValue != null
+        val rowMin = if (tightCard) 26.dp else 27.dp
         val summary = buildList {
             if (partials > 0) add("+$partials parciales")
             if (assistedRepsValue > 0) add("$assistedRepsValue con ayuda")
-            romValue?.let { add("ROM $it%") }
+            romValue?.let { add(liveSetRomLabel(it)) }
         }.joinToString(" · ").ifBlank { "Parciales, ayuda y ROM" }
+        // A la derecha del slider solo cabe un resumen corto de lo que no se ve en él.
+        val detailLabel = buildList {
+            if (partials > 0) add("+$partials parc.")
+            if (assistedRepsValue > 0) add("$assistedRepsValue ayuda")
+        }.joinToString(" · ").ifBlank { "Detalle" }
         val inlineError = quantityError ?: if (effortHintVisible && !hasChosenReportedEffort) "Marca tu esfuerzo antes de registrar." else null
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (tightCard) 26.dp else 27.dp)
-                .then(if (inlineError == null) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") {
+                .heightIn(min = rowMin)
+                // Con el slider la fila no es un botón entera (arrastrar el slider no puede abrir la hoja): abre «Detalle ›».
+                .then(if (inlineError == null && !romOn) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") {
                     showFeedbackExtrasPopup = true
                 } else Modifier)
                 .testTag("live-card-detail"),
@@ -2166,6 +2184,29 @@ internal fun SetInputCardV2(
                 if (shownError != null) {
                     Text(shownError, Modifier.fillMaxWidth().testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
                         style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
+                } else if (romOn) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        RomReportSlider(
+                            value = romValue ?: DEFAULT_ROM_PERCENT,
+                            onValueChange = { romValue = it },
+                            accentColor = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
+                            rowHeight = rowMin,
+                            compact = true,
+                        )
+                        Row(
+                            Modifier.heightIn(min = rowMin).clip(RoundedCornerShape(8.dp))
+                                .clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") { showFeedbackExtrasPopup = true }
+                                .padding(start = 4.dp)
+                                .testTag("live-card-detail-open"),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(detailLabel, modifier = Modifier.widthIn(max = 84.dp), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Ref02CardMuted)
+                            Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
+                        }
+                    }
                 } else {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
@@ -2515,6 +2556,8 @@ internal fun SetInputCardV2(
                                                                 partialSets = listOf(result.partials.coerceAtLeast(0))
                                                                 showPartialsMode = result.partials > 0
                                                             }
+                                                            // El ROM que midió el análisis se escribe en el mismo campo que el slider y la voz.
+                                                            if (tracksRom) result.romPercent?.let { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) }
                                                         }
                                                         showVideoMenu = false
                                                     },
@@ -2730,6 +2773,7 @@ internal fun SetInputCardV2(
                                         partialSets = listOf(result.partials.coerceAtLeast(0))
                                         showPartialsMode = result.partials > 0
                                     }
+                                    if (tracksRom) result.romPercent?.let { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) }
                                 }
                             },
                             onCorrect = onVideoCorrect,
@@ -2744,7 +2788,7 @@ internal fun SetInputCardV2(
                     }
 
                     @Composable fun RomBlock() {
-                    if (exercise.trackRom) {
+                    if (romValue != null) {
                         RomReportSlider(
                             value = romValue ?: DEFAULT_ROM_PERCENT,
                             onValueChange = { romValue = it },
@@ -4008,15 +4052,18 @@ internal fun SetInputCardV2(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RomReportSlider(
+internal fun RomReportSlider(
     value: Int,
     onValueChange: (Int) -> Unit,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    /** Alto de la fila: 44 dp sueltos; en el hueco de «Parciales, ayuda y ROM» de la tarjeta (27 dp) la tarjeta no cambia de tamaño. */
+    rowHeight: Dp = 44.dp,
+    /** En la tarjeta: el rótulo y la cifra con la letra pequeña del resumen que sustituyen. */
+    compact: Boolean = false,
 ) {
-    // Pista fina y pulgar de 18 dp dentro de 44 dp táctiles. Los chips junto a la carga liberan su espacio;
-    // las acciones permanecen ancladas y el contenido adicional se desplaza dentro del marco fijo.
-    val clampedValue = value.coerceIn(10, 100)
+    // Pista fina y pulgar de 18 dp dentro de la fila. De 0 a 100 %, igual que el campo de «Detalle del registro».
+    val clampedValue = value.coerceIn(0, DEFAULT_ROM_PERCENT)
     val sliderColors = SliderDefaults.colors(
         thumbColor = WizardColors.text,
         activeTrackColor = WizardColors.text.copy(alpha = 0.85f),
@@ -4027,45 +4074,57 @@ private fun RomReportSlider(
         disabledInactiveTickColor = Color.Transparent,
     )
     Row(
-        modifier = modifier.height(44.dp).testTag("live-rom-slider"),
+        modifier = modifier.height(rowHeight).testTag("live-rom-slider"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 10.dp),
     ) {
         Row(
+            // El ancho no baila al pasar de 100 a 95 %: el slider no se desplaza mientras se arrastra.
+            modifier = if (compact) Modifier.widthIn(min = 60.dp) else Modifier,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp),
         ) {
             Text(
                 text = "ROM",
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
+                style = if (compact) {
+                    TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp)
+                } else {
+                    KpknType.eyebrow
+                },
+                color = if (compact) Ref02CardMuted else WizardColors.textMuted,
                 maxLines = 1,
             )
             Text(
                 text = "$clampedValue %",
-                style = KpknType.chip.copy(fontFeatureSettings = "'tnum' 1"),
+                style = if (compact) {
+                    TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp, fontFeatureSettings = "'tnum' 1")
+                } else {
+                    KpknType.chip.copy(fontFeatureSettings = "'tnum' 1")
+                },
                 color = WizardColors.text,
                 maxLines = 1,
             )
         }
         CompositionLocalProvider(
-            LocalMinimumInteractiveComponentSize provides 44.dp,
+            LocalMinimumInteractiveComponentSize provides rowHeight,
         ) {
             Slider(
                 value = clampedValue.toFloat(),
-                onValueChange = { onValueChange(it.roundToInt().coerceIn(10, 100)) },
-                valueRange = 10f..100f,
+                onValueChange = { onValueChange(it.roundToInt().coerceIn(0, DEFAULT_ROM_PERCENT)) },
+                valueRange = 0f..DEFAULT_ROM_PERCENT.toFloat(),
                 steps = 0,
                 colors = sliderColors,
                 thumb = { Box(Modifier.size(18.dp).background(WizardColors.text, CircleShape)) },
                 track = {
                     Box(Modifier.fillMaxWidth().height(4.dp).clip(CircleShape).background(KpknSurface.inset)) {
-                        Box(Modifier.fillMaxWidth((clampedValue - 10) / 90f).height(4.dp).background(WizardColors.text.copy(alpha = .85f)))
+                        Box(Modifier.fillMaxWidth(clampedValue / DEFAULT_ROM_PERCENT.toFloat()).height(4.dp).background(WizardColors.text.copy(alpha = .85f)))
                     }
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(44.dp),
+                    .height(rowHeight)
+                    // Para TalkBack: sin descripción el slider solo diría el número.
+                    .semantics { contentDescription = "ROM, recorrido de la serie" },
             )
         }
     }

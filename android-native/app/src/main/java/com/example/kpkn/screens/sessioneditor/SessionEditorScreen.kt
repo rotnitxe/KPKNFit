@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -91,6 +92,7 @@ import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBar
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBarHeight
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameHeader
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBar
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBarHeight
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekSheet
 import com.example.kpkn.screens.sessioneditor.frame.adjacentWeekDay
 import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
@@ -274,6 +276,11 @@ fun SessionEditorScreen(
     // La lista deja sitio para la isla inferior y para la barra de gestos, para que no tape el último elemento.
     val navigationBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val contentBottomPadding = navigationBarBottom + SessionEditorFrameBottomBarHeight + 24.dp
+    // Arriba, igual: la fila superior (barra de estado + islas de vidrio, y el aviso de guardado si lo hay) flota sobre la lista, que pasa
+    // por debajo. Mientras no se haya medido la fila, el hueco es la barra de estado + 56 dp; después, lo que mida de verdad.
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    var topOverlayPx by remember { mutableIntStateOf(0) }
+    val listTopPadding = maxOf(statusBarTop + SessionEditorFrameTopBarHeight, with(density) { topOverlayPx.toDp() })
     val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
 
@@ -406,7 +413,12 @@ fun SessionEditorScreen(
     val exerciseDropTargetPartId = dragUi.exerciseDropTargetPartId
     val exerciseDropTargetIndex = dragUi.exerciseDropTargetIndex
     val exerciseDropOutOfRange = dragUi.exerciseDropOutOfRange
-    var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
+    var lazyColumnWindowBoundsRaw by remember { mutableStateOf<Rect?>(null) }
+    // Ventana útil de la lista: sin el hueco superior que ocupa la fila de vidrio, porque `LazyListItemInfo.offset` cuenta desde ahí
+    // (el padding superior no entra en el offset) y el auto-scroll del arrastre no debe activarse bajo las islas.
+    val lazyColumnWindowBounds: Rect? = lazyColumnWindowBoundsRaw?.let { raw ->
+        Rect(raw.left, raw.top + with(density) { listTopPadding.toPx() }, raw.right, raw.bottom)
+    }
 
     fun currentListGeometry(): Map<String, Rect> {
         val windowBounds = lazyColumnWindowBounds ?: return emptyMap()
@@ -725,51 +737,23 @@ fun SessionEditorScreen(
             return true
         }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            SessionEditorFrameTopBar(
-                dayLabel = frameDayWeekLabel(
-                    day = currentDay,
-                    // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
-                    weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
-                        frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
-                    } else {
-                        null
-                    },
-                    sessionName = session.name,
-                ),
-                forward = slideForward,
-                canGoPrevious = previousDay != null,
-                canGoNext = nextDay != null,
-                onBack = ::exitEditor,
-                onPrevious = { goToSessionDay(previousDay) },
-                onNext = { goToSessionDay(nextDay) },
-                onOpenWeek = { showWeekSheet = true },
-                onTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
-                onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-            )
-            // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
-            autoSaveBlock?.let { block ->
-                SessionEditorFrameBlockNotice(
-                    message = block.message,
-                    onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .imePadding()
-                        .onSizeChanged { listWidthPx = it.width }
-                        .graphicsLayer {
-                            translationX = slideX.value
-                            alpha = slideAlpha.value
-                        }
-                        .hazeSource(state = hazeState)
-                        .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
-                    contentPadding = PaddingValues(bottom = contentBottomPadding),
-                ) {
+        // La lista ocupa toda la pantalla y pasa POR DEBAJO de la fila superior (islas de vidrio con desenfoque real): la lista es la
+        // fuente `hazeSource` y la fila superior, su hermana dibujada después. El primer elemento queda libre gracias al padding superior.
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .onSizeChanged { listWidthPx = it.width }
+                    .graphicsLayer {
+                        translationX = slideX.value
+                        alpha = slideAlpha.value
+                    }
+                    .hazeSource(state = hazeState)
+                    .onGloballyPositioned { lazyColumnWindowBoundsRaw = it.boundsInWindow() },
+                contentPadding = PaddingValues(top = listTopPadding, bottom = contentBottomPadding),
+            ) {
                     // Índice 0: la cabecera. La lista va después, así que los índices de auto-scroll no cambian.
                     item {
                         SessionEditorFrameHeader(
@@ -823,7 +807,47 @@ fun SessionEditorScreen(
                     viewModel = viewModel,
                 )
             }
-        }
+            }
+
+            // Fila superior: tres islas de vidrio (atrás · día · ⋯) y, debajo, el aviso fijo de guardado bloqueado. Flotan sobre la lista,
+            // que pasa por debajo; la altura que miden fija el hueco superior de la lista.
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .zIndex(250f)
+                    .onSizeChanged { topOverlayPx = it.height },
+            ) {
+                SessionEditorFrameTopBar(
+                    dayLabel = frameDayWeekLabel(
+                        day = currentDay,
+                        // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
+                        weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
+                            frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
+                        } else {
+                            null
+                        },
+                        sessionName = session.name,
+                    ),
+                    forward = slideForward,
+                    canGoPrevious = previousDay != null,
+                    canGoNext = nextDay != null,
+                    onBack = ::exitEditor,
+                    onPrevious = { goToSessionDay(previousDay) },
+                    onNext = { goToSessionDay(nextDay) },
+                    onOpenWeek = { showWeekSheet = true },
+                    onTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
+                    onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
+                    hazeState = hazeState,
+                )
+                // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
+                autoSaveBlock?.let { block ->
+                    SessionEditorFrameBlockNotice(
+                        message = block.message,
+                        onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
 

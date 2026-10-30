@@ -152,6 +152,8 @@ data class WorkoutUiState(
     val wasCancelled: Boolean = false,
     val cancellationError: String? = null,
     val startPersistenceError: String? = null,
+    /** La sesión no se pudo abrir (no está en el programa o falló la lectura): la pantalla enseña un error con salida, no una carga. */
+    val sessionLoadFailed: Boolean = false,
     val session: Session? = null,
     val activeMode: WeekVariant = WeekVariant.A,
     val variantProgress: Map<WeekVariant, WorkoutVariantProgress> = emptyMap(),

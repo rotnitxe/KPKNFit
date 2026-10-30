@@ -121,8 +121,18 @@ internal fun ExerciseOptionsBar(
                         showApreSheet = true
                     })
                 }
+                // Pulido v1 (15): el mismo dato que el interruptor «Registrar ROM» de «Detalle del registro» en la sesión en vivo
+                // (`Exercise.trackRom`). Activo, cada serie del ejercicio nace con el slider de ROM al 100 %; apagado, sin ROM.
                 DropdownMenuItem(
-                    text = { Text(if (exercise.trackRom) "Desactivar medir ROM" else "Medir ROM") },
+                    text = { Text(if (exercise.trackRom) "Registrar ROM · activo" else "Registrar ROM") },
+                    trailingIcon = if (exercise.trackRom) ({
+                        Icon(
+                            imageVector = KpknLineIcons.Check,
+                            contentDescription = "ROM activo",
+                            tint = WizardColors.text,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }) else null,
                     onClick = {
                         showExerciseOptionsMenu = false
                         onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) }

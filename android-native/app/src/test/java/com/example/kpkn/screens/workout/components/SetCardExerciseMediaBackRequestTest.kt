@@ -92,8 +92,9 @@ class SetCardExerciseMediaBackRequestTest {
     }
 
     @Test fun el_disparador_en_video_expande_y_monta_la_escena_del_grabador() {
-        // Refinamiento 02: la cara ya no tiene «Expandir»; en «Vídeo» el disparador abre el visor expandido con el grabador.
+        // En «Vídeo» el disparador abre el visor expandido con el grabador, igual que «Expandir» (`media_expand`, Pulido v1 · 17).
         show()
+        rule.onNodeWithTag("media_expand").assertIsDisplayed()
         rule.onNodeWithTag(MediaShutterTag).assertContentDescriptionEquals("Grabar vídeo")
         rule.onNodeWithTag(MediaShutterTag).performClick()
         rule.onNodeWithTag(MediaExpandedTag).assertIsDisplayed()

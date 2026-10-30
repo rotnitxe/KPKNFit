@@ -1397,7 +1397,13 @@ fun FoodLoggerDrawer(
     val kcalNow = kotlin.math.round(tagTotals.calories).toInt()
     val readingIndex = rememberLoggerReadingIndex(description, isAnalyzing)
     val foodMentions = remember(tags) { tags.filterNot { it.origin.isPinned }.map { it.tag } }
-    val dictation = rememberLoggerDictation(current = { description }, onText = { description = it })
+    var editingText by remember { mutableStateOf(false) }
+    // El dictado (Pulido v1 · 20): lo que oye va al campo y, al acabar, lanza el mismo análisis que «Analizar» del teclado.
+    val dictation = rememberLoggerDictation(
+        current = { description },
+        onText = { description = it },
+        onFinal = { text -> editingText = false; analyzeDescription(text) },
+    )
 
     // El aviso de abajo (lienzo `.toast`): lo añadido o quitado con «Deshacer» durante 4 s, y los errores.
     var toast by remember { mutableStateOf<LoggerToastData?>(null) }
@@ -1418,7 +1424,12 @@ fun FoodLoggerDrawer(
         saveError = null
     }
     LaunchedEffect(dictation.error) {
-        dictation.error?.let { showToast(it, error = true) }
+        val message = dictation.error ?: return@LaunchedEffect
+        // Micrófono negado para siempre: el aviso lleva a los ajustes del sistema, que es donde se arregla.
+        val toSettings = dictation.errorOpensSettings
+        showToast(message, if (toSettings) "Ajustes" else null, error = true) {
+            if (toSettings) dictation.openSettings()
+        }
         dictation.clearError()
     }
 
@@ -1427,7 +1438,6 @@ fun FoodLoggerDrawer(
     // «Cómo lo preparaste» y «Aceite» elegidos en la hoja de ajuste (Arreglos v1), por alimento, y el aceite ya sumado a su ficha.
     val prepChoice = remember { mutableStateMapOf<String, LoggerPrepChoice>() }
     val prepApplied = remember { mutableStateMapOf<String, LoggerPrepApplied>() }
-    var editingText by remember { mutableStateOf(false) }
     var sheetTagId by remember { mutableStateOf<String?>(null) }
     var identityTagId by remember { mutableStateOf<String?>(null) }
     var identityQuery by remember { mutableStateOf("") }
@@ -1746,6 +1756,8 @@ fun FoodLoggerDrawer(
             showAnalyze = description.isNotBlank() && (!hasTagsNow || descriptionEditedNow),
             onDictate = { dictation.toggle() },
             listening = dictation.listening,
+            dictationReady = dictation.ready,
+            dictationLevel = dictation.level,
             foodMentions = if (analysisNotice != null) emptyList() else foodMentions,
             onEditRequest = { editingText = true },
             fontSize = if (writeMode == LoggerWriteMode.RESULT && analysisNotice != null) 16f else null,

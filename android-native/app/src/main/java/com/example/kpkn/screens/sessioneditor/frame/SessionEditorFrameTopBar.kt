@@ -11,8 +11,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.testTag
@@ -52,14 +49,14 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.design.KpknContextMenu
 import com.example.kpkn.ui.design.KpknContextMenuRow
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknShape
-import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
+import dev.chrisbanes.haze.HazeState
 
-/** Alto de la fila superior fija del editor (56 dp, como la del original en el resto de pantallas). */
+/** Alto de la fila superior del editor bajo la barra de estado: 8 dp de margen + 48 dp de islas. Es también el hueco superior de la lista. */
 internal val SessionEditorFrameTopBarHeight = 56.dp
 
 /**
@@ -82,30 +79,33 @@ internal fun SessionEditorFrameTopBar(
     onTransfer: () -> Unit,
     onHistory: () -> Unit,
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
 ) {
     var moreAnchor by remember { mutableStateOf<Rect?>(null) }
     var moreOpen by remember { mutableStateOf(false) }
     val reduced = wizardReducedMotion()
+    // Tres islas de vidrio sueltas (atrás · píldora del día · ⋯) que flotan sobre la lista: el desenfoque lee [hazeState], la fuente
+    // `hazeSource` de la lista (hermana dibujada antes). Sin fuente, el vidrio cae a su velo.
     Row(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(SessionEditorFrameTopBarHeight)
-            .padding(horizontal = 12.dp),
+            .padding(start = 12.dp, top = 8.dp, end = 12.dp)
+            .height(48.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        KpknIconButton(
+        FrameGlassCircleButton(
             icon = KpknLineIcons.ChevronLeft,
             contentDescription = "Atrás",
             onClick = onBack,
+            hazeState = hazeState,
         )
         Spacer(Modifier.width(6.dp))
         Row(
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
-                .background(KpknSurface.inset, KpknShape.pill)
-                .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
+                .kpknGlassOrFallback(hazeState, KpknShape.pill)
                 .padding(horizontal = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -158,10 +158,11 @@ internal fun SessionEditorFrameTopBar(
             )
         }
         Spacer(Modifier.width(6.dp))
-        KpknIconButton(
+        FrameGlassCircleButton(
             icon = KpknLineIcons.More,
             contentDescription = "Más opciones",
             onClick = { moreOpen = true },
+            hazeState = hazeState,
             modifier = Modifier.onGloballyPositioned { moreAnchor = it.boundsInWindow() },
         )
     }
@@ -184,6 +185,32 @@ internal fun SessionEditorFrameTopBar(
                 },
             )
         }
+    }
+}
+
+/** Círculo de vidrio de 48 dp con un icono de 20 dp (atrás y ⋯ de la fila superior). */
+@Composable
+private fun FrameGlassCircleButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    hazeState: HazeState?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .kpknGlassOrFallback(hazeState, CircleShape)
+            .semantics { this.contentDescription = contentDescription }
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = WizardColors.text,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

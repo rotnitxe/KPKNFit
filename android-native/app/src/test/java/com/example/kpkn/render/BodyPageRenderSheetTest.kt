@@ -138,7 +138,7 @@ class BodyPageRenderSheetTest {
                         contentPadding = PaddingValues(bottom = 140.dp),
                     ) {
                         item(key = "cabecera") {
-                            Box(Modifier.testTag("cuerpo-cabecera")) { BodyPageHeader(topInset = 0.dp, onAdd = {}) }
+                            Box(Modifier.testTag("cuerpo-cabecera")) { BodyPageHeader(topInset = 0.dp) }
                         }
                         item(key = "peso") {
                             BodyWeightModule(
@@ -211,7 +211,6 @@ class BodyPageRenderSheetTest {
                     visible = isla,
                     title = actual?.let { bodyWeightText(it, escena.unidad) } ?: "Cuerpo",
                     subtitle = if (actual != null) bodyIslandChangeText(bodySampleSummary30(), escena.unidad) else null,
-                    onAdd = {},
                 )
             }
         }
@@ -230,7 +229,6 @@ class BodyPageRenderSheetTest {
                         visible = true,
                         title = actual?.let { bodyWeightText(it, unidad) } ?: "Cuerpo",
                         subtitle = bodyIslandChangeText(bodySampleSummary30(), unidad),
-                        onAdd = {},
                     )
                 }
             }

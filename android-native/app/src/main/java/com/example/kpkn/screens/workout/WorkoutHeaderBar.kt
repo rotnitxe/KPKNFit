@@ -56,6 +56,7 @@ import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.ui.components.kpknCoverGlassOrFallback
 import com.example.kpkn.ui.components.kpknFloatingSurface
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
@@ -408,6 +409,8 @@ internal fun WorkoutHeaderBar(
     compactLayout: Boolean? = null,
     /** En la vista Lista el contexto del ejercicio va dentro de la lista (prototipo 02) y la cabecera queda solo con la isla. */
     showExerciseContext: Boolean = true,
+    /** En la vista Lista la cápsula es vidrio con desenfoque de [bodyHazeState] (las filas pasan por debajo); en Tarjetas, gris plano. */
+    glassCapsule: Boolean = false,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
     /** Cada incremento abre «Tiempo de sesión» (lo pide el menú ⋯ de la sesión). */
     sessionTimeRequest: Int = 0,
@@ -446,8 +449,13 @@ internal fun WorkoutHeaderBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = if (compactHeader) 2.dp else 8.dp, bottom = cs(6.dp))
-                    // Píldora flotante: gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
-                    .kpknFloatingSurface(capsuleShape, com.example.kpkn.ui.components.KpknFloating.PillElevation)
+                    // Tarjetas: píldora flotante de gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
+                    // Lista: la lista pasa POR DEBAJO de la isla, así que es vidrio con desenfoque real (Haze) sobre las filas
+                    // (pedido del usuario, 29-oct, punto 19); sin fuente de desenfoque cae al velo oscuro del vidrio.
+                    .then(
+                        if (glassCapsule) Modifier.kpknGlassOrFallback(bodyHazeState, capsuleShape)
+                        else Modifier.kpknFloatingSurface(capsuleShape, com.example.kpkn.ui.components.KpknFloating.PillElevation),
+                    )
                     .heightIn(min = if (compactHeader) 53.dp else 60.dp)
                     .padding(start = 15.dp, end = 8.dp),
                 contentAlignment = Alignment.CenterStart,

@@ -1226,6 +1226,12 @@ class WorkoutViewModel(
                 repository.isReady.first { it }
             }
             if (!loadSession()) {
+                // Si pasado un momento la sesión sigue sin abrirse, la pantalla pasa a un error con salida (no a una carga infinita).
+                // La espera da margen a un programa recién creado que aún no llegó a la lista.
+                viewModelScope.launch {
+                    kotlinx.coroutines.delay(SESSION_LOAD_FAILURE_GRACE_MS)
+                    updateUiState { if (it.session == null) it.copy(sessionLoadFailed = true) else it }
+                }
                 repository.programs.collectLatest { programs ->
                     if (_uiState.value.session == null && programs.any { it.id == programId }) {
                         loadSession()
@@ -1234,6 +1240,19 @@ class WorkoutViewModel(
                 }
             } else {
                 applyStoredPacingAlertModeIfNeeded()
+            }
+        }
+    }
+
+    /** «Reintentar» del error de apertura: vuelve a leer la sesión (la pantalla de carga ya no existe; esto es solo la salida del fallo). */
+    fun retryLoadSession() {
+        if (_uiState.value.isStartingWorkout || _uiState.value.session != null) return
+        updateUiState { it.copy(sessionLoadFailed = false, startPersistenceError = null) }
+        viewModelScope.launch {
+            if (loadSession()) {
+                applyStoredPacingAlertModeIfNeeded()
+            } else {
+                updateUiState { if (it.session == null) it.copy(sessionLoadFailed = true) else it }
             }
         }
     }
@@ -3696,6 +3715,16 @@ class WorkoutViewModel(
 
     fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = false, transform: (Exercise) -> Exercise) {
         updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
+    }
+
+    /**
+     * Pulido v1 (15): «Registrar ROM» de «Detalle del registro» fija `Exercise.trackRom` en el ejercicio de la sesión en curso, el mismo dato
+     * que el interruptor del editor de entreno: las series que quedan nacen con el slider de ROM (o sin él). No toca el plan del programa.
+     */
+    fun setExerciseTrackRom(exerciseId: String, trackRom: Boolean) {
+        updateExerciseDefinition(exerciseId) { exercise ->
+            if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom)
+        }
     }
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
@@ -8076,3 +8105,6 @@ private const val SAVE_FAILED_PREFIX = "No se pudo guardar la serie."
 
 /** Tope de la espera de una serie dictada mientras sus valores vuelan a la tarjeta (v-record: 0,5 s + vuelo escalonado de 1,16 s). */
 private const val VOICE_FLIGHT_MAX_MS = 2_000L
+
+/** Cuánto espera la apertura de la sesión antes de declararla fallida y mostrar el error con salida (da margen a un programa recién creado). */
+private const val SESSION_LOAD_FAILURE_GRACE_MS = 2_500L

@@ -31,7 +31,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
@@ -239,7 +244,27 @@ fun WizardWeightRule(
                 .height(ruleItemHeight),
         ) {
             val horizontalPadding = maxWidth / 2
-            Box(Modifier.fillMaxWidth().height(ruleItemHeight)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(ruleItemHeight)
+                    // Borrado lateral por máscara (DstIn): los extremos se vuelven transparentes, no se tapan con un color. Así la
+                    // regla se funde igual sobre el fondo antracita del wizard que sobre el vidrio de una hoja, sin rectángulos
+                    // oscuros de esquinas rectas. La capa propia (Offscreen) hace que la máscara afecte solo a la regla.
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                0f to Color.Transparent,
+                                .16f to Color.Black,
+                                .84f to Color.Black,
+                                1f to Color.Transparent,
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
+            ) {
                 LazyRow(
                     state = state,
                     flingBehavior = fling,
@@ -290,21 +315,6 @@ fun WizardWeightRule(
                         }
                     }
                 }
-                // Borrado lateral neutro (fondo exacto #1F1F1F): los extremos
-                // de la regla se desvanecen como la referencia, sin tintar de
-                // verde la mitad derecha.
-                Box(
-                    Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                0f to WizardColors.background,
-                                .16f to androidx.compose.ui.graphics.Color.Transparent,
-                                .84f to androidx.compose.ui.graphics.Color.Transparent,
-                                1f to WizardColors.background,
-                            ),
-                        ),
-                )
                 // Cursor central verde: fino y más alto que las marcas (p5).
                 Box(
                     Modifier

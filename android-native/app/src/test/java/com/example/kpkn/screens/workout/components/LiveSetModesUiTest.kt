@@ -118,8 +118,14 @@ class LiveSetModesUiTest {
         if (rule.onAllNodesWithText("Listo").fetchSemanticsNodes().isNotEmpty()) rule.onAllNodesWithText("Listo")[0].performClick()
         rule.waitForIdle()
     }
-    /** «Detalle del registro»: parciales, ayuda y ROM se abren desde la fila `live-card-detail`. */
-    private fun openDetail() { rule.onNodeWithTag("live-card-detail").performClick(); rule.waitForIdle() }
+    /**
+     * «Detalle del registro»: parciales, ayuda y ROM se abren desde la fila `live-card-detail`; con el slider de ROM en el hueco
+     * (Pulido v1 · 15) la fila ya no es un botón entera y se abre con «Detalle ›» (`live-card-detail-open`).
+     */
+    private fun openDetail() {
+        val tag = if (rule.onAllNodesWithTag("live-card-detail-open").fetchSemanticsNodes().isNotEmpty()) "live-card-detail-open" else "live-card-detail"
+        rule.onNodeWithTag(tag).performClick(); rule.waitForIdle()
+    }
 
     @Test fun everyModeStartsAtTheMinimumWithoutChoosingAnEffort() {
         show(TrainingMode.REPS)
@@ -145,12 +151,17 @@ class LiveSetModesUiTest {
             assertEquals("$next/$track/$font acciones completas", 44f, actions.height / density, .5f)
             assertTrue("$next/$track acciones dentro", actions.left >= frame.left && actions.right <= frame.right && actions.bottom <= frame.bottom + 1f)
             if (track) {
-                // Refinamiento 02: el ROM se resume en «Parciales, ayuda y ROM» (fila `live-card-detail`) y su campo vive en «Detalle del registro».
-                rule.onNodeWithTag("live-card-detail").assert(hasText("ROM", substring = true)).assertIsDisplayed()
+                // Pulido v1 (15): con ROM el hueco de «Parciales, ayuda y ROM» lleva el slider (100 % por defecto) y su campo vive en «Detalle del registro».
+                rule.onNodeWithTag("live-rom-slider").assertIsDisplayed()
+                rule.onNodeWithTag("live-card-detail").assertIsDisplayed()
+                val detail = rule.onNodeWithTag("live-card-detail").fetchSemanticsNode().boundsInRoot
+                assertTrue("$next/$track el slider de ROM no queda bajo las acciones", detail.bottom <= actions.top + 1f)
                 openDetail()
                 rule.onNodeWithTag("live-set-detail-rom").scrollToIfScrollable().assertIsDisplayed()
                 assertTrue("$next/$track campo de ROM de 44 dp", rule.onNodeWithTag("live-set-detail-rom").fetchSemanticsNode().boundsInRoot.height / density >= 43.5f)
                 closeSheet()
+            } else {
+                rule.onNodeWithTag("live-rom-slider").assertDoesNotExist()
             }
         } }
     }
@@ -381,11 +392,25 @@ class LiveSetModesUiTest {
     }
     @Test fun romRecordsItsChosenValueInsideTheSameCard() {
         rom.value = true; show(TrainingMode.CUSTOM); quantity("30")
-        // Refinamiento 02: el ROM se edita en «Detalle del registro» (campo `live-set-detail-rom`), ya no en un deslizador de la tarjeta.
+        // Pulido v1 (15): el slider de la tarjeta y el campo de «Detalle del registro» (`live-set-detail-rom`) son el mismo estado.
+        rule.onNode(hasContentDescription("ROM, recorrido de la serie")).performSemanticsAction(SemanticsActions.SetProgress) { it(80f) }
+        rule.waitForIdle()
         openDetail()
+        rule.onNodeWithTag("live-set-detail-rom").scrollToIfScrollable().assertTextEquals("80")
         rule.onNodeWithTag("live-set-detail-rom").scrollToIfScrollable().performTextReplacement("75")
         closeSheet()
         mark(); record(); assertEquals(75, records.single().advanced.rom)
+    }
+    /** Sin ROM en el plan no hay slider ni dato; encenderlo en la hoja lo activa para la serie, y apagarlo lo quita (y el plan, si hay callback). */
+    @Test fun romSheetSwitchAndCardSliderShareTheSameState() {
+        show(TrainingMode.CUSTOM); quantity("30")
+        rule.onNodeWithTag("live-rom-slider").assertDoesNotExist()
+        openDetail()
+        rule.onNodeWithTag("live-set-detail-rom-toggle").performClick(); rule.waitForIdle()
+        rule.onNodeWithTag("live-set-detail-rom").scrollToIfScrollable().assertTextEquals("100")
+        closeSheet()
+        rule.onNodeWithTag("live-rom-slider").assertIsDisplayed()
+        mark(); record(); assertEquals(100, records.single().advanced.rom)
     }
     @Test fun reducedMotionSuppressesTheFailureHaloEvenWithAFrozenReviewFrame() {
         show(TrainingMode.REPS)
