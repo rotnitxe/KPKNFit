@@ -63,3 +63,10 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: con la misma fase y la misma intensidad quedan 5,6/255 en los trazos casi verticales; los otros cinco estados, entre 0,5 y 2,0. Causa probable: suavizado de bordes en trazos de 1 dp muy inclinados; el algoritmo coincide (15 valores de `cvWaveD` a 0,01).
 - Captura: paridad/capturas/DESV-203.png (t = 2000 ms)
 - Aprobada por: pendiente
+
+## DESV-1000
+- Filas: rp-S03
+- Qué cambia: la hoja del lienzo (`.pl-sheet`: `0 -14px 44px #000c` + filete interior `0 1px #ffffff10`) la pinta `KpknSheet`, el componente compartido de hojas, que hoy no dibuja la sombra de caída hacia arriba (solo el velo `#000000a8` y su filete superior); las hojas del reparto (`RpSheet`: decisiones y resumen) la usan tal cual. Tocar `KpknSheet` afecta a todas las pantallas de la app y queda fuera de este paquete. En la captura se ve en la hoja de «Antes de aplicar» (a la izquierda el lienzo, en medio la app: sin halo sobre el borde de la hoja; en la hoja de render, además, la hoja se dibuja a mano y con otra altura).
+- Captura: paridad/capturas/DESV-1000.png (`rp-decisiones`, 360 × 880)
+- Aprobada por: pendiente
+
