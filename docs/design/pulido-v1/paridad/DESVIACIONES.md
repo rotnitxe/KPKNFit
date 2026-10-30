@@ -307,3 +307,28 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: el error medio de las 18 escenas con Robolectric es 11,5–24,9/255 (6–15 % de píxeles); lejos del 2,5 pedido. Misma causa que DESV-400: Inter/Syne no se rasterizan como en Chrome, el lienzo incluye barra de estado y marco del teléfono, y el vidrio, el desenfoque y las sombras de gran radio no se miden en Robolectric. Las más altas son `ed-modo` (24,9, la hoja con velo), `ed-serie-descanso` (22,7) y `ed-preparacion` (18,2). Pasar por el Flip.
 - Captura: paridad/capturas/DESV-455.png
 - Aprobada por: pendiente (Flip5)
+
+
+## DESV-1300
+- Filas: todas las escenas del paquete (icono y error medio)
+- Qué cambia: los iconos propios del lienzo (spCube, spShake, spFish…) no existen en `KpknLineIcons`; se usan los más cercanos (Layers, Apple, Star, Moon…). El error medio de las 8 escenas dibujadas con Robolectric es 9,7–25,4/255 (módulo 15,7; vacío 25,4; hora 17,7; completo 16,4; techo 17,3; ajustar 18,1; aviso 9,7; añadir 18,9), lejos de 2,5: la página de contexto del test (título, tarjetas, barra inferior) no es la real, hay una deriva vertical de unos 5 dp, y Inter/Syne no rasterizan como en Chrome (misma causa que DESV-400).
+- Captura: paridad/capturas/sp-modulo-lado.png (y sp-*-lado.png)
+- Aprobada por: pendiente (Flip5)
+
+## DESV-1301
+- Filas: sp-X01, sp-S08, sp-G03, sp-G04, sp-A01, sp-T04, sp-T06, sp-T09, sp-T10
+- Qué cambia: pertenecen a escenas NO construidas en esta entrega por presupuesto: Inicio (sp-inicio, sp-inicio-hecho, sp-rapida), detalle (sp-detalle, sp-detalle-cafeina), alta/baja/propio/edición, notificación y recordatorios.
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-1302
+- Filas: sp-S01, sp-S03, sp-S05, sp-S06, sp-S07, sp-S09, sp-V01, sp-V02, sp-G01, sp-G02, sp-G05, sp-G06, sp-G07, sp-G08, sp-X04, sp-A03
+- Qué cambia: son reglas base del marco del prototipo (vidrio, barra superior, cinta, historia) que NINGUNA pieza de Suplementos usa en las escenas construidas (el módulo es un `KpknModule` plano, como en el lienzo); no hay elemento que cablear.
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-1303
+- Filas: sp-J02 (toast de 5 s con «Deshacer»)
+- Qué cambia: el aviso usa la barra de avisos de Nutrición (`SnackbarDuration.Short`, ~4 s) en lugar de un toast propio de 5 s; el «Deshacer» sí quita la toma.
+- Captura: n/a
+- Aprobada por: pendiente
