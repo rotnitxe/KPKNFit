@@ -1,37 +1,41 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -40,21 +44,21 @@ import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
 import com.example.kpkn.screens.sessioneditor.withPlannedConfigOf
 import com.example.kpkn.screens.sessioneditor.withSetDuplicated
 import com.example.kpkn.screens.sessioneditor.withSideConfigOf
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSetFormat
-import com.example.kpkn.ui.design.KpknShape
-import com.example.kpkn.ui.design.KpknSurface
-import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
+import kotlinx.coroutines.delay
+
+/** Cuánto dura el aviso «Serie eliminada · Deshacer» (la misma ventana que el del ejercicio eliminado). */
+private const val SET_UNDO_WINDOW_MS = 5_000L
 
 /**
- * Carrusel de fichas de serie de 85 × 76 dp y un único foco de edición (B1/B2). Al tocar una ficha se abre su foco con
- * el contenido propio de RM, AMRAP o [InlineSetRow] en [SetRowPresentation.List]. El foco tiene sus acciones: «Aplicar a todas», «Duplicar» (solo
- * si la pantalla da [onTransformExercise]), «Subir», «Bajar» y «Eliminar» (siempre queda una serie).
+ * `ed-serie` · Series del ejercicio abierto (B1/B2): las fichas de 85 × 76 dp (la última, punteada, es «+ Añadir serie») y un único foco
+ * de edición. La serie elegida siempre tiene su foco debajo: «Serie N de M» con ‹ ›, carga, dosis, intensidad (según el modo), descanso
+ * y las acciones («Aplicar a todas» y «Duplicar» como botones; Subir, Bajar y «Eliminar serie», con «Deshacer», en el menú ⋯).
  *
- * En unilateral, cada serie son dos fichas: L (izquierda) y R (derecha), con su letra y sin el azul y el rojo del original (B5).
+ * En unilateral cada serie son dos fichas, L y R (sin el azul y el rojo del original, B5); la que falta es una ficha punteada «R3».
  */
 @Composable
 internal fun ExerciseSetList(
@@ -71,6 +75,8 @@ internal fun ExerciseSetList(
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
     onTransformExercise: (((Exercise) -> Exercise) -> Unit)? = null,
+    /** Abre la hoja de la carga inteligente: la cifra de carga de cada serie es su botón. */
+    onOpenSmartLoad: (() -> Unit)? = null,
 ) {
     if (exercise.sets.isEmpty()) {
         Column(
@@ -88,6 +94,7 @@ internal fun ExerciseSetList(
 
     var openKey by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
     var pendingApply by remember(exercise.id) { mutableStateOf<PendingApply?>(null) }
+    var deletedSet by remember(exercise.id) { mutableStateOf<DeletedSet?>(null) }
     val unilateral = exercise.isEffectivelyUnilateral()
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
@@ -129,116 +136,122 @@ internal fun ExerciseSetList(
         }
     }
 
+    val slots = buildList<Triple<ExerciseSet, Int, String?>> {
+        exercise.sets.forEachIndexed { index, set ->
+            if (!unilateral || set.isEmptySlot) add(Triple(set, index, null))
+            else orderedSides.filter { sideTarget(set, it) != null }.forEach { add(Triple(set, index, it)) }
+        }
+    }
+    fun keyOf(set: ExerciseSet, side: String?) = if (side == null) set.id else "${set.id}:$side"
+    val selectable = slots.filter { (set, _, _) -> !set.isEmptySlot }
+    // La serie elegida siempre tiene su foco (ex.sel del lienzo): si no hay ninguna elegida, la primera.
+    val selectedSlot = selectable.firstOrNull { (set, _, side) -> keyOf(set, side) == openKey } ?: selectable.firstOrNull()
+    val selectedPosition = selectedSlot?.let { selectable.indexOf(it) } ?: -1
+
     @Composable
-    fun SetItem(set: ExerciseSet, index: Int, side: String?) {
-        val rowKey = if (side == null) set.id else "${set.id}:$side"
-        val open = openKey == rowKey
+    fun SetFocus(set: ExerciseSet, index: Int, side: String?) {
+        val rowKey = keyOf(set, side)
         val predictedWeight = predictedWeights[set.id]
         val estimatedMetric = predictedMetrics[set.id]
-        if (open) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("set-focus-$rowKey")
-                    .padding(bottom = 10.dp)
-                    .background(KpknSurface.module, KpknShape.module)
-                    .border(1.dp, KpknSurface.moduleBorder, KpknShape.module)
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Serie ${index + 1} de ${exercise.sets.size}", style = KpknType.bodyStrong,
-                        color = WizardColors.text, modifier = Modifier.weight(1f))
-                    if (index > 0) KpknIconButton(
-                        icon = KpknLineIcons.ChevronLeft, contentDescription = "Serie anterior",
-                        onClick = { openKey = if (side == null) exercise.sets[index - 1].id else "${exercise.sets[index - 1].id}:$side" },
-                    )
-                    if (index < exercise.sets.lastIndex) KpknIconButton(
-                        icon = KpknLineIcons.ChevronRight, contentDescription = "Serie siguiente",
-                        onClick = { openKey = if (side == null) exercise.sets[index + 1].id else "${exercise.sets[index + 1].id}:$side" },
-                    )
-                }
-                if (set.purpose.isAmrap) {
-                    AmrapSetFocus(exercise, set, index, fixedUnilateralSide = side) { updater -> onUpdateSet(set.id, updater) }
-                } else if (trainingMode == TrainingMode.RM) {
-                    RmSetFocus(exercise, set, { updater -> onUpdateSet(set.id, updater) }, onTransformExercise, fixedUnilateralSide = side)
-                } else InlineSetRow(
-                    set = set,
-                    index = index,
-                    reference1RM = reference1RM,
-                    trainingMax = exercise.referenceTrainingMax,
-                    predictedWeight = predictedWeight,
-                    estimatedMetric = estimatedMetric,
-                    trainingMode = trainingMode,
-                    customUnit = customUnit,
-                    accentColor = accentColor,
-                    backgroundAccentColor = backgroundAccentColor,
-                    canMoveUp = index > 0,
-                    canMoveDown = index < exercise.sets.lastIndex,
-                    isUnilateral = unilateral,
-                    fixedUnilateralSide = side,
-                    showSetActions = false,
-                    unilateralIntensityMode = exercise.unilateralIntensityMode,
-                    onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                    onRemove = { onRemoveSet(set.id) },
-                    onMoveUp = { onMoveSet(set.id, -1) },
-                    onMoveDown = { onMoveSet(set.id, 1) },
-                    fillHeight = false,
-                    presentation = SetRowPresentation.List,
+        val lineColor = Color.White.copy(alpha = 0.063f)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("set-focus-$rowKey")
+                // .ed-focus: filete superior de 1 dp (#ffffff10) y 12 dp de aire antes del primer dato
+                .drawBehind { drawLine(lineColor, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx()) }
+                .padding(top = 13.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            // pulido:ed-A06 .ed-focus.anim entrada 0,26 s (6 px + fundido) al cambiar de serie
+            Box(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
+                Text(
+                    "Serie ${index + 1} de ${exercise.sets.size}${side?.let { " · $it" } ?: ""}",
+                    style = edText(14f, FontWeight.SemiBold, EdColors.ink, 17.5f),
+                    maxLines = 1,
                 )
-                SetRestControl(
-                    seconds = set.restAfterSeconds ?: exercise.restTime ?: 90,
-                    inherited = set.restAfterSeconds == null,
-                    onChange = { seconds -> onUpdateSet(set.id) { it.copy(restAfterSeconds = seconds) } },
-                    onReset = { onUpdateSet(set.id) { it.copy(restAfterSeconds = null) } },
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(align = Alignment.CenterVertically, unbounded = true),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
                 ) {
-                    if (exercise.sets.size > 1) {
-                        SetRowAction(text = "Aplicar a todas", onClick = { requestApply(set, side) })
+                    val previous = selectable.getOrNull(selectedPosition - 1)
+                    val next = selectable.getOrNull(selectedPosition + 1)
+                    SeriesNavButton(KpknLineIcons.ChevronLeft, "Serie anterior", previous != null) {
+                        previous?.let { (s, _, sd) -> openKey = keyOf(s, sd) }
                     }
-                    if (onTransformExercise != null) {
-                        SetRowAction(
-                            text = "Duplicar",
-                            onClick = { onTransformExercise { current -> current.withSetDuplicated(set.id) } },
-                        )
-                    }
-                    if (index > 0) {
-                        SetRowAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
-                    }
-                    if (index < exercise.sets.lastIndex) {
-                        SetRowAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
-                    }
-                    if (exercise.sets.size > 1) {
-                        SetRowAction(
-                            text = "Eliminar",
-                            color = WizardColors.danger,
-                            onClick = {
-                                openKey = null
-                                onRemoveSet(set.id)
-                            },
-                        )
+                    SeriesNavButton(KpknLineIcons.ChevronRight, "Serie siguiente", next != null) {
+                        next?.let { (s, _, sd) -> openKey = keyOf(s, sd) }
                     }
                 }
             }
+            if (set.purpose.isAmrap) {
+                AmrapSetFocus(exercise, set, index, fixedUnilateralSide = side, onOpenSmartLoad = onOpenSmartLoad) { updater -> onUpdateSet(set.id, updater) }
+            } else if (trainingMode == TrainingMode.RM) {
+                RmSetFocus(exercise, set, { updater -> onUpdateSet(set.id, updater) }, onTransformExercise, fixedUnilateralSide = side, onOpenSmartLoad = onOpenSmartLoad)
+            } else InlineSetRow(
+                set = set,
+                index = index,
+                reference1RM = reference1RM,
+                trainingMax = exercise.referenceTrainingMax,
+                predictedWeight = predictedWeight,
+                estimatedMetric = estimatedMetric,
+                trainingMode = trainingMode,
+                customUnit = customUnit,
+                accentColor = accentColor,
+                backgroundAccentColor = backgroundAccentColor,
+                canMoveUp = index > 0,
+                canMoveDown = index < exercise.sets.lastIndex,
+                isUnilateral = unilateral,
+                fixedUnilateralSide = side,
+                showSetActions = false,
+                unilateralIntensityMode = exercise.unilateralIntensityMode,
+                onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                onRemove = { onRemoveSet(set.id) },
+                onMoveUp = { onMoveSet(set.id, -1) },
+                onMoveDown = { onMoveSet(set.id, 1) },
+                fillHeight = false,
+                presentation = SetRowPresentation.List,
+                onOpenSmartLoad = onOpenSmartLoad,
+            )
+            SetRestControl(
+                seconds = set.restAfterSeconds ?: exercise.restTime ?: 90,
+                inherited = set.restAfterSeconds == null,
+                onChange = { seconds -> onUpdateSet(set.id) { it.copy(restAfterSeconds = seconds) } },
+                onReset = { onUpdateSet(set.id) { it.copy(restAfterSeconds = null) } },
+                exerciseSeconds = exercise.restTime ?: 90,
+                stateKey = "set-rest-${exercise.id}-$rowKey",
+            )
+            SetActions(
+                canApply = exercise.sets.size > 1,
+                canDuplicate = onTransformExercise != null,
+                canMoveUp = index > 0,
+                canMoveDown = index < exercise.sets.lastIndex,
+                canDelete = exercise.sets.size > 1,
+                onApply = { requestApply(set, side) },
+                onDuplicate = { onTransformExercise?.invoke { current -> current.withSetDuplicated(set.id) } },
+                onMoveUp = { onMoveSet(set.id, -1) },
+                onMoveDown = { onMoveSet(set.id, 1) },
+                onDelete = {
+                    val position = exercise.sets.indexOfFirst { it.id == set.id }
+                    if (onTransformExercise != null && position >= 0) deletedSet = DeletedSet(set, position)
+                    openKey = null
+                    onRemoveSet(set.id)
+                },
+            )
         }
     }
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        val slots = buildList<Triple<ExerciseSet, Int, String?>> {
-            exercise.sets.forEachIndexed { index, set ->
-                if (!unilateral || set.isEmptySlot) add(Triple(set, index, null))
-                else orderedSides.filter { sideTarget(set, it) != null }.forEach { add(Triple(set, index, it)) }
-            }
-        }
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(SessionEditorChipMetrics.gap)) {
-            items(slots, key = { (set, _, side) -> if (side == null) set.id else "${set.id}:$side" }) { (set, index, side) ->
-                val rowKey = if (side == null) set.id else "${set.id}:$side"
+        // .ed-chips: 2 dp de aire por arriba y por abajo
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(SessionEditorChipMetrics.gap),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 2.dp),
+        ) {
+            items(slots, key = { (set, _, side) -> keyOf(set, side) }) { (set, index, side) ->
+                val rowKey = keyOf(set, side)
                 val summary = setRowSummary(set, side, trainingMode, customUnit, predictedWeights[set.id], predictedMetrics[set.id])
                 EffectiveSeriesChip(
                     label = if (side == null) "S${index + 1}" else "${sideLetter(side)}${index + 1}",
@@ -246,26 +259,51 @@ internal fun ExerciseSetList(
                     dose = if (set.isEmptySlot) "vacío" else seriesChipDetail(set, side, trainingMode, customUnit, summary),
                     description = listOfNotNull("Serie ${index + 1}", summary.load, summary.dose, summary.intensity, summary.technique).joinToString(" · "),
                     enabled = !set.isEmptySlot,
-                    selected = openKey == rowKey,
+                    selected = selectedSlot != null && keyOf(selectedSlot.first, selectedSlot.third) == rowKey,
                     tag = "set-row-$rowKey",
-                    onClick = { if (!set.isEmptySlot) openKey = if (openKey == rowKey) null else rowKey },
+                    onClick = { if (!set.isEmptySlot) openKey = rowKey },
+                )
+            }
+            if (unilateral) {
+                // Lo que falta de una serie unilateral (L o R) es una ficha punteada con su nombre: «R3».
+                items(
+                    exercise.sets.withIndex().filterNot { it.value.isEmptySlot }.flatMap { (index, set) ->
+                        orderedSides.filter { sideTarget(set, it) == null }.map { Triple(set, index, it) }
+                    },
+                    key = { (set, _, side) -> "missing:${set.id}:$side" },
+                ) { (set, index, side) ->
+                    EditorAddChip(
+                        label = "${sideLetter(side)}${index + 1}",
+                        width = 64.dp,
+                        plusSize = 18.dp,
+                        description = "Añadir ${sideLetter(side)} a la serie ${index + 1}",
+                        tag = "set-add-side-${set.id}-$side",
+                        onClick = { addSide(set, side) },
+                    )
+                }
+            }
+            item(key = "add-set") {
+                EditorAddChip(
+                    label = null,
+                    width = 56.dp,
+                    plusSize = 22.dp,
+                    description = "Añadir serie",
+                    tag = "set-add",
+                    onClick = { onAddSet(null) },
                 )
             }
         }
-        slots.firstOrNull { (set, _, side) -> openKey == (if (side == null) set.id else "${set.id}:$side") }
-            ?.let { (set, index, side) -> SetItem(set, index, side) }
-        if (unilateral) exercise.sets.filterNot { it.isEmptySlot }.forEach { set ->
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                orderedSides.filter { sideTarget(set, it) == null }.forEach { side ->
-                    KpknSecondaryPill(text = "+ Añadir ${sideLetter(side)}", onClick = { addSide(set, side) })
-                }
+        deletedSet?.let { removed ->
+            LaunchedEffect(removed) {
+                delay(SET_UNDO_WINDOW_MS)
+                if (deletedSet === removed) deletedSet = null
             }
+            SetDeletedNotice(onUndo = {
+                onTransformExercise?.invoke { current -> current.withSetRestored(removed.set, removed.index) }
+                deletedSet = null
+            })
         }
-        KpknTextAction(
-            text = "+ Añadir serie",
-            onClick = { onAddSet(null) },
-            color = WizardColors.text,
-        )
+        selectedSlot?.let { (set, index, side) -> SetFocus(set, index, side) }
     }
 
     pendingApply?.let { request ->
@@ -288,8 +326,117 @@ internal fun ExerciseSetList(
     }
 }
 
+/** Flecha de 44 dp de «Serie N de M» (disabled = `--dim`). */
+@Composable
+private fun SeriesNavButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        EdIcon(icon, 20.dp, if (enabled) EdColors.ink else EdColors.dim)
+    }
+}
+
+/**
+ * `.ed-acts`: «Aplicar a todas» y «Duplicar» como botones con icono (crecen para repartirse el ancho) y, al final, «⋯» con Subir, Bajar y,
+ * separada, «Eliminar serie» en rosa. Subir se desactiva en la primera serie, Bajar en la última y Eliminar cuando solo queda una.
+ */
+@Composable
+private fun SetActions(
+    canApply: Boolean,
+    canDuplicate: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    canDelete: Boolean,
+    onApply: () -> Unit,
+    onDuplicate: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var anchor by remember { mutableStateOf<Rect?>(null) }
+    EdFlexRow(modifier = Modifier.fillMaxWidth().padding(top = 2.dp), gap = 8.dp, lineGap = 8.dp) {
+        if (canApply) EdActionButton("Aplicar a todas", EdIcons.CopyAll, onApply, Modifier.edFlex(grow = true))
+        if (canDuplicate) EdActionButton("Duplicar", EdIcons.Dupe, onDuplicate, Modifier.edFlex(grow = true))
+        EdActionButton(
+            text = null,
+            icon = KpknLineIcons.More,
+            onClick = { menuOpen = !menuOpen },
+            modifier = Modifier.edFlex(autoStart = true).edAnchor { anchor = it },
+            description = "Más acciones de la serie",
+            iconOnly = true,
+            expanded = menuOpen,
+            iconTint = EdColors.ink,
+        )
+    }
+    val bounds = anchor
+    if (menuOpen && bounds != null) {
+        EdAnchoredMenu(anchor = bounds, width = 220.dp, estimatedHeight = 200.dp, onDismiss = { menuOpen = false }, alignEnd = true) {
+            EdMenuRow("Subir", onClick = { menuOpen = false; onMoveUp() }, icon = EdIcons.ArrowUp, enabled = canMoveUp)
+            EdMenuRow("Bajar", onClick = { menuOpen = false; onMoveDown() }, icon = EdIcons.ArrowDown, enabled = canMoveDown)
+            EdMenuDivider()
+            EdMenuRow(
+                title = "Eliminar serie",
+                subtitle = if (canDelete) null else "Siempre queda una serie",
+                icon = KpknLineIcons.Trash,
+                danger = true,
+                enabled = canDelete,
+                onClick = { menuOpen = false; onDelete() },
+            )
+        }
+    }
+}
+
+/** «Serie eliminada · Deshacer» (función nueva de la decisión «Eliminar serie gana Deshacer»): 5 s, bajo las fichas. */
+@Composable
+private fun SetDeletedNotice(onUndo: () -> Unit) {
+    val shape = RoundedCornerShape(22.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 44.dp)
+            .padding(start = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Serie eliminada", style = edText(14f, FontWeight.SemiBold, EdColors.muted, 17.5f), modifier = Modifier.weight(1f), maxLines = 1)
+        Box(
+            modifier = Modifier
+                .height(44.dp)
+                .clip(shape)
+                .background(Color.White.copy(alpha = 0.063f), shape)
+                .clickable(role = Role.Button, onClick = onUndo)
+                .semantics { contentDescription = "Deshacer" }
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("Deshacer", style = edText(14f, FontWeight.SemiBold, EdColors.ink, 17.5f), maxLines = 1)
+        }
+    }
+}
+
 /** Confirmación pendiente de «Aplicar a todas»: cuántas series cambian y la copia que se hace al confirmar. */
 private class PendingApply(val count: Int, val onApply: () -> Unit)
+
+/** La serie que acaba de eliminarse y el sitio que ocupaba, para devolverla con «Deshacer». */
+private class DeletedSet(val set: ExerciseSet, val index: Int)
+
+/**
+ * Devuelve [set] a su sitio tras «Deshacer»: si en su lugar quedó una ranura vacía (rondas de superserie) la sustituye; si no, la
+ * inserta en [index]. Si la serie ya está, no hace nada.
+ */
+internal fun Exercise.withSetRestored(set: ExerciseSet, index: Int): Exercise {
+    val slot = sets.indexOfFirst { it.id == set.id }
+    if (slot >= 0 && !sets[slot].isEmptySlot) return this
+    val restored = sets.toMutableList()
+    if (slot >= 0) restored[slot] = set else restored.add(index.coerceIn(0, restored.size), set)
+    return copy(sets = restored)
+}
 
 private fun sideTarget(set: ExerciseSet, side: String): UnilateralTarget? =
     if (side == "L") set.leftTarget else set.rightTarget
@@ -301,10 +448,13 @@ private fun seriesChipValue(set: ExerciseSet, side: String?, mode: TrainingMode,
     val target = side?.let { sideTarget(set, it) }
     return when (mode) {
         TrainingMode.SOLO_RPE -> (target?.targetRPE ?: set.targetRPE)?.let { "RPE\u00a0${formatSummaryNumber(it)}" } ?: "—"
-        TrainingMode.TIME -> (target?.targetDuration ?: set.targetDuration)?.let { KpknSetFormat.doseTime(it) } ?: "—"
+        // Lienzo (ed-serie-tiempo): la duración de la ficha es «0:40», como el resto de tiempos del editor.
+        TrainingMode.TIME -> (target?.targetDuration ?: set.targetDuration)?.let { KpknSetFormat.rest(it) } ?: "—"
         TrainingMode.DISTANCE, TrainingMode.CUSTOM -> (target?.targetValue ?: set.plannedTargetV2)?.let { formatSummaryNumber(it) } ?: "—"
         else -> if (set.loadModeV2 == LoadModeV2.BODYWEIGHT) "Corporal"
-            else (target?.weight ?: set.weight ?: predicted)?.let { "${formatSummaryNumber(it)}\u00a0kg" } ?: "—"
+            else (target?.weight ?: set.weight ?: predicted)?.let {
+                "${if (set.loadModeV2 == LoadModeV2.LASTRE) "+" else ""}${formatSummaryNumber(it)}\u00a0kg"
+            } ?: "—"
     }
 }
 
@@ -445,24 +595,4 @@ private fun rmPrescriptionDose(kgText: String?, range: RepRange?, reps: Int?, ri
     val head = if (kgText != null && repsText != null) "$kgText × $repsText" else kgText ?: repsText
     // «RIR 2» con espacio inseparable: al partir la dosis a dos líneas, la cifra no se queda sola en la segunda.
     return listOfNotNull(head, rir?.let { "RIR $it" }).joinToString(" · ").ifBlank { "—" }
-}
-
-/**
- * Acción de la fila abierta (ER1c1, pulido): texto de tinta de 48 dp de alto como objetivo táctil. Al 130 % de letra puede pasar a dos
- * líneas por palabra en vez de cortarse.
- */
-@Composable
-private fun SetRowAction(
-    text: String,
-    onClick: () -> Unit,
-    color: Color = WizardColors.text,
-) {
-    Box(
-        modifier = Modifier
-            .heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(text, style = KpknType.action, color = color, maxLines = 2)
-    }
 }

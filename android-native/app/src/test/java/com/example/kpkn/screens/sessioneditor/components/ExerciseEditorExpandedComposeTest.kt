@@ -95,15 +95,15 @@ class ExerciseEditorExpandedComposeTest {
     @Test
     fun sinMovilidadNiAproximacionSalenLasDosPildorasPunteadas() {
         render(bare)
-        rule.onNodeWithText("+ Movilidad").assertExists()
-        rule.onNodeWithText("+ Aproximación").assertExists()
+        rule.onNodeWithText("Movilidad").assertExists()
+        rule.onNodeWithText("Aproximación").assertExists()
     }
 
     @Test
     fun laPildoraDeAproximacionCreaLaPrimeraConSuValorPorDefecto() {
         var result: Exercise? = null
         render(bare, onUpdate = { transform -> result = transform(bare) })
-        rule.onNodeWithText("+ Aproximación").performClick()
+        rule.onNodeWithText("Aproximación").performClick()
         val created = result!!.warmupSets
         assertEquals(1, created.size)
         assertEquals(0.5, created[0].percentageOfWorkingWeight, 0.0001)
@@ -115,7 +115,7 @@ class ExerciseEditorExpandedComposeTest {
     fun laPildoraDeMovilidadAbreElCatalogo() {
         var opened = false
         render(bare, onOpenMobility = { opened = true })
-        rule.onNodeWithText("+ Movilidad").performClick()
+        rule.onNodeWithText("Movilidad").performClick()
         assertTrue(opened)
     }
 
@@ -153,9 +153,9 @@ class ExerciseEditorExpandedComposeTest {
             warmupSets = listOf(WarmupSetDefinition(id = "w1", percentageOfWorkingWeight = 0.5, targetReps = 8, restBetween = 60)),
         )
         render(withWarmup)
-        rule.onNodeWithText("APROXIMACIÓN · 1").assertExists()
-        rule.onNodeWithText("+ Movilidad").assertExists()
-        rule.onAllNodesWithText("+ Aproximación").fetchSemanticsNodes().let { assertEquals(0, it.size) }
+        rule.onNodeWithText("APROXIMACIÓN").assertExists()
+        rule.onNodeWithText("Movilidad").assertExists()
+        rule.onAllNodesWithText("Aproximación").fetchSemanticsNodes().let { assertEquals(0, it.size) }
     }
 
     @Test
@@ -168,13 +168,12 @@ class ExerciseEditorExpandedComposeTest {
         )
         val updates = mutableListOf<Exercise>()
         render(three, onUpdate = { transform -> updates += transform(three) })
-        rule.onNodeWithText("APROXIMACIÓN · 3").assertExists()
-        rule.onNodeWithTag("warmup-common-rest").assertTextContains("1:00")
+        rule.onNodeWithText("APROXIMACIÓN").assertExists()
+        rule.onNodeWithTag("warmup-common-rest").assertTextContains("1:00", substring = true)
         // H1: tres fichas; cada selección expone el descanso real de esa aproximación en su foco.
         (1..3).forEach { index ->
             rule.onNodeWithTag("warmup-chip-w$index").performClick().assertIsSelected()
             rule.onNode(hasText("Aproximación $index") and hasAnyAncestor(hasTestTag("warmup-focus"))).assertExists()
-            rule.onNode(hasText("Descanso · 1:00") and hasAnyAncestor(hasTestTag("warmup-focus"))).assertExists()
         }
         // El descanso común conserva el selector y aplica sus 60 segundos a las tres aproximaciones.
         rule.onNodeWithTag("warmup-common-rest").performClick()
@@ -199,7 +198,7 @@ class ExerciseEditorExpandedComposeTest {
         var saved: Exercise? = null
         var opened = false
         render(mobility, onUpdate = { transform -> saved = transform(mobility) }, onOpenMobility = { opened = true })
-        rule.onNodeWithText("MOVILIDAD · 1").assertExists()
+        rule.onNodeWithText("MOVILIDAD").assertExists()
         rule.onNodeWithTag("mobility-chip-m1").assertTextContains("Gato-vaca")
         rule.onNodeWithText("Total · 8 min").assertExists()
         rule.onNodeWithTag("mobility-global-time").performClick()

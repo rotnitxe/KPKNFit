@@ -158,7 +158,8 @@ internal fun ExerciseEditorExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("exercise-editor-expanded")
-            .padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
+            // .ed-card: padding 2 14 16 y 10 dp entre bloques
+            .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
             exercise.cardioDetails?.let { details ->
@@ -198,8 +199,7 @@ internal fun ExerciseEditorExpanded(
             Text(
                 "SERIES EFECTIVAS",
                 modifier = Modifier.fillMaxWidth(),
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
+                style = EdEyebrowStyle,
             )
             ExerciseOptionsBar(
                 exercise = exercise,
@@ -217,13 +217,6 @@ internal fun ExerciseEditorExpanded(
                 onOpenGoal = openGoal,
                 onOpenRest = { showRestChain = true },
             )
-            if (exercise.trainingMode != TrainingMode.SOLO_RPE) {
-                SmartLoadModule(
-                    accentColor = accentColor,
-                    onOpen = { showSmartLoadSheet = true },
-                )
-            }
-
             if (exercise.isEffectivelyUnilateral()) {
                 SideOptionsModule(
                     exercise = exercise,
@@ -254,13 +247,6 @@ internal fun ExerciseEditorExpanded(
                         )
                     }
                 }
-            }
-
-            if (exercise.trainingMode == TrainingMode.CUSTOM) {
-                CustomUnitModule(
-                    customUnit = customUnitInput,
-                    onOpen = { showCustomUnitModal = true },
-                )
             }
 
             if (showSmartLoadSheet) {
@@ -323,6 +309,7 @@ internal fun ExerciseEditorExpanded(
                     onRemoveSet = onRemoveSet,
                     onMoveSet = onMoveSet,
                     onTransformExercise = onUpdateExercise,
+                    onOpenSmartLoad = { showSmartLoadSheet = true },
                 )
             }
 

@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -92,6 +93,12 @@ internal fun InlineSetRowTechniqueChips(
     val configExpanded = (showDropSetConfig && hasDropSet) || (showRestPauseConfig && hasRestPause)
     androidx.compose.runtime.LaunchedEffect(configExpanded) {
         onConfigExpandedChange(configExpanded)
+    }
+
+    if (listSkin) {
+        // Lienzo (ed-serie-fallo): tres tarjetas iguales y la configuración debajo; la tarjeta antigua queda para las rondas de superserie.
+        TechniqueBlock(set = set, onUpdate = onUpdate)
+        return
     }
 
     Column(
@@ -461,5 +468,180 @@ private fun TechniqueStepChip(
             color = Color.White.copy(alpha = if (selected) 0.94f else 0.7f),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
+    }
+}
+
+// ───────────────────────────── ed-serie-fallo: «¿Vas más allá del fallo?» ─────────────────────────────
+
+/** Alterna el drop-set de la serie (mismo cambio que el chip de la tarjeta): un drop programado y sin rest-pause. */
+internal fun ExerciseSet.withDropSetToggled(): ExerciseSet {
+    if (plannedIntensityTechniques.any { it.type == TechniqueType.DROP_SET }) {
+        return copy(
+            plannedIntensityTechniques = plannedIntensityTechniques.filter { it.type != TechniqueType.DROP_SET },
+            isDropSet = false,
+            dropSets = emptyList(),
+        )
+    }
+    val drops = DropSetPlanDefaults.DefaultDrops
+    val technique = PlannedTechnique(
+        id = UUID.randomUUID().toString(),
+        type = TechniqueType.DROP_SET,
+        params = mapOf(
+            "weightPcts" to DropSetPlanDefaults.weightPctsFor(drops),
+            "count" to drops.toString(),
+            // Las técnicas creadas en el editor sustituyen volumen; la marca vive en el mismo bloque de parámetros.
+            "betweenMarked" to "true",
+        ),
+    )
+    return copy(
+        plannedIntensityTechniques = plannedIntensityTechniques.filter { it.type != TechniqueType.REST_PAUSE } + technique,
+        isDropSet = true,
+        isRestPause = false,
+        dropSets = emptyList(),
+        restPauses = emptyList(),
+    )
+}
+
+/** Alterna el rest-pause de la serie (no el myo-reps, que es un rest-pause con otra receta). */
+internal fun ExerciseSet.withRestPauseToggled(): ExerciseSet {
+    if (plannedIntensityTechniques.any { it.type == TechniqueType.REST_PAUSE } && !isMyoReps()) {
+        return copy(
+            plannedIntensityTechniques = plannedIntensityTechniques.filter { it.type != TechniqueType.REST_PAUSE },
+            isRestPause = false,
+            restPauses = emptyList(),
+        )
+    }
+    val technique = PlannedTechnique(
+        id = UUID.randomUUID().toString(),
+        type = TechniqueType.REST_PAUSE,
+        params = mapOf(
+            "count" to RestPausePlanDefaults.DefaultCount.toString(),
+            "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
+            "reps" to RestPausePlanDefaults.Reps.toString(),
+            "betweenMarked" to "true",
+        ),
+    )
+    return copy(
+        plannedIntensityTechniques = plannedIntensityTechniques.filter { it.type != TechniqueType.DROP_SET } + technique,
+        isRestPause = true,
+        isDropSet = false,
+        dropSets = emptyList(),
+        restPauses = emptyList(),
+    )
+}
+
+/** Alterna el myo-reps de la serie con su receta ([MyoRepsPreset]). */
+internal fun ExerciseSet.withMyoRepsToggled(): ExerciseSet =
+    if (isMyoReps()) {
+        copy(
+            isRestPause = false,
+            restPauses = emptyList(),
+            restAfterSeconds = null,
+            plannedIntensityTechniques = plannedIntensityTechniques.filterNot { it.type == TechniqueType.REST_PAUSE },
+        )
+    } else {
+        MyoRepsPreset.applyTo(this)
+    }
+
+/**
+ * `.ed-tech`: el rótulo «¿Vas más allá del fallo?», tres tarjetas iguales (Drop-set · Rest-pause · Myo-reps, cada una con su resumen) y,
+ * al elegir una, su configuración: drops 1–3, mini-series 1–5 y, en Myo-reps, repeticiones (3–5) y pausa corta (10–30 s).
+ */
+@Composable
+private fun TechniqueBlock(set: ExerciseSet, onUpdate: ((ExerciseSet) -> ExerciseSet) -> Unit) {
+    val techniques = set.plannedIntensityTechniques
+    val drop = techniques.firstOrNull { it.type == TechniqueType.DROP_SET }
+    val restPause = techniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
+    val myo = set.isMyoReps()
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("¿Vas más allá del fallo?", style = edText(13f, FontWeight.SemiBold, EdColors.ink, 16.3f))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TechniqueCard("Drop-set", "Sin descanso · ~${DropSetPlanDefaults.DropReps} reps", drop != null, EdColors.mus, Modifier.weight(1f)) {
+                onUpdate { it.withDropSetToggled() }
+            }
+            TechniqueCard("Rest-pause", "Pausa ${RestPausePlanDefaults.PauseSeconds} s · ${RestPausePlanDefaults.Reps} reps", restPause != null && !myo, EdColors.rest, Modifier.weight(1f)) {
+                onUpdate { it.withRestPauseToggled() }
+            }
+            TechniqueCard("Myo-reps", "4 mini-series · 15 s", myo, EdColors.rest, Modifier.weight(1f)) {
+                onUpdate { it.withMyoRepsToggled() }
+            }
+        }
+        // pulido:ed-A06 .ed-tcfg.anim entrada 0,26 s al elegir una técnica
+        if (drop != null) {
+            val count = (drop.params["count"]?.toIntOrNull() ?: drop.params["weightPcts"]?.split(",")?.size ?: DropSetPlanDefaults.DefaultDrops)
+                .coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                EdHelpText("¿Cuántos drops después de la serie normal?")
+                NumberRow((DropSetPlanDefaults.MinDrops..DropSetPlanDefaults.MaxDrops).toList(), count, "") { n ->
+                    onUpdate { current ->
+                        val updated = drop.copy(
+                            params = drop.params + mapOf(
+                                "weightPcts" to DropSetPlanDefaults.weightPctsFor(n),
+                                "count" to n.toString(),
+                                "betweenMarked" to "true",
+                            ),
+                        )
+                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == drop.id) updated else it })
+                    }
+                }
+            }
+        } else if (restPause != null) {
+            val count = (restPause.params["count"]?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
+                .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                EdHelpText("¿Cuántas mini-series tras la principal?")
+                NumberRow((RestPausePlanDefaults.MinCount..RestPausePlanDefaults.MaxCount).toList(), count, "") { n ->
+                    onUpdate { current ->
+                        val updated = restPause.copy(
+                            params = restPause.params + mapOf(
+                                "count" to n.toString(),
+                                "pauseSeconds" to (if (myo) restPause.params["pauseSeconds"] ?: "15" else RestPausePlanDefaults.PauseSeconds.toString()),
+                                "reps" to (if (myo) restPause.params["reps"] ?: "4" else RestPausePlanDefaults.Reps.toString()),
+                                "betweenMarked" to "true",
+                            ),
+                        )
+                        current.copy(plannedIntensityTechniques = current.plannedIntensityTechniques.map { if (it.id == restPause.id) updated else it })
+                    }
+                }
+                if (myo) {
+                    val reps = restPause.params["reps"]?.toIntOrNull() ?: 4
+                    val pause = restPause.params["pauseSeconds"]?.toIntOrNull() ?: 15
+                    EdHelpText("Repeticiones por mini-serie")
+                    NumberRow(listOf(3, 4, 5), reps, "") { n -> onUpdate { current -> MyoRepsPreset.applyTo(current, count, n, pause) } }
+                    EdHelpText("Pausa corta")
+                    NumberRow(listOf(10, 15, 20, 25, 30), pause, " s") { n -> onUpdate { current -> MyoRepsPreset.applyTo(current, count, reps, n) } }
+                } else {
+                    EdHelpText("Pausa fija ${KpknSetFormat.rest(RestPausePlanDefaults.PauseSeconds)} · ${RestPausePlanDefaults.Reps} reps · $count miniseries")
+                }
+            }
+        }
+    }
+}
+
+/** `.ed-tq`: tarjeta de una técnica (76 dp como mínimo); elegida, se tiñe con el tono de su técnica. */
+@Composable
+private fun TechniqueCard(title: String, summary: String, on: Boolean, tone: Color, modifier: Modifier, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(
+        modifier = modifier
+            .heightIn(min = 76.dp)
+            .clip(shape)
+            // pulido:ed-T32 .ed-tq borde y fondo 0,16 s
+            .background(if (on) tone.copy(alpha = 0.11f) else EdColors.field, shape)
+            .border(1.dp, if (on) tone else EdColors.line2, shape)
+            .clickable(role = androidx.compose.ui.semantics.Role.Checkbox, onClick = onClick)
+            .padding(horizontal = 9.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(title, style = edText(12.5f, FontWeight.SemiBold, EdColors.ink, 15f), maxLines = 1)
+        Text(summary, style = edText(11.5f, FontWeight.Medium, EdColors.faint, 15f))
+    }
+}
+
+/** Fila de números de la configuración de una técnica: 44 dp, el elegido relleno de tinta. */
+@Composable
+private fun NumberRow(values: List<Int>, selected: Int, suffix: String, onPick: (Int) -> Unit) {
+    EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
+        values.forEach { value -> EdNumberPill(text = "$value$suffix", on = selected == value, onClick = { onPick(value) }) }
     }
 }

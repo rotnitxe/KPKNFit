@@ -444,8 +444,8 @@ class WorkoutEditSeriesSheetBoardTest {
         rule.onNodeWithTag(LIVE_EDIT_REST_TAG).assertTextContains("Lados 0:45", substring = true)
         tap(LIVE_EDIT_REST_TAG)
         // B7 muestra ambos descansos y los confirma en una sola hoja.
-        rule.onNodeWithText("Series").assertExists()
-        rule.onNodeWithText("Entre lados").assertExists()
+        assertTrue(rule.onAllNodesWithText("SERIES").fetchSemanticsNodes().isNotEmpty())
+        assertTrue(rule.onAllNodesWithText("ENTRE LADOS").fetchSemanticsNodes().isNotEmpty())
         tapText("Listo")
         rule.waitForIdle()
         confirm()
@@ -482,7 +482,7 @@ class WorkoutEditSeriesSheetBoardTest {
         mount(romanianDeadlift(), initialSetIndex = 3)
 
         // ED-B: las técnicas solo se muestran al declarar fallo; la serie RIR conserva su prescripción.
-        rule.onNodeWithText("Reps / rango").assertExists()
+        rule.onNodeWithText("REPETICIONES").assertExists()
         rule.onNodeWithText("Drop-set", substring = true).assertDoesNotExist()
         rule.onNodeWithText("Rest-pause", substring = true).assertDoesNotExist()
     }
@@ -513,8 +513,8 @@ class WorkoutEditSeriesSheetBoardTest {
     @Test fun rmRecalculaLaCargaAlEditarPorcentajeSinBorrarRangoNiRir() {
         mount(rmExercise(), initialSetIndex = 0)
         rule.onNodeWithText("RIR").assertDoesNotExist()
-        editRm("%RM", "85")
-        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("102,5")
+        editRm("% del RM", "85")
+        rule.onNodeWithContentDescription("Carga de la serie").assertTextContains("102,5", substring = true)
         confirm()
         assertEquals(102.5, saved!!.sets.single().weight!!, 0.001)
         assertEquals(RepRange(4, 6), saved!!.sets.single().targetRepsRange)
@@ -523,7 +523,7 @@ class WorkoutEditSeriesSheetBoardTest {
 
     @Test fun rmTmUsaLaReferenciaDeclaradaYEnlazaPesoConPorcentaje() {
         mount(rmExercise(LoadBasis.PERCENT_TM, oneRm = 125.0, tm = 100.0), initialSetIndex = 0)
-        editRm("Peso (kg)", "90")
+        editRm("% del TM", "90")
         confirm()
         assertEquals(90.0, saved!!.sets.single().targetPercentageRM!!, 0.001)
         assertEquals(90.0, saved!!.sets.single().weight!!, 0.001)
@@ -543,8 +543,7 @@ class WorkoutEditSeriesSheetBoardTest {
             exercise.copy(sets = exercise.sets + exercise.sets.single().copy(id = "s2", loadBasis = LoadBasis.PERCENT_1RM))
         }
         mount(source, initialSetIndex = 0)
-        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("TM (kg)"))), useUnmergedTree = true).performScrollTo().performTextReplacement("125")
-        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("TM (kg)"))), useUnmergedTree = true).performImeAction()
+        editRm("TM (kg)", "125")
         rule.waitForIdle()
         confirm()
         assertEquals(125.0, saved!!.referenceTrainingMax!!, 0.001)
@@ -577,8 +576,8 @@ class WorkoutEditSeriesSheetBoardTest {
     @Test fun amrapEnRecetaRmTienePrioridadYConservaSuMinimoAlGuardar() {
         val source = rmExercise().let { it.copy(sets = listOf(it.sets.single().copy(purpose = SetPurpose.AMRAP, amrapMinimumReps = 5))) }
         mount(source, initialSetIndex = 0)
-        rule.onNodeWithText("Mínimo").assertExists()
-        rule.onNodeWithContentDescription("%RM").assertDoesNotExist()
+        rule.onNodeWithText("REPS MÍN.").assertExists()
+        rule.onNodeWithContentDescription("% del RM").assertDoesNotExist()
         click(rule.onNodeWithContentDescription("Aumentar mínimo AMRAP"))
         confirm()
         assertEquals(SetPurpose.AMRAP, saved!!.sets.single().purpose)
@@ -610,8 +609,8 @@ class WorkoutEditSeriesSheetBoardTest {
             unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT, sets = listOf(it.sets.single().copy(
                 leftTarget = UnilateralTarget(weight = 70.0, targetRIR = 2), rightTarget = UnilateralTarget(weight = 80.0, targetRIR = 3)))) }
         mount(source, initialSetIndex = 0)
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 80 kg")
-        editRm("%RM", "75")
+        rule.onNodeWithContentDescription("Carga de la serie").assertTextContains("80", substring = true)
+        editRm("% del RM", "75")
         confirm()
         assertEquals(90.0, saved!!.sets.single().leftTarget!!.weight!!, 0.001)
         assertEquals(90.0, saved!!.sets.single().rightTarget!!.weight!!, 0.001)
@@ -621,8 +620,8 @@ class WorkoutEditSeriesSheetBoardTest {
 
     @Test fun descansoDeSerieSobrescribeSoloElFocoYSePuedeVolverAHerencia() {
         mount(romanianDeadlift(), initialSetIndex = 1)
-        click(rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie"))
-        rule.onNodeWithText("Usar descanso del ejercicio").assertExists()
+        click(rule.onNodeWithContentDescription("Sumar 15 segundos"))
+        rule.onNodeWithContentDescription("Usar el descanso del ejercicio").assertExists()
         confirm()
         assertEquals(165, saved!!.sets[1].restAfterSeconds)
         assertEquals(listOf(100.0, 100.0, 100.0, 105.0), saved!!.sets.map { it.weight })
@@ -634,7 +633,7 @@ class WorkoutEditSeriesSheetBoardTest {
         val source = romanianDeadlift().copy(trainingMode = TrainingMode.TIME,
             sets = romanianDeadlift().sets.map { it.copy(targetDuration = 60) })
         mount(source, initialSetIndex = 1)
-        click(rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie"))
+        click(rule.onNodeWithContentDescription("Sumar 15 segundos"))
         confirm()
         assertEquals(listOf(100.0, 100.0, 100.0, 105.0), saved!!.sets.map { it.weight })
         assertTrue(saved!!.sets.all { it.targetDuration == 60 })
@@ -644,7 +643,7 @@ class WorkoutEditSeriesSheetBoardTest {
     @Test fun descansoDeSerieSePuedeRestablecerSinCambiarElEjercicio() {
         val source = romanianDeadlift().let { it.copy(sets = it.sets.map { set -> set.copy(restAfterSeconds = 75) }) }
         mount(source, initialSetIndex = 1)
-        tapText("Usar descanso del ejercicio")
+        click(rule.onNodeWithContentDescription("Usar el descanso del ejercicio"))
         confirm()
         assertNull(saved!!.sets[1].restAfterSeconds)
         assertEquals(75, saved!!.sets[0].restAfterSeconds)
