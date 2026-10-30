@@ -46,13 +46,13 @@ class WorkoutCockpitDeviceTest {
                 modifier = Modifier.width(328.dp))
             LiveSessionSheetsHost(destination, { destination = it }, exercises = listOf(lift, row))
         }
-        rule.onNodeWithContentDescription("Abrir ruta de la sesión").performClick()
+        rule.onNodeWithTag("live-session-route").performClick()
         rule.onNodeWithText("Ruta de la sesión").assertIsDisplayed()
         rule.onAllNodesWithContentDescription("Eliminar ejercicio").assertCountEquals(0)
         rule.onAllNodesWithContentDescription("Agregar ejercicio").assertCountEquals(0)
         rule.onNodeWithContentDescription("Cerrar Ruta de la sesión").performClick()
         rule.waitUntil(5_000) { destination == null }
-        rule.onNodeWithContentDescription("Abrir ruta de la sesión").assertIsDisplayed()
+        rule.onNodeWithTag("live-session-route").assertIsDisplayed()
     }
     @Test fun sessionKeepsItsMetricsAndRouteSelectsTheRealExercise() {
         var selected: String? = null

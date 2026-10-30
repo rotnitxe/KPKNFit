@@ -72,6 +72,8 @@ internal fun LiveSessionSheetsHost(
     completedExercises: List<CompletedExercise> = emptyList(),
     omittedSetKeys: Set<String> = emptySet(),
     currentExerciseId: String? = null,
+    /** Número de la serie en curso de la tarjeta (el chip resaltado de la «Ruta»). */
+    currentSetNumber: Int? = null,
     supersetGroups: List<SupersetGroup> = emptyList(),
     liveEnergySummary: SessionEnergySummary? = null,
     bodyWeight: Double? = null,
@@ -205,6 +207,7 @@ internal fun LiveSessionSheetsHost(
                     onOpenSupersetOptions = { onDestination(null); onOpenSupersetOptions(it) },
                     onReorder = onReorder?.let { reorder -> { onDestination(null); reorder() } },
                     onAddExercise = { onDestination(null); onAddExercise() },
+                    currentSetNumber = currentSetNumber,
                 )
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }

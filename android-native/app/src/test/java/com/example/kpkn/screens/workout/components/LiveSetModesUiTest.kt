@@ -69,7 +69,7 @@ class LiveSetModesUiTest {
                     val exercise = transform(liveModeExercise(mode.value, rom.value))
                     val set = exercise.sets.single()
                     Box(Modifier.requiredSize(360.dp, height.dp)) {
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 key(mode.value, rom.value) {
                                     SetInputCardV2(exercise, 0, set, ghost,
