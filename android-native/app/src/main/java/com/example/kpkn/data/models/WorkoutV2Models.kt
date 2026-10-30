@@ -228,6 +228,11 @@ data class RecordedSetPayload(
     val actualValue: Double? = null,
     val plannedRepRange: RepRange? = null,
     val plannedTargetSnapshot: Double? = null,
+    /**
+     * ROM de la serie, de 10 a 100 %, solo si el ejercicio lo registra (`Exercise.trackRom`). Pulido v1 (15): solo se anota y se muestra
+     * («120 × 4 · ROM 80 %»); no excluye la serie de récords ni de la progresión. Los registros anteriores no lo traen (nulo).
+     */
+    val romPercent: Int? = null,
 )
 
 @Serializable

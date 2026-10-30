@@ -3719,12 +3719,14 @@ class WorkoutViewModel(
 
     /**
      * Pulido v1 (15): «Registrar ROM» de «Detalle del registro» fija `Exercise.trackRom` en el ejercicio de la sesión en curso, el mismo dato
-     * que el interruptor del editor de entreno: las series que quedan nacen con el slider de ROM (o sin él). No toca el plan del programa.
+     * que el interruptor del editor de entreno: las series que quedan nacen con el slider de ROM (o sin él). Solo toca el plan del programa con [persistToProgram].
      */
-    fun setExerciseTrackRom(exerciseId: String, trackRom: Boolean) {
+    fun setExerciseTrackRom(exerciseId: String, trackRom: Boolean, persistToProgram: Boolean = false) {
         updateExerciseDefinition(exerciseId) { exercise ->
             if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom)
         }
+        // «Guardar también en el programa»: sin él, el ROM vale solo para esta sesión.
+        if (persistToProgram) structuralPersistence.persistExerciseTrackRom(exerciseId, trackRom)
     }
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,

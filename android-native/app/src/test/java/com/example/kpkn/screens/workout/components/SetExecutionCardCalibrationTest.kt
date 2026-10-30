@@ -33,6 +33,7 @@ class SetExecutionCardCalibrationTest {
         val exercise = Exercise("squat", "Squat", sets=listOf(set))
         compose.setContent { MaterialTheme { Box(Modifier.width(272.dp)) {
             SetInputCardV2(exercise, 0, set, null, sessionCompletedSet=completed,
+                effortFireSecondsOverride = 1f,
                 weightSuggestion=suggestion.value, initialDraft=draft, initialBodyWeight=70.0,
                 recordActionHolder=holder, recordActionPageKey="s4",
                 onShowHistory={}, onSetBodyWeight={},

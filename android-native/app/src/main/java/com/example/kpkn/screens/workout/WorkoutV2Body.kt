@@ -2437,7 +2437,7 @@ internal fun WorkoutV2Body(
                                     },
                                     onConfigureSet = { viewModel.showSeriesTypeSheet(targetExercise.id, activeSetIndex, activeSetIndex) },
                                     // «Registrar ROM» de «Detalle del registro»: el mismo dato que el interruptor del editor, para el resto de la sesión.
-                                    onTrackRomChange = { on -> viewModel.setExerciseTrackRom(targetExercise.id, on) },
+                                    onTrackRomChange = { on, toProgram -> viewModel.setExerciseTrackRom(targetExercise.id, on, toProgram) },
                                     // «RONDA n · A1»: la letra del ejercicio dentro de su superserie (A1, A2…), en el orden de la sesión.
                                     supersetLabel = targetExercise.takeIf { it.isInSuperset() }?.let { member ->
                                         val group = member.supersetGroupRef?.takeIf { it.isNotBlank() } ?: member.supersetId

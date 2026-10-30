@@ -83,6 +83,7 @@ class SetExecutionCardUnilateralEffortTest {
                         Box(Modifier.width(360.dp).background(Color.Black), contentAlignment = Alignment.TopCenter) {
                             Box(Modifier.width(272.dp).testTag("lv8-uni")) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = ejercicio,
                                     setIndex = 0,
                                     currentSet = serie,
