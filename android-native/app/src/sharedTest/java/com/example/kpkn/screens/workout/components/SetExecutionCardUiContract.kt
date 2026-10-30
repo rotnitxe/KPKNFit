@@ -49,6 +49,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = unilateralExercise(),
                     setIndex = 0,
                     currentSet = unilateralSet(),
@@ -87,6 +88,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = bilateralExercise(),
                     setIndex = 0,
                     currentSet = bilateralSet(),
@@ -118,6 +120,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = unilateralExercise(),
                     setIndex = 0,
                     currentSet = unilateralSet(),
@@ -167,6 +170,7 @@ abstract class SetExecutionCardUiContract {
             MaterialTheme {
                 val setIndex = activeSet.intValue
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = exercise,
                     setIndex = setIndex,
                     currentSet = bilateralSet(),
@@ -263,6 +267,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = bilateralExercise(),
                     setIndex = 0,
                     currentSet = bilateralSet(),
@@ -294,6 +299,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = bilateralExercise(),
                     setIndex = 0,
                     currentSet = scheduledDropset(),
@@ -429,6 +435,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = exercise,
                     setIndex = 0,
                     currentSet = currentSet,
@@ -521,6 +528,7 @@ abstract class SetExecutionCardUiContract {
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
+                    effortFireSecondsOverride = 1f,
                     exercise = exercise,
                     setIndex = 0,
                     currentSet = bilateralSet(),

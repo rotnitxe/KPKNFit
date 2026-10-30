@@ -108,14 +108,15 @@ private fun syne(size: TextUnit, weight: FontWeight = FontWeight.Bold, lineHeigh
 internal fun restRef02Clock(seconds: Int): String =
     (if (seconds < 0) "+" else "") + KpknSetFormat.rest(kotlin.math.abs(seconds))
 
-/** «100 × 8 · RIR 2» (`rr().lastSet` del prototipo): carga, cantidad y el esfuerzo anotado, si lo hay. */
+/** «100 × 8 · RIR 2» (`rr().lastSet` del prototipo): carga, cantidad, el esfuerzo anotado y el ROM, si los hay. */
 internal fun restRef02LastSetText(set: CompletedSet, customUnit: String?): String {
     val quantity = restLastSetQuantityText(set, customUnit).removeSuffix(" reps")
     val load = set.weight.takeIf { it > 0.0 }?.let {
         if (it % 1.0 == 0.0) it.toInt().toString() else String.format(Locale.forLanguageTag("es"), "%.1f", it)
     }
     val effort = set.rir?.let { "RIR $it" } ?: set.rpe?.let { "RPE ${if (it % 1.0 == 0.0) it.toInt() else it}" }
-    return listOfNotNull(if (load != null) "$load × $quantity" else quantity, effort).joinToString(" · ")
+    // Pulido v1 (15): «120 × 4 · RPE 8 · ROM 80 %» (el ROM solo se anota y se muestra).
+    return listOfNotNull(if (load != null) "$load × $quantity" else quantity, effort, set.rom?.let(::liveSetRomLabel)).joinToString(" · ")
 }
 
 /** Rótulo de la siguiente serie: «Sentadilla · serie 3» (tarjeta) o «Sentadilla · 3» (pantalla completa). */
@@ -185,6 +186,7 @@ private fun DrawScope.drawEclipse(progress: Float) {
     if (sweep > 0f) {
         // Corona: trazo de 3 con desenfoque de 5 y opacidad 0,15, aproximado con trazos concéntricos cada vez más tenues.
         listOf(3f to .07f, 6f to .045f, 10f to .025f).forEach { (width, alpha) ->
+            // pulido:lv-X10 (`.eclipse-l svg { transform: rotate(-90deg) }`: el anillo arranca arriba, a -90°)
             drawArc(ink.copy(alpha = alpha), -90f, sweep, false, topLeft, arcSize, style = Stroke(width * scale, cap = StrokeCap.Round))
         }
         // Brillo del trazo (drop-shadow de 3 px en blanco al 38 %).

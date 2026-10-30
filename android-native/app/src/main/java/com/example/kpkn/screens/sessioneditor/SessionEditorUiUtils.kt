@@ -96,6 +96,7 @@ internal fun formatExerciseConfigSummary(exercise: Exercise): String {
         }
         if (exercise.warmupSets.isNotEmpty()) add("${exercise.warmupSets.size} aprox")
         if (exercise.mobilitySeries.isNotEmpty()) add("Movilidad")
+        // pulido:lv-A04 (el «ROM» de la línea resumen entra con `lv-pin` al encender «Registrar ROM»)
         if (exercise.trackRom) add("ROM")
         exercise.relativeToCanonicalExerciseId?.let { add("Relacionado") }
     }

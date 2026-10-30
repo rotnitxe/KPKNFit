@@ -24,6 +24,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.components.LiveSheet
 import com.example.kpkn.screens.workout.components.LiveSheetSubtitle
 import com.example.kpkn.screens.workout.components.LiveSheetTokens
+import com.example.kpkn.screens.workout.components.liveSetRomLabel
 import com.example.kpkn.screens.workout.components.liveSheetTopLine
 import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
@@ -39,11 +40,22 @@ internal fun historySetValue(set: CompletedSet): String = buildString {
     if (set.reps > 0) append(" × ").append(set.reps)
 }
 
-/** «RIR 2 · Competición»: el esfuerzo de la serie y la etiqueta de la sesión. */
+/**
+ * «RIR 2 · Competición»: el esfuerzo de la serie y la etiqueta de la sesión. En la línea de la sesión el ROM solo se dice cuando la mejor
+ * serie no fue completa («RIR 2 · ROM 80 %»): con un recorrido completo ([com.example.kpkn.domain.workout.LiveRom.FULL_FROM] o más) no suma ruido.
+ */
 internal fun historySetMeta(set: CompletedSet, tag: String?): String = listOfNotNull(
     set.rir?.let { "RIR $it" } ?: set.rpe?.let { "RPE $it" },
+    set.rom?.takeIf { it < com.example.kpkn.domain.workout.LiveRom.FULL_FROM }?.let(::liveSetRomLabel),
     tag?.takeIf { it.isNotBlank() },
 ).joinToString(" · ").ifBlank { "Sin esfuerzo registrado" }
+
+/** Una serie desplegada del historial: «120 × 4 · RIR 2 · ROM 80 %» (aquí el ROM se dice siempre que se anotó). */
+internal fun historyExpandedSetText(set: CompletedSet): String =
+    historySetValue(set) + " · " + listOfNotNull(
+        (set.rir?.let { "RIR $it" } ?: set.rpe?.let { "RPE $it" }),
+        set.rom?.let(::liveSetRomLabel),
+    ).joinToString(" · ").ifBlank { "Sin esfuerzo registrado" }
 
 /**
  * «Historial del ejercicio» del prototipo 02: gráfica pequeña de la mejor carga por sesión y, debajo, una línea por sesión (fecha, esfuerzo
@@ -105,7 +117,7 @@ internal fun LiveExerciseHistorySheet(
                 }
                 if (open) {
                     entry.sets.filter { !it.isWarmup }.forEach { set ->
-                        Text(historySetValue(set) + " · " + historySetMeta(set, null), Modifier.padding(top = 6.dp),
+                        Text(historyExpandedSetText(set), Modifier.padding(top = 6.dp),
                             style = KpknType.caption.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
                     }
                     entry.notes?.takeIf { it.isNotBlank() }?.let {

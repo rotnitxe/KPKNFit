@@ -150,12 +150,12 @@ class ExerciseOptionsBarComposeTest {
             )
         }
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
-        listOf("Medir ROM", "Relacionar ejercicio", "Superserie", "Unidad personalizada", "Carga inteligente", "Meta").forEach { label ->
+        listOf("Registrar ROM", "Relacionar ejercicio", "Superserie", "Unidad personalizada", "Carga inteligente", "Meta").forEach { label ->
             rule.onNodeWithText(label).assertExists()
         }
     }
 
-    /** Pulido v1 (15): «Medir ROM» del menú ⋯ cambia `Exercise.trackRom`, el dato del plan que lee la tarjeta en vivo. */
+    /** Pulido v1 (15): «Registrar ROM» del menú ⋯ cambia `Exercise.trackRom`, el dato del plan que lee la tarjeta en vivo. */
     @Test
     fun medirRomDelMenuActivaElDatoDelPlan() {
         var result: Exercise? = null
@@ -181,7 +181,7 @@ class ExerciseOptionsBarComposeTest {
         rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
-        rule.onNodeWithText("Medir ROM").performClick()
+        rule.onNodeWithText("Registrar ROM").performClick()
         rule.waitForIdle()
         assertTrue(result!!.trackRom)
     }
