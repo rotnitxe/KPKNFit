@@ -49,7 +49,29 @@ internal class Assignment(
  * Primero un reparto voraz (las unidades más grandes primero, a su mejor día) y después una búsqueda local que aplica,
  * una a una, la mejora más grande entre mover una unidad o intercambiar dos, hasta que ninguna mejora el coste.
  */
+/**
+ * Preferencias que el migrador de repartos añade al reparto de unidades. Todas son opcionales y valen −1 donde no hay
+ * ninguna: [fixedDay] clava una unidad en un día (lo hecho, o lo que la persona colocó a mano); [originDay] es el día
+ * donde ya estaba su sesión de origen (estabilidad, cuesta [originWeight] si la unidad no queda ahí); [preferredDay] es el
+ * día donde cayó el mismo ejercicio en la semana base (cuesta [preferredWeight] si no queda ahí).
+ */
+internal class AssignPrefs(
+    val fixedDay: IntArray,
+    val originDay: IntArray,
+    val preferredDay: IntArray,
+    val originWeight: Double = DayAssigner.W_ORIGIN,
+    val preferredWeight: Double = DayAssigner.W_PREFERRED,
+    /** Días cerrados: ya tienen su sesión (una hecha) y solo admiten las unidades clavadas en ellos. */
+    val closedDays: Set<Int> = emptySet(),
+)
+
 internal object DayAssigner {
+
+    /** Coste de que una unidad no quede en el día donde estaba su sesión: poco, para que el mínimo de ejercicios y la mezcla manden. */
+    const val W_ORIGIN = 1.2
+
+    /** Coste de que una unidad no quede en el día donde cayó el mismo ejercicio en la semana base. */
+    const val W_PREFERRED = 3.0
 
     private const val W_FIT = 12.0
     private const val W_BAL = 30.0
@@ -105,8 +127,8 @@ internal object DayAssigner {
     private val PUSH_PATTERNS = setOf(PatternFamily.HORIZONTAL_PUSH, PatternFamily.VERTICAL_PUSH)
     private val PULL_PATTERNS = setOf(PatternFamily.HORIZONTAL_PULL, PatternFamily.VERTICAL_PULL)
 
-    fun assign(units: List<MovableUnit>, days: List<DayInfo>): Assignment {
-        val problem = Problem(units, days)
+    fun assign(units: List<MovableUnit>, days: List<DayInfo>, prefs: AssignPrefs? = null): Assignment {
+        val problem = Problem(units, days, prefs)
         return problem.solve()
     }
 
@@ -145,14 +167,29 @@ internal object DayAssigner {
         day.focus.acceptedGroups.containsAll(setOf(SplitGroup.PUSH, SplitGroup.PULL, SplitGroup.LEGS)) &&
             day.focus.weights.values.all { it >= 1.0 - EPS }
 
-    private class Problem(val units: List<MovableUnit>, val days: List<DayInfo>) {
+    private class Problem(val units: List<MovableUnit>, val days: List<DayInfo>, private val prefs: AssignPrefs?) {
         private val unitCount = units.size
         private val dayCount = days.size
+
+        /** Día clavado de la unidad (lo hecho o lo colocado a mano), o −1. */
+        private fun fixedOf(i: Int): Int = prefs?.fixedDay?.getOrNull(i)?.takeIf { it in 0 until dayCount } ?: -1
+
+        private fun isClosed(day: Int): Boolean = prefs != null && day in prefs.closedDays
 
         val affinity: Array<DoubleArray> = Array(unitCount) { i ->
             DoubleArray(dayCount) { j -> affinityOf(units[i], days[j]) }
         }
-        private val eligible: Array<BooleanArray> = Array(unitCount) { i -> eligibilityOf(affinity[i]) }
+        private val eligible: Array<BooleanArray> = Array(unitCount) { i ->
+            val pinned = fixedOf(i)
+            if (pinned >= 0) {
+                BooleanArray(dayCount) { it == pinned }
+            } else {
+                // El mejor día se busca solo entre los abiertos.
+                val open = DoubleArray(dayCount) { j -> if (isClosed(j)) -1.0 else affinity[i][j] }
+                val row = eligibilityOf(open)
+                BooleanArray(dayCount) { j -> row[j] && !isClosed(j) }
+            }
+        }
 
         /** Solape entre dos unidades de fuerza: 1 si comparten un músculo primario, 0,3 si son compuestos del mismo grupo. */
         private val overlap: Array<DoubleArray> = Array(unitCount) { i ->
@@ -235,11 +272,13 @@ internal object DayAssigner {
             if (unitCount == 0 || dayCount == 0) return Assignment(IntArray(0), affinity, emptyList())
             val assignment = IntArray(unitCount) { -1 }
             greedy(assignment)
+            if ((0 until unitCount).all { fixedOf(it) >= 0 }) return Assignment(assignment, affinity, emptyList())
             localSearch(assignment)
             fillEmptyDays(assignment)
             localSearch(assignment)
             val misfits = units.indices.filter { i ->
-                units[i].kind == UnitKind.STRENGTH && units[i].isClassified && affinity[i][assignment[i]] < RELAXED_AFFINITY
+                fixedOf(i) < 0 && units[i].kind == UnitKind.STRENGTH && units[i].isClassified &&
+                    affinity[i][assignment[i]] < RELAXED_AFFINITY
             }
             return Assignment(assignment, affinity, misfits)
         }
@@ -254,7 +293,9 @@ internal object DayAssigner {
                     .thenBy { units[it].originPosition }
                     .thenBy { it },
             )
+            units.indices.forEach { i -> if (fixedOf(i) >= 0) assignment[i] = fixedOf(i) }
             order.forEach { i ->
+                if (fixedOf(i) >= 0) return@forEach
                 var bestDay = -1
                 var bestCost = Double.MAX_VALUE
                 for (j in 0 until dayCount) {
@@ -283,11 +324,12 @@ internal object DayAssigner {
                 var swapB = -1
 
                 for (i in 0 until unitCount) {
+                    if (fixedOf(i) >= 0) continue
                     val from = assignment[i]
                     for (to in 0 until dayCount) {
                         if (to == from) continue
                         val allowed = eligible[i][to] ||
-                            (counts[to] < minExercises && affinity[i][to] >= RELAXED_AFFINITY)
+                            (!isClosed(to) && counts[to] < minExercises && affinity[i][to] >= RELAXED_AFFINITY)
                         if (!allowed) continue
                         assignment[i] = to
                         val delta = cost(assignment, complete = true) - current
@@ -338,12 +380,13 @@ internal object DayAssigner {
         private fun fillEmptyDays(assignment: IntArray) {
             if (strengthTotal < dayCount) return
             for (day in 0 until dayCount) {
+                if (isClosed(day)) continue
                 val counts = strengthCounts(assignment)
                 if (counts[day] > 0) continue
                 val candidate = units.indices
                     .filter { i ->
                         val unit = units[i]
-                        unit.kind == UnitKind.STRENGTH && counts[assignment[i]] - unit.strengthExerciseCount >= 1
+                        fixedOf(i) < 0 && unit.kind == UnitKind.STRENGTH && counts[assignment[i]] - unit.strengthExerciseCount >= 1
                     }
                     .sortedWith(
                         compareByDescending<Int> { affinity[it][day] }
@@ -424,6 +467,16 @@ internal object DayAssigner {
             }
             var total = W_FIT * fit + W_BAL * balance + W_CROWD * crowd +
                 W_SAME * repeated + W_ADJ * adjacent + W_NEXT * nextDayOverlap + W_RULE * heavyClash
+            if (prefs != null) {
+                for (i in 0 until unitCount) {
+                    val day = assignment[i]
+                    if (day < 0) continue
+                    val origin = prefs.originDay.getOrNull(i) ?: -1
+                    if (origin >= 0 && origin != day) total += prefs.originWeight
+                    val preferred = prefs.preferredDay.getOrNull(i) ?: -1
+                    if (preferred >= 0 && preferred != day) total += prefs.preferredWeight
+                }
+            }
             // H2 y H3 por día: cada compuesto de más de una familia y cada ejercicio de más de un músculo cuesta una violación.
             for (j in 0 until dayCount) {
                 familyCounts[j].forEach { n ->
