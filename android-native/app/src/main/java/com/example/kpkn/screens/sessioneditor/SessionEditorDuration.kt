@@ -30,6 +30,15 @@ internal fun Session.workingSetCount(): Int = allExercises().sumOf { exercise ->
     if (exercise.cardioDetails != null) 0 else exercise.sets.count { !it.isEmptySlot }
 }
 
+/**
+ * La sesión sin un ejercicio: lo que quedará cuando se confirme un borrado pendiente (Pulido v1 · EDITOR · A2). Los minutos y las fichas del
+ * resumen bajan al borrar y suben si se deshace, aunque el ejercicio siga en la sesión durante los 5 s del aviso.
+ */
+internal fun Session.withoutExercise(exerciseId: String): Session = copy(
+    exercises = exercises.filterNot { it.id == exerciseId },
+    parts = parts.map { part -> part.copy(exercises = part.exercises.filterNot { it.id == exerciseId }) },
+)
+
 /** Minutos de la sesión con el estimador común, para el resumen de la Auge del editor. 0 si el estimador no puede medirla. */
 internal fun sessionEditorDurationMinutes(session: Session): Int =
     runCatching { SessionDurationEstimator.estimate(session).totalMinutes }.getOrDefault(0)

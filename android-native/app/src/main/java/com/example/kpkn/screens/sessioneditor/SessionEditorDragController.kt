@@ -111,7 +111,14 @@ class SessionEditorDragController {
     private var lastExerciseDragGroupedParts: List<SessionPart>? = null
     private var lastPartDragGroupedParts: List<SessionPart>? = null
     private var collapsedPartIdsForDrag: Set<String> = emptySet()
-    private var exerciseProjection = ExerciseDragProjection()
+    // Pulido v1 · EDITOR · A2: estado observable, para que las filas animen su desplazamiento (260 ms) al abrirse el hueco.
+    private var exerciseProjection by mutableStateOf(ExerciseDragProjection())
+
+    /**
+     * El hueco donde caería la fila que se arrastra si se soltara ahora (rectángulo en ventana, sin la caída de 12 dp del último trozo de un
+     * módulo): lo pinta la lista como el recuadro punteado (`.ed-slot`). Sin destino válido, es el sitio de origen de la fila.
+     */
+    var dragSlotRect by mutableStateOf<Rect?>(null)
 
     // Compensación de scroll durante drag (legacy counter; applyScrollDelta is authoritative).
     @Suppress("unused")
@@ -284,6 +291,7 @@ class SessionEditorDragController {
 
         rebuildFrozenZones(session)
         exerciseProjection = ExerciseDragProjection()
+        dragSlotRect = frozenExerciseBounds["$resolvedPartId|$resolvedExerciseId"] ?: blockRect
         notifyUiStateChanged()
         return true
     }
@@ -945,12 +953,14 @@ class SessionEditorDragController {
     ) {
         if (targetPartId == null || targetIndex == null || exerciseDropOutOfRange) {
             exerciseProjection = ExerciseDragProjection()
+            dragSlotRect = frozenExerciseBounds["$sourcePartId|${draggingExerciseId}"] ?: dragStartExerciseRect
             return
         }
         val sourceList = exerciseListFor(session, toNullablePartId(sourcePartId))
         val sourceIndex = sourceList.indexOfFirst { it.id == draggingExerciseId }
         if (sourceIndex < 0) {
             exerciseProjection = ExerciseDragProjection()
+            dragSlotRect = frozenExerciseBounds["$sourcePartId|${draggingExerciseId}"] ?: dragStartExerciseRect
             return
         }
         val draggedHeight = dragStartExerciseRect?.height
@@ -995,6 +1005,15 @@ class SessionEditorDragController {
             if (targetIndex >= targetSize) footerShifts[targetPartId] = targetDisplacement
         }
         exerciseProjection = ExerciseDragProjection(shifts, footerShifts)
+        val draggedRect = frozenExerciseBounds["$sourcePartId|${draggingExerciseId}"] ?: dragStartExerciseRect
+        dragSlotRect = computeDragSlotRect(
+            draggedRect = draggedRect,
+            draggedHeight = draggedHeight,
+            sameList = sourcePartId == targetPartId,
+            sourceIndex = sourceIndex,
+            targetIndex = targetIndex,
+            targetEntryRects = targetEntries.map { (key, rect) -> rawIndex(key) to rect },
+        )
     }
 
     private fun resolveSectionTarget(pointerY: Float, sortedSections: List<SectionZone>): String? {
@@ -1117,6 +1136,7 @@ class SessionEditorDragController {
         frozenPartContentBounds = emptyMap()
         frozenLooseContentBounds = null
         exerciseProjection = ExerciseDragProjection()
+        dragSlotRect = null
         accumulatedScrollPx = 0f
         lastExerciseDragSession = null
         lastExerciseDragGroupedParts = null
@@ -1320,4 +1340,39 @@ class SessionEditorDragController {
             if (partId == null) session.exercises
             else session.parts.firstOrNull { it.id == partId }?.exercises.orEmpty()
     }
+}
+
+
+/**
+ * El hueco que abre una fila arrastrada (Pulido v1 · EDITOR · A2). [targetEntryRects] son las filas de la lista de destino SIN la arrastrada,
+ * con su posición en la lista original; [targetIndex] es «antes de la fila que ahora está en esa posición». Pura, para probarla.
+ *
+ *  - En la misma lista y hacia arriba (destino < origen): el hueco ocupa el sitio de la fila que está en el destino.
+ *  - En la misma lista y hacia abajo: el hueco queda pegado debajo de la fila anterior al destino.
+ *  - Sin movimiento (destino = origen o el siguiente): el hueco es el propio sitio de la fila.
+ *  - En otra lista: el hueco ocupa el sitio de la fila que está en el destino o, al final, queda debajo de la última.
+ */
+internal fun computeDragSlotRect(
+    draggedRect: Rect?,
+    draggedHeight: Float,
+    sameList: Boolean,
+    sourceIndex: Int,
+    targetIndex: Int,
+    targetEntryRects: List<Pair<Int, Rect>>,
+): Rect? {
+    fun slotAt(top: Float, ref: Rect) = Rect(ref.left, top, ref.right, top + draggedHeight)
+    if (sameList) {
+        if (targetIndex == sourceIndex || targetIndex == sourceIndex + 1) return draggedRect
+        if (targetIndex < sourceIndex) {
+            val at = targetEntryRects.firstOrNull { it.first == targetIndex }?.second ?: return draggedRect
+            return slotAt(at.top, at)
+        }
+        val before = targetEntryRects.firstOrNull { it.first == targetIndex - 1 }?.second ?: return draggedRect
+        return slotAt(before.bottom - draggedHeight, before)
+    }
+    val sorted = targetEntryRects.sortedBy { it.second.top }
+    val at = sorted.firstOrNull { it.first >= targetIndex }?.second
+    if (at != null) return slotAt(at.top, at)
+    val last = sorted.lastOrNull()?.second ?: return draggedRect
+    return slotAt(last.bottom, last)
 }

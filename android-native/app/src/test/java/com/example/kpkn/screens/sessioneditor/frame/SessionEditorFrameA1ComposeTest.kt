@@ -138,7 +138,7 @@ class SessionEditorFrameA1ComposeTest {
     }
 
     @Test
-    fun laIslaInferiorTieneElAnilloDelTiempoAnadirAsistenteYReglas() {
+    fun laIslaInferiorTieneElAnilloDelTiempoAnadirYAsistente() {
         val calls = mutableListOf<String>()
         var density = 1f
         rule.setContent {
@@ -151,7 +151,6 @@ class SessionEditorFrameA1ComposeTest {
                     limitMinutes = 60,
                     onAdd = { calls += "add" },
                     onAssistant = { calls += "assistant" },
-                    onRules = { calls += "rules" },
                     onTime = { calls += "time" },
                     modifier = Modifier.padding(12.dp),
                 )
@@ -161,12 +160,11 @@ class SessionEditorFrameA1ComposeTest {
         rule.onNodeWithTag("session_editor_bar_time").performClick()
         rule.onNodeWithTag("session_editor_bar_add").performClick()
         rule.onNodeWithTag("session_editor_bar_assistant").performClick()
-        rule.onNodeWithTag("session_editor_bar_rules").performClick()
-        assertEquals(listOf("time", "add", "assistant", "rules"), calls)
+        assertEquals(listOf("time", "add", "assistant"), calls)
         // El número de sugerencias va en el botón del asistente.
         rule.onNodeWithText("3").assertIsDisplayed()
         // Cada botón mide 44 dp o más.
-        listOf("session_editor_bar_time", "session_editor_bar_add", "session_editor_bar_assistant", "session_editor_bar_rules").forEach { tag ->
+        listOf("session_editor_bar_time", "session_editor_bar_add", "session_editor_bar_assistant").forEach { tag ->
             val size = rule.onNodeWithTag(tag).fetchSemanticsNode().size
             assertTrue("$tag mide ${size.height / density} dp de alto", size.height / density >= 44f)
         }
@@ -183,7 +181,6 @@ class SessionEditorFrameA1ComposeTest {
                     limitMinutes = null,
                     onAdd = {},
                     onAssistant = {},
-                    onRules = {},
                     onTime = {},
                 )
             }
@@ -191,7 +188,7 @@ class SessionEditorFrameA1ComposeTest {
 
         // Sin límite, solo los minutos; sin sugerencias, el asistente no lleva número.
         rule.onNodeWithContentDescription("Tiempo estimado 58 minutos").assertExists()
-        rule.onNodeWithText("58").assertExists()
+        rule.onNodeWithText("58 min").assertExists()
         rule.onAllNodesWithText("0").assertCountEquals(0)
     }
 
