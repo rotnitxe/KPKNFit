@@ -106,9 +106,10 @@ class NutritionQuickSaveTest {
         )
     }
 
-    private fun assertFailedSave() {
+    private fun assertFailedSave(supplement: Boolean = true) {
         awaitState("el usuario recibe el aviso de guardado fallido") { vm.uiMessage.value != null }
-        assertEquals("No se pudo guardar la comida. Inténtalo de nuevo.", vm.uiMessage.value)
+        assertEquals(if (supplement) "No se pudo guardar el suplemento. Inténtalo de nuevo." else "No se pudo guardar la comida. Inténtalo de nuevo.", vm.uiMessage.value)
+        if (supplement) assertNull("un fallo no debe anunciar un registro guardado", vm.supplementToast.value)
         assertTrue(repository.nutritionLogs.value.isEmpty())
         assertFalse("el fallo no abre el onboarding", vm.showCreatineOverlay.value)
     }
@@ -117,7 +118,7 @@ class NutritionQuickSaveTest {
     fun `el fallo de Room en el atajo no publica creatina ni abre el onboarding`() {
         rejectInserts("nutrition_logs")
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
         runBlocking {
@@ -130,7 +131,7 @@ class NutritionQuickSaveTest {
     fun `una base cerrada avisa del fallo del atajo sin publicar exito`() {
         db.close()
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
     }
@@ -140,7 +141,7 @@ class NutritionQuickSaveTest {
         seedActivePlan()
         rejectInserts("daily_goal_snapshots")
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
 
         assertFailedSave()
         runBlocking {
@@ -165,15 +166,17 @@ class NutritionQuickSaveTest {
 
         saveMutex.lock()
         try {
-            vm.quickAddCreatine()
+            vm.takeSupplement("creatina", 5.0, "08:00")
             assertTrue(repository.nutritionLogs.value.isEmpty())
             assertTrue(db.nutritionDao().getAllLogs().isEmpty())
             assertFalse(vm.showCreatineOverlay.value)
             assertNull(vm.uiMessage.value)
+            assertNull("no se anuncia hasta confirmar la transacción", vm.supplementToast.value)
         } finally {
             saveMutex.unlock()
         }
         awaitState("el onboarding solo aparece tras el guardado confirmado") { vm.showCreatineOverlay.value }
+        awaitState("el aviso aparece tras el guardado confirmado") { vm.supplementToast.value != null }
 
         val stored = db.nutritionDao().getAllLogs().single().toNutritionLog()
         assertEquals(historical.date, stored.date)
@@ -191,7 +194,7 @@ class NutritionQuickSaveTest {
         val yesterday = LocalDate.now().minusDays(1).toString()
         vm.setSelectedDate(yesterday)
 
-        vm.quickAddCreatine()
+        vm.takeSupplement("creatina", 5.0, "08:00")
         awaitState("el guardado termina y puede abrir el onboarding") { vm.showCreatineOverlay.value }
 
         assertEquals(yesterday, repository.nutritionLogs.value.single().date)
@@ -208,7 +211,7 @@ class NutritionQuickSaveTest {
         )
         rejectInserts("nutrition_logs")
         vm.addLog(log)
-        assertFailedSave()
+        assertFailedSave(supplement = false)
         runBlocking { assertTrue(db.nutritionDao().getAllLogs().isEmpty()) }
 
         db.openHelper.writableDatabase.execSQL("DROP TRIGGER reject_save")

@@ -7,6 +7,9 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.RecordedEnergyBalance
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
+import com.example.kpkn.domain.nutrition.supplements.SupplementTake
 import com.example.kpkn.domain.nutrition.expenditure.DayMark
 import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
 import com.example.kpkn.screens.nutrition.daystate.NutritionDayState
@@ -241,7 +244,7 @@ class NutritionViewModel(
     val nutrients: StateFlow<com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState> = combine(
         todayLogs, programRepo.settings, activePlan, _selectedDate,
     ) { logs, settings, plan, date ->
-        com.example.kpkn.screens.nutrition.nutrients.buildNutrientsSheetState(date, logs, DriTargets.profileFor(settings, plan))
+        com.example.kpkn.screens.nutrition.nutrients.buildNutrientsSheetState(date, logs.map(SupplementEngine::enrichLegacyTake), DriTargets.profileFor(settings, plan))
     }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily,
         com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState())
 
@@ -354,24 +357,123 @@ class NutritionViewModel(
         }
     }
 
-    fun quickAddCreatine() {
-        val creatineFood = foodDatabase.value.find { it.id == "gen106" }
-            ?: FoodItem(
-                id = "gen106",
-                name = "Creatina Monohidrato",
-                servingSize = 5.0,
-                unit = "g",
-                creatineG = 5.0,
-            )
-        val logged = scaleFoodByPortion(creatineFood, quantity = 1.0)
-        addLog(
-            NutritionLog(
-                id = java.util.UUID.randomUUID().toString(),
-                date = _selectedDate.value,
-                mealType = MealType.SNACK,
-                foods = listOf(logged),
-            ),
+    // ─── Suplementos (Pulido v1 · SUPLEMENTOS) ──────────────────────────────
+
+    /** Mi pila de suplementos (de `Settings.supplementPila`), sin ordenar. */
+    val supplementPila: StateFlow<List<SupplementPilaItem>> = programRepo.settings
+        .map { it.supplementPila }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** Las tomas del día elegido por id de suplemento, leídas de los registros del día. */
+    val supplementTakes: StateFlow<Map<String, List<SupplementTake>>> = combine(todayLogs, _selectedDate) { logs, date ->
+        SupplementEngine.takesFromLogs(logs, date)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
+
+    /** Fracción de la pila tomada en cada uno de los 6 días anteriores al elegido (el último es el día anterior). */
+    val supplementWeek: StateFlow<List<Float>> = combine(nutritionLogs, supplementPila, _selectedDate) { logs, pila, date ->
+        val end = LocalDate.parse(date.take(10))
+        val days = (6 downTo 1).map { end.minusDays(it.toLong()).toString() }
+        SupplementEngine.weekFractions(
+            pila.map { it.id }.toSet(),
+            days.map { day -> SupplementEngine.takesFromLogs(logs, day).keys },
         )
+    }
+        .distinctUntilChanged()
+        .flowOn(computeDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Lazily, List(6) { 0f })
+
+    /** Aviso «X registrado» con «Deshacer»: [logId] es la toma que se quita al deshacer. Se apaga solo a los 5 s. */
+    data class SupplementToast(val text: String, val logId: String?)
+
+    private val _supplementToast = MutableStateFlow<SupplementToast?>(null)
+    val supplementToast: StateFlow<SupplementToast?> = _supplementToast.asStateFlow()
+    private var supplementToastJob: Job? = null
+
+    private fun showSupplementToast(toast: SupplementToast) {
+        _supplementToast.value = toast
+        supplementToastJob?.cancel()
+        supplementToastJob = viewModelScope.launch {
+            delay(5_000)
+            _supplementToast.value = null
+        }
+    }
+
+    fun dismissSupplementToast() {
+        supplementToastJob?.cancel()
+        _supplementToast.value = null
+    }
+
+    /** La hora local ahora, `HH:mm`. */
+    fun nowHhmm(): String = java.time.LocalTime.now(zoneProvider()).let { "%02d:%02d".format(it.hour, it.minute) }
+
+    /** Registra una toma de [supplementId] con [dose] a las [time] (`HH:mm`; por defecto ahora) en el día elegido. Un toque = la dosis habitual. */
+    fun takeSupplement(supplementId: String, dose: Double, time: String = nowHhmm()) {
+        val def = SupplementCatalog.byId(supplementId)
+            ?: programRepo.settings.value.supplementPila.firstOrNull { it.id == supplementId }?.let(SupplementCatalog::resolve)
+            ?: return
+        if (!dose.isFinite() || dose <= 0.0) return
+        val log = SupplementEngine.buildTakeLog(def, dose, time, _selectedDate.value, java.util.UUID.randomUUID().toString())
+        viewModelScope.launch {
+            try {
+                nutritionRepo.saveNutritionLog(log)
+                maybePromptCreatineOnboarding(log)
+                showSupplementToast(SupplementToast("${def.shortName} · ${SupplementEngine.doseLabel(def, dose)} registrado", log.id))
+            } catch (error: Exception) {
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                android.util.Log.w("NutritionViewModel", "No se pudo guardar el suplemento", error)
+                _uiMessage.value = "No se pudo guardar el suplemento. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    /** «Deshacer» del aviso: quita la toma recién registrada. */
+    fun undoSupplementToast() {
+        val logId = _supplementToast.value?.logId
+        dismissSupplementToast()
+        if (logId == null) return
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.deleteNutritionLogAndAwait(logId) }
+            } catch (error: Exception) {
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                android.util.Log.w("NutritionViewModel", "No se pudo deshacer el suplemento", error)
+                _uiMessage.value = "No se pudo deshacer el registro. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    /** Guarda una configuración sin cambiar el historial de tomas ya registradas. */
+    fun saveSupplementItem(item: SupplementPilaItem) {
+        if (!item.dose.isFinite() || item.dose <= 0.0 || item.doses !in 1..3 || item.moment !in 0..6 || SupplementCatalog.resolve(item) == null) return
+        viewModelScope.launch {
+            programRepo.updateSettings { current ->
+                val exists = current.supplementPila.any { it.id == item.id }
+                current.copy(supplementPila = if (exists) current.supplementPila.map { if (it.id == item.id) item else it }
+                    else current.supplementPila + item)
+            }
+        }
+    }
+
+    fun removeSupplementItem(id: String) {
+        viewModelScope.launch { programRepo.updateSettings { it.copy(supplementPila = it.supplementPila.filterNot { entry -> entry.id == id }) } }
+    }
+
+    /** Suma o quita [supplementId] de mi pila con su dosis y momento típicos del catálogo. */
+    fun toggleSupplementInPila(supplementId: String) {
+        val def = SupplementCatalog.byId(supplementId) ?: return
+        viewModelScope.launch {
+            programRepo.updateSettings { current ->
+                val has = current.supplementPila.any { it.id == supplementId }
+                current.copy(
+                    supplementPila = if (has) {
+                        current.supplementPila.filterNot { it.id == supplementId }
+                    } else {
+                        current.supplementPila + SupplementPilaItem(supplementId, def.defaultDose, def.defaultMoment)
+                    },
+                )
+            }
+        }
     }
 
     private fun maybePromptCreatineOnboarding(log: NutritionLog) {

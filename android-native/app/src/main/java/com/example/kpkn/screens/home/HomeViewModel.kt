@@ -18,6 +18,8 @@ import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
@@ -315,6 +317,22 @@ import java.util.Calendar
 
     /** Altura real del perfil, o null si no hay: nunca 170 cm por defecto (sin altura no hay IMC ni FFMI). */
     val heightCm: StateFlow<Double?> = repository.settings
+    val settings: StateFlow<Settings> = repository.settings
+
+    fun takeSupplementFromHome(supplementId: String, dose: Double) {
+        val def = SupplementCatalog.byId(supplementId)
+            ?: repository.settings.value.supplementPila.firstOrNull { it.id == supplementId }?.let(SupplementCatalog::resolve)
+            ?: return
+        if (!dose.isFinite() || dose <= 0.0) return
+        val nowTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+        val log = SupplementEngine.buildTakeLog(def, dose, nowTime, java.time.LocalDate.now().toString(), java.util.UUID.randomUUID().toString())
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                nutritionRepository.saveNutritionLog(log)
+                _nutritionSavedPulse.value = _nutritionSavedPulse.value + 1
+            } catch (_: Exception) {}
+        }
+    }
         .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

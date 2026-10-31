@@ -29,6 +29,13 @@ import com.example.kpkn.screens.nutrition.design.NutritionHeader
 import com.example.kpkn.screens.nutrition.design.NutritionLogIsland
 import com.example.kpkn.screens.nutrition.design.NutritionMealModule
 import com.example.kpkn.screens.nutrition.design.NutritionSupplementsModule
+import com.example.kpkn.screens.nutrition.design.SupplementAddSheet
+import com.example.kpkn.screens.nutrition.design.SupplementAdjustSheet
+import com.example.kpkn.screens.nutrition.design.SupplementCeilingSheet
+import com.example.kpkn.screens.nutrition.design.SupplementRowState
+import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementDef
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.screens.nutrition.design.NutritionTopIsland
 import com.example.kpkn.screens.nutrition.design.NutritionWeekTrendModule
 import com.example.kpkn.screens.nutrition.design.buildNutritionWeekBars
@@ -77,6 +84,16 @@ private data class NutritionFoodMenuState(
 private sealed interface NutritionCopyTarget {
     data class Meal(val log: NutritionLog) : NutritionCopyTarget
     data object Day : NutritionCopyTarget
+}
+
+/** La hoja de suplementos abierta: ajustar una toma, el aviso de techo (no bloquea) o el catálogo para añadir. */
+private sealed interface SupplementSheetState {
+    data class Adjust(val id: String) : SupplementSheetState
+    data class Ceiling(val id: String, val dose: Double, val time: String?, val projected: Double) : SupplementSheetState
+    data object Add : SupplementSheetState
+    data class Detail(val id: String) : SupplementSheetState
+    data class Config(val id: String?, val mode: SupplementConfigMode) : SupplementSheetState
+    data class Baja(val id: String) : SupplementSheetState
 }
 
 /** N4: «Guardar como plantilla» abierto sobre [log]; [templateId] nace al abrir, así que guardar dos veces es una sola plantilla. */
@@ -141,6 +158,31 @@ fun NutritionScreen(
     val userStateLoaded by viewModel.userStateLoaded.collectAsState()
     val weekStrip by viewModel.weekStrip.collectAsState()
     val creatineStreakDays by viewModel.creatineStreakDays.collectAsState()
+    // Suplementos (Pulido v1): la pila, las tomas de hoy, la semana y la hoja abierta (ajustar, aviso de techo o añadir).
+    val supplementPila by viewModel.supplementPila.collectAsState()
+    val supplementDayLogs by viewModel.todayLogs.collectAsState()
+    val supplementTakes by viewModel.supplementTakes.collectAsState()
+    val supplementWeek by viewModel.supplementWeek.collectAsState()
+    val supplementToast by viewModel.supplementToast.collectAsState()
+    var supplementSheet by remember { mutableStateOf<SupplementSheetState?>(null) }
+    val supplementRows = remember(supplementPila, supplementTakes) {
+        SupplementEngine.sorted(supplementPila).mapNotNull { item ->
+            SupplementCatalog.resolve(item)?.let { SupplementRowState(it, item, supplementTakes[item.id].orEmpty()) }
+        }
+    }
+    val supplementTodayFraction = remember(supplementRows) {
+        listOf(if (supplementRows.isEmpty()) 0f else supplementRows.count { it.takes.isNotEmpty() }.toFloat() / supplementRows.size)
+    }
+    // Un toque registra la dosis; si pasa el techo diario abre el aviso (con «Registrar igual») en lugar de registrar.
+    fun requestSupplementTake(def: SupplementDef, dose: Double, time: String?) {
+        val dayNow = SupplementEngine.knownCeilingTotal(def, supplementDayLogs, selectedDate)
+        val ceiling = SupplementEngine.ceiling(def, dayNow, dose)
+        if (ceiling?.exceeded == true) {
+            supplementSheet = SupplementSheetState.Ceiling(def.id, dose, time, ceiling.projected)
+        } else {
+            viewModel.takeSupplement(def.id, dose, time ?: viewModel.nowHhmm())
+        }
+    }
     val listState = rememberLazyListState()
     val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
 
@@ -411,14 +453,21 @@ fun NutritionScreen(
                 item {
                     NutritionSupplementsModule(
                         loaded = userStateLoaded,
-                        caffeineMg = dailyTotals.caffeineMg,
-                        caffeineLimits = caffeineLimits,
-                        creatineTodayG = creatineToday,
-                        creatineTargetG = creatineSaturation.dailyTargetGrams.coerceAtLeast(1.0),
+                        rows = supplementRows,
+                        caffeineTotalMg = dailyTotals.caffeineMg,
+                        foodCaffeineMg = SupplementEngine.foodCaffeineMg(dailyTotals.caffeineMg, supplementTakes["cafeina"].orEmpty()),
                         creatineStreakDays = creatineStreakDays,
-                        isToday = selectedDate == today.toString(),
-                        onQuickAddCreatine = { viewModel.quickAddCreatine() },
-                        onOpenCreatine = { viewModel.openCreatineTracker() },
+                        week = supplementWeek + supplementTodayFraction,
+                        today = LocalDate.parse(selectedDate.take(10)),
+                        nowId = supplementRows.firstOrNull { !it.done && SupplementEngine.isDueNow(it.item.reminder, viewModel.nowHhmm()) }?.def?.id,
+                        showHint = supplementTakes.isEmpty(),
+                        suggestionIds = listOf("creatina", "cafeina", "vitd", "omega3", "magnesio"),
+                        onTake = { id -> supplementRows.firstOrNull { it.def.id == id }?.let { requestSupplementTake(it.def, it.item.dose, null) } },
+                        onHold = { id -> supplementSheet = SupplementSheetState.Adjust(id) },
+                        onAdd = { supplementSheet = SupplementSheetState.Add },
+                        onToggleSuggestion = { id -> viewModel.toggleSupplementInPila(id) },
+                        openCreatine = { viewModel.openCreatineTracker() },
+                        onOpenDetail = { id -> supplementSheet = SupplementSheetState.Detail(id) },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 4),
                     )
                 }
@@ -470,6 +519,101 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 160.dp),
         ) { data -> KpknSnackbar(data) }
+    }
+
+    // «X registrado · Deshacer» (sp-J02): el aviso de la última toma de suplemento, con la barra de avisos de siempre.
+    LaunchedEffect(supplementToast?.logId) {
+        val toast = supplementToast ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(toast.text, actionLabel = "Deshacer", duration = SnackbarDuration.Short)
+        if (result == SnackbarResult.ActionPerformed) viewModel.undoSupplementToast()
+    }
+
+    when (val sheet = supplementSheet) {
+        is SupplementSheetState.Adjust -> {
+            val item = supplementPila.firstOrNull { it.id == sheet.id }
+            val def = item?.let(SupplementCatalog::resolve)
+            if (def != null && item != null) {
+                SupplementAdjustSheet(
+                    def = def,
+                    item = item,
+                    dayTotalNow = SupplementEngine.knownCeilingTotal(def, supplementDayLogs, selectedDate),
+                    nowHhmm = viewModel.nowHhmm(),
+                    onRegister = { dose, time -> requestSupplementTake(def, dose, time) },
+                    onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
+                )
+            }
+        }
+        is SupplementSheetState.Ceiling -> {
+            val def = SupplementCatalog.byId(sheet.id)
+            if (def != null) {
+                SupplementCeilingSheet(
+                    def = def,
+                    dose = sheet.dose,
+                    projected = sheet.projected,
+                    onRegisterAnyway = { viewModel.takeSupplement(def.id, sheet.dose, sheet.time ?: viewModel.nowHhmm()) },
+                    onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
+                )
+            }
+        }
+        SupplementSheetState.Add -> SupplementAddSheet(
+            pilaIds = supplementPila.map { it.id }.toSet(),
+            onToggle = { viewModel.toggleSupplementInPila(it) },
+            onDismiss = { if (supplementSheet == SupplementSheetState.Add) supplementSheet = null },
+            onOpenCustom = { supplementSheet = SupplementSheetState.Config(null, SupplementConfigMode.CUSTOM) },
+            onOpenConfig = { id -> supplementSheet = SupplementSheetState.Config(id, SupplementConfigMode.NEW) },
+        )
+        is SupplementSheetState.Detail -> {
+            val item = supplementPila.firstOrNull { it.id == sheet.id }
+            val def = item?.let(SupplementCatalog::resolve) ?: SupplementCatalog.byId(sheet.id)
+            if (def != null) {
+                val takes = supplementTakes[def.id].orEmpty()
+                SupplementDetailSheet(
+                    def = def,
+                    item = item ?: SupplementPilaItem(def.id, def.defaultDose, moment = def.defaultMoment),
+                    todayTakes = takes,
+                    foodCaffeineMg = if (def.id == "cafeina") SupplementEngine.foodCaffeineMg(dailyTotals.caffeineMg, takes) else 0.0,
+                    creatineStreakDays = creatineStreakDays,
+                    onTakeHabitual = { requestSupplementTake(def, item?.dose ?: def.defaultDose, null) },
+                    onDeleteTake = { idx ->
+                        // Busca el log de esta toma para borrarlo
+                        val take = takes.getOrNull(idx)
+                        if (take != null) {
+                            val log = supplementDayLogs.firstOrNull { l ->
+                                l.foods.any { f -> f.id == SupplementEngine.foodId(def.id) && f.amount == take.dose }
+                            }
+                            if (log != null) viewModel.deleteMeal(log)
+                        }
+                    },
+                    onEditConfig = { supplementSheet = SupplementSheetState.Config(sheet.id, SupplementConfigMode.EDIT) },
+                    openCreatine = { viewModel.openCreatineTracker() },
+                    onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
+                )
+            }
+        }
+        is SupplementSheetState.Config -> {
+            val def = sheet.id?.let { SupplementCatalog.byId(it) }
+            val item = sheet.id?.let { id -> supplementPila.firstOrNull { it.id == id } }
+            SupplementConfigSheet(
+                mode = sheet.mode,
+                def = def,
+                initialItem = item,
+                onSave = { updated -> viewModel.saveSupplementItem(updated) },
+                onOpenBaja = { sheet.id?.let { id -> supplementSheet = SupplementSheetState.Baja(id) } },
+                onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
+            )
+        }
+        is SupplementSheetState.Baja -> {
+            val item = supplementPila.firstOrNull { it.id == sheet.id }
+            val def = item?.let(SupplementCatalog::resolve) ?: SupplementCatalog.byId(sheet.id)
+            if (def != null) {
+                SupplementBajaSheet(
+                    def = def,
+                    onConfirmBaja = { viewModel.removeSupplementItem(sheet.id) },
+                    onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
+                )
+            }
+        }
+        null -> Unit
     }
 
     if (showNutrients) {
