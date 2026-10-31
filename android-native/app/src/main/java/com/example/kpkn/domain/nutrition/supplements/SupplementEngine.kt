@@ -1,6 +1,9 @@
 package com.example.kpkn.domain.nutrition.supplements
 
 import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.NutrientCoverage
+import com.example.kpkn.domain.nutrition.NutrientKey
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
@@ -92,6 +95,7 @@ object SupplementEngine {
             protein = protein,
             caffeineMg = if (def.id == "cafeina") dose else 0.0,
             creatineG = if (def.id == "creatina") dose else 0.0,
+            micronutrients = supplementMicronutrients(def.id, dose),
             isUncertain = protein > 0.0,
         )
         return NutritionLog(
@@ -101,6 +105,39 @@ object SupplementEngine {
             foods = listOf(food),
             notes = NOTE_PREFIX + time,
         )
+    }
+
+    private fun supplementMicronutrients(id: String, dose: Double): List<Micronutrient> = when (id) {
+        "vitd" -> listOf(Micronutrient("Vitamina D", dose, "\u00b5g"))
+        "magnesio" -> listOf(Micronutrient("Magnesio", dose, "mg"))
+        "zinc" -> listOf(Micronutrient("Zinc", dose, "mg"))
+        "omega3" -> listOf(Micronutrient("Omega-3 EPA + DHA", dose, "g"))
+        else -> emptyList()
+    }
+
+    /** Presenta la dosis ya guardada por la versión previa sin reescribir el historial. */
+    fun enrichLegacyTake(log: NutritionLog): NutritionLog = log.copy(foods = log.foods.map { food ->
+        val id = food.id.removePrefix(FOOD_ID_PREFIX)
+        if (food.id.startsWith(FOOD_ID_PREFIX) && food.micronutrients.isEmpty() && food.amount.isFinite() && food.amount > 0) {
+            val expected = SupplementCatalog.byId(id)
+            if (expected != null && food.unit == expected.unit) food.copy(micronutrients = supplementMicronutrients(id, food.amount)) else food
+        } else food
+    })
+
+    /** Cantidad conocida para el techo: comida y suplemento si aplica al total; solo suplemento para magnesio y omega-3. */
+    fun knownCeilingTotal(def: SupplementDef, logs: List<NutritionLog>, date: String): Double {
+        val day = logs.filter { it.date.take(10) == date.take(10) && it.status != NutritionStatus.PLANNED }
+        if (def.capScopeSupplementsOnly || def.id == "omega3") return dayTotal(takesFromLogs(day, date)[def.id].orEmpty())
+        val key = when (def.id) {
+            "cafeina" -> NutrientKey.CAFFEINE
+            "vitd" -> NutrientKey.VITAMIN_D
+            "zinc" -> NutrientKey.ZINC
+            else -> null
+        }
+        return if (key == null) dayTotal(takesFromLogs(day, date)[def.id].orEmpty())
+        else {
+            NutrientCoverage.summarize(day.flatMap { enrichLegacyTake(it).foods }, key).totalKnown ?: 0.0
+        }
     }
 
     /**

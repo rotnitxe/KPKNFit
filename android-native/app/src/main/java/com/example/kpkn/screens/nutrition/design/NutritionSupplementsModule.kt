@@ -387,7 +387,7 @@ private fun SpRow(row: SupplementRowState, first: Boolean, now: Boolean, onTake:
                 Icon(if (done) KpknLineIcons.Check else supplementIcon(def), null, tint = circleTint, modifier = Modifier.size(20.dp))
             }
             Column(
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp).clickable(onClickLabel = "Ajustar ${def.shortName}", role = Role.Button, onClick = onHold),
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp).clickable(onClickLabel = "Detalle ${def.shortName}", role = Role.Button, onClick = onOpenDetail),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {

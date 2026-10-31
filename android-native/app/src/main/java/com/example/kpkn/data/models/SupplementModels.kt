@@ -20,4 +20,8 @@ data class SupplementPilaItem(
     val moment: Int = 1,
     val doses: Int = 1,
     val reminder: String? = null,
+    /** Datos de la persona para suplementos propios; los valores antiguos siguen siendo válidos. */
+    val customName: String? = null,
+    val customUnit: String? = null,
+    val notes: String = "",
 )

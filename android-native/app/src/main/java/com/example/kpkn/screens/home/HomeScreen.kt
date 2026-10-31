@@ -104,6 +104,10 @@ import com.example.kpkn.screens.home.design.homeDateLine
 import com.example.kpkn.screens.home.design.homeEntrance
 import com.example.kpkn.screens.home.design.HomeBodyToday
 import com.example.kpkn.screens.home.design.HomeNutritionToday
+import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
+import com.example.kpkn.screens.nutrition.design.SupplementRowState
+import com.example.kpkn.screens.nutrition.design.SupplementQuickSheet
 import com.example.kpkn.screens.home.design.HomeNotice
 import com.example.kpkn.screens.home.design.HomeNoticeTone
 import com.example.kpkn.screens.home.design.HomeTypography
@@ -508,6 +512,16 @@ private fun HomeWithProgram(
     val nutritionToday = remember(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal) {
         homeNutritionState(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal)
     }
+    val homeSettings by viewModel.settings.collectAsState()
+    val supplementTakes = remember(todayMeals) {
+        SupplementEngine.takesFromLogs(todayMeals, LocalDate.now().toString())
+    }
+    val supplementRows = remember(homeSettings.supplementPila, supplementTakes) {
+        SupplementEngine.sorted(homeSettings.supplementPila).mapNotNull { item ->
+            SupplementCatalog.resolve(item)?.let { SupplementRowState(it, item, supplementTakes[item.id].orEmpty()) }
+        }
+    }
+    var showSupplementQuickSheet by remember { mutableStateOf(false) }
     // Resumen del mes anterior del programa activo (P8c-1): el aviso «Tu <mes> está listo» en los días 1 a 10 y su pantalla completa.
     // El informe se calcula fuera del hilo principal. Visto (al abrirlo) o descartado, el mes no vuelve a salir (SharedPreferences).
     val context = LocalContext.current
@@ -655,6 +669,10 @@ private fun HomeWithProgram(
                         onOpenDay = onOpenNutritionOverlay,
                         onDefineGoals = onNavigateToNutritionEditor,
                         savedPulse = nutritionSavedPulse,
+                        supplementRows = supplementRows,
+                        caffeineTotalMg = todayMeals.filter { it.status != com.example.kpkn.data.models.NutritionStatus.PLANNED }.sumOf { log -> log.foods.sumOf { it.caffeineMg } },
+                        onTakeSupplement = { id, dose -> viewModel.takeSupplementFromHome(id, dose) },
+                        onOpenSupplementsQuick = { showSupplementQuickSheet = true },
                         modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
                     )
                 }

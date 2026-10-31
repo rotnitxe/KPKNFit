@@ -131,4 +131,16 @@ object SupplementCatalog {
     )
 
     fun byId(id: String): SupplementDef? = entries.firstOrNull { it.id == id }
+
+    /** Los propios guardan su nombre y unidad junto a la pila, sin modificar el catálogo editorial. */
+    fun resolve(item: com.example.kpkn.data.models.SupplementPilaItem): SupplementDef? {
+        byId(item.id)?.let { return it }
+        if (!item.id.startsWith("propio-")) return null
+        val name = item.customName?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val unit = item.customUnit?.takeIf { it in setOf("g", "mg", "\u00b5g", "ud") } ?: return null
+        return SupplementDef(id = item.id, name = name, shortName = name, group = SupplementGroup.HEALTH, iconKey = "caps",
+            unit = unit, defaultDose = item.dose, step = if (unit == "mg") 50.0 else 1.0, min = 0.01, max = 9999.0,
+            typical = "Según tu etiqueta", evidence = SupplementEvidence.LIMITED, defaultMoment = item.moment.coerceIn(SUPPLEMENT_MOMENTS.indices),
+            cap = null, capText = "Sigue la dosis de tu etiqueta.", feeds = "Solo registro: no cambia tu huella de nutrientes.")
+    }
 }

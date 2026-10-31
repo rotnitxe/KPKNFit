@@ -1,6 +1,9 @@
 package com.example.kpkn.domain.nutrition.supplements
 
 import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.NutrientCoverage
+import com.example.kpkn.domain.nutrition.NutrientKey
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
@@ -68,6 +71,35 @@ class SupplementEngineTest {
         assertEquals(listOf(SupplementTake("12:55", 25.0, "l1")), takes["proteina"])
         assertTrue(SupplementEngine.takesFromLogs(listOf(log), "2026-10-28").isEmpty())
         assertNotNull(SupplementEngine.buildTakeLog(def("cafeina"), 100.0, "08:00", "2026-10-29", "l2").foods.single().caffeineMg.takeIf { it == 100.0 })
+    }
+
+    @Test
+    fun losMicronutrientesDeclaradosSumanEnSusUnidades() {
+        val cases = listOf(Triple("vitd", NutrientKey.VITAMIN_D, 10.0), Triple("magnesio", NutrientKey.MAGNESIUM, 300.0),
+            Triple("zinc", NutrientKey.ZINC, 10.0), Triple("omega3", NutrientKey.EPA_DHA, 1.0))
+        cases.forEach { (id, key, dose) ->
+            val food = SupplementEngine.buildTakeLog(def(id), dose, "08:00", "2026-10-29", id).foods.single()
+            assertEquals(id, dose, NutrientCoverage.summarize(listOf(food), key).totalKnown!!, 1e-9)
+        }
+    }
+
+    @Test
+    fun techoDeZincIncluyeComidasYTomasAntiguasPeroNoPlanes() {
+        val date = "2026-10-29"
+        val food = NutritionLog(id = "food", date = date, foods = listOf(LoggedFood(foodName = "Comida", micronutrients = listOf(Micronutrient("Zinc", 25.0, "mg")))))
+        val legacy = NutritionLog(id = "old", date = date, foods = listOf(LoggedFood(id = "sup:zinc", amount = 10.0, unit = "mg")))
+        val planned = food.copy(id = "planned", status = NutritionStatus.PLANNED)
+        val known = SupplementEngine.knownCeilingTotal(def("zinc"), listOf(food, legacy, planned), date)
+        assertEquals(35.0, known, 1e-9)
+        assertTrue(SupplementEngine.ceiling(def("zinc"), known, 10.0)!!.exceeded)
+    }
+
+    @Test
+    fun techoDeMagnesioNoSumaElMagnesioDeComida() {
+        val date = "2026-10-29"
+        val food = NutritionLog(id = "food", date = date, foods = listOf(LoggedFood(foodName = "Comida", micronutrients = listOf(Micronutrient("Magnesio", 200.0, "mg")))))
+        val take = SupplementEngine.buildTakeLog(def("magnesio"), 300.0, "08:00", date, "take")
+        assertEquals(300.0, SupplementEngine.knownCeilingTotal(def("magnesio"), listOf(food, take), date), 1e-9)
     }
 
     @Test

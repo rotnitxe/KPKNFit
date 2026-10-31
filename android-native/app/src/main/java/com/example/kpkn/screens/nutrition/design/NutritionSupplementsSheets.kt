@@ -422,3 +422,367 @@ fun SupplementAddSheet(
     onToggle: (String) -> Unit,
     onDismiss: () -> Unit,
 ) = SpSheet(onDismiss = onDismiss, maxHeightFraction = 0.86f, scroll = false) { SupplementAddContent(pilaIds, onToggle, onDismiss) }
+
+/** Modo de la hoja de configuración de un suplemento. */
+enum class SupplementConfigMode { NEW, EDIT, CUSTOM }
+
+/**
+ * Hoja de detalle de un suplemento (sp-detalle, sp-detalle-cafeina): resumen del día, racha, tomas de hoy con «Quitar»,
+ * aporte a la huella y botón para registrar la dosis habitual.
+ */
+@Composable
+fun SupplementDetailSheet(
+    def: SupplementDef,
+    item: SupplementPilaItem,
+    todayTakes: List<SupplementTake>,
+    foodCaffeineMg: Double = 0.0,
+    creatineStreakDays: Int = 0,
+    onTakeHabitual: () -> Unit,
+    onDeleteTake: (Int) -> Unit,
+    onEditConfig: () -> Unit,
+    openCreatine: () -> Unit = {},
+    onDismiss: () -> Unit,
+) = SpSheet(onDismiss = onDismiss) {
+    val isCaffeine = def.id == "cafeina"
+    val isCreatine = def.id == "creatina"
+    val totalDose = todayTakes.sumOf { it.dose } + (if (isCaffeine) foodCaffeineMg else 0.0)
+
+    SheetHeader(
+        def = def,
+        title = if (isCaffeine) "Cafeína de hoy" else def.name,
+        subtitle = "${SupplementEngine.formatDose(def, item.dose)} habitual · ${SUPPLEMENT_MOMENTS.getOrNull(item.moment) ?: ""}",
+        trailing = {
+            Box(
+                Modifier.size(44.dp).clip(CircleShape).background(Color(0x0DFFFFFF)).clickable(role = Role.Button, onClick = onEditConfig),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(KpknLineIcons.Settings, "Configurar", tint = SpColors.ink, modifier = Modifier.size(20.dp))
+            }
+        },
+    )
+
+    // Resumen de hoy
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0x08FFFFFF)).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+            Column {
+                Text("TOTAL DE HOY", style = KpknType.caption.copy(fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold), color = SpColors.faint)
+                Text(
+                    text = "${SupplementEngine.formatNumberEs(totalDose)} ${def.unit}",
+                    style = KpknType.title.copy(fontSize = 26.sp, fontWeight = FontWeight.Bold),
+                    color = if (isCaffeine && totalDose > 400.0) SpColors.danger else SpColors.ink,
+                )
+            }
+            if (isCreatine && creatineStreakDays > 0) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(KpknLineIcons.Flame, null, tint = Color(0xFFF49A6E), modifier = Modifier.size(16.dp))
+                    Text("$creatineStreakDays días seguidos", style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold), color = SpColors.ink)
+                }
+            }
+        }
+        if (def.cap != null) {
+            SpBar(totalDose, def.cap, Modifier.padding(top = 4.dp), over = totalDose > def.cap)
+        }
+    }
+
+    // Para la creatina: acceso a la saturación
+    if (isCreatine) {
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0x0DFFFFFF)).clickable(role = Role.Button, onClick = openCreatine).padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(KpknLineIcons.Layers, null, tint = SpColors.ink, modifier = Modifier.size(20.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Seguimiento de saturación", style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = SpColors.ink)
+                Text("Pauta de carga o gradual", style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
+            }
+            Icon(KpknLineIcons.ArrowRight, null, tint = SpColors.faint, modifier = Modifier.size(16.dp))
+        }
+    }
+
+    // Lista de tomas de hoy
+    Text("TOMAS DE HOY", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint, modifier = Modifier.padding(top = 6.dp))
+    if (todayTakes.isEmpty() && (!isCaffeine || foodCaffeineMg <= 0.0)) {
+        Text("Todavía no has registrado ninguna toma hoy.", style = KpknType.caption.copy(fontSize = 13.sp), color = SpColors.muted)
+    } else {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            todayTakes.forEachIndexed { idx, take ->
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x06FFFFFF)).padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(take.time, style = KpknType.body.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = SpColors.muted)
+                    Column(Modifier.weight(1f)) {
+                        Text("${SupplementEngine.formatNumberEs(take.dose)} ${def.unit}", style = KpknType.body.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold), color = SpColors.ink)
+                        Text("Registrado con un toque", style = KpknType.caption.copy(fontSize = 11.5.sp), color = SpColors.faint)
+                    }
+                    Text(
+                        "Quitar",
+                        style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
+                        color = SpColors.faint,
+                        modifier = Modifier.clickable(role = Role.Button, onClick = { onDeleteTake(idx) }).padding(4.dp),
+                    )
+                }
+            }
+            if (isCaffeine && foodCaffeineMg > 0.0) {
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x06FFFFFF)).padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(KpknLineIcons.Apple, null, tint = SpColors.faint, modifier = Modifier.size(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("${SupplementEngine.formatNumberEs(foodCaffeineMg)} mg", style = KpknType.body.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold), color = SpColors.ink)
+                        Text("Café, té o comidas registradas", style = KpknType.caption.copy(fontSize = 11.5.sp), color = SpColors.faint)
+                    }
+                }
+            }
+        }
+    }
+
+    Spacer(Modifier.height(8.dp))
+    KpknPrimaryPill(
+        text = "Registrar ${SupplementEngine.formatDose(def, item.dose)}",
+        onClick = { onTakeHabitual(); onDismiss() },
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+    )
+}
+
+/**
+ * Hoja para configurar / dar de alta / editar un suplemento (sp-alta, sp-propio, sp-edicion).
+ */
+@Composable
+fun SupplementConfigSheet(
+    mode: SupplementConfigMode,
+    def: SupplementDef?,
+    initialItem: SupplementPilaItem?,
+    onSave: (SupplementPilaItem) -> Unit,
+    onOpenBaja: () -> Unit = {},
+    onDismiss: () -> Unit,
+) = SpSheet(onDismiss = onDismiss) {
+    val isCustom = mode == SupplementConfigMode.CUSTOM
+    val isEdit = mode == SupplementConfigMode.EDIT
+    var customName by remember { mutableStateOf(initialItem?.customName ?: "") }
+    var customUnit by remember { mutableStateOf(initialItem?.customUnit ?: "g") }
+    var dose by remember { mutableDoubleStateOf(initialItem?.dose ?: def?.defaultDose ?: 5.0) }
+    var tomas by remember { mutableIntStateOf(initialItem?.doses ?: 1) }
+    var moment by remember { mutableIntStateOf(initialItem?.moment ?: def?.defaultMoment ?: 1) }
+    var reminderEnabled by remember { mutableStateOf(initialItem?.reminder != null) }
+    var reminderTime by remember { mutableStateOf(initialItem?.reminder ?: "09:00") }
+    var notes by remember { mutableStateOf(initialItem?.notes ?: "") }
+
+    val step = if (isCustom && customUnit == "mg") 50.0 else (def?.step ?: 1.0)
+    val unit = if (isCustom) customUnit else (def?.unit ?: "g")
+    val title = when {
+        isCustom -> "Suplemento propio"
+        isEdit -> "Editar ${def?.shortName ?: ""}"
+        else -> "Configurar ${def?.shortName ?: ""}"
+    }
+
+    SheetHeader(
+        def = def,
+        title = title,
+        subtitle = if (isCustom) "Nombre, unidad y dosis habitual" else (def?.typical ?: ""),
+    )
+
+    if (isCustom) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("NOMBRE", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+            Row(
+                Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(Color(0x0CFFFFFF)).border(1.dp, Color(0x14FFFFFF), RoundedCornerShape(24.dp)).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    value = customName,
+                    onValueChange = { customName = it },
+                    singleLine = true,
+                    textStyle = KpknType.body.copy(fontSize = 14.5.sp, color = SpColors.ink),
+                    cursorBrush = SolidColor(SpColors.ink),
+                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Nombre del suplemento" },
+                )
+            }
+            Text("UNIDAD", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint, modifier = Modifier.padding(top = 6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("g", "mg", "µg", "ud").forEach { u ->
+                    SpChoice(u, selected = customUnit == u, small = true, onClick = { customUnit = u })
+                }
+            }
+        }
+    }
+
+    // Dosis habitual
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("DOSIS HABITUAL (UN TOQUE)", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RoundStep(minus = true, enabled = dose > step) { dose = (dose - step).coerceAtLeast(step) }
+            Text(
+                "${SupplementEngine.formatNumberEs(dose)} $unit",
+                style = KpknType.title.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold),
+                color = SpColors.ink,
+            )
+            RoundStep(minus = false, enabled = dose < (def?.max ?: 9999.0)) { dose = dose + step }
+        }
+    }
+
+    // Tomas al día
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("TOMAS AL DÍA", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(1 to "1 al día", 2 to "2 al día", 3 to "3 al día").forEach { (count, label) ->
+                SpChoice(label, selected = tomas == count, small = true, onClick = { tomas = count })
+            }
+        }
+    }
+
+    // Momento habitual
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("MOMENTO SUGERIDO", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+        FlowRowOf {
+            SUPPLEMENT_MOMENTS.forEachIndexed { idx, momLabel ->
+                SpChoice(momLabel, selected = moment == idx, small = true, onClick = { moment = idx })
+            }
+        }
+    }
+
+    // Recordatorio
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("RECORDATORIO", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+            SpChoice(if (reminderEnabled) "Activado ($reminderTime)" else "Desactivado", selected = reminderEnabled, small = true, onClick = { reminderEnabled = !reminderEnabled })
+        }
+    }
+
+    // Advertencia sobria / huella
+    if (def != null && def.cap != null) {
+        Warn("Techo diario: ${SupplementEngine.formatNumberEs(def.cap)} ${def.unit}. ${def.capText}", bold = "Advertencia:")
+    }
+
+    Spacer(Modifier.height(8.dp))
+    val canSave = !isCustom || customName.isNotBlank()
+    KpknPrimaryPill(
+        text = if (isEdit) "Guardar cambios" else "Añadir a mi pila",
+        enabled = canSave,
+        onClick = {
+            val id = if (isCustom) (initialItem?.id ?: "propio-${java.util.UUID.randomUUID().toString().take(8)}") else (def?.id ?: "custom")
+            val item = SupplementPilaItem(
+                id = id,
+                dose = dose,
+                moment = moment,
+                doses = tomas,
+                reminder = if (reminderEnabled) reminderTime else null,
+                customName = if (isCustom) customName.trim() else null,
+                customUnit = if (isCustom) customUnit else null,
+                notes = notes.trim(),
+            )
+            onSave(item)
+            onDismiss()
+        },
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+    )
+
+    if (isEdit) {
+        Text(
+            "Dejar de tomar este suplemento",
+            style = KpknType.caption.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+            color = SpColors.danger,
+            modifier = Modifier.align(Alignment.CenterHorizontally).clickable(role = Role.Button, onClick = onOpenBaja).padding(8.dp),
+        )
+    }
+}
+
+/** Hoja «Dejar de tomar» (sp-baja): confirmación sin borrar el historial. */
+@Composable
+fun SupplementBajaSheet(
+    def: SupplementDef,
+    onConfirmBaja: () -> Unit,
+    onDismiss: () -> Unit,
+) = SpSheet(onDismiss = onDismiss) {
+    SheetHeader(
+        def = def,
+        title = "¿Dejar de tomar ${def.shortName}?",
+        subtitle = "Confirmación",
+        danger = true,
+    )
+    Text(
+        "El historial de tomas de días anteriores no se toca: sus aportes se mantienen. Solo sale de tu pila y de la tarjeta de Inicio.",
+        style = KpknType.body.copy(fontSize = 14.sp, lineHeight = 20.sp),
+        color = SpColors.muted,
+    )
+    Spacer(Modifier.height(8.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.weight(1f)) {
+            KpknSecondaryPill("Cancelar", onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp))
+        }
+        Box(Modifier.weight(1f)) {
+            KpknPrimaryPill("Dejar de tomar", onClick = { onConfirmBaja(); onDismiss() }, modifier = Modifier.fillMaxWidth().height(48.dp))
+        }
+    }
+}
+
+/** Hoja de registro rápido de hoy (sp-rapida): acceso desde la tarjeta de Inicio. */
+@Composable
+fun SupplementQuickSheet(
+    rows: List<SupplementRowState>,
+    caffeineTotalMg: Double,
+    foodCaffeineMg: Double,
+    nowId: String?,
+    onTake: (id: String, dose: Double) -> Unit,
+    onHold: (id: String) -> Unit,
+    onAdd: () -> Unit,
+    onOpenDetail: (String) -> Unit = {},
+    onDismiss: () -> Unit,
+) = SpSheet(onDismiss = onDismiss, maxHeightFraction = 0.85f, scroll = false) {
+    val pending = rows.filter { it.takes.isEmpty() }
+    val done = rows.size - pending.size
+    SheetHeader(
+        def = null,
+        title = "Suplementos de hoy",
+        subtitle = if (pending.isEmpty()) "Todo tomado hoy ✓" else "$done de ${rows.size} tomados",
+    )
+    LazyColumn(Modifier.weight(1f, fill = false)) {
+        items(rows, key = { it.def.id }) { row ->
+            val isDone = row.takes.isNotEmpty()
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    Modifier.size(38.dp).clip(CircleShape).background(if (isDone) Color(0x1843D18C) else Color(0x0DFFFFFF)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(if (isDone) KpknLineIcons.Check else supplementIcon(row.def), null, tint = if (isDone) SpColors.done else SpColors.muted, modifier = Modifier.size(18.dp))
+                }
+                Column(Modifier.weight(1f).clickable { onOpenDetail(row.def.id) }) {
+                    Text(row.def.name, style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = SpColors.ink)
+                    Text(SupplementEngine.formatDose(row.def, row.item.dose), style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
+                }
+                if (!isDone) {
+                    Box(
+                        Modifier.clip(RoundedCornerShape(18.dp)).background(if (nowId == row.def.id) SpColors.ink else Color(0x12FFFFFF)).clickable { onTake(row.def.id, row.item.dose) }.padding(horizontal = 14.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Tomar", style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.Bold), color = if (nowId == row.def.id) SpColors.onInk else SpColors.ink)
+                    }
+                }
+            }
+        }
+    }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.weight(1f)) {
+            KpknSecondaryPill("Añadir", onClick = { onAdd(); onDismiss() }, modifier = Modifier.fillMaxWidth().height(46.dp))
+        }
+        Box(Modifier.weight(1f)) {
+            KpknPrimaryPill("Listo", onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(46.dp))
+        }
+    }
+}
+
