@@ -317,6 +317,10 @@ import java.util.Calendar
 
     /** Altura real del perfil, o null si no hay: nunca 170 cm por defecto (sin altura no hay IMC ni FFMI). */
     val heightCm: StateFlow<Double?> = repository.settings
+        .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     val settings: StateFlow<Settings> = repository.settings
 
     fun takeSupplementFromHome(supplementId: String, dose: Double) {
@@ -329,13 +333,11 @@ import java.util.Calendar
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 nutritionRepository.saveNutritionLog(log)
-                _nutritionSavedPulse.value = _nutritionSavedPulse.value + 1
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                // Ignore save errors
+            }
         }
     }
-        .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private data class HomeUiCore(
         val userName: String,

@@ -33,6 +33,10 @@ import com.example.kpkn.screens.nutrition.design.SupplementAddSheet
 import com.example.kpkn.screens.nutrition.design.SupplementAdjustSheet
 import com.example.kpkn.screens.nutrition.design.SupplementCeilingSheet
 import com.example.kpkn.screens.nutrition.design.SupplementRowState
+import com.example.kpkn.screens.nutrition.design.SupplementConfigMode
+import com.example.kpkn.screens.nutrition.design.SupplementDetailSheet
+import com.example.kpkn.screens.nutrition.design.SupplementConfigSheet
+import com.example.kpkn.screens.nutrition.design.SupplementBajaSheet
 import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
 import com.example.kpkn.domain.nutrition.supplements.SupplementDef
 import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
@@ -579,9 +583,9 @@ fun NutritionScreen(
                         val take = takes.getOrNull(idx)
                         if (take != null) {
                             val log = supplementDayLogs.firstOrNull { l ->
-                                l.foods.any { f -> f.id == SupplementEngine.foodId(def.id) && f.amount == take.dose }
+                                l.foods.any { f -> f.id == SupplementEngine.takeFoodId(def.id) && f.amount == take.dose }
                             }
-                            if (log != null) viewModel.deleteMeal(log)
+                            if (log != null) viewModel.deleteLog(log.id)
                         }
                     },
                     onEditConfig = { supplementSheet = SupplementSheetState.Config(sheet.id, SupplementConfigMode.EDIT) },

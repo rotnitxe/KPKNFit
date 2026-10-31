@@ -90,6 +90,7 @@ fun BodyProgressScreen(
     var showReminderTime by remember { mutableStateOf(false) }
     // Hoja de registro: lo que se escribe y la medición de origen (null si es nueva). El contador rehace la hoja al abrirla.
     var recordDraft by remember { mutableStateOf<BodyRecordDraft?>(null) }
+    var lastSavedId by remember { mutableStateOf<String?>(null) }
     var recordSource by remember { mutableStateOf<BodyHistoryRow?>(null) }
     var recordKey by remember { mutableStateOf(0) }
     val zone = ZoneId.systemDefault()
@@ -280,6 +281,7 @@ fun BodyProgressScreen(
                     weightUnit = weightUnit,
                     onOpen = { row -> openRecord(row) },
                     onAdd = { openNewRecord() },
+                    newRowId = lastSavedId,
                 )
             }
 
@@ -386,8 +388,10 @@ fun BodyProgressScreen(
                 now = LocalDateTime.now(zone),
                 onSave = {
                     val source = recordSource
+                    val sid = bodyRecordSessionId(source) { UUID.randomUUID().toString() }
+                    lastSavedId = sid
                     bodyViewModel.saveBodyRecord(
-                        sessionId = bodyRecordSessionId(source) { UUID.randomUUID().toString() },
+                        sessionId = sid,
                         timestampEpochMs = draft.epochMsFor(source, zone),
                         values = draft.metricValues(),
                         replacing = source?.observations.orEmpty(),

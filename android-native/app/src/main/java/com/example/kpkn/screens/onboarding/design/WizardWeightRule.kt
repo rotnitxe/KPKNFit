@@ -31,6 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -315,13 +318,21 @@ fun WizardWeightRule(
                         }
                     }
                 }
-                // Cursor central verde: fino y más alto que las marcas (p5).
+                // Cursor central verde: fino y más alto que las marcas (p5), con resplandor crema (nc-S04: 0 0 12px #f2eee655).
                 Box(
                     Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 5.dp)
                         .width(2.dp)
                         .height(95.dp)
+                        .drawBehind {
+                            // nc-S04: box-shadow 0 0 12px rgba(242, 238, 230, 0.333) -> preset resplandor-crema-12
+                            drawRect(
+                                color = Color(0x55F2EEE6),
+                                topLeft = Offset(-2.dp.toPx(), 0f),
+                                size = Size(size.width + 4.dp.toPx(), size.height),
+                            )
+                        }
                         .background(WizardColors.ruleCursor, RoundedCornerShape(1.dp)),
                 )
             }

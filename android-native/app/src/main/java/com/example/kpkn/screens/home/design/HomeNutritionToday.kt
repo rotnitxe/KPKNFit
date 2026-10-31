@@ -52,8 +52,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
 import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.screens.nutrition.design.SupplementRowState
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknType
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.border
 import com.example.kpkn.screens.nutrition.design.NutritionMacroLine
 import com.example.kpkn.screens.nutrition.design.NutritionMacroLines
 import com.example.kpkn.screens.nutrition.design.NutritionThinRing
@@ -245,7 +246,7 @@ fun HomeNutritionToday(
                         Text(
                             text = "SUPLEMENTOS",
                             style = KpknType.caption.copy(fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.SemiBold),
-                            color = LoggerColors.textMuted,
+                            color = Color(0xFFB3ADA3),
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -262,10 +263,10 @@ fun HomeNutritionToday(
                                 Text(
                                     text = "$doneCount de ${supplementRows.size}",
                                     style = KpknType.caption.copy(fontSize = 12.sp),
-                                    color = LoggerColors.textFaint,
+                                    color = Color(0xFF8E8980),
                                 )
                             }
-                            Icon(KpknLineIcons.ArrowRight, null, tint = LoggerColors.textFaint, modifier = Modifier.size(14.dp))
+                            Icon(KpknLineIcons.ChevronRight, null, tint = Color(0xFF8E8980), modifier = Modifier.size(14.dp))
                         }
                     }
 
@@ -299,9 +300,9 @@ fun HomeNutritionToday(
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = SupplementEngine.formatDose(row.def, row.item.dose),
+                                        text = SupplementEngine.doseLabel(row.def, row.item.dose),
                                         style = KpknType.caption.copy(fontSize = 12.sp),
-                                        color = if (now) Color(0xAA111111) else LoggerColors.textFaint,
+                                        color = if (now) Color(0xAA111111) else Color(0xFF8E8980),
                                         maxLines = 1,
                                     )
                                 }
@@ -321,7 +322,7 @@ fun HomeNutritionToday(
                                     Text(
                                         text = "+$restCount más",
                                         style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
-                                        color = LoggerColors.textMuted,
+                                        color = Color(0xFFB3ADA3),
                                     )
                                 }
                             }
@@ -337,13 +338,13 @@ fun HomeNutritionToday(
                             Text(
                                 text = "Cafeína de hoy",
                                 style = KpknType.caption.copy(fontSize = 12.sp),
-                                color = LoggerColors.textFaint,
+                                color = Color(0xFF8E8980),
                             )
                             val over = caffeineTotalMg > 400.0
                             Text(
                                 text = "${caffeineTotalMg.toInt()} / 400 mg",
                                 style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
-                                color = if (over) WizardColors.danger else LoggerColors.textMuted,
+                                color = if (over) WizardColors.danger else Color(0xFFB3ADA3),
                             )
                         }
                     }

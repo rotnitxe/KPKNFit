@@ -152,6 +152,7 @@ fun NutritionSupplementsModule(
     modifier: Modifier = Modifier,
     openCaffeine: () -> Unit = {},
     openCreatine: () -> Unit = {},
+    onOpenDetail: (String) -> Unit = {},
 ) {
     if (!loaded) {
         KpknSkeletonModule(lines = 2, modifier = modifier)
@@ -183,6 +184,7 @@ fun NutritionSupplementsModule(
                     now = nowId == row.def.id && !row.done,
                     onTake = { onTake(row.def.id) },
                     onHold = { onHold(row.def.id) },
+                    onOpenDetail = { onOpenDetail(row.def.id) },
                 )
             }
             if (showHint && !all) SpHint()
@@ -349,7 +351,7 @@ private fun SpSeparator() {
 }
 
 @Composable
-private fun SpRow(row: SupplementRowState, first: Boolean, now: Boolean, onTake: () -> Unit, onHold: () -> Unit) {
+private fun SpRow(row: SupplementRowState, first: Boolean, now: Boolean, onTake: () -> Unit, onHold: () -> Unit, onOpenDetail: () -> Unit = {}) {
     val def = row.def
     val done = row.done
     val n = row.takes.size

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -49,6 +50,8 @@ import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
 import com.example.kpkn.domain.nutrition.supplements.SupplementDef
 import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.domain.nutrition.supplements.SupplementGroup
+import com.example.kpkn.domain.nutrition.supplements.SUPPLEMENT_MOMENTS
+import com.example.kpkn.domain.nutrition.supplements.SupplementTake
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetSpec
 import com.example.kpkn.ui.components.LocalKpknSheetDismiss
@@ -421,6 +424,8 @@ fun SupplementAddSheet(
     pilaIds: Set<String>,
     onToggle: (String) -> Unit,
     onDismiss: () -> Unit,
+    onOpenCustom: () -> Unit = {},
+    onOpenConfig: (String) -> Unit = {},
 ) = SpSheet(onDismiss = onDismiss, maxHeightFraction = 0.86f, scroll = false) { SupplementAddContent(pilaIds, onToggle, onDismiss) }
 
 /** Modo de la hoja de configuración de un suplemento. */
@@ -450,13 +455,13 @@ fun SupplementDetailSheet(
     SheetHeader(
         def = def,
         title = if (isCaffeine) "Cafeína de hoy" else def.name,
-        subtitle = "${SupplementEngine.formatDose(def, item.dose)} habitual · ${SUPPLEMENT_MOMENTS.getOrNull(item.moment) ?: ""}",
+        subtitle = "${SupplementEngine.doseLabel(def, item.dose)} habitual · ${SUPPLEMENT_MOMENTS.getOrNull(item.moment) ?: ""}",
         trailing = {
             Box(
                 Modifier.size(44.dp).clip(CircleShape).background(Color(0x0DFFFFFF)).clickable(role = Role.Button, onClick = onEditConfig),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(KpknLineIcons.Settings, "Configurar", tint = SpColors.ink, modifier = Modifier.size(20.dp))
+                Icon(KpknLineIcons.Sliders, "Configurar", tint = SpColors.ink, modifier = Modifier.size(20.dp))
             }
         },
     )
@@ -483,7 +488,7 @@ fun SupplementDetailSheet(
             }
         }
         if (def.cap != null) {
-            SpBar(totalDose, def.cap, Modifier.padding(top = 4.dp), over = totalDose > def.cap)
+            SpBar(totalDose, def.cap, Modifier.padding(top = 4.dp), over = (def.cap != null && totalDose > def.cap))
         }
     }
 
@@ -499,7 +504,7 @@ fun SupplementDetailSheet(
                 Text("Seguimiento de saturación", style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = SpColors.ink)
                 Text("Pauta de carga o gradual", style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
             }
-            Icon(KpknLineIcons.ArrowRight, null, tint = SpColors.faint, modifier = Modifier.size(16.dp))
+            Icon(KpknLineIcons.ChevronRight, null, tint = SpColors.faint, modifier = Modifier.size(16.dp))
         }
     }
 
@@ -546,7 +551,7 @@ fun SupplementDetailSheet(
 
     Spacer(Modifier.height(8.dp))
     KpknPrimaryPill(
-        text = "Registrar ${SupplementEngine.formatDose(def, item.dose)}",
+        text = "Registrar ${SupplementEngine.doseLabel(def, item.dose)}",
         onClick = { onTakeHabitual(); onDismiss() },
         modifier = Modifier.fillMaxWidth().height(48.dp),
     )
@@ -646,7 +651,8 @@ fun SupplementConfigSheet(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("MOMENTO SUGERIDO", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
         FlowRowOf {
-            SUPPLEMENT_MOMENTS.forEachIndexed { idx, momLabel ->
+            for (idx in SUPPLEMENT_MOMENTS.indices) {
+                val momLabel = SUPPLEMENT_MOMENTS[idx]
                 SpChoice(momLabel, selected = moment == idx, small = true, onClick = { moment = idx })
             }
         }
@@ -763,7 +769,7 @@ fun SupplementQuickSheet(
                 }
                 Column(Modifier.weight(1f).clickable { onOpenDetail(row.def.id) }) {
                     Text(row.def.name, style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = SpColors.ink)
-                    Text(SupplementEngine.formatDose(row.def, row.item.dose), style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
+                    Text(SupplementEngine.doseLabel(row.def, row.item.dose), style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
                 }
                 if (!isDone) {
                     Box(

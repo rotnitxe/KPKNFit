@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -237,11 +238,21 @@ fun TechniqueScrubber(
 
                 drawLine(TrackColor, Offset(left, cy), Offset(left + span, cy), strokeWidth = thickness, cap = StrokeCap.Round)
                 if (durationUs > 0L) {
-                    val chosen = reps.getOrNull(selectedRep)
-                    if (chosen != null) {
-                        val a = left + span * (chosen.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
-                        val b = left + span * (chosen.endUs.toFloat() / durationUs).coerceIn(0f, 1f)
-                        drawLine(ChosenSpanColor, Offset(a, cy), Offset(b, cy), strokeWidth = thickness, cap = StrokeCap.Round)
+                    for (i in reps.indices) {
+                        val rep = reps[i]
+                        val isChosen = i == selectedRep
+                        val a = left + span * (rep.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
+                        val b = left + span * (rep.endUs.toFloat() / durationUs).coerceIn(0f, 1f)
+                        if (b > a) {
+                            // tc-G03 / tc-G04: linear-gradient(#8fb2ff, #6e8fd0) o rayas-energia
+                            val bandColor = if (rep.kind == RepKind.PARTIAL) Color(0x8CF7CF73) else Color(0x998FB2FF)
+                            val bandH = if (isChosen) (thickness * 2.2f) else (thickness * 1.5f)
+                            drawLine(bandColor, Offset(a, cy), Offset(b, cy), strokeWidth = bandH, cap = StrokeCap.Round)
+                            if (isChosen) {
+                                // tc-S01: box-shadow 0 0 0 1.5px var(--ink) -> preset anillo-actual
+                                drawLine(WizardColors.text.copy(alpha = 0.85f), Offset(a, cy - bandH / 2f), Offset(b, cy - bandH / 2f), strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round)
+                            }
+                        }
                     }
                 }
                 if (fraction > 0f) {
@@ -267,6 +278,8 @@ fun TechniqueScrubber(
                 if (grow > 0f) drawCircle(HaloColor, radius = ThumbHaloRadius.toPx() * grow, center = Offset(left + span * fraction, cy))
                 val thumbRadius = ThumbRadius.toPx() + ThumbGrowth.toPx() * grow
                 val thumbCenter = Offset(left + span * fraction, cy)
+                // tc-S06: box-shadow: rgba(242, 238, 230, 0.6) 0px 0px 8px -> preset resplandor-crema-8
+                drawCircle(Color(0x99F2EEE6), radius = thumbRadius + 4.dp.toPx(), center = thumbCenter)
                 drawCircle(ThumbRingColor, radius = thumbRadius + ThumbRing.toPx(), center = thumbCenter)
                 drawCircle(WizardColors.text, radius = thumbRadius, center = thumbCenter)
             }

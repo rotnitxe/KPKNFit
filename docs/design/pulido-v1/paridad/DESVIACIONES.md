@@ -363,3 +363,21 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Qué cambia: error medio 3,6–13/255 (csv 7,4 y csv-error 8,6 tras alinear el botón al fondo de la hoja alta) (objetivo 2,5) y 3–10 % de píxeles > 28/255 en 360×880. Causa: Inter/Syne no se rasterizan como en Chrome (el texto se desplaza 1–3 px y envuelve distinto), el lienzo trae marco de teléfono y barra de estado, y el vidrio/sombras de gran radio no se miden en Robolectric. La estructura (medidas, orden, textos, estados) coincide a la vista. Más altas: permisos 12,9 (filas 3–4 px más separadas), borrar 11,2 (texto más ancho: una línea menos).
 - Captura: paridad/capturas/DESV-1402-permisos.png, DESV-1402-borrar.png, DESV-1402-csv.png
 - Aprobada por: pendiente (Flip5)
+
+## DESV-901
+- Filas: ct-S11, ct-S12, ct-S13, ct-S14, ct-V02, ct-V03, ct-V04, ct-G05, ct-G06, ct-G07, ct-G08, ct-A05, ct-A06, ct-A07, ct-A08
+- Qué cambia: son reglas de la hoja base del prototipo (.glass, .pl-glass, .tok.on, .topbar .glass, .split7 i.on, .story .st-week i.on, .draw.go .ln, .plate .ln, .wr-bars i.on::after) asociadas por el inventario al marco exterior de la aplicación; el catálogo como hoja modal vive sobre su propio contenedor y utiliza los presets de profundidad específicos (.ct-sheet, .ct-back, .ct-hero, etc.).
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-1201
+- Filas: nc-S01, nc-S03, nc-S08, nc-S09, nc-S10, nc-V01, nc-V03, nc-G01, nc-G06, nc-G07, nc-G08, nc-A02, nc-A03, nc-A12
+- Qué cambia: son reglas de la hoja base del prototipo (.glass, .nc-os, .tok.done, .tok.on, .topbar .glass, .split7 i.on, .story .st-week i.on, .draw.go .ln, .wr-bars i.on::after) asociadas por el inventario al marco exterior de la aplicación o al simulador del diálogo del sistema operativo (que en Android se gestiona directamente mediante el diálogo nativo de permisos de audio); las escenas reales de Nutrición y Cuerpo utilizan los presets específicos de profundidad, hojas modales, islas flotantes y animaciones nativas implementadas.
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-1101
+- Filas: tc-S19, tc-S20, tc-G01, tc-G02, tc-A09, tc-J10, tc-J11, tc-J14, tc-J15, tc-J18
+- Qué cambia: son reglas del marco base del prototipo (.tok.done, .tok.on, .split7 i.on, .story .st-week i.on, .wr-bars i.on::after) y funciones de render sintético estático en SVG del navegador (tcStillBind en el visor HTML); la aplicación real renderiza vídeo mediante ExoPlayer / Media3 con capas nativas en Canvas de Compose (TechniqueVideoPlayer, TechniqueOverlay).
+- Captura: n/a
+- Aprobada por: pendiente
