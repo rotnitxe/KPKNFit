@@ -10,21 +10,21 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 5 · transiciones
 
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
-| ce-S01 | `.ab.cur` (base) | box-shadow: rgba(242, 238, 230, 0.08) 0px 0px 0px 4px → preset aureola-foco | ce-cambiar |  | [ ] |
-| ce-S02 | `.ce-asi em` | box-shadow: rgb(27, 27, 29) 0px 0px 0px 2px → preset corte-hoja | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps |  | [ ] |
-| ce-S03 | `.ce-glass` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 30px, rgba(255, 255, 255, 0.094) 0px 1px inset → preset isla-vidrio | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps |  | [ ] |
+| ce-S01 | `.ab.cur` (base) | box-shadow: rgba(242, 238, 230, 0.08) 0px 0px 0px 4px → preset aureola-foco | ce-cambiar | DESV-401 | [~] |
+| ce-S02 | `.ce-asi em` | box-shadow: rgb(27, 27, 29) 0px 0px 0px 2px → preset corte-hoja | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps | SessionEditorFrameBottomBar.kt:422 | [x] |
+| ce-S03 | `.ce-glass` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 30px, rgba(255, 255, 255, 0.094) 0px 1px inset → preset isla-vidrio | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps | EditorGlass.kt:104 | [x] |
 | ce-S04 | `.ce-needle` | box-shadow: rgba(242, 238, 230, 0.333) 0px 0px 12px → preset resplandor-crema-12 | ce-duracion, ce-esfuerzo, ce-calentamiento, ce-calentamiento-libre, ce-distancia | screens/sessioneditor/components/CardioValueSheet.kt:391 | [x] |
 | ce-S05 | `.ce-tile.cur .ce-win` | box-shadow: inset 0 0 0 1px var(--ink) → preset interior-crema-1 | ce-anadir, ce-cambiar | screens/sessioneditor/components/CardioCatalogSheet.kt:135 | [x] |
 | ce-S06 | `.pl-flat` (base) | box-shadow: rgba(0, 0, 0, 0.667) 0px 8px 28px → preset flotante | ce-menu-eliminado | DESV-503 | [~] |
 | ce-S07 | `.pl-glass` (base) | box-shadow: rgba(0, 0, 0, 0.667) 0px 8px 28px, rgba(255, 255, 255, 0.08) 0px 1px inset → preset isla-vidrio | ce-ficha, ce-ficha-exterior | screens/sessioneditor/components/CardioFicha.kt:185 | [x] |
 | ce-S08 | `.pl-sheet` (base) | box-shadow: rgba(0, 0, 0, 0.8) 0px -14px 44px, rgba(255, 255, 255, 0.063) 0px 1px inset → preset hoja | ce-anadir, ce-cambiar, ce-duracion, ce-duracion-teclado, ce-duracion-error, ce-esfuerzo | DESV-505 | [~] |
-| ce-S09 | `.tok.on` (base) | box-shadow: rgb(244, 154, 110) 0px -2px inset → preset subrayado-musculo | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado |  | [ ] |
+| ce-S09 | `.tok.on` (base) | box-shadow: rgb(244, 154, 110) 0px -2px inset → preset subrayado-musculo | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado | DESV-401 | [~] |
 
 ## Vidrio, desenfoques y filtros (2)
 
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
-| ce-V01 | `.ce-glass` | backdrop-filter: blur(24px) saturate(1.7) → preset vidrio-editor | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps |  | [ ] |
+| ce-V01 | `.ce-glass` | backdrop-filter: blur(24px) saturate(1.7) → preset vidrio-editor | ce-anadir, ce-cambiar, ce-lista, ce-solo, ce-continuo, ce-continuo-gps | EditorGlass.kt:118 | [x] |
 | ce-V02 | `.pl-glass` (base) | backdrop-filter: blur(22px) saturate(1.5) → preset vidrio-isla | ce-ficha, ce-ficha-exterior | DESV-500 | [~] |
 
 ## Degradados y resplandores (4)
@@ -33,8 +33,8 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 5 · transiciones
 |---|---|---|---|---|---|
 | ce-G01 | `.ce-fi-hero` | background-image: radial-gradient(120% 90% at 50% 55%, rgb(27, 27, 29) 0%, rgb(10, 10, 10) 62%, rgb(0, 0, 0) 100%) → preset vineta | ce-ficha, ce-ficha-exterior | screens/sessioneditor/components/CardioFicha.kt:129 | [x] |
 | ce-G02 | `.ce-fi-hero::after` | background-image: linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0)) → preset velo-negro-1 | ce-ficha, ce-ficha-exterior | screens/sessioneditor/components/CardioFicha.kt:139 | [x] |
-| ce-G03 | `.split7 i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgb(207, 201, 191)) → preset relleno-crema | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado |  | [ ] |
-| ce-G04 | `.story .st-week i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgba(242, 238, 230, 0.8)) → preset relleno-crema-suave | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado |  | [ ] |
+| ce-G03 | `.split7 i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgb(207, 201, 191)) → preset relleno-crema | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado | DESV-401 | [~] |
+| ce-G04 | `.story .st-week i.on` (base) | background-image: linear-gradient(rgb(242, 238, 230), rgba(242, 238, 230, 0.8)) → preset relleno-crema-suave | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado | DESV-401 | [~] |
 
 ## Animaciones (@keyframes) (5)
 
@@ -44,7 +44,7 @@ Resumen: sombras 9 · vidrio, 2 · degradados 4 · animaciones 5 · transiciones
 | ce-A02 | `.ce-caret` | animation: ce-blink · 1s · steps(1) · retardo 0s · repite infinite · normal · none → preset pulso · curva parpadeo · dur 1000 | ce-duracion-teclado, ce-duracion-error | screens/sessioneditor/components/CardioValueSheet.kt:268 | [x] |
 | ce-A03 | `.ce-item.fresh` | animation: ce-fresh · 1.6s · ease-out · retardo 0s · repite 1 · normal · none → preset destello · curva salida · dur 1600 | ce-anadir, ce-cambiar, ce-lista, ce-continuo, ce-continuo-gps, ce-series | screens/sessioneditor/components/CardioEditorPrimitives.kt:791 · screens/sessioneditor/components/ExerciseEditorCard.kt:223 | [x] |
 | ce-A04 | `.ce-undo, .ce-toast` | animation: ce-in · 0.25s · cubic-bezier(0.2, 0.8, 0.2, 1) · retardo 0s · repite 1 · normal · none → preset entrada-sube · curva estandar · dur 240 | ce-menu-eliminado | DESV-502 | [~] |
-| ce-A05 | `.wr-bars i.on::after` (base) | animation: wrbar · 6s · linear · retardo 0s · repite 1 · normal · forwards → preset crece-x · curva lineal · dur 6000 | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado |  | [ ] |
+| ce-A05 | `.wr-bars i.on::after` (base) | animation: wrbar · 6s · linear · retardo 0s · repite 1 · normal · forwards → preset crece-x · curva lineal · dur 6000 | ce-continuo, ce-continuo-gps, ce-series, ce-intervalos, ce-duracion, ce-duracion-teclado | DESV-401 | [~] |
 
 ## Transiciones (5)
 

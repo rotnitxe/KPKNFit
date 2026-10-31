@@ -16,11 +16,11 @@ Resumen: sombras 31 · vidrio, 0 · degradados 3 · animaciones 22 · transicion
 | lv-S04 | `.lv-car-lens.fail` | box-shadow: rgba(255, 155, 146, 0.4) 0px 0px 0px 1px inset → preset interior-peligro-1 | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | `RepsCarousel.kt:357` | [x] |
 | lv-S05 | `.lv-car:focus-visible` | box-shadow: rgba(242, 238, 230, 0.333) 0px 0px 0px 2px → preset anillo-foco | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | `RepsCarousel.kt:305` | [x] |
 | lv-S06 | `.lv-card` | box-shadow: rgba(0, 0, 0, 0.8) 0px 14px 34px → preset aviso | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | `SetExecutionCard.kt:2258` | [x] |
-| lv-S07 | `.lv-chip` | box-shadow: rgba(255, 255, 255, 0.07) 0px 0px 0px 1px inset → preset borde-interior | lv-rom-editor |  | [ ] |
+| lv-S07 | `.lv-chip` | box-shadow: rgba(255, 255, 255, 0.07) 0px 0px 0px 1px inset → preset borde-interior | lv-rom-editor | LiveSetDetailSheet.kt:189 | [x] |
 | lv-S08 | `.lv-eff:focus-visible` | box-shadow: rgba(242, 238, 230, 0.333) 0px 0px 0px 2px → preset anillo-foco | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-escala | `LiveEffortRange.kt:156` | [x] |
 | lv-S09 | `.lv-ethumb` | box-shadow: rgba(255, 255, 255, 0.11) 0px 0px 0px 1px → preset borde-exterior | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-escala | `LiveEffortRange.kt:256` | [x] |
-| lv-S10 | `.lv-ghost` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 22px → preset caida-10-22 | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo |  | [ ] |
-| lv-S11 | `.lv-island` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 28px → preset flotante | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-escala |  | [ ] |
+| lv-S10 | `.lv-ghost` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 22px → preset caida-10-22 | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | DESV-651 | [~] |
+| lv-S11 | `.lv-island` | box-shadow: rgba(0, 0, 0, 0.667) 0px 10px 28px → preset flotante | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-escala | DESV-651 | [~] |
 | lv-S12 | `.lv-pill.isa::after` | box-shadow: rgb(255, 255, 255) 0px 0px 0px 1.5px inset → preset interior-blanco-1p5 | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | DESV-651 | [~] |
 | lv-S13 | `.lv-pill.isr` | box-shadow: rgba(244, 154, 110, 0.333) 0px 0px 0px 1px inset → preset interior-musculo-1 | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | DESV-651 | [~] |
 | lv-S14 | `.lv-pill.next` | box-shadow: rgba(255, 255, 255, 0.11) 0px 0px 0px 1.5px inset → preset borde-interior | lv-reps-rango, lv-reps-fijo, lv-reps-amrap, lv-reps-fallo, lv-esf-vivo, lv-esf-fallo | DESV-651 | [~] |

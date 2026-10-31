@@ -88,7 +88,7 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Aprobada por: pendiente (Flip5)
 
 ## DESV-401
-- Filas: ed-S09, ed-G03, ed-G04, ed-A18
+- Filas: ed-S09, ed-G03, ed-G04, ed-A18, ce-S01, ce-S09, ce-G03, ce-G04, ce-A05
 - Qué cambia: son reglas de la hoja base del lienzo (`.tok.on`, `.split7 i.on`, `.story .st-week i.on`, `.wr-bars i.on::after`) que el inventario asocia a las escenas del editor, pero ningún elemento de las escenas de A2 las usa (la barra de intervalos del cardio es del paquete `ce`). No hay nada que dibujar en la lista, las islas ni la barra.
 - Captura: paridad/capturas/DESV-401.png
 - Aprobada por: pendiente
@@ -344,6 +344,18 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 - Filas: aj-A04
 - Qué cambia: el lienzo sube la hoja 40 px con fundido (`aj-sheet`, 0,36 s `cubic-bezier(.2,.8,.2,1)`); `KpknSheet` solo sabe subirla desde el borde inferior con esa misma duración y curva (`AjSheetSpec`). Velo (0,22 s ease-out) y sombra sí coinciden. No hay hojas con salida en el lienzo: la salida usa la del cimiento (0,24 s `cae`).
 - Captura: no aplica (es movimiento; no se midió fotograma a fotograma)
+- Aprobada por: pendiente
+
+## DESV-800
+- Filas: cv-S15, cv-S16, cv-G05, cv-G06, cv-A27, cv-A28, cv-A29, cv-A30
+- Qué cambia: son reglas base del marco del prototipo (subrayado de músculos `.tok.on`, barra `.vbar .z`, selector `.split7 i.on`, historia semanal `.story .st-week i.on`, trazos de dibujo `.draw.go`, ráfaga `.burst.go`, barra de trabajo `.wr-bars i.on::after`) asociadas por el inventario a escenas de cardio pero que pertenecen al marco común del lienzo; ninguna escena de cardio en vivo las utiliza.
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-801
+- Filas: render de cardio en vivo con visual-gate.cjs / compare.cjs
+- Qué cambia: error medio en Robolectric frente al prototipo (24,2/255 en cv-trabajo y ~16 % píxeles sobre 28/255); la estructura, alturas de módulos, hero (232/176 dp), ondas de 18 crestas KpknWaveField, cinta de pulso y dock de 3 pestañas coinciden. Las diferencias provienen del suavizado de fuentes tipográficas Syne/Inter en Skia vs Chrome, barra de estado y marco externo del prototipo, y velo de software de Haze (DESV-100).
+- Captura: artifacts/cardio-pulido-render-v3/gate-review.png
 - Aprobada por: pendiente
 
 ## DESV-1402

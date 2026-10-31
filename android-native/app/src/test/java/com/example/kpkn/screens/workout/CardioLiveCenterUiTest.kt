@@ -19,6 +19,7 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.text.TextLayoutResult
@@ -75,7 +76,8 @@ class CardioLiveCenterUiTest {
         status = CardioExecutionStatus.RUNNING,
     )
 
-    private fun scene(details: CardioDetails, heightDp: Int = 880, font: Float = 1f, watchHr: Int? = null) {
+    private fun scene(details: CardioDetails, heightDp: Int = 880, font: Float = 1f, watchHr: Int? = null,
+        status: CardioExecutionStatus = CardioExecutionStatus.RUNNING) {
         rule.setContent {
             val density = LocalDensity.current.density
             CompositionLocalProvider(
@@ -92,7 +94,7 @@ class CardioLiveCenterUiTest {
                                 completedSet = null,
                                 accentColor = Color.White,
                                 modifier = Modifier.fillMaxSize(),
-                                executionState = running(details),
+                                executionState = running(details).copy(status = status),
                                 liveHeartRateBpm = watchHr,
                                 exerciseName = "Cinta",
                                 maxHeartRateBpm = 190,
@@ -116,7 +118,7 @@ class CardioLiveCenterUiTest {
         rule.onNodeWithTag("cardio-clock").assertIsDisplayed()
         val panel = rule.onNodeWithTag("cardio-clock").getBoundsInRoot()
         val label = rule.onNodeWithTag("cardio-clock-label").getBoundsInRoot()
-        assertTrue("el recuadro mide al menos 196 dp de alto: ${panel.bottom - panel.top}", (panel.bottom - panel.top).value >= 195.5f)
+        assertTrue("el hero conserva el alto del HTML: ${panel.bottom - panel.top}", (panel.bottom - panel.top).value >= 127.5f)
         assertTrue("el recuadro va a todo el ancho: ${panel.right - panel.left}", (panel.right - panel.left).value >= 320f)
         assertTrue("el tiempo cabe dentro del recuadro", label.left >= panel.left && label.right <= panel.right &&
             label.top >= panel.top && label.bottom <= panel.bottom)
@@ -135,7 +137,10 @@ class CardioLiveCenterUiTest {
     fun clockPanelFitsAt880() {
         scene(intervals, heightDp = 880, font = 1f)
         assertClockFits()
-        rule.onNodeWithTag("cardio-figure-run").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-figure-run").assertDoesNotExist()
+        rule.onNodeWithText("Ahora").assertIsDisplayed()
+        rule.onNodeWithText("Plan").assertIsDisplayed()
+        rule.onNodeWithText("Datos").assertIsDisplayed()
     }
 
     @Test
@@ -147,10 +152,31 @@ class CardioLiveCenterUiTest {
     @Test
     fun rowingShowsRowerAndNoSkipWithoutSteps() {
         scene(continuous)
-        rule.onNodeWithTag("cardio-figure-row").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-figure-row").assertDoesNotExist()
         // Cardio continuo: no hay pasos que saltar, así que el mando no se pinta apagado.
         assertTrue(rule.onAllNodes(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.TestTag, "cardio-skip"))
             .fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun readyShowsChecksAndCanOpenThePlan() {
+        scene(intervals, status = CardioExecutionStatus.READY)
+        rule.onNodeWithTag("cardio-ready").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-clock-label").assertTextContains("12:00")
+        rule.onNodeWithText("Antes de empezar").assertIsDisplayed()
+        rule.onNodeWithText("Sin reloj \u00b7 gu\u00eda por esfuerzo").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-start").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-ready-plan").performScrollTo().performClick()
+        rule.onNodeWithTag("cardio-plan").assertIsDisplayed()
+    }
+
+    @Test
+    fun dataPageWithoutHeartRateOpensManualEntry() {
+        scene(continuous)
+        rule.onNodeWithTag("cardio-page-2").performClick()
+        rule.onNodeWithTag("cardio-summary").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-data-add-hr").performScrollTo().performClick()
+        rule.onNodeWithTag("cardio-hr-sheet-title", useUnmergedTree = true).assertTextContains("Añadir pulso")
     }
 
     @Test
@@ -170,9 +196,9 @@ class CardioLiveCenterUiTest {
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
-        rule.onNodeWithTag("cardio-hr").assertTextContains("150")
-        rule.onNodeWithText("lpm · manual", useUnmergedTree = true).assertIsDisplayed()
-        rule.onNodeWithTag("cardio-hr-manual").assertTextContains("Manual · hace", substring = true)
+        rule.onNodeWithTag("cardio-hr", useUnmergedTree = true).assertTextContains("150")
+        rule.onNodeWithText("PULSO · MANUAL", useUnmergedTree = true).assertIsDisplayed()
+        rule.onNodeWithText("150 lpm · bajo Z4", useUnmergedTree = true).assertIsDisplayed()
         // Se puede actualizar: la ficha vuelve a abrir la hoja con el valor guardado.
         rule.onNodeWithTag("cardio-hr-manual").performClick()
         rule.waitForIdle()
@@ -183,8 +209,8 @@ class CardioLiveCenterUiTest {
     fun watchSourceIsNotAButton() {
         scene(intervals, watchHr = 140)
         rule.onNodeWithTag("cardio-hr").assertTextContains("140")
-        rule.onNodeWithText("Reloj").assertIsDisplayed()
-        rule.onNodeWithTag("cardio-hr-source").assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
+        rule.onNodeWithText("PULSO · RELOJ").assertIsDisplayed()
+        rule.onNodeWithText("PULSO · RELOJ").assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
         assertTrue(rule.onAllNodes(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.TestTag, "cardio-hr-add"))
             .fetchSemanticsNodes().isEmpty())
     }

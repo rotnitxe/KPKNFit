@@ -1,5 +1,11 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import com.example.kpkn.ui.design.motion.KpknMotion
+import com.example.kpkn.ui.design.depth.KpknGlassPreset
+import com.example.kpkn.ui.design.depth.kpknGlassPreset
+import dev.chrisbanes.haze.HazeState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -337,30 +343,37 @@ internal fun CardioDock(
     onUnlock: () -> Unit,
     onSkip: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
 ) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(32.dp)
+    val compact = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp < 800
     Column(
-        modifier.fillMaxWidth().clip(shape).background(Brush.linearGradient(listOf(Color(0xC2333333), Color(0xB3212121))))
-            .border(1.dp, Color(0x24FFFFFF), shape).padding(horizontal = 10.dp, vertical = 8.dp).testTag("cardio-dock"),
+        modifier.fillMaxWidth().kpknGlassPreset(hazeState, KpknGlassPreset.VidrioIsla, shape)
+            .border(1.dp, Color(0x1FFFFFFF), shape).padding(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 10.dp).testTag("cardio-dock"),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            listOf("Ahora", "Plan", "Resumen").forEachIndexed { i, name ->
-                Box(Modifier.size(width = 30.dp, height = 24.dp).clickable(role = Role.Tab) { onPage(i) }
-                    .semantics { contentDescription = name; selected = i == page }.testTag("cardio-page-$i"), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(width = if (i == page) 16.dp else 6.dp, height = 6.dp).clip(CircleShape)
-                        .background(if (i == page) CardioInk else Color(0x40FFFFFF)))
+        BoxWithConstraints(Modifier.fillMaxWidth().height(36.dp)) {
+            val indicatorX by animateDpAsState(maxWidth * ((page * 2 + 1) / 6f) - 11.dp,
+                animationSpec = tween(com.example.kpkn.ui.design.motion.KpknDuration(420).ms, easing = KpknMotion.Estandar), label = "cv-ind")
+            Row(Modifier.fillMaxSize()) {
+                listOf("Ahora", "Plan", "Datos").forEachIndexed { i, name ->
+                    Box(Modifier.weight(1f).fillMaxHeight().clickable(enabled = !locked, role = Role.Tab) { onPage(i) }
+                        .semantics { contentDescription = name; selected = i == page }.testTag("cardio-page-$i"), contentAlignment = Alignment.Center) {
+                        Text(name, style = CardioBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                            color = if (i == page) CardioInk else LiveSheetTokens.Faint)
+                    }
                 }
             }
+            Box(Modifier.align(Alignment.BottomStart).offset(x = indicatorX).size(22.dp, 3.dp).clip(CircleShape).background(CardioInk))
         }
         if (locked) {
             CardioHoldToUnlock(onUnlock, Modifier.padding(top = 4.dp))
         } else {
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                CardioCtrl("Bloquear", null, onLock, Modifier.weight(1f), lockGlyph = true, tag = "cardio-lock")
-                CardioCtrl(mainLabel, mainIcon, onMain, Modifier.weight(1.3f), main = true, enabled = mainEnabled, tag = "cardio-main")
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                CardioCtrl("Bloquear", null, onLock, Modifier.weight(1f), compact = compact, lockGlyph = true, tag = "cardio-lock")
+                CardioCtrl(mainLabel, mainIcon, onMain, Modifier.weight(1.5f), main = true, enabled = mainEnabled, compact = compact, tag = "cardio-main")
                 // Sin pasos que saltar (cardio continuo o aún sin empezar) el mando no se enseña: nada de botones apagados que no hacen nada.
-                if (onSkip != null) CardioCtrl("Saltar paso", KpknLineIcons.FrameForward, onSkip, Modifier.weight(1f), tag = "cardio-skip")
+                if (onSkip != null) CardioCtrl("Saltar paso", KpknLineIcons.FrameForward, onSkip, Modifier.weight(1f), compact = compact, tag = "cardio-skip")
             }
         }
     }
@@ -374,18 +387,20 @@ private fun CardioCtrl(
     modifier: Modifier,
     main: Boolean = false,
     enabled: Boolean = true,
+    compact: Boolean = false,
     lockGlyph: Boolean = false,
     tag: String,
 ) {
-    Column(
-        modifier.heightIn(min = 60.dp).clip(RoundedCornerShape(18.dp)).background(if (main) CardioInk else Color(0x0DFFFFFF))
-            .alpha(if (enabled) 1f else .4f).clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(vertical = 8.dp).testTag(tag),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-    ) {
-        val ink = if (main) Color(0xFF111111) else CardioInk
-        if (lockGlyph) CardioLockGlyph(ink, Modifier.size(20.dp)) else icon?.let { Icon(it, null, Modifier.size(if (main) 22.dp else 20.dp), tint = ink) }
-        Text(label, style = CardioBody.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold), color = ink, textAlign = TextAlign.Center)
+    val ink = if (main) Color(0xFF111111) else CardioInk
+    val control = modifier.height(if (compact) 52.dp else 56.dp).clip(RoundedCornerShape(20.dp))
+        .background(if (main) CardioInk else Color(0x0FFFFFFF)).alpha(if (enabled) 1f else .4f)
+        .clickable(enabled = enabled, role = Role.Button, onClick = onClick).testTag(tag)
+    if (main) Row(control, horizontalArrangement = Arrangement.spacedBy(9.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+        icon?.let { Icon(it, null, Modifier.size(20.dp), tint = ink) }
+        Text(label, style = CardioBody.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold), color = ink)
+    } else Column(control, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
+        if (lockGlyph) CardioLockGlyph(ink, Modifier.size(18.dp)) else icon?.let { Icon(it, null, Modifier.size(18.dp), tint = ink) }
+        Text(label, style = CardioBody.copy(fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold), color = ink, textAlign = TextAlign.Center)
     }
 }
 

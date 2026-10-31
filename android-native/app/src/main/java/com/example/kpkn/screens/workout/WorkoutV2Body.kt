@@ -348,6 +348,7 @@ internal fun WorkoutV2Body(
                 bodyHazeState = cardsHazeState,
                 sessionTimeRequest = sessionTimeRequest,
                 showExerciseContext = liveSessionView != LiveSessionView.LIST,
+                cardioLayout = liveSessionView != LiveSessionView.LIST && currentExercise?.let { cardioDetailsOrNull(it) != null } == true,
                 glassCapsule = liveSessionView == LiveSessionView.LIST,
             )
             }
@@ -391,6 +392,7 @@ internal fun WorkoutV2Body(
                             // 28 dp; el hueco del dock solo existe en las Tarjetas.
                             .padding(
                                 bottom = if (liveSessionView == LiveSessionView.LIST) imeBottom
+                                else if (currentExercise?.let(::cardioDetailsOrNull) != null) maxOf(navigationBottom, imeBottom)
                                 else stageBottomClearance + 12.dp,
                             ),
                     ) {

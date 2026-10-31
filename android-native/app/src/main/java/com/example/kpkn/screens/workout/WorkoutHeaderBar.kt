@@ -431,6 +431,7 @@ internal fun WorkoutHeaderBar(
     compactLayout: Boolean? = null,
     /** En la vista Lista el contexto del ejercicio va dentro de la lista (prototipo 02) y la cabecera queda solo con la isla. */
     showExerciseContext: Boolean = true,
+    cardioLayout: Boolean = false,
     /** En la vista Lista la cápsula es vidrio con desenfoque de [bodyHazeState] (las filas pasan por debajo); en Tarjetas, gris plano. */
     glassCapsule: Boolean = false,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
@@ -457,9 +458,9 @@ internal fun WorkoutHeaderBar(
                 .fillMaxWidth()
                 .onSizeChanged { headerContentHeightPx = it.height }
                 .windowInsetsPadding(statusBarInsets)
-                .padding(start = 10.dp, end = 10.dp, top = if (compactHeader) 0.dp else 10.dp, bottom = if (compactHeader) 0.dp else 7.dp)
+                .padding(start = if (cardioLayout) 12.dp else 10.dp, end = if (cardioLayout) 12.dp else 10.dp, top = if (cardioLayout || compactHeader) 0.dp else 10.dp, bottom = if (cardioLayout || compactHeader) 0.dp else 7.dp)
                 .testTag("live-session-header"),
-            verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
+            verticalArrangement = Arrangement.spacedBy(if (cardioLayout || compactHeader) 0.dp else 3.dp),
         ) {
             var openSessionTimeRequest by remember { mutableIntStateOf(0) }
             var clockTab by remember { mutableIntStateOf(0) }
@@ -471,7 +472,7 @@ internal fun WorkoutHeaderBar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = if (compactHeader) 2.dp else 8.dp, bottom = cs(6.dp))
+                    .padding(top = if (cardioLayout) 12.dp else if (compactHeader) 2.dp else 8.dp, bottom = if (cardioLayout) 10.dp else cs(6.dp))
                     // Tarjetas: píldora flotante de gris oscuro plano con sombra real de elevación (pedido del usuario, 29-oct), sin vidrio.
                     // Lista: la lista pasa POR DEBAJO de la isla, así que es vidrio con desenfoque real (Haze) sobre las filas
                     // (pedido del usuario, 29-oct, punto 19); sin fuente de desenfoque cae al velo oscuro del vidrio.
@@ -490,7 +491,7 @@ internal fun WorkoutHeaderBar(
                             .background(Color(0xFF1B1B1D))
                             .border(1.dp, Color(0x10FFFFFF), capsuleShape),
                     )
-                    .heightIn(min = if (compactHeader) 53.dp else 60.dp)
+                    .heightIn(min = if (cardioLayout) 56.dp else if (compactHeader) 53.dp else 60.dp)
                     .padding(start = 15.dp, end = 8.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
@@ -570,7 +571,8 @@ internal fun WorkoutHeaderBar(
                     onOpenTagList = onOpenTagList,
                     onToggleVoice = onToggleVoice,
                     voiceSessionEnabled = voiceSessionEnabled,
-                    modifier = Modifier.padding(start = 6.dp, top = if (compactHeader) 4.dp else 8.dp),
+                    modifier = Modifier.padding(start = 6.dp, top = if (cardioLayout) 0.dp else if (compactHeader) 4.dp else 8.dp),
+                    cardioLayout = cardioLayout,
                 )
             }
         }
@@ -596,6 +598,7 @@ internal fun WorkoutExerciseContextBlock(
     modifier: Modifier = Modifier,
     /** En la Lista cada ejercicio ya lleva su cabecera: el título grande repetía el primero y se quedaba fijo, así que no se pinta. */
     showTitle: Boolean = true,
+    cardioLayout: Boolean = false,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -605,11 +608,11 @@ internal fun WorkoutExerciseContextBlock(
             // Título del ejercicio más presente (pedido del usuario, 29-oct): 23 sp en lugar de 18.
             if (showTitle) Text(
                 exerciseName,
-                style = KpknType.title.copy(fontSize = 23.sp, lineHeight = 27.sp, letterSpacing = (-0.45).sp),
+                style = KpknType.title.copy(fontSize = if (cardioLayout) 26.sp else 23.sp, lineHeight = if (cardioLayout) 29.sp else 27.sp, letterSpacing = if (cardioLayout) (-0.6).sp else (-0.45).sp),
                 color = WizardColors.text,
                 modifier = Modifier.testTag("workout-header-exercise"),
             )
-            WorkoutHeaderContextLine(
+            if (!cardioLayout) WorkoutHeaderContextLine(
                 exerciseChips = workoutHeaderVisibleChips(exerciseName, exerciseChips),
                 ultraFastApplied = ultraFastApplied,
                 onUltraFastClick = onUltraFastClick,
