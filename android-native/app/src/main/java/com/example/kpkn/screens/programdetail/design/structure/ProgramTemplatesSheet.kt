@@ -311,7 +311,7 @@ internal fun ProgramTemplatesSheet(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 30.dp, start = 12.dp, end = 12.dp)
+                    .padding(bottom = 144.dp, start = 12.dp, end = 12.dp)
             ) {
                 AnimatedVisibility(
                     visible = toastText != null,

@@ -93,7 +93,7 @@ internal fun SplitReviewScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = 150.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = 214.dp),
         ) {
             Text(model.eyebrow.uppercase(java.util.Locale("es")), style = RpType.eye, color = WizardColors.textFaint, modifier = Modifier.padding(start = 2.dp, end = 2.dp, top = 6.dp, bottom = 8.dp))
             Text("Revisar cambios", style = RpType.h1, color = WizardColors.text, modifier = Modifier.padding(bottom = 8.dp).semantics { heading() })
@@ -155,7 +155,7 @@ internal fun SplitReviewScreen(
             leadingDescription = "Volver a la vista previa",
             onLeading = actions.onBack,
             tag = "split_aplicar_reparto",
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, bottom = 14.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(start = 12.dp, end = 12.dp, bottom = 78.dp),
         )
         overlay()
     }
