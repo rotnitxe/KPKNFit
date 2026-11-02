@@ -2430,6 +2430,8 @@ class ProgramDetailViewModelTest {
         val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
         val vm = vmFor(id)
         vm.attachSnapshotStore(store)
+        vm.setStructureSubTab(StructureSubTab.MACROCICLO)
+        vm.setMacrocycleLibrarySheetOpen(true)
         val template = simpleTemplate()
 
         val first = kotlinx.coroutines.CompletableDeferred<Pair<Boolean, String?>>()
@@ -2438,12 +2440,16 @@ class ProgramDetailViewModelTest {
         assertTrue(firstSuccess)
         assertNotNull(firstSnapshot)
         assertEquals(template.id, repository.getProgramById(id)?.structureTemplateId)
+        assertEquals(StructureSubTab.MACROCICLO, vm.uiState.value.structureSubTab)
+        assertEquals(true, vm.uiState.value.macrocycleLibrarySheetOpen)
 
         vm.undoProgramApply(firstSnapshot!!)
         withTimeout(10_000) {
             while (vm.uiState.value.snackbarMessage != "Copia previa restaurada.") delay(25)
         }
         assertEquals(original.name, repository.getProgramById(id)?.name)
+        assertEquals(StructureSubTab.MACROCICLO, vm.uiState.value.structureSubTab)
+        assertEquals(true, vm.uiState.value.macrocycleLibrarySheetOpen)
 
         val second = kotlinx.coroutines.CompletableDeferred<Pair<Boolean, String?>>()
         vm.applyProgramTemplate(template, overwrite = true) { success, snapshotId -> second.complete(success to snapshotId) }

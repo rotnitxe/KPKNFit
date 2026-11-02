@@ -1139,7 +1139,7 @@ class ProgramDetailViewModel(
                         addProgramCopy(applied.program)
                     } else {
                         updateProgram(applied.program)
-                        selectFirstRoadmapPosition(applied.program)
+                        selectFirstRoadmapPosition(applied.program, preserveCurrentTab = overwrite)
                     }
                     refreshProgramSnapshots(applied.program.id)
                     _uiState.update {
@@ -1221,7 +1221,7 @@ class ProgramDetailViewModel(
             result.fold(
                 onSuccess = { applied ->
                     if (overwrite) {
-                        selectFirstRoadmapPosition(applied)
+                        selectFirstRoadmapPosition(applied, preserveCurrentTab = true)
                         refreshProgramSnapshots(applied.id)
                     }
                     _uiState.update {
@@ -1287,10 +1287,10 @@ class ProgramDetailViewModel(
         }
         lastAppliedProgram = null
         lastAppliedBefore = null
-        restoreProgramSnapshot(snapshotId)
+        restoreProgramSnapshot(snapshotId, preserveCurrentTab = true)
     }
 
-    fun restoreProgramSnapshot(snapshotId: String) {
+    fun restoreProgramSnapshot(snapshotId: String, preserveCurrentTab: Boolean = false) {
         viewModelScope.launch {
             val current = program.value ?: return@launch
             val store = snapshotStore ?: return@launch
@@ -1305,7 +1305,7 @@ class ProgramDetailViewModel(
                 return@launch
             }
             updateProgram(snapshot)
-            selectFirstRoadmapPosition(snapshot)
+            selectFirstRoadmapPosition(snapshot, preserveCurrentTab = preserveCurrentTab)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
         }
     }
@@ -2692,7 +2692,7 @@ class ProgramDetailViewModel(
         )
     }
 
-    private fun selectFirstRoadmapPosition(program: Program) {
+    private fun selectFirstRoadmapPosition(program: Program, preserveCurrentTab: Boolean = false) {
         val firstBlock = ProgramDetailHelpers.buildRoadmapBlocks(program).firstOrNull()
         val firstWeek = firstBlock?.let { block ->
             ProgramDetailHelpers.getWeeksForBlock(block.id, listOf(block), program).firstOrNull()
@@ -2701,7 +2701,7 @@ class ProgramDetailViewModel(
             it.copy(
                 selectedBlockId = firstBlock?.id,
                 selectedWeekId = firstWeek?.id,
-                structureSubTab = StructureSubTab.SEMANA,
+                structureSubTab = if (preserveCurrentTab) it.structureSubTab else StructureSubTab.SEMANA,
             )
         }
     }
