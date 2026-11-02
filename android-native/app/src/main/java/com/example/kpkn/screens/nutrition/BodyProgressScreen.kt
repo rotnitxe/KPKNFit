@@ -385,6 +385,7 @@ fun BodyProgressScreen(
                 source = recordSource,
                 unit = weightUnit,
                 anchorKg = summary.current,
+                history = history,
                 now = LocalDateTime.now(zone),
                 onSave = {
                     val source = recordSource

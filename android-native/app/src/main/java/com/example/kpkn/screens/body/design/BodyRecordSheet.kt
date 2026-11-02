@@ -86,6 +86,8 @@ fun BodyRecordSheet(
     source: BodyHistoryRow?,
     unit: WizardMassUnit,
     anchorKg: Double?,
+    /** Historial con el que se resuelve la referencia temporal del aviso de cambio atípico. */
+    history: List<BodyHistoryRow> = emptyList(),
     now: LocalDateTime,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -116,6 +118,7 @@ fun BodyRecordSheet(
     val changed = source == null || draft != bodyRecordFrom(source)
     val canSave = !readOnly && draft.weightKg != null && !future && !invalidMeasures && changed
     val date = draft.dateTime.toLocalDate()
+    val weightWarning = bodyWeightWarning(draft.weightKg, history, source, draft.dateTime)
 
     KpknSheet(onDismissRequest = onDismiss, maxHeightFraction = 0.94f) {
         // Cuerpo desplazable: lo que no cabe se desliza; las acciones van fijas al pie de la hoja (fuera de este bloque).
@@ -202,7 +205,7 @@ fun BodyRecordSheet(
                             .background(Color(0x0DFFFFFF))
                             .clickable {
                                 val cur = draft.weightKg ?: anchorKg ?: 70.0
-                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, (kotlin.math.round((cur - 0.1) * 10) / 10.0).coerceIn(WizardWeightScale.MIN_KG, WizardWeightScale.MAX_KG)))
+                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, bodyFineAdjustedKg(cur, unit, -1)))
                             },
                         contentAlignment = Alignment.Center,
                     ) {
@@ -229,20 +232,20 @@ fun BodyRecordSheet(
                             .background(Color(0x0DFFFFFF))
                             .clickable {
                                 val cur = draft.weightKg ?: anchorKg ?: 70.0
-                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, (kotlin.math.round((cur + 0.1) * 10) / 10.0).coerceIn(WizardWeightScale.MIN_KG, WizardWeightScale.MAX_KG)))
+                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, bodyFineAdjustedKg(cur, unit, 1)))
                             },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text("+0,1", style = KpknType.caption.copy(fontWeight = FontWeight.SemiBold), color = WizardColors.text)
                     }
                 }
-                // nc-warnbox: aviso si hay variacion atipica (>2.5 kg en <= 7 dias respecto a la anterior)
-                if (anchorKg != null && draft.weightKg != null) {
-                    val diff = draft.weightKg!! - anchorKg
-                    if (kotlin.math.abs(diff) > 2.5) {
-                        val verb = if (diff > 0) "Sube" else "Baja"
-                        val diffStr = formatDecimalEs(kotlin.math.abs(diff), 1)
-                        Row(
+                // nc-warnbox: aviso si hay variación atípica (>2,5 kg en <= 7 días respecto a la referencia temporal correcta).
+                if (weightWarning != null) {
+                    val diff = weightWarning.deltaKg
+                    val verb = if (diff > 0) "Sube" else "Baja"
+                    val diffStr = formatDecimalEs(kotlin.math.abs(diff), 1)
+                    val referenceDay = bodyDayMonthEs(weightWarning.reference.dateTime.toLocalDate())
+                    Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
@@ -259,13 +262,12 @@ fun BodyRecordSheet(
                                 modifier = Modifier.size(18.dp).padding(top = 1.dp),
                             )
                             Text(
-                                text = "$verb $diffStr kg respecto a la última medición. Es bastante más de lo habitual. Si es correcto, guárdalo igualmente.",
+                                text = "$verb $diffStr kg respecto a tu medición del $referenceDay. Es bastante más de lo habitual. Si es correcto, guárdalo igualmente.",
                                 style = KpknType.caption,
                                 color = WizardColors.textMuted,
                                 lineHeight = 18.sp,
                             )
                         }
-                    }
                 }
                 WizardWeightRule(
                     unit = unit,

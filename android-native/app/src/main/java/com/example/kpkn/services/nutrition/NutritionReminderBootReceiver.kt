@@ -68,6 +68,11 @@ class NutritionReminderBootReceiver : BroadcastReceiver() {
             val manager = NutritionNotificationManager(context)
             manager.createChannels()
             manager.syncReminders(settings, now)
+            // Los recordatorios de suplementos viven en su propia alarma por elemento de la pila.
+            SupplementReminderManager(context).apply {
+                createChannels()
+                syncAll(settings.supplementPila, now)
+            }
         }
 
         /**

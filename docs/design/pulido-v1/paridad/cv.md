@@ -20,9 +20,9 @@ Resumen: sombras 16 · vidrio, 8 · degradados 6 · animaciones 30 · transicion
 | cv-S08 | `.cv-r.n .rd i` | box-shadow: 0 0 0 4px #000,0 0 14px var(--c) → preset resplandor-zona-14-capas | cv-cuenta, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona, cv-recuperacion |  CardioLiveCard.kt:616  |  [x]  |
 | cv-S09 | `.cv-sw .kn` | box-shadow: rgba(0, 0, 0, 0.533) 0px 4px 18px → preset caida-4-18 | cv-trans-in, cv-trans-out |  CardioLiveSpace.kt:697  |  [x]  |
 | cv-S10 | `.cv-tape .nd` | box-shadow: rgb(17, 17, 17) 0px 0px 0px 2px → preset corte-hoja | cv-trans-in, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona, cv-recuperacion |  CardioLiveSpace.kt:247  |  [x]  |
-| cv-S11 | `.cv-time` | text-shadow: rgb(0, 0, 0) 0px 2px 26px, rgba(0, 0, 0, 0.667) 0px 0px 6px → preset texto-2-26-capas | cv-listo, cv-listo-gps, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona |  CardioNowContent.kt:98  |  [x]  |
-| cv-S12 | `.cv-tsub` | text-shadow: rgb(0, 0, 0) 0px 1px 12px → preset texto-1-12 | cv-listo, cv-listo-gps, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona |  CardioNowContent.kt:92  |  [x]  |
-| cv-S13 | `.cv-wt .cap` | text-shadow: rgb(0, 0, 0) 0px 1px 8px → preset texto-1-12 | cv-ondas |  CardioNowContent.kt:89  |  [x]  |
+| cv-S11 | `.cv-time` | text-shadow: rgb(0, 0, 0) 0px 2px 26px, rgba(0, 0, 0, 0.667) 0px 0px 6px → preset texto-2-26-capas | cv-listo, cv-listo-gps, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona |  DESV-1507  | [~] |
+| cv-S12 | `.cv-tsub` | text-shadow: rgb(0, 0, 0) 0px 1px 12px → preset texto-1-12 | cv-listo, cv-listo-gps, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona |  CardioNowContent.kt:99  |  [x]  |
+| cv-S13 | `.cv-wt .cap` | text-shadow: rgb(0, 0, 0) 0px 1px 8px → preset texto-1-12 | cv-ondas |  DESV-1509  | [~] |
 | cv-S14 | `.pl-glass` (base) | box-shadow: rgba(0, 0, 0, 0.667) 0px 8px 28px, rgba(255, 255, 255, 0.08) 0px 1px inset → preset isla-vidrio | cv-flujo, cv-descanso, cv-trans-in, cv-listo, cv-listo-gps, cv-cuenta |  CardioLiveSpace.kt:351  |  [x]  |
 | cv-S15 | `.tok.on` (base) | box-shadow: rgb(244, 154, 110) 0px -2px inset → preset subrayado-musculo | cv-listo, cv-listo-gps, cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona |  DESV-800  |  [~]  |
 | cv-S16 | `.vbar .z` (base) | box-shadow: rgba(67, 209, 140, 0.333) 0px 0px 0px 1px inset → preset interior-hecho-1 | cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona, cv-recuperacion, cv-pulso-manual |  DESV-800  |  [~]  |
@@ -32,7 +32,7 @@ Resumen: sombras 16 · vidrio, 8 · degradados 6 · animaciones 30 · transicion
 | ID | Dónde (selector o archivo:línea) | Valor exacto | Escenas | Compose (archivo:línea) | Estado |
 |---|---|---|---|---|---|
 | cv-V01 | `.cv-cnt p` | backdrop-filter: blur(6px) → preset velo-suave | cv-cuenta |  CardioLiveSpace.kt:478  |  [x]  |
-| cv-V02 | `.cv-cue span` | backdrop-filter: blur(8px) → preset velo-desenfoque | cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona, cv-recuperacion, cv-gps |  CardioNowContent.kt:207  |  [x]  |
+| cv-V02 | `.cv-cue span` | backdrop-filter: blur(8px) → preset velo-desenfoque | cv-calentamiento, cv-trabajo, cv-sobre-zona, cv-bajo-zona, cv-recuperacion, cv-gps |  DESV-1508  | [~] |
 | cv-V03 | `.cv-halo` | filter: blur(20px) → preset halo-desenfoque | cv-listo, cv-listo-gps, cv-cuenta, cv-calentamiento, cv-trabajo, cv-sobre-zona |  DESV-101  |  [~]  |
 | cv-V04 | `.cv-link` | backdrop-filter: blur(12px) → preset velo-desenfoque | cv-trans-in, cv-listo, cv-listo-gps, cv-terminado, cv-terminado-vacio, cv-terminado-error |  CardioReadyPulido.kt:95  |  [x]  |
 | cv-V05 | `.cv-sheetwrap .pl-scrim` | backdrop-filter: blur(3px) → preset velo-suave | — |  CardioLiveCard.kt:507  |  [x]  |

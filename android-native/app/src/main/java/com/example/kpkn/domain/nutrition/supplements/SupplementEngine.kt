@@ -8,11 +8,27 @@ import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.models.SupplementPilaItem
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
-/** Una toma de suplemento ya registrada: hora `HH:mm` (vacía en los registros viejos sin hora) y dosis en la unidad del suplemento. */
-data class SupplementTake(val time: String, val dose: Double, val logId: String = "")
+/**
+ * Una toma de suplemento ya registrada: fecha y hora reales (vacías en los registros viejos sin hora), dosis en la unidad del
+ * suplemento y la identidad exacta del alimento dentro de su registro ([logId] + [foodIndex]). Dos tomas iguales del mismo
+ * suplemento se distinguen por su posición en el registro; nunca por la dosis.
+ */
+data class SupplementTake(
+    val time: String,
+    val dose: Double,
+    val logId: String = "",
+    val foodId: String = "",
+    val foodIndex: Int = -1,
+    val date: String = "",
+) {
+    /** Identidad estable de esta toma dentro de su registro. */
+    val key: String get() = "$logId#$foodIndex"
+}
 
 /**
  * Aviso de techo (no bloqueo): registrar [dose] llevaría el día a [projected], por encima de [cap]. «Registrar igual» siempre está disponible.
@@ -57,16 +73,34 @@ object SupplementEngine {
         for (log in logs) {
             if (log.date.take(10) != date.take(10) || log.status == NutritionStatus.PLANNED) continue
             val time = log.notes?.takeIf { it.startsWith(NOTE_PREFIX) }?.removePrefix(NOTE_PREFIX)?.take(5).orEmpty()
-            for (food in log.foods) {
+            log.foods.forEachIndexed { index, food ->
                 when {
                     food.id.startsWith(FOOD_ID_PREFIX) ->
-                        out.getOrPut(food.id.removePrefix(FOOD_ID_PREFIX)) { mutableListOf() }.add(SupplementTake(time, food.amount, log.id))
+                        out.getOrPut(food.id.removePrefix(FOOD_ID_PREFIX)) { mutableListOf() }
+                            .add(SupplementTake(time, food.amount, log.id, food.id, index, log.date.take(10)))
                     food.id == LEGACY_CREATINE_ID && food.creatineG > 0.0 ->
-                        out.getOrPut("creatina") { mutableListOf() }.add(SupplementTake(time, food.creatineG, log.id))
+                        out.getOrPut("creatina") { mutableListOf() }
+                            .add(SupplementTake(time, food.creatineG, log.id, food.id, index, log.date.take(10)))
                 }
             }
         }
         return out
+    }
+
+    /** Quita EXACTAMENTE la toma [take] de [log] y conserva los demás alimentos; null si el registro se queda sin alimentos. */
+    fun removeTake(log: NutritionLog, take: SupplementTake): NutritionLog? {
+        if (log.id != take.logId) return null
+        val byIndex = take.foodIndex.takeIf { it in log.foods.indices && log.foods[it].matchesTake(take) }
+        val index = byIndex ?: log.foods.indexOfFirst { it.matchesTake(take) }
+        if (index < 0) return null
+        val remaining = log.foods.toMutableList().apply { removeAt(index) }
+        return if (remaining.isEmpty()) null else log.copy(foods = remaining)
+    }
+
+    private fun LoggedFood.matchesTake(take: SupplementTake): Boolean {
+        if (id != take.foodId) return false
+        val effectiveAmount = if (id == LEGACY_CREATINE_ID) creatineG else amount
+        return abs(effectiveAmount - take.dose) < 1e-6
     }
 
     /** Cafeína de comidas y bebidas = total del día menos lo tomado como suplemento (nunca negativa). */
@@ -176,19 +210,25 @@ object SupplementEngine {
     fun stepDose(def: SupplementDef, current: Double, direction: Int): Double =
         (((current + def.step * direction) * 100).roundToLong() / 100.0).coerceIn(def.min, def.max)
 
-    /** Las opciones «Cuándo» del ajuste: minutos hacia atrás desde ahora (ahora, −30 min, −1 h) y «esta mañana» a las 08:30. */
-    fun whenOptions(nowHhmm: String): List<Pair<String, String>> {
-        val (h, m) = nowHhmm.split(":").let { it[0].toInt() to it[1].toInt() }
-        val total = h * 60 + m
-        fun label(min: Int): String {
-            val t = ((min % 1440) + 1440) % 1440
-            return "%02d:%02d".format(t / 60, t % 60)
-        }
+    /**
+     * Las opciones «Cuándo» del ajuste con su fecha y hora REALES: ahora, −30 min, −1 h y «esta mañana» a las 08:30. Si la
+     * resta cruza la medianoche, la opción conserva el día anterior (a las 00:10, «Hace 30 min» es ayer a las 23:40); nunca
+     * se recoloca la hora en el día equivocado. A las 00:10 «esta mañana» aún no ha llegado: se ofrece la de ayer con su
+     * etiqueta honesta.
+     */
+    fun whenOptions(now: LocalDateTime): List<SupplementWhenOption> {
+        val morning = if (now.toLocalTime() >= java.time.LocalTime.of(8, 30)) now.toLocalDate().atTime(8, 30) else now.toLocalDate().minusDays(1).atTime(8, 30)
         return listOf(
-            "Ahora" to nowHhmm,
-            "Hace 30 min" to label(total - 30),
-            "Hace 1 h" to label(total - 60),
-            "Esta mañana" to "08:30",
+            SupplementWhenOption("Ahora", now),
+            SupplementWhenOption("Hace 30 min", now.minusMinutes(30)),
+            SupplementWhenOption("Hace 1 h", now.minusMinutes(60)),
+            SupplementWhenOption(if (morning.toLocalDate() == now.toLocalDate()) "Esta mañana" else "Ayer por la mañana", morning),
         )
     }
+}
+
+/** Una opción de «Cuándo»: etiqueta visible, instante real y sus partes `yyyy-MM-dd` / `HH:mm` para el registro. */
+data class SupplementWhenOption(val label: String, val at: LocalDateTime) {
+    val date: String get() = at.toLocalDate().toString()
+    val time: String get() = at.format(DateTimeFormatter.ofPattern("HH:mm"))
 }

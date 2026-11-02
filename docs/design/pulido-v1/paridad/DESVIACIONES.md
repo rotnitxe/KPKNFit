@@ -354,9 +354,9 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 
 ## DESV-801
 - Filas: render de cardio en vivo con visual-gate.cjs / compare.cjs
-- Qué cambia: error medio en Robolectric frente al prototipo (24,2/255 en cv-trabajo y ~16 % píxeles sobre 28/255); la estructura, alturas de módulos, hero (232/176 dp), ondas de 18 crestas KpknWaveField, cinta de pulso y dock de 3 pestañas coinciden. Las diferencias provienen del suavizado de fuentes tipográficas Syne/Inter en Skia vs Chrome, barra de estado y marco externo del prototipo, y velo de software de Haze (DESV-100).
-- Captura: artifacts/cardio-pulido-render-v3/gate-review.png
-- Aprobada por: pendiente
+- Qué cambia (medición del 31-oct-2026, datos alineados y recorte simétrico de la barra de estado/gestos del sistema): `visual-gate` estricto a 360×839 da **81,02 %** de píxeles dentro de 28/255 y error medio **28,80/255** en `cv-trabajo`; **80,43 % / 29,21** en `cv-sobre-zona`; **84,12 % / 23,23** en `cv-continuo`; **83,76 % / 24,79** en `cv-listo`. No se alcanza el 98 % / 2,5. La estructura, las alturas de módulos, el hero, la cinta y el dock se parecen, pero la onda del hero, la tipografía Syne/Inter de Skia y el espacio de la cabecera no coinciden píxel a píxel. La cifra 24,2/255 que citaba este documento usaba otra fase de ondas y otros datos; no es comparable y no se usa como aprobación. La cifra 80,5 % anterior sí coincide con la nueva medición.
+- Captura: `artifacts/pulido-v1-fix-evidence/gate/gate-cv-trabajo.png` (lienzo | app | diferencias), `gate-cv-sobre-zona.png`, `gate-cv-continuo.png`, `gate-cv-listo.png`; métricas en los JSON del mismo directorio.
+- Aprobada por: pendiente (no se declara 1:1)
 
 ## DESV-1402
 - Filas: render completo de las 19 escenas con `compare.cjs`
@@ -379,5 +379,66 @@ Los documentos (este archivo, `CALIBRACION_*.md`, `capturas/`) se escriben SOLO 
 ## DESV-1101
 - Filas: tc-S19, tc-S20, tc-G01, tc-G02, tc-A09, tc-J10, tc-J11, tc-J14, tc-J15, tc-J18
 - Qué cambia: son reglas del marco base del prototipo (.tok.done, .tok.on, .split7 i.on, .story .st-week i.on, .wr-bars i.on::after) y funciones de render sintético estático en SVG del navegador (tcStillBind en el visor HTML); la aplicación real renderiza vídeo mediante ExoPlayer / Media3 con capas nativas en Canvas de Compose (TechniqueVideoPlayer, TechniqueOverlay).
+- Captura: n/a
+- Aprobada por: pendiente
+
+## DESV-1500
+- Filas: certificación global de `paridad/*.md` (todas)
+- Qué cambia: `tools/paridad-check.cjs --all` sigue devolviendo 825/825 «con evidencia», pero eso solo prueba que cada fila está marcada y que la línea citada existe. No prueba que el código de esa línea implemente el valor CSS ni que una captura real coincida. La compuerta visual estricta (98 % dentro de 28/255 y media <= 2,5/255) no se ha superado: la verificación del 1-nov-2026 dio 81,02 %/28,80 en cv-trabajo, 80,43 %/29,21 en cv-sobre-zona, 84,12 %/23,23 en cv-continuo y 83,76 %/24,79 en cv-listo. Una captura a densidad 1× (360×839, sin reescalado) dio 80,89 %/29,00, así que la diferencia no es de densidad ni de fuentes: los TTF de `res/font` tienen el mismo SHA-256 que los incrustados en el HTML y el probe de fuentes rasteriza Syne/Inter. La hoja sp-ajustar, ya pintada sobre la página de Nutrición y recortada igual, dio 88,22 %/18,64: la hoja queda más alta que el lienzo por el espaciado vertical del contenido. Las filas con `[~]` (161 en el inventario) siguen siendo desviaciones, no implementaciones 1:1.
+- Captura: artifacts/pulido-v1-fix-evidence/gate/ y artifacts/pulido-v1-audit-gate/ (ref, app a 1× y 3×, tríptico y JSON).
+- Aprobada por: pendiente (no se declara cierre ni 1:1)
+
+## DESV-1501
+- Filas: tc-S01, tc-G03, tc-G04, tc-T02, tc-S06
+- Qué cambia: las bandas del scrubber son verticales con degradado #8fb2ff → #6e8fd0, opacidad .62, rayas diagonales en parciales, anillo de 1.5 dp en la elegida, cabezal de 2 dp con resplandor horizontal degradado y punto con halo radial. La altura CSS es `10 + v·16 px`, donde `v` es una velocidad calculada por la escena; `TechniqueRepMark` no transporta ese valor, así que se dibujan 18 dp uniformes (la elegida no crece, igual que el CSS) en vez de la altura exacta de cada repetición. Las rayas se aproximan con líneas diagonales de 3 dp recortadas a la banda.
+- Captura: pendiente de comparación tc a 360×880.
+- Aprobada por: pendiente
+
+## DESV-1502
+- Filas: sp-notif, sp-alta, sp-edicion, sp-baja
+- Qué cambia: los recordatorios de suplementos se programan con AlarmManager (una alarma diaria por elemento, restaurada tras reinicio/actualización/zona) y un canal propio. Si el permiso POST_NOTIFICATIONS está denegado, la alarma queda programada pero la notificación no se muestra; la app avisa de ello. Si el sistema no acepta la alarma, se retira el recordatorio guardado y se informa. No se ha probado en el Z Flip en este turno.
+- Captura: pendiente (requiere teléfono autorizado).
+- Aprobada por: pendiente
+
+## DESV-1503
+- Filas: ct-lista, ct-plantillas, ct-metodos, ct-ficha-metodo
+- Qué cambia: la hoja del editor solo ofrece entradas que el llamador sabe aplicar (plantilla o protocolo). Las entradas nativas sin plantilla (`native:machine-muscle`, `native:bodyweight`, etc.) ya no se pueden seleccionar y no anuncian una copia falsa; tampoco aparecen en esa hoja. El catálogo general sigue mostrándolas en sus propias pantallas. Falta decidir si deben poder aplicarse desde el editor con otra ruta.
+- Captura: pendiente.
+- Aprobada por: pendiente
+
+## DESV-1504
+- Filas: nc-J01, nc-S04
+- Qué cambia: el microajuste fino avanza 0,1 de la unidad visible (kg o lb) y convierte a kg con 4 decimales; la cifra visible redondea a una décima de esa unidad. En lb, el kg guardado no es un múltiplo exacto de 0,1 kg (0,1 lb = 0,04535937 kg), que es lo correcto para que el botón anunciado avance lo que muestra.
+- Captura: pendiente.
+- Aprobada por: pendiente
+
+## DESV-1505
+
+- Filas: tc-J02, ct-lista, ct-plantillas, rp-en-curso, rp-aplicado, nc-S01
+- Qué cambia: la tanda de render de tc/ct/rp/nc produjo 90 PNG para inspección visual (scrubber, contenido del catálogo, reparto aplicado y hojas de Cuerpo). No es una comparación 1:1: los renders no comparten datos, recorte ni estado de animación con las referencias, y no se pasaron por la compuerta estricta. Sirven para verificar estados concretos, no para cerrar filas.
+- Captura: artifacts/pulido-v1-fix-evidence/render-others/
+- Aprobada por: pendiente
+
+## DESV-1506
+- Filas: tc-S09
+- Qué cambia: `.tc-ob` (punto de observación de 8 px con anillo #f7cf7330) no se dibuja: `TechniqueRepMark` no transporta los tiempos de observación que la escena usa para colocarlo. Se prefiere no inventarlos. Las marcas de repetición (bandas, parciales, fallidas y elegida) sí se dibujan.
+- Captura: pendiente de una escena con observaciones.
+- Aprobada por: pendiente
+
+## DESV-1507
+- Filas: cv-S11, cv-S12
+- Qué cambia: el lienzo aplica dos sombras de texto en `.cv-time` (0 2px 26px negro y 0 0 6px rgba(0,0,0,.667)). Compose solo admite una `Shadow` por `TextStyle`; se implementa la de 26 px, que define el halo, y se omite la de 6 px. `.cv-tsub` (0 1px 12px) sí se implementa. No es una igualdad matemática; la compuerta visual sigue por debajo del 98 %.
+- Captura: artifacts/pulido-v1-audit-gate/app-cv-trabajo-mdpi-360x839.png
+- Aprobada por: pendiente
+
+## DESV-1508
+- Filas: cv-V02
+- Qué cambia: `.cv-cue span` pide `backdrop-filter: blur(8px)`; los chips del hero usan fondo translúcido y borde, sin desenfoque real de la onda de detrás (el `HazeState` del dock es hermano y no fuente de sí mismo). En el Z Flip se ve como un vidrio oscuro, no como un desenfoque. El resto del chip (barra, colores, radios) coincide.
+- Captura: pendiente en Z Flip.
+- Aprobada por: pendiente
+
+## DESV-1509
+- Filas: cv-S13
+- Qué cambia: la escena `cv-ondas` con el rótulo `.cv-wt .cap` no existe como pantalla propia en la app: las ondas se usan en el hero de cardio y en las portadas de programa, sin ese rótulo sobre la onda. No se implementa un texto que la app no muestra; la fila queda como desviación de alcance, no como propiedad omitida en una pantalla existente.
 - Captura: n/a
 - Aprobada por: pendiente

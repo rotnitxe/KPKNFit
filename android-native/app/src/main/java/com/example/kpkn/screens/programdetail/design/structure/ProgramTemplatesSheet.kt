@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,7 +47,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -90,8 +90,6 @@ import com.example.kpkn.ui.design.depth.kpknGradient
 import com.example.kpkn.ui.design.depth.kpknInset
 import com.example.kpkn.ui.design.depth.kpknShadow
 import dev.chrisbanes.haze.HazeState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /** Una opción de la biblioteca: su clave, su nombre y la línea de debajo («4 sesiones por semana», «Ondas de 3 semanas…»). */
 internal data class ProgramLibraryItem(
@@ -143,19 +141,29 @@ internal fun ProgramTemplatesSheet(
     methods: List<ProgramLibraryItem>,
     replace: Boolean,
     onReplaceChange: (Boolean) -> Unit,
-    onPickTemplate: (key: String) -> Unit,
-    onPickMethod: (key: String) -> Unit,
+    onPickTemplate: (key: String, replace: Boolean, onResult: (success: Boolean, undoSnapshotId: String?) -> Unit) -> Unit,
+    onPickMethod: (key: String, replace: Boolean, onResult: (success: Boolean, undoSnapshotId: String?) -> Unit) -> Unit,
+    onUndo: (snapshotId: String) -> Unit = {},
     onDismiss: () -> Unit,
+    /**
+     * Entradas que el llamador sabe aplicar de verdad. Si se indica, el catálogo solo ofrece esas: una entrada
+     * seleccionable nunca termina en un callback que no la resuelve (p. ej. `native:machine-muscle` sin plantilla
+     * ni protocolo). Vacío = sin filtro (fixtures y llamadas antiguas).
+     */
+    applicableIds: Set<String> = emptySet(),
 ) {
-    val entries = remember {
+    val entries = remember(applicableIds) {
         libraryOrder(
             PersonalizedPlanCatalog.listedEntries()
-                .filter { it.publication == PublicationState.PUBLISHED && isLibraryFamilyEntry(it) }
+                .filter {
+                    it.publication == PublicationState.PUBLISHED &&
+                        isLibraryFamilyEntry(it) &&
+                        (applicableIds.isEmpty() || it.id in applicableIds)
+                }
         )
     }
 
     val hazeState = remember { HazeState() }
-    val scope = rememberCoroutineScope()
 
     var selectedEntry by remember { mutableStateOf<CatalogEntry?>(null) }
     var seg by rememberSaveable { mutableStateOf("todo") }
@@ -170,6 +178,27 @@ internal fun ProgramTemplatesSheet(
     var showConfirmDialog by rememberSaveable { mutableStateOf(false) }
     var applying by rememberSaveable { mutableStateOf(false) }
     var toastText by remember { mutableStateOf<String?>(null) }
+    var toastIsError by remember { mutableStateOf(false) }
+    var toastUndoSnapshot by remember { mutableStateOf<String?>(null) }
+
+    // Aplica EXACTAMENTE la entrada confirmada y solo anuncia el resultado cuando el motor responde. No hay
+    // retardo artificial: el usuario puede volver atrás sin que se aplique otra entrada ni se muestre un éxito falso.
+    fun applyConfirmed(confirmed: CatalogEntry, replacing: Boolean) {
+        if (applying) return
+        applying = true
+        val result: (Boolean, String?) -> Unit = { success, snapshotId ->
+            applying = false
+            toastIsError = !success
+            if (success) {
+                toastText = if (replacing) "Plan sustituido" else "Copia creada"
+                toastUndoSnapshot = snapshotId
+            } else {
+                toastText = "No se pudo aplicar. Revisa el aviso e inténtalo de nuevo."
+                toastUndoSnapshot = null
+            }
+        }
+        if (confirmed.template != null) onPickTemplate(confirmed.id, replacing, result) else onPickMethod(confirmed.id, replacing, result)
+    }
 
     // Sincroniza replace con el llamador
     LaunchedEffect(applyMode) {
@@ -179,7 +208,7 @@ internal fun ProgramTemplatesSheet(
     // Sheet container (.ct-sheet: ct-S08, ct-A02)
     val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
-    KpknSheet(onDismissRequest = onDismiss) {
+    KpknSheet(onDismissRequest = { if (!applying) onDismiss() }) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,7 +259,7 @@ internal fun ProgramTemplatesSheet(
                             openTray = null
                         },
                         onSelectEntry = { selectedEntry = it },
-                        onClose = onDismiss,
+                        onClose = { if (!applying) onDismiss() },
                         hazeState = hazeState
                     )
                 } else {
@@ -239,23 +268,12 @@ internal fun ProgramTemplatesSheet(
                         applyMode = applyMode,
                         onApplyModeChange = { applyMode = it },
                         applying = applying,
-                        onBack = { selectedEntry = null },
+                        onBack = { if (!applying) selectedEntry = null },
                         onApply = {
                             if (applyMode == "replace") {
                                 showConfirmDialog = true
                             } else {
-                                applying = true
-                                scope.launch {
-                                    /* ct-J01: setTimeout 900ms para aplicar */
-                                    delay(900)
-                                    applying = false
-                                    toastText = "Copia creada"
-                                    if (entry.template != null) {
-                                        onPickTemplate(entry.id)
-                                    } else {
-                                        onPickMethod(entry.id)
-                                    }
-                                }
+                                applyConfirmed(entry, replacing = false)
                             }
                         },
                         hazeState = hazeState
@@ -272,27 +290,18 @@ internal fun ProgramTemplatesSheet(
                     .background(Color(0x66FFFFFF), CircleShape)
             )
 
-            // Confirm Dialog (.ct-dlg: ct-S03)
-            if (showConfirmDialog && selectedEntry != null) {
+            // Confirm Dialog (.ct-dlg: ct-S03). La entrada se captura para no depender de una selección viva.
+            val pendingConfirm = selectedEntry
+            if (showConfirmDialog && pendingConfirm != null) {
                 CatalogConfirmDialog(
-                    programName = selectedEntry!!.displayName,
-                    targetName = selectedEntry!!.shortName,
-                    weeksCount = selectedEntry!!.durationWeeks ?: 6,
+                    programName = pendingConfirm.displayName,
+                    targetName = pendingConfirm.shortName,
+                    weeksCount = catalogWeeks(pendingConfirm) ?: 0,
                     onConfirm = {
+                        // La entrada es la del diálogo: aunque la selección cambie o el usuario vuelva atrás,
+                        // se aplica esta y solo esta.
                         showConfirmDialog = false
-                        applying = true
-                        scope.launch {
-                            /* ct-J01: aplicando con delay 900ms */
-                            delay(900)
-                            applying = false
-                            toastText = "Plan sustituido"
-                            val e = selectedEntry!!
-                            if (e.template != null) {
-                                onPickTemplate(e.id)
-                            } else {
-                                onPickMethod(e.id)
-                            }
-                        }
+                        applyConfirmed(pendingConfirm, replacing = true)
                     },
                     onDismiss = { showConfirmDialog = false }
                 )
@@ -312,13 +321,82 @@ internal fun ProgramTemplatesSheet(
                 ) {
                     CatalogToast(
                         text = toastText ?: "",
-                        onUndo = { toastText = null }
+                        error = toastIsError,
+                        onUndo = toastUndoSnapshot?.let { snapshotId ->
+                            {
+                                onUndo(snapshotId)
+                                toastText = null
+                                toastUndoSnapshot = null
+                            }
+                        },
+                        onDismiss = { toastText = null; toastUndoSnapshot = null },
                     )
                 }
             }
         }
     }
 }
+
+/** Una fase publicada de la receta: su nombre y el tramo real de semanas. */
+internal data class CatalogPhase(val label: String, val weeks: String)
+
+internal fun catalogRecipe(entry: CatalogEntry) = entry.recipe ?: entry.template?.recipe
+
+internal fun catalogWeeks(entry: CatalogEntry): Int? =
+    catalogRecipe(entry)?.weeks?.size ?: entry.durationWeeks
+
+internal fun catalogDurationText(entry: CatalogEntry): String =
+    catalogWeeks(entry)?.let { "$it semanas" } ?: "duración sin publicar"
+
+/** Días por semana solo si el catálogo declara uno exacto; un rango (1..6) no se convierte en un número inventado. */
+internal fun catalogExactDays(entry: CatalogEntry): Int? =
+    catalogRecipe(entry)?.daysPerWeek?.takeIf { it > 0 }
+        ?: entry.supportedFrequencies.last.takeIf { entry.supportedFrequencies.first == entry.supportedFrequencies.last }
+
+internal fun catalogPhaseList(entry: CatalogEntry): List<CatalogPhase> {
+    val recipe = catalogRecipe(entry) ?: return emptyList()
+    return recipe.weeks.groupBy { it.blockIndex }.toSortedMap().values.map { weeks ->
+        val first = weeks.minOf { it.weekNumber }
+        val last = weeks.maxOf { it.weekNumber }
+        val name = weeks.first().blockName.takeIf { it.isNotBlank() } ?: weeks.first().blockGoal.label
+        CatalogPhase(name, if (first == last) "Semana $first" else "Semanas $first–$last")
+    }
+}
+
+internal fun catalogDeloadWeeks(entry: CatalogEntry): Set<Int> =
+    catalogRecipe(entry)?.weeks.orEmpty()
+        .filter { it.kind == com.example.kpkn.data.models.WeekExecutionKind.DELOAD || it.blockGoal == com.example.kpkn.data.models.BlockGoal.DELOAD }
+        .map { it.weekNumber }
+        .toSet()
+
+internal fun catalogLevelLabels(entry: CatalogEntry): List<String> = entry.levels.sortedBy { it.ordinal }.map {
+    when (it) {
+        CatalogLevel.BEGINNER -> "Principiante"
+        CatalogLevel.INTERMEDIATE -> "Intermedio"
+        CatalogLevel.ADVANCED -> "Avanzado"
+    }
+}
+
+internal fun catalogGoalLabels(entry: CatalogEntry): List<String> = entry.references.map {
+    when (it) {
+        TrainingReference.POWERLIFTING -> "Fuerza"
+        TrainingReference.HYPERTROPHY -> "Músculo"
+        TrainingReference.POWERBUILDING -> "Fuerza y músculo"
+    }
+}.distinct()
+
+internal fun catalogEquipmentLabels(entry: CatalogEntry): List<String> = entry.requiredEquipment.mapNotNull { code ->
+    when (code) {
+        "general_gym" -> "Gimnasio completo"
+        "machine" -> "Máquinas"
+        "bodyweight" -> "Peso corporal"
+        "support" -> "Con apoyo"
+        "pull_up_bar" -> "Barra de dominadas"
+        "dumbbells" -> "Mancuernas"
+        "barbell" -> "Barra"
+        else -> null
+    }
+}.distinct()
 
 /** Portada de líneas helper para CatalogEntry */
 internal fun catalogCoverSpecFor(entry: CatalogEntry): LineCoverSpec {
@@ -340,7 +418,7 @@ internal fun catalogCoverSpecFor(entry: CatalogEntry): LineCoverSpec {
         seed = (hash % 100) + 4,
         weekLoads = listOf(0.62f, 0.7f, 0.8f, 0.66f, 0.74f, 0.38f),
         currentWeek = 2,
-        weeks = entry.durationWeeks ?: 6
+        weeks = catalogWeeks(entry) ?: 1
     )
 }
 
@@ -886,7 +964,7 @@ private fun FeaturedPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${entry.durationWeeks ?: 6} semanas",
+                text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${catalogDurationText(entry)}",
                 style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp),
                 color = CtMuted
             )
@@ -940,7 +1018,7 @@ private fun CatalogRow(entry: CatalogEntry, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(3.dp))
             Text(
-                text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${entry.durationWeeks ?: 6} semanas",
+                text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${catalogDurationText(entry)}",
                 style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp),
                 color = CtMuted
             )
@@ -1091,7 +1169,7 @@ private fun CatalogDetail(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${entry.durationWeeks ?: 6} semanas",
+                        text = "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last} días · ${catalogDurationText(entry)}",
                         style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp),
                         color = CtMuted
                     )
@@ -1150,21 +1228,35 @@ private fun CatalogDetail(
                         .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(22.dp))
                         .padding(16.dp)
                 ) {
-                    // Estadísticas (.ct-stats)
+                    // Estadísticas (.ct-stats): solo lo que el catálogo y la receta declaran; sin dato, «—».
+                    val weeks = catalogWeeks(entry)
+                    val exactDays = catalogExactDays(entry)
+                    val phases = catalogPhaseList(entry)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        StatItem(value = "${entry.durationWeeks ?: 6}", label = "Semanas")
-                        StatItem(value = "${entry.supportedFrequencies.last}", label = "Días/sem")
-                        StatItem(value = "${if ((entry.durationWeeks ?: 6) > 8) 4 else 1}", label = "Fases")
-                        StatItem(value = "${(entry.durationWeeks ?: 6) * entry.supportedFrequencies.last}", label = "Sesiones")
+                        StatItem(value = weeks?.toString() ?: "—", label = "Semanas")
+                        StatItem(
+                            value = exactDays?.toString()
+                                ?: "${entry.supportedFrequencies.first}–${entry.supportedFrequencies.last}",
+                            label = "Días/sem",
+                        )
+                        StatItem(value = if (phases.isEmpty()) "—" else phases.size.toString(), label = "Fases")
+                        StatItem(
+                            value = if (weeks != null && exactDays != null) "${weeks * exactDays}" else "—",
+                            label = "Sesiones",
+                        )
                     }
 
-                    // Cuadrícula visual de sesiones (.ct-grid: ct-S05, ct-S06)
+                    // Cuadrícula visual de sesiones (.ct-grid: ct-S05, ct-S06).
                     Spacer(modifier = Modifier.height(16.dp))
-                    CatalogSessionGrid(weeksCount = entry.durationWeeks ?: 6, daysCount = entry.supportedFrequencies.last)
+                    CatalogSessionGrid(
+                        weeksCount = weeks,
+                        daysCount = exactDays,
+                        deloadWeeks = catalogDeloadWeeks(entry),
+                    )
 
-                    // Fases / Bloques (.ct-bl)
+                    // Fases / Bloques (.ct-bl): nombres y tramos de la receta; sin receta no se inventan.
                     Spacer(modifier = Modifier.height(14.dp))
-                    CatalogPhaseList(weeksCount = entry.durationWeeks ?: 6)
+                    CatalogPhaseList(phases = phases)
                 }
 
                 // Sección Para quién (.ct-chips)
@@ -1179,9 +1271,12 @@ private fun CatalogDetail(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    CatalogChipItem(label = "Intermedio")
-                    CatalogChipItem(label = "Fuerza y músculo")
-                    CatalogChipItem(label = "Gimnasio completo")
+                    val chips = (catalogLevelLabels(entry) + catalogGoalLabels(entry) + catalogEquipmentLabels(entry)).distinct()
+                    if (chips.isEmpty()) {
+                        CatalogChipItem(label = "Sin datos publicados")
+                    } else {
+                        chips.forEach { CatalogChipItem(label = it) }
+                    }
                 }
 
                 // Sección Aplicar (.ct-opts, .ct-strip: ct-S09, ct-S10)
@@ -1238,14 +1333,20 @@ private fun CatalogDetail(
                             color = CtInk
                         )
                         Text(
-                            text = "${entry.durationWeeks ?: 6} semanas",
+                            text = catalogWeeks(entry)?.let { "$it semanas" } ?: "Duración sin publicar",
                             style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp),
                             color = CtFaint
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     // Strip preview (.ct-strip: ct-S09, ct-S10)
-                    CatalogStripPreview(weeksCount = entry.durationWeeks ?: 6, isReplace = applyMode == "replace")
+                    catalogWeeks(entry)?.let { weeks ->
+                        CatalogStripPreview(
+                            weeksCount = weeks,
+                            isReplace = applyMode == "replace",
+                            deloadWeeks = catalogDeloadWeeks(entry),
+                        )
+                    }
                 }
 
                 // Atribución (.ct-attr)
@@ -1349,32 +1450,30 @@ private fun StatItem(value: String, label: String) {
     }
 }
 
-/** Cuadrícula de sesiones con píldoras (.ct-grid: ct-S05, ct-S06) */
+/** Cuadrícula de sesiones con píldoras (.ct-grid: ct-S05, ct-S06). Sin semanas/días publicados, no se inventa. */
 @Composable
-private fun CatalogSessionGrid(weeksCount: Int, daysCount: Int) {
+private fun CatalogSessionGrid(weeksCount: Int?, daysCount: Int?, deloadWeeks: Set<Int>) {
+    if (weeksCount == null || daysCount == null || weeksCount <= 0 || daysCount <= 0) {
+        Text(
+            text = "La estructura de semanas no está publicada para este plan.",
+            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp),
+            color = CtFaint,
+        )
+        return
+    }
     val pillShape = RoundedCornerShape(3.dp)
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         for (row in 0 until daysCount) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                 for (col in 0 until weeksCount) {
-                    val isDeload = col == weeksCount - 1
-                    val isEmpty = row >= 4
+                    val isDeload = (col + 1) in deloadWeeks
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(11.dp)
-                            .background(
-                                when {
-                                    isEmpty -> Color.Transparent
-                                    isDeload -> Color.Transparent
-                                    else -> CtMus
-                                },
-                                pillShape
-                            )
+                            .background(if (isDeload) Color.Transparent else CtMus, pillShape)
                             /* ct-S05: .ct-grid i.dl -> preset interior-zona-1p5 */
-                            .then(if (isDeload && !isEmpty) Modifier.kpknInset(KpknShadow.InteriorZona1p5, pillShape, color = CtDel) else Modifier)
-                            /* ct-S06: .ct-grid i.em -> preset interior-blanco-1-tenue */
-                            .then(if (isEmpty) Modifier.kpknInset(KpknShadow.InteriorBlanco1Tenue, pillShape) else Modifier)
+                            .then(if (isDeload) Modifier.kpknInset(KpknShadow.InteriorZona1p5, pillShape, color = CtDel) else Modifier)
                     )
                 }
             }
@@ -1382,9 +1481,9 @@ private fun CatalogSessionGrid(weeksCount: Int, daysCount: Int) {
     }
 }
 
-/** Tira visual de semanas (.ct-strip: ct-S09, ct-S10) */
+/** Tira visual de semanas (.ct-strip: ct-S09, ct-S10): descargas reales, sin celdas vacías inventadas. */
 @Composable
-private fun CatalogStripPreview(weeksCount: Int, isReplace: Boolean) {
+private fun CatalogStripPreview(weeksCount: Int, isReplace: Boolean, deloadWeeks: Set<Int>) {
     val stripShape = RoundedCornerShape(4.dp)
     Row(
         modifier = Modifier
@@ -1393,41 +1492,43 @@ private fun CatalogStripPreview(weeksCount: Int, isReplace: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         for (i in 0 until weeksCount) {
-            val isDeload = i == weeksCount - 1
-            val isEmpty = isReplace && i >= weeksCount - 2
+            val isDeload = (i + 1) in deloadWeeks
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
-                    .background(
-                        when {
-                            isEmpty -> Color.Transparent
-                            isDeload -> Color.Transparent
-                            else -> CtMus
-                        },
-                        stripShape
-                    )
+                    .background(if (isDeload) Color.Transparent else if (isReplace) CtMus.copy(alpha = 0.82f) else CtMus, stripShape)
                     /* ct-S09: .ct-strip i.dl -> preset interior-zona-1p5 */
-                    .then(if (isDeload && !isEmpty) Modifier.kpknInset(KpknShadow.InteriorZona1p5, stripShape, color = CtDel) else Modifier)
-                    /* ct-S10: .ct-strip i.em -> preset borde-interior-fuerte */
-                    .then(if (isEmpty) Modifier.kpknInset(KpknShadow.BordeInteriorFuerte, stripShape) else Modifier)
+                    .then(if (isDeload) Modifier.kpknInset(KpknShadow.InteriorZona1p5, stripShape, color = CtDel) else Modifier)
             )
         }
     }
 }
 
 @Composable
-private fun CatalogPhaseList(weeksCount: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(modifier = Modifier.size(10.dp).background(CtMus, RoundedCornerShape(3.dp)))
-            Text(text = "Fase principal", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.5.sp), color = CtInk)
+private fun CatalogPhaseList(phases: List<CatalogPhase>) {
+    if (phases.isEmpty()) {
+        Text(
+            text = "Las fases no están publicadas para este plan.",
+            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp),
+            color = CtFaint,
+        )
+        return
+    }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        phases.forEach { phase ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.size(10.dp).background(CtMus, RoundedCornerShape(3.dp)))
+                    Text(text = phase.label, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.5.sp), color = CtInk)
+                }
+                Text(text = phase.weeks, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp), color = CtFaint)
+            }
         }
-        Text(text = "Semanas 1–$weeksCount", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.5.sp), color = CtFaint)
     }
 }
 
@@ -1539,7 +1640,11 @@ private fun CatalogConfirmDialog(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Sus semanas se reemplazan por las $weeksCount de «$targetName».",
+                text = if (weeksCount > 0) {
+                    "Sus semanas se reemplazan por las $weeksCount de «$targetName»."
+                } else {
+                    "Sus semanas se reemplazan por la estructura publicada de «$targetName»."
+                },
                 style = TextStyle(fontFamily = WizardFonts.body, fontSize = 14.sp, lineHeight = 21.sp),
                 color = CtMuted
             )
@@ -1625,7 +1730,7 @@ private fun CatalogSpinner() {
 
 /** Toast de confirmación (.ct-toast: ct-A04) */
 @Composable
-private fun CatalogToast(text: String, onUndo: () -> Unit) {
+private fun CatalogToast(text: String, error: Boolean, onUndo: (() -> Unit)?, onDismiss: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1640,10 +1745,15 @@ private fun CatalogToast(text: String, onUndo: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .background(Color(0x3343D18C), CircleShape),
+                    .background(if (error) Color(0x33E05252) else Color(0x3343D18C), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = KpknLineIcons.Check, contentDescription = null, tint = CtOk, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = if (error) KpknLineIcons.Alert else KpknLineIcons.Check,
+                    contentDescription = null,
+                    tint = if (error) CtDanger else CtOk,
+                    modifier = Modifier.size(18.dp),
+                )
             }
             Text(
                 text = text,
@@ -1652,15 +1762,18 @@ private fun CatalogToast(text: String, onUndo: () -> Unit) {
             )
         }
         Text(
-            text = "Deshacer",
+            text = if (onUndo != null) "Deshacer" else "Cerrar",
             style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 13.5.sp),
-            color = CtMus,
-            modifier = Modifier.clickable(onClick = onUndo)
+            color = if (onUndo != null) CtMus else CtMuted,
+            modifier = Modifier.clickable(onClick = { if (onUndo != null) onUndo() else onDismiss() })
         )
     }
 }
 
-/** Contenido retrocompatible para llamadas antiguas */
+/**
+ * Contenido de la biblioteca sin la hoja: las plantillas y los métodos que recibe, el interruptor de sustitución y
+ * las filas que llaman a su callback. Se usa en pruebas y en llamadas que montan el contenido dentro de otra hoja.
+ */
 @Composable
 internal fun ProgramTemplatesContent(
     templates: List<ProgramLibraryItem>,
@@ -1671,7 +1784,72 @@ internal fun ProgramTemplatesContent(
     onPickMethod: (key: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(text = "Catálogo de plantillas y métodos", color = CtInk)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            text = "Aplicar plantilla o método",
+            style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 20.sp),
+            color = CtInk,
+        )
+        Text("PLANTILLAS", style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, letterSpacing = 1.4.sp), color = CtFaint)
+        templates.forEach { item ->
+            CatalogLibraryRow(item) { onPickTemplate(item.key) }
+        }
+        Text("MÉTODOS DE PROGRESIÓN", style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, letterSpacing = 1.4.sp), color = CtFaint)
+        methods.forEach { item ->
+            CatalogLibraryRow(item) { onPickMethod(item.key) }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) { onReplaceChange(!replace) }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Sustituir semanas con sesiones",
+                style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
+                color = CtInk,
+            )
+            Box(
+                modifier = Modifier
+                    .size(width = 42.dp, height = 24.dp)
+                    .background(if (replace) CtMus else Color(0x1FFFFFFF), RoundedCornerShape(12.dp))
+                    .padding(3.dp),
+                contentAlignment = if (replace) Alignment.CenterEnd else Alignment.CenterStart,
+            ) {
+                Box(Modifier.size(18.dp).background(CtInk, CircleShape))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CatalogLibraryRow(item: ProgramLibraryItem, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(CtModuleBg)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(item.name, style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.5.sp), color = CtInk)
+            item.detail?.let { detail ->
+                Text(detail, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = CtMuted)
+            }
+        }
+        Icon(KpknLineIcons.ChevronRight, null, tint = CtFaint, modifier = Modifier.size(18.dp))
     }
 }

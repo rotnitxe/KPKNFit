@@ -180,9 +180,13 @@ class SuplementosRenderSheetTest {
 
     @Composable
     private fun SheetFrame(height: Boolean = false, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-        Box(Modifier.fillMaxWidth().height(880.dp), contentAlignment = Alignment.BottomCenter) {
+        Box(Modifier.fillMaxWidth().height(880.dp)) {
+            // La hoja del lienzo se abre sobre la página de Nutrición (no sobre negro): así la captura comparte
+            // fondo, datos y recorte con la referencia y la compuerta mide la hoja, no el marco de la prueba.
+            Page(SupplementSamples.rows(), 95.0, 95.0)
+            Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.55f)))
             Column(
-                Modifier.fillMaxWidth().then(if (height) Modifier.height(760.dp) else Modifier).background(Color(0xFF1B1B1D), sheetShape)
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().then(if (height) Modifier.height(760.dp) else Modifier).background(Color(0xFF1B1B1D), sheetShape)
                     .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 34.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 content = content,
@@ -200,10 +204,10 @@ class SuplementosRenderSheetTest {
     @Test fun techo100() = capture("techo", 1f, true) { Page(SupplementSamples.rows(techo = true), 495.0, 395.0) }
 
     @Test fun ajustar100() = capture("ajustar", 1f, true) {
-        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 195.0, "12:55", { _, _ -> }, {}) }
+        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 95.0, java.time.LocalDateTime.of(2026, 10, 29, 12, 55), { _, _ -> }, {}) }
     }
     @Test fun ajustar130() = capture("ajustar", 1.3f, false) {
-        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 195.0, "12:55", { _, _ -> }, {}) }
+        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 95.0, java.time.LocalDateTime.of(2026, 10, 29, 12, 55), { _, _ -> }, {}) }
     }
     @Test fun aviso100() = capture("aviso", 1f, true) {
         SheetFrame { SupplementCeilingContent(caffeine, 100.0, 495.0, {}, {}) }

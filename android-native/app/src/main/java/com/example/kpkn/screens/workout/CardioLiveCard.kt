@@ -420,7 +420,8 @@ internal fun CardioLiveCard(
                             avgHr = avgHr, avgHrNote = if (watchAvgHr == null && manualAvgHr != null) "lpm · manual" else null,
                             kcal = kcal, zoneSeconds = measures.zoneSeconds,
                             inZonePercent = measures.stepSamples.sum().takeIf { it > 0 }?.let { measures.stepInZone.sum() * 100 / it },
-                            hasHeartRate = hr != null, onAddManualHr = { showManualHrSheet = true },
+                            hasHeartRate = watchHr != null, hasManualHeartRate = hrIsManual,
+                            onAddManualHr = { showManualHrSheet = true },
                         )
                         else -> CardioNowPage(
                             step = step,
@@ -634,7 +635,7 @@ private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds
 /** Página Datos: se muestran mediciones reales; sin pulso se ofrece registrarlo. */
 @Composable
 private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, distanceNote: String, avgHr: Int?, kcal: Double?, zoneSeconds: IntArray,
-    inZonePercent: Int?, avgHrNote: String? = null, hasHeartRate: Boolean, onAddManualHr: () -> Unit) {
+    inZonePercent: Int?, avgHrNote: String? = null, hasHeartRate: Boolean, hasManualHeartRate: Boolean = false, onAddManualHr: () -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 166.dp).testTag("cardio-summary")) {
         Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Datos", style = CSyne.copy(fontSize = 18.sp, lineHeight = 22.sp), color = WizardColors.text)
@@ -679,9 +680,16 @@ private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, dist
         } else {
             Column(Modifier.fillMaxWidth().padding(top = 8.dp).border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(20.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Sin pulso no hay tiempo en zona. Añade tu pulso a mano para medir cuánto del trabajo cae en tu zona objetivo.",
-                    style = CBody.copy(fontSize = 12.5.sp, lineHeight = 18.sp), color = LiveSheetTokens.Muted)
-                Text("+ Añadir pulso", Modifier.heightIn(min = 48.dp).clip(CircleShape).border(1.dp, Color(0x3DF2EEE6), CircleShape)
+                Text(
+                    if (hasManualHeartRate) {
+                        "Tu pulso manual es una lectura puntual: el tiempo en zona solo se mide con el reloj. Esta lectura no se reparte por el entrenamiento."
+                    } else {
+                        "Sin pulso del reloj no se mide tiempo en zona. Puedes anotar una lectura manual como dato puntual, pero no cuenta como tiempo en zona."
+                    },
+                    style = CBody.copy(fontSize = 12.5.sp, lineHeight = 18.sp), color = LiveSheetTokens.Muted,
+                )
+                Text(if (hasManualHeartRate) "Actualizar pulso manual" else "+ Añadir pulso a mano",
+                    Modifier.heightIn(min = 48.dp).clip(CircleShape).border(1.dp, Color(0x3DF2EEE6), CircleShape)
                     .clickable(role = Role.Button, onClick = onAddManualHr).padding(horizontal = 15.dp, vertical = 13.dp).testTag("cardio-data-add-hr"),
                     style = CBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
             }

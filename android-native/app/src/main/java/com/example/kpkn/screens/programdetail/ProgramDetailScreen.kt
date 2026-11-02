@@ -1436,14 +1436,15 @@ private fun TrainingPanel(
                 blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
                 onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
                 onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
-                onApplyProgramTemplateOverwrite = { template, overwrite ->
-                    viewModel.applyProgramTemplate(template, overwrite)
+                onApplyProgramTemplateOverwrite = { template, overwrite, onResult ->
+                    viewModel.applyProgramTemplate(template, overwrite, onResult)
                 },
-                onApplyProtocol = { protocol, overwrite ->
-                    viewModel.applyProtocolOverwrite(protocol, overwrite)
+                onApplyProtocol = { protocol, overwrite, onResult ->
+                    viewModel.applyProtocolOverwrite(protocol, overwrite, onResult)
                 },
                 programSnapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
                 onRestoreProgramSnapshot = { viewModel.restoreProgramSnapshot(it) },
+                onUndoProgramApply = { viewModel.undoProgramApply(it) },
                 onRefreshProgramSnapshots = { viewModel.refreshProgramSnapshots() },
                 showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
                 onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },

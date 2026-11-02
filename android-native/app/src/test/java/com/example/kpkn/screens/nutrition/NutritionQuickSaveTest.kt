@@ -203,6 +203,18 @@ class NutritionQuickSaveTest {
     }
 
     @Test
+    fun `el techo se recomprueba en el viewmodel antes de guardar`() {
+        vm.takeSupplement("cafeina", 300.0, "08:00")
+        awaitState("la primera toma se guarda") { repository.nutritionLogs.value.isNotEmpty() }
+
+        var projected: Double? = null
+        vm.takeSupplement("cafeina", 200.0, "09:00") { projected = it }
+
+        assertEquals(500.0, projected ?: -1.0, 1e-9)
+        assertEquals("no se guarda la toma que pasa el techo sin confirmación", 1, repository.nutritionLogs.value.size)
+    }
+
+    @Test
     fun `reintentar addLog con el mismo id tras un fallo deja una sola fila`() {
         val log = NutritionLog(
             id = "retry-creatine",

@@ -18,8 +18,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.PlatformTextStyle
@@ -58,6 +60,11 @@ internal fun CardioNowContent(
     onAddManualHr: () -> Unit, elapsed: Int, kcal: Double?, estimatedKm: Double?,
 ) {
     val compact = LocalConfiguration.current.screenHeightDp < 800
+    // Sombras de texto del lienzo (`.cv-time` 0 2px 26px negro; `.cv-tsub` 0 1px 12px negro). Compose solo admite
+    // una por estilo: se usa la de mayor radio, que es la que define el halo sobre las ondas.
+    val density = LocalDensity.current
+    val clockShadow = Shadow(Color.Black, Offset(0f, with(density) { 2.dp.toPx() }), with(density) { 26.dp.toPx() })
+    val subShadow = Shadow(Color.Black, Offset(0f, with(density) { 1.dp.toPx() }), with(density) { 12.dp.toPx() })
     val zone = step?.zone ?: 2
     val color = cardioZoneColor(ringZone)
     val wave = when {
@@ -89,14 +96,14 @@ internal fun CardioNowContent(
                     leftKm != null -> "km restantes · de ${cardioDecimal(targetDistanceKm!!, 2)} km"
                     steps.size > 1 -> "restante del paso · quedan ${cardioClock(totalLeft)}"
                     else -> "tiempo restante"
-                }, style = CvBody.copy(fontSize = 12.5.sp, fontWeight = FontWeight.Medium), color = LiveSheetTokens.Muted)
+                }, style = CvBody.copy(fontSize = 12.5.sp, fontWeight = FontWeight.Medium, shadow = subShadow), color = LiveSheetTokens.Muted)
                 val font = when {
                     label.length >= 6 -> if (compact) 46 else 54
                     label.length >= 5 -> if (compact) 56 else 68
                     else -> if (compact) 64 else 80
                 }
                 Text(label, Modifier.testTag("cardio-clock-label"), style = CvNumber.copy(fontSize = font.sp,
-                    lineHeight = font.sp, letterSpacing = (-2.5).sp), color = CvInk, maxLines = 1, softWrap = false)
+                    lineHeight = font.sp, letterSpacing = (-2.5).sp, shadow = clockShadow), color = CvInk, maxLines = 1, softWrap = false)
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.padding(bottom = if (compact) 8.dp else 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     step?.cue?.takeIf(String::isNotBlank)?.let { cue -> CvCue(cue) }
@@ -135,22 +142,43 @@ internal fun CardioNowContent(
             Spacer(Modifier.height(12.dp))
             if (hr != null && maxHr != null) CardioTape((1..5).map { "Z$it" }, CardioZoneColors, setOf(zone - 1), cardioNeedlePercent(hr, maxHr))
             else CardioTape((1..10).map(Int::toString), List(10) { CvInk }, setOf((plannedRpe - 2).coerceAtLeast(0), plannedRpe - 1), null)
+            // Con pulso pero sin FC máxima no hay zona calculada: no se pinta un check ni «En tu zona» falsos.
+            val zoneUnavailable = hr != null && shownZone == null
+            val zoneUnavailableNoMax = zoneUnavailable && maxHr == null
+            val zoneUnavailableManual = zoneUnavailable && maxHr != null && hrIsManual
             Row(Modifier.fillMaxWidth().padding(top = if (hr == null) 9.dp else 11.dp).heightIn(min = 20.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(if (hr == null) KpknLineIcons.Info else if (shownZone == null || shownZone == zone) KpknLineIcons.Check else if (shownZone > zone) KpknLineIcons.ChevronDown else KpknLineIcons.ChevronUp,
-                    null, Modifier.size(16.dp), tint = CvInk)
+                Icon(
+                    when {
+                        hr == null || zoneUnavailable -> KpknLineIcons.Info
+                        shownZone == zone -> KpknLineIcons.Check
+                        shownZone != null && shownZone > zone -> KpknLineIcons.ChevronDown
+                        else -> KpknLineIcons.ChevronUp
+                    },
+                    null, Modifier.size(16.dp),
+                    tint = if (zoneUnavailable) LiveSheetTokens.Muted else CvInk,
+                )
                 Text(when {
                     hr == null -> "Sin datos de pulso"
+                    zoneUnavailableNoMax -> "Zona sin calcular · falta tu FC máxima"
+                    zoneUnavailableManual -> "Pulso manual · sin zona en vivo"
                     shownZone != null && shownZone > zone -> "Baja el ritmo"
                     shownZone != null && shownZone < zone -> "Sube el ritmo"
                     step?.block?.type == CardioBlockType.RECOVER -> "Recuperando bien"
                     else -> "En tu zona"
-                }, Modifier.weight(1f), style = CvBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
-                    color = shownZone?.takeIf { it != zone }?.let(::cardioZoneColor) ?: CvInk)
+                }, Modifier.weight(1f).then(if (zoneUnavailable) Modifier.testTag("cardio-zone-unavailable") else Modifier),
+                    style = CvBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                    color = when {
+                        zoneUnavailable -> LiveSheetTokens.Muted
+                        shownZone != null && shownZone != zone -> cardioZoneColor(shownZone)
+                        else -> CvInk
+                    })
                 if (hr == null) Text("+ Añadir pulso", Modifier.heightIn(min = 48.dp).clip(CircleShape).border(1.dp, Color(0x3DF2EEE6), CircleShape)
                     .clickable(role = Role.Button, onClick = onAddManualHr).padding(horizontal = 15.dp, vertical = 13.dp).testTag("cardio-hr-add"),
                     style = CvBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = CvInk)
                 else Text(when {
+                    zoneUnavailableNoMax -> "anota tu edad o FC máxima para medir la zona"
+                    zoneUnavailableManual -> "usa el reloj para zona y tiempo en zona"
                     shownZone != null && shownZone > zone -> "$hr lpm \u00b7 sobre Z$zone"
                     shownZone != null && shownZone < zone -> "$hr lpm \u00b7 bajo Z$zone"
                     hrIsManual -> "anotado hace ${cardioClock(manualHrAgeSeconds)}"

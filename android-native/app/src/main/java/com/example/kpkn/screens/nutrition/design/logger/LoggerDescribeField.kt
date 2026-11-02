@@ -387,17 +387,17 @@ private fun LoggerStopButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val ringTransition = rememberInfiniteTransition(label = "ncRing")
-    // nc-A10: animation nc-ring 15s linear forwards
-    val progress by ringTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(15000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "ncRingProgress",
-    )
+    // nc-A10: animation nc-ring 15s linear forwards. Una sola pasada que CRECE con el dictado; al parar (o
+    // reiniciar) vuelve a cero, y no se repite sola. El tope funcional del dictado sigue siendo 25 s (LoggerDictation).
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(listening) {
+        if (!listening) {
+            progress.snapTo(0f)
+        } else {
+            progress.snapTo(0f)
+            progress.animateTo(1f, tween(15_000, easing = LinearEasing))
+        }
+    }
     Box(
         modifier = modifier
             .size(48.dp)
@@ -423,7 +423,7 @@ private fun LoggerStopButton(
             drawArc(
                 color = LoggerColors.ink,
                 startAngle = 0f,
-                sweepAngle = 360f * (1f - progress.coerceIn(0f, 1f)),
+                sweepAngle = 360f * progress.value.coerceIn(0f, 1f),
                 useCenter = false,
                 style = Stroke(width = strokeW, cap = StrokeCap.Round),
             )

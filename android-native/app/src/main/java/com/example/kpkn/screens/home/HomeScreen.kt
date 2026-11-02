@@ -73,6 +73,9 @@ import com.example.kpkn.screens.monthsummary.summaryKey
 import com.example.kpkn.screens.stories.MonthShareSheet
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.components.KpknModalTracker
+import com.example.kpkn.ui.components.KpknSnackbar
+import com.example.kpkn.ui.components.SnackbarType
+import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -105,7 +108,11 @@ import com.example.kpkn.screens.home.design.homeEntrance
 import com.example.kpkn.screens.home.design.HomeBodyToday
 import com.example.kpkn.screens.home.design.HomeNutritionToday
 import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementDef
 import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
+import com.example.kpkn.domain.nutrition.supplements.SupplementTake
+import com.example.kpkn.screens.nutrition.design.SupplementCeilingSheet
+import com.example.kpkn.screens.nutrition.design.SupplementDetailSheet
 import com.example.kpkn.screens.nutrition.design.SupplementRowState
 import com.example.kpkn.screens.nutrition.design.SupplementQuickSheet
 import com.example.kpkn.screens.home.design.HomeNotice
@@ -341,6 +348,20 @@ fun HomeScreen(
     }
     // f-home-done: cada comida guardada desde Inicio hace rebotar el anillo de «Nutrición de hoy».
     var nutritionSavedPulse by remember { mutableIntStateOf(0) }
+    // Avisos de la toma rápida de suplementos: éxito con «Deshacer» solo tras guardar, o el fallo real.
+    val supplementSnackbar = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.supplementEvents.collect { event ->
+            val result = supplementSnackbar.showKpknSnackbar(
+                message = event.message,
+                type = if (event.isError) SnackbarType.DANGER else SnackbarType.SUCCESS,
+                duration = if (event.isError) SnackbarDuration.Long else SnackbarDuration.Short,
+                actionLabel = event.logId?.let { "Deshacer" },
+            )
+            val logId = event.logId
+            if (result == SnackbarResult.ActionPerformed && logId != null) viewModel.undoSupplementFromHome(logId)
+        }
+    }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
             HomeWithProgram(
                 viewModel = viewModel,
@@ -383,6 +404,15 @@ fun HomeScreen(
                      .fillMaxSize()
                      .navigationBarsPadding(),
              )
+
+        // Aviso de la toma de suplemento, sobre la barra inferior y sin tapar la isla de registro.
+        SnackbarHost(
+            hostState = supplementSnackbar,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 96.dp, start = 12.dp, end = 12.dp),
+        ) { data -> KpknSnackbar(data) }
 
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
         KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
@@ -457,6 +487,9 @@ private fun HomeFoodLoggerHost(
     )
 }
 
+/** La confirmación de techo pendiente al registrar desde Inicio: misma hoja y regla que en Nutrición. */
+private data class HomeSupplementCeiling(val def: SupplementDef, val dose: Double, val projected: Double)
+
 @Composable
 private fun HomeWithProgram(
     viewModel: HomeViewModel,
@@ -522,6 +555,23 @@ private fun HomeWithProgram(
         }
     }
     var showSupplementQuickSheet by remember { mutableStateOf(false) }
+    var homeSupplementDetailId by remember { mutableStateOf<String?>(null) }
+    var homeSupplementCeiling by remember { mutableStateOf<HomeSupplementCeiling?>(null) }
+    fun homeHhmmNow(): String = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+    val homeNowHhmm = homeHhmmNow()
+    fun homeTodayNow(): String = LocalDate.now().toString()
+    // La MISMA comprobación de techo que Nutrición: si se pasa, se pide confirmación antes de guardar.
+    fun requestHomeTake(def: SupplementDef, dose: Double) {
+        val today = homeTodayNow()
+        val dayNow = SupplementEngine.knownCeilingTotal(def, todayMeals, today)
+        val ceiling = SupplementEngine.ceiling(def, dayNow, dose)
+        if (ceiling?.exceeded == true) {
+            showSupplementQuickSheet = false
+            homeSupplementCeiling = HomeSupplementCeiling(def, dose, ceiling.projected)
+        } else {
+            viewModel.takeSupplementFromHome(def.id, dose, today, homeHhmmNow())
+        }
+    }
     // Resumen del mes anterior del programa activo (P8c-1): el aviso «Tu <mes> está listo» en los días 1 a 10 y su pantalla completa.
     // El informe se calcula fuera del hilo principal. Visto (al abrirlo) o descartado, el mes no vuelve a salir (SharedPreferences).
     val context = LocalContext.current
@@ -671,7 +721,8 @@ private fun HomeWithProgram(
                         savedPulse = nutritionSavedPulse,
                         supplementRows = supplementRows,
                         caffeineTotalMg = todayMeals.filter { it.status != com.example.kpkn.data.models.NutritionStatus.PLANNED }.sumOf { log -> log.foods.sumOf { it.caffeineMg } },
-                        onTakeSupplement = { id, dose -> viewModel.takeSupplementFromHome(id, dose) },
+                        onTakeSupplement = { id, dose -> supplementRows.firstOrNull { it.def.id == id }?.def?.let { requestHomeTake(it, dose) } },
+                        onHoldSupplement = { id -> homeSupplementDetailId = id },
                         onOpenSupplementsQuick = { showSupplementQuickSheet = true },
                         modifier = Modifier.onGloballyPositioned { onNutritionAnchorPositionChanged(it.positionInRoot().y) },
                     )
@@ -700,6 +751,58 @@ private fun HomeWithProgram(
             Box(Modifier.homeGapAbove(HomeGroupGap).homeEntrance(8)) {
                 HomeWikiLabSection(onNavigate = onNavigate)
             }
+        }
+    }
+    // Registro rápido desde Inicio (sp-rapida): la hoja que antes se abría sin montarse. Toma, detalle y techo
+    // comparten motor y reglas con Nutrición; «Añadir» lleva a la pila completa.
+    if (showSupplementQuickSheet) {
+        val caffeineTotal = todayMeals.sumOf { log -> log.foods.sumOf { it.caffeineMg } }
+        SupplementQuickSheet(
+            rows = supplementRows,
+            caffeineTotalMg = caffeineTotal,
+            foodCaffeineMg = SupplementEngine.foodCaffeineMg(caffeineTotal, supplementTakes["cafeina"].orEmpty()),
+            nowId = supplementRows.firstOrNull { row ->
+                !SupplementEngine.isDone(row.item, row.takes) && SupplementEngine.isDueNow(row.item.reminder, homeNowHhmm)
+            }?.def?.id,
+            onTake = { id, dose -> supplementRows.firstOrNull { it.def.id == id }?.def?.let { requestHomeTake(it, dose) } },
+            onHold = { id -> showSupplementQuickSheet = false; homeSupplementDetailId = id },
+            onAdd = { showSupplementQuickSheet = false; onOpenNutritionOverlay() },
+            onOpenDetail = { id -> showSupplementQuickSheet = false; homeSupplementDetailId = id },
+            onDismiss = { showSupplementQuickSheet = false },
+        )
+    }
+    homeSupplementCeiling?.let { pending ->
+        SupplementCeilingSheet(
+            def = pending.def,
+            dose = pending.dose,
+            projected = pending.projected,
+            onRegisterAnyway = {
+                viewModel.takeSupplementFromHome(pending.def.id, pending.dose, homeTodayNow(), homeHhmmNow(), allowOverCeiling = true)
+                homeSupplementCeiling = null
+            },
+            onDismiss = { homeSupplementCeiling = null },
+        )
+    }
+    homeSupplementDetailId?.let { id ->
+        val item = homeSettings.supplementPila.firstOrNull { it.id == id }
+        val def = item?.let(SupplementCatalog::resolve) ?: SupplementCatalog.byId(id)
+        if (def != null) {
+            val takes = supplementTakes[def.id].orEmpty()
+            SupplementDetailSheet(
+                def = def,
+                item = item ?: com.example.kpkn.data.models.SupplementPilaItem(def.id, def.defaultDose, moment = def.defaultMoment),
+                todayTakes = takes,
+                foodCaffeineMg = if (def.id == "cafeina") {
+                    SupplementEngine.foodCaffeineMg(todayMeals.sumOf { log -> log.foods.sumOf { it.caffeineMg } }, takes)
+                } else 0.0,
+                onTakeHabitual = { requestHomeTake(def, item?.dose ?: def.defaultDose) },
+                onDeleteTake = { take: SupplementTake -> viewModel.deleteSupplementTake(take) },
+                onEditConfig = { homeSupplementDetailId = null; onOpenNutritionOverlay() },
+                openCreatine = { homeSupplementDetailId = null; onOpenNutritionOverlay() },
+                onDismiss = { homeSupplementDetailId = null },
+            )
+        } else {
+            homeSupplementDetailId = null
         }
     }
     // Resumen del mes en pantalla completa (P8c-1) y, encima, su hoja de compartir (P8c-2).

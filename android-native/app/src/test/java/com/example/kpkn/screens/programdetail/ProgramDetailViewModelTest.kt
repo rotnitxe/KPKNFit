@@ -2398,6 +2398,75 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
+    fun applyProgramTemplate_copy_without_sessions_creates_a_distinct_draft_and_keeps_the_original() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = Program(id = id, name = "Vacío", structure = ProgramStructure.SIMPLE)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val vm = vmFor(id)
+        val result = kotlinx.coroutines.CompletableDeferred<Pair<Boolean, String?>>()
+
+        vm.applyProgramTemplate(simpleTemplate(), overwrite = false) { success, snapshotId -> result.complete(success to snapshotId) }
+
+        val (success, snapshotId) = withTimeout(20_000) { result.await() }
+        assertTrue(success)
+        assertNull("una copia no necesita deshacer", snapshotId)
+        assertEquals(2, repository.programs.value.size)
+        val untouched = repository.getProgramById(id)!!
+        assertEquals("Vacío", untouched.name)
+        assertTrue("el original sigue sin macrociclos", untouched.macrocycles.isEmpty())
+        assertNotNull(vm.uiState.value.pendingOpenProgramId)
+        assertNotEquals(id, vm.uiState.value.pendingOpenProgramId)
+    }
+
+    @Test
+    fun undo_after_replacing_restores_the_previous_program_only_while_it_has_not_changed() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = makeSimpleProgram(id)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        val vm = vmFor(id)
+        vm.attachSnapshotStore(store)
+        val template = simpleTemplate()
+
+        val first = kotlinx.coroutines.CompletableDeferred<Pair<Boolean, String?>>()
+        vm.applyProgramTemplate(template, overwrite = true) { success, snapshotId -> first.complete(success to snapshotId) }
+        val (firstSuccess, firstSnapshot) = withTimeout(20_000) { first.await() }
+        assertTrue(firstSuccess)
+        assertNotNull(firstSnapshot)
+        assertEquals(template.id, repository.getProgramById(id)?.structureTemplateId)
+
+        vm.undoProgramApply(firstSnapshot!!)
+        withTimeout(10_000) {
+            while (vm.uiState.value.snackbarMessage != "Copia previa restaurada.") delay(25)
+        }
+        assertEquals(original.name, repository.getProgramById(id)?.name)
+
+        val second = kotlinx.coroutines.CompletableDeferred<Pair<Boolean, String?>>()
+        vm.applyProgramTemplate(template, overwrite = true) { success, snapshotId -> second.complete(success to snapshotId) }
+        val (secondSuccess, secondSnapshot) = withTimeout(20_000) { second.await() }
+        assertTrue(secondSuccess)
+        assertNotNull(secondSnapshot)
+        withTimeout(10_000) {
+            while (vm.program.value?.structureTemplateId != template.id) delay(25)
+        }
+        vm.updateProgram(vm.program.value!!.copy(name = "Editado después"))
+        withTimeout(10_000) {
+            while (vm.program.value?.name != "Editado después") delay(25)
+        }
+
+        vm.undoProgramApply(secondSnapshot!!)
+
+        withTimeout(10_000) {
+            while (vm.uiState.value.snackbarMessage?.contains("El programa cambió") != true) delay(25)
+        }
+        assertEquals("Editado después", repository.getProgramById(id)?.name)
+    }
+
+    @Test
     fun applyProgramTemplate_overwrite_is_refused_while_a_session_is_in_progress() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val id = nextId()

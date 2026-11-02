@@ -144,6 +144,9 @@ class NutritionRepository private constructor(
         get() = normalizedBodyRepository
 
     private val appContext = context.applicationContext
+
+    /** Contexto de aplicación para servicios que comparten la pantalla (recordatorios de suplementos). */
+    internal val applicationContext: Context get() = appContext
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
     private val foodSaveMutex = Mutex()
@@ -362,6 +365,44 @@ class NutritionRepository private constructor(
             runCatching { deleteNutritionLogAndAwait(logId) }
         }
     }
+
+    /**
+     * Quita UN alimento de una comida y conserva los demás (borrado de una toma de suplemento). La identidad es
+     * ([foodId], [foodIndex], [amount]): si el índice ya no coincide porque la comida se editó, se busca el primer
+     * alimento con ese id y esa cantidad. Si era el único alimento, la comida se elimina. Devuelve true solo si se
+     * escribió el cambio; un fallo de la base se propaga.
+     */
+    suspend fun removeFoodFromLogAndAwait(logId: String, foodId: String, foodIndex: Int, amount: Double): Boolean =
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                val existing = _nutritionLogs.value.firstOrNull { it.id == logId }
+                    ?: db.nutritionDao().getAllLogs().firstOrNull { it.id == logId }
+                        ?.let { entity -> runCatching { entity.toNutritionLog() }.getOrNull() }
+                    ?: return@withContext false
+                val sameFood = { index: Int ->
+                    val food = existing.foods.getOrNull(index)
+                    food != null && food.id == foodId &&
+                        // La creatina rápida antigua guarda los gramos en `creatineG`, no en `amount`.
+                        (foodId == "gen106" || kotlin.math.abs(food.amount - amount) < 1e-6)
+                }
+                val index = foodIndex.takeIf(sameFood) ?: existing.foods.indices.firstOrNull(sameFood) ?: -1
+                if (index < 0) return@withContext false
+                val remaining = existing.foods.toMutableList().apply { removeAt(index) }
+                db.withTransaction {
+                    if (remaining.isEmpty()) {
+                        db.nutritionDao().deleteLog(logId)
+                    } else {
+                        db.nutritionDao().upsertLog(existing.copy(foods = remaining).toEntity())
+                    }
+                }
+                _nutritionLogs.update { logs ->
+                    if (remaining.isEmpty()) logs.filterNot { it.id == logId }
+                    else logs.map { if (it.id == logId) existing.copy(foods = remaining) else it }
+                }
+                existing.date.take(10).let { captureDailyGoalSnapshot(it) }
+                true
+            }
+        }
 
     /**
      * Borra una comida y devuelve la que se borró (null si ya no existía) para poder deshacerlo (WP-U11). Un fallo de la

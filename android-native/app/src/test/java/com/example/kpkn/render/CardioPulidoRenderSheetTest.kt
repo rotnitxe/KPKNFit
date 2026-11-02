@@ -46,38 +46,51 @@ class CardioPulidoRenderSheetTest {
         add(CardioIntervalBlock(id = "cool", type = CardioBlockType.COOLDOWN, durationSeconds = 300, speedKmh = 6.0, targetHrPercent = 55))
     }, intervalRounds = 1)
 
-    @Test fun work() = draw("cv-trabajo", nor, elapsed = 1458, hr = 158)
-    @Test fun aboveZone() = draw("cv-sobre-zona", nor, elapsed = 1458, hr = 176)
+    // Datos alineados con `cv-trabajo` del lienzo: 24:22 transcurridos de 40:00, 160 lpm, 61 kg y 2:16 en Z4.
+    @Test fun work() = draw("cv-trabajo", nor, elapsed = 1462, hr = 160, inZoneSeconds = 136)
+    @Test fun aboveZone() = draw("cv-sobre-zona", nor, elapsed = 1462, hr = 176)
     @Test fun noPulse() = draw("cv-continuo", CardioDetails(type = CardioType.STAIR_CLIMBER, targetDurationSeconds = 1200), elapsed = 19)
     @Test fun ready() = draw("cv-listo", nor, elapsed = 0, status = CardioExecutionStatus.READY)
     @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi")
-    fun compact() = draw("cv-trabajo-360x740", nor, elapsed = 1458, hr = 158, height = 740)
-    @Test fun font130() = draw("cv-trabajo-fs1.3", nor, elapsed = 1458, hr = 158, font = 1.3f)
+    fun compact() = draw("cv-trabajo-360x740", nor, elapsed = 1462, hr = 160, height = 740, inZoneSeconds = 136)
+    @Test fun font130() = draw("cv-trabajo-fs1.3", nor, elapsed = 1462, hr = 160, font = 1.3f, inZoneSeconds = 136)
+
+    // Captura a densidad 1× (360×880 px): la misma rejilla de píxeles que el lienzo, sin reescalado de densidad.
+    @Test @Config(qualifiers = "w360dp-h880dp-mdpi")
+    fun workMdpi() = draw("cv-trabajo-mdpi", nor, elapsed = 1462, hr = 160, inZoneSeconds = 136, density = 1f)
 
     private fun draw(name: String, details: CardioDetails, elapsed: Int, hr: Int? = null, height: Int = 880, font: Float = 1f,
-        status: CardioExecutionStatus = CardioExecutionStatus.RUNNING) {
+        status: CardioExecutionStatus = CardioExecutionStatus.RUNNING, inZoneSeconds: Int = 0, density: Float = 3f) {
         assumeTrue("requiere KPKN_RENDER_DIR", System.getenv("KPKN_RENDER_DIR") != null)
         rule.mainClock.autoAdvance = false
         rule.setContent {
             host = LocalView.current
-            CompositionLocalProvider(LocalDensity provides Density(3f, font), LocalWizardReducedMotion provides true) {
+            CompositionLocalProvider(LocalDensity provides Density(density, font), LocalWizardReducedMotion provides true) {
                 KPKNTheme { MaterialTheme {
                     Column(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("cv-render")) {
                         WorkoutHeaderBar(exerciseName = if (details.hasIntervals()) "Cinta · Noruego 4×4" else "Escaladora",
-                            sessionName = "Pierna · Semana 1", groupName = null, startTimeMs = System.currentTimeMillis() - 2_882_000,
+                            sessionName = "Pierna · Semana 1", groupName = null, startTimeMs = System.currentTimeMillis() - 2_886_000,
                             isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
                             totalExerciseCount = 4, completedWorkingSetCount = 9, totalWorkingSetCount = 10,
-                            statusBarInsets = WindowInsets(top = 26.dp), onToggleVoice = {}, onMoreClick = {}, cardioLayout = true)
+                            // La franja de estado del lienzo mide 30 px; el render deja ese alto antes de la cabecera.
+                            statusBarInsets = WindowInsets(top = 30.dp), onToggleVoice = {}, onMoreClick = {}, cardioLayout = true)
                         CardioLiveCard(details, null, Color.White, Modifier.weight(1f).fillMaxWidth(),
                             executionState = CardioTimerState(exerciseId = "cardio", elapsedSeconds = elapsed,
                                 totalSeconds = details.effectiveDurationSeconds(), remainingSeconds = details.effectiveDurationSeconds() - elapsed, status = status),
                             liveHeartRateBpm = hr, exerciseName = if (details.hasIntervals()) "Cinta · Noruego 4×4" else "Escaladora",
-                            maxHeartRateBpm = 190, bodyWeightKg = 75.0, onRecord = { _, _, _ -> true })
+                            maxHeartRateBpm = 190, bodyWeightKg = 61.0, onRecord = { _, _, _ -> true })
                     }
                 } }
             }
         }
         rule.waitForIdle()
+        // Los segundos en zona del lienzo (2:16) se consiguen dejando correr el reloj de prueba con el pulso
+        // del reloj; no se inyecta ningún contador a mano.
+        if (status == CardioExecutionStatus.RUNNING && hr != null && inZoneSeconds > 0) {
+            // Avance sin dibujar cada fotograma: solo interesan los tics de 1 s del contador de zona.
+            rule.mainClock.advanceTimeBy(inZoneSeconds * 1_000L, ignoreFrameDuration = true)
+            rule.waitForIdle()
+        }
         repeat(4) { rule.mainClock.advanceTimeByFrame(); rule.waitForIdle() }
         val bounds = rule.onNodeWithTag("cv-render").fetchSemanticsNode().boundsInRoot
         val view = host!!

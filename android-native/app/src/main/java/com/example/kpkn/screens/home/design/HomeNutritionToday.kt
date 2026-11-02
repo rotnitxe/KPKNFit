@@ -214,8 +214,11 @@ fun HomeNutritionToday(
                 }
             }
             if (supplementRows.isNotEmpty()) {
-                val pending = supplementRows.filter { it.takes.isEmpty() }
-                val doneCount = supplementRows.size - pending.size
+                // Pendiente = le faltan dosis configuradas, no «no tiene ninguna toma»: con 2 dosis al día, la
+                // primera toma no lo marca como terminado.
+                val isDone = { row: SupplementRowState -> SupplementEngine.isDone(row.item, row.takes) }
+                val pending = supplementRows.filterNot(isDone)
+                val doneCount = supplementRows.count(isDone)
                 val shown = pending.take(3)
                 val restCount = pending.size - shown.size
                 val hasCaffeine = supplementRows.any { it.def.id == "cafeina" }
@@ -300,7 +303,11 @@ fun HomeNutritionToday(
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = SupplementEngine.doseLabel(row.def, row.item.dose),
+                                        text = if (row.item.doses > 1) {
+                                            "${SupplementEngine.doseLabel(row.def, row.item.dose)} · ${row.takes.size.coerceAtMost(row.item.doses)}/${row.item.doses}"
+                                        } else {
+                                            SupplementEngine.doseLabel(row.def, row.item.dose)
+                                        },
                                         style = KpknType.caption.copy(fontSize = 12.sp),
                                         color = if (now) Color(0xAA111111) else Color(0xFF8E8980),
                                         maxLines = 1,

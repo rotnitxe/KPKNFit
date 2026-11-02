@@ -52,6 +52,8 @@ import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.domain.nutrition.supplements.SupplementGroup
 import com.example.kpkn.domain.nutrition.supplements.SUPPLEMENT_MOMENTS
 import com.example.kpkn.domain.nutrition.supplements.SupplementTake
+import com.example.kpkn.domain.nutrition.supplements.SupplementWhenOption
+import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetSpec
 import com.example.kpkn.ui.components.LocalKpknSheetDismiss
@@ -211,17 +213,21 @@ fun ColumnScope.SupplementAdjustContent(
     def: SupplementDef,
     item: SupplementPilaItem,
     dayTotalNow: Double,
-    nowHhmm: String,
-    onRegister: (dose: Double, time: String) -> Unit,
+    now: java.time.LocalDateTime,
+    onRegister: (dose: Double, option: SupplementWhenOption) -> Unit,
     onDismiss: () -> Unit,
     initialDose: Double = item.dose,
     initialWhen: Int = 0,
+    /** Total conocido del día de la opción elegida; por defecto, el del día ya calculado. */
+    dayTotalFor: (String) -> Double = { dayTotalNow },
 ) {
     var dose by remember { mutableDoubleStateOf(initialDose) }
     var whenIndex by remember { mutableIntStateOf(initialWhen) }
-    val options = remember(nowHhmm) { SupplementEngine.whenOptions(nowHhmm) }
-    val ceiling = SupplementEngine.ceiling(def, dayTotalNow, dose)
-    val after = dayTotalNow + dose
+    val options = remember(now) { SupplementEngine.whenOptions(now) }
+    val selectedDay = options[whenIndex].date
+    val dayTotal = dayTotalFor(selectedDay)
+    val ceiling = SupplementEngine.ceiling(def, dayTotal, dose)
+    val after = dayTotal + dose
     val limit = def.cap ?: (item.dose * item.doses)
     val over = ceiling?.exceeded == true
     run {
@@ -247,7 +253,9 @@ fun ColumnScope.SupplementAdjustContent(
         }
         Text("CUÁNDO", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint, modifier = Modifier.padding(top = 4.dp))
         FlowRowOf {
-            options.forEachIndexed { i, (label, time) -> SpChoice(label, selected = whenIndex == i, small = true, trailing = time, onClick = { whenIndex = i }) }
+            options.forEachIndexed { i, option ->
+                SpChoice(option.label, selected = whenIndex == i, small = true, trailing = option.time, onClick = { whenIndex = i })
+            }
         }
         Projection(
             name = if (def.id == "cafeina") "Cafeína del día" else "Hoy con esta toma",
@@ -261,7 +269,7 @@ fun ColumnScope.SupplementAdjustContent(
         KpknPrimaryPill(
             text = "Registrar ${SupplementEngine.doseLabel(def, dose)}",
             onClick = {
-                onRegister(dose, options[whenIndex].second)
+                onRegister(dose, options[whenIndex])
                 if (close != null) close() else onDismiss()
             },
             modifier = Modifier.fillMaxWidth(),
@@ -403,10 +411,13 @@ fun SupplementAdjustSheet(
     def: SupplementDef,
     item: SupplementPilaItem,
     dayTotalNow: Double,
-    nowHhmm: String,
-    onRegister: (dose: Double, time: String) -> Unit,
+    now: java.time.LocalDateTime,
+    onRegister: (dose: Double, option: SupplementWhenOption) -> Unit,
     onDismiss: () -> Unit,
-) = SpSheet(onDismiss = onDismiss) { SupplementAdjustContent(def, item, dayTotalNow, nowHhmm, onRegister, onDismiss) }
+    dayTotalFor: (String) -> Double = { dayTotalNow },
+) = SpSheet(onDismiss = onDismiss) {
+    SupplementAdjustContent(def, item, dayTotalNow, now, onRegister, onDismiss, dayTotalFor = dayTotalFor)
+}
 
 /** Hoja «Esta toma pasa tu máximo»: [SupplementCeilingContent] dentro de la hoja plana. */
 @Composable
@@ -432,6 +443,38 @@ fun SupplementAddSheet(
 enum class SupplementConfigMode { NEW, EDIT, CUSTOM }
 
 /**
+ * Construye lo que se guarda al confirmar la hoja de configuración. Es una función pura para poder probar que editar
+ * un suplemento propio conserva su id, nombre, unidad y notas, y que editar uno del catálogo conserva su id sin
+ * convertirlo en propio. Solo crear un propio genera un id nuevo (`propio-…`).
+ */
+internal fun supplementConfigItem(
+    initialItem: SupplementPilaItem?,
+    def: SupplementDef?,
+    isCustom: Boolean,
+    dose: Double,
+    moment: Int,
+    doses: Int,
+    reminderEnabled: Boolean,
+    reminderTime: String,
+    customName: String,
+    customUnit: String,
+    notes: String,
+): SupplementPilaItem {
+    val id = initialItem?.id
+        ?: if (isCustom) "propio-${java.util.UUID.randomUUID().toString().take(8)}" else (def?.id ?: "custom")
+    return SupplementPilaItem(
+        id = id,
+        dose = dose,
+        moment = moment,
+        doses = doses,
+        reminder = if (reminderEnabled) reminderTime else null,
+        customName = if (isCustom) customName.trim() else null,
+        customUnit = if (isCustom) customUnit else null,
+        notes = notes.trim(),
+    )
+}
+
+/**
  * Hoja de detalle de un suplemento (sp-detalle, sp-detalle-cafeina): resumen del día, racha, tomas de hoy con «Quitar»,
  * aporte a la huella y botón para registrar la dosis habitual.
  */
@@ -443,7 +486,7 @@ fun SupplementDetailSheet(
     foodCaffeineMg: Double = 0.0,
     creatineStreakDays: Int = 0,
     onTakeHabitual: () -> Unit,
-    onDeleteTake: (Int) -> Unit,
+    onDeleteTake: (SupplementTake) -> Unit,
     onEditConfig: () -> Unit,
     openCreatine: () -> Unit = {},
     onDismiss: () -> Unit,
@@ -514,7 +557,7 @@ fun SupplementDetailSheet(
         Text("Todavía no has registrado ninguna toma hoy.", style = KpknType.caption.copy(fontSize = 13.sp), color = SpColors.muted)
     } else {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            todayTakes.forEachIndexed { idx, take ->
+            todayTakes.forEach { take ->
                 Row(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x06FFFFFF)).padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -529,7 +572,7 @@ fun SupplementDetailSheet(
                         "Quitar",
                         style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
                         color = SpColors.faint,
-                        modifier = Modifier.clickable(role = Role.Button, onClick = { onDeleteTake(idx) }).padding(4.dp),
+                        modifier = Modifier.clickable(role = Role.Button, onClick = { onDeleteTake(take) }).padding(4.dp),
                     )
                 }
             }
@@ -569,7 +612,9 @@ fun SupplementConfigSheet(
     onOpenBaja: () -> Unit = {},
     onDismiss: () -> Unit,
 ) = SpSheet(onDismiss = onDismiss) {
-    val isCustom = mode == SupplementConfigMode.CUSTOM
+    // Un suplemento propio se reconoce por sus datos, no solo por el modo con que se abrió: editarlo conserva su
+    // identidad (id `propio-…`, nombre, unidad y notas) y no lo convierte en una entrada del catálogo.
+    val isCustom = mode == SupplementConfigMode.CUSTOM || initialItem?.customName != null
     val isEdit = mode == SupplementConfigMode.EDIT
     var customName by remember { mutableStateOf(initialItem?.customName ?: "") }
     var customUnit by remember { mutableStateOf(initialItem?.customUnit ?: "g") }
@@ -578,6 +623,7 @@ fun SupplementConfigSheet(
     var moment by remember { mutableIntStateOf(initialItem?.moment ?: def?.defaultMoment ?: 1) }
     var reminderEnabled by remember { mutableStateOf(initialItem?.reminder != null) }
     var reminderTime by remember { mutableStateOf(initialItem?.reminder ?: "09:00") }
+    var showReminderPicker by remember { mutableStateOf(false) }
     var notes by remember { mutableStateOf(initialItem?.notes ?: "") }
 
     val step = if (isCustom && customUnit == "mg") 50.0 else (def?.step ?: 1.0)
@@ -616,7 +662,24 @@ fun SupplementConfigSheet(
                     SpChoice(u, selected = customUnit == u, small = true, onClick = { customUnit = u })
                 }
             }
+            Text("NOTAS", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint, modifier = Modifier.padding(top = 6.dp))
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).background(Color(0x0CFFFFFF)).border(1.dp, Color(0x14FFFFFF), RoundedCornerShape(24.dp)).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    textStyle = KpknType.body.copy(fontSize = 14.5.sp, color = SpColors.ink),
+                    cursorBrush = SolidColor(SpColors.ink),
+                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Notas del suplemento" },
+                )
+            }
         }
+    } else if (initialItem?.notes?.isNotBlank() == true) {
+        // Un suplemento del catálogo conserva sus notas al editarlo, sin convertirlo en propio.
+        Text("NOTAS", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
+        Text(initialItem.notes, style = KpknType.body.copy(fontSize = 14.sp), color = SpColors.muted)
     }
 
     // Dosis habitual
@@ -658,12 +721,31 @@ fun SupplementConfigSheet(
         }
     }
 
-    // Recordatorio
+    // Recordatorio: activar/desactivar y elegir la hora real (la alarma se programa al guardar).
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("RECORDATORIO", style = KpknType.eyebrow.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp), color = SpColors.faint)
-            SpChoice(if (reminderEnabled) "Activado ($reminderTime)" else "Desactivado", selected = reminderEnabled, small = true, onClick = { reminderEnabled = !reminderEnabled })
+            SpChoice(if (reminderEnabled) "Activado" else "Desactivado", selected = reminderEnabled, small = true, onClick = { reminderEnabled = !reminderEnabled })
         }
+        if (reminderEnabled) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SpChoice(reminderTime, selected = true, small = true, onClick = { showReminderPicker = true })
+                Text("Aviso diario a esa hora", style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
+            }
+        }
+    }
+    if (showReminderPicker) {
+        KpknNativeTimePickerDialog(
+            title = "Hora del recordatorio",
+            initialHour = reminderTime.substringBefore(':').toIntOrNull()?.coerceIn(0, 23) ?: 9,
+            initialMinute = reminderTime.substringAfter(':', "00").toIntOrNull()?.coerceIn(0, 59) ?: 0,
+            onConfirm = { hour, minute ->
+                reminderTime = "%02d:%02d".format(hour, minute)
+                reminderEnabled = true
+                showReminderPicker = false
+            },
+            onDismiss = { showReminderPicker = false },
+        )
     }
 
     // Advertencia sobria / huella
@@ -677,18 +759,21 @@ fun SupplementConfigSheet(
         text = if (isEdit) "Guardar cambios" else "Añadir a mi pila",
         enabled = canSave,
         onClick = {
-            val id = if (isCustom) (initialItem?.id ?: "propio-${java.util.UUID.randomUUID().toString().take(8)}") else (def?.id ?: "custom")
-            val item = SupplementPilaItem(
-                id = id,
-                dose = dose,
-                moment = moment,
-                doses = tomas,
-                reminder = if (reminderEnabled) reminderTime else null,
-                customName = if (isCustom) customName.trim() else null,
-                customUnit = if (isCustom) customUnit else null,
-                notes = notes.trim(),
+            onSave(
+                supplementConfigItem(
+                    initialItem = initialItem,
+                    def = def,
+                    isCustom = isCustom,
+                    dose = dose,
+                    moment = moment,
+                    doses = tomas,
+                    reminderEnabled = reminderEnabled,
+                    reminderTime = reminderTime,
+                    customName = customName,
+                    customUnit = customUnit,
+                    notes = notes,
+                ),
             )
-            onSave(item)
             onDismiss()
         },
         modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -746,8 +831,9 @@ fun SupplementQuickSheet(
     onOpenDetail: (String) -> Unit = {},
     onDismiss: () -> Unit,
 ) = SpSheet(onDismiss = onDismiss, maxHeightFraction = 0.85f, scroll = false) {
-    val pending = rows.filter { it.takes.isEmpty() }
-    val done = rows.size - pending.size
+    val isDone: (SupplementRowState) -> Boolean = { row -> SupplementEngine.isDone(row.item, row.takes) }
+    val done = rows.count(isDone)
+    val pending = rows.filterNot(isDone)
     SheetHeader(
         def = null,
         title = "Suplementos de hoy",
@@ -755,23 +841,28 @@ fun SupplementQuickSheet(
     )
     LazyColumn(Modifier.weight(1f, fill = false)) {
         items(rows, key = { it.def.id }) { row ->
-            val isDone = row.takes.isNotEmpty()
+            val rowDone = isDone(row)
+            val target = row.item.doses.coerceAtLeast(1)
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box(
-                    Modifier.size(38.dp).clip(CircleShape).background(if (isDone) Color(0x1843D18C) else Color(0x0DFFFFFF)),
+                    Modifier.size(38.dp).clip(CircleShape).background(if (rowDone) Color(0x1843D18C) else Color(0x0DFFFFFF)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(if (isDone) KpknLineIcons.Check else supplementIcon(row.def), null, tint = if (isDone) SpColors.done else SpColors.muted, modifier = Modifier.size(18.dp))
+                    Icon(if (rowDone) KpknLineIcons.Check else supplementIcon(row.def), null, tint = if (rowDone) SpColors.done else SpColors.muted, modifier = Modifier.size(18.dp))
                 }
                 Column(Modifier.weight(1f).clickable { onOpenDetail(row.def.id) }) {
                     Text(row.def.name, style = KpknType.bodyStrong.copy(fontSize = 14.sp), color = SpColors.ink)
-                    Text(SupplementEngine.doseLabel(row.def, row.item.dose), style = KpknType.caption.copy(fontSize = 12.sp), color = SpColors.faint)
+                    Text(
+                        text = if (target > 1) "${SupplementEngine.doseLabel(row.def, row.item.dose)} · ${row.takes.size.coerceAtMost(target)} de $target" else SupplementEngine.doseLabel(row.def, row.item.dose),
+                        style = KpknType.caption.copy(fontSize = 12.sp),
+                        color = SpColors.faint,
+                    )
                 }
-                if (!isDone) {
+                if (!rowDone) {
                     Box(
                         Modifier.clip(RoundedCornerShape(18.dp)).background(if (nowId == row.def.id) SpColors.ink else Color(0x12FFFFFF)).clickable { onTake(row.def.id, row.item.dose) }.padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center,

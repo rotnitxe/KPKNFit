@@ -30,6 +30,23 @@ class SupplementEngineTest {
     }
 
     @Test
+    fun unSuplementoPropioConservaIdNombreUnidadYNotas() {
+        val item = SupplementPilaItem(
+            id = "propio-abc12345",
+            dose = 2.5,
+            customName = "Mi mezcla",
+            customUnit = "g",
+            notes = "Con el desayuno",
+        )
+        val def = SupplementCatalog.resolve(item)!!
+        assertEquals("propio-abc12345", def.id)
+        assertEquals("Mi mezcla", def.name)
+        assertEquals("g", def.unit)
+        assertEquals("Con el desayuno", item.notes)
+        assertNull(SupplementCatalog.byId(item.id))
+    }
+
+    @Test
     fun laPilaSeOrdenaPorMomentoYEsEstable() {
         val pila = listOf(
             SupplementPilaItem("magnesio", 300.0, moment = 6),
@@ -68,7 +85,13 @@ class SupplementEngineTest {
         assertTrue(food.isUncertain)
         assertEquals(MealType.SNACK, log.mealType)
         val takes = SupplementEngine.takesFromLogs(listOf(log), "2026-10-29")
-        assertEquals(listOf(SupplementTake("12:55", 25.0, "l1")), takes["proteina"])
+        val take = takes["proteina"]!!.single()
+        assertEquals("12:55", take.time)
+        assertEquals(25.0, take.dose, 1e-9)
+        assertEquals("l1", take.logId)
+        assertEquals("sup:proteina", take.foodId)
+        assertEquals(0, take.foodIndex)
+        assertEquals("2026-10-29", take.date)
         assertTrue(SupplementEngine.takesFromLogs(listOf(log), "2026-10-28").isEmpty())
         assertNotNull(SupplementEngine.buildTakeLog(def("cafeina"), 100.0, "08:00", "2026-10-29", "l2").foods.single().caffeineMg.takeIf { it == 100.0 })
     }
@@ -147,12 +170,79 @@ class SupplementEngineTest {
     }
 
     @Test
-    fun opcionesDeCuando() {
-        val opts = SupplementEngine.whenOptions("12:55")
-        assertEquals(listOf("12:55", "12:25", "11:55", "08:30"), opts.map { it.second })
-        assertEquals("00:10", SupplementEngine.whenOptions("00:40")[1].second)
-        assertEquals("23:40", SupplementEngine.whenOptions("00:10")[1].second)
+    fun opcionesDeCuandoConservanLaFechaRealAlCruzarMedianoche() {
+        val noon = SupplementEngine.whenOptions(java.time.LocalDateTime.of(2026, 10, 29, 12, 55))
+        assertEquals(listOf("12:55", "12:25", "11:55", "08:30"), noon.map { it.time })
+        assertTrue(noon.all { it.date == "2026-10-29" })
+
+        // A las 00:10, «Hace 30 min» es AYER a las 23:40; no se recoloca al día de hoy.
+        val midnight = SupplementEngine.whenOptions(java.time.LocalDateTime.of(2026, 10, 30, 0, 10))
+        assertEquals("23:40", midnight[1].time)
+        assertEquals("2026-10-29", midnight[1].date)
+        assertEquals("23:10", midnight[2].time)
+        assertEquals("2026-10-29", midnight[2].date)
+        assertEquals("Ayer por la mañana", midnight[3].label)
+        assertEquals("2026-10-29", midnight[3].date)
+
+        // A las 00:40 «Hace 30 min» sigue siendo del mismo día.
+        val afterMidnight = SupplementEngine.whenOptions(java.time.LocalDateTime.of(2026, 10, 30, 0, 40))
+        assertEquals("00:10", afterMidnight[1].time)
+        assertEquals("2026-10-30", afterMidnight[1].date)
     }
+
+    @Test
+    fun elBorradoUsaLaIdentidadExactaYConservaOtrosAlimentos() {
+        val date = "2026-10-29"
+        val first = SupplementEngine.buildTakeLog(def("creatina"), 5.0, "08:00", date, "same")
+        val other = LoggedFood(id = "food", foodName = "Avena", amount = 80.0, calories = 300.0)
+        val shared = first.copy(foods = first.foods + other)
+        val takes = SupplementEngine.takesFromLogs(listOf(shared), date)["creatina"]!!
+        val removed = SupplementEngine.removeTake(shared, takes.single())!!
+        assertEquals(listOf("food"), removed.foods.map { it.id })
+        assertEquals(1, removed.foods.size)
+    }
+
+    @Test
+    fun dosTomasIgualesSeDistinguenPorSuPosicion() {
+        val date = "2026-10-29"
+        val log = NutritionLog(
+            id = "two", date = date,
+            foods = listOf(
+                LoggedFood(id = "sup:creatina", foodName = "Creatina", amount = 5.0, creatineG = 5.0),
+                LoggedFood(id = "sup:creatina", foodName = "Creatina", amount = 5.0, creatineG = 5.0),
+            ),
+        )
+        val takes = SupplementEngine.takesFromLogs(listOf(log), date)["creatina"]!!
+        assertEquals(2, takes.size)
+        assertEquals(listOf(0, 1), takes.map { it.foodIndex })
+        assertEquals("two#1", takes[1].key)
+        val after = SupplementEngine.removeTake(log, takes[1])!!
+        assertEquals(1, after.foods.size)
+        assertEquals("two#0", SupplementEngine.takesFromLogs(listOf(after), date)["creatina"]!!.single().key)
+    }
+
+    @Test
+    fun laCreatinaAntiguaSePuedeQuitarDeSuRegistro() {
+        val date = "2026-10-29"
+        val legacy = NutritionLog(
+            id = "old", date = date,
+            foods = listOf(LoggedFood(id = "gen106", foodName = "Creatina", amount = 1.0, creatineG = 5.0)),
+        )
+        val take = SupplementEngine.takesFromLogs(listOf(legacy), date)["creatina"]!!.single()
+        assertEquals("gen106", take.foodId)
+        assertNull(SupplementEngine.removeTake(legacy, take))
+    }
+
+    @Test
+    fun unaTomaDeCadaDiaNoCuentaComoHechaConDosDosis() {
+        val item = SupplementPilaItem("creatina", 5.0, doses = 3)
+        val takes = listOf(SupplementTake("08:00", 5.0, "a", "sup:creatina", 0, "2026-10-29"))
+        assertFalse(SupplementEngine.isDone(item, takes))
+        assertTrue(SupplementEngine.isDone(item, takes + takeAt("13:00") + takeAt("20:00")))
+        assertTrue(SupplementEngine.isDone(item.copy(doses = 1), takes))
+    }
+
+    private fun takeAt(time: String) = SupplementTake(time, 5.0, "l$time", "sup:creatina", 0, "2026-10-29")
 
     @Test
     fun tocaAhoraSoloDespuesDelRecordatorioYDentroDeLaVentana() {

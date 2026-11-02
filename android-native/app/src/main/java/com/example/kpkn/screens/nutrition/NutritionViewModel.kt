@@ -407,13 +407,31 @@ class NutritionViewModel(
     /** La hora local ahora, `HH:mm`. */
     fun nowHhmm(): String = java.time.LocalTime.now(zoneProvider()).let { "%02d:%02d".format(it.hour, it.minute) }
 
-    /** Registra una toma de [supplementId] con [dose] a las [time] (`HH:mm`; por defecto ahora) en el día elegido. Un toque = la dosis habitual. */
-    fun takeSupplement(supplementId: String, dose: Double, time: String = nowHhmm()) {
+    /**
+     * Registra una toma de [supplementId] con [dose] a las [time] (`HH:mm`; por defecto ahora) en [date] (por defecto el día
+     * elegido). Un toque = la dosis habitual. La fecha no se recoloca: una opción «Hace 30 min» que cruza medianoche se
+     * guarda en el día real en que ocurrió.
+     */
+    fun takeSupplement(
+        supplementId: String,
+        dose: Double,
+        time: String = nowHhmm(),
+        date: String = _selectedDate.value,
+        allowOverCeiling: Boolean = false,
+        onCeiling: ((projected: Double) -> Unit)? = null,
+    ) {
         val def = SupplementCatalog.byId(supplementId)
             ?: programRepo.settings.value.supplementPila.firstOrNull { it.id == supplementId }?.let(SupplementCatalog::resolve)
             ?: return
         if (!dose.isFinite() || dose <= 0.0) return
-        val log = SupplementEngine.buildTakeLog(def, dose, time, _selectedDate.value, java.util.UUID.randomUUID().toString())
+        // El techo se re-comprueba aquí, no solo en la pantalla: otra toma pudo guardarse entre el toque y el guardado.
+        val dayNow = SupplementEngine.knownCeilingTotal(def, nutritionRepo.nutritionLogs.value, date)
+        val exceeded = SupplementEngine.ceiling(def, dayNow, dose)?.takeIf { it.exceeded }
+        if (exceeded != null && !allowOverCeiling) {
+            onCeiling?.invoke(exceeded.projected)
+            return
+        }
+        val log = SupplementEngine.buildTakeLog(def, dose, time, date, java.util.UUID.randomUUID().toString())
         viewModelScope.launch {
             try {
                 nutritionRepo.saveNutritionLog(log)
@@ -443,6 +461,27 @@ class NutritionViewModel(
         }
     }
 
+    /**
+     * Quita EXACTAMENTE la toma [take] (por su registro y su posición), no la primera con la misma dosis. Si la toma
+     * comparte comida con otros alimentos, los demás se conservan; si era el único, se elimina la comida. Un fallo se
+     * informa y no se anuncia un borrado que no ocurrió.
+     */
+    fun deleteSupplementTake(take: SupplementTake) {
+        viewModelScope.launch {
+            try {
+                val removed = withContext(NonCancellable) {
+                    nutritionRepo.removeFoodFromLogAndAwait(take.logId, take.foodId, take.foodIndex, take.dose)
+                }
+                if (!removed) _uiMessage.value = "No se pudo quitar la toma: el registro ya cambió. Inténtalo de nuevo."
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo quitar la toma de suplemento", error)
+                _uiMessage.value = "No se pudo quitar la toma. Inténtalo de nuevo."
+            }
+        }
+    }
+
     /** Guarda una configuración sin cambiar el historial de tomas ya registradas. */
     fun saveSupplementItem(item: SupplementPilaItem) {
         if (!item.dose.isFinite() || item.dose <= 0.0 || item.doses !in 1..3 || item.moment !in 0..6 || SupplementCatalog.resolve(item) == null) return
@@ -452,11 +491,35 @@ class NutritionViewModel(
                 current.copy(supplementPila = if (exists) current.supplementPila.map { if (it.id == item.id) item else it }
                     else current.supplementPila + item)
             }
+            // La alarma se programa DESPUÉS de dejar la pila guardada. Si no se puede programar, la interfaz no
+            // debe seguir afirmando que está activado: se avisa y el recordatorio no se declara operativo.
+            val manager = com.example.kpkn.services.nutrition.SupplementReminderManager(nutritionRepo.applicationContext)
+            manager.createChannels()
+            if (item.reminder != null) {
+                if (!manager.sync(item)) {
+                    // No se anuncia «activado» si la alarma no quedó programada: se retira el recordatorio guardado.
+                    programRepo.updateSettings { current ->
+                        current.copy(supplementPila = current.supplementPila.map {
+                            // Solo retira el recordatorio que este guardado no pudo programar; no pisa otro guardado.
+                            if (it.id == item.id && it.reminder == item.reminder) it.copy(reminder = null) else it
+                        })
+                    }
+                    _uiMessage.value = "No se pudo programar el recordatorio de ${item.customName ?: SupplementCatalog.resolve(item)?.shortName ?: "este suplemento"}."
+                } else if (!manager.notificationsAllowed()) {
+                    _uiMessage.value = "El recordatorio está programado, pero las notificaciones están desactivadas para KPKN."
+                }
+            } else {
+                manager.cancel(item.id)
+            }
         }
     }
 
     fun removeSupplementItem(id: String) {
-        viewModelScope.launch { programRepo.updateSettings { it.copy(supplementPila = it.supplementPila.filterNot { entry -> entry.id == id }) } }
+        viewModelScope.launch {
+            programRepo.updateSettings { it.copy(supplementPila = it.supplementPila.filterNot { entry -> entry.id == id }) }
+            // Al salir de la pila, su alarma deja de tener sentido.
+            com.example.kpkn.services.nutrition.SupplementReminderManager(nutritionRepo.applicationContext).cancel(id)
+        }
     }
 
     /** Suma o quita [supplementId] de mi pila con su dosis y momento típicos del catálogo. */
@@ -472,6 +535,9 @@ class NutritionViewModel(
                         current.supplementPila + SupplementPilaItem(supplementId, def.defaultDose, def.defaultMoment)
                     },
                 )
+            }
+            if (programRepo.settings.value.supplementPila.none { it.id == supplementId }) {
+                com.example.kpkn.services.nutrition.SupplementReminderManager(nutritionRepo.applicationContext).cancel(supplementId)
             }
         }
     }

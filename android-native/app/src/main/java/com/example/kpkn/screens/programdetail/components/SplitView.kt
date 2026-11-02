@@ -82,7 +82,7 @@ private const val ROUTE_REVIEW = "review"
  * «Cambiar reparto» (punto 23): la navegación del flujo. Catálogo → vista previa de tu semana con el reparto elegido → revisión → aplicado (la
  * hoja de resumen la pinta quien abre la página, sobre la semana). Este archivo guarda el estado (búsqueda, etiqueta, filtros, ruta) y pide el
  * plan al motor ([SplitFlowController]); la presentación está en `screens/programdetail/design/split/`. La hoja «Cómo aplicar» (alcance y
- * contenido) es todavía la de siempre y se abre desde la barra de la vista previa; aplica por su cuenta.
+ * contenido) se abre desde la barra de la vista previa y su resultado pasa por el mismo resumen y «Deshacer» que la revisión.
  *
  * La página hace su propio scroll: quien la abre no debe ponerle una columna desplazable alrededor.
  */
@@ -394,9 +394,19 @@ internal fun SplitView(
             isAdvancedProgram = isAdvancedProgram,
             totalWeeks = totalWeeks,
             generationTemplates = applyTemplates,
+            completedSessionIds = completedSessionIds,
             onDismiss = { optionsSplitId = null },
-            onApply = {
-                onUpdateProgram(it)
+            onApply = { after ->
+                // La hoja de alcance también pasa por el resumen y el «Deshacer» del flujo aprobado: antes
+                // escribía el programa por su cuenta y podía perder sesiones sin revisión.
+                onApplied(
+                    RpAppliedState(
+                        program,
+                        after,
+                        SplitFlowModels.appliedSummaryOf(program, after, weekId, split.name, weekLabel, startDay),
+                        viaPlanner = false,
+                    ),
+                )
                 optionsSplitId = null
             },
         )
@@ -423,8 +433,15 @@ internal fun SplitView(
             defaultStartDay = startDay,
             generationTemplates = applyTemplates,
             onDismiss = { showMultiApply = false },
-            onApply = {
-                onUpdateProgram(it)
+            onApply = { after ->
+                onApplied(
+                    RpAppliedState(
+                        program,
+                        after,
+                        SplitFlowModels.appliedSummaryOf(program, after, weekId, "Varios repartos", weekLabel, startDay),
+                        viaPlanner = false,
+                    ),
+                )
                 showMultiApply = false
                 selectionMode = SplitCatalogMode.BROWSE
                 selectedIds.clear()

@@ -23,11 +23,12 @@ function chromeExe(){
 const args=process.argv.slice(2);
 const cmd=args[0];
 const opt=(k,d)=>{const a=args.find(x=>x.startsWith('--'+k+'='));return a?a.split('=')[1]:d};
+const reduced=args.includes('--rm');
 function run(extra,query,timeout=90000){
   const url=pathToFileURL(html).href+'?'+query;
   const prof=fs.mkdtempSync(path.join(os.tmpdir(),'pl-chrome-'));
   try{
-    const r=spawnSync(chromeExe(),['--headless','--disable-gpu','--hide-scrollbars','--no-sandbox','--allow-file-access-from-files','--force-device-scale-factor=1','--user-data-dir='+prof,...extra,url],{encoding:'utf8',timeout,maxBuffer:64*1024*1024});
+    const r=spawnSync(chromeExe(),['--headless','--disable-gpu','--hide-scrollbars','--no-sandbox','--allow-file-access-from-files','--force-device-scale-factor=1',...(reduced?['--force-prefers-reduced-motion']:[]),'--user-data-dir='+prof,...extra,url],{encoding:'utf8',timeout,maxBuffer:64*1024*1024});
     return r;
   }finally{try{fs.rmSync(prof,{recursive:true,force:true})}catch(e){}}
 }
