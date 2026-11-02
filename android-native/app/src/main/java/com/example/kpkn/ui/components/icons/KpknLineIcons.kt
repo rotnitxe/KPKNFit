@@ -445,6 +445,15 @@ object KpknLineIcons {
         icono("KpknLine.Pulse", listOf("M2.75 12h4.25l2.5-5.25 4 10.5 2.5-5.25h5.25"))
     }
 
+    /** Corazón relleno del pulso en vivo, igual al lienzo de cardio. */
+    val Heart: ImageVector by lazy {
+        icono("KpknLine.Heart", listOf("M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"), relleno = true)
+    }
+
+    /** Corazón delineado cuando aún no hay pulso. */
+    val HeartOutline: ImageVector by lazy {
+        icono("KpknLine.HeartOutline", listOf("M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"))
+    }
     // ── Cardio por tipo (SE5): cabeza, tronco y extremidades en trazo; la misma familia que el resto del set ──
 
     /** Carrera: figura de perfil con las piernas en zancada y los brazos en flexión. */

@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.ui.adapt.adapt
@@ -166,6 +167,10 @@ fun KpknSheet(
     surfaceColor: Color? = null,
     /** Tiempos, curvas y sombra exactos de un lienzo para la hoja plana; null = los de [KpknSheetMotion]. */
     lienzo: KpknSheetSpec? = null,
+    /** The caller already includes the bottom navigation gutter in its surface padding. */
+    safeNavigationBarInset: Boolean = true,
+    /** Full handle slot for flat sheets; 28 dp leaves 10 dp above and 14 dp below by default. */
+    flatHandleAreaHeight: Dp = 28.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // A caller may own a local source (for example the workout overlay).  The
@@ -185,6 +190,8 @@ fun KpknSheet(
             dismissible = dismissible,
             showDragHandle = showDragHandle,
             safeTopInset = safeTopInset,
+            safeNavigationBarInset = safeNavigationBarInset,
+            flatHandleAreaHeight = flatHandleAreaHeight,
             maxHeightFraction = cap,
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = resolvedHaze,
@@ -204,6 +211,8 @@ private fun KpknSheetBody(
     dismissible: Boolean,
     showDragHandle: Boolean,
     safeTopInset: Boolean,
+    safeNavigationBarInset: Boolean,
+    flatHandleAreaHeight: Dp,
     maxHeightFraction: Float,
     stableHeightFraction: Float?,
     hazeState: HazeState?,
@@ -482,18 +491,17 @@ private fun KpknSheetBody(
                                 }
                             }
                             .then(if (safeTopInset) Modifier.statusBarsPadding() else Modifier)
-                            .navigationBarsPadding()
-                            .padding(bottom = 8.dp)
+                            .then(if (safeNavigationBarInset) Modifier.navigationBarsPadding().padding(bottom = 8.dp) else Modifier)
                             .nestedScroll(nestedScrollConnection)
                             .then(if (dismissible) dragModifier else Modifier),
                     ) {
                         if (showDragHandle) {
                             if (flat) {
-                                // `.grab`: 36 × 4, blanco al 23 %, 10 dp por encima y 14 por debajo.
+                                // `.grab`: 36 × 4, blanco al 23 %; flatHandleAreaHeight controla el espacio total.
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(28.dp)
+                                        .height(flatHandleAreaHeight)
                                         .then(if (dismissible) dragModifier else Modifier)
                                         .semantics {
                                             contentDescription = if (dismissible) "Arrastra hacia abajo para cerrar" else "Hoja"

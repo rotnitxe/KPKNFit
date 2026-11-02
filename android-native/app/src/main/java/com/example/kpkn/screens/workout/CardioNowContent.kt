@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalConfiguration
@@ -102,7 +104,7 @@ internal fun CardioNowContent(
                     label.length >= 5 -> if (compact) 56 else 68
                     else -> if (compact) 64 else 80
                 }
-                Text(label, Modifier.testTag("cardio-clock-label"), style = CvNumber.copy(fontSize = font.sp,
+                Text(label, Modifier.testTag("cardio-clock-label").offset(y = (-10).dp), style = CvNumber.copy(fontSize = font.sp,
                     lineHeight = font.sp, letterSpacing = (-2.5).sp, shadow = clockShadow), color = CvInk, maxLines = 1, softWrap = false)
                 Spacer(Modifier.weight(1f))
                 Row(Modifier.padding(bottom = if (compact) 8.dp else 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -126,7 +128,7 @@ internal fun CardioNowContent(
                 Column(Modifier.weight(1f).then(if (hrIsManual) Modifier.testTag("cardio-hr-manual").clickable(role = Role.Button, onClick = onAddManualHr) else Modifier)) {
                     CvEyebrow(if (hrFromWatch) "Pulso · reloj" else if (hrIsManual) "Pulso · manual" else "Pulso")
                     Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Icon(KpknLineIcons.Pulse, null, Modifier.size(20.dp).padding(bottom = 4.dp), tint = if (hr != null) CvInk else LiveSheetTokens.Faint)
+                        Icon(if (hr == null) KpknLineIcons.HeartOutline else KpknLineIcons.Heart, null, Modifier.size(20.dp).padding(bottom = 4.dp), tint = if (hr != null) CvInk else LiveSheetTokens.Faint)
                         Text(hr?.toString() ?: "—", Modifier.testTag("cardio-hr"), style = CvNumber.copy(fontSize = 36.sp, lineHeight = 36.sp, letterSpacing = (-1).sp), color = CvInk)
                         Text(if (hr == null) "sin pulso" else "lpm", Modifier.padding(bottom = 5.dp), style = CvBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Faint)
                     }
@@ -250,6 +252,6 @@ private fun Modifier.borderStart() = drawBehind { drawLine(Color(0x10FFFFFF), Of
 /** El halo elíptico del héroe; la animación de latido se calibra por separado. */
 @Composable
 internal fun BoxScope.CvHalo(color: Color, heroHeight: androidx.compose.ui.unit.Dp) {
-    Box(Modifier.align(Alignment.TopCenter).offset(y = heroHeight * .44f - 95.dp).size(width = 300.dp, height = 190.dp)
+    Box(Modifier.align(Alignment.TopCenter).offset(y = heroHeight * .44f - 95.dp).size(width = 300.dp, height = 190.dp).blur(20.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
         .alpha(.2f).kpknGradient(KpknGradient.ResplandorZona, args = KpknGradientArgs(zone = color)))
 }

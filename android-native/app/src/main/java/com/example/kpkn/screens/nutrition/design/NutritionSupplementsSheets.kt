@@ -95,13 +95,15 @@ internal fun SpSheet(onDismiss: () -> Unit, maxHeightFraction: Float = 0.9f, scr
         onDismissRequest = onDismiss,
         surfaceColor = Color(0xFF1B1B1D),
         backdropScrim = Color(0xA8000000),
+        safeNavigationBarInset = false,
+        flatHandleAreaHeight = 20.dp,
         maxHeightFraction = maxHeightFraction,
         lienzo = SpSheetSpec,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
                 .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 34.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 34.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content,
         )
@@ -220,6 +222,7 @@ fun ColumnScope.SupplementAdjustContent(
     initialWhen: Int = 0,
     /** Total conocido del día de la opción elegida; por defecto, el del día ya calculado. */
     dayTotalFor: (String) -> Double = { dayTotalNow },
+    onEditConfig: () -> Unit = {},
 ) {
     var dose by remember { mutableDoubleStateOf(initialDose) }
     var whenIndex by remember { mutableIntStateOf(initialWhen) }
@@ -266,14 +269,25 @@ fun ColumnScope.SupplementAdjustContent(
             over = over,
         )
         if (over) Warn(text = def.capText, bold = "Pasas el máximo diario.", icon = true)
-        KpknPrimaryPill(
-            text = "Registrar ${SupplementEngine.doseLabel(def, dose)}",
-            onClick = {
-                onRegister(dose, options[whenIndex])
-                if (close != null) close() else onDismiss()
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(52.dp).clip(CircleShape).background(Color(0x0DFFFFFF))
+                    .border(1.dp, Color(0x14FFFFFF), CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = "Configurar suplemento", onClick = onEditConfig)
+                    .semantics { contentDescription = "Configurar ${def.shortName}" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(KpknLineIcons.Sliders, null, tint = SpColors.ink, modifier = Modifier.size(20.dp))
+            }
+            KpknPrimaryPill(
+                text = "Registrar ${SupplementEngine.doseLabel(def, dose)}",
+                onClick = {
+                    onRegister(dose, options[whenIndex])
+                    if (close != null) close() else onDismiss()
+                },
+                modifier = Modifier.weight(1f).height(52.dp),
+            )
+        }
     }
 }
 
@@ -415,8 +429,9 @@ fun SupplementAdjustSheet(
     onRegister: (dose: Double, option: SupplementWhenOption) -> Unit,
     onDismiss: () -> Unit,
     dayTotalFor: (String) -> Double = { dayTotalNow },
+    onEditConfig: () -> Unit = {},
 ) = SpSheet(onDismiss = onDismiss) {
-    SupplementAdjustContent(def, item, dayTotalNow, now, onRegister, onDismiss, dayTotalFor = dayTotalFor)
+    SupplementAdjustContent(def, item, dayTotalNow, now, onRegister, onDismiss, dayTotalFor = dayTotalFor, onEditConfig = onEditConfig)
 }
 
 /** Hoja «Esta toma pasa tu máximo»: [SupplementCeilingContent] dentro de la hoja plana. */

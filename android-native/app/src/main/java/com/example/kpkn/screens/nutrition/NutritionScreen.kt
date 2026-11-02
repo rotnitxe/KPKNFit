@@ -544,6 +544,7 @@ fun NutritionScreen(
                     onRegister = { dose, option -> requestSupplementTake(def, dose, option.time, option.date) },
                     onDismiss = { if (supplementSheet == sheet) supplementSheet = null },
                     dayTotalFor = { date -> SupplementEngine.knownCeilingTotal(def, viewModel.nutritionLogs.value, date) },
+                    onEditConfig = { supplementSheet = SupplementSheetState.Config(sheet.id, SupplementConfigMode.EDIT) },
                 )
             }
         }

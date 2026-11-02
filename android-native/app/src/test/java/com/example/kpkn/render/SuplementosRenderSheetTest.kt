@@ -32,7 +32,7 @@ import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
 import com.example.kpkn.domain.nutrition.supplements.SupplementTake
 import com.example.kpkn.screens.nutrition.design.NutritionSupplementsModule
 import com.example.kpkn.screens.nutrition.design.SupplementAddContent
-import com.example.kpkn.screens.nutrition.design.SupplementAdjustContent
+import com.example.kpkn.screens.nutrition.design.SupplementAdjustSheet
 import com.example.kpkn.screens.nutrition.design.SupplementCeilingContent
 import com.example.kpkn.screens.nutrition.design.SupplementRowState
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
@@ -194,6 +194,14 @@ class SuplementosRenderSheetTest {
         }
     }
 
+    /** Render de la hoja de producción sobre la página que deja ver el lienzo. */
+    @Composable
+    private fun ActualSheetFrame(content: @Composable () -> Unit) {
+        Box(Modifier.fillMaxWidth().height(880.dp)) {
+            Page(SupplementSamples.rows(), 95.0, 95.0)
+            content()
+        }
+    }
     private val caffeine get() = SupplementCatalog.byId("cafeina")!!
 
     @Test fun modulo100() = capture("modulo", 1f, true) { Page(SupplementSamples.rows(), 95.0, 95.0) }
@@ -204,10 +212,28 @@ class SuplementosRenderSheetTest {
     @Test fun techo100() = capture("techo", 1f, true) { Page(SupplementSamples.rows(techo = true), 495.0, 395.0) }
 
     @Test fun ajustar100() = capture("ajustar", 1f, true) {
-        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 95.0, java.time.LocalDateTime.of(2026, 10, 29, 12, 55), { _, _ -> }, {}) }
+        ActualSheetFrame {
+            SupplementAdjustSheet(
+                def = caffeine,
+                item = SupplementPilaItem("cafeina", 100.0, moment = 3),
+                dayTotalNow = 95.0,
+                now = java.time.LocalDateTime.of(2026, 10, 29, 12, 55),
+                onRegister = { _, _ -> },
+                onDismiss = {},
+            )
+        }
     }
     @Test fun ajustar130() = capture("ajustar", 1.3f, false) {
-        SheetFrame { SupplementAdjustContent(caffeine, SupplementPilaItem("cafeina", 100.0, moment = 3), 95.0, java.time.LocalDateTime.of(2026, 10, 29, 12, 55), { _, _ -> }, {}) }
+        ActualSheetFrame {
+            SupplementAdjustSheet(
+                def = caffeine,
+                item = SupplementPilaItem("cafeina", 100.0, moment = 3),
+                dayTotalNow = 95.0,
+                now = java.time.LocalDateTime.of(2026, 10, 29, 12, 55),
+                onRegister = { _, _ -> },
+                onDismiss = {},
+            )
+        }
     }
     @Test fun aviso100() = capture("aviso", 1f, true) {
         SheetFrame { SupplementCeilingContent(caffeine, 100.0, 495.0, {}, {}) }
