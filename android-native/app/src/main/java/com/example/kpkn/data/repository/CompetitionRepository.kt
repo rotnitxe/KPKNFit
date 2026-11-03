@@ -10,8 +10,10 @@ import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.services.competition.CompetitionReminderManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Single source of truth for competition records.
@@ -32,6 +35,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
 
     private val db = databaseOverride ?: KpknDatabase.getInstance(context)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val pendingWriteJobs = ConcurrentHashMap.newKeySet<Job>()
     private val reminderManager = CompetitionReminderManager(context)
     private val mutationLock = Any()
     internal val recordWriteMutex = Mutex()
@@ -69,7 +73,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
         val reservation = synchronized(mutationLock) {
             reserve(normalized).also { publishRecord(normalized) }
         }
-        scope.launch { commitReserved(reservation) }
+        launchTrackedWrite { commitReserved(reservation) }
         syncReminders(normalized)
     }
 
@@ -84,7 +88,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             _records.update { it.filterNot { record -> record.id == id } }
             writeSequence
         }
-        scope.launch {
+        launchTrackedWrite {
             PersistenceWriteCoordinator.mutex.withLock {
                 recordWriteMutex.withLock {
                     if (synchronized(mutationLock) { newestWrite[id] == version }) db.competitionRecordDao().delete(id)
@@ -92,6 +96,20 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             }
         }
         reminderManager.cancel(id)
+    }
+
+    private fun launchTrackedWrite(block: suspend () -> Unit) {
+        val job = scope.launch { block() }
+        pendingWriteJobs += job
+        job.invokeOnCompletion { pendingWriteJobs -= job }
+    }
+
+    private suspend fun awaitPendingWrites() {
+        while (true) {
+            val pending = pendingWriteJobs.toList()
+            if (pending.isEmpty()) return
+            pending.joinAll()
+        }
     }
 
     internal data class RecordWriteReservation(val record: CompetitionRecord,val version: Long)
@@ -181,6 +199,11 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
 
         fun closeInstance() {
             INSTANCE = null
+        }
+
+        /** Drain fire-and-forget persistence before Robolectric closes its database. */
+        internal suspend fun awaitPendingWritesForTests() {
+            INSTANCE?.awaitPendingWrites()
         }
 
         fun competitionExerciseIds(records: List<CompetitionRecord>): Set<String> =

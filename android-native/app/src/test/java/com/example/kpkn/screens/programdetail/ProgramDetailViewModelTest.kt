@@ -948,6 +948,7 @@ class ProgramDetailViewModelTest {
     fun tearDown() {
         // Primero los VM (cancela su viewModelScope), luego los repositorios y solo al final la base.
         viewModelStore.clear()
+        runBlocking { CompetitionRepository.awaitPendingWritesForTests() }
         CompetitionRepository.closeInstance()
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
@@ -1138,7 +1139,13 @@ class ProgramDetailViewModelTest {
         repository.addProgram(makeProgram(id))
         val vm = vmFor(id)
 
-        vm.deleteSession("${id}_s1", macroIndex = 0, mesoIndex = 0, weekId = "${id}_w1")
+        vm.deleteSession(
+            "${id}_s1",
+            macroIndex = 0,
+            mesoIndex = 0,
+            weekId = "${id}_w1",
+            competitionRepository = null,
+        )
 
         val updated = repository.getProgramById(id)!!
         val week = updated.macrocycles[0].blocks[0].mesocycles[0].weeks[0]
@@ -2207,10 +2214,11 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun applyProgramTemplate_reselects_week_in_new_graph() = runBlocking {
+    fun applyProgramTemplate_creates_copy_and_routes_to_new_graph_when_original_is_empty() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val id = nextId()
-        repository.addProgram(Program(id = id, name = "Vacío", structure = ProgramStructure.SIMPLE))
+        val original = Program(id = id, name = "Vacío", structure = ProgramStructure.SIMPLE)
+        repository.addProgram(original)
         val vm = vmFor(id)
         val staleWeek = "${id}_missing_week"
         vm.selectWeek(staleWeek)
@@ -2219,42 +2227,35 @@ class ProgramDetailViewModelTest {
         val template = com.example.kpkn.data.programs.PROGRAM_TEMPLATES.first { it.id == "simple-1" }
         vm.applyProgramTemplate(template)
 
-        withTimeout(15_000) {
-            while (true) {
-                val program = vm.program.value ?: repository.getProgramById(id)
-                val weekId = vm.uiState.value.selectedWeekId
-                val weekIds = program?.macrocycles
-                    ?.flatMap { it.blocks }
-                    ?.flatMap { it.mesocycles }
-                    ?.flatMap { it.weeks }
-                    ?.map { it.id }
-                    .orEmpty()
-                if (program != null &&
-                    weekId != null &&
-                    weekId in weekIds &&
-                    weekIds.isNotEmpty() &&
-                    program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
-                        .any { week ->
-                            week.sessions.any(
-                                com.example.kpkn.domain.templates.SessionTemplateEngine::sessionHasExecutableContent,
-                            )
-                        }
-                ) {
-                    break
-                }
-                delay(50)
-            }
+        val result = withTimeout(15_000) {
+            vm.uiState.first { !it.snackbarMessage.isNullOrBlank() }
         }
+        val copyId = checkNotNull(result.pendingOpenProgramId) {
+            "La plantilla no abrió la copia nueva: ${result.snackbarMessage}"
+        }
+        assertNotEquals(id, copyId)
 
-        val applied = vm.program.value ?: repository.getProgramById(id)!!
+        val applied = withTimeout(15_000) {
+            repository.programs.first { programs -> programs.any { it.id == copyId } }
+                .first { it.id == copyId }
+        }
+        assertEquals(original, repository.getProgramById(id))
+        assertEquals(staleWeek, vm.uiState.value.selectedWeekId)
+
         val weekIds = applied.macrocycles
             .flatMap { it.blocks }
             .flatMap { it.mesocycles }
             .flatMap { it.weeks }
             .map { it.id }
-            .toSet()
-        assertTrue(vm.uiState.value.selectedWeekId in weekIds)
-        assertNotNull(vm.uiState.value.snackbarMessage)
+        assertTrue(weekIds.isNotEmpty())
+        assertTrue(
+            applied.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+                .any { week ->
+                    week.sessions.any(
+                        com.example.kpkn.domain.templates.SessionTemplateEngine::sessionHasExecutableContent,
+                    )
+                },
+        )
     }
 
     // ─── Copias recuperables (ProgramSnapshotStore fuera de Main) ─────────
