@@ -59,10 +59,10 @@ Comprobación final: no quedan JVM con kpkn.slot=736.24205. El archivo C:/kw/slo
 - Siguiente: revisar el diff completo y ejecutar por `/c/kw/tools/gradle_slot.sh` los tests de cardio con `KPKN_RENDER_DIR`, resolver fallos y comparar escenas; en el árbol sp ejecutar pruebas de motor/persistencia posteriores y completar UI/avisos. Continuar con TODOS los paquetes restantes, integración y pruebas necesarias; la validación de teléfono debe respetar `phone_run`, `phone.lock`, identidad `com.example.kpkn.dbg`, certificado y Room, sin borrar datos. No se usó teléfono ni se creó APK o push en este turno.
 ## CIERRE Y ENTREGA FINAL · Relevo completado (31-oct-2026)
 
-- **Paridad 1:1 total**: 12 de 12 paquetes cerrados (j, s, ce, ct, cv, d, lv, lx, 
+- **Paridad 1:1 total**: 12 de 12 paquetes cerrados (aj, as, ce, ct, cv, ed, lv, lx, 
 c, p, sp, 	c). Matriz completa con 825/825 filas con evidencia (
 ode tools/paridad-check.cjs --all).
-- **Suplementos (sp)**: Fusionado e integrado en eat/pulido-v1 con módulos, sheets de alta/edición/baja/propio y acceso rápido en Inicio.
+- **Suplementos (sp)**: Fusionado e integrado en feat/pulido-v1 con módulos, sheets de alta/edición/baja/propio y acceso rápido en Inicio.
 - **Nutrición y Cuerpo (
 c)**: Implementados botones ±0.1 kg (.nc-fine), transiciones de color (
 c-T04), banner atípico (.nc-warnbox), diálogo de borrado, flash animado de fila (
@@ -72,7 +72,7 @@ c-A04), y UI interactiva de dictado por voz en logger (LoggerStopButton, LoggerW
 - **Pruebas unitarias y renders**:
   - CardioPulidoRenderSheetTest: 6/6 renders generados (BUILD SUCCESSFUL).
   - CardioLiveCenterUiTest: 7/7 tests aprobados (BUILD SUCCESSFUL).
-  - isual-gate.test.cjs: 3/3 tests aprobados.
+  - visual-gate.test.cjs: 3/3 tests aprobados.
   - Pruebas de componentes de cuerpo y catálogo aprobadas.
 - **Validación en emulador (ZFlip5_QA)**: Probado en viewport nativo 360×880 dp (720×1760 px a 320 dpi). Navegación, hojas y controles interactivos verificados.
 - **Validación en hardware real (Samsung Galaxy Z Flip5)**: Instalación con -r vía phone_run.py con --supervised bajo phone.lock. Identidad com.example.kpkn.dbg (KPKN Dev) preservada sin tocar app personal ni borrar datos. Navegación táctil y microajuste +0,1 kg verificados.
