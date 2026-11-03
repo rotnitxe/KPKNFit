@@ -70,6 +70,8 @@ internal fun ImportAddExerciseSheet(
     imported: ImportedProgramDraft,
     contextDayId: String?,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    namesOf: suspend (Set<String>) -> Map<String, String> = { emptyMap() },
+    useSharedCatalog: Boolean = false,
     onEdit: (ImportEditOp) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -115,9 +117,14 @@ internal fun ImportAddExerciseSheet(
             ImportAddExercisePanel(
                 key = "island",
                 search = search,
+                namesOf = namesOf,
+                useSharedCatalog = useSharedCatalog,
                 onAdd = { name, configId, sets, repsMin, repsMax ->
-                    chosen?.let { dayId ->
+                    if (chosen != null) {
+                        val dayId = chosen
                         onEdit(ImportEditOp.AddExercise(dayId, name, sets, repsMin, repsMax, configId = configId, decided = true))
+                    } else if (configId != null) {
+                        onEdit(ImportEditOp.AddFirstExercise(name, sets, repsMin, repsMax, configId))
                     }
                 },
                 onClose = onClose,

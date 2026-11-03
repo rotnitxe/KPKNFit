@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +27,8 @@ import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 /** Series por defecto de un ejercicio añadido. */
 internal const val ADD_SETS_DEFAULT = 3
@@ -51,6 +54,8 @@ internal fun ImportAddExercisePanel(
     initialSets: Int = ADD_SETS_DEFAULT,
     initialRepsMin: Int = ADD_REPS_DEFAULT,
     initialRepsMax: Int = ADD_REPS_DEFAULT,
+    useSharedCatalog: Boolean = false,
+    namesOf: suspend (Set<String>) -> Map<String, String> = { emptyMap() },
     leading: @Composable () -> Unit = {},
 ) {
     // El resultado del catálogo que se eligió (id y nombre), o, si no hay, el nombre propio que se escribe.
@@ -61,6 +66,9 @@ internal fun ImportAddExercisePanel(
     var rangeMode by rememberSaveable(key) { mutableStateOf(initialRepsMin != initialRepsMax) }
     var repsMin by rememberSaveable(key) { mutableStateOf(initialRepsMin) }
     var repsMax by rememberSaveable(key) { mutableStateOf(initialRepsMax) }
+    var catalogOpen by rememberSaveable(key) { mutableStateOf(false) }
+    var catalogError by rememberSaveable(key) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val requester = remember { BringIntoViewRequester() }
     LaunchedEffect(Unit) { requester.bringIntoView() }
 
@@ -100,6 +108,9 @@ internal fun ImportAddExercisePanel(
                     modifier = Modifier.testTag("import-add-change"),
                 )
             }
+        } else if (useSharedCatalog) {
+            ImportTextAction(label = "Buscar en el catálogo", onClick = { catalogOpen = true }, modifier = Modifier.testTag("import-add-shared-catalog"))
+            if (catalogError) Text("No pudimos recuperar el ejercicio elegido. Inténtalo de nuevo.", style = WizardTypography.note, color = WizardColors.danger)
         } else {
             ImportCatalogSearch(
                 key = key,
@@ -145,12 +156,29 @@ internal fun ImportAddExercisePanel(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ImportCta(
                 label = "Añadir",
-                enabled = rawName.isNotBlank(),
+                enabled = rawName.isNotBlank() && (!useSharedCatalog || pickedId != null),
                 onClick = { add() },
                 testTag = "import-add-exercise-save",
                 modifier = Modifier.weight(1f),
             )
             ImportTextAction(label = "Cancelar", onClick = onClose, modifier = Modifier.testTag("import-add-cancel"))
         }
+    }
+    if (catalogOpen) {
+        ImportSharedCatalog(
+            rawName = initialName,
+            onSelect = { id ->
+                scope.launch {
+                    val name = try { namesOf(setOf(id))[id] } catch (cancel: CancellationException) { throw cancel } catch (_: Exception) { null }
+                    if (name.isNullOrBlank()) catalogError = true else {
+                        pickedId = id
+                        pickedName = name
+                        own = ""
+                        catalogError = false
+                    }
+                }
+            },
+            onClose = { catalogOpen = false },
+        )
     }
 }

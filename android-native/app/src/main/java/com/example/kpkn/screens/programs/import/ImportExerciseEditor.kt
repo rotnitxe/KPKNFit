@@ -90,6 +90,7 @@ internal fun ImportExerciseEditor(
     otherWeeks: Int,
     suggest: suspend (String) -> List<ExerciseNameCandidate>,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    onOpenCatalog: ((String, String) -> Unit)? = null,
     onEdit: (ImportEditOp) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -150,9 +151,10 @@ internal fun ImportExerciseEditor(
                         rawName = exercise.rawName,
                         suggest = suggest,
                         search = search,
+                        onOpenCatalog = onOpenCatalog?.let { open -> { name -> open(exercise.id, name) } },
                         onPick = { configId, name ->
                             choosing = false
-                            onEdit(ImportEditOp.Decide(exercise.rawName, configId, name))
+                            onEdit(if (configId != null) ImportEditOp.DecideOccurrence(exercise.id, configId, name) else ImportEditOp.Decide(exercise.rawName, null, name))
                         },
                         onCancel = { choosing = false },
                     )
@@ -168,7 +170,7 @@ internal fun ImportExerciseEditor(
                             color = WizardColors.text,
                             modifier = Modifier.weight(1f),
                         )
-                        ImportOutlineButton(label = "Cambiar", onClick = { choosing = true }, testTag = "import-edit-change")
+                        ImportOutlineButton(label = "Cambiar", onClick = { if (onOpenCatalog != null) onOpenCatalog(exercise.id, exercise.rawName) else choosing = true }, testTag = "import-edit-change")
                     }
                 }
                 ImportExerciseState.OWN -> if (choosing) {
@@ -176,23 +178,26 @@ internal fun ImportExerciseEditor(
                         rawName = exercise.rawName,
                         suggest = suggest,
                         search = search,
+                        onOpenCatalog = onOpenCatalog?.let { open -> { name -> open(exercise.id, name) } },
                         onPick = { configId, name ->
                             choosing = false
-                            onEdit(ImportEditOp.Decide(exercise.rawName, configId, name))
+                            onEdit(if (configId != null) ImportEditOp.DecideOccurrence(exercise.id, configId, name) else ImportEditOp.Decide(exercise.rawName, null, name))
                         },
                         onCancel = { choosing = false },
                     )
                 } else {
-                    Text("Ejercicio propio", style = WizardTypography.controlLabel, color = WizardColors.text)
-                    SetupFormTextField(
-                        value = form.rawName,
-                        onValueChange = { text -> form = form.copy(rawName = text) },
-                        label = "Nombre",
-                        testTag = "import-edit-name",
-                    )
+                    Text(if (onOpenCatalog != null) "Falta elegir el ejercicio en el catálogo" else "Ejercicio propio", style = WizardTypography.controlLabel, color = WizardColors.text)
+                    if (onOpenCatalog == null) {
+                        SetupFormTextField(
+                            value = form.rawName,
+                            onValueChange = { text -> form = form.copy(rawName = text) },
+                            label = "Nombre",
+                            testTag = "import-edit-name",
+                        )
+                    }
                     ImportTextAction(
                         label = "Elegir del catálogo",
-                        onClick = { choosing = true },
+                        onClick = { if (onOpenCatalog != null) onOpenCatalog(exercise.id, exercise.rawName) else choosing = true },
                         modifier = Modifier.testTag("import-edit-pick"),
                     )
                 }
@@ -200,13 +205,14 @@ internal fun ImportExerciseEditor(
                     rawName = exercise.rawName,
                     suggest = suggest,
                     search = search,
-                    onPick = { configId, name -> onEdit(ImportEditOp.Decide(exercise.rawName, configId, name)) },
+                    onOpenCatalog = onOpenCatalog?.let { open -> { name -> open(exercise.id, name) } },
+                    onPick = { configId, name -> onEdit(if (configId != null) ImportEditOp.DecideOccurrence(exercise.id, configId, name) else ImportEditOp.Decide(exercise.rawName, null, name)) },
                     onCancel = null,
                 )
             }
             if (sameNameCount > 1) {
                 Text(
-                    "Se aplica a las $sameNameCount veces que aparece «${exercise.rawName}».",
+                    "Este nombre aparece $sameNameCount veces. La selección se aplica solo a este ejercicio.",
                     style = WizardTypography.note,
                     color = WizardColors.textMuted,
                 )

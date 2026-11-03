@@ -216,6 +216,9 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
     private val resolver = ExerciseCatalogV2Resolver(catalog)
     private val definitionsById: Map<String, ExerciseDefinitionV2> =
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
+    private val definitionsByConfigurationId = definitionsById.values.flatMap { definition ->
+        definition.configurations.map { it.id to definition }
+    }.toMap()
 
     /** Reglas de la primera pasada: las de siempre, sin cambios. */
     private val currentRules = Rules(
@@ -268,6 +271,22 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
     /** Empareja cada nombre distinto una sola vez (clave: el nombre sin espacios sobrantes). */
     fun matchAll(rawNames: Collection<String>): Map<String, ExerciseNameMatch> =
         rawNames.map { it.trim() }.filter { it.isNotEmpty() }.distinct().associateWith { match(it) }
+
+    /** Una sugerencia precisa no basta para elegir automáticamente una variante que el texto no especifica. */
+    fun canResolveAutomatically(match: ExerciseNameMatch): Boolean {
+        if (!match.isConfident || match.alternative != null) return false
+        val generic = setOf("sentadilla", "squat", "remo", "row", "press", "peso muerto", "deadlift")
+        val movement = ExerciseMatchLexicon.normalize(match.rawName).split(' ')
+            .filterNot { it in MATERIAL_WORDS || it in setOf("con", "en", "de", "with", "w") }
+            .joinToString(" ")
+        if (movement in generic) return false
+        val candidate = match.best ?: return false
+        val definition = definitionsByConfigurationId[candidate.configurationId] ?: return false
+        val equipment = materialEquipment(match.rawName)
+        val possible = if (equipment == null) definition.configurations else
+            definition.configurations.filter { it.profile.equipmentId == equipment }
+        return possible.size == 1 && possible.single().id == candidate.configurationId
+    }
 
     /** Primera pasada: el nombre completo y, si es «X o Y» y X se reconoce, X con Y como alternativa. */
     private fun matchCurrent(name: String): ExerciseNameMatch {

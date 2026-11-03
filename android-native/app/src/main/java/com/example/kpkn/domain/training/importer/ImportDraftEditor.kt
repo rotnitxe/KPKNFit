@@ -35,6 +35,14 @@ data class ImportExercisePatch(
  */
 object ImportDraftEditor {
 
+    /** Selecciona una configuración solo para esta aparición del ejercicio. */
+    fun selectCatalogExercise(draft: ImportedProgramDraft, exerciseId: String, configurationId: String): ImportedProgramDraft {
+        if (configurationId.isBlank()) return draft
+        val same = sameExercise(draft, exerciseId)
+        if (same.isEmpty()) return draft
+        return draft.withExercisesAt(same, false) { it.copy(catalogSelectionId = configurationId) }
+    }
+
     private val SETS_RANGE = 1..ProgramImportParser.MAX_SETS
     private val REPS_RANGE = 1..ProgramImportParser.MAX_REPS
     private val PERCENT_RANGE = 1.0..ProgramImportParser.MAX_PERCENT

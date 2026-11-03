@@ -1,30 +1,24 @@
 package com.example.kpkn.screens.programs.importer
 
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.click
-import androidx.compose.ui.geometry.Offset
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasAnyAncestor
-import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
@@ -41,60 +35,95 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
+import kotlinx.coroutines.runBlocking
+import java.io.File
 
-/**
- * G3 de screens-v2, el importador de programas: la fila del ejercicio abierto, el panel «Ajusta el ejercicio», la línea de deshacer
- * y la isla de abajo con «Añadir ejercicio» (el catálogo contextual) y «Guardar programa». El motor de importación no cambia: se
- * comprueba que cada control del tablero escribe lo mismo que antes y que lo que cambió de sitio (los días de entrenamiento) funciona.
- */
+/** Revisión del importador conectada al catálogo común y al SessionEditor completo, sin publicar antes de guardar. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w411dp-h891dp-xxhdpi")
 class ImportBoardG3Test {
     @get:Rule
     val rule = createComposeRule()
 
+    @get:Rule
+    val folder = TemporaryFolder()
+
     private val app: Application = ApplicationProvider.getApplicationContext()
     private val saved = mutableListOf<Program>()
     private val viewModelStore = ViewModelStore()
+    private var nextDraft = 0
 
     private fun newViewModel(): ImportProgramViewModel {
-        // Guardar abre «Listo para empezar» (cr-listo), que lee el repositorio de programas: uno en memoria por prueba.
         ProgramRepository.initForTests(app)
-        return ImportProgramViewModel(app).also { vm ->
+        val draftFile = File(folder.root, "imported-${nextDraft++}.json")
+        return ImportProgramViewModel(app, draftFile).also { vm ->
             vm.saveProgram = { program ->
                 saved += program
                 Result.success(Unit)
             }
+            vm.findExistingProgram = { null }
             viewModelStore.put("import-g3", vm)
         }
     }
 
     @After
     fun tearDown() {
+        rule.runOnIdle { viewModelStore.clear() }
         ProgramRepository.closeInstance()
-        viewModelStore.clear()
     }
 
     private fun settle(vm: ImportProgramViewModel) {
         repeat(600) {
             ShadowLooper.idleMainLooper()
-            if (vm.state.value.imported != null && !vm.state.value.busy) return
+            val state = vm.state.value
+            if (state.imported != null && !state.busy && state.notice != IMPORT_MATCHING) return
             Thread.sleep(10)
         }
         error("la importación no terminó: ${vm.state.value}")
     }
 
-    /** Un programa de dos días leído de texto, con todo decidido como «propio»; la pantalla real encima. */
+    private fun settleReviewPersistence(vm: ImportProgramViewModel) {
+        var stableIterations = 0
+        repeat(600) {
+            ShadowLooper.idleMainLooper()
+            if (!vm.state.value.draftPersistencePending) {
+                stableIterations += 1
+                if (stableIterations >= 10) {
+                    assertNull("el borrador debe quedar persistido", vm.state.value.draftPersistenceError)
+                    return
+                }
+            } else {
+                stableIterations = 0
+            }
+            Thread.sleep(10)
+        }
+        error("la persistencia de la revisión no terminó: ${vm.state.value}")
+    }
+
+    /** Un programa de dos días con identidades reales del catálogo; la pantalla real encima. */
     private fun screen(): ImportProgramViewModel {
         val vm = newViewModel()
         vm.importFromText("Día 1 — Pierna\nSentadilla 4x6 @120kg\nPrensa 3x10\nDía 2 — Empuje\nPress banca 4x8 @80kg")
         settle(vm)
-        vm.state.value.imported!!.weeks.flatMap { w -> w.days.flatMap { d -> d.exercises } }.map { it.rawName }.distinct()
-            .forEach { vm.resolve(it, null) }
+        val rawNames = vm.state.value.imported!!.weeks.flatMap { w -> w.days.flatMap { d -> d.exercises } }
+            .map { it.rawName }.distinct()
+        rawNames.forEach { raw ->
+            val id = runBlocking { vm.suggestions(raw).firstOrNull()?.configurationId }
+                ?: error("sin sugerencia para $raw")
+            vm.resolve(raw, id)
+            assertTrue("resolve no registró $raw; state=${vm.state.value}", raw in vm.state.value.resolutions)
+        }
+        assertTrue("no se resolvieron todas las ocurrencias; state=${vm.state.value}", vm.state.value.resolutions.keys.containsAll(rawNames))
+        settleReviewPersistence(vm)
+        assertTrue(
+            "el borrador durable debe conservar las decisiones de catálogo; state=${vm.state.value}",
+            vm.state.value.resolutions.keys.containsAll(rawNames),
+        )
         rule.setContent {
             CompositionLocalProvider(LocalPlan provides PlanLevel.PRO) {
                 ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
@@ -103,13 +132,22 @@ class ImportBoardG3Test {
         return vm
     }
 
-    /** Toque por la acción semántica: determinista, sin depender de lo que haya encima del nodo (la isla de abajo, por ejemplo). */
-    private fun click(node: androidx.compose.ui.test.SemanticsNodeInteraction) {
-        node.performSemanticsAction(SemanticsActions.OnClick) { it() }
+    private fun tap(tag: String) {
+        rule.onNodeWithTag(tag).performSemanticsAction(SemanticsActions.OnClick) { it() }
         rule.waitForIdle()
     }
 
-    private fun tap(tag: String) = click(rule.onNodeWithTag(tag))
+    private fun awaitEditorStarted(vm: ImportProgramViewModel) {
+        try {
+            rule.waitUntil(timeoutMillis = 15_000) {
+                val state = vm.state.value
+                state.editorStarted || state.error != null || state.draftPersistenceError != null
+            }
+        } catch (timeout: androidx.compose.ui.test.ComposeTimeoutException) {
+            throw AssertionError("la apertura quedó suspendida; state=${vm.state.value}", timeout)
+        }
+        assertTrue("la ruta debe abrir el editor completo; state=${vm.state.value}", vm.state.value.editorStarted)
+    }
 
     private fun exercises(vm: ImportProgramViewModel) =
         vm.state.value.imported!!.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
@@ -123,7 +161,7 @@ class ImportBoardG3Test {
         rule.onNodeWithTag("import-island").assertIsDisplayed()
         rule.onNodeWithTag("import-add-exercise").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
         rule.onNodeWithTag("import-save").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
-        rule.onNodeWithText("Añadir ejercicio").assertExists()
+        rule.onNodeWithTag("import-add-exercise").assertTextContains("Editar sesión", substring = true)
         rule.onNodeWithText("Guardar programa").assertIsEnabled()
     }
 
@@ -137,54 +175,62 @@ class ImportBoardG3Test {
     }
 
     @Test
-    fun addExerciseOpensTheContextualSheetAndAddingPutsTheExerciseInTheChosenDay() {
+    fun addExerciseOpensTheFullEditorWithoutPublishing() {
         val vm = screen()
-        val before = exercises(vm).size
 
         tap("import-add-exercise")
-        rule.onNodeWithTag(IMPORT_ADD_SHEET_TAG).assertExists()
-        rule.onNodeWithText("Añade un ejercicio").assertExists()
-        rule.onNodeWithText("Añadir a:").assertExists()
-        // Sin ejercicio abierto parte del primer día del programa; se elige el segundo.
-        val secondDay = vm.state.value.imported!!.weeks.first().days[1]
-        tap("import-add-sheet-day-${secondDay.id}")
-        rule.onNodeWithTag("import-add-name").performTextInput("Zancada búlgara")
-        tap("import-add-exercise-save")
-        rule.waitForIdle()
+        awaitEditorStarted(vm)
+        assertNotNull("el borrador del editor debe quedar conectado", vm.activeEditorStore())
 
-        rule.onNodeWithTag(IMPORT_ADD_SHEET_TAG).assertDoesNotExist()
-        assertEquals(before + 1, exercises(vm).size)
-        assertEquals("Zancada búlgara", vm.state.value.imported!!.weeks.first().days[1].exercises.last().rawName)
-        // Y se puede deshacer desde la línea de deshacer.
-        rule.onNodeWithTag("import-undo-line").assertIsDisplayed()
+        assertTrue("la acción abre el editor de sesiones completo", vm.state.value.editorActiveSessionId != null)
+        rule.waitUntil(timeoutMillis = 15_000) {
+            rule.onAllNodesWithText("Pierna", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue("abrir el editor no guarda el programa", saved.isEmpty())
+        assertNull(vm.state.value.savedProgramId)
     }
 
     @Test
-    fun theAddSheetStartsFromTheDayOfTheOpenExercise() {
+    fun eachImportedDayOpensItsMatchingSessionInTheFullEditor() {
         val vm = screen()
-        val press = vm.state.value.imported!!.weeks.first().days[1].exercises.first()
-        vm.open(press.id)
-        rule.waitForIdle()
-
-        tap("import-add-exercise")
-
         val secondDay = vm.state.value.imported!!.weeks.first().days[1]
-        rule.onNodeWithTag("import-add-sheet-day-${secondDay.id}").assertTextContains("✓", substring = true)
+
+        rule.onNodeWithTag("import-edit-session-${secondDay.id}").performScrollTo()
+        tap("import-edit-session-${secondDay.id}")
+        awaitEditorStarted(vm)
+        assertNotNull("el día elegido debe quedar conectado al editor", vm.state.value.editorActiveSessionId)
+
+        assertEquals(vm.state.value.editorSourceMap.sessionIdsByDayId[secondDay.id], vm.state.value.editorActiveSessionId)
+        assertNotNull(vm.activeEditorStore())
+        rule.waitUntil(timeoutMillis = 15_000) {
+            rule.onAllNodesWithText("Empuje", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue(saved.isEmpty())
     }
 
     @Test
-    fun closingTheAddSheetFromTheScrimOrCancelAddsNothing() {
-        val vm = screen()
-        val before = exercises(vm)
+    fun anUnmatchedOccurrenceCanOpenTheSharedCatalogWithoutChangingTheDraft() {
+        val vm = newViewModel()
+        vm.matchNames = { emptyMap() }
+        vm.importFromText("Día 1 — Control\nMovimiento sin coincidencia 3x5")
+        settle(vm)
+        settleReviewPersistence(vm)
+        rule.setContent {
+            CompositionLocalProvider(LocalPlan provides PlanLevel.PRO) {
+                ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
+            }
+        }
+        val exercise = exercises(vm).single()
+        val before = vm.state.value.imported
 
-        tap("import-add-exercise")
-        tap(IMPORT_ADD_SCRIM_TAG)
-        rule.onNodeWithTag(IMPORT_ADD_SHEET_TAG).assertDoesNotExist()
+        tap("import-exercise-catalog-${exercise.id}")
+        rule.waitUntil(timeoutMillis = 10_000) {
+            rule.onAllNodesWithText("Añadir ejercicios").fetchSemanticsNodes().isNotEmpty()
+        }
 
-        tap("import-add-exercise")
-        tap("import-add-cancel")
-        rule.onNodeWithTag(IMPORT_ADD_SHEET_TAG).assertDoesNotExist()
-        assertEquals(before, exercises(vm))
+        assertEquals(before, vm.state.value.imported)
+        assertFalse(vm.state.value.editorStarted)
+        assertTrue(saved.isEmpty())
     }
 
     // ───────────────────────────── La línea de deshacer ─────────────────────────────
@@ -197,12 +243,10 @@ class ImportBoardG3Test {
         rule.waitForIdle()
 
         rule.onNodeWithTag("import-undo-line").assertIsDisplayed()
-        rule.onNodeWithText("Quitaste «Sentadilla».").assertExists()
         rule.onNodeWithTag("import-undo").assertHeightIsAtLeast(48.dp)
         tap("import-undo")
 
         // Cada toque deshace un cambio: vuelve la sentadilla y el último cambio ya no es quitarla.
-        rule.onNodeWithText("Quitaste «Sentadilla».").assertDoesNotExist()
         assertTrue(exercises(vm).any { it.rawName == "Sentadilla" })
     }
 
@@ -211,119 +255,11 @@ class ImportBoardG3Test {
     @Test
     fun theOpenExerciseRowShowsItsPrescriptionAndItsStateAsWords() {
         val vm = screen()
-        vm.resolve("Sentadilla", "cfg-inexistente")
         rule.waitForIdle()
 
         rule.onNodeWithTag("import-exercise-Sentadilla").assertTextContains("4 × 6 · 120 kg", substring = true)
-        rule.onNodeWithContentDescription("Reconocido").assertExists()
-        rule.onNodeWithTag("import-exercise-Prensa").assertTextContains("Propio", substring = true)
-    }
-
-    private fun openPrensa() {
-        tap("import-exercise-Prensa")
-        rule.onNodeWithTag("import-edit-panel").assertExists()
-    }
-
-    @Test
-    fun theAdjustPanelHasEverySectionOfTheBoard() {
-        screen()
-        openPrensa()
-
-        rule.onNodeWithText("Ajusta el ejercicio").assertExists()
-        rule.onNodeWithText("Ejercicio propio").assertExists()
-        rule.onNodeWithText("SERIES Y REPETICIONES").assertExists()
-        rule.onNodeWithText("CARGA").assertExists()
-        rule.onNodeWithText("ESFUERZO").assertExists()
-        rule.onNodeWithText("DESCANSO").assertExists()
-        rule.onNodeWithTag("import-edit-notes").assertExists()
-        rule.onNodeWithTag("import-edit-save").assertExists()
-        rule.onNodeWithTag("import-edit-cancel").assertExists()
-        listOf("up", "down", "move", "duplicate", "remove").forEach { rule.onNodeWithTag("import-edit-$it").assertExists() }
-    }
-
-    @Test
-    fun everyControlOfThePanelHasAtLeast48DpOfTouchTarget() {
-        screen()
-        openPrensa()
-
-        listOf("import-edit-sets", "import-edit-reps-mode", "import-edit-load-mode", "import-edit-effort-mode", "import-edit-rest-mode",
-            "import-edit-save", "import-edit-up", "import-edit-duplicate", "import-edit-remove").forEach { tag ->
-            rule.onNodeWithTag(tag).performScrollTo().assertHeightIsAtLeast(48.dp)
-        }
-    }
-
-    @Test
-    fun theRestStepperIndicatesTwoMinutesAndMovesInStepsOfFifteenSeconds() {
-        val vm = screen()
-        openPrensa()
-
-        click(rule.onNodeWithText("Indicar"))
-        rule.onNodeWithText("2:00").assertExists()
-        click(rule.onNodeWithContentDescription("Añadir 15 segundos"))
-        rule.onNodeWithText("2:15").assertExists()
-        click(rule.onNodeWithContentDescription("Quitar 15 segundos"))
-        click(rule.onNodeWithContentDescription("Quitar 15 segundos"))
-        rule.onNodeWithText("1:45").assertExists()
-        tap("import-edit-save")
-        rule.waitForIdle()
-
-        assertEquals(105, exercises(vm).first { it.rawName == "Prensa" }.restSeconds)
-    }
-
-    @Test
-    fun theRestValueOpensTheRestSheet() {
-        screen()
-        openPrensa()
-
-        click(rule.onNodeWithText("Indicar"))
-        click(rule.onNodeWithContentDescription("Abrir la hoja de descanso"))
-        rule.waitForIdle()
-
-        rule.onNodeWithText("Minutos : segundos").assertExists()
-    }
-
-    @Test
-    fun theSeriesAndRepsControlsWriteTheSameValuesAsBefore() {
-        val vm = screen()
-        openPrensa()
-
-        click(rule.onNodeWithContentDescription("Más series"))
-        click(rule.onNodeWithText("Rango"))
-        click(rule.onNodeWithContentDescription("Más repeticiones máximas"))
-        tap("import-edit-save")
-        rule.waitForIdle()
-
-        val prensa = exercises(vm).first { it.rawName == "Prensa" }
-        assertEquals(4, prensa.sets)
-        assertEquals(10, prensa.repsMin)
-        assertEquals(11, prensa.repsMax)
-    }
-
-    @Test
-    fun theLoadAndEffortSegmentsKeepTheirRadioSemantics() {
-        screen()
-        openPrensa()
-
-        click(rule.onNode(hasText("kg") and hasAnyAncestor(hasTestTag("import-edit-load-mode"))))
-        rule.onNode(hasText("kg") and hasAnyAncestor(hasTestTag("import-edit-load-mode"))).assertIsSelected()
-        click(rule.onNode(hasText("RPE") and hasAnyAncestor(hasTestTag("import-edit-effort-mode"))))
-        rule.onNode(hasText("RPE") and hasAnyAncestor(hasTestTag("import-edit-effort-mode"))).assertIsSelected()
-        rule.onNodeWithTag("import-edit-rpe").assertExists()
-    }
-
-    @Test
-    fun theOrderAndStructureChipsAreImmediateAndRemoveCanBeUndone() {
-        val vm = screen()
-        val before = exercises(vm).map { it.rawName }
-        openPrensa()
-
-        tap("import-edit-up")
-        rule.waitForIdle()
-        assertEquals(listOf("Prensa", "Sentadilla", "Press banca"), exercises(vm).map { it.rawName })
-
-        tap("import-edit-duplicate")
-        rule.waitForIdle()
-        assertEquals(before.size + 1, exercises(vm).size)
+        rule.onNodeWithTag("import-exercise-Sentadilla").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Reconocido"))
+        rule.onNodeWithTag("import-exercise-Prensa").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Reconocido"))
     }
 
     // ───────────────────────────── Los días de entrenamiento, ya en el contenido ─────────────────────────────
@@ -343,8 +279,10 @@ class ImportBoardG3Test {
     @Test
     fun withoutWeekdaysTheSaveButtonOfTheIslandIsDisabled() {
         val vm = screen()
-        vm.toggleWeekday(1)
-        vm.toggleWeekday(4)
+        assertEquals(setOf(1, 4), vm.state.value.weekdays)
+        tap("import-weekday-1")
+        tap("import-weekday-4")
+        assertTrue("la prueba debe dejar todos los días sin seleccionar", vm.state.value.weekdays.isEmpty())
         rule.waitForIdle()
 
         rule.onNodeWithTag("import-save").assertIsNotEnabled()

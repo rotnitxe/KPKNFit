@@ -141,7 +141,9 @@ fun SessionEditorScreen(
     draftMesoIndex: Int? = null,
     draftDayOfWeek: Int? = null,
     repairBenchmarkEditorRequestId: Long = 0L,
+    importedProgramStore: ImportedProgramEditorStore? = null,
     viewModel: SessionEditorViewModel = viewModel(
+        key = importedProgramStore?.let { "import-editor:${it.instanceKey}:$sessionId" },
         factory = SessionEditorViewModel.factory(
             programId = programId,
             sessionId = sessionId,
@@ -149,6 +151,7 @@ fun SessionEditorScreen(
             draftMacroIndex = draftMacroIndex,
             draftMesoIndex = draftMesoIndex,
             draftDayOfWeek = draftDayOfWeek,
+            importedProgramStore = importedProgramStore,
         )
     ),
 ) {

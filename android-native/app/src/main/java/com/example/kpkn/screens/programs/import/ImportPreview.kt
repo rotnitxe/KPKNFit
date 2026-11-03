@@ -157,9 +157,13 @@ internal fun ImportPreviewWeeks(
     suggest: suspend (String) -> List<ExerciseNameCandidate>,
     search: suspend (String) -> List<ExerciseNameCandidate>,
     namesOf: suspend (Set<String>) -> Map<String, String>,
+    onOpenCatalog: ((String, String) -> Unit)? = null,
+    onEditSession: ((weekIndex: Int, dayId: String) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val chosenIds = resolutions.values.filterNotNull().toSet()
+    val chosenIds = resolutions.values.filterNotNull().toSet() + imported.weeks.flatMap { week ->
+        week.days.flatMap { day -> day.exercises.mapNotNull { it.catalogSelectionId } }
+    }
     var names by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     LaunchedEffect(chosenIds) {
         names = try {
@@ -227,6 +231,13 @@ internal fun ImportPreviewWeeks(
                                 color = WizardColors.text,
                                 modifier = Modifier.weight(1f),
                             )
+                            if (onEditSession != null) {
+                                ImportOutlineButton(
+                                    label = "Editar sesión",
+                                    onClick = { onEditSession(week.index, day.id) },
+                                    testTag = "import-edit-session-${day.id}",
+                                )
+                            }
                             ImportMenuButton(
                                 open = activePanel == dayKey,
                                 description = "Opciones de «${day.name}»",
@@ -240,31 +251,56 @@ internal fun ImportPreviewWeeks(
                                 position = dayPosition,
                                 dayCount = week.days.size,
                                 onEdit = onEdit,
-                                onAddExercise = { togglePanel(addKey) },
+                                onAddExercise = {
+                                    if (onEditSession != null) {
+                                        structurePanel = null
+                                        onEditSession(week.index, day.id)
+                                    } else {
+                                        togglePanel(addKey)
+                                    }
+                                },
                                 onClose = { structurePanel = null },
                             )
                         }
                         day.exercises.forEachIndexed { position, exercise ->
-                            val open = openedExerciseId == exercise.id
+                            val open = onEditSession == null && openedExerciseId == exercise.id
+                            val needsCatalogChoice = exercise.catalogSelectionId == null && !resolutions.containsKey(exercise.rawName)
+                            val opensSharedCatalog = needsCatalogChoice && onEditSession != null && onOpenCatalog != null
                             ImportExerciseRow(
                                 exercise = exercise,
-                                state = importExerciseStateOf(exercise.rawName, resolutions),
-                                shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                state = if (exercise.catalogSelectionId != null) ImportExerciseState.CHOSEN else importExerciseStateOf(exercise.rawName, resolutions),
+                                shownName = (exercise.catalogSelectionId ?: resolutions[exercise.rawName])?.let { names[it] } ?: exercise.rawName,
                                 loadUnit = imported.loadUnit,
                                 expanded = open,
+                                onToggleLabel = when {
+                                    opensSharedCatalog -> "Elegir en el catálogo"
+                                    onEditSession != null -> "Editar sesión completa"
+                                    else -> "Ajustar ejercicio"
+                                },
                                 onToggle = {
                                     structurePanel = null
-                                    onOpen(if (open) null else exercise.id)
+                                    if (opensSharedCatalog) onOpenCatalog?.invoke(exercise.id, exercise.rawName)
+                                    else if (onEditSession != null) onEditSession(week.index, day.id)
+                                    else onOpen(if (open) null else exercise.id)
                                 },
                             )
-                            if (open) {
+                            if (needsCatalogChoice) {
+                                onOpenCatalog?.let { openCatalog ->
+                                    ImportTextAction(
+                                        label = "Elegir en el catálogo",
+                                        onClick = { openCatalog(exercise.id, exercise.rawName) },
+                                        modifier = Modifier.testTag("import-exercise-catalog-${exercise.id}"),
+                                    )
+                                }
+                            }
+                            if (open && onEditSession == null) {
                                 ImportExerciseEditor(
                                     exercise = exercise,
                                     dayId = day.id,
                                     position = position,
                                     dayExerciseCount = day.exercises.size,
-                                    state = importExerciseStateOf(exercise.rawName, resolutions),
-                                    shownName = resolutions[exercise.rawName]?.let { names[it] } ?: exercise.rawName,
+                                    state = if (exercise.catalogSelectionId != null) ImportExerciseState.CHOSEN else importExerciseStateOf(exercise.rawName, resolutions),
+                                    shownName = (exercise.catalogSelectionId ?: resolutions[exercise.rawName])?.let { names[it] } ?: exercise.rawName,
                                     loadUnit = imported.loadUnit,
                                     moveTargets = week.days.mapIndexedNotNull { target, other ->
                                         if (target == dayPosition) {
@@ -277,16 +313,19 @@ internal fun ImportPreviewWeeks(
                                     otherWeeks = ImportDraftEditor.sameExerciseInOtherWeeks(imported, exercise.id),
                                     suggest = suggest,
                                     search = search,
+                                    onOpenCatalog = onOpenCatalog,
                                     onEdit = onEdit,
                                     onClose = { onOpen(null) },
                                 )
                             }
                         }
                         // «Añadir ejercicio» sale bajo el último ejercicio del día, que es donde queda el nuevo.
-                        if (activePanel == addKey) {
+                        if (activePanel == addKey && onEditSession == null) {
                             ImportAddExercisePanel(
                                 key = day.id,
                                 search = search,
+                                useSharedCatalog = onOpenCatalog != null,
+                                namesOf = namesOf,
                                 onAdd = { name, configId, sets, repsMin, repsMax ->
                                     onEdit(
                                         ImportEditOp.AddExercise(day.id, name, sets, repsMin, repsMax, configId = configId, decided = true),
@@ -350,6 +389,7 @@ private fun ImportExerciseRow(
     shownName: String,
     loadUnit: ImportLoadUnit,
     expanded: Boolean,
+    onToggleLabel: String,
     onToggle: () -> Unit,
 ) {
     val pattern = remember(shownName) { exercisePatternOf(shownName) }
@@ -365,7 +405,7 @@ private fun ImportExerciseRow(
             .fillMaxWidth()
             .bringIntoViewRequester(requester)
             .heightIn(min = 48.dp)
-            .clickable(role = Role.Button, onClickLabel = "Ajustar ejercicio", onClick = onToggle)
+            .clickable(role = Role.Button, onClickLabel = onToggleLabel, onClick = onToggle)
             .semantics { stateDescription = stateText }
             .testTag("import-exercise-${exercise.rawName}"),
         verticalAlignment = Alignment.CenterVertically,
@@ -408,6 +448,7 @@ internal fun ImportChoicePanel(
     search: suspend (String) -> List<ExerciseNameCandidate>,
     onPick: (configId: String?, name: String) -> Unit,
     onCancel: (() -> Unit)?,
+    onOpenCatalog: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var suggestions by remember(rawName) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
@@ -428,12 +469,16 @@ internal fun ImportChoicePanel(
         suggestions.forEach { candidate ->
             ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
         }
-        ImportCatalogSearch(key = rawName, search = search, onPick = { onPick(it.configurationId, it.displayName) })
-        ImportTextAction(
-            label = "Dejarlo como está (ejercicio propio)",
-            onClick = { onPick(null, rawName) },
-            modifier = Modifier.testTag("import-choice-own"),
-        )
+        if (onOpenCatalog != null) {
+            ImportTextAction(label = "Buscar en el catálogo", onClick = { onOpenCatalog(rawName) }, modifier = Modifier.testTag("import-choice-shared-catalog"))
+        } else {
+            ImportCatalogSearch(key = rawName, search = search, onPick = { onPick(it.configurationId, it.displayName) })
+            ImportTextAction(
+                label = "Dejarlo como está (ejercicio propio)",
+                onClick = { onPick(null, rawName) },
+                modifier = Modifier.testTag("import-choice-own"),
+            )
+        }
         onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
     }
 }

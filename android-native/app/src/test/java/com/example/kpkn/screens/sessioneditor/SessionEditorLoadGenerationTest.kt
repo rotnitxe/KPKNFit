@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -55,6 +57,68 @@ class SessionEditorLoadGenerationTest {
     fun tearDown() {
         ProgramRepository.closeInstance()
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun importedEditorRejectsMutationsWhenItsProgramIdDoesNotMatchTheStore() = runBlocking {
+        val original = program("draft-${java.util.UUID.randomUUID()}", Session(id = "session", name = "Original"))
+        val store = ImportedProgramEditorStore(original) { true }
+        val vm = SessionEditorViewModel(
+            application = ApplicationProvider.getApplicationContext<Application>(),
+            programId = "otro", sessionId = "session", draftWeekId = "week", draftMacroIndex = 0,
+            draftMesoIndex = 0, draftDayOfWeek = 1, importedProgramStore = store,
+        )
+        assertFalse(vm.mutateEditorProgram { it.copy(name = "No guardar") })
+        assertFalse(vm.upsertEditorSession("week", 0, 0, Session(id = "otro", name = "No guardar")))
+        assertEquals(original, store.program.value)
+    }
+
+    @Test
+    fun importedEditorDoesNotShowANewSessionWhenDraftPersistenceFails() = runBlocking {
+        val id = "import-editor-failure-${java.util.UUID.randomUUID()}"
+        val original = program(id)
+        repository.addProgram(original)
+        val store = ImportedProgramEditorStore(original) { false }
+        val vm = SessionEditorViewModel(
+            application = ApplicationProvider.getApplicationContext<Application>(),
+            programId = id, sessionId = "new-session", draftWeekId = "week", draftMacroIndex = 0,
+            draftMesoIndex = 0, draftDayOfWeek = 1, importedProgramStore = store,
+        )
+        withTimeout(10_000) { while (vm.uiState.value.loadErrorMessage == null) delay(25) }
+        assertEquals(null, vm.uiState.value.session)
+        assertEquals(original, store.program.value)
+        assertTrue(repository.getProgramById(id)!!.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.isEmpty())
+    }
+
+    @Test
+    fun importedEditorAutosavesOnlyToDraftEvenWhenLibraryHasSameId() = runBlocking {
+        val id = "import-editor-isolation-${java.util.UUID.randomUUID()}"
+        val session = Session(id = "draft-session-${java.util.UUID.randomUUID()}", name = "Importada")
+        val libraryProgram = program(id, session.copy(name = "Biblioteca"))
+        repository.addProgram(libraryProgram)
+        var durable = program(id, session)
+        val store = ImportedProgramEditorStore(durable) { next -> durable = next; true }
+        val vm = SessionEditorViewModel(
+            application = ApplicationProvider.getApplicationContext<Application>(),
+            programId = id, sessionId = session.id, draftWeekId = "week", draftMacroIndex = 0,
+            draftMesoIndex = 0, draftDayOfWeek = 1, importedProgramStore = store,
+        )
+        withTimeout(10_000) { while (vm.uiState.value.session == null) delay(25) }
+        assertEquals("Importada", vm.uiState.value.session?.name)
+        vm.addExerciseToPart(null, ExerciseMuscleInfo(id = "sentadilla_barra", name = "Sentadilla con barra", category = "Fuerza", equipment = "Barra"))
+        vm.updateSessionName("Editada")
+        assertTrue(vm.flushProgramAutoSaveAndAwait())
+        val importedName = durable.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.single().name
+        val libraryName = repository.getProgramById(id)!!.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.single().name
+        assertEquals("Editada", importedName)
+        assertEquals("Biblioteca", libraryName)
+        assertFalse(vm.upsertEditorSession("semana-ausente", 0, 0, session.copy(id = "no-guardar")))
+        assertFalse(vm.upsertEditorSession("week", 99, 0, session.copy(id = "no-guardar")))
+        assertEquals("Biblioteca", repository.getProgramById(id)!!.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.single().name)
+        assertTrue(vm.createSessionForDay(2).success)
+        withTimeout(10_000) { while (vm.uiState.value.dayOfWeek != 2) delay(25) }
+        assertEquals(2, durable.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.size)
+        assertEquals(1, repository.getProgramById(id)!!.macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.size)
     }
 
     @Test

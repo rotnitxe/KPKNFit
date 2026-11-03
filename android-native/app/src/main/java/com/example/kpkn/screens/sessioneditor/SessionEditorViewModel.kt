@@ -85,7 +85,10 @@ class SessionEditorViewModel(
     private val draftMacroIndex: Int?,
     private val draftMesoIndex: Int?,
     private val draftDayOfWeek: Int?,
+    internal val importedProgramStore: ImportedProgramEditorStore? = null,
 ) : AndroidViewModel(application) {
+
+    internal var importedSessionCreationJob: Job? = null
 
     companion object {
         fun factory(
@@ -95,16 +98,44 @@ class SessionEditorViewModel(
             draftMacroIndex: Int? = null,
             draftMesoIndex: Int? = null,
             draftDayOfWeek: Int? = null,
+            importedProgramStore: ImportedProgramEditorStore? = null,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: androidx.lifecycle.viewmodel.CreationExtras): T {
                 val app = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                return SessionEditorViewModel(app, programId, sessionId, draftWeekId, draftMacroIndex, draftMesoIndex, draftDayOfWeek) as T
+                return SessionEditorViewModel(app, programId, sessionId, draftWeekId, draftMacroIndex, draftMesoIndex, draftDayOfWeek, importedProgramStore) as T
             }
         }
     }
 
     internal val repository = ProgramRepository.getInstance()
+
+    /** Lee el programa provisional sin consultar ni publicar en la biblioteca. */
+    internal fun editorProgram(id: String = programId): Program? =
+        if (importedProgramStore != null) importedProgramStore.program.value.takeIf { it.id == id }
+        else repository.getProgramById(id)
+
+    /** Serializa las escrituras del editor en el destino que lo abrió. */
+    internal suspend fun mutateEditorProgram(transform: (Program) -> Program?): Boolean {
+        val store = importedProgramStore ?: return repository.mutateProgramNow(programId, transform)
+        return store.mutate { current -> if (current.id == programId) transform(current) else null }
+    }
+
+    internal suspend fun upsertEditorSession(
+        weekId: String, macroIndex: Int, mesoIndex: Int, session: Session,
+    ): Boolean {
+        val store = importedProgramStore
+            ?: return repository.upsertSessionInProgram(programId, weekId, macroIndex, mesoIndex, session)
+        return store.mutate { current ->
+            if (current.id != programId) return@mutate null
+            if (findWeek(current, macroIndex, mesoIndex, weekId) == null) return@mutate null
+            val updated = current.updateWeekSessions(macroIndex, mesoIndex, weekId) { sessions ->
+                val replaced = sessions.map { if (it.id == session.id) session else it }
+                normalizeEditorMainSessions(if (replaced.none { it.id == session.id }) replaced + session else replaced)
+            }
+            updated.takeIf { it.containsSessionInWeek(weekId, session.id) }
+        }
+    }
     internal val observationRepository = TrainingObservationRepository.getInstance(application)
     internal val nutritionRepository = runCatching { NutritionRepository.getInstance() }.getOrNull()
     internal val templateRepository = SessionTemplateRepository.getInstance(application)
@@ -592,6 +623,14 @@ class SessionEditorViewModel(
     }
 
     private fun observeRepositoryRecovery() {
+        importedProgramStore?.let { store ->
+            viewModelScope.launch {
+                store.program.collect {
+                    if (_uiState.value.session == null || _uiState.value.loadErrorMessage != null) loadSession()
+                }
+            }
+            return
+        }
         viewModelScope.launch {
             repository.programs.collect {
                 val state = _uiState.value
@@ -692,9 +731,9 @@ class SessionEditorViewModel(
     }
 
     private suspend fun loadSessionInternal(): SessionEditorLoadResult {
-        val program = repository.getProgramById(programId)
+        val program = editorProgram()
         if (program == null) {
-            if (repository.isReady.value) {
+            if (importedProgramStore != null || repository.isReady.value) {
                 Log.w("SessionEditor", "Program not found. programId=$programId sessionId=$sessionId")
                 return SessionEditorLoadResult.Failed("No pudimos recuperar este programa.")
             }
@@ -705,7 +744,7 @@ class SessionEditorViewModel(
         val targetMacroIndex = draftMacroIndex ?: located?.macroIndex ?: 0
         val targetMesoIndex = draftMesoIndex ?: located?.mesoIndex ?: 0
         val week = located?.week ?: findWeek(program, targetMacroIndex, targetMesoIndex, targetWeekId)
-        if (week == null && targetWeekId.isNotBlank() && repository.isReady.value) {
+        if (week == null && targetWeekId.isNotBlank() && (importedProgramStore != null || repository.isReady.value)) {
             Log.w("SessionEditor", "Week not found. programId=$programId weekId=$targetWeekId sessionId=$sessionId")
             return SessionEditorLoadResult.Failed("No pudimos recuperar la semana de esta sesión.")
         }
@@ -739,13 +778,15 @@ class SessionEditorViewModel(
         )
         val weekSessions = ensureSessionInList(week?.sessions.orEmpty(), draft)
         if (existing == null && week != null && targetWeekId.isNotBlank()) {
-            repository.upsertSessionInProgram(
-                programId = programId,
+            val saved = upsertEditorSession(
                 weekId = targetWeekId,
                 macroIndex = targetMacroIndex,
                 mesoIndex = targetMesoIndex,
                 session = draft.ensureModifiedTimestamp(),
             )
+            if (!saved && importedProgramStore != null) {
+                return SessionEditorLoadResult.Failed("No pudimos guardar la sesión en el borrador de importación.")
+            }
         }
         val resolvedRuleDefaults = editorRulePreferences.global.current
         val resolvedPartRuleDefaults = editorRulePreferences.current.partRuleDefaults
@@ -956,7 +997,7 @@ class SessionEditorViewModel(
         val durationMinutes = durationEstimate.totalMinutes
         val timeBreakdown = durationEstimate.toSessionTimeBreakdown(session)
         val draftAwareWeekSessions = if (state.weekSessions.any { it.id == session.id }) state.weekSessions.map { if (it.id == session.id) session else it } else state.weekSessions + session
-        val program = repository.getProgramById(state.programId)
+        val program = editorProgram(state.programId)
         val programLogs = repository.getLogsForProgram(state.programId)
         val settingsVal = repository.settings.value
         val index = exerciseIndex

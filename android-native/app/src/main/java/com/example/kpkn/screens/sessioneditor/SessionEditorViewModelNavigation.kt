@@ -27,7 +27,7 @@ fun SessionEditorViewModel.clearSnackbarMessage() {
 }
 
 /** UI-only metrics may change during IO; authored content and new user actions must win. */
-private fun SessionEditorViewModel.navigationSourceChanged(snapshot: SessionEditorUiState): Boolean {
+private fun SessionEditorViewModel.navigationSourceChanged(snapshot: SessionEditorUiState, allowSheetChange: Boolean = false): Boolean {
     val latest = currentUiState
     val changedDraft = latest.hasUnsavedChanges && (
         !sameSessionEditorContent(latest.session, snapshot.session) ||
@@ -36,8 +36,9 @@ private fun SessionEditorViewModel.navigationSourceChanged(snapshot: SessionEdit
             latest.ruleLimits != snapshot.ruleLimits ||
             latest.pendingTransferToDays != snapshot.pendingTransferToDays
         )
-    if (!changedDraft && latest.activeVariant == snapshot.activeVariant &&
-        latest.pendingExerciseRemoval == snapshot.pendingExerciseRemoval && latest.sheet == snapshot.sheet
+    if (!changedDraft && latest.session?.id == snapshot.session?.id && latest.weekId == snapshot.weekId &&
+        latest.activeVariant == snapshot.activeVariant && latest.pendingExerciseRemoval == snapshot.pendingExerciseRemoval &&
+        (allowSheetChange || latest.sheet == snapshot.sheet)
     ) return false
     updateUi { it.copy(snackbarMessage = "La sesión cambió mientras se abría otro día. Tus cambios siguen aquí; vuelve a elegir el destino.") }
     return true
@@ -56,10 +57,10 @@ fun SessionEditorViewModel.setMainSessionForDay(sessionId: String) {
         }
         val saved = try {
             withContext(Dispatchers.IO) {
-                repository.mutateProgramNow(programId) { program ->
+                mutateEditorProgram { program ->
                     val week = findWeek(program, state.macroIndex, state.mesoIndex, state.weekId)
                     if (week?.sessions?.none { it.id == sessionId && it.dayOfWeek == day } != false) {
-                        return@mutateProgramNow null
+                        return@mutateEditorProgram null
                     }
                     program.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
                         sessions.map { session ->
@@ -175,14 +176,31 @@ private fun SessionEditorViewModel.completeCreateSessionForDay(dayOfWeek: Int): 
         isMainSession = true,
         lastModifiedAtMs = System.currentTimeMillis(),
     )
+    if (importedProgramStore != null) {
+        if (importedSessionCreationJob?.isActive == true) return SessionEditorSaveResult(false, "Ya estamos guardando una sesión.")
+        importedSessionCreationJob = viewModelScope.launch {
+            if (!upsertEditorSession(state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
+                updateUi { it.copy(snackbarMessage = "No pudimos guardar la sesión en el borrador.") }
+            } else if (!navigationSourceChanged(state, allowSheetChange = true)) {
+                finishCreateSessionForDay(state, newSession, dayOfWeek)
+            }
+        }
+        return SessionEditorSaveResult(success = true, message = "")
+    }
     if (!repository.upsertSessionInProgram(programId, state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
         return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión en esta semana.")
     }
 
+    return finishCreateSessionForDay(state, newSession, dayOfWeek)
+}
+
+private fun SessionEditorViewModel.finishCreateSessionForDay(
+    state: SessionEditorUiState, newSession: Session, dayOfWeek: Int,
+): SessionEditorSaveResult {
     invalidateInitialSessionLoadForSwitch()
     invalidateDraftWritesFor(state)
     sessionSwitchGeneration++
-    val updatedProgram = repository.getProgramById(programId)
+    val updatedProgram = editorProgram()
 
     updateUi {
         val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
@@ -267,7 +285,7 @@ internal suspend fun SessionEditorViewModel.discardAndSwitchPendingSessionAndAwa
 }
 
 fun SessionEditorViewModel.selectRoadmapOption(option: SessionRoadmapOption) {
-    val program = repository.getProgramById(programId) ?: return
+    val program = editorProgram() ?: return
     val week = findWeek(program, option.macroIndex, option.mesoIndex, option.weekId) ?: return
     val preferredDay = currentUiState.dayOfWeek
     val targetSession = week.sessions.firstOrNull { it.dayOfWeek == preferredDay } ?: week.sessions.firstOrNull()
@@ -278,7 +296,17 @@ fun SessionEditorViewModel.selectRoadmapOption(option: SessionRoadmapOption) {
             isMainSession = true,
             lastModifiedAtMs = System.currentTimeMillis(),
         )
-        if (repository.upsertSessionInProgram(programId, option.weekId, option.macroIndex, option.mesoIndex, newSession)) {
+        if (importedProgramStore != null) {
+            val source = currentUiState
+            if (importedSessionCreationJob?.isActive == true) return
+            importedSessionCreationJob = viewModelScope.launch {
+                if (!upsertEditorSession(option.weekId, option.macroIndex, option.mesoIndex, newSession)) {
+                    updateUi { it.copy(snackbarMessage = "No pudimos guardar la sesión en el borrador.") }
+                } else if (!navigationSourceChanged(source, allowSheetChange = true)) {
+                    requestSessionSwitch(newSession.id, option.weekId, option.macroIndex, option.mesoIndex)
+                }
+            }
+        } else if (repository.upsertSessionInProgram(programId, option.weekId, option.macroIndex, option.mesoIndex, newSession)) {
             requestSessionSwitch(
                 targetSessionId = newSession.id,
                 targetWeekId = option.weekId,
@@ -304,7 +332,7 @@ internal fun SessionEditorViewModel.switchToSession(
     targetMacroIndex: Int? = currentUiState.macroIndex,
     targetMesoIndex: Int? = currentUiState.mesoIndex,
 ) {
-    val program = repository.getProgramById(programId) ?: return
+    val program = editorProgram() ?: return
     val located = locateSession(
         program = program,
         targetSessionId = targetSessionId,
@@ -452,7 +480,7 @@ suspend fun SessionEditorViewModel.saveSession(
         lastModifiedAtMs = System.currentTimeMillis(),
         persistedRuleDefaults = state.ruleDefaults.toPersisted(),
     )
-    val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa activo.")
+    val program = editorProgram() ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa activo.")
     if (state.weekId.isBlank()) return SessionEditorSaveResult(false, "No pudimos identificar la semana para guardar.")
 
     // Once v2 is actually loaded, no legacy/partial identity may cross the save boundary.
@@ -532,9 +560,9 @@ suspend fun SessionEditorViewModel.saveSession(
                 var mutateOk = false
                 var mutationFailure: Throwable? = null
                 try {
-                    mutateOk = repository.mutateProgramNow(programId) { current ->
+                    mutateOk = mutateEditorProgram { current ->
                         programBeforeMutation = current
-                        expectedWriteVersion = repository.nextProgramWriteVersionForEditorRecovery()
+                        expectedWriteVersion = if (importedProgramStore == null) repository.nextProgramWriteVersionForEditorRecovery() else null
                         val updatedProgram = if (effectiveScope == SessionSaveScope.MESOCYCLE) {
                             applySessionToMesocycle(current, state, draft, trainedSessionIds, templateOverrideIds)
                         } else {
@@ -544,7 +572,7 @@ suspend fun SessionEditorViewModel.saveSession(
                             }
                         }
                         wroteTargetWeek = updatedProgram.containsSessionInWeek(state.weekId, draft.id)
-                        if (!wroteTargetWeek) return@mutateProgramNow null
+                        if (!wroteTargetWeek) return@mutateEditorProgram null
                         val transfers = if (transferForSave != null) {
                             applyPendingTransfersToProgram(
                                 program = updatedProgram,
@@ -683,7 +711,7 @@ suspend fun SessionEditorViewModel.saveSession(
                     propagateGlobalRuleExtrasToClones(templateCloneIds, state.ruleDefaults.extras())
                 }
 
-                val programAfterSave = recoveredProgram ?: candidateProgram ?: repository.getProgramById(programId) ?: program
+                val programAfterSave = recoveredProgram ?: candidateProgram ?: editorProgram() ?: program
                 val localDraftHistory = withContext(Dispatchers.IO) {
                     try {
                         trainedVersionStore.loadForSession(draft.id)

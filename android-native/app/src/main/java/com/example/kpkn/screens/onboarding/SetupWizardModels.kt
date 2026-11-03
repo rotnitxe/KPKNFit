@@ -70,6 +70,7 @@ import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatValidation
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
+import com.example.kpkn.screens.programs.importer.canonicalImportIssues
 import kotlinx.serialization.Serializable
 import com.example.kpkn.domain.multisport.TrainingIntent
 import java.time.LocalDate
@@ -214,6 +215,15 @@ data class SetupVolumeAnswers(
     val strength: Int? = null,
     val mobility: Int? = null,
     val responseState: CalibrationResponseState = CalibrationResponseState.UNKNOWN,
+)
+
+/** Canonical editor state for the import step; source text and warnings remain in [SetupWizardDraft.importedProgram]. */
+@Serializable
+data class SetupImportedProgramEditorDraft(
+    val id: String,
+    val revision: Long,
+    val program: Program,
+    val sourceMap: com.example.kpkn.domain.training.importer.ImportedProgramSourceMap,
 )
 
 @Serializable
@@ -518,6 +528,8 @@ data class SetupWizardDraft(
     val programSource: ProgramSource? = null,
     /** Programa leído del archivo o del texto pegado (paso PROGRAM_IMPORT); null = nada importado todavía. */
     val importedProgram: ImportedProgramDraft? = null,
+    /** Complete editor model, persisted with this wizard draft and isolated from the program library. */
+    val importedProgramEditor: SetupImportedProgramEditorDraft? = null,
     /**
      * Decisión por nombre importado: la configuración del catálogo elegida, o null = dejarlo como ejercicio propio.
      * Un nombre sin clave tiene dudas y bloquea el paso hasta decidir.
@@ -1419,32 +1431,53 @@ internal val LIFT_MARK_RANGE_KG: ClosedFloatingPointRange<Double> = 1.0..1000.0
 /** Repeticiones de una marca «kg × reps»: la fórmula híbrida solo es fiable hasta 10 (el PR va de 2 a 10). */
 internal val LIFT_MARK_REPS_RANGE: IntRange = 1..10
 
-/** Nombres del programa importado sin decidir: los que no tienen clave en [SetupWizardDraft.importResolutions]. */
+/** Nombres sin una identidad elegida; las decisiones antiguas con null deben revisarse en el catálogo. */
 internal fun SetupWizardDraft.importUndecidedNames(): List<String> {
     val imported = importedProgram ?: return emptyList()
     return imported.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
+        .filter { it.catalogSelectionId == null && importResolutions[it.rawName] == null }
         .map { it.rawName }
         .distinct()
-        .filterNot { importResolutions.containsKey(it) }
 }
 
 /**
- * Qué le falta al programa importado para seguir; null si está listo. Usa la revisión final ([ImportDraftValidation]) con
- * este orden: sin ejercicios, con dudas, semanas vacías, días vacíos, avisos sin revisar y más sesiones que días.
+ * Qué le falta al programa importado para seguir; null si está listo. Usa la revisión final común con
+ * este orden: sin ejercicios, con dudas, semanas vacías, días vacíos, series vacías, avisos sin revisar y más sesiones que días.
  */
 internal fun SetupWizardDraft.importProblem(): String? {
     val imported = importedProgram ?: return "Importa un programa para continuar."
-    val hasExercises = imported.weeks.any { week -> week.days.any { it.exercises.isNotEmpty() } }
+    val editor = importedProgramEditor
+    val canonicalSessions = editor?.program?.macrocycles.orEmpty().flatMap { macro ->
+        macro.blocks.flatMap { block -> block.mesocycles.flatMap { meso -> meso.weeks.flatMap { it.sessions } } }
+    }
+    val canonicalExercises = canonicalSessions.flatMap { it.allExercises() }
+    val sourceExercises = imported.weeks.flatMap { week -> week.days.flatMap { it.exercises } }
+    val hasExercises = if (editor == null) sourceExercises.isNotEmpty() else canonicalExercises.isNotEmpty()
     // Una sesión por día de entreno: con más sesiones por semana que días elegidos, dos caerían el mismo día.
-    val sessionsPerWeek = imported.weeks.maxOfOrNull { it.days.size } ?: 0
+    val sessionsPerWeek = if (editor == null) {
+        imported.weeks.maxOfOrNull { it.days.size } ?: 0
+    } else {
+        editor.program.macrocycles.flatMap { macro ->
+            macro.blocks.flatMap { block -> block.mesocycles.flatMap { it.weeks } }
+        }.maxOfOrNull { it.sessions.size } ?: 0
+    }
     val days = selectedWeekdays.size
-    val issues = ImportDraftValidation.check(imported) { importResolutions.containsKey(it) }
+    val issues = if (editor == null) {
+        ImportDraftValidation.checkOccurrences(imported) {
+            it.catalogSelectionId != null || importResolutions[it.rawName] != null
+        }
+    } else {
+        canonicalImportIssues(imported, editor.program, editor.sourceMap, importResolutions)
+    }
+    val exerciseWithoutSets = if (editor == null) sourceExercises.any { it.sets <= 0 }
+    else canonicalExercises.any { it.sets.isEmpty() }
     fun has(kind: ImportIssueKind) = issues.any { it.kind == kind }
     return when {
         !hasExercises -> "No encontramos ejercicios en lo que importaste."
-        has(ImportIssueKind.UNDECIDED_EXERCISE) -> "Elige o deja como está los ejercicios con dudas."
+        has(ImportIssueKind.UNDECIDED_EXERCISE) -> "Elige en el catálogo los ejercicios con dudas."
         has(ImportIssueKind.EMPTY_WEEK) -> "Hay semanas sin ejercicios: quítalas o añade ejercicios."
         has(ImportIssueKind.EMPTY_DAY) -> "Hay días sin ejercicios: quítalos o añade ejercicios."
+        exerciseWithoutSets -> "Completa las series de cada ejercicio en el editor antes de guardar."
         has(ImportIssueKind.PENDING_WARNINGS) -> "Revisa los avisos de la importación o ignóralos."
         sessionsPerWeek > days -> "Tu programa tiene $sessionsPerWeek sesiones por semana y elegiste $days días. Cambia los días."
         else -> null

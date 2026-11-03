@@ -2,7 +2,9 @@ package com.example.kpkn.domain.training.importer
 
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSetupDetails
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -26,13 +28,95 @@ import kotlin.math.roundToInt
  * Construye un [Program] desde el borrador importado. Una semana → SIMPLE; varias → COMPLEX con un bloque.
  *
  * - Sesiones repartidas por los días de entreno dados (ISO: 1 = lunes), por igual si caben.
- * - [resolved] asocia cada nombre importado a una configuración del catálogo (o null). Con [catalog], un ejercicio
- *   resuelto lleva la identidad v2 que pone el editor; sin catálogo, o si la configuración no existe, se guarda con
- *   su nombre libre y sin identidad de catálogo.
+ * - [resolved] asocia cada nombre importado a una configuración del catálogo (o null). Si el catálogo está cargado,
+ *   se completa la identidad v2; si no está disponible todavía, se conserva la selección estable y el nombre importado.
+ *   El límite de guardado vuelve a validar esa identidad antes de escribir en la biblioteca.
  * - Procedencia: `planProvenance` con planId «imported:<programId>» y clase IMPORTED («Programa importado»; no se atribuye autoría).
  */
 object ImportedProgramBuilder {
     const val DEFAULT_TITLE = "Mi programa importado"
+
+    /** Configuraciones que necesitan metadatos al construir este borrador; excluye propios y decisiones pendientes. */
+    fun catalogConfigurationIds(
+        draft: ImportedProgramDraft,
+        resolved: Map<String, String?>,
+    ): Set<String> = draft.weeks.asSequence()
+        .flatMap { it.days.asSequence() }
+        .flatMap { it.exercises.asSequence() }
+        .mapNotNull { it.catalogSelectionId ?: resolved[it.rawName] }
+        .filter { it.isNotBlank() && !it.startsWith("custom:", ignoreCase = true) && !it.equals("own", ignoreCase = true) }
+        .map { it.lowercase() }
+        .toSet()
+
+    /** Maps each stable source row/day to the IDs produced by [build], including grouped prescriptions. */
+    fun sourceMap(
+        draft: ImportedProgramDraft,
+        resolved: Map<String, String?>,
+        programId: String,
+    ): ImportedProgramSourceMap {
+        val normalized = ImportDraftEditor.withIds(draft)
+        val sessions = linkedMapOf<String, String>()
+        val exercises = linkedMapOf<String, String>()
+        normalized.weeks.sortedBy { it.index }.forEach { week ->
+            week.days.forEachIndexed { dayIndex, day ->
+                val sessionId = "${programId}-w${week.index}-d${dayIndex + 1}"
+                sessions[day.id] = sessionId
+                groupConsecutive(day.exercises, resolved).forEachIndexed { exerciseIndex, members ->
+                    val programExerciseId = "$sessionId-e${exerciseIndex + 1}"
+                    members.forEach { source -> exercises[source.id] = programExerciseId }
+                }
+            }
+        }
+        return ImportedProgramSourceMap(sessions, exercises)
+    }
+
+    /** No materializar una selección sin resolver o una identidad que ya no existe como si fuera del catálogo. */
+    fun unavailableNames(
+        draft: ImportedProgramDraft,
+        resolved: Map<String, String?>,
+        catalog: ExerciseCatalogV2,
+        customExercises: List<ExerciseMuscleInfo>,
+    ): List<String> {
+        val catalogIds = catalog.families.flatMap { it.definitions }.flatMap { it.configurations }
+            .map { it.id.lowercase() }.toSet()
+        val customIds = customExercises.filter { it.isCustom && it.id.startsWith("custom:", ignoreCase = true) }
+            .map { it.id.lowercase() }.toSet()
+        return draft.weeks.flatMap { it.days }.flatMap { it.exercises }.filter { exercise ->
+            val id = exercise.catalogSelectionId ?: if (resolved.containsKey(exercise.rawName)) {
+                resolved[exercise.rawName]
+            } else {
+                return@filter true
+            }
+            if (id == null || id.equals("own", ignoreCase = true)) return@filter true
+            val normalizedId = id.lowercase()
+            normalizedId !in catalogIds && normalizedId !in customIds
+        }.map { it.rawName }.distinct()
+    }
+
+    /** Validates every exercise in an editor-backed draft, including ones added in SessionEditor. */
+    fun unavailableProgramExercises(
+        program: Program,
+        catalog: ExerciseCatalogV2,
+        customExercises: List<ExerciseMuscleInfo>,
+    ): List<String> {
+        val catalogIds = catalog.families.flatMap { it.definitions }.flatMap { it.configurations }
+            .map { it.id.lowercase() }.toSet()
+        val customIds = customExercises.filter { it.isCustom && it.id.startsWith("custom:", ignoreCase = true) }
+            .map { it.id.lowercase() }.toSet()
+        return program.macrocycles.flatMap { macro ->
+            macro.blocks.flatMap { block ->
+                block.mesocycles.flatMap { meso ->
+                    meso.weeks.flatMap { week -> week.sessions.flatMap { it.allExercises() } }
+                }
+            }
+        }.filter { exercise ->
+            val catalogId = exercise.catalogConfigurationId?.lowercase()
+            val customId = listOfNotNull(exercise.exerciseId, exercise.exerciseDbId)
+                .firstOrNull { it.startsWith("custom:", ignoreCase = true) }
+                ?.lowercase()
+            (catalogId == null || catalogId !in catalogIds) && (customId == null || customId !in customIds)
+        }.map { it.name }.distinct()
+    }
 
     fun build(
         draft: ImportedProgramDraft,
@@ -40,10 +124,14 @@ object ImportedProgramBuilder {
         weekdays: List<Int>,
         programId: String,
         catalog: ExerciseCatalogV2? = null,
+        customExercises: List<ExerciseMuscleInfo> = emptyList(),
+        catalogConfigurationInfo: Map<String, ExerciseMuscleInfo> = emptyMap(),
     ): Program {
         val trainingDays = weekdays.filter { it in 1..7 }.distinct().sorted()
         val configurations = catalog?.let { configurationIndex(it) }.orEmpty()
         val revision = catalog?.catalogRevision
+        val customIndex = customExercises.filter { it.isCustom && it.id.startsWith("custom:", ignoreCase = true) }
+            .associateBy { it.id.lowercase() }
         val alternatives = catalog?.let { alternativeNotes(draft, resolved, it) }.orEmpty()
         val weeks = draft.weeks.sortedBy { it.index }.map { week ->
             val weekdayPerSession = assignWeekdays(week.days.size, trainingDays)
@@ -62,6 +150,8 @@ object ImportedProgramBuilder {
                         alternatives = alternatives,
                         configurations = configurations,
                         revision = revision,
+                        customExercises = customIndex,
+                        catalogConfigurationInfo = catalogConfigurationInfo,
                     )
                 },
             )
@@ -116,21 +206,28 @@ object ImportedProgramBuilder {
         alternatives: Map<String, String>,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
+        customExercises: Map<String, ExerciseMuscleInfo>,
+        catalogConfigurationInfo: Map<String, ExerciseMuscleInfo>,
     ): Session {
         val sessionId = "$programId-w$weekIndex-d${dayIndex + 1}"
         return Session(
             id = sessionId,
             name = day.name.ifBlank { "Día ${dayIndex + 1}" },
             // Los ejercicios seguidos con el mismo nombre son un solo ejercicio de la app (varios grupos de series).
-            exercises = groupConsecutive(day.exercises).mapIndexed { exerciseIndex, members ->
+            exercises = groupConsecutive(day.exercises, resolved).mapIndexed { exerciseIndex, members ->
                 buildExercise(
                     id = "$sessionId-e${exerciseIndex + 1}",
                     members = members,
                     loadUnit = loadUnit,
-                    configurationId = resolved[members.first().rawName],
-                    alternativeNote = alternatives[members.first().rawName],
+                    configurationId = members.first().catalogSelectionId ?: resolved[members.first().rawName],
+                    alternativeNote = alternatives[members.first().rawName].takeIf {
+                        members.first().catalogSelectionId == null ||
+                            members.first().catalogSelectionId.equals(resolved[members.first().rawName], ignoreCase = true)
+                    },
                     configurations = configurations,
                     revision = revision,
+                    customExercises = customExercises,
+                    catalogConfigurationInfo = catalogConfigurationInfo,
                 )
             },
             dayOfWeek = weekday,
@@ -148,27 +245,53 @@ object ImportedProgramBuilder {
         alternativeNote: String?,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
         revision: String?,
+        customExercises: Map<String, ExerciseMuscleInfo>,
+        catalogConfigurationInfo: Map<String, ExerciseMuscleInfo>,
     ): Exercise {
-        val entry = configurationId?.let { configurations[it] }
+        val entry = configurationId?.lowercase()?.let { configurations[it] }
+        val custom = configurationId?.lowercase()?.let(customExercises::get)
         val definition = entry?.first
         val configuration = entry?.second
+        val customId = custom?.id ?: configurationId?.takeIf { it.startsWith("custom:", ignoreCase = true) }
+        val selectedInfo = custom ?: configurationId?.lowercase()?.let(catalogConfigurationInfo::get)
+        // Keep a stable selected identity even when the catalog cannot currently supply its metadata. The save
+        // boundary revalidates it against the loaded catalog before materializing it in the library.
         val catalogConfigurationId = configuration?.id
+            ?: configurationId?.takeUnless {
+                it.startsWith("custom:", ignoreCase = true) || it.equals("own", ignoreCase = true)
+            }
+        val exerciseIdentity = customId ?: catalogConfigurationId
         return Exercise(
             id = id,
-            name = definition?.canonicalName ?: members.first().rawName,
-            exerciseDbId = catalogConfigurationId,
-            exerciseId = catalogConfigurationId,
-            canonicalExerciseId = catalogConfigurationId?.lowercase(),
-            exerciseFamilyId = catalogConfigurationId?.lowercase(),
-            catalogRevision = if (catalogConfigurationId != null) revision else null,
-            catalogDefinitionId = definition?.id,
-            catalogConfigurationId = catalogConfigurationId,
-            performanceProfileId = configuration?.profile?.performanceProfileId,
-            occurrenceId = id.takeIf { catalogConfigurationId != null },
+            name = selectedInfo?.name ?: definition?.canonicalName ?: members.first().rawName,
+            exerciseDbId = exerciseIdentity,
+            exerciseId = exerciseIdentity,
+            canonicalExerciseId = exerciseIdentity?.lowercase(),
+            exerciseFamilyId = definition?.familyId ?: exerciseIdentity?.lowercase(),
+            variantName = selectedInfo?.catalogVariantChips?.joinToString(" · ")?.ifBlank { null }
+                ?: selectedInfo?.variantName,
+            variantGroupId = selectedInfo?.variantGroupId,
+            variantGroupName = selectedInfo?.variantGroupName,
+            effectiveMuscles = selectedInfo?.involvedMuscles?.takeIf { it.isNotEmpty() },
+            selectedExecutionOption = selectedInfo?.executionOptions?.firstOrNull(),
+            setupDetails = selectedInfo?.setupDetails?.let { details ->
+                ExerciseSetupDetails(
+                    seatPosition = details.seatPosition,
+                    pinPosition = details.pinPosition,
+                    equipmentNotes = details.equipmentNotes,
+                )
+            },
+            catalogRevision = if (configuration != null) selectedInfo?.catalogRevision ?: revision else null,
+            catalogDefinitionId = definition?.id ?: selectedInfo?.catalogDefinitionId,
+            catalogConfigurationId = catalogConfigurationId ?: selectedInfo?.catalogConfigurationId,
+            performanceProfileId = configuration?.profile?.performanceProfileId ?: selectedInfo?.performanceProfileId,
+            occurrenceId = id.takeIf { catalogConfigurationId != null || custom != null },
             trainingMode = TrainingMode.REPS,
             restTime = members.firstNotNullOfOrNull { it.restSeconds },
             sets = buildSets(id, members, loadUnit),
-            executionCues = (members.mapNotNull { it.notes } + listOfNotNull(alternativeNote)).distinct(),
+            setupCues = selectedInfo?.setupCues.orEmpty(),
+            executionCues = (selectedInfo?.executionCues.orEmpty() + members.mapNotNull { it.notes } + listOfNotNull(alternativeNote)).distinct(),
+            selectedMovementPattern = selectedInfo?.movementPattern ?: configuration?.profile?.movementPatternId,
         )
     }
 
@@ -189,7 +312,7 @@ object ImportedProgramBuilder {
             else -> null
         }
         val weight = exercise.loadKg?.let { kilograms(it, loadUnit) }
-        return List(exercise.sets.coerceAtLeast(1)) { index ->
+        return List(exercise.sets.coerceAtLeast(0)) { index ->
             val purpose = if (exercise.purpose.isAmrap &&
                 (index == exercise.sets - 1 || exercise.amrapMinimumReps == null)) exercise.purpose
                 else com.example.kpkn.data.models.SetPurpose.NONE
@@ -204,6 +327,7 @@ object ImportedProgramBuilder {
                 intensityMode = intensity,
                 targetPercentageRM = percent,
                 weight = weight,
+                restAfterSeconds = exercise.restSeconds,
                 loadBasis = if (percent != null) LoadBasis.PERCENT_1RM else null,
             )
         }
@@ -214,11 +338,13 @@ object ImportedProgramBuilder {
         if (unit == ImportLoadUnit.LB) (value * LB_TO_KG * 2).roundToInt() / 2.0 else value
 
     /** Agrupa los ejercicios seguidos con el mismo nombre; si el nombre vuelve más abajo, separado por otro, es otro grupo. */
-    internal fun groupConsecutive(exercises: List<ImportedExercise>): List<List<ImportedExercise>> {
+    internal fun groupConsecutive(exercises: List<ImportedExercise>, resolved: Map<String, String?> = emptyMap()): List<List<ImportedExercise>> {
         val groups = mutableListOf<MutableList<ImportedExercise>>()
         for (exercise in exercises) {
             val last = groups.lastOrNull()
-            if (last != null && last.first().rawName == exercise.rawName) {
+            if (last != null && last.first().rawName == exercise.rawName &&
+                (last.first().catalogSelectionId ?: resolved[last.first().rawName]) ==
+                    (exercise.catalogSelectionId ?: resolved[exercise.rawName])) {
                 last += exercise
             } else {
                 groups += mutableListOf(exercise)
@@ -255,6 +381,6 @@ object ImportedProgramBuilder {
         catalog: ExerciseCatalogV2,
     ): Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>> =
         catalog.families.flatMap { it.definitions }.flatMap { definition ->
-            definition.configurations.map { configuration -> configuration.id to (definition to configuration) }
+            definition.configurations.map { configuration -> configuration.id.lowercase() to (definition to configuration) }
         }.toMap()
 }

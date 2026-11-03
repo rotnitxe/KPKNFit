@@ -123,14 +123,16 @@ fun ExerciseCatalogV2.toLegacySelection(selection: com.example.kpkn.domain.exerc
     }.firstOrNull()
     return match
 }
-/** Builds a lookup containing every explicit configuration while keeping the
- * visible catalog list parent-level. Configuration ids are the only keys used
- * for non-default profiles in AUGE/history lookups. */
-fun ExerciseCatalogV2.toLegacyConfigurationLookup(): Map<String, ExerciseMuscleInfo> =
+/** Builds a lookup of explicit configurations while keeping the visible
+ * catalog list parent-level. Pass [configurationIds] to materialize only the
+ * selections needed by one import. */
+fun ExerciseCatalogV2.toLegacyConfigurationLookup(configurationIds: Set<String>? = null): Map<String, ExerciseMuscleInfo> =
     families
         .flatMap { family ->
             family.definitions.flatMap { definition ->
-                definition.configurations.map { configuration ->
+                definition.configurations.filter { configuration ->
+                    configurationIds == null || configuration.id.lowercase() in configurationIds
+                }.map { configuration ->
                     definition.toLegacyInfo(
                         familyId = family.id,
                         catalogRevision = catalogRevision,

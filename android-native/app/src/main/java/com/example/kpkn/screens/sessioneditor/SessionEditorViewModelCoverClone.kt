@@ -120,7 +120,7 @@ fun SessionEditorViewModel.importFromSourceSession(
     val state = currentUiState
     val sourceOption = state.cloneSourceOptions.firstOrNull { it.sessionId == sourceSessionId }
         ?: return SessionEditorSaveResult(false, "No se encontró la sesión origen.")
-    val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa.")
+    val program = editorProgram() ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa.")
     val sourceSession = program.findSessionInProgram(
         macroIndex = sourceOption.macroIndex,
         mesoIndex = sourceOption.mesoIndex,

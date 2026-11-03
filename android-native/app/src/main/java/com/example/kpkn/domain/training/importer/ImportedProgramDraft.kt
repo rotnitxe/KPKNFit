@@ -32,6 +32,13 @@ data class ImportedProgramDraft(
     val warningMessages: List<String> get() = warnings.map { it.message }
 }
 
+/** Stable correspondence between parser rows and the complete models opened by SessionEditor. */
+@Serializable
+data class ImportedProgramSourceMap(
+    val sessionIdsByDayId: Map<String, String> = emptyMap(),
+    val programExerciseIdsBySourceExerciseId: Map<String, String> = emptyMap(),
+)
+
 /** Una semana del programa, numerada como aparece en el archivo (1 si no hay semanas). */
 @Serializable
 data class ImportedWeek(
@@ -72,6 +79,8 @@ data class ImportedExercise(
     val sourceText: String? = null,
     val purpose: com.example.kpkn.data.models.SetPurpose = com.example.kpkn.data.models.SetPurpose.NONE,
     val amrapMinimumReps: Int? = null,
+    /** Identidad elegida para esta aparición; null conserva la resolución histórica por nombre. */
+    val catalogSelectionId: String? = null,
 )
 
 /** Unidad de las cargas del archivo: kilos (por defecto) o libras. */

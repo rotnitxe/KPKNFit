@@ -14,6 +14,23 @@ class ExerciseNameMatcherTest {
     private val matcher by lazy { ExerciseNameMatcher(loadCatalog()) }
 
     @Test
+    fun `un alias ambiguo propone opciones pero no elige la variante por su cuenta`() {
+        val generic = matcher.match("Sentadilla")
+        assertTrue(generic.candidates.isNotEmpty())
+        assertFalse(matcher.canResolveAutomatically(generic))
+        assertFalse(matcher.canResolveAutomatically(matcher.match("Sentadilla con barra")))
+        val equipmentMissing = matcher.match("Press banca")
+        assertTrue(equipmentMissing.candidates.isNotEmpty())
+        assertFalse(matcher.canResolveAutomatically(equipmentMissing))
+        val specific = matcher.match("Press banca con mancuernas")
+        assertEquals("bench_press__dumbbells", specific.best?.configurationId)
+        assertTrue(matcher.canResolveAutomatically(specific))
+        val alternative = matcher.match("Peso muerto con barra hexagonal o hip thrust")
+        assertEquals("hip thrust", alternative.alternative)
+        assertFalse(matcher.canResolveAutomatically(alternative))
+    }
+
+    @Test
     fun `sentadilla trasera encuentra una sentadilla con barra`() {
         val match = matcher.match("Sentadilla trasera")
 

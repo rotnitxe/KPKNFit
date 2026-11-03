@@ -45,6 +45,9 @@ sealed interface ImportEditOp {
      */
     data class Decide(val rawName: String, val configId: String?, val name: String) : ImportEditOp
 
+    /** Una selección específica no modifica las otras apariciones del mismo nombre. */
+    data class DecideOccurrence(val exerciseId: String, val configId: String, val name: String) : ImportEditOp
+
     data class RemoveDay(val dayId: String) : ImportEditOp
 
     data class RemoveWeek(val weekIndex: Int) : ImportEditOp
@@ -77,6 +80,14 @@ sealed interface ImportEditOp {
         val configId: String?,
         val decided: Boolean,
     ) : ImportEditOp
+
+    /** Primer ejercicio si la lectura no produjo ningún día; crea una semana y un día en el borrador. */
+    data class AddFirstExercise(
+        val rawName: String, val sets: Int, val repsMin: Int, val repsMax: Int, val configId: String,
+    ) : ImportEditOp
+
+    /** Creates an empty first session for the shared editor without inventing an exercise or prescription. */
+    data object AddEmptyFirstDay : ImportEditOp
 
     /**
      * Añade como ejercicio lo que un aviso no supo leer: al día [toDayId] si existe, si no al del aviso; con [newDay], a un día
@@ -141,6 +152,9 @@ object ImportEdits {
             is ImportEditOp.Decide -> snapshot.copy(
                 resolutions = snapshot.resolutions + (op.rawName to op.configId),
             ) to (if (op.configId == null) "Dejaste «${op.name}» como ejercicio propio." else "Elegiste «${op.name}».")
+            is ImportEditOp.DecideOccurrence -> snapshot.copy(
+                imported = ImportDraftEditor.selectCatalogExercise(draft, op.exerciseId, op.configId),
+            ) to "Elegiste «${op.name}»."
             is ImportEditOp.RemoveDay -> snapshot.copy(
                 imported = ImportDraftEditor.removeDay(draft, op.dayId),
             ) to "Quitaste «${dayOf(draft, op.dayId)?.name.orEmpty()}»."
@@ -155,6 +169,27 @@ object ImportEdits {
                 imported = ImportDraftEditor.duplicateWeek(draft, op.index),
             ) to "Duplicaste la semana ${op.index}."
             is ImportEditOp.AddExercise -> addedExercise(snapshot, op, nameOf)
+            is ImportEditOp.AddFirstExercise -> {
+                if (draft.weeks.any { it.days.isNotEmpty() }) return null
+                val initial = if (draft.weeks.isEmpty()) draft.copy(weeks = listOf(ImportedWeek(index = 1, days = emptyList()))) else draft
+                val week = initial.weeks.first().index
+                val withDay = ImportDraftEditor.addDay(initial, week, "")
+                val day = withDay.weeks.first { it.index == week }.days.last()
+                val added = ImportDraftEditor.add(withDay, day.id, 0, op.rawName, op.sets, op.repsMin, op.repsMax)
+                if (added == withDay) return null
+                val selected = ImportDraftEditor.selectCatalogExercise(added, "x${withDay.nextId}", op.configId)
+                ImportSnapshot(selected, snapshot.resolutions) to "Añadiste «${op.rawName.trim()}»."
+            }
+            ImportEditOp.AddEmptyFirstDay -> {
+                if (draft.weeks.any { it.days.isNotEmpty() }) return null
+                val initial = if (draft.weeks.isEmpty()) {
+                    draft.copy(weeks = listOf(ImportedWeek(index = 1, days = emptyList())))
+                } else draft
+                val weekIndex = initial.weeks.first().index
+                val withDay = ImportDraftEditor.addDay(initial, weekIndex, "")
+                if (withDay == initial) return null
+                snapshot.copy(imported = ImportDraftEditor.withIds(withDay)) to "Creaste una sesión vacía."
+            }
             is ImportEditOp.AddFromWarning -> addedFromWarning(snapshot, op, nameOf)
             is ImportEditOp.IgnoreWarning -> snapshot.copy(
                 imported = ImportDraftEditor.ignoreWarning(draft, op.warningId),
@@ -239,8 +274,9 @@ object ImportEdits {
         // Antes del cambio: el nombre que ya tenía decisión, o el suyo.
         val shown = nameOf(name)
         val end = dayOf(draft, op.dayId)?.exercises?.size ?: 0
-        val imported = ImportDraftEditor.add(draft, op.dayId, end, name, op.sets, op.repsMin, op.repsMax)
-        val decide = op.decided && imported != draft && name !in snapshot.resolutions
+        val added = ImportDraftEditor.add(draft, op.dayId, end, name, op.sets, op.repsMin, op.repsMax)
+        val imported = if (added != draft && op.decided && op.configId != null) ImportDraftEditor.selectCatalogExercise(added, "x${draft.nextId}", op.configId) else added
+        val decide = op.decided && op.configId == null && imported != draft && !snapshot.resolutions.containsKey(name)
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
         return ImportSnapshot(imported, resolutions) to "Añadiste «$shown»."
     }
@@ -257,7 +293,7 @@ object ImportEdits {
         val draft = snapshot.imported
         val name = op.rawName.trim()
         val shown = nameOf(name)
-        val imported = ImportDraftEditor.addFromWarning(
+        val added = ImportDraftEditor.addFromWarning(
             draft = draft,
             warningId = op.warningId,
             rawName = name,
@@ -267,7 +303,10 @@ object ImportEdits {
             toDayId = op.toDayId,
             newDay = op.newDay,
         )
-        val decide = op.decided && imported != draft && name !in snapshot.resolutions
+        val imported = if (op.decided && op.configId != null && added != draft) {
+            ImportDraftEditor.selectCatalogExercise(added, "x${added.nextId - 1}", op.configId)
+        } else added
+        val decide = op.decided && op.configId == null && imported != draft && !snapshot.resolutions.containsKey(name)
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
         return ImportSnapshot(imported, resolutions) to "Añadiste «$shown» desde un aviso."
     }

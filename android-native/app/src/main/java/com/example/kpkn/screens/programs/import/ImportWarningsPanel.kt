@@ -71,8 +71,12 @@ internal fun ImportWarningsPanel(
     imported: ImportedProgramDraft,
     reveal: Int,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    namesOf: suspend (Set<String>) -> Map<String, String> = { emptyMap() },
+    useSharedCatalog: Boolean = false,
     onOpenExercise: (String) -> Unit,
     onEdit: (ImportEditOp) -> Unit,
+    /** Product routes open the real editor instead of offering a reduced add form with guessed prescriptions. */
+    onOpenSessionEditor: ((String?) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val warnings = imported.warnings
@@ -106,8 +110,11 @@ internal fun ImportWarningsPanel(
             imported = imported,
             pending = pending,
             search = search,
+            namesOf = namesOf,
+            useSharedCatalog = useSharedCatalog,
             onOpen = { expanded = true },
             onEdit = onEdit,
+            onOpenSessionEditor = onOpenSessionEditor,
             requester = requester,
             modifier = modifier,
         )
@@ -149,8 +156,11 @@ internal fun ImportWarningsPanel(
                 adding = adding == warning.id,
                 onAddingChange = { open -> adding = if (open) warning.id else null },
                 search = search,
+                namesOf = namesOf,
+                useSharedCatalog = useSharedCatalog,
                 onOpenExercise = onOpenExercise,
                 onEdit = onEdit,
+                onOpenSessionEditor = onOpenSessionEditor,
             )
         }
         if (reviewed.isNotEmpty()) {
@@ -182,8 +192,11 @@ private fun ImportWarningsFolded(
     imported: ImportedProgramDraft,
     pending: List<ImportWarning>,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    namesOf: suspend (Set<String>) -> Map<String, String>,
+    useSharedCatalog: Boolean,
     onOpen: () -> Unit,
     onEdit: (ImportEditOp) -> Unit,
+    onOpenSessionEditor: ((String?) -> Unit)?,
     requester: BringIntoViewRequester,
     modifier: Modifier,
 ) {
@@ -218,8 +231,11 @@ private fun ImportWarningsFolded(
                 adding = false,
                 onAddingChange = {},
                 search = search,
+                namesOf = namesOf,
+                useSharedCatalog = useSharedCatalog,
                 onOpenExercise = {},
                 onEdit = onEdit,
+                onOpenSessionEditor = onOpenSessionEditor,
             )
         }
     }
@@ -233,8 +249,11 @@ private fun ImportWarningRow(
     adding: Boolean,
     onAddingChange: (Boolean) -> Unit,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    namesOf: suspend (Set<String>) -> Map<String, String>,
+    useSharedCatalog: Boolean,
     onOpenExercise: (String) -> Unit,
     onEdit: (ImportEditOp) -> Unit,
+    onOpenSessionEditor: ((String?) -> Unit)?,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().testTag("import-warning-${warning.id}"),
@@ -258,6 +277,8 @@ private fun ImportWarningRow(
                 warning = warning,
                 imported = imported,
                 search = search,
+                namesOf = namesOf,
+                useSharedCatalog = useSharedCatalog,
                 onEdit = onEdit,
                 onClose = { onAddingChange(false) },
             )
@@ -268,6 +289,7 @@ private fun ImportWarningRow(
                 onAdd = { onAddingChange(true) },
                 onOpenExercise = onOpenExercise,
                 onEdit = onEdit,
+                onOpenSessionEditor = onOpenSessionEditor,
             )
         }
     }
@@ -281,6 +303,7 @@ private fun ImportWarningActions(
     onAdd: () -> Unit,
     onOpenExercise: (String) -> Unit,
     onEdit: (ImportEditOp) -> Unit,
+    onOpenSessionEditor: ((String?) -> Unit)?,
 ) {
     val ignore: () -> Unit = { onEdit(ImportEditOp.IgnoreWarning(warning.id)) }
     // Un valor descartado solo se revisa si su ejercicio sigue en el borrador.
@@ -289,8 +312,10 @@ private fun ImportWarningActions(
         when {
             warning.kind == ImportWarningKind.SKIPPED_ROW -> {
                 ImportTextAction(
-                    label = "Añadir como ejercicio",
-                    onClick = onAdd,
+                    label = if (onOpenSessionEditor == null) "Añadir como ejercicio" else "Abrir editor completo",
+                    onClick = {
+                        if (onOpenSessionEditor == null) onAdd() else onOpenSessionEditor(warning.dayId)
+                    },
                     modifier = Modifier.weight(1f).testTag("import-warning-add-${warning.id}"),
                 )
                 ImportTextAction(
@@ -329,6 +354,8 @@ private fun ImportWarningAdd(
     warning: ImportWarning,
     imported: ImportedProgramDraft,
     search: suspend (String) -> List<ExerciseNameCandidate>,
+    namesOf: suspend (Set<String>) -> Map<String, String>,
+    useSharedCatalog: Boolean,
     onEdit: (ImportEditOp) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -338,6 +365,8 @@ private fun ImportWarningAdd(
     ImportAddExercisePanel(
         key = warning.id,
         search = search,
+        namesOf = namesOf,
+        useSharedCatalog = useSharedCatalog,
         onAdd = { name, configId, sets, repsMin, repsMax ->
             onEdit(
                 ImportEditOp.AddFromWarning(

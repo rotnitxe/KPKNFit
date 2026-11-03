@@ -115,6 +115,114 @@ class ImportActivationWizardTest {
     }
 
     @Test
+    fun catalogFailureDoesNotDiscardTheParsedProgramDuringSetup() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        val answers = Answers(
+            profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+            places = setOf(TrainingPlace.GYM),
+            days = setOf(1, 4),
+            freshDay = 1,
+            minutes = 60,
+        )
+        walkUntil(vm, SetupStepId.PROGRAM_SOURCE, answers)
+        vm.setProgramSource(ProgramSource.IMPORT)
+        await(vm, "elección de importar guardada") { it.draft.programSource == ProgramSource.IMPORT }
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT)
+        vm.importMatchNames = { throw IllegalStateException("catálogo no disponible") }
+
+        vm.importFromText("Día 1\nSentadilla 3x5\nPress banca 3x8")
+        val result = await(vm, "programa leído sin catálogo") { !it.importBusy && it.draft.importedProgram != null && it.importError != null }
+        val exercises = result.draft.importedProgram!!.weeks.flatMap { it.days }.flatMap { it.exercises }
+        assertEquals(listOf("Sentadilla", "Press banca"), exercises.map { it.rawName })
+        assertTrue(result.draft.importResolutions.isEmpty())
+        assertEquals(com.example.kpkn.screens.programs.importer.IMPORT_CATALOG_UNAVAILABLE, result.importError)
+    }
+
+    @Test
+    fun parsedProgramIsVisibleBeforeCatalogFinishesAndLateMatchDoesNotOverwriteEdit() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        val answers = Answers(
+            profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+            places = setOf(TrainingPlace.GYM), days = setOf(1, 4), freshDay = 1, minutes = 60,
+        )
+        walkUntil(vm, SetupStepId.PROGRAM_SOURCE, answers)
+        vm.setProgramSource(ProgramSource.IMPORT)
+        await(vm, "elección guardada") { it.draft.programSource == ProgramSource.IMPORT }
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT)
+        val match = kotlinx.coroutines.CompletableDeferred<Map<String, String?>>()
+        val matcherReturned = kotlinx.coroutines.CompletableDeferred<Unit>()
+        vm.importMatchNames = {
+            match.await().also { matcherReturned.complete(Unit) }
+        }
+        vm.importFromText("Día 1\nSentadilla 3x5")
+        val visible = await(vm, "programa visible antes del catálogo") { !it.importBusy && it.draft.importedProgram != null }
+        val id = visible.draft.importedProgram!!.weeks.single().days.single().exercises.single().id
+        vm.editImport(com.example.kpkn.screens.programs.importer.ImportEditOp.DecideOccurrence(id, "cfg-manual", "Sentadilla"))
+        await(vm, "selección manual") { it.draft.importedProgram?.weeks?.single()?.days?.single()?.exercises?.single()?.catalogSelectionId == "cfg-manual" }
+        match.complete(mapOf("Sentadilla" to "cfg-automatica"))
+        matcherReturned.await()
+        repeat(10) { kotlinx.coroutines.yield() }
+        vm.setImportTitle("Revisión manual")
+        val selected = await(vm, "escrituras posteriores al emparejamiento") { it.draft.importTitle == "Revisión manual" }.draft
+        assertEquals("cfg-manual", selected.importedProgram!!.weeks.single().days.single().exercises.single().catalogSelectionId)
+        assertTrue(selected.importResolutions.isEmpty())
+    }
+
+    @Test
+    fun openingTheFullImportedEditorKeepsItsProgramInTheWizardDraftUntilCommit() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val vm = newVm()
+        vm.initialize(SetupWizardMode.TRAINING_ONLY)
+        await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
+        val answers = Answers(
+            profile = TrainingGoalProfile.STRENGTH_MUSCLE,
+            places = setOf(TrainingPlace.GYM), days = setOf(1, 4), freshDay = 1, minutes = 60,
+        )
+        walkUntil(vm, SetupStepId.PROGRAM_SOURCE, answers)
+        vm.setProgramSource(ProgramSource.IMPORT)
+        await(vm, "elección de importar guardada") { it.draft.programSource == ProgramSource.IMPORT }
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT)
+
+        vm.importFromText("Día 1\nSentadilla 3x5")
+        await(vm, "programa importado") { !it.importBusy && it.draft.importedProgram != null }
+        val rawName = "Sentadilla"
+        val configurationId = vm.importSuggestions(rawName).first().configurationId
+        vm.resolveImportedExercise(rawName, configurationId)
+        await(vm, "ejercicio asociado al catálogo") { rawName !in it.draft.importUndecidedNames() }
+
+        val dayId = vm.state.value.draft.importedProgram!!.weeks.single().days.single().id
+        val (store, target) = checkNotNull(vm.openImportedSessionEditor(dayId))
+        val programId = target.programId
+        assertNull("abrir el editor no publica en la biblioteca", room { db.programDao().getById(programId) })
+        assertEquals(3, store.program.value.macrocycles.single().blocks.single().mesocycles.single()
+            .weeks.single().sessions.single().exercises.single().sets.size)
+
+        val editedProgram = store.program.value.copy(name = "Edición aislada")
+        assertTrue(store.mutate { editedProgram })
+        await(vm, "edición persistida en el borrador del alta") {
+            it.draft.importedProgramEditor?.program?.name == "Edición aislada"
+        }
+        assertNull("editar la sesión sigue sin publicar en la biblioteca", room { db.programDao().getById(programId) })
+        val reopened = checkNotNull(vm.openCanonicalImportedSessionEditor(target.sessionId))
+        assertTrue(reopened.first === store)
+        assertEquals("Edición aislada", reopened.first.program.value.name)
+
+        // Simula muerte del proceso: la recreación obtiene Program, Session, Exercise y ExerciseSet desde el borrador durable.
+        viewModelStore.clear()
+        val resumedVm = newVm()
+        resumedVm.initialize(SetupWizardMode.TRAINING_ONLY)
+        val restored = await(resumedVm, "borrador del editor recuperado tras recrear el ViewModel") {
+            !it.isLoading && it.draft.importedProgramEditor?.program == editedProgram
+        }
+        assertEquals("Sentadilla", restored.draft.importedProgram!!.weeks.single().days.single().exercises.single().rawName)
+        assertEquals(editedProgram, restored.draft.importedProgramEditor!!.program)
+        assertNull("recuperar el borrador tampoco publica el programa", room { db.programDao().getById(programId) })
+    }
+
+    @Test
     fun anAdvancedDraftImportsAPastedProgramOfTwoDaysAndActivatesIt() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
@@ -136,8 +244,9 @@ class ImportActivationWizardTest {
         // Texto pegado; los dudosos los decide la persona: el primero con la sugerencia del catálogo y el resto propios.
         vm.importFromText(pasted)
         await(vm, "programa leído y emparejado") { !it.importBusy && it.draft.importedProgram != null }
-        vm.state.value.draft.importUndecidedNames().forEachIndexed { index, rawName ->
-            val configId = if (index == 0) vm.importSuggestions(rawName).firstOrNull()?.configurationId else null
+        vm.state.value.draft.importUndecidedNames().forEach { rawName ->
+            val configId = vm.importSuggestions(rawName).firstOrNull()?.configurationId
+                ?: error("sin sugerencia para $rawName")
             vm.resolveImportedExercise(rawName, configId)
         }
         await(vm, "decisiones guardadas") { it.draft.importUndecidedNames().isEmpty() }

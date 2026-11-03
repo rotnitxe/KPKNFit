@@ -38,6 +38,11 @@ object ImportDraftValidation {
      * Lista lo que impide guardar tal cual. [isDecided] dice si un nombre ya tiene decisión («Elegir» o «Propio»).
      */
     fun check(draft: ImportedProgramDraft, isDecided: (rawName: String) -> Boolean): List<ImportIssue> {
+        return checkOccurrences(draft) { isDecided(it.rawName) }
+    }
+
+    /** Valida cada aparición; las decisiones antiguas por nombre pueden aplicarse como alternativa. */
+    fun checkOccurrences(draft: ImportedProgramDraft, isDecided: (ImportedExercise) -> Boolean): List<ImportIssue> {
         val issues = mutableListOf<ImportIssue>()
         if (draft.weeks.isEmpty()) issues += ImportIssue(ImportIssueKind.NO_WEEKS)
         for (week in draft.weeks) {
@@ -54,7 +59,7 @@ object ImportDraftValidation {
         for (week in draft.weeks) {
             for (day in week.days) {
                 for (exercise in day.exercises) {
-                    if (seen.add(exercise.rawName) && !isDecided(exercise.rawName)) {
+                    if (!isDecided(exercise) && seen.add(exercise.rawName)) {
                         issues += ImportIssue(
                             kind = ImportIssueKind.UNDECIDED_EXERCISE,
                             weekIndex = week.index,

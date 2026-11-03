@@ -19,6 +19,48 @@ import org.junit.Test
 
 class ImportEditsTest {
 
+    @Test
+    fun addingFirstCatalogExerciseCreatesAWeekAndDay() {
+        val empty = ImportSnapshot(ImportedProgramDraft(title = "Vacío", weeks = emptyList()), emptyMap())
+        val added = checkNotNull(ImportEdits.apply(empty, ImportEditOp.AddFirstExercise("Remo", 3, 8, 10, "custom:remo"))).first
+        val exercise = added.imported.weeks.single().days.single().exercises.single()
+        assertEquals("Remo", exercise.rawName)
+        assertEquals(3, exercise.sets)
+        assertEquals("custom:remo", exercise.catalogSelectionId)
+        assertNull(ImportEdits.apply(added, ImportEditOp.AddFirstExercise("Otro", 3, 8, 8, "custom:otro")))
+    }
+
+    @Test
+    fun addingASecondConfigurationForTheSameNameKeepsItsOwnIdentity() {
+        val original = ImportSnapshot(
+            ImportedProgramDraft("Plan", listOf(ImportedWeek(1, listOf(ImportedDay("d1", "Día 1", emptyList()))))),
+            mapOf("Remo" to "config-barra"),
+        )
+        val other = ImportEditOp.AddExercise("d1", "Remo", 3, 8, 8, "config-mancuerna", decided = true)
+        val result = checkNotNull(ImportEdits.apply(original, other)).first
+        assertEquals("config-mancuerna", result.imported.weeks.single().days.single().exercises.single().catalogSelectionId)
+        assertEquals("config-barra", result.resolutions["Remo"])
+    }
+
+    @Test
+    fun choosingOneOccurrenceDoesNotResolveAnotherAndSnapshotCanUndoIt() {
+        val first = ImportedExercise(id = "e1", rawName = "Remo", sets = 3, repsMin = 8, repsMax = 8)
+        val second = first.copy(id = "e2")
+        val before = ImportSnapshot(ImportedProgramDraft("Plan", listOf(ImportedWeek(1, listOf(ImportedDay("d1", "Día 1", listOf(first, second)))))), emptyMap())
+        val after = checkNotNull(ImportEdits.apply(before, ImportEditOp.DecideOccurrence("e1", "cfg-barra", "Remo con barra"))).first
+        val exercises = after.imported.weeks.single().days.single().exercises
+        assertEquals("cfg-barra", exercises[0].catalogSelectionId)
+        assertNull(exercises[1].catalogSelectionId)
+        val issues = com.example.kpkn.domain.training.importer.ImportDraftValidation.checkOccurrences(after.imported) {
+            it.catalogSelectionId != null || after.resolutions[it.rawName] != null
+        }
+        assertEquals("e2", issues.single().exerciseId)
+        assertNull(before.imported.weeks.single().days.single().exercises.first().catalogSelectionId)
+        val encoded = kotlinx.serialization.json.Json.encodeToString(ImportedProgramDraft.serializer(), after.imported)
+        val restored = kotlinx.serialization.json.Json.decodeFromString(ImportedProgramDraft.serializer(), encoded)
+        assertEquals(after.imported, restored)
+    }
+
     /** Tres semanas: la sentadilla con cargas distintas (100, 105 y 110 kg); dos avisos sin revisar. */
     private val draft = ImportedProgramDraft(
         title = "Plan",
@@ -302,7 +344,7 @@ class ImportEditsTest {
     @Test
     fun `anadir un ejercicio fija su decision sin pisar la que el nombre ya tenia`() {
         val catalog = applied(ImportEditOp.AddExercise("w1-d2", "Press inclinado", 4, 8, 8, "cfg-incline", decided = true)).first
-        assertEquals("cfg-incline", catalog.resolutions["Press inclinado"])
+        assertEquals("cfg-incline", catalog.imported.weeks[0].days[1].exercises.last().catalogSelectionId)
         assertEquals("Press inclinado", catalog.imported.weeks[0].days[1].exercises.last().rawName)
         assertEquals("x1", catalog.imported.weeks[0].days[1].exercises.last().id)
         assertEquals(2, catalog.imported.nextId)
@@ -372,7 +414,7 @@ class ImportEditsTest {
                 decided = true,
             ),
         )
-        assertEquals("cfg-row", chosen.first.resolutions["Remo con barra (barra)"])
+        assertEquals("cfg-row", chosen.first.imported.weeks.flatMap { it.days }.flatMap { it.exercises }.single { it.rawName == "Remo con barra (barra)" }.catalogSelectionId)
 
         val kept = applied(
             ImportEditOp.AddFromWarning(

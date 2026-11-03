@@ -2,12 +2,60 @@ package com.example.kpkn.domain.training.importer
 
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Constructor de H3e: grupos seguidos del mismo ejercicio se funden, y las libras pasan a kilos. Casos escritos a mano. */
 class ImportedProgramBuilderGroupsTest {
+
+    @Test
+    fun `la misma identidad se agrupa aunque una decision sea por nombre y otra por aparicion`() {
+        val draft = draftOf(
+            ImportedExercise(id = "a", rawName = "Remo", sets = 3, repsMin = 8, repsMax = 8),
+            ImportedExercise(id = "b", rawName = "Remo", sets = 2, repsMin = 10, repsMax = 10, catalogSelectionId = "custom:barra"),
+        )
+        val custom = ExerciseMuscleInfo(id = "custom:barra", name = "Remo con barra", isCustom = true)
+        val program = ImportedProgramBuilder.build(draft, mapOf("Remo" to custom.id), listOf(1), "same", customExercises = listOf(custom))
+        val exercise = sessionsOf(program).single().exercises.single()
+        assertEquals(custom.id, exercise.exerciseDbId)
+        assertEquals(5, exercise.sets.size)
+    }
+
+    @Test
+    fun `apariciones contiguas con distinta identidad conservan sus variantes`() {
+        val draft = draftOf(
+            ImportedExercise(id = "a", rawName = "Remo", sets = 3, repsMin = 8, repsMax = 8, catalogSelectionId = "custom:barra"),
+            ImportedExercise(id = "b", rawName = "Remo", sets = 2, repsMin = 10, repsMax = 10, catalogSelectionId = "custom:mancuerna"),
+        )
+        val customs = listOf(
+            ExerciseMuscleInfo(id = "custom:barra", name = "Remo con barra", isCustom = true),
+            ExerciseMuscleInfo(id = "custom:mancuerna", name = "Remo con mancuerna", isCustom = true),
+        )
+        val program = ImportedProgramBuilder.build(draft, emptyMap(), listOf(1), "variants", customExercises = customs)
+        val exercises = sessionsOf(program).single().exercises
+        assertEquals(listOf("custom:barra", "custom:mancuerna"), exercises.map { it.exerciseDbId })
+        assertEquals(listOf(3, 2), exercises.map { it.sets.size })
+    }
+
+    @Test
+    fun `un ejercicio personal elegido conserva su identidad y prescripcion`() {
+        val draft = draftOf(ImportedExercise(id = "e1", rawName = "Mi remo", sets = 3, repsMin = 8, repsMax = 10, notes = "Pausa"))
+        val custom = ExerciseMuscleInfo(id = "custom:remo-1", name = "Remo personal", isCustom = true, movementPattern = "Tirón")
+        val program = ImportedProgramBuilder.build(
+            draft, resolved = mapOf("Mi remo" to custom.id), weekdays = listOf(1), programId = "custom-import",
+            customExercises = listOf(custom),
+        )
+        val session = sessionsOf(program).single()
+        val exercise = session.exercises.single()
+        assertEquals("Remo personal", exercise.name)
+        assertEquals(custom.id, exercise.exerciseDbId)
+        assertEquals(3, exercise.sets.size)
+        assertEquals(listOf("Pausa"), exercise.executionCues)
+        assertTrue(session.catalogV2SelectionIssues().isEmpty())
+    }
 
     @Test
     fun `ejercicios seguidos con el mismo nombre son un ejercicio con todas sus series`() {

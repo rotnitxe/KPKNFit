@@ -58,6 +58,8 @@ import com.example.kpkn.screens.onboarding.entreno.EntrenoPlanNotice
 import com.example.kpkn.screens.programs.ProgramReadyOverlay
 import com.example.kpkn.screens.programs.pluralDias
 import com.example.kpkn.screens.programs.pluralSesiones
+import com.example.kpkn.screens.programs.importer.ImportedProgramCanonicalReview
+import com.example.kpkn.screens.programs.importer.ImportSessionEditorPortal
 import com.example.kpkn.ui.entitlements.LocalPlan
 import kotlinx.coroutines.launch
 
@@ -81,8 +83,8 @@ fun ImportProgramScreen(
     var pasted by rememberSaveable { mutableStateOf("") }
     // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
     var warningsReveal by rememberSaveable { mutableStateOf(0) }
-    // «Añadir ejercicio» de la isla de abajo: el catálogo contextual del importador, sobre la pantalla.
-    var addingExercise by rememberSaveable { mutableStateOf(false) }
+    var catalogRawName by rememberSaveable { mutableStateOf<String?>(null) }
+    var catalogExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     // cr-imp8: el programa ya guardado espera en «Listo para empezar»; null = aún en la revisión.
     var savedProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
@@ -98,26 +100,60 @@ fun ImportProgramScreen(
         }
         handoff = null
     }
+    LaunchedEffect(state.savedProgramId) { state.savedProgramId?.let { savedProgramId = it } }
     val imported = state.imported
+    val editorProgram = state.editorProgram
     val resolutions = state.resolutions
-    val issues = remember(imported, resolutions) {
-        imported?.let { draft -> ImportDraftValidation.check(draft) { resolutions.containsKey(it) } }.orEmpty()
+    val issues = remember(imported, resolutions, state.editorStarted, state.editorProgram) {
+        imported?.let { draft ->
+            if (state.editorStarted) state.editorProgram?.let {
+                canonicalImportIssues(draft, it, state.editorSourceMap, resolutions)
+            }.orEmpty()
+            else ImportDraftValidation.checkOccurrences(draft) { it.catalogSelectionId != null || resolutions.containsKey(it.rawName) }
+        }.orEmpty()
     }
     // Sin ningún día de entrenamiento no se guarda: la revisión lo dice y «Guardar programa» queda desactivado.
     val weekdaysMissing = imported != null && state.weekdays.isEmpty()
-    val canSave = issues.isEmpty() && !weekdaysMissing
+    val canSave = issues.isEmpty() && !weekdaysMissing && !state.busy && !state.draftPersistencePending &&
+        state.draftPersistenceError == null
+    fun openSourceDay(dayId: String?) {
+        val location = dayId?.let { id -> imported?.weeks?.firstNotNullOfOrNull { week ->
+            week.days.firstOrNull { it.id == id }?.let { week.index to it.id }
+        } }
+        scope.launch {
+            if (location == null) viewModel.addEmptySessionAndOpen()
+            else viewModel.openSessionEditor(location.first, location.second)
+        }
+    }
+    fun openExerciseSession(exerciseId: String) {
+        val location = imported?.weeks?.firstNotNullOfOrNull { week ->
+            week.days.firstOrNull { day -> day.exercises.any { it.id == exerciseId } }
+                ?.let { week.index to it.id }
+        }
+        if (location != null) scope.launch { viewModel.openSessionEditor(location.first, location.second) }
+    }
+    fun openFirstEditorSession() {
+        scope.launch {
+            if (state.editorStarted) {
+                val sessionId = state.editorProgram?.macrocycles.orEmpty().flatMap { it.blocks }
+                    .flatMap { it.mesocycles }.flatMap { it.weeks }.firstNotNullOfOrNull { it.sessions.firstOrNull()?.id }
+                if (sessionId != null) viewModel.openCanonicalSessionEditor(sessionId)
+                else viewModel.addEmptySessionAndOpen()
+            } else viewModel.addEmptySessionAndOpen()
+        }
+    }
     // Sin programa leído, ni leyendo ni pegando, la pantalla es la hoja «Importar un programa» (pr-import), sin cabecera propia.
     val showSources = imported == null && !state.busy && !pasting && handoff == null
     // Pegar no encierra: atrás (gesto o botón del sistema) vuelve a la hoja de fuentes para elegir un archivo o una foto.
     BackHandler(enabled = imported == null && pasting && !state.busy) { pasting = false }
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        // Lo que se desplaza: bajo la barra de estado. Con la isla de abajo, el contenido deja sitio para ella; sin programa
-        // leído, termina sobre la barra de navegación del sistema.
+        // Lo que se desplaza: bajo la barra de estado y por encima de la barra de navegación. La isla conserva su espacio
+        // propio incluso cuando la vista previa ya está abierta.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .then(if (imported == null) Modifier.navigationBarsPadding() else Modifier)
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (imported == null) 12.dp else ISLAND_CLEARANCE + 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -148,7 +184,7 @@ fun ImportProgramScreen(
                 )
             }
             // La línea de deshacer va justo bajo el título (G3).
-            if (imported != null) state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
+            if (imported != null && !state.editorStarted) state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
             }
             if (imported == null) {
                 if (pasting) {
@@ -159,6 +195,9 @@ fun ImportProgramScreen(
                     )
                 }
             } else {
+                if (!state.editorStarted && imported.weeks.none { week -> week.days.any { it.exercises.isNotEmpty() } }) {
+                    EntrenoPlanNotice(text = "No encontramos ejercicios en el contenido leído. Revisa los avisos o prueba otra fuente.")
+                }
                 SetupFormTextField(
                     value = state.title,
                     onValueChange = viewModel::setTitle,
@@ -176,32 +215,51 @@ fun ImportProgramScreen(
                     imported = imported,
                     reveal = warningsReveal,
                     search = viewModel::search,
-                    onOpenExercise = viewModel::open,
-                    onEdit = viewModel::edit,
-                )
-                ImportPreviewWeeks(
-                    imported = imported,
-                    resolutions = resolutions,
-                    openedExerciseId = state.openedExerciseId,
-                    onOpen = viewModel::open,
-                    onEdit = viewModel::edit,
-                    suggest = viewModel::suggestions,
-                    search = viewModel::search,
                     namesOf = viewModel::namesOf,
-                )
-                ImportReview(
-                    imported = imported,
-                    issues = issues,
-                    onOpenExercise = viewModel::open,
+                    useSharedCatalog = true,
+                    onOpenExercise = ::openExerciseSession,
                     onEdit = viewModel::edit,
-                    onShowWarnings = { warningsReveal += 1 },
-                    onRestart = viewModel::clear,
-                    weekdaysMissing = weekdaysMissing,
+                    onOpenSessionEditor = ::openSourceDay,
                 )
+                if (state.editorStarted && editorProgram != null) {
+                    ImportedProgramCanonicalReview(
+                        source = imported,
+                        sourceMap = state.editorSourceMap,
+                        program = editorProgram,
+                        onEditSession = { target -> scope.launch { viewModel.openCanonicalSessionEditor(target.sessionId) } },
+                        issues = issues,
+                        onShowWarnings = { warningsReveal += 1 },
+                        onCreateSession = { weekId -> scope.launch { viewModel.addEmptySessionAndOpen(weekId) } },
+                    )
+                } else {
+                    ImportPreviewWeeks(
+                        imported = imported,
+                        resolutions = resolutions,
+                        openedExerciseId = state.openedExerciseId,
+                        onOpen = viewModel::open,
+                        onEdit = viewModel::edit,
+                        suggest = viewModel::suggestions,
+                        search = viewModel::search,
+                        namesOf = viewModel::namesOf,
+                        onOpenCatalog = { exerciseId, rawName -> catalogExerciseId = exerciseId; catalogRawName = rawName },
+                        onEditSession = { weekIndex, dayId -> scope.launch { viewModel.openSessionEditor(weekIndex, dayId) } },
+                    )
+                    ImportReview(
+                        imported = imported,
+                        issues = issues,
+                        onOpenExercise = ::openExerciseSession,
+                        onEdit = viewModel::edit,
+                        onShowWarnings = { warningsReveal += 1 },
+                        onRestart = viewModel::clear,
+                        weekdaysMissing = weekdaysMissing,
+                    )
+                }
                 // Los días de entrenamiento ya no van en la barra de abajo: con la isla de G3 viven aquí, tras la revisión.
                 ImportWeekdaysSection(
                     selected = state.weekdays,
-                    sessionsPerWeek = importSessionsPerWeek(imported),
+                    sessionsPerWeek = state.editorProgram?.macrocycles.orEmpty().flatMap { it.blocks }
+                        .flatMap { it.mesocycles }.flatMap { it.weeks }.maxOfOrNull { it.sessions.size }
+                        ?: importSessionsPerWeek(imported),
                     onToggle = viewModel::toggleWeekday,
                     modifier = Modifier.padding(horizontal = 0.dp),
                 )
@@ -235,22 +293,18 @@ fun ImportProgramScreen(
         if (imported != null) {
             ImportBottomIsland(
                 canSave = canSave,
-                onAddExercise = { addingExercise = true },
+                onAddExercise = ::openFirstEditorSession,
                 onSave = { scope.launch { viewModel.save(level)?.let { savedProgramId = it } } },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
-            if (addingExercise) {
-                ImportAddExerciseSheet(
-                    imported = imported,
-                    contextDayId = state.openedExerciseId?.let { id ->
-                        imported.weeks.firstNotNullOfOrNull { week -> week.days.firstOrNull { day -> day.exercises.any { it.id == id } } }?.id
-                    },
-                    search = viewModel::search,
-                    onEdit = viewModel::edit,
-                    onClose = { addingExercise = false },
-                )
-            }
         }
+    }
+    catalogRawName?.let { rawName ->
+        ImportSharedCatalog(
+            rawName = rawName,
+            onSelect = { id -> catalogExerciseId?.let { viewModel.edit(ImportEditOp.DecideOccurrence(it, id, rawName)) } },
+            onClose = { catalogRawName = null; catalogExerciseId = null },
+        )
     }
     // «Listo para empezar» (cr-listo): ya guardado, sin activar; atrás lo deja guardado y abre el programa igual.
     savedProgramId?.let { programId ->
@@ -260,13 +314,28 @@ fun ImportProgramScreen(
             onBack = { savedProgramId = null; onSaved(programId) },
         )
     }
+    val activeSessionId = state.editorActiveSessionId
+    val activeTarget = activeSessionId?.let { sessionId -> state.editorProgram?.editorTarget(sessionId) }
+    val activeStore = if (activeTarget != null) viewModel.activeEditorStore() else null
+    if (activeTarget != null && activeStore != null) {
+        ImportSessionEditorPortal(
+            store = activeStore,
+            programId = activeTarget.programId,
+            sessionId = activeTarget.sessionId,
+            weekId = activeTarget.weekId,
+            macroIndex = activeTarget.macroIndex,
+            mesoIndex = activeTarget.mesoIndex,
+            dayOfWeek = activeTarget.dayOfWeek,
+            onClose = { viewModel.closeEditorPortal(activeTarget.sessionId) },
+        )
+    }
 }
 
 /** Lo que el contenido deja libre bajo sí para la isla de abajo: su alto (64 dp), su margen y la barra de navegación. */
 private val ISLAND_CLEARANCE = 96.dp
 
 /**
- * La isla de abajo (G3): «Añadir ejercicio», que abre el catálogo contextual del importador, y «Guardar programa», que solo se activa
+ * La isla de abajo (G3): acceso al editor completo y «Guardar programa», que solo se activa
  * sin problemas y con al menos un día. Va flotando sobre la barra de navegación del sistema, con un velo que funde lo que pasa por
  * debajo; los dos botones miden 44 dp dentro de objetivos táctiles de 48.
  */
@@ -301,7 +370,7 @@ private fun ImportBottomIsland(
                     .weight(1f)
                     .height(48.dp)
                     .testTag("import-add-exercise")
-                    .semantics { contentDescription = "Añadir ejercicio: abre el catálogo" }
+                    .semantics { contentDescription = "Abrir el editor completo de sesiones" }
                     .clickable(role = Role.Button, onClick = onAddExercise),
                 contentAlignment = Alignment.Center,
             ) {
@@ -315,7 +384,7 @@ private fun ImportBottomIsland(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(KpknLineIcons.Plus, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(14.dp))
-                    Text("Añadir ejercicio", style = WizardTypography.cardSubtitle.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
+                    Text("Editar sesión", style = WizardTypography.cardSubtitle.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
                 }
             }
             Box(

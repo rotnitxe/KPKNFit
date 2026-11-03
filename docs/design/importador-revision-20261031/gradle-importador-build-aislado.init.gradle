@@ -1,0 +1,11 @@
+// The official app/build intermediates are held open by an older Gradle test worker.
+// Keep this validation's outputs in a separate ignored folder without touching that worker or its files.
+gradle.projectsLoaded { loaded ->
+    def appProject = loaded.rootProject.findProject(":app")
+    if (appProject == null) {
+        throw new GradleException("No se encontró :app para la validación aislada del importador")
+    }
+    appProject.layout.buildDirectory.set(
+        new File(appProject.projectDir, "build/importador-validation")
+    )
+}

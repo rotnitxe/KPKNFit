@@ -40,16 +40,25 @@ import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportedDay
+import com.example.kpkn.domain.training.importer.ImportDraftEditor
 import com.example.kpkn.domain.training.importer.KnownProgramMatch
 import com.example.kpkn.domain.training.importer.KnownProgramRecognizer
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.programs.importer.ImportCatalogLookup
+import com.example.kpkn.screens.programs.importer.ImportedSessionEditorTarget
+import com.example.kpkn.screens.programs.importer.editorTarget
+import com.example.kpkn.screens.programs.importer.withImportedWeekdays
+import com.example.kpkn.screens.programs.importer.withEmptyImportedSession
 import com.example.kpkn.screens.programs.importer.ImportEditOp
 import com.example.kpkn.screens.programs.importer.ImportEdits
 import com.example.kpkn.screens.programs.importer.ImportSnapshot
 import com.example.kpkn.screens.programs.importer.IMPORT_READING_PHOTO_TEXT
 import com.example.kpkn.screens.programs.importer.IMPORT_READING_TEXT
+import com.example.kpkn.screens.programs.importer.IMPORT_CATALOG_UNAVAILABLE
+import com.example.kpkn.screens.programs.importer.importedExerciseCatalogChoiceMessage
 import com.example.kpkn.screens.programs.importer.ImportUndoStack
+import com.example.kpkn.screens.sessioneditor.ImportedProgramEditorStore
 import com.example.kpkn.screens.programs.importer.importReadingPageText
 import com.example.kpkn.screens.programs.importer.readPickedFile
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
@@ -160,6 +169,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
     val state: StateFlow<SetupWizardState> = _state.asStateFlow()
     private val _catalogExpanded = MutableStateFlow(false)
     val catalogExpanded = _catalogExpanded.asStateFlow()
+    @Volatile private var importedProgramEditorStore: ImportedProgramEditorStore? = null
+    @Volatile private var importedProgramEditorStoreId: String? = null
     fun toggleCatalogExpanded() { _catalogExpanded.update { !it } }
 
     /**
@@ -374,7 +385,34 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun setFreshDay(day: Int) = mutateDraft(SetupStepId.FRESH_DAY) { latest -> latest.withFreshestDay(day) }
 
     /** Alterna un día de entreno (de 1 a 7 días en total). */
-    fun toggleWeekday(day: Int) = mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withWeekdayToggled(day) }
+    fun toggleWeekday(day: Int) {
+        val editor = _state.value.draft.importedProgramEditor
+        val store = importedProgramEditorStore?.takeIf { importedProgramEditorStoreId == editor?.id }
+        if (editor != null && store != null) {
+            viewModelScope.launch {
+                val saved = store.mutate { program ->
+                    val latest = _state.value.draft
+                    val toggled = latest.withWeekdayToggled(day)
+                    program.withImportedWeekdays(toggled.selectedWeekdays)
+                }
+                if (!saved) _state.value = _state.value.copy(
+                    errors = mapOf("save" to "No pude guardar los días de este borrador. Tu programa no se publicó."),
+                )
+            }
+        } else {
+            mutateDraft(SetupStepId.WEEKDAYS) { latest ->
+                val toggled = latest.withWeekdayToggled(day)
+                val latestEditor = latest.importedProgramEditor ?: return@mutateDraft toggled
+                if (toggled.selectedWeekdays == latest.selectedWeekdays) return@mutateDraft toggled
+                toggled.copy(
+                    importedProgramEditor = latestEditor.copy(
+                        revision = latestEditor.revision + 1,
+                        program = latestEditor.program.withImportedWeekdays(toggled.selectedWeekdays),
+                    ),
+                )
+            }
+        }
+    }
 
     /** Primer día de la semana. */
     fun setWeekStart(day: Int) = mutateDraft(SetupStepId.WEEKDAYS) { latest -> latest.withWeekStart(day) }
@@ -1892,14 +1930,255 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val imported = draft.importedProgram ?: error("Importa un programa para continuar.")
         ensureCatalogLoaded()
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+            ?: error("El catálogo de ejercicios todavía no está disponible")
+        val customExercises = com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
+        draft.importedProgramEditor?.let { editor ->
+            val unavailableEditorExercises = ImportedProgramBuilder.unavailableProgramExercises(
+                editor.program, catalog, customExercises,
+            )
+            if (unavailableEditorExercises.isNotEmpty()) {
+                error(importedExerciseCatalogChoiceMessage(unavailableEditorExercises.first()))
+            }
+            return editor.program
+        }
+        val unavailable = ImportedProgramBuilder.unavailableNames(imported, draft.importResolutions, catalog, customExercises)
+        if (unavailable.isNotEmpty()) error(importedExerciseCatalogChoiceMessage(unavailable.first()))
         return ImportedProgramBuilder.build(
             draft = imported.copy(title = draft.importTitle),
             resolved = draft.importResolutions,
             weekdays = draft.selectedWeekdays.sorted(),
             programId = "import-${draft.commitId}",
             catalog = catalog,
+            customExercises = customExercises,
+            catalogConfigurationInfo = catalog.toLegacyConfigurationLookup(
+                ImportedProgramBuilder.catalogConfigurationIds(imported, draft.importResolutions),
+            ),
         )
     }
+
+    /** Opens the real session editor over the wizard's durable, isolated Program draft. */
+    internal suspend fun openImportedSessionEditor(
+        dayId: String,
+    ): Pair<ImportedProgramEditorStore, ImportedSessionEditorTarget>? {
+        val initialDraft = _state.value.draft
+        val initialSource = initialDraft.importedProgram ?: return null
+        var editorDraft = initialDraft.importedProgramEditor
+        if (editorDraft == null) {
+            val source = ImportDraftEditor.withIds(initialSource)
+            val loaded = try {
+                ensureCatalogLoaded()
+                (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+                    ?: error(IMPORT_CATALOG_UNAVAILABLE)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (_: Exception) {
+                _state.update { it.copy(importError = IMPORT_CATALOG_UNAVAILABLE) }
+                return null
+            }
+            val customExercises = com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
+            val unavailable = ImportedProgramBuilder.unavailableNames(
+                source,
+                initialDraft.importResolutions,
+                loaded,
+                customExercises,
+            )
+            if (unavailable.isNotEmpty()) {
+                _state.update { it.copy(importError = importedExerciseCatalogChoiceMessage(unavailable.first())) }
+                return null
+            }
+            val programId = "import-${initialDraft.commitId}"
+            val program = ImportedProgramBuilder.build(
+                draft = source.copy(title = initialDraft.importTitle),
+                resolved = initialDraft.importResolutions,
+                weekdays = initialDraft.selectedWeekdays.sorted(),
+                programId = programId,
+                catalog = loaded,
+                customExercises = customExercises,
+                catalogConfigurationInfo = loaded.toLegacyConfigurationLookup(
+                    ImportedProgramBuilder.catalogConfigurationIds(source, initialDraft.importResolutions),
+                ),
+            )
+            val candidate = SetupImportedProgramEditorDraft(
+                id = UUID.randomUUID().toString(),
+                revision = 0L,
+                program = program,
+                sourceMap = ImportedProgramBuilder.sourceMap(source, initialDraft.importResolutions, programId),
+            )
+            val committed = withContext(Dispatchers.Main.immediate) {
+                commandMutex.withLock {
+                    val current = _state.value.draft
+                    if (!initialized || current.importedProgram != initialSource ||
+                        current.importResolutions != initialDraft.importResolutions || current.importTitle != initialDraft.importTitle ||
+                        current.selectedWeekdays != initialDraft.selectedWeekdays || current.importedProgramEditor != null ||
+                        _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting
+                    ) return@withLock false
+                    val changed = current.copy(
+                        importedProgram = source,
+                        importedProgramEditor = candidate,
+                    ).touchStep(SetupStepId.PROGRAM_IMPORT).copy(revision = current.revision + 1)
+                    val next = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(changed)
+                        .withNextDraftRevision(current).withChangeImpacts(current)
+                    if (!persistDraft(next)) return@withLock false
+                    publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
+                    preparePreview(next)
+                    true
+                }
+            }
+            if (!committed) {
+                _state.update { it.copy(importError = "No se pudo guardar el borrador del editor. Vuelve a intentarlo.") }
+                editorDraft = _state.value.draft.importedProgramEditor ?: return null
+            } else {
+                editorDraft = candidate
+            }
+        }
+        val currentEditor = editorDraft ?: return null
+        importUndo.clear()
+        _state.update { it.copy(importUndoLabel = null) }
+        var store = importedProgramEditorStore
+        if (store == null || importedProgramEditorStoreId != currentEditor.id) {
+            store?.let { stale ->
+                stale.closeForMutations()
+                stale.editorViewModels.clear()
+            }
+            store = ImportedProgramEditorStore(currentEditor.program) { program ->
+                persistImportedEditorProgram(currentEditor.id, program)
+            }
+            importedProgramEditorStore = store
+            importedProgramEditorStoreId = currentEditor.id
+        }
+        val sessionId = currentEditor.sourceMap.sessionIdsByDayId[dayId]
+        val target = sessionId?.let(currentEditor.program::editorTarget)
+        if (target == null) {
+            _state.update { it.copy(importError = "No pudimos localizar la sesión importada en el borrador.") }
+            return null
+        }
+        _state.update { it.copy(importError = null) }
+        return store to target
+    }
+
+    /** Restores the same full editor target after activity rotation or process recreation. */
+    internal suspend fun openCanonicalImportedSessionEditor(
+        sessionId: String,
+    ): Pair<ImportedProgramEditorStore, ImportedSessionEditorTarget>? {
+        val editor = _state.value.draft.importedProgramEditor ?: return null
+        val target = editor.program.editorTarget(sessionId) ?: return null
+        var store = importedProgramEditorStore
+        if (store == null || importedProgramEditorStoreId != editor.id) {
+            store?.let { stale ->
+                stale.closeForMutations()
+                stale.editorViewModels.clear()
+            }
+            store = ImportedProgramEditorStore(editor.program) { program ->
+                persistImportedEditorProgram(editor.id, program)
+            }
+            importedProgramEditorStore = store
+            importedProgramEditorStoreId = editor.id
+        }
+        _state.update { it.copy(importError = null) }
+        return store to target
+    }
+
+    /** Creates a session shell only; the person adds and prescribes exercises in SessionEditor. */
+    internal suspend fun addEmptyImportedSessionAndOpen(targetWeekId: String? = null): Pair<ImportedProgramEditorStore, ImportedSessionEditorTarget>? {
+        val current = _state.value.draft
+        val imported = current.importedProgram ?: return null
+        if (current.importedProgramEditor != null) {
+            if (targetWeekId == null) {
+                val target = current.importedProgramEditor.program.macrocycles
+                    .flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+                    .firstNotNullOfOrNull { week -> week.sessions.firstOrNull()?.let { current.importedProgramEditor.program.editorTarget(it.id) } }
+                if (target != null) return openCanonicalImportedSessionEditor(target.sessionId)
+            }
+            val editor = current.importedProgramEditor
+            var store = importedProgramEditorStore
+            if (store == null || importedProgramEditorStoreId != editor.id) {
+                store?.let { stale ->
+                    stale.closeForMutations()
+                    stale.editorViewModels.clear()
+                }
+                store = ImportedProgramEditorStore(editor.program) { program ->
+                    persistImportedEditorProgram(editor.id, program)
+                }
+                importedProgramEditorStore = store
+                importedProgramEditorStoreId = editor.id
+            }
+            var createdSessionId: String? = null
+            val saved = store.mutate { program ->
+                val (updated, sessionId) = program.withEmptyImportedSession(targetWeekId) ?: return@mutate null
+                createdSessionId = sessionId
+                updated
+            }
+            if (!saved) {
+                _state.update { it.copy(importError = "No se pudo guardar la sesión vacía. No se cambió el borrador.") }
+                return null
+            }
+            return createdSessionId?.let { openCanonicalImportedSessionEditor(it) }
+        }
+        if (imported.weeks.any { it.days.isNotEmpty() }) {
+            val first = imported.weeks.first { it.days.isNotEmpty() }.days.first()
+            return openImportedSessionEditor(first.id)
+        }
+        val committed = applyEmptyFirstDayForEditor() ?: return null
+        return openImportedSessionEditor(committed.id)
+    }
+
+    private suspend fun applyEmptyFirstDayForEditor(): ImportedDay? = withContext(Dispatchers.Main.immediate) {
+        commandMutex.withLock {
+            val current = _state.value.draft
+            if (!initialized || current.importedProgram == null || current.importedProgramEditor != null ||
+                _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting
+            ) return@withLock null
+            val before = ImportSnapshot(current.importedProgram, current.importResolutions)
+            val (after, label) = ImportEdits.apply(before, ImportEditOp.AddEmptyFirstDay) { it } ?: return@withLock null
+            val changed = current.copy(
+                importedProgram = after.imported,
+                importResolutions = after.resolutions,
+            ).touchStep(SetupStepId.PROGRAM_IMPORT).copy(revision = current.revision + 1)
+            val next = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(changed)
+                .withNextDraftRevision(current).withChangeImpacts(current)
+            if (!persistDraft(next)) return@withLock null
+            importUndo.push(before, label)
+            publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
+            preparePreview(next)
+            next.importedProgram?.weeks?.firstNotNullOfOrNull { week -> week.days.lastOrNull() }
+        }
+    }
+
+    internal fun releaseImportedSessionEditor(id: String) {
+        if (importedProgramEditorStoreId != id) return
+        val store = importedProgramEditorStore ?: return
+        importedProgramEditorStore = null
+        importedProgramEditorStoreId = null
+        viewModelScope.launch {
+            store.closeForMutations()
+            store.editorViewModels.clear()
+        }
+    }
+
+    private suspend fun persistImportedEditorProgram(id: String, program: Program): Boolean =
+        withContext(Dispatchers.Main.immediate) {
+            commandMutex.withLock {
+                val current = _state.value.draft
+                val editor = current.importedProgramEditor ?: return@withLock false
+                if (!initialized || editor.id != id || editor.program.id != program.id ||
+                    _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting ||
+                    _state.value.machineState == WizChatMachineState.Committed ||
+                    _state.value.machineState == WizChatMachineState.UnsupportedDraft
+                ) return@withLock false
+                if (editor.program == program) return@withLock true
+                val changed = current.copy(
+                    selectedWeekdays = program.schedulePlan?.trainingDays.orEmpty(),
+                    importTitle = program.name,
+                    importedProgramEditor = editor.copy(revision = editor.revision + 1, program = program),
+                ).touchStep(SetupStepId.PROGRAM_IMPORT).copy(revision = current.revision + 1)
+                val next = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(changed)
+                    .withNextDraftRevision(current).withChangeImpacts(current)
+                if (!persistDraft(next)) return@withLock false
+                publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
+                preparePreview(next)
+                true
+            }
+        }
 
     private suspend fun materializeBase(draft: SetupWizardDraft): SetupPreview {
         if (importRouteActive(draft)) return SetupPreview(importedProgramOf(draft), null)
@@ -3726,6 +4005,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
     internal var readFile: suspend (uri: Uri, onProgress: (page: Int, pages: Int) -> Unit) -> Result<Pair<String, List<ImportSheet>>> =
         { uri, onProgress -> readPickedFile(application.contentResolver, uri, application.cacheDir, onProgress) }
 
+    internal var importMatchNames: suspend (List<String>) -> Map<String, String?> = { names ->
+        ensureCatalogLoaded()
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+            ?: error("El catálogo de ejercicios todavía no está disponible")
+        withContext(Dispatchers.Default) {
+            val matcher = ExerciseNameMatcher(catalog)
+            matcher.matchAll(names)
+                .filterValues(matcher::canResolveAutomatically)
+                .mapValues { (_, match) -> match.best?.configurationId }
+        }
+    }
+
     /** Importa las hojas ya leídas de un archivo (xlsx o csv); el título es el nombre del archivo. */
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
         startImport(IMPORT_READING_TEXT) {
@@ -3791,6 +4082,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * (id inexistente, parche vacío…), no hace nada.
      */
     fun editImport(op: ImportEditOp) = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+        if (latest.importedProgramEditor != null && op !is ImportEditOp.IgnoreWarning &&
+            op !is ImportEditOp.IgnoreAllWarnings &&
+            !(op is ImportEditOp.Batch && op.ops.all { it is ImportEditOp.IgnoreWarning })
+        ) return@mutateDraft latest
         val imported = latest.importedProgram ?: return@mutateDraft latest
         val before = ImportSnapshot(imported, latest.importResolutions)
         val (after, label) = ImportEdits.apply(before, op) { raw ->
@@ -3804,14 +4099,36 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     /** Deshace el último cambio de la vista previa del programa importado. */
     fun undoImportEdit() = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+        if (latest.importedProgramEditor != null) return@mutateDraft latest
         val previous = importUndo.pop() ?: return@mutateDraft latest
         _state.value = _state.value.copy(importUndoLabel = importUndo.label)
         latest.copy(importedProgram = previous.imported, importResolutions = previous.resolutions)
     }
 
     /** Título editable del programa importado. */
-    fun setImportTitle(title: String) =
-        mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest -> latest.copy(importTitle = title) }
+    fun setImportTitle(title: String) {
+        val editor = _state.value.draft.importedProgramEditor
+        val store = importedProgramEditorStore?.takeIf { importedProgramEditorStoreId == editor?.id }
+        if (editor != null && store != null) {
+            viewModelScope.launch {
+                val saved = store.mutate { it.copy(name = title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }) }
+                if (!saved) _state.value = _state.value.copy(
+                    errors = mapOf("save" to "No pude guardar el título del borrador. Tu programa no se publicó."),
+                )
+            }
+        } else {
+            mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+                val current = latest.importedProgramEditor
+                latest.copy(
+                    importTitle = title,
+                    importedProgramEditor = current?.copy(
+                        revision = current.revision + 1,
+                        program = current.program.copy(name = title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }),
+                    ),
+                )
+            }
+        }
+    }
 
     /** Quita lo importado: el paso vuelve a quedar sin programa y la pila de deshacer se vacía. */
     fun clearImport() {
@@ -3823,6 +4140,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
             latest.copy(
                 importedProgram = null, importResolutions = emptyMap(), importTitle = "",
+                importedProgramEditor = null,
                 importKnownPlanId = null, importKnownDismissed = false,
             )
         }
@@ -3846,6 +4164,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         mutateDraft(SetupStepId.PROGRAM_SOURCE) { latest ->
             val cleared = latest.withProgramSource(ProgramSource.RECOMMEND).copy(
                 importedProgram = null, importResolutions = emptyMap(), importTitle = "",
+                importedProgramEditor = null,
                 importKnownPlanId = null, importKnownDismissed = false,
             )
             cleared.withPreselectedPlan(planId) ?: latest
@@ -3869,9 +4188,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     /** Nombre canónico de las configuraciones ya decididas, para mostrar el ejercicio reconocido. */
     suspend fun importNamesOf(configIds: Set<String>): Map<String, String> {
+        if (configIds.isEmpty()) return emptyMap()
+        val custom = com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
+            .filter { it.id in configIds && it.isCustom }.associate { it.id to it.name }
+        val remaining = configIds - custom.keys
+        if (remaining.isEmpty()) return custom.also { importNames.putAll(it) }
         ensureCatalogLoaded()
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: return emptyMap()
-        val names = withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(catalog, configIds) }
+        val names = custom + withContext(Dispatchers.Default) { ImportCatalogLookup.namesOf(catalog, remaining) }
         importNames.putAll(names)
         return names
     }
@@ -3887,27 +4211,43 @@ class SetupWizardViewModel @JvmOverloads constructor(
         importJob = viewModelScope.launch {
             try {
                 val (parsed, known) = read()
+                ensureActive()
+                importUndo.clear()
+                commandMutex.withLock {
+                    if (!initialized || _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting ||
+                        _state.value.machineState == WizChatMachineState.Committed || _state.value.machineState == WizChatMachineState.UnsupportedDraft
+                    ) {
+                        _state.value = _state.value.copy(importBusy = false, importProgress = null)
+                        return@launch
+                    }
+                    val old = _state.value.draft
+                    val changed = old.copy(
+                        importedProgram = parsed, importTitle = parsed.title, importResolutions = emptyMap(),
+                        importedProgramEditor = null,
+                        importKnownPlanId = known?.planId, importKnownDismissed = false,
+                    ).touchStep(SetupStepId.PROGRAM_IMPORT)
+                    persistAndPublish(changed.copy(revision = old.revision + 1))
+                }
+                _state.value = _state.value.copy(importBusy = false, importProgress = null, importUndoLabel = null, importKnownUnavailable = false)
                 val names = parsed.weeks.flatMap { week -> week.days.flatMap { day -> day.exercises } }
                     .map { it.rawName }
                     .distinct()
-                ensureCatalogLoaded()
-                val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
-                    ?: error("El catálogo de ejercicios todavía no está disponible")
-                val confident = withContext(Dispatchers.Default) {
-                    ExerciseNameMatcher(catalog).matchAll(names)
-                        .filterValues { it.isConfident }
-                        .mapValues { (_, match) -> match.best?.configurationId }
+                var catalogUnavailable = false
+                val confident = if (names.isEmpty()) emptyMap() else try {
+                    importMatchNames(names)
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (_: Exception) {
+                    catalogUnavailable = true
+                    emptyMap()
                 }
                 ensureActive()
-                importUndo.clear()
                 mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
-                    latest.copy(
-                        importedProgram = parsed, importTitle = parsed.title, importResolutions = confident,
-                        importKnownPlanId = known?.planId, importKnownDismissed = false,
-                    )
+                    if (latest.importedProgram == parsed && latest.importResolutions.isEmpty()) latest.copy(importResolutions = confident)
+                    else latest
                 }
                 _state.value = _state.value.copy(
-                    importBusy = false, importProgress = null, importUndoLabel = null, importKnownUnavailable = false,
+                    importError = if (catalogUnavailable) com.example.kpkn.screens.programs.importer.IMPORT_CATALOG_UNAVAILABLE else null,
                 )
             } catch (cancel: CancellationException) {
                 throw cancel

@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training.importer
 
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
+import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RepRange
@@ -138,6 +139,11 @@ class ImportedProgramBuilderTest {
     @Test
     fun `ejercicio resuelto con catalogo toma el nombre y la identidad v2`() {
         val catalog = loadCatalog()
+        val selectedConfigurationIds = ImportedProgramBuilder.catalogConfigurationIds(
+            draft,
+            mapOf("Sentadilla" to "high_bar_back_squat__barbell"),
+        )
+        val configurationInfo = catalog.toLegacyConfigurationLookup(selectedConfigurationIds)
 
         val program = ImportedProgramBuilder.build(
             draft,
@@ -145,14 +151,38 @@ class ImportedProgramBuilderTest {
             weekdays = listOf(1, 3, 5),
             programId = "imp-5",
             catalog = catalog,
+            catalogConfigurationInfo = configurationInfo,
         )
 
         val squat = program.firstWeekSessions()[0].exercises[0]
+        val selectedInfo = configurationInfo.getValue("high_bar_back_squat__barbell")
+        assertEquals(setOf("high_bar_back_squat__barbell"), configurationInfo.keys)
+        val familyId = catalog.families.single { family ->
+            family.definitions.any { it.id == "high_bar_back_squat" }
+        }.id
         assertEquals("Sentadilla Trasera con Barra Alta", squat.name)
         assertEquals("high_bar_back_squat__barbell", squat.catalogConfigurationId)
         assertEquals("high_bar_back_squat", squat.catalogDefinitionId)
         assertEquals("high_bar_back_squat__barbell", squat.exerciseId)
+        assertEquals(familyId, squat.exerciseFamilyId)
         assertEquals(catalog.catalogRevision, squat.catalogRevision)
+        assertEquals(selectedInfo.involvedMuscles, squat.effectiveMuscles)
+        assertEquals(selectedInfo.setupCues.orEmpty(), squat.setupCues)
+        assertEquals(selectedInfo.movementPattern, squat.selectedMovementPattern)
+        assertEquals(4, squat.sets.size)
+        assertEquals(120.0, squat.sets.first().weight!!, 1e-6)
+    }
+
+    @Test
+    fun `las identidades ausentes o eliminadas no se aceptan al materializar`() {
+        val catalog = loadCatalog()
+        val names = ImportedProgramBuilder.unavailableNames(
+            draft = draft,
+            resolved = mapOf("Sentadilla" to "high_bar_back_squat__barbell", "Ejercicio libre" to "custom:eliminado"),
+            catalog = catalog,
+            customExercises = emptyList(),
+        )
+        assertEquals(listOf("Ejercicio libre", "Press banca"), names)
     }
 
     @Test
@@ -224,8 +254,32 @@ class ImportedProgramBuilderTest {
 
         val squat = program.firstWeekSessions()[0].exercises[0]
         assertEquals("Sentadilla", squat.name)
-        assertNull(squat.catalogConfigurationId)
-        assertNull(squat.occurrenceId)
+        assertEquals("high_bar_back_squat__barbell", squat.catalogConfigurationId)
+        assertEquals("high_bar_back_squat__barbell", squat.exerciseId)
+        assertEquals(squat.id, squat.occurrenceId)
+        assertNull(squat.catalogRevision)
+    }
+
+    @Test
+    fun `la decision de ejercicio propio queda sin identidad y exige catalogarlo`() {
+        val name = "Remo propio"
+        val draft = oneExercise(name)
+        val catalog = loadCatalog()
+
+        val program = ImportedProgramBuilder.build(
+            draft,
+            resolved = mapOf(name to "own"),
+            weekdays = emptyList(),
+            programId = "imp-own",
+            catalog = catalog,
+        )
+        val exercise = program.firstWeekSessions().single().exercises.single()
+
+        assertEquals(name, exercise.name)
+        assertNull(exercise.catalogConfigurationId)
+        assertNull(exercise.exerciseId)
+        assertNull(exercise.occurrenceId)
+        assertEquals(listOf(name), ImportedProgramBuilder.unavailableNames(draft, mapOf(name to "own"), catalog, emptyList()))
     }
 
     @Test

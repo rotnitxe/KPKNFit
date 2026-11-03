@@ -19,11 +19,14 @@ import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
+import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.SetupWizardDraft
+import com.example.kpkn.screens.onboarding.SetupImportedProgramEditorDraft
 import com.example.kpkn.screens.onboarding.SetupWizardValidation
 import com.example.kpkn.screens.onboarding.importProblem
 import com.example.kpkn.screens.programs.importer.ImportEditOp
+import com.example.kpkn.screens.programs.importer.withEmptyImportedSession
 import com.example.kpkn.screens.programs.importer.ImportPasteField
 import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import org.junit.Assert.assertEquals
@@ -82,6 +85,34 @@ class ProgramImportStepTest {
     }
 
     @Test
+    fun productionPreviewCanChooseAnUnmatchedOccurrenceAndStillOffersTheFullEditor() {
+        val imported = parsed()
+        val exercise = imported.weeks.single().days.first().exercises.first()
+        val catalogSelections = mutableListOf<Pair<String, String>>()
+        val openedSessions = mutableListOf<String>()
+
+        rule.setContent {
+            ImportPreviewWeeks(
+                imported = imported,
+                resolutions = emptyMap(),
+                openedExerciseId = null,
+                onOpen = {},
+                onEdit = {},
+                suggest = { emptyList() },
+                search = { emptyList() },
+                namesOf = { emptyMap() },
+                onOpenCatalog = { id, rawName -> catalogSelections += id to rawName },
+                onEditSession = { _, dayId -> openedSessions += dayId },
+            )
+        }
+
+        rule.onNodeWithTag("import-exercise-catalog-${exercise.id}").performClick()
+        assertEquals(listOf(exercise.id to exercise.rawName), catalogSelections)
+        rule.onNodeWithTag("import-edit-session-${imported.weeks.single().days.first().id}").performClick()
+        assertEquals(listOf(imported.weeks.single().days.first().id), openedSessions)
+    }
+
+    @Test
     fun anExerciseWithDoubtsOffersToChooseAndKeepingItOwnResolvesIt() {
         val decisions = mutableListOf<Pair<String, String?>>()
         rule.setContent { PreviewHost(parsed(), initial = emptyMap(), decisions = decisions) }
@@ -99,10 +130,10 @@ class ProgramImportStepTest {
         val imported = parsed()
         val undecided = SetupWizardDraft(importedProgram = imported, selectedWeekdays = setOf(1, 3))
         assertTrue(SetupWizardValidation.validateStep(undecided, SetupStepId.PROGRAM_IMPORT).any { it.isBlocking })
-        assertEquals("Elige o deja como está los ejercicios con dudas.", undecided.importProblem())
+        assertEquals("Elige en el catálogo los ejercicios con dudas.", undecided.importProblem())
 
         val keptAsOwn = undecided.copy(importResolutions = imported.exerciseNames().associateWith { null })
-        assertFalse(SetupWizardValidation.validateStep(keptAsOwn, SetupStepId.PROGRAM_IMPORT).any { it.isBlocking })
+        assertTrue(SetupWizardValidation.validateStep(keptAsOwn, SetupStepId.PROGRAM_IMPORT).any { it.isBlocking })
     }
 
     @Test
@@ -124,7 +155,7 @@ class ProgramImportStepTest {
     fun importProblemNamesTheFirstThingToFixInOrder() {
         fun draftOf(imported: ImportedProgramDraft, resolutions: Map<String, String?>, days: Set<Int> = setOf(1, 3)) =
             SetupWizardDraft(importedProgram = imported, importResolutions = resolutions, selectedWeekdays = days)
-        fun decidedAll(imported: ImportedProgramDraft) = imported.exerciseNames().associateWith { null as String? }
+        fun decidedAll(imported: ImportedProgramDraft) = imported.exerciseNames().associateWith { "config-$it" as String? }
 
         val noExercises = ImportedProgramDraft("E", listOf(ImportedWeek(1, listOf(emptyDay("w1-d1", "Pierna")))))
         assertEquals("No encontramos ejercicios en lo que importaste.", draftOf(noExercises, emptyMap()).importProblem())
@@ -151,6 +182,65 @@ class ProgramImportStepTest {
         )
 
         assertNull(draftOf(parsed(), decidedAll(parsed())).importProblem())
+    }
+
+    @Test
+    fun setupValidationFollowsTheCanonicalProgramAfterSessionEditorChangesIt() {
+        val source = parsed()
+        val resolutions = source.weeks.flatMap { week -> week.days.flatMap { it.exercises } }
+            .associate { it.rawName to "config-${it.id}" }
+        val program = ImportedProgramBuilder.build(
+            draft = source,
+            resolved = resolutions,
+            weekdays = listOf(1),
+            programId = "canonical-import",
+        )
+        val sourceMap = ImportedProgramBuilder.sourceMap(source, resolutions, program.id)
+        val withAnEmptySession = program.withEmptyImportedSession()!!.first
+        val editor = SetupImportedProgramEditorDraft(
+            id = "editor",
+            revision = 1,
+            program = withAnEmptySession,
+            sourceMap = sourceMap,
+        )
+        val draft = SetupWizardDraft(
+            importedProgram = source,
+            importResolutions = resolutions,
+            selectedWeekdays = setOf(1),
+            importedProgramEditor = editor,
+        )
+
+        assertEquals("Hay días sin ejercicios: quítalos o añade ejercicios.", draft.importProblem())
+
+        val withoutExercises = withAnEmptySession.copy(macrocycles = withAnEmptySession.macrocycles.map { macro ->
+            macro.copy(blocks = macro.blocks.map { block ->
+                block.copy(mesocycles = block.mesocycles.map { meso ->
+                    meso.copy(weeks = meso.weeks.map { week ->
+                        week.copy(sessions = week.sessions.map { session -> session.copy(exercises = emptyList()) })
+                    })
+                })
+            })
+        })
+        assertEquals(
+            "No encontramos ejercicios en lo que importaste.",
+            draft.copy(importedProgramEditor = editor.copy(program = withoutExercises)).importProblem(),
+        )
+
+        val withoutSetValues = program.copy(macrocycles = program.macrocycles.map { macro ->
+            macro.copy(blocks = macro.blocks.map { block ->
+                block.copy(mesocycles = block.mesocycles.map { meso ->
+                    meso.copy(weeks = meso.weeks.map { week ->
+                        week.copy(sessions = week.sessions.map { session ->
+                            session.copy(exercises = session.exercises.map { it.copy(sets = emptyList()) })
+                        })
+                    })
+                })
+            })
+        })
+        assertEquals(
+            "Completa las series de cada ejercicio en el editor antes de guardar.",
+            draft.copy(importedProgramEditor = editor.copy(program = withoutSetValues)).importProblem(),
+        )
     }
 
     private fun emptyDay(id: String, name: String): ImportedDay = ImportedDay(id = id, name = name, exercises = emptyList())
