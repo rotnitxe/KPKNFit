@@ -67,6 +67,8 @@ internal fun SplitApplySheet(
     isAdvancedProgram: Boolean,
     totalWeeks: Int,
     generationTemplates: List<SessionTemplate>,
+    /** Sesiones hechas o con series: el motor no las toca. */
+    completedSessionIds: Set<String> = emptySet(),
     onDismiss: () -> Unit,
     onApply: (Program) -> Unit,
 ) {
@@ -124,6 +126,7 @@ internal fun SplitApplySheet(
             forcedTemplateByDayIndex = focusOverrides,
         ),
         generationTemplates = generationTemplates,
+        completedSessionIds = completedSessionIds,
     )
     val impact = SplitApplicationEngine.impactSummary(request)
     val targetHasSessions = impact.affectedSessions > 0

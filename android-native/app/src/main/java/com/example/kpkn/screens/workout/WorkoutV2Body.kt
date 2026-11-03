@@ -348,6 +348,8 @@ internal fun WorkoutV2Body(
                 bodyHazeState = cardsHazeState,
                 sessionTimeRequest = sessionTimeRequest,
                 showExerciseContext = liveSessionView != LiveSessionView.LIST,
+                cardioLayout = liveSessionView != LiveSessionView.LIST && currentExercise?.let { cardioDetailsOrNull(it) != null } == true,
+                glassCapsule = liveSessionView == LiveSessionView.LIST,
             )
             }
             Spacer(Modifier.height(0.dp))
@@ -386,7 +388,13 @@ internal fun WorkoutV2Body(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = stageBottomClearance + 12.dp),
+                            // La Lista llega hasta el borde físico inferior (bajo la barra de gestos; solo cede ante el teclado) y funde ahí
+                            // 28 dp; el hueco del dock solo existe en las Tarjetas.
+                            .padding(
+                                bottom = if (liveSessionView == LiveSessionView.LIST) imeBottom
+                                else if (currentExercise?.let(::cardioDetailsOrNull) != null) maxOf(navigationBottom, imeBottom)
+                                else stageBottomClearance + 12.dp,
+                            ),
                     ) {
             val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
                 val exercise = currentExercise
@@ -558,8 +566,9 @@ internal fun WorkoutV2Body(
                     warmupWorkingWeight = warmupWorkingWeight,
                     viewModel = viewModel,
                     // `.island` flota sobre la Lista (prototipo 02): la lista sube bajo la cabecera y empieza 14 por debajo de ella.
-                    modifier = Modifier.fillMaxSize().padding(bottom = dockBottomClearance).extendUnderHeader(headerHeightPx),
+                    modifier = Modifier.fillMaxSize().extendUnderHeader(headerHeightPx),
                     topInset = with(density) { headerHeightPx.toDp() } + 14.dp,
+                    hazeState = cardsHazeState,
                     warmupRestRemaining = if (warmupRestActive) restTimerRemaining else null,
                     warmupRestTotal = if (warmupRestActive) {
                         uiState.restModalState?.let { rest -> rest.activeSeconds.takeIf { it > 0 } ?: rest.plannedSeconds.takeIf { it > 0 } } ?: 60
@@ -2429,6 +2438,8 @@ internal fun WorkoutV2Body(
                                         viewModel.showHistoryForExercise(targetExercise)
                                     },
                                     onConfigureSet = { viewModel.showSeriesTypeSheet(targetExercise.id, activeSetIndex, activeSetIndex) },
+                                    // «Registrar ROM» de «Detalle del registro»: el mismo dato que el interruptor del editor, para el resto de la sesión.
+                                    onTrackRomChange = { on, toProgram -> viewModel.setExerciseTrackRom(targetExercise.id, on, toProgram) },
                                     // «RONDA n · A1»: la letra del ejercicio dentro de su superserie (A1, A2…), en el orden de la sesión.
                                     supersetLabel = targetExercise.takeIf { it.isInSuperset() }?.let { member ->
                                         val group = member.supersetGroupRef?.takeIf { it.isNotBlank() } ?: member.supersetId

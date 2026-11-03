@@ -25,6 +25,7 @@ import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.cardio.CardioCueRules
+import com.example.kpkn.domain.cardio.cueFlags
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
@@ -1226,6 +1227,12 @@ class WorkoutViewModel(
                 repository.isReady.first { it }
             }
             if (!loadSession()) {
+                // Si pasado un momento la sesión sigue sin abrirse, la pantalla pasa a un error con salida (no a una carga infinita).
+                // La espera da margen a un programa recién creado que aún no llegó a la lista.
+                viewModelScope.launch {
+                    kotlinx.coroutines.delay(SESSION_LOAD_FAILURE_GRACE_MS)
+                    updateUiState { if (it.session == null) it.copy(sessionLoadFailed = true) else it }
+                }
                 repository.programs.collectLatest { programs ->
                     if (_uiState.value.session == null && programs.any { it.id == programId }) {
                         loadSession()
@@ -1234,6 +1241,19 @@ class WorkoutViewModel(
                 }
             } else {
                 applyStoredPacingAlertModeIfNeeded()
+            }
+        }
+    }
+
+    /** «Reintentar» del error de apertura: vuelve a leer la sesión (la pantalla de carga ya no existe; esto es solo la salida del fallo). */
+    fun retryLoadSession() {
+        if (_uiState.value.isStartingWorkout || _uiState.value.session != null) return
+        updateUiState { it.copy(sessionLoadFailed = false, startPersistenceError = null) }
+        viewModelScope.launch {
+            if (loadSession()) {
+                applyStoredPacingAlertModeIfNeeded()
+            } else {
+                updateUiState { if (it.session == null) it.copy(sessionLoadFailed = true) else it }
             }
         }
     }
@@ -3698,6 +3718,18 @@ class WorkoutViewModel(
         updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
     }
 
+    /**
+     * Pulido v1 (15): «Registrar ROM» de «Detalle del registro» fija `Exercise.trackRom` en el ejercicio de la sesión en curso, el mismo dato
+     * que el interruptor del editor de entreno: las series que quedan nacen con el slider de ROM (o sin él). Solo toca el plan del programa con [persistToProgram].
+     */
+    fun setExerciseTrackRom(exerciseId: String, trackRom: Boolean, persistToProgram: Boolean = false) {
+        updateExerciseDefinition(exerciseId) { exercise ->
+            if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom)
+        }
+        // «Guardar también en el programa»: sin él, el ROM vale solo para esta sesión.
+        if (persistToProgram) structuralPersistence.persistExerciseTrackRom(exerciseId, trackRom)
+    }
+
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
         transform: (Exercise) -> Exercise, persistReferences: Boolean) {
         if (!canMutateLivePlan()) return
@@ -5878,16 +5910,16 @@ class WorkoutViewModel(
                         val prev = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
                         val curr = CardioIntervalEngine.progressAt(details, updated.elapsedSeconds)
                         if (curr != null) {
-                            val transition = CardioCueRules.transitionCue(prev, curr, details.hiit)
+                            val transition = CardioCueRules.transitionCue(prev, curr, details)
                             val countdown = curr.currentBlock?.let {
-                                CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details.hiit)
+                                CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details)
                             }
                             val settings = repository.settings.value
                             if (settings.soundsEnabled || settings.hapticFeedbackEnabled) {
                                 cardioCuePlayer.play(transition)
                                 countdown?.let(cardioCuePlayer::play)
                             }
-                            if (voiceController.isEnabled() && transition.speech != null && details.hiit?.voiceCuesEnabled != false) {
+                            if (voiceController.isEnabled() && transition.speech != null && details.cueFlags().voice) {
                                 voiceController.speakAnnouncement(transition.speech)
                             } else if (voiceController.isEnabled() && prev?.currentIndex != curr.currentIndex && curr.currentBlock != null && !curr.isComplete && details.hiit == null) {
                                 val b = curr.currentBlock
@@ -8076,3 +8108,6 @@ private const val SAVE_FAILED_PREFIX = "No se pudo guardar la serie."
 
 /** Tope de la espera de una serie dictada mientras sus valores vuelan a la tarjeta (v-record: 0,5 s + vuelo escalonado de 1,16 s). */
 private const val VOICE_FLIGHT_MAX_MS = 2_000L
+
+/** Cuánto espera la apertura de la sesión antes de declararla fallida y mostrar el error con salida (da margen a un programa recién creado). */
+private const val SESSION_LOAD_FAILURE_GRACE_MS = 2_500L

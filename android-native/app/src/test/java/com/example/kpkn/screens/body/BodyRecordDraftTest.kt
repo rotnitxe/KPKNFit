@@ -3,16 +3,22 @@ package com.example.kpkn.screens.body
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.screens.body.design.BodyRecordDraft
 import com.example.kpkn.screens.body.design.bodyFieldText
+import com.example.kpkn.screens.body.design.bodyFineAdjustedKg
 import com.example.kpkn.screens.body.design.bodyMeasureError
 import com.example.kpkn.screens.body.design.bodyRecordFrom
 import com.example.kpkn.screens.body.design.bodyRecordNew
 import com.example.kpkn.screens.body.design.bodyRecordSessionId
+import com.example.kpkn.screens.body.design.bodyWeightReference
+import com.example.kpkn.screens.body.design.bodyWeightWarning
 import com.example.kpkn.screens.body.design.epochMsFor
 import com.example.kpkn.screens.body.design.metricValues
 import com.example.kpkn.screens.body.design.withValue
+import com.example.kpkn.screens.onboarding.design.WizardMassUnit
+import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -79,5 +85,60 @@ class BodyRecordDraftTest {
         assertEquals(null, bodyMeasureError(BodyMetric.WAIST, ""))
         assertEquals("Fuera de rango", bodyMeasureError(BodyMetric.WAIST, "500"))
         assertEquals("Escribe un número", bodyMeasureError(BodyMetric.WAIST, "abc"))
+    }
+
+    @Test
+    fun laReferenciaDelAvisoEsLaMedicionAnteriorDentroDeSieteDias() {
+        val history = bodySampleHistoryRows()
+        val at = LocalDateTime.of(2026, 10, 13, 10, 0)
+        val reference = bodyWeightReference(history, source = null, at = at)!!
+        assertEquals(LocalDateTime.of(2026, 10, 13, 7, 40), reference.dateTime)
+        assertEquals(64.5, reference.weightKg, 1e-9)
+    }
+
+    @Test
+    fun unaEdicionHistoricaNoSeComparaConElPesoActual() {
+        val history = bodySampleHistoryRows()
+        val source = history.first { it.dateTime.toLocalDate() == java.time.LocalDate.of(2026, 10, 6) }
+        // La medición anterior a la editada (22-sep) queda a más de 7 días: no hay referencia ni aviso.
+        val at = LocalDateTime.of(2026, 10, 6, 8, 0)
+        assertNull(bodyWeightReference(history, source, at))
+        assertNull(bodyWeightWarning(67.0, history, source, at))
+    }
+
+    @Test
+    fun elAvisoSaltaSoloPorEncimaDeDosComaCincoKilos() {
+        val history = bodySampleHistoryRows()
+        val at = LocalDateTime.of(2026, 10, 13, 10, 0)
+        assertNull(bodyWeightWarning(67.0, history, null, at)) // exactamente +2,5: no avisa
+        val warning = bodyWeightWarning(67.01, history, null, at)!!
+        assertEquals(2.51, warning.deltaKg, 1e-9)
+        assertEquals(64.5, warning.reference.weightKg, 1e-9)
+    }
+
+    @Test
+    fun sinMedicionesEnLaVentanaNoHayAviso() {
+        val at = LocalDateTime.of(2026, 10, 13, 10, 0)
+        assertNull(bodyWeightWarning(80.0, emptyList(), null, at))
+    }
+
+    @Test
+    fun elBotonFinoAjustaUnaDecimaDeLaUnidadVisible() {
+        assertEquals(64.6, bodyFineAdjustedKg(64.5, WizardMassUnit.KG, 1), 1e-9)
+        assertEquals(64.4, bodyFineAdjustedKg(64.5, WizardMassUnit.KG, -1), 1e-9)
+
+        // La cifra visible está redondeada a una décima de lb; ese es el valor del que parte el botón.
+        val lb0 = WizardWeightScale.snap(WizardWeightScale.toDisplay(64.5, WizardMassUnit.LB))
+        val lbPlus = WizardWeightScale.toDisplay(bodyFineAdjustedKg(64.5, WizardMassUnit.LB, 1), WizardMassUnit.LB)
+        val lbMinus = WizardWeightScale.toDisplay(bodyFineAdjustedKg(64.5, WizardMassUnit.LB, -1), WizardMassUnit.LB)
+        assertEquals(0.1, lbPlus - lb0, 1e-3)
+        assertEquals(-0.1, lbMinus - lb0, 1e-3)
+    }
+
+    @Test
+    fun elBotonFinoRespetaLosLimitesDeLaRegla() {
+        assertEquals(WizardWeightScale.MIN_KG, bodyFineAdjustedKg(WizardWeightScale.MIN_KG, WizardMassUnit.KG, -1), 1e-9)
+        assertEquals(WizardWeightScale.MAX_KG, bodyFineAdjustedKg(WizardWeightScale.MAX_KG, WizardMassUnit.KG, 1), 1e-9)
+        assertNotNull(bodyFineAdjustedKg(WizardWeightScale.MIN_KG, WizardMassUnit.LB, 1))
     }
 }

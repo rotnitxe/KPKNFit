@@ -441,6 +441,13 @@ data class CardioDetails(
     val targetPaceSecondsPerKm: Int? = null,
     /** Steady-state heart-rate target as % of max; null keeps old JSON valid. */
     val targetHrPercent: Int? = null,
+    /**
+     * Avisos de fase por cardio (Pulido v1 · cardio del editor): sonidos, voz y vibración también en «Intervalos», que no tiene [hiit].
+     * null = el valor de [hiit] y, sin él, activo (lo que hacía el cardio en vivo antes).
+     */
+    val beepsEnabled: Boolean? = null,
+    val voiceCuesEnabled: Boolean? = null,
+    val vibrationEnabled: Boolean? = null,
 ) {
     fun resolvedIntensityLevel(): Int = intensityLevel ?: when (intensity) {
         CardioIntensity.BAJA -> 3

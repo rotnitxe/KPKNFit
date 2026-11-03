@@ -166,14 +166,19 @@ class NutritionMealsRenderSheetTest {
         Meals()
         NutritionSupplementsModule(
             loaded = true,
-            caffeineMg = NutritionSamples.totals.caffeineMg,
-            caffeineLimits = caffeineLimits,
-            creatineTodayG = 5.0,
-            creatineTargetG = 5.0,
+            rows = SupplementSamples.rows(),
+            caffeineTotalMg = NutritionSamples.totals.caffeineMg,
+            foodCaffeineMg = NutritionSamples.totals.caffeineMg - 100.0,
             creatineStreakDays = 6,
-            isToday = true,
-            onQuickAddCreatine = {},
-            onOpenCreatine = {},
+            week = SupplementSamples.week,
+            today = java.time.LocalDate.of(2026, 10, 29),
+            nowId = null,
+            showHint = true,
+            suggestionIds = emptyList(),
+            onTake = {},
+            onHold = {},
+            onAdd = {},
+            onToggleSuggestion = {},
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
         )
         NutritionWeekTrendModule(

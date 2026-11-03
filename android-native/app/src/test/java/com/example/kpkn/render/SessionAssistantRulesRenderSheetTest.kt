@@ -43,15 +43,12 @@ import com.example.kpkn.domain.sessionassistant.TimeCoachFatigueDelta
 import com.example.kpkn.domain.sessionassistant.TimeCoachSuggestion
 import com.example.kpkn.domain.sessionassistant.Verdict
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
-import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
 import com.example.kpkn.screens.sessioneditor.components.ExerciseGoalDialog
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
-import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
-import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -65,8 +62,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * HOJA DE DIBUJO del asistente y de las reglas (ER1e): el asistente en sus tres pestañas, Reglas y Tiempo (dentro y fuera del límite),
- * Versiones, Transferir, Meta y Carga inteligente, con piezas reales y datos de ejemplo. No comprueba nada: escribe PNG a 360 × 880 dp, con la letra al
+ * HOJA DE DIBUJO del asistente y de las reglas (ER1e): Versiones, Transferir, Meta y Carga inteligente, con piezas reales y datos de ejemplo. No comprueba nada: escribe PNG a 360 × 880 dp, con la letra al
  * 100 % y al 130 %, sin movimiento. Solo corre con `KPKN_RENDER_DIR`.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -91,13 +87,6 @@ class SessionAssistantRulesRenderSheetTest {
 
     /** Los casos de la hoja, en orden, y el rótulo que se pulsa antes de dibujar (si hace falta). */
     private val cases = listOf(
-        "asistente_impacto" to null,
-        "asistente_sugerencias" to "Sugerencias",
-        "asistente_plantillas" to "Plantillas",
-        "asistente_mis_plantillas" to "Plantillas",
-        "reglas" to null,
-        "tiempo_dentro" to null,
-        "tiempo_fuera" to null,
         "versiones" to null,
         "transferir" to null,
         "meta" to null,
@@ -227,22 +216,6 @@ class SessionAssistantRulesRenderSheetTest {
         action = TimeCoachAction.RemoveExercise(exerciseId = "press"),
     )
 
-    private val assistantState = SessionEditorUiState(
-        session = session,
-        sessionTimeBreakdown = breakdown,
-        estimatedDurationMinutes = 80,
-        assistantReport = report,
-    )
-
-    /** Reglas y tiempo. Con [limit] en 120 min el reloj queda dentro del límite; con 60, fuera. */
-    private fun rulesState(initialTab: Int, limit: Int, suggestions: List<TimeCoachSuggestion>) = SessionEditorUiState(
-        session = session.copy(targetDurationMinutes = limit),
-        sessionTimeBreakdown = breakdown,
-        estimatedDurationMinutes = 80,
-        rulesSheetInitialTab = initialTab,
-        timeCoachSuggestions = suggestions,
-    )
-
     private val historyState = SessionEditorUiState(
         session = session,
         localDraftHistory = listOf(
@@ -273,48 +246,6 @@ class SessionAssistantRulesRenderSheetTest {
     @Composable
     private fun Sheet(name: String) {
         when (name) {
-            "asistente_impacto", "asistente_sugerencias", "asistente_plantillas", "asistente_mis_plantillas" -> AssistantSheet(
-                uiState = assistantState,
-                templates = emptyList(),
-                onApplyAssistantSuggestion = { _, _ -> },
-                onTemplateSearchChange = {},
-                onSelectTemplate = {},
-                onConfirmApplyTemplate = {},
-                onCancelTemplateApply = {},
-            )
-            "reglas" -> RulesSheet(
-                uiState = rulesState(initialTab = 0, limit = 120, suggestions = emptyList()),
-                onApplyRules = { ApplyRulesOutcome.NoChanges },
-                onRuleDefaultsChange = { _, _, _, _, _, _, _, _, _, _ -> },
-                onRuleLimitsChange = { _, _ -> },
-                onAdvancedRuleLimitsChange = { _, _, _, _ -> },
-                onApplyGlobalIntensityAdjustment = { _, _, _ -> },
-                setTargetDuration = {},
-                setPartTargetDuration = { _, _ -> },
-                setExerciseTargetDuration = { _, _ -> },
-            )
-            "tiempo_dentro" -> RulesSheet(
-                uiState = rulesState(initialTab = 1, limit = 120, suggestions = emptyList()),
-                onApplyRules = { ApplyRulesOutcome.NoChanges },
-                onRuleDefaultsChange = { _, _, _, _, _, _, _, _, _, _ -> },
-                onRuleLimitsChange = { _, _ -> },
-                onAdvancedRuleLimitsChange = { _, _, _, _ -> },
-                onApplyGlobalIntensityAdjustment = { _, _, _ -> },
-                setTargetDuration = {},
-                setPartTargetDuration = { _, _ -> },
-                setExerciseTargetDuration = { _, _ -> },
-            )
-            "tiempo_fuera" -> RulesSheet(
-                uiState = rulesState(initialTab = 1, limit = 60, suggestions = listOf(timeCoachSuggestion)),
-                onApplyRules = { ApplyRulesOutcome.NoChanges },
-                onRuleDefaultsChange = { _, _, _, _, _, _, _, _, _, _ -> },
-                onRuleLimitsChange = { _, _ -> },
-                onAdvancedRuleLimitsChange = { _, _, _, _ -> },
-                onApplyGlobalIntensityAdjustment = { _, _, _ -> },
-                setTargetDuration = {},
-                setPartTargetDuration = { _, _ -> },
-                setExerciseTargetDuration = { _, _ -> },
-            )
             "versiones" -> HistorySheet(uiState = historyState, onRestoreSnapshot = {})
             "transferir" -> SessionClonerSheet(
                 uiState = SessionEditorUiState(
@@ -394,10 +325,6 @@ class SessionAssistantRulesRenderSheetTest {
                     rule.waitForIdle()
                 }
                 // La hoja conserva su estado entre escalas de letra: el toque solo se hace en la primera.
-                if (name == "asistente_mis_plantillas" && suffix == "s100") {
-                    rule.onNodeWithText("Mis plantillas · 0").performClick()
-                    rule.waitForIdle()
-                }
                 if (name == "transferir" && suffix == "s100") {
                     rule.onNodeWithText("Viernes · Semana 3").performClick()
                     rule.waitForIdle()

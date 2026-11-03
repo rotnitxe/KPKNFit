@@ -21,7 +21,7 @@ import org.robolectric.annotation.GraphicsMode
 class RedesignFinishSheetTest {
     @get:Rule val rule = createComposeRule()
 
-    @Test fun tabsKeepNotesAndDeclaredEffortAndDoNotInventAPr() {
+    @Test fun notesPanelKeepsNotesAndDeclaredEffortAndDoesNotInventAPr() {
         var saved: Pair<String, Double?>? = null
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
@@ -33,13 +33,14 @@ class RedesignFinishSheetTest {
                 }
             }
         }
-        rule.onNodeWithText("Progreso").performClick()
+        // Sin pestañas: todo el resumen a la vista y las anotaciones en un panel que se abre con «Notas».
+        rule.onNodeWithText("Progreso").assertDoesNotExist()
         rule.onNodeWithText("HITOS").assertDoesNotExist()
         rule.onNodeWithText("Compartir al guardar").assertIsDisplayed()
-        rule.onNodeWithText("Anotaciones").performClick()
+        rule.onNodeWithTag("finish-notes-open").performClick()
         rule.onNodeWithTag("finish-notes").performTextInput("QA observacion original")
-        rule.onNodeWithText("7", useUnmergedTree = true).performScrollTo().performClick()
-        rule.onNodeWithText("Resumen").performClick()
+        rule.onNodeWithContentDescription("Esfuerzo 7").performClick()
+        rule.onNodeWithTag("finish-notes-done").performClick()
         rule.onNodeWithTag("finish-save").assertIsDisplayed().performClick()
         rule.runOnIdle { assertEquals("QA observacion original" to 7.0, saved) }
     }

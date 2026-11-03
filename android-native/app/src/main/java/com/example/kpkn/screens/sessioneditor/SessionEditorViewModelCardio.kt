@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.cardioPart
 import com.example.kpkn.domain.training.generator.CardioBuilder
+import com.example.kpkn.screens.sessioneditor.components.CardioFreshFlash
 import java.util.UUID
 
 fun SessionEditorViewModel.openCardioPicker(partId: String? = null, exerciseId: String? = null) {
@@ -22,6 +23,11 @@ fun SessionEditorViewModel.openCardioPicker(partId: String? = null, exerciseId: 
             warmupExerciseId = null,
         )
     }
+}
+
+/** Un aviso breve en la snackbar del editor (las acciones de la tarjeta de cardio). */
+fun SessionEditorViewModel.showCardioMessage(message: String) {
+    updateUi { it.copy(snackbarMessage = message) }
 }
 
 fun SessionEditorViewModel.commitStrengthSpace() {
@@ -79,6 +85,8 @@ fun SessionEditorViewModel.toggleCardioPlacement() {
         val isFirst = it.activeVariantSession?.cardioFirst == true
         it.copy(
             cardioSpacePlacement = if (isFirst) CardioSpacePlacement.START else CardioSpacePlacement.END,
+            // Pulido v1 · punto 26: un aviso que dice qué significa el cambio (el rótulo CARDIO ya dice dónde está).
+            snackbarMessage = if (isFirst) "El cardio se hace antes de la fuerza." else "El cardio se hace después de la fuerza.",
         )
     }
 }
@@ -92,6 +100,7 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current -> current.withCardioItem(item) }
         closeSheet()
+        updateUi { it.copy(snackbarMessage = "Ahora es ${item.name}. Tu programación se mantiene.") }
         return
     }
 
@@ -133,6 +142,9 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     // Conservar cardioSpacePlacement: con parts=[cardio] START y END son idénticos
     // en el modelo; el list builder usa esta preferencia para el orden visual.
     closeSheet()
+    // El cardio nuevo destella en su fila (ce-A03) y un aviso dice que está.
+    CardioFreshFlash.mark(exercise.id)
+    updateUi { it.copy(snackbarMessage = "${item.name} añadido al cardio.") }
 }
 
 /**

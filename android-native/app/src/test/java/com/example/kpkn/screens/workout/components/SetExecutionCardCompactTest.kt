@@ -87,6 +87,7 @@ class SetExecutionCardCompactTest {
                         Box(Modifier.width(360.dp), contentAlignment = Alignment.TopCenter) {
                             Box(Modifier.width(312.dp)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = sampleExercise,
                                     setIndex = 0,
                                     currentSet = sampleSet,
@@ -127,6 +128,7 @@ class SetExecutionCardCompactTest {
                         Box(Modifier.size(360.dp, 880.dp), contentAlignment = Alignment.TopCenter) {
                             Box(Modifier.width(272.dp)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = sampleExercise,
                                     setIndex = 0,
                                     currentSet = sampleSet,
@@ -169,6 +171,7 @@ class SetExecutionCardCompactTest {
                         Box(Modifier.width(360.dp), contentAlignment = Alignment.TopCenter) {
                             Box(Modifier.width(272.dp)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = sampleExercise,
                                     setIndex = 0,
                                     currentSet = sampleSet,
@@ -234,7 +237,8 @@ class SetExecutionCardCompactTest {
         val nextBounds = next.fetchSemanticsNode().boundsInRoot
         assertTrue(nextBounds.width / densityFactor >= 44f)
         assertTrue(nextBounds.height / densityFactor >= 44f)
-        assertEquals(44f, record.fetchSemanticsNode().boundsInRoot.height / densityFactor, 1f)
+        // El roadmap del lienzo (banda 2 de 48 dp) sustituye los 44 dp de la barra antigua.
+        assertEquals(48f, record.fetchSemanticsNode().boundsInRoot.height / densityFactor, 1f)
         next.performClick()
         record.performClick()
         rule.runOnIdle { assertEquals(1, selectedPage); assertEquals(1, records) }

@@ -200,6 +200,7 @@ class SetExecutionCardEffortTest {
                         Box(Modifier.width(360.dp).background(Color.Black), contentAlignment = Alignment.TopCenter) {
                             Box(Modifier.width(272.dp).testTag(TARJETA)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = caso.ejercicio,
                                     setIndex = 0,
                                     currentSet = caso.serie,
@@ -340,7 +341,7 @@ class SetExecutionCardEffortTest {
         rule.onNodeWithTag(EffortSliderTag).performTouchInput { click(Offset(x, centerY)) }
         rule.waitForIdle()
         assertEquals("Esfuerzo RIR 2, exigente", descripcionDelSlider())
-        rule.onNodeWithTag("live-effort-value").assertTextEquals("RIR 2")
+        rule.onNodeWithTag("live-effort-value").assertTextEquals("RIR 2", "· exigente")
         pulsarCheck()
 
         assertEquals(2.0, registros.single().intensity!!, 0.001)
@@ -470,6 +471,7 @@ class SetExecutionCardEffortTest {
                                 key(actual.intValue) {
                                     val caso = lista[actual.intValue]
                                     SetInputCardV2(
+                                        effortFireSecondsOverride = 1f,
                                         exercise = caso.ejercicio,
                                         setIndex = 0,
                                         currentSet = caso.serie,

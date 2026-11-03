@@ -91,6 +91,7 @@ class SetExecutionCardFacesTest {
                         Box(Modifier.width(360.dp).height(880.dp).background(Color.Black)) {
                             Box(Modifier.align(Alignment.TopCenter).width(272.dp).testTag(TARJETA)) {
                                 SetInputCardV2(
+                                    effortFireSecondsOverride = 1f,
                                     exercise = ejercicio(conRom),
                                     setIndex = 2,
                                     currentSet = serie,
@@ -186,8 +187,9 @@ class SetExecutionCardFacesTest {
         rule.waitForIdle()
         rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
 
-        // Refinamiento 02: ya no hay «Expandir» en la cara; en «Vídeo» el disparador abre el visor expandido encima de todo.
-        rule.onNodeWithTag(MediaShutterTag).performClick()
+        // Pulido v1 (17): «Expandir» vuelve a la cabecera de la cara; en «Vídeo» abre el visor expandido con el grabador, encima de todo.
+        rule.onNodeWithTag("media_expand").assertExists()
+        rule.onNodeWithTag("media_expand").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithTag(MediaExpandedTag).assertExists()

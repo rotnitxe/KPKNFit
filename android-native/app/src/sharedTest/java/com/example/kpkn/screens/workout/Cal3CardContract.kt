@@ -68,7 +68,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 32f + liveSessionLineHeight().value).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0,
                                 isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
@@ -77,7 +77,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
                         }
                         WorkoutLiveRelatorLine(if(done == null) "Haz al menos 6. Cuenta todas las que completes." else "Resultado registrado. Revisa lo que sigue.",
                             "cal3", modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band))
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.first(), null, sessionCompletedSet = done,
                                     onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 75.0,
@@ -115,7 +115,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertEquals(312f, frame.width / density, .5f); assertEquals(cardHeight, frame.height / density, .5f)
-        assertEquals(LiveSessionLineHeight.value, line.height / density, .5f); assertEquals(12f, (line.top - frame.bottom) / density, .5f)
+        assertEquals(liveRoadmapVariantFor(shownHeight).height.value, line.height / density, .5f); assertEquals(12f, (line.top - frame.bottom) / density, .5f)
         listOf("calibration-apply", "calibration-keep", "calibration-revert", "calibration-continue", "calibration-edit").forEach { tag ->
             rule.onAllNodesWithTag(tag).fetchSemanticsNodes().forEach { node ->
                 val b = node.boundsInRoot
@@ -141,7 +141,7 @@ internal class Cal3CardContract(private val rule: ComposeContentTestRule,
         assertFrame(); output?.let { save(it, "v7-$height-proposed") }
         rule.onNodeWithTag("calibration-apply").performClick()
         assertEquals(CalibrationStatus.APPLIED, state.value.calibrationDecisions.last().status)
-        rule.onAllNodesWithContentDescription("calibrada", substring = true).assertCountEquals(3)
+        // Pulido v1: la carga calibrada ya no es una marca del raíl; se dice en la «Ruta» («S1 · 120 kg · calibrada»).
         assertFrame(); output?.let { save(it, "v7-$height-applied") }
         rule.onNodeWithTag("calibration-revert").performClick()
         assertEquals(CalibrationStatus.REVERTED, state.value.calibrationDecisions.last().status)

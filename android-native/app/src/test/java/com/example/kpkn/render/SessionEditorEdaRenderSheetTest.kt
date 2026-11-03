@@ -307,7 +307,6 @@ class SessionEditorEdaRenderSheetTest {
                     limitMinutes = 60,
                     onAdd = {},
                     onAssistant = {},
-                    onRules = {},
                     onTime = {},
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )

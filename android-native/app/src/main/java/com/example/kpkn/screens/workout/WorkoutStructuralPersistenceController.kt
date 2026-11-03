@@ -549,6 +549,25 @@ class WorkoutStructuralPersistenceController(
         }
     }
 
+    /**
+     * Pulido v1 (15): «Guardar también en el programa» de «Detalle del registro». Fija `Exercise.trackRom` del ejercicio en la sesión del
+     * programa (la semana en curso), el mismo dato que el interruptor «Registrar ROM» del editor. Sin programa o con un programa que no
+     * admite cambios en vivo, no hace nada: el ROM sigue valiendo para esta sesión.
+     */
+    fun persistExerciseTrackRom(exerciseId: String, trackRom: Boolean) {
+        val state = getState()
+        if (state.weekId.isBlank()) return
+        val program = repository.getProgramById(programId) ?: return
+        if (!WorkoutEditingRules.canPersistLiveStructuralChanges(program)) return
+        val updatedProgram = program.updateWeekSessions(state.macroIndex, state.mesoIndex, programWeekId(program, state.weekId)) { sessions ->
+            sessions.map { session ->
+                if (session.id != sessionId) session
+                else session.replaceExerciseById(exerciseId) { exercise -> if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom) }
+            }
+        }
+        if (updatedProgram != program) repository.updateProgram(updatedProgram)
+    }
+
     fun dismissPendingReplacementPersistencePrompt() {
         deferredReplacementPrompt = null
         updateState { it.copy(pendingReplacementPersistencePrompt = null) }

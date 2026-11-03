@@ -27,6 +27,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.ime
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,6 +92,9 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.workout.components.LiveSetDetailSheet
+import com.example.kpkn.screens.workout.components.RomBand
+import com.example.kpkn.screens.workout.components.liveSetInitialRom
+import com.example.kpkn.screens.workout.components.liveSetRomLabel
 import com.example.kpkn.screens.workout.components.LiveSheet
 import com.example.kpkn.screens.workout.components.LiveSheetNumberGrid
 import com.example.kpkn.screens.workout.components.LiveSheetSecondary
@@ -136,6 +145,8 @@ private val ListEditorLine = Color(0x15FFFFFF)
 private val ListChipFill = Color(0x05FFFFFF)
 private val ListDone = Color(0xFF9EACA4)
 private val ListSuperLine = Color(0xFFD0C9BC)
+/** Largo del desvanecido de la Lista en sus dos bordes reales (arriba bajo la barra de estado, abajo sobre la barra de navegación). */
+private val ListEdgeFade = 28.dp
 private val SyneValue = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 16.sp, lineHeight = 20.sp)
 private val Body = TextStyle(fontFamily = WizardFonts.body)
 
@@ -224,6 +235,8 @@ internal fun LiveSessionListView(
     /** Descanso de una serie efectiva en marcha: segundos que quedan y total. Desplegado, lo cubre la pantalla completa; minimizado, se ve aquí. */
     workingRestRemaining: Int? = null,
     workingRestTotal: Int? = null,
+    /** Fuente del desenfoque de la isla de arriba: las filas de la lista se registran aquí para verse borrosas a través del vidrio. */
+    hazeState: HazeState? = null,
 ) {
     var expandedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var recordRequest by remember { mutableIntStateOf(0) }
@@ -504,6 +517,9 @@ internal fun LiveSessionListView(
     }?.key
     val focusKey = restKey ?: expandedKey?.takeIf { key -> entries.any { it.key == key } } ?: activeKey
     val density = androidx.compose.ui.platform.LocalDensity.current
+    val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+    val imeBottomDp = with(density) { WindowInsets.ime.getBottom(this).toDp() }
+    val listBottomPadding = (navBottomDp - imeBottomDp).coerceAtLeast(0.dp) + 24.dp
     LaunchedEffect(focusKey) {
         val key = focusKey ?: return@LaunchedEffect
         // Deja que el editor o el descanso terminen de desplegarse antes de medir.
@@ -535,27 +551,18 @@ internal fun LiveSessionListView(
     LiveListStrictTouch {
     LazyColumn(
         state = listState,
-        // Fundido a negro arriba (bajo la isla) y abajo: las filas se desvanecen en los bordes en vez de cortarse en seco.
+        // Desvanecido solo en los dos bordes REALES de la lista (pedido del usuario, 29-oct; contrato `lx-l-medidas`): la lista ocupa toda la
+        // pantalla (bajo la barra de estado, bajo la isla y bajo la barra de gestos) y se funde 24 dp arriba (desde y = 0) y 28 dp abajo (hasta el
+        // borde físico). La isla de arriba es vidrio: las filas pasan por debajo y se ven desenfocadas a través de ella, sin corte.
         modifier = modifier.fillMaxSize()
-            .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                val h = size.height
-                if (h > 0f) {
-                    // La Lista pasa por debajo de la isla: hasta casi su borde inferior no se ve nada (ni sobre la barra de estado ni
-                    // alrededor de la isla) y desde ahí las filas aparecen fundidas en 40 dp.
-                    val fadeEnd = maxOf(topInset.toPx(), 56.dp.toPx()).coerceAtMost(h * .4f)
-                    val fadeStart = (fadeEnd - 40.dp.toPx()).coerceAtLeast(0f)
-                    val bottom = (72.dp.toPx() / h).coerceIn(0f, .3f)
-                    drawRect(
-                        Brush.verticalGradient(0f to Color.Transparent, fadeStart / h to Color.Transparent, fadeEnd / h to Color.Black,
-                            (1f - bottom) to Color.Black, 1f to Color.Transparent),
-                        blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
-                    )
-                }
-            }
+            .liveListEdgeMask()
+            // La fuente del desenfoque de la isla va DESPUÉS del desvanecido (más adentro): graba las filas sin fundir, así el vidrio
+            // las desenfoca también donde, a la vista, ya se han fundido.
+            .then(if (hazeState != null) Modifier.hazeSource(state = hazeState) else Modifier)
             .testTag("live-list"),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 14.dp, end = 14.dp, top = topInset, bottom = 28.dp),
+        // Arriba: cabecera + 14 dp (`topInset`). Abajo: el inset de navegación + 24 dp, para que el último ejercicio pueda subir hasta quedar
+        // entero sobre el desvanecido (`lx-l-medidas`). Con el teclado abierto la lista ya termina sobre él: solo quedan los 24 dp.
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 14.dp, end = 14.dp, top = topInset, bottom = listBottomPadding),
     ) {
         items(entries, key = { it.key }, contentType = { it::class }) { entry ->
             // Toda aparición, desaparición y recolocación se funde y se desliza (corte inmediato con el movimiento reducido).
@@ -1118,8 +1125,12 @@ private fun SetListRow(
         Column(Modifier.widthIn(min = valueWidth), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(rowValue(row), style = SyneValue.copy(fontSize = 15.sp, lineHeight = 20.sp),
                 color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 1)
-            row.completed?.partialReps?.takeIf { it > 0 }?.let {
-                Text("+ $it parciales", Modifier.padding(top = 3.dp), style = Body.copy(fontSize = 11.sp), color = WizardColors.textFaint)
+            // Pulido v1 (15): una sola línea bajo la cifra, con el ROM registrado en la serie («+ 2 parciales · ROM 80 %»), como en el historial.
+            listOfNotNull(
+                row.completed?.partialReps?.takeIf { it > 0 }?.let { "+ $it parciales" },
+                row.completed?.rom?.let { liveSetRomLabel(it) },
+            ).takeIf { it.isNotEmpty() }?.let { parts ->
+                Text(parts.joinToString(" · "), Modifier.padding(top = 3.dp), style = Body.copy(fontSize = 11.sp), color = WizardColors.textFaint)
             }
         }
         // `row-effort` es un botón: abre «Esfuerzo realizado» de esa serie.
@@ -1170,8 +1181,19 @@ private fun InlineSetEditor(
     var failure by rememberSaveable(row.key) { mutableStateOf(row.completed?.isFailure == true || savedDraft?.reachedFailure == true) }
     var partials by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.partialReps ?: row.completed?.partialReps ?: 0) }
     var assisted by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.assistedReps ?: 0) }
-    var rom by rememberSaveable(row.key) { mutableStateOf(savedDraft?.rom) }
+    // Pulido v1 (15): igual que en la tarjeta, el plan del ejercicio (`trackRom`) decide el valor de partida; lo ya guardado manda.
+    var rom by rememberSaveable(row.key) { mutableStateOf(liveSetInitialRom(row.exercise.trackRom, savedDraft?.rom, row.completed?.rom)) }
     var note by rememberSaveable(row.key) { mutableStateOf(savedDraft?.notes.orEmpty()) }
+    // El ROM sigue a `Exercise.trackRom` (la única verdad): si el editor, la tarjeta o la hoja de otra serie lo cambian, esta fila también.
+    var seenTracksRom by remember(row.key) { mutableStateOf(row.exercise.trackRom) }
+    LaunchedEffect(row.exercise.trackRom) {
+        val on = row.exercise.trackRom
+        if (on != seenTracksRom) {
+            seenTracksRom = on
+            rom = if (on) rom ?: 100 else if (row.completed?.rom != null) rom else null
+        }
+    }
+    var saveRomToProgram by remember(row.exercise.id) { mutableStateOf(false) }
     var showDetail by remember(row.key) { mutableStateOf(false) }
     var showScale by remember(row.key) { mutableStateOf(false) }
     var busy by remember(row.key) { mutableStateOf(false) }
@@ -1334,20 +1356,11 @@ private fun InlineSetEditor(
             }
         } else if (shownFace == EDITOR_FACE_VISUAL) {
             // `inline-editor` con `mediaContent()` a 350 de alto: la cámara, el álbum y el análisis de esa serie. Al entrar se abre la vista
-            // expandida de la tarjeta (la misma superposición, por encima de todo); al plegarla queda esta cara, con «Ampliar» para volver.
+            // expandida de la tarjeta (la misma superposición, por encima de todo); al plegarla queda esta cara, que ya trae su propio «Expandir» (un solo nombre para la misma acción).
             Column(Modifier.fillMaxWidth().listTapGuard().testTag("live-list-visual-${row.key}")) {
             Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("Modo visual · serie ${row.label}", Modifier.weight(1f).padding(start = 4.dp), style = Body.copy(fontSize = 12.sp),
                     color = WizardColors.textFaint)
-                Row(
-                    Modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(11.dp)).clickable(role = Role.Button) { visualAutoExpand = true; visualExpandRequest++ }
-                        .padding(horizontal = 10.dp).testTag("live-list-visual-expand-${row.key}"),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    Icon(KpknLineIcons.Camera, null, Modifier.size(14.dp), tint = WizardColors.text)
-                    Text("Ampliar", style = Body.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium), color = WizardColors.text)
-                }
             }
             Box(Modifier.fillMaxWidth().height(350.dp).padding(bottom = 6.dp)) {
                 androidx.compose.runtime.key(visualExpandRequest) {
@@ -1416,18 +1429,31 @@ private fun InlineSetEditor(
                     } ?: "Sin historial",
                     Modifier.weight(1f).testTag("live-list-reference-${row.key}"),
                     style = Body.copy(fontSize = 12.sp), color = WizardColors.textFaint,
+                    maxLines = if (rom != null) 1 else Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    when {
-                        partials > 0 && assisted > 0 -> "+$partials parciales · $assisted con ayuda"
-                        partials > 0 -> "+$partials parciales"
-                        assisted > 0 -> "$assisted con ayuda"
-                        else -> "Parciales / ayuda"
-                    },
-                    Modifier.heightIn(min = 26.dp).clickable(role = Role.Button) { showDetail = true }.padding(vertical = 5.dp)
-                        .testTag("live-list-detail-${row.key}"),
-                    style = Body.copy(fontSize = 12.sp), color = WizardColors.textMuted,
-                )
+                if (rom != null) {
+                    // Pulido v1 (15): con ROM activo el hueco de «Parciales / ayuda» lleva la misma banda de 36 dp que la tarjeta
+                    // (ROM y valor, deslizador de 10 a 100 % y «Detalle ›», con un punto si hay parciales o ayuda).
+                    RomBand(
+                        value = rom ?: 100,
+                        onValueChange = { rom = it; persist() },
+                        hasDetail = partials > 0 || assisted > 0,
+                        onOpenDetail = { showDetail = true },
+                        modifier = Modifier.weight(1.6f).padding(start = 8.dp),
+                    )
+                } else {
+                    Text(
+                        when {
+                            partials > 0 && assisted > 0 -> "+$partials parciales · $assisted con ayuda"
+                            partials > 0 -> "+$partials parciales"
+                            assisted > 0 -> "$assisted con ayuda"
+                            else -> "Parciales / ayuda"
+                        },
+                        Modifier.heightIn(min = 26.dp).clickable(role = Role.Button) { showDetail = true }.padding(vertical = 5.dp)
+                            .testTag("live-list-detail-${row.key}"),
+                        style = Body.copy(fontSize = 12.sp), color = WizardColors.textMuted,
+                    )
+                }
             }
             // `.quick-effort`: rótulo del modo, cinco valores, Fallo y «…» con la escala completa.
             Row(Modifier.fillMaxWidth().padding(top = 3.dp, bottom = 7.dp), horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1494,8 +1520,18 @@ private fun InlineSetEditor(
             onAssisted = { assisted = it.coerceIn(0, valueText.toIntOrNull() ?: it); persist() },
             romOn = rom != null,
             rom = rom,
-            onRomToggle = { on -> rom = if (on) (rom ?: 100) else null; persist() },
-            onRom = { rom = it; persist() },
+            onRomToggle = { on ->
+                rom = if (on) (rom ?: 100) else null
+                persist()
+                // Igual que en la tarjeta: el ejercicio registra ROM como si el editor lo dijera, para el resto de la sesión.
+                if (on != row.exercise.trackRom) viewModel.setExerciseTrackRom(row.exercise.id, on, saveRomToProgram)
+            },
+            onRom = { rom = com.example.kpkn.domain.workout.LiveRom.fromTyped(it); persist() },
+            saveToProgram = saveRomToProgram,
+            onSaveToProgramChange = { toProgram ->
+                saveRomToProgram = toProgram
+                viewModel.setExerciseTrackRom(row.exercise.id, rom != null, toProgram)
+            },
             note = note,
             onNote = { note = it; persist() },
             onDismiss = { showDetail = false },

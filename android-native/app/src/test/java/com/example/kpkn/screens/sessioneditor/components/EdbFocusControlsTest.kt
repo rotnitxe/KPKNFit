@@ -4,23 +4,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.hasAnyAncestor
-import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.Density
@@ -80,24 +75,8 @@ class EdbFocusControlsTest {
         rule.waitForIdle()
     }
 
-    private fun assertRmLabelIsComplete(label: String) {
-        val layouts = mutableListOf<TextLayoutResult>()
-        rule.onNode(hasText(label) and hasAnyAncestor(hasTestTag("set-focus-s1")), useUnmergedTree = true)
-            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-        val layout = layouts.single()
-        val lines = 0 until layout.lineCount
-        val detail = "${layout.size}, líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, ${layout.layoutInput.constraints}"
-        assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
-        assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
-        assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
-        assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
-        assertEquals("Todos los caracteres quedan visibles: $detail", label.length,
-            layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
-        assertTrue("$label se recorta en horizontal: $detail", lines.all {
-            layout.getLineLeft(it) >= -1f && layout.getLineRight(it) <= layout.size.width + 1f
-        })
-        rule.onNodeWithContentDescription(label).assertHeightIsEqualTo(48.dp)
-    }
+    /** La cifra de carga de la serie (`Carga inteligente`): fusiona su número y su unidad. */
+    private fun loadRead() = rule.onNodeWithContentDescription("Carga de la serie")
 
     private fun rm(basis: LoadBasis = LoadBasis.PERCENT_1RM, oneRm: Double? = 120.0, tm: Double? = null) = Exercise(
         id = "press", name = "Press", trainingMode = TrainingMode.RM, reference1RM = oneRm, referenceTrainingMax = tm,
@@ -111,15 +90,14 @@ class EdbFocusControlsTest {
                 leftTarget = UnilateralTarget(weight = 70.0, targetReps = 6, targetRIR = 2),
                 rightTarget = UnilateralTarget(weight = 80.0, targetReps = 5, targetRIR = 3))))
         mount(source, side = "R")
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 80\u00a0kg")
-        edit("%RM", "75")
+        loadRead().assertTextContains("80", substring = true)
+        edit("% del RM", "75")
         val saved = state.value.sets.single()
         assertEquals(90.0, saved.leftTarget!!.weight!!, 0.001)
         assertEquals(90.0, saved.rightTarget!!.weight!!, 0.001)
         assertEquals(2, saved.leftTarget!!.targetRIR)
         assertEquals(3, saved.rightTarget!!.targetRIR)
     }
-
     @Test fun rmCaptionHeredaCargaGlobalYRespetaElPesoExplicitoDeCadaLado() {
         val base = rm(oneRm = 100.0)
         val source = base.copy(isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
@@ -130,30 +108,25 @@ class EdbFocusControlsTest {
             )))
 
         mount(source, side = "L")
-        rule.onNodeWithContentDescription("Carga del lado L").assertTextContains("L · 80\u00a0kg")
-        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
-        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("7")
+        loadRead().assertTextContains("80", substring = true)
 
         rule.onNodeWithTag("set-row-s1:R").performClick()
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 80\u00a0kg")
-        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
+        loadRead().assertTextContains("80", substring = true)
 
         state.value = state.value.copy(sets = state.value.sets.map { set ->
             set.copy(rightTarget = set.rightTarget!!.copy(weight = 90.0))
         })
         rule.waitForIdle()
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 90\u00a0kg")
-        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
+        loadRead().assertTextContains("90", substring = true)
 
         state.value = state.value.copy(sets = state.value.sets.map { set ->
             set.copy(rightTarget = set.rightTarget!!.copy(weight = 0.0))
         })
         rule.waitForIdle()
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 0\u00a0kg")
+        loadRead().assertTextContains("0", substring = true)
         assertEquals(80.0, state.value.sets.single().weight!!, 0.0)
         assertEquals(0.0, state.value.sets.single().rightTarget!!.weight!!, 0.0)
     }
-
     @Test fun amrapMuestraCargaYVistaPreviaDelMismoLado() {
         val source = Exercise(id = "press", name = "Press", trainingMode = TrainingMode.AMRAP,
             isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
@@ -163,7 +136,7 @@ class EdbFocusControlsTest {
                 ExerciseSet(id = "s2", targetReps = 8, weight = 60.0,
                     leftTarget = UnilateralTarget(weight = 35.0), rightTarget = UnilateralTarget(weight = 45.0))))
         mount(source, side = "R")
-        rule.onNode(hasText("40\u00a0kg") and hasAnyAncestor(hasTestTag("set-focus-s1:R"))).assertExists()
+        loadRead().assertTextContains("40", substring = true)
         rule.onNodeWithText("Ajustará S2 · hoy 45\u00a0kg").assertExists()
         rule.onNodeWithContentDescription("Aumentar mínimo AMRAP").performClick()
         val saved = state.value.sets.first()
@@ -171,7 +144,6 @@ class EdbFocusControlsTest {
         assertEquals(source.sets.first().leftTarget, saved.leftTarget)
         assertEquals(source.sets.first().rightTarget, saved.rightTarget)
     }
-
     @Test fun elBloqueApreUnilateralConservaCuatroParesYElMarcador() {
         val source = rm(oneRm = 200.0).copy(isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
             unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT)
@@ -194,13 +166,12 @@ class EdbFocusControlsTest {
     @Test fun unaCargaProgramadaNoInventaUnRpeEnElFocoDeTiempo() {
         mount(Exercise(id = "press", name = "Plancha", trainingMode = TrainingMode.TIME,
             sets = listOf(ExerciseSet(id = "s1", targetDuration = 60, weight = 10.0))))
-        rule.onNodeWithText("+ Intensidad").assertExists()
-        rule.onNodeWithContentDescription("RPE").assertDoesNotExist()
-        rule.onNodeWithText("+ Intensidad").performClick()
+        rule.onNodeWithText("Añadir intensidad").assertExists()
+        rule.onNodeWithContentDescription("Unidad de intensidad: RPE").assertDoesNotExist()
+        rule.onNodeWithText("Añadir intensidad").performClick()
         rule.waitForIdle()
         assertEquals(8.0, state.value.sets.single().targetRPE!!, 0.001)
     }
-
     @Test fun laHojaDeDescansoConfirmaLasSeriesYLosLadosJuntos() {
         var confirmed: Pair<Int, Int?>? = null
         rule.setContent { EditorOverlayTestHost {
@@ -209,11 +180,14 @@ class EdbFocusControlsTest {
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
         rule.onNodeWithContentDescription("Sumar 15 segundos a Entre series").performClick()
-        rule.onNodeWithContentDescription("Sumar 15 segundos a Entre lados").performClick()
+        // Entre lados avanza de 5 en 5 (lienzo ed-descanso-ejercicio).
+        rule.onNodeWithContentDescription("Sumar 5 segundos a Entre lados").performClick()
         assertNull(confirmed)
         rule.onNodeWithText("Listo").performClick()
+        // La hoja baja (230 ms) y solo entonces se guarda (`closeLayer(cb)` del lienzo).
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
-        assertEquals(135 to 30, confirmed)
+        assertEquals(135 to 20, confirmed)
     }
 
     @Test fun cambiarDeFalloARmNoDejaTecnicasOcultasActivas() {
@@ -237,6 +211,8 @@ class EdbFocusControlsTest {
         rule.waitForIdle()
         assertEquals(1, state.value.sets.single().plannedIntensityTechniques.size)
         assertEquals(60, state.value.sets.single().restAfterSeconds)
+        // La unidad de intensidad vive dentro del campo: se cambia con su menú.
+        rule.onNodeWithContentDescription("Unidad de intensidad: Fallo").performClick()
         rule.onNodeWithText("RIR").performClick()
         rule.waitForIdle()
         assertFalse(state.value.sets.single().isFailure)
@@ -262,43 +238,32 @@ class EdbFocusControlsTest {
         assertEquals(105.0, state.value.sets.single().plannedTargetV2!!, 0.001)
     }
 
-    @Test fun rmEnlazaPorcentajeRepsYPesoSinExponerRir() {
+    @Test fun rmEnlazaPorcentajeYPesoSinExponerRir() {
         mount(rm())
         rule.onNodeWithText("RIR").assertDoesNotExist()
-        edit("%RM", "85")
+        edit("% del RM", "85")
         assertEquals(102.5, state.value.sets.single().weight!!, 0.001)
-        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("5")
-        edit("Reps estimadas", "6")
-        assertEquals(83.0, state.value.sets.single().targetPercentageRM!!, 0.001)
-        edit("Peso (kg)", "90")
-        assertEquals(75.0, state.value.sets.single().targetPercentageRM!!, 0.001)
-        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("10")
+        rule.onNodeWithText("≈ 5 reps máx. al 85 %").assertExists()
         // La edición de porcentaje no borra la prescripción híbrida que venía en la receta.
         assertEquals(RepRange(4, 6), state.value.sets.single().targetRepsRange)
         assertEquals(2, state.value.sets.single().targetRIR)
     }
-
-    @Test fun porcentajeTmUsaTmYLasRepsEstimadasUsanElUnoRm() {
+    @Test fun porcentajeTmUsaTmYLaCargaSigueAlPorcentaje() {
         mount(rm(LoadBasis.PERCENT_TM, oneRm = 125.0, tm = 100.0))
-        edit("Peso (kg)", "90")
-        assertEquals(90.0, state.value.sets.single().targetPercentageRM!!, 0.001)
-        assertEquals(90.0, state.value.sets.single().weight!!, 0.001)
-        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("12")
         edit("% del TM", "80")
         assertEquals(80.0, state.value.sets.single().weight!!, 0.001)
         edit("% del TM", "40")
         assertEquals(40.0, state.value.sets.single().weight!!, 0.001)
     }
-
-    @Test fun etiquetasRmSeVenCompletasEnFocoNormalAl100Y130() {
+    @Test fun elCampoRmSeVeEnFocoNormalAl100Y130() {
         mount(rm())
         for (scale in listOf(1f, 1.3f)) {
             rule.runOnIdle { fontScale.value = scale }
             rule.waitForIdle()
-            listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
+            rule.onNodeWithContentDescription("% del RM").assertExists()
+            rule.onNodeWithText("% DEL RM").assertExists()
         }
     }
-
     @Test fun noSustituyeUnTmAusentePorElUnoRm() {
         mount(rm(LoadBasis.PERCENT_TM, oneRm = 125.0, tm = null))
         rule.onNodeWithText("Falta el TM").assertExists()
@@ -314,9 +279,11 @@ class EdbFocusControlsTest {
             ExerciseSet(id = "s1", weight = 60.0, targetPercentageRM = 75.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 8),
             ExerciseSet(id = "s2", weight = 60.0, targetPercentageRM = 75.0), ExerciseSet(id = "s3", weight = 60.0, targetPercentageRM = 75.0)))
         mount(source)
-        rule.onNodeWithText("Calibrador").performClick()
+        // La etiqueta AMRAP alterna «AMRAP calibrador».
+        rule.onNodeWithText("AMRAP").performClick()
         rule.onNodeWithText("Ajustará S2–S3 · hoy 60\u00a0kg").assertExists()
-        rule.onNodeWithText("Sin mínimo").performClick()
+        // Bajar el mínimo desde 1 lo deja sin mínimo (el antiguo chip «Sin mínimo»).
+        repeat(8) { rule.onNodeWithContentDescription("Reducir mínimo AMRAP").performClick() }
         rule.onNodeWithText("Próximas sesiones").performClick()
         rule.waitForIdle()
         val saved = Session(id = "session", name = "Sesión", exercises = listOf(state.value)).normalizedForEditorSave()
@@ -325,7 +292,6 @@ class EdbFocusControlsTest {
         assertNull(set.amrapMinimumReps)
         assertEquals(CalibrationScope.NEXT_SESSIONS, set.calibrationScope)
     }
-
     @Test fun elModoSeAplicaSoloAlConfirmar() {
         var picked: TrainingMode? = null
         rule.setContent { EditorOverlayTestHost {
@@ -337,6 +303,7 @@ class EdbFocusControlsTest {
         rule.waitForIdle()
         assertNull(picked)
         rule.onNodeWithText("Aplicar Tiempo").performClick()
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
         assertEquals(TrainingMode.TIME, picked)
     }

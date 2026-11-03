@@ -1115,7 +1115,6 @@ class SessionEditorViewModel(
         _uiState.update { state ->
             state.copy(
                 sheet = sheet,
-                rulesSheetInitialTab = if (sheet == SessionEditorSheet.RULES) 0 else state.rulesSheetInitialTab,
                 quickActionsPartId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsPartId else null,
                 quickActionsExerciseId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsExerciseId else null,
             )
@@ -1125,20 +1124,26 @@ class SessionEditorViewModel(
         }
     }
 
+    /** Las reglas de sesión viven en la cuarta pestaña del asistente: `initialTab` 0 = Valores, 1 = Tiempo (el anillo de minutos). */
     fun openRulesSheet(initialTab: Int = 0) {
-        _uiState.update {
-            it.copy(
-                sheet = SessionEditorSheet.RULES,
-                rulesSheetInitialTab = initialTab.coerceIn(0, 1),
-            )
-        }
-        if (initialTab == 1) {
+        openAssistant(
+            AssistantEntry(
+                tab = AssistantTab.RULES,
+                rules = if (initialTab == 1) RulesSection.TIME else RulesSection.VALUES,
+            ),
+        )
+    }
+
+    fun openAssistant(entry: AssistantEntry? = null) {
+        _uiState.update { it.copy(sheet = SessionEditorSheet.ASSISTANT, assistantEntry = entry) }
+        refreshAssistantImmediate()
+        if (entry?.tab == AssistantTab.RULES && entry.rules == RulesSection.TIME) {
             refreshTimeCoachSuggestions()
         }
     }
 
-    fun clearRulesSheetInitialTab() {
-        _uiState.update { it.copy(rulesSheetInitialTab = 0) }
+    fun consumeAssistantEntry() {
+        _uiState.update { it.copy(assistantEntry = null) }
     }
 
     /** Genera sugerencias del coach solo cuando el usuario abre TIEMPO. */
@@ -1155,7 +1160,6 @@ calculateSessionTimeBreakdown(
                     globalMobilitySeries = session.parts
                         .filter { it.isMobilityGroup }
                         .flatMap { it.mobilitySeries },
-                    restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch
             val suggestions = runCatching {
@@ -1244,6 +1248,8 @@ calculateSessionTimeBreakdown(
                 supersetDraft = null,
                 templateSearchQuery = "",
                 templateApplyDecision = null,
+                templateApplyProgress = null,
+                assistantEntry = null,
             )
         }
     }

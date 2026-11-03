@@ -18,6 +18,8 @@ import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.domain.nutrition.supplements.SupplementCatalog
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
@@ -38,7 +40,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -318,6 +322,98 @@ import java.util.Calendar
         .map { it.userVitals.height?.takeIf { h -> h > 0.0 } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val settings: StateFlow<Settings> = repository.settings
+
+    /** Un aviso de una toma desde Inicio: éxito con [logId] para deshacer, o el fallo real del guardado. */
+    data class HomeSupplementEvent(val message: String, val isError: Boolean, val logId: String? = null)
+
+    private val _supplementEvents = kotlinx.coroutines.channels.Channel<HomeSupplementEvent>(
+        kotlinx.coroutines.channels.Channel.BUFFERED,
+    )
+
+    /** Avisos de registro desde Inicio (la pantalla los muestra y ofrece «Deshacer» en los éxitos). */
+    val supplementEvents: kotlinx.coroutines.flow.Flow<HomeSupplementEvent> =
+        _supplementEvents.receiveAsFlow()
+
+    /**
+     * Registra una toma desde Inicio con las MISMAS reglas que Nutrición: dosis válida, techo del suplemento sobre el total
+     * conocido del día y confirmación explícita para pasarlo. Solo anuncia el éxito después de `saveNutritionLog`; un fallo
+     * se cuenta y no se silencia. [date] y [time] son la fecha y hora reales de la toma (no se recolocan a medianoche).
+     */
+    fun takeSupplementFromHome(
+        supplementId: String,
+        dose: Double,
+        date: String = java.time.LocalDate.now().toString(),
+        time: String = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
+        allowOverCeiling: Boolean = false,
+    ) {
+        val def = SupplementCatalog.byId(supplementId)
+            ?: repository.settings.value.supplementPila.firstOrNull { it.id == supplementId }?.let(SupplementCatalog::resolve)
+            ?: return
+        if (!dose.isFinite() || dose <= 0.0) {
+            _supplementEvents.trySend(HomeSupplementEvent("La dosis no es válida.", isError = true))
+            return
+        }
+        val dayNow = SupplementEngine.knownCeilingTotal(def, nutritionRepository.nutritionLogs.value, date)
+        val ceiling = SupplementEngine.ceiling(def, dayNow, dose)
+        if (ceiling?.exceeded == true && !allowOverCeiling) {
+            _supplementEvents.trySend(
+                HomeSupplementEvent(
+                    "Esta toma pasa tu máximo de ${def.shortName}. Confírmala para registrarla igual.",
+                    isError = true,
+                ),
+            )
+            return
+        }
+        val log = SupplementEngine.buildTakeLog(def, dose, time, date, java.util.UUID.randomUUID().toString())
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                nutritionRepository.saveNutritionLog(log)
+                _supplementEvents.send(
+                    HomeSupplementEvent(
+                        "${def.shortName} · ${SupplementEngine.doseLabel(def, dose)} registrado",
+                        isError = false,
+                        logId = log.id,
+                    ),
+                )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("HomeViewModel", "No se pudo guardar la toma de suplemento", error)
+                _supplementEvents.send(HomeSupplementEvent("No se pudo guardar la toma. Inténtalo de nuevo.", isError = true))
+            }
+        }
+    }
+
+    /** «Deshacer» de una toma creada desde Inicio: borra exactamente ese registro (solo contiene la toma). */
+    fun undoSupplementFromHome(logId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                nutritionRepository.deleteNutritionLogAndAwait(logId)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("HomeViewModel", "No se pudo deshacer la toma de suplemento", error)
+                _supplementEvents.send(HomeSupplementEvent("No se pudo deshacer el registro. Inténtalo de nuevo.", isError = true))
+            }
+        }
+    }
+
+    /** Borra una toma concreta desde el detalle de Inicio, conservando otros alimentos de la misma comida. */
+    fun deleteSupplementTake(take: com.example.kpkn.domain.nutrition.supplements.SupplementTake) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val removed = nutritionRepository.removeFoodFromLogAndAwait(take.logId, take.foodId, take.foodIndex, take.dose)
+                if (!removed) _supplementEvents.send(HomeSupplementEvent("No se pudo quitar la toma: el registro ya cambió.", isError = true))
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("HomeViewModel", "No se pudo quitar la toma de suplemento", error)
+                _supplementEvents.send(HomeSupplementEvent("No se pudo quitar la toma. Inténtalo de nuevo.", isError = true))
+            }
+        }
+    }
 
     private data class HomeUiCore(
         val userName: String,

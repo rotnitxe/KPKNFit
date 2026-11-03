@@ -11,6 +11,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
@@ -62,45 +63,79 @@ class LiveSessionLineTest {
             modifier = Modifier.width(340.dp))
     }
 
-    /** Roadmap del Refinamiento 02: alto fijo, resumen de la sesión, pista de fases y la fila ‹ registrar › dentro del vidrio. */
-    private fun assertDock(count: Int, active: Int, prep: Boolean, prepInWindow: Boolean = prep) {
-        content { Line(liveLineTestSnapshot(count, active, prep)) }
+    /** Roadmap de Pulido v1: dos bandas («Serie 2 de 3 · nombre» y ‹ registrar ›) y, a 880 dp de alto, la tira de ruta (B, 132 dp). */
+    private fun assertDock(count: Int, active: Int) {
+        content { Line(liveLineTestSnapshot(count, active)) }
         val bounds = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(LiveSessionLineHeight.value * density, bounds.height, 1f)
-        rule.onNodeWithText("SERIES · 2 DE 15").assertIsDisplayed()
-        rule.onNodeWithText(" ${active + 1} / 14").assertIsDisplayed()
-        // Iteración 04: raíl de series; el punto en curso está seleccionado y el descanso solo aparece mientras dura.
-        assertTrue(rule.onAllNodes(isSelected()).fetchSemanticsNodes().isNotEmpty())
-        rule.onNodeWithTag("live-session-phase-rest").assertDoesNotExist()
-        if (prepInWindow) {
-            rule.onNodeWithTag("live-session-phase-mov").assertIsDisplayed()
-            rule.onNodeWithTag("live-session-phase-apr").assertIsDisplayed()
-        } else {
-            rule.onNodeWithTag("live-session-phase-mov").assertDoesNotExist()
-        }
+        assertEquals(132f * density, bounds.height, 1f)
+        rule.onNodeWithText("Serie ${active + 1} de 14").assertIsDisplayed()
+        rule.onNodeWithText("/15").assertIsDisplayed()
         val record = rule.onNodeWithTag("live-session-record").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertTrue(bounds.contains(record.topLeft) && bounds.contains(record.bottomRight - androidx.compose.ui.geometry.Offset(1f, 1f)))
-        val phases = rule.onNodeWithTag("live-session-steps").fetchSemanticsNode().boundsInRoot
-        assertFalse(phases.overlaps(record))
+        val route = rule.onNodeWithTag("live-session-route").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertFalse(route.overlaps(record))
+        // B: un segmento por ejercicio entre las dos bandas.
+        val strip = rule.onNodeWithTag("live-session-strip").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertEquals(44f * density, strip.height, 1f)
+        rule.onNodeWithTag("live-session-seg-0").assertIsDisplayed()
+        rule.onNodeWithTag("live-session-seg-1").assertIsDisplayed()
     }
-    @Test fun oneSeriesShowsTheDockWithRecordInside() = assertDock(1, 0, false)
-    @Test fun preparationAddsMovAndAprPhases() = assertDock(4, 0, true)
-    // El raíl enseña una ventana de 7 puntos con el actual en tercera posición (más aire entre puntos, pedido del usuario del 29-oct):
-    // en la serie 8 de 14 MOV y APR quedan fuera de la ventana, a un ‹ de distancia.
-    @Test fun fourteenSeriesKeepTheSameDock() = assertDock(14, 7, true, prepInWindow = false)
-    @Test fun lastOfFourteenSeriesShowsItsPosition() = assertDock(14, 13, false)
-
-    @Test fun compressionKeepsAllOriginalIndicesExactlyOnce() {
-        for (count in listOf(1, 4, 14, 30)) for (active in 0 until count) {
-            val ranges = liveSessionLineRanges(count, active, setOf(0, 1))
-            assertEquals((0 until count).toList(), ranges.flatMap { it.indices })
-            assertFalse(ranges.single { active in it.indices }.compressed)
-            assertTrue(ranges.filter { it.compressed }.all { it.indices.count() > 0 })
-        }
+    @Test fun oneSeriesShowsTheDockWithRecordInside() = assertDock(1, 0)
+    @Test fun fourSeriesShowTheDock() = assertDock(4, 0)
+    @Test fun fourteenSeriesKeepTheSameDock() = assertDock(14, 7)
+    @Test fun lastOfFourteenSeriesShowsItsPosition() = assertDock(14, 13)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun lowScreensUseTheTwoBandRoadmapWithoutStrip() {
+        content { Line(liveLineTestSnapshot(4, 1)) }
+        val bounds = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertEquals(112f * density, bounds.height, 1f)
+        rule.onNodeWithTag("live-session-strip").assertDoesNotExist()
+        rule.onNodeWithText("Serie 2 de 14").assertIsDisplayed()
+    }
+    @Test fun lastSetOfTheExerciseSaysSoAndNextGoesToTheNextExercise() {
+        content { Line(liveLineTestSnapshot(14, 13)) }
+        rule.onNodeWithText("última serie").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Siguiente ejercicio").assertIsEnabled()
+    }
+    @Test fun registeredSetShowsTheTagAndUpdatesInsteadOfRecording() {
+        content { LiveSessionLine(listOf(exercise, row), exercise.id, liveLineTestSnapshot(4, 1), {}, {}, {}, {}, {},
+            recordVisible = true, recordEnabled = true, isUpdateMode = true, modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithText("registrada").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Actualizar serie").assertIsDisplayed()
+    }
+    @Test fun firstSetOfTheFirstExerciseDisablesPrevious() {
+        content { Line(liveLineTestSnapshot(4, 0)) }
+        rule.onNodeWithContentDescription("Paso anterior").assertIsNotEnabled()
+        rule.onNodeWithContentDescription("Paso siguiente").assertIsEnabled()
+    }
+    @Test fun lastSetOfTheLastExerciseDisablesNextAndSaysFinalSet() {
+        content { LiveSessionLine(listOf(row, exercise), exercise.id, liveLineTestSnapshot(14, 13), {}, {}, {}, {}, {},
+            recordVisible = true, recordEnabled = true, modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithContentDescription("Paso siguiente").assertIsNotEnabled()
+        rule.onNodeWithText("serie final").assertIsDisplayed()
+    }
+    @Test fun touchingTheStripJumpsToThatExercise() {
+        val jumps = mutableListOf<String>()
+        content { LiveSessionLine(listOf(exercise, row), exercise.id, liveLineTestSnapshot(4, 1), {}, {}, { jumps += it }, {}, {},
+            recordVisible = true, recordEnabled = true, modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithTag("live-session-strip").performTouchInput { down(centerRight - Offset(20f, 0f)); up() }
+        rule.runOnIdle { assertEquals(listOf(row.id), jumps) }
+    }
+    @Test fun releasingTheStripOutsideKeepsTheCurrentExercise() {
+        val jumps = mutableListOf<String>()
+        content { LiveSessionLine(listOf(exercise, row), exercise.id, liveLineTestSnapshot(4, 1), {}, {}, { jumps += it }, {}, {},
+            recordVisible = true, recordEnabled = true, modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithTag("live-session-strip").performTouchInput { down(centerRight - Offset(20f, 0f)); moveTo(Offset(width / 2f, -400f)); up() }
+        rule.runOnIdle { assertTrue(jumps.isEmpty()) }
+    }
+    @Test fun slidingOverTheStripShowsTheProvisionalNameInTheBand() {
+        content { Line(liveLineTestSnapshot(4, 1)) }
+        rule.onNodeWithTag("live-session-strip").performTouchInput { down(centerRight - Offset(20f, 0f)) }
+        rule.onNodeWithText("Remo").assertIsDisplayed()
+        rule.onNodeWithTag("live-session-strip").performTouchInput { up() }
     }
     @Test fun positionFollowsTheSettledCardWhileAnotherPageIsRequested() {
         content { Line(liveLineTestSnapshot(4, active = 3).copy(activePageIndex = 40)) }
-        rule.onNodeWithText(" 1 / 14").assertIsDisplayed()
+        rule.onNodeWithText("Serie 1 de 14").assertIsDisplayed()
     }
     @Test fun integratedCheckInvokesOnlyTheActiveRecordingAction() {
         var records = 0; var routes = 0
@@ -147,17 +182,26 @@ class LiveSessionLineTest {
         rule.onNodeWithContentDescription("Paso anterior").performClick()
         rule.runOnIdle { assertEquals(listOf(42, 40), pages) }
     }
-    @Test fun preparationPhasesKeepTheirCallbacks() {
+    @Test fun previousFromTheFirstSetGoesToThePreparationCallbacks() {
         var mobility = 0; var warmup = 0
-        content { Line(liveLineTestSnapshot(4, preparation = true, mobility = { mobility++ }, warmup = { warmup++ })) }
-        rule.onNodeWithContentDescription("Movilidad").performClick()
-        rule.onNodeWithContentDescription("Aproximaciones").performClick()
-        rule.runOnIdle { assertEquals(1, mobility); assertEquals(1, warmup) }
+        content { Line(liveLineTestSnapshot(4, 0, preparation = true, mobility = { mobility++ }, warmup = { warmup++ })) }
+        rule.onNodeWithContentDescription("Paso anterior").performClick()
+        rule.runOnIdle { assertEquals(0, mobility); assertEquals(1, warmup) }
+    }
+    @Test fun preparationShowsItsOwnLeadAndLabel() {
+        val warm = exercise.copy(warmupSets = listOf(WarmupSetDefinition("w1", 50.0, 8), WarmupSetDefinition("w2", 70.0, 5)))
+        val snapshot = LiveSetStepperSnapshot(listOf(TimelineElement.WarmupPill(true, false, .5f) {}), 0, 0, 14, null, true)
+        content { LiveSessionLine(listOf(warm, row), warm.id, snapshot, {}, {}, {}, {}, {}, recordVisible = true, recordEnabled = true,
+            recordLabel = "Registrar aproximación A2", modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithText("Aproximación 2 de 2").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Registrar aproximación A2").assertIsDisplayed()
     }
     @Test fun edgesOfTheExerciseChangeToTheAdjacentExercise() {
         val moves = mutableListOf<Boolean>()
-        content { Line(liveLineTestSnapshot(1), onAdjacent = { moves += it }) }
-        rule.onNodeWithContentDescription("Paso siguiente").performClick()
+        val third = Exercise("line-third", "Press", sets = listOf(ExerciseSet("third-set")))
+        content { LiveSessionLine(listOf(exercise, row, third), row.id, liveLineTestSnapshot(1), {}, {}, {}, {}, {},
+            recordVisible = true, recordEnabled = true, onNavigateAdjacentExercise = { moves += it }, modifier = Modifier.width(340.dp)) }
+        rule.onNodeWithContentDescription("Siguiente ejercicio").performClick()
         rule.onNodeWithContentDescription("Paso anterior").performClick()
         rule.runOnIdle { assertEquals(listOf(true, false), moves) }
     }
@@ -191,16 +235,17 @@ class LiveSessionLineTest {
         rule.onNodeWithContentDescription("Paso anterior").performClick()
         rule.runOnIdle { assertEquals(listOf(21, 17), pages) }
     }
-    @Test fun restPhaseIsActiveAndKeepsItsOwnDestination() {
+    @Test fun restShowsTheRemainingTimeInTheBandAndKeepsItsOwnDestination() {
         var selected: Int? = null
         val snapshot = LiveSetStepperSnapshot(listOf(
             TimelineElement.BilateralSet(pageIndex = 7, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
             TimelineElement.RestPill(88, .4f, "2:41"),
             TimelineElement.BilateralSet(pageIndex = 11, label = "S2", state = WorkoutSetCardVisualState.FUTURE)),
             1, 1, 2, null, false, activePageIndex = 88)
-        content { Line(snapshot, onPage = { selected = it }) }
-        rule.onNodeWithContentDescription("Descanso").assertIsSelected().performClick()
-        rule.runOnIdle { assertEquals(88, selected) }
+        content { Line(snapshot, onPage = { selected = it }, restActive = true, onEndRest = {}) }
+        rule.onNodeWithText("Descanso 2:41").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Paso siguiente").performClick()
+        rule.runOnIdle { assertEquals(11, selected) }
     }
     @Test fun runningRestTurnsThePrimaryIntoEndRest() {
         var ended = 0; var records = 0
@@ -216,7 +261,7 @@ class LiveSessionLineTest {
             LiveSessionSheetsHost(destination, { destination = it }, exercises = listOf(exercise, row),
                 onSelectExercise = { selected = it })
         }
-        rule.onNodeWithContentDescription("Abrir ruta de la sesión").performClick()
+        rule.onNodeWithTag("live-session-route").performClick()
         // Refinamiento 02: las métricas viven en «Resumen», al final del recorrido.
         rule.onNodeWithText("TONELAJE").assertExists()
         rule.onNodeWithText("RIR MEDIO").assertExists()

@@ -1,0 +1,29 @@
+/* ===== Pulido v1 · piezas comunes. Los paquetes añaden sus propios src/<prefijo>.css con clases que empiezan por su prefijo. ===== */
+/* La captura de hoy, junto a las notas de la escena. */
+.pl-hoy{margin:4px 0 16px;display:flex;gap:14px;align-items:flex-start}
+.pl-hoy img{width:190px;max-width:48%;border-radius:18px;border:1px solid #ffffff1a;display:block}
+.pl-hoy figcaption{font-size:12px;color:var(--faint);line-height:1.5;max-width:28ch}
+/* Modo solo (capturas con tools/shots.cjs) y galería. */
+html.solo body{background:#000}
+html.solo #lab{max-width:none;padding:0}
+html.solo .lab-head,html.solo .lab-intro,html.solo .lab-controls,html.solo .notes{display:none!important}
+html.solo .stage{display:block}
+html.solo .phone-wrap{zoom:1!important;margin:0}
+.gal-grid{display:flex;flex-wrap:wrap;gap:20px;padding:16px;background:#0a0a0a;align-items:flex-start}
+.gal-item{margin:0}.gal-item figcaption{font:11px Inter;color:var(--faint);padding:6px 4px}
+/* Piezas con el aspecto actual de la app (Ref02: hojas y píldoras en gris plano #1B1B1D con sombra real; vidrio solo en islas flotantes). */
+.pl-scrim{position:absolute;inset:0;background:#000000a8;z-index:60}
+.pl-sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#1b1b1d;border-radius:28px 28px 0 0;padding:10px 20px 34px;box-shadow:0 -14px 44px #000c,inset 0 1px #ffffff10;display:flex;flex-direction:column;gap:12px}
+.pl-sheet::before{content:'';display:block;width:40px;height:4px;border-radius:2px;background:#ffffff33;margin:0 auto 6px;flex-shrink:0}
+.pl-glass{background:#1b1b1dc2;backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid #ffffff1f;box-shadow:0 8px 28px #000a,inset 0 1px #ffffff14}
+.pl-flat{background:#1b1b1d;border:1px solid #ffffff10;box-shadow:0 8px 28px #000a}
+.pl-btn{height:52px;padding:0 24px;border-radius:999px;background:var(--ink);color:#111;font:600 15px Inter;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.pl-btn.ghost{background:#ffffff0f;color:var(--ink);border:1px solid #ffffff1f;opacity:1}/* styles.css trae `.ghost{opacity:.25}` global: aquí se anula */
+.pl-btn.danger{background:#ff9b9214;color:var(--danger);border:1px solid #ff9b9233}
+.pl-btn.sm{height:40px;padding:0 16px;font-size:13.5px}
+.pl-eyebrow{font:600 10.5px Inter;letter-spacing:1.5px;color:var(--faint);text-transform:uppercase}
+.pl-h1{font:700 26px/1.08 Syne;letter-spacing:-.7px}
+.pl-h2{font:700 19px/1.15 Syne;letter-spacing:-.4px}
+.pl-num{font-family:Inter,Arial,sans-serif;font-weight:600;font-variant-numeric:tabular-nums lining-nums}
+.pl-ico{width:44px;height:44px;border-radius:50%;background:#ffffff0d;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}

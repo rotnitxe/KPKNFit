@@ -200,6 +200,8 @@ private fun HistorySetLine(s: CompletedSet) {
                     if (s.rpe != null) append(" · RPE ${s.rpe}")
                     if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
                     if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
+                    // Pulido v1 (15): el ROM registrado en la serie.
+                    s.rom?.let { append(" · ").append(com.example.kpkn.screens.workout.components.liveSetRomLabel(it)) }
                 },
                 style = KpknType.body.copy(fontFeatureSettings = "'tnum' 1"),
                 color = WizardColors.text,

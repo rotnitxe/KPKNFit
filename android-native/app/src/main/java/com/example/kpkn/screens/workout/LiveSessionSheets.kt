@@ -72,6 +72,8 @@ internal fun LiveSessionSheetsHost(
     completedExercises: List<CompletedExercise> = emptyList(),
     omittedSetKeys: Set<String> = emptySet(),
     currentExerciseId: String? = null,
+    /** Número de la serie en curso de la tarjeta (el chip resaltado de la «Ruta»). */
+    currentSetNumber: Int? = null,
     supersetGroups: List<SupersetGroup> = emptyList(),
     liveEnergySummary: SessionEnergySummary? = null,
     bodyWeight: Double? = null,
@@ -120,12 +122,15 @@ internal fun LiveSessionSheetsHost(
     val title = liveSessionSheetTitle(destination)
     val withFooter = destination !in setOf(LiveSessionDestination.MENU, LiveSessionDestination.VIEW, LiveSessionDestination.ROUTE,
         LiveSessionDestination.ASSISTANCE)
+    // La «Ruta» es otra hoja (plana, con su entrada y salida del lienzo): al pasar del menú a ella se abre de nuevo, no se transforma.
+    key(destination == LiveSessionDestination.ROUTE) {
     LiveSheet(
         title = title,
         onDismiss = { onDestination(null) },
         tag = "live-session-sheet-${destination.name.lowercase()}",
         stableHeightFraction = if (destination == LiveSessionDestination.ROUTE) .84f else null,
         footer = if (withFooter) { close -> LiveSheetPrimary("Listo", close) } else null,
+        lienzo = if (destination == LiveSessionDestination.ROUTE) LiveRouteSheetSpec else null,
     ) { close ->
         bodyStates.SaveableStateProvider(destination.name) {
             when (destination) {
@@ -205,6 +210,7 @@ internal fun LiveSessionSheetsHost(
                     onOpenSupersetOptions = { onDestination(null); onOpenSupersetOptions(it) },
                     onReorder = onReorder?.let { reorder -> { onDestination(null); reorder() } },
                     onAddExercise = { onDestination(null); onAddExercise() },
+                    currentSetNumber = currentSetNumber,
                 )
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }
@@ -216,6 +222,7 @@ internal fun LiveSessionSheetsHost(
                     onSessionNotesChange, onSaveSessionNote, onAddChecklistItem, onToggleChecklistItem, onRemoveChecklistItem, sessionAccentColor)
             }
         }
+    }
     }
 }
 

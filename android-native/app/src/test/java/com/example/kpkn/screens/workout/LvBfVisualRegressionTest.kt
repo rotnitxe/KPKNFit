@@ -61,7 +61,7 @@ class LvBfVisualRegressionTest {
                         var headerPx by remember { mutableIntStateOf(0) }
                         val localDensity = LocalDensity.current
                         val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 144f).dp
+                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, liveSessionCardHeightDp(360, height).value, 32f + liveSessionLineHeight().value).dp
                         Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp)
                             .onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0L,
@@ -71,7 +71,7 @@ class LvBfVisualRegressionTest {
                         }
                         WorkoutLiveRelatorLine(phrase, "bf", reduceMotionOverride = true,
                             modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("bf-relator"))
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LiveSessionLineHeight + 44.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.single(), null,
                                     onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,

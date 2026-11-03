@@ -25,8 +25,17 @@ import com.example.kpkn.screens.programs.visibleProtocolOf
  */
 @Composable
 internal fun LibrarySection(
-    onApplyTemplate: (template: ProgramTemplateOption, replace: Boolean) -> Unit,
-    onApplyProtocol: (protocol: Protocol, replace: Boolean) -> Unit,
+    onApplyTemplate: (
+        template: ProgramTemplateOption,
+        replace: Boolean,
+        onResult: (success: Boolean, undoSnapshotId: String?) -> Unit,
+    ) -> Unit,
+    onApplyProtocol: (
+        protocol: Protocol,
+        replace: Boolean,
+        onResult: (success: Boolean, undoSnapshotId: String?) -> Unit,
+    ) -> Unit,
+    onUndo: (snapshotId: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val library = remember { programLibrary() }
@@ -36,24 +45,37 @@ internal fun LibrarySection(
         methods = library.methodItems,
         replace = replace,
         onReplaceChange = { replace = it },
-        onPickTemplate = { key ->
-            library.templates[key]?.let { template ->
-                onApplyTemplate(template, replace)
-                onDismiss()
+        onPickTemplate = { key, replaceNow, onResult ->
+            val template = library.templates[key]
+            if (template == null) {
+                onResult(false, null)
+            } else {
+                onApplyTemplate(template, replaceNow) { success, snapshotId ->
+                    onResult(success, snapshotId)
+                    // Copia: se cierra al confirmar. Sustitución: se queda para mostrar el «Deshacer» real.
+                    if (success && !replaceNow) onDismiss()
+                }
             }
         },
-        onPickMethod = { key ->
-            library.protocols[key]?.let { protocol ->
-                onApplyProtocol(protocol, replace)
-                onDismiss()
+        onPickMethod = { key, replaceNow, onResult ->
+            val protocol = library.protocols[key]
+            if (protocol == null) {
+                onResult(false, null)
+            } else {
+                onApplyProtocol(protocol, replaceNow) { success, snapshotId ->
+                    onResult(success, snapshotId)
+                    if (success && !replaceNow) onDismiss()
+                }
             }
         },
+        onUndo = onUndo,
         onDismiss = onDismiss,
+        applicableIds = library.templates.keys + library.protocols.keys,
     )
 }
 
 /** Lo que la hoja necesita: las filas y, por cada una, lo que se aplica al tocarla. */
-private class ProgramLibrary(
+internal class ProgramLibrary(
     val templateItems: List<ProgramLibraryItem>,
     val methodItems: List<ProgramLibraryItem>,
     val templates: Map<String, ProgramTemplateOption>,
@@ -64,7 +86,7 @@ private class ProgramLibrary(
  * La biblioteca del editor. Una entrada con plantilla es una plantilla (tiene prioridad); una entrada del catálogo de tipo protocolo, sin
  * plantilla, es un método de progresión. El resto no se puede aplicar desde el editor y no aparece.
  */
-private fun programLibrary(): ProgramLibrary {
+internal fun programLibrary(): ProgramLibrary {
     val entries = libraryOrder(
         PersonalizedPlanCatalog.listedEntries()
             .filter { it.publication == PublicationState.PUBLISHED && isLibraryFamilyEntry(it) },

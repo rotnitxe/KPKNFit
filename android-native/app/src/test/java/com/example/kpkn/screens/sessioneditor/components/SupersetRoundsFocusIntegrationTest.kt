@@ -141,14 +141,14 @@ class SupersetRoundsFocusIntegrationTest {
 
     private fun assertRmLabelIsComplete(label: String) {
         val layouts = mutableListOf<TextLayoutResult>()
-        rule.onNode(hasText(label) and within(), useUnmergedTree = true)
+        rule.onNode(hasText(label.uppercase()) and within(), useUnmergedTree = true)
             .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val layout = layouts.single()
         val lines = 0 until layout.lineCount
         val detail = "${layout.size}, párrafo=${layout.multiParagraph.width}, " +
             "líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, " +
             "overflowWidth=${layout.didOverflowWidth}, ${layout.layoutInput.constraints}"
-        assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
+        assertEquals("Texto completo del rótulo", label.uppercase(), layout.layoutInput.text.text)
         assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
         assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
         assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
@@ -157,21 +157,21 @@ class SupersetRoundsFocusIntegrationTest {
         assertTrue("$label se recorta en horizontal: $detail", lines.all {
             layout.getLineLeft(it) >= -1f && layout.getLineRight(it) <= layout.size.width + 1f
         })
-        rule.onNode(hasContentDescription(label) and within()).assertHeightIsEqualTo(48.dp)
+        rule.onNode(hasContentDescription(label) and within()).assertHeightIsEqualTo(50.dp)
     }
 
     private fun assertRmLabelsAreCompleteAtBothFontScales() {
         for (scale in listOf(1f, 1.3f)) {
             rule.runOnIdle { fontScale.value = scale }
             rule.waitForIdle()
-            listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
+            listOf("% del RM").forEach(::assertRmLabelIsComplete)
         }
     }
 
-    @Test fun rmTieneTresCifrasEnlazadasConservaRangosYRirYAcciones() {
+    @Test fun rmTieneUnCampoDePorcentajeConservaRangosYRirYAcciones() {
         mount(rm())
-        rule.onNodeWithContentDescription("Reps estimadas").assertExists()
-        edit("%RM", "75")
+        rule.onNodeWithContentDescription("% del RM").assertExists()
+        edit("% del RM", "75")
         val saved = state.value.sets.first()
         assertEquals(90.0, saved.weight!!, 0.001)
         assertEquals(RepRange(4, 6), saved.targetRepsRange)
@@ -201,7 +201,7 @@ class SupersetRoundsFocusIntegrationTest {
     fun repsEstimadasCompletaEnC3Anidado360x740Al130() {
         fontScale.value = 1.3f
         mount(rm(), nestedInSessionModule = true)
-        listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
+        listOf("% del RM").forEach(::assertRmLabelIsComplete)
     }
 
     @Test fun referenciaTmSePropagaDesdeElGrupoYRecalculaSoloSuBase() {
@@ -209,8 +209,9 @@ class SupersetRoundsFocusIntegrationTest {
         mount(source.copy(sets = source.sets.mapIndexed { index, set ->
             if (index == 1) set.copy(loadBasis = LoadBasis.PERCENT_1RM) else set
         }))
-        rule.onNode(hasSetTextAction() and within()).performScrollTo().performTextReplacement("125")
-        rule.onNode(hasSetTextAction() and within()).performImeAction()
+        rule.onNode(hasContentDescription("TM (kg)") and within()).performScrollTo().performClick()
+        rule.onNode(hasSetTextAction() and isFocused()).performTextReplacement("125")
+        rule.onNode(hasSetTextAction() and isFocused()).performImeAction()
         rule.waitForIdle()
         assertEquals(125.0, state.value.referenceTrainingMax!!, 0.001)
         assertEquals(100.0, state.value.sets.first().weight!!, 0.001)
@@ -226,21 +227,21 @@ class SupersetRoundsFocusIntegrationTest {
 
     @Test fun rmLateralRespetaOrdenYCargasYRecalculaAmbosLadosConElPorcentajeComun() {
         mount(lateral(rm()))
-        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 40\u00a0kg")
-        rule.onNodeWithContentDescription("Carga del lado L").assertTextContains("L · 30\u00a0kg")
+        rule.onNode(hasContentDescription("Carga de la serie") and within("R")).assertTextContains("40", substring = true)
+        rule.onNode(hasContentDescription("Carga de la serie") and within("L")).assertTextContains("30", substring = true)
         // Los focos pueden estar fuera del viewport: boundsInRoot recorta ambos al mismo borde.
         // La API ya usada por WeekBleedTest mide la posición real, sin ese recorte.
         val right = rule.onNodeWithTag("round-set-focus-s1:R").getUnclippedBoundsInRoot()
         val left = rule.onNodeWithTag("round-set-focus-s1:L").getUnclippedBoundsInRoot()
         assertTrue("R debe preceder a L: $right / $left", right.top < left.top)
         assertTrue("Los focos laterales no se solapan", right.bottom <= left.top)
-        rule.onNodeWithContentDescription("Carga del lado R").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithContentDescription("Carga del lado L").performScrollTo().assertIsDisplayed()
+        rule.onNode(hasContentDescription("Carga de la serie") and within("R")).performScrollTo().assertIsDisplayed()
+        rule.onNode(hasContentDescription("Carga de la serie") and within("L")).performScrollTo().assertIsDisplayed()
         val eitherSide = within("R") or within("L")
         rule.onAllNodes(hasText("Bajar") and eitherSide).assertCountEquals(1)
         rule.onAllNodes(hasText("Eliminar") and eitherSide).assertCountEquals(1)
         rule.onNode(hasText("Eliminar") and within("L")).assertDoesNotExist()
-        edit("%RM", "75", side = "R")
+        edit("% del RM", "75", side = "R")
         val saved = state.value.sets.first()
         assertEquals(90.0, saved.leftTarget!!.weight!!, 0.001)
         assertEquals(90.0, saved.rightTarget!!.weight!!, 0.001)
@@ -253,18 +254,19 @@ class SupersetRoundsFocusIntegrationTest {
     @Test fun amrapTienePrioridadSobreRmYPrevisualizaSoloLasCargasDelLado() {
         val source = amrap()
         mount(source)
-        rule.onNode(hasText("Lado R") and within("R")).performScrollTo().assertIsDisplayed()
-        rule.onNode(hasText("Lado L") and within("L")).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithContentDescription("%RM").assertDoesNotExist()
+        rule.onNode(hasContentDescription("Carga de la serie") and within("R")).performScrollTo().assertIsDisplayed()
+        rule.onNode(hasContentDescription("Carga de la serie") and within("L")).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithContentDescription("% del RM").assertDoesNotExist()
         rule.onNode(hasText("Ajustará S2 · hoy 45\u00a0kg") and within("R")).assertExists()
         rule.onNode(hasText("Ajustará S2 · hoy 35\u00a0kg") and within("L")).assertExists()
         rule.onNode(hasContentDescription("Aumentar mínimo AMRAP") and within("R")).performScrollTo().performClick()
         assertEquals(6, state.value.sets.first().amrapMinimumReps)
         assertEquals(source.sets.first().leftTarget, state.value.sets.first().leftTarget)
         assertEquals(source.sets.first().rightTarget, state.value.sets.first().rightTarget)
-        rule.onNode(hasText("Sin mínimo") and within("R")).performScrollTo().performClick()
+        // Bajar el mínimo desde 1 lo deja sin mínimo (el antiguo chip «Sin mínimo»).
+        repeat(6) { rule.onNode(hasContentDescription("Reducir mínimo AMRAP") and within("R")).performScrollTo().performClick() }
         assertNull(state.value.sets.first().amrapMinimumReps)
-        rule.onNode(hasText("AMRAP") and within("R")).performScrollTo().performClick()
+        rule.onNode(hasText("AMRAP calibrador") and within("R")).performScrollTo().performClick()
         assertEquals(SetPurpose.AMRAP, state.value.sets.first().purpose)
         assertNull(state.value.sets.first().calibrationScope)
         assertNull(state.value.sets.first().restAfterSeconds)
@@ -275,7 +277,7 @@ class SupersetRoundsFocusIntegrationTest {
             if (index == 0) set.copy(purpose = SetPurpose.AMRAP, amrapMinimumReps = 5) else set
         }) }
         mount(source)
-        rule.onNodeWithContentDescription("%RM").assertDoesNotExist()
+        rule.onNodeWithContentDescription("% del RM").assertDoesNotExist()
         rule.onNodeWithContentDescription("Aumentar mínimo AMRAP").performScrollTo().performClick()
         val saved = state.value.sets.first()
         assertEquals(6, saved.amrapMinimumReps)

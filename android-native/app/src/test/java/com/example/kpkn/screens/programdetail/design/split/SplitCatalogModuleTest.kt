@@ -2,7 +2,6 @@ package com.example.kpkn.screens.programdetail.design.split
 
 import android.app.Application
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -10,14 +9,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
-import com.example.kpkn.data.splits.SplitTemplate
-import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.domain.training.split.SplitCatalog
+import com.example.kpkn.domain.training.split.SplitCatalogFilter
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -26,76 +24,57 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Módulo del catálogo y página «Cambiar reparto» (P5 y P7), en Robolectric: tocar el módulo abre su hoja de aplicar (no hay botones dentro);
- * en modo comparar, tocar dos repartos habilita «Comparar 2»; y la etiqueta deja solo los repartos que la llevan. Se pintan con movimiento
- * reducido para que la entrada animada no mueva los nodos.
+ * La tarjeta del catálogo y la página «Reparto» (punto 23), en Robolectric: tocar la tarjeta abre la vista previa (no hay botones dentro); la
+ * tarjeta trae su descripción, su etiqueta de recomendado y sus etiquetas; en modo comparar, tocar dos repartos habilita «Comparar 2»; y
+ * la etiqueta deja solo los repartos que la llevan.
  */
 // Ventana alta: performClick no desplaza, así que todos los módulos de la prueba tienen que caber en pantalla.
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w360dp-h2400dp", application = Application::class)
+@Config(sdk = [34], qualifiers = "w360dp-h4000dp", application = Application::class)
 class SplitCatalogModuleTest {
 
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val ulX4: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
-    private val pplUl: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "ppl_ul" }
-    private val pplX6: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "ppl_x6" }
-    private val broSplit: SplitTemplate = SPLIT_TEMPLATES.first { it.id == "bro_split" }
-
-    /** Pinta [content] en reposo, sin la entrada animada de los módulos. */
-    private fun setAtRest(content: @Composable () -> Unit) {
-        composeRule.setContent {
-            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
-                content()
-            }
-        }
-    }
+    private val ulX4 = SplitCatalog.entry("ul_x4")!!
+    private val pplUl = SplitCatalog.entry("ppl_ul")!!
+    private val broSplit = SplitCatalog.entry("bro_split")!!
 
     @Test
-    fun aplicarLlamaAlAccionDelModulo() {
-        var applied = false
-        setAtRest {
-            SplitCatalogModule(
-                split = ulX4,
-                startDay = 1,
-                isCurrent = false,
-                unavailableReason = null,
-                mode = SplitCatalogMode.BROWSE,
-                selected = false,
-                onApply = { applied = true },
-                onToggle = {},
-            )
+    fun tocarLaTarjetaLlamaALaAccion() {
+        var opened = false
+        composeRule.setContent {
+            SplitCatalogCard(entry = ulX4, startDay = 1, mode = SplitCatalogMode.BROWSE, selected = false, onClick = { opened = true })
         }
         composeRule.onNodeWithTag("split_aplicar_ul_x4").performClick()
-        assertTrue(applied)
+        assertTrue(opened)
     }
 
     @Test
-    fun elModuloEnteroAbreLaHojaSinBotonesDentro() {
-        var applied = false
-        setAtRest {
-            SplitCatalogModule(
-                split = ulX4,
-                startDay = 1,
-                isCurrent = false,
-                unavailableReason = null,
-                mode = SplitCatalogMode.BROWSE,
-                selected = false,
-                onApply = { applied = true },
-                onToggle = {},
-            )
+    fun laTarjetaTraeDescripcionRecomendadoYEtiquetas() {
+        composeRule.setContent {
+            SplitCatalogCard(entry = ulX4, startDay = 1, mode = SplitCatalogMode.BROWSE, selected = false, onClick = {})
         }
-        // Sin «Aplicar» ni icono de información: el módulo es el botón, y tocar su nombre lo abre.
+        composeRule.onNodeWithText(ulX4.name).assertExists()
+        composeRule.onNodeWithText(ulX4.description).assertExists()
+        composeRule.onNodeWithText("RECOMENDADO KPKN").assertExists()
+        composeRule.onNodeWithText("4 días").assertExists()
+        composeRule.onNodeWithText(ulX4.levelLabel).assertExists()
+        // Sin radio ni botones dentro: la tarjeta entera es el botón.
         composeRule.onNodeWithText("Aplicar").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Qué es ${ulX4.name}").assertDoesNotExist()
-        composeRule.onNodeWithText(ulX4.name).performClick()
-        assertTrue(applied)
+    }
+
+    @Test
+    fun unRepartoQuePideOtroNumeroDeDiasAvisaEnLaTarjeta() {
+        composeRule.setContent {
+            SplitCatalogCard(entry = pplUl, startDay = 1, mode = SplitCatalogMode.BROWSE, selected = false, onClick = {}, needsOtherDays = 4)
+        }
+        composeRule.onNodeWithText("Necesita 5 días y tu semana tiene 4. Al elegirlo, el reparto propone los días.").assertExists()
     }
 
     @Test
     fun enCompararDosRepartosHabilitanCompararDos() {
-        setAtRest { CompareHost(catalog = listOf(ulX4, pplUl, pplX6)) }
+        composeRule.setContent { CatalogHost(mode = SplitCatalogMode.COMPARE) }
         composeRule.onNodeWithText("Elige dos repartos").assertIsNotEnabled()
         composeRule.onNodeWithText(ulX4.name).performClick()
         composeRule.onNodeWithText("Elige dos repartos").assertIsNotEnabled()
@@ -105,70 +84,52 @@ class SplitCatalogModuleTest {
 
     @Test
     fun filtrarPorEtiquetaDejaSoloLosSuyos() {
-        setAtRest { TagHost(catalog = listOf(pplX6, broSplit)) }
+        composeRule.setContent { CatalogHost(mode = SplitCatalogMode.BROWSE) }
         composeRule.onNodeWithText(broSplit.name).assertExists()
-        composeRule.onNodeWithText("Alta frecuencia").performClick()
-        composeRule.onNodeWithText(pplX6.name).assertExists()
+        composeRule.onNodeWithText("Recomendado KPKN").performClick()
+        composeRule.onNodeWithText(ulX4.name).assertExists()
         composeRule.onNodeWithText(broSplit.name).assertDoesNotExist()
     }
 
-    /** Página en modo comparar con el estado real de los elegidos: cada toque añade o quita, y un tercero sustituye al primero. */
-    @Composable
-    private fun CompareHost(catalog: List<SplitTemplate>) {
-        var ids by remember { mutableStateOf(listOf<String>()) }
-        SplitCatalogScreen(
-            current = null,
-            startDay = 1,
-            query = "",
-            onQueryChange = {},
-            selectedTag = null,
-            onSelectTag = {},
-            splits = catalog,
-            customSplit = null,
-            unavailableReason = { null },
-            isCurrent = { false },
-            mode = SplitCatalogMode.COMPARE,
-            selectedIds = ids,
-            onBack = null,
-            onToggleCompareMode = {},
-            onToggleMultiMode = {},
-            onApply = {},
-            onToggleSelect = { split ->
-                ids = when {
-                    split.id in ids -> ids - split.id
-                    ids.size >= 2 -> ids.drop(1) + split.id
-                    else -> ids + split.id
-                }
-            },
-            onEditCustom = {},
-            onApplyCustom = {},
-            onCompare = {},
-            onApplySelected = {},
-        )
+    @Test
+    fun elFiltroPorDiasAgrupaLosQueEncajan() {
+        val view = SplitCatalog.view(SplitCatalogFilter(days = 4), haveDays = 4)
+        assertEquals(listOf("Encajan con tus 4 días"), view.groups.map { it.title })
+        assertTrue(view.groups.single().entries.all { it.trainingDays == 4 })
     }
 
-    /** Página con el filtro de etiquetas real: la lista que se pinta es la que deja [filterSplitCatalog] con la etiqueta elegida. */
+    /** La página con el estado real del filtro y de lo elegido (cada toque añade o quita; un tercero sustituye al primero en comparar). */
     @Composable
-    private fun TagHost(catalog: List<SplitTemplate>) {
+    private fun CatalogHost(mode: SplitCatalogMode) {
         var tag by remember { mutableStateOf<SplitTag?>(null) }
+        var ids by remember { mutableStateOf(listOf<String>()) }
+        val view = SplitCatalog.view(SplitCatalogFilter(tag = tag), haveDays = null)
         SplitCatalogScreen(
-            current = null,
+            now = null,
+            nowWeekLabel = "semana 5",
+            haveDays = null,
             startDay = 1,
             query = "",
             onQueryChange = {},
             selectedTag = tag,
             onSelectTag = { tag = it },
-            splits = filterSplitCatalog(catalog, query = "", tag = tag),
+            daysFilter = null,
+            onDaysFilter = {},
+            groups = view.groups,
             customSplit = null,
-            unavailableReason = { null },
-            isCurrent = { false },
-            mode = SplitCatalogMode.BROWSE,
-            selectedIds = emptyList(),
+            mode = mode,
+            selectedIds = ids,
             onBack = null,
             onToggleCompareMode = {},
             onToggleMultiMode = {},
-            onApply = {},
-            onToggleSelect = {},
+            onOpen = {},
+            onToggleSelect = { entry ->
+                ids = when {
+                    entry.id in ids -> ids - entry.id
+                    ids.size >= 2 -> ids.drop(1) + entry.id
+                    else -> ids + entry.id
+                }
+            },
             onEditCustom = {},
             onApplyCustom = {},
             onCompare = {},

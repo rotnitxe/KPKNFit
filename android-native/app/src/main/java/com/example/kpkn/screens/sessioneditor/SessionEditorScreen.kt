@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,6 +29,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.lazy.LazyItemScope
+import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
+import com.example.kpkn.screens.sessioneditor.components.LocalEdListDragging
+import com.example.kpkn.screens.sessioneditor.design.edAutoScrollDelta
+import com.example.kpkn.ui.design.depth.KpknGradient
+import com.example.kpkn.ui.design.depth.kpknGradient
+import com.example.kpkn.screens.sessioneditor.frame.EdMotion
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
@@ -85,12 +94,16 @@ import java.util.UUID
 
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorSheets
+import com.example.kpkn.screens.sessioneditor.components.assistant.AsRulesActions
+import com.example.kpkn.screens.sessioneditor.components.assistant.AssistantCallbacks
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBlockNotice
+import com.example.kpkn.screens.sessioneditor.frame.FrameAddActions
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBar
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameBottomBarHeight
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameHeader
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBar
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBarHeight
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekSheet
 import com.example.kpkn.screens.sessioneditor.frame.adjacentWeekDay
 import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
@@ -236,6 +249,11 @@ fun SessionEditorScreen(
 
     val hazeState = remember { HazeState() }
 
+    // Pulido v1 · cardio del editor: los avisos de la tarjeta de cardio (plantilla aplicada, bloque duplicado…) salen en la misma snackbar.
+    LaunchedEffect(viewModel) {
+        com.example.kpkn.screens.sessioneditor.components.CardioMessages.flow.collect { viewModel.showCardioMessage(it) }
+    }
+
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
@@ -276,7 +294,14 @@ fun SessionEditorScreen(
     val density = LocalDensity.current
     // La lista deja sitio para la isla inferior y para la barra de gestos, para que no tape el último elemento.
     val navigationBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val contentBottomPadding = navigationBarBottom + SessionEditorFrameBottomBarHeight + 24.dp
+    // Pulido v1 · EDITOR · A2: 128 dp de margen inferior en el lienzo (`.ed-scroll`): la barra (12 + 64) y 42 dp libres encima.
+    val contentBottomPadding = navigationBarBottom + SessionEditorFrameBottomBarHeight + 54.dp
+    // Arriba, igual: la fila superior (barra de estado + islas de vidrio, y el aviso de guardado si lo hay) flota sobre la lista, que pasa
+    // por debajo. Mientras no se haya medido la fila, el hueco es la barra de estado + 56 dp; después, lo que mida de verdad.
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    var topOverlayPx by remember { mutableIntStateOf(0) }
+    // Pulido v1 · EDITOR · A2: el lienzo deja 12 dp entre la isla y el principio del contenido (`.ed-scroll{padding-top:104px}` con la isla a 36 + 56).
+    val listTopPadding = maxOf(statusBarTop + SessionEditorFrameTopBarHeight + 8.dp, with(density) { topOverlayPx.toDp() }) + 12.dp
     val fabBottomPadding = editorSpacing.fabBottomPadding
     val exerciseInfoById = catalogExerciseIndex()
 
@@ -409,7 +434,12 @@ fun SessionEditorScreen(
     val exerciseDropTargetPartId = dragUi.exerciseDropTargetPartId
     val exerciseDropTargetIndex = dragUi.exerciseDropTargetIndex
     val exerciseDropOutOfRange = dragUi.exerciseDropOutOfRange
-    var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
+    var lazyColumnWindowBoundsRaw by remember { mutableStateOf<Rect?>(null) }
+    // Ventana útil de la lista: sin el hueco superior que ocupa la fila de vidrio, porque `LazyListItemInfo.offset` cuenta desde ahí
+    // (el padding superior no entra en el offset) y el auto-scroll del arrastre no debe activarse bajo las islas.
+    val lazyColumnWindowBounds: Rect? = lazyColumnWindowBoundsRaw?.let { raw ->
+        Rect(raw.left, raw.top + with(density) { listTopPadding.toPx() }, raw.right, raw.bottom)
+    }
 
     fun currentListGeometry(): Map<String, Rect> {
         val windowBounds = lazyColumnWindowBounds ?: return emptyMap()
@@ -457,7 +487,14 @@ fun SessionEditorScreen(
         )
     }
 
-    fun endExerciseDrag() {
+    // Pulido v1 · EDITOR · A2: al soltar, la ficha se asienta en el hueco (0,34 s, resorte) y solo entonces se mueve el ejercicio.
+    val settleProgress = remember { Animatable(0f) }
+    var settling by remember { mutableStateOf(false) }
+    var settleFrom by remember { mutableStateOf(Offset.Zero) }
+    var settleTo by remember { mutableStateOf(Offset.Zero) }
+    val reducedMotionForDrag = wizardReducedMotion()
+
+    fun commitExerciseDrag() {
         val activeSession = session ?: return
         val result = dragController.endExerciseDrag(activeSession) { fromPartId, exerciseId, toPartId, toIndex ->
             viewModel.moveExerciseToPart(
@@ -476,6 +513,27 @@ fun SessionEditorScreen(
             scope.launch {
                 snackbarHostState.showKpknSnackbar("Zona no válida", SnackbarType.DANGER)
             }
+        }
+    }
+
+    fun endExerciseDrag() {
+        if (settling) return
+        val slot = dragController.dragSlotRect
+        val start = dragController.dragStartExerciseRect
+        val hasTarget = dragController.exerciseDropTargetIndex != null && !dragController.exerciseDropOutOfRange
+        if (slot == null || start == null || !hasTarget || reducedMotionForDrag) {
+            commitExerciseDrag()
+            return
+        }
+        settling = true
+        settleFrom = dragController.draggingExerciseOffset
+        settleTo = Offset(0f, slot.top - start.top)
+        scope.launch {
+            // pulido:transicion ed-T18 .ed-list.drag .ed-ex.settle transform 0,34 s --ed-spring (ed-J36, ed-J37)
+            settleProgress.snapTo(0f)
+            settleProgress.animateTo(1f, tween(durationMillis = 340, easing = EdMotion.Spring))
+            commitExerciseDrag()
+            settling = false
         }
     }
 
@@ -607,18 +665,14 @@ fun SessionEditorScreen(
                 delay(16)
                 continue
             }
-            val thresholdPx = with(density) { 96.dp.toPx() }
-            val scrollSpeedPx = with(density) { 18.dp.toPx() }
             val canScroll = listState.layoutInfo.totalItemsCount > 0
             if (!canScroll) {
                 delay(16)
                 continue
             }
-            val delta: Float = when {
-                pointerY < viewport.top + thresholdPx -> -scrollSpeedPx
-                pointerY > viewport.bottom - thresholdPx - with(density) { fabBottomPadding.toPx() } -> scrollSpeedPx
-                else -> 0f
-            }
+            // pulido:movimiento ed-J31 ed-J35 autoscroll del lienzo: zonas de 150 dp arriba y 170 abajo, hasta 16 dp por cuadro, más rápido cuanto más cerca del borde
+            val rawBounds = lazyColumnWindowBoundsRaw
+            val delta: Float = if (rawBounds == null) 0f else edAutoScrollDelta(pointerY, rawBounds.top, rawBounds.bottom, density.density)
             if (delta != 0f) {
                 var consumed = 0f
                 listState.scroll { consumed = scrollBy(delta) }
@@ -676,18 +730,28 @@ fun SessionEditorScreen(
         val sessionDays = remember(uiState.siblingSessions) { uiState.siblingSessions.mapNotNull { it.dayOfWeek }.toSet() }
         val previousDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = -1)
         val nextDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = 1)
+        // Pulido v1 · EDITOR · A2: mientras un borrado espera su «Deshacer», los minutos y las fichas ya cuentan sin ese ejercicio (bajan al borrar y
+        // suben al deshacer), aunque el ejercicio siga en la sesión durante los 5 s del aviso.
+        val pendingRemovalId = uiState.pendingExerciseRemoval?.exerciseId
+        val statsSession = remember(session, pendingRemovalId) {
+            if (pendingRemovalId == null) session else session.withoutExercise(pendingRemovalId)
+        }
+        val statsExercises = remember(statsSession) { statsSession.allExercises() }
+        val pendingMinutes = remember(statsSession, pendingRemovalId) {
+            if (pendingRemovalId == null) null else sessionEditorDurationMinutes(statsSession)
+        }
         // La duración sale de la misma fuente que el FAB de tiempo de antes (SE9/SE12): sin ejercicios, no hay minutos.
         val timeMinutes = sessionTimeFabMinutes(
-            hasExercises = allExercisesForUi.isNotEmpty(),
-            breakdownMinutes = uiState.sessionTimeBreakdown?.totalMinutes,
+            hasExercises = statsExercises.isNotEmpty(),
+            breakdownMinutes = pendingMinutes ?: uiState.sessionTimeBreakdown?.totalMinutes,
             fallbackMinutes = uiState.estimatedDurationMinutes,
         )
         // Una sesión solo de cardio no cuenta series (ED-A · A2b): «2 ejercicios · ≈ 42 min».
         val summaryChips = sessionFrameSummaryChips(
-            exercises = allExercisesForUi.size,
-            sets = session.workingSetCount(),
+            exercises = statsExercises.size,
+            sets = statsSession.workingSetCount(),
             minutes = timeMinutes,
-            showSets = !(allExercisesForUi.isNotEmpty() && allExercisesForUi.all { it.isCardio }),
+            showSets = !(statsExercises.isNotEmpty() && statsExercises.all { it.isCardio }),
         )
 
         // Cambio de día: el contenido nuevo entra deslizándose desde el lado del día (220 ms); con movimiento reducido, un fundido.
@@ -711,8 +775,12 @@ fun SessionEditorScreen(
                 slideAlpha.snapTo(0f)
                 slideAlpha.animateTo(1f, tween(durationMillis = 120))
             } else {
-                slideX.snapTo(if (slideForward) listWidthPx.toFloat() else -listWidthPx.toFloat())
-                slideX.animateTo(0f, tween(durationMillis = 220, easing = FastOutSlowInEasing))
+                // pulido:animacion ed-J11 el contenido entra 240 ms con --ed-ease desde 40 dp del lado del día y fundiéndose (`sc.animate(...)`)
+                val travel = with(density) { 40.dp.toPx() }
+                slideAlpha.snapTo(0f)
+                slideX.snapTo(if (slideForward) travel else -travel)
+                launch { slideAlpha.animateTo(1f, tween(durationMillis = 240, easing = EdMotion.Standard)) }
+                slideX.animateTo(0f, tween(durationMillis = 240, easing = EdMotion.Standard))
             }
         }
 
@@ -728,51 +796,23 @@ fun SessionEditorScreen(
             return true
         }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            SessionEditorFrameTopBar(
-                dayLabel = frameDayWeekLabel(
-                    day = currentDay,
-                    // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
-                    weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
-                        frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
-                    } else {
-                        null
-                    },
-                    sessionName = session.name,
-                ),
-                forward = slideForward,
-                canGoPrevious = previousDay != null,
-                canGoNext = nextDay != null,
-                onBack = ::exitEditor,
-                onPrevious = { goToSessionDay(previousDay) },
-                onNext = { goToSessionDay(nextDay) },
-                onOpenWeek = { showWeekSheet = true },
-                onTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
-                onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
-            )
-            // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
-            autoSaveBlock?.let { block ->
-                SessionEditorFrameBlockNotice(
-                    message = block.message,
-                    onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .imePadding()
-                        .onSizeChanged { listWidthPx = it.width }
-                        .graphicsLayer {
-                            translationX = slideX.value
-                            alpha = slideAlpha.value
-                        }
-                        .hazeSource(state = hazeState)
-                        .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
-                    contentPadding = PaddingValues(bottom = contentBottomPadding),
-                ) {
+        // La lista ocupa toda la pantalla y pasa POR DEBAJO de la fila superior (islas de vidrio con desenfoque real): la lista es la
+        // fuente `hazeSource` y la fila superior, su hermana dibujada después. El primer elemento queda libre gracias al padding superior.
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .onSizeChanged { listWidthPx = it.width }
+                    .graphicsLayer {
+                        translationX = slideX.value
+                        alpha = slideAlpha.value
+                    }
+                    .hazeSource(state = hazeState)
+                    .onGloballyPositioned { lazyColumnWindowBoundsRaw = it.boundsInWindow() },
+                contentPadding = PaddingValues(top = listTopPadding, bottom = contentBottomPadding),
+            ) {
                     // Índice 0: la cabecera. La lista va después, así que los índices de auto-scroll no cambian.
                     item {
                         SessionEditorFrameHeader(
@@ -787,7 +827,13 @@ fun SessionEditorScreen(
                         )
                     }
             items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
+                CompositionLocalProvider(LocalEdListDragging provides (draggingExerciseId != null)) {
                 SessionEditorListItem(
+                    itemModifier = Modifier.animateItem(
+                        fadeInSpec = tween(durationMillis = 260, easing = EdMotion.Standard),
+                        placementSpec = tween(durationMillis = 260, easing = EdMotion.Standard),
+                        fadeOutSpec = tween(durationMillis = 200, easing = EdMotion.Ease),
+                    ),
                     listItem = listItem,
                     session = session,
                     groupedParts = groupedParts,
@@ -825,12 +871,71 @@ fun SessionEditorScreen(
                     projectedShiftFor = ::projectedShiftFor,
                     viewModel = viewModel,
                 )
+                }
             }
-        }
+            }
+
+            // Pulido v1 · EDITOR · A2: el único velo es un degradado negro corto detrás de la barra de estado (`.ed-topfade`, 44 dp), para que el reloj y
+            // los iconos del sistema se lean siempre; la isla de vidrio no lleva velo propio.
+            // pulido:degradado ed-G02 .ed-topfade linear-gradient(#000 20%, #0000)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(statusBarTop + 16.dp)
+                    .zIndex(240f)
+                    .kpknGradient(KpknGradient.VeloNegroSale1),
+            )
+
+            // Fila superior: UNA isla de vidrio (atrás · día · ⋯) y, debajo, el aviso fijo de guardado bloqueado. Flotan sobre la lista,
+            // que pasa por debajo; la altura que miden fija el hueco superior de la lista.
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .zIndex(250f)
+                    .onSizeChanged { topOverlayPx = it.height },
+            ) {
+                SessionEditorFrameTopBar(
+                    dayLabel = frameDayWeekLabel(
+                        day = currentDay,
+                        // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
+                        weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
+                            frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
+                        } else {
+                            null
+                        },
+                        sessionName = session.name,
+                    ),
+                    forward = slideForward,
+                    canGoPrevious = previousDay != null,
+                    canGoNext = nextDay != null,
+                    onBack = ::exitEditor,
+                    onPrevious = { goToSessionDay(previousDay) },
+                    onNext = { goToSessionDay(nextDay) },
+                    onOpenWeek = { showWeekSheet = true },
+                    onTransfer = { viewModel.openSheet(SessionEditorSheet.TRANSFER) },
+                    onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
+                    hazeState = hazeState,
+                    weekOpen = showWeekSheet,
+                )
+                // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
+                autoSaveBlock?.let { block ->
+                    SessionEditorFrameBlockNotice(
+                        message = block.message,
+                        onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
 
-        // Barra inferior fija: Añadir · Asistente · Reglas (ER1a §2.3). Va sobre la lista, con el vidrio que lee la lista.
+        // Barra inferior fija (Pulido v1 · EDITOR · A2): tiempo · Añadir partido · Asistente. «Reglas» es ahora la 4.ª pestaña del Asistente y
+        // tocar los minutos abre Asistente › Reglas › Tiempo. Va sobre la lista, con el vidrio que lee la lista; baja al 38 % al arrastrar una fila.
+        val hasStrengthSpace = session.exercises.isNotEmpty() ||
+            groupedParts.any { !it.isCardioPart() } ||
+            uiState.strengthSpaceCommitted
+        val hasCardioSpace = session.hasCardioPart() || uiState.cardioSpaceCommitted
         SessionEditorFrameBottomBar(
             hazeState = hazeState,
             suggestionCount = uiState.assistantReport?.ajustes?.size ?: 0,
@@ -838,9 +943,18 @@ fun SessionEditorScreen(
             limitMinutes = session.targetDurationMinutes,
             onAdd = { viewModel.openPickerForUncategorized() },
             onAssistant = ::openAssistantSheet,
-            // ED-A · A1: el anillo del tiempo abre la pestaña de tiempo; «Reglas», la de reglas.
-            onRules = { viewModel.openRulesSheet(initialTab = 0) },
-            onTime = { viewModel.openRulesSheet(initialTab = 1) },
+            onTime = { viewModel.openAssistantRulesTime() },
+            dimmed = draggingExerciseId != null || draggingPartId != null,
+            changeKey = session.id,
+            hasStrengthSpace = hasStrengthSpace,
+            hasCardioSpace = hasCardioSpace,
+            addActions = FrameAddActions(
+                onExercise = { viewModel.openPickerForUncategorized() },
+                onCardio = { viewModel.openCardioPicker(session.parts.firstOrNull { it.isCardioPart() }?.id) },
+                onGroup = viewModel::addPart,
+                onCardioSpace = viewModel::createCardioSpace,
+                onStrengthSpace = viewModel::commitStrengthSpace,
+            ),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
@@ -910,10 +1024,27 @@ fun SessionEditorScreen(
         }
         val previewIsGroup = dragController.draggingExerciseScope == ExerciseDragScope.BLOCK && previewSupersetCount >= 2
         if (previewExercise != null && previewRect != null) {
+            // El hueco punteado donde caería la fila (`.ed-slot`), debajo de la ficha levantada.
+            DragSlotHole(
+                slot = dragController.dragSlotRect,
+                rootBounds = editorRootBounds,
+                modifier = Modifier.zIndex(499f),
+            )
             DragLiftPreview(
                 exercise = previewExercise,
+                exerciseInfo = resolveCatalogInfoForDisplay(previewExercise, exerciseInfoById),
                 rect = previewRect,
-                offsetProvider = { dragController.draggingExerciseOffset },
+                offsetProvider = {
+                    if (settling) {
+                        Offset(
+                            settleFrom.x + (settleTo.x - settleFrom.x) * settleProgress.value,
+                            settleFrom.y + (settleTo.y - settleFrom.y) * settleProgress.value,
+                        )
+                    } else {
+                        dragController.draggingExerciseOffset
+                    }
+                },
+                settled = settling,
                 rootBounds = editorRootBounds,
                 modifier = Modifier.zIndex(500f),
                 titleOverride = if (previewIsGroup) "Superserie" else null,
@@ -956,39 +1087,81 @@ fun SessionEditorScreen(
                 uiState = uiState,
                 templates = allTemplates,
                 hazeState = hazeState,
-                onDismiss = viewModel::closeSheet,
-                onApplyAssistantSuggestion = { suggestionId, detailIds ->
-                    viewModel.applyAssistantSuggestion(suggestionId, detailIds)
-                    scope.launch {
-                        snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-                    }
-                },
-                onTemplateSearchChange = viewModel::setTemplateSearchQuery,
-                onSelectTemplate = viewModel::selectTemplate,
-                onConfirmApplyTemplate = viewModel::confirmTemplateApply,
-                onCancelTemplateApply = viewModel::cancelTemplateApply,
+                exerciseIndex = viewModel.exerciseIndex,
                 archivedUserTemplates = archivedUserTemplates,
                 templatesReady = templatesReady,
                 corruptTemplateIds = corruptTemplateIds,
-                onArchiveUserTemplate = viewModel::archiveUserTemplate,
-                onRestoreUserTemplate = viewModel::restoreUserTemplate,
-                onDeleteUserTemplate = viewModel::deleteUserTemplate,
-                onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
-                    viewModel.updateUserTemplateMetadataNow(
-                        template = template,
-                        name = name,
-                        description = description,
-                        difficulty = difficulty,
-                        focusCategory = focus,
-                        durationClass = duration,
-                        splitIds = splitIds,
-                        splitDayLabels = dayLabels,
-                        autoGenerationEligible = autoGeneration,
-                    )
-                },
-                onSaveCurrentTemplate = { name, description ->
-                    viewModel.saveCurrentSessionAsTemplateNow(name, description)
-                },
+                callbacks = AssistantCallbacks(
+                    onDismiss = viewModel::closeSheet,
+                    onApplySuggestion = { suggestion, detailIds, position -> viewModel.applyAssistantSuggestionUndoable(suggestion, detailIds, position) },
+                    onDismissSuggestion = viewModel::dismissAssistantSuggestion,
+                    onUndoOutcome = viewModel::undoAssistantOutcome,
+                    onTemplateSearchChange = viewModel::setTemplateSearchQuery,
+                    onSelectTemplate = viewModel::selectTemplate,
+                    onConfirmApplyTemplate = viewModel::confirmTemplateApply,
+                    onCancelTemplateApply = viewModel::cancelTemplateApply,
+                    onUndoTemplateApply = viewModel::undoTemplateApply,
+                    onFinishTemplateApply = viewModel::finishTemplateApply,
+                    onArchiveUserTemplate = viewModel::archiveUserTemplate,
+                    onRestoreUserTemplate = viewModel::restoreUserTemplate,
+                    onDeleteUserTemplate = viewModel::deleteUserTemplate,
+                    onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
+                        viewModel.updateUserTemplateMetadataNow(
+                            template = template,
+                            name = name,
+                            description = description,
+                            difficulty = difficulty,
+                            focusCategory = focus,
+                            durationClass = duration,
+                            splitIds = splitIds,
+                            splitDayLabels = dayLabels,
+                            autoGenerationEligible = autoGeneration,
+                        )
+                    },
+                    onSaveCurrentTemplate = { name, description -> viewModel.saveCurrentSessionAsTemplateNow(name, description) },
+                    onRefreshTimeCoach = viewModel::refreshTimeCoachSuggestions,
+                    onConsumeEntry = viewModel::consumeAssistantEntry,
+                    rules = AsRulesActions(
+                        onApplyRules = viewModel::applyRuleDefaultsToSession,
+                        onRuleDefaultsChange = { partId, setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew, intensityType ->
+                            viewModel.updateRuleDefaults(
+                                partId = partId,
+                                setCount = setCount,
+                                reps = reps,
+                                rpe = rpe,
+                                normalRestSeconds = normalRest,
+                                betweenSidesRestSeconds = sideRest,
+                                supersetBetweenRestSeconds = supersetBetween,
+                                supersetRoundRestSeconds = supersetRound,
+                                applyToNewItems = applyToNew,
+                                intensityType = intensityType,
+                            )
+                        },
+                        onPatchRuleDefaults = viewModel::patchRuleDefaults,
+                        onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
+                            viewModel.updateRuleLimits(maxRPE = maxRPE, maxExercisesPerMuscle = maxExercisesPerMuscle)
+                        },
+                        onAdvancedRuleLimitsChange = { maxSessionVolume, maxWeeklyVolume, maxPattern, rigid ->
+                            viewModel.updateAdvancedRuleLimits(
+                                maxVolumePerMuscleSession = maxSessionVolume,
+                                maxVolumePerMuscleWeekly = maxWeeklyVolume,
+                                maxSamePatternPerSession = maxPattern,
+                                rigidLimits = rigid,
+                            )
+                        },
+                        onApplyGlobalIntensityAdjustment = viewModel::applyGlobalIntensityAdjustment,
+                        setTargetDuration = viewModel::setTargetDuration,
+                        setPartTargetDuration = viewModel::setPartTargetDuration,
+                        setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
+                        onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
+                        onApplyRuleTemplate = { templateId, partId -> viewModel.applyRuleTemplate(templateId, partId) },
+                        onSaveRuleTemplate = viewModel::saveCurrentRulesAsTemplate,
+                        onRenameRuleTemplate = viewModel::renameRuleTemplate,
+                        onDeleteRuleTemplate = viewModel::deleteRuleTemplate,
+                        onApplyTimeCoachSuggestion = viewModel::applyTimeCoachSuggestion,
+                        onDismissTimeCoachSuggestion = viewModel::dismissTimeCoachSuggestion,
+                    ),
+                ),
             )
         }
     }
@@ -1027,30 +1200,6 @@ fun SessionEditorScreen(
         },
         onToggleExerciseSelection = viewModel::toggleExerciseSelection,
         onClearExerciseSelection = viewModel::clearExerciseSelection,
-        onApplyRules = { partId ->
-            val outcome = viewModel.applyRuleDefaultsToSession(partId)
-            scope.launch {
-                when (outcome) {
-                    is ApplyRulesOutcome.Applied -> {
-                        val target = if (partId == null) "la sesión" else "el grupo"
-                        val noun = if (outcome.exercisesChanged == 1) "ejercicio" else "ejercicios"
-                        snackbarHostState.showKpknSnackbar(
-                            "Ajustes por defecto aplicados a $target (${outcome.exercisesChanged} $noun)",
-                            SnackbarType.SUCCESS,
-                        )
-                    }
-                    ApplyRulesOutcome.NoChanges -> snackbarHostState.showKpknSnackbar(
-                        "Sin cambios: las tarjetas ya tienen estos valores",
-                        SnackbarType.SUGGESTION,
-                    )
-                    is ApplyRulesOutcome.ScopeNotFound -> snackbarHostState.showKpknSnackbar(
-                        "Ese grupo no existe en esta sesión",
-                        SnackbarType.DANGER,
-                    )
-                }
-            }
-            outcome
-        },
         onCloneCurrentToTargets = { targetKeys, selectedExerciseIds, applyMode ->
             // «Se copia ahora»: al confirmar, la copia va al programa en el acto (no «al guardar»).
             val staged = viewModel.cloneCurrentSessionToTargets(targetKeys, selectedExerciseIds, applyMode)
@@ -1102,12 +1251,6 @@ fun SessionEditorScreen(
                 }
             }
         },
-        onApplyAssistantSuggestion = { suggestionId, detailIds ->
-            viewModel.applyAssistantSuggestion(suggestionId, detailIds)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Ajuste aplicado", SnackbarType.SUCCESS)
-            }
-        },
         onDiscardSwitch = if (uiState.pendingSessionSwitchId != null) viewModel::discardAndSwitchPendingSession else null,
         onWarmupSave = { exerciseId, sets ->
             val partId = session.parts.firstOrNull { part -> part.exercises.any { it.id == exerciseId } }?.id
@@ -1115,40 +1258,6 @@ fun SessionEditorScreen(
             viewModel.closeSheet()
         },
         onRestoreSnapshot = viewModel::restoreDraftSnapshot,
-        onRuleDefaultsChange = { partId, setCount, reps, rpe, normalRest, sideRest, supersetBetween, supersetRound, applyToNew, intensityType ->
-            viewModel.updateRuleDefaults(
-                partId = partId,
-                setCount = setCount,
-                reps = reps,
-                rpe = rpe,
-                normalRestSeconds = normalRest,
-                betweenSidesRestSeconds = sideRest,
-                supersetBetweenRestSeconds = supersetBetween,
-                supersetRoundRestSeconds = supersetRound,
-                applyToNewItems = applyToNew,
-                intensityType = intensityType,
-            )
-        },
-        onRuleLimitsChange = { maxRPE, maxExercisesPerMuscle ->
-            viewModel.updateRuleLimits(maxRPE = maxRPE, maxExercisesPerMuscle = maxExercisesPerMuscle)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Límites guardados", SnackbarType.SUCCESS)
-            }
-        },
-        onAdvancedRuleLimitsChange = { maxSessionVolume, maxWeeklyVolume, maxPattern, rigid ->
-            viewModel.updateAdvancedRuleLimits(
-                maxVolumePerMuscleSession = maxSessionVolume,
-                maxVolumePerMuscleWeekly = maxWeeklyVolume,
-                maxSamePatternPerSession = maxPattern,
-                rigidLimits = rigid,
-            )
-        },
-        onApplyGlobalIntensityAdjustment = { mode, value, muscles ->
-            viewModel.applyGlobalIntensityAdjustment(mode, value, muscles)
-            scope.launch {
-                snackbarHostState.showKpknSnackbar("Modificación global aplicada", SnackbarType.SUCCESS)
-            }
-        },
         onQuickActionOpenPicker = viewModel::triggerQuickActionOpenPicker,
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
@@ -1171,6 +1280,7 @@ fun SessionEditorScreen(
         onAddCardio = viewModel::addCardioToPart,
         onQuickActionDelete = viewModel::triggerQuickActionDelete,
         onQuickActionDuplicate = viewModel::duplicateQuickActionExercise,
+        onToggleCardioPlacement = viewModel::toggleCardioPlacement,
         onQuickActionCreateSuperset = viewModel::triggerQuickActionCreateSuperset,
         onQuickActionManageSuperset = viewModel::triggerQuickActionManageSuperset,
         onLinkExerciseRelativeTo = viewModel::linkExerciseRelativeTo,
@@ -1212,19 +1322,6 @@ fun SessionEditorScreen(
         onSaveCurrentTemplate = { name, description ->
             viewModel.saveCurrentSessionAsTemplateNow(name, description)
         },
-        setTargetDuration = viewModel::setTargetDuration,
-        setPartTargetDuration = viewModel::setPartTargetDuration,
-        setExerciseTargetDuration = viewModel::setExerciseTargetDuration,
-        onDistributeTargetAcrossParts = viewModel::distributeTargetDurationAcrossParts,
-        onApplyRuleTemplate = { templateId, partId -> viewModel.applyRuleTemplate(templateId, partId) },
-        onSaveRuleTemplate = viewModel::saveCurrentRulesAsTemplate,
-        onRenameRuleTemplate = viewModel::renameRuleTemplate,
-        onDeleteRuleTemplate = viewModel::deleteRuleTemplate,
-        onPatchRuleDefaults = viewModel::patchRuleDefaults,
-        onApplyTimeCoachSuggestion = viewModel::applyTimeCoachSuggestion,
-        onDismissTimeCoachSuggestion = viewModel::dismissTimeCoachSuggestion,
-        onRefreshTimeCoach = viewModel::refreshTimeCoachSuggestions,
-        onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
     // La ficha de un ejercicio de la sesión (ER1f): el mismo cuerpo que la del catálogo, sin «Añadir/Quitar».
@@ -1236,6 +1333,7 @@ fun SessionEditorScreen(
             SessionExerciseDetailSheet(
                 exercise = detailExercise,
                 onDismiss = { editorDetailExerciseId = null },
+                cardioHistory = detailExercise.cardioDetails?.type?.let { uiState.cardioHistoryByType[it] },
             )
         }
     }

@@ -23,11 +23,6 @@
             android:name="com.example.kpkn.debug.NutritionDayStateHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
-        <!-- SOLO DEPURACIÓN: inventario de material con repositorio en memoria. -->
-        <activity
-            android:name="com.example.kpkn.debug.EquipmentHarnessActivity"
-            android:exported="true"
-            android:theme="@style/Theme.KPKN" />
         <!-- SOLO DEPURACIÓN: vista previa de los símbolos de Entreno (lugares e implementos); no se integra. -->
         <activity
             android:name="com.example.kpkn.debug.EntrenoSymbolsPreviewActivity"
@@ -96,6 +91,11 @@
     <activity android:name="com.example.kpkn.debug.CsvExportHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
     <activity android:name="com.example.kpkn.debug.LabelOcrSelfTestActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
     <activity android:name="com.example.kpkn.debug.FoodSearchBenchActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: hoja de calibración de los cimientos de «Pulido v1» (sombras, degradados, vidrio, movimiento) a pantalla completa, para medir en el teléfono lo que Robolectric no pinta; no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.DesignSheetsHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
         <!-- SOLO DEPURACIÓN: vista previa en memoria de la tendencia del peso (módulo «Peso» de Cuerpo y tarjeta «Cuerpo» de Inicio); no se integra. -->
         <activity
             android:name="com.example.kpkn.debug.BodyTrendHarnessActivity"
@@ -117,7 +117,6 @@
     <activity android:name="com.example.kpkn.debug.ExerciseProgressHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.ExerciseSwapHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.MyoRepsPlatesHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
-        <activity android:name="com.example.kpkn.debug.TrainingSettingsHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
 
     </application>
 </manifest>

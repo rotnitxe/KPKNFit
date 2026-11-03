@@ -64,7 +64,7 @@ class SessionEditorFrameIntegrationGeometryTest {
                         )
                         SessionEditorFrameBottomBar(HazeState(), 3, 58, 60,
                             onAdd = { calls += "add" }, onAssistant = { calls += "assistant" },
-                            onRules = { calls += "rules" }, onTime = { calls += "time" },
+                            onTime = { calls += "time" },
                             modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 12.dp, vertical = 12.dp))
                     }
                     if (week) SessionEditorFrameWeekSheet(
@@ -118,27 +118,33 @@ class SessionEditorFrameIntegrationGeometryTest {
         }
     }
 
-    private fun target(node: SemanticsNodeInteraction) {
+    /**
+     * Objetivo táctil de 48 dp como mínimo. Con [touch] se mide el área táctil real (`touchBoundsInRoot`, que incluye el mínimo de 48 dp de
+     * Compose): lo que se ve conserva el tamaño del lienzo (flecha de 44, día de 42) y el dedo cuenta con 48 × 48.
+     */
+    private fun target(node: SemanticsNodeInteraction, minWidth: Float = 48f, touch: Boolean = false) {
         node.assertIsDisplayed()
-        val bounds = node.fetchSemanticsNode().boundsInRoot
-        assertTrue("Objetivo estrecho: $bounds", bounds.width / density >= 48f - 0.01f)
+        val semantics = node.fetchSemanticsNode()
+        val bounds = semanticsBounds(semantics, touch)
+        assertTrue("Objetivo estrecho: $bounds", bounds.width / density >= minWidth - 0.01f)
         assertTrue("Objetivo bajo: $bounds", bounds.height / density >= 48f - 0.01f)
         val screen = rule.onNodeWithTag("frame_geometry_screen").fetchSemanticsNode().boundsInRoot
-        assertTrue("Objetivo fuera: $bounds / $screen", bounds.left >= screen.left - 1f && bounds.right <= screen.right + 1f &&
-            bounds.top >= screen.top - 1f && bounds.bottom <= screen.bottom + 1f)
+        val layout = semantics.boundsInRoot
+        assertTrue("Objetivo fuera: $layout / $screen", layout.left >= screen.left - 1f && layout.right <= screen.right + 1f &&
+            layout.top >= screen.top - 1f && layout.bottom <= screen.bottom + 1f)
     }
 
     private fun frameGeometry(scale: Float, name: String) {
         mount(scale)
-        listOf("Atrás", "Día anterior", "Día siguiente", "Más opciones").forEach {
-            target(rule.onNodeWithContentDescription(it))
-        }
+        listOf("Atrás", "Más opciones").forEach { target(rule.onNodeWithContentDescription(it)) }
+        // Las flechas de día se ven de 44 × 48 dp, como en el lienzo (`.ed-arrow`), y el dedo cuenta con 48 × 48.
+        listOf("Día anterior", "Día siguiente").forEach { target(rule.onNodeWithContentDescription(it), touch = true) }
         target(rule.onNodeWithTag("session_editor_open_week"))
         fullText("Jue · Semana 3")
-        val tags = listOf("time", "add", "assistant", "rules").map { "session_editor_bar_$it" }
+        val tags = listOf("time", "add", "assistant").map { "session_editor_bar_$it" }
         val bounds = tags.map { tag -> target(rule.onNodeWithTag(tag)); rule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot }
         bounds.zipWithNext().forEach { (left, right) -> assertTrue("Acciones solapadas", left.right <= right.left + 1f) }
-        listOf("Añadir", "Asistente", "Reglas").forEach(::fullText)
+        listOf("Añadir", "58 min", "de 60").forEach(::fullText)
         save("a1_$name")
         tags.forEach { rule.onNodeWithTag(it).performClick() }
         rule.onNodeWithContentDescription("Atrás").performClick()
@@ -151,7 +157,7 @@ class SessionEditorFrameIntegrationGeometryTest {
         rule.onNodeWithContentDescription("Más opciones").performClick()
         rule.mainClock.advanceTimeBy(2_000)
         rule.onNodeWithText("Versiones").performClick()
-        assertEquals(listOf("time", "add", "assistant", "rules", "back", "previous", "next", "week", "transfer", "history"), calls)
+        assertEquals(listOf("time", "add", "assistant", "back", "previous", "next", "week", "transfer", "history"), calls)
     }
 
     private fun openWeek() {
@@ -166,7 +172,8 @@ class SessionEditorFrameIntegrationGeometryTest {
         // Los siete días deben verse simultáneamente a360: no hacer scroll horizontal para alcanzarlos.
         val days = (1..7).map { day ->
             val node = rule.onNodeWithTag("session_week_day_$day")
-            target(node)
+            // `.ed-wd` encoge en el lienzo (flex): siete días en 294 dp se ven de 42 dp de ancho por 48 de alto; el área táctil es de 48 × 48.
+            target(node, touch = true)
             node.fetchSemanticsNode().boundsInRoot
         }
         days.zipWithNext().forEach { (left, right) -> assertTrue(left.right <= right.left + 1f) }
@@ -182,18 +189,7 @@ class SessionEditorFrameIntegrationGeometryTest {
         WeekVariant.entries.forEach { variant ->
             val row = rule.onNodeWithTag("session_variant_${variant.name}")
             row.performScrollTo()
-            val badge = rule.onNodeWithTag("session_variant_badge_${variant.name}", useUnmergedTree = true)
-            badge.assertIsDisplayed()
-            val size = badge.fetchSemanticsNode().size
-            assertEquals(22f, size.width / density, 0.01f)
-            assertEquals(22f, size.height / density, 0.01f)
-            val letter = rule.onNode(hasText(variant.name) and hasAnyAncestor(hasTestTag("session_variant_badge_${variant.name}")), useUnmergedTree = true)
-            val style = textLayout(letter).layoutInput.style
-            assertEquals(if (variant == WeekVariant.B) WizardColors.text else WizardColors.text.copy(alpha = 0.62f), style.color)
-            val bounds = badge.fetchSemanticsNode().boundsInRoot
-            val bitmap = bitmap()
-            assertEquals(Color(0xFF1A1A1A).toArgb(), bitmap.getPixel((bounds.left + 2 * density).toInt(), bounds.center.y.toInt()))
-            bitmap.recycle()
+            // Pulido v1 · EDITOR · A2: el lienzo no lleva la letra de la variante; solo el nombre.
             target(row)
             fullText(when (variant) {
                 WeekVariant.A -> "Original"
@@ -272,3 +268,6 @@ class SessionEditorFrameIntegrationGeometryTest {
         image.recycle()
     }
 }
+
+private fun semanticsBounds(node: androidx.compose.ui.semantics.SemanticsNode, touch: Boolean) =
+    if (touch) node.touchBoundsInRoot else node.boundsInRoot

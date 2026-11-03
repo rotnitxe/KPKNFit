@@ -1,0 +1,5 @@
+variante=A ventana=760 dp
+isla: ancho 328.0 alto 112.0 · margen izq 16.0 der 16.0
+banda 1: zona táctil 44.0 (banda 32.0) · arriba 6.0 (12 − 6 = 6)
+banda 2: botón alto 48.0 · arriba 52.0 · abajo 12.0
+alto del roadmap según la medida de la ventana: 112.0.dp

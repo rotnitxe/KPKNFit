@@ -69,7 +69,7 @@ class SessionEditorFrameComposeTest {
     }
 
     @Test
-    fun bottomBarButtonsOpenCatalogAssistantAndRules() {
+    fun bottomBarButtonsOpenCatalogAssistantAndTime() {
         val calls = mutableListOf<String>()
         rule.setContent {
             Box(Modifier.fillMaxSize()) {
@@ -80,7 +80,6 @@ class SessionEditorFrameComposeTest {
                     limitMinutes = 60,
                     onAdd = { calls += "add" },
                     onAssistant = { calls += "assistant" },
-                    onRules = { calls += "rules" },
                     onTime = { calls += "time" },
                     modifier = Modifier.padding(12.dp),
                 )
@@ -88,12 +87,12 @@ class SessionEditorFrameComposeTest {
         }
 
         rule.onNodeWithText("Añadir").performClick()
-        rule.onNodeWithText("Asistente").performClick()
-        rule.onNodeWithText("Reglas").performClick()
-        // ED-A · A1: el anillo del tiempo es un botón aparte («Reglas» ya no abre el tiempo).
+        rule.onNodeWithContentDescription("Asistente, 3 sugerencias").performClick()
+        // Pulido v1 · EDITOR · A2: «Reglas» sale de la barra (es la 4.ª pestaña del Asistente); los minutos abren Asistente › Reglas › Tiempo.
         rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").performClick()
 
-        assertEquals(listOf("add", "assistant", "rules", "time"), calls)
+        assertEquals(listOf("add", "assistant", "time"), calls)
+        rule.onNodeWithText("Reglas").assertDoesNotExist()
     }
 
     @Test
@@ -107,7 +106,6 @@ class SessionEditorFrameComposeTest {
                     limitMinutes = 60,
                     onAdd = {},
                     onAssistant = {},
-                    onRules = {},
                     onTime = {},
                     modifier = Modifier.padding(12.dp),
                 )
@@ -115,7 +113,8 @@ class SessionEditorFrameComposeTest {
         }
         // Los minutos van dentro del anillo; su descripción dice el estimado frente al límite.
         rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").assertExists()
-        rule.onNodeWithText("54").assertExists()
+        rule.onNodeWithText("54 min").assertExists()
+        rule.onNodeWithText("de 60").assertExists()
     }
 
     @Test
@@ -129,13 +128,12 @@ class SessionEditorFrameComposeTest {
                     limitMinutes = 60,
                     onAdd = {},
                     onAssistant = {},
-                    onRules = {},
                     onTime = {},
                     modifier = Modifier.padding(12.dp),
                 )
             }
         }
-        rule.onNodeWithText("Reglas").assertExists()
+        rule.onNodeWithText("0 min").assertExists()
         rule.onNodeWithContentDescription("Tiempo estimado: sin ejercicios").assertExists()
         rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").assertDoesNotExist()
     }

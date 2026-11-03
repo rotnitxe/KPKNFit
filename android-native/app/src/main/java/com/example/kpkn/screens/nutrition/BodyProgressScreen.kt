@@ -18,6 +18,7 @@ import com.example.kpkn.screens.body.design.BodyGoalSheet
 import com.example.kpkn.screens.body.design.BodyInfoSheet
 import com.example.kpkn.screens.body.design.BodyInfoTopic
 import com.example.kpkn.screens.body.design.BodyIsland
+import com.example.kpkn.screens.body.design.BodyNewRecordIsland
 import com.example.kpkn.screens.body.design.BodyRecordDraft
 import com.example.kpkn.screens.body.design.BodyRecordSheet
 import com.example.kpkn.screens.body.design.bodyHistoryItems
@@ -53,6 +54,8 @@ import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.KpknSnackbar
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -87,6 +90,7 @@ fun BodyProgressScreen(
     var showReminderTime by remember { mutableStateOf(false) }
     // Hoja de registro: lo que se escribe y la medición de origen (null si es nueva). El contador rehace la hoja al abrirla.
     var recordDraft by remember { mutableStateOf<BodyRecordDraft?>(null) }
+    var lastSavedId by remember { mutableStateOf<String?>(null) }
     var recordSource by remember { mutableStateOf<BodyHistoryRow?>(null) }
     var recordKey by remember { mutableStateOf(0) }
     val zone = ZoneId.systemDefault()
@@ -96,6 +100,7 @@ fun BodyProgressScreen(
     val snackbarScope = rememberCoroutineScope()
     val contextualBottomBarClearance = 110.dp
     val listState = rememberLazyListState()
+    val bodyHazeState = remember { HazeState() }
     val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val today = LocalDate.now()
@@ -161,7 +166,9 @@ fun BodyProgressScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(KpknSurface.canvas),
+                .background(KpknSurface.canvas)
+                // Fuente del desenfoque de la isla flotante «Nueva medición» (hermana dibujada después), como en Nutrición.
+                .hazeSource(state = bodyHazeState),
         ) {
         LazyColumn(
             state = listState,
@@ -171,11 +178,7 @@ fun BodyProgressScreen(
         ) {
             // Cabecera: es el primer elemento; cuando sale de la vista, aparece la isla.
             item {
-                BodyPageHeader(
-                    topInset = topInset,
-                    onAdd = { openNewRecord() },
-                    addModifier = Modifier.tourAnchor(TourAnchors.BODY_PESAJES),
-                )
+                BodyPageHeader(topInset = topInset)
             }
 
             if (!bodyUiState.loaded) {
@@ -278,6 +281,7 @@ fun BodyProgressScreen(
                     weightUnit = weightUnit,
                     onOpen = { row -> openRecord(row) },
                     onAdd = { openNewRecord() },
+                    newRowId = lastSavedId,
                 )
             }
 
@@ -293,7 +297,17 @@ fun BodyProgressScreen(
             visible = islandVisible,
             title = islandTitle,
             subtitle = islandSubtitle,
-            onAdd = { openNewRecord() },
+        )
+
+        // Isla «Nueva medición»: el mismo componente y la misma posición que «Registrar comida» de Nutrición (sobre la barra inferior de
+        // 64 dp, con 8 dp sobre la barra de gestos y 12 dp de aire).
+        BodyNewRecordIsland(
+            hazeState = bodyHazeState,
+            onClick = { openNewRecord() },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 84.dp),
         )
 
         SnackbarHost(
@@ -371,11 +385,14 @@ fun BodyProgressScreen(
                 source = recordSource,
                 unit = weightUnit,
                 anchorKg = summary.current,
+                history = history,
                 now = LocalDateTime.now(zone),
                 onSave = {
                     val source = recordSource
+                    val sid = bodyRecordSessionId(source) { UUID.randomUUID().toString() }
+                    lastSavedId = sid
                     bodyViewModel.saveBodyRecord(
-                        sessionId = bodyRecordSessionId(source) { UUID.randomUUID().toString() },
+                        sessionId = sid,
                         timestampEpochMs = draft.epochMsFor(source, zone),
                         values = draft.metricValues(),
                         replacing = source?.observations.orEmpty(),

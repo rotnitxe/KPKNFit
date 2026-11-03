@@ -122,6 +122,8 @@ data class Settings(
     /** omnivore | vegetarian | vegan — ajusta proteína recomendada. */
     val nutritionDietaryPreference: String = "omnivore",
     val creatineTracking: CreatineTrackingState = CreatineTrackingState(),
+    /** Mi pila de suplementos (Pulido v1 · SUPLEMENTOS): lo que tomo cada día. Las tomas son registros de comida `sup:<id>`. */
+    val supplementPila: List<SupplementPilaItem> = emptyList(),
 
     val sleepTargetHours: Double = 8.0,
     val smartSleepEnabled: Boolean = false,

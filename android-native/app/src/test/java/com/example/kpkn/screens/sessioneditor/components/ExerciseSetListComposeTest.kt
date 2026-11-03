@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
@@ -115,11 +116,12 @@ class ExerciseSetListComposeTest {
         val set = ExerciseSet(id = "s1", restAfterSeconds = 60)
         renderList(exerciseWith(set), onUpdateSet = { _, transform -> saved = transform(set) })
         openRow("s1")
-        rule.onNodeWithText("Descanso de esta serie").assertExists()
-        rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie").performClick()
+        rule.onNodeWithText("DESCANSO").assertExists()
+        rule.onNodeWithText("Propio").assertExists()
+        rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
         rule.waitForIdle()
         assertEquals(75, saved?.restAfterSeconds)
-        rule.onNodeWithText("Usar descanso del ejercicio").performClick()
+        rule.onNodeWithContentDescription("Usar el descanso del ejercicio").performClick()
         rule.waitForIdle()
         assertEquals(null, saved?.restAfterSeconds)
     }
@@ -136,42 +138,43 @@ class ExerciseSetListComposeTest {
     }
 
     @Test
-    fun unaFilaSeAbreYSoloUnaEstaAbiertaALaVez() {
+    fun siempreHayUnaSerieElegidaYSoloUnaConFoco() {
         renderList(exerciseWith(ExerciseSet(id = "s1", targetReps = 8), ExerciseSet(id = "s2", targetReps = 10)))
-        openRow("s1")
+        // La primera serie ya está elegida al abrir el ejercicio (como en el lienzo) y su foco es el único.
         rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
+        rule.onNodeWithTag("set-focus-s1").assertExists()
         openRow("s2")
         rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(1, it.size) }
-        openRow("s2")
-        rule.onAllNodesWithText("Externa").fetchSemanticsNodes().let { assertEquals(0, it.size) }
+        rule.onNodeWithTag("set-focus-s1").assertDoesNotExist()
+        rule.onNodeWithTag("set-focus-s2").assertExists()
     }
 
     @Test
     fun laFilaDeRepsTieneSusControles() {
-        openedRowShows(TrainingMode.REPS, "Externa", "Reps / rango", "RPE", "RIR", "Fallo")
+        openedRowShows(TrainingMode.REPS, "Externa", "REPETICIONES", "INTENSIDAD", "RIR")
     }
 
     @Test
     fun laFilaDeAmrapTieneSusControles() {
-        openedRowShows(TrainingMode.AMRAP, "Mínimo", "AMRAP", "Externa")
+        openedRowShows(TrainingMode.AMRAP, "REPS MÍN.", "AMRAP", "Externa")
     }
 
-    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps estimadas» (ER2a). */
+    /** Una serie RM sin rango ni RIR (pura) enseña su «% del RM» con su deslizador (ed-serie-rm). */
     @Test
     fun laFilaDeRmPuraTieneSusControles() {
         renderList(exerciseWith(rmSet(id = "s1", range = null, rir = null), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps estimadas", "Externa").forEach { label ->
+        listOf("% DEL RM", "Externa").forEach { label ->
             assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
         }
     }
 
-    /** B3 sustituye las entradas de RIR/rango por las tres cifras enlazadas. La receta no se borra. */
+    /** B3: el RM tiene un solo campo (% del RM) y la receta (rango y RIR) no se borra. */
     @Test
-    fun laFilaRmMuestraRepsEstimadasPorcentajeYPesoSinRir() {
+    fun laFilaRmMuestraPorcentajeYCargaSinRir() {
         renderList(exerciseWith(rmSet(id = "s1", range = RepRange(4, 6), rir = 2), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps estimadas", "Peso (kg)").forEach { rule.onNodeWithText(it).assertExists() }
+        rule.onNodeWithText("% DEL RM").assertExists()
         rule.onNodeWithText("RIR").assertDoesNotExist()
     }
 
@@ -181,7 +184,7 @@ class ExerciseSetListComposeTest {
         var saved: ExerciseSet? = null
         renderList(exerciseWith(set, mode = TrainingMode.RM), onUpdateSet = { _, update -> saved = update(set) })
         openRow("s1")
-        rule.onNodeWithContentDescription("%RM").performClick()
+        rule.onNodeWithContentDescription("% del RM").performClick()
         rule.onNode(hasSetTextAction()).performTextReplacement("85")
         rule.onNode(hasSetTextAction()).performImeAction()
         assertEquals(85.0, saved?.targetPercentageRM)
@@ -203,22 +206,22 @@ class ExerciseSetListComposeTest {
 
     @Test
     fun laFilaDeSoloRpeTieneSuRpeObjetivo() {
-        openedRowShows(TrainingMode.SOLO_RPE, "RPE objetivo")
+        openedRowShows(TrainingMode.SOLO_RPE, "RPE OBJETIVO")
     }
 
     @Test
     fun laFilaDeTiempoTieneSuTiempo() {
-        openedRowShows(TrainingMode.TIME, "Minutos", "Segundos", "Externa")
+        openedRowShows(TrainingMode.TIME, "DURACIÓN OBJETIVO", "Externa")
     }
 
     @Test
     fun laFilaDeDistanciaTieneSuDistancia() {
-        openedRowShows(TrainingMode.DISTANCE, "Distancia (m)", "Externa")
+        openedRowShows(TrainingMode.DISTANCE, "DISTANCIA (M)", "Externa")
     }
 
     @Test
     fun laFilaDePersonalizadoTieneSuUnidad() {
-        openedRowShows(TrainingMode.CUSTOM, "vatios", "Externa", customUnit = "vatios")
+        openedRowShows(TrainingMode.CUSTOM, "VATIOS", "Externa", customUnit = "vatios")
     }
 
     @Test
@@ -240,6 +243,9 @@ class ExerciseSetListComposeTest {
         rule.mainClock.advanceTimeBy(3_000)
         rule.waitForIdle()
         rule.onNodeWithText("Aplicar").assertIsDisplayed().performClick()
+        // La hoja baja (230 ms) y solo entonces se aplica (`closeLayer(cb)` del lienzo).
+        rule.mainClock.advanceTimeBy(1_000)
+        rule.waitForIdle()
         assertEquals(setOf("s2", "s3"), updated.keys)
         assertEquals(8, updated.getValue("s2").targetReps)
         assertEquals(2, updated.getValue("s3").targetRIR)
@@ -266,7 +272,10 @@ class ExerciseSetListComposeTest {
             onMoveSet = { id, direction -> moves += id to direction },
         )
         openRow("s2")
+        // Subir y Bajar viven en el menú «⋯» de la serie.
+        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
         rule.onNodeWithText("Subir").performClick()
+        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
         rule.onNodeWithText("Bajar").performClick()
         assertEquals(listOf("s2" to -1, "s2" to 1), moves)
     }
@@ -279,15 +288,39 @@ class ExerciseSetListComposeTest {
             onRemoveSet = { id -> removed += id },
         )
         openRow("s1")
-        rule.onNodeWithText("Eliminar").performClick()
+        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
+        rule.onNodeWithText("Eliminar serie").performClick()
         assertEquals(listOf("s1"), removed)
     }
 
+    /** «Eliminar serie» gana «Deshacer» (decisión del editor): devuelve la serie a su sitio. */
     @Test
-    fun conUnaSolaSerieNoSeOfreceEliminar() {
+    fun eliminarOfreceDeshacerYDevuelveLaSerieASuSitio() {
+        val exercise = exerciseWith(ExerciseSet(id = "s1", targetReps = 8), ExerciseSet(id = "s2", targetReps = 10))
+        var current = exercise
+        renderList(
+            exercise,
+            onRemoveSet = { id -> current = current.copy(sets = current.sets.filterNot { it.id == id }) },
+            onTransformExercise = { transform -> current = transform(current) },
+        )
+        openRow("s1")
+        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
+        rule.onNodeWithText("Eliminar serie").performClick()
+        rule.waitForIdle()
+        assertEquals(listOf("s2"), current.sets.map { it.id })
+        rule.onNodeWithText("Serie eliminada").assertExists()
+        rule.onNodeWithContentDescription("Deshacer").performClick()
+        rule.waitForIdle()
+        assertEquals(listOf("s1", "s2"), current.sets.map { it.id })
+    }
+
+    @Test
+    fun conUnaSolaSerieEliminarEstaDesactivadoYLoExplica() {
         renderList(exerciseWith(ExerciseSet(id = "s1")))
         openRow("s1")
-        rule.onNodeWithText("Eliminar").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
+        rule.onNodeWithText("Eliminar serie").assertIsNotEnabled()
+        rule.onNodeWithText("Siempre queda una serie").assertExists()
     }
 
     @Test
@@ -298,9 +331,10 @@ class ExerciseSetListComposeTest {
             .let { unilateral -> unilateral.copy(sets = unilateral.sets.map { set -> set.copy(rightTarget = null) }) }
         val updated = mutableMapOf<String, ExerciseSet>()
         renderList(uni, onUpdateSet = { id, transform -> updated[id] = transform(sets.first { it.id == id }) })
-        rule.onNodeWithText("L1").assertExists()
-        rule.onNodeWithText("R1").assertDoesNotExist()
-        rule.onNodeWithText("+ Añadir R").performClick()
+        rule.onNodeWithTag("set-row-s1:L").assertExists()
+        rule.onNodeWithTag("set-row-s1:R").assertDoesNotExist()
+        // Lo que falta es una ficha punteada con su nombre («R1»).
+        rule.onNodeWithTag("set-add-side-s1-R").performClick()
         assertTrue(updated.getValue("s1").rightTarget != null)
     }
 

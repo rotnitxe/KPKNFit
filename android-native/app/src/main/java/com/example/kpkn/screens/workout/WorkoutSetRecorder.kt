@@ -28,6 +28,7 @@ import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.workout.LiveRom
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.domain.workout.isStackedIntensityTechnique
@@ -168,6 +169,10 @@ class WorkoutSetRecorder(
             ports.onRecordingRejected(message)
             return RecordSetResult.Rejected(message)
         }
+        // Pulido v1 (15): el ROM solo se anota si el ejercicio lo registra (`Exercise.trackRom`, la única verdad). Un ROM que la serie ya
+        // traía registrado se conserva aunque el ejercicio haya dejado de medirlo: editar nunca borra un dato guardado.
+        val recordedRom = LiveRom.recordable(exercise.trackRom, report.rom, state.completedSets[recordingKey]?.rom)
+        if (recordedRom != report.rom) report = report.copy(rom = recordedRom)
         if (requiresEffort) {
             recordingEffortError(intensity, report)?.let { message ->
                 ports.onRecordingRejected(message)
@@ -399,6 +404,7 @@ class WorkoutSetRecorder(
                 skipped = report.skipped,
                 superSetWithExerciseId = report.superSetWithExerciseId,
                 intensityAdjusted = report.intensityAdjusted,
+                romPercent = report.rom,
             )
 
             val resolvedBarWeightKg = if (!resolvedTagId.isNullOrBlank()) {
@@ -788,7 +794,7 @@ class WorkoutSetRecorder(
                         phaseIndex = scheduledPhase,
                         currentLoad = weight,
                         normalRestSeconds = exercise.restTime?.takeIf { seconds -> seconds > 0 }
-                            ?: repository.settings.value.restTimerDefaultSeconds,
+                            ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS,
                         unitMode = resolvedUnitMode,
                         phaseCountOverride = scheduledPhaseCount,
                         actualIntensityMode = completedSet.actualIntensityMode,
@@ -808,7 +814,7 @@ class WorkoutSetRecorder(
                 ports.nextSet(stopRest = false)
             }
 
-            val baseRest = exercise.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
+            val baseRest = exercise.restTime?.takeIf { it > 0 } ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS
             val scheduledPhaseForRest = if (scheduledPlan != null &&
                 plannedSet?.isInlineEditorScheduledTechnique() == true &&
                 completedSet.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
@@ -955,7 +961,7 @@ class WorkoutSetRecorder(
                     advancedFeedback = report,
                 )
                 updateState { it.copy(pendingRestSuggestion = pendingSuggestion) }
-                if (repository.settings.value.autoStartRestAfterRecording && effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
+                if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
                     ports.startRestTimer(
                         seconds = effectivePlanned,
                         advanceOnFinish = false,

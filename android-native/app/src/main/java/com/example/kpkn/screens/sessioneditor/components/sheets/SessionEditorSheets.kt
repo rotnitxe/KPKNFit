@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import com.example.kpkn.screens.sessioneditor.hasStrengthContent
 import android.content.Intent
 import android.graphics.Color as AndroidColor
 import android.widget.NumberPicker
@@ -241,17 +242,13 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.screens.sessioneditor.SessionEditorSheet
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
-import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionSaveScope
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
-import com.example.kpkn.screens.sessioneditor.DefaultIntensityType
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
-import com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.CoverSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
-import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.SaveSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.WarmupSheet
@@ -348,31 +345,12 @@ internal fun SessionEditorSheets(
     onMultiSelectExercises: (List<ExerciseMuscleInfo>) -> List<String>,
     onToggleExerciseSelection: (String) -> Unit,
     onClearExerciseSelection: () -> Unit,
-    onApplyRules: (String?) -> ApplyRulesOutcome,
     onCloneCurrentToTargets: (Set<String>, Set<String>?, SessionCloneApplyMode) -> Unit,
     onImportFromSource: (String, Set<String>?, SessionCloneApplyMode) -> Unit,
     onSave: (SessionSaveScope) -> Unit,
-    onApplyAssistantSuggestion: (suggestionId: String, acceptedDetailIds: List<String>) -> Unit,
     onDiscardSwitch: (() -> Unit)?,
     onWarmupSave: (String, List<WarmupSetDefinition>) -> Unit,
     onRestoreSnapshot: (SessionDraftSnapshot) -> Unit,
-    onRuleDefaultsChange: (String?, Int?, Int?, Double?, Int?, Int?, Int?, Int?, Boolean?, DefaultIntensityType?) -> Unit,
-    onRuleLimitsChange: (Double?, Int?) -> Unit,
-    onAdvancedRuleLimitsChange: (Double?, Double?, Int?, Boolean) -> Unit,
-    onApplyGlobalIntensityAdjustment: (IntensityMode, Double, Set<String>?) -> Unit,
-    setTargetDuration: (Int?) -> Unit,
-    setPartTargetDuration: (String, Int?) -> Unit,
-    setExerciseTargetDuration: (String, Int?) -> Unit,
-    onDistributeTargetAcrossParts: () -> Unit = {},
-    onApplyRuleTemplate: (String, String?) -> Unit = { _, _ -> },
-    onSaveRuleTemplate: (String) -> Unit = {},
-    onRenameRuleTemplate: (String, String) -> Unit = { _, _ -> },
-    onDeleteRuleTemplate: (String) -> Unit = {},
-    onPatchRuleDefaults: (String?, (com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> com.example.kpkn.screens.sessioneditor.SessionEditorRuleDefaults) -> Unit = { _, _ -> },
-    onApplyTimeCoachSuggestion: (String) -> Unit = {},
-    onDismissTimeCoachSuggestion: (String) -> Unit = {},
-    onRefreshTimeCoach: () -> Unit = {},
-    onRulesInitialTabConsumed: () -> Unit = {},
     onQuickActionOpenPicker: () -> Unit,
     onQuickActionOpenWarmup: () -> Unit,
     onQuickActionOpenMobility: () -> Unit,
@@ -382,6 +360,8 @@ internal fun SessionEditorSheets(
     onQuickActionDelete: () -> Unit,
     /** «Duplicar ejercicio» de las acciones rápidas (ER1f): sin esto la fila no hacía nada. */
     onQuickActionDuplicate: () -> Unit = {},
+    /** «Pasar el cardio antes / después de la fuerza» del menú de un cardio (Pulido v1 · cardio del editor). */
+    onToggleCardioPlacement: () -> Unit = {},
     onQuickActionCreateSuperset: () -> Unit,
     onQuickActionManageSuperset: () -> Unit,
     onLinkExerciseRelativeTo: (String?, String, String?) -> Unit,
@@ -563,10 +543,39 @@ internal fun SessionEditorSheets(
          return
      }
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        stableHeightFraction = if (uiState.sheet == SessionEditorSheet.RULES) 0.82f else null,
-    ) {
+    // Pulido v1 · cardio del editor: las hojas del cardio son planas (`.pl-sheet`) y traen su propia hoja, como el catálogo de fuerza.
+    if (uiState.sheet == SessionEditorSheet.CARDIO_PICKER) {
+        val replacing = uiState.pickerTargetExerciseId?.let { id -> session.allExercises().firstOrNull { it.id == id } }
+        com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet(
+            isReplacing = uiState.pickerTargetExerciseId != null,
+            currentType = replacing?.cardioDetails?.type,
+            onDismiss = onDismiss,
+            onAdd = onAddCardio,
+        )
+        return
+    }
+    if (uiState.sheet == SessionEditorSheet.QUICK_ACTIONS && quickActionExercise?.cardioDetails != null) {
+        com.example.kpkn.screens.sessioneditor.components.CardioQuickActionsSheet(
+            exercise = quickActionExercise,
+            canMovePlacement = session.hasStrengthContent(),
+            cardioFirst = session.cardioFirst,
+            onOpenFicha = {
+                onDismiss()
+                onOpenExerciseDetail(quickActionExercise.id)
+            },
+            onChange = onQuickActionOpenPicker,
+            onDuplicate = onQuickActionDuplicate,
+            onTogglePlacement = {
+                onDismiss()
+                onToggleCardioPlacement()
+            },
+            onDelete = onQuickActionDelete,
+            onDismiss = onDismiss,
+        )
+        return
+    }
+
+    KpknSheet(onDismissRequest = onDismiss) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
             SessionEditorSheet.BACKGROUND -> CoverSheet(
@@ -584,28 +593,6 @@ internal fun SessionEditorSheets(
                 onLabelPositionChange = onLabelPositionChange,
             )
             SessionEditorSheet.HISTORY -> HistorySheet(uiState, onRestoreSnapshot)
-            SessionEditorSheet.RULES -> RulesSheet(
-                uiState = uiState,
-                onApplyRules = onApplyRules,
-                onRuleDefaultsChange = onRuleDefaultsChange,
-                onRuleLimitsChange = onRuleLimitsChange,
-                onAdvancedRuleLimitsChange = onAdvancedRuleLimitsChange,
-                onApplyGlobalIntensityAdjustment = onApplyGlobalIntensityAdjustment,
-                setTargetDuration = setTargetDuration,
-                setPartTargetDuration = setPartTargetDuration,
-                setExerciseTargetDuration = setExerciseTargetDuration,
-                onDistributeTargetAcrossParts = onDistributeTargetAcrossParts,
-                onApplyRuleTemplate = onApplyRuleTemplate,
-                onSaveRuleTemplate = onSaveRuleTemplate,
-                onRenameRuleTemplate = onRenameRuleTemplate,
-                onDeleteRuleTemplate = onDeleteRuleTemplate,
-                onPatchRuleDefaults = onPatchRuleDefaults,
-                onApplyTimeCoachSuggestion = onApplyTimeCoachSuggestion,
-                onDismissTimeCoachSuggestion = onDismissTimeCoachSuggestion,
-                onRefreshTimeCoach = onRefreshTimeCoach,
-                onInitialTabConsumed = onRulesInitialTabConsumed,
-                onDismiss = onDismiss,
-            )
             SessionEditorSheet.TRANSFER -> SessionClonerSheet(
                 uiState = uiState,
                 onCloneCurrentToTargets = onCloneCurrentToTargets,
@@ -624,10 +611,7 @@ internal fun SessionEditorSheets(
                 onRemove = onRemoveMobilityExercise,
                 onDismiss = onDismiss,
             )
-            SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(
-                isReplacing = uiState.pickerTargetExerciseId != null,
-                onAdd = onAddCardio,
-            )
+            SessionEditorSheet.CARDIO_PICKER -> Unit // lo dibuja `CardioCatalogSheet` arriba, con su propia hoja
             SessionEditorSheet.CARDIO_PLACEMENT -> Unit
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = uiState.supersetManagerSupersetId

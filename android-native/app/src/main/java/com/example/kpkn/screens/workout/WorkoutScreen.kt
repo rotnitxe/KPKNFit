@@ -332,7 +332,8 @@ fun WorkoutScreen(
     val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
     var storyFromHeader by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(uiState.showFinishSheet) { if (!uiState.showFinishSheet) storyFromHeader = false }
-    val dockBottomClearance = LiveSessionLineHeight + 8.dp
+    // El roadmap mide 132 dp (B) en ventanas de 820 dp de alto o más y 112 dp (A) en las demás.
+    val dockBottomClearance = liveSessionLineHeight() + 8.dp
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
@@ -396,35 +397,13 @@ fun WorkoutScreen(
     }
 
     if (session == null) {
-        BackHandler {
-            onBack()
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0D1117)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(24.dp),
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                Text(
-                    text = "Cargando sesión de entrenamiento…",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = onBack,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.8f)),
-                ) {
-                    Text("Cancelar carga")
-                }
-            }
-        }
+        // Sin pantalla de carga (pedido del usuario, 29-oct): mientras la sesión se abre se pinta el armazón de la sesión en vivo, con el
+        // mismo fondo, sin giro, sin texto y sin botón; si la apertura falla, un error honesto con salida.
+        WorkoutOpeningFrame(
+            failed = uiState.sessionLoadFailed,
+            onBack = onBack,
+            onRetry = viewModel::retryLoadSession,
+        )
         return
     }
 
@@ -1069,8 +1048,6 @@ fun WorkoutScreen(
                     structureSheets.exerciseContextForceMemberActions = false
                     structureSheets.exerciseContextExerciseId = id
                 },
-                onAddSet = liveSetStepperHolder.onAddSet,
-                onLongPressPage = liveSetStepperHolder.onLongPressPage,
                 onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
                 recordVisible = recordFabHolder.visible && uiState.seriesTypeTarget == null,
                 recordEnabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
@@ -1091,6 +1068,7 @@ fun WorkoutScreen(
                 },
                 undoStack = uiState.godModeUndoStack,
                 completedSets = uiState.completedSets,
+                omittedSetKeys = uiState.omittedSetKeys,
                 onUndo = { index -> viewModel.revertGodModeChange(index) },
                 sessionCompletedCount = livePaceWork.completed,
                 sessionTotalCount = livePaceWork.total,
@@ -1112,6 +1090,7 @@ fun WorkoutScreen(
         completedExercises = completedExercisesForSummary,
         omittedSetKeys = uiState.omittedSetKeys,
         currentExerciseId = currentExercise?.id,
+        currentSetNumber = liveRoadmapActiveSetNumber(liveSetStepperHolder.snapshot),
         supersetGroups = modeSession.allSupersetGroups(),
         liveEnergySummary = uiState.liveEnergySummary,
         bodyWeight = viewModel.currentBodyWeight(),
@@ -1428,7 +1407,8 @@ fun WorkoutScreen(
     LaunchedEffect(uiState.finishWarning) {
         val warning = uiState.finishWarning
         if (warning != null) {
-            android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
+            // Con la hoja de cierre abierta el aviso se lee dentro de ella (en rojo suave sobre «Guardar sesión»), no en un toast.
+            if (!uiState.showFinishSheet) android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
             viewModel.consumeFinishWarning()
         }
     }
@@ -1450,6 +1430,9 @@ fun WorkoutScreen(
             initialNotes = uiState.sessionNotes,
             saving = uiState.isFinishingWorkout,
             calibrationDecisions = uiState.calibrationDecisions,
+            plannedSets = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys).total,
+            targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
+            errorMessage = uiState.finishWarning,
             discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
             presentation = viewModel.finishPresentationContext(),
             checklist = uiState.sessionChecklist,
@@ -1676,5 +1659,65 @@ fun WorkoutScreen(
             onFlightArmedChange = viewModel::setVoiceFlightArmed,
             onValuesDelivered = viewModel::onVoiceValuesDelivered,
         )
+    }
+}
+
+/**
+ * Lo que se ve mientras la sesión en vivo termina de abrirse (pedido del usuario, 29-oct: fuera la pantalla «Cargando sesión de
+ * entrenamiento…»). Es el armazón de la propia sesión: el mismo fondo de la pantalla, la cápsula de la sesión y la tarjeta en su sitio,
+ * quietas, sin giro, sin texto y sin botón, así que al llegar los datos solo se rellena lo que ya estaba. Si la apertura falla
+ * (la sesión ya no está en el programa o la lectura dio error) pasa a un aviso con «Reintentar» y «Volver».
+ */
+@Composable
+private fun WorkoutOpeningFrame(
+    failed: Boolean,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    BackHandler { onBack() }
+    val capsuleShape = RoundedCornerShape(30.dp)
+    val cardShape = RoundedCornerShape(28.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 10.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .clip(capsuleShape)
+                    .background(com.example.kpkn.ui.components.KpknFloating.Surface)
+                    .border(1.dp, com.example.kpkn.ui.components.KpknFloating.Border, capsuleShape),
+            )
+            Box(
+                modifier = Modifier
+                    .padding(top = 18.dp, bottom = 120.dp)
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(cardShape)
+                    .background(Color.White.copy(alpha = 0.035f)),
+            )
+        }
+        if (failed) {
+            com.example.kpkn.screens.workout.components.LiveAlert(
+                title = "No se pudo abrir la sesión",
+                text = "Tus datos se conservan. Puedes reintentar o volver.",
+                primaryLabel = "Reintentar",
+                onPrimary = onRetry,
+                secondaryLabel = "Volver",
+                onSecondary = onBack,
+                onDismiss = onBack,
+                icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
+                tag = "live-open-failed",
+            )
+        }
     }
 }

@@ -47,6 +47,24 @@ class ProgramTemplateEngineTest {
     }
 
     @Test
+    fun applyTemplate_forceCopy_without_sessions_never_touches_the_original() {
+        val original = Program(id = "empty-original", name = "Vacío", structure = ProgramStructure.SIMPLE)
+        val result = ProgramTemplateEngine.applyTemplate(
+            original,
+            PROGRAM_TEMPLATES.first { it.id == "simple-4" },
+            forceCopy = true,
+        )
+
+        assertEquals(ProgramTemplateEngine.ApplyStrategy.CREATE_DRAFT_COPY, result.strategy)
+        assertTrue(result.createdCopy)
+        assertNotEquals(original.id, result.program.id)
+        assertTrue(result.program.isDraft)
+        // El original sigue sin macrociclos: la copia no reescribe su estructura.
+        assertEquals("empty-original", original.id)
+        assertTrue(original.macrocycles.isEmpty())
+    }
+
+    @Test
     fun applyTemplate_with_sessions_creates_draft_copy() {
         val program = Program(
             id = "p2",

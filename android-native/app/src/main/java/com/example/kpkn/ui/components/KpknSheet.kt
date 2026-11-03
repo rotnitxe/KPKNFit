@@ -4,6 +4,9 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -52,9 +55,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.ui.adapt.adapt
+import com.example.kpkn.ui.design.depth.KpknShadowSpec
+import com.example.kpkn.ui.design.depth.kpknInset
+import com.example.kpkn.ui.design.depth.kpknRing
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 import kotlin.math.roundToInt
@@ -90,6 +97,34 @@ internal object KpknSheetMotion {
     val EaseIn = CubicBezierEasing(0.42f, 0f, 1f, 1f)
     val ContentRise = 10.dp
 }
+
+/**
+ * Valores exactos de un lienzo para la hoja PLANA (`surfaceColor`): sombra de la hoja y tiempos y curvas de su entrada, su salida y el
+ * cambio de altura. Sin esto la hoja usa los de [KpknSheetMotion] (Arreglos v1). Los rellena el paquete que los pide con los números de
+ * su matriz de paridad (p. ej. el asistente de sesión: `as-S05`, `as-A13`…`as-A15`, `as-T09`, `as-T13`, `as-X06`).
+ *
+ * @property shadow `box-shadow` de la hoja: sus capas exteriores se pintan fuera de la forma y las `inset` sobre el fondo (sustituyen al filete de 1 dp).
+ * @property outTravel fracción del alto que baja al cerrar (`translateY(102%)` = 1,02).
+ */
+class KpknSheetSpec(
+    val shadow: KpknShadowSpec? = null,
+    val scrimInMs: Int,
+    val scrimEasing: Easing,
+    val sheetInMs: Int,
+    val sheetEasing: Easing,
+    val contentDelayMs: Int,
+    val contentInMs: Int,
+    val contentEasing: Easing,
+    val contentRise: androidx.compose.ui.unit.Dp,
+    val outMs: Int,
+    val outEasing: Easing,
+    val outTravel: Float = 1f,
+    val scrimOutMs: Int,
+    val heightMs: Int,
+    val heightEasing: Easing,
+    /** Curva del velo al salir (`ed-fadeout` usa `ease` y el velo entra con `--ed-ease`); null = la de [scrimEasing]. */
+    val scrimOutEasing: Easing? = null,
+)
 
 /**
  * Canonical KPKN DarkMica bottom sheet.
@@ -130,6 +165,12 @@ fun KpknSheet(
      * 1 dp blanco al 7 % y el asa del lienzo (36 × 4). Null: la hoja de vidrio de siempre.
      */
     surfaceColor: Color? = null,
+    /** Tiempos, curvas y sombra exactos de un lienzo para la hoja plana; null = los de [KpknSheetMotion]. */
+    lienzo: KpknSheetSpec? = null,
+    /** The caller already includes the bottom navigation gutter in its surface padding. */
+    safeNavigationBarInset: Boolean = true,
+    /** Full handle slot for flat sheets; 28 dp leaves 10 dp above and 14 dp below by default. */
+    flatHandleAreaHeight: Dp = 28.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // A caller may own a local source (for example the workout overlay).  The
@@ -149,12 +190,15 @@ fun KpknSheet(
             dismissible = dismissible,
             showDragHandle = showDragHandle,
             safeTopInset = safeTopInset,
+            safeNavigationBarInset = safeNavigationBarInset,
+            flatHandleAreaHeight = flatHandleAreaHeight,
             maxHeightFraction = cap,
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
             hazeState = resolvedHaze,
             additionalGlassScrim = additionalGlassScrim,
             backdropScrim = backdropScrim,
             surfaceColor = surfaceColor,
+            lienzo = lienzo,
             content = content,
         )
     }
@@ -167,12 +211,15 @@ private fun KpknSheetBody(
     dismissible: Boolean,
     showDragHandle: Boolean,
     safeTopInset: Boolean,
+    safeNavigationBarInset: Boolean,
+    flatHandleAreaHeight: Dp,
     maxHeightFraction: Float,
     stableHeightFraction: Float?,
     hazeState: HazeState?,
     additionalGlassScrim: Color,
     backdropScrim: Color,
     surfaceColor: Color?,
+    lienzo: KpknSheetSpec?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val sheetShape = RoundedCornerShape(
@@ -203,6 +250,10 @@ private fun KpknSheetBody(
         if (reduceMotion) {
             launch { scrimAlpha.animateTo(1f, tween(KpknSheetMotion.REDUCED_MS)) }
             contentIn.animateTo(1f, tween(KpknSheetMotion.REDUCED_MS))
+        } else if (lienzo != null) {
+            launch { scrimAlpha.animateTo(1f, tween(lienzo.scrimInMs, easing = lienzo.scrimEasing)) }
+            launch { enterOffset.animateTo(0f, tween(lienzo.sheetInMs, easing = lienzo.sheetEasing)) }
+            contentIn.animateTo(1f, tween(lienzo.contentInMs, delayMillis = lienzo.contentDelayMs, easing = lienzo.contentEasing))
         } else {
             launch { scrimAlpha.animateTo(1f, tween(KpknSheetMotion.SCRIM_IN_MS, easing = KpknSheetMotion.EaseOut)) }
             launch { enterOffset.animateTo(0f, tween(KpknSheetMotion.SHEET_IN_MS, easing = KpknSheetMotion.SheetInEasing)) }
@@ -220,6 +271,10 @@ private fun KpknSheetBody(
             if (reduceMotion) {
                 launch { scrimAlpha.animateTo(0f, tween(KpknSheetMotion.REDUCED_MS)) }
                 contentIn.animateTo(0f, tween(KpknSheetMotion.REDUCED_MS))
+            } else if (lienzo != null) {
+                // El lienzo cierra con la hoja entera (contenido incluido) bajando `outTravel` de su alto; solo el velo se funde aparte.
+                launch { scrimAlpha.animateTo(0f, tween(lienzo.scrimOutMs, easing = lienzo.scrimOutEasing ?: lienzo.scrimEasing)) }
+                enterOffset.animateTo(lienzo.outTravel, tween(lienzo.outMs, easing = lienzo.outEasing))
             } else {
                 launch { scrimAlpha.animateTo(0f, tween(KpknSheetMotion.SCRIM_OUT_MS, easing = KpknSheetMotion.EaseIn)) }
                 launch { contentIn.animateTo(0f, tween(KpknSheetMotion.CONTENT_OUT_MS, easing = KpknSheetMotion.EaseIn)) }
@@ -240,9 +295,16 @@ private fun KpknSheetBody(
         val maxHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val sheetCapPx = maxHeightPx * maxHeightFraction
         val sheetCapDp = with(density) { sheetCapPx.toDp() }
-        val stableHeightDp = stableHeightFraction?.let { frac ->
+        val targetStableHeightDp = stableHeightFraction?.let { frac ->
             with(density) { (maxHeightPx * frac).toDp() }
         }
+        // `transition: height` del lienzo: con una especificación propia, el cambio de altura sigue su duración y su curva.
+        val animatedStableHeightDp by animateDpAsState(
+            targetValue = targetStableHeightDp ?: 0.dp,
+            animationSpec = if (lienzo != null && !reduceMotion) tween(lienzo.heightMs, easing = lienzo.heightEasing) else snap(),
+            label = "kpknSheetHeight",
+        )
+        val stableHeightDp = targetStableHeightDp?.let { if (lienzo != null) animatedStableHeightDp else it }
         val dismissThresholdPx = with(density) {
             minOf(150.dp.toPx(), sheetCapPx * 0.25f)
         }
@@ -381,8 +443,13 @@ private fun KpknSheetBody(
                     }
                 }
                 .then(
-                    // `.np-sheet`: `box-shadow: 0 -1px 0 #ffffff12`, un filete de 1 dp por encima del borde redondeado.
-                    if (flat) Modifier.background(Color.White.copy(alpha = 0.07f), sheetShape).padding(top = 1.dp) else Modifier,
+                    // Sombra de caída del lienzo (fuera de la forma, sin recortar): va antes de recortar la hoja.
+                    if (flat && lienzo?.shadow != null) Modifier.kpknRing(lienzo.shadow, sheetShape) else Modifier,
+                )
+                .then(
+                    // `.np-sheet`: `box-shadow: 0 -1px 0 #ffffff12`, un filete de 1 dp por encima del borde redondeado. Con la sombra propia
+                    // del lienzo, el filete es su capa `inset` (más abajo).
+                    if (flat && lienzo?.shadow == null) Modifier.background(Color.White.copy(alpha = 0.07f), sheetShape).padding(top = 1.dp) else Modifier,
                 )
                 .graphicsLayer {
                     // La hoja con color propio se recorta aquí; la flotante se recorta ella misma después de proyectar su sombra (si se
@@ -396,6 +463,7 @@ private fun KpknSheetBody(
                 .then(
                     if (surfaceColor != null) {
                         Modifier.background(surfaceColor, sheetShape)
+                            .then(if (lienzo?.shadow != null) Modifier.kpknInset(lienzo.shadow, sheetShape) else Modifier)
                     } else {
                         // Gris oscuro plano con sombra real de elevación (KpknFloating); sin vidrio ni desenfoque (Refinamiento 02).
                         Modifier.kpknFloatingSurface(sheetShape, KpknFloating.SheetElevation)
@@ -419,22 +487,21 @@ private fun KpknSheetBody(
                             .graphicsLayer {
                                 if (!reduceMotion) {
                                     alpha = contentIn.value
-                                    translationY = (1f - contentIn.value) * KpknSheetMotion.ContentRise.toPx()
+                                    translationY = (1f - contentIn.value) * (lienzo?.contentRise ?: KpknSheetMotion.ContentRise).toPx()
                                 }
                             }
                             .then(if (safeTopInset) Modifier.statusBarsPadding() else Modifier)
-                            .navigationBarsPadding()
-                            .padding(bottom = 8.dp)
+                            .then(if (safeNavigationBarInset) Modifier.navigationBarsPadding().padding(bottom = 8.dp) else Modifier)
                             .nestedScroll(nestedScrollConnection)
                             .then(if (dismissible) dragModifier else Modifier),
                     ) {
                         if (showDragHandle) {
                             if (flat) {
-                                // `.grab`: 36 × 4, blanco al 23 %, 10 dp por encima y 14 por debajo.
+                                // `.grab`: 36 × 4, blanco al 23 %; flatHandleAreaHeight controla el espacio total.
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(28.dp)
+                                        .height(flatHandleAreaHeight)
                                         .then(if (dismissible) dragModifier else Modifier)
                                         .semantics {
                                             contentDescription = if (dismissible) "Arrastra hacia abajo para cerrar" else "Hoja"

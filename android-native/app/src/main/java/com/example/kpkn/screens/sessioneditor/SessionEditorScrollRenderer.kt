@@ -1,6 +1,15 @@
 package com.example.kpkn.screens.sessioneditor
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
+import com.example.kpkn.screens.sessioneditor.components.EdRemoval
+import com.example.kpkn.screens.sessioneditor.components.LocalEdRemoval
+import com.example.kpkn.screens.sessioneditor.frame.EdMotion
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +36,14 @@ import com.example.kpkn.data.models.hasCardioPart
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
+import com.example.kpkn.screens.sessioneditor.components.EdFooterLink
+import com.example.kpkn.screens.sessioneditor.components.EdFooterPill
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.screens.sessioneditor.components.SessionEditorCardioPlacementControl
+import com.example.kpkn.screens.sessioneditor.components.CardioEmptyModule
+import com.example.kpkn.screens.sessioneditor.components.CardioSpaceLabel
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpace
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpaceOption
@@ -85,6 +97,8 @@ internal fun SessionEditorListItem(
     cancelPartDrag: () -> Unit = {},
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
+    /** Pulido v1 · EDITOR · A2: el movimiento de la lista (`animateItem`): las filas suben al borrar una y se apartan al soltar una ordenada. */
+    itemModifier: Modifier = Modifier,
 ) {
     val supersetGroupsById = remember(session.supersetGroups) {
         session.supersetGroups.associateBy { it.id }
@@ -109,7 +123,7 @@ internal fun SessionEditorListItem(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                     )
                 }
-                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id), dividerVisible = draggingExerciseId == null) {
                     GroupEditorCard(
                         part = part,
                         collapsed = isCollapsed,
@@ -164,22 +178,17 @@ internal fun SessionEditorListItem(
                 draggingExerciseId != exercise.id
 
             Column(
-                modifier = Modifier
+                modifier = itemModifier
                     .fillMaxWidth()
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
             ) {
-                if (isLooseInsertBefore) {
-                    SessionEditorDropIndicator(
-                        visible = true,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-                    )
-                }
+                // Pulido v1 · EDITOR · A2: el destino ya no es una barra: lo marca el hueco punteado que abren las vecinas al apartarse.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__"), dividerVisible = draggingExerciseId == null) {
                         LooseExerciseItem(
                             exercise = exercise,
                             index = listItem.indexInLoose,
@@ -224,22 +233,17 @@ internal fun SessionEditorListItem(
                 draggingExerciseId != exercise.id
 
             Column(
-                modifier = Modifier
+                modifier = itemModifier
                     .fillMaxWidth()
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
-                if (isPartInsertBefore) {
-                    SessionEditorDropIndicator(
-                        visible = true,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-                    )
-                }
+                // Pulido v1 · EDITOR · A2: el destino ya no es una barra: lo marca el hueco punteado que abren las vecinas al apartarse.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id), dividerVisible = draggingExerciseId == null) {
                         PartExerciseItem(
                             exercise = exercise,
                             part = part,
@@ -288,7 +292,7 @@ internal fun SessionEditorListItem(
                 supersetMembers.none { it.id == draggingExerciseId }
 
             Column(
-                modifier = Modifier
+                modifier = itemModifier
                     .fillMaxWidth()
                     .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
             ) {
@@ -303,7 +307,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = looseSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__"), dividerVisible = draggingExerciseId == null) {
                         LooseSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -355,7 +359,7 @@ internal fun SessionEditorListItem(
                 supersetMembers.none { it.id == draggingExerciseId }
 
             Column(
-                modifier = Modifier
+                modifier = itemModifier
                     .fillMaxWidth()
                     .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
             ) {
@@ -370,7 +374,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = partSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id), dividerVisible = draggingExerciseId == null) {
                         PartSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -451,7 +455,7 @@ internal fun SessionEditorListItem(
                         onPartContentBoundsReport(part.id, rect)
                     },
             ) {
-                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id), dividerVisible = draggingExerciseId == null) {
                     if (isCardioSpace) {
                         KpknTextAction(
                             text = "Añadir cardio",
@@ -492,7 +496,8 @@ internal fun SessionEditorListItem(
 
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    // Pulido v1 · EDITOR · A2: `.ed-foot` deja 14 dp tras el módulo (12 los pone el propio módulo) y 6 abajo.
+                    .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 6.dp)
                     .fillMaxWidth()
                     .then(
                         if (isEmptySession) {
@@ -512,17 +517,8 @@ internal fun SessionEditorListItem(
                     )
                 } else {
                     if (hasStrengthSpace) {
-                        KpknTextAction(
-                            text = "Añadir ejercicio",
-                            onClick = viewModel::openPickerForUncategorized,
-                            modifier = Modifier.padding(start = 4.dp),
-                            leadingIcon = KpknLineIcons.Plus,
-                        )
-                        KpknSecondaryPill(
-                            text = "Nuevo grupo",
-                            onClick = viewModel::addPart,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        EdFooterLink(text = "Añadir ejercicio", onClick = viewModel::openPickerForUncategorized)
+                        EdFooterPill(text = "Nuevo grupo", onClick = viewModel::addPart)
                     }
                     // El otro espacio queda abajo como opción pendiente: la grande con su símbolo mientras la sesión no tiene ejercicios y la
                     // píldora de siempre cuando ya los tiene.
@@ -555,10 +551,10 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.CardioAddActions -> {
+            // Pulido v1 · cardio del editor (punto 11): sin «Añadir cardio» dentro del módulo. El alta sale del «+» del rótulo, del menú de la
+            // barra «Añadir» y del menú de pulsación larga; este pie solo existe cuando no hay ningún cardio (el estado vacío).
             val cardioPart = session.parts.firstOrNull { it.isCardioPart() }
             val targetPartId = cardioPart?.id
-            // Sin ningún cardio, el pie va solo en su módulo; con cardios, es el último trozo.
-            val hasCardioExercises = session.parts.any { it.isCardioPart() && it.exercises.isNotEmpty() }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -570,33 +566,18 @@ internal fun SessionEditorListItem(
                         }
                     },
             ) {
-                SessionModuleSlot(edge = if (hasCardioExercises) SessionModuleEdge.BOTTOM else SessionModuleEdge.ONLY) {
-                    KpknTextAction(
-                        text = "Añadir cardio",
-                        onClick = { viewModel.openCardioPicker(targetPartId) },
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        leadingIcon = KpknLineIcons.Plus,
-                    )
-                }
+                CardioEmptyModule(onAdd = { viewModel.openCardioPicker(targetPartId) })
             }
         }
 
         is SessionListItem.CardioDivider -> {
-            // «CARDIO · AL FINAL ——— Mover al inicio», como en Main (ED-A · A1); sin los dos espacios, solo «CARDIO».
-            SessionGroupLabel(
-                label = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "CARDIO · AL INICIO" else "CARDIO · AL FINAL"
-                } else {
-                    "CARDIO"
-                },
-                moveLabel = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "Mover al final" else "Mover al inicio"
-                } else {
-                    null
-                },
+            // «CARDIO · AL FINAL ——— ↑ +» (punto 26): la posición vive en el rótulo, con una flecha pequeña que lo pasa antes o después de la
+            // fuerza; sin los dos espacios, solo «CARDIO». El «+» es el alta de otro cardio.
+            CardioSpaceLabel(
+                canMove = listItem.canMove,
+                cardioFirst = listItem.showCardioFirst,
                 onMove = viewModel::toggleCardioPlacement,
-                accent = SymbolPalette.columna,
-                showRule = true,
+                onAdd = { viewModel.openCardioPicker(session.parts.firstOrNull { it.isCardioPart() }?.id) },
             )
         }
 
@@ -616,16 +597,8 @@ internal fun SessionEditorListItem(
             }
         }
 
-        SessionListItem.CardioPlacement -> {
-            val atStart = uiState.cardioSpacePlacement?.let { it == CardioSpacePlacement.START } ?: session.cardioFirst
-            SessionEditorCardioPlacementControl(
-                atStart = atStart,
-                onChange = { start ->
-                    viewModel.setCardioPlacement(if (start) CardioSpacePlacement.START else CardioSpacePlacement.END)
-                },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
+        // El selector grande «Al inicio / Al final» desaparece (punto 26): la posición vive en el rótulo CARDIO.
+        SessionListItem.CardioPlacement -> Unit
 
         // Los ejercicios sueltos se nombran cuando la sesión tiene grupos, para que no parezcan un grupo huérfano (ER2b).
         SessionListItem.LooseGroupLabel -> SessionGroupLabel(label = "SIN GRUPO")
@@ -641,12 +614,27 @@ internal fun SessionEditorListItem(
 private fun ExerciseRowOrUndo(
     pending: Boolean,
     onUndo: () -> Unit,
+    cardio: Boolean = false,
+    /** Lo que la fila se aparta (px) para abrir el hueco de la fila que se arrastra: 260 ms (`.ed-list.drag .ed-ex`, ed-T16). */
+    shiftTarget: Float = 0f,
     row: @Composable () -> Unit,
 ) {
-    if (pending) {
-        SessionExerciseUndoNotice(onUndo = onUndo)
-    } else {
-        row()
+    // Pulido v1 · EDITOR · A2: el aviso ya no sustituye a la fila: la fila lo gestiona ella misma (sale deslizándose y el aviso cubre su hueco).
+    val reduced = wizardReducedMotion()
+    // pulido:transicion ed-T16 .ed-list.drag .ed-ex transform 0,26 s --ed-ease (las vecinas se apartan)
+    val shift by animateFloatAsState(
+        targetValue = shiftTarget,
+        animationSpec = if (reduced) snap() else tween(260, easing = EdMotion.Standard),
+        label = "edRowShift",
+    )
+    CompositionLocalProvider(
+        LocalEdRemoval provides EdRemoval(
+            pending = pending,
+            onUndo = onUndo,
+            label = if (cardio) "Cardio eliminado" else "Ejercicio eliminado",
+        ),
+    ) {
+        Box(modifier = Modifier.graphicsLayer { translationY = shift }) { row() }
     }
 }
 
@@ -685,6 +673,8 @@ private fun LooseExerciseItem(
         ExerciseRowOrUndo(
             pending = pendingRemovalId == exercise.id,
             onUndo = { viewModel.undoExerciseRemoval() },
+            cardio = exercise.cardioDetails != null,
+            shiftTarget = if (draggingExerciseId != null && draggingExerciseId != exercise.id) projectedShiftFor(partId, index, exercise.id) else 0f,
         ) {
             ExerciseEditorCard(
                 exercise = exercise,
@@ -784,6 +774,8 @@ private fun PartExerciseItem(
         ExerciseRowOrUndo(
             pending = pendingRemovalId == exercise.id,
             onUndo = { viewModel.undoExerciseRemoval() },
+            cardio = exercise.cardioDetails != null,
+            shiftTarget = if (draggingExerciseId != null && draggingExerciseId != exercise.id) projectedShiftFor(part.id, index, exercise.id) else 0f,
         ) {
             ExerciseEditorCard(
                 exercise = exercise,

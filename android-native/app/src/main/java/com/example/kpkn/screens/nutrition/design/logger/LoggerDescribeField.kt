@@ -1,13 +1,27 @@
 package com.example.kpkn.screens.nutrition.design.logger
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -106,6 +120,8 @@ fun LoggerDescribeField(
     showAnalyze: Boolean = text.isNotBlank(),
     onDictate: (() -> Unit)? = null,
     listening: Boolean = false,
+    dictationReady: Boolean = false,
+    dictationLevel: Float = 0f,
     foodMentions: List<String> = emptyList(),
     onEditRequest: (() -> Unit)? = null,
     focusRequester: FocusRequester? = null,
@@ -170,26 +186,58 @@ fun LoggerDescribeField(
                         },
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    if (onDictate != null) DictateButton(listening = listening, onClick = onDictate)
-                    Spacer(Modifier.weight(1f))
-                    if (showAnalyze) AnalyzePill(label = analyzeLabel, onClick = onAnalyze)
+                if (listening && onDictate != null) {
+                    // Escuchando: .nc-foot con .nc-stop, .nc-wave, .nc-time y debajo .nc-status
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        LoggerStopButton(
+                            listening = listening,
+                            onClick = onDictate,
+                        )
+                        LoggerWaveform(
+                            level = dictationLevel,
+                            modifier = Modifier.weight(1f),
+                        )
+                        LoggerDictationTimer(
+                            listening = listening,
+                        )
+                    }
+                    LoggerStatusLine(
+                        ready = dictationReady,
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        if (onDictate != null) {
+                            DictateButton(listening = listening, level = dictationLevel, onClick = onDictate)
+                        }
+                        Spacer(Modifier.weight(1f))
+                        if (showAnalyze) AnalyzePill(label = analyzeLabel, onClick = onAnalyze)
+                    }
                 }
             }
-            LoggerWriteMode.READING -> LoggerTokenText(
-                text = text,
-                reading = true,
-                readingIndex = readingIndex,
-                foodMentions = foodMentions,
-                style = WriteStyle.copy(fontSize = (fontSize ?: 17f).sp, lineHeight = ((fontSize ?: 17f) * 1.4f).sp),
-                color = LoggerColors.ink,
-            )
+            LoggerWriteMode.READING -> Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LoggerTokenText(
+                    text = text,
+                    reading = true,
+                    readingIndex = readingIndex,
+                    foodMentions = foodMentions,
+                    style = WriteStyle.copy(fontSize = (fontSize ?: 17f).sp, lineHeight = ((fontSize ?: 17f) * 1.4f).sp),
+                    color = LoggerColors.ink,
+                )
+                // .nc-ana: procesando con .nc-spin (nc-A08) y esqueleto con brillo .nc-sk (nc-G02, nc-A06)
+                LoggerReadingSkeleton()
+            }
             LoggerWriteMode.RESULT -> LoggerTokenText(
                 text = text,
                 reading = false,
@@ -202,12 +250,20 @@ fun LoggerDescribeField(
     }
 }
 
-/** `.np .ib.fill`: el micrófono, botón redondo de 44 dp con fondo de superficie 2 (zona táctil de 48). Dictando, pasa a superficie 3. */
+/**
+ * `.np .ib.fill`: el micrófono, botón redondo de 44 dp con fondo de superficie 2 (zona táctil de 48). Dictando pasa a tinta con un
+ * cuadrado de «parar» y un aro que respira con el volumen de la voz ([level], 0..1; fijo con movimiento reducido).
+ */
 @Composable
-private fun DictateButton(listening: Boolean, onClick: () -> Unit) {
+private fun DictateButton(listening: Boolean, level: Float, onClick: () -> Unit) {
+    val reduced = wizardReducedMotion()
+    val pulse by animateFloatAsState(if (reduced) 0.4f else level.coerceIn(0f, 1f), tween(120), label = "loggerDictateLevel")
     Box(
         modifier = Modifier
             .size(48.dp)
+            .drawBehind {
+                if (listening) drawCircle(LoggerColors.ink.copy(alpha = 0.16f), radius = (22.dp + 12.dp * pulse).toPx())
+            }
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = if (listening) "Dejar de dictar" else "Dictar" },
         contentAlignment = Alignment.Center,
@@ -216,15 +272,19 @@ private fun DictateButton(listening: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(if (listening) LoggerColors.surface3 else LoggerColors.surface2, CircleShape),
+                .background(if (listening) LoggerColors.ink else LoggerColors.surface2, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                KpknLineIcons.Mic,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = if (listening) LoggerColors.ink else LoggerColors.muted,
-            )
+            if (listening) {
+                Box(Modifier.size(14.dp).background(LoggerColors.onInk, RoundedCornerShape(3.dp)))
+            } else {
+                Icon(
+                    KpknLineIcons.Mic,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = LoggerColors.muted,
+                )
+            }
         }
     }
 }
@@ -315,4 +375,241 @@ private fun LoggerTokenText(text: String, reading: Boolean, readingIndex: Int, f
                 }
             },
     )
+}
+
+
+/**
+ * Botón parar con anillo de progreso 15 s (lienzo .nc-stop, .nc-stop svg.rg: nc-A10, nc-X07).
+ */
+@Composable
+private fun LoggerStopButton(
+    listening: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // nc-A10: animation nc-ring 15s linear forwards. Una sola pasada que CRECE con el dictado; al parar (o
+    // reiniciar) vuelve a cero, y no se repite sola. El tope funcional del dictado sigue siendo 25 s (LoggerDictation).
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(listening) {
+        if (!listening) {
+            progress.snapTo(0f)
+        } else {
+            progress.snapTo(0f)
+            progress.animateTo(1f, tween(15_000, easing = LinearEasing))
+        }
+    }
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = "Dejar de dictar" },
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                // nc-X07: transform rotate(-90deg)
+                .graphicsLayer { rotationZ = -90f },
+        ) {
+            val strokeW = 2.5.dp.toPx()
+            val radius = size.minDimension / 2f - strokeW / 2f
+            val c = this.center
+            drawCircle(
+                color = Color(0x1CFFFFFF),
+                radius = radius,
+                center = c,
+                style = Stroke(width = strokeW),
+            )
+            drawArc(
+                color = LoggerColors.ink,
+                startAngle = 0f,
+                sweepAngle = 360f * progress.value.coerceIn(0f, 1f),
+                useCenter = false,
+                style = Stroke(width = strokeW, cap = StrokeCap.Round),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(LoggerColors.ink, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(Modifier.size(14.dp).background(LoggerColors.onInk, RoundedCornerShape(3.dp)))
+        }
+    }
+}
+
+/**
+ * Ondas en vivo (.nc-wave i: nc-A11, 780ms ease-in-out infinite alternate).
+ */
+@Composable
+private fun LoggerWaveform(level: Float, modifier: Modifier = Modifier) {
+    val waveTransition = rememberInfiniteTransition(label = "ncWave")
+    val wavePhase by waveTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(780, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "ncWavePhase",
+    )
+    val heights = remember { listOf(0.4f, 0.7f, 0.5f, 0.9f, 0.6f, 0.8f, 0.45f, 1.0f, 0.55f, 0.85f, 0.65f, 0.75f, 0.5f, 0.95f, 0.6f, 0.7f) }
+    Row(
+        modifier = modifier.height(40.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        heights.forEachIndexed { _, baseFraction ->
+            val dynamicScale = (wavePhase * 0.5f + 0.5f) * (0.35f + level.coerceIn(0f, 1f) * 0.65f)
+            val barH = (40.dp * baseFraction * dynamicScale).coerceIn(4.dp, 40.dp)
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(barH)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(LoggerColors.ink.copy(alpha = 0.85f)),
+            )
+        }
+    }
+}
+
+/**
+ * Temporizador del dictado (.nc-time: nc-J05 setInterval 1000ms).
+ */
+@Composable
+private fun LoggerDictationTimer(listening: Boolean, modifier: Modifier = Modifier) {
+    var seconds by remember(listening) { mutableStateOf(0) }
+    LaunchedEffect(listening) {
+        if (listening) {
+            seconds = 0
+            while (true) {
+                delay(1000L)
+                seconds += 1
+            }
+        }
+    }
+    val timeLabel = remember(seconds) {
+        val m = seconds / 60
+        val s = seconds % 60
+        "$m:${s.toString().padStart(2, '0')}"
+    }
+    Text(
+        text = timeLabel,
+        style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp),
+        color = LoggerColors.muted,
+        modifier = modifier.defaultMinSize(minWidth = 34.dp),
+    )
+}
+
+/**
+ * Estado del dictado con punto pulsante (.nc-status .dot: nc-A09 1.1s ease-in-out infinite).
+ */
+@Composable
+private fun LoggerStatusLine(ready: Boolean, modifier: Modifier = Modifier) {
+    val dotTransition = rememberInfiniteTransition(label = "ncDot")
+    val dotScale by dotTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1100, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "ncDotScale",
+    )
+    val dotAlpha by dotTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1100, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "ncDotAlpha",
+    )
+    Row(
+        modifier = modifier.padding(top = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .graphicsLayer {
+                    scaleX = dotScale
+                    scaleY = dotScale
+                    alpha = dotAlpha
+                }
+                .background(Color(0xFFF49A6E), CircleShape),
+        )
+        Text(
+            text = if (ready) "Escuchando… Di los alimentos y cantidades" else "Preparando micrófono…",
+            style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.Medium, fontSize = 12.5.sp),
+            color = LoggerColors.muted,
+        )
+    }
+}
+
+/**
+ * Esqueleto con brillo y spinner mientras se analiza (.nc-sk: nc-G02, nc-A06; .nc-spin: nc-A08).
+ */
+@Composable
+private fun LoggerReadingSkeleton(modifier: Modifier = Modifier) {
+    val spinTransition = rememberInfiniteTransition(label = "ncSpin")
+    val spinAngle by spinTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "ncSpinAngle",
+    )
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            // .nc-spin: giro 0.9s (nc-A08)
+            Canvas(
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer { rotationZ = spinAngle },
+            ) {
+                val sw = 2.dp.toPx()
+                val rad = size.minDimension / 2f - sw / 2f
+                drawCircle(color = Color(0x1FFFFFFF), radius = rad, style = Stroke(width = sw))
+                drawArc(
+                    color = LoggerColors.ink,
+                    startAngle = 0f,
+                    sweepAngle = 100f,
+                    useCenter = false,
+                    style = Stroke(width = sw, cap = StrokeCap.Round),
+                )
+            }
+            Text(
+                text = "Leyendo lo que comiste…",
+                style = TextStyle(fontFamily = WizardFonts.body, fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
+                color = LoggerColors.ink,
+            )
+        }
+        // .nc-sk: esqueleto con brillo nc-G02, nc-A06
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(66.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(
+                    androidx.compose.ui.graphics.Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF0F0F0F),
+                            Color(0xFF1A1A1A),
+                            Color(0xFF0F0F0F),
+                        ),
+                    ),
+                    RoundedCornerShape(22.dp),
+                )
+                .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(22.dp)),
+        )
+    }
 }

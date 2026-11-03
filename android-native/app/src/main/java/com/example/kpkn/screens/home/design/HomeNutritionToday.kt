@@ -48,6 +48,13 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.screens.home.HomeNutritionState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import com.example.kpkn.domain.nutrition.supplements.SupplementEngine
+import com.example.kpkn.screens.nutrition.design.SupplementRowState
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.border
 import com.example.kpkn.screens.nutrition.design.NutritionMacroLine
 import com.example.kpkn.screens.nutrition.design.NutritionMacroLines
 import com.example.kpkn.screens.nutrition.design.NutritionThinRing
@@ -101,6 +108,12 @@ fun HomeNutritionToday(
     onDefineGoals: () -> Unit = {},
     /** f-home-done: cambia cada vez que se guarda una comida desde Inicio; 0 = nada guardado aún. */
     savedPulse: Int = 0,
+    supplementRows: List<SupplementRowState> = emptyList(),
+    caffeineTotalMg: Double = 0.0,
+    nowSupplementId: String? = null,
+    onTakeSupplement: (id: String, dose: Double) -> Unit = { _, _ -> },
+    onHoldSupplement: (id: String) -> Unit = {},
+    onOpenSupplementsQuick: () -> Unit = {},
 ) {
     val reduced = wizardReducedMotion()
     // f-home-done: al guardar desde Inicio, la cifra cuenta hasta el nuevo total y el anillo rebota (lienzo `.np-ring.bump`: escala
@@ -197,6 +210,150 @@ fun HomeNutritionToday(
                     ) {
                         ring()
                         NutritionMacroLines(lines = macros, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            if (supplementRows.isNotEmpty()) {
+                // Pendiente = le faltan dosis configuradas, no «no tiene ninguna toma»: con 2 dosis al día, la
+                // primera toma no lo marca como terminado.
+                val isDone = { row: SupplementRowState -> SupplementEngine.isDone(row.item, row.takes) }
+                val pending = supplementRows.filterNot(isDone)
+                val doneCount = supplementRows.count(isDone)
+                val shown = pending.take(3)
+                val restCount = pending.size - shown.size
+                val hasCaffeine = supplementRows.any { it.def.id == "cafeina" }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp)
+                        .drawBehind {
+                            drawLine(
+                                color = Color(0x1FFFFFFF),
+                                start = Offset(0f, 0f),
+                                end = Offset(size.width, 0f),
+                                strokeWidth = 1.dp.toPx(),
+                            )
+                        }
+                        .padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 36.dp)
+                            .clickable(role = Role.Button, onClickLabel = "Abrir suplementos de hoy", onClick = onOpenSupplementsQuick),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "SUPLEMENTOS",
+                            style = KpknType.caption.copy(fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.SemiBold),
+                            color = Color(0xFFB3ADA3),
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            if (pending.isEmpty()) {
+                                Icon(KpknLineIcons.Check, null, tint = WizardColors.done, modifier = Modifier.size(14.dp))
+                                Text(
+                                    text = "Todo tomado",
+                                    style = KpknType.caption.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+                                    color = WizardColors.done,
+                                )
+                            } else {
+                                Text(
+                                    text = "$doneCount de ${supplementRows.size}",
+                                    style = KpknType.caption.copy(fontSize = 12.sp),
+                                    color = Color(0xFF8E8980),
+                                )
+                            }
+                            Icon(KpknLineIcons.ChevronRight, null, tint = Color(0xFF8E8980), modifier = Modifier.size(14.dp))
+                        }
+                    }
+
+                    if (pending.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            shown.forEach { row ->
+                                val now = nowSupplementId == row.def.id
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(44.dp)
+                                        .clip(RoundedCornerShape(22.dp))
+                                        .background(if (now) WizardColors.text else Color(0x0FFFFFFF))
+                                        .border(1.dp, if (now) Color.Transparent else Color(0x1CFFFFFF), RoundedCornerShape(22.dp))
+                                        .clickable(role = Role.Button, onClick = { onTakeSupplement(row.def.id, row.item.dose) })
+                                        .padding(horizontal = 10.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    if (now) {
+                                        Icon(KpknLineIcons.Plus, null, tint = Color(0xFF111111), modifier = Modifier.size(14.dp).padding(end = 4.dp))
+                                    }
+                                    Text(
+                                        text = row.def.shortName,
+                                        style = KpknType.body.copy(fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                                        color = if (now) Color(0xFF111111) else WizardColors.text,
+                                        maxLines = 1,
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = if (row.item.doses > 1) {
+                                            "${SupplementEngine.doseLabel(row.def, row.item.dose)} · ${row.takes.size.coerceAtMost(row.item.doses)}/${row.item.doses}"
+                                        } else {
+                                            SupplementEngine.doseLabel(row.def, row.item.dose)
+                                        },
+                                        style = KpknType.caption.copy(fontSize = 12.sp),
+                                        color = if (now) Color(0xAA111111) else Color(0xFF8E8980),
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                            if (restCount > 0) {
+                                Row(
+                                    modifier = Modifier
+                                        .height(44.dp)
+                                        .clip(RoundedCornerShape(22.dp))
+                                        .background(Color(0x08FFFFFF))
+                                        .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(22.dp))
+                                        .clickable(role = Role.Button, onClick = onOpenSupplementsQuick)
+                                        .padding(horizontal = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "+$restCount más",
+                                        style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
+                                        color = Color(0xFFB3ADA3),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (hasCaffeine && caffeineTotalMg > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Cafeína de hoy",
+                                style = KpknType.caption.copy(fontSize = 12.sp),
+                                color = Color(0xFF8E8980),
+                            )
+                            val over = caffeineTotalMg > 400.0
+                            Text(
+                                text = "${caffeineTotalMg.toInt()} / 400 mg",
+                                style = KpknType.caption.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
+                                color = if (over) WizardColors.danger else Color(0xFFB3ADA3),
+                            )
+                        }
                     }
                 }
             }

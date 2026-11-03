@@ -173,7 +173,8 @@ class SetExecutionCardVideoLayoutTest {
         val touchBounds = rule.onNodeWithTag(WorkoutVideoChipTag).fetchSemanticsNode().touchBoundsInRoot
         assertTrue(touchBounds.height >= 48f * 3f && touchBounds.width >= 48f * 3f)
         rule.onNodeWithTag("set_execution_card").performTouchInput {
-            click(Offset(chip.center.x - card.left, chip.top - card.top - 10f * 3f))
+            // Lienzo: la referencia de la carga queda a 7 dp de la cabecera; el área táctil de la píldora (48 dp) llega 13,5 dp más arriba.
+            click(Offset(chip.center.x - card.left, chip.top - card.top - 4f * 3f))
         }
         rule.onNodeWithTag(WorkoutVideoMenuTag).assertIsDisplayed()
     }

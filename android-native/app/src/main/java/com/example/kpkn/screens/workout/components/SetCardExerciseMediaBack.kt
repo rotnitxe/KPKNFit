@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import com.example.kpkn.ui.design.depth.kpknShadow
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -394,6 +396,25 @@ internal fun SetCardExerciseMediaBack(
                                 .padding(horizontal = 4.dp).testTag("media_album"),
                             contentAlignment = Alignment.Center,
                         ) { Text("Álbum", style = mediaRef02Body(11.sp), color = MediaRef02Muted) }
+                    }
+                    // «Expandir» (ley del 16-oct, pedido del 29-oct): siempre a la vista en la cabecera de la cara, en Foto, Vídeo, con o sin
+                    // cámara, grabando o con análisis. Lleva la vista a casi toda la pantalla encima de todo; allí se vuelve con «Plegar a la
+                    // tarjeta» (arriba a la derecha), «Volver al registro» (pie) o Atrás. Con la letra muy grande queda solo el icono.
+                    // `.lx-tpill.lx-xp` del lienzo: píldora de 32 dp (radio 16, blanco al 8 %), icono de 14 dp y «Expandir» en 12,5 sp / 600.
+                    Row(
+                        Modifier.requiredHeight(32.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x14FFFFFF))
+                            .clickable(role = Role.Button) { openExpanded() }
+                            .padding(horizontal = 12.dp)
+                            .semantics { contentDescription = "Expandir" }
+                            .testTag("media_expand"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        androidx.compose.material3.Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Expand, null, Modifier.size(14.dp), tint = WizardColors.text)
+                        // Con la letra muy grande queda solo el icono (no cabe junto al resto de la cabecera).
+                        if (fontScale <= 1.15f) {
+                            Text("Expandir", style = com.example.kpkn.screens.workout.components.Lx.inter(12.5.sp, FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
+                        }
                     }
                 }
                 Stage(
@@ -1256,7 +1277,7 @@ internal fun ExpandedMediaOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.6f * p))
+                .background(Color.Black.copy(alpha = 0.62f * p))
                 .pointerInput(Unit) { detectTapGestures { } },
         )
         Column(
@@ -1266,6 +1287,8 @@ internal fun ExpandedMediaOverlay(
                     width = with(density) { rect.width.toDp() },
                     height = with(density) { rect.height.toDp() },
                 )
+                // `.lx-ov`: sombra «modal» (0 20 60 #000c, `lx-S07`), fondo #111 y borde crema al 10 %.
+                .kpknShadow(com.example.kpkn.ui.design.depth.KpknShadow.Modal, RoundedCornerShape(radius))
                 .clip(RoundedCornerShape(radius))
                 .background(KpknSurface.module, RoundedCornerShape(radius))
                 .border(1.dp, Color(0xFFF2EEE6).copy(alpha = 0.10f), RoundedCornerShape(radius))
@@ -1274,7 +1297,7 @@ internal fun ExpandedMediaOverlay(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { alpha = p }
+                    .graphicsLayer { alpha = ((p * ExpandMillis - 120f) / 200f).coerceIn(0f, 1f) }
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1286,28 +1309,18 @@ internal fun ExpandedMediaOverlay(
                         Text(subtitle, modifier = Modifier.fillMaxWidth(), style = KpknType.caption, color = WizardColors.textMuted)
                     }
                 }
-                onOpenAlbum?.let { openAlbum ->
-                    Box(Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClick = openAlbum).padding(horizontal = 8.dp)
-                        .testTag("media_expanded_album"), contentAlignment = Alignment.Center) {
-                        Text("Álbum", style = KpknType.caption.copy(fontSize = 12.sp), color = Color(0xFFB9B5AE))
-                    }
-                }
-                val interaction = remember { MutableInteractionSource() }
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = fold)
+                // «Plegar» es la gemela con nombre de «Expandir»; el «Álbum» del encabezado sobraba porque «Ver álbum» ya está en el escenario.
+                Row(
+                    modifier = Modifier.height(32.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x14FFFFFF))
+                        .clickable(role = Role.Button, onClick = fold)
+                        .padding(horizontal = 12.dp)
                         .semantics { contentDescription = "Plegar a la tarjeta" }
                         .testTag("media_fold"),
-                    contentAlignment = Alignment.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF1F1F1F), CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) { ExpandGlyph(expand = false) }
+                    androidx.compose.material3.Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Fold, null, Modifier.size(14.dp), tint = WizardColors.text)
+                    Text("Plegar", style = com.example.kpkn.screens.workout.components.Lx.inter(12.5.sp, FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
                 }
             }
             stage(

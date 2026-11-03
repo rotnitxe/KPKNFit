@@ -105,30 +105,33 @@ class SessionEditorEmptySpacesTest {
     fun alElegirCardioApareceSuEspacioVacioYFuerzaQuedaPendiente() {
         val items = buildSessionListItems(empty(), cardioSpaceCommitted = true)
 
-        // Su apartado (con «Añadir cardio») y, debajo, la opción de Fuerza pendiente; ni rótulos ni colocación.
-        assertEquals(listOf(SessionListItem.Hero, SessionListItem.CardioAddActions, SessionListItem.StrengthAddActions), items)
+        // Su rótulo «CARDIO» (con el «+»), su módulo vacío y, debajo, la opción de Fuerza pendiente; ni flecha de posición ni colocación.
+        assertEquals(
+            listOf(SessionListItem.Hero, SessionListItem.CardioDivider(showCardioFirst = true, canMove = false), SessionListItem.CardioAddActions, SessionListItem.StrengthAddActions),
+            items,
+        )
     }
 
     @Test
     fun laColocacionEsElUnicoControlConLosDosEspacios() {
         val both = buildSessionListItems(empty(), showStrengthDivider = true, cardioSpaceCommitted = true, cardioAtStart = false)
 
-        assertEquals(SessionListItem.CardioPlacement, both[1])
+        // Pulido v1 (punto 26): el selector grande desaparece; la posición vive en el rótulo CARDIO, con su flecha.
+        assertTrue(both.none { it is SessionListItem.CardioPlacement })
         val cardioDivider = both.filterIsInstance<SessionListItem.CardioDivider>().single()
         val strengthDivider = both.filterIsInstance<SessionListItem.StrengthDivider>().single()
-        // Un solo control: el selector está a la vista y los rótulos de Fuerza y Cardio no ofrecen «Mover…».
-        assertFalse(cardioDivider.canMove)
+        assertTrue(cardioDivider.canMove)
         assertFalse(strengthDivider.canMove)
 
         // Solo uno de los dos espacios: no hay colocación.
         assertTrue(buildSessionListItems(empty(), showStrengthDivider = true).none { it is SessionListItem.CardioPlacement })
         assertTrue(buildSessionListItems(empty(), cardioSpaceCommitted = true).none { it is SessionListItem.CardioPlacement })
 
-        // Con ejercicios el selector sigue siendo el único control: la función de mover no se pierde.
+        // Con ejercicios la flecha del rótulo sigue ahí: la función de mover no se pierde.
         val populated = Session(id = "s", name = "Con ejercicios", exercises = listOf(strength("e1")))
         val populatedItems = buildSessionListItems(populated, cardioSpaceCommitted = true)
-        assertTrue(populatedItems.any { it is SessionListItem.CardioPlacement })
-        assertTrue(populatedItems.filterIsInstance<SessionListItem.CardioDivider>().none { it.canMove })
+        assertTrue(populatedItems.none { it is SessionListItem.CardioPlacement })
+        assertTrue(populatedItems.filterIsInstance<SessionListItem.CardioDivider>().all { it.canMove })
         assertTrue(populatedItems.filterIsInstance<SessionListItem.StrengthDivider>().none { it.canMove })
     }
 
@@ -151,13 +154,14 @@ class SessionEditorEmptySpacesTest {
 
         assertTrue(items.none { it is SessionListItem.CardioPlacement })
         assertTrue(items.none { it is SessionListItem.StrengthDivider })
-        assertTrue(items.none { it is SessionListItem.CardioDivider })
-        // Los cardios primero, «Añadir cardio» y, al final, la opción de Fuerza pendiente.
+        // Su rótulo «CARDIO» (con el «+» del alta) sin flecha de posición.
+        assertFalse(items.filterIsInstance<SessionListItem.CardioDivider>().single().canMove)
+        // Los cardios primero, sin pie «Añadir cardio» (el alta es el «+» del rótulo) y, al final, la opción de Fuerza pendiente.
         assertEquals(
             listOf("c1", "c2"),
             items.filterIsInstance<SessionListItem.PartExercise>().map { it.exerciseId },
         )
-        assertTrue(items.indexOfFirst { it is SessionListItem.CardioAddActions } < items.indexOfFirst { it is SessionListItem.StrengthAddActions })
+        assertTrue(items.none { it is SessionListItem.CardioAddActions })
         assertTrue(items.last() is SessionListItem.StrengthAddActions)
     }
 

@@ -109,10 +109,11 @@ fun MacrocycleEditorLegacy(
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onWeekLongPress: (weekId: String, anchor: Rect) -> Unit = { _, _ -> },
-    onApplyProgramTemplateOverwrite: (ProgramTemplateOption, Boolean) -> Unit = { _, _ -> },
-    onApplyProtocol: (Protocol, Boolean) -> Unit = { _, _ -> },
+    onApplyProgramTemplateOverwrite: (ProgramTemplateOption, Boolean, (Boolean, String?) -> Unit) -> Unit = { _, _, onResult -> onResult(false, null) },
+    onApplyProtocol: (Protocol, Boolean, (Boolean, String?) -> Unit) -> Unit = { _, _, onResult -> onResult(false, null) },
     programSnapshots: List<ProgramSnapshot> = emptyList(),
     onRestoreProgramSnapshot: (String) -> Unit = {},
+    onUndoProgramApply: (String) -> Unit = {},
     onRefreshProgramSnapshots: () -> Unit = {},
     showSimpleCalendarizationSheet: Boolean = false,
     onShowSimpleCalendarizationSheetChange: (Boolean) -> Unit = {},
@@ -660,8 +661,9 @@ fun MacrocycleEditorLegacy(
 
     if (showLibrarySheet) {
         LibrarySection(
-            onApplyTemplate = { template, replace -> onApplyProgramTemplateOverwrite(template, replace) },
-            onApplyProtocol = { protocol, replace -> onApplyProtocol(protocol, replace) },
+            onApplyTemplate = { template, replace, onResult -> onApplyProgramTemplateOverwrite(template, replace, onResult) },
+            onApplyProtocol = { protocol, replace, onResult -> onApplyProtocol(protocol, replace, onResult) },
+            onUndo = { snapshotId -> onUndoProgramApply(snapshotId) },
             onDismiss = { setLibrarySheetOpen(false) },
         )
     }

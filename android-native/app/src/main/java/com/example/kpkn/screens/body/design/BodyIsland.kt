@@ -12,20 +12,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTopIsland
 
 /**
- * Isla superior de Cuerpo (BODY_V1 §2.1): «64,0 kg» con «−0,6 kg en 30 días», el icono de Cuerpo en la columna y el «+» en un círculo
- * de tinta. Aparece cuando la cabecera sale de la vista.
+ * Isla superior de Cuerpo (BODY_V1 §2.1): «64,0 kg» con «−0,6 kg en 30 días» y el icono de Cuerpo en la columna. Aparece cuando la
+ * cabecera sale de la vista. Sin «+»: el registro vive en la isla flotante de abajo ([BodyNewRecordIsland]), como en Nutrición.
  */
 @Composable
 fun BodyIsland(
     visible: Boolean,
     title: String,
     subtitle: String?,
-    onAdd: () -> Unit,
 ) {
     KpknTopIsland(
         visible = visible,
@@ -46,14 +44,6 @@ fun BodyIsland(
                     tint = SymbolPalette.columna,
                 )
             }
-        },
-        actions = {
-            KpknIconButton(
-                icon = KpknLineIcons.Plus,
-                contentDescription = "Registrar medidas",
-                onClick = onAdd,
-                filled = true,
-            )
         },
     )
 }

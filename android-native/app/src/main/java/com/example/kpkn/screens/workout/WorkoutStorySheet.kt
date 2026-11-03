@@ -7,7 +7,13 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.selected
+import com.example.kpkn.ui.design.depth.kpknFilter
+import com.example.kpkn.ui.design.depth.kpknGradient
+import com.example.kpkn.ui.design.depth.kpknShadow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -100,65 +106,96 @@ internal fun WorkoutStorySheet(
         if(granted)save()else message="Permite guardar imágenes para añadir esta historia a tu galería. Puedes compartirla directamente."
     }
     val enabled=!busy&&!rendering&&image!=null
+    val rendering0 = com.example.kpkn.ui.design.motion.rememberKpknPose(com.example.kpkn.screens.workout.LxSpinAnimation)
+    // Miniaturas de las plantillas: la propia historia a baja resolución (una por plantilla), en cuanto se pueden dibujar.
+    val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates) {
+        templates.forEach { template ->
+            val small = try {
+                val full = renderStory(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId))
+                Bitmap.createScaledBitmap(full, 96, 171, true).also { if (it !== full) full.recycle() }
+            } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
+            if (small != null) value = value + (template to small.asImageBitmap())
+        }
+    }
     val content: @Composable ()->Unit={
-        Column(Modifier.fillMaxSize().background(Color(0xFF0E0E0E)).padding(horizontal=16.dp)
-            .semantics(mergeDescendants = true) { paneTitle = "Historia" }.testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(14.dp)){
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
-                Text("Compartir",style=KpknType.title.copy(fontSize=20.sp),color=FinishCream)
-                IconButton(onClick={if(!busy)onDismiss()},enabled=!busy,modifier=Modifier.size(30.dp)){Icon(Icons.Default.Close,"Volver al resumen",Modifier.size(18.dp),tint=FinishCream)}
-            }
-            // Keep the template group as its own accessible node inside KpknSheet's clickable panel.
-            Row(Modifier.fillMaxWidth().height(38.dp).background(Color.Black,RoundedCornerShape(18.dp)).padding(4.dp)
-                .semantics(mergeDescendants = true) { contentDescription = "Plantillas de historia" }
-                .testTag("story-templates"),horizontalArrangement=Arrangement.spacedBy(4.dp)){
-                templates.forEach{template->Box(Modifier.weight(1f).height(30.dp).clip(RoundedCornerShape(15.dp)).background(if(template==safeOptions.template)FinishCream else Color.Transparent)
-                    .clickable(enabled=!busy){onOptionsChange(safeOptions.copy(template=template))},contentAlignment=Alignment.Center){
-                    Text(template.label,style=KpknType.caption.copy(fontSize=12.sp,fontWeight=FontWeight.SemiBold),color=if(template==safeOptions.template)Color(0xFF0B0B0B)else FinishCream.copy(alpha=.62f))
-                }}
-            }
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Box(
-                    Modifier
-                        .fillMaxHeight()
-                        .heightIn(max = 412.dp)
-                        .aspectRatio(9f / 16f, matchHeightConstraintsFirst = true)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF120E0B))
-                        .clickable(enabled = !busy) { if (image != null) expanded = true },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    image?.let {
-                        Image(
-                            it.asImageBitmap(),
-                            "Vista previa de historia ${safeOptions.template.label}",
-                            Modifier.fillMaxSize().testTag("story-preview"),
-                            contentScale = ContentScale.Fit,
-                        )
-                    }
-                    if (rendering) CircularProgressIndicator(Modifier.size(24.dp), color = FinishCream, strokeWidth = 2.dp)
+        Column(Modifier.fillMaxSize().padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = 20.dp)
+            .semantics(mergeDescendants = true) { paneTitle = "Historia" }.testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(10.dp)){
+            Row(Modifier.fillMaxWidth().padding(top = 2.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
+                Text("Compartir",style=androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 22.sp, letterSpacing = (-0.5).sp),color=FinishCream)
+                Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x0DFFFFFF)).clickable(enabled = !busy){onDismiss()},contentAlignment=Alignment.Center){
+                    Icon(Icons.Default.Close,"Volver al resumen",Modifier.size(20.dp),tint=FinishCream)
                 }
             }
-            if(safeOptions.template==WorkoutStoryTemplate.EXERCISE)LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.fillMaxWidth()){
-                items(data.lifts,key={it.exerciseId}){lift->StoryPill(lift.name,lift.exerciseId==(safeOptions.exerciseId?:data.defaultExerciseId),!busy){onOptionsChange(safeOptions.copy(exerciseId=lift.exerciseId))}}
+            // La vista previa es la protagonista: 9:16 a casi todo el alto, con un resplandor suave detrás (`lx-V03`, `lx-G02`) y la sombra de «historia» (`lx-S08`).
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                // Resplandor suave detrás de la vista previa: `inset: 6% 10%`, desenfoque de 26 dp y degradado crema (`lx-V03`, `lx-G02`).
+                Box(Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.88f).kpknFilter(com.example.kpkn.ui.design.depth.KpknFilterPreset.ResplandorDesenfoque)
+                    .kpknGradient(com.example.kpkn.ui.design.depth.KpknGradient.ResplandorCrema, androidx.compose.ui.graphics.RectangleShape))
+                Box(Modifier.fillMaxHeight().aspectRatio(9f / 16f, matchHeightConstraintsFirst = true).testTag("story-preview-frame"), contentAlignment = Alignment.Center) {
+                    val previewShape = RoundedCornerShape(20.dp)
+                    Box(
+                        Modifier.fillMaxSize().kpknShadow(com.example.kpkn.ui.design.depth.KpknShadow.Historia, previewShape).clip(previewShape).background(Color(0xFF0A0A0A))
+                            .clickable(enabled = !busy) { if (image != null) expanded = true },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        image?.let {
+                            Image(it.asImageBitmap(), "Vista previa de historia ${safeOptions.template.label}", Modifier.fillMaxSize().testTag("story-preview"), contentScale = ContentScale.Fit)
+                        }
+                        if (rendering) Canvas(Modifier.size(26.dp).graphicsLayer { rotationZ = rendering0.pose().rotationDeg }) {
+                            val w = 2.5.dp.toPx()
+                            val box = androidx.compose.ui.geometry.Size(size.width - w, size.height - w)
+                            drawArc(Color(0x33F2EEE6), 0f, 360f, false, topLeft = androidx.compose.ui.geometry.Offset(w / 2, w / 2), size = box, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
+                            drawArc(FinishCream, -135f, 90f, false, topLeft = androidx.compose.ui.geometry.Offset(w / 2, w / 2), size = box, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
+                        } else if (failedRequest == request) Icon(com.example.kpkn.ui.components.icons.KpknLineIcons.Info, null, Modifier.size(24.dp), tint = FinishMuted)
+                    }
+                }
+            }
+            // Plantillas como miniaturas de la propia historia (`lx-tpl`): 84 dp de ancho, la elegida con anillo de tinta.
+            Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = "Plantillas de historia" }.testTag("story-templates"),
+                horizontalArrangement=Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)){
+                templates.forEach{template->
+                    val on = template==safeOptions.template
+                    val thumbShape = RoundedCornerShape(7.dp)
+                    Column(Modifier.width(84.dp).clip(RoundedCornerShape(14.dp)).clickable(enabled=!busy){onOptionsChange(safeOptions.copy(template=template))}.padding(top = 6.dp, bottom = 2.dp)
+                        .semantics { selected = on }.testTag("story-template-${template.name}"),
+                        horizontalAlignment=Alignment.CenterHorizontally, verticalArrangement=Arrangement.spacedBy(6.dp)){
+                        val thumbAlpha by com.example.kpkn.ui.design.motion.animateKpknFloatAsState(if (on) 1f else 0.7f)
+                        Box(Modifier.width(32.dp).height(57.dp).graphicsLayer { alpha = thumbAlpha }
+                            .kpknShadow(if (on) com.example.kpkn.ui.design.depth.KpknShadow.AnilloActual else com.example.kpkn.ui.design.depth.KpknShadow.BordeInterior, thumbShape)
+                            .clip(thumbShape).background(Color(0xFF0A0A0A))){
+                            thumbs[template]?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+                        }
+                        Text(template.label,style=com.example.kpkn.screens.workout.components.Lx.inter(12.sp, FontWeight.SemiBold),color=if(on)FinishCream else FinishMuted)
+                    }
+                }
+            }
+            if(safeOptions.template==WorkoutStoryTemplate.EXERCISE)FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),verticalArrangement=Arrangement.spacedBy(6.dp)){
+                data.lifts.forEach{lift->StoryPill(lift.name,lift.exerciseId==(safeOptions.exerciseId?:data.defaultExerciseId),!busy){onOptionsChange(safeOptions.copy(exerciseId=lift.exerciseId))}}
             }
             Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
-                Text("INCLUIR",style=KpknType.eyebrow.copy(fontSize=12.sp),color=FinishMuted)
-                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+                Text("INCLUIR",style=com.example.kpkn.screens.workout.components.Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp),color=FinishMuted)
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
                     if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Mejoras en kg",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("sRPE declarado",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
                 }
             }
-            message?.let{Text(it,style=KpknType.caption,color=FinishMuted,modifier=Modifier.testTag("story-message"))}
-            Row(Modifier.fillMaxWidth().padding(bottom=8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                OutlinedButton(onClick={if(Build.VERSION.SDK_INT<=28&&ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)permission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)else save()},enabled=enabled,
-                    modifier=Modifier.height(48.dp).testTag("story-save-image"),contentPadding=PaddingValues(horizontal=14.dp),shape=RoundedCornerShape(24.dp),border=androidx.compose.foundation.BorderStroke(1.dp,FinishCream.copy(alpha=.12f)),colors=ButtonDefaults.outlinedButtonColors(contentColor=FinishCream)){
-                    Text("Guardar imagen",style=KpknType.bodyStrong.copy(fontSize=13.sp))
+            Text(message ?: "",Modifier.fillMaxWidth().heightIn(min = 16.dp).testTag("story-message"),style=com.example.kpkn.screens.workout.components.Lx.inter(12.sp, line = 15.6.sp),color=FinishMuted,textAlign=TextAlign.Center)
+            // «Guardar imagen» pasa a botón SOLO con icono (con etiqueta para los lectores de pantalla) para que «Compartir en historias» quepa entero.
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically){
+                Box(Modifier.size(52.dp).graphicsLayer { alpha = if (enabled) 1f else 0.38f }.clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x0FFFFFFF))
+                    .border(1.dp, Color(0x1FFFFFFF), androidx.compose.foundation.shape.CircleShape)
+                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){if(Build.VERSION.SDK_INT<=28&&ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)permission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)else save()}
+                    .semantics { contentDescription = "Guardar imagen" }.testTag("story-save-image"),contentAlignment=Alignment.Center){
+                    Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Download,null,Modifier.size(22.dp),tint=FinishCream)
                 }
-                Button(onClick={image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
-                    try{WorkoutShareService.shareBitmap(context,bitmap)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
-                }}},enabled=enabled,modifier=Modifier.weight(1f).height(48.dp).testTag("story-share"),contentPadding=PaddingValues(horizontal=10.dp,vertical=4.dp),shape=RoundedCornerShape(24.dp),colors=ButtonDefaults.buttonColors(containerColor=FinishCream,contentColor=Color(0xFF0B0B0B))){
-                    Text("Compartir en historias",style=KpknType.bodyStrong.copy(fontSize=12.sp,lineHeight=14.sp),maxLines=2,textAlign=TextAlign.Center)
+                Row(Modifier.weight(1f).height(52.dp).graphicsLayer { alpha = if (enabled) 1f else 0.38f }.clip(RoundedCornerShape(50)).background(FinishCream)
+                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
+                        try{WorkoutShareService.shareBitmap(context,bitmap)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
+                    }}}.padding(horizontal = 12.dp).testTag("story-share"),
+                    horizontalArrangement=Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically){
+                    Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Share,null,Modifier.size(17.dp),tint=Color(0xFF111111))
+                    Text("Compartir en historias",style=com.example.kpkn.screens.workout.components.Lx.inter(15.sp, FontWeight.SemiBold, line = 16.5.sp),color=Color(0xFF111111),textAlign=TextAlign.Center)
                 }
             }
         }
@@ -171,7 +208,9 @@ internal fun WorkoutStorySheet(
 
 @Composable
 private fun StoryPill(label:String,selected:Boolean,enabled:Boolean,onClick:()->Unit){
-    Box(Modifier.height(30.dp).clip(RoundedCornerShape(15.dp)).background(if(selected)FinishCream.copy(alpha=.06f)else Color.Transparent)
-        .border(1.dp,if(selected)FinishCream else FinishCream.copy(alpha=.12f),RoundedCornerShape(15.dp)).clickable(enabled=enabled,onClick=onClick)
-        .padding(horizontal=12.dp).testTag("story-toggle-$label"),contentAlignment=Alignment.Center){Text(label,style=KpknType.caption.copy(fontSize=12.sp),color=FinishCream,maxLines=1)}
+    // `.lx-chip`: 40 dp, píldora; la activa en tinta.
+    Box(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(if(selected)FinishCream else Color(0x0BFFFFFF))
+        .clickable(enabled=enabled,onClick=onClick).semantics { this.selected = selected }
+        .padding(horizontal=12.dp).testTag("story-toggle-$label"),contentAlignment=Alignment.Center){
+        Text(label,style=com.example.kpkn.screens.workout.components.Lx.num(13.sp, weight = if (selected) FontWeight.SemiBold else FontWeight.Medium),color=if(selected)Color(0xFF111111)else FinishMuted,maxLines=1)}
 }

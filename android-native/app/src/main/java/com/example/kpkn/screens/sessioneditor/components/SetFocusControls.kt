@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -19,24 +22,39 @@ import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
-/** B2: null en el modelo hereda el descanso del ejercicio; editarlo solo afecta a esta serie. */
+/**
+ * B2 · `ed-serie-descanso`: null en el modelo hereda el descanso del ejercicio; editarlo solo afecta a esta serie. El campo es
+ * «−15 · ⏱ 2:00 · +15»; tocar el tiempo abre los atajos y arrastrarlo lo cambia de 15 en 15 s.
+ */
 @Composable
-internal fun SetRestControl(seconds: Int, inherited: Boolean, onChange: (Int) -> Unit, onReset: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Descanso de esta serie", style = KpknType.caption, color = WizardColors.textMuted)
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            KpknIconButton(icon = KpknLineIcons.Minus, contentDescription = "Quitar 15 segundos a esta serie",
-                onClick = { onChange((seconds - 15).coerceAtLeast(0)) })
-            Text(KpknSetFormat.doseTime(seconds), style = KpknType.metricM, color = WizardColors.text,
-                modifier = Modifier.weight(1f).padding(horizontal = 12.dp))
-            KpknIconButton(icon = KpknLineIcons.Plus, contentDescription = "Sumar 15 segundos a esta serie",
-                onClick = { onChange(seconds + 15) })
-        }
-        if (!inherited) KpknTextAction(text = "Usar descanso del ejercicio", onClick = onReset)
-    }
+internal fun SetRestControl(
+    seconds: Int,
+    inherited: Boolean,
+    onChange: (Int) -> Unit,
+    onReset: () -> Unit,
+    /** Descanso del ejercicio: lo que restablece «Restablecer» y el último atajo. */
+    exerciseSeconds: Int = seconds,
+    /** Clave del estado de los atajos (una por serie), para que no se arrastre de una ficha a otra. */
+    stateKey: String = "set-rest",
+) {
+    var presetsOpen by androidx.compose.runtime.saveable.rememberSaveable(stateKey) { androidx.compose.runtime.mutableStateOf(false) }
+    EdRestSection(
+        seconds = seconds,
+        inherited = inherited,
+        exerciseSeconds = exerciseSeconds,
+        presetsOpen = presetsOpen,
+        onPresetsOpenChange = { presetsOpen = it },
+        onChange = onChange,
+        onReset = {
+            presetsOpen = false
+            onReset()
+        },
+    )
 }
 
-/** B9: confirmación antes de aplicar, en la misma hoja que el resto del editor. */
+/**
+ * B9 · `ed-serie-aplicar`: confirmación antes de aplicar, en la hoja del editor: título, frase y dos botones (el principal y «Cancelar»).
+ */
 @Composable
 internal fun EditorConfirmationSheet(
     title: String,
@@ -47,12 +65,14 @@ internal fun EditorConfirmationSheet(
     onDismiss: () -> Unit,
     onDismissRequest: () -> Unit = onDismiss,
 ) {
-    KpknSheet(onDismissRequest = onDismissRequest) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(title, style = KpknType.dialogTitle, color = WizardColors.text)
-            Text(text, style = KpknType.body, color = WizardColors.textMuted)
-            KpknPrimaryPill(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-            KpknTextAction(text = dismissLabel, onClick = onDismiss)
+    EdSheet(onDismiss = onDismissRequest) {
+        // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y solo entonces corre lo que confirma o cancela
+        val close = LocalEdSheetClose.current
+        androidx.compose.material3.Text(title, style = edDisplay(20f, androidx.compose.ui.text.font.FontWeight.Bold, EdColors.ink, -0.4f).copy(lineHeight = 23.sp))
+        androidx.compose.material3.Text(text, style = edText(13.5f, androidx.compose.ui.text.font.FontWeight.Normal, EdColors.muted, 19.6f))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            EdPrimaryButton(text = confirmLabel, onClick = { close(onConfirm) })
+            EdPrimaryButton(text = dismissLabel, onClick = { close(onDismiss) }, ghost = true)
         }
     }
 }

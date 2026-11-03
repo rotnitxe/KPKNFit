@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.body.design
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +73,7 @@ fun LazyListScope.bodyHistoryItems(
     weightUnit: WizardMassUnit,
     onOpen: (BodyHistoryRow) -> Unit,
     onAdd: () -> Unit,
+    newRowId: String? = null,
 ) {
     if (rows.isEmpty()) {
         item(key = "body-history-empty") {
@@ -117,7 +122,7 @@ fun LazyListScope.bodyHistoryItems(
                                     .background(KpknSurface.divider),
                             )
                         }
-                        BodyHistoryRowItem(row = row, unit = weightUnit, onClick = { onOpen(row) })
+                        BodyHistoryRowItem(row = row, unit = weightUnit, isNew = (newRowId != null && (row.sessionId == newRowId || row.observations.any { it.id == newRowId || it.sessionId == newRowId })), onClick = { onOpen(row) })
                     }
                 }
             }
@@ -166,11 +171,21 @@ private fun BodyHistoryHeadWithMenu(label: String, rows: List<BodyHistoryRow>, w
 
 /** Una medición del historial: 56 dp como mínimo, con relleno `modulePressed` al pulsar y `Role.Button`. */
 @Composable
-private fun BodyHistoryRowItem(row: BodyHistoryRow, unit: WizardMassUnit, onClick: () -> Unit) {
+private fun BodyHistoryRowItem(row: BodyHistoryRow, unit: WizardMassUnit, isNew: Boolean = false, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val rowShape = RoundedCornerShape(16.dp)
     val dateLabel = "${bodyWeekdayDayEs(row.dateTime.toLocalDate())} · ${bodyTimeEs(row.dateTime)}"
+    // nc-A04: animation nc-flash 1.8s ease-out forwards (0% rgba(242, 238, 230, 0.18) -> 100% rgba(242, 238, 230, 0))
+    var flashed by remember(row.timestampEpochMs) { mutableStateOf(!isNew) }
+    LaunchedEffect(isNew) {
+        if (isNew) flashed = true
+    }
+    val flashAlpha by animateFloatAsState(
+        targetValue = if (isNew && !flashed) 1f else 0f,
+        animationSpec = tween(1800, easing = FastOutSlowInEasing),
+        label = "ncFlashAlpha",
+    )
     // Cada etiqueta va unida a su cifra con espacios sin ruptura: al 130 % no se parte «Músculo» de su número.
     val details = listOfNotNull(
         row.bodyFatPercent?.let { "Grasa ${formatDecimalEs(it, 1)} %" },
@@ -181,7 +196,7 @@ private fun BodyHistoryRowItem(row: BodyHistoryRow, unit: WizardMassUnit, onClic
             .fillMaxWidth()
             .defaultMinSize(minHeight = 56.dp)
             .clip(rowShape)
-            .background(if (pressed) KpknSurface.modulePressed else Color.Transparent, rowShape)
+            .background(if (pressed) KpknSurface.modulePressed else if (flashAlpha > 0f) Color(0x2EF2EEE6).copy(alpha = flashAlpha) else Color.Transparent, rowShape)
             .clickable(
                 interactionSource = interaction,
                 indication = null,

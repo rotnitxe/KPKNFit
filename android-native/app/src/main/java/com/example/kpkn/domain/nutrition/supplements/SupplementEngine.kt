@@ -1,0 +1,234 @@
+package com.example.kpkn.domain.nutrition.supplements
+
+import com.example.kpkn.data.models.LoggedFood
+import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.NutrientCoverage
+import com.example.kpkn.domain.nutrition.NutrientKey
+import com.example.kpkn.data.models.MealType
+import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.data.models.SupplementPilaItem
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlin.math.abs
+import kotlin.math.roundToLong
+
+/**
+ * Una toma de suplemento ya registrada: fecha y hora reales (vacías en los registros viejos sin hora), dosis en la unidad del
+ * suplemento y la identidad exacta del alimento dentro de su registro ([logId] + [foodIndex]). Dos tomas iguales del mismo
+ * suplemento se distinguen por su posición en el registro; nunca por la dosis.
+ */
+data class SupplementTake(
+    val time: String,
+    val dose: Double,
+    val logId: String = "",
+    val foodId: String = "",
+    val foodIndex: Int = -1,
+    val date: String = "",
+) {
+    /** Identidad estable de esta toma dentro de su registro. */
+    val key: String get() = "$logId#$foodIndex"
+}
+
+/**
+ * Aviso de techo (no bloqueo): registrar [dose] llevaría el día a [projected], por encima de [cap]. «Registrar igual» siempre está disponible.
+ */
+data class SupplementCeiling(val projected: Double, val cap: Double, val exceeded: Boolean)
+
+/**
+ * Lógica pura de la pila de suplementos (Pulido v1 · SUPLEMENTOS): orden por momento, tomas del día a partir de los registros, techo,
+ * semana y construcción del registro de una toma. Sin Android.
+ */
+object SupplementEngine {
+
+    private const val FOOD_ID_PREFIX = "sup:"
+    private const val LEGACY_CREATINE_ID = "gen106"
+    private const val NOTE_PREFIX = "Suplemento · "
+
+    /** Franja útil de cafeína del lienzo (160–250 mg), la clara bajo la barra. */
+    const val CAFFEINE_BAND_MIN_MG = 160.0
+    const val CAFFEINE_BAND_MAX_MG = 250.0
+
+    /** kcal por gramo de proteína en polvo (estimadas: el aviso «estimado» las acompaña). */
+    const val PROTEIN_KCAL_PER_G = 4.4
+
+    fun takeFoodId(supplementId: String): String = FOOD_ID_PREFIX + supplementId
+
+    /** La pila ordenada por momento del día (estable: a igual momento, el orden en que se añadieron). */
+    fun sorted(pila: List<SupplementPilaItem>): List<SupplementPilaItem> = pila.sortedBy { it.moment }
+
+    fun isDone(item: SupplementPilaItem, takes: List<SupplementTake>): Boolean = takes.size >= item.doses.coerceAtLeast(1)
+
+    fun takenCount(pila: List<SupplementPilaItem>, takesById: Map<String, List<SupplementTake>>): Int =
+        pila.count { isDone(it, takesById[it.id].orEmpty()) }
+
+    fun dayTotal(takes: List<SupplementTake>): Double = takes.sumOf { it.dose }
+
+    /**
+     * Las tomas del día [date] (`yyyy-MM-dd`) por id de suplemento, a partir de los registros. Un alimento `sup:<id>` es una toma de ese
+     * suplemento; la creatina rápida de antes (`gen106`) cuenta como toma de creatina con sus gramos. Los registros planificados no cuentan.
+     */
+    fun takesFromLogs(logs: List<NutritionLog>, date: String): Map<String, List<SupplementTake>> {
+        val out = linkedMapOf<String, MutableList<SupplementTake>>()
+        for (log in logs) {
+            if (log.date.take(10) != date.take(10) || log.status == NutritionStatus.PLANNED) continue
+            val time = log.notes?.takeIf { it.startsWith(NOTE_PREFIX) }?.removePrefix(NOTE_PREFIX)?.take(5).orEmpty()
+            log.foods.forEachIndexed { index, food ->
+                when {
+                    food.id.startsWith(FOOD_ID_PREFIX) ->
+                        out.getOrPut(food.id.removePrefix(FOOD_ID_PREFIX)) { mutableListOf() }
+                            .add(SupplementTake(time, food.amount, log.id, food.id, index, log.date.take(10)))
+                    food.id == LEGACY_CREATINE_ID && food.creatineG > 0.0 ->
+                        out.getOrPut("creatina") { mutableListOf() }
+                            .add(SupplementTake(time, food.creatineG, log.id, food.id, index, log.date.take(10)))
+                }
+            }
+        }
+        return out
+    }
+
+    /** Quita EXACTAMENTE la toma [take] de [log] y conserva los demás alimentos; null si el registro se queda sin alimentos. */
+    fun removeTake(log: NutritionLog, take: SupplementTake): NutritionLog? {
+        if (log.id != take.logId) return null
+        val byIndex = take.foodIndex.takeIf { it in log.foods.indices && log.foods[it].matchesTake(take) }
+        val index = byIndex ?: log.foods.indexOfFirst { it.matchesTake(take) }
+        if (index < 0) return null
+        val remaining = log.foods.toMutableList().apply { removeAt(index) }
+        return if (remaining.isEmpty()) null else log.copy(foods = remaining)
+    }
+
+    private fun LoggedFood.matchesTake(take: SupplementTake): Boolean {
+        if (id != take.foodId) return false
+        val effectiveAmount = if (id == LEGACY_CREATINE_ID) creatineG else amount
+        return abs(effectiveAmount - take.dose) < 1e-6
+    }
+
+    /** Cafeína de comidas y bebidas = total del día menos lo tomado como suplemento (nunca negativa). */
+    fun foodCaffeineMg(totalCaffeineMg: Double, caffeineTakes: List<SupplementTake>): Double =
+        (totalCaffeineMg - dayTotal(caffeineTakes)).coerceAtLeast(0.0)
+
+    /**
+     * El techo del suplemento [def] si se registra [dose] sobre lo que ya hay hoy ([dayTotalNow], en la unidad del suplemento).
+     * Null si el suplemento no tiene techo propio.
+     */
+    fun ceiling(def: SupplementDef, dayTotalNow: Double, dose: Double): SupplementCeiling? {
+        val cap = def.cap ?: return null
+        val projected = dayTotalNow + dose
+        return SupplementCeiling(projected = projected, cap = cap, exceeded = projected > cap + 1e-9)
+    }
+
+    /** El registro de una toma: un tentempié con el alimento `sup:<id>`, la hora en las notas y los nutrientes que el motor ya conoce. */
+    fun buildTakeLog(def: SupplementDef, dose: Double, time: String, date: String, logId: String): NutritionLog {
+        val protein = if (def.id == "proteina") dose else 0.0
+        val food = LoggedFood(
+            id = takeFoodId(def.id),
+            foodName = def.name,
+            amount = dose,
+            unit = def.unit,
+            calories = protein * PROTEIN_KCAL_PER_G,
+            protein = protein,
+            caffeineMg = if (def.id == "cafeina") dose else 0.0,
+            creatineG = if (def.id == "creatina") dose else 0.0,
+            micronutrients = supplementMicronutrients(def.id, dose),
+            isUncertain = protein > 0.0,
+        )
+        return NutritionLog(
+            id = logId,
+            date = date,
+            mealType = MealType.SNACK,
+            foods = listOf(food),
+            notes = NOTE_PREFIX + time,
+        )
+    }
+
+    private fun supplementMicronutrients(id: String, dose: Double): List<Micronutrient> = when (id) {
+        "vitd" -> listOf(Micronutrient("Vitamina D", dose, "\u00b5g"))
+        "magnesio" -> listOf(Micronutrient("Magnesio", dose, "mg"))
+        "zinc" -> listOf(Micronutrient("Zinc", dose, "mg"))
+        "omega3" -> listOf(Micronutrient("Omega-3 EPA + DHA", dose, "g"))
+        else -> emptyList()
+    }
+
+    /** Presenta la dosis ya guardada por la versión previa sin reescribir el historial. */
+    fun enrichLegacyTake(log: NutritionLog): NutritionLog = log.copy(foods = log.foods.map { food ->
+        val id = food.id.removePrefix(FOOD_ID_PREFIX)
+        if (food.id.startsWith(FOOD_ID_PREFIX) && food.micronutrients.isEmpty() && food.amount.isFinite() && food.amount > 0) {
+            val expected = SupplementCatalog.byId(id)
+            if (expected != null && food.unit == expected.unit) food.copy(micronutrients = supplementMicronutrients(id, food.amount)) else food
+        } else food
+    })
+
+    /** Cantidad conocida para el techo: comida y suplemento si aplica al total; solo suplemento para magnesio y omega-3. */
+    fun knownCeilingTotal(def: SupplementDef, logs: List<NutritionLog>, date: String): Double {
+        val day = logs.filter { it.date.take(10) == date.take(10) && it.status != NutritionStatus.PLANNED }
+        if (def.capScopeSupplementsOnly || def.id == "omega3") return dayTotal(takesFromLogs(day, date)[def.id].orEmpty())
+        val key = when (def.id) {
+            "cafeina" -> NutrientKey.CAFFEINE
+            "vitd" -> NutrientKey.VITAMIN_D
+            "zinc" -> NutrientKey.ZINC
+            else -> null
+        }
+        return if (key == null) dayTotal(takesFromLogs(day, date)[def.id].orEmpty())
+        else {
+            NutrientCoverage.summarize(day.flatMap { enrichLegacyTake(it).foods }, key).totalKnown ?: 0.0
+        }
+    }
+
+    /**
+     * Fracción de la pila tomada por día ([days] de más antiguo a más reciente): suplementos con al menos una toma ese día entre los de
+     * la pila. Con la pila vacía, 0 en todos.
+     */
+    fun weekFractions(pilaIds: Set<String>, takenByDay: List<Set<String>>): List<Float> =
+        takenByDay.map { taken -> if (pilaIds.isEmpty()) 0f else (taken intersect pilaIds).size.toFloat() / pilaIds.size }
+
+    /** «100 mg», «1 porción», «2 porciones», «1,6 g». */
+    fun doseLabel(def: SupplementDef, amount: Double): String =
+        if (def.noun) "${formatNumberEs(amount)} ${if (abs(amount - 1.0) < 1e-9) def.unit else def.unitPlural ?: def.unit}"
+        else "${formatNumberEs(amount)} ${def.unit}"
+
+    /** Número en español: miles con punto, decimales con coma, hasta 2 decimales («1.240», «1,6»). */
+    fun formatNumberEs(value: Double): String {
+        val scaled = (value * 100).roundToLong()
+        val whole = scaled / 100
+        val frac = abs(scaled % 100)
+        val wholeText = abs(whole).toString().reversed().chunked(3).joinToString(".").reversed()
+        val sign = if (scaled < 0) "-" else ""
+        val fracText = if (frac == 0L) "" else "," + frac.toString().padStart(2, '0').trimEnd('0')
+        return sign + wholeText + fracText
+    }
+
+    /** «Toca ahora»: hay recordatorio y ya pasó su hora hace menos de [windowMin] minutos (hora `HH:mm` de reloj, mismo día). */
+    fun isDueNow(reminder: String?, nowHhmm: String, windowMin: Int = 60): Boolean {
+        if (reminder == null) return false
+        fun minutes(t: String): Int? = t.split(":").takeIf { it.size == 2 }?.let { (it[0].toIntOrNull() ?: return null) * 60 + (it[1].toIntOrNull() ?: return null) }
+        val r = minutes(reminder) ?: return false
+        val n = minutes(nowHhmm) ?: return false
+        return n - r in 0 until windowMin
+    }
+
+    /** Dosis nueva al pulsar − / + en el ajuste: un paso del catálogo, acotada a su mínimo y máximo y redondeada a 2 decimales. */
+    fun stepDose(def: SupplementDef, current: Double, direction: Int): Double =
+        (((current + def.step * direction) * 100).roundToLong() / 100.0).coerceIn(def.min, def.max)
+
+    /**
+     * Las opciones «Cuándo» del ajuste con su fecha y hora REALES: ahora, −30 min, −1 h y «esta mañana» a las 08:30. Si la
+     * resta cruza la medianoche, la opción conserva el día anterior (a las 00:10, «Hace 30 min» es ayer a las 23:40); nunca
+     * se recoloca la hora en el día equivocado. A las 00:10 «esta mañana» aún no ha llegado: se ofrece la de ayer con su
+     * etiqueta honesta.
+     */
+    fun whenOptions(now: LocalDateTime): List<SupplementWhenOption> {
+        val morning = if (now.toLocalTime() >= java.time.LocalTime.of(8, 30)) now.toLocalDate().atTime(8, 30) else now.toLocalDate().minusDays(1).atTime(8, 30)
+        return listOf(
+            SupplementWhenOption("Ahora", now),
+            SupplementWhenOption("Hace 30 min", now.minusMinutes(30)),
+            SupplementWhenOption("Hace 1 h", now.minusMinutes(60)),
+            SupplementWhenOption(if (morning.toLocalDate() == now.toLocalDate()) "Esta mañana" else "Ayer por la mañana", morning),
+        )
+    }
+}
+
+/** Una opción de «Cuándo»: etiqueta visible, instante real y sus partes `yyyy-MM-dd` / `HH:mm` para el registro. */
+data class SupplementWhenOption(val label: String, val at: LocalDateTime) {
+    val date: String get() = at.toLocalDate().toString()
+    val time: String get() = at.format(DateTimeFormatter.ofPattern("HH:mm"))
+}

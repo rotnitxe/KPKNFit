@@ -77,6 +77,10 @@
     <string name="notif_channel_macros_desc">Alertas inteligentes cuando los macros del día están incompletos</string>
     <string name="notif_channel_measurement_name">Recordatorio de medidas</string>
     <string name="notif_channel_measurement_desc">Recordatorio para registrar medidas corporales</string>
+    <string name="notif_channel_supplements_name">Recordatorios de suplementos</string>
+    <string name="notif_channel_supplements_desc">Avisos diarios para tomar tus suplementos a la hora que elijas</string>
+    <string name="notif_supplement_title">Hora de tu suplemento</string>
+    <string name="notif_supplement_text">%1$s · %2$s</string>
     <string name="notif_channel_workout_name">Recordatorio de entrenamiento</string>
     <string name="notif_channel_workout_desc">Recordatorio para comenzar tu sesión de entrenamiento</string>
     <string name="notif_channel_sleep_name">Recordatorio de descanso</string>

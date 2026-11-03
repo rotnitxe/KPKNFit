@@ -27,7 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -235,40 +238,99 @@ fun TechniqueScrubber(
                     else -> 0f
                 }
 
-                drawLine(TrackColor, Offset(left, cy), Offset(left + span, cy), strokeWidth = thickness, cap = StrokeCap.Round)
+                // tc-track:before — línea base de 2 dp a 12 dp del borde inferior.
+                val baseY = size.height - 12.dp.toPx()
+                drawLine(TrackColor, Offset(left, baseY), Offset(left + span, baseY), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
                 if (durationUs > 0L) {
-                    val chosen = reps.getOrNull(selectedRep)
-                    if (chosen != null) {
-                        val a = left + span * (chosen.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
-                        val b = left + span * (chosen.endUs.toFloat() / durationUs).coerceIn(0f, 1f)
-                        drawLine(ChosenSpanColor, Offset(a, cy), Offset(b, cy), strokeWidth = thickness, cap = StrokeCap.Round)
-                    }
-                }
-                if (fraction > 0f) {
-                    drawLine(WizardColors.text, Offset(left, cy), Offset(left + span * fraction, cy), strokeWidth = thickness, cap = StrokeCap.Round)
-                }
-                if (durationUs > 0L) {
+                    // tc-band: la repetición es una BANDA vertical (10 + v·16 px en el lienzo) con degradado
+                    // #8fb2ff → #6e8fd0 y opacidad .62; la elegida va opaca y con anillo de tinta.
                     for (i in reps.indices) {
                         val rep = reps[i]
-                        val x = left + span * (rep.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
                         val isChosen = i == selectedRep
-                        val color = when {
-                            rep.kind == RepKind.FAILED -> if (isChosen) WizardColors.danger else FailedNotchColor
-                            isChosen -> WizardColors.text
-                            rep.kind == RepKind.PARTIAL -> PartialNotchColor
-                            else -> NotchColor
+                        val a = left + span * (rep.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
+                        val b = left + span * (rep.endUs.toFloat() / durationUs).coerceIn(0f, 1f)
+                        if (b <= a) continue
+                        // `.tc-band`: alto 10 + v·16 px en el lienzo (v no está en el dato); 18 dp es la banda media
+                        // común a todas las repeticiones. La elegida NO crece: solo cambia opacidad y anillo.
+                        val bandHeight = 18.dp.toPx()
+                        val top = baseY - bandHeight
+                        val width = b - a
+                        // `.tc-band`: border-radius 6px 6px 2px 2px.
+                        val bandPath = Path().apply {
+                            addRoundRect(
+                                androidx.compose.ui.geometry.RoundRect(
+                                    rect = androidx.compose.ui.geometry.Rect(Offset(a, top), androidx.compose.ui.geometry.Size(width, bandHeight)),
+                                    topLeft = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
+                                    topRight = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
+                                    bottomRight = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()),
+                                    bottomLeft = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()),
+                                ),
+                            )
                         }
-                        val h = (if (isChosen) ChosenNotchHeight else NotchHeight).toPx()
-                        val w = (if (isChosen) ChosenNotchWidth else NotchWidth).toPx()
-                        drawLine(color, Offset(x, cy - h / 2f), Offset(x, cy + h / 2f), strokeWidth = w, cap = StrokeCap.Round)
+                        when (rep.kind) {
+                            RepKind.PARTIAL -> {
+                                // tc-band.part: rayas diagonales a 135° (#f7cf73 3 px / #f7cf7355 3 px).
+                                drawPath(bandPath, Color(0x1AF7CF73))
+                                val stripe = 3.dp.toPx()
+                                val step = stripe * 2f
+                                clipRect(left = a, top = top, right = b, bottom = baseY) {
+                                    var x = a - bandHeight
+                                    while (x < b) {
+                                        drawLine(Color(0xCCF7CF73), Offset(x, baseY), Offset(x + bandHeight, top), strokeWidth = stripe)
+                                        drawLine(Color(0x55F7CF73), Offset(x + stripe, baseY), Offset(x + stripe + bandHeight, top), strokeWidth = stripe)
+                                        x += step
+                                    }
+                                }
+                            }
+                            RepKind.FAILED -> drawPath(bandPath, Color(0x55FF9B92))
+                            else -> drawPath(
+                                path = bandPath,
+                                brush = Brush.verticalGradient(
+                                    listOf(Color(0xFF8FB2FF), Color(0xFF6E8FD0)),
+                                    startY = top,
+                                    endY = baseY,
+                                ),
+                                alpha = if (isChosen) 1f else 0.62f,
+                            )
+                        }
+                        if (isChosen) {
+                            // tc-band.sel: box-shadow 0 0 0 1.5px var(--ink)
+                            drawPath(
+                                path = bandPath,
+                                color = WizardColors.text.copy(alpha = 0.85f),
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
+                            )
+                        }
                     }
                 }
                 val grow = thumb.value
-                if (grow > 0f) drawCircle(HaloColor, radius = ThumbHaloRadius.toPx() * grow, center = Offset(left + span * fraction, cy))
-                val thumbRadius = ThumbRadius.toPx() + ThumbGrowth.toPx() * grow
-                val thumbCenter = Offset(left + span * fraction, cy)
-                drawCircle(ThumbRingColor, radius = thumbRadius + ThumbRing.toPx(), center = thumbCenter)
-                drawCircle(WizardColors.text, radius = thumbRadius, center = thumbCenter)
+                val headX = left + span * fraction
+                // tc-head: box-shadow rgba(242,238,230,.6) 0 0 8px. Se emula con un degradado horizontal que se
+                // apaga a los lados (un trazo grueso translúcido se vería como una barra, no como un resplandor).
+                val glowHalf = 8.dp.toPx()
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(Color.Transparent, Color(0x99F2EEE6), Color.Transparent),
+                        startX = headX - glowHalf,
+                        endX = headX + glowHalf,
+                    ),
+                    topLeft = Offset(headX - glowHalf, 0f),
+                    size = androidx.compose.ui.geometry.Size(glowHalf * 2f, size.height),
+                )
+                drawLine(WizardColors.text, Offset(headX, 2.dp.toPx()), Offset(headX, size.height - 4.dp.toPx()), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
+                val knobRadius = 5.dp.toPx() + (ThumbGrowth.toPx() * 0.6f * grow)
+                val knobCenter = Offset(headX, 4.dp.toPx())
+                // Halo radial (no un disco plano): tres paradas hasta transparente.
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        listOf(Color(0x99F2EEE6), Color(0x40F2EEE6), Color.Transparent),
+                        center = knobCenter,
+                        radius = knobRadius + 5.dp.toPx(),
+                    ),
+                    radius = knobRadius + 5.dp.toPx(),
+                    center = knobCenter,
+                )
+                drawCircle(WizardColors.text, radius = knobRadius, center = knobCenter)
             }
         }
         Text(

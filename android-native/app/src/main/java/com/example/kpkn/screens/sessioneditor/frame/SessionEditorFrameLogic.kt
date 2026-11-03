@@ -116,3 +116,19 @@ internal fun sessionFrameSummaryChips(exercises: Int, sets: Int, minutes: Int?, 
         if (minutes != null && minutes > 0) add("≈ $minutes min")
     }
 }
+
+/** Texto de la burbuja que sube sobre los minutos cuando cambian (`ed-delta`, ed-J04): «+9 min» o «−9 min» (con el signo menos tipográfico). */
+internal fun frameDeltaLabel(delta: Int): String = (if (delta > 0) "+" else "−") + kotlin.math.abs(delta) + " min"
+
+/** Entradas del menú «Añadir» de la barra (`addmenu` de `scenes-ed.js`), en su orden. Con espacio de cardio o de fuerza pendiente se ofrece su creación. */
+internal enum class FrameAddEntry { EXERCISE, CARDIO, GROUP, CARDIO_SPACE, STRENGTH_SPACE }
+
+/**
+ * Qué ofrece el menú: «Ejercicio», «Cardio» (otro cardio si el espacio existe; si no, «Espacio de cardio»), «Grupo nuevo» (solo con espacio de
+ * fuerza) y «Fuerza» cuando el espacio de fuerza todavía no existe. Pura, para probarla.
+ */
+internal fun frameAddEntries(hasStrengthSpace: Boolean, hasCardioSpace: Boolean): List<FrameAddEntry> = buildList {
+    add(FrameAddEntry.EXERCISE)
+    add(if (hasCardioSpace) FrameAddEntry.CARDIO else FrameAddEntry.CARDIO_SPACE)
+    if (hasStrengthSpace) add(FrameAddEntry.GROUP) else add(FrameAddEntry.STRENGTH_SPACE)
+}

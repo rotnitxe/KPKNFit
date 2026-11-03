@@ -12,25 +12,21 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * Cabecera de Cuerpo (BODY_V1 §2.1): «Cuerpo» en `display` y el botón «+», que abre el registro de hoy. [topInset] es la altura de la
- * barra de estado. [addModifier] lleva el ancla del recorrido.
+ * Cabecera de Cuerpo (BODY_V1 §2.1): «Cuerpo» en `display`. [topInset] es la altura de la barra de estado. El registro de una medición
+ * ya no vive aquí: lo abre la isla flotante «Nueva medición» ([BodyNewRecordIsland]), igual que «Registrar comida» en Nutrición.
  */
 @Composable
 fun BodyPageHeader(
     topInset: Dp,
-    onAdd: () -> Unit,
     modifier: Modifier = Modifier,
-    addModifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = topInset + 12.dp, end = 8.dp, bottom = 4.dp),
+            .padding(start = 16.dp, top = topInset + 12.dp, end = 16.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -39,12 +35,6 @@ fun BodyPageHeader(
             color = WizardColors.text,
             maxLines = 1,
             modifier = Modifier.weight(1f).semantics { heading() },
-        )
-        KpknIconButton(
-            icon = KpknLineIcons.Plus,
-            contentDescription = "Registrar medidas",
-            onClick = onAdd,
-            modifier = addModifier,
         )
     }
 }

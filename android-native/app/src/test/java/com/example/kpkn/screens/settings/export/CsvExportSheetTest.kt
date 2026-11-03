@@ -28,7 +28,7 @@ class CsvExportSheetTest {
         rule.onNodeWithTag("csv-export").performClick(); assertEquals(1, exports)
     }
     @Test fun unFalloQuedaVisibleYLaPreparacionNoAdmiteDobleToque() {
-        rule.setContent { KPKNTheme { CsvExportContent(setOf(CsvExportDomain.MEALS), {}, true, "No se pudo preparar la exportación", true, {}, {}) } }
+        rule.setContent { KPKNTheme { androidx.compose.runtime.CompositionLocalProvider(com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion provides true) { CsvExportContent(setOf(CsvExportDomain.MEALS), {}, true, "No se pudo preparar la exportación", true, {}, {}) } } }
         rule.onNodeWithTag("csv-export").assertIsNotEnabled()
         rule.onNodeWithText("No se pudo preparar la exportación").assertExists()
     }

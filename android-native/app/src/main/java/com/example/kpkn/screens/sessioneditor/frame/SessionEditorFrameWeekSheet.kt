@@ -48,7 +48,6 @@ import com.example.kpkn.screens.sessioneditor.dayInitial
 import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
@@ -59,6 +58,13 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.sessioneditor.components.EdColors
+import com.example.kpkn.screens.sessioneditor.components.EdSheetSpec
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.screens.sessioneditor.components.edDisplay
+import com.example.kpkn.screens.sessioneditor.components.edText
+import com.example.kpkn.ui.design.depth.KpknShadow
+import com.example.kpkn.ui.design.depth.kpknRing
 
 /** Sin día pendiente de crear: el diálogo de «Crear sesión» está cerrado. */
 private const val NO_DAY = -1
@@ -98,15 +104,18 @@ internal fun SessionEditorFrameWeekSheet(
     onDeleteActiveVariant: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    KpknSheet(onDismissRequest = onDismiss) {
+    // pulido:sombra ed-S07 .ed-sheet plano con la sombra `hoja`, entrada 0,34 s y salida 0,24 s: `KpknSheet(lienzo = EdSheetSpec)`
+    KpknSheet(onDismissRequest = onDismiss, surfaceColor = EdColors.sheet, maxHeightFraction = 0.88f, lienzo = EdSheetSpec) {
+        // pulido:animacion ed-J05 closeLayer('day'): tras una elección la hoja baja y se desmonta
+        val closeSheet = com.example.kpkn.ui.components.LocalKpknSheetDismiss.current ?: onDismiss
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 12.dp, end = 12.dp, bottom = 24.dp),
+                .padding(start = 20.dp, end = 20.dp, bottom = 26.dp),
         ) {
             SessionEditorFrameWeekContent(
-                moduleInset = 4.dp,
+                moduleInset = 0.dp,
                 orderedDays = orderedDays,
                 sessions = sessions,
                 currentSessionId = currentSessionId,
@@ -128,7 +137,7 @@ internal fun SessionEditorFrameWeekSheet(
                 onSelectVariant = onSelectVariant,
                 onCreateVariant = onCreateVariant,
                 onDeleteActiveVariant = onDeleteActiveVariant,
-                onDone = onDismiss,
+                onDone = closeSheet,
             )
         }
     }
@@ -175,32 +184,33 @@ internal fun SessionEditorFrameWeekContent(
     val weekCaption = roadmapOptions.firstOrNull { it.weekId.isNotBlank() && it.weekId == currentWeekId }
         ?: roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
 
+    // Pulido v1 · EDITOR · A2 (escena `ed-dia`): la hoja como `.ed-sheet` (14 dp entre bloques; título de Syne 20 y línea de 13,5) y cada bloque
+    // como `.ed-box` (radio 22, 6 × 14 de aire, ceja de 11, filas de 52 y acciones de 44). Lo que el lienzo no tiene (la letra de la variante, el
+    // «+» de «Crear sesión derivada») ya no está.
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(
-            text = "Semana",
-            style = KpknType.title,
-            color = WizardColors.text,
-            modifier = Modifier.padding(horizontal = moduleInset).semantics { heading() },
-        )
-        if (isSimpleProgram && hasActiveLoops && weekCaption != null) {
+        Column(modifier = Modifier.padding(horizontal = moduleInset)) {
             Text(
-                text = "Semana ${weekCaption.weekIndex + 1} · ${weekCaption.weekName}",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-                modifier = Modifier.padding(horizontal = moduleInset),
+                text = "Semana",
+                style = edDisplay(20f, FontWeight.Bold, EdColors.ink, -0.4f).copy(lineHeight = 23.sp),
+                modifier = Modifier.semantics { heading() },
             )
+            if (isSimpleProgram && hasActiveLoops && weekCaption != null) {
+                Text(
+                    text = "Semana ${weekCaption.weekIndex + 1} · ${weekCaption.weekName}",
+                    style = edText(13.5f, FontWeight.Normal, EdColors.muted, lineHeight = 19.6f),
+                )
+            }
         }
 
         // Días: chips de bloque en programas avanzados y los círculos de la semana.
-        KpknModule(contentPadding = PaddingValues(vertical = 14.dp)) {
+        EdBox(padding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
             if (!isSimpleProgram && blocks.size > 1) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -219,49 +229,46 @@ internal fun SessionEditorFrameWeekContent(
             }
             // A 360 dp, margen específico de 12 dp: los siete objetivos de 48 dp quedan a la vista.
             // Solo anchos menores de 336 dp de contenido necesitan desplazamiento.
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().then(
-                        if (maxWidth < 336.dp) Modifier.horizontalScroll(rememberScrollState()) else Modifier,
-                    ),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    orderedDays.forEach { day ->
-                        val daySessions = sessionsByDay[day].orEmpty()
-                        val hasSession = daySessions.isNotEmpty()
-                        FrameDayCircle(
-                            day = day,
-                            hasSession = hasSession,
-                            isCurrentDay = day == currentDayOfWeek,
-                            isCompetition = day in competitionKeyDaysInWeek,
-                            sessionCount = daySessions.size,
-                            onTap = {
-                                val primary = primarySessionOnDay(sessions, day)
-                                if (primary != null) {
-                                    onSelectSession(primary.id)
-                                    onDone()
-                                } else {
-                                    pendingCreateDay = day
-                                }
-                            },
-                            onLongPress = if (hasSession && day == currentDayOfWeek) {
-                                { showVariantDialog = true }
+            // `.ed-wd` mide 48 dp pero encoge (flex): con 294 dp de caja, los siete días caben a 42 dp cada uno y el círculo (40) no cambia.
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                orderedDays.forEach { day ->
+                    val daySessions = sessionsByDay[day].orEmpty()
+                    val hasSession = daySessions.isNotEmpty()
+                    FrameDayCircle(
+                        day = day,
+                        hasSession = hasSession,
+                        isCurrentDay = day == currentDayOfWeek,
+                        isCompetition = day in competitionKeyDaysInWeek,
+                        sessionCount = daySessions.size,
+                        modifier = Modifier.weight(1f),
+                        onTap = {
+                            val primary = primarySessionOnDay(sessions, day)
+                            if (primary != null) {
+                                onSelectSession(primary.id)
+                                onDone()
                             } else {
-                                null
-                            },
-                        )
-                    }
+                                pendingCreateDay = day
+                            }
+                        },
+                        onLongPress = if (hasSession && day == currentDayOfWeek) {
+                            { showVariantDialog = true }
+                        } else {
+                            null
+                        },
+                    )
                 }
             }
         }
 
         // Sesiones del día actual, si hay varias: la principal va marcada y las demás se pueden hacer principales.
         if (currentDaySessions.size > 1) {
-            KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
-                KpknModuleHeader(label = "Sesiones de ${sessionEditorDayLabel(currentDayOfWeek)}")
+            EdBox(modifier = Modifier.padding(horizontal = moduleInset)) {
+                EdBoxEyebrow("Sesiones de ${sessionEditorDayLabel(currentDayOfWeek)}")
                 currentDaySessions.forEach { session ->
-                    KpknRadioRow(
+                    EdRadioRow(
                         selected = session.id == currentSessionId,
                         title = session.name.ifBlank { "Sesión" },
                         subtitle = if (session.isMainSession) "Principal" else null,
@@ -271,7 +278,7 @@ internal fun SessionEditorFrameWeekContent(
                         },
                     )
                     if (!session.isMainSession) {
-                        KpknTextAction(
+                        EdBoxAction(
                             text = "Marcar como principal",
                             onClick = {
                                 onSetMainSession(session.id)
@@ -284,8 +291,8 @@ internal fun SessionEditorFrameWeekContent(
         }
 
         // Variantes de la sesión: también se abren con pulsación larga en el día actual.
-        KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
-            KpknModuleHeader(label = "Variantes de la sesión")
+        EdBox(modifier = Modifier.padding(horizontal = moduleInset)) {
+            EdBoxEyebrow("Variantes de la sesión")
             FrameVariantRows(
                 availableVariants = availableVariants,
                 activeVariant = activeVariant,
@@ -308,20 +315,19 @@ internal fun SessionEditorFrameWeekContent(
 
         // Semanas del programa (el roadmap del original), agrupadas por bloque.
         if (roadmapOptions.size > 1) {
-            KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
-                KpknModuleHeader(label = "Semanas del programa")
+            EdBox(modifier = Modifier.padding(horizontal = moduleInset)) {
+                EdBoxEyebrow("Semanas del programa")
                 var lastBlock = -1
                 roadmapOptions.forEach { option ->
                     if (blockGrouping && option.blockIndex != lastBlock) {
                         lastBlock = option.blockIndex
                         Text(
                             text = "Bloque ${option.blockIndex + 1} · ${option.blockName}",
-                            style = KpknType.caption,
-                            color = WizardColors.textFaint,
+                            style = edText(12f, FontWeight.Medium, EdColors.faint, lineHeight = 15.6f),
                             modifier = Modifier.padding(top = 8.dp),
                         )
                     }
-                    KpknRadioRow(
+                    EdRadioRow(
                         selected = option.weekId == currentWeekId,
                         title = "B${option.blockIndex + 1} · S${option.weekIndex + 1}",
                         subtitle = option.weekName,
@@ -466,42 +472,18 @@ private fun FrameVariantRows(
     onDelete: () -> Unit,
 ) {
     availableVariants.forEach { variant ->
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // A5: la letra identifica la variante; el tablero usa tinta neutra, no un color por variante.
-            Box(
-                modifier = Modifier.size(22.dp)
-                    .testTag("session_variant_badge_${variant.name}")
-                    .background(KpknSurface.inset, RoundedCornerShape(6.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(variant.name, style = KpknType.chip.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                    color = if (variant == activeVariant) WizardColors.text else WizardColors.text.copy(alpha = 0.62f))
-            }
-            KpknRadioRow(
-                selected = variant == activeVariant,
-                title = variantName(variant),
-                modifier = Modifier.weight(1f).testTag("session_variant_${variant.name}"),
-                onClick = { if (variant != activeVariant) onSelect(variant) },
-            )
-        }
+        EdRadioRow(
+            selected = variant == activeVariant,
+            title = variantName(variant),
+            modifier = Modifier.testTag("session_variant_${variant.name}"),
+            onClick = { if (variant != activeVariant) onSelect(variant) },
+        )
     }
     if (canCreate) {
-        KpknTextAction(
-            text = "Crear sesión derivada",
-            onClick = onCreate,
-            icon = KpknLineIcons.Plus,
-        )
+        EdBoxAction(text = "Crear sesión derivada", onClick = onCreate)
     }
     if (activeVariant != WeekVariant.A) {
-        KpknTextAction(
-            text = "Eliminar variante activa",
-            onClick = onDelete,
-            color = WizardColors.danger,
-        )
+        EdBoxAction(text = "Eliminar variante activa", onClick = onDelete, color = EdColors.danger)
     }
 }
 
@@ -519,6 +501,7 @@ private fun FrameDayCircle(
     sessionCount: Int,
     onTap: () -> Unit,
     onLongPress: (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     val fill = if (isCurrentDay) WizardColors.text else KpknSurface.inset
     val ink = when {
@@ -527,7 +510,7 @@ private fun FrameDayCircle(
         else -> WizardColors.textFaint
     }
     // El círculo es una caja recortada; las marcas («C» y contador) van en la caja de fuera, que no recorta.
-    Box(modifier = Modifier.size(48.dp).testTag("session_week_day_$day").combinedClickable(
+    Box(modifier = modifier.height(48.dp).testTag("session_week_day_$day").combinedClickable(
         role = Role.Button,
         onClick = onTap,
         onLongClick = onLongPress,
@@ -536,9 +519,10 @@ private fun FrameDayCircle(
             modifier = Modifier
                 .size(40.dp)
                 .align(Alignment.Center)
+                // pulido:sombra ed-S08 .ed-wd.comp i 0 0 0 1.5px --ene (preset anillo-energia-1p5): la «C» de competición rodea el día, no lo recorta
+                .then(if (isCompetition) Modifier.kpknRing(KpknShadow.AnilloEnergia1p5, CircleShape) else Modifier)
                 .clip(CircleShape)
-                .background(fill)
-                .then(if (isCompetition) Modifier.border(1.5.dp, com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia, CircleShape) else Modifier),
+                .background(fill),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -550,7 +534,7 @@ private fun FrameDayCircle(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 3.dp)
+                        .padding(bottom = 4.dp)
                         .size(4.dp)
                         .clip(CircleShape)
                         .background(WizardColors.textMuted),
@@ -561,7 +545,7 @@ private fun FrameDayCircle(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(x = (-4).dp, y = (-4).dp)
+                    .offset(x = (-1).dp, y = (-1).dp)
                     .size(14.dp)
                     .clip(CircleShape)
                     .background(com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia),
@@ -579,7 +563,6 @@ private fun FrameDayCircle(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 4.dp, y = (-4).dp)
                     .size(16.dp)
                     .clip(CircleShape)
                     .background(WizardColors.textMuted),

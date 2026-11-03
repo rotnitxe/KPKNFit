@@ -103,7 +103,7 @@ class SessionEditorFrameA1ComposeTest {
     }
 
     @Test
-    fun laFilaSuperiorMuestraDiaYSemanaYSusBotonesMidenMasDe44dp() {
+    fun laFilaSuperiorMuestraDiaYSemanaYSusBotonesMidenCon48dpDeAreaTactil() {
         var density = 1f
         rule.setContent {
             density = LocalDensity.current.density
@@ -123,9 +123,10 @@ class SessionEditorFrameA1ComposeTest {
 
         rule.onNodeWithText("Jue · Semana 3").assertIsDisplayed()
         listOf("Atrás", "Día anterior", "Día siguiente", "Más opciones").forEach { label ->
-            val size = rule.onNodeWithContentDescription(label).fetchSemanticsNode().size
-            assertTrue("$label mide ${size.height / density} dp de alto", size.height / density >= 44f)
-            assertTrue("$label mide ${size.width / density} dp de ancho", size.width / density >= 44f)
+            // Se ve del tamaño del lienzo (la flecha, de 44 × 48) y el área táctil es de 48 × 48 dp como mínimo.
+            val touch = rule.onNodeWithContentDescription(label).fetchSemanticsNode().touchBoundsInRoot
+            assertTrue("$label tiene ${touch.height / density} dp de alto táctil", touch.height / density >= 48f - 0.01f)
+            assertTrue("$label tiene ${touch.width / density} dp de ancho táctil", touch.width / density >= 48f - 0.01f)
         }
     }
 
@@ -138,7 +139,7 @@ class SessionEditorFrameA1ComposeTest {
     }
 
     @Test
-    fun laIslaInferiorTieneElAnilloDelTiempoAnadirAsistenteYReglas() {
+    fun laIslaInferiorTieneElAnilloDelTiempoAnadirYAsistente() {
         val calls = mutableListOf<String>()
         var density = 1f
         rule.setContent {
@@ -151,7 +152,6 @@ class SessionEditorFrameA1ComposeTest {
                     limitMinutes = 60,
                     onAdd = { calls += "add" },
                     onAssistant = { calls += "assistant" },
-                    onRules = { calls += "rules" },
                     onTime = { calls += "time" },
                     modifier = Modifier.padding(12.dp),
                 )
@@ -161,14 +161,13 @@ class SessionEditorFrameA1ComposeTest {
         rule.onNodeWithTag("session_editor_bar_time").performClick()
         rule.onNodeWithTag("session_editor_bar_add").performClick()
         rule.onNodeWithTag("session_editor_bar_assistant").performClick()
-        rule.onNodeWithTag("session_editor_bar_rules").performClick()
-        assertEquals(listOf("time", "add", "assistant", "rules"), calls)
+        assertEquals(listOf("time", "add", "assistant"), calls)
         // El número de sugerencias va en el botón del asistente.
         rule.onNodeWithText("3").assertIsDisplayed()
-        // Cada botón mide 44 dp o más.
-        listOf("session_editor_bar_time", "session_editor_bar_add", "session_editor_bar_assistant", "session_editor_bar_rules").forEach { tag ->
-            val size = rule.onNodeWithTag(tag).fetchSemanticsNode().size
-            assertTrue("$tag mide ${size.height / density} dp de alto", size.height / density >= 44f)
+        // Cada botón tiene 48 dp o más de área táctil.
+        listOf("session_editor_bar_time", "session_editor_bar_add", "session_editor_bar_assistant").forEach { tag ->
+            val touch = rule.onNodeWithTag(tag).fetchSemanticsNode().touchBoundsInRoot
+            assertTrue("$tag tiene ${touch.height / density} dp de alto táctil", touch.height / density >= 48f - 0.01f)
         }
     }
 
@@ -183,7 +182,6 @@ class SessionEditorFrameA1ComposeTest {
                     limitMinutes = null,
                     onAdd = {},
                     onAssistant = {},
-                    onRules = {},
                     onTime = {},
                 )
             }
@@ -191,7 +189,7 @@ class SessionEditorFrameA1ComposeTest {
 
         // Sin límite, solo los minutos; sin sugerencias, el asistente no lleva número.
         rule.onNodeWithContentDescription("Tiempo estimado 58 minutos").assertExists()
-        rule.onNodeWithText("58").assertExists()
+        rule.onNodeWithText("58 min").assertExists()
         rule.onAllNodesWithText("0").assertCountEquals(0)
     }
 

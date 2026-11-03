@@ -1,6 +1,21 @@
 package com.example.kpkn.screens.body.design
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -71,6 +86,8 @@ fun BodyRecordSheet(
     source: BodyHistoryRow?,
     unit: WizardMassUnit,
     anchorKg: Double?,
+    /** Historial con el que se resuelve la referencia temporal del aviso de cambio atípico. */
+    history: List<BodyHistoryRow> = emptyList(),
     now: LocalDateTime,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -101,6 +118,7 @@ fun BodyRecordSheet(
     val changed = source == null || draft != bodyRecordFrom(source)
     val canSave = !readOnly && draft.weightKg != null && !future && !invalidMeasures && changed
     val date = draft.dateTime.toLocalDate()
+    val weightWarning = bodyWeightWarning(draft.weightKg, history, source, draft.dateTime)
 
     KpknSheet(onDismissRequest = onDismiss, maxHeightFraction = 0.94f) {
         // Cuerpo desplazable: lo que no cabe se desliza; las acciones van fijas al pie de la hoja (fuera de este bloque).
@@ -174,6 +192,83 @@ fun BodyRecordSheet(
                     color = if (draft.weightKg != null) WizardColors.text else WizardColors.textFaint,
                 )
             } else {
+                // .nc-val con botones de ajuste fino .nc-fine (±0.1 kg) y transicion de color .nc-val .num (nc-T04)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x0DFFFFFF))
+                            .clickable {
+                                val cur = draft.weightKg ?: anchorKg ?: 70.0
+                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, bodyFineAdjustedKg(cur, unit, -1)))
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("-0,1", style = KpknType.caption.copy(fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    // nc-T04: transition: color .2s ease
+                    val numColor by animateColorAsState(
+                        if (draft.weightKg != null) WizardColors.text else Color(0x59FFFFFF),
+                        tween(200),
+                        label = "ncNumColor",
+                    )
+                    KpknMetric(
+                        value = draft.weightKg?.let { bodyWeightValue(it, unit) } ?: (anchorKg?.let { bodyWeightValue(it, unit) } ?: "—"),
+                        unit = unit.code,
+                        style = KpknType.metricXL,
+                        color = numColor,
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x0DFFFFFF))
+                            .clickable {
+                                val cur = draft.weightKg ?: anchorKg ?: 70.0
+                                onDraftChange(draft.withValue(BodyMetric.WEIGHT, bodyFineAdjustedKg(cur, unit, 1)))
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("+0,1", style = KpknType.caption.copy(fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                    }
+                }
+                // nc-warnbox: aviso si hay variación atípica (>2,5 kg en <= 7 días respecto a la referencia temporal correcta).
+                if (weightWarning != null) {
+                    val diff = weightWarning.deltaKg
+                    val verb = if (diff > 0) "Sube" else "Baja"
+                    val diffStr = formatDecimalEs(kotlin.math.abs(diff), 1)
+                    val referenceDay = bodyDayMonthEs(weightWarning.reference.dateTime.toLocalDate())
+                    Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(Color(0x12F7CF73))
+                                .border(1.dp, Color(0x30F7CF73), RoundedCornerShape(18.dp))
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Icon(
+                                imageVector = KpknLineIcons.Alert,
+                                contentDescription = null,
+                                tint = Color(0xFFF7CF73),
+                                modifier = Modifier.size(18.dp).padding(top = 1.dp),
+                            )
+                            Text(
+                                text = "$verb $diffStr kg respecto a tu medición del $referenceDay. Es bastante más de lo habitual. Si es correcto, guárdalo igualmente.",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                                lineHeight = 18.sp,
+                            )
+                        }
+                }
                 WizardWeightRule(
                     unit = unit,
                     valueKg = draft.weightKg ?: anchorKg,
@@ -181,6 +276,7 @@ fun BodyRecordSheet(
                     min = WizardWeightScale.MIN_KG,
                     max = WizardWeightScale.MAX_KG,
                     emphasized = true,
+                    showReading = false,
                 )
                 if (draft.weightKg == null) {
                     Text(

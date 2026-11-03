@@ -82,6 +82,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.example.kpkn.domain.training.acceptsKpknAdjustments
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.flowOn
@@ -984,6 +985,7 @@ class ProgramDetailViewModel(
     }
 
     fun updateProgram(updated: Program) {
+        programRevision++
         repository.updateProgram(updated)
     }
 
@@ -1077,17 +1079,30 @@ class ProgramDetailViewModel(
     }
 
     private var templateApplyJob: kotlinx.coroutines.Job? = null
+    /** Programa que dejó la última sustitución aplicada desde el catálogo: base del «Deshacer» seguro. */
+    private var lastAppliedProgram: Program? = null
+    /** Programa anterior a la sustitución: si el flujo aún no ha emitido el nuevo, sigue siendo este. */
+    private var lastAppliedBefore: Program? = null
+    /** Revisión de [updateProgram]: cambia con cualquier edición posterior y bloquea un deshacer obsoleto. */
+    private var programRevision = 0L
+    private var lastAppliedRevision = -1L
 
     fun applyProgramTemplate(
         template: com.example.kpkn.data.programs.ProgramTemplateOption,
         overwrite: Boolean = false,
+        /** Resultado real (éxito, id de la copia previa para deshacer) cuando la operación termina. */
+        onResult: (success: Boolean, undoSnapshotId: String?) -> Unit = { _, _ -> },
     ) {
         // D2.3: guarda de reentrada. Un segundo toque mientras se prepara el reemplazo no duplica
         // copias ni lanza otro reemplazo. Se comparte con el reemplazo por protocolo porque
         // ambos reescriben el mismo programa.
-        if (templateApplyJob?.isActive == true || protocolApplyJob?.isActive == true) return
+        if (templateApplyJob?.isActive == true || protocolApplyJob?.isActive == true) {
+            onResult(false, null)
+            return
+        }
         templateApplyJob = viewModelScope.launch {
-            val current = program.value ?: return@launch
+            val current = program.value ?: run { onResult(false, null); return@launch }
+            var undoSnapshotId: String? = null
             val result = runCatching {
                 // D2.8: igual que con protocolo, no se reemplaza un programa con una sesión en curso.
                 check(!overwrite || repository.ongoingWorkout.value?.programId != current.id) {
@@ -1097,6 +1112,9 @@ class ProgramDetailViewModel(
                     com.example.kpkn.domain.training.ProgramTemplateEngine.applyTemplate(
                         current = current,
                         template = template,
+                        // «Crear una copia» crea SIEMPRE un programa distinto, también cuando el original aún no
+                        // tiene sesiones: sin `forceCopy` el motor elegía REPLACE_STRUCTURE y modificaba el original.
+                        forceCopy = !overwrite,
                         forceReplace = overwrite,
                         exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
                     )
@@ -1106,7 +1124,7 @@ class ProgramDetailViewModel(
                     // dentro de este runCatching. Sin almacén conectado, o si el guardado falla
                     // (disco lleno), no se reemplaza nada: el programa queda intacto y el aviso
                     // sale por el snackbar de siempre en vez de cerrar la app.
-                    pushProgramSnapshot(current, "Antes de \"${template.name}\"", required = true)
+                    undoSnapshotId = pushProgramSnapshot(current, "Antes de \"${template.name}\"", required = true)
                     // La sesión pudo empezar mientras se calculaba la plantilla. Esta revisión y la
                     // escritura de abajo ocurren sin suspender en el hilo principal.
                     check(repository.ongoingWorkout.value?.programId != current.id) {
@@ -1121,7 +1139,7 @@ class ProgramDetailViewModel(
                         addProgramCopy(applied.program)
                     } else {
                         updateProgram(applied.program)
-                        selectFirstRoadmapPosition(applied.program)
+                        selectFirstRoadmapPosition(applied.program, preserveCurrentTab = overwrite)
                     }
                     refreshProgramSnapshots(applied.program.id)
                     _uiState.update {
@@ -1134,6 +1152,10 @@ class ProgramDetailViewModel(
                             pendingOpenProgramId = applied.program.id.takeIf { applied.createdCopy },
                         )
                     }
+                    lastAppliedProgram = applied.program
+                    lastAppliedBefore = current
+                    lastAppliedRevision = programRevision
+                    onResult(true, undoSnapshotId)
                 },
                 onFailure = { error ->
                     if (error is CancellationException) throw error
@@ -1143,6 +1165,7 @@ class ProgramDetailViewModel(
                                 ?: "No se pudo aplicar la plantilla. Intenta de nuevo.",
                         )
                     }
+                    onResult(false, null)
                 },
             )
         }
@@ -1157,10 +1180,16 @@ class ProgramDetailViewModel(
     fun applyProtocolOverwrite(
         protocol: com.example.kpkn.data.protocols.Protocol,
         overwrite: Boolean = true,
+        /** Resultado real (éxito, id de la copia previa para deshacer) cuando la operación termina. */
+        onResult: (success: Boolean, undoSnapshotId: String?) -> Unit = { _, _ -> },
     ) {
-        if (protocolApplyJob?.isActive == true || templateApplyJob?.isActive == true) return
+        if (protocolApplyJob?.isActive == true || templateApplyJob?.isActive == true) {
+            onResult(false, null)
+            return
+        }
         protocolApplyJob = viewModelScope.launch {
-            val current = program.value ?: return@launch
+            val current = program.value ?: run { onResult(false, null); return@launch }
+            var undoSnapshotId: String? = null
             val result = runCatching {
                 check(!overwrite || repository.ongoingWorkout.value?.programId != current.id) {
                     SESSION_IN_PROGRESS_MESSAGE
@@ -1180,7 +1209,7 @@ class ProgramDetailViewModel(
                         "El programa cambió mientras se preparaba el plan. Revisa los cambios y vuelve a aplicar."
                     }
                     withContext(kotlinx.coroutines.Dispatchers.IO) {
-                        pushProgramSnapshot(current, "Antes de \"${protocol.name}\"")
+                        undoSnapshotId = pushProgramSnapshot(current, "Antes de \"${protocol.name}\"")
                     }
                     repository.replaceProgramSafely(applied)
                 } else {
@@ -1192,7 +1221,7 @@ class ProgramDetailViewModel(
             result.fold(
                 onSuccess = { applied ->
                     if (overwrite) {
-                        selectFirstRoadmapPosition(applied)
+                        selectFirstRoadmapPosition(applied, preserveCurrentTab = true)
                         refreshProgramSnapshots(applied.id)
                     }
                     _uiState.update {
@@ -1205,6 +1234,10 @@ class ProgramDetailViewModel(
                             pendingOpenProgramId = if (overwrite) null else applied.id,
                         )
                     }
+                    lastAppliedProgram = applied
+                    lastAppliedBefore = current
+                    lastAppliedRevision = programRevision
+                    onResult(true, undoSnapshotId)
                 },
                 onFailure = { error ->
                     if (error is kotlinx.coroutines.CancellationException) throw error
@@ -1214,6 +1247,7 @@ class ProgramDetailViewModel(
                                 ?: "No se pudo aplicar el plan. Intenta de nuevo.",
                         )
                     }
+                    onResult(false, null)
                 },
             )
         }
@@ -1233,7 +1267,30 @@ class ProgramDetailViewModel(
         }
     }
 
-    fun restoreProgramSnapshot(snapshotId: String) {
+    /**
+     * «Deshacer» de la sustitución aplicada desde el catálogo. Solo restaura si no hubo ninguna edición desde que se
+     * aplicó: la revisión de [updateProgram] lo decide sin depender de que el flujo del repositorio haya emitido ya.
+     * Si el usuario editó algo después, deshacer pisaría esos cambios y no se ofrece.
+     */
+    fun undoProgramApply(snapshotId: String) {
+        if (lastAppliedProgram == null) return
+        val current = program.value
+        // Un cambio por la UI incrementa la revisión; una escritura interna puede no hacerlo, pero entonces el
+        // programa emitido ya no es ni el aplicado ni el anterior. Si el flujo aún no ha emitido, current == before.
+        val changed = programRevision != lastAppliedRevision ||
+            (current != null && current != lastAppliedProgram && current != lastAppliedBefore)
+        if (changed) {
+            _uiState.update {
+                it.copy(snackbarMessage = "El programa cambió después de aplicarlo. Usa el historial si quieres volver a una copia.")
+            }
+            return
+        }
+        lastAppliedProgram = null
+        lastAppliedBefore = null
+        restoreProgramSnapshot(snapshotId, preserveCurrentTab = true)
+    }
+
+    fun restoreProgramSnapshot(snapshotId: String, preserveCurrentTab: Boolean = false) {
         viewModelScope.launch {
             val current = program.value ?: return@launch
             val store = snapshotStore ?: return@launch
@@ -1248,24 +1305,27 @@ class ProgramDetailViewModel(
                 return@launch
             }
             updateProgram(snapshot)
-            selectFirstRoadmapPosition(snapshot)
+            selectFirstRoadmapPosition(snapshot, preserveCurrentTab = preserveCurrentTab)
             _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
         }
     }
 
-    private suspend fun pushProgramSnapshot(current: Program, reason: String, required: Boolean = false) {
+    /** Guarda una copia y devuelve su id (null si no hay almacén o no se guardó), para el «Deshacer» real. */
+    private suspend fun pushProgramSnapshot(current: Program, reason: String, required: Boolean = false): String? {
         val store = snapshotStore
         if (store == null) {
             // Con `required`, «Reemplazar todo» no quita el plan sin dejar antes una copia para
             // recuperarlo: sin almacén conectado se aborta con el aviso de siempre (D2.3).
             check(!required) { SNAPSHOT_REQUIRED_MESSAGE }
-            return
+            return null
         }
         // `push` lee y luego escribe con `commit()` (disco síncrono): siempre en IO.
-        snapshotStoreLock.withLock {
-            _programSnapshots.value = withContext(kotlinx.coroutines.Dispatchers.IO) {
+        return snapshotStoreLock.withLock {
+            val snapshots = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.push(current, reason)
             }
+            _programSnapshots.value = snapshots
+            snapshots.lastOrNull()?.id
         }
     }
 
@@ -2632,7 +2692,7 @@ class ProgramDetailViewModel(
         )
     }
 
-    private fun selectFirstRoadmapPosition(program: Program) {
+    private fun selectFirstRoadmapPosition(program: Program, preserveCurrentTab: Boolean = false) {
         val firstBlock = ProgramDetailHelpers.buildRoadmapBlocks(program).firstOrNull()
         val firstWeek = firstBlock?.let { block ->
             ProgramDetailHelpers.getWeeksForBlock(block.id, listOf(block), program).firstOrNull()
@@ -2641,7 +2701,7 @@ class ProgramDetailViewModel(
             it.copy(
                 selectedBlockId = firstBlock?.id,
                 selectedWeekId = firstWeek?.id,
-                structureSubTab = StructureSubTab.SEMANA,
+                structureSubTab = if (preserveCurrentTab) it.structureSubTab else StructureSubTab.SEMANA,
             )
         }
     }

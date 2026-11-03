@@ -108,7 +108,8 @@ class SessionListItemsTest {
         assertTrue(headerP1Idx in 0..<strengthActionsIdx)
         assertTrue(strengthActionsIdx < dividerIdx)
         assertTrue(dividerIdx < cardioExIdx)
-        assertTrue(cardioExIdx < cardioAddIdx)
+        // Pulido v1: sin pie «Añadir cardio» cuando ya hay cardios.
+        assertEquals(-1, cardioAddIdx)
         // Group header for cardio should NOT be present (no group card for cardio)
         assertTrue(items.none { it is SessionListItem.PartHeader && it.partId == "p2" })
     }
@@ -128,8 +129,8 @@ class SessionListItemsTest {
         val strengthActionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
 
         assertTrue(cardioDividerIdx in 0..<cardioExIdx)
-        assertTrue(cardioExIdx < cardioAddIdx)
-        assertTrue(cardioAddIdx < strengthDividerIdx)
+        assertEquals(-1, cardioAddIdx)
+        assertTrue(cardioExIdx < strengthDividerIdx)
         assertTrue(strengthDividerIdx < headerP1Idx)
         assertTrue(headerP1Idx < strengthActionsIdx)
     }
@@ -144,9 +145,9 @@ class SessionListItemsTest {
         val cardioDivider = items.filterIsInstance<SessionListItem.CardioDivider>().first()
         val strengthDivider = items.filterIsInstance<SessionListItem.StrengthDivider>().first()
 
-        // Un solo control (ED-D): el selector está a la vista y los rótulos no ofrecen «Mover…».
-        assertTrue(items.any { it is SessionListItem.CardioPlacement })
-        assertEquals(false, cardioDivider.canMove)
+        // Pulido v1 (punto 26): sin selector grande; la flecha vive en el rótulo CARDIO.
+        assertTrue(items.none { it is SessionListItem.CardioPlacement })
+        assertEquals(true, cardioDivider.canMove)
         assertEquals(false, strengthDivider.canMove)
         assertEquals(false, cardioDivider.showCardioFirst)
     }
@@ -206,11 +207,11 @@ class SessionListItemsTest {
         listOf(true, false, null).forEach { preference ->
             val onlyCardio = buildSessionListItems(session, cardioAtStart = preference)
             assertTrue(onlyCardio.none { it is SessionListItem.StrengthDivider })
-            assertTrue(onlyCardio.none { it is SessionListItem.CardioDivider })
+            assertEquals(false, onlyCardio.filterIsInstance<SessionListItem.CardioDivider>().single().canMove)
             assertTrue(onlyCardio.none { it is SessionListItem.CardioPlacement })
             val cardioIdx = onlyCardio.indexOfFirst { it is SessionListItem.PartExercise && it.exerciseId == "c1" }
-            val cardioAddIdx = onlyCardio.indexOfFirst { it is SessionListItem.CardioAddActions }
-            assertTrue(cardioIdx in 0..<cardioAddIdx)
+            assertTrue(cardioIdx > 0)
+            assertTrue(onlyCardio.none { it is SessionListItem.CardioAddActions })
             assertTrue(onlyCardio.last() is SessionListItem.StrengthAddActions)
         }
 
