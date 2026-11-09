@@ -268,7 +268,7 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
                 }
             }
             Column(
-                Modifier.weight(1f, fill = !m.empty).fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 10.dp),
+                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (m.sets > 0) DataModule(state, actions)
