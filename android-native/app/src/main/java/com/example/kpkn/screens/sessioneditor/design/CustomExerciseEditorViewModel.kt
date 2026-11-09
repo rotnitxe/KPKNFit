@@ -9,6 +9,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -99,6 +100,7 @@ internal class CustomExerciseEditorViewModel(
         val draft = _state.value
         if (draft.name.isBlank()) return
         previewJob = viewModelScope.launch {
+            delay(350)
             val result = withContext(previewDispatcher) {
                 runCatching {
                     SmartExerciseCreator.preview(SmartCreateRequest(

@@ -265,19 +265,13 @@ class ExerciseSetListComposeTest {
     }
 
     @Test
-    fun subirYBajarMuevenLaSerieAbierta() {
-        val moves = mutableListOf<Pair<String, Int>>()
-        renderList(
-            exerciseWith(ExerciseSet(id = "s1"), ExerciseSet(id = "s2"), ExerciseSet(id = "s3")),
-            onMoveSet = { id, direction -> moves += id to direction },
-        )
+    fun menuDeSerieNoOfreceSubirNiBajar() {
+        renderList(exerciseWith(ExerciseSet(id = "s1"), ExerciseSet(id = "s2"), ExerciseSet(id = "s3")))
         openRow("s2")
-        // Subir y Bajar viven en el menú «⋯» de la serie.
         rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
-        rule.onNodeWithText("Subir").performClick()
-        rule.onNodeWithContentDescription("Más acciones de la serie").performClick()
-        rule.onNodeWithText("Bajar").performClick()
-        assertEquals(listOf("s2" to -1, "s2" to 1), moves)
+        assertTrue(rule.onAllNodesWithText("Subir").fetchSemanticsNodes().isEmpty())
+        assertTrue(rule.onAllNodesWithText("Bajar").fetchSemanticsNodes().isEmpty())
+        rule.onNodeWithText("Eliminar serie").assertIsDisplayed()
     }
 
     @Test

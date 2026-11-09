@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.*
@@ -54,6 +55,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
 import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.CatalogInvolvementAccordions
+import com.example.kpkn.screens.sessioneditor.components.Thumbnail
 import com.example.kpkn.screens.sessioneditor.components.resolveCatalogExerciseV2
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
@@ -243,26 +245,22 @@ internal fun ExerciseQuickActionsSheet(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // D1: la cabecera del tablero: ficha de 52 dp con el patrón (o la máquina de cardio), el nombre y el resumen de la prescripción.
+        // D1: la cabecera del tablero: ficha de 52 dp con la imagen real del catálogo, el nombre y el resumen de la prescripción.
+        val thumbnailRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.exerciseDbId, exercise.exerciseId) {
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = exercise.catalogDefinitionId,
+                exerciseDbId = exercise.exerciseDbId,
+                exerciseId = exercise.exerciseId ?: exercise.id,
+            )
+        }
+        val thumbnailPattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
-                    .background(KpknSurface.inset),
-                contentAlignment = Alignment.Center,
-            ) {
-                val cardioType = exercise.cardioDetails?.type
-                if (cardioType != null) {
-                    CardioTypeIcon(type = cardioType, tint = WizardColors.text, size = 29.dp)
-                } else {
-                    PatternGlyph(
-                        pattern = remember(exercise.name) { exercisePatternOf(exercise.name) },
-                        accent = SymbolPalette.ink,
-                        modifier = Modifier.size(29.dp),
-                    )
-                }
-            }
+            Thumbnail(
+                cardio = exercise.cardioDetails?.type,
+                imageRes = thumbnailRes,
+                pattern = thumbnailPattern,
+                dimension = 52.dp,
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     exercise.name,
@@ -320,7 +318,12 @@ internal fun ExerciseQuickActionsSheet(
                 exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
                 style = KpknType.body,
                 color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
+            if (exactDescription != null) {
+                KpknTextAction(text = "Ver más", onClick = { onOpenExerciseDetail(exercise.id) })
+            }
         }
 
         // Involucramiento muscular y articular con jerarquía visual de alto contraste

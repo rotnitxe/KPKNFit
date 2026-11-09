@@ -384,9 +384,6 @@ private fun SetActions(
     val bounds = anchor
     if (menuOpen && bounds != null) {
         EdAnchoredMenu(anchor = bounds, width = 220.dp, estimatedHeight = 200.dp, onDismiss = { menuOpen = false }, alignEnd = true) {
-            EdMenuRow("Subir", onClick = { menuOpen = false; onMoveUp() }, icon = EdIcons.ArrowUp, enabled = canMoveUp)
-            EdMenuRow("Bajar", onClick = { menuOpen = false; onMoveDown() }, icon = EdIcons.ArrowDown, enabled = canMoveDown)
-            EdMenuDivider()
             EdMenuRow(
                 title = "Eliminar serie",
                 subtitle = if (canDelete) null else "Siempre queda una serie",

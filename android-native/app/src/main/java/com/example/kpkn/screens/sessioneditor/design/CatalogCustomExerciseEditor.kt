@@ -310,6 +310,17 @@ private fun ManualMuscleEditor(
                             modifier = Modifier.weight(1f),
                         )
                         KpknTextAction(
+                            text = "Restablecer",
+                            onClick = {
+                                onChange(
+                                    muscles.toMutableList().also {
+                                        it[index] = muscle.copy(volumeContribution = defaultMuscleContribution(muscle.role))
+                                    },
+                                )
+                            },
+                            color = WizardColors.textMuted,
+                        )
+                        KpknTextAction(
                             text = "Quitar",
                             onClick = { onChange(muscles.filterIndexed { i, _ -> i != index }) },
                             color = WizardColors.textMuted,
@@ -328,7 +339,14 @@ private fun ManualMuscleEditor(
                                 text = label,
                                 selected = muscle.role == role,
                                 onClick = {
-                                    onChange(muscles.toMutableList().also { it[index] = muscle.copy(role = role) })
+                                    onChange(
+                                        muscles.toMutableList().also {
+                                            it[index] = muscle.copy(
+                                                role = role,
+                                                volumeContribution = defaultMuscleContribution(role),
+                                            )
+                                        },
+                                    )
                                 },
                             )
                         }
@@ -342,7 +360,20 @@ private fun ManualMuscleEditor(
                         )
                         KpknNumberCell(
                             value = percent,
-                            input = KpknCellInput.ReadOnly,
+                            input = KpknCellInput.Text(
+                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                                onCommit = { raw ->
+                                    raw.replace("%", "").replace(',', '.').trim().toDoubleOrNull()
+                                        ?.takeIf { it.isFinite() && it in 0.0..100.0 }
+                                        ?.let { next ->
+                                            onChange(
+                                                muscles.toMutableList().also {
+                                                    it[index] = muscle.copy(volumeContribution = next / 100.0)
+                                                },
+                                            )
+                                        }
+                                },
+                            ),
                             contentDescription = "Aporte de ${muscle.muscle}: $percent",
                             onStep = { step ->
                                 onChange(
@@ -385,3 +416,10 @@ private fun ManualMuscleEditor(
 /** Un paso de aporte: 5 puntos por cada paso, entre 0 y 1, redondeado a centésimas. */
 private fun stepVolume(current: Float, direction: Int): Double =
     ((current + direction * 0.05f).coerceIn(0f, 1f) * 100f).roundToInt() / 100.0
+
+private fun defaultMuscleContribution(role: MuscleRole): Double = when (role) {
+    MuscleRole.PRIMARY -> 1.0
+    MuscleRole.SECONDARY -> 0.5
+    MuscleRole.STABILIZER -> 0.4
+    else -> 0.5
+}

@@ -1002,8 +1002,6 @@ private fun RoundCanonicalSetFocus(
             horizontalArrangement = Arrangement.spacedBy(18.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            if (canMoveUp) KpknTextAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
-            if (canMoveDown) KpknTextAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
             KpknTextAction(text = "Eliminar", color = WizardColors.danger, onClick = { onRemoveSet(set.id) })
         }
     }

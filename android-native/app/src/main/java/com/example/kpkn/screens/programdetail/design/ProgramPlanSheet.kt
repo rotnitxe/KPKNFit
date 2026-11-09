@@ -135,6 +135,7 @@ internal fun programPlanFicha(
         minutesLabel = if (totalWeeks > 0) SpanishPlurals.weeks(totalWeeks) else "",
         levelLabel = if (blocks.size > 1) SpanishPlurals.blocks(blocks.size) else "",
         coverSeed = Math.floorMod((program?.id ?: summary.planName).hashCode(), 9973),
+        coverIdentity = program?.let { com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram(it) },
     )
     val body = summary.summary ?: description?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() } ?: manualStructure
     val detail = PlanDetailModel(

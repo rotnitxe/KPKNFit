@@ -67,7 +67,7 @@ internal fun templateSaveError(failure: Throwable): String = when ((failure as? 
 }
 
 /** Alturas de la hoja: media y completa (fracción de la pantalla). */
-internal const val ASSISTANT_MEDIUM_HEIGHT = 0.62f
+internal const val ASSISTANT_MEDIUM_HEIGHT = 0.72f
 internal const val ASSISTANT_FULL_HEIGHT = 0.93f
 
 /**

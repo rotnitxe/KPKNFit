@@ -31,6 +31,8 @@ data class PlanCardModel(
     val badge: String? = null,
     val coverSeed: Int = 0,
     val scopeLabel: String? = null,
+    /** Identidad resuelta de la portada guardada (opaca para no exponer el motor visual); null conserva la identidad por id. */
+    val coverIdentity: Any? = null,
 )
 
 /**

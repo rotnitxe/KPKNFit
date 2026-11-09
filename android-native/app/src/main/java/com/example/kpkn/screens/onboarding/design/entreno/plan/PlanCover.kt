@@ -145,8 +145,10 @@ internal fun PlanCover(
     val accent = goalAccent(profile)
     val art = remember(profile) { goalCoverArt(profile) }
     val variant = remember(model.coverSeed) { coverVariantOf(model.coverSeed) }
-    // Las entradas publicadas de catálogo y las generadas comparten su identidad estable con Program Detail.
-    val identity = remember(model.id) { assignedCoverIdentity(model.id) }
+    val identity = remember(model.id, model.coverIdentity) {
+        (model.coverIdentity as? com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity)
+            ?: assignedCoverIdentity(model.id)
+    }
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }
     val running = animate && !reduced
