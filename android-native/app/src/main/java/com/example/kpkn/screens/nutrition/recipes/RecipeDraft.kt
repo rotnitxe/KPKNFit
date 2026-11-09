@@ -5,8 +5,15 @@ import com.example.kpkn.domain.nutrition.RecipeCalculator
 import com.example.kpkn.screens.nutrition.customfood.CustomFoodValidator
 
 /** Cada cantidad se calcula desde su instantánea base, sin acumular redondeos ni consultar el catálogo. */
-data class RecipeIngredientDraft(val ingredient: RecipeIngredient, val amount: String = ingredient.snapshot.amount.toString())
+@kotlinx.serialization.Serializable
+data class RecipeIngredientDraft(
+    val ingredient: RecipeIngredient,
+    val amount: String = ingredient.snapshot.amount.toString(),
+    /** Identidad estable de la fila repetida; no cambia al reordenar ni rotar. */
+    val id: String = java.util.UUID.randomUUID().toString(),
+)
 
+@kotlinx.serialization.Serializable
 data class RecipeDraft(
     val name: String = "",
     val servings: String = "1",

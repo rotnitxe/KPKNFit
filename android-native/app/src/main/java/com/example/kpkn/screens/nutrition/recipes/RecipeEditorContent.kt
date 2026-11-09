@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.domain.nutrition.RecipeCalculator
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.*
 import java.util.Locale
@@ -34,12 +36,14 @@ fun RecipeEditorContent(
     results: List<FoodItem>,
     onChange: (RecipeDraft) -> Unit,
     onQuery: (String) -> Unit,
-    onAddIngredient: (FoodItem) -> Unit,
+    onAddIngredient: (FoodItem, Double) -> Unit,
     onSave: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var summaryScope by rememberSaveable { mutableIntStateOf(0) }
+    var pendingFood by remember { mutableStateOf<FoodItem?>(null) }
+    var pendingAmount by remember { mutableStateOf("") }
     val servings = draft.servings.toIntOrNull()?.coerceAtLeast(1) ?: 1
     val totals = remember(preview) { preview?.recipe?.let { runCatching { RecipeCalculator.calculate(it) }.getOrNull() } }
     Column(modifier.background(KpknSurface.canvas).testTag("recipe-editor")) {
@@ -135,7 +139,10 @@ fun RecipeEditorContent(
                 }
                 KpknTextField(query, onQuery, label = "Buscar ingrediente", modifier = Modifier.testTag("recipe-search"))
                 results.take(6).forEach { food ->
-                    KpknTextAction("Añadir ${food.name}", { onAddIngredient(food) }, leadingIcon = KpknLineIcons.Plus)
+                    KpknTextAction("Añadir ${food.name}", {
+                        pendingFood = food
+                        pendingAmount = if (food.recipe != null) "1" else "100"
+                    }, leadingIcon = KpknLineIcons.Plus)
                 }
             }
 
@@ -170,6 +177,41 @@ fun RecipeEditorContent(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             enabled = !saving,
             tag = "recipe-save",
+        )
+    }
+    pendingFood?.let { food ->
+        val amount = pendingAmount.replace(',', '.').toDoubleOrNull()
+        KpknAlertDialog(
+            onDismissRequest = { pendingFood = null },
+            title = { Text("Añadir ingrediente") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(food.name, style = KpknType.bodyStrong, color = WizardColors.text)
+                    KpknTextField(
+                        pendingAmount,
+                        { pendingAmount = it },
+                        label = if (food.recipe != null) "Raciones" else "Gramos",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.testTag("recipe-amount-confirm"),
+                    )
+                    if (amount == null || amount <= 0.0) {
+                        Text("Indica una cantidad mayor que cero.", style = KpknType.caption, color = WizardColors.danger)
+                    }
+                }
+            },
+            confirmButton = {
+                KpknPrimaryPill(
+                    "Añadir",
+                    {
+                        if (amount != null && amount > 0.0) {
+                            onAddIngredient(food, amount)
+                            pendingFood = null
+                        }
+                    },
+                    enabled = amount != null && amount > 0.0,
+                )
+            },
+            dismissButton = { KpknTextAction("Cancelar", { pendingFood = null }, color = WizardColors.textMuted) },
         )
     }
 }

@@ -3,22 +3,37 @@ package com.example.kpkn.screens.nutrition.recipes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.RecipeCalculator
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
 import com.example.kpkn.screens.nutrition.customfood.CustomFoodValidator
 import com.example.kpkn.screens.nutrition.scan.FullScreenOverlay
-import com.example.kpkn.screens.nutrition.scan.defaultGramsForScanned
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.design.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import java.util.UUID
+
+private val recipeDraftSaver = Saver<RecipeDraft, String>(
+    save = { dbJson.encodeToString(it) },
+    restore = { runCatching { dbJson.decodeFromString<RecipeDraft>(it) }.getOrDefault(RecipeDraft()) },
+)
+
+private val recipeFoodSaver = Saver<FoodItem?, String>(
+    save = { it?.let { food -> dbJson.encodeToString(food) } ?: "" },
+    restore = { runCatching { if (it.isBlank()) null else dbJson.decodeFromString<FoodItem>(it) }.getOrNull() },
+)
 
 @Composable
 fun RecipeLibraryOverlay(
@@ -27,26 +42,35 @@ fun RecipeLibraryOverlay(
 ) {
     val foods by repository.foodDatabase.collectAsState()
     val favoriteIds by repository.favoriteFoodIds.collectAsState()
-    var editing by remember { mutableStateOf(startInEditor) }
-    var base by remember { mutableStateOf(initial.takeIf { startInEditor }) }
-    var recipeId by remember { mutableStateOf(initial?.id ?: "recipe_${UUID.randomUUID()}") }
-    var draft by remember { mutableStateOf(initial?.takeIf { startInEditor }?.let { RecipeDraft.fromFood(it) } ?: RecipeDraft()) }
-    var selected by remember { mutableStateOf(initial.takeUnless { startInEditor }) }
-    var query by remember { mutableStateOf("") }
+    var editing by rememberSaveable { mutableStateOf(startInEditor) }
+    var base by rememberSaveable(stateSaver = recipeFoodSaver) { mutableStateOf(initial.takeIf { startInEditor }) }
+    var recipeId by rememberSaveable { mutableStateOf(initial?.id ?: "recipe_${UUID.randomUUID()}") }
+    var draft by rememberSaveable(stateSaver = recipeDraftSaver) {
+        mutableStateOf(initial?.takeIf { startInEditor }?.let { RecipeDraft.fromFood(it) } ?: RecipeDraft())
+    }
+    var originalDraft by remember { mutableStateOf(draft) }
+    var selected by rememberSaveable(stateSaver = recipeFoodSaver) { mutableStateOf(initial.takeUnless { startInEditor }) }
+    var query by rememberSaveable { mutableStateOf("") }
     var results by remember { mutableStateOf(emptyList<FoodItem>()) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var deletingId by remember { mutableStateOf<String?>(null) }
+    var confirmDiscard by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val preview = remember(draft, recipeId, base) { runCatching { draft.food(recipeId, base) } }
     fun closePage() {
         if (busy) return
+        if (editing && draft != originalDraft) {
+            confirmDiscard = true
+            return
+        }
         if (editing || selected != null) { editing = false; selected = null; error = null } else onDismiss()
     }
     fun edit(food: FoodItem?) {
         base = food
         recipeId = food?.id ?: "recipe_${UUID.randomUUID()}"
         draft = food?.let { RecipeDraft.fromFood(it) } ?: RecipeDraft()
+        originalDraft = draft
         editing = true; selected = null; query = ""; error = null
     }
     LaunchedEffect(query, editing) {
@@ -62,10 +86,10 @@ fun RecipeLibraryOverlay(
                 draft = draft, preview = preview.getOrNull(), error = error, saving = busy,
                 query = query, results = results, onQuery = { query = it },
                 onChange = { draft = it; error = null },
-                onAddIngredient = { food ->
+                onAddIngredient = { food, amount ->
                     try {
-                        val snapshot = if (food.recipe != null) RecipeCalculator.portion(food, servings = 1.0)
-                            else scaleFoodByPortion(food, amountGrams = defaultGramsForScanned(food))
+                        val snapshot = if (food.recipe != null) RecipeCalculator.portion(food, servings = amount)
+                            else scaleFoodByPortion(food, amountGrams = amount)
                         draft = draft.copy(ingredients = draft.ingredients + RecipeIngredientDraft(RecipeIngredient(snapshot, food.id)))
                         query = ""; results = emptyList(); error = null
                     } catch (_: IllegalArgumentException) { error = "No se pudo usar ese ingrediente. Elige otra ficha." }
@@ -77,7 +101,7 @@ fun RecipeLibraryOverlay(
                         else {
                             busy = true
                             scope.launch {
-                                try { repository.saveCustomFood(food); editing = false; error = null }
+                                try { repository.saveCustomFood(food); editing = false; error = null; originalDraft = draft }
                                 catch (cancelled: CancellationException) { throw cancelled }
                                 catch (_: Exception) { error = "No se pudo guardar la receta. Tu borrador sigue aquí." }
                                 finally { busy = false }
@@ -116,6 +140,23 @@ fun RecipeLibraryOverlay(
                 }, onClose = onDismiss, modifier = Modifier.fillMaxSize(),
             )
         }
+    }
+    if (confirmDiscard) {
+        KpknAlertDialog(
+            onDismissRequest = { confirmDiscard = false },
+            title = { Text("¿Descartar los cambios?") },
+            text = { Text("La receta tiene cambios sin guardar.") },
+            confirmButton = {
+                KpknPrimaryPill("Descartar", {
+                    confirmDiscard = false
+                    draft = originalDraft
+                    editing = false
+                    selected = null
+                    error = null
+                })
+            },
+            dismissButton = { KpknTextAction("Seguir editando", { confirmDiscard = false }, color = WizardColors.textMuted) },
+        )
     }
 }
 

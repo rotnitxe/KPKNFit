@@ -59,7 +59,7 @@ class RecipeHarnessActivity : ComponentActivity() {
                                     KpknTextAction("Volver", { state = "editing" })
                                 }
                                 else -> RecipeEditorContent(draft, preview.getOrNull(), failure, false, "", emptyList(),
-                                    onChange = { draft = it; failure = null }, onQuery = {}, onAddIngredient = {},
+                                    onChange = { draft = it; failure = null }, onQuery = {}, onAddIngredient = { _, _ -> },
                                     onSave = {
                                         val food = preview.getOrNull()
                                         if (food == null) failure = preview.exceptionOrNull()?.message

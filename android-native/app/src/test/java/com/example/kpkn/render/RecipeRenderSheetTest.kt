@@ -71,7 +71,7 @@ class RecipeRenderSheetTest {
         draft = if (error) RecipeSamples.draft.copy(finalWeight = "abc") else RecipeSamples.draft,
         preview = if (error) null else RecipeSamples.food,
         error = if (error) "Revisa el peso final en gramos." else null, saving = false,
-        query = "", results = emptyList(), onChange = {}, onQuery = {}, onAddIngredient = {}, onSave = {}, onClose = {},
+        query = "", results = emptyList(), onChange = {}, onQuery = {}, onAddIngredient = { _, _ -> }, onSave = {}, onClose = {},
         modifier = Modifier.fillMaxSize(),
     )
     private val noWeight = RecipeCalculator.asFood("no-weight", "Arroz con pollo", RecipeSamples.food.recipe!!.copy(finalWeightGrams = null))
