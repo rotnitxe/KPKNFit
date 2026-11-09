@@ -528,7 +528,8 @@ private fun RecordStrip(r: FinishRecord) {
         Column {
             Text("Récord · ${r.exerciseName}", style = Lx.inter(13.5.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "${r.kind} ${finishGrouped(r.e1rm, 1)} kg" + (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)} kg" } ?: ""),
+                "${r.kind} ${finishGrouped(r.e1rm, 1)}" + (if (r.kind.contains("rm", true) || r.kind.contains("kg", true)) " kg" else "") +
+                    (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
                 Modifier.padding(top = 2.dp), style = Lx.num(12.sp, weight = FontWeight.Medium), color = Lx.Mus,
             )
         }
@@ -618,16 +619,28 @@ private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
     ) {
         Text("SEMANA ANTERIOR", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
         rows.forEach { lift ->
-            val today = lift.best?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }
+            val best = lift.best
+            val mode = best?.let { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it) }
+            val loadComparable = mode == null || mode == com.example.kpkn.data.models.LoadModeV2.LOAD
+            val todayValue = if (loadComparable) {
+                best?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }
+            } else {
+                null
+            }
+            val todayLabel = if (todayValue == null) {
+                best?.let { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(it) }
+            } else {
+                null
+            }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(lift.name, Modifier.weight(1f), style = Lx.inter(12.5.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    if (today != null && lift.previousWeek != null) {
-                        "hoy ${finishGrouped(today, 1)} · semana ${finishGrouped(lift.previousWeek.estimated1Rm, 1)}"
-                    } else if (today != null) {
-                        "hoy ${finishGrouped(today, 1)} · sin dato comparable la semana anterior"
-                    } else {
-                        "sin dato comparable"
+                    when {
+                        todayValue != null && lift.previousWeek != null ->
+                            "hoy ${finishGrouped(todayValue, 1)} · semana ${finishGrouped(lift.previousWeek.estimated1Rm, 1)}"
+                        todayValue != null -> "hoy ${finishGrouped(todayValue, 1)} · sin dato comparable la semana anterior"
+                        todayLabel != null -> todayLabel
+                        else -> "sin dato comparable"
                     },
                     style = Lx.num(11.5.sp, weight = FontWeight.Medium), color = Lx.Faint, maxLines = 1,
                 )
@@ -645,7 +658,8 @@ private fun RecordExtra(r: FinishRecord) {
         Icon(KpknLineIcons.Trophy, null, Modifier.size(13.dp), tint = Lx.Mus)
         Text(r.exerciseName, Modifier.weight(1f), style = Lx.inter(12.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
-            "${r.kind} ${finishGrouped(r.e1rm, 1)} kg" + (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
+            "${r.kind} ${finishGrouped(r.e1rm, 1)}" + (if (r.kind.contains("rm", true) || r.kind.contains("kg", true)) " kg" else "") +
+                (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
             style = Lx.num(11.5.sp), color = Lx.Mus, maxLines = 1,
         )
     }

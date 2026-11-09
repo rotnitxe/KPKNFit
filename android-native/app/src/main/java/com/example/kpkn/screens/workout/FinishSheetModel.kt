@@ -128,7 +128,11 @@ internal fun buildFinishModel(
     val direct = MuscleVolumeAccounting.sessionDirectSets(strength)
     val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }
         .map { FinishMuscle(it.key, it.value, direct[it.key] ?: 0.0) }
-    val chips = lifts.filter { it.best != null && it.previous != null }
+    val chips = lifts.filter {
+        val best = it.best
+        best != null && it.previous != null &&
+            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(best)
+    }
         .sortedByDescending { it.best?.let { s -> StrengthModel.estimate1RM(s) } ?: 0.0 }
         .map { FinishLiftChip(it.name, it.deltaKg?.let { d -> if (abs(d) < 0.01) 0.0 else d }) }
         .filter { it.deltaKg != null }

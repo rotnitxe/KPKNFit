@@ -88,7 +88,11 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     }
     val gains = if (options.improvements) {
         data.lifts
-            .filter { it.isImproved }
+            .filter { lift ->
+                lift.isImproved && lift.best?.let {
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it)
+                } == true
+            }
             .sortedByDescending { it.deltaKg ?: 0.0 }
             .take(2)
             .map { WorkoutGain(it.name, "+${workoutKgText(it.deltaKg ?: 0.0)} kg") }
