@@ -7,6 +7,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -34,60 +39,151 @@ fun RecipeEditorContent(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var summaryScope by rememberSaveable { mutableIntStateOf(0) }
+    val servings = draft.servings.toIntOrNull()?.coerceAtLeast(1) ?: 1
+    val totals = remember(preview) { preview?.recipe?.let { runCatching { RecipeCalculator.calculate(it) }.getOrNull() } }
     Column(modifier.background(KpknSurface.canvas).testTag("recipe-editor")) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             KpknIconButton(KpknLineIcons.Close, "Cerrar receta", onClose)
             Text("Receta propia", style = KpknType.title, color = WizardColors.text)
         }
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             KpknModule {
-                KpknTextField(draft.name, { onChange(draft.copy(name = it)) }, label = "Nombre", modifier = Modifier.testTag("recipe-name"))
+                KpknTextField(
+                    draft.name,
+                    { onChange(draft.copy(name = it)) },
+                    label = "Nombre",
+                    modifier = Modifier.testTag("recipe-name"),
+                )
                 Spacer(Modifier.height(12.dp))
-                KpknTextField(draft.servings, { onChange(draft.copy(servings = it)) }, label = "Raciones del lote",
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.testTag("recipe-servings"))
-                Spacer(Modifier.height(12.dp))
-                KpknTextField(draft.finalWeight, { onChange(draft.copy(finalWeight = it)) }, label = "Peso final cocinado (g, opcional)",
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.testTag("recipe-final-weight"))
-                Text("El agua cambia el peso, no las kcal del lote. Sin peso final podrás registrar por raciones.",
-                    style = KpknType.caption, color = WizardColors.textMuted)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknTextAction("− 1", {
+                        onChange(draft.copy(servings = (servings - 1).coerceAtLeast(1).toString()))
+                    }, color = WizardColors.textMuted)
+                    KpknTextField(
+                        draft.servings,
+                        { onChange(draft.copy(servings = it)) },
+                        label = "Raciones",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f).testTag("recipe-servings"),
+                    )
+                    KpknTextAction("+ 1", {
+                        onChange(draft.copy(servings = (servings + 1).toString()))
+                    }, color = WizardColors.textMuted)
+                }
             }
+
+            totals?.let { calculated ->
+                KpknModule {
+                    KpknModuleHeader("Resumen")
+                    KpknSegmentedControl(
+                        options = listOf("Por ración", "Lote"),
+                        selectedIndex = summaryScope,
+                        onSelect = { summaryScope = it },
+                        size = KpknSegmentedSize.Compact,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    val shown = if (summaryScope == 0) calculated.perServing else calculated.batch
+                    RecipeNumbers(
+                        if (summaryScope == 0) "Por ración" else "Lote",
+                        shown.calories, shown.protein, shown.carbs, shown.fats,
+                    )
+                    calculated.warning?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
+                }
+            }
+
             KpknModule {
                 KpknModuleHeader("Ingredientes")
                 draft.ingredients.forEachIndexed { index, ingredient ->
                     val snapshot = ingredient.ingredient.snapshot
-                    KpknTextField(ingredient.amount, { amount -> onChange(draft.copy(ingredients = draft.ingredients.mapIndexed { i, item ->
-                        if (i == index) item.copy(amount = amount) else item
-                    })) }, label = "${snapshot.foodName} (${snapshot.unit})", keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.testTag("recipe-ingredient-$index"))
-                    KpknTextAction("Quitar ingrediente", { onChange(draft.copy(ingredients = draft.ingredients.filterIndexed { i, _ -> i != index })) },
-                        color = WizardColors.textMuted)
+                    val amount = ingredient.amount.replace(',', '.').toDoubleOrNull()
+                    val contribution = amount?.let { snapshot.calories * it / snapshot.amount } ?: 0.0
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 6.dp).testTag("recipe-ingredient-row-$index"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(snapshot.foodName, style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1)
+                            Text(
+                                "${String.format(Locale.forLanguageTag("es"), "%.0f", contribution)} kcal · ${snapshot.unit}",
+                                style = KpknType.caption, color = WizardColors.textMuted,
+                            )
+                        }
+                        KpknTextField(
+                            ingredient.amount,
+                            { value ->
+                                onChange(
+                                    draft.copy(ingredients = draft.ingredients.mapIndexed { i, item ->
+                                        if (i == index) item.copy(amount = value) else item
+                                    }),
+                                )
+                            },
+                            label = "Cantidad",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.width(104.dp).testTag("recipe-ingredient-$index"),
+                        )
+                        KpknTextAction(
+                            "Quitar",
+                            { onChange(draft.copy(ingredients = draft.ingredients.filterIndexed { i, _ -> i != index })) },
+                            color = WizardColors.textMuted,
+                        )
+                    }
                 }
                 KpknTextField(query, onQuery, label = "Buscar ingrediente", modifier = Modifier.testTag("recipe-search"))
                 results.take(6).forEach { food ->
                     KpknTextAction("Añadir ${food.name}", { onAddIngredient(food) }, leadingIcon = KpknLineIcons.Plus)
                 }
             }
-            preview?.recipe?.let { recipe ->
-                val totals = RecipeCalculator.calculate(recipe)
-                KpknModule {
-                    KpknModuleHeader("Vista previa")
-                    RecipeNumbers("Por ración", totals.perServing.calories, totals.perServing.protein, totals.perServing.carbs, totals.perServing.fats)
-                    totals.per100g?.let { RecipeNumbers("Por 100 g", it.calories, it.protein, it.carbs, it.fats) }
-                    totals.warning?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-                }
+
+            KpknModule {
+                KpknModuleHeader("Detalles del lote")
+                KpknTextField(
+                    draft.finalWeight,
+                    { onChange(draft.copy(finalWeight = it)) },
+                    label = "Peso final cocinado (g, opcional)",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.testTag("recipe-final-weight"),
+                )
+                Text(
+                    "El agua cambia el peso, no las kcal del lote. Sin peso final podrás registrar por raciones.",
+                    style = KpknType.caption, color = WizardColors.textMuted,
+                )
+                Spacer(Modifier.height(10.dp))
+                KpknTextField(draft.notes, { onChange(draft.copy(notes = it)) }, label = "Notas (opcional)")
             }
-            KpknTextField(draft.notes, { onChange(draft.copy(notes = it)) }, label = "Notas (opcional)")
         }
-        error?.let { Text(it, style = KpknType.body, color = WizardColors.danger,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).testTag("recipe-error")) }
-        KpknPrimaryPill(if (saving) "Guardando…" else "Guardar receta", onSave,
-            modifier = Modifier.fillMaxWidth().padding(16.dp), enabled = !saving, tag = "recipe-save")
+        error?.let {
+            Text(
+                it,
+                style = KpknType.body,
+                color = WizardColors.danger,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).testTag("recipe-error"),
+            )
+        }
+        KpknPrimaryPill(
+            if (saving) "Guardando…" else "Guardar receta",
+            onSave,
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            enabled = !saving,
+            tag = "recipe-save",
+        )
     }
 }
 
 @Composable
 internal fun RecipeNumbers(label: String, kcal: Double, protein: Double, carbs: Double, fats: Double) {
-    Text("$label · ${String.format(Locale.forLanguageTag("es"), "%.0f", kcal)} kcal", style = KpknType.bodyStrong, color = WizardColors.text)
-    Text(String.format(Locale.forLanguageTag("es"), "P %.1f g · H %.1f g · G %.1f g", protein, carbs, fats), style = KpknType.caption, color = WizardColors.textMuted)
+    Text(
+        "$label · ${String.format(Locale.forLanguageTag("es"), "%.0f", kcal)} kcal",
+        style = KpknType.bodyStrong,
+        color = WizardColors.text,
+    )
+    Text(
+        String.format(Locale.forLanguageTag("es"), "P %.1f g · H %.1f g · G %.1f g", protein, carbs, fats),
+        style = KpknType.caption,
+        color = WizardColors.textMuted,
+    )
 }

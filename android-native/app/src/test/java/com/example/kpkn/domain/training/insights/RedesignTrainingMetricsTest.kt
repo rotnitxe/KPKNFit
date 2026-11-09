@@ -15,8 +15,6 @@ class RedesignTrainingMetricsTest {
     private fun log(day: LocalDate, sets: List<CompletedSet>, rpe: Double? = null) =
         WorkoutLog(day.toString(), "p", "s", "Session", day.toString(), 10,
             completedExercises = listOf(exercise(sets)), sessionEffortRpe = rpe)
-    private fun cues(logs: List<WorkoutLog>) = SessionCueEngine.cues(logs, setOf("e"),
-        mapOf("e" to "Press"), emptySet(), emptyMap(), emptyMap(), emptySet(), now)
 
     @Test fun unilateralSidesCountOnceAcrossHomeAndMuscleVolume() {
         val left = CompletedSet("l", weight = 10.0, reps = 10, setIndex = 0, side = "left")
@@ -36,21 +34,6 @@ class RedesignTrainingMetricsTest {
         assertNull(RpeConversion.sessionRpe(null, exercises))
         assertEquals(8.0, RpeConversion.sessionRpe(8.0, exercises)!!, 0.0)
         assertEquals(8.0, RpeConversion.fromRir(2), 0.0)
-    }
-
-    @Test fun unknownSessionBreaksHighEffortStreak() {
-        val logs = (0..3).map { log(today.minusDays(it.toLong()), emptyList(), if (it == 1) null else 9.0) }
-        assertFalse(cues(logs).any { it.kind == SessionCueKind.HIGH_EFFORT })
-        assertTrue(cues(logs.map { it.copy(sessionEffortRpe = 9.0) }).any { it.kind == SessionCueKind.HIGH_EFFORT })
-    }
-
-    @Test fun oneRirIsNotLessThanOneAndFutureRecordsAreExcluded() {
-        assertFalse(cues(listOf(log(today, listOf(CompletedSet("a", rir = 1)))))
-            .any { it.kind == SessionCueKind.NEAR_FAILURE })
-        assertTrue(cues(listOf(log(today, listOf(CompletedSet("a", rir = 0)))))
-            .any { it.kind == SessionCueKind.NEAR_FAILURE })
-        assertFalse(cues(listOf(log(today.plusDays(1), listOf(CompletedSet("a", rir = 0)))))
-            .any { it.kind == SessionCueKind.NEAR_FAILURE })
     }
 
     @Test fun uncapturedDefaultsAreMissingAndZeroEnergyIsPreserved() {

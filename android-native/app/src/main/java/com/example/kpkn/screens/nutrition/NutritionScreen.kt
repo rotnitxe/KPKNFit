@@ -393,13 +393,7 @@ fun NutritionScreen(
                     }
                 }
 
-                if (userStateLoaded && checkinAvailability == com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NOW) {
-                    item(key = "weekly-checkin") {
-                        com.example.kpkn.screens.nutrition.checkin.NutritionCheckinCard(
-                            onOpenCheckin, Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition-checkin", 0),
-                        )
-                    }
-                }
+                // El ajuste de objetivos vive en «Editar plan»; el check-in semanal de Nutrición está retirado.
 
                 // Avisos: la pauta a medias de un profesional, en un módulo teñido de energía.
                 pendingNutritionSetupDraftId?.let { pendingDraftId ->

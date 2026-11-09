@@ -113,7 +113,7 @@ object DeepLinkRouter {
         // LEGACY: el wizard nutricional redirige siempre al editor directo,
         // nunca al chat ni al wizard.
         "wizard" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
-        "calibration" -> ResolvedRoute(KpknRoute.NutritionCalibration.route)
+        "calibration" -> ResolvedRoute(KpknRoute.Nutrition.route)
         "body-progress", "bodyprogress", "progress" -> ResolvedRoute(KpknRoute.BodyProgress.route)
         "meal-history", "history", "historial" -> ResolvedRoute(KpknRoute.MealHistory.route)
         "action" -> third?.trim()?.takeIf { it.isNotEmpty() }

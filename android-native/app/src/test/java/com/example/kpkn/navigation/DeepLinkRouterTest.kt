@@ -70,7 +70,7 @@ class DeepLinkRouterTest {
             DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/wizard"))?.route,
         )
         assertEquals(
-            KpknRoute.NutritionCalibration.route,
+            KpknRoute.Nutrition.route,
             DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/nutrition/calibration"))?.route,
         )
         assertEquals(
