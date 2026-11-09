@@ -40,6 +40,8 @@ internal data class WorkoutStoryOptions(
     val improvements: Boolean = true,
     val duration: Boolean = true,
     val intensity: Boolean = true,
+    /** Lista «Ejercicios realizados» en la historia general; desactivada por defecto. */
+    val exerciseList: Boolean = false,
 )
 
 internal data class WorkoutStoryData(

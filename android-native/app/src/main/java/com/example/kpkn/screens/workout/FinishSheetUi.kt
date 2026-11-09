@@ -120,8 +120,8 @@ internal class FinishDims(val tier: FinishTier, val big: Boolean, val dense: Boo
     val thumbWidth = if (tier == FinishTier.B) 34 else 38
     val shareWidth = if (tier == FinishTier.C) 80 else 84
     val saveHeight = if (tier == FinishTier.C) 50 else 52
-    val barsStyle = tier == FinishTier.A
-    val muscleRows = if (roomy) 5 else 4
+    val barsStyle = true
+    val muscleRows = Int.MAX_VALUE
     fun showMuscles(hasMuscles: Boolean) = hasMuscles && !(big && (dense || hasError || tier == FinishTier.C))
     val dataPadding = if (tier == FinishTier.C) PaddingValues(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 8.dp)
         else PaddingValues(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 8.dp)
@@ -275,7 +275,11 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
                 m.cardio?.let { CardioRow(it) }
                 m.record?.let { RecordStrip(it) }
                 if (m.muscles.isNotEmpty() && !m.empty) MusclesModule(state)
-                if (m.lifts.isNotEmpty() && !m.empty) LiftChips(m.lifts)
+                if (m.lifts.isNotEmpty() && !m.empty) {
+                    LiftChips(m.lifts)
+                    WeeklyComparison(m.liftProgress)
+                }
+                m.recordList.drop(1).forEach { RecordExtra(it) }
             }
             Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = if (m.empty) 18.dp else 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!m.empty) StoryCard(state, actions)
@@ -524,7 +528,7 @@ private fun RecordStrip(r: FinishRecord) {
         Column {
             Text("Récord · ${r.exerciseName}", style = Lx.inter(13.5.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "e1RM ${finishGrouped(r.e1rm, 1)} kg" + (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)} kg" } ?: ""),
+                "${r.kind} ${finishGrouped(r.e1rm, 1)} kg" + (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)} kg" } ?: ""),
                 Modifier.padding(top = 2.dp), style = Lx.num(12.sp, weight = FontWeight.Medium), color = Lx.Mus,
             )
         }
@@ -535,7 +539,7 @@ private fun RecordStrip(r: FinishRecord) {
 private fun MusclesModule(state: FinishSheetState) {
     val m = state.model
     val d = state.dims
-    val rows = m.muscles.take(if (d.barsStyle) d.muscleRows else 5)
+    val rows = m.muscles.take(d.muscleRows)
     val maxValue = max(1.0, m.muscles.maxOf { it.total })
     Column(
         Modifier.fillMaxWidth().kpknAnimate(rise(700)).clip(RoundedCornerShape(22.dp)).background(ModuleBg).border(1.dp, ModuleBorder, RoundedCornerShape(22.dp))
@@ -599,6 +603,51 @@ private fun LiftChips(lifts: List<FinishLiftChip>) {
                 Text(if (up) "+" + finishGrouped(l.deltaKg ?: 0.0, 1) + " kg" else "=", style = Lx.num(12.5.sp), color = if (up) Lx.Done else Lx.Muted)
             }
         }
+    }
+}
+
+@Composable
+private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
+    val rows = lifts.filter { it.best != null }
+    if (rows.isEmpty()) return
+    Column(
+        Modifier.fillMaxWidth().testTag("finish-week-comparison")
+            .clip(RoundedCornerShape(22.dp)).background(ModuleBg).border(1.dp, ModuleBorder, RoundedCornerShape(22.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("SEMANA ANTERIOR", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+        rows.forEach { lift ->
+            val today = lift.best?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(lift.name, Modifier.weight(1f), style = Lx.inter(12.5.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    if (today != null && lift.previousWeek != null) {
+                        "hoy ${finishGrouped(today, 1)} · semana ${finishGrouped(lift.previousWeek.estimated1Rm, 1)}"
+                    } else if (today != null) {
+                        "hoy ${finishGrouped(today, 1)} · sin dato comparable la semana anterior"
+                    } else {
+                        "sin dato comparable"
+                    },
+                    style = Lx.num(11.5.sp, weight = FontWeight.Medium), color = Lx.Faint, maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecordExtra(r: FinishRecord) {
+    Row(
+        Modifier.fillMaxWidth().testTag("finish-record-extra").padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(KpknLineIcons.Trophy, null, Modifier.size(13.dp), tint = Lx.Mus)
+        Text(r.exerciseName, Modifier.weight(1f), style = Lx.inter(12.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            "${r.kind} ${finishGrouped(r.e1rm, 1)} kg" + (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
+            style = Lx.num(11.5.sp), color = Lx.Mus, maxLines = 1,
+        )
     }
 }
 

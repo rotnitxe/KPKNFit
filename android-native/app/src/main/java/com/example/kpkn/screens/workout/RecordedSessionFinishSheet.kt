@@ -88,7 +88,7 @@ internal fun RecordedSessionFinishSheet(
     LaunchedEffect(errorMessage) { if (errorMessage != null) shownError = errorMessage }
     LaunchedEffect(saving) { if (saving) shownError = null }
 
-    val lifts = remember(completedExercises, presentation) { buildFinishLiftProgress(completedExercises, presentation.history) }
+    val lifts = remember(completedExercises, presentation) { buildFinishLiftProgress(completedExercises, presentation.history, presentation.today) }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
     val story = remember(completedExercises, presentation, durationMinutes, recordedEffort) {

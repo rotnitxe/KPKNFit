@@ -42,6 +42,8 @@ internal data class FinishLiftProgress(
     val history: List<FinishProgressPoint>,
     val totalHistorySessions: Int = history.size,
     val first: FinishProgressPoint? = history.firstOrNull(),
+    /** Mejor serie comparable de la semana calendario inmediatamente anterior (lunes-domingo). */
+    val previousWeek: FinishProgressPoint? = null,
 ) {
     val deltaKg: Double? get() = if (best != null && previous != null && best.reps == previous.reps) best.weight - previous.weight else null
     val isImproved: Boolean get() = deltaKg?.let { it > 0.01 } == true
@@ -59,21 +61,41 @@ private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? = exercise
     .filter { !it.skipped && !it.isWarmup && !it.isFailedSet && it.reps > 0 && it.weight.isFinite() && it.weight >= 0 }
     .maxWithOrNull(compareBy<CompletedSet> { StrengthModel.estimate1RM(it) }.thenBy { it.weight }.thenBy { it.reps })
 
-internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history: List<WorkoutLog>): List<FinishLiftProgress> =
+internal fun buildFinishLiftProgress(
+    completed: List<CompletedExercise>,
+    history: List<WorkoutLog>,
+    today: LocalDate = LocalDate.now(),
+): List<FinishLiftProgress> =
     completed.map { exercise ->
-        val points = history.sortedBy { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }.mapNotNull { log ->
-            val current=bestFinishSet(exercise) ?: return@mapNotNull null
-            val context=current.contextKey?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        val current = bestFinishSet(exercise)
+        val context = current?.contextKey?.takeIf { it.isNotBlank() }
+        fun pointAt(log: WorkoutLog): FinishProgressPoint? {
+            if (current == null || context == null || current.recordedPayloadV3 == null) return null
             val best = log.completedExercises.filter { sameFinishExercise(exercise, it) }
-                .map { old -> old.copy(sets=old.sets.filter {
+                .map { old -> old.copy(sets = old.sets.filter {
                     it.contextKey == context && it.loadMode == current.loadMode && it.reps == current.reps &&
-                        it.recordedPayloadV3 != null && current.recordedPayloadV3 != null
+                        it.recordedPayloadV3 != null
                 }) }.mapNotNull(::bestFinishSet)
-                .maxByOrNull { StrengthModel.estimate1RM(it) } ?: return@mapNotNull null
-            FinishProgressPoint(log.date, best.weight, best.reps, StrengthModel.estimate1RM(best))
+                .maxByOrNull { StrengthModel.estimate1RM(it) } ?: return null
+            return FinishProgressPoint(log.date, best.weight, best.reps, StrengthModel.estimate1RM(best))
         }
-        FinishLiftProgress(exercise.exerciseId, exercise.exerciseName, bestFinishSet(exercise),
-            logicalSetCountFromCompleted(listOf(exercise)), points.lastOrNull(), points.takeLast(24), points.size, points.firstOrNull())
+        val sorted = history.sortedBy { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
+        val points = sorted.mapNotNull(::pointAt)
+        val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
+        val previousStart = monday.minusWeeks(1)
+        val previousEnd = monday.minusDays(1)
+        val previousWeek = sorted.filter { log ->
+            val date = runCatching {
+                java.time.Instant.ofEpochMilli(com.example.kpkn.domain.time.TrainingDates.logDateMs(log))
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+            }.getOrNull()
+            date != null && !date.isBefore(previousStart) && !date.isAfter(previousEnd)
+        }.mapNotNull(::pointAt).maxByOrNull { it.estimated1Rm }
+        FinishLiftProgress(
+            exercise.exerciseId, exercise.exerciseName, current,
+            logicalSetCountFromCompleted(listOf(exercise)), points.lastOrNull(), points.takeLast(24), points.size,
+            points.firstOrNull(), previousWeek,
+        )
     }
 
 /** Real effort only: planned failure does not establish that failure was reached. */

@@ -54,11 +54,27 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
-    save = { listOf(it.template.name,it.exerciseId.orEmpty(),it.improvements,it.duration,it.intensity) },
+    save = { listOf("v2", it.template.name, it.exerciseId.orEmpty(), it.improvements, it.duration, it.intensity, it.exerciseList) },
     restore = {
-        val offset=if(it.size==6) 1 else 0 // Old saved UI option for retired rings is discarded.
-        WorkoutStoryOptions(WorkoutStoryTemplate.valueOf(it[0] as String),(it[1] as String).ifBlank { null },
-            it[2+offset] as Boolean,it[3+offset] as Boolean,it[4+offset] as Boolean)
+        if (it.firstOrNull() == "v2" && it.size >= 7) {
+            WorkoutStoryOptions(
+                WorkoutStoryTemplate.valueOf(it[1] as String),
+                (it[2] as String).ifBlank { null },
+                it[3] as Boolean,
+                it[4] as Boolean,
+                it[5] as Boolean,
+                it[6] as Boolean,
+            )
+        } else {
+            val offset = if (it.size == 6) 1 else 0
+            WorkoutStoryOptions(
+                WorkoutStoryTemplate.valueOf(it[0] as String),
+                (it[1] as String).ifBlank { null },
+                it[2 + offset] as Boolean,
+                it[3 + offset] as Boolean,
+                it[4 + offset] as Boolean,
+            )
+        }
     },
 )
 private data class StoryPreviewRequest(val data: WorkoutStoryData, val options: WorkoutStoryOptions)
@@ -111,7 +127,7 @@ internal fun WorkoutStorySheet(
     val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates) {
         templates.forEach { template ->
             val small = try {
-                val full = renderStory(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId))
+                val full = renderStory(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId, exerciseList = safeOptions.exerciseList))
                 Bitmap.createScaledBitmap(full, 96, 171, true).also { if (it !== full) full.recycle() }
             } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
             if (small != null) value = value + (template to small.asImageBitmap())
@@ -178,6 +194,7 @@ internal fun WorkoutStorySheet(
                     if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Mejoras en kg",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("sRPE declarado",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Ejercicios",safeOptions.exerciseList,!busy){onOptionsChange(safeOptions.copy(exerciseList=!safeOptions.exerciseList))}
                 }
             }
             Text(message ?: "",Modifier.fillMaxWidth().heightIn(min = 16.dp).testTag("story-message"),style=com.example.kpkn.screens.workout.components.Lx.inter(12.sp, line = 15.6.sp),color=FinishMuted,textAlign=TextAlign.Center)

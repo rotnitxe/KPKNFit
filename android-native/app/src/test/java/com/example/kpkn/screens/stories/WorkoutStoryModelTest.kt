@@ -110,6 +110,17 @@ class WorkoutStoryModelTest {
     }
 
     @Test
+    fun laListaDeEjerciciosEsOpcionalYRespetaElOrdenDeEjecucion() {
+        val lifts = listOf(
+            ejercicio("r", "Remo con barra", mejorPeso = 62.5, pesoAnterior = 60.0),
+            ejercicio("d", "Dominadas lastradas", mejorPeso = 75.0, pesoAnterior = 70.0),
+        )
+        val con = workoutStoryFrom(datos(lifts = lifts), WorkoutStoryOptions(exerciseList = true))
+        assertEquals(listOf("Remo con barra" to "3 series", "Dominadas lastradas" to "3 series"), con.exerciseLines.map { it.name to it.detail })
+        assertTrue(workoutStoryFrom(datos(lifts = lifts), WorkoutStoryOptions()).exerciseLines.isEmpty())
+    }
+
+    @Test
     fun lasGananciasSonLasDosMayoresYLosEnterosNoLLevanCeroDecimal() {
         val lifts = listOf(
             ejercicio("r", "Remo con barra", mejorPeso = 62.5, pesoAnterior = 60.0),

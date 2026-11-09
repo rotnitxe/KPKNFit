@@ -16,7 +16,12 @@ internal data class FinishMuscle(val name: String, val total: Double, val direct
 
 internal data class FinishLiftChip(val name: String, val deltaKg: Double?)
 
-internal data class FinishRecord(val exerciseName: String, val e1rm: Double, val previousE1rm: Double?)
+internal data class FinishRecord(
+    val exerciseName: String,
+    val e1rm: Double,
+    val previousE1rm: Double?,
+    val kind: String = "e1RM",
+)
 
 internal data class FinishCardio(
     val type: String,
@@ -53,9 +58,11 @@ internal data class FinishModel(
         com.example.kpkn.domain.training.insights.RpeConversion.RecordedSessionEffort(null, 0, 0),
     val records: Int,
     val record: FinishRecord?,
+    val recordList: List<FinishRecord> = emptyList(),
     val cardio: FinishCardio?,
     val muscles: List<FinishMuscle>,
     val lifts: List<FinishLiftChip>,
+    val liftProgress: List<FinishLiftProgress> = emptyList(),
     val targetMinutes: Int?,
     val empty: Boolean,
 ) {
@@ -119,7 +126,7 @@ internal fun buildFinishModel(
     val previous = previousSessions.lastOrNull()
     val trend = (previousSessions.takeLast(7).map { it.totalVolume } + volume).takeIf { sets > 0 && it.size >= 2 } ?: emptyList()
     val direct = MuscleVolumeAccounting.sessionDirectSets(strength)
-    val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }.take(5)
+    val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }
         .map { FinishMuscle(it.key, it.value, direct[it.key] ?: 0.0) }
     val chips = lifts.filter { it.best != null && it.previous != null }
         .sortedByDescending { it.best?.let { s -> StrengthModel.estimate1RM(s) } ?: 0.0 }
@@ -129,7 +136,19 @@ internal fun buildFinishModel(
         .sortedByDescending { it.deltaKg }
         .take(2)
     val milestone = presentation.milestones.maxByOrNull { it.value }
-    val record = milestone?.let { m ->
+    val recordList = presentation.milestones
+        .groupBy { it.exerciseId to it.kind }
+        .values.mapNotNull { group -> group.maxByOrNull { it.value } }
+        .sortedByDescending { it.value }
+        .map { m ->
+            FinishRecord(
+                exerciseName = m.exerciseName,
+                e1rm = m.value,
+                previousE1rm = lifts.firstOrNull { it.exerciseId == m.exerciseId }?.previous?.estimated1Rm,
+                kind = m.kind,
+            )
+        }
+    val record = recordList.firstOrNull() ?: milestone?.let { m ->
         FinishRecord(m.exerciseName, m.value, lifts.firstOrNull { it.exerciseId == m.exerciseId }?.previous?.estimated1Rm)
     }
     val cardioBlocks = completedExercises.mapNotNull { exercise ->
@@ -175,9 +194,11 @@ internal fun buildFinishModel(
         recordedEffort = recordedEffort,
         records = presentation.records,
         record = record,
+        recordList = recordList,
         cardio = cardio,
         muscles = if (strength.isEmpty()) emptyList() else muscles,
         lifts = chips,
+        liftProgress = lifts,
         targetMinutes = targetMinutes,
         empty = isFinishBlockedForEmptySession(completedExercises),
     )

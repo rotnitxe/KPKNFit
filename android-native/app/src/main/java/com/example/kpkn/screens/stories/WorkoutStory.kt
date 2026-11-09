@@ -46,6 +46,9 @@ internal data class WorkoutStat(val value: String, val unit: String?, val label:
 /** Una ganancia de fuerza del entreno: el [name] del ejercicio y su [delta], como «+2,5 kg». */
 internal data class WorkoutGain(val name: String, val delta: String)
 
+/** Una fila de «Ejercicios realizados»: nombre y series o duración. */
+internal data class WorkoutExerciseLine(val name: String, val detail: String)
+
 /**
  * Historia de un entreno ya en texto. [dateLine] es la fecha de la cabecera («MIÉ 28 OCT · SEMANA 4») y [title] el nombre de la sesión;
  * [meta] es el programa. [stats] y [gains] van en la portada general y [records] cuenta las marcas nuevas. El ejercicio elegido trae su
@@ -67,6 +70,7 @@ internal data class WorkoutStory(
     val bestSet: String?,
     val bestEffort: String?,
     val photoPath: String?,
+    val exerciseLines: List<WorkoutExerciseLine> = emptyList(),
 )
 
 /**
@@ -97,6 +101,12 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val history = lift?.history.orEmpty()
     val best = lift?.best
     val last = history.lastOrNull()
+    val exerciseLines = if (options.exerciseList) {
+        val visible = data.lifts.take(8).map { WorkoutExerciseLine(it.name, "${it.setCount} series") }
+        if (data.lifts.size > 8) visible + WorkoutExerciseLine("…", "${data.lifts.size - 8} más") else visible
+    } else {
+        emptyList()
+    }
     // Ganancia del historial: último e1RM menos el primero; solo se muestra si al redondear a la décima sigue siendo positiva.
     val diff = if (history.size >= 2) history.last().estimated1Rm - history.first().estimated1Rm else 0.0
     return WorkoutStory(
@@ -114,6 +124,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         bestSet = best?.let { "${workoutKgText(it.weight)} kg × ${it.reps}" },
         bestEffort = best?.rir?.let { "RIR $it" },
         photoPath = presentation.photos.firstOrNull()?.path,
+        exerciseLines = exerciseLines,
     )
 }
 
@@ -689,7 +700,8 @@ private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeas
         artBottom = WORKOUT_GENERAL_ART_BOTTOM,
     )
     val cells = story.stats.map { measurer.workoutStatCell(it) }
-    val rows = story.gains.map { measurer.workoutRow(it.name, it.delta) }
+    val rows = story.gains.map { measurer.workoutRow(it.name, it.delta) } +
+        story.exerciseLines.map { measurer.workoutRow(it.name, it.detail) }
     val badge = story.records.takeIf { it > 0 }?.let { WorkoutBadge(measurer.storyText(workoutRecordsText(it), WorkoutType.badge)) }
     val gridHeight = workoutGridHeight(cells)
     val rowsHeight = if (rows.isEmpty()) 0f else WORKOUT_GRID_GAP + workoutStackHeight(rows.map { it.height })
