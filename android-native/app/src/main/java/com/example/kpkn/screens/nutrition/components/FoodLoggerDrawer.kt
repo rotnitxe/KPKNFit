@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -37,6 +38,9 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.db.dbJson
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.domain.nutrition.HouseholdPortions
@@ -284,9 +288,12 @@ fun FoodLoggerDrawer(
     // N4: la lista de plantillas y la entrada rápida (las dos se abren desde la fila discreta bajo las pestañas).
     var showTemplates by remember { mutableStateOf(false) }
     var showQuickEntry by remember { mutableStateOf(false) }
-    var showRecipes by remember { mutableStateOf(false) }
-    var recipeToOpen by remember { mutableStateOf<FoodItem?>(null) }
-    var editRecipe by remember { mutableStateOf(false) }
+    var showRecipes by rememberSaveable { mutableStateOf(false) }
+    var recipeToOpen by rememberSaveable(stateSaver = Saver(
+        save = { it?.let { food -> dbJson.encodeToString(food) } ?: "" },
+        restore = { runCatching { if (it.isBlank()) null else dbJson.decodeFromString<FoodItem>(it) }.getOrNull() },
+    )) { mutableStateOf<FoodItem?>(null) }
+    var editRecipe by rememberSaveable { mutableStateOf(false) }
     val mealTemplates by nutritionRepo.mealTemplates.collectAsState()
     val favoriteIds by nutritionRepo.favoriteFoodIds.collectAsState()
     val favoriteFoods by produceState(emptyList<FoodItem>(), favoriteIds, foodDatabase) {

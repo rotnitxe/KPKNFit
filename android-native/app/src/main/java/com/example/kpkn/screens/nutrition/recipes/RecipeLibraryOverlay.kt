@@ -48,7 +48,7 @@ fun RecipeLibraryOverlay(
     var draft by rememberSaveable(stateSaver = recipeDraftSaver) {
         mutableStateOf(initial?.takeIf { startInEditor }?.let { RecipeDraft.fromFood(it) } ?: RecipeDraft())
     }
-    var originalDraft by remember { mutableStateOf(draft) }
+    var originalDraft by rememberSaveable(stateSaver = recipeDraftSaver) { mutableStateOf(draft) }
     var selected by rememberSaveable(stateSaver = recipeFoodSaver) { mutableStateOf(initial.takeUnless { startInEditor }) }
     var query by rememberSaveable { mutableStateOf("") }
     var results by remember { mutableStateOf(emptyList<FoodItem>()) }
