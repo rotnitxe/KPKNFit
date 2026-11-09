@@ -8,13 +8,13 @@ comparten la misma pantalla. Los briefs con el porqué de cada regla son `docs/w
 
 | Fuente | Formatos | Lector (`data/importer/`) | Límites (`ImportLimits`) |
 |---|---|---|---|
-| «Elegir archivo» | `.xlsx`, `.ods`, `.csv`, `.docx`, `.txt`, `.md` y `.pdf` | `ImportFileReader` decide por la firma del archivo, no por la extensión: `XlsxReader`, `OdsReader`, `DocxReader`, `CsvReader`, `TextProgramReader` y, para PDF, OCR | 5 MB por archivo (20 MB si es PDF); 32 MB descomprimidos; 20 hojas, 2000 filas y 40 columnas por hoja |
+| «Elegir archivo» | `.xls` (BIFF8), `.xlsx`, `.xlsm`, `.ods`, `.csv`, `.docx`, `.txt`, `.md` y `.pdf` | `ImportFileReader` decide por la firma del archivo: `Biff8Reader`, `XlsxReader`, `OdsReader`, `DocxReader`, `CsvReader`, `TextProgramReader` y, para PDF, OCR. En `.xlsm` se leen las hojas; no se ejecutan ni conservan macros. | 5 MB por archivo (20 MB si es PDF); 32 MB descomprimidos; 20 hojas, 2000 filas y 40 columnas por hoja |
 | «Pegar texto» | texto libre, tablas de Markdown y bloques de Liftoscript | `TextProgramReader` | — |
 | «Foto de tu rutina» | cámara o galería | OCR (`data/importer/ocr/`) | 15 MB por imagen; 2000 px por lado |
 
-- **Excel**: lectura SAX (sin cargar el libro entero), sin las hojas ocultas, con los formatos de % y de tiempo. Si recorta filas, columnas
+- **Excel**: `.xlsx`/`.xlsm` se leen con SAX y `.xls` con BIFF8; no se conservan las hojas ocultas y se respetan los formatos de % y tiempo. Si recorta filas, columnas
   u hojas, la hoja lleva una nota («Solo se leyeron las primeras 2000 filas.»).
-- **Formatos antiguos** (`.xls`, `.doc`, OLE): se rechazan con un mensaje que dice cómo guardarlos en un formato nuevo.
+- **Formatos antiguos**: BIFF8 (`.xls`) se lee localmente. `.doc` y los libros `.xls` cifrados o incompatibles piden guardar una copia como `.xlsx`.
 - **OCR**: ML Kit `text-recognition` empaquetado en el APK (decisión del usuario: funciona sin conexión y sin descargas; unos +20 MB en
   release).
   - El PDF se pinta con `PdfRenderer` a 1600 px por página, hasta 30 páginas, con el progreso «Leyendo la página 3 de 12…».
@@ -35,7 +35,8 @@ Cada lector entrega `ImportSheet(name, rows, notes)`: filas de celdas de texto, 
 
 `ProgramImportParser` (puro, `domain/training/importer/`) convierte las hojas en un `ImportedProgramDraft` (semanas → días → ejercicios,
 cada uno con id estable `w<s>-d<n>-e<m>` y su texto de origen) más una lista de avisos (`ImportWarning`). Después `ImportedProgramBuilder` lo
-convierte en un `Program` con procedencia «Programa importado».
+convierte en un `Program` con procedencia «Programa importado». En las importaciones web, el borrador durable y el programa guardado conservan
+el título de la fuente y su origen HTTPS (esquema, host y puerto); se omiten ruta, query y fragmento para no retener tokens de enlaces.
 
 ### Reglas del analizador (un ejemplo de cada una)
 
@@ -91,6 +92,14 @@ convierte en un `Program` con procedencia «Programa importado».
 - Delante del nombre: «4x8 Sentadilla».
 - Nombre y prescripción en líneas distintas (texto pegado y OCR): «Sentadilla» / «4x8» = un ejercicio (busca el nombre hasta 3 filas atrás,
   saltando etiquetas de día).
+- Solo en OCR, una fila sin encabezado puede llevar el día en la primera celda y el ejercicio/prescripción en las siguientes
+  («DAY A | Back Squat | 3 x 5 reps | 70 kg»). Si el mismo día se repite en filas contiguas, sus ejercicios se agrupan; también se
+  reconocen etiquetas «Day A»/«Día B».
+- Una celda OCR «10 Push Ups» se lee como nombre + repeticiones. Si la fuente no indica series, se conserva con `INCOMPLETE_ROW` y el
+  guardado queda bloqueado hasta completar las series; no se inventa una serie. Fuera de OCR, una fila sin series se omite.
+- Tiempo objetivo: «Plank 3x40 s» y una columna `Duration (s/min)` producen modo por tiempo, sin objetivos de repeticiones; `rest 1 min`
+  sigue siendo descanso. Si la fuente trae el tiempo pero no las series («Plank | 40 s»), la fila queda visible con `INCOMPLETE_ROW`
+  y no se puede guardar hasta completar las series en el editor. No se inventa un número de series.
 - Nombres sueltos sin prescripción (sin cifras): se cuentan como líneas de texto de la hoja y solo avisan uno a uno si la hoja no da
   ningún ejercicio. Una fila con cifras que no se entiende («Press 4/8») sí avisa, para poder «Añadir como ejercicio».
 - Solo en PDF y fotos: una frase larga con cifras (8 palabras o más, o 60 caracteres o más, casi toda en minúscula; por ejemplo «Cómo
@@ -108,9 +117,10 @@ convierte en un `Program` con procedencia «Programa importado».
 
 ### Avisos
 
-`ImportWarningKind`: `SKIPPED_ROW` (fila que no se entendió), `IGNORED_VALUE` (valor fuera de rango), `EMPTY_DAY`, `NOTHING_FOUND` y
-`SHEET_NOTE` (notas del lector o de la hoja). La pantalla los agrupa, deja ignorarlos (uno o todos) y convertir una fila saltada en
-ejercicio («Añadir como ejercicio»).
+`ImportWarningKind`: `SKIPPED_ROW` (fila que no se entendió), `IGNORED_VALUE` (valor fuera de rango), `INCOMPLETE_ROW` (falta completar
+la prescripción), `EMPTY_DAY`, `NOTHING_FOUND` y `SHEET_NOTE` (notas del lector o de la hoja). La pantalla los agrupa, deja ignorarlos
+(uno o todos) y convertir una fila saltada en ejercicio («Añadir como ejercicio»). `INCOMPLETE_EXERCISE` bloquea el guardado hasta que la
+prescripción quede completa.
 
 ## 3. Nombres de ejercicio
 
@@ -141,23 +151,30 @@ ejercicio («Añadir como ejercicio»).
 (GZCLP, Texas Method, 5/3/1, nSuns, PHUL, PHAT…). Si lo encuentra, la pantalla ofrece «Usar el de KPKN» (decisión del usuario): en el alta
 salta a la recomendación con ese plan preseleccionado; en la app abre el plan en el asistente. Importar el archivo tal cual sigue disponible.
 
-## 5. Revisión y ajuste antes de guardar
+## 5. Revisión y apertura del programa
 
-Todo es puro y se puede deshacer:
-- `ImportDraftEditor`: editar series, repeticiones, carga, RPE/RIR y descanso; renombrar (en una semana o en todas); duplicar, mover y
-  borrar ejercicios; renombrar, mover, unir y añadir días; duplicar o borrar semanas; cambiar la unidad (kg/lb).
-- `ImportEdits` (pantalla): cada cambio es una operación (`ImportEditOp`) con su inversa; deshacer hasta 30 pasos (`ImportUndoStack`).
-- Cada nombre necesita una decisión: «Elegir» (un ejercicio del catálogo) o «Propio» (se guarda con su nombre).
-- Revisión final «Falta revisar» (`ImportDraftValidation.check`, pura): semanas o días vacíos, nombres sin decidir y avisos sin revisar,
-  cada uno con su acción («Elegir», «Quitar el día», «Quitar la semana», «Ver avisos», «Ignorar todos»).
-- **Avisos:** con más de 3 sin revisar, el panel empieza plegado («47 avisos sin revisar.» · «Ver avisos» · «Ignorar todos»). El aviso de
-  imagen se ve siempre.
-- **Días de entrenamiento** (solo desde Programas; en el alta lo hace «Así queda tu semana»):
-  - siete interruptores L–D junto a «Guardar programa», con un reparto inicial según los días del programa (3 → L, X, V);
-  - sin ningún día no se guarda.
-  - Antes, todo caía el lunes.
+**Flujo visible actual (7 nov 2026):** al terminar de leer, el asistente abre directamente una sola pantalla de revisión de ejercicios y
+distribución semanal → guardar y abrir el `ProgramDetail` existente. La pantalla reúne la confirmación de coincidencias y el calendario por
+semana; no añade un resumen intermedio, pasos separados de Sesiones, editor de importación, checklist final ni éxito dentro del importador.
+
+- Cada ejercicio debe quedar asociado a una variante del catálogo o marcado como propio. Las coincidencias automáticas también se pueden
+  desplegar y comprobar junto con la prescripción original; cualquier nombre pendiente bloquea el guardado.
+- El calendario conserva la semana y el día que se pudieron leer. La persona puede mover una sesión, sugerir un reparto o aplicarlo a las
+  demás semanas. Los choques se muestran como información para corregir o confirmar; no se pierden al guardar.
+- Los avisos de lectura también deben revisarse o descartarse. La distribución se guarda en el borrador y la ausencia de días de entrenamiento
+  bloquea el guardado.
+- Al guardar, `ImportedProgramBuilder` materializa el programa canónico una sola vez. `onSaved` abre directamente
+  `KpknRoute.ProgramDetail.create(programId)`: ahí se ajustan las semanas y desde ahí se entra al `SessionEditorScreen` existente si hace falta
+  cambiar series, repeticiones, carga, RPE/RIR o descanso.
+- El título del programa también se puede cambiar en esa pantalla de revisión; los borradores antiguos que apuntan al resumen vuelven a la
+  pantalla conjunta.
+- Los borradores nuevos guardan el documento de origen, las decisiones de ejercicios, el título y la distribución; no guardan una segunda
+  copia completa de `Program`. Los borradores editados de versiones anteriores conservan compatibilidad de lectura.
+- La política Free sigue validando una semana y hasta cinco sesiones por semana. Si el programa supera el límite, el borrador durable se
+  conserva y se explica el límite.
+- El progreso de lectura presenta las etapas reales Documento, Estructura, Ejercicios, Catálogo y Días; en PDF muestra la página actual.
+  Los contadores aparecen cuando los produce el lector, parser o matcher; no se simula progreso con temporizadores.
 - La pantalla de importar oculta la barra flotante de la app, como el asistente y el editor de programas.
-- El borrador del alta guarda el programa importado; los borradores anteriores a H1 se reparan al leerlos (`withIds`).
 
 En Free, un programa importado de más de 1 semana o de más de 5 sesiones pide Pro (`ProgramAccessPolicy`).
 
@@ -169,7 +186,9 @@ Los corpus son de terceros: **nunca entran en el repositorio**. Solo se suben ca
 |---|---|---|
 | Hojas (JVM) | `KPKN_IMPORT_CORPUS=<carpeta> KPKN_IMPORT_REPORT=<salida> … --tests "*ImportCorpusReportTest*"` | `report.md`, `report.json` y una vista por archivo en `sheets/`: resultado (BIEN, POBRE, NADA, RECHAZO o FALLO), nombres sin reconocer, plantilla reconocida, avisos y tiempos |
 | Filas de OCR (JVM) | `KPKN_OCR_ROWS=<carpeta de .rows.txt> KPKN_IMPORT_REPORT=<salida> … --tests "*OcrRowsCorpusReportTest*"` | el mismo informe, con las filas que reconstruyó el teléfono (sin repetir el OCR) |
-| OCR en el teléfono | APK `.dbg` + `ImportOcrHarnessActivity` (solo depuración): `phone_run.py --clear-dbg --push-dbg <pdfs>=ocr-corpus --wait-file ocr-report/ocr-report.json --pull-dbg ocr-report=<salida>` | `ocr-report.json` (páginas, ms por página, resultado) y `<archivo>.rows.txt` con `--- página N ---` entre páginas |
+| OCR en el teléfono | APK `.dbg` + `ImportOcrHarnessActivity` (solo depuración), con el `phone_run`/`phone.lock` vigente: `phone_run.py --push-dbg <PDFs e imágenes .jpg/.jpeg/.png/.webp/.heic>=ocr-corpus --wait-file ocr-report/ocr-report.json --pull-dbg ocr-report=<salida>` | `ocr-report.json` (páginas, ms por página, resultado y conteos/mínimo/promedio de confianza del OCR) y `<archivo>.rows.txt` con `--- página N ---` entre páginas PDF. Una foto cuenta como una página. |
+
+Para medir OCR contra una muestra etiquetada, coloca junto a cada entrada un sidecar UTF-8 llamado `<archivo completo>.expected.txt` (por ejemplo, `rutina.jpg.expected.txt`). Escribe una fila por línea y separa las celdas con ` | `; para PDF, usa los marcadores `--- página N ---` que produce el arnés. El JSON añade filas/celdas exactas, WER y CER sin copiar la transcripción de referencia al informe, además de los scores de confianza de ML Kit. Los scores no son exactitud calibrada; las métricas de transcripción requieren una referencia humana y no se infieren del corpus histórico sin etiquetas.
 
 - El banco de filas de OCR reproduce exactamente lo que da el teléfono: se puede mejorar el analizador en la JVM y pasar por el teléfono
   solo para confirmar.
@@ -227,8 +246,9 @@ Evolución en el teléfono:
 
 ## 7. Pendientes conocidos
 
-- **Tablas de OCR sin columna de repeticiones** («Exercise | Activity | Rest | Sets»): «6-8 reps» cae en otra columna y el ejercicio se
-  rechaza. Haría falta deducir las columnas por su contenido.
+- **Tablas de OCR sin columna de repeticiones** («Exercise | Activity | Rest | Sets»): el parser infiere la única columna libre que
+  contiene etiquetas explícitas como «6-8 reps» o rangos repetidos como «6-8». Los números sueltos no bastan para evitar confundirlos
+  con cargas; columnas de tempo o duración también quedan fuera. La suite `ProgramImportParserSchemeColumnsTest` comprueba estos casos.
 - **Celdas partidas cuyo trozo de arriba lleva cifras** («Opción 2,- Flexiones en»): no se unen, y el trozo de abajo puede quedar como un
   día suelto.
 - **Infografías de varias columnas** (algunos PDF de Templo del Fitness): el OCR mezcla las columnas en las mismas filas. Haría falta
