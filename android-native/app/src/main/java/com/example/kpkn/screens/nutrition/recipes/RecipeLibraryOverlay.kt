@@ -101,7 +101,13 @@ fun RecipeLibraryOverlay(
                         else {
                             busy = true
                             scope.launch {
-                                try { repository.saveCustomFood(food); editing = false; error = null; originalDraft = draft }
+                                try {
+                                    val versioned = base?.recipe?.let { old ->
+                                        food.copy(recipe = food.recipe?.copy(version = old.version + 1))
+                                    } ?: food
+                                    repository.saveCustomFood(versioned)
+                                    editing = false; error = null; originalDraft = draft
+                                }
                                 catch (cancelled: CancellationException) { throw cancelled }
                                 catch (_: Exception) { error = "No se pudo guardar la receta. Tu borrador sigue aquí." }
                                 finally { busy = false }
