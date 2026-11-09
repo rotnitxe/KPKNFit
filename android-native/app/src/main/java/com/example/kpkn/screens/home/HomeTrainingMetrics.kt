@@ -200,7 +200,10 @@ object HomeTrainingMetricsBuilder {
         ordered.forEach { log ->
             log.completedExercises.forEach { exercise ->
                 val value = exercise.sets
-                    .filter { !it.skipped && !it.isWarmup && !it.isFailedSet && it.reps > 0 }
+                    .filter {
+                        !it.skipped && !it.isWarmup && !it.isFailedSet && it.reps > 0 &&
+                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it)
+                    }
                     .maxOfOrNull { StrengthModel.estimate1RM(it) } ?: return@forEach
                 best.getOrPut(exercise.exerciseId) { mutableListOf() }
                     .add(exercise.exerciseName to value)

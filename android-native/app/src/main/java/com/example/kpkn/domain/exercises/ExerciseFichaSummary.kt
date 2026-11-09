@@ -37,10 +37,22 @@ fun exerciseHistorySummary(history: List<WorkoutLog>, identityKeys: Set<String>,
             .flatMap { ex -> ex.sets.filter { !it.isWarmup && !it.skipped && (it.reps > 0 || (it.timeSeconds ?: 0) > 0) }.map { day to it } }
     }
     val last = matching.maxOfOrNull { it.first } ?: return null
-    fun estimate(set: CompletedSet): Double? = set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
-        ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 } else null
+    fun estimate(set: CompletedSet): Double? {
+        if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)) return null
+        return set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
+            ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 } else null
+    }
     val best = matching.mapNotNull { (_, set) -> estimate(set)?.let { set to it } }.maxByOrNull { it.second }
-    return ExerciseHistorySummary(best?.first, best?.second, last)
+    val fallbackBest = if (best == null) {
+        matching.map { it.second }.filter {
+            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it) != null
+        }.maxWithOrNull(
+            compareBy<CompletedSet>({ it.reps }, { it.timeSeconds ?: 0 }, {
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0
+            }),
+        )
+    } else null
+    return ExerciseHistorySummary(best?.first ?: fallbackBest, best?.second, last)
 }
 
 data class ExerciseFichaEffects(val blurDp: Float, val darkness: Float, val scale: Float, val headerAlpha: Float, val titleAlpha: Float)

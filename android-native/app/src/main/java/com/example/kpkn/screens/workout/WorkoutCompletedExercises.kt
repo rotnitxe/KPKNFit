@@ -92,18 +92,16 @@ internal fun completedSetsForExercise(
 internal fun sessionTonnage(exercises: List<CompletedExercise>): Double =
     exercises.sumOf { ex ->
         ex.sets.filter { !it.skipped && !it.isWarmup }.sumOf { set ->
-            val main = set.weight * set.effectiveRepEquivalent()
+            val main = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalTonnageKg(
+                set,
+                set.effectiveRepEquivalent(),
+            )
             val drops = set.dropSets.sumOf { drop ->
-                val body = set.recordedPayloadV3?.bodyWeightSnapshot ?: 0.0
-                val load = when (set.loadMode ?: set.recordedPayloadV3?.loadInputMode) {
-                    com.example.kpkn.data.models.LoadModeV2.LASTRE -> body + drop.weight
-                    com.example.kpkn.data.models.LoadModeV2.ASSISTED -> (body - drop.weight).coerceAtLeast(0.0)
-                    com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> body
-                    else -> drop.weight
-                }
-                load * drop.reps
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.dropTonnageKg(set, drop.weight, drop.reps)
             }
-            val restPauses = set.restPauses.sumOf { rp -> set.weight * rp.reps }
+            val restPauses = set.restPauses.sumOf { rp ->
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.restPauseTonnageKg(set, rp.reps)
+            }
             main + drops + restPauses
         }
     }

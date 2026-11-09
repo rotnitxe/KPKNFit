@@ -399,7 +399,7 @@ private fun FichaHistory(model: CatalogDetailModel, onShowHistory: (() -> Unit)?
             }
             model.historySummary?.let { history ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    history.bestSet?.let { Text("Mejor serie · ${NativeProgressionText.formatKg(it.weight)} kg × ${it.reps}", style = KpknType.body, color = WizardColors.text) }
+                    history.bestSet?.let { Text("Mejor serie · ${com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(it)}", style = KpknType.body, color = WizardColors.text) }
                     history.estimatedRmKg?.let { Text("1RM estimado · ${NativeProgressionText.formatKg(it)} kg", style = KpknType.caption, color = WizardColors.textMuted) }
                     val days = ChronoUnit.DAYS.between(history.lastDate, LocalDate.now()).coerceAtLeast(0)
                     Text("Última vez · " + when (days) { 0L -> "hoy"; 1L -> "ayer"; else -> "hace $days días" }, style = KpknType.caption, color = WizardColors.textMuted)

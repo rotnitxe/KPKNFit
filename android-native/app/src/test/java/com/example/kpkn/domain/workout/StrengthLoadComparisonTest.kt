@@ -16,12 +16,11 @@ import org.junit.Test
 
 class StrengthLoadComparisonTest {
     @Test
-    fun `el lastre conserva la entrada externa y estima sobre la carga total registrada`() {
-        val set = CompletedSet("serie", weight = 100.0, reps = 5, rir = 2, recordedPayloadV3 = RecordedSetPayload(
-            exerciseId = "dominada", loadInputMode = LoadModeV2.LASTRE, externalLoad = 20.0, bodyWeightSnapshot = 80.0))
-        assertEquals(20.0, LoadSuggestionEngine.inputLoad(set, LoadModeV2.LASTRE), 0.0)
-        assertEquals(120.0, LoadSuggestionEngine.estimatedCapacity(set)!!, 0.0)
-        assertTrue(LoadSuggestionEngine.estimatedCapacity(set.copy(reps = 2))!! < 120.0)
+    fun `el lastre conserva la entrada externa y no se estima como 1RM de barra`() {
+        val set = CompletedSet("serie", weight = 40.0, reps = 5, rir = 2, recordedPayloadV3 = RecordedSetPayload(
+            exerciseId = "dominada", loadInputMode = LoadModeV2.LASTRE, externalLoad = 40.0, bodyWeightSnapshot = 80.0))
+        assertEquals(40.0, LoadSuggestionEngine.inputLoad(set, LoadModeV2.LASTRE), 0.0)
+        assertNull(LoadSuggestionEngine.estimatedCapacity(set))
     }
 
     @Test
@@ -42,7 +41,7 @@ class StrengthLoadComparisonTest {
             globalPercentile = 50.0, contextEwma = 60.0, contextStdDev = 5.0, globalEwma = 60.0,
             globalStdDev = 5.0, isContextPr = false, isGlobalPr = false, historyColor = HistoryColorV2.NEUTRAL,
             difficultySignal = DifficultySignalV2.MATCHED, suggestedNextLoad = null, suggestionReason = null,
-            augeEquivalentLoad = 45.0, augeEquivalentReps = 8, suggestedLoadMode = null, estimatorVersion = com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION,
+            augeEquivalentLoad = 45.0, augeEquivalentReps = 8, suggestedLoadMode = null, estimatorVersion = com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION,
         )
         val set = CompletedSet("serie", weight = 100.0, reps = 5, rir = 2)
         assertEquals(80.0, LoadSuggestionEngine.estimatedCapacity(set.copy(homologatedResultV3 = saved))!!, 0.0)

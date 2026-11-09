@@ -496,7 +496,10 @@ class WorkoutSetRecorder(
                     id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
                     recordedAtMs = if (recordingKey in state.completedSets) state.completedSets[recordingKey]?.recordedAtMs else System.currentTimeMillis(),
                     setIndex = targetSetIdx,
-                    weight = outcome.augeEquivalentLoad,
+                    weight = when (resolvedLoadMode) {
+                        LoadModeV2.BODYWEIGHT, LoadModeV2.ASSISTED -> 0.0
+                        else -> weight
+                    },
                     reps = actualReps,
                     timeSeconds = durationSeconds,
                     side = resolvedSide,

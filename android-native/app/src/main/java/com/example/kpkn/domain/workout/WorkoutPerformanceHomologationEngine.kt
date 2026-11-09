@@ -105,7 +105,8 @@ object WorkoutPerformanceHomologationEngine {
         val estimatedRm = when {
             entry.unitMode == UnitModeV2.REPS && entry.completedReps == 0 -> null
             entry.unitMode == UnitModeV2.TIME -> null
-            entry.loadMode == LoadModeV2.ASSISTED || entry.loadMode == LoadModeV2.BODYWEIGHT -> null
+            entry.loadMode == LoadModeV2.ASSISTED || entry.loadMode == LoadModeV2.BODYWEIGHT ||
+                entry.loadMode == LoadModeV2.LASTRE -> null
             else -> metric
         }
 
