@@ -186,6 +186,11 @@ class ProgramProgressCycleCloseTest {
             second.program.runState?.autoregulationAudit,
         )
         assertEquals(2, second.program.runState?.cycleNumber)
+        assertEquals(
+            "Un programa recurrente nunca se marca como completado",
+            com.example.kpkn.data.models.ProgramRunStatus.ACTIVE,
+            second.program.runState?.status,
+        )
     }
 
     @Test
