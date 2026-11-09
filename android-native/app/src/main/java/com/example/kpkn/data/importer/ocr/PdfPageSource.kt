@@ -91,6 +91,25 @@ internal class PdfRendererPages private constructor(
             }
         }
 
+        /** Abre un PDF descargado; la copia temporal se borra al cerrar el origen de páginas. */
+        fun open(bytes: ByteArray, cacheDir: File?): PdfRendererPages {
+            val target = cacheDir?.let { runCatching { File.createTempFile("ocr-url-", ".pdf", it) }.getOrNull() }
+                ?: throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
+            try {
+                target.outputStream().use { it.write(bytes) }
+                val descriptor = ParcelFileDescriptor.open(target, ParcelFileDescriptor.MODE_READ_ONLY)
+                try {
+                    return PdfRendererPages(PdfRenderer(descriptor), descriptor, copy = target)
+                } catch (error: Exception) {
+                    runCatching { descriptor.close() }
+                    throw error
+                }
+            } catch (error: Exception) {
+                target.delete()
+                throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
+            }
+        }
+
         /** Ancho fijo de [OCR_PAGE_WIDTH_PX] con el alto proporcional; si la página es muy alta, se estrecha. */
         private fun targetSize(pageWidth: Int, pageHeight: Int): Pair<Int, Int> {
             val widthPoints = max(1, pageWidth).toDouble()

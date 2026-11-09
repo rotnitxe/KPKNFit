@@ -5,6 +5,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -67,17 +70,28 @@ internal fun SessionEditorFrameHeader(
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onDaySwipe: (Int) -> Boolean,
+    importedContextLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
     val dragX = remember { Animatable(0f) }
     var widthPx by remember { mutableIntStateOf(0) }
+    val importedEditor = importedContextLabel != null
+    val heroShape = RoundedCornerShape(24.dp)
     // Cada sesión empieza con la cabecera en su sitio; si el gesto cambió de día, la nueva entra desde el borde.
     LaunchedEffect(sessionId) { dragX.snapTo(0f) }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (importedEditor) {
+                    Modifier
+                        .clip(heroShape)
+                        .background(Brush.linearGradient(listOf(Color(0xFF2B1A12), Color(0xFF101010))))
+                        .border(1.dp, Color(0x33F49A6E), heroShape)
+                } else Modifier
+            )
             .onSizeChanged { widthPx = it.width }
             .graphicsLayer { translationX = dragX.value }
             .pointerInput(sessionId) {
@@ -107,13 +121,19 @@ internal fun SessionEditorFrameHeader(
                     },
                 )
             }
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 14.dp),
+            .padding(
+                start = if (importedEditor) 18.dp else 16.dp,
+                end = if (importedEditor) 18.dp else 16.dp,
+                top = if (importedEditor) 18.dp else 8.dp,
+                bottom = if (importedEditor) 18.dp else 14.dp,
+            ),
         // Pulido v1 · EDITOR · A2: los huecos son los de `.ed-head` (ceja → título 2 dp, título → descripción 4, descripción → fichas 12).
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        if (!protocolLabel.isNullOrBlank()) {
+        val eyebrow = importedContextLabel ?: protocolLabel
+        if (!eyebrow.isNullOrBlank()) {
             Text(
-                text = protocolLabel.uppercase(),
+                text = eyebrow.uppercase(),
                 style = KpknType.eyebrow.copy(lineHeight = 13.2.sp),
                 color = WizardColors.textMuted,
                 maxLines = 1,
@@ -122,7 +142,7 @@ internal fun SessionEditorFrameHeader(
         }
         NameField(sessionId = sessionId, name = name, onCommit = onNameChange)
         DescriptionField(sessionId = sessionId, description = description, onCommit = onDescriptionChange)
-        SummaryChips(chips = summaryChips)
+        SummaryChips(chips = if (importedEditor) listOf("Editor KPKN") + summaryChips else summaryChips)
     }
 }
 

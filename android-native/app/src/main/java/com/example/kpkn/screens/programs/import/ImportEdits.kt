@@ -10,6 +10,7 @@ import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
+import com.example.kpkn.domain.training.importer.ImportWarningKind
 import com.example.kpkn.domain.training.importer.ProgramImportParser
 
 /**
@@ -19,6 +20,7 @@ import com.example.kpkn.domain.training.importer.ProgramImportParser
 data class ImportSnapshot(
     val imported: ImportedProgramDraft,
     val resolutions: Map<String, String?>,
+    val weekdays: Set<Int> = emptySet(),
 )
 
 /** Una edición de la vista previa. Cada una tiene su texto para deshacer, que devuelve [ImportEdits.apply]. */
@@ -50,7 +52,12 @@ sealed interface ImportEditOp {
 
     data class RemoveDay(val dayId: String) : ImportEditOp
 
+    data class DuplicateDay(val dayId: String) : ImportEditOp
+
     data class RemoveWeek(val weekIndex: Int) : ImportEditOp
+
+    /** Keeps one explicitly selected Free-plan week and removes the others from this draft. */
+    data class KeepOnlyWeek(val weekIndex: Int) : ImportEditOp
 
     /** Cambia el nombre del día; un nombre vacío no cambia nada. */
     data class RenameDay(val dayId: String, val name: String) : ImportEditOp
@@ -58,14 +65,23 @@ sealed interface ImportEditOp {
     /** Mueve el día dentro de su semana, a la posición [toIndex]. */
     data class MoveDay(val dayId: String, val toIndex: Int) : ImportEditOp
 
+    /** Assigns one imported session to a weekday, or clears the source weekday. */
+    data class SetDayOfWeek(val dayId: String, val dayOfWeek: Int?) : ImportEditOp
+
     /** Une el día con el siguiente de su semana: sus ejercicios pasan al final y el siguiente desaparece. */
     data class MergeWithNext(val dayId: String) : ImportEditOp
+
+    /** Crea una sesión desde el ejercicio elegido y los siguientes de ese mismo día. */
+    data class SplitDayAtExercise(val dayId: String, val exerciseId: String, val newDayName: String) : ImportEditOp
 
     /** Añade un día vacío al final de la semana [weekIndex]; sin [name], «Día <n>». */
     data class AddDay(val weekIndex: Int, val name: String) : ImportEditOp
 
     /** Copia la semana [index] justo después, con ids nuevos. */
     data class DuplicateWeek(val index: Int) : ImportEditOp
+
+    /** Añade una semana vacía al final del borrador. */
+    data object AddWeek : ImportEditOp
 
     /**
      * Añade un ejercicio al final de [dayId]. Con [decided], fija su decisión: [configId] del catálogo, o null = propio. Un
@@ -158,16 +174,28 @@ object ImportEdits {
             is ImportEditOp.RemoveDay -> snapshot.copy(
                 imported = ImportDraftEditor.removeDay(draft, op.dayId),
             ) to "Quitaste «${dayOf(draft, op.dayId)?.name.orEmpty()}»."
+            is ImportEditOp.DuplicateDay -> snapshot.copy(
+                imported = ImportDraftEditor.duplicateDay(draft, op.dayId),
+            ) to "Duplicaste «${dayOf(draft, op.dayId)?.name.orEmpty()}»."
             is ImportEditOp.RemoveWeek -> snapshot.copy(
                 imported = ImportDraftEditor.removeWeek(draft, op.weekIndex),
             ) to "Quitaste la semana ${op.weekIndex}."
+            is ImportEditOp.KeepOnlyWeek -> snapshot.copy(
+                imported = ImportDraftEditor.keepOnlyWeek(draft, op.weekIndex),
+            ) to "Conservaste la semana ${op.weekIndex} y quitaste las demás."
             is ImportEditOp.RenameDay -> renamedDay(snapshot, op)
             is ImportEditOp.MoveDay -> movedDay(snapshot, op)
+            is ImportEditOp.SetDayOfWeek -> setDayOfWeek(snapshot, op)
             is ImportEditOp.MergeWithNext -> mergedWithNext(snapshot, op)
+            is ImportEditOp.SplitDayAtExercise -> splitDayAtExercise(snapshot, op)
             is ImportEditOp.AddDay -> addedDay(snapshot, op)
             is ImportEditOp.DuplicateWeek -> snapshot.copy(
                 imported = ImportDraftEditor.duplicateWeek(draft, op.index),
             ) to "Duplicaste la semana ${op.index}."
+            ImportEditOp.AddWeek -> {
+                val nextIndex = (draft.weeks.maxOfOrNull { it.index } ?: 0) + 1
+                snapshot.copy(imported = ImportDraftEditor.addWeek(draft)) to "Añadiste la semana $nextIndex."
+            }
             is ImportEditOp.AddExercise -> addedExercise(snapshot, op, nameOf)
             is ImportEditOp.AddFirstExercise -> {
                 if (draft.weeks.any { it.days.isNotEmpty() }) return null
@@ -178,7 +206,7 @@ object ImportEdits {
                 val added = ImportDraftEditor.add(withDay, day.id, 0, op.rawName, op.sets, op.repsMin, op.repsMax)
                 if (added == withDay) return null
                 val selected = ImportDraftEditor.selectCatalogExercise(added, "x${withDay.nextId}", op.configId)
-                ImportSnapshot(selected, snapshot.resolutions) to "Añadiste «${op.rawName.trim()}»."
+                snapshot.copy(imported = selected) to "Añadiste «${op.rawName.trim()}»."
             }
             ImportEditOp.AddEmptyFirstDay -> {
                 if (draft.weeks.any { it.days.isNotEmpty() }) return null
@@ -213,7 +241,7 @@ object ImportEdits {
         // El nombre nuevo sin decisión hereda la del anterior; las decisiones de otros nombres no se tocan.
         val inherited = oldName?.takeIf { name.isNotEmpty() && name !in snapshot.resolutions && it in snapshot.resolutions }
         val resolutions = if (inherited != null) snapshot.resolutions + (name to snapshot.resolutions[inherited]) else snapshot.resolutions
-        return ImportSnapshot(imported, resolutions) to "Renombraste «$name»."
+        return snapshot.copy(imported = imported, resolutions = resolutions) to "Renombraste «$name»."
     }
 
     private fun moved(
@@ -245,11 +273,42 @@ object ImportEdits {
         return snapshot.copy(imported = imported) to "Cambiaste el orden de la semana $week."
     }
 
+    private fun setDayOfWeek(snapshot: ImportSnapshot, op: ImportEditOp.SetDayOfWeek): Pair<ImportSnapshot, String> {
+        if (op.dayOfWeek != null && op.dayOfWeek !in 1..7) return snapshot to ""
+        val day = dayOf(snapshot.imported, op.dayId) ?: return snapshot to ""
+        val weeks = snapshot.imported.weeks.map { week ->
+            week.copy(days = week.days.map { current ->
+                if (current.id == op.dayId) current.copy(dayOfWeek = op.dayOfWeek) else current
+            })
+        }
+        val label = op.dayOfWeek?.let { "Moviste «${day.name}» al ${weekdayName(it)}." } ?: "Quitaste el día asignado a «${day.name}»."
+        return snapshot.copy(imported = snapshot.imported.copy(weeks = weeks)) to label
+    }
+
+    private fun weekdayName(day: Int): String = when (day) {
+        1 -> "lunes"
+        2 -> "martes"
+        3 -> "miércoles"
+        4 -> "jueves"
+        5 -> "viernes"
+        6 -> "sábado"
+        else -> "domingo"
+    }
+
     /** Une el día con el siguiente de su semana; el texto nombra los dos, con sus nombres de antes de unirlos. */
     private fun mergedWithNext(snapshot: ImportSnapshot, op: ImportEditOp.MergeWithNext): Pair<ImportSnapshot, String> {
         val draft = snapshot.imported
         val label = "Uniste «${dayOf(draft, op.dayId)?.name.orEmpty()}» con «${nextDayOf(draft, op.dayId)?.name.orEmpty()}»."
         return snapshot.copy(imported = ImportDraftEditor.mergeWithNext(draft, op.dayId)) to label
+    }
+
+    private fun splitDayAtExercise(
+        snapshot: ImportSnapshot,
+        op: ImportEditOp.SplitDayAtExercise,
+    ): Pair<ImportSnapshot, String> {
+        val exercise = exerciseOf(snapshot.imported, op.exerciseId)
+        val updated = ImportDraftEditor.splitDayAtExercise(snapshot.imported, op.dayId, op.exerciseId, op.newDayName)
+        return snapshot.copy(imported = updated) to "Separaste la sesión desde «${exercise?.rawName.orEmpty()}»."
     }
 
     /** El día nuevo lleva el id del contador (`x<n>`); su nombre sale del borrador de después (el «Día <n>» por defecto). */
@@ -278,7 +337,7 @@ object ImportEdits {
         val imported = if (added != draft && op.decided && op.configId != null) ImportDraftEditor.selectCatalogExercise(added, "x${draft.nextId}", op.configId) else added
         val decide = op.decided && op.configId == null && imported != draft && !snapshot.resolutions.containsKey(name)
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
-        return ImportSnapshot(imported, resolutions) to "Añadiste «$shown»."
+        return snapshot.copy(imported = imported, resolutions = resolutions) to "Añadiste «$shown»."
     }
 
     /**
@@ -308,14 +367,17 @@ object ImportEdits {
         } else added
         val decide = op.decided && op.configId == null && imported != draft && !snapshot.resolutions.containsKey(name)
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
-        return ImportSnapshot(imported, resolutions) to "Añadiste «$shown» desde un aviso."
+        return snapshot.copy(imported = imported, resolutions = resolutions) to "Añadiste «$shown» desde un aviso."
     }
 
     private fun ignoredAll(snapshot: ImportSnapshot): Pair<ImportSnapshot, String> {
         val draft = snapshot.imported
-        val pending = draft.warnings.count { it.id !in draft.reviewedWarnings }
-        val imported = draft.warnings.fold(draft) { current, warning -> ImportDraftEditor.ignoreWarning(current, warning.id) }
-        val label = if (pending == 1) "Ignoraste 1 aviso." else "Ignoraste $pending avisos."
+        val pending = draft.warnings.filter {
+            it.kind == ImportWarningKind.SHEET_NOTE && it.id !in draft.reviewedWarnings
+        }
+        if (pending.isEmpty()) return snapshot to "No hay notas informativas pendientes."
+        val imported = pending.fold(draft) { current, warning -> ImportDraftEditor.ignoreWarning(current, warning.id) }
+        val label = if (pending.size == 1) "Ignoraste 1 nota informativa." else "Ignoraste ${pending.size} notas informativas."
         return snapshot.copy(imported = imported) to label
     }
 
@@ -371,6 +433,7 @@ data class ImportExerciseForm(
     val restSeconds: Int?,
     val notes: String,
     val allWeeks: Boolean,
+    val durationSeconds: Int? = null,
 ) {
     companion object {
         /** El formulario con los valores actuales del ejercicio; el interruptor de otras semanas empieza apagado. */
@@ -396,6 +459,7 @@ data class ImportExerciseForm(
             restSeconds = exercise.restSeconds,
             notes = exercise.notes.orEmpty(),
             allWeeks = false,
+            durationSeconds = exercise.durationSeconds,
         )
     }
 }
@@ -409,6 +473,7 @@ private val LOAD_LB_RANGE = 1.0..MAX_LOAD_LB
 private val PERCENT_RANGE = 1.0..ProgramImportParser.MAX_PERCENT
 private val RPE_RANGE = 1.0..10.0
 private val RIR_RANGE = 0..10
+private val DURATION_RANGE = 1..ProgramImportParser.MAX_DURATION_SECONDS
 
 /** El rango válido de la carga en la unidad [unit]: de 0,5 a 1000 kg, o de 1 a 2200 lb. */
 private fun loadRangeOf(unit: ImportLoadUnit): ClosedFloatingPointRange<Double> =
@@ -441,9 +506,8 @@ fun ImportExerciseForm.isValid(unit: ImportLoadUnit = ImportLoadUnit.KG): Boolea
     }
     return rawName.isNotBlank() &&
         sets in 1..ProgramImportParser.MAX_SETS &&
-        repsMin in 1..ProgramImportParser.MAX_REPS &&
-        repsMax in 1..ProgramImportParser.MAX_REPS &&
-        repsMin <= repsMax &&
+        (durationSeconds?.let { it in DURATION_RANGE } ?:
+            (repsMin in 1..ProgramImportParser.MAX_REPS && repsMax in 1..ProgramImportParser.MAX_REPS && repsMin <= repsMax)) &&
         loadIsValid(unit) &&
         effortOk &&
         (restSeconds == null || restSeconds in 0..ProgramImportParser.MAX_REST_SECONDS) &&
@@ -469,12 +533,13 @@ fun patchFrom(original: ImportedExercise, form: ImportExerciseForm): ImportExerc
         rir = optional(oldRir, rir),
         restSeconds = optional(original.restSeconds, form.restSeconds),
         notes = optional(original.notes?.trim()?.ifEmpty { null }, form.notes.trim().ifEmpty { null }),
+        durationSeconds = optional(original.durationSeconds, form.durationSeconds),
     )
 }
 
 /** True si el parche no cambia ningún campo. */
 fun ImportExercisePatch.isNoOp(): Boolean =
-    listOf(sets, repsMin, repsMax, loadKg, percent1Rm, rpe, rir, restSeconds, notes).all { it == Change.Keep }
+    listOf(sets, repsMin, repsMax, loadKg, percent1Rm, rpe, rir, restSeconds, notes, durationSeconds).all { it == Change.Keep }
 
 /** Texto de un descanso en segundos: «45 s», «2 min» o «2 min 30 s». */
 fun importRestText(seconds: Int): String {
@@ -488,6 +553,7 @@ fun importRestText(seconds: Int): String {
 fun importIssueLine(issue: ImportIssue, imported: ImportedProgramDraft): String = when (issue.kind) {
     ImportIssueKind.NO_WEEKS -> "No quedó ninguna semana."
     ImportIssueKind.EMPTY_WEEK -> "La semana ${issue.weekIndex} no tiene ejercicios."
+    ImportIssueKind.INCOMPLETE_EXERCISE -> "Completa las series o la prescripción de «${issue.rawName.orEmpty()}» antes de guardar."
     ImportIssueKind.EMPTY_DAY ->
         "El día «${dayOf(imported, issue.dayId.orEmpty())?.name.orEmpty()}» de la semana ${issue.weekIndex} no tiene ejercicios."
     ImportIssueKind.UNDECIDED_EXERCISE -> "Falta decidir «${issue.rawName}»."

@@ -140,12 +140,10 @@ class ImportPhotoRenderTest {
                 ImportPreviewWeeks(
                     imported = draft,
                     resolutions = mapOf("Sentadilla" to null, "Prensa" to null, "Press banca" to null),
-                    openedExerciseId = null,
-                    onOpen = {},
                     onEdit = {},
-                    suggest = { emptyList() },
-                    search = { emptyList() },
                     namesOf = { emptyMap() },
+                    onOpenCatalog = { _, _ -> },
+                    onEditSession = { _, _ -> },
                 )
             }
         }
@@ -162,12 +160,10 @@ class ImportPhotoRenderTest {
                     ImportPreviewWeeks(
                         imported = draft,
                         resolutions = mapOf("Sentadilla" to null, "Prensa" to null, "Press banca" to null),
-                        openedExerciseId = null,
-                        onOpen = {},
                         onEdit = {},
-                        suggest = { emptyList() },
-                        search = { emptyList() },
                         namesOf = { emptyMap() },
+                        onOpenCatalog = { _, _ -> },
+                        onEditSession = { _, _ -> },
                     )
                 }
             }

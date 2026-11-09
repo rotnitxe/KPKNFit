@@ -163,6 +163,33 @@ class ImportDraftEditorTest {
     }
 
     @Test
+    fun `se completan las series de una prescripcion por tiempo y se conserva la duracion`() {
+        val timed = ImportedExercise(
+            id = "w1-d1-e1",
+            rawName = "Plank",
+            sets = 0,
+            repsMin = 1,
+            repsMax = 1,
+            durationSeconds = 40,
+        )
+        val timedDraft = ImportedProgramDraft(
+            title = "Tiempo",
+            weeks = listOf(ImportedWeek(1, listOf(ImportedDay("w1-d1", "Día A", listOf(timed))))),
+        )
+
+        val updated = ImportDraftEditor.update(
+            timedDraft,
+            timed.id,
+            ImportExercisePatch(sets = Change.Set(3), durationSeconds = Change.Set(45)),
+        ).weeks.single().days.single().exercises.single()
+
+        assertEquals(3, updated.sets)
+        assertEquals(45, updated.durationSeconds)
+        assertEquals(1, updated.repsMin)
+        assertEquals(1, updated.repsMax)
+    }
+
+    @Test
     fun `clear borra los opcionales y en las series no hace nada`() {
         val cleared = ImportDraftEditor.update(
             draft,
@@ -273,6 +300,38 @@ class ImportDraftEditorTest {
         assertEquals(listOf("w1-d1"), days.map { it.id })
         assertEquals(listOf("w1-d1-e1", "w1-d1-e2", "w1-d2-e1"), days[0].exercises.map { it.id })
         assertSame(draft, ImportDraftEditor.mergeWithNext(draft, "w1-d2"))
+    }
+
+    @Test
+    fun `split at exercise moves the suffix with full prescriptions and leaves new day unassigned`() {
+        val source = draft.weeks.first().days.first().copy(
+            exercises = draft.weeks.first().days.first().exercises.mapIndexed { index, exercise ->
+                exercise.copy(
+                    sourceText = "fila original ${index + 1}",
+                    sourceDocumentType = ImportDocumentType.PDF,
+                    sourcePage = 2,
+                    sourceSheet = "Plan",
+                    sourceRow = index + 9,
+                    catalogSelectionId = "selected-$index",
+                )
+            },
+        )
+        val base = draft.copy(weeks = listOf(draft.weeks.first().copy(days = listOf(source, draft.weeks.first().days[1]))))
+
+        val split = ImportDraftEditor.splitDayAtExercise(base, source.id, source.exercises[1].id, "  Día nuevo  ")
+        val days = split.weeks.single().days
+
+        assertEquals(listOf(source.exercises[0]), days[0].exercises)
+        assertEquals(listOf("Peso muerto"), days[1].exercises.map { it.rawName })
+        assertEquals(source.exercises[1], days[1].exercises.single())
+        assertEquals("Día nuevo", days[1].name)
+        assertNull(days[1].dayOfWeek)
+        assertEquals("a3", split.warnings.last().id)
+        assertEquals(days[1].id, split.warnings.last().dayId)
+        assertEquals(ImportDocumentType.PDF, split.warnings.last().sourceDocumentType)
+        assertEquals(2, split.warnings.last().sourcePage)
+        assertEquals(10, split.warnings.last().sourceRow)
+        assertEquals("fila original 2", split.warnings.last().sourceText)
     }
 
     @Test

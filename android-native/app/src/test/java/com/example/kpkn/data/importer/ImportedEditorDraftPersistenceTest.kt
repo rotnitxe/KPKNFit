@@ -1,6 +1,7 @@
 package com.example.kpkn.data.importer
 
 import android.util.AtomicFile
+import com.example.kpkn.screens.programs.importer.ImportedEditorDraftSession
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -9,7 +10,12 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.training.importer.ImportedDay
+import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportedWeek
+import com.example.kpkn.domain.training.importer.ImportDocumentType
+import com.example.kpkn.domain.training.importer.ImportSourceEvidence
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -92,7 +98,31 @@ class ImportedEditorDraftPersistenceTest {
         val block = Block(id = "b", name = "B", mesocycles = listOf(meso))
         val macro = Macrocycle(id = "m", name = "M", blocks = listOf(block))
         val program = Program(id = "p", name = "Plan", macrocycles = listOf(macro))
-        return ImportedEditorDocument("draft", 0, ImportedProgramDraft("Origen", emptyList()), emptyMap(), "Plan", setOf(1), program)
+        return ImportedEditorDocument(
+            "draft",
+            0,
+            ImportedProgramDraft(
+                title = "Origen",
+                weeks = listOf(
+                    ImportedWeek(
+                        1,
+                        listOf(
+                            ImportedDay(
+                                "w1-d1",
+                                "Día A",
+                                listOf(ImportedExercise("w1-d1-e1", "Plank", 3, 1, 1, durationSeconds = 40)),
+                            ),
+                        ),
+                    ),
+                ),
+                sourceTitle = "Rutina de fuerza",
+                sourceUrl = "https://training.example",
+            ),
+            emptyMap(),
+            "Plan",
+            setOf(1),
+            program,
+        )
     }
 
     @Test
@@ -108,6 +138,75 @@ class ImportedEditorDraftPersistenceTest {
         assertTrue(first.write(original.copy(revision = 1, title = "Antiguo"), 0).isFailure)
         assertFalse(first.delete("draft", 0).getOrThrow())
         assertEquals(updated, first.read().getOrThrow())
+    }
+
+    @Test
+    fun freshImportDraftCanBeStoredWithoutBuildingAProgram() = runTest {
+        val file = folder.newFile("import-only-draft.json").also { it.delete() }
+        val persistence = ImportedEditorDraftPersistence(file)
+        val importOnly = document().copy(program = null, schemaVersion = 3)
+
+        assertTrue(persistence.write(importOnly, null).isSuccess)
+        assertNull(persistence.read().getOrThrow()?.program)
+        assertTrue(file.readText().contains("\"program\":null"))
+    }
+
+    @Test
+    fun reviewedSessionIdsAreSavedOnlyForExistingSessionsAndSurviveRestore() = runTest {
+        val file = folder.newFile("draft-reviewed-session.json").also { it.delete() }
+        val persistence = ImportedEditorDraftPersistence(file)
+        val session = ImportedEditorDraftSession.create(persistence, document()).getOrThrow()
+
+        assertFalse(session.markSessionReviewed("missing"))
+        assertTrue(session.markSessionReviewed("s"))
+        assertEquals(setOf("s"), session.document.value.reviewedSessionIds)
+        assertTrue(session.markSessionReviewed("s"))
+
+        val restored = ImportedEditorDraftSession.restore(ImportedEditorDraftPersistence(file)).getOrThrow()
+        assertEquals(setOf("s"), restored?.document?.value?.reviewedSessionIds)
+    }
+
+    @Test
+    fun `drafts previos sin cita web siguen abriendose`() = runTest {
+        val file = folder.newFile("draft-legacy.json").also { it.delete() }
+        val persistence = ImportedEditorDraftPersistence(file)
+        val original = document()
+        assertTrue(persistence.write(original, null).isSuccess)
+
+        val legacyJson = file.readText()
+            .replace(Regex(",\"sourceTitle\":\"[^\"]*\""), "")
+            .replace(Regex(",\"sourceUrl\":\"[^\"]*\""), "")
+        val sourceStart = legacyJson.indexOf("\"source\":")
+        val sourceEnd = legacyJson.indexOf(",\"resolutions\":", sourceStart)
+        val legacySource = legacyJson.substring(sourceStart, sourceEnd)
+        assertFalse("\"sourceTitle\"" in legacySource)
+        assertFalse("\"sourceUrl\"" in legacySource)
+        file.writeText(legacyJson)
+
+        assertEquals(
+            original.copy(source = original.source.copy(sourceTitle = null, sourceUrl = null)),
+            ImportedEditorDraftPersistence(file).read().getOrThrow(),
+        )
+    }
+
+    @Test
+    fun `drafts previos sin el campo de duracion siguen abriendose`() = runTest {
+        val file = folder.newFile("draft-without-duration.json").also { it.delete() }
+        val original = document()
+        assertTrue(ImportedEditorDraftPersistence(file).write(original, null).isSuccess)
+
+        val legacyJson = file.readText().replace(Regex(",\\\"durationSeconds\\\":40"), "")
+        assertFalse("durationSeconds" in legacyJson)
+        file.writeText(legacyJson)
+
+        val oldDraft = original.source.copy(
+            weeks = original.source.weeks.map { week ->
+                week.copy(days = week.days.map { day ->
+                    day.copy(exercises = day.exercises.map { it.copy(durationSeconds = null) })
+                })
+            },
+        )
+        assertEquals(oldDraft, ImportedEditorDraftPersistence(file).read().getOrThrow()?.source)
     }
 
     @Test
@@ -225,6 +324,58 @@ class ImportedEditorDraftPersistenceTest {
         assertEquals(original, ImportedEditorDraftPersistence(file).read().getOrThrow())
     }
 
+    @Test
+    fun versionOneDraftsUpgradeWithDefaultWizardRouteAndEvidence() = runTest {
+        val file = folder.newFile("draft-v1.json").also { it.delete() }
+        val persistence = ImportedEditorDraftPersistence(file)
+        val original = document()
+        assertTrue(persistence.write(original, null).isSuccess)
+
+        val encoded = kotlinx.serialization.json.Json.parseToJsonElement(file.readText()) as kotlinx.serialization.json.JsonObject
+        val legacy = kotlinx.serialization.json.JsonObject(encoded.toMutableMap().apply {
+            remove("wizardPage")
+            remove("wizardSheet")
+            remove("sourceEvidence")
+            remove("reviewedSessionIds")
+            this["schemaVersion"] = kotlinx.serialization.json.JsonPrimitive(1)
+        })
+        file.writeText(kotlinx.serialization.json.Json.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), legacy))
+
+        val reopened = ImportedEditorDraftPersistence(file).read().getOrThrow()!!
+        assertEquals(3, reopened.schemaVersion)
+        assertEquals(com.example.kpkn.domain.training.importer.ImportWizardPage.EXERCISES, reopened.wizardPage)
+        assertNull(reopened.wizardSheet)
+        assertEquals(com.example.kpkn.domain.training.importer.ImportSourceEvidence(), reopened.sourceEvidence)
+    }
+
+    @Test
+    fun replacingAndDeletingDraftAlsoRemovesItsPrivateOriginal() = runTest {
+        val file = folder.newFile("draft-media.json").also { it.delete() }
+        val media = ImportSourceMediaStore(folder.root)
+        val firstId = requireNotNull(media.retainBytes("%PDF-first".toByteArray(), ImportDocumentType.PDF))
+        val persistence = ImportedEditorDraftPersistence(file, sourceMediaStore = media)
+        val initial = document().copy(sourceEvidence = ImportSourceEvidence(
+            kind = com.example.kpkn.domain.training.importer.ImportSourceKind.FILE,
+            documentType = ImportDocumentType.PDF,
+            sourceMediaId = firstId,
+        ))
+        assertTrue(persistence.write(initial, null).isSuccess)
+        assertTrue(requireNotNull(media.fileFor(firstId, ImportDocumentType.PDF)).exists())
+
+        val secondId = requireNotNull(media.retainBytes("%PDF-second".toByteArray(), ImportDocumentType.PDF))
+        val replacement = initial.copy(
+            id = "replacement",
+            revision = 0,
+            sourceEvidence = initial.sourceEvidence.copy(sourceMediaId = secondId),
+        )
+        assertTrue(persistence.replace(replacement, initial.id, initial.revision).isSuccess)
+        assertNull(media.fileFor(firstId, ImportDocumentType.PDF))
+        assertTrue(requireNotNull(media.fileFor(secondId, ImportDocumentType.PDF)).exists())
+
+        assertEquals(true, persistence.delete(replacement.id, replacement.revision).getOrThrow())
+        assertNull(media.fileFor(secondId, ImportDocumentType.PDF))
+    }
+
     private suspend fun repeatedReplacementKeepsTheLastCompleteRevision() {
         val file = folder.newFile("repeated-${android.os.Build.VERSION.SDK_INT}.json").also { it.delete() }
         val persistence = ImportedEditorDraftPersistence(file)
@@ -233,7 +384,7 @@ class ImportedEditorDraftPersistenceTest {
             val next = document().copy(
                 revision = index.toLong(),
                 title = "Reemplazo $index",
-                program = document().program.copy(name = "Programa $index"),
+                program = requireNotNull(document().program).copy(name = "Programa $index"),
             )
             assertTrue("falló la escritura $index en API ${android.os.Build.VERSION.SDK_INT}", persistence.write(next, expectedRevision).isSuccess)
             assertEquals("lectura distinta tras la escritura $index", next, persistence.read().getOrThrow())

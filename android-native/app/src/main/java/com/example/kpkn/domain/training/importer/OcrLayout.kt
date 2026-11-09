@@ -12,6 +12,8 @@ data class OcrWord(
     val top: Int,
     val right: Int,
     val bottom: Int,
+    /** Puntuación de confianza del reconocedor, si está disponible; no es una probabilidad de exactitud calibrada. */
+    val confidence: Float? = null,
 )
 
 /** Una página leída por OCR: su tamaño en píxeles y sus palabras. */
@@ -19,6 +21,15 @@ data class OcrPage(
     val width: Int,
     val height: Int,
     val words: List<OcrWord>,
+)
+
+/** Resumen de los scores que entregó el reconocedor; sirven para revisar, no como medida calibrada de exactitud. */
+data class OcrConfidenceSummary(
+    val detectedWords: Int,
+    val scoredWords: Int,
+    val lowConfidenceWords: Int,
+    val minimumConfidence: Float?,
+    val meanConfidence: Float?,
 )
 
 /**

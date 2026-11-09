@@ -114,6 +114,23 @@ class ImportDraftValidationTest {
         assertEquals(listOf(ImportIssueKind.NO_WEEKS, ImportIssueKind.PENDING_WARNINGS), issues.map { it.kind })
     }
 
+    @Test
+    fun `un tiempo sin series confirmadas impide guardar hasta completar la fila`() {
+        val timed = ex("w1-d1-e1", "Plank").copy(sets = 0, durationSeconds = 40)
+        val draft = ImportedProgramDraft(
+            title = "Tiempo",
+            weeks = listOf(ImportedWeek(1, listOf(ImportedDay("w1-d1", "Día A", listOf(timed))))),
+        )
+
+        val incomplete = ImportDraftValidation.checkOccurrences(draft) { true }
+        assertEquals(listOf(ImportIssueKind.INCOMPLETE_EXERCISE), incomplete.map { it.kind })
+        assertEquals("w1-d1-e1", incomplete.single().exerciseId)
+        assertFalse(ImportDraftValidation.isReady(incomplete))
+
+        val completed = draft.copy(weeks = listOf(ImportedWeek(1, listOf(ImportedDay("w1-d1", "Día A", listOf(timed.copy(sets = 3)))))))
+        assertTrue(ImportDraftValidation.checkOccurrences(completed) { true }.isEmpty())
+    }
+
     private fun ex(id: String, name: String): ImportedExercise =
         ImportedExercise(id = id, rawName = name, sets = 3, repsMin = 8, repsMax = 8)
 

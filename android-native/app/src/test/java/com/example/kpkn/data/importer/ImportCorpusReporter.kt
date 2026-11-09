@@ -485,8 +485,8 @@ class ImportCorpusReporter(
     }
 
     companion object {
-        /** Extensiones que se recorren: las que lee la app y los .doc/.xls/.pdf, que salen como rechazo con su mensaje. */
-        private val CORPUS_EXTENSIONS = setOf("xlsx", "csv", "ods", "docx", "md", "markdown", "txt", "pdf", "doc", "xls")
+        /** Extensiones que se recorren: formatos que lee la app y `.doc`/`.pdf`, que salen como rechazo con su mensaje. */
+        private val CORPUS_EXTENSIONS = setOf("xlsx", "xlsm", "csv", "ods", "docx", "md", "markdown", "txt", "pdf", "doc", "xls")
         private const val SAMPLE_LIMIT = 15
         private const val VIEW_ROWS = 25
         private const val VIEW_COLUMNS = 16

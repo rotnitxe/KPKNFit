@@ -16,7 +16,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * La hoja «Importar un programa» (escena pr-import del lienzo v6): tres filas con su línea explicativa. «Foto de tu rutina» cambia la
+ * La hoja «Importar un programa» (escena pr-import del lienzo v6): las fuentes tienen su línea explicativa. «Foto de tu rutina» cambia la
  * hoja a «Hacer una foto» y «Elegir de la galería». Los controles se activan con la acción de clic semántica, la de TalkBack.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -25,22 +25,24 @@ class ImportSourceSheetTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private fun setSheet(onPaste: () -> Unit = {}) {
+    private fun setSheet(onPaste: () -> Unit = {}, onUrl: () -> Unit = {}) {
         rule.setContent {
-            ImportSourceSheet(onDismiss = {}, onFile = {}, onPhoto = { _, _ -> }, onPaste = onPaste)
+            ImportSourceSheet(onDismiss = {}, onFile = {}, onPhoto = { _, _ -> }, onPaste = onPaste, onUrl = onUrl)
         }
     }
 
     @Test
-    fun theSheetOffersTheThreeSourcesEachWithItsLine() {
+    fun theSheetOffersEachSourceWithItsLine() {
         setSheet()
 
         rule.onNodeWithText("Importar un programa").assertExists()
         rule.onNodeWithText("KPKN lo lee y te deja revisarlo antes de guardarlo.").assertExists()
         rule.onNodeWithText("Elegir archivo").assertExists()
-        rule.onNodeWithText("Excel, CSV, Word, texto o PDF").assertExists()
+        rule.onNodeWithText("Excel (.xls, .xlsx o .xlsm), ODS, CSV, Word (.docx), texto o PDF").assertExists()
         rule.onNodeWithText("Pegar texto").assertExists()
         rule.onNodeWithText("Ej.: Día 1 — Pierna / Sentadilla 4x6 @120kg").assertExists()
+        rule.onNodeWithText("Importar desde un enlace").assertExists()
+        rule.onNodeWithText("Página pública o archivo compartido").assertExists()
         rule.onNodeWithText("Foto de tu rutina").assertExists()
         rule.onNodeWithText("Hacer una foto o elegirla de la galería").assertExists()
         // La rejilla ilustrada y las acciones desplegables bajo un símbolo ya no existen.
@@ -55,6 +57,7 @@ class ImportSourceSheetTest {
 
         rule.onNodeWithText("Hacer una foto").assertExists()
         rule.onNodeWithText("Elegir de la galería").assertExists()
+        rule.onNodeWithText(IMPORT_PHOTO_TIP).assertExists()
         rule.onNodeWithTag("import-paste-text").assertDoesNotExist()
     }
 
@@ -66,6 +69,16 @@ class ImportSourceSheetTest {
         rule.onNodeWithTag("import-paste-text").performSemanticsAction(SemanticsActions.OnClick)
 
         assertEquals(1, pasted)
+    }
+
+    @Test
+    fun tappingTheUrlRowCallsOnUrl() {
+        var opened = 0
+        setSheet(onUrl = { opened++ })
+
+        rule.onNodeWithTag("import-source-url").performSemanticsAction(SemanticsActions.OnClick)
+
+        assertEquals(1, opened)
     }
 
     @Test

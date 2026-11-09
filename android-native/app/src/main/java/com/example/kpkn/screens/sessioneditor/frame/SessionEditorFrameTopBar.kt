@@ -13,6 +13,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,6 +45,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.EdColors
@@ -79,6 +81,7 @@ internal fun SessionEditorFrameTopBar(
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
     weekOpen: Boolean = false,
+    importedSessionCaption: String? = null,
 ) {
     var islandBounds by remember { mutableStateOf<Rect?>(null) }
     var moreOpen by remember { mutableStateOf(false) }
@@ -103,7 +106,37 @@ internal fun SessionEditorFrameTopBar(
         ) {
             // pulido:animacion ed-J10 «Atrás» late de escala .9 a 1 en 200 ms al tocarlo
             EdIslandCircleButton(icon = EdListIcons.Back, contentDescription = "Atrás", onClick = onBack, tag = "session_editor_back", tapScaleFrom = 0.9f)
-            Row(
+            if (importedSessionCaption != null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .background(Color(0x0CFFFFFF), RoundedCornerShape(24.dp))
+                        .testTag("session_editor_open_week")
+                        .edPressable(
+                            RoundedCornerShape(22.dp),
+                            pressedColor = Color.Transparent,
+                            onClickLabel = "Abrir la semana",
+                            onClick = onOpenWeek,
+                        )
+                        .padding(horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        "Editor de sesión",
+                        style = edText(13.5f, lineHeight = 15.5f).copy(fontWeight = FontWeight.SemiBold),
+                        maxLines = 1,
+                    )
+                    Text(
+                        importedSessionCaption,
+                        style = edText(10f, lineHeight = 12f),
+                        color = EdColors.muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            } else Row(
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp)

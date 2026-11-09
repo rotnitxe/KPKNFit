@@ -132,6 +132,51 @@ class ProgramImportParserSchemeColumnsTest {
     }
 
     @Test
+    fun `infiere las repeticiones de una columna sin cabecera cuando trae rangos repetidos`() {
+        val exercises = exercisesOf(
+            listOf(
+                listOf("Exercise", "Activity", "Rest", "Sets"),
+                listOf("Squat", "6-8", "90 seconds", "3"),
+                listOf("Bench Press", "8-10", "120 seconds", "4"),
+            ),
+        )
+
+        assertEquals(listOf("Squat", "Bench Press"), exercises.map { it.rawName })
+        assertEquals(listOf(3, 4), exercises.map { it.sets })
+        assertEquals(listOf(6, 8), exercises.map { it.repsMin })
+        assertEquals(listOf(8, 10), exercises.map { it.repsMax })
+        assertEquals(listOf(90, 120), exercises.map { it.restSeconds })
+    }
+
+    @Test
+    fun `una columna sin cabecera con repeticiones explicitas se reconoce en una fila`() {
+        val exercise = exercisesOf(
+            listOf(
+                listOf("Exercise", "Activity", "Rest", "Sets"),
+                listOf("Push-Up", "6-8 reps", "90 seconds", "3"),
+            ),
+        ).single()
+
+        assertEquals(3, exercise.sets)
+        assertEquals(6, exercise.repsMin)
+        assertEquals(8, exercise.repsMax)
+        assertEquals(90, exercise.restSeconds)
+    }
+
+    @Test
+    fun `una columna de tempo sin cabecera reconocida no se interpreta como repeticiones`() {
+        val exercises = exercisesOf(
+            listOf(
+                listOf("Exercise", "Tempo", "Sets", "Rest"),
+                listOf("Squat", "3-1-2", "3", "90 seconds"),
+                listOf("Bench Press", "2-0-2", "4", "120 seconds"),
+            ),
+        )
+
+        assertTrue(exercises.isEmpty())
+    }
+
+    @Test
     fun `Set 1 y Set 2 con 8 y 6 repeticiones no se leen como cargas ni como series`() {
         val exercises = exercisesOf(listOf(listOf("Exercise", "Set 1", "Set 2"), listOf("Squat", "8", "6")))
 

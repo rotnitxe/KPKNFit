@@ -21,11 +21,15 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,7 +43,10 @@ import com.example.kpkn.ui.design.depth.kpknGradient
 import com.example.kpkn.screens.sessioneditor.frame.EdMotion
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -64,12 +71,14 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -85,6 +94,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSpacing
 import com.example.kpkn.ui.components.KpknSnackbar
+import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import kotlinx.coroutines.delay
@@ -138,6 +148,9 @@ import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.screens.workout.RepairBenchmarkTrace
 
+private fun importedEditorDisplayName(name: String): String =
+    Regex("(?i)^d[ií]a\\s*\\d+\\s*[—–·-]\\s*").replace(name, "").trim().ifBlank { name }
+
 
 @Composable
 fun SessionEditorScreen(
@@ -155,6 +168,8 @@ fun SessionEditorScreen(
     draftDayOfWeek: Int? = null,
     repairBenchmarkEditorRequestId: Long = 0L,
     importedProgramStore: ImportedProgramEditorStore? = null,
+    importedOriginTitle: String? = null,
+    importedOriginText: String? = null,
     viewModel: SessionEditorViewModel = viewModel(
         key = importedProgramStore?.let { "import-editor:${it.instanceKey}:$sessionId" },
         factory = SessionEditorViewModel.factory(
@@ -184,6 +199,7 @@ fun SessionEditorScreen(
     // La hoja «Semana» (el navegador de días y sesiones) se abre desde el texto de la píldora de la fila superior.
     var showWeekSheet by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showImportedOrigin by rememberSaveable(sessionId) { mutableStateOf(false) }
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     // La ficha del catálogo de un ejercicio de la sesión se abre dentro del editor (ER1f): «Ficha» de las acciones rápidas.
@@ -727,6 +743,13 @@ fun SessionEditorScreen(
         // ER1a: fila superior fija, cabecera sin portada, lista, y barra inferior Añadir · Asistente · Reglas (sin FAB arrastrable).
         val currentDay = uiState.dayOfWeek ?: session.dayOfWeek
         val orderedWeekDays = remember(uiState.weekStartDay) { frameWeekOrder(uiState.weekStartDay) }
+        val importedEditorContext = if (importedProgramStore == null) null else {
+            val weekNumber = frameWeekNumber(uiState.roadmapOptions, uiState.weekId) ?: 1
+            val dayIndex = frameDayIndex(orderedWeekDays, currentDay)
+            "Semana $weekNumber · Día ${if (dayIndex >= 0) dayIndex + 1 else 1}"
+        }
+        val displaySessionName = if (importedEditorContext != null) importedEditorDisplayName(session.name) else session.name
+        val importedEditorCaption = importedEditorContext?.let { "$it · $displaySessionName" }
         val sessionDays = remember(uiState.siblingSessions) { uiState.siblingSessions.mapNotNull { it.dayOfWeek }.toSet() }
         val previousDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = -1)
         val nextDay = neighbourSessionDay(orderedWeekDays, currentDay, sessionDays, step = 1)
@@ -817,13 +840,14 @@ fun SessionEditorScreen(
                     item {
                         SessionEditorFrameHeader(
                             sessionId = session.id,
-                            name = session.name,
-                            description = session.description.orEmpty(),
+                            name = displaySessionName,
+                            description = (session.description ?: if (importedEditorContext != null) session.focus else null).orEmpty(),
                             protocolLabel = uiState.protocolLabel,
                             summaryChips = summaryChips,
                             onNameChange = viewModel::updateSessionName,
                             onDescriptionChange = viewModel::updateSessionDescription,
                             onDaySwipe = ::swipeToAdjacentDay,
+                            importedContextLabel = importedEditorContext,
                         )
                     }
             items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
@@ -918,6 +942,7 @@ fun SessionEditorScreen(
                     onHistory = { viewModel.openSheet(SessionEditorSheet.HISTORY) },
                     hazeState = hazeState,
                     weekOpen = showWeekSheet,
+                    importedSessionCaption = importedEditorCaption,
                 )
                 // Aviso fijo: el guardado automático lo ha bloqueado (cortafuegos o validación). Lo escrito sigue en pantalla.
                 autoSaveBlock?.let { block ->
@@ -936,7 +961,40 @@ fun SessionEditorScreen(
             groupedParts.any { !it.isCardioPart() } ||
             uiState.strengthSpaceCommitted
         val hasCardioSpace = session.hasCardioPart() || uiState.cardioSpaceCommitted
-        SessionEditorFrameBottomBar(
+        if (importedProgramStore != null) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(Color(0xF01B1B1D))
+                    .border(1.dp, Color(0xFF363638), RoundedCornerShape(32.dp))
+                    .padding(8.dp)
+                    .zIndex(260f),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    timeMinutes?.let { "$it min" } ?: "—",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color(0xFFF0ECE6),
+                )
+                Button(
+                    onClick = ::exitEditor,
+                    modifier = Modifier.weight(1f).height(48.dp).testTag("session_editor_import_save"),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF0ECE6),
+                        contentColor = Color(0xFF151413),
+                    ),
+                ) {
+                    Text("Guardar sesión", fontWeight = FontWeight.SemiBold)
+                }
+            }
+        } else SessionEditorFrameBottomBar(
             hazeState = hazeState,
             suggestionCount = uiState.assistantReport?.ajustes?.size ?: 0,
             estimatedMinutes = timeMinutes,
@@ -1165,6 +1223,31 @@ fun SessionEditorScreen(
                     ),
                 ),
             )
+        }
+
+        if (showImportedOrigin) {
+            importedOriginText?.takeIf(String::isNotBlank)?.let { originText ->
+                KpknSheet(
+                    onDismissRequest = { showImportedOrigin = false },
+                    maxHeightFraction = 0.92f,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 700.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text("Texto de origen", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                        importedOriginTitle?.takeIf(String::isNotBlank)?.let { title ->
+                            Text(title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text(originText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        TextButton(onClick = { showImportedOrigin = false }) { Text("Cerrar") }
+                    }
+                }
+            }
         }
     }
 

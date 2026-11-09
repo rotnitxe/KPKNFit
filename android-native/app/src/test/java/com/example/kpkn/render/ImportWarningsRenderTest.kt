@@ -29,7 +29,6 @@ import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
-import com.example.kpkn.screens.programs.importer.ImportPreviewWeeks
 import com.example.kpkn.screens.programs.importer.ImportWarningsPanel
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -43,7 +42,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * HOJAS DE DIBUJO del panel de avisos (con su acción) y del panel «Añadir ejercicio» bajo el último ejercicio del día (no comprueba
+ * HOJAS DE DIBUJO del panel de avisos (con sus acciones) (no comprueba
  * nada: escribe PNG). Solo corre con la variable de entorno `KPKN_RENDER_DIR`; sin ella se salta. Cada vista se dibuja a 411 dp y a
  * 320 dp con la letra al 130 %, con los gráficos nativos de Robolectric. Patrón de [ImportStructureRenderTest].
  */
@@ -232,38 +231,6 @@ class ImportWarningsRenderTest {
         rule.setContent {
             Sheet(width = width, fontScale = fontScale) { Warnings(draft) }
         }
-        save(name)
-    }
-
-    /** (d) El arreglo de H2b: «Añadir ejercicio» de un día sale bajo su último ejercicio, donde queda el nuevo. */
-    @Test
-    fun renderTheAddPanelBelowTheLastExercise() = renderAddBelowLast(width = 411.dp, fontScale = 1f, name = "d_anadir_bajo_ultimo")
-
-    @Test
-    fun renderTheAddPanelBelowTheLastExerciseAt320WithLargeText() =
-        renderAddBelowLast(width = 320.dp, fontScale = 1.3f, name = "d2_anadir_bajo_ultimo_320_letra_130")
-
-    private fun renderAddBelowLast(width: Dp, fontScale: Float, name: String) {
-        onlyWhenAsked()
-        val draft = program()
-        rule.setContent {
-            Sheet(width = width, fontScale = fontScale) {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    ImportPreviewWeeks(
-                        imported = draft,
-                        resolutions = decided,
-                        openedExerciseId = null,
-                        onOpen = {},
-                        onEdit = {},
-                        suggest = { emptyList() },
-                        search = { emptyList() },
-                        namesOf = { emptyMap() },
-                    )
-                }
-            }
-        }
-        rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
         save(name)
     }
 

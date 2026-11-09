@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training.importer
 
 import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
+import com.example.kpkn.data.models.WeekExecutionKind
 import kotlin.math.roundToInt
 
 /**
@@ -24,7 +25,9 @@ object ProgramImportParser {
     internal const val MIN_LOAD_KG = 0.5
     internal const val MAX_PERCENT = 100.0
     internal const val MAX_REST_SECONDS = 1800
+    internal const val MAX_DURATION_SECONDS = 3600
     internal const val MAX_NOTE_CHARS = 200
+    private const val MAX_WARNING_SOURCE_CHARS = 500
 
     /** Origen de un texto pegado en los avisos de nota de hoja (un texto no tiene hojas). */
     private const val PASTED_TEXT = "Texto pegado"
@@ -34,22 +37,40 @@ object ProgramImportParser {
         val builder = DraftBuilder()
         for (sheet in sheets) {
             // Lo que el lector recortó de la hoja (columnas, filas o el total de hojas) va como aviso de hoja.
-            for (note in sheet.notes) builder.noteReaderTrim(sheet.name, note)
-            if (isInstructionOrCalcSheet(sheet.name)) {
-                builder.noteOmittedSheet(sheet.name)
+            val sheetOrigin = ImportRowOrigin(documentType = sheet.documentType, sheetName = sheet.name)
+            for (note in sheet.notes) builder.noteReaderTrim(sheet.name, note, sheetOrigin)
+            if (isInstructionOrCalcSheet(sheet.name) && !hasWorkoutEvidence(sheet.rows)) {
+                builder.noteOmittedSheet(sheet.name, sheetOrigin)
                 continue
             }
             val weekInName = weekNumber(sheet.name)
-            builder.beginSheet()
+            builder.beginSheet(sheetOrigin)
             // El nombre de la hoja puede ser una semana («Week 2»): en ese caso un día repetido no abre semana nueva (H6a).
-            if (weekInName != null) builder.openSheetWeek(weekInName)
+            if (weekInName != null) builder.openSheetWeek(weekInName, weekExecutionKindOf(sheet.name))
             // Una hoja sin nombre de semana es un día: su nombre sirve si no trae un encabezado propio.
             builder.pendingDayName = if (weekInName == null) usableSheetName(sheet.name) else null
             // En una hoja de OCR, las celdas partidas y los días con número delante se arreglan antes de leer las filas (H4e).
             val rows = if (sheet.pageStarts.isNotEmpty()) joinOcrRows(sheet.rows) else sheet.rows
             builder.sheetLift = titleLift(rows) ?: builder.pendingDayName
             builder.ocrSheet = sheet.pageStarts.isNotEmpty()
-            processRows(builder, rows, pageHeaderRows(rows, sheet.pageStarts)) { index -> "Hoja «${sheet.name}», fila ${index + 1}" }
+            processRows(
+                builder,
+                rows,
+                pageHeaderRows(rows, sheet.pageStarts),
+                origin = { index ->
+                    val page = sheet.pageStarts.takeIf { it.isNotEmpty() }?.count { it <= index }
+                    ImportRowOrigin(
+                        documentType = sheet.documentType,
+                        sheetName = sheet.name,
+                        pageNumber = page,
+                        rowNumber = sheet.sourceLineNumbers.getOrNull(index) ?: (index + 1),
+                    )
+                },
+            ) { index ->
+                val page = sheet.pageStarts.takeIf { it.isNotEmpty() }?.count { it <= index }
+                val pageLabel = page?.let { ", página $it" }.orEmpty()
+                "Hoja «${sheet.name}»$pageLabel, fila ${sheet.sourceLineNumbers.getOrNull(index) ?: (index + 1)}"
+            }
             builder.endSheet("Hoja «${sheet.name}»")
         }
         return builder.finish(title)
@@ -69,8 +90,35 @@ object ProgramImportParser {
             lines.map { line -> listOf(line) }
         }
         val builder = DraftBuilder()
-        builder.beginSheet()
-        processRows(builder, rows) { index -> "Línea ${index + 1}" }
+        builder.beginSheet(ImportRowOrigin(documentType = ImportDocumentType.PASTED_TEXT))
+        processRows(
+            builder,
+            rows,
+            origin = { index -> ImportRowOrigin(documentType = ImportDocumentType.PASTED_TEXT, rowNumber = index + 1) },
+        ) { index -> "Línea ${index + 1}" }
+        builder.endSheet(PASTED_TEXT)
+        return builder.finish(title)
+    }
+
+    /** Analiza texto preparado por el mismo lector que usan los archivos Markdown y de texto. */
+    fun parsePreparedText(sheet: ImportSheet, title: String): ImportedProgramDraft {
+        val builder = DraftBuilder()
+        val documentType = sheet.documentType.takeIf { it != ImportDocumentType.UNKNOWN } ?: ImportDocumentType.TEXT_FILE
+        sheet.notes.forEach {
+            builder.noteReaderTrim(PASTED_TEXT, it, ImportRowOrigin(documentType = documentType, sheetName = sheet.name))
+        }
+        builder.beginSheet(ImportRowOrigin(documentType = documentType, sheetName = sheet.name))
+        processRows(
+            builder,
+            sheet.rows,
+            origin = { index ->
+                ImportRowOrigin(
+                    documentType = documentType,
+                    sheetName = sheet.name,
+                    rowNumber = sheet.sourceLineNumbers.getOrNull(index) ?: (index + 1),
+                )
+            },
+        ) { index -> "Línea ${sheet.sourceLineNumbers.getOrNull(index) ?: (index + 1)}" }
         builder.endSheet(PASTED_TEXT)
         return builder.finish(title)
     }
@@ -180,7 +228,7 @@ object ProgramImportParser {
         return cells.indices.map { index ->
             val part = sessions[index]
             if (part == null) {
-                detectColumns(cells[index])?.let { current = it }
+                tableHeaderAt(cells, index)?.let { current = it }
             } else if (part is SessionPart.Header) {
                 current = null
             }
@@ -243,9 +291,64 @@ object ProgramImportParser {
         return if (isDayLabel(label)) row.toMutableList().also { it[column] = label } else row
     }
 
-    private fun processRows(builder: DraftBuilder, rows: List<List<String>>, pageHeaders: Set<Int> = emptySet(), where: (Int) -> String) {
+    private data class OcrCountedExercise(val name: String, val reps: Int)
+
+    private data class OcrInlineDayRow(
+        val label: String,
+        val countedExercises: List<OcrCountedExercise>?,
+        val notationText: String?,
+    )
+
+    private val OCR_REPS_BEFORE_NAME = Regex("""^(\d{1,3})\s*([^\d].+)$""")
+    private val OCR_EXERCISE_CHOICE = Regex("""\s+(?:or|and)\s+""", RegexOption.IGNORE_CASE)
+
+    /** Día y ejercicios que aparecen en la misma fila de una tabla OCR: «Day A | Squat | 3 x 5» o «Day 1 | 10 Push Ups». */
+    private fun ocrInlineDayRow(cells: List<String>): OcrInlineDayRow? {
+        val labelIndex = cells.indexOfFirst { it.isNotBlank() }
+        if (labelIndex < 0) return null
+        val label = cells[labelIndex].trim()
+        if (!isDayLabel(label)) return null
+        val values = cells.drop(labelIndex + 1).map(String::trim).filter(String::isNotEmpty)
+        if (values.isEmpty()) return null
+
+        val counted = values.map(::ocrCountedExercise)
+        if (counted.any { it != null }) {
+            // Una prescripción o una nota mezclada con una lista de ejercicios hace que la fila sea ambigua.
+            if (counted.any { it == null }) return null
+            return OcrInlineDayRow(label, counted.filterNotNull(), null)
+        }
+
+        val notationText = values.joinToString(" ")
+        val notation = parseNotation(notationText) ?: return null
+        if (notation.name.isBlank() || !isOcrExerciseName(notation.name)) return null
+        return OcrInlineDayRow(label, null, notationText)
+    }
+
+    /** Un recuento delante del movimiento es una cantidad de repeticiones; el número de series sigue sin inferirse. */
+    private fun ocrCountedExercise(cell: String): OcrCountedExercise? {
+        val match = OCR_REPS_BEFORE_NAME.matchEntire(cell) ?: return null
+        val reps = match.groupValues[1].toIntOrNull()?.takeIf { it in 1..MAX_REPS } ?: return null
+        val name = match.groupValues[2].trim()
+        return name.takeIf(::isOcrExerciseName)?.let { OcrCountedExercise(it, reps) }
+    }
+
+    private fun isOcrExerciseName(text: String): Boolean {
+        if (text.count(Char::isLetter) < 4) return false
+        if (isNameCandidate(text)) return true
+        val alternatives = OCR_EXERCISE_CHOICE.split(text).map(String::trim)
+        return alternatives.size > 1 && alternatives.all(::isNameCandidate)
+    }
+
+    private fun processRows(
+        builder: DraftBuilder,
+        rows: List<List<String>>,
+        pageHeaders: Set<Int> = emptySet(),
+        origin: (Int) -> ImportRowOrigin = { ImportRowOrigin() },
+        where: (Int) -> String,
+    ) {
         var columns: Columns? = null
         var grid: Grid? = null
+        var continuedExerciseName: String? = null
         val sessions = planSessions(rows)
         val pairs = pairNames(rows, sessions)
         // Calculadoras por bloques bajo filas de semanas (H6c): su plan decide esas filas y da los avisos de la hoja.
@@ -254,6 +357,7 @@ object ProgramImportParser {
         // Filas por serie (H6a): las consecutivas de un mismo ejercicio forman uno; la primera de cada grupo lo lleva.
         val setRuns = setRunsOf(rows, sessions)
         rows.forEachIndexed { index, row ->
+            builder.currentOrigin = origin(index)
             val cells = row.map { it.trim() }
             val filled = cells.filter { it.isNotEmpty() }
             if (filled.isEmpty()) return@forEachIndexed
@@ -266,6 +370,10 @@ object ProgramImportParser {
             // Una prescripción suelta («4x 15-12-10-8») lleva el nombre de la fila de arriba, si lo hay.
             val prescribedName = pairs.nameOf[index]
             val context = RowContext(where(index), listOfNotNull(prescribedName, filled.joinToString(" · ")).joinToString(" · "), builder)
+            val ocrWeekdayCandidate = if (builder.ocrSheet) ocrWeekdayTypo(cells) else null
+            val ocrWeekdayConfirmed = ocrWeekdayCandidate?.takeIf {
+                it.distance == 1 && it.day != null && hasUniqueOcrWeekdayContext(rows, index, it.day)
+            }
 
             // Sesiones en columnas (subcabecera, sus etiquetas de encima y sus datos): van por su propio camino.
             val part = sessions[index]
@@ -277,7 +385,7 @@ object ProgramImportParser {
                         columns = null
                         cells.filter { groupColOf(it) == GroupCol.LOAD }.forEach { builder.noteLoadHeader(it) }
                     }
-                    SessionPart.Labels -> if (filled.any { isProse(it) }) builder.count(Noise.TEXT)
+                    SessionPart.Labels -> if (filled.any { isProse(it) }) context.count(Noise.TEXT)
                     is SessionPart.Data -> sessionRow(builder, part.block, cells, context)
                 }
                 builder.endRow(null)
@@ -300,14 +408,61 @@ object ProgramImportParser {
                 return@forEachIndexed
             }
 
+            // En algunas hojas escaneadas, cada fila repite el día junto al movimiento y su prescripción.
+            // La lista de retos usa «10 Push Ups»; se conserva el recuento como reps y no se inventan series.
+            if (builder.ocrSheet && columns == null) {
+                val inlineDay = ocrInlineDayRow(cells)
+                if (inlineDay != null) {
+                    grid?.let { closeGrid(builder, it) }
+                    grid = null
+                    builder.startOcrInlineDay(inlineDay.label, context, isRestDayLabel(inlineDay.label))
+                    if (inlineDay.countedExercises != null) {
+                        inlineDay.countedExercises.forEach { item ->
+                            val exercise = validate(
+                                name = item.name,
+                                sets = null,
+                                repsMin = item.reps,
+                                repsMax = item.reps,
+                                load = null,
+                                percent = null,
+                                rpe = null,
+                                rir = null,
+                                rest = null,
+                                notes = null,
+                                row = context,
+                            )
+                            builder.endRow(exercise?.let { builder.addExercise(it, context) })
+                        }
+                    } else {
+                        when (val line = classify(inlineDay.notationText.orEmpty(), context)) {
+                            is Line.Exercise -> builder.endRow(builder.addExercise(line.exercise, context))
+                            is Line.Groups -> line.groups.forEach { addGroup(builder, it, context) }
+                            else -> builder.endRow(null)
+                        }
+                    }
+                    return@forEachIndexed
+                }
+            }
+
             // Una fila con tres o más días puede ser la cabecera de una cuadrícula: cada columna con día es un día.
             // Solo abre cuadrícula si más abajo hay filas de series o de peso; si no, es una fila normal.
-            val gridDays = gridDayColumns(cells)
+            val ocrMatrixDays = if (builder.ocrSheet) ocrDayMatrixColumns(cells) else emptyList()
+            val gridDays = ocrMatrixDays.takeIf { it.size >= GRID_MIN_DAYS } ?: gridDayColumns(cells)
             if (gridDays.size >= GRID_MIN_DAYS) {
                 grid?.let { closeGrid(builder, it) }
                 grid = null
-                if (gridConfirmed(rows, index, gridDays.first().first)) {
-                    grid = Grid(builder.openGridDays(gridDays, context))
+                val confirmed = if (ocrMatrixDays.size >= GRID_MIN_DAYS) {
+                    ocrGridConfirmed(rows, index, ocrMatrixDays)
+                } else {
+                    gridConfirmed(rows, index, gridDays.first().first)
+                }
+                if (confirmed) {
+                    val openedDays = if (ocrMatrixDays.size >= GRID_MIN_DAYS) {
+                        builder.openOcrGridDays(ocrMatrixDays, context)
+                    } else {
+                        builder.openGridDays(gridDays, context)
+                    }
+                    grid = Grid(openedDays)
                     columns = null
                     builder.endRow(null)
                     return@forEachIndexed
@@ -323,7 +478,7 @@ object ProgramImportParser {
                 grid = null
             }
 
-            val header = detectColumns(cells)
+            val header = tableHeaderAt(rows, index)
             val table = columns
             // La celda de día de una tabla abre un día (o sigue el abierto); la fila sigue si trae más datos.
             val tableDay = if (table != null && header == null) {
@@ -331,15 +486,20 @@ object ProgramImportParser {
             } else {
                 null
             }
-            tableDay?.let { builder.openTableDay(cleanHeader(it), context) }
+            tableDay?.let {
+                builder.openTableDay(cleanHeader(it), context, isRestDayLabel(cells.joinToString(" ")))
+            }
             val line: Line? = when {
                 header != null -> {
                     columns = header
+                    continuedExerciseName = null
                     header.loadHeader?.let { builder.noteLoadHeader(it) }
                     // Una etiqueta de día a la izquierda de la columna de nombre abre el día («MONDAY · Exercise», H6a).
                     headerDayLabel(cells, header)?.let { builder.openTableDay(it, context) }
                     null
                 }
+                ocrWeekdayConfirmed != null -> Line.Day(ocrWeekdayConfirmed.label, silent = false)
+                ocrWeekdayCandidate != null -> Line.Day("Día sin asignar", silent = false)
                 setRuns.first[index] != null -> setRunLine(setRuns.first.getValue(index), context)
                 tableDay != null && (filled.size == 1 || (table != null && isBareTableRow(cells, table))) -> null
                 // Prosa con cifras de una hoja de OCR (H5b): cuenta como línea de texto, sin aviso.
@@ -348,21 +508,39 @@ object ProgramImportParser {
                     null
                 }
                 filled.size == 1 -> classify(filled.first(), context, prescribedName)
-                table != null -> tableRow(cells, table, context)
+                table != null -> tableRow(cells, table, context, continuedExerciseName)
                 else -> classify(filled.joinToString(" "), context)
             }
             when (line) {
                 is Line.Week -> {
-                    builder.openWeek(line.number)
+                    builder.openWeek(line.number, line.executionKind)
                     builder.endRow(null)
                 }
                 is Line.Day -> {
-                    builder.startDay(line.name, line.silent, context)
+                    builder.startDay(line.name, line.silent, context, line.isRestDay)
+                    when {
+                        ocrWeekdayConfirmed != null -> builder.noteOcrCorrection(context.where, context.source, ocrWeekdayConfirmed.label)
+                        ocrWeekdayCandidate != null -> context.warn(
+                            ImportWarningKind.STRUCTURE_REVIEW,
+                            "cabecera de día dudosa «${context.source.trim()}»; la sesión se aisló como «Día sin asignar»",
+                        )
+                    }
                     builder.endRow(null)
                 }
                 is Line.Exercise -> builder.endRow(builder.addExercise(line.exercise, context))
                 is Line.Groups -> line.groups.forEach { addGroup(builder, it, context) }
                 null -> builder.endRow(null)
+            }
+            if (header == null && table?.carryBlankNames == true) {
+                val nameCell = cells.getOrNull(table.indexOf(ColumnRole.NAME) ?: -1).orEmpty()
+                continuedExerciseName = when {
+                    tableDay != null || line is Line.Day || line is Line.Week -> null
+                    line is Line.Exercise -> line.exercise.rawName
+                    line is Line.Groups -> line.groups.firstOrNull()?.name
+                    nameCell.isNotEmpty() -> null
+                    !hasNumericTablePayload(cells, table) -> null
+                    else -> continuedExerciseName
+                }
             }
         }
         grid?.let { closeGrid(builder, it) }
@@ -464,13 +642,14 @@ object ProgramImportParser {
             }
             return notationLine(notation, row)
         }
-        weekNumber(text)?.let { return Line.Week(it) }
+        if (isRestDayLabel(text)) return dayLine(text, silent = false, isRestDay = true)
+        weekNumber(text)?.let { return Line.Week(it, weekExecutionKindOf(text)) }
         if (isProse(text)) {
             row.count(Noise.TEXT)
             return null
         }
-        if (isDayLabel(text)) return dayLine(text, silent = false)
-        if (isShortDayCandidate(text)) return dayLine(text, silent = true)
+        if (isDayLabel(text)) return dayLine(text, silent = false, isRestDay = isRestDayLabel(text))
+        if (isShortDayCandidate(text)) return dayLine(text, silent = true, isRestDay = isRestDayLabel(text))
         // Un nombre suelto sin cifras cuenta como línea de texto. Con cifras puede ser un ejercicio mal escrito: aviso de siempre.
         if (text.any { it.isDigit() }) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "no se entiende «$text»")
@@ -498,21 +677,26 @@ object ProgramImportParser {
             rest = notation.rest,
             notes = notes,
             row = row,
+            durationSeconds = notation.durationSeconds,
         )?.let { Line.Exercise(it) }
     }
 
-    private fun dayLine(text: String, silent: Boolean): Line? {
+    private fun dayLine(text: String, silent: Boolean, isRestDay: Boolean = false): Line? {
         val name = cleanHeader(text)
-        return if (name.isEmpty()) null else Line.Day(name, silent)
+        return if (name.isEmpty()) null else Line.Day(name, silent, isRestDay)
     }
 
     /** Fila de tabla con cabecera: cada celda según su columna; el nombre puede traer notación («Sentadilla 4x6»). */
-    private fun tableRow(cells: List<String>, columns: Columns, row: RowContext): Line? {
+    private fun tableRow(cells: List<String>, columns: Columns, row: RowContext, continuedName: String? = null): Line? {
         fun cell(role: ColumnRole): String = columns.indexOf(role)?.let { cells.getOrNull(it) }.orEmpty()
 
         // Fila de día dentro de la tabla («Día 1: | Pecho», «Miércoles | Descanso»): abre el día y no es un ejercicio.
-        tableDayName(cells, columns)?.let { return Line.Day(it, silent = false) }
-        val nameCell = cell(ColumnRole.NAME)
+        tableDayName(cells, columns)?.let {
+            return Line.Day(it, silent = false, isRestDay = isRestDayLabel(cells.joinToString(" ")))
+        }
+        val nameCell = cell(ColumnRole.NAME).ifEmpty {
+            if (columns.carryBlankNames && hasNumericTablePayload(cells, columns)) continuedName.orEmpty() else ""
+        }
         val inline = if (nameCell.isEmpty()) null else parseNotation(nameCell)
         val named = numbered(dropLinks(inline?.name ?: nameCell))
         val name = named.name
@@ -562,16 +746,21 @@ object ProgramImportParser {
         val rpeCell = cell(ColumnRole.RPE)
         val rirCell = cell(ColumnRole.RIR)
         val restCell = cell(ColumnRole.REST)
+        val durationCell = cell(ColumnRole.DURATION)
         val notesCell = cell(ColumnRole.NOTES)
         val rpe = firstNumber(rpeCell)
         val rir = leadingInt(rirCell)
         val rest = parseRest(restCell, columns.restInMinutes)
+        val duration = parseDuration(durationCell, columns.durationInMinutes)
+            ?: inline?.durationSeconds
+            ?: parseDuration(repsCell, inMinutes = false)
 
         unreadable(row, loadCell, load ?: percent, "carga")
         unreadable(row, percentCell, firstNumber(percentCell), "porcentaje")
         unreadable(row, rpeCell, rpe, "RPE")
         unreadable(row, rirCell, rir, "RIR")
         unreadable(row, restCell, rest, "descanso")
+        unreadable(row, durationCell, duration, "duración")
 
         val remainder = if (range != null && pyramid == null) rangeRemainder(repsCell) else null
         // Sin otra nota, la columna de grupo muscular va a notas.
@@ -606,6 +795,7 @@ object ProgramImportParser {
             rest = rest ?: sn?.rest ?: inline?.rest,
             notes = notes,
             row = row,
+            durationSeconds = duration,
         )?.let { Line.Exercise(it) }
     }
 
@@ -613,7 +803,11 @@ object ProgramImportParser {
     private fun headerDayLabel(cells: List<String>, columns: Columns): String? {
         val nameIndex = columns.indexOf(ColumnRole.NAME) ?: return null
         val label = cells.take(nameIndex).lastOrNull { it.isNotEmpty() } ?: return null
-        return cleanHeader(label).takeIf { isDayLabel(it) }
+        val cleaned = cleanHeader(label)
+        if (isDayLabel(cleaned)) return cleaned
+        val weekday = NUMBERED_DAY_WEEKDAY.find(cleaned)?.groupValues?.get(1)
+            ?.takeIf { explicitWeekday(it) != null }
+        return weekday?.replaceFirstChar { it.titlecase() }
     }
 
     /** Lectura de una celda «Sets x Reps» (H6a): su notación y, si el rango de series era «3-4», la nota de ese rango. */
@@ -860,8 +1054,8 @@ object ProgramImportParser {
     }
 
     /**
-     * Valida un ejercicio: series y repeticiones son obligatorias; el resto, opcional y con rango. El id es provisional:
-     * [DraftBuilder.finish] le asigna el definitivo.
+     * Valida una prescripción y sus rangos. En OCR, una fila con nombre y repeticiones pero sin series se conserva como
+     * incompleta para que la persona complete la cantidad; el id es provisional hasta [DraftBuilder.finish].
      */
     private fun validate(
         name: String,
@@ -875,20 +1069,25 @@ object ProgramImportParser {
         rest: Int?,
         notes: String?,
         row: RowContext,
+        durationSeconds: Int? = null,
     ): ImportedExercise? {
-        if (sets == null) {
-            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin series; se omite")
+        val duration = checked(durationSeconds, "la duración", name, row) { it in 1..MAX_DURATION_SECONDS }
+        if (sets != null && sets !in 1..MAX_SETS) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene $sets series, fuera de rango; se omite")
             return null
         }
-        if (sets !in 1..MAX_SETS) {
-            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» tiene $sets series, fuera de rango; se omite")
+        if (sets == null && duration == null && !(row.isOcr && repsMin != null)) {
+            row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin series; se omite")
             return null
         }
         val amrapMinimum = Regex("AMRAP: última serie, (\\d+)").find(notes.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
         val isAmrap = amrapMinimum != null || Regex("(?i)\\bAMRAP\\b").containsMatchIn(row.source)
-        if (repsMin == null && !isAmrap) {
+        if (repsMin == null && !isAmrap && duration == null) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin repeticiones; se omite")
             return null
+        }
+        if (sets == null) {
+            row.warn(ImportWarningKind.INCOMPLETE_ROW, "«$name» no indica cuántas series hacer; complétalas antes de guardar")
         }
         // Draft numeric anchors remain editable; no-minimum AMRAP emits no rep target in the plan.
         val anchor = repsMin ?: 1
@@ -902,7 +1101,7 @@ object ProgramImportParser {
         return ImportedExercise(
             id = "",
             rawName = name,
-            sets = sets,
+            sets = sets ?: 0,
             repsMin = low,
             repsMax = top,
             loadKg = loadValue(load, name, row),
@@ -912,9 +1111,17 @@ object ProgramImportParser {
             restSeconds = checked(rest, "el descanso", name, row) { it in 5..MAX_REST_SECONDS },
             notes = (notes?.trim()?.takeIf { it.isNotEmpty() }
                 ?: "AMRAP: última serie, sin mínimo.".takeIf { isAmrap })?.take(MAX_NOTE_CHARS),
-            sourceText = row.source,
+            sourceText = row.source.take(MAX_WARNING_SOURCE_CHARS),
+            sourceDocumentType = row.origin.documentType,
+            sourcePage = row.origin.pageNumber,
+            sourceSheet = row.origin.sheetName,
+            sourceRow = row.origin.rowNumber,
+            sourceTextTruncated = row.source.length > MAX_WARNING_SOURCE_CHARS,
             purpose = if (isAmrap) com.example.kpkn.data.models.SetPurpose.AMRAP else com.example.kpkn.data.models.SetPurpose.NONE,
             amrapMinimumReps = amrapMinimum,
+            loadUnit = unitMarkOf(row.source).takeIf { load != null },
+            supersetGroup = BLOCK_TAG.find(row.source)?.groupValues?.get(1)?.takeWhile { it.isLetter() }?.uppercase(),
+            durationSeconds = duration,
         )
     }
 
@@ -930,7 +1137,12 @@ object ProgramImportParser {
             row.warn(ImportWarningKind.IGNORED_VALUE, message)
             return null
         }
-        if (!loadInRange(load, ImportLoadUnit.KG) || !loadInRange(load, ImportLoadUnit.LB)) {
+        val explicitUnit = unitMarkOf(row.source)
+        if (explicitUnit != null && !loadInRange(load, explicitUnit)) {
+            row.warn(ImportWarningKind.IGNORED_VALUE, message)
+            return null
+        }
+        if (explicitUnit == null && (!loadInRange(load, ImportLoadUnit.KG) || !loadInRange(load, ImportLoadUnit.LB))) {
             row.warnUnitLoad(load, message)
         }
         return load
@@ -999,12 +1211,13 @@ object ProgramImportParser {
         "set", "sets", "serie", "series", "rep", "reps", "sxr", "week", "semana", "day", "dia", "total", "volume",
         "volumen", "tonnage", "tonelaje", "e1rm", "rm", "max", "tm", "training", "notes", "notas", "load", "weight",
         "peso", "carga", "status", "estado", "amrap", "rest", "descanso", "tempo", "rpe", "rir", "date", "fecha",
-        "cycle", "ciclo", "block", "bloque", "meso", "phase", "fase", "scheme",
+        "cycle", "ciclo", "block", "bloque", "meso", "phase", "fase", "scheme", "time", "tiempo", "duration", "duracion",
+        "hold", "seconds", "segundos",
     ).mapTo(HashSet()) { word -> word.filter { !it.isDigit() } }
 
     // ---- Cabeceras de columna ----------------------------------------------------------------------------
 
-    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, NOTES, DAY, GROUP, SCHEME, LIST }
+    private enum class ColumnRole { NAME, SETS, REPS, LOAD, PERCENT, RPE, RIR, REST, DURATION, NOTES, DAY, GROUP, SCHEME, LIST }
 
     /**
      * Columnas de una tabla; [loadHeader] es la cabecera de carga, si la hay («Peso (kg)», «Weight (lb)»). [listHasSets] dice
@@ -1014,22 +1227,116 @@ object ProgramImportParser {
     private class Columns(
         private val indexes: Map<ColumnRole, Int>,
         val restInMinutes: Boolean,
+        val durationInMinutes: Boolean,
         val loadHeader: String?,
         val listHasSets: Boolean = false,
         val setColumns: List<Int> = emptyList(),
         val schemeHasReps: Boolean = false,
         val schemeHasSets: Boolean = false,
         val setIndex: Int? = null,
+        val carryBlankNames: Boolean = false,
     ) {
         fun indexOf(role: ColumnRole): Int? = indexes[role]
+
+        fun hasSetColumn(): Boolean = indexes.containsKey(ColumnRole.SETS) || setIndex != null
+
+        fun unassignedCellIndexes(size: Int): List<Int> {
+            val assigned = indexes.values.toSet() + setColumns + listOfNotNull(setIndex)
+            return (0 until size).filterNot(assigned::contains)
+        }
     }
+
+    /** Busca una cabecera ordinaria o, con guardas, cabeceras cuyo nombre o columna de repeticiones quedaron sin etiqueta. */
+    private fun tableHeaderAt(rows: List<List<String>>, index: Int): Columns? {
+        val cells = rows[index].map { it.trim() }
+        val missingName = inferHeaderlessNameColumn(rows, index, cells)
+        val columns = detectColumns(cells, inferredNameIndex = missingName) ?: return null
+        val missingReps = inferHeaderlessRepsColumn(rows, index, cells.size, columns) ?: return columns
+        return detectColumns(cells, inferredNameIndex = missingName, inferredRepsIndex = missingReps) ?: columns
+    }
+
+    /**
+     * Algunas tablas ponen las repeticiones en una columna sin una cabecera reconocida («Exercise | Activity | Rest | Sets»).
+     * Solo se infiere una columna libre si sus filas de ejercicio muestran «6-8 reps» o rangos repetidos como «6-8»; los
+     * números sueltos no bastan, para no confundirlos con cargas. Se excluyen columnas cuyo título nombra tempo o duración.
+     */
+    private fun inferHeaderlessRepsColumn(rows: List<List<String>>, index: Int, width: Int, columns: Columns): Int? {
+        if (columns.indexOf(ColumnRole.REPS) != null || columns.indexOf(ColumnRole.SCHEME) != null ||
+            columns.indexOf(ColumnRole.LIST) != null || !columns.hasSetColumn()
+        ) return null
+        val nameIndex = columns.indexOf(ColumnRole.NAME) ?: return null
+        val exerciseRows = rows.drop(index + 1).take(HEADERLESS_LOOKAHEAD_ROWS).filter { row ->
+            row.getOrNull(nameIndex)?.trim()?.let(::isNameCandidate) == true &&
+                (columns.indexOf(ColumnRole.SETS)?.let { leadingInt(row.getOrNull(it).orEmpty()) != null } == true ||
+                    columns.setIndex?.let { leadingInt(row.getOrNull(it).orEmpty()) != null } == true)
+        }
+        if (exerciseRows.isEmpty()) return null
+
+        val candidates = columns.unassignedCellIndexes(width).filter { column ->
+            val header = headerWords(rows[index].getOrNull(column).orEmpty())
+            if (header.any { it in NON_REPS_INFERENCE_HEADERS }) return@filter false
+            val values = exerciseRows.mapNotNull { it.getOrNull(column)?.trim()?.takeIf(String::isNotEmpty) }
+            if (values.isEmpty()) return@filter false
+            val labeled = values.count(::isLabeledRepsValue)
+            val ranges = values.count(::isPlainRepsRange)
+            val other = values.any { value ->
+                !isLabeledRepsValue(value) && !isPlainRepsRange(value) && !isAmrapWithoutNumber(value)
+            }
+            !other && (labeled > 0 || ranges >= 2)
+        }
+        return candidates.singleOrNull()
+    }
+
+    /**
+     * Algunas hojas de gimnasio dejan vacía la cabecera de levantamiento («1 day (Monday) | | % | reps | sets | weight»).
+     * Solo se infiere la celda vacía entre día y columnas numéricas si las filas siguientes confirman varios nombres y
+     * continuaciones numéricas sin nombre; una fila de datos aislada nunca basta.
+     */
+    private fun inferHeaderlessNameColumn(rows: List<List<String>>, index: Int, cells: List<String>): Int? {
+        val roles = cells.map { cell -> columnRole(cell) ?: legacyColumnRole(cell) }
+        if (roles.any { it == ColumnRole.NAME }) return null
+        val dataRoles = setOf(ColumnRole.SETS, ColumnRole.REPS, ColumnRole.LOAD, ColumnRole.PERCENT, ColumnRole.DURATION)
+        val dataColumns = roles.indices.filter { roles[it] in dataRoles }
+        if (dataColumns.size < 3 || ColumnRole.SETS !in roles || ColumnRole.REPS !in roles) return null
+        val dayIndex = roles.indexOf(ColumnRole.DAY)
+        val firstDataColumn = dataColumns.minOrNull() ?: return null
+        if (dayIndex < 0 || firstDataColumn <= dayIndex + 1) return null
+        val candidates = (dayIndex + 1 until firstDataColumn).filter { cells.getOrNull(it).isNullOrBlank() }
+        val nameIndex = candidates.singleOrNull() ?: return null
+        val lookAhead = rows.drop(index + 1).take(HEADERLESS_LOOKAHEAD_ROWS)
+        val numericRows = lookAhead.filter { hasNumericHeaderValues(it.map(String::trim), dataColumns) }
+        val names = numericRows.mapNotNull { row ->
+            row.getOrNull(nameIndex)?.trim()?.takeIf(::isNameCandidate)?.let { ExerciseMatchLexicon.normalize(it) }
+        }.toSet()
+        val continuations = numericRows.count { it.getOrNull(nameIndex).isNullOrBlank() }
+        return nameIndex.takeIf { names.isNotEmpty() && continuations >= 1 }
+    }
+
+    /** Al menos dos columnas numéricas de la cabecera tienen datos en esta fila. */
+    private fun hasNumericHeaderValues(row: List<String>, dataColumns: List<Int>): Boolean =
+        dataColumns.count { column -> firstNumber(row.getOrNull(column).orEmpty()) != null } >= 2
+
+    /** Una continuación de la tabla trae números en al menos dos columnas de datos. */
+    private fun hasNumericTablePayload(cells: List<String>, columns: Columns): Boolean {
+        val roles = listOf(ColumnRole.SETS, ColumnRole.REPS, ColumnRole.LOAD, ColumnRole.PERCENT, ColumnRole.RPE, ColumnRole.RIR, ColumnRole.DURATION)
+        return roles.mapNotNull(columns::indexOf).distinct().count { column ->
+            firstNumber(cells.getOrNull(column).orEmpty()) != null
+        } >= 2
+    }
+
+    private const val HEADERLESS_LOOKAHEAD_ROWS = 32
 
     /**
      * Una fila es cabecera si trae la columna de ejercicio y al menos otra columna reconocida, o alguna «Set n». Además de las
      * palabras, mira la cabecera original («Work-up (load × reps)»), las celdas «S · X · R» seguidas y las «Set n» (H6a).
      * Con [legacy] se reconoce como antes del H6a: lo comprueban las sesiones al decidir dónde acaba su bloque.
      */
-    private fun detectColumns(cells: List<String>, legacy: Boolean = false): Columns? {
+    private fun detectColumns(
+        cells: List<String>,
+        legacy: Boolean = false,
+        inferredNameIndex: Int? = null,
+        inferredRepsIndex: Int? = null,
+    ): Columns? {
         val indexes = HashMap<ColumnRole, Int>()
         val setColumns = ArrayList<Int>()
         var listHasSets = false
@@ -1037,7 +1344,12 @@ object ProgramImportParser {
         // Con «Sets» o «Series» en la misma cabecera, «Set» o «Serie» sueltas no tienen rol («Lift · Set · Sets · Reps»).
         val plural = !legacy && cells.any { cell -> headerWords(cell).any { it in PLURAL_SET_WORDS } }
         // La cabecera de lista va a la derecha de la columna de nombre («Exercise | Work-up (load × reps)»).
-        val nameAt = if (legacy) -1 else cells.indexOfFirst { columnRole(it) == ColumnRole.NAME }
+        val nameAt = when {
+            inferredNameIndex != null -> inferredNameIndex
+            legacy -> -1
+            else -> preferredNameColumnIndex(cells) ?: -1
+        }
+        if (!legacy && nameAt >= 0) indexes[ColumnRole.NAME] = nameAt
         cells.forEachIndexed { index, cell ->
             val list = if (legacy) null else LIST_HEADER.find(cell)
             if (list != null) {
@@ -1072,21 +1384,45 @@ object ProgramImportParser {
                 }
             }
         }
+        inferredNameIndex?.let {
+            indexes[ColumnRole.NAME] = it
+            // En esta forma el «día» está en la propia cabecera; sus celdas de datos suelen ser índices (1, 2…), no días.
+            indexes.remove(ColumnRole.DAY)
+        }
+        inferredRepsIndex?.let { if (!indexes.containsKey(ColumnRole.REPS)) indexes[ColumnRole.REPS] = it }
         // Con «Set n» sin más columnas la cabecera sigue siendo tabla: si no, su texto se leería como una prescripción (H6a).
         if (!indexes.containsKey(ColumnRole.NAME) || (indexes.size < 2 && setColumns.isEmpty())) return null
         val restHeader = indexes[ColumnRole.REST]?.let { cells[it] }.orEmpty()
+        val durationHeader = indexes[ColumnRole.DURATION]?.let { cells[it] }.orEmpty()
         val loadHeader = indexes[ColumnRole.LOAD]?.let { cells[it] }
         val schemeHeader = indexes[ColumnRole.SCHEME]?.let { cells[it] }.orEmpty()
         return Columns(
             indexes,
             restInMinutes = isMinutesHeader(restHeader),
+            durationInMinutes = isMinutesHeader(durationHeader),
             loadHeader = loadHeader,
             listHasSets = listHasSets,
             setColumns = setColumns,
             schemeHasReps = headerWords(schemeHeader).any { it in REP_WORDS },
             schemeHasSets = headerWords(schemeHeader).any { it in SET_WORDS },
             setIndex = setIndex,
+            carryBlankNames = inferredNameIndex != null,
         )
+    }
+
+    /** Si hay varias columnas que parecen nombres, prefiere la etiqueta legible sobre slug, id, clave o código. */
+    private fun preferredNameColumnIndex(cells: List<String>): Int? {
+        val candidates = cells.indices.filter { columnRole(cells[it]) == ColumnRole.NAME }
+        if (candidates.size < 2) return candidates.firstOrNull()
+        val hasMachineIdentifier = candidates.any { index ->
+            headerWords(cells[index]).any { it in MACHINE_NAME_IDENTIFIER_WORDS }
+        }
+        return if (hasMachineIdentifier) {
+            candidates.firstOrNull { index -> headerWords(cells[index]).any { it in DISPLAY_NAME_HEADER_WORDS } }
+                ?: candidates.first()
+        } else {
+            candidates.first()
+        }
     }
 
     /**
@@ -1124,6 +1460,7 @@ object ProgramImportParser {
             "rpe" in words -> ColumnRole.RPE
             "rir" in words -> ColumnRole.RIR
             words.any { it in REST_WORDS } -> ColumnRole.REST
+            words.any { it in DURATION_WORDS } -> ColumnRole.DURATION
             text.contains('%') || words.any { it in PERCENT_WORDS } -> ColumnRole.PERCENT
             words.any { it in LOAD_WORDS } -> ColumnRole.LOAD
             words.any { it in SET_WORDS } -> ColumnRole.SETS
@@ -1147,11 +1484,17 @@ object ProgramImportParser {
     }
 
     private fun isMinutesHeader(header: String): Boolean =
-        ExerciseMatchLexicon.normalize(header).split(' ').any { it == "min" || it == "minutos" || it == "minutes" }
+        ExerciseMatchLexicon.normalize(header).split(' ').any { it in setOf("min", "mins", "minuto", "minutos", "minute", "minutes") }
 
     private val PARENTHESES = Regex("""\(.*?\)""")
     private val NAME_WORDS = setOf("ejercicio", "ejercicios", "exercise", "exercises", "movimiento", "movimientos", "movement")
+    private val DISPLAY_NAME_HEADER_WORDS = setOf("name", "nombre", "label", "etiqueta")
+    private val MACHINE_NAME_IDENTIFIER_WORDS = setOf("slug", "id", "key", "code", "codigo")
     private val REST_WORDS = setOf("descanso", "descansos", "rest", "pausa")
+    private val DURATION_WORDS = setOf(
+        "duracion", "duration", "tiempo", "time", "hold", "seconds", "second", "sec", "secs", "seg", "segundo",
+        "segundos", "min", "mins", "minuto", "minutos", "minute", "minutes",
+    )
     private val PERCENT_WORDS = setOf("porcentaje", "percent", "percentage", "1rm")
     private val LOAD_WORDS = setOf(
         "peso", "pesos", "carga", "cargas", "kg", "kgs", "kilos", "load", "weight", "lb", "lbs", "libra", "libras", "pounds",
@@ -1160,6 +1503,29 @@ object ProgramImportParser {
     /** «SxR» (series por repeticiones) es la columna de la notación «5x3+», como «Reps». */
     private val REP_WORDS = setOf("reps", "rep", "repeticiones", "repeticion", "sxr")
     private val NOTE_WORDS = setOf("notas", "nota", "notes", "note", "observaciones", "comentarios")
+
+    private val NON_REPS_INFERENCE_HEADERS = setOf(
+        "cadence", "duracion", "duration", "distancia", "distance", "tempo", "time", "tiempo", "speed", "velocidad",
+    )
+    private val LABELED_REPS_CELL = Regex(
+        """^\s*(?:(?:\d{1,2})\s*(?:x|×|\*)\s*)?\d{1,3}(?:\s*(?:-|–|—|a|hasta)\s*\d{1,3})?\+?\s*(?:reps?|repeticiones|rep)\s*$""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val REP_UNIT = Regex("""\b(?:reps?|repeticiones|rep)\b""", RegexOption.IGNORE_CASE)
+    private val PLAIN_REPS_RANGE = Regex(
+        """^\s*(\d{1,3})\s*(?:-|–|—|a|hasta)\s*(\d{1,3})\s*$""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private fun isLabeledRepsValue(value: String): Boolean =
+        LABELED_REPS_CELL.matches(value) || (hasScheme(value) && REP_UNIT.containsMatchIn(value))
+
+    private fun isPlainRepsRange(value: String): Boolean {
+        val match = PLAIN_REPS_RANGE.matchEntire(value) ?: return false
+        val low = match.groupValues[1].toIntOrNull() ?: return false
+        val high = match.groupValues[2].toIntOrNull() ?: return false
+        return low in 1..MAX_REPS && high in low..MAX_REPS
+    }
 
     /** Columna de día: cada celda con texto abre un día; una vacía sigue el día abierto. */
     private val DAY_WORDS = setOf("dia", "day", "sesion", "session", "jornada")
@@ -1237,6 +1603,7 @@ object ProgramImportParser {
         val rpe: Double?,
         val rir: Int?,
         val rest: Int?,
+        val durationSeconds: Int?,
         /** Repeticiones de la última serie con «+» («5+», «1x5+»): AMRAP. Null si no hay «+». */
         val amrapReps: Int?,
         /** Texto antes del primer tramo de notación, sin limpiar (para la prosa con notación). */
@@ -1263,6 +1630,7 @@ object ProgramImportParser {
         var rpe: Double? = null
         var rir: Int? = null
         var rest: Int? = null
+        var durationSeconds: Int? = null
         var loadUnit: ImportLoadUnit? = null
         var pyramid: List<Int>? = null
         var perSide = false
@@ -1275,6 +1643,12 @@ object ProgramImportParser {
             }
         }
 
+        scan(TARGET_DURATION, accept = { m -> isTargetDuration(text, m) }) { m ->
+            if (durationSeconds == null) {
+                durationSeconds = durationSecondsOf(m.groupValues[2], m.groupValues[3])
+                m.groupValues[1].toIntOrNull()?.let { if (sets == null) sets = it }
+            }
+        }
         scan(REST_MINUTES) { m -> if (rest == null) rest = minutesToSeconds(m.groupValues[1]) }
         scan(REST_SECONDS) { m -> if (rest == null) rest = m.groupValues[1].toIntOrNull() }
         // Pirámide con series («4x 15-12-10-8»): antes que la notación normal, que solo leería dos cifras.
@@ -1362,6 +1736,7 @@ object ProgramImportParser {
             rpe = rpe,
             rir = rir,
             rest = rest,
+            durationSeconds = durationSeconds,
             amrapReps = amrap,
             leading = before.toString(),
             loadUnit = loadUnit,
@@ -1372,6 +1747,38 @@ object ProgramImportParser {
     private fun overlaps(a: IntRange, b: IntRange): Boolean = a.first <= b.last && b.first <= a.last
 
     private fun minutesToSeconds(value: String): Int? = firstNumber(value)?.let { (it * 60).roundToInt() }
+
+    private fun durationSecondsOf(value: String, unit: String): Int? {
+        val amount = firstNumber(value) ?: return null
+        val normalizedUnit = ExerciseMatchLexicon.normalize(unit)
+        val seconds = if (normalizedUnit in DURATION_MINUTE_UNITS) amount * 60 else amount
+        return seconds.roundToInt()
+    }
+
+    /** A time token is a target duration when it is not labeled as rest and is not the trailing rest after a rep scheme. */
+    private fun isTargetDuration(text: String, match: MatchResult): Boolean {
+        if (match.groupValues[1].isNotEmpty()) return true
+        val candidates = TARGET_DURATION.findAll(text).toList()
+        val index = candidates.indexOfFirst { it.range == match.range }
+        val before = text.substring(0, match.range.first)
+        val after = text.substring(match.range.last + 1)
+        val restBefore = REST_LABEL_AT_END.containsMatchIn(before)
+        val restAfter = REST_LABEL_AT_START.containsMatchIn(after) && candidates.drop(index + 1).isEmpty()
+        if (restBefore || restAfter) return false
+        // «Squat 3x5 2 min» retains the established rest interpretation; «Plank 3x40 s» is captured above.
+        return !hasScheme(text)
+    }
+
+    /** A duration cell may contain units or a bare value under an explicit duration header. */
+    private fun parseDuration(cell: String, inMinutes: Boolean): Int? {
+        val text = cell.trim()
+        if (text.isEmpty()) return null
+        val match = DURATION_VALUE.find(text)
+        if (match != null) return durationSecondsOf(match.groupValues[1], match.groupValues[2])
+        if (!BARE_DURATION.matches(text)) return null
+        val amount = firstNumber(text) ?: return null
+        return (amount * if (inMinutes) 60 else 1).roundToInt()
+    }
 
     private fun cleanName(raw: String): String =
         dropLinks(raw).replace(NAME_TAIL, "").replace(NAME_HEAD, "").trim()
@@ -1410,13 +1817,25 @@ object ProgramImportParser {
     }
 
     private val REST_MINUTES = Regex(
-        """(\d{1,2}(?:[.,]\d)?)\s*(?:'|’|´|min(?:uto)?s?\b)(?:\s*(?:de\s+)?(?:descanso|pausa)\b)?""",
+        """(?:(?:\brest\b|\bdescanso\b|\bpausa\b)\s*(?:de\s*)?)?(\d{1,2}(?:[.,]\d)?)\s*(?:'|’|´|min(?:uto)?s?\b)(?:\s*(?:de\s+)?(?:descanso|pausa)\b)?""",
         RegexOption.IGNORE_CASE,
     )
     private val REST_SECONDS = Regex(
         """(?<![\w,.])(\d{2,3})\s*(?:s|seg|segs|segundos?)\b(?:\s*(?:de\s+)?(?:descanso|pausa)\b)?""",
         RegexOption.IGNORE_CASE,
     )
+    private val TARGET_DURATION = Regex(
+        """(?<![\w.,])(?:(\d{1,2})\s*(?:[x×]\s*|sets?\s*(?:of\s*)?|series?\s*(?:of|de)?\s*))?(\d{1,4}(?:[.,]\d{1,2})?)\s*(seconds?|secs?|s|segs?|segundos?|minutes?|mins?|minutos?|min|m)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val DURATION_VALUE = Regex(
+        """(?<![\w.,])(\d{1,4}(?:[.,]\d{1,2})?)\s*(seconds?|secs?|s|segs?|segundos?|minutes?|mins?|minutos?|min|m)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val BARE_DURATION = Regex("""\d{1,4}(?:[.,]\d{1,2})?""")
+    private val DURATION_MINUTE_UNITS = setOf("m", "min", "mins", "minute", "minutes", "minuto", "minutos")
+    private val REST_LABEL_AT_END = Regex("(?i)(?:rest|descanso|pausa)(?:\\s+de)?\\s*$")
+    private val REST_LABEL_AT_START = Regex("(?i)^\\s*(?:rest|descanso|pausa)\\b")
 
     /** Repeticiones por lado («8/leg», «10 each side», «12 por pierna», «10 c/l», «10 por lado»): grupo 6 de la notación. */
     private const val PER_SIDE_TAIL = """\s*(?:/\s*(?:leg|lado|pierna|side)s?|each\s+side|por\s+(?:pierna|lado)|c\s*/\s*l)(?![a-z])"""
@@ -1606,15 +2025,33 @@ object ProgramImportParser {
 
     // ---- Semanas, días, hojas y prosa ----------------------------------------------------------------------
 
-    private val WEEK_NAME = Regex("""(?:semana|week|sem|s)\s?(\d{1,2})(?:\s.*)?""")
+    private val WEEK_NAME = Regex(
+        """(?:(?:semana|week|sem|s)\s?(\d{1,2})(?:\s.*)?|(?:deload|descarga|rest|descanso|recovery)\s+(?:week|semana)\s?(\d{1,2})(?:\s.*)?)""",
+    )
 
     /** «Día 1», «Dia 2 — Pierna», «Day 3», «D4» (texto normalizado), con o sin texto detrás. */
     private val DAY_NUMBERED = Regex("""(?:dia|day|d)\s?\d{1,2}(?:\s.*)?""")
+    /** «Day A» o «Día B»: algunos planes impresos nombran las sesiones con letras. */
+    private val DAY_LETTERED = Regex("""(?:dia|day)\s?[a-z](?:\s.*)?""")
+    /** Cabeceras de algunas hojas de gimnasio: «1 day (Monday)» o «2 día (miércoles)». */
+    private val NUMBERED_DAY_WEEKDAY = Regex("""\d{1,2}\s+(?:day|dia)\s+\(?([\p{L}]+)\)?""", RegexOption.IGNORE_CASE)
 
-    /** Un día de la semana, en inglés o en español, con o sin foco detrás pero sin cifras («Mon Pull», «Lunes: Pierna»). */
+    /** Vocabulario común para reconocer cabeceras y asignar el día ISO. */
+    private val WEEKDAY_ISO = mapOf(
+        "lunes" to 1, "lun" to 1, "monday" to 1, "mon" to 1,
+        "martes" to 2, "mar" to 2, "tuesday" to 2, "tue" to 2, "tues" to 2,
+        "miercoles" to 3, "mie" to 3, "wednesday" to 3, "wed" to 3, "weds" to 3,
+        "jueves" to 4, "jue" to 4, "thursday" to 4, "thu" to 4, "thur" to 4, "thurs" to 4,
+        "viernes" to 5, "vie" to 5, "friday" to 5, "fri" to 5,
+        "sabado" to 6, "sab" to 6, "saturday" to 6, "sat" to 6,
+        "domingo" to 7, "dom" to 7, "sunday" to 7, "sun" to 7,
+    )
+    private val WEEKDAY_CANONICAL = mapOf(
+        1 to "Lunes", 2 to "Martes", 3 to "Miércoles", 4 to "Jueves", 5 to "Viernes", 6 to "Sábado", 7 to "Domingo",
+    )
+    /** Un día de la semana, en inglés o en español, con o sin foco detrás («Mon Pull», «Lunes: Pierna»). */
     private val WEEKDAY_LABEL = Regex(
-        """(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday""" +
-            """|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun|lun|mar|mie|jue|vie|sab|dom)(?:\s[^0-9]*)?""",
+        """(?:${WEEKDAY_ISO.keys.sortedByDescending { it.length }.joinToString("|")})(?:\s[^0-9]*)?""",
     )
 
     /** «Session 2», «Sesión 4», «Workout B», «Entreno A/B»: el número o la letra, y un texto de foco sin cifras. */
@@ -1643,13 +2080,24 @@ object ProgramImportParser {
 
     /** Número de semana si el texto empieza por «Semana 2», «Week 2», «Sem 2» o «S2». */
     private fun weekNumber(text: String): Int? {
-        val digits = WEEK_NAME.matchEntire(ExerciseMatchLexicon.normalize(text))?.groupValues?.get(1) ?: return null
+        val match = WEEK_NAME.matchEntire(ExerciseMatchLexicon.normalize(text)) ?: return null
+        val digits = match.groupValues[1].ifEmpty { match.groupValues[2] }
         return digits.toIntOrNull()?.coerceAtLeast(1)
     }
 
     private fun isInstructionOrCalcSheet(name: String): Boolean {
         val text = ExerciseMatchLexicon.normalize(name)
         return OMITTED_SHEET_WORDS.any { text.contains(it) } || text in OMITTED_SHEET_NAMES
+    }
+
+    /** Tipo explícito de la semana, leído solo en etiquetas de semana o nombres de hoja que ya llevan número. */
+    private fun weekExecutionKindOf(text: String): WeekExecutionKind? {
+        val tokens = ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }
+        return when {
+            tokens.any { it == "deload" || it == "descarga" } -> WeekExecutionKind.DELOAD
+            tokens.any { it in setOf("rest", "descanso", "recovery", "recuperacion", "off") } -> WeekExecutionKind.REST
+            else -> null
+        }
     }
 
     /**
@@ -1659,7 +2107,104 @@ object ProgramImportParser {
     private fun isDayLabel(text: String): Boolean {
         val n = ExerciseMatchLexicon.normalize(text)
         if (n.isEmpty()) return false
-        return DAY_NUMBERED.matches(n) || WEEKDAY_LABEL.matches(n) || SESSION_LABEL.matches(n) || isFocusLabel(n)
+        return DAY_NUMBERED.matches(n) || DAY_LETTERED.matches(n) || WEEKDAY_LABEL.matches(n) || SESSION_LABEL.matches(n) || isFocusLabel(n)
+    }
+
+    /** Una etiqueta corta «Rest», «Rest Day», «Wednesday Rest» o «Día 2: Descanso». */
+    private fun isRestDayLabel(text: String): Boolean {
+        val tokens = ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }
+        if (tokens.isEmpty() || tokens.none { it in REST_DAY_WORDS }) return false
+        if (tokens.any { it in setOf("between", "series", "sets", "minutes", "minutos") }) return false
+        if (tokens.size == 1) return true
+        if (tokens.size == 2 && ("day" in tokens || "dia" in tokens)) return true
+        val dayMarker = tokens.firstOrNull() in setOf("day", "dia", "d", "session", "workout", "entreno")
+        val dayCode = tokens.getOrNull(1)?.let { it.all(Char::isDigit) || (it.length == 1 && it.all(Char::isLetter)) } == true
+        return explicitWeekday(text) != null || (dayMarker && dayCode)
+    }
+
+    /** Solo se interpreta un día de la semana cuando encabeza la etiqueta, no en instrucciones o nombres de ejercicios. */
+    private fun explicitWeekday(label: String): Int? = WEEKDAY_ISO[ExerciseMatchLexicon.normalize(label).substringBefore(' ')]
+
+    private data class OcrWeekdayCandidate(val day: Int?, val label: String, val distance: Int)
+
+    /** Accepts one O/0 OCR substitution in an isolated weekday token; context decides whether it is a header. */
+    private fun ocrWeekdayTypo(cells: List<String>): OcrWeekdayCandidate? {
+        val text = cells.map(String::trim).filter(String::isNotEmpty).singleOrNull()
+            ?.let(ExerciseMatchLexicon::normalize)
+            ?.takeIf { it.isNotEmpty() && ' ' !in it }
+            ?: return null
+        if (explicitWeekday(text) != null) return null
+        val matches = WEEKDAY_ISO.entries.mapNotNull { (alias, day) ->
+            if (alias.length < 4 || kotlin.math.abs(alias.length - text.length) > 1) return@mapNotNull null
+            val distance = editDistanceAtMostTwo(alias, text)
+            if (distance in 1..2) day to distance else null
+        }
+        val bestDistance = matches.minOfOrNull { it.second } ?: return null
+        val matchingDays = matches.filter { it.second == bestDistance }.map { it.first }.distinct()
+        val day = matchingDays.singleOrNull()
+        return OcrWeekdayCandidate(day, day?.let(WEEKDAY_CANONICAL::getValue) ?: "Día sin asignar", bestDistance)
+    }
+
+    /** Edit distance capped at 3; weekday tokens are short and this keeps fuzzy candidate work bounded. */
+    private fun editDistanceAtMostTwo(left: String, right: String): Int {
+        if (kotlin.math.abs(left.length - right.length) > 1) return 3
+        var previous = IntArray(right.length + 1) { it }
+        for (i in left.indices) {
+            val current = IntArray(right.length + 1)
+            current[0] = i + 1
+            var rowMinimum = current[0]
+            for (j in right.indices) {
+                current[j + 1] = minOf(
+                    previous[j + 1] + 1,
+                    current[j] + 1,
+                    previous[j] + if (left[i] == right[j]) 0 else 1,
+                )
+                rowMinimum = minOf(rowMinimum, current[j + 1])
+            }
+            if (rowMinimum > 2) return 3
+            previous = current
+        }
+        return previous.last().coerceAtMost(3)
+    }
+
+    /** A one-character OCR repair is automatic only between distinct day headers and before exercise content. */
+    private fun hasUniqueOcrWeekdayContext(rows: List<List<String>>, index: Int, candidateDay: Int): Boolean {
+        val knownDays = rows.mapNotNull { row ->
+            row.map(String::trim).filter(String::isNotEmpty).singleOrNull()?.let(::explicitWeekday)
+        }.distinct()
+        if (knownDays.size < 2) return false
+        val previous = (index - 1 downTo 0).firstNotNullOfOrNull { rowIndex ->
+            val label = rows[rowIndex].map(String::trim).filter(String::isNotEmpty).singleOrNull() ?: return@firstNotNullOfOrNull null
+            explicitWeekday(label)?.let { label to it }
+        } ?: return false
+        if (previous.second == candidateDay) return false
+        val nextIndex = (index + 1 until rows.size).firstOrNull { row -> rows[row].any(String::isNotBlank) } ?: return false
+        val next = rows[nextIndex].map(String::trim).filter(String::isNotEmpty).joinToString(" ")
+        val notation = parseNotation(next)
+        return notation?.name?.isNotBlank() == true && !isProse(next)
+    }
+
+    /** Una hoja con nombre de instrucciones/calculadora se conserva si sus filas sí contienen una rutina. */
+    private fun hasWorkoutEvidence(rows: List<List<String>>): Boolean {
+        if (rows.any { row ->
+                val text = row.map(String::trim).filter(String::isNotEmpty).joinToString(" ")
+                val notation = parseNotation(text)
+                notation?.name?.isNotBlank() == true && !isProse(text)
+            }
+        ) return true
+        for (index in rows.indices) {
+            val columns = tableHeaderAt(rows, index) ?: continue
+            val nameIndex = columns.indexOf(ColumnRole.NAME) ?: continue
+            val prescriptionIndex = listOf(ColumnRole.SCHEME, ColumnRole.REPS).firstNotNullOfOrNull(columns::indexOf)
+                ?: continue
+            if (rows.drop(index + 1).any { row ->
+                    val name = row.getOrNull(nameIndex)?.trim().orEmpty()
+                    val prescription = row.getOrNull(prescriptionIndex)?.trim().orEmpty()
+                    name.isNotEmpty() && (parseNotation(prescription) != null || parseRange(prescription) != null || leadingInt(prescription) != null)
+                }
+            ) return true
+        }
+        return false
     }
 
     private fun isFocusLabel(normalized: String): Boolean {
@@ -1765,7 +2310,7 @@ object ProgramImportParser {
     }
 
     /** Ejercicio de una cuadrícula, con los valores que le llegan de sus filas. */
-    private class GridEntry(val day: DayDraft, val where: String, val name: String) {
+    private class GridEntry(val day: DayDraft, val where: String, var name: String) {
         /** Celdas del bloque, para el texto original. */
         val cells = mutableListOf<String>()
         val notes = mutableListOf<String>()
@@ -1794,6 +2339,45 @@ object ProgramImportParser {
             }
         }
 
+    /** Días escritos como cabeceras de una tabla OCR transpuesta, incluso si falta un número en la impresión. */
+    private val OCR_MATRIX_DAY_NUMBER = Regex("""^(?:day|dia|d)\s?(\d{1,2})(?:\s.*)?$""")
+    private val OCR_MATRIX_DAY_LABELS = setOf("day", "dia", "d")
+    private const val OCR_MATRIX_MAX_DAY_SPAN = 31
+
+    private fun matrixDayNumber(label: String): Int? =
+        OCR_MATRIX_DAY_NUMBER.matchEntire(ExerciseMatchLexicon.normalize(label))?.groupValues?.get(1)?.toIntOrNull()
+
+    /** Convierte DAY 1…DAY 7 en columnas; una cabecera ausente se rellena según la secuencia numerada. */
+    private fun ocrDayMatrixColumns(cells: List<String>): List<Pair<Int, String>> {
+        val firstContent = cells.indexOfFirst { it.isNotBlank() }
+        if (firstContent < 0 || !isDayMatrixHeader(cells[firstContent])) return emptyList()
+        val numbered = cells.mapIndexedNotNull { index, cell -> matrixDayNumber(cell)?.let { index to it } }
+        if (numbered.size < GRID_MIN_DAYS) return emptyList()
+        val numbers = numbered.map { it.second }
+        if (numbers.distinct().size != numbers.size || numbers.zipWithNext().any { (a, b) -> a >= b }) return emptyList()
+        val firstNumber = numbers.first()
+        val lastNumber = numbers.last()
+        val span = lastNumber - firstNumber + 1
+        if (span !in GRID_MIN_DAYS..OCR_MATRIX_MAX_DAY_SPAN) return emptyList()
+
+        val labelsByDay = numbered.associate { (index, number) -> number to cells[index].trim() }.toMutableMap()
+        cells.forEachIndexed { index, raw ->
+            if (ExerciseMatchLexicon.normalize(raw) !in OCR_MATRIX_DAY_LABELS) return@forEachIndexed
+            val previous = numbered.lastOrNull { it.first < index }?.second ?: return@forEachIndexed
+            val next = numbered.firstOrNull { it.first > index }?.second ?: return@forEachIndexed
+            val inferred = previous + 1
+            if (inferred < next) labelsByDay.putIfAbsent(inferred, "Day $inferred")
+        }
+
+        val firstColumn = numbered.first().first
+        return (firstNumber..lastNumber).map { number ->
+            (firstColumn + number - firstNumber) to (labelsByDay[number] ?: "Day $number")
+        }
+    }
+
+    private fun isDayMatrixHeader(label: String): Boolean =
+        matrixDayNumber(label) != null || ExerciseMatchLexicon.normalize(label) in OCR_MATRIX_DAY_LABELS
+
     /**
      * Una cabecera de días abre cuadrícula solo si, unas filas más abajo, hay una etiqueta de series («Series x Reps») o de
      * peso en su columna, antes de la primera columna de día. Otra cabecera de días antes decide por sí misma.
@@ -1806,6 +2390,20 @@ object ProgramImportParser {
             val label = cells.indices.firstOrNull { it < firstDayColumn && cells[it].isNotEmpty() }?.let { cells[it] } ?: continue
             val kind = gridLabelKind(label)
             if (kind == GridKind.SCHEME || kind == GridKind.LOAD) return true
+        }
+        return false
+    }
+
+    /** OCR de rutina de reto: repeticiones y ejercicio vienen juntos en cada celda bajo una cabecera por día. */
+    private fun ocrGridConfirmed(rows: List<List<String>>, headerIndex: Int, days: List<Pair<Int, String>>): Boolean {
+        val end = minOf(rows.size, headerIndex + GRID_LOOKAHEAD_ROWS)
+        for (index in headerIndex + 1 until end) {
+            val cells = rows[index].map { it.trim() }
+            if (ocrDayMatrixColumns(cells).size >= GRID_MIN_DAYS) return false
+            val countedExercises = days.count { (column, _) ->
+                ocrCountedExercise(cells.getOrNull(column).orEmpty()) != null
+            }
+            if (countedExercises >= 2) return true
         }
         return false
     }
@@ -1853,8 +2451,14 @@ object ProgramImportParser {
 
     /** Ejercicio nuevo de un día de la cuadrícula; la celda puede traer notación («Sentadilla 4x8»). */
     private fun addGridEntry(builder: DraftBuilder, grid: Grid, day: DayDraft, cell: String, row: RowContext) {
-        val notation = parseNotation(cell)
-        val named = numbered(notation?.name ?: dropLinks(cell))
+        if (isRestDayLabel(cell)) {
+            day.isRestDay = true
+            return
+        }
+        if (builder.ocrSheet && appendOcrGridContinuation(grid, day, cell)) return
+        val counted = if (builder.ocrSheet) ocrCountedExercise(cell) else null
+        val notation = if (counted == null) parseNotation(cell) else null
+        val named = numbered(notation?.name ?: counted?.name ?: dropLinks(cell))
         val name = named.name
         if (name.isBlank()) {
             builder.inDay(day) { row.warn(ImportWarningKind.SKIPPED_ROW, "falta el nombre del ejercicio («$cell»)") }
@@ -1864,6 +2468,10 @@ object ProgramImportParser {
         val entry = GridEntry(day, row.where, name)
         entry.cells += cell
         blockNote(named.block)?.let { entry.notes += it }
+        if (counted != null) {
+            entry.repsMin = counted.reps
+            entry.repsMax = counted.reps
+        }
         if (notation != null) {
             entry.sets = notation.sets
             entry.repsMin = notation.repsMin
@@ -1881,6 +2489,20 @@ object ProgramImportParser {
         grid.entries += entry
     }
 
+    /** Une una celda corta que continúa una alternativa de nombre partida en la línea OCR anterior. */
+    private fun appendOcrGridContinuation(grid: Grid, day: DayDraft, cell: String): Boolean {
+        val previous = grid.lastEntryOf(day) ?: return false
+        if (previous.sets != null || previous.repsMin == null || !OCR_EXERCISE_CHOICE.containsMatchIn(previous.name)) return false
+        if (ocrCountedExercise(cell) != null || parseNotation(cell) != null) return false
+        val continuation = dropLinks(cell).trim().trimEnd('.', ',', ';', ':')
+        if (continuation.length > 24 || !isOcrExerciseName(continuation)) return false
+        val combined = "${previous.name} $continuation"
+        if (!isOcrExerciseName(combined)) return false
+        previous.name = combined
+        previous.cells += cell
+        return true
+    }
+
     /** Fila «Series x Reps» (o «Series», «Reps»): notación o números para el último ejercicio del día. */
     private fun applyGridScheme(
         builder: DraftBuilder,
@@ -1892,6 +2514,10 @@ object ProgramImportParser {
     ) {
         val entry = grid.lastEntryOf(day)
         if (entry == null) {
+            if (isRestDayLabel(cell)) {
+                day.isRestDay = true
+                return
+            }
             missingGridName(builder, day, row)
             return
         }
@@ -2091,7 +2717,7 @@ object ProgramImportParser {
     /** Papeles de una fila de ejercicio: si ninguno tiene texto, la fila solo puede ser un día. */
     private val VALUE_ROLES = listOf(
         ColumnRole.NAME, ColumnRole.SETS, ColumnRole.REPS, ColumnRole.LOAD, ColumnRole.PERCENT,
-        ColumnRole.RPE, ColumnRole.RIR, ColumnRole.REST, ColumnRole.SCHEME, ColumnRole.LIST,
+        ColumnRole.RPE, ColumnRole.RIR, ColumnRole.REST, ColumnRole.DURATION, ColumnRole.SCHEME, ColumnRole.LIST,
     )
 
     /** Quita el enumerador del nombre y separa la etiqueta de bloque, si la hay. */
@@ -2802,10 +3428,10 @@ object ProgramImportParser {
     // ---- Estado del análisis --------------------------------------------------------------------------------
 
     private sealed interface Line {
-        data class Week(val number: Int) : Line
+        data class Week(val number: Int, val executionKind: WeekExecutionKind?) : Line
 
         /** Día en curso; [silent] si es solo un texto corto que puede no ser día (si sale vacío, no avisa). */
-        data class Day(val name: String, val silent: Boolean) : Line
+        data class Day(val name: String, val silent: Boolean, val isRestDay: Boolean = false) : Line
         data class Exercise(val exercise: ImportedExercise) : Line
 
         /** Varios grupos con porcentaje de una misma fila: un ejercicio por grupo. */
@@ -2814,12 +3440,15 @@ object ProgramImportParser {
 
     /** Fila o línea en curso: dónde está y su texto original, para los avisos y el ejercicio que salga de ella. */
     private class RowContext(val where: String, val source: String, private val builder: DraftBuilder) {
+        val origin: ImportRowOrigin get() = builder.currentOrigin
+        val isOcr: Boolean get() = builder.ocrSheet
+
         fun warn(kind: ImportWarningKind, detail: String) = builder.warn(kind, where, source, "$where: $detail")
 
         /** Nombre suelto sin prescripción: línea de texto, y aviso solo si la hoja no da ningún ejercicio. */
         fun loose(detail: String) = builder.looseName(where, source, "$where: $detail")
 
-        fun count(noise: Noise) = builder.count(noise)
+        fun count(noise: Noise) = builder.count(noise, where, source)
 
         /** Carga con número de esta fila: [mark] es la unidad que lleva la celda, si la lleva. */
         fun noteLoad(mark: ImportLoadUnit?) = builder.noteLoadValue(mark)
@@ -2835,6 +3464,7 @@ object ProgramImportParser {
         val location: String,
         val sourceText: String,
         var silent: Boolean,
+        var isRestDay: Boolean = false,
     ) {
         val exercises = mutableListOf<ExerciseDraft>()
         var id: String? = null
@@ -2861,6 +3491,19 @@ object ProgramImportParser {
         var exercise: ExerciseDraft?,
         /** Carga que solo cabe en una unidad: el aviso sobrevive solo si el archivo va en la otra. */
         val unitLoad: Double? = null,
+        val sourceDocumentType: ImportDocumentType = ImportDocumentType.UNKNOWN,
+        val sourcePage: Int? = null,
+        val sourceSheet: String? = null,
+        val sourceRow: Int? = null,
+        val sourceTextTruncated: Boolean = false,
+        val itemCount: Int? = null,
+    )
+
+    private data class NoiseSample(
+        val location: String,
+        val text: String,
+        val origin: ImportRowOrigin,
+        val truncated: Boolean,
     )
 
     /** Acumula semanas, días y avisos mientras se recorren las filas. */
@@ -2871,7 +3514,11 @@ object ProgramImportParser {
         /** Avisos de nombres sueltos de la hoja en curso: salen al cerrarla, solo si la hoja no tiene ejercicios. */
         private val looseNames = mutableListOf<PendingWarning>()
         private val days = mutableListOf<DayDraft>()
+        private val weekExecutionKinds = mutableMapOf<Int, WeekExecutionKind>()
         private val noise = mutableMapOf<Noise, Int>()
+        private val noiseSamples = mutableMapOf<Noise, MutableList<NoiseSample>>()
+        var currentOrigin: ImportRowOrigin = ImportRowOrigin()
+        private var sheetOrigin: ImportRowOrigin = ImportRowOrigin()
         private var week = 1
         private var openDay: DayDraft? = null
         private var sheetFirstDay = 0
@@ -2976,6 +3623,14 @@ object ProgramImportParser {
                 column to DayDraft(week, name, row.where, row.source, silent = false).also { days += it }
             }
 
+        /** Días de reto numerados en varias filas de cabecera: cada grupo de siete pertenece a una semana. */
+        fun openOcrGridDays(columns: List<Pair<Int, String>>, row: RowContext): List<Pair<Int, DayDraft>> =
+            columns.map { (column, name) ->
+                val dayNumber = ProgramImportParser.matrixDayNumber(name)
+                val dayWeek = dayNumber?.let { (it - 1) / 7 + 1 } ?: week
+                column to DayDraft(dayWeek, name, row.where, row.source, silent = false).also { days += it }
+            }
+
         fun addToDay(day: DayDraft, exercise: ImportedExercise): ExerciseDraft =
             ExerciseDraft(day, exercise).also { day.exercises += it }
 
@@ -2990,15 +3645,31 @@ object ProgramImportParser {
         }
 
         /** Día de la columna de día de una tabla: si ya está abierto con ese nombre, la fila sigue en él. */
-        fun openTableDay(name: String, row: RowContext) {
+        fun openTableDay(name: String, row: RowContext, isRestDay: Boolean = false) {
             val open = openDay
-            if (open != null && ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)) return
-            startDay(name, silent = false, row)
+            if (open != null && ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)) {
+                if (isRestDay) open.isRestDay = true
+                return
+            }
+            startDay(name = name, silent = false, row = row, isRestDay = isRestDay)
         }
 
         /** Aviso de la fila en curso: lleva la semana y el día que estaban abiertos al leerla. */
         fun warn(kind: ImportWarningKind, where: String, sourceText: String, message: String) {
-            val pending = PendingWarning(kind, where, sourceText, message, weekIndex = week, day = openDay, exercise = null)
+            val pending = PendingWarning(
+                kind = kind,
+                location = where,
+                sourceText = sourceText.take(MAX_WARNING_SOURCE_CHARS),
+                message = message,
+                weekIndex = week,
+                day = openDay,
+                exercise = null,
+                sourceDocumentType = currentOrigin.documentType,
+                sourcePage = currentOrigin.pageNumber,
+                sourceSheet = currentOrigin.sheetName,
+                sourceRow = currentOrigin.rowNumber,
+                sourceTextTruncated = sourceText.length > MAX_WARNING_SOURCE_CHARS,
+            )
             warnings += pending
             rowWarnings += pending
         }
@@ -3006,28 +3677,47 @@ object ProgramImportParser {
         /** Aviso de una carga que solo cabe en una unidad: se resuelve en [finish], con la unidad del archivo. */
         fun warnUnitLoad(load: Double, where: String, sourceText: String, message: String) {
             val pending = PendingWarning(
-                ImportWarningKind.IGNORED_VALUE, where, sourceText, message,
-                weekIndex = week, day = openDay, exercise = null, unitLoad = load,
+                kind = ImportWarningKind.IGNORED_VALUE,
+                location = where,
+                sourceText = sourceText.take(MAX_WARNING_SOURCE_CHARS),
+                message = message,
+                weekIndex = week,
+                day = openDay,
+                exercise = null,
+                unitLoad = load,
+                sourceDocumentType = currentOrigin.documentType,
+                sourcePage = currentOrigin.pageNumber,
+                sourceSheet = currentOrigin.sheetName,
+                sourceRow = currentOrigin.rowNumber,
+                sourceTextTruncated = sourceText.length > MAX_WARNING_SOURCE_CHARS,
             )
             warnings += pending
             rowWarnings += pending
         }
 
-        fun count(kind: Noise) {
+        fun count(kind: Noise, location: String? = null, sourceText: String? = null) {
             noise[kind] = (noise[kind] ?: 0) + 1
+            val original = sourceText?.trim()?.takeIf(String::isNotEmpty) ?: return
+            val samples = noiseSamples.getOrPut(kind) { mutableListOf() }
+            if (samples.size < 3) samples += NoiseSample(location.orEmpty(), original.take(140), currentOrigin, original.length > 140)
         }
 
         /** Nombre suelto sin prescripción: cuenta como línea de texto; su aviso sale al cerrar la hoja, si no hay ejercicios. */
         fun looseName(where: String, sourceText: String, message: String) {
-            count(Noise.TEXT)
+            count(Noise.TEXT, where, sourceText)
             looseNames += PendingWarning(
                 kind = ImportWarningKind.SKIPPED_ROW,
                 location = where,
-                sourceText = sourceText,
+                sourceText = sourceText.take(MAX_WARNING_SOURCE_CHARS),
                 message = message,
                 weekIndex = week,
                 day = openDay,
                 exercise = null,
+                sourceDocumentType = currentOrigin.documentType,
+                sourcePage = currentOrigin.pageNumber,
+                sourceSheet = currentOrigin.sheetName,
+                sourceRow = currentOrigin.rowNumber,
+                sourceTextTruncated = sourceText.length > MAX_WARNING_SOURCE_CHARS,
             )
         }
 
@@ -3037,24 +3727,29 @@ object ProgramImportParser {
         /** El nombre de la hoja es una semana: un día repetido en esa hoja no abre semana nueva (H6a). */
         private var sheetNamedWeek = false
 
-        fun openWeek(number: Int) {
+        fun openWeek(number: Int, executionKind: WeekExecutionKind?) {
             week = number
             openDay = null
+            executionKind?.let { weekExecutionKinds[number] = it }
             weekLabelEvents++
         }
 
         /** Semana del nombre de la hoja, que se abre al empezarla (H6a). */
-        fun openSheetWeek(number: Int) {
+        fun openSheetWeek(number: Int, executionKind: WeekExecutionKind?) {
             week = number
             openDay = null
+            executionKind?.let { weekExecutionKinds[number] = it }
             sheetNamedWeek = true
         }
 
         /** Empieza una hoja (o el texto pegado): el día abierto de la hoja anterior no recoge sus filas. */
-        fun beginSheet() {
+        fun beginSheet(origin: ImportRowOrigin = ImportRowOrigin()) {
             openDay = null
             sheetFirstDay = days.size
+            sheetOrigin = origin
+            currentOrigin = origin
             noise.clear()
+            noiseSamples.clear()
             looseNames.clear()
             cyclesStopped = false
             optionsCut = false
@@ -3070,31 +3765,78 @@ object ProgramImportParser {
             for (hint in sheetHints) addNote(location, "$location: $hint")
             for (kind in Noise.entries) {
                 val total = noise[kind] ?: continue
-                addNote(location, noiseMessage(location, kind, total))
+                val samples = noiseSamples[kind].orEmpty()
+                val sampleOrigins = samples.firstOrNull()?.origin ?: sheetOrigin
+                val sourceSamples = samples.takeIf { it.isNotEmpty() }?.joinToString(" · ") { sample ->
+                    val location = listOfNotNull(
+                        sample.location.takeIf(String::isNotBlank),
+                        sample.origin.pageNumber?.let { "pág. $it" },
+                        sample.origin.sheetName?.let { "hoja $it" },
+                        sample.origin.rowNumber?.let { "fila $it" },
+                    ).distinct().joinToString(", ")
+                    (if (location.isNotBlank()) "$location: " else "") + "«${sample.text}»" + if (sample.truncated) "…" else ""
+                }?.take(MAX_WARNING_SOURCE_CHARS)
+                addNote(
+                    location,
+                    noiseMessage(location, kind, total),
+                    sourceSamples,
+                    sampleOrigins,
+                    sourceTextTruncated = sourceSamples?.length == MAX_WARNING_SOURCE_CHARS || samples.any { it.truncated },
+                    itemCount = total,
+                )
             }
             // Los nombres sueltos avisan uno a uno solo si la hoja no dio ningún ejercicio; si no, son líneas de texto.
             if (days.drop(sheetFirstDay).none { it.exercises.isNotEmpty() }) warnings += looseNames
             looseNames.clear()
         }
 
-        fun noteOmittedSheet(name: String) {
-            addNote("Hoja «$name»", "Se omitió la hoja «$name»: parece de instrucciones o de cálculo.")
+        fun noteOcrCorrection(location: String, original: String, correctedLabel: String) {
+            addNote(
+                location,
+                "$location: se interpretó «${original.trim()}» como la cabecera «$correctedLabel» por el contexto de la tabla.",
+                original.take(MAX_WARNING_SOURCE_CHARS),
+                currentOrigin,
+                sourceTextTruncated = original.length > MAX_WARNING_SOURCE_CHARS,
+            )
+        }
+
+        fun noteOmittedSheet(name: String, origin: ImportRowOrigin) {
+            addNote("Hoja «$name»", "Se omitió la hoja «$name»: parece de instrucciones o de cálculo.", origin = origin, itemCount = 1)
         }
 
         /** Nota que el lector dejó sobre una hoja: un recorte de columnas o de filas, o el total de hojas del libro. */
-        fun noteReaderTrim(name: String, note: String) {
-            addNote("Hoja «$name»", "Hoja «$name»: $note")
+        fun noteReaderTrim(name: String, note: String, origin: ImportRowOrigin) {
+            addNote(
+                "Hoja «$name»",
+                "Hoja «$name»: $note",
+                sourceText = note.take(MAX_WARNING_SOURCE_CHARS),
+                origin = origin,
+                sourceTextTruncated = note.length > MAX_WARNING_SOURCE_CHARS,
+            )
         }
 
-        private fun addNote(location: String, message: String) {
+        private fun addNote(
+            location: String,
+            message: String,
+            sourceText: String? = null,
+            origin: ImportRowOrigin = currentOrigin,
+            sourceTextTruncated: Boolean = false,
+            itemCount: Int? = null,
+        ) {
             warnings += PendingWarning(
                 kind = ImportWarningKind.SHEET_NOTE,
                 location = location,
-                sourceText = null,
+                sourceText = sourceText?.take(MAX_WARNING_SOURCE_CHARS),
                 message = message,
                 weekIndex = null,
                 day = null,
                 exercise = null,
+                sourceDocumentType = origin.documentType,
+                sourcePage = origin.pageNumber,
+                sourceSheet = origin.sheetName,
+                sourceRow = origin.rowNumber,
+                sourceTextTruncated = sourceTextTruncated || (sourceText?.length ?: 0) > MAX_WARNING_SOURCE_CHARS,
+                itemCount = itemCount,
             )
         }
 
@@ -3107,13 +3849,27 @@ object ProgramImportParser {
             return "$location: $phrase"
         }
 
-        fun startDay(name: String, silent: Boolean, row: RowContext) {
+        /** Una etiqueta repetida en cada fila OCR sigue siendo el mismo día, salvo que haya cambiado la semana. */
+        fun startOcrInlineDay(name: String, row: RowContext, isRestDay: Boolean = false) {
+            val open = openDay
+            if (open != null && open.week == week &&
+                ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)
+            ) {
+                open.silent = false
+                if (isRestDay) open.isRestDay = true
+                return
+            }
+            startDay(name, silent = false, row, isRestDay)
+        }
+
+        fun startDay(name: String, silent: Boolean, row: RowContext, isRestDay: Boolean = false) {
             pendingDayName = null
             val open = openDay
             if (ocrSheet && open != null) {
                 // Hoja de OCR: la etiqueta igual al día abierto, en la cabecera de página, sigue ese día («DÍA 1» en cada página).
                 if (pageHeader && ExerciseMatchLexicon.normalize(open.name) == ExerciseMatchLexicon.normalize(name)) {
                     if (!silent) open.silent = false
+                    if (isRestDay) open.isRestDay = true
                     return
                 }
                 // Hoja de OCR: un texto corto (que puede no ser día) no cambia un día con nombre ya abierto: es línea de texto.
@@ -3131,7 +3887,7 @@ object ProgramImportParser {
             if (!silent && !sheetNamedWeek && lastSame != null && lastSame.labelMark == weekLabelEvents) {
                 week = (days.drop(sheetFirstDay).maxOfOrNull { it.week } ?: week) + 1
             }
-            openDay = DayDraft(week, name, row.where, row.source, silent).also {
+            openDay = DayDraft(week, name, row.where, row.source, silent, isRestDay).also {
                 it.labelMark = weekLabelEvents
                 days += it
             }
@@ -3147,7 +3903,7 @@ object ProgramImportParser {
         fun endRow(exercise: ExerciseDraft?) {
             if (exercise != null) {
                 rowWarnings
-                    .filter { it.kind == ImportWarningKind.IGNORED_VALUE }
+                    .filter { it.kind == ImportWarningKind.IGNORED_VALUE || it.kind == ImportWarningKind.INCOMPLETE_ROW }
                     .forEach { pending ->
                         pending.exercise = exercise
                         pending.day = exercise.day
@@ -3162,7 +3918,7 @@ object ProgramImportParser {
             val unit = decideLoadUnit()
             val kept = days.filter { day ->
                 val hasExercises = day.exercises.isNotEmpty()
-                if (!hasExercises && !day.silent) {
+                if (!hasExercises && !day.silent && !day.isRestDay) {
                     warnings += PendingWarning(
                         kind = ImportWarningKind.EMPTY_DAY,
                         location = day.location,
@@ -3173,30 +3929,38 @@ object ProgramImportParser {
                         exercise = null,
                     )
                 }
-                hasExercises
+                hasExercises || day.isRestDay
             }
-            val weeks = kept.groupBy { it.week }.toSortedMap().map { (number, dayList) ->
+            val daysByWeek = kept.groupBy { it.week }
+            val weekNumbers = (daysByWeek.keys + weekExecutionKinds.filterValues { it != WeekExecutionKind.TRAINING }.keys).sorted()
+            val weeks = weekNumbers.map { number ->
+                val dayList = daysByWeek[number].orEmpty()
                 ImportedWeek(
                     index = number,
+                    executionKind = weekExecutionKinds[number] ?: WeekExecutionKind.TRAINING,
                     days = dayList.mapIndexed { dayPosition, day ->
                         val dayId = "w$number-d${dayPosition + 1}"
                         day.id = dayId
                         ImportedDay(
                             id = dayId,
                             name = day.name,
+                            dayOfWeek = explicitWeekday(day.name),
+                            isRestDay = day.isRestDay,
                             exercises = day.exercises.mapIndexed { exercisePosition, draft ->
                                 val exerciseId = "$dayId-e${exercisePosition + 1}"
                                 draft.id = exerciseId
                                 draft.exercise.copy(
                                     id = exerciseId,
-                                    loadKg = draft.exercise.loadKg?.takeIf { loadInRange(it, unit) },
+                                    loadKg = draft.exercise.loadKg?.takeIf {
+                                        loadInRange(it, draft.exercise.loadUnit ?: unit)
+                                    },
                                 )
                             },
                         )
                     },
                 )
             }
-            if (weeks.isEmpty()) {
+            if (kept.isEmpty()) {
                 warnings += PendingWarning(
                     kind = ImportWarningKind.NOTHING_FOUND,
                     location = "",
@@ -3222,6 +3986,12 @@ object ProgramImportParser {
                         weekIndex = pending.weekIndex,
                         dayId = pending.day?.id,
                         exerciseId = pending.exercise?.id,
+                        sourceDocumentType = pending.sourceDocumentType,
+                        sourcePage = pending.sourcePage,
+                        sourceSheet = pending.sourceSheet,
+                        sourceRow = pending.sourceRow,
+                        sourceTextTruncated = pending.sourceTextTruncated,
+                        itemCount = pending.itemCount,
                     )
                 },
             )

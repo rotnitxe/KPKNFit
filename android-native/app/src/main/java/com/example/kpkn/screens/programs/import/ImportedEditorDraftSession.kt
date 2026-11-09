@@ -4,10 +4,14 @@ import com.example.kpkn.data.importer.ImportedEditorDocument
 import com.example.kpkn.data.importer.ImportedEditorDraftPersistence
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramSchedulePlan
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
 import com.example.kpkn.domain.training.importer.ImportedProgramSourceMap
+import com.example.kpkn.domain.training.importer.ImportSourceEvidence
+import com.example.kpkn.domain.training.importer.ImportWizardPage
+import com.example.kpkn.domain.training.importer.ImportWizardSheet
 import com.example.kpkn.screens.sessioneditor.ImportedProgramEditorStore
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +21,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** Coordina el programa completo y los avisos de origen en un único borrador durable. */
+/** Borrador durable de importación; el Program opcional solo existe en borradores de versiones anteriores. */
 internal class ImportedEditorDraftSession private constructor(
     initial: ImportedEditorDocument,
     private val persistence: ImportedEditorDraftPersistence,
@@ -27,7 +31,11 @@ internal class ImportedEditorDraftSession private constructor(
     private val _document = MutableStateFlow(initial)
     val document: StateFlow<ImportedEditorDocument> = _document.asStateFlow()
 
-    val programStore = ImportedProgramEditorStore(initial.program) { program ->
+    private var programStoreValue: ImportedProgramEditorStore? = initial.program?.let(::createProgramStore)
+    val programStore: ImportedProgramEditorStore
+        get() = checkNotNull(programStoreValue) { "Este borrador aún no tiene un programa canónico." }
+
+    private fun createProgramStore(initialProgram: Program) = ImportedProgramEditorStore(initialProgram) { program ->
         mutex.withLock {
             if (closed) return@withLock false
             val before = _document.value
@@ -54,47 +62,126 @@ internal class ImportedEditorDraftSession private constructor(
         resolutions: Map<String, String?>,
         title: String,
         weekdays: Set<Int>,
-    ): Boolean = programStore.mutateThrough(
-        transform = { it.copy(name = title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }).withImportedWeekdays(weekdays) },
-        forcePersist = true,
-    ) { program ->
-        mutex.withLock {
+        wizardPage: ImportWizardPage? = null,
+        wizardSheet: ImportWizardSheet? = null,
+        sourceEvidence: ImportSourceEvidence? = null,
+    ): Boolean = mutex.withLock {
+        if (closed) return@withLock false
+        val before = _document.value
+        if (before.editingStarted) return@withLock false
+        val normalizedTitle = title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE }
+        val retainedLegacyProgram = before.program?.copy(name = normalizedTitle)
+            ?.withImportedWeekdays(weekdays, explicitImportedSessionIds(source, before.sourceMap))
+        val next = before.copy(
+            revision = before.revision + 1,
+            source = source,
+            resolutions = resolutions,
+            title = title,
+            weekdays = weekdays,
+            wizardPage = wizardPage ?: before.wizardPage,
+            wizardSheet = wizardSheet,
+            sourceEvidence = sourceEvidence ?: before.sourceEvidence,
+            program = retainedLegacyProgram,
+        )
+        if (next == before.copy(revision = next.revision)) return@withLock true
+        if (persistence.write(next, before.revision).isFailure) return@withLock false
+        _document.value = next
+        true
+    }
+
+    /** Persists navigation and source-evidence changes without rewriting the canonical program. */
+    suspend fun updateWorkflow(
+        wizardPage: ImportWizardPage,
+        wizardSheet: ImportWizardSheet?,
+        sourceEvidence: ImportSourceEvidence,
+    ): Boolean = mutex.withLock {
+        if (closed) return@withLock false
+        val before = _document.value
+        val next = before.copy(
+            revision = before.revision + 1,
+            wizardPage = wizardPage,
+            wizardSheet = wizardSheet,
+            sourceEvidence = sourceEvidence,
+        )
+        if (next.wizardPage == before.wizardPage && next.wizardSheet == before.wizardSheet && next.sourceEvidence == before.sourceEvidence) {
+            return@withLock true
+        }
+        if (persistence.write(next, before.revision).isFailure) return@withLock false
+        _document.value = next
+        true
+    }
+
+    /** Keeps the weekly schedule and its source-day assignments in the same durable revision. */
+    suspend fun updateImportedWeekdays(assignments: Map<String, Int?>): Boolean {
+        val store = programStoreValue ?: return mutex.withLock {
             if (closed) return@withLock false
             val before = _document.value
-            if (before.editingStarted) return@withLock false
-            val next = before.copy(
-                revision = before.revision + 1,
-                source = source,
-                resolutions = resolutions,
-                title = title,
-                weekdays = weekdays,
-                program = program.copy(name = title.ifBlank { ImportedProgramBuilder.DEFAULT_TITLE })
-                    .withImportedWeekdays(weekdays),
-            )
-            if (next == before.copy(revision = next.revision)) return@withLock true
+            val updatedSource = before.source.copy(weeks = before.source.weeks.map { week ->
+                week.copy(days = week.days.map { day ->
+                    val assigned = assignments[day.id]?.takeIf { it in 1..7 }
+                    if (day.isRestDay || day.id !in assignments) day else day.copy(dayOfWeek = assigned)
+                })
+            })
+            val weekdays = updatedSource.weeks.flatMap { it.days }
+                .filterNot { it.isRestDay }
+                .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+                .toSet()
+            val next = before.copy(revision = before.revision + 1, source = updatedSource, weekdays = weekdays)
             if (persistence.write(next, before.revision).isFailure) return@withLock false
             _document.value = next
             true
         }
-    }
-
-    /** Makes the complete Program the source of truth in one durable revision. */
-    suspend fun beginEditing(program: Program, sourceMap: ImportedProgramSourceMap): Boolean {
-        if (_document.value.editingStarted) return true
-        return programStore.mutateThrough(
-            transform = { program },
+        return store.mutateThrough(
+            transform = { program ->
+                val bySessionId = _document.value.sourceMap.sessionIdsByDayId.mapNotNull { (dayId, sessionId) ->
+                    if (dayId in assignments) sessionId to assignments[dayId]?.takeIf { it in 1..7 } else null
+                }.toMap()
+                program.copy(macrocycles = program.macrocycles.map { macro ->
+                    macro.copy(blocks = macro.blocks.map { block ->
+                        block.copy(mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(weeks = meso.weeks.map { week ->
+                                week.copy(sessions = week.sessions.map { session ->
+                                    if (session.id !in bySessionId) session else session.copy(
+                                        dayOfWeek = bySessionId[session.id],
+                                        assignedDays = listOfNotNull(bySessionId[session.id]),
+                                    )
+                                })
+                            })
+                        })
+                    })
+                })
+            },
             forcePersist = true,
-        ) { nextProgram ->
+        ) { program ->
             mutex.withLock {
                 if (closed) return@withLock false
                 val before = _document.value
-                if (before.editingStarted) return@withLock true
+                val updatedSource = before.source.copy(weeks = before.source.weeks.map { week ->
+                    week.copy(days = week.days.map { day ->
+                        val assigned = assignments[day.id]?.takeIf { it in 1..7 }
+                        if (day.isRestDay || day.id !in assignments) day else day.copy(dayOfWeek = assigned)
+                    })
+                })
+                val weekdays = updatedSource.weeks.flatMap { it.days }
+                    .filterNot { it.isRestDay }
+                    .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+                    .toSet()
+                val programWeekdays = weekdays
+                val nextProgram = program.copy(
+                    startDay = programWeekdays.minOrNull(),
+                    weekDays = programWeekdays.size.takeIf { it > 0 },
+                    schedulePlan = if (programWeekdays.isEmpty()) null else {
+                        ProgramSchedulePlan(
+                            weekStartDay = programWeekdays.minOrNull() ?: 1,
+                            trainingDays = programWeekdays,
+                        )
+                    },
+                )
                 val next = before.copy(
                     revision = before.revision + 1,
-                    title = nextProgram.name,
+                    source = updatedSource,
+                    weekdays = weekdays,
                     program = nextProgram,
-                    sourceMap = sourceMap,
-                    editingStarted = true,
                 )
                 if (persistence.write(next, before.revision).isFailure) return@withLock false
                 _document.value = next
@@ -120,6 +207,30 @@ internal class ImportedEditorDraftSession private constructor(
         }
     }
 
+    /** Marks a session reviewed only after the shared editor has successfully saved and closed. */
+    suspend fun markSessionReviewed(sessionId: String): Boolean = mutex.withLock {
+        if (closed) return@withLock false
+        val before = _document.value
+        val exists = before.program?.macrocycles.orEmpty().any { macro ->
+            macro.blocks.any { block ->
+                block.mesocycles.any { meso ->
+                    meso.weeks.any { week -> week.sessions.any { it.id == sessionId } }
+                }
+            }
+        }
+        if (!exists) return@withLock false
+        if (sessionId in before.reviewedSessionIds) return@withLock true
+        withContext(NonCancellable) {
+            val next = before.copy(
+                revision = before.revision + 1,
+                reviewedSessionIds = before.reviewedSessionIds + sessionId,
+            )
+            if (persistence.write(next, before.revision).isFailure) return@withContext false
+            _document.value = next
+            true
+        }
+    }
+
     /** Persists the completed library commit before attempting draft-file cleanup. */
     suspend fun markSaved(programId: String): Boolean = withContext(NonCancellable) {
         mutex.withLock {
@@ -135,13 +246,13 @@ internal class ImportedEditorDraftSession private constructor(
 
     /** Retires an older session after a successful compare-and-replace without deleting its replacement. */
     suspend fun retire() = withContext(NonCancellable) {
-        programStore.closeForMutations()
+        programStoreValue?.closeForMutations()
         mutex.withLock { closed = true }
     }
 
     /** Evita escrituras tardías antes de eliminar exactamente la revisión que se está descartando. */
     suspend fun discard(): Result<Boolean> = withContext(NonCancellable) {
-        programStore.closeForMutations()
+        programStoreValue?.closeForMutations()
         mutex.withLock {
             closed = true
             val current = _document.value

@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionOrigin
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
@@ -92,6 +93,22 @@ class ImportedProgramBuilderTest {
     }
 
     @Test
+    fun `el mapa del dia importado apunta al id real de la sesion materializada`() {
+        val imported = draft.copy(weeks = draft.weeks.take(1))
+        val program = ImportedProgramBuilder.build(
+            imported,
+            resolved = emptyMap(),
+            weekdays = listOf(1, 3, 5),
+            programId = "imp-map",
+        )
+        val sourceMap = ImportedProgramBuilder.sourceMap(imported, emptyMap(), program.id)
+        val firstSessionId = sourceMap.sessionIdsByDayId.getValue("w1-d1")
+
+        assertEquals("imp-map-w1-d1", firstSessionId)
+        assertTrue(program.firstWeekSessions().any { it.id == firstSessionId })
+    }
+
+    @Test
     fun `una sola semana es un programa SIMPLE`() {
         val program = ImportedProgramBuilder.build(
             draft.copy(weeks = draft.weeks.take(1)),
@@ -105,10 +122,17 @@ class ImportedProgramBuilderTest {
 
     @Test
     fun `la procedencia queda marcada como importada y sin autoria`() {
-        val program = ImportedProgramBuilder.build(draft, resolved = emptyMap(), weekdays = listOf(1, 3, 5), programId = "imp-3")
+        val program = ImportedProgramBuilder.build(
+            draft.copy(sourceTitle = "Rutina de fuerza", sourceUrl = "https://training.example"),
+            resolved = emptyMap(),
+            weekdays = listOf(1, 3, 5),
+            programId = "imp-3",
+        )
 
         assertEquals("imported:imp-3", program.planProvenance?.planId)
         assertEquals(PlanProvenanceClass.IMPORTED, program.planProvenance?.category)
+        assertEquals("Rutina de fuerza", program.planProvenance?.sourceTitle)
+        assertEquals("https://training.example", program.planProvenance?.sourceUrl)
         assertNull(program.author)
     }
 
@@ -134,6 +158,38 @@ class ImportedProgramBuilderTest {
         assertEquals(3, free.sets.size)
         assertEquals(RepRange(10, 10), free.sets.first().targetRepsRange)
         assertEquals(75.0, free.sets.first().targetPercentageRM!!, 1e-6)
+    }
+
+    @Test
+    fun `prescripcion de tiempo se guarda como TrainingMode TIME sin objetivos de repeticiones`() {
+        val timedDraft = ImportedProgramDraft(
+            title = "Isométricos",
+            weeks = listOf(
+                ImportedWeek(
+                    1,
+                    listOf(
+                        ImportedDay(
+                            "w1-d1",
+                            "Día A",
+                            listOf(ImportedExercise("w1-d1-e1", "Plank", 3, 1, 1, durationSeconds = 40)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val plank = ImportedProgramBuilder.build(
+            timedDraft,
+            resolved = emptyMap(),
+            weekdays = listOf(1),
+            programId = "timed-import",
+        ).firstWeekSessions().single().exercises.single()
+
+        assertEquals(TrainingMode.TIME, plank.trainingMode)
+        assertEquals(3, plank.sets.size)
+        assertEquals(40, plank.sets.first().targetDuration)
+        assertNull(plank.sets.first().targetReps)
+        assertNull(plank.sets.first().targetRepsRange)
     }
 
     @Test

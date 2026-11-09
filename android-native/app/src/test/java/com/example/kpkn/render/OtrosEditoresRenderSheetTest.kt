@@ -38,6 +38,7 @@ import com.example.kpkn.domain.training.SwapKind
 import com.example.kpkn.domain.training.SwapOption
 import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
+import com.example.kpkn.domain.training.importer.ImportWizardPage
 import com.example.kpkn.screens.onboarding.SetupPlanRevealExercise
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.plan.DetailSheet
@@ -196,7 +197,7 @@ class OtrosEditoresRenderSheetTest {
 
     // ───────────────────────────── G3 ─────────────────────────────
 
-    private fun g3(height: Int) {
+    private fun g3(height: Int, page: ImportWizardPage = ImportWizardPage.EXERCISES): ImportProgramViewModel {
         val app: Application = ApplicationProvider.getApplicationContext()
         val vm = ImportProgramViewModel(app).also { viewModelStore.put("g3-$height", it) }
         vm.importFromText(
@@ -214,11 +215,13 @@ class OtrosEditoresRenderSheetTest {
         val squat = names.first { it.rawName.startsWith("Sentadilla") }
         vm.edit(ImportEditOp.Update(squat.id, ImportExercisePatch(rpe = Change.Set(8.0)), allWeeks = false))
         vm.open(squat.id)
+        if (page != ImportWizardPage.EXERCISES) vm.navigateTo(page)
         scene(height) {
             CompositionLocalProvider(LocalPlan provides PlanLevel.PRO) {
                 ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
             }
         }
+        return vm
     }
 
     @Test fun g3_880() { assumeRender(); g3(880); save("G3-importador-880") }
@@ -227,8 +230,9 @@ class OtrosEditoresRenderSheetTest {
     @Test
     fun g3_addSheet_880() {
         assumeRender()
-        g3(880)
-        tap("import-add-exercise")
+        val vm = g3(880, ImportWizardPage.SESSIONS)
+        val dayId = vm.state.value.imported!!.weeks.first().days.first().id
+        tap("import-session-edit-$dayId")
         save("G3-importador-anadir-880")
     }
 

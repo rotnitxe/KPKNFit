@@ -163,7 +163,7 @@ class ImportEditorRenderTest {
     }
 
     @Test
-    fun renderTheOpenPanelWithKgAndRpe() {
+    fun renderTheWeekReviewWithKgAndRpe() {
         onlyWhenAsked()
         val draft = kgAndRpe()
         rule.setContent {
@@ -172,21 +172,19 @@ class ImportEditorRenderTest {
                     ImportPreviewWeeks(
                         imported = draft,
                         resolutions = mapOf("Sentadilla" to null, "Prensa" to null),
-                        openedExerciseId = "w1-d1-e1",
-                        onOpen = {},
                         onEdit = {},
-                        suggest = { emptyList() },
-                        search = { emptyList() },
                         namesOf = { emptyMap() },
+                        onOpenCatalog = { _, _ -> },
+                        onEditSession = { _, _ -> },
                     )
                 }
             }
         }
-        save("a_panel_kg_rpe")
+        save("a_revision_semana_kg_rpe")
     }
 
     @Test
-    fun renderTheOpenPanelOfAnUndecidedExercise() {
+    fun renderTheUnresolvedExerciseInTheWeekReview() {
         onlyWhenAsked()
         val draft = undecided()
         rule.setContent {
@@ -194,16 +192,14 @@ class ImportEditorRenderTest {
                 ImportPreviewWeeks(
                     imported = draft,
                     resolutions = emptyMap(),
-                    openedExerciseId = "w1-d1-e1",
-                    onOpen = {},
                     onEdit = {},
-                    suggest = { emptyList() },
-                    search = { emptyList() },
                     namesOf = { emptyMap() },
+                    onOpenCatalog = { _, _ -> },
+                    onEditSession = { _, _ -> },
                 )
             }
         }
-        save("b_panel_undecided")
+        save("b_ejercicio_pendiente")
     }
 
     @Test
@@ -284,16 +280,14 @@ class ImportEditorRenderTest {
                 ImportPreviewWeeks(
                     imported = draft,
                     resolutions = mapOf("Sentadilla" to null),
-                    openedExerciseId = "w1-d1-e1",
-                    onOpen = {},
                     onEdit = {},
-                    suggest = { emptyList() },
-                    search = { emptyList() },
                     namesOf = { emptyMap() },
+                    onOpenCatalog = { _, _ -> },
+                    onEditSession = { _, _ -> },
                 )
             }
         }
-        save("e_panel_320_letra_130_descanso_630")
+        save("e_revision_320_letra_130_descanso_630")
     }
 
     /** Dibuja la vista de la actividad y recorta el recuadro «sheet» a `KPKN_RENDER_DIR/<name>.png`. */

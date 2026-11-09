@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import com.example.kpkn.data.importer.ocr.OcrImportSource
 import com.example.kpkn.domain.training.importer.ImportSheet
+import com.example.kpkn.domain.training.importer.OcrPage
 import java.io.File
 import java.io.InputStream
 import java.io.PushbackInputStream
@@ -13,9 +14,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+private const val XLSM_MIME = "application/vnd.ms-excel.sheet.macroenabled.12"
+private const val XLS_MIME = "application/vnd.ms-excel"
 private const val ODS_MIME = "application/vnd.oasis.opendocument.spreadsheet"
 private const val DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-private const val UNREADABLE_MESSAGE = "No pudimos leer este archivo. Prueba a exportarlo como .xlsx o .csv."
+private const val UNREADABLE_MESSAGE = "No pudimos leer este archivo. Prueba a exportarlo como .xls, .xlsx, .xlsm o .csv."
 
 /** Bytes que se miran para decidir el tipo de un archivo; las firmas más largas (WebP y HEIC) caben en ellos. */
 private const val HEAD_BYTES = 16
@@ -34,9 +37,11 @@ private val FTYP_SIGNATURE = "ftyp".toByteArray(Charsets.US_ASCII)
 /** Marcas de HEIC y HEIF, el formato de foto del teléfono. */
 private val HEIF_BRANDS = listOf("heic", "heix", "hevc", "hevx", "mif1", "msf1").map { it.toByteArray(Charsets.US_ASCII) }
 
-/** Tipos que ofrece el selector de «Elegir archivo»: hojas de cálculo (xlsx y ods), Word, CSV, texto, Markdown, PDF y fotos. */
+/** Tipos que ofrece el selector de «Elegir archivo»: Excel (xls/xlsx/xlsm), ODS, Word, CSV, texto, Markdown, PDF y fotos. */
 val PROGRAM_IMPORT_MIME_TYPES: Array<String> = arrayOf(
+    XLS_MIME,
     XLSX_MIME,
+    XLSM_MIME,
     ODS_MIME,
     DOCX_MIME,
     "text/csv",
@@ -63,19 +68,27 @@ suspend fun readSheets(
     uri: Uri,
     mime: String?,
     cacheDir: File? = null,
+    onOcrPage: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
     onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
 ): Result<List<ImportSheet>> = withContext(Dispatchers.IO) {
     try {
-        val fileName = fileNameOf(contentResolver, uri)
+        val fileName = programFileNameOf(contentResolver, uri)
         val title = ImportFileReader.titleOf(fileName)
         val peeked = contentResolver.openInputStream(uri)?.use { input -> peekWithinLimits(input, mime) }
             ?: return@withContext Result.failure(ImportFileException(UNREADABLE_MESSAGE))
         val sheets = when (peeked.kind) {
-            ImportKind.PDF -> OcrImportSource.readPdf(contentResolver, uri, title, cacheDir, onProgress)
-            ImportKind.IMAGE -> OcrImportSource.readImage(contentResolver, uri, title)
+            ImportKind.PDF -> OcrImportSource.readPdf(
+                contentResolver, uri, title, cacheDir, onProgress,
+                onPageRecognized = onOcrPage,
+            )
+            ImportKind.IMAGE -> OcrImportSource.readImage(
+                contentResolver, uri, title,
+                onPageRecognized = { ocrPage -> onOcrPage(1, ocrPage) },
+            )
             ImportKind.OTHER -> ImportFileReader.read(checkNotNull(peeked.bytes), fileName, mime)
         }
-        Result.success(sheets)
+        val documentType = ImportFileReader.documentTypeOf(fileName, mime, peeked.kind)
+        Result.success(sheets.map { sheet -> sheet.copy(documentType = documentType) })
     } catch (cancel: CancellationException) {
         throw cancel
     } catch (error: ImportFileException) {
@@ -87,10 +100,10 @@ suspend fun readSheets(
 
 /** Título sugerido para un programa leído de [uri]: su nombre sin extensión (vacío si el proveedor no lo da). */
 suspend fun programTitleOf(contentResolver: ContentResolver, uri: Uri): String =
-    withContext(Dispatchers.IO) { ImportFileReader.titleOf(fileNameOf(contentResolver, uri)) }
+    withContext(Dispatchers.IO) { ImportFileReader.titleOf(programFileNameOf(contentResolver, uri)) }
 
 /** Nombre visible del archivo con su extensión; cadena vacía si el proveedor no lo da. */
-private fun fileNameOf(contentResolver: ContentResolver, uri: Uri): String =
+internal fun programFileNameOf(contentResolver: ContentResolver, uri: Uri): String =
     runCatching {
         contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) cursor.getString(0) else null

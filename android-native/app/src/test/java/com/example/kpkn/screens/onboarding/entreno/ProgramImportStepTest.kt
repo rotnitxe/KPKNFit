@@ -53,31 +53,27 @@ class ProgramImportStepTest {
 
     private fun parsed(): ImportedProgramDraft = ProgramImportParser.parseText(pasted, "Mi programa")
 
-    /** Un contenedor con estado para que el panel «Elegir» se abra y cierre como en el paso real. */
+    /** La vista previa solo enruta ejercicios sin resolver al catálogo compartido. */
     @Composable
-    private fun PreviewHost(imported: ImportedProgramDraft, initial: Map<String, String?>, decisions: MutableList<Pair<String, String?>>) {
-        var resolutions by remember { mutableStateOf(initial) }
-        var opened by remember { mutableStateOf<String?>(null) }
+    private fun PreviewHost(
+        imported: ImportedProgramDraft,
+        initial: Map<String, String?>,
+        catalogSelections: MutableList<Pair<String, String?>>,
+    ) {
+        val resolutions = remember { mutableStateOf(initial) }
         ImportPreviewWeeks(
             imported = imported,
-            resolutions = resolutions,
-            openedExerciseId = opened,
-            onOpen = { opened = it },
-            onEdit = { op ->
-                if (op is ImportEditOp.Decide) {
-                    decisions += op.rawName to op.configId
-                    resolutions = resolutions + (op.rawName to op.configId)
-                }
-            },
-            suggest = { emptyList() },
-            search = { emptyList() },
+            resolutions = resolutions.value,
+            onEdit = { op -> if (op is ImportEditOp.Decide) resolutions.value = resolutions.value + (op.rawName to op.configId) },
             namesOf = { emptyMap() },
+            onOpenCatalog = { id, rawName -> catalogSelections += id to rawName },
+            onEditSession = { _, _ -> },
         )
     }
 
     @Test
     fun pastedTextShowsItsWeekDaysAndExercises() {
-        rule.setContent { PreviewHost(parsed(), initial = emptyMap(), decisions = mutableListOf()) }
+        rule.setContent { PreviewHost(parsed(), initial = emptyMap(), catalogSelections = mutableListOf()) }
 
         rule.onNodeWithText("Semana 1").assertExists()
         rule.onNodeWithText("Sentadilla", substring = true).assertExists()
@@ -95,11 +91,7 @@ class ProgramImportStepTest {
             ImportPreviewWeeks(
                 imported = imported,
                 resolutions = emptyMap(),
-                openedExerciseId = null,
-                onOpen = {},
                 onEdit = {},
-                suggest = { emptyList() },
-                search = { emptyList() },
                 namesOf = { emptyMap() },
                 onOpenCatalog = { id, rawName -> catalogSelections += id to rawName },
                 onEditSession = { _, dayId -> openedSessions += dayId },
@@ -113,16 +105,15 @@ class ProgramImportStepTest {
     }
 
     @Test
-    fun anExerciseWithDoubtsOffersToChooseAndKeepingItOwnResolvesIt() {
-        val decisions = mutableListOf<Pair<String, String?>>()
-        rule.setContent { PreviewHost(parsed(), initial = emptyMap(), decisions = decisions) }
+    fun unresolvedExercisesOpenTheSharedCatalog() {
+        val selections = mutableListOf<Pair<String, String?>>()
+        rule.setContent { PreviewHost(parsed(), initial = emptyMap(), catalogSelections = selections) }
 
+        val exercise = parsed().weeks.single().days.first().exercises.first()
         rule.onAllNodesWithText("Elegir").assertCountEquals(2)
         rule.onNodeWithText("Sentadilla", substring = true).performClick()
-        rule.onNodeWithTag("import-choice-own").performClick()
 
-        assertEquals(1, decisions.size)
-        assertTrue(decisions.single().second == null)
+        assertEquals(listOf(exercise.id to exercise.rawName), selections)
     }
 
     @Test
@@ -238,7 +229,7 @@ class ProgramImportStepTest {
             })
         })
         assertEquals(
-            "Completa las series de cada ejercicio en el editor antes de guardar.",
+            "Completa las series o la prescripción antes de guardar.",
             draft.copy(importedProgramEditor = editor.copy(program = withoutSetValues)).importProblem(),
         )
     }

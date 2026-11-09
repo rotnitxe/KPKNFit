@@ -8,6 +8,9 @@ enum class ImportIssueKind {
     /** Una semana sin ningún ejercicio. */
     EMPTY_WEEK,
 
+    /** Una prescripción retenida para revisar todavía no tiene series o valores ejecutables. */
+    INCOMPLETE_EXERCISE,
+
     /** Un día sin ejercicios. */
     EMPTY_DAY,
 
@@ -46,11 +49,13 @@ object ImportDraftValidation {
         val issues = mutableListOf<ImportIssue>()
         if (draft.weeks.isEmpty()) issues += ImportIssue(ImportIssueKind.NO_WEEKS)
         for (week in draft.weeks) {
-            if (week.days.all { it.exercises.isEmpty() }) {
+            if (week.executionKind != com.example.kpkn.data.models.WeekExecutionKind.REST &&
+                week.days.all { it.exercises.isEmpty() }
+            ) {
                 issues += ImportIssue(ImportIssueKind.EMPTY_WEEK, weekIndex = week.index)
             }
             for (day in week.days) {
-                if (day.exercises.isEmpty()) {
+                if (day.exercises.isEmpty() && !day.isRestDay) {
                     issues += ImportIssue(ImportIssueKind.EMPTY_DAY, weekIndex = week.index, dayId = day.id)
                 }
             }
@@ -59,6 +64,19 @@ object ImportDraftValidation {
         for (week in draft.weeks) {
             for (day in week.days) {
                 for (exercise in day.exercises) {
+                    if (exercise.sets !in 1..ProgramImportParser.MAX_SETS ||
+                        (exercise.durationSeconds != null && exercise.durationSeconds !in 1..ProgramImportParser.MAX_DURATION_SECONDS) ||
+                        (exercise.durationSeconds == null &&
+                            (exercise.repsMin !in 1..ProgramImportParser.MAX_REPS || exercise.repsMax !in 1..ProgramImportParser.MAX_REPS || exercise.repsMin > exercise.repsMax))
+                    ) {
+                        issues += ImportIssue(
+                            kind = ImportIssueKind.INCOMPLETE_EXERCISE,
+                            weekIndex = week.index,
+                            dayId = day.id,
+                            exerciseId = exercise.id,
+                            rawName = exercise.rawName,
+                        )
+                    }
                     if (!isDecided(exercise) && seen.add(exercise.rawName)) {
                         issues += ImportIssue(
                             kind = ImportIssueKind.UNDECIDED_EXERCISE,

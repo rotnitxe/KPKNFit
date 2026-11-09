@@ -17,7 +17,7 @@ import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
 
 /**
- * Lector de .xlsx propio con ZIP, DOM y SAX del JDK (sin librerías nuevas). Lee el nombre y el orden de las hojas
+ * Lector propio de libros .xlsx/.xlsm con ZIP, DOM y SAX del JDK (sin librerías nuevas). Lee el nombre y el orden de las hojas
  * visibles (las ocultas no se devuelven), las cadenas compartidas (también con texto enriquecido), las celdas en línea,
  * números y booleanos. El formato de la celda decide el texto del número: porcentaje («65%») y hora o duración («2:00»);
  * lo demás sale como siempre. Las celdas vacías quedan como "".
@@ -269,7 +269,7 @@ object XlsxReader {
         }
     }
 
-    private fun notExcel(): ImportFileException = ImportFileException("No es un libro de Excel (.xlsx) válido")
+    private fun notExcel(): ImportFileException = ImportFileException("No es un libro de Excel (.xlsx o .xlsm) válido")
 
     /** Texto de un nodo `si` o `is` por SAX: sus `t`, también los de `r`; la fonética `rPh` no cuenta. */
     private class RichText {

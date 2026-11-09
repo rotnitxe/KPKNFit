@@ -61,6 +61,7 @@ import com.example.kpkn.screens.programs.importer.ImportUndoStack
 import com.example.kpkn.screens.sessioneditor.ImportedProgramEditorStore
 import com.example.kpkn.screens.programs.importer.importReadingPageText
 import com.example.kpkn.screens.programs.importer.readPickedFile
+import com.example.kpkn.data.importer.ProgramUrlReader
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
 import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
@@ -393,7 +394,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 val saved = store.mutate { program ->
                     val latest = _state.value.draft
                     val toggled = latest.withWeekdayToggled(day)
-                    program.withImportedWeekdays(toggled.selectedWeekdays)
+                    program.withImportedWeekdays(
+                        toggled.selectedWeekdays,
+                        com.example.kpkn.screens.programs.importer.explicitImportedSessionIds(latest.importedProgram, latest.importedProgramEditor?.sourceMap ?: com.example.kpkn.domain.training.importer.ImportedProgramSourceMap()),
+                    )
                 }
                 if (!saved) _state.value = _state.value.copy(
                     errors = mapOf("save" to "No pude guardar los días de este borrador. Tu programa no se publicó."),
@@ -407,7 +411,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 toggled.copy(
                     importedProgramEditor = latestEditor.copy(
                         revision = latestEditor.revision + 1,
-                        program = latestEditor.program.withImportedWeekdays(toggled.selectedWeekdays),
+                        program = latestEditor.program.withImportedWeekdays(
+                            toggled.selectedWeekdays,
+                            com.example.kpkn.screens.programs.importer.explicitImportedSessionIds(latest.importedProgram, latestEditor.sourceMap),
+                        ),
                     ),
                 )
             }
@@ -4017,7 +4024,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }
 
-    /** Importa las hojas ya leídas de un archivo (xlsx o csv); el título es el nombre del archivo. */
+    /** Importa las hojas ya leídas de un archivo (xlsx, xlsm o csv); el título es el nombre del archivo. */
     fun importFromSheets(sheets: List<ImportSheet>, title: String) =
         startImport(IMPORT_READING_TEXT) {
             withContext(Dispatchers.Default) {
@@ -4030,8 +4037,21 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun importFromText(text: String) =
         startImport(IMPORT_READING_TEXT) {
             withContext(Dispatchers.Default) {
-                ProgramImportParser.parseText(text, ImportedProgramBuilder.DEFAULT_TITLE) to
+                ProgramImportParser.parsePreparedText(
+                    com.example.kpkn.data.importer.TextProgramReader.read(text, "Texto pegado"),
+                    ImportedProgramBuilder.DEFAULT_TITLE,
+                ) to
                     KnownProgramRecognizer.recognizeText(text)
+            }
+        }
+
+    /** Lee una página pública o un archivo compartido por HTTPS dentro del mismo borrador del alta. */
+    fun importFromUrl(url: String) =
+        startImport(com.example.kpkn.screens.programs.importer.IMPORT_READING_URL_TEXT) {
+            val document = ProgramUrlReader.read(url)
+            withContext(Dispatchers.Default) {
+                ProgramImportParser.parseSheets(document.sheets, document.title) to
+                    KnownProgramRecognizer.recognizeSheets(document.title, document.sheets)
             }
         }
 

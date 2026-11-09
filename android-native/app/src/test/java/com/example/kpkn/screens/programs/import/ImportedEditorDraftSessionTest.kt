@@ -76,8 +76,31 @@ class ImportedEditorDraftSessionTest {
         assertTrue(review.await())
         val restored = persistence.read().getOrThrow()!!
         assertEquals(2L, restored.revision)
-        assertEquals("Editado", restored.program.name)
+        assertEquals("Editado", restored.program?.name)
         assertEquals(setOf("a1"), restored.source.reviewedWarnings)
+    }
+
+    @Test
+    fun reviewingAnImportOnlyDraftDoesNotCreateAParallelProgram() = runTest {
+        val file = folder.newFile("import-only-draft.json").also { it.delete() }
+        val persistence = ImportedEditorDraftPersistence(file)
+        val initial = document().copy(program = null, schemaVersion = 3)
+        val session = ImportedEditorDraftSession.create(persistence, initial).getOrThrow()
+
+        assertTrue(session.updateReview(
+            source = initial.source,
+            resolutions = mapOf("Remo" to "catalog-row"),
+            title = "Importado",
+            weekdays = setOf(1, 3),
+        ))
+        assertTrue(session.reviewWarning("a1"))
+
+        val restored = persistence.read().getOrThrow()!!
+        assertEquals("Importado", restored.title)
+        assertEquals(setOf(1, 3), restored.weekdays)
+        assertEquals(mapOf("Remo" to "catalog-row"), restored.resolutions)
+        assertEquals(setOf("a1"), restored.source.reviewedWarnings)
+        assertEquals(null, restored.program)
     }
 
     @Test

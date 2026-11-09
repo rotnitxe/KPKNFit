@@ -6,7 +6,7 @@ import org.junit.Test
 class TextProgramReaderTest {
 
     @Test
-    fun `con bloques cercados de series por repeticiones lee solo esos bloques`() {
+    fun `con bloques cercados conserva tambien el texto fuera de ellos`() {
         val text = """
             Programa de hipertrofia, 3 días por semana.
 
@@ -29,13 +29,42 @@ class TextProgramReaderTest {
         assertEquals("programa", sheet.name)
         assertEquals(
             listOf(
+                listOf("Programa de hipertrofia, 3 días por semana.", "", "", ""),
+                listOf("Notas del autor, sin ejercicios", "", "", ""),
                 listOf("Week 1", "", "", ""),
                 listOf("Día 1 — Pierna", "", "", ""),
                 listOf("Sentadilla", "4x6", "120kg", "120s"),
                 listOf("Prensa", "3x10", "90s", ""),
+                listOf("Descansa bien entre días.", "", "", ""),
             ),
             sheet.rows,
         )
+        assertEquals(listOf(1, 4, 8, 9, 10, 11, 14), sheet.sourceLineNumbers)
+    }
+
+    @Test
+    fun `tabuladores conservan columnas vacias y lineas originales`() {
+        val sheet = TextProgramReader.read("# Semana 1\n\nEjercicio\tSeries\tReps\nRemo\t3\t10\n\t\t", "tabla")
+        assertEquals(listOf(1, 3, 4), sheet.sourceLineNumbers)
+        assertEquals(listOf("Ejercicio", "Series", "Reps"), sheet.rows[1])
+        assertEquals(listOf("Remo", "3", "10"), sheet.rows[2])
+    }
+
+    @Test
+    fun `texto pegado y archivo comparten lectura de tabla markdown`() {
+        val sheet = TextProgramReader.read("# Día 1\n\n| Ejercicio | Series | Reps |\n|---|---|---|\n| Remo | 3 | 10 |", "")
+        val pasted = com.example.kpkn.domain.training.importer.ProgramImportParser.parsePreparedText(sheet, "Plan")
+        val file = com.example.kpkn.domain.training.importer.ProgramImportParser.parseSheets(listOf(sheet), "Plan")
+        val fileExercise = file.weeks.single().days.single().exercises.single()
+        val pastedExercise = pasted.weeks.single().days.single().exercises.single()
+        assertEquals(
+            fileExercise.copy(sourceDocumentType = com.example.kpkn.domain.training.importer.ImportDocumentType.TEXT_FILE),
+            pastedExercise,
+        )
+        assertEquals(com.example.kpkn.domain.training.importer.ImportDocumentType.UNKNOWN, fileExercise.sourceDocumentType)
+        assertEquals(com.example.kpkn.domain.training.importer.ImportDocumentType.TEXT_FILE, pastedExercise.sourceDocumentType)
+        assertEquals("Remo", pasted.weeks.single().days.single().exercises.single().rawName)
+        assertEquals(3, pasted.weeks.single().days.single().exercises.single().sets)
     }
 
     @Test

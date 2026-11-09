@@ -39,6 +39,7 @@ internal object ImportExerciseAliases {
         // Sentadillas y variantes
         "squat" to alias("high_bar_back_squat"),
         "sentadilla" to alias("high_bar_back_squat"),
+        "sentadilla libre con barra olimpica" to withEquipment("high_bar_back_squat", "barbell"),
         "back squat" to alias("high_bar_back_squat"),
         "high bar squat" to alias("high_bar_back_squat"),
         "high bar back squat" to alias("high_bar_back_squat"),
@@ -145,6 +146,8 @@ internal object ImportExerciseAliases {
         "press militar" to alias("military_press"),
         "military press" to alias("military_press"),
         "overhead press" to alias("military_press"),
+        "db shoulder press" to withEquipment("military_press", "dumbbells"),
+        "dumbbell shoulder press" to withEquipment("military_press", "dumbbells"),
         "standing press" to alias("military_press"),
         "ohp" to alias("military_press"),
         "press de pie" to alias("military_press"),
@@ -229,6 +232,8 @@ internal object ImportExerciseAliases {
         "reverse nordic" to alias("quads_reverse_nordic_peso_corporal"),
         "reverse nordic curl" to alias("quads_reverse_nordic_peso_corporal"),
         "swing" to alias("hams_swing_kettlebell_dos_manos"),
+        "kb swing" to alias("hams_swing_kettlebell_dos_manos"),
+        "kettlebell swing" to alias("hams_swing_kettlebell_dos_manos"),
         "one arm swing" to alias("hams_swing_kettlebell_unilateral"),
         "single arm swing" to alias("hams_swing_kettlebell_unilateral"),
         "swing con kettlebell a dos manos" to alias("hams_swing_kettlebell_dos_manos"),
@@ -284,6 +289,7 @@ internal object ImportExerciseAliases {
         "remo sentado en maquina" to withConfiguration("chest_supported_row", "chest_supported_row__machine__medium"),
         "one arm row" to withEquipment("conventional_row", "dumbbells"),
         "single arm row" to withEquipment("conventional_row", "dumbbells"),
+        "dumbbell row single arm" to withEquipment("conventional_row", "dumbbells"),
         "pendlay row" to alias("pendlay_row"),
         "remo pendlay" to alias("pendlay_row"),
         "seal row" to alias("seal_row"),
@@ -298,8 +304,10 @@ internal object ImportExerciseAliases {
         "gorilla row" to alias("back_remo_gorilla_mancuernas"),
         "remo gorila" to alias("back_remo_gorilla_mancuernas"),
         "inverted row" to alias("back_remo_invertido"),
+        "inverted row table" to alias("back_remo_invertido"),
         "remo invertido" to alias("back_remo_invertido"),
         "renegade row" to alias("back_remo_renegado_mancuernas"),
+        "db plank row" to withEquipment("back_remo_renegado_mancuernas", "dumbbells"),
         "remo renegado" to alias("back_remo_renegado_mancuernas"),
         "band row" to alias("back_remo_banda"),
         "remo banda" to alias("back_remo_banda"),
@@ -329,6 +337,7 @@ internal object ImportExerciseAliases {
         "straight arm pulldown" to alias("pullover"),
         "cable pullover" to withEquipment("pullover", "cable"),
         "dumbbell pullover" to withEquipment("lying_pullover", "dumbbells"),
+        "db pullover" to withEquipment("lying_pullover", "dumbbells"),
         "lying pullover" to alias("lying_pullover"),
         "pull over en banca" to alias("lying_pullover"),
         "pull up" to alias("pull_up"),
@@ -405,17 +414,24 @@ internal object ImportExerciseAliases {
         "french press" to alias("triceps_press_frances"),
         "press frances" to alias("triceps_press_frances"),
         "press de triceps en maquina" to alias("triceps_press_maquina"),
+        "seated triceps press" to alias("triceps_press_maquina"),
         "katana extension" to alias("katana_extension"),
         "extension katana" to alias("katana_extension"),
         "crossbody triceps extension" to alias("crossbody_triceps_extension"),
         "triceps extension trx" to alias("triceps_extension"),
         "extension de triceps en trx" to alias("triceps_extension"),
         "tricep dip" to alias("triceps_fondos_entre_bancos"),
+        "tricep dip chair" to alias("triceps_fondos_entre_bancos"),
         "bench dip" to alias("triceps_fondos_entre_bancos"),
         "fondos entre bancos" to alias("triceps_fondos_entre_bancos"),
         "fondos en banco" to alias("triceps_fondos_entre_bancos"),
         "dip" to alias("tren_superior_fondos"),
         "dips" to alias("tren_superior_fondos"),
+        // El alias aporta un candidato correcto, pero ExerciseNameMatcher mantiene revisión manual para «weighted»:
+        // el catálogo solo tiene la configuración de peso corporal y la carga añadida debe confirmarse por separado.
+        "weighted dip" to alias("tren_superior_fondos"),
+        "dip weighted" to alias("tren_superior_fondos"),
+        "dip with weight" to alias("tren_superior_fondos"),
         "fondos" to alias("tren_superior_fondos"),
         "fondos en paralelas" to alias("tren_superior_fondos"),
         "chest dip" to alias("tren_superior_fondos"),
@@ -498,8 +514,9 @@ internal object ImportExerciseAliases {
         "curl de isquiosurales sentado" to alias("seated_leg_curl"),
         "curl de isquiosurales de pie" to alias("standing_leg_curl"),
         "calf raise" to alias("calf_raise"),
-        "calves raise" to alias("calf_raise"),
+        "calf raise standing" to alias("calf_raise"),
         "standing calf raise" to alias("calf_raise"),
+        "calves raise" to alias("calf_raise"),
         "gemelos de pie" to alias("calf_raise"),
         "seated calf raise" to withConfiguration("calf_raise", "calf_raise__bilateral__seated_machine"),
         "gemelos sentado" to withConfiguration("calf_raise", "calf_raise__bilateral__seated_machine"),
@@ -533,6 +550,9 @@ internal object ImportExerciseAliases {
         "reverse lunge" to alias("reverse_lunge"),
         "zancada inversa" to alias("reverse_lunge"),
         "step up" to alias("step_up"),
+        "step ups" to alias("step_up"),
+        "db step up" to withEquipment("step_up", "dumbbells"),
+        "db step ups" to withEquipment("step_up", "dumbbells"),
         "step up cajon" to alias("step_up"),
 
         // Glúteos y cadera
@@ -583,6 +603,7 @@ internal object ImportExerciseAliases {
         "copenhagen plank dynamic" to alias("copenhagen_plank_dynamic"),
         "inclinacion lateral" to alias("core_inclinacion_lateral"),
         "superman" to alias("back_superman_suelo"),
+        "superman holds" to alias("back_superman_suelo"),
         "superman en suelo" to alias("back_superman_suelo"),
 
         // Acarreos, agarre y cuello
@@ -661,6 +682,7 @@ internal object ImportExerciseAliases {
     /** Alias de un nombre: primero por clave completa («bodyweight squat») y luego sin material («barbell squat»). */
     fun lookup(name: String): ImportExerciseAlias? {
         byKey[fullKey(name)]?.let { return it }
+        byLegacyPluralKey[importKey(name)]?.let { return it }
         val core = coreKey(name)
         if (core.isEmpty()) return null
         // «press» con mancuernas: banca o de hombros según la hoja; sin alias, sale «Elegir».
@@ -695,6 +717,14 @@ internal object ImportExerciseAliases {
 
     private val byKey: Map<String, ImportExerciseAlias> =
         entries.associate { (phrase, alias) -> fullKey(phrase) to alias }
+
+    /** Plurales como «bridges» requieren el stem del importador; limita esta segunda clave a los alias originales. */
+    private val byLegacyPluralKey: Map<String, ImportExerciseAlias> = entries
+        .groupBy { importKey(it.first) }
+        .mapNotNull { (key, matches) ->
+            matches.map { it.second }.distinct().singleOrNull()?.let { key to it }
+        }
+        .toMap()
 
     private fun words(text: String): List<String> =
         ExerciseMatchLexicon.normalize(text).split(' ').filter { it.isNotEmpty() }

@@ -1,11 +1,25 @@
 package com.example.kpkn.screens.programs.importer
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,13 +30,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.importer.ocr.OcrImportSource
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportWarning
@@ -34,6 +53,7 @@ import com.example.kpkn.domain.training.importer.ProgramImportParser
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.programs.plural
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 
 /** Lo que «Añadir a:» elige para un día nuevo (los ids de día nunca están vacíos). */
 private const val NEW_DAY_TARGET = ""
@@ -141,9 +161,9 @@ internal fun ImportWarningsPanel(
                 color = WizardColors.textMuted,
                 modifier = Modifier.weight(1f),
             )
-            if (pending.isNotEmpty()) {
+            if (pending.any { it.kind == ImportWarningKind.SHEET_NOTE }) {
                 ImportTextAction(
-                    label = "Ignorar todos",
+                    label = "Ignorar notas informativas",
                     onClick = { onEdit(ImportEditOp.IgnoreAllWarnings) },
                     modifier = Modifier.testTag("import-warnings-ignore-all"),
                 )
@@ -183,6 +203,268 @@ internal fun ImportWarningsPanel(
     }
 }
 
+/** Hoja compacta del prototipo v4: conserva acciones del panel, con filas de 48 dp y el original disponible al abrir «Ver». */
+@Composable
+internal fun ImportWarningsSheetContent(
+    imported: ImportedProgramDraft,
+    onOpenExercise: (String) -> Unit,
+    onEdit: (ImportEditOp) -> Unit,
+    onOpenSessionEditor: (String?) -> Unit,
+    onClose: () -> Unit,
+    hasOriginalSource: Boolean = false,
+    onOpenOriginalSource: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    val pending = imported.warnings.filter { it.id !in imported.reviewedWarnings }
+    val informationalPending = pending.filter { it.kind == ImportWarningKind.SHEET_NOTE }
+    var expandedId by rememberSaveable(imported.warnings.map { it.id }, imported.reviewedWarnings) { mutableStateOf<String?>(null) }
+    var confirmIgnoreAll by rememberSaveable(imported.warnings.map { it.id }, imported.reviewedWarnings) { mutableStateOf(false) }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .semantics { paneTitle = "Avisos del documento" }
+            .testTag("import-warnings-sheet"),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        Text(
+            "Avisos del documento",
+            style = WizardTypography.stepTitle.copy(fontSize = 18.sp, lineHeight = 20.2.sp, letterSpacing = (-0.5).sp),
+            color = WizardColors.text,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            "${plural(imported.warnings.size, "aviso", "avisos")} · revisa cada fila y decide si corresponde a un ejercicio.",
+            style = WizardTypography.note.copy(fontSize = 11.5.sp, lineHeight = 16.7.sp),
+            color = WizardColors.textMuted,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        if (pending.isEmpty()) {
+            Text(
+                "Todos los avisos están revisados.",
+                style = WizardTypography.note.copy(fontSize = 12.sp, lineHeight = 17.sp),
+                color = WizardColors.textMuted,
+                modifier = Modifier.padding(vertical = 10.dp),
+            )
+        } else {
+            pending.forEachIndexed { index, warning ->
+                if (index > 0) {
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.06f)))
+                }
+                val exerciseId = warning.exerciseId?.takeIf { importExerciseOf(imported, it) != null }
+                val opensStructure = warning.kind == ImportWarningKind.STRUCTURE_REVIEW && warning.dayId != null
+                val opensEditor = warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null
+                val opensExercise = warning.kind in setOf(ImportWarningKind.INCOMPLETE_ROW, ImportWarningKind.IGNORED_VALUE) && exerciseId != null
+                val actionLabel = when {
+                    opensStructure -> "Asignar día"
+                    opensEditor -> "Corregir"
+                    opensExercise -> "Corregir"
+                    warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null -> "Añadir"
+                    else -> if (expandedId == warning.id) "Ocultar" else "Ver"
+                }
+                ImportWarningsSheetRow(
+                    imported = imported,
+                    warning = warning,
+                    actionLabel = actionLabel,
+                    expanded = expandedId == warning.id,
+                    hasOriginalSource = hasOriginalSource,
+                    onOpenOriginalSource = onOpenOriginalSource,
+                    onAction = {
+                        when {
+                            opensStructure -> onOpenSessionEditor(warning.dayId)
+                            opensEditor -> onOpenSessionEditor(warning.dayId)
+                            opensExercise -> exerciseId?.let(onOpenExercise)
+            warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null -> onOpenSessionEditor(warning.dayId)
+                            else -> expandedId = if (expandedId == warning.id) null else warning.id
+                        }
+                    },
+                )
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        if (confirmIgnoreAll && informationalPending.isNotEmpty()) {
+            Text(
+                "¿Ignorar ${plural(informationalPending.size, "nota informativa", "notas informativas")} y marcar${if (informationalPending.size == 1) "la" else "las"} como revisad${if (informationalPending.size == 1) "a" else "as"}? Los avisos de estructura y de ejercicios seguirán pendientes.",
+                style = WizardTypography.note.copy(fontSize = 12.sp, lineHeight = 17.sp),
+                color = WizardColors.textMuted,
+            )
+            Spacer(Modifier.height(8.dp))
+            ImportWarningsSheetButton(
+                label = "Marcar notas revisadas",
+                enabled = true,
+                onClick = {
+                    onEdit(ImportEditOp.IgnoreAllWarnings)
+                    confirmIgnoreAll = false
+                },
+                testTag = "import-warnings-sheet-confirm-ignore-all",
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
+            ImportWarningsSheetButton(
+                label = "Cancelar",
+                enabled = true,
+                onClick = { confirmIgnoreAll = false },
+                testTag = "import-warnings-sheet-cancel-ignore-all",
+                modifier = Modifier.fillMaxWidth(),
+                ghost = true,
+            )
+        } else {
+            ImportWarningsSheetButton(
+                label = "Ignorar notas informativas",
+                enabled = informationalPending.isNotEmpty(),
+                onClick = { confirmIgnoreAll = true },
+                testTag = "import-warnings-sheet-ignore-all",
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        ImportWarningsSheetButton(
+            label = "Cerrar",
+            enabled = true,
+            onClick = onClose,
+            testTag = "import-warnings-sheet-close",
+            modifier = Modifier.fillMaxWidth(),
+            ghost = true,
+        )
+    }
+}
+
+@Composable
+private fun ImportWarningsSheetRow(
+    imported: ImportedProgramDraft,
+    warning: ImportWarning,
+    actionLabel: String,
+    expanded: Boolean,
+    hasOriginalSource: Boolean,
+    onOpenOriginalSource: () -> Unit,
+    onAction: () -> Unit,
+) {
+    val warningAccent = Color(0xFFF7CF73)
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("import-warning-sheet-row-${warning.id}"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(11.dp),
+    ) {
+        Box(
+            modifier = Modifier.size(34.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.055f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(KpknLineIcons.Alert, contentDescription = null, tint = warningAccent, modifier = Modifier.size(15.dp))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                importWarningSheetTitle(warning),
+                style = WizardTypography.note.copy(fontSize = 12.5.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold),
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (!expanded) {
+                Text(
+                    importWarningSheetSubtitle(imported, warning),
+                    style = WizardTypography.note.copy(fontSize = 11.sp, lineHeight = 14.sp),
+                    color = WizardColors.textMuted,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (expanded) {
+                Text(importWarningDetail(warning), style = WizardTypography.note.copy(fontSize = 10.5.sp, lineHeight = 14.sp), color = WizardColors.textMuted)
+                importWarningSource(warning)?.let { source ->
+                    Text(
+                        "Tu archivo dice «$source${if (warning.sourceTextTruncated) "…" else ""}».",
+                        style = WizardTypography.note.copy(fontSize = 10.5.sp, lineHeight = 14.sp),
+                        color = WizardColors.textFaint,
+                    )
+                }
+                warning.itemCount?.let { count ->
+                    Text("Este aviso resume $count elementos.", style = WizardTypography.note.copy(fontSize = 10.5.sp, lineHeight = 14.sp), color = WizardColors.textFaint)
+                }
+                warning.sourceDocumentType.takeIf { it != com.example.kpkn.domain.training.importer.ImportDocumentType.UNKNOWN }?.let { type ->
+                    Text("Origen: ${importDocumentTypeLabel(type)}", style = WizardTypography.note.copy(fontSize = 10.5.sp, lineHeight = 14.sp), color = WizardColors.textFaint)
+                }
+            }
+            if (hasOriginalSource) {
+                ImportTextAction(
+                    label = "Ver original importado",
+                    onClick = onOpenOriginalSource,
+                    modifier = Modifier.testTag("import-warning-sheet-open-original-${warning.id}"),
+                    color = WizardColors.text,
+                )
+            }
+        }
+        ImportTextAction(
+            label = actionLabel,
+            onClick = onAction,
+            modifier = Modifier.testTag("import-warning-sheet-action-${warning.id}"),
+            color = if (actionLabel == "Corregir" || actionLabel == "Añadir") warningAccent else WizardColors.text,
+        )
+    }
+}
+
+@Composable
+private fun ImportWarningsSheetButton(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier,
+    ghost: Boolean = false,
+) {
+    val shape = RoundedCornerShape(24.dp)
+    Box(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .clip(shape)
+            .then(if (ghost) Modifier else Modifier.background(Color.White.copy(alpha = 0.06f)).border(1.dp, Color.White.copy(alpha = 0.12f), shape))
+            .testTag(testTag)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            style = WizardTypography.note.copy(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold),
+            color = if (enabled) WizardColors.text else WizardColors.textFaint,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+private fun importWarningSheetTitle(warning: ImportWarning): String {
+    val searchable = "${warning.message} ${warning.sourceText.orEmpty()}".lowercase()
+    return when (warning.kind) {
+        ImportWarningKind.STRUCTURE_REVIEW -> "Cabecera de sesión dudosa"
+        ImportWarningKind.SKIPPED_ROW -> "Fila omitida"
+        ImportWarningKind.INCOMPLETE_ROW -> "Dato incompleto"
+        ImportWarningKind.IGNORED_VALUE -> when {
+            "rpe" in searchable -> "RPE fuera de rango"
+            "rir" in searchable -> "RIR fuera de rango"
+            "descanso" in searchable -> "Descanso no legible"
+            "carga" in searchable || " kg" in searchable || " lb" in searchable -> if ("parcial" in searchable) "Carga parcial" else "Carga no legible"
+            else -> "Valor descartado"
+        }
+        ImportWarningKind.EMPTY_DAY -> "Sesión vacía"
+        ImportWarningKind.NOTHING_FOUND -> "Sin ejercicios"
+        ImportWarningKind.SHEET_NOTE -> if ("columna" in searchable) "Columna ignorada" else "Nota del documento"
+    }
+}
+
+private fun importWarningSheetSubtitle(imported: ImportedProgramDraft, warning: ImportWarning): String {
+    if (warning.kind == ImportWarningKind.SHEET_NOTE && warning.message.contains("columna", ignoreCase = true)) {
+        return importWarningDetail(warning)
+    }
+    if (warning.kind == ImportWarningKind.SHEET_NOTE) {
+        return warning.sourceText?.trim()?.takeIf { it.isNotEmpty() }?.let { "«$it»" } ?: importWarningDetail(warning)
+    }
+    val sourceName = importWarningSource(warning)?.substringBefore(" · ")?.takeIf { it.isNotBlank() }
+    val subject = sourceName ?: warning.exerciseId?.let { importExerciseOf(imported, it)?.rawName } ?: importWarningDetail(warning)
+    val location = warning.location.takeIf { it.isNotBlank() && !subject.contains(it, ignoreCase = true) }
+    return listOfNotNull(subject, location).distinct().joinToString(" · ")
+}
+
 /**
  * El panel con más de [IMPORT_WARNINGS_FOLD_FROM] avisos sin revisar, plegado: la cuenta, «Ver avisos» e «Ignorar todos». El aviso de
  * la imagen («revisa los números antes de guardar») sale siempre, con su «Entendido».
@@ -219,9 +501,10 @@ private fun ImportWarningsFolded(
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             ImportTextAction(label = "Ver avisos", onClick = onOpen, modifier = Modifier.testTag("import-warnings-see"))
             ImportTextAction(
-                label = "Ignorar todos",
+                label = "Ignorar notas informativas",
                 onClick = { onEdit(ImportEditOp.IgnoreAllWarnings) },
                 modifier = Modifier.testTag("import-warnings-ignore-all"),
+                enabled = pending.any { it.kind == ImportWarningKind.SHEET_NOTE },
             )
         }
         imageNotices.forEach { warning ->
@@ -265,12 +548,18 @@ private fun ImportWarningRow(
         Text(importWarningDetail(warning), style = WizardTypography.bodySmall, color = WizardColors.text)
         importWarningSource(warning)?.let { source ->
             Text(
-                "Tu archivo dice «$source».",
+                "Tu archivo dice «$source${if (warning.sourceTextTruncated) "…" else ""}».",
                 style = WizardTypography.note,
                 color = WizardColors.textMuted,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        warning.itemCount?.let { count ->
+            Text("Este aviso resume $count elementos.", style = WizardTypography.note, color = WizardColors.textMuted)
+        }
+        warning.sourceDocumentType.takeIf { it != com.example.kpkn.domain.training.importer.ImportDocumentType.UNKNOWN }?.let { type ->
+            Text("Origen: ${importDocumentTypeLabel(type)}", style = WizardTypography.note, color = WizardColors.textFaint)
         }
         if (adding) {
             ImportWarningAdd(
@@ -310,6 +599,26 @@ private fun ImportWarningActions(
     val exerciseId = warning.exerciseId?.takeIf { importExerciseOf(imported, it) != null }
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
         when {
+            warning.kind == ImportWarningKind.STRUCTURE_REVIEW && warning.dayId != null -> {
+                ImportTextAction(
+                    label = "Asignar día",
+                    onClick = { onOpenSessionEditor?.invoke(warning.dayId) },
+                    modifier = Modifier.weight(1f).testTag("import-warning-assign-day-${warning.id}"),
+                    enabled = onOpenSessionEditor != null,
+                )
+            }
+            warning.kind == ImportWarningKind.INCOMPLETE_ROW && exerciseId != null -> {
+                ImportTextAction(
+                    label = "Completar",
+                    onClick = { onOpenExercise(exerciseId) },
+                    modifier = Modifier.weight(1f).testTag("import-warning-complete-${warning.id}"),
+                )
+                ImportTextAction(
+                    label = "Entendido",
+                    onClick = ignore,
+                    modifier = Modifier.testTag("import-warning-ok-${warning.id}"),
+                )
+            }
             warning.kind == ImportWarningKind.SKIPPED_ROW -> {
                 ImportTextAction(
                     label = if (onOpenSessionEditor == null) "Añadir como ejercicio" else "Abrir editor completo",
@@ -434,6 +743,23 @@ private fun ReviewedWarningRow(warning: ImportWarning) {
 }
 
 private fun sinRevisar(count: Int): String = if (count == 1) "1 sin revisar" else "$count sin revisar"
+
+private fun importDocumentTypeLabel(type: com.example.kpkn.domain.training.importer.ImportDocumentType): String = when (type) {
+    com.example.kpkn.domain.training.importer.ImportDocumentType.UNKNOWN -> "Documento"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.PASTED_TEXT -> "Texto pegado"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.TEXT_FILE -> "Archivo de texto"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.CSV -> "CSV"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.XLS_BIFF8 -> "Excel .xls"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.XLSX -> "Excel .xlsx"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.XLSM -> "Excel .xlsm"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.ODS -> "ODS"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.DOCX -> "Word .docx"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.IMAGE,
+    com.example.kpkn.domain.training.importer.ImportDocumentType.URL_IMAGE -> "Foto"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.PDF,
+    com.example.kpkn.domain.training.importer.ImportDocumentType.URL_PDF -> "PDF"
+    com.example.kpkn.domain.training.importer.ImportDocumentType.URL_HTML -> "Página web"
+}
 
 /** La cuenta del panel plegado: «47 avisos sin revisar.». */
 private fun avisosSinRevisar(count: Int): String = "${plural(count, "aviso", "avisos")} sin revisar."

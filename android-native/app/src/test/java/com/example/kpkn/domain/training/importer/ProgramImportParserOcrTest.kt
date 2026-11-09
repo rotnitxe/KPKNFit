@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training.importer
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,6 +24,187 @@ class ProgramImportParserOcrTest {
         assertEquals(listOf(4, 3), exercises.map { it.sets })
         assertEquals(listOf(8, 10), exercises.map { it.repsMin })
         assertEquals(emptyList<String>(), skippedMessages(draft))
+    }
+
+    @Test
+    fun `filas OCR con DAY A repetido agrupan el movimiento y su prescripcion`() {
+        val rows = listOf(
+            listOf("DAY A", "Back Squat", "3 x 5 reps", "70 kg", "RIR 2", "rest 2 min"),
+            listOf("DAY A", "Bench Press", "3 x 5 reps", "50 kg", "rest 2 min"),
+            listOf("DAY B", "Deadlift", "2 x 5", "80 kg", "rest 2 min"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Rutina manuscrita", rows = rows, pageStarts = listOf(0))),
+            title = "Rutina manuscrita",
+        )
+
+        val days = draft.weeks.single().days
+        assertEquals(listOf("DAY A", "DAY B"), days.map { it.name })
+        assertEquals(listOf("Back Squat", "Bench Press"), days[0].exercises.map { it.rawName })
+        assertEquals(3, days[0].exercises[0].sets)
+        assertEquals(5, days[0].exercises[0].repsMin)
+        assertEquals(70.0, requireNotNull(days[0].exercises[0].loadKg), 0.001)
+        assertEquals(listOf("Deadlift"), days[1].exercises.map { it.rawName })
+        assertEquals(emptyList<String>(), skippedMessages(draft))
+    }
+
+    @Test
+    fun `filas OCR conservan duracion aunque falte confirmar el numero de series`() {
+        val rows = listOf(listOf("DAY A", "Plank", "40 s", "rest 1 min"))
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Rutina manuscrita", rows = rows, pageStarts = listOf(0))),
+            title = "Rutina manuscrita",
+        )
+
+        val plank = exercisesOf(draft).single()
+        assertEquals("Plank", plank.rawName)
+        assertEquals(0, plank.sets)
+        assertEquals(40, plank.durationSeconds)
+        assertEquals(60, plank.restSeconds)
+        assertFalse(plank.notes.orEmpty().contains("rest", ignoreCase = true))
+        val warning = draft.warnings.single { it.kind == ImportWarningKind.INCOMPLETE_ROW }
+        assertEquals(plank.id, warning.exerciseId)
+        assertTrue(warning.message.contains("no indica cuántas series"))
+        assertTrue(ImportDraftValidation.checkOccurrences(draft) { true }.any {
+            it.kind == ImportIssueKind.INCOMPLETE_EXERCISE && it.exerciseId == plank.id
+        })
+    }
+
+    @Test
+    fun `tiempo objetivo no se confunde con descanso y admite encabezado Duration`() {
+        val compact = ProgramImportParser.parseText(
+            "Plank 3x40 seconds rest 1 min\nSquat 3x5 2 min",
+            title = "Tiempo",
+        )
+        val compactExercises = exercisesOf(compact)
+        assertEquals(40, compactExercises[0].durationSeconds)
+        assertEquals(3, compactExercises[0].sets)
+        assertEquals(60, compactExercises[0].restSeconds)
+        assertEquals(1, compactExercises[0].repsMin) // An internal serialization anchor; the builder omits rep targets for TIME.
+        assertEquals(5, compactExercises[1].repsMin)
+        assertEquals(120, compactExercises[1].restSeconds)
+
+        val sheet = ImportSheet(
+            name = "Circuito",
+            rows = listOf(
+                listOf("Exercise", "Sets", "Duration (s)", "Rest"),
+                listOf("Plank", "3", "40", "60 sec"),
+            ),
+        )
+        val timed = exercisesOf(ProgramImportParser.parseSheets(listOf(sheet), title = "Circuito")).single()
+        assertEquals(3, timed.sets)
+        assertEquals(40, timed.durationSeconds)
+        assertEquals(60, timed.restSeconds)
+    }
+
+    @Test
+    fun `filas OCR de reto conservan repeticiones sin inventar series`() {
+        val rows = listOf(
+            listOf("Day 1", "10 Push Ups", "10 Squats or Squat Jumps", "10 Sweeping Scissors"),
+            listOf("Day 2", "15 Push Ups", "15 Squats or Squat Jumps", "15 Sweeping Scissors", "15 Walking Lunges"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Reto", rows = rows, pageStarts = listOf(0))),
+            title = "Reto",
+        )
+
+        val exercises = exercisesOf(draft)
+        assertEquals(7, exercises.size)
+        assertTrue(exercises.all { it.sets == 0 })
+        assertEquals(listOf(10, 10, 10, 15, 15, 15, 15), exercises.map { it.repsMin })
+        assertTrue(skippedMessages(draft).isEmpty())
+        assertEquals(7, draft.warnings.count { it.kind == ImportWarningKind.INCOMPLETE_ROW })
+        assertEquals(7, ImportDraftValidation.checkOccurrences(draft) { true }
+            .count { it.kind == ImportIssueKind.INCOMPLETE_EXERCISE })
+    }
+
+    @Test
+    fun `OCR de reto en dias por columnas recupera semanas y une nombres partidos sin inventar series`() {
+        val rows = listOf(
+            listOf("DAY 1", "DAY 2", "DAY 3", "DAY 4", "DAY 5", "DAY", "DAY 7"),
+            listOf("10 Push Ups", "10 Push Ups", "10 Push Ups", "10 Push Ups", "", "10 Push Ups", "10 Push Ups"),
+            listOf("10 Squats or Squat", "10 Squats or Squat", "10 Squats or Squat", "10 Squats or Squat", "", "10 Squats or Squat", "10 Squats or Squat"),
+            listOf("Jumps", "Jumps", "Jumps", "Jumps", "", "Jumps", "Jumps"),
+            listOf("10Sweeping Scissors", "10 Sweeping Scissors", "10 Sweeping Scissors", "10 Sweeping Scissors", "", "10Sweeping Scissors", "10Sweeping Scissors"),
+            listOf("DAY 8", "DAY 9", "DAY 10", "DAY 11", "DAY 12", "DAY 13", "DAY 14"),
+            listOf("15 Push Ups", "15 Push Ups", "15 Push Ups", "15 Push Ups", "15 Push Ups", "15 Push Ups", "15 Push Ups"),
+            listOf("15 Squats or Squat", "15 Squats or Squat", "15 Squats or Squat", "15 Squats or Squat", "15 Squats or Squat", "15 Squats or Squat", "15 Squats or Squat"),
+            listOf("Jumps", "Jumps", "Jumps", "Jumps", "Jumps", "Jumps", "Jumps"),
+            listOf("15 Sweeping Scissors", "15 Sweeping Scissors", "15 Sweeping Scissors", "15 Sweeping Scissors", "15 Sweeping Scissors", "15 Sweeping Scissors", "15 Sweeping Scissors"),
+            listOf("15 Walking Lunges", "15 Walking Lunges", "15 Walking Lunges", "15 Walking Lunges", "15 Walking Lunges", "15 Walking Lunges", "15 Walking Lunges"),
+            listOf("15 Army Crawl", "15 Army Crawl", "15 Army Crawl", "15 Army Crawl", "15 Army Crawl", "15 Army Crawl", "15 Army Crawl"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Reto impreso", rows = rows, pageStarts = listOf(0))),
+            title = "Reto impreso",
+        )
+
+        assertEquals(listOf(1, 2), draft.weeks.map { it.index })
+        assertEquals(6, draft.weeks[0].days.size) // El día 5 no tiene ejercicios visibles; se avisa en vez de inventar descanso.
+        assertEquals(7, draft.weeks[1].days.size)
+        assertEquals(listOf("Push Ups", "Squats or Squat Jumps", "Sweeping Scissors"), draft.weeks[0].days.first().exercises.map { it.rawName })
+        assertEquals(listOf(10, 10, 10), draft.weeks[0].days.first().exercises.map { it.repsMin })
+        assertEquals(listOf(15, 15, 15, 15, 15), draft.weeks[1].days.first().exercises.map { it.repsMin })
+        assertTrue(exercisesOf(draft).all { it.sets == 0 })
+        assertEquals(exercisesOf(draft).size, draft.warnings.count { it.kind == ImportWarningKind.INCOMPLETE_ROW })
+        assertEquals(1, draft.warnings.count { it.kind == ImportWarningKind.EMPTY_DAY })
+        assertTrue(skippedMessages(draft).isEmpty())
+    }
+
+    @Test
+    fun `OCR de reto deja celdas truncadas como avisos y no completa ejercicios vecinos`() {
+        val header = MutableList(20) { "" }.apply {
+            this[0] = "DAY 9"
+            this[13] = "DAY 22"
+            this[18] = "DAY 27"
+            this[19] = "DAY 28"
+        }
+        val truncated = MutableList(20) { "" }.apply {
+            this[0] = "Sautps"
+            this[13] = "25 Push"
+            this[18] = "25 Push"
+        }
+        val neighboringExercises = MutableList(20) { "" }.apply {
+            this[0] = "15 Sweeping Scissors"
+            this[1] = "15 Push Ups"
+            this[13] = "25 Sweeping Scissors"
+            this[18] = "25 Sweeping Scissors"
+            this[19] = "25 Push Ups"
+        }
+        val rows = listOf(
+            header,
+            truncated,
+            neighboringExercises,
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Reto con OCR ambiguo", rows = rows, pageStarts = listOf(0))),
+            title = "Reto con OCR ambiguo",
+        )
+
+        val exercises = exercisesOf(draft)
+        val skipped = draft.warnings.filter { it.kind == ImportWarningKind.SKIPPED_ROW }
+        assertEquals(3, skipped.size)
+        assertTrue(skipped.any { it.message.contains("«Sautps»") })
+        assertEquals(2, skipped.count { it.message.contains("«25 Push»") })
+        assertEquals(listOf(9, 22, 27), skipped.map { warning ->
+            val day = draft.weeks.flatMap { it.days }.single { it.id == warning.dayId }
+            Regex("\\d+").find(day.name)?.value?.toInt()
+        })
+        val daysByNumber = draft.weeks.flatMap { it.days }.associateBy { day ->
+            Regex("\\d+").find(day.name)?.value?.toInt() ?: error("día sin número: ${day.name}")
+        }
+        assertEquals(listOf("Sweeping Scissors"), daysByNumber.getValue(9).exercises.map { it.rawName })
+        assertEquals(listOf("Push Ups"), daysByNumber.getValue(10).exercises.map { it.rawName })
+        assertEquals(listOf("Sweeping Scissors"), daysByNumber.getValue(22).exercises.map { it.rawName })
+        assertEquals(listOf("Sweeping Scissors"), daysByNumber.getValue(27).exercises.map { it.rawName })
+        assertEquals(listOf("Push Ups"), daysByNumber.getValue(28).exercises.map { it.rawName })
+        assertTrue(exercises.none { it.rawName == "Sautps" || it.rawName == "Push" })
+        assertEquals(15, daysByNumber.getValue(10).exercises.single().repsMin)
+        assertEquals(25, daysByNumber.getValue(28).exercises.single().repsMin)
     }
 
     @Test
@@ -229,6 +411,115 @@ class ProgramImportParserOcrTest {
         assertEquals(listOf("Sentadilla"), exercisesOf(draft).map { it.rawName })
         assertEquals(emptyList<String>(), skippedMessages(draft))
         assertTrue(draft.warnings.any { it.message.contains("3 líneas de texto") })
+    }
+
+    @Test
+    fun `abreviaturas y una cabecera sabad0 con contexto conservan los dias ISO`() {
+        val rows = listOf(
+            listOf("LUN"), listOf("Press 3x8"),
+            listOf("MAR"), listOf("Remo 3x10"),
+            listOf("JUE"), listOf("Sentadilla 4x6"),
+            listOf("SABAD0"), listOf("Press militar 3x8"), listOf("Sentadilla frontal 3x10"),
+        )
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Rutina", rows = rows, pageStarts = listOf(0))),
+            title = "Cuatro días",
+        )
+
+        val days = draft.weeks.single().days
+        assertEquals(listOf(1, 2, 4, 6), days.map { it.dayOfWeek })
+        assertEquals(listOf(1, 1, 1, 2), days.map { it.exercises.size })
+        assertTrue(draft.warnings.any { it.kind == ImportWarningKind.SHEET_NOTE && it.sourceText == "SABAD0" })
+        assertTrue(draft.warnings.none { it.kind == ImportWarningKind.STRUCTURE_REVIEW })
+    }
+
+    @Test
+    fun `cabecera sabad0 sin contexto suficiente aísla los ejercicios para revisión`() {
+        val rows = listOf(listOf("JUEVES"), listOf("Curl 3x10"), listOf("SABAD0"), listOf("Press militar 3x8"))
+
+        val draft = ProgramImportParser.parseSheets(
+            listOf(ImportSheet(name = "Rutina", rows = rows, pageStarts = listOf(0))),
+            title = "Día pendiente",
+        )
+
+        assertEquals(listOf("Día sin asignar"), draft.weeks.single().days.drop(1).map { it.name })
+        val warning = draft.warnings.single { it.kind == ImportWarningKind.STRUCTURE_REVIEW }
+        assertEquals("w1-d2", warning.dayId)
+        assertEquals("SABAD0", warning.sourceText)
+        assertEquals(listOf("Press militar"), draft.weeks.single().days.last().exercises.map { it.rawName })
+    }
+
+    @Test
+    fun `corrige una cabecera OCR de cualquier dia con origen y conserva dudosas para asignacion`() {
+        val corrected = ProgramImportParser.parseSheets(
+            listOf(
+                ImportSheet(
+                    name = "Rutina PDF",
+                    rows = listOf(
+                        listOf("VIERNES"), listOf("Curl 3x10"),
+                        listOf("M0NDAY"), listOf("Press militar 3x8"),
+                        listOf("MIERCOLES"), listOf("Remo con barra 3x8"),
+                    ),
+                    documentType = ImportDocumentType.PDF,
+                    pageStarts = listOf(0),
+                ),
+            ),
+            title = "Rutina",
+        )
+
+        assertEquals(listOf(5, 1, 3), corrected.weeks.single().days.map { it.dayOfWeek })
+        val correction = corrected.warnings.single { it.kind == ImportWarningKind.SHEET_NOTE }
+        assertEquals(ImportDocumentType.PDF, correction.sourceDocumentType)
+        assertEquals(1, correction.sourcePage)
+        assertEquals(3, correction.sourceRow)
+        assertEquals("Rutina PDF", correction.sourceSheet)
+        assertEquals("M0NDAY", correction.sourceText)
+
+        val uncertain = ProgramImportParser.parseSheets(
+            listOf(
+                ImportSheet(
+                    name = "Rutina PDF",
+                    rows = listOf(
+                        listOf("VIERNES"), listOf("Curl 3x10"),
+                        listOf("M0N0AY"), listOf("Press militar 3x8"),
+                    ),
+                    documentType = ImportDocumentType.PDF,
+                    pageStarts = listOf(0),
+                ),
+            ),
+            title = "Rutina",
+        )
+        val warning = uncertain.warnings.single { it.kind == ImportWarningKind.STRUCTURE_REVIEW }
+        val unassigned = uncertain.weeks.single().days.last()
+        assertEquals("Día sin asignar", unassigned.name)
+        assertNull(unassigned.dayOfWeek)
+        assertEquals(unassigned.id, warning.dayId)
+        assertEquals(ImportDocumentType.PDF, warning.sourceDocumentType)
+        assertEquals(3, warning.sourceRow)
+        assertEquals("M0N0AY", warning.sourceText)
+    }
+
+    @Test
+    fun `aviso agregado limita muestras y conserva ubicacion cantidad y truncamiento`() {
+        val longLine = "Nota: " + "A".repeat(600)
+        val draft = ProgramImportParser.parseSheets(
+            listOf(
+                ImportSheet(
+                    name = "Hoja OCR",
+                    rows = listOf(listOf(longLine), listOf("Otra nota")),
+                    documentType = ImportDocumentType.PDF,
+                    pageStarts = listOf(0),
+                ),
+            ),
+            title = "Notas",
+        )
+        val note = draft.warnings.single { it.kind == ImportWarningKind.SHEET_NOTE }
+        assertEquals(2, note.itemCount)
+        assertTrue(note.sourceText.orEmpty().contains("pág. 1"))
+        assertTrue(note.sourceText.orEmpty().contains("fila 1"))
+        assertTrue(note.sourceText.orEmpty().length <= 500)
+        assertTrue(note.sourceTextTruncated)
     }
 
     @Test

@@ -5,6 +5,9 @@ import android.os.Build
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.training.importer.ImportedProgramSourceMap
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportSourceEvidence
+import com.example.kpkn.domain.training.importer.ImportWizardPage
+import com.example.kpkn.domain.training.importer.ImportWizardSheet
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -18,7 +21,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** El origen permanece como procedencia; [program] conserva el modelo completo editado. */
+/** Draft del importador. `program` solo se conserva en documentos antiguos que ya usaban el editor de sesiones. */
 @Serializable
 internal data class ImportedEditorDocument(
     val id: String,
@@ -27,18 +30,24 @@ internal data class ImportedEditorDocument(
     val resolutions: Map<String, String?>,
     val title: String,
     val weekdays: Set<Int>,
-    val program: Program,
+    val program: Program? = null,
     val sourceMap: ImportedProgramSourceMap = ImportedProgramSourceMap(),
     val editingStarted: Boolean = false,
     /** Stable id of the library commit, so a restore after process death can complete cleanup idempotently. */
     val savedProgramId: String? = null,
-    val schemaVersion: Int = 1,
+    val wizardPage: ImportWizardPage = ImportWizardPage.EXERCISES,
+    val wizardSheet: ImportWizardSheet? = null,
+    val sourceEvidence: ImportSourceEvidence = ImportSourceEvidence(),
+    /** Canonical session ids the user opened and saved through the shared session editor. */
+    val reviewedSessionIds: Set<String> = emptySet(),
+    val schemaVersion: Int = 3,
 )
 
 /** Archivo privado y atómico para la ruta de Programas; el alta usa su persistencia propia. */
 internal class ImportedEditorDraftPersistence(
     file: File,
     private val atomicFile: AtomicFile = AtomicFile(file),
+    private val sourceMediaStore: ImportSourceMediaStore? = null,
 ) {
     private val mutex = locks.computeIfAbsent(file.absoluteFile.canonicalPath.replace('\\', '/').lowercase(Locale.ROOT)) { Mutex() }
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -49,9 +58,10 @@ internal class ImportedEditorDraftPersistence(
 
     private fun decodeDocument(bytes: ByteArray): ImportedEditorDocument =
         json.decodeFromString(ImportedEditorDocument.serializer(), String(bytes, Charsets.UTF_8)).also { decoded ->
-            check(decoded.schemaVersion == 1) { "Versión de borrador no compatible" }
-            check(decoded.id.isNotBlank() && decoded.revision >= 0 && decoded.program.id.isNotBlank()) { "Borrador inválido" }
-        }
+            check(decoded.schemaVersion in 1..3) { "Versión de borrador no compatible" }
+            check(decoded.id.isNotBlank() && decoded.revision >= 0) { "Borrador inválido" }
+            check(!decoded.editingStarted || decoded.program?.id?.isNotBlank() == true) { "Borrador editado inválido" }
+        }.copy(schemaVersion = 3)
 
     private fun readLocked(): ImportedEditorDocument? {
         val base = atomicFile.baseFile
@@ -66,7 +76,11 @@ internal class ImportedEditorDraftPersistence(
     }
 
     suspend fun read(): Result<ImportedEditorDocument?> = withContext(Dispatchers.IO) {
-        mutex.withLock { runCatching { readLocked() } }
+        mutex.withLock {
+            runCatching { readLocked() }.onSuccess { document ->
+                runCatching { sourceMediaStore?.retainOnly(document?.sourceEvidence?.sourceMediaId) }
+            }
+        }
     }
 
     private fun writeLocked(document: ImportedEditorDocument) {
@@ -295,7 +309,8 @@ internal class ImportedEditorDraftPersistence(
     suspend fun write(document: ImportedEditorDocument, expectedRevision: Long?): Result<Unit> = withContext(Dispatchers.IO) {
         mutex.withLock {
             runCatching {
-                require(document.schemaVersion == 1 && document.id.isNotBlank() && document.program.id.isNotBlank() && document.revision >= 0)
+                require(document.schemaVersion == 3 && document.id.isNotBlank() && document.revision >= 0)
+                require(!document.editingStarted || document.program?.id?.isNotBlank() == true)
                 val previous = readLocked()
                 if (previous == null) {
                     require(expectedRevision == null && document.revision == 0L)
@@ -304,6 +319,9 @@ internal class ImportedEditorDraftPersistence(
                     require(document.revision == previous.revision + 1)
                 }
                 writeLocked(document)
+                if (previous?.sourceEvidence?.sourceMediaId != document.sourceEvidence.sourceMediaId) {
+                    runCatching { sourceMediaStore?.delete(previous?.sourceEvidence?.sourceMediaId) }
+                }
             }
         }
     }
@@ -316,8 +334,11 @@ internal class ImportedEditorDraftPersistence(
                     val previous = requireNotNull(readLocked())
                     require(previous.id == expectedId && previous.revision == expectedRevision)
                     require(document.id.isNotBlank() && document.id != previous.id && document.revision == 0L)
-                    require(document.schemaVersion == 1 && document.program.id.isNotBlank())
+                    require(document.schemaVersion == 3)
+                    require(!document.editingStarted || document.program?.id?.isNotBlank() == true)
                     writeLocked(document)
+                    runCatching { sourceMediaStore?.delete(previous.sourceEvidence.sourceMediaId) }
+                    Unit
                 }
             }
         }
@@ -334,6 +355,7 @@ internal class ImportedEditorDraftPersistence(
                     atomicFile.delete()
                     check(!base.exists() && !File(base.path + ".bak").exists())
                     rollback?.let { check(it.delete()) { "No se pudo cerrar el respaldo recuperable del borrador" } }
+                    runCatching { sourceMediaStore?.delete(current.sourceEvidence.sourceMediaId) }
                     true
                 } catch (error: Throwable) {
                     try {

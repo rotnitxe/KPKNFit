@@ -25,7 +25,7 @@ class MlKitTextRecognizer : TextRecognizerPort {
                 .mapNotNull { element ->
                     val box = element.boundingBox ?: return@mapNotNull null
                     val word = element.text.trim()
-                    if (word.isEmpty()) null else OcrWord(word, box.left, box.top, box.right, box.bottom)
+                    if (word.isEmpty()) null else OcrWord(word, box.left, box.top, box.right, box.bottom, element.confidence)
                 }
         } finally {
             client.close()

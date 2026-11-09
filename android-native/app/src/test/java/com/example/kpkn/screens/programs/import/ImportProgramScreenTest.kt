@@ -8,17 +8,34 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.importer.ImportedEditorDraftPersistence
+import com.example.kpkn.data.importer.ProgramUrlReader
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.SessionRequirement
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.domain.entitlements.PlanLevel
 import com.example.kpkn.domain.training.importer.Change
 import com.example.kpkn.domain.training.importer.ImportExercisePatch
 import com.example.kpkn.domain.training.importer.ImportSheet
+import com.example.kpkn.domain.training.importer.ImportReadingStage
+import com.example.kpkn.domain.training.importer.ImportWizardPage
+import com.example.kpkn.domain.training.importer.ImportWizardSheet
+import com.example.kpkn.domain.training.importer.ImportSourceKind
 import com.example.kpkn.ui.entitlements.LocalPlan
 import java.io.File
+import java.io.ByteArrayOutputStream
+import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -54,9 +71,9 @@ class ImportProgramScreenTest {
     private val viewModelStore = ViewModelStore()
     private var nextViewModelKey = 0
 
-    private fun newViewModel(): ImportProgramViewModel {
+    private fun newViewModel(draftFile: File? = null): ImportProgramViewModel {
         val key = nextViewModelKey++
-        return ImportProgramViewModel(app, File(folder.root, "draft-$key.json")).also { vm ->
+        return ImportProgramViewModel(app, draftFile ?: File(folder.root, "draft-$key.json")).also { vm ->
             vm.saveProgram = { program ->
                 saved += program
                 Result.success(Unit)
@@ -141,6 +158,214 @@ class ImportProgramScreenTest {
     }
 
     @Test
+    fun entryOffersFilePasteCameraGalleryAndPublicUrlSources() {
+        val vm = newViewModel()
+        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
+
+        rule.onNodeWithTag("import-entry-file").assertExists()
+        rule.onNodeWithTag("import-entry-paste").assertExists()
+        rule.onNodeWithTag("import-entry-camera").assertExists()
+        rule.onNodeWithTag("import-entry-gallery").assertExists()
+        rule.onNodeWithTag("import-entry-url").assertExists()
+        rule.onNodeWithTag("import-entry-photo-limit").assertExists()
+    }
+
+    @Test
+    fun importedProgramOpensOneCombinedExerciseAndWeekReview() {
+        val vm = newViewModel()
+        vm.matchNames = { emptyMap() }
+        vm.importFromText("Día 1 — Pierna\nSentadilla 3x5")
+        settle(vm) { !it.busy && it.imported != null }
+        settleReviewPersistence(vm)
+        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
+
+        assertEquals(ImportWizardPage.EXERCISES, vm.state.value.page)
+        rule.onNodeWithTag("import-page-header").assertIsDisplayed()
+        rule.onNodeWithText("Confirma las coincidencias.").assertExists()
+        rule.onNodeWithText("Distribución semanal").assertExists()
+        rule.onNodeWithTag("import-title").assertExists()
+        rule.onNodeWithTag("import-page-scroll").performTouchInput { swipeUp() }
+        rule.onNodeWithTag("import-page-header").assertIsDisplayed()
+        val exercise = vm.state.value.imported!!.weeks.first().days.first().exercises.first()
+        rule.onNodeWithTag("import-step-next").assertIsNotEnabled()
+        rule.onNodeWithTag("import-match-own-${exercise.id}").performScrollTo().performClick()
+        settleReviewPersistence(vm)
+        rule.onNodeWithTag("import-step-next").assertIsEnabled()
+    }
+
+    @Test
+    fun catalogRetryKeepsManualDecisionsAndDoesNotReadTheSourceAgain() {
+        val vm = newViewModel()
+        vm.matchNames = { error("catálogo temporalmente no disponible") }
+        val sourceText = "Día 1 — Pierna\nSentadilla 3x5\nPrensa 3x8"
+        vm.importFromText(sourceText)
+        settle(vm) { !it.busy && it.imported != null }
+        assertEquals(IMPORT_CATALOG_UNAVAILABLE, vm.state.value.notice)
+        vm.navigateTo(ImportWizardPage.EXERCISES)
+        vm.edit(ImportEditOp.Decide("Prensa", null, "Prensa propia"))
+        settleReviewPersistence(vm)
+
+        vm.matchNames = { names ->
+            assertEquals(listOf("Sentadilla"), names)
+            mapOf("Sentadilla" to "catalog:squat")
+        }
+        vm.retryCatalogMatching()
+        settle(vm) { !it.busy && it.notice == null }
+        settleReviewPersistence(vm)
+
+        assertEquals("catalog:squat", vm.state.value.resolutions["Sentadilla"])
+        assertTrue(vm.state.value.resolutions.containsKey("Prensa"))
+        assertNull(vm.state.value.resolutions["Prensa"])
+        assertEquals(sourceText, vm.state.value.sourceEvidence.sourceText)
+        assertEquals(ImportWizardPage.EXERCISES, vm.state.value.page)
+    }
+
+    @Test
+    fun catalogRetryCanRecoverFromTheExerciseMatchingStep() {
+        val vm = newViewModel()
+        val sourceText = "Día 1 — Pierna\nSentadilla 3x5"
+        vm.matchNames = { emptyMap() }
+        vm.importFromText(sourceText)
+        settle(vm) { !it.busy && it.imported != null }
+        vm.navigateTo(ImportWizardPage.EXERCISES)
+
+        vm.matchNames = { error("catálogo temporalmente no disponible") }
+        vm.retryCatalogMatching()
+        settle(vm) { !it.busy && it.notice == IMPORT_CATALOG_UNAVAILABLE }
+        vm.matchNames = { names ->
+            assertEquals(listOf("Sentadilla"), names)
+            mapOf("Sentadilla" to "catalog:squat")
+        }
+        vm.retryCatalogMatching()
+        settle(vm) { !it.busy && it.notice == null }
+        settleReviewPersistence(vm)
+
+        assertEquals(ImportWizardPage.EXERCISES, vm.state.value.page)
+        assertEquals("catalog:squat", vm.state.value.resolutions["Sentadilla"])
+        assertEquals(sourceText, vm.state.value.sourceEvidence.sourceText)
+    }
+
+    @Test
+    fun finalReviewMuscleDistributionCountsKnownPrimaryGroupsAndKeepsOwnExercisesUnassigned() {
+        val vm = newViewModel()
+        vm.matchNames = { emptyMap() }
+        vm.importFromSheets(
+            listOf(
+                ImportSheet(
+                    "Semana 1",
+                    listOf(
+                        listOf("Día 1 — Pierna"),
+                        listOf("Ejercicio", "Series", "Reps"),
+                        listOf("Sentadilla", "3", "5"),
+                        listOf("Press vertical inventado", "2", "8"),
+                    ),
+                ),
+            ),
+            title = "Plan de prueba",
+        )
+        settle(vm) { !it.busy && it.imported != null }
+        val suggestion = runBlocking { vm.suggestions("Sentadilla").firstOrNull() }
+            ?: error("el catálogo no propuso una sentadilla")
+        val unknownName = vm.state.value.imported!!.weeks.single().days.single().exercises
+            .single { it.rawName != "Sentadilla" }.rawName
+        vm.resolve("Sentadilla", suggestion.configurationId)
+        vm.resolve(unknownName, null)
+        settleReviewPersistence(vm)
+
+        val distribution = runBlocking { vm.primaryMuscleSeriesForReview() }
+            ?: error("no se calculó el reparto muscular")
+
+        assertEquals(3, distribution.groups.sumOf { it.sets })
+        assertEquals(1, distribution.unassignedExercises)
+        assertTrue(distribution.groups.isNotEmpty())
+    }
+
+    @Test
+    fun wizardRouteSheetAndSourceEvidenceSurviveViewModelRecreation() {
+        val draftFile = File(folder.root, "wizard-route-restoration.json")
+        val originalText = "Día 1 — Pierna\nSentadilla 3x5"
+        val first = newViewModel(draftFile)
+        first.matchNames = { emptyMap() }
+        first.importFromText(originalText)
+        settle(first) { !it.busy && it.imported != null }
+        first.navigateTo(ImportWizardPage.REVIEW)
+        settleReviewPersistence(first)
+        first.showSheet(ImportWizardSheet.TEXT)
+        settleReviewPersistence(first)
+
+        viewModelStore.clear()
+        val reopened = newViewModel(draftFile)
+        settle(reopened) { it.imported != null || it.error != null }
+
+        assertNull(reopened.state.value.error)
+        assertEquals(ImportWizardPage.ENTRY, reopened.state.value.page)
+        assertEquals(ImportWizardPage.REVIEW, reopened.state.value.resumePage)
+        assertEquals(ImportWizardSheet.TEXT, reopened.state.value.resumeSheet)
+        assertEquals(originalText, reopened.state.value.sourceEvidence.sourceText)
+        reopened.resumeDraft()
+        assertEquals(ImportWizardPage.REVIEW, reopened.state.value.page)
+        assertEquals(ImportWizardSheet.TEXT, reopened.state.value.sheet)
+    }
+
+    @Test
+    fun transientPasteRouteRestoresTheExistingDraftReviewPage() {
+        val draftFile = File(folder.root, "transient-paste-route-restoration.json")
+        val first = newViewModel(draftFile)
+        first.matchNames = { emptyMap() }
+        first.importFromText("Día 1 — Pierna\nSentadilla 3x5")
+        settle(first) { !it.busy && it.imported != null }
+        settleReviewPersistence(first)
+
+        first.navigateTo(ImportWizardPage.PASTE)
+        settleReviewPersistence(first)
+        assertEquals(ImportWizardPage.EXERCISES, first.state.value.resumePage)
+
+        val persistence = ImportedEditorDraftPersistence(draftFile)
+        val persisted = runBlocking { persistence.read().getOrThrow() } ?: error("no se guardó el borrador")
+        assertEquals(ImportWizardPage.EXERCISES, persisted.wizardPage)
+
+        // Simulate a legacy draft saved while its non-durable paste form was open.
+        val legacyPasteRoute = persisted.copy(
+            revision = persisted.revision + 1,
+            wizardPage = ImportWizardPage.PASTE,
+            wizardSheet = ImportWizardSheet.TEXT,
+        )
+        runBlocking { persistence.write(legacyPasteRoute, persisted.revision).getOrThrow() }
+
+        viewModelStore.clear()
+        val reopened = newViewModel(draftFile)
+        settle(reopened) { it.imported != null || it.error != null }
+
+        assertNull(reopened.state.value.error)
+        assertEquals(ImportWizardPage.ENTRY, reopened.state.value.page)
+        assertEquals(ImportWizardPage.EXERCISES, reopened.state.value.resumePage)
+        assertNull(reopened.state.value.resumeSheet)
+        reopened.resumeDraft()
+        assertEquals(ImportWizardPage.EXERCISES, reopened.state.value.page)
+    }
+
+    @Test
+    fun legacySummaryDraftResumesAtTheCombinedReview() {
+        val draftFile = File(folder.root, "legacy-summary-route.json")
+        val first = newViewModel(draftFile)
+        first.matchNames = { emptyMap() }
+        first.importFromText("Día 1 — Pierna\nSentadilla 3x5")
+        settle(first) { !it.busy && it.imported != null }
+        first.navigateTo(ImportWizardPage.SUMMARY)
+        settleReviewPersistence(first)
+
+        viewModelStore.clear()
+        val reopened = newViewModel(draftFile)
+        settle(reopened) { it.imported != null || it.error != null }
+
+        assertNull(reopened.state.value.error)
+        assertEquals(ImportWizardPage.ENTRY, reopened.state.value.page)
+        assertEquals(ImportWizardPage.EXERCISES, reopened.state.value.resumePage)
+        reopened.resumeDraft()
+        assertEquals(ImportWizardPage.EXERCISES, reopened.state.value.page)
+    }
+
+    @Test
     fun aTwoWeekProgramIsNotSavedOnFreeAndTheProNoticeAppears() {
         val vm = newViewModel()
         vm.importFromSheets(twoWeeks(), "Prueba de dos semanas")
@@ -153,14 +378,160 @@ class ImportProgramScreenTest {
                 ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
             }
         }
-        rule.onNodeWithTag("import-save").assertIsEnabled()
-        rule.onNodeWithTag("import-save").performClick()
-        settleSave(vm)
+        vm.navigateTo(ImportWizardPage.REVIEW)
+        settleReviewPersistence(vm)
+        rule.onNodeWithTag("import-step-next").assertIsEnabled()
+        rule.onNodeWithTag("import-step-next").performClick()
 
-        assertEquals(IMPORT_PRO_NOTICE, vm.state.value.notice)
+        assertEquals(ImportWizardSheet.PRO, vm.state.value.sheet)
         assertNull(vm.state.value.error)
-        rule.onNodeWithText(IMPORT_PRO_NOTICE).assertExists()
+        rule.onNodeWithTag("import-pro-upgrade").assertDoesNotExist()
+        rule.onNodeWithTag("import-pro-unavailable", useUnmergedTree = true).assertExists()
         assertTrue("en Free no se escribe nada", saved.isEmpty())
+    }
+
+    @Test
+    fun reviewSurvivesViewModelRecreationAndCanBeSaved() {
+        val draftFile = File(folder.root, "review-restoration.json")
+        val first = newViewModel(draftFile)
+        first.matchNames = { emptyMap() }
+        first.readUrl = { url ->
+            assertEquals("https://training.example/rutina?token=omitido", url)
+            ProgramUrlReader.parsePayload(
+                bytes = reviewWorkbookXlsx(),
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName = "Rutina de fuerza.xlsx",
+                source = URI(url),
+            )
+        }
+        first.importFromUrl("https://training.example/rutina?token=omitido")
+        settle(first) { it.imported != null && !it.busy }
+
+        assertEquals("Rutina de fuerza", first.state.value.imported?.sourceTitle)
+        assertEquals("https://training.example", first.state.value.imported?.sourceUrl)
+        assertEquals("https://training.example", first.state.value.sourceEvidence.sourceUrl)
+        val sourceWarningIds = first.state.value.imported!!.warnings.map { it.id }.toSet()
+        assertTrue("la nota de procedencia web debe requerir revisión", sourceWarningIds.isNotEmpty())
+        first.edit(ImportEditOp.IgnoreAllWarnings)
+
+        val rawName = first.state.value.imported!!.weeks.single().days.single().exercises.single().rawName
+        val choice = runBlocking { first.suggestions(rawName).firstOrNull() }
+            ?: error("el catálogo no ofreció una opción para $rawName")
+        first.resolve(rawName, choice.configurationId)
+        first.setTitle("Rutina restaurada")
+        val addedWeekday = (1..7).first { it !in first.state.value.weekdays }
+        first.toggleWeekday(addedWeekday)
+        settleReviewPersistence(first)
+        val expectedWeekdays = first.state.value.weekdays
+
+        // Simulate process recreation: cancel the old ViewModel but leave its private durable draft intact.
+        viewModelStore.clear()
+        val reopened = newViewModel(draftFile)
+        settle(reopened) { it.imported != null || it.error != null }
+
+        assertNull("la restauración no debe fallar", reopened.state.value.error)
+        assertEquals("Rutina restaurada", reopened.state.value.title)
+        assertEquals("Sentadilla", reopened.state.value.imported!!.weeks.single().days.single().exercises.single().rawName)
+        assertEquals("Rutina de fuerza", reopened.state.value.imported?.sourceTitle)
+        assertEquals("https://training.example", reopened.state.value.imported?.sourceUrl)
+        assertTrue(reopened.state.value.imported!!.reviewedWarnings.containsAll(sourceWarningIds))
+        assertEquals(choice.configurationId, reopened.state.value.resolutions[rawName])
+        assertEquals(expectedWeekdays, reopened.state.value.weekdays)
+        assertFalse(reopened.state.value.editorStarted)
+
+        val savedId = runSuspendingOffMain { reopened.save(PlanLevel.PRO) }
+
+        assertTrue("no se guardó: ${reopened.state.value.error}", savedId != null)
+        assertEquals(saved.single().id, savedId)
+        assertEquals("Rutina restaurada", saved.single().name)
+        assertEquals("Rutina de fuerza", saved.single().planProvenance?.sourceTitle)
+        assertEquals("https://training.example", saved.single().planProvenance?.sourceUrl)
+        assertFalse("el borrador se elimina solo tras confirmar el guardado", draftFile.exists())
+    }
+
+    private fun reviewWorkbookXlsx(): ByteArray {
+        val output = ByteArrayOutputStream()
+        ZipOutputStream(output).use { zip ->
+            zip.entryText(
+                "xl/workbook.xml",
+                """<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Rutina" sheetId="1" r:id="rId1"/></sheets></workbook>""",
+            )
+            zip.entryText(
+                "xl/_rels/workbook.xml.rels",
+                """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>""",
+            )
+            zip.entryText(
+                "xl/worksheets/sheet1.xml",
+                """<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Ejercicio</t></is></c><c r="B1" t="inlineStr"><is><t>Series</t></is></c><c r="C1" t="inlineStr"><is><t>Reps</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>Sentadilla</t></is></c><c r="B2"><v>3</v></c><c r="C2"><v>8</v></c></row></sheetData></worksheet>""",
+            )
+        }
+        return output.toByteArray()
+    }
+
+    private fun ZipOutputStream.entryText(name: String, text: String) {
+        putNextEntry(ZipEntry(name))
+        write(text.toByteArray(Charsets.UTF_8))
+        closeEntry()
+    }
+
+    @Test
+    fun structuredDaysSupersetsAndWeekKindsSurviveReviewRestorationAndSave() {
+        val draftFile = File(folder.root, "structured-review-restoration.json")
+        val first = newViewModel(draftFile)
+        first.importFromText(
+            """
+                Week 1
+                Monday
+                A1. Bench Press 3x8
+                A2. Barbell Row 3x10
+                Sunday — Rest
+                Week 2 Deload
+                Thursday
+                Deadlift 2x5
+                Week 3 Rest
+            """.trimIndent(),
+        )
+        settle(first) { it.imported != null && !it.busy }
+        decideAll(first)
+        settleReviewPersistence(first)
+
+        val importedBeforeRestart = requireNotNull(first.state.value.imported)
+        assertEquals(
+            listOf(WeekExecutionKind.TRAINING, WeekExecutionKind.DELOAD, WeekExecutionKind.REST),
+            importedBeforeRestart.weeks.map { it.executionKind },
+        )
+        assertEquals(listOf("A", "A"), importedBeforeRestart.weeks[0].days[0].exercises.map { it.supersetGroup })
+        assertTrue(importedBeforeRestart.weeks[0].days[1].isRestDay)
+
+        viewModelStore.clear()
+        val reopened = newViewModel(draftFile)
+        settle(reopened) { it.imported != null || it.error != null }
+
+        assertNull("la restauración no debe fallar", reopened.state.value.error)
+        val restored = requireNotNull(reopened.state.value.imported)
+        assertEquals(importedBeforeRestart.weeks, restored.weeks)
+        assertEquals(first.state.value.resolutions, reopened.state.value.resolutions)
+
+        val savedId = runSuspendingOffMain { reopened.save(PlanLevel.PRO) }
+        assertEquals(saved.single().id, savedId)
+        val savedWeeks = saved.single().macrocycles.single().blocks.single().mesocycles.single().weeks
+        assertEquals(
+            listOf(WeekExecutionKind.TRAINING, WeekExecutionKind.DELOAD, WeekExecutionKind.REST),
+            savedWeeks.map { it.executionKind },
+        )
+
+        val firstWeek = savedWeeks.first()
+        val trainingSession = firstWeek.sessions.single { it.requirement == SessionRequirement.REQUIRED }
+        val restSession = firstWeek.sessions.single { it.requirement == SessionRequirement.OPTIONAL }
+        assertEquals(1, trainingSession.dayOfWeek)
+        assertEquals(7, restSession.dayOfWeek)
+        assertTrue(restSession.exercises.isEmpty())
+        val superset = trainingSession.supersetGroups.single()
+        assertEquals(trainingSession.exercises.map { it.id }, superset.exerciseOrder)
+        assertTrue(trainingSession.exercises.all { it.supersetGroupRef == superset.id })
+        assertEquals(4, savedWeeks[1].sessions.single().dayOfWeek)
+        assertTrue(savedWeeks[2].sessions.isEmpty())
+        assertFalse("el borrador se elimina solo tras confirmar el guardado", draftFile.exists())
     }
 
     @Test
@@ -178,65 +549,6 @@ class ImportProgramScreenTest {
         vm.undo()
         assertEquals(before, vm.state.value.imported)
         assertNull(vm.state.value.undoLabel)
-    }
-
-    @Test
-    fun theFullSessionEditorWaitsUntilEveryImportedExerciseHasACatalogIdentity() {
-        val vm = newViewModel()
-        vm.matchNames = { emptyMap() }
-        vm.importFromSheets(twoWeeks(), "Programa sin resolver")
-        settle(vm) { it.imported != null && !it.busy }
-        settleReviewPersistence(vm)
-        val dayId = vm.state.value.imported!!.weeks.first().days.first().id
-
-        val target = runBlocking { vm.openSessionEditor(1, dayId) }
-
-        assertNull(target)
-        assertFalse(vm.state.value.editorStarted)
-        assertEquals(importedExerciseCatalogChoiceMessage("Sentadilla"), vm.state.value.error)
-        assertTrue(saved.isEmpty())
-    }
-
-    @Test
-    fun anUnmatchedOccurrenceCanOpenTheSharedCatalogBeforeTheFullEditor() {
-        val vm = newViewModel()
-        vm.matchNames = { emptyMap() }
-        vm.importFromText("Día 1\nSentadilla 3x5")
-        settle(vm) { it.imported != null && !it.busy }
-        settleReviewPersistence(vm)
-        val exercise = vm.state.value.imported!!.weeks.single().days.single().exercises.single()
-
-        rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
-
-        rule.onNodeWithTag("import-exercise-catalog-${exercise.id}").assertExists()
-        // The unresolved row itself should be an accessible shortcut to the shared catalog.
-        rule.onNodeWithTag("import-exercise-${exercise.rawName}").performClick()
-        rule.waitUntil(timeoutMillis = 10_000) {
-            rule.onAllNodesWithText("Añadir ejercicios").fetchSemanticsNodes().isNotEmpty()
-        }
-        rule.onNodeWithText("Añadir ejercicios").assertExists()
-        assertFalse("resolver el catálogo no debe guardar en biblioteca", vm.state.value.editorStarted)
-        assertTrue(saved.isEmpty())
-    }
-
-    @Test
-    fun theFullSessionEditorStagesTheCompleteProgramWithoutSavingItToTheLibrary() {
-        val vm = newViewModel()
-        vm.importFromSheets(twoWeeks(), "Programa importado")
-        settle(vm) { it.imported != null && !it.busy }
-        decideAll(vm)
-        settleReviewPersistence(vm)
-        val dayId = vm.state.value.imported!!.weeks.first().days.first().id
-
-        val target = runBlocking { vm.openSessionEditor(1, dayId) }
-
-        assertEquals("Programa importado", vm.state.value.editorProgram?.name)
-        assertEquals("imported:${vm.state.value.editorProgram?.id}", vm.state.value.editorProgram?.planProvenance?.planId)
-        assertEquals(4, vm.state.value.editorProgram!!.macrocycles.single().blocks.single()
-            .mesocycles.single().weeks.first().sessions.first().exercises.first().sets.size)
-        assertTrue(vm.state.value.editorStarted)
-        assertTrue(target != null)
-        assertTrue(saved.isEmpty())
     }
 
     @Test
@@ -259,6 +571,7 @@ class ImportProgramScreenTest {
     @Test
     fun aTwoWeekProgramIsSavedOnPro() {
         val vm = newViewModel()
+        var openedProgramDetailId: String? = null
         vm.importFromSheets(twoWeeks(), "Prueba de dos semanas")
         settle(vm) { it.imported != null && !it.busy }
         decideAll(vm)
@@ -266,11 +579,18 @@ class ImportProgramScreenTest {
 
         rule.setContent {
             CompositionLocalProvider(LocalPlan provides PlanLevel.PRO) {
-                ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm)
+                ImportProgramScreen(
+                    onBack = {},
+                    onSaved = { openedProgramDetailId = it },
+                    onUseCatalogProgram = {},
+                    viewModel = vm,
+                )
             }
         }
-        rule.onNodeWithTag("import-save").assertIsEnabled()
-        rule.onNodeWithTag("import-save").performClick()
+        vm.navigateTo(ImportWizardPage.REVIEW)
+        settleReviewPersistence(vm)
+        rule.onNodeWithTag("import-step-next").assertIsEnabled()
+        rule.onNodeWithTag("import-step-next").performClick()
         settleSave(vm)
         val afterSave = vm.state.value
         assertTrue(
@@ -283,6 +603,8 @@ class ImportProgramScreenTest {
 
         assertEquals(1, saved.size)
         assertEquals("Prueba de dos semanas", saved.single().name)
+        rule.waitUntil(timeoutMillis = 5_000) { openedProgramDetailId != null }
+        assertEquals(saved.single().id, openedProgramDetailId)
         assertEquals(null, vm.state.value.notice)
     }
 
@@ -296,11 +618,15 @@ class ImportProgramScreenTest {
         rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
 
         vm.importFromPicked(Uri.parse("content://kpkn.test/programa.pdf"))
-        rule.onNodeWithText("Leyendo la página 2 de 5…").assertExists()
+        val progress = "Leyendo la página 2 de 5…"
+        val visiblePage = "Página 2 de 5"
+        settle(vm) { it.progress == progress }
+        rule.onNodeWithText(visiblePage).assertExists()
         rule.onNodeWithTag("import-cancel").performClick()
+        settle(vm) { !it.busy }
 
-        rule.onNodeWithText("Leyendo la página 2 de 5…").assertDoesNotExist()
-        rule.onNodeWithTag("import-choose-file").assertExists()
+        rule.onNodeWithText(visiblePage).assertDoesNotExist()
+        rule.onNodeWithTag("import-entry-file").assertExists()
         assertFalse(vm.state.value.busy)
         assertNull(vm.state.value.error)
     }
@@ -354,8 +680,9 @@ class ImportProgramScreenTest {
         assertEquals(listOf("Sentadilla", "Press banca"), exercises.map { it.rawName })
         assertEquals(listOf(3, 3), exercises.map { it.sets })
         assertEquals(listOf(5, 8), exercises.map { it.repsMax })
+        vm.navigateTo(ImportWizardPage.EXERCISES)
         rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
-        rule.onNodeWithTag("import-review").assertExists()
+        rule.onNodeWithTag("import-step-next").assertExists()
     }
 
     @Test
@@ -375,8 +702,9 @@ class ImportProgramScreenTest {
         assertEquals("Sentadilla", exercise.rawName)
         assertEquals(4, exercise.sets)
         assertEquals(8, exercise.repsMax)
+        vm.navigateTo(ImportWizardPage.EXERCISES)
         rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
-        rule.onNodeWithTag("import-review").assertExists()
+        rule.onNodeWithTag("import-step-next").assertExists()
     }
 
     @Test
@@ -391,26 +719,34 @@ class ImportProgramScreenTest {
         assertTrue(vm.state.value.resolutions.isEmpty())
         assertEquals(IMPORT_CATALOG_UNAVAILABLE, vm.state.value.notice)
 
+        vm.navigateTo(ImportWizardPage.EXERCISES)
         rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
         rule.onNodeWithText("Sentadilla").assertExists()
-        rule.onNodeWithText(IMPORT_CATALOG_UNAVAILABLE).assertExists()
+        rule.onNodeWithText("Catálogo no disponible").assertExists()
+        rule.onNodeWithTag("import-match-retry-catalog").assertExists()
     }
 
     @Test
-    fun parsedProgramAppearsWhileMatchingAndLateResultDoesNotOverwriteAUserDecision() {
+    fun catalogMatchingIsAVisibleReadingStageAndWaitsForItsResult() {
         val vm = newViewModel()
         val matching = CompletableDeferred<Map<String, String?>>()
         vm.matchNames = { matching.await() }
         vm.importFromText("Día 1\nSentadilla 3x5")
-        settle(vm) { !it.busy && it.imported != null }
+        settle(vm) {
+            it.busy && it.page == ImportWizardPage.READING &&
+                it.readingProgress?.stage == ImportReadingStage.CATALOG
+        }
 
-        assertEquals(IMPORT_MATCHING, vm.state.value.notice)
-        assertEquals("Sentadilla", vm.state.value.imported!!.weeks.single().days.single().exercises.single().rawName)
-        vm.resolve("Sentadilla", null)
+        assertNull(vm.state.value.imported)
+        val readingProgress = requireNotNull(vm.state.value.readingProgress)
+        assertEquals(ImportReadingStage.CATALOG, readingProgress.stage)
+        assertEquals(1, readingProgress.weeks)
+        assertEquals(1, readingProgress.sessions)
+        assertEquals(1, readingProgress.exercises)
         matching.complete(mapOf("Sentadilla" to "resultado-tardio"))
-        settle(vm) { it.notice != IMPORT_MATCHING }
-        assertTrue(vm.state.value.resolutions.containsKey("Sentadilla"))
-        assertNull(vm.state.value.resolutions["Sentadilla"])
+        settle(vm) { !it.busy && it.imported != null }
+        assertEquals(ImportWizardPage.EXERCISES, vm.state.value.page)
+        assertEquals("resultado-tardio", vm.state.value.resolutions["Sentadilla"])
     }
 
     @Test
@@ -424,7 +760,8 @@ class ImportProgramScreenTest {
         assertTrue(vm.state.value.imported!!.warnings.any { it.kind == com.example.kpkn.domain.training.importer.ImportWarningKind.NOTHING_FOUND })
         assertNull(vm.state.value.notice)
         rule.setContent { ImportProgramScreen(onBack = {}, onSaved = {}, onUseCatalogProgram = {}, viewModel = vm) }
-        rule.onNodeWithText("No encontramos ejercicios en el contenido leído. Revisa los avisos o prueba otra fuente.").assertExists()
+        rule.onNodeWithText("Leímos el archivo, pero no encontramos ejercicios.").assertExists()
+        rule.onNodeWithTag("import-empty-show-text").assertExists()
     }
 
     @Test
@@ -443,6 +780,9 @@ class ImportProgramScreenTest {
         assertEquals(before.imported, vm.state.value.imported)
         assertEquals(before.undoLabel, vm.state.value.undoLabel)
         assertEquals("No se pudo abrir", vm.state.value.error)
+        assertEquals(ImportSourceKind.FILE, vm.state.value.sourceEvidence.kind)
+        assertEquals("Archivo seleccionado", vm.state.value.sourceEvidence.displayName)
+        assertNull(vm.state.value.sourceEvidence.sourceText)
         vm.undo()
         assertEquals(4, vm.state.value.imported!!.weeks[0].days[0].exercises[0].sets)
     }

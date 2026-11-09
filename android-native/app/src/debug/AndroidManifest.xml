@@ -114,6 +114,12 @@
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
 
+        <!-- SOLO DEPURACIÓN: páginas del importador con modelos efímeros en memoria; no toca el borrador persistido. -->
+        <activity
+            android:name="com.example.kpkn.debug.ImportProgramVisualHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+
     <activity android:name="com.example.kpkn.debug.ExerciseProgressHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.ExerciseSwapHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
         <activity android:name="com.example.kpkn.debug.MyoRepsPlatesHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />

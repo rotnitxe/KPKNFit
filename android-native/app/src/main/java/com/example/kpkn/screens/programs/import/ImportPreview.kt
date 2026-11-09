@@ -36,7 +36,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
-import com.example.kpkn.domain.training.importer.ImportDraftEditor
 import com.example.kpkn.domain.training.importer.ImportLoadUnit
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramBuilder
@@ -49,6 +48,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 /** Pausa antes de buscar en el catálogo mientras la persona escribe. */
 private const val SEARCH_DEBOUNCE_MS = 250L
@@ -63,17 +63,30 @@ internal fun importExerciseStateOf(rawName: String, resolutions: Map<String, Str
     else -> ImportExerciseState.CHOSEN
 }
 
+internal fun importExerciseStateOf(exercise: ImportedExercise, resolutions: Map<String, String?>): ImportExerciseState = when {
+    exercise.catalogSelectionId.equals("own", ignoreCase = true) -> ImportExerciseState.OWN
+    exercise.catalogSelectionId != null -> ImportExerciseState.CHOSEN
+    else -> importExerciseStateOf(exercise.rawName, resolutions)
+}
+
 /** Sesiones por semana del programa importado: la semana con más días de entreno. */
-internal fun importSessionsPerWeek(imported: ImportedProgramDraft): Int = imported.weeks.maxOfOrNull { it.days.size } ?: 0
+internal fun importSessionsPerWeek(imported: ImportedProgramDraft): Int =
+    imported.weeks.maxOfOrNull { week -> week.days.count { !it.isRestDay } } ?: 0
 
 /** La unidad de las cargas en una palabra: «kg» o «lb». */
 internal fun importLoadUnitLabel(unit: ImportLoadUnit): String = if (unit == ImportLoadUnit.LB) "lb" else "kg"
 
 /** La prescripción en una línea: «4 × 6–8 · 120 kg · RPE 8», o «135 lb» si las cargas del archivo están en libras. */
 internal fun importPrescriptionOf(exercise: ImportedExercise, unit: ImportLoadUnit): String {
-    val reps = if (exercise.repsMin == exercise.repsMax) "${exercise.repsMin}" else "${exercise.repsMin}–${exercise.repsMax}"
-    val parts = mutableListOf("${exercise.sets} × $reps")
-    exercise.loadKg?.let { parts += "${decimalText(it)} ${importLoadUnitLabel(unit)}" }
+    val effectiveUnit = exercise.loadUnit ?: unit
+    val target = exercise.durationSeconds?.let { duration ->
+        if (exercise.sets == 0) "Series por indicar · ${importRestText(duration)}" else "${exercise.sets} × ${importRestText(duration)}"
+    } ?: run {
+        val reps = if (exercise.repsMin == exercise.repsMax) "${exercise.repsMin}" else "${exercise.repsMin}–${exercise.repsMax}"
+        if (exercise.sets == 0) "Series por indicar · $reps reps" else "${exercise.sets} × $reps"
+    }
+    val parts = mutableListOf(target)
+    exercise.loadKg?.let { parts += "${decimalText(it)} ${importLoadUnitLabel(effectiveUnit)}" }
     exercise.percent1Rm?.let { parts += "${decimalText(it)} %" }
     exercise.rpe?.let { parts += "RPE ${decimalText(it)}" }
     exercise.rir?.let { parts += "$it RIR" }
@@ -99,8 +112,6 @@ internal fun decimalText(value: Double): String =
     if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString().replace('.', ',')
 
 /** Un día al que se puede mover un ejercicio: su id, el texto de la opción («Día 2 — Pierna») y sus ejercicios. */
-internal data class ImportMoveTarget(val dayId: String, val label: String, val exerciseCount: Int)
-
 /**
  * El texto de una opción de «Mover a otro día»: el nombre del día, con «Día N —» delante solo si el nombre no lo trae (los
  * días leídos de un texto ya llevan «Día 2 — Pierna»).
@@ -142,23 +153,18 @@ internal fun ImportLoadUnitToggle(unit: ImportLoadUnit, example: Double, onChang
 
 /**
  * La vista previa de un programa importado: semanas, días y ejercicios con su prescripción. Cada ejercicio muestra si
- * está reconocido (✓), es propio o tiene dudas («Elegir»). Tocarlo abre su panel de ajuste ([openedExerciseId] es el
- * único abierto). Cada semana y cada día tienen su «⋯», con el menú en línea (renombrar, mover, unir, quitar, añadir días
- * y ejercicios). Lo usan el paso del alta y la pantalla de Programas: no guarda nada por sí misma; reenvía cada edición
- * como [ImportEditOp] a quien la muestra.
+ * está reconocido (✓), es propio o tiene dudas («Elegir»). Elegir una variante abre el catálogo compartido y editar una
+ * sesión abre el SessionEditor existente a través de [onEditSession]. No mantiene un editor de sesión paralelo. Los cambios
+ * de estructura se reenvían como [ImportEditOp] a quien la muestra.
  */
 @Composable
 internal fun ImportPreviewWeeks(
     imported: ImportedProgramDraft,
     resolutions: Map<String, String?>,
-    openedExerciseId: String?,
-    onOpen: (String?) -> Unit,
     onEdit: (ImportEditOp) -> Unit,
-    suggest: suspend (String) -> List<ExerciseNameCandidate>,
-    search: suspend (String) -> List<ExerciseNameCandidate>,
     namesOf: suspend (Set<String>) -> Map<String, String>,
-    onOpenCatalog: ((String, String) -> Unit)? = null,
-    onEditSession: ((weekIndex: Int, dayId: String) -> Unit)? = null,
+    onOpenCatalog: (String, String) -> Unit,
+    onEditSession: (weekIndex: Int, dayId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val chosenIds = resolutions.values.filterNotNull().toSet() + imported.weeks.flatMap { week ->
@@ -174,21 +180,14 @@ internal fun ImportPreviewWeeks(
             emptyMap()
         }
     }
-    // Cuántas veces aparece cada nombre en todo el borrador: una decisión vale para todas.
-    val nameCounts = remember(imported) {
-        imported.weeks.flatMap { week -> week.days.flatMap { it.exercises } }.groupingBy { it.rawName }.eachCount()
-    }
-    // Un menú de semana o de día, o el panel «Añadir ejercicio», abierto (clave de ImportStructureMenus.kt). Solo uno a la vez y
-    // nunca con un ejercicio abierto: si se abre un ejercicio desde fuera (la revisión final), el menú se cierra.
+    // Solo un menú de estructura de semana o día queda abierto a la vez.
     var structurePanel by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(openedExerciseId) { if (openedExerciseId != null) structurePanel = null }
-    val activePanel = structurePanel.takeIf { openedExerciseId == null }
+    val activePanel = structurePanel
     fun togglePanel(key: String) {
         if (activePanel == key) {
             structurePanel = null
         } else {
             structurePanel = key
-            onOpen(null)
         }
     }
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -205,7 +204,11 @@ internal fun ImportPreviewWeeks(
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Semana ${week.index}",
+                        when (week.executionKind) {
+                            com.example.kpkn.data.models.WeekExecutionKind.DELOAD -> "Semana ${week.index} · Descarga"
+                            com.example.kpkn.data.models.WeekExecutionKind.REST -> "Semana ${week.index} · Descanso"
+                            com.example.kpkn.data.models.WeekExecutionKind.TRAINING -> "Semana ${week.index}"
+                        },
                         style = WizardTypography.eyebrow,
                         color = WizardColors.textMuted,
                         modifier = Modifier.weight(1f),
@@ -222,7 +225,6 @@ internal fun ImportPreviewWeeks(
                 }
                 week.days.forEachIndexed { dayPosition, day ->
                     val dayKey = importDayMenuKey(day.id)
-                    val addKey = importAddExerciseKey(day.id)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -231,7 +233,7 @@ internal fun ImportPreviewWeeks(
                                 color = WizardColors.text,
                                 modifier = Modifier.weight(1f),
                             )
-                            if (onEditSession != null) {
+                            if (!day.isRestDay) {
                                 ImportOutlineButton(
                                     label = "Editar sesión",
                                     onClick = { onEditSession(week.index, day.id) },
@@ -251,88 +253,32 @@ internal fun ImportPreviewWeeks(
                                 position = dayPosition,
                                 dayCount = week.days.size,
                                 onEdit = onEdit,
-                                onAddExercise = {
-                                    if (onEditSession != null) {
-                                        structurePanel = null
-                                        onEditSession(week.index, day.id)
-                                    } else {
-                                        togglePanel(addKey)
-                                    }
-                                },
+                                onAddExercise = { structurePanel = null; onEditSession(week.index, day.id) },
                                 onClose = { structurePanel = null },
                             )
                         }
-                        day.exercises.forEachIndexed { position, exercise ->
-                            val open = onEditSession == null && openedExerciseId == exercise.id
+                        day.exercises.forEach { exercise ->
                             val needsCatalogChoice = exercise.catalogSelectionId == null && !resolutions.containsKey(exercise.rawName)
-                            val opensSharedCatalog = needsCatalogChoice && onEditSession != null && onOpenCatalog != null
                             ImportExerciseRow(
                                 exercise = exercise,
-                                state = if (exercise.catalogSelectionId != null) ImportExerciseState.CHOSEN else importExerciseStateOf(exercise.rawName, resolutions),
+                                state = importExerciseStateOf(exercise, resolutions),
                                 shownName = (exercise.catalogSelectionId ?: resolutions[exercise.rawName])?.let { names[it] } ?: exercise.rawName,
-                                loadUnit = imported.loadUnit,
-                                expanded = open,
-                                onToggleLabel = when {
-                                    opensSharedCatalog -> "Elegir en el catálogo"
-                                    onEditSession != null -> "Editar sesión completa"
-                                    else -> "Ajustar ejercicio"
-                                },
+                                loadUnit = exercise.loadUnit ?: imported.loadUnit,
+                                expanded = false,
+                                onToggleLabel = if (needsCatalogChoice) "Elegir en el catálogo" else "Editar sesión completa",
                                 onToggle = {
                                     structurePanel = null
-                                    if (opensSharedCatalog) onOpenCatalog?.invoke(exercise.id, exercise.rawName)
-                                    else if (onEditSession != null) onEditSession(week.index, day.id)
-                                    else onOpen(if (open) null else exercise.id)
+                                    if (needsCatalogChoice) onOpenCatalog(exercise.id, exercise.rawName)
+                                    else onEditSession(week.index, day.id)
                                 },
                             )
                             if (needsCatalogChoice) {
-                                onOpenCatalog?.let { openCatalog ->
-                                    ImportTextAction(
-                                        label = "Elegir en el catálogo",
-                                        onClick = { openCatalog(exercise.id, exercise.rawName) },
-                                        modifier = Modifier.testTag("import-exercise-catalog-${exercise.id}"),
-                                    )
-                                }
-                            }
-                            if (open && onEditSession == null) {
-                                ImportExerciseEditor(
-                                    exercise = exercise,
-                                    dayId = day.id,
-                                    position = position,
-                                    dayExerciseCount = day.exercises.size,
-                                    state = if (exercise.catalogSelectionId != null) ImportExerciseState.CHOSEN else importExerciseStateOf(exercise.rawName, resolutions),
-                                    shownName = (exercise.catalogSelectionId ?: resolutions[exercise.rawName])?.let { names[it] } ?: exercise.rawName,
-                                    loadUnit = imported.loadUnit,
-                                    moveTargets = week.days.mapIndexedNotNull { target, other ->
-                                        if (target == dayPosition) {
-                                            null
-                                        } else {
-                                            ImportMoveTarget(other.id, importMoveLabelOf(target, other.name), other.exercises.size)
-                                        }
-                                    },
-                                    sameNameCount = nameCounts[exercise.rawName] ?: 1,
-                                    otherWeeks = ImportDraftEditor.sameExerciseInOtherWeeks(imported, exercise.id),
-                                    suggest = suggest,
-                                    search = search,
-                                    onOpenCatalog = onOpenCatalog,
-                                    onEdit = onEdit,
-                                    onClose = { onOpen(null) },
+                                ImportTextAction(
+                                    label = "Elegir en el catálogo",
+                                    onClick = { onOpenCatalog(exercise.id, exercise.rawName) },
+                                    modifier = Modifier.testTag("import-exercise-catalog-${exercise.id}"),
                                 )
                             }
-                        }
-                        // «Añadir ejercicio» sale bajo el último ejercicio del día, que es donde queda el nuevo.
-                        if (activePanel == addKey && onEditSession == null) {
-                            ImportAddExercisePanel(
-                                key = day.id,
-                                search = search,
-                                useSharedCatalog = onOpenCatalog != null,
-                                namesOf = namesOf,
-                                onAdd = { name, configId, sets, repsMin, repsMax ->
-                                    onEdit(
-                                        ImportEditOp.AddExercise(day.id, name, sets, repsMin, repsMax, configId = configId, decided = true),
-                                    )
-                                },
-                                onClose = { structurePanel = null },
-                            )
                         }
                     }
                 }
@@ -437,53 +383,6 @@ private fun ImportExerciseRow(
 }
 
 /**
- * El bloque de «Elegir»: las sugerencias del emparejador, un campo para buscar en el catálogo y «Dejarlo como está»
- * (ejercicio propio). Lo usa el panel de ajuste, dentro de su vidrio: no pone caja propia. [onPick] recibe la configuración
- * (null = propio) y el nombre que se muestra; [onCancel] null oculta «Cancelar» (con dudas no hay a qué volver).
- */
-@Composable
-internal fun ImportChoicePanel(
-    rawName: String,
-    suggest: suspend (String) -> List<ExerciseNameCandidate>,
-    search: suspend (String) -> List<ExerciseNameCandidate>,
-    onPick: (configId: String?, name: String) -> Unit,
-    onCancel: (() -> Unit)?,
-    onOpenCatalog: ((String) -> Unit)? = null,
-    modifier: Modifier = Modifier,
-) {
-    var suggestions by remember(rawName) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
-    LaunchedEffect(rawName) {
-        suggestions = try {
-            suggest(rawName)
-        } catch (cancel: CancellationException) {
-            throw cancel
-        } catch (error: Exception) {
-            emptyList()
-        }
-    }
-    Column(
-        modifier = modifier.fillMaxWidth().testTag("import-choice-panel"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("Elige el ejercicio", style = WizardTypography.controlLabel, color = WizardColors.text)
-        suggestions.forEach { candidate ->
-            ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate.configurationId, candidate.displayName) })
-        }
-        if (onOpenCatalog != null) {
-            ImportTextAction(label = "Buscar en el catálogo", onClick = { onOpenCatalog(rawName) }, modifier = Modifier.testTag("import-choice-shared-catalog"))
-        } else {
-            ImportCatalogSearch(key = rawName, search = search, onPick = { onPick(it.configurationId, it.displayName) })
-            ImportTextAction(
-                label = "Dejarlo como está (ejercicio propio)",
-                onClick = { onPick(null, rawName) },
-                modifier = Modifier.testTag("import-choice-own"),
-            )
-        }
-        onCancel?.let { ImportTextAction(label = "Cancelar", onClick = it) }
-    }
-}
-
-/**
  * La búsqueda libre en el catálogo: el campo «Buscar en el catálogo» y sus resultados; al tocar uno, [onPick]. La usan «Elegir»
  * y «Añadir ejercicio». [key] reinicia la búsqueda cuando cambia lo que se elige (el nombre o el día).
  */
@@ -536,9 +435,29 @@ private fun ImportCandidateRow(candidate: ExerciseNameCandidate, onClick: () -> 
             .padding(vertical = 4.dp)
             .testTag("import-candidate-${candidate.configurationId}"),
     ) {
-        Text(candidate.displayName, style = WizardTypography.controlValue, color = WizardColors.text)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                candidate.displayName,
+                style = WizardTypography.note.copy(
+                    fontSize = 12.5.sp,
+                    lineHeight = 15.6.sp,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+                color = WizardColors.text,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "Coincidencia " + (candidate.confidence * 100).roundToInt().coerceIn(0, 100) + "%",
+                style = WizardTypography.note.copy(fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold),
+                color = WizardColors.textMuted,
+            )
+        }
         if (equipment.isNotEmpty()) {
-            Text(equipment, style = WizardTypography.note, color = WizardColors.textMuted)
+            Text(equipment, style = WizardTypography.note.copy(fontSize = 11.sp, lineHeight = 13.8.sp), color = WizardColors.textMuted)
         }
     }
 }

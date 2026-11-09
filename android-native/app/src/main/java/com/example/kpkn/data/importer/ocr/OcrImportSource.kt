@@ -10,6 +10,7 @@ import com.example.kpkn.data.importer.ImportFileException
 import com.example.kpkn.data.importer.ImportLimits
 import com.example.kpkn.data.importer.readBoundedBytes
 import com.example.kpkn.domain.training.importer.ImportSheet
+import com.example.kpkn.domain.training.importer.OcrConfidenceSummary
 import com.example.kpkn.domain.training.importer.OcrLayout
 import com.example.kpkn.domain.training.importer.OcrPage
 import java.io.ByteArrayInputStream
@@ -28,13 +29,17 @@ import kotlinx.coroutines.withContext
  * en Default, y se puede cancelar entre páginas.
  */
 object OcrImportSource {
-    /** Aviso que lleva siempre la hoja leída por OCR. */
+    /** Aviso que lleva siempre una imagen elegida o capturada. */
     const val IMAGE_NOTE = "Lo leímos de una imagen: revisa los números antes de guardar."
+    /** Aviso que describe el origen real cuando el OCR se aplicó a páginas PDF. */
+    const val PDF_OCR_NOTE = "Leímos el PDF con OCR: revisa los números antes de guardar."
 
     internal const val PDF_UNREADABLE_MESSAGE = "No pudimos abrir este PDF."
     internal const val PDF_TOO_LARGE_MESSAGE = "El PDF es demasiado grande (máx. 20 MB)."
     internal const val IMAGE_UNREADABLE_MESSAGE = "No pudimos abrir esta imagen."
     internal const val IMAGE_TOO_LARGE_MESSAGE = "La imagen es demasiado grande (máx. 15 MB)."
+    internal const val LOW_CONFIDENCE_REVIEW_NOTE = "ML Kit marcó palabras con confianza baja; revisa nombres y cifras."
+    private const val LOW_CONFIDENCE_THRESHOLD = 0.50f
 
     /**
      * Lee las páginas de un PDF (hasta [ImportLimits.MAX_OCR_PAGES]). [onProgress] recibe cada página al empezarla. [cacheDir]
@@ -47,9 +52,24 @@ object OcrImportSource {
         cacheDir: File?,
         onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
         recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        onPageRecognized: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
     ): List<ImportSheet> {
         val pages = withContext(Dispatchers.IO) { PdfRendererPages.open(contentResolver, uri, cacheDir) }
-        return pages.use { readPages(it, title, recognizer, onProgress) }
+        return pages.use { readPages(it, title, recognizer, onPageRecognized = onPageRecognized, onProgress = onProgress) }
+    }
+
+    /** Lee un PDF descargado desde una URL; los bytes se guardan temporalmente para abrirlos con [android.graphics.pdf.PdfRenderer]. */
+    internal suspend fun readPdfBytes(
+        bytes: ByteArray,
+        title: String,
+        cacheDir: File?,
+        onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
+        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        onPageRecognized: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
+    ): List<ImportSheet> {
+        if (bytes.size > ImportLimits.MAX_PDF_BYTES) throw ImportFileException(PDF_TOO_LARGE_MESSAGE)
+        val pages = withContext(Dispatchers.IO) { PdfRendererPages.open(bytes, cacheDir) }
+        return pages.use { readPages(it, title, recognizer, onPageRecognized = onPageRecognized, onProgress = onProgress) }
     }
 
     /** Lee una foto (JPEG, PNG, WebP o HEIC) con OCR, orientada según su EXIF y con el lado largo acotado. */
@@ -58,15 +78,45 @@ object OcrImportSource {
         uri: Uri,
         title: String,
         recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        onPageRecognized: (ocrPage: OcrPage) -> Unit = {},
     ): List<ImportSheet> {
         val bitmap = withContext(Dispatchers.IO) { decodeUpright(contentResolver, uri) }
+        return readBitmap(bitmap, title, recognizer, onPageRecognized)
+    }
+
+    /** Lee una foto descargada desde una URL sin guardarla en un archivo de usuario. */
+    internal suspend fun readImageBytes(
+        bytes: ByteArray,
+        title: String,
+        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+    ): List<ImportSheet> {
+        if (bytes.size > ImportLimits.MAX_IMAGE_BYTES) throw ImportFileException(IMAGE_TOO_LARGE_MESSAGE)
+        val bitmap = withContext(Dispatchers.IO) { decodeUpright(bytes) }
+        return readBitmap(bitmap, title, recognizer)
+    }
+
+    private suspend fun readBitmap(
+        bitmap: Bitmap,
+        title: String,
+        recognizer: TextRecognizerPort,
+        onPageRecognized: (OcrPage) -> Unit = {},
+    ): List<ImportSheet> {
         val page = try {
             OcrPage(bitmap.width, bitmap.height, recognizer.recognize(bitmap))
         } finally {
             bitmap.recycle()
         }
+        onPageRecognized(page)
         val rows = withContext(Dispatchers.Default) { OcrLayout.reconstruct(listOf(page)) }
-        return listOf(ImportSheet(name = title, rows = rows, notes = listOf(IMAGE_NOTE), pageStarts = listOf(0)))
+        return listOf(
+            ImportSheet(
+                name = title,
+                rows = rows,
+                notes = reviewNotes(listOf(page), fromPdf = false),
+                pageStarts = listOf(0),
+                ocrConfidence = confidenceSummary(listOf(page)),
+            ),
+        )
     }
 
     /**
@@ -77,6 +127,7 @@ object OcrImportSource {
         source: PdfPageSource,
         title: String,
         recognizer: TextRecognizerPort,
+        onPageRecognized: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
         onProgress: (page: Int, pages: Int) -> Unit,
     ): List<ImportSheet> {
         val total = minOf(source.pageCount, ImportLimits.MAX_OCR_PAGES)
@@ -90,18 +141,51 @@ object OcrImportSource {
             } finally {
                 bitmap.recycle()
             }
+            onPageRecognized(index + 1, page)
             pages.add(page)
         }
         // Las filas de cada página van aparte: al unirlas se quitan los muebles de página (OcrLayout.joinPages).
         val pageRows = withContext(Dispatchers.Default) { pages.map { OcrLayout.reconstruct(listOf(it)) } }
         val joined = withContext(Dispatchers.Default) { OcrLayout.joinPages(pageRows) }
         val notes = buildList {
-            add(IMAGE_NOTE)
+            addAll(reviewNotes(pages, fromPdf = true))
             if (source.pageCount > ImportLimits.MAX_OCR_PAGES) {
                 add("Solo se leyeron las primeras ${ImportLimits.MAX_OCR_PAGES} páginas.")
             }
         }
-        return listOf(ImportSheet(name = title, rows = joined.rows, notes = notes, ocrPages = pageRows, pageStarts = joined.pageStarts))
+        return listOf(
+            ImportSheet(
+                name = title,
+                rows = joined.rows,
+                notes = notes,
+                ocrPages = pageRows,
+                pageStarts = joined.pageStarts,
+                ocrConfidence = confidenceSummary(pages),
+            ),
+        )
+    }
+
+    private fun reviewNotes(pages: List<OcrPage>, fromPdf: Boolean): List<String> = buildList {
+        add(if (fromPdf) PDF_OCR_NOTE else IMAGE_NOTE)
+        lowConfidenceReviewNote(pages)?.let(::add)
+    }
+
+    /** Aviso orientativo basado en la puntuación del modelo; no cambia ni descarta texto reconocido. */
+    private fun lowConfidenceReviewNote(pages: List<OcrPage>): String? =
+        LOW_CONFIDENCE_REVIEW_NOTE.takeIf {
+            pages.any { page -> page.words.any { word -> word.confidence?.let { score -> score < LOW_CONFIDENCE_THRESHOLD } == true } }
+        }
+
+    private fun confidenceSummary(pages: List<OcrPage>): OcrConfidenceSummary {
+        val words = pages.flatMap { it.words }
+        val scores = words.mapNotNull { it.confidence }
+        return OcrConfidenceSummary(
+            detectedWords = words.size,
+            scoredWords = scores.size,
+            lowConfidenceWords = scores.count { it < LOW_CONFIDENCE_THRESHOLD },
+            minimumConfidence = scores.minOrNull(),
+            meanConfidence = scores.takeIf { it.isNotEmpty() }?.average()?.toFloat(),
+        )
     }
 
     /** La foto como bitmap, con el lado largo de como mucho [ImportLimits.MAX_OCR_IMAGE_SIDE] px y girada según su EXIF. */
@@ -109,6 +193,12 @@ object OcrImportSource {
         val bytes = contentResolver.openInputStream(uri)?.use { input ->
             readBoundedBytes(input, ImportLimits.MAX_IMAGE_BYTES, IMAGE_TOO_LARGE_MESSAGE)
         } ?: throw ImportFileException(IMAGE_UNREADABLE_MESSAGE)
+        return decodeUpright(bytes)
+    }
+
+    /** Decodifica bytes ya acotados, con submuestreo y orientación EXIF igual que la ruta de archivo. */
+    private fun decodeUpright(bytes: ByteArray): Bitmap {
+        if (bytes.size > ImportLimits.MAX_IMAGE_BYTES) throw ImportFileException(IMAGE_TOO_LARGE_MESSAGE)
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         val side = max(bounds.outWidth, bounds.outHeight)

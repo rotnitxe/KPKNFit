@@ -24,9 +24,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.importer.PROGRAM_IMPORT_MIME_TYPES
 import com.example.kpkn.data.importer.programTitleOf
+import com.example.kpkn.data.importer.programFileNameOf
 import com.example.kpkn.data.importer.readSheets
 import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.training.importer.ImportSheet
@@ -59,6 +63,12 @@ internal const val IMPORT_PHOTO_DIR = "import_photos"
 
 /** Lo que se muestra mientras se lee un archivo o un texto. */
 internal const val IMPORT_READING_TEXT = "Leyendo el programa…"
+
+/** Lo que se muestra mientras se descarga una página o archivo compartido. */
+internal const val IMPORT_READING_URL_TEXT = "Leyendo el enlace…"
+
+/** Instrucción para capturar una foto legible del programa. */
+internal const val IMPORT_PHOTO_TIP = "Incluye la hoja completa, con buena luz y enfoque; el manuscrito debe verse claro."
 
 /** Lo que se muestra mientras se lee una foto. */
 internal const val IMPORT_READING_PHOTO_TEXT = "Leyendo la foto…"
@@ -102,8 +112,8 @@ internal class ImportPhotoArt : EquipmentArt(SymbolPalette.columna, STATIC_ART_P
 }
 
 /**
- * Las formas de traer un programa: «Elegir archivo» (Excel, CSV, Word, texto o PDF), «Pegar texto» (el portapapeles) y «Foto de tu
- * rutina», que despliega debajo «Hacer una foto» y «Elegir de la galería». Son símbolos sobre la página, sin tarjetas. [onPhoto]
+ * Las formas de traer un programa: «Elegir archivo» (Excel .xls/.xlsx/.xlsm, ODS, CSV, Word .docx, texto o PDF), «Pegar texto», «Importar desde un enlace» y
+ * «Foto de tu rutina», que despliega debajo «Hacer una foto» y «Elegir de la galería». Son símbolos sobre la página, sin tarjetas. [onPhoto]
  * recibe la foto y, si es de la cámara, el archivo temporal que se borra al terminar de leerla.
  */
 @Composable
@@ -111,6 +121,7 @@ internal fun ImportSourceChoices(
     onChooseFile: () -> Unit,
     onPaste: () -> Unit,
     onPhoto: (photo: Uri, takenFile: File?) -> Unit,
+    onUrl: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val reduced = wizardReducedMotion()
@@ -148,7 +159,7 @@ internal fun ImportSourceChoices(
             label = "Elegir archivo",
             tag = "import-choose-file",
             selected = false,
-            description = "Elegir un archivo de Excel, CSV, Word, texto o PDF",
+            description = "Elegir un archivo de Excel (.xls, .xlsx o .xlsm), ODS, CSV, Word (.docx), texto o PDF",
             role = Role.Button,
             onChoose = {
                 photoOpen = false
@@ -186,8 +197,14 @@ internal fun ImportSourceChoices(
             artScale = SCENE_ART_SCALE,
             labelStyle = WizardTypography.controlLabel,
         )
+        ImportTextAction(
+            label = "Importar desde un enlace",
+            onClick = onUrl,
+            modifier = Modifier.testTag("import-source-url"),
+        )
         if (photoOpen) {
             Column(modifier = Modifier.fillMaxWidth().testTag("import-photo-actions")) {
+                Text(IMPORT_PHOTO_TIP, color = WizardColors.textMuted)
                 ImportTextAction(
                     label = "Hacer una foto",
                     onClick = openCamera,
@@ -202,6 +219,46 @@ internal fun ImportSourceChoices(
                 )
             }
         }
+    }
+}
+
+/** Campo de URL pública para importar una página estática o un archivo compartido. */
+@Composable
+internal fun ImportUrlField(
+    url: String,
+    onUrlChange: (String) -> Unit,
+    onRead: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = url,
+            onValueChange = onUrlChange,
+            label = { Text("Enlace público") },
+            placeholder = { Text("https://ejemplo.com/rutina") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = WizardColors.cardFill,
+                unfocusedContainerColor = WizardColors.cardFill,
+                focusedTextColor = WizardColors.text,
+                unfocusedTextColor = WizardColors.text,
+                focusedLabelColor = WizardColors.textMuted,
+                unfocusedLabelColor = WizardColors.textMuted,
+            ),
+            modifier = Modifier.fillMaxWidth().testTag("import-url-field"),
+        )
+        Text(
+            "Usa una página o un archivo que se pueda abrir sin iniciar sesión.",
+            style = WizardTypography.note,
+            color = WizardColors.textMuted,
+        )
+        ImportTextAction(
+            label = "Leer enlace",
+            enabled = url.isNotBlank(),
+            onClick = onRead,
+            modifier = Modifier.testTag("import-read-url"),
+        )
     }
 }
 
@@ -262,7 +319,7 @@ internal fun ImportPasteField(
 }
 
 /**
- * Abre el selector de Excel, CSV, Word, texto, PDF o fotos. [onPicked] recibe el archivo elegido; devuelve la acción que lo abre.
+ * Abre el selector de Excel .xls/.xlsx/.xlsm, ODS, CSV, Word .docx, texto, PDF o fotos. [onPicked] recibe el archivo elegido; devuelve la acción que lo abre.
  */
 @Composable
 internal fun rememberImportFilePicker(onPicked: (Uri) -> Unit): () -> Unit {
@@ -282,7 +339,27 @@ internal suspend fun readPickedFile(
     cacheDir: File,
     onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
 ): Result<Pair<String, List<ImportSheet>>> {
+    return readPickedSource(contentResolver, uri, cacheDir, onProgress).map { it.title to it.sheets }
+}
+
+/** Lo que hace falta para atribuir el borrador al archivo elegido, sin conservar su URI ni permisos del proveedor. */
+internal data class PickedProgramSource(
+    val title: String,
+    val displayName: String,
+    val mediaType: String?,
+    val sheets: List<ImportSheet>,
+)
+
+internal suspend fun readPickedSource(
+    contentResolver: ContentResolver,
+    uri: Uri,
+    cacheDir: File,
+    onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
+): Result<PickedProgramSource> {
     val mime = withContext(Dispatchers.IO) { contentResolver.getType(uri) }
+    val displayName = withContext(Dispatchers.IO) { programFileNameOf(contentResolver, uri) }
     val title = programTitleOf(contentResolver, uri)
-    return readSheets(contentResolver, uri, mime, cacheDir, onProgress).map { sheets -> title to sheets }
+    return readSheets(contentResolver, uri, mime, cacheDir, onProgress = onProgress).map { sheets ->
+        PickedProgramSource(title, displayName, mime, sheets)
+    }
 }

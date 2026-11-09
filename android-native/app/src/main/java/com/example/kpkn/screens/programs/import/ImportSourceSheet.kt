@@ -42,6 +42,9 @@ internal sealed interface ImportRequest {
 
     /** «Pegar texto»: abre el campo para pegarlo. */
     data object PasteText : ImportRequest
+
+    /** «Importar desde un enlace»: abre el campo para la URL pública. */
+    data object Url : ImportRequest
 }
 
 /**
@@ -57,10 +60,10 @@ internal object ImportHandoff {
 }
 
 /** Las dos acciones de la foto: abrir la cámara (a un archivo temporal de la caché) y elegir de la galería. */
-private class ImportPhotoActions(val openCamera: () -> Unit, val openGallery: () -> Unit)
+internal class ImportPhotoActions(val openCamera: () -> Unit, val openGallery: () -> Unit)
 
 @Composable
-private fun rememberImportPhotoActions(onPhoto: (photo: Uri, takenFile: File?) -> Unit): ImportPhotoActions {
+internal fun rememberImportPhotoActions(onPhoto: (photo: Uri, takenFile: File?) -> Unit): ImportPhotoActions {
     val context = LocalContext.current
     // La ruta de la foto que la cámara está escribiendo (guardada para sobrevivir a girar la pantalla).
     var pendingPhoto by rememberSaveable { mutableStateOf<String?>(null) }
@@ -95,8 +98,8 @@ private fun rememberImportPhotoActions(onPhoto: (photo: Uri, takenFile: File?) -
 }
 
 /**
- * La hoja «Importar un programa» (escena pr-import): tres filas con icono, «Elegir archivo» (Excel, CSV, Word, texto o PDF), «Pegar
- * texto» y «Foto de tu rutina». Esta última cambia el contenido de la hoja a «Hacer una foto» y «Elegir de la galería». Los selectores
+ * La hoja «Importar un programa» (escena pr-import): «Elegir archivo» (Excel .xls/.xlsx/.xlsm, ODS, CSV, Word .docx, texto o PDF), «Pegar texto», un enlace y
+ * «Foto de tu rutina». Esta última cambia el contenido de la hoja a «Hacer una foto» y «Elegir de la galería». Los selectores
  * viven en la hoja, así que ella sigue abierta hasta que llega el resultado: [onFile] y [onPhoto] la cierran por quien la usa. [onNotice]
  * deja un aviso (un error o una nota de la lectura anterior) bajo el subtítulo.
  */
@@ -106,6 +109,7 @@ internal fun ImportSourceSheet(
     onFile: (Uri) -> Unit,
     onPhoto: (photo: Uri, takenFile: File?) -> Unit,
     onPaste: () -> Unit,
+    onUrl: () -> Unit = {},
     notice: (@Composable () -> Unit)? = null,
 ) {
     val pickFile = rememberImportFilePicker(onPicked = onFile)
@@ -135,6 +139,8 @@ internal fun ImportSourceSheet(
                 Spacer(Modifier.height(8.dp))
             }
             if (photoStep) {
+                Text(IMPORT_PHOTO_TIP, style = KpknType.body, color = WizardColors.textMuted)
+                Spacer(Modifier.height(8.dp))
                 ProgramSheetRow(
                     icon = KpknLineIcons.Camera,
                     title = "Hacer una foto",
@@ -154,7 +160,7 @@ internal fun ImportSourceSheet(
                 ProgramSheetRow(
                     icon = ProgramLineIcons.Upload,
                     title = "Elegir archivo",
-                    subtitle = "Excel, CSV, Word, texto o PDF",
+                    subtitle = "Excel (.xls, .xlsx o .xlsm), ODS, CSV, Word (.docx), texto o PDF",
                     onClick = pickFile,
                     modifier = Modifier.testTag("import-choose-file"),
                 )
@@ -165,6 +171,14 @@ internal fun ImportSourceSheet(
                     subtitle = IMPORT_PASTE_EXAMPLE,
                     onClick = onPaste,
                     modifier = Modifier.testTag("import-paste-text"),
+                )
+                MenuDivider()
+                ProgramSheetRow(
+                    icon = ProgramLineIcons.Link,
+                    title = "Importar desde un enlace",
+                    subtitle = "Página pública o archivo compartido",
+                    onClick = onUrl,
+                    modifier = Modifier.testTag("import-source-url"),
                 )
                 MenuDivider()
                 ProgramSheetRow(

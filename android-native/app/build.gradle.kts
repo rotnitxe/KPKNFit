@@ -190,6 +190,41 @@ tasks.configureEach {
     }
 }
 
+// The importer corpus/row directories and report destination are read from the test process environment. Track the
+// input files plus fingerprints of those paths so changing a public sample reruns its report without storing a live
+// URL or machine-specific path in Gradle task metadata.
+fun importerEnvironmentFingerprint(name: String) = providers.environmentVariable(name)
+    .map { value ->
+        if (value.isBlank()) {
+            "unset"
+        } else {
+            MessageDigest.getInstance("SHA-256")
+                .digest(value.toByteArray(Charsets.UTF_8))
+                .joinToString("") { byte -> (byte.toInt() and 0xff).toString(16).padStart(2, '0') }
+        }
+    }
+    .orElse("unset")
+
+val importerLiveUrlFingerprint = importerEnvironmentFingerprint("KPKN_IMPORT_LIVE_URL")
+val importerCorpusPathFingerprint = importerEnvironmentFingerprint("KPKN_IMPORT_CORPUS")
+val importerOcrRowsPathFingerprint = importerEnvironmentFingerprint("KPKN_OCR_ROWS")
+val importerReportPathFingerprint = importerEnvironmentFingerprint("KPKN_IMPORT_REPORT")
+val importerCorpusFiles = providers.environmentVariable("KPKN_IMPORT_CORPUS")
+    .filter { it.isNotBlank() }
+    .map { path -> fileTree(path) }
+val importerOcrRowsFiles = providers.environmentVariable("KPKN_OCR_ROWS")
+    .filter { it.isNotBlank() }
+    .map { path -> fileTree(path) }
+
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    inputs.property("kpknImportLiveUrlFingerprint", importerLiveUrlFingerprint)
+    inputs.property("kpknImportCorpusPathFingerprint", importerCorpusPathFingerprint)
+    inputs.property("kpknOcrRowsPathFingerprint", importerOcrRowsPathFingerprint)
+    inputs.property("kpknImportReportPathFingerprint", importerReportPathFingerprint)
+    inputs.files(importerCorpusFiles).withPropertyName("kpknImportCorpusFiles").optional()
+    inputs.files(importerOcrRowsFiles).withPropertyName("kpknOcrRowsFiles").optional()
+}
+
 val verifyDatasetKnowledge by tasks.registering(Exec::class) {
     group = "verification"
     description = "Verifies that the compiled nutrition dataset matches its master JSON."
@@ -227,6 +262,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation("org.jsoup:jsoup:1.24.1")
     implementation(libs.haze)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)

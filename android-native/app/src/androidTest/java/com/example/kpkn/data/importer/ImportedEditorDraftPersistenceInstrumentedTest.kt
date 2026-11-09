@@ -66,7 +66,7 @@ class ImportedEditorDraftPersistenceInstrumentedTest {
                 val next = initial.copy(
                     revision = index + 1L,
                     title = "Plan revision ${index + 1}",
-                    program = initial.program.copy(name = "Program revision ${index + 1}"),
+                    program = requireNotNull(initial.program).copy(name = "Program revision ${index + 1}"),
                 )
                 assertTrue(
                     "replacement $index failed on API ${Build.VERSION.SDK_INT}",

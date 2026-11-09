@@ -124,4 +124,34 @@ class ProgramImportParserRegressionsTest {
         assertEquals(listOf("Press"), exercises.map { it.rawName })
         assertTrue(draft.weeks.flatMap { it.days }.flatMap { it.exercises }.none { it.repsMin == 50 })
     }
+
+    @Test
+    fun `cabecera sin nombre infiere ejercicio y conserva el nombre en filas de bloques`() {
+        val sheet = ImportSheet(
+            name = "Ciclo",
+            rows = listOf(
+                listOf("1 day (Monday)", "", "%", "reps", "sets", "weight"),
+                listOf("1", "Squat", "50%", "5", "1", "50"),
+                listOf("", "", "60%", "4", "2", "60"),
+                listOf("2", "Lunge", "70%", "3", "1", "30"),
+                listOf("2 day (Wednesday)", "", "%", "reps", "sets", "weight"),
+                listOf("1", "Bench press", "50%", "5", "1", "50"),
+                listOf("", "", "70%", "3", "3", "70"),
+            ),
+        )
+
+        val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Ciclo")
+
+        assertEquals(listOf(1), draft.weeks.map { it.index })
+        val days = draft.weeks.single().days
+        assertEquals(listOf("Monday", "Wednesday"), days.map { it.name })
+        assertEquals(listOf("Squat", "Squat", "Lunge"), days[0].exercises.map { it.rawName })
+        assertEquals(listOf(1, 2, 1), days[0].exercises.map { it.sets })
+        assertEquals(listOf(5, 4, 3), days[0].exercises.map { it.repsMin })
+        assertEquals(listOf(50.0, 60.0, 30.0), days[0].exercises.map { it.loadKg })
+        assertEquals(listOf(50.0, 60.0, 70.0), days[0].exercises.map { it.percent1Rm })
+        assertEquals(listOf("Bench press", "Bench press"), days[1].exercises.map { it.rawName })
+        assertEquals(listOf(1, 3), days[1].exercises.map { it.sets })
+        assertTrue(draft.warningMessages.isEmpty())
+    }
 }

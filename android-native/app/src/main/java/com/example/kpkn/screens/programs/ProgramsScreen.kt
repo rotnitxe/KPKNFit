@@ -433,6 +433,7 @@ fun ProgramsScreen(
             onFile = { uri -> startImport(ImportRequest.File(uri)) },
             onPhoto = { uri, taken -> startImport(ImportRequest.Photo(uri, taken)) },
             onPaste = { startImport(ImportRequest.PasteText) },
+            onUrl = { startImport(ImportRequest.Url) },
         )
     }
     // La página «Catálogo» va por encima de Programas (no es una ruta): lo que antes hacía la hoja de la biblioteca.

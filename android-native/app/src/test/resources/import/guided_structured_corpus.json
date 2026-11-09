@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "description": "Casos sintéticos etiquetados para evaluar extracción; cada campo esperado cuenta por separado y las filas de ruido no deben producir ejercicios.",
+  "cases": [
+    {
+      "id": "ruido_tabla",
+      "input": "Inicio | Productos | Contacto\nAcepta nuestras cookies\nSemana 1\nLunes\n| Ejercicio | Series | Reps | Carga | Descanso |\n|---|---|---|---|---|\n| Sentadilla | 4 | 6-8 | 100 kg | 120 s |\nPublicidad: compra el plan premium",
+      "noiseLines": [1, 2, 8],
+      "expected": [{"week": 1, "dayOfWeek": 1, "name": "Sentadilla", "sets": 4, "repsMin": 6, "repsMax": 8, "load": 100, "unit": "KG", "restSeconds": 120}]
+    },
+    {
+      "id": "alternancia_semanal",
+      "input": "Semana 1\nLunes\nRemo 3x10 @50kg\nSemana 2\nJueves\nRemo 4x8 @60kg",
+      "noiseLines": [],
+      "expected": [
+        {"week": 1, "dayOfWeek": 1, "name": "Remo", "sets": 3, "repsMin": 10, "repsMax": 10, "load": 50, "unit": "KG"},
+        {"week": 2, "dayOfWeek": 4, "name": "Remo", "sets": 4, "repsMin": 8, "repsMax": 8, "load": 60, "unit": "KG"}
+      ]
+    },
+    {
+      "id": "descarga_y_descanso",
+      "input": "Semana 1\nMartes\nPress banca 4x6 @80kg\nSemana 2 - descarga\nMartes\nPress banca 2x6 @50kg\nSemana 3 - descanso",
+      "noiseLines": [],
+      "weekKinds": {"1": "TRAINING", "2": "DELOAD", "3": "REST"},
+      "expected": [
+        {"week": 1, "dayOfWeek": 2, "name": "Press banca", "sets": 4, "repsMin": 6, "repsMax": 6, "load": 80, "unit": "KG"},
+        {"week": 2, "dayOfWeek": 2, "name": "Press banca", "sets": 2, "repsMin": 6, "repsMax": 6, "load": 50, "unit": "KG"}
+      ]
+    },
+    {
+      "id": "superserie_y_unidades",
+      "input": "Día 1\nA1. Press banca 3x8 @135lb\nA2. Remo 3x10 @60kg",
+      "noiseLines": [],
+      "expected": [
+        {"week": 1, "name": "Press banca", "sets": 3, "repsMin": 8, "repsMax": 8, "load": 135, "unit": "LB", "superset": "A"},
+        {"week": 1, "name": "Remo", "sets": 3, "repsMin": 10, "repsMax": 10, "load": 60, "unit": "KG", "superset": "A"}
+      ]
+    },
+    {
+      "id": "esfuerzo_porcentaje_y_amrap",
+      "input": "Día 1\nSentadilla 3x8 @75% RPE8 RIR2\nPress banca 3x8+",
+      "noiseLines": [],
+      "expected": [
+        {"week": 1, "name": "Sentadilla", "sets": 3, "repsMin": 8, "repsMax": 8, "percent1Rm": 75, "rpe": 8, "rir": 2},
+        {"week": 1, "name": "Press banca", "sets": 3, "repsMin": 8, "repsMax": 8, "notes": "AMRAP: última serie, 8 o más repeticiones.", "purpose": "AMRAP", "amrapMinimumReps": 8}
+      ]
+    },
+    {
+      "id": "descanso_explicito",
+      "input": "Lunes — Descanso\nMartes — Pierna\nSentadilla 3x5 @100kg",
+      "noiseLines": [],
+      "weekKinds": {"1": "TRAINING"},
+      "restDays": [{"week": 1, "dayOfWeek": 1}],
+      "expected": [
+        {"week": 1, "dayOfWeek": 2, "name": "Sentadilla", "sets": 3, "repsMin": 5, "repsMax": 5, "load": 100, "unit": "KG"}
+      ]
+    }
+  ]
+}

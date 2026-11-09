@@ -120,7 +120,7 @@ class ProgramImportParserSessionsTest {
     }
 
     @Test
-    fun `columna de dia con fila de descanso no da aviso de fila sin nombre`() {
+    fun `columna de dia con fila de descanso conserva el dia sin avisos de fila vacia`() {
         val sheet = ImportSheet(
             name = "Ejemplo",
             rows = listOf(
@@ -133,8 +133,11 @@ class ProgramImportParserSessionsTest {
 
         val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Gymevo")
 
-        assertEquals(listOf("Lunes", "Jueves"), draft.weeks.single().days.map { it.name })
-        assertEquals(listOf(ImportWarningKind.EMPTY_DAY), draft.warnings.map { it.kind })
+        val days = draft.weeks.single().days
+        assertEquals(listOf("Lunes", "Miércoles", "Jueves"), days.map { it.name })
+        assertTrue(days[1].isRestDay)
+        assertEquals(emptyList<ImportedExercise>(), days[1].exercises)
+        assertEquals(emptyList<ImportWarningKind>(), draft.warnings.map { it.kind })
     }
 
     @Test
@@ -240,6 +243,16 @@ class ProgramImportParserSessionsTest {
             )
         }
         return rows
+    }
+
+    @Test
+    fun las_abreviaturas_espanolas_se_asignan_al_dia_iso_correcto() {
+        val draft = ProgramImportParser.parseText(
+            "LUN\nPress 3x8\nMAR\nRemo 3x8\nMIE\nCurl 3x8\nJUE\nSentadilla 3x8\nVIE\nPeso muerto 3x8\nSAB\nFondos 3x8\nDOM\nPlancha 3x8",
+            title = "Semana abreviada",
+        )
+
+        assertEquals((1..7).toList(), draft.weeks.single().days.map { it.dayOfWeek })
     }
 
     /** Invariante: ningún día ni ejercicio se queda sin id y todos los ids del borrador son distintos entre sí. */

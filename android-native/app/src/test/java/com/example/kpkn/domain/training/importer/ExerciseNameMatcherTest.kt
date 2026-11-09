@@ -14,6 +14,17 @@ class ExerciseNameMatcherTest {
     private val matcher by lazy { ExerciseNameMatcher(loadCatalog()) }
 
     @Test
+    fun `sentadilla libre olimpica propone barra alta y ofrece barra baja`() {
+        val match = matcher.match("Sentadilla Libre con Barra Olímpica")
+        assertEquals("high_bar_back_squat__barbell", match.best?.configurationId)
+        assertTrue(matcher.canResolveAutomatically(match))
+        assertTrue(match.candidates.any { it.configurationId == "low_bar_back_squat__barbell" })
+        assertEquals("low_bar_back_squat__barbell", matcher.match("Sentadilla trasera barra baja").best?.configurationId)
+        assertEquals("front_squat__barbell", matcher.match("Sentadilla frontal con barra").best?.configurationId)
+        assertFalse(matcher.match("Sentadilla libre en Smith").best?.equipmentId == "barbell")
+    }
+
+    @Test
     fun `un alias ambiguo propone opciones pero no elige la variante por su cuenta`() {
         val generic = matcher.match("Sentadilla")
         assertTrue(generic.candidates.isNotEmpty())
@@ -184,6 +195,14 @@ class ExerciseNameMatcherTest {
     }
 
     @Test
+    fun `kb swings va al swing bilateral con kettlebell`() {
+        val match = matcher.match("KB Swings")
+
+        assertEquals("hams_swing_kettlebell_dos_manos__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+    }
+
+    @Test
     fun `press con mancuernas sin alias no sale confiable`() {
         assertFalse(matcher.match("Dumbbell Press").isConfident)
         assertFalse(matcher.match("DB Press").isConfident)
@@ -336,6 +355,107 @@ class ExerciseNameMatcherTest {
     @Test
     fun `pull up no se toca al buscar pull down`() {
         assertEquals("Pull-Ups (Bodyweight)", PULL_DOWN.replace("Pull-Ups (Bodyweight)", "pulldown"))
+    }
+
+    @Test
+    fun `press de triceps sentado va a la maquina y no al press de hombros`() {
+        val match = matcher.match("Seated Triceps Press")
+
+        assertEquals("triceps_press_maquina__default", match.best?.configurationId)
+        assertTrue(match.isConfident)
+        assertTrue(matcher.canResolveAutomatically(match))
+    }
+
+    @Test
+    fun `weighted dips sugieren paralelas pero exigen confirmar la carga añadida`() {
+        listOf("Weighted Dips", "Dip (weighted)", "Dip (with weights)").forEach { rawName ->
+            val match = matcher.match(rawName)
+
+            assertEquals(rawName, "tren_superior_fondos__default", match.best?.configurationId)
+            assertTrue("$rawName debería proponer fondos en paralelas", match.isConfident)
+            assertFalse("$rawName no contiene la carga añadida", matcher.canResolveAutomatically(match))
+        }
+    }
+
+    @Test
+    fun `nombres de grupos y variantes sin equivalencia exacta no se asignan solos`() {
+        listOf(
+            "Triceps",
+            "Biceps",
+            "Chest muscles",
+            "Lat muscles",
+            "Cable Row",
+            "Deadlift from boxes",
+            "Paused Deadlift",
+            "Sling Shot Bench",
+        ).forEach { rawName ->
+            assertFalse("$rawName debe seguir en revisión", matcher.canResolveAutomatically(matcher.match(rawName)))
+        }
+    }
+
+    @Test
+    fun `etiquetas del corpus con material explícito van a la variante exacta`() {
+        val expected = mapOf(
+            "DB Plank Rows" to "back_remo_renegado_mancuernas__dumbbells",
+            "DB Pullover" to "lying_pullover__dumbbells",
+            "DB Shoulder Press" to "military_press__dumbbells",
+            "DB Step-ups" to "step_up__dumbbells",
+            "Dumbbell Rows (Single Arm)" to "conventional_row__dumbbells",
+            "Inverted Rows (table)" to "back_remo_invertido__default",
+            "Superman Holds" to "back_superman_suelo__default",
+            "Tricep Dips (chair)" to "triceps_fondos_entre_bancos__default",
+        )
+
+        expected.forEach { (rawName, configurationId) ->
+            val match = matcher.match(rawName)
+
+            assertEquals(rawName, configurationId, match.best?.configurationId)
+            assertTrue("$rawName debe quedar confiable", match.isConfident)
+            assertTrue("$rawName especifica una variante", matcher.canResolveAutomatically(match))
+        }
+    }
+
+    @Test
+    fun `familias ambiguas del corpus quedan confiables pero requieren revision`() {
+        val expectedPrefixes = mapOf(
+            "Calf Raises (Standing)" to "calf_raise__",
+            "Step-ups" to "step_up__",
+        )
+
+        expectedPrefixes.forEach { (rawName, configurationPrefix) ->
+            val match = matcher.match(rawName)
+
+            assertTrue("$rawName debe quedar confiable", match.isConfident)
+            assertTrue(
+                "$rawName debe sugerir una configuración de $configurationPrefix",
+                match.best?.configurationId?.startsWith(configurationPrefix) == true,
+            )
+            assertFalse("$rawName no especifica una variante única", matcher.canResolveAutomatically(match))
+        }
+    }
+
+    @Test
+    fun `glute bridges plural conserva la sugerencia de peso corporal y exige revisar variante`() {
+        val match = matcher.match("Glute Bridges")
+
+        assertEquals("glutes_puente_gluteos__bilateral__bodyweight", match.best?.configurationId)
+        assertTrue(match.isConfident)
+        assertFalse(matcher.canResolveAutomatically(match))
+    }
+
+    @Test
+    fun `las alternativas entre parentesis y en slugs siguen requiriendo revision`() {
+        val alternatives = listOf(
+            "Barbell Squats (or Goblet Squats)" to "Goblet Squats",
+            "barbell-squats-or-goblet-squats" to "goblet-squats",
+        )
+
+        alternatives.forEach { (rawName, expectedAlternative) ->
+            val match = matcher.match(rawName)
+
+            assertEquals(rawName, expectedAlternative, match.alternative)
+            assertFalse("$rawName contiene dos opciones", matcher.canResolveAutomatically(match))
+        }
     }
 
     private fun loadCatalog(): ExerciseCatalogV2 {

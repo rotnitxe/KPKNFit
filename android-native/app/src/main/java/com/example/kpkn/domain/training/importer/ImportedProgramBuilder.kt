@@ -32,6 +32,7 @@ import kotlin.math.roundToInt
  *   se completa la identidad v2; si no está disponible todavía, se conserva la selección estable y el nombre importado.
  *   El límite de guardado vuelve a validar esa identidad antes de escribir en la biblioteca.
  * - Procedencia: `planProvenance` con planId «imported:<programId>» y clase IMPORTED («Programa importado»; no se atribuye autoría).
+ *   Conserva el título y el origen web saneado si la persona importó desde una URL.
  */
 object ImportedProgramBuilder {
     const val DEFAULT_TITLE = "Mi programa importado"
@@ -134,18 +135,23 @@ object ImportedProgramBuilder {
             .associateBy { it.id.lowercase() }
         val alternatives = catalog?.let { alternativeNotes(draft, resolved, it) }.orEmpty()
         val weeks = draft.weeks.sortedBy { it.index }.map { week ->
-            val weekdayPerSession = assignWeekdays(week.days.size, trainingDays)
+            val weekdayPerSession = assignWeekdays(week.days.count { !it.isRestDay }, trainingDays)
+            var trainingSessionIndex = 0
+            val fallbackWeekdays = week.days.map { day ->
+                if (day.isRestDay) null else weekdayPerSession[trainingSessionIndex++]
+            }
             ProgramWeek(
                 id = "$programId-w${week.index}",
                 name = "Semana ${week.index}",
+                executionKind = week.executionKind,
                 sessions = week.days.mapIndexed { dayIndex, day ->
                     buildSession(
                         programId = programId,
                         weekIndex = week.index,
                         dayIndex = dayIndex,
                         day = day,
-                        weekday = weekdayPerSession[dayIndex],
-                        loadUnit = draft.loadUnit,
+                        weekday = day.dayOfWeek?.takeIf { it in 1..7 } ?: fallbackWeekdays[dayIndex],
+                        defaultLoadUnit = draft.loadUnit,
                         resolved = resolved,
                         alternatives = alternatives,
                         configurations = configurations,
@@ -172,7 +178,12 @@ object ImportedProgramBuilder {
             } else {
                 ProgramSchedulePlan(weekStartDay = trainingDays.first(), trainingDays = trainingDays.toSet())
             },
-            planProvenance = PlanProvenance(planId = "imported:$programId", category = PlanProvenanceClass.IMPORTED),
+            planProvenance = PlanProvenance(
+                planId = "imported:$programId",
+                category = PlanProvenanceClass.IMPORTED,
+                sourceTitle = draft.sourceTitle,
+                sourceUrl = draft.sourceUrl,
+            ),
         )
     }
 
@@ -201,7 +212,7 @@ object ImportedProgramBuilder {
         dayIndex: Int,
         day: ImportedDay,
         weekday: Int?,
-        loadUnit: ImportLoadUnit,
+        defaultLoadUnit: ImportLoadUnit,
         resolved: Map<String, String?>,
         alternatives: Map<String, String>,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
@@ -210,28 +221,52 @@ object ImportedProgramBuilder {
         catalogConfigurationInfo: Map<String, ExerciseMuscleInfo>,
     ): Session {
         val sessionId = "$programId-w$weekIndex-d${dayIndex + 1}"
+        val exerciseGroups = groupConsecutive(day.exercises, resolved)
+        val builtExercises = exerciseGroups.mapIndexed { exerciseIndex, members ->
+            buildExercise(
+                id = "$sessionId-e${exerciseIndex + 1}",
+                members = members,
+                defaultLoadUnit = defaultLoadUnit,
+                configurationId = members.first().catalogSelectionId ?: resolved[members.first().rawName],
+                alternativeNote = alternatives[members.first().rawName].takeIf {
+                    members.first().catalogSelectionId == null ||
+                        members.first().catalogSelectionId.equals(resolved[members.first().rawName], ignoreCase = true)
+                },
+                configurations = configurations,
+                revision = revision,
+                customExercises = customExercises,
+                catalogConfigurationInfo = catalogConfigurationInfo,
+            )
+        }
+        val supersetIndexes = linkedMapOf<String, MutableList<Int>>()
+        exerciseGroups.forEachIndexed { index, members ->
+            members.first().supersetGroup?.let { group -> supersetIndexes.getOrPut(group) { mutableListOf() } += index }
+        }
+        val supersetIds = supersetIndexes
+            .filterValues { indexes -> indexes.distinct().size >= 2 }
+            .mapValues { (group, _) -> "$sessionId-ss-${group.lowercase()}" }
+        val exercises = builtExercises.mapIndexed { index, exercise ->
+            val group = exerciseGroups[index].first().supersetGroup
+            val supersetId = group?.let(supersetIds::get)
+            if (supersetId == null) exercise else exercise.copy(supersetId = supersetId, supersetGroupRef = supersetId)
+        }
+        val supersets = supersetIndexes.mapNotNull { (group, indexes) ->
+            val id = supersetIds[group] ?: return@mapNotNull null
+            com.example.kpkn.data.models.SupersetGroup(
+                id = id,
+                exerciseOrder = indexes.distinct().map { exercises[it].id },
+            )
+        }
         return Session(
             id = sessionId,
             name = day.name.ifBlank { "Día ${dayIndex + 1}" },
             // Los ejercicios seguidos con el mismo nombre son un solo ejercicio de la app (varios grupos de series).
-            exercises = groupConsecutive(day.exercises, resolved).mapIndexed { exerciseIndex, members ->
-                buildExercise(
-                    id = "$sessionId-e${exerciseIndex + 1}",
-                    members = members,
-                    loadUnit = loadUnit,
-                    configurationId = members.first().catalogSelectionId ?: resolved[members.first().rawName],
-                    alternativeNote = alternatives[members.first().rawName].takeIf {
-                        members.first().catalogSelectionId == null ||
-                            members.first().catalogSelectionId.equals(resolved[members.first().rawName], ignoreCase = true)
-                    },
-                    configurations = configurations,
-                    revision = revision,
-                    customExercises = customExercises,
-                    catalogConfigurationInfo = catalogConfigurationInfo,
-                )
-            },
+            exercises = exercises,
+            supersetGroups = supersets,
             dayOfWeek = weekday,
             assignedDays = listOfNotNull(weekday),
+            requirement = if (day.isRestDay) com.example.kpkn.data.models.SessionRequirement.OPTIONAL
+                else com.example.kpkn.data.models.SessionRequirement.REQUIRED,
             origin = SessionOrigin.USER_DRAFT,
         )
     }
@@ -240,7 +275,7 @@ object ImportedProgramBuilder {
     private fun buildExercise(
         id: String,
         members: List<ImportedExercise>,
-        loadUnit: ImportLoadUnit,
+        defaultLoadUnit: ImportLoadUnit,
         configurationId: String?,
         alternativeNote: String?,
         configurations: Map<String, Pair<ExerciseDefinitionV2, ExerciseConfigurationV2>>,
@@ -286,17 +321,17 @@ object ImportedProgramBuilder {
             catalogConfigurationId = catalogConfigurationId ?: selectedInfo?.catalogConfigurationId,
             performanceProfileId = configuration?.profile?.performanceProfileId ?: selectedInfo?.performanceProfileId,
             occurrenceId = id.takeIf { catalogConfigurationId != null || custom != null },
-            trainingMode = TrainingMode.REPS,
+            trainingMode = if (members.first().durationSeconds != null) TrainingMode.TIME else TrainingMode.REPS,
             restTime = members.firstNotNullOfOrNull { it.restSeconds },
-            sets = buildSets(id, members, loadUnit),
+            sets = buildSets(id, members, defaultLoadUnit),
             setupCues = selectedInfo?.setupCues.orEmpty(),
             executionCues = (selectedInfo?.executionCues.orEmpty() + members.mapNotNull { it.notes } + listOfNotNull(alternativeNote)).distinct(),
             selectedMovementPattern = selectedInfo?.movementPattern ?: configuration?.profile?.movementPatternId,
         )
     }
 
-    private fun buildSets(exerciseId: String, members: List<ImportedExercise>, loadUnit: ImportLoadUnit): List<ExerciseSet> =
-        members.flatMap { exercise -> setsOf(exercise, loadUnit) }
+    private fun buildSets(exerciseId: String, members: List<ImportedExercise>, defaultLoadUnit: ImportLoadUnit): List<ExerciseSet> =
+        members.flatMap { exercise -> setsOf(exercise, exercise.loadUnit ?: defaultLoadUnit) }
             .mapIndexed { index, set -> set.copy(id = "$exerciseId-s${index + 1}") }
 
     /** Series de un grupo, sin id (lo pone [buildSets]); la carga pasa a kilos según la unidad del borrador. */
@@ -318,8 +353,9 @@ object ImportedProgramBuilder {
                 else com.example.kpkn.data.models.SetPurpose.NONE
             ExerciseSet(
                 id = "",
-                targetReps = if (purpose.isAmrap && exercise.amrapMinimumReps == null) null else high,
-                targetRepsRange = if (purpose.isAmrap && exercise.amrapMinimumReps == null) null else RepRange(low, high),
+                targetReps = if (exercise.durationSeconds != null || (purpose.isAmrap && exercise.amrapMinimumReps == null)) null else high,
+                targetRepsRange = if (exercise.durationSeconds != null || (purpose.isAmrap && exercise.amrapMinimumReps == null)) null else RepRange(low, high),
+                targetDuration = exercise.durationSeconds,
                 purpose = purpose,
                 amrapMinimumReps = if (purpose.isAmrap) exercise.amrapMinimumReps else null,
                 targetRPE = exercise.rpe,
@@ -343,6 +379,7 @@ object ImportedProgramBuilder {
         for (exercise in exercises) {
             val last = groups.lastOrNull()
             if (last != null && last.first().rawName == exercise.rawName &&
+                (last.first().durationSeconds != null) == (exercise.durationSeconds != null) &&
                 (last.first().catalogSelectionId ?: resolved[last.first().rawName]) ==
                     (exercise.catalogSelectionId ?: resolved[exercise.rawName])) {
                 last += exercise

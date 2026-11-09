@@ -27,6 +27,7 @@ import com.example.kpkn.screens.programs.importer.ImportedProgramCanonicalReview
 import com.example.kpkn.screens.programs.importer.ImportReadingNotice
 import com.example.kpkn.screens.programs.importer.ImportReview
 import com.example.kpkn.screens.programs.importer.ImportSourceChoices
+import com.example.kpkn.screens.programs.importer.ImportUrlField
 import com.example.kpkn.screens.programs.importer.ImportSharedCatalog
 import com.example.kpkn.screens.programs.importer.ImportUndoLine
 import com.example.kpkn.screens.programs.importer.ImportWarningsPanel
@@ -48,7 +49,8 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     val imported = draft.importedProgram
     var pasting by rememberSaveable { mutableStateOf(false) }
     var pasted by rememberSaveable { mutableStateOf("") }
-    var openedExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+    var enteringUrl by rememberSaveable { mutableStateOf(false) }
+    var sourceUrl by rememberSaveable { mutableStateOf("") }
     var catalogRawName by rememberSaveable { mutableStateOf<String?>(null) }
     var catalogExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
@@ -100,14 +102,21 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
         if (imported == null) {
             ImportSourceChoices(
                 onChooseFile = pickFile,
-                onPaste = { pasting = true },
+                onPaste = { pasting = true; enteringUrl = false },
                 onPhoto = { uri, takenFile -> vm.importFromPicked(uri, photo = true, takenFile = takenFile) },
+                onUrl = { enteringUrl = true; pasting = false },
             )
             if (pasting) {
                 ImportPasteField(
                     text = pasted,
                     onTextChange = { pasted = it },
                     onRead = { vm.importFromText(pasted) },
+                )
+            } else if (enteringUrl) {
+                ImportUrlField(
+                    url = sourceUrl,
+                    onUrlChange = { sourceUrl = it },
+                    onRead = { vm.importFromUrl(sourceUrl) },
                 )
             }
         } else {
@@ -162,11 +171,7 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 ImportPreviewWeeks(
                     imported = imported,
                     resolutions = resolutions,
-                    openedExerciseId = openedExerciseId,
-                    onOpen = { openedExerciseId = it },
                     onEdit = vm::editImport,
-                    suggest = vm::importSuggestions,
-                    search = vm::searchImportCatalog,
                     namesOf = vm::importNamesOf,
                     onOpenCatalog = { exerciseId, rawName -> catalogExerciseId = exerciseId; catalogRawName = rawName },
                     onEditSession = { _, dayId -> openDay(dayId) },

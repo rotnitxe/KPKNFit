@@ -196,13 +196,15 @@ private val VARIANT_ROOTS: Set<String> = listOf(
 ).map(::genderRoot).toSet()
 
 /** Separador de dos opciones de un nombre: «X o Y», «X or Y» o «X u Y». */
-private val ALTERNATIVE_SEPARATOR = Regex("""\s+(?:o|or|u)\s+""", RegexOption.IGNORE_CASE)
+private val ALTERNATIVE_SEPARATOR = Regex("""\b(?:o|or|u)\b""", RegexOption.IGNORE_CASE)
+
+private fun trimAlternativeOption(text: String): String = text.trim().trim { !it.isLetterOrDigit() }
 
 /** Parte un nombre con dos opciones en X e Y; null si no tiene esa forma o le falta una de las dos partes. */
 internal fun splitAlternative(name: String): Pair<String, String>? {
     val separator = ALTERNATIVE_SEPARATOR.find(name) ?: return null
-    val first = name.substring(0, separator.range.first).trim()
-    val second = name.substring(separator.range.last + 1).trim()
+    val first = trimAlternativeOption(name.substring(0, separator.range.first))
+    val second = trimAlternativeOption(name.substring(separator.range.last + 1))
     return if (first.isNotEmpty() && second.isNotEmpty()) first to second else null
 }
 
@@ -281,6 +283,10 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
             .joinToString(" ")
         if (movement in generic) return false
         val candidate = match.best ?: return false
+        // «Weighted dips/pull-ups» still belong to the bodyweight exercise, but the catalog has no configuration for
+        // the added load. Keep the useful suggestion while requiring the reviewer to confirm that missing detail.
+        val words = movement.split(' ')
+        if (candidate.equipmentId == "bodyweight" && words.any { it in setOf("weighted", "weight", "weights") }) return false
         val definition = definitionsByConfigurationId[candidate.configurationId] ?: return false
         val equipment = materialEquipment(match.rawName)
         val possible = if (equipment == null) definition.configurations else
@@ -342,6 +348,14 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
         if (alias != null) {
             val definition = definitionsById.getValue(alias.definitionId)
             addCandidates(ranked, definition, aliasConfiguration(definition, alias), equipment, ALIAS_CONFIDENCE, -1)
+            // La frase curada indica barra libre, pero no la altura de la barra: mostrar la variante baja
+            // como alternativa explícita, incluso si la búsqueda textual del catálogo no la devuelve.
+            if (ImportExerciseAliases.fullKey(name) == ImportExerciseAliases.fullKey("sentadilla libre con barra olimpica")) {
+                definitionsById["low_bar_back_squat"]?.let { lowBar ->
+                    addCandidates(ranked, lowBar, aliasConfiguration(lowBar, ImportExerciseAlias(lowBar.id, equipmentId = "barbell")),
+                        equipment, RIVAL_CEILING, -1)
+                }
+            }
         }
         rules.search(name).forEachIndexed { order, hit ->
             val definition = definitionsById[hit.definitionId] ?: return@forEachIndexed

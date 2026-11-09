@@ -55,6 +55,7 @@ class ImportExerciseAliasesTest {
             "SLDL" to "stiff_leg_deadlift",
             "OHP" to "military_press",
             "Press militar" to "military_press",
+            "DB Shoulder Press" to "military_press",
             "Press banca" to "bench_press",
             "Bench press" to "bench_press",
             "Incline bench press" to "incline_bench_press",
@@ -81,11 +82,21 @@ class ImportExerciseAliasesTest {
             "Hyperextension" to "back_extension_lumbar",
             "Hypers" to "back_extension_lumbar",
             "Back Hyperextension" to "back_extension_lumbar",
+            "Superman Holds" to "back_superman_suelo",
             "Goblet squat" to "quads_sentadilla_copa",
         )
         for ((phrase, definitionId) in expected) {
             assertEquals("«$phrase»", definitionId, ImportExerciseAliases.lookup(phrase)?.definitionId)
         }
+    }
+
+    @Test
+    fun `plurales irregulares conservan la configuracion curada`() {
+        assertEquals(
+            "glutes_puente_gluteos__bilateral__bodyweight",
+            ImportExerciseAliases.lookup("Glute Bridges")?.configurationId,
+        )
+        assertEquals("calf_raise", ImportExerciseAliases.lookup("Calf Raises (Standing)")?.definitionId)
     }
 
     @Test
@@ -138,7 +149,10 @@ class ImportExerciseAliasesTest {
     @Test
     fun `las variantes y el material de las frases de H5b son los de su ejercicio`() {
         assertEquals("calf_raise__bilateral__seated_machine", ImportExerciseAliases.lookup("Gemelos sentado")?.configurationId)
+        assertEquals("back_superman_suelo", ImportExerciseAliases.lookup("Superman Hold")?.definitionId)
+        assertEquals("back_superman_suelo", ImportExerciseAliases.lookup("Superman Holds")?.definitionId)
         assertEquals("conventional_row__barbell", ImportExerciseAliases.lookup("Remo con barra inclinado")?.configurationId)
+        assertEquals("dumbbells", ImportExerciseAliases.lookup("DB Shoulder Press")?.equipmentId)
         assertEquals("cable", ImportExerciseAliases.lookup("Cable fly")?.equipmentId)
         assertEquals("cable", ImportExerciseAliases.lookup("Aperturas en polea")?.equipmentId)
         assertEquals("hex_bar", ImportExerciseAliases.lookup("Peso muerto con barra hexagonal")?.equipmentId)

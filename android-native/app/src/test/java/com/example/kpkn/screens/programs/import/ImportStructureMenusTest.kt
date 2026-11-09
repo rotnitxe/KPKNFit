@@ -11,23 +11,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
-import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -36,9 +32,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Los menús de día y de semana, y «Añadir ejercicio», dentro de la vista previa, con un contenedor con estado que hace lo que la
- * pantalla: aplica cada [ImportEditOp], deja deshacer, muestra la revisión final y bloquea «Guardar programa» mientras haya
- * problemas.
+ * Los menús de día y de semana dentro de la vista previa aplican cambios de estructura; las acciones de sesión se delegan al
+ * editor compartido.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w411dp-h3000dp-xxhdpi")
@@ -68,13 +63,15 @@ class ImportStructureMenusTest {
     private fun EditHost(
         initial: ImportedProgramDraft,
         resolutions: Map<String, String?>,
-        search: suspend (String) -> List<ExerciseNameCandidate> = { emptyList() },
+        openedSessions: MutableList<String> = mutableListOf(),
     ) {
         var snapshot by remember { mutableStateOf(ImportSnapshot(initial, resolutions)) }
         val undo = remember { ImportUndoStack() }
         var undoLabel by remember { mutableStateOf<String?>(null) }
         var opened by remember { mutableStateOf<String?>(null) }
-        val issues = ImportDraftValidation.check(snapshot.imported) { snapshot.resolutions.containsKey(it) }
+        val issues = ImportDraftValidation.checkOccurrences(snapshot.imported) {
+            it.catalogSelectionId != null || snapshot.resolutions.containsKey(it.rawName)
+        }
         val edit: (ImportEditOp) -> Unit = { op ->
             ImportEdits.apply(snapshot, op)?.let { (after, label) ->
                 undo.push(snapshot, label)
@@ -95,12 +92,10 @@ class ImportStructureMenusTest {
             ImportPreviewWeeks(
                 imported = snapshot.imported,
                 resolutions = snapshot.resolutions,
-                openedExerciseId = opened,
-                onOpen = { opened = it },
                 onEdit = edit,
-                suggest = { emptyList() },
-                search = search,
                 namesOf = { emptyMap() },
+                onOpenCatalog = { exerciseId, _ -> opened = exerciseId },
+                onEditSession = { _, dayId -> openedSessions += dayId },
             )
             ImportReview(
                 imported = snapshot.imported,
@@ -127,7 +122,7 @@ class ImportStructureMenusTest {
 
         rule.onNodeWithText("Renombraste «Piernas».").assertExists()
         rule.onNodeWithText("Piernas").assertExists()
-        rule.onNodeWithTag("import-day-menu").assertDoesNotExist()
+        rule.onAllNodesWithTag("import-day-menu").assertCountEquals(0)
 
         rule.onNodeWithTag("import-undo").performClick()
         rule.onNodeWithText("Pierna").assertExists()
@@ -154,7 +149,7 @@ class ImportStructureMenusTest {
         rule.onNodeWithTag("import-day-merge").performClick()
 
         rule.onNodeWithText("Uniste «Pierna» con «Empuje».").assertExists()
-        rule.onNodeWithText("Empuje").assertDoesNotExist()
+        rule.onAllNodesWithText("Empuje").assertCountEquals(0)
         rule.onNodeWithTag("import-exercise-Sentadilla").assertExists()
         rule.onNodeWithTag("import-exercise-Press banca").assertExists()
     }
@@ -167,7 +162,7 @@ class ImportStructureMenusTest {
         rule.onNodeWithTag("import-day-remove").performClick()
 
         rule.onNodeWithText("Quitaste «Empuje».").assertExists()
-        rule.onNodeWithText("Empuje").assertDoesNotExist()
+        rule.onAllNodesWithText("Empuje").assertCountEquals(0)
 
         rule.onNodeWithTag("import-undo").performClick()
         rule.onNodeWithText("Empuje").assertExists()
@@ -194,97 +189,34 @@ class ImportStructureMenusTest {
         rule.onNodeWithTag("import-week-remove").performClick()
 
         rule.onNodeWithText("Quitaste la semana 1.").assertExists()
-        rule.onNodeWithText("Semana 2").assertDoesNotExist()
+        rule.onAllNodesWithText("Semana 2").assertCountEquals(0)
         rule.onNodeWithText("Semana 1").assertExists()
         rule.onAllNodesWithTag("import-exercise-Sentadilla").assertCountEquals(1)
     }
 
     @Test
-    fun addingADayAndAnOwnExerciseReachesReady() {
-        val draft = oneWeek()
-        rule.setContent { EditHost(draft, decided) }
-
-        rule.onNodeWithTag("import-add-day-1").performClick()
-        rule.onNodeWithText("Añadiste «Día 3».").assertExists()
-
-        rule.onNodeWithTag("import-day-menu-x${draft.nextId}").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
-        rule.onNodeWithTag("import-add-panel").assertExists()
-        rule.onNodeWithTag("import-add-name").performTextInput("Remo con barra")
-        // 3 × 10 por defecto: 4 × 8.
-        rule.onNodeWithContentDescription("Más series").performClick()
-        rule.onNodeWithContentDescription("Menos repeticiones").performClick()
-        rule.onNodeWithContentDescription("Menos repeticiones").performClick()
-        rule.onNodeWithTag("import-add-exercise-save").performClick()
-
-        rule.onNodeWithTag("import-add-panel").assertDoesNotExist()
-        rule.onNodeWithText("Añadiste «Remo con barra».").assertExists()
-        rule.onNodeWithTag("import-exercise-Remo con barra").assertExists()
-        rule.onAllNodesWithText("4 × 8", substring = true).assertCountEquals(2)
-        rule.onNodeWithText("Listo: 1 semana · 3 días · 3 ejercicios.").assertExists()
-        rule.onNodeWithTag("import-save").assertIsEnabled()
-    }
-
-    @Test
-    fun theAddButtonWaitsForAName() {
-        rule.setContent { EditHost(oneWeek(), decided) }
+    fun addingAnExerciseFromDayOptionsOpensTheExistingSessionEditor() {
+        val openedSessions = mutableListOf<String>()
+        rule.setContent { EditHost(oneWeek(), decided, openedSessions) }
 
         rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
         rule.onNodeWithTag("import-day-add-exercise").performClick()
-        rule.onNodeWithTag("import-add-exercise-save").assertIsNotEnabled()
 
-        rule.onNodeWithTag("import-add-name").performTextInput("Fondos")
-        rule.onNodeWithTag("import-add-exercise-save").assertIsEnabled()
+        assertEquals(listOf("w1-d1"), openedSessions)
+        rule.onAllNodesWithTag("import-add-panel").assertCountEquals(0)
     }
 
     @Test
-    fun addingFromTheCatalogSearchFixesTheCatalogName() {
-        val remo = ExerciseNameCandidate(
-            configurationId = "cfg-row",
-            displayName = "Remo con barra (barra)",
-            confidence = 0.0,
-            equipmentId = "barbell",
-        )
-        rule.setContent { EditHost(oneWeek(), decided, search = { listOf(remo) }) }
-
-        rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
-        rule.onNodeWithTag("import-choice-search").performTextInput("remo")
-        // La búsqueda espera a que la persona deje de escribir: el resultado llega con el retardo.
-        rule.waitUntil(timeoutMillis = 5_000) {
-            rule.onAllNodesWithTag("import-candidate-cfg-row").fetchSemanticsNodes().isNotEmpty()
-        }
-        rule.onNodeWithTag("import-candidate-cfg-row").performClick()
-
-        rule.onNodeWithText("Ejercicio del catálogo: Remo con barra (barra)").assertExists()
-        rule.onNodeWithTag("import-add-exercise-save").performClick()
-
-        rule.onNodeWithTag("import-exercise-Remo con barra (barra)").assertExists()
-        rule.onNodeWithText("Listo: 1 semana · 2 días · 3 ejercicios.").assertExists()
-    }
-
-    @Test
-    fun openingAnExerciseClosesTheDayMenu() {
-        rule.setContent { EditHost(oneWeek(), decided) }
+    fun openingAResolvedExerciseClosesTheDayMenuAndOpensTheExistingSessionEditor() {
+        val openedSessions = mutableListOf<String>()
+        rule.setContent { EditHost(oneWeek(), decided, openedSessions) }
 
         rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
         rule.onNodeWithTag("import-day-menu").assertExists()
 
         rule.onNodeWithTag("import-exercise-Press banca").performClick()
-        rule.onNodeWithTag("import-day-menu").assertDoesNotExist()
-        rule.onNodeWithTag("import-edit-panel").assertExists()
-    }
-
-    @Test
-    fun theAddPanelOpensBelowTheLastExerciseOfItsDay() {
-        rule.setContent { EditHost(oneWeek(), decided) }
-
-        rule.onNodeWithTag("import-day-menu-w1-d1").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
-
-        // El ejercicio nuevo va al final del día: el panel sale debajo de «Sentadilla», no entre el día y sus ejercicios.
-        val sentadilla = rule.onNodeWithTag("import-exercise-Sentadilla").fetchSemanticsNode().boundsInRoot.top
-        val panel = rule.onNodeWithTag("import-add-panel").fetchSemanticsNode().boundsInRoot.top
-        assertTrue("el panel de añadir debe ir debajo de «Sentadilla»", panel > sentadilla)
+        rule.onAllNodesWithTag("import-day-menu").assertCountEquals(0)
+        assertEquals(listOf("w1-d2"), openedSessions)
+        rule.onAllNodesWithTag("import-edit-panel").assertCountEquals(0)
     }
 }

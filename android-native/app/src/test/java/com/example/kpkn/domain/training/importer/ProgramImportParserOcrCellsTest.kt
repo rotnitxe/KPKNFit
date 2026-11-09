@@ -124,7 +124,7 @@ class ProgramImportParserOcrCellsTest {
         )
 
         assertEquals(emptyList<String>(), exercisesOf(draft).map { it.rawName })
-        assertEquals(listOf("Hoja «Hoja», fila 2: fila sin nombre de ejercicio; se omite"), skippedMessages(draft))
+        assertEquals(listOf("Hoja «Hoja», página 1, fila 2: fila sin nombre de ejercicio; se omite"), skippedMessages(draft))
     }
 
     @Test
@@ -148,9 +148,9 @@ class ProgramImportParserOcrCellsTest {
         assertEquals(emptyList<String>(), exercisesOf(draft).map { it.rawName })
         assertEquals(
             listOf(
-                "Hoja «Hoja», fila 3: fila sin nombre de ejercicio; se omite",
-                "Hoja «Hoja», fila 4: no se entiende «Curl 2 brazos»",
-                "Hoja «Hoja», fila 5: fila sin nombre de ejercicio; se omite",
+                "Hoja «Hoja», página 1, fila 3: fila sin nombre de ejercicio; se omite",
+                "Hoja «Hoja», página 1, fila 4: no se entiende «Curl 2 brazos»",
+                "Hoja «Hoja», página 1, fila 5: fila sin nombre de ejercicio; se omite",
             ),
             skippedMessages(draft),
         )

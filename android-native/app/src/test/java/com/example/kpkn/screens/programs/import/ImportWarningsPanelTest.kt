@@ -27,6 +27,7 @@ import com.example.kpkn.domain.training.importer.ImportedProgramDraft
 import com.example.kpkn.domain.training.importer.ImportedWeek
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -111,11 +112,13 @@ class ImportWarningsPanelTest {
 
     /** Contenedor con estado: el panel de avisos, la vista previa, la línea de deshacer y la revisión final, como en la pantalla. */
     @Composable
-    private fun WarningsHost(initial: ImportedProgramDraft = program()) {
+    private fun WarningsHost(
+        initial: ImportedProgramDraft = program(),
+        openedExercises: MutableList<String> = mutableListOf(),
+    ) {
         var snapshot by remember { mutableStateOf(ImportSnapshot(initial, decided)) }
         val undo = remember { ImportUndoStack() }
         var undoLabel by remember { mutableStateOf<String?>(null) }
-        var opened by remember { mutableStateOf<String?>(null) }
         var reveal by remember { mutableStateOf(0) }
         val issues = ImportDraftValidation.check(snapshot.imported) { snapshot.resolutions.containsKey(it) }
         val edit: (ImportEditOp) -> Unit = { op ->
@@ -139,23 +142,21 @@ class ImportWarningsPanelTest {
                 imported = snapshot.imported,
                 reveal = reveal,
                 search = { emptyList() },
-                onOpenExercise = { opened = it },
+                onOpenExercise = { openedExercises += it },
                 onEdit = edit,
             )
             ImportPreviewWeeks(
                 imported = snapshot.imported,
                 resolutions = snapshot.resolutions,
-                openedExerciseId = opened,
-                onOpen = { opened = it },
                 onEdit = edit,
-                suggest = { emptyList() },
-                search = { emptyList() },
                 namesOf = { emptyMap() },
+                onOpenCatalog = { exerciseId, _ -> openedExercises += exerciseId },
+                onEditSession = { _, _ -> },
             )
             ImportReview(
                 imported = snapshot.imported,
                 issues = issues,
-                onOpenExercise = { opened = it },
+                onOpenExercise = { openedExercises += it },
                 onEdit = edit,
                 onShowWarnings = { reveal += 1 },
                 onRestart = {},
@@ -243,39 +244,39 @@ class ImportWarningsPanelTest {
     }
 
     @Test
-    fun revisarElEjercicioAbreSuPanelYElAvisoNoCambia() {
-        rule.setContent { WarningsHost() }
+    fun revisarUnAvisoDevuelveElEjercicioImportadoSinAbrirUnEditorParalelo() {
+        val opened = mutableListOf<String>()
+        rule.setContent { WarningsHost(openedExercises = opened) }
         abrirLosAvisos()
 
         rule.onNodeWithTag("import-warning-review-a2").performClick()
 
-        rule.onNodeWithTag("import-edit-panel").assertExists()
+        assertEquals(listOf("w1-d1-e1"), opened)
         rule.onNodeWithText("4 sin revisar").assertExists()
     }
 
     @Test
-    fun ignorarTodosDejaLaRevisionListaYPliegaLosAvisos() {
+    fun ignorarTodosMarcaSoloLaNotaInformativa() {
         rule.setContent { WarningsHost() }
 
         rule.onNodeWithTag("import-warnings-ignore-all").performClick()
 
-        rule.onNodeWithTag("import-warnings-folded").assertExists()
-        rule.onNodeWithText("Avisos: todo revisado ·").assertExists()
-        rule.onNodeWithText("Listo: 1 semana · 2 días · 2 ejercicios.").assertExists()
+        rule.onNodeWithTag("import-warning-a1").assertExists()
+        rule.onNodeWithTag("import-warning-a2").assertExists()
+        rule.onNodeWithTag("import-warning-a3").assertExists()
+        rule.onNodeWithTag("import-warning-a4").assertDoesNotExist()
+        rule.onNodeWithText("3 sin revisar").assertExists()
     }
 
     @Test
-    fun elPanelPlegadoSeDespliegaConVerYSeReplieguaConOcultar() {
+    fun elPanelPlegadoSeDespliegaYPermiteVerUnAvisoRevisado() {
         rule.setContent { WarningsHost() }
-        rule.onNodeWithTag("import-warnings-ignore-all").performClick()
 
-        rule.onNodeWithTag("import-warnings-open").performClick()
-        rule.onNodeWithText("Todo revisado").assertExists()
+        rule.onNodeWithTag("import-warnings-see").performClick()
+        rule.onNodeWithText("4 sin revisar").assertExists()
+        rule.onNodeWithTag("import-warning-ignore-a1").performClick()
         rule.onNodeWithTag("import-warnings-reviewed").performClick()
-        rule.onNodeWithTag("import-warning-reviewed-a2").assertExists()
-
-        rule.onNodeWithTag("import-warnings-close").performClick()
-        rule.onNodeWithTag("import-warnings-folded").assertExists()
+        rule.onNodeWithTag("import-warning-reviewed-a1").assertExists()
     }
 
     @Test
@@ -373,5 +374,155 @@ class ImportWarningsPanelTest {
         )
         assertNull(importWarningSource(cita))
         assertEquals("Hacer 3 vueltas", importWarningSource(cita.copy(message = "Hoja «Pierna», fila 9: no se entiende la fila")))
+    }
+
+    @Test
+    fun laHojaCompactaMantieneLaRutaDeCorreccionDelEjercicio() {
+        var openedExercise by mutableStateOf<String?>(null)
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program(),
+                onOpenExercise = { openedExercise = it },
+                onEdit = {},
+                onOpenSessionEditor = {},
+                onClose = {},
+            )
+        }
+
+        rule.onNodeWithText("Avisos del documento").assertExists()
+        rule.onNodeWithTag("import-warning-sheet-row-a2").assertExists()
+        rule.onNodeWithTag("import-warning-sheet-action-a2").performClick()
+
+        assertEquals("w1-d1-e1", openedExercise)
+    }
+
+    @Test
+    fun laHojaCompactaExponeElDetalleYLaAccionMasivaSoloIncluyeNotas() {
+        var edit: ImportEditOp? by mutableStateOf(null)
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program(),
+                onOpenExercise = {},
+                onEdit = { edit = it },
+                onOpenSessionEditor = {},
+                onClose = {},
+            )
+        }
+
+        val note = program().warnings.last()
+        rule.onNodeWithTag("import-warning-sheet-action-${note.id}").performClick()
+        rule.onNodeWithText(importWarningDetail(note)).assertExists()
+        rule.onNodeWithTag("import-warnings-sheet-ignore-all").performClick()
+        rule.onNodeWithTag("import-warnings-sheet-confirm-ignore-all").assertExists()
+        rule.onNodeWithText(
+            "¿Ignorar 1 nota informativa y marcarla como revisada? Los avisos de estructura y de ejercicios seguirán pendientes.",
+            useUnmergedTree = true,
+        ).assertExists()
+        assertNull(edit)
+        rule.onNodeWithTag("import-warnings-sheet-cancel-ignore-all").performClick()
+        assertNull(edit)
+        rule.onNodeWithTag("import-warnings-sheet-ignore-all").performClick()
+        rule.onNodeWithTag("import-warnings-sheet-confirm-ignore-all").performClick()
+
+        assertEquals(ImportEditOp.IgnoreAllWarnings, edit)
+    }
+
+    @Test
+    fun unaCabeceraEstructuralLlevaAlDiaAisladoParaAsignarlo() {
+        val warning = ImportWarning(
+            id = "structure",
+            kind = ImportWarningKind.STRUCTURE_REVIEW,
+            location = "Hoja «Rutina», página 1, fila 8",
+            sourceText = "SABAD0",
+            message = "Cabecera dudosa; la sesión se aisló como Día sin asignar.",
+            weekIndex = 1,
+            dayId = "w1-d2",
+            exerciseId = null,
+        )
+        var openedDay: String? = null
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program().copy(warnings = listOf(warning)),
+                onOpenExercise = {},
+                onEdit = {},
+                onOpenSessionEditor = { openedDay = it },
+                onClose = {},
+            )
+        }
+
+        rule.onNodeWithTag("import-warning-sheet-action-structure").performClick()
+
+        assertEquals("w1-d2", openedDay)
+    }
+
+    @Test
+    fun elAvisoPuedeAbrirElOriginalPrivadoDelBorrador() {
+        var originalOpened = false
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program(),
+                onOpenExercise = {},
+                onEdit = {},
+                onOpenSessionEditor = {},
+                onClose = {},
+                hasOriginalSource = true,
+                onOpenOriginalSource = { originalOpened = true },
+            )
+        }
+
+        rule.onNodeWithTag("import-warning-sheet-open-original-a2").performClick()
+
+        assertTrue(originalOpened)
+    }
+
+    @Test
+    fun laNotaDeColumnaMuestraElMotivoEnLaFila() {
+        val columnNote = ImportWarning(
+            id = "column-note",
+            kind = ImportWarningKind.SHEET_NOTE,
+            location = "Hoja Rutina",
+            sourceText = "%",
+            message = "La columna «%» no se usó para calcular cargas.",
+            weekIndex = null,
+            dayId = null,
+            exerciseId = null,
+        )
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program().copy(warnings = listOf(columnNote)),
+                onOpenExercise = {},
+                onEdit = {},
+                onOpenSessionEditor = {},
+                onClose = {},
+            )
+        }
+
+        rule.onNodeWithText("Columna ignorada", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("La columna «%» no se usó para calcular cargas.", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun elAvisoDeCargaConservaElNombreOriginalDeLaFila() {
+        val unreadableLoad = ImportWarning(
+            id = "unreadable-load",
+            kind = ImportWarningKind.IGNORED_VALUE,
+            location = "Semana 1 · Día 1",
+            sourceText = "Press inclinado",
+            message = "La carga no se pudo leer con seguridad.",
+            weekIndex = 1,
+            dayId = "w1-d1",
+            exerciseId = "w1-d1-e1",
+        )
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program().copy(warnings = listOf(unreadableLoad)),
+                onOpenExercise = {},
+                onEdit = {},
+                onOpenSessionEditor = {},
+                onClose = {},
+            )
+        }
+
+        rule.onNodeWithText("Press inclinado · Semana 1 · Día 1", useUnmergedTree = true).assertExists()
     }
 }

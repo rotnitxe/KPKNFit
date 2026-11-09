@@ -25,6 +25,7 @@ data class ImportExercisePatch(
     val rir: Change<Int> = Change.Keep,
     val restSeconds: Change<Int> = Change.Keep,
     val notes: Change<String> = Change.Keep,
+    val durationSeconds: Change<Int> = Change.Keep,
 )
 
 /**
@@ -49,6 +50,7 @@ object ImportDraftEditor {
     private val RPE_RANGE = 1.0..10.0
     private val RIR_RANGE = 0..10
     private val REST_RANGE = 0..ProgramImportParser.MAX_REST_SECONDS
+    private val DURATION_RANGE = 1..ProgramImportParser.MAX_DURATION_SECONDS
 
     // ---- Ejercicios ----------------------------------------------------------------------------------------
 
@@ -65,7 +67,9 @@ object ImportDraftEditor {
     ): ImportedProgramDraft {
         val same = sameExercise(draft, exerciseId)
         if (same.isEmpty()) return draft
-        return draft.withExercisesAt(same, allWeeks) { exercise -> exercise.patched(patch, draft.loadUnit) }
+        return draft.withExercisesAt(same, allWeeks) { exercise ->
+            exercise.patched(patch, exercise.loadUnit ?: draft.loadUnit)
+        }
     }
 
     /**
@@ -166,6 +170,24 @@ object ImportDraftEditor {
         }
     }
 
+    /** Copies one session after itself with fresh ids; its weekday is cleared so the user can place it deliberately. */
+    fun duplicateDay(draft: ImportedProgramDraft, dayId: String): ImportedProgramDraft {
+        val place = placeOfDay(draft, dayId) ?: return draft
+        val source = draft.weeks[place.week].days[place.day]
+        val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
+        val highest = ids.filter { it.startsWith("x") }.mapNotNull { it.substring(1).toIntOrNull() }.maxOrNull() ?: 0
+        var next = maxOf(draft.nextId, highest + 1)
+        val copied = source.copy(
+            id = "x${next++}",
+            name = "${source.name} (copia)".take(80),
+            dayOfWeek = null,
+            exercises = source.exercises.map { exercise -> exercise.copy(id = "x${next++}") },
+        )
+        return draft.copy(nextId = next).withWeek(place.week) { week ->
+            week.copy(days = week.days.insertAt(place.day + 1, copied))
+        }
+    }
+
     /** Pasa los ejercicios del día siguiente de la misma semana al final de este, y el siguiente desaparece. */
     fun mergeWithNext(draft: ImportedProgramDraft, dayId: String): ImportedProgramDraft {
         val place = placeOfDay(draft, dayId) ?: return draft
@@ -182,6 +204,74 @@ object ImportDraftEditor {
                 },
             )
         }
+    }
+
+    /**
+     * Splits a session at [exerciseId]. The selected exercise and the remaining suffix move together, retaining their
+     * prescriptions, source rows and catalog decisions. The new session has no weekday until the person assigns it.
+     */
+    fun splitDayAtExercise(
+        draft: ImportedProgramDraft,
+        dayId: String,
+        exerciseId: String,
+        newDayName: String,
+    ): ImportedProgramDraft {
+        val place = placeOfDay(draft, dayId) ?: return draft
+        val week = draft.weeks[place.week]
+        val source = week.days[place.day]
+        val splitAt = source.exercises.indexOfFirst { it.id == exerciseId }
+        if (splitAt < 0) return draft
+        val exercise = source.exercises[splitAt]
+        val name = newDayName.trim().ifEmpty { "Día ${week.days.size + 1}" }.take(80)
+        val newDayId: String
+        val nextId: Int
+        val updatedDays = if (splitAt == 0) {
+            // Choosing the first exercise reclassifies the whole session instead of leaving an empty duplicate behind.
+            newDayId = source.id
+            nextId = draft.nextId
+            week.days.mapIndexed { index, day ->
+                if (index == place.day) day.copy(name = name, dayOfWeek = null) else day
+            }
+        } else {
+            newDayId = "x${draft.nextId}"
+            nextId = draft.nextId + 1
+            val newDay = source.copy(
+                id = newDayId,
+                name = name,
+                exercises = source.exercises.drop(splitAt),
+                dayOfWeek = null,
+                isRestDay = false,
+            )
+            week.days.flatMapIndexed { index, day ->
+                if (index == place.day) listOf(day.copy(exercises = day.exercises.take(splitAt)), newDay) else listOf(day)
+            }
+        }
+        val nextWarning = (draft.warnings.mapNotNull { it.id.removePrefix("a").toIntOrNull() }.maxOrNull() ?: 0) + 1
+        val warning = ImportWarning(
+            id = "a$nextWarning",
+            kind = ImportWarningKind.STRUCTURE_REVIEW,
+            location = exercise.sourceSheet?.let { sheet ->
+                buildString {
+                    append("Hoja «").append(sheet).append('»')
+                    exercise.sourcePage?.let { append(", página ").append(it) }
+                    exercise.sourceRow?.let { append(", fila ").append(it) }
+                }
+            }.orEmpty(),
+            sourceText = exercise.sourceText ?: exercise.rawName,
+            message = "Asigna un día a la sesión creada desde «${exercise.rawName.take(100)}».",
+            weekIndex = week.index,
+            dayId = newDayId,
+            exerciseId = exercise.id,
+            sourceDocumentType = exercise.sourceDocumentType,
+            sourcePage = exercise.sourcePage,
+            sourceSheet = exercise.sourceSheet,
+            sourceRow = exercise.sourceRow,
+            sourceTextTruncated = exercise.sourceTextTruncated,
+        )
+        val weeks = draft.weeks.mapIndexed { index, current ->
+            if (index == place.week) current.copy(days = updatedDays) else current
+        }
+        return draft.copy(weeks = weeks, warnings = draft.warnings + warning, nextId = nextId)
     }
 
     /** Añade un día vacío al final de la semana [weekIndex]. Sin nombre, usa «Día <n>». */
@@ -208,6 +298,26 @@ object ImportDraftEditor {
             .filter { it.index != index }
             .map { week -> if (week.index > index) week.copy(index = week.index - 1) else week }
         return draft.copy(weeks = weeks)
+    }
+
+    /** Keeps one confirmed week for the Free plan and rebases it to week 1. */
+    fun keepOnlyWeek(draft: ImportedProgramDraft, index: Int): ImportedProgramDraft {
+        val week = draft.weeks.firstOrNull { it.index == index } ?: return draft
+        val warnings = draft.warnings
+            .filter { it.weekIndex == null || it.weekIndex == index }
+            .map { warning -> if (warning.weekIndex == index) warning.copy(weekIndex = 1) else warning }
+        val reviewed = draft.reviewedWarnings.intersect(warnings.map { it.id }.toSet())
+        return draft.copy(
+            weeks = listOf(week.copy(index = 1)),
+            warnings = warnings,
+            reviewedWarnings = reviewed,
+        )
+    }
+
+    /** Añade una semana vacía al final; no copia ejercicios ni datos de otra semana. */
+    fun addWeek(draft: ImportedProgramDraft): ImportedProgramDraft {
+        val nextIndex = (draft.weeks.maxOfOrNull { it.index } ?: 0) + 1
+        return draft.copy(weeks = draft.weeks + ImportedWeek(index = nextIndex, days = emptyList()))
     }
 
     /**
@@ -342,6 +452,7 @@ object ImportDraftEditor {
             Change.Clear -> null
             Change.Keep -> notes
         }
+        val newDuration = patch.durationSeconds.optional(durationSeconds) { it in DURATION_RANGE }
         return copy(
             sets = patch.sets.required(sets) { it in SETS_RANGE },
             repsMin = low,
@@ -352,6 +463,7 @@ object ImportDraftEditor {
             rir = rirValue,
             restSeconds = patch.restSeconds.optional(restSeconds) { it in REST_RANGE },
             notes = newNotes,
+            durationSeconds = newDuration,
         )
     }
 

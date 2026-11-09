@@ -83,16 +83,29 @@ internal fun Program.editorTargetForExercise(exerciseId: String): ImportedSessio
     return null
 }
 
-internal fun Program.withImportedWeekdays(weekdays: Set<Int>): Program {
+/** Sesiones cuyo día provino explícitamente del documento y no debe sobrescribirse desde el selector global. */
+internal fun explicitImportedSessionIds(source: ImportedProgramDraft?, sourceMap: ImportedProgramSourceMap): Set<String> =
+    source?.weeks.orEmpty().flatMap { it.days }.filter { day -> day.dayOfWeek?.let { it in 1..7 } == true }
+        .mapNotNull { sourceMap.sessionIdsByDayId[it.id] }.toSet()
+
+internal fun Program.withImportedWeekdays(weekdays: Set<Int>, preservedSessionIds: Set<String> = emptySet()): Program {
     val trainingDays = weekdays.filter { it in 1..7 }.distinct().sorted()
     val updatedMacros = macrocycles.map { macro ->
         macro.copy(blocks = macro.blocks.map { block ->
             block.copy(mesocycles = block.mesocycles.map { meso ->
                 meso.copy(weeks = meso.weeks.map { week ->
-                    val assigned = ImportedProgramBuilder.assignWeekdays(week.sessions.size, trainingDays)
-                    week.copy(sessions = week.sessions.mapIndexed { index, session ->
-                        val day = assigned.getOrNull(index)
-                        session.copy(dayOfWeek = day, assignedDays = listOfNotNull(day))
+                    val assigned = ImportedProgramBuilder.assignWeekdays(
+                        week.sessions.count { it.requirement == com.example.kpkn.data.models.SessionRequirement.REQUIRED },
+                        trainingDays,
+                    )
+                    var trainingSessionIndex = 0
+                    week.copy(sessions = week.sessions.map { session ->
+                        if (session.id in preservedSessionIds || session.requirement != com.example.kpkn.data.models.SessionRequirement.REQUIRED) {
+                            session
+                        } else {
+                            val day = assigned.getOrNull(trainingSessionIndex++)
+                            session.copy(dayOfWeek = day, assignedDays = listOfNotNull(day))
+                        }
                     })
                 })
             })
@@ -190,6 +203,7 @@ internal fun ImportedProgramCanonicalReview(
                     val message = when (issue.kind) {
                         ImportIssueKind.NO_WEEKS -> "No quedó ninguna semana."
                         ImportIssueKind.EMPTY_WEEK -> "La semana ${issue.weekIndex} no tiene ejercicios."
+                        ImportIssueKind.INCOMPLETE_EXERCISE -> "Completa las series o la prescripción de «${issue.rawName.orEmpty()}» antes de guardar."
                         ImportIssueKind.EMPTY_DAY -> {
                             val session = issue.dayId?.let { id -> program.macrocycles.flatMap { it.blocks }
                                 .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
@@ -226,7 +240,12 @@ internal fun ImportedProgramCanonicalReview(
                     val currentMesoIndex = mesoIndex++
                     meso.weeks.forEach { week ->
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(week.name, style = WizardTypography.eyebrow, color = WizardColors.textMuted)
+                            val weekLabel = when (week.executionKind) {
+                                com.example.kpkn.data.models.WeekExecutionKind.DELOAD -> "${week.name} · Descarga"
+                                com.example.kpkn.data.models.WeekExecutionKind.REST -> "${week.name} · Descanso"
+                                com.example.kpkn.data.models.WeekExecutionKind.TRAINING -> week.name
+                            }
+                            Text(weekLabel, style = WizardTypography.eyebrow, color = WizardColors.textMuted)
                             week.sessions.forEach { session ->
                                 Column(
                                     Modifier.fillMaxWidth().importGlassPanel(compact = true).padding(14.dp),

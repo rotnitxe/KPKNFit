@@ -61,6 +61,29 @@ class ImportEditsTest {
         assertEquals(after.imported, restored)
     }
 
+    @Test
+    fun anOccurrenceCanBeKeptAsOwnWithoutResolvingSameNameElsewhere() {
+        val first = ImportedExercise(id = "e1", rawName = "Remo", sets = 3, repsMin = 8, repsMax = 8)
+        val second = first.copy(id = "e2")
+        val before = ImportSnapshot(
+            ImportedProgramDraft("Plan", listOf(ImportedWeek(1, listOf(ImportedDay("d1", "Día 1", listOf(first, second)))))),
+            emptyMap(),
+        )
+        val after = checkNotNull(ImportEdits.apply(before, ImportEditOp.DecideOccurrence("e1", "own", "Remo"))).first
+        val exercises = after.imported.weeks.single().days.single().exercises
+
+        assertEquals("own", exercises[0].catalogSelectionId)
+        assertNull(exercises[1].catalogSelectionId)
+        val issues = com.example.kpkn.domain.training.importer.ImportDraftValidation.checkOccurrences(after.imported) {
+            it.catalogSelectionId != null || after.resolutions.containsKey(it.rawName)
+        }
+        assertEquals("e2", issues.single().exerciseId)
+
+        val encoded = kotlinx.serialization.json.Json.encodeToString(ImportedProgramDraft.serializer(), after.imported)
+        val restored = kotlinx.serialization.json.Json.decodeFromString(ImportedProgramDraft.serializer(), encoded)
+        assertEquals(after.imported, restored)
+    }
+
     /** Tres semanas: la sentadilla con cargas distintas (100, 105 y 110 kg); dos avisos sin revisar. */
     private val draft = ImportedProgramDraft(
         title = "Plan",
@@ -121,8 +144,9 @@ class ImportEditsTest {
             applied(ImportEditOp.Decide("Sentadilla", null, "Sentadilla")).second,
         )
         assertEquals("Quitaste «Empuje».", applied(ImportEditOp.RemoveDay("w1-d2")).second)
+        assertEquals("Moviste «Pierna» al lunes.", applied(ImportEditOp.SetDayOfWeek("w1-d1", 1)).second)
         assertEquals("Quitaste la semana 2.", applied(ImportEditOp.RemoveWeek(2)).second)
-        assertEquals("Ignoraste 2 avisos.", applied(ImportEditOp.IgnoreAllWarnings).second)
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.IgnoreAllWarnings))
     }
 
     @Test
@@ -132,9 +156,26 @@ class ImportEditsTest {
     }
 
     @Test
-    fun `un solo aviso se escribe en singular`() {
-        val oneLeft = snapshot.copy(imported = draft.copy(reviewedWarnings = setOf("a1")))
-        assertEquals("Ignoraste 1 aviso.", applied(ImportEditOp.IgnoreAllWarnings, oneLeft).second)
+    fun `la accion masiva solo revisa notas informativas y deja avisos estructurales pendientes`() {
+        val note = ImportWarning("a3", ImportWarningKind.SHEET_NOTE, "Hoja «Plan»", "texto descartado", "Se omitió texto.", null, null, null)
+        val structural = ImportWarning("a4", ImportWarningKind.STRUCTURE_REVIEW, "Hoja «Plan», fila 8", "SABAD0", "Cabecera dudosa", 1, "w1-d2", null)
+        val mixed = snapshot.copy(imported = draft.copy(warnings = draft.warnings + listOf(note, structural)))
+
+        val (after, label) = applied(ImportEditOp.IgnoreAllWarnings, mixed)
+
+        assertEquals("Ignoraste 1 nota informativa.", label)
+        assertEquals(setOf("a3"), after.imported.reviewedWarnings)
+        assertTrue(after.imported.warnings.any { it.kind == ImportWarningKind.STRUCTURE_REVIEW && it.id !in after.imported.reviewedWarnings })
+        assertTrue(after.imported.warnings.any { it.kind == ImportWarningKind.SKIPPED_ROW && it.id !in after.imported.reviewedWarnings })
+    }
+
+    @Test
+    fun `asignar y quitar el dia de semana cambia el borrador`() {
+        val assigned = applied(ImportEditOp.SetDayOfWeek("w1-d1", 1)).first
+        assertEquals(1, assigned.imported.weeks.first().days.first().dayOfWeek)
+
+        val cleared = applied(ImportEditOp.SetDayOfWeek("w1-d1", null), assigned).first
+        assertEquals(null, cleared.imported.weeks.first().days.first().dayOfWeek)
     }
 
     @Test
@@ -145,8 +186,7 @@ class ImportEditsTest {
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.Move("w1-d1-e1", "w1-d1", 0)))
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.Decide("Sentadilla", "cfg-squat", "Sentadilla")))
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.RemoveDay("nope")))
-        val ignored = applied(ImportEditOp.IgnoreAllWarnings).first
-        assertNull(ImportEdits.apply(ignored, ImportEditOp.IgnoreAllWarnings))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.IgnoreAllWarnings))
     }
 
     @Test
@@ -207,6 +247,25 @@ class ImportEditsTest {
         assertEquals(Change.Clear, patchFrom(squat, form.copy(restSeconds = null)).restSeconds)
         assertEquals(Change.Clear, patchFrom(squat, form.copy(notes = "   ")).notes)
         assertEquals(Change.Set("Pausa"), patchFrom(squat, form.copy(notes = " Pausa ")).notes)
+    }
+
+    @Test
+    fun `el formulario de tiempo permite completar series sin convertirlo a repeticiones`() {
+        val source = draft.weeks[0].days[0].exercises[0].copy(
+            sets = 0,
+            repsMin = 1,
+            repsMax = 1,
+            durationSeconds = 40,
+        )
+        val form = ImportExerciseForm.of(source)
+
+        assertFalse(form.isValid())
+        assertTrue(form.copy(sets = 3).isValid())
+        val patch = patchFrom(source, form.copy(sets = 3, durationSeconds = 45))
+        assertEquals(Change.Set(3), patch.sets)
+        assertEquals(Change.Set(45), patch.durationSeconds)
+        assertEquals(Change.Keep, patch.repsMin)
+        assertEquals(Change.Keep, patch.repsMax)
     }
 
     @Test
@@ -331,6 +390,8 @@ class ImportEditsTest {
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.RenameDay("nope", "Otro")))
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.MoveDay("w1-d1", 0)))
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.MoveDay("nope", 0)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.SetDayOfWeek("nope", 1)))
+        assertNull(ImportEdits.apply(snapshot, ImportEditOp.SetDayOfWeek("w1-d1", 8)))
         // «Empuje» es el último día de la semana 1: no hay con quién unirlo.
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.MergeWithNext("w1-d2")))
         assertNull(ImportEdits.apply(snapshot, ImportEditOp.AddDay(9, "Extra")))
@@ -375,6 +436,52 @@ class ImportEditsTest {
         assertEquals(ids.size, ids.toSet().size)
         assertEquals(listOf(1, 2, 3, 4), duplicated.weeks.map { it.index })
         assertEquals("Sentadilla", duplicated.weeks[1].days[0].exercises[0].rawName)
+    }
+
+    @Test
+    fun `conservar una semana deja solo sus sesiones y sus avisos`() {
+        val before = snapshot.copy(imported = draft.copy(reviewedWarnings = setOf("a1", "a2")))
+        val (after, label) = applied(ImportEditOp.KeepOnlyWeek(3), before)
+
+        assertEquals("Conservaste la semana 3 y quitaste las demás.", label)
+        assertEquals(listOf(1), after.imported.weeks.map { it.index })
+        assertEquals(listOf("Sentadilla", "Fondos"), after.imported.weeks.single().days.flatMap { day -> day.exercises.map { it.rawName } })
+        assertEquals(listOf("a2"), after.imported.warnings.map { it.id })
+        assertEquals(1, after.imported.warnings.single().weekIndex)
+        assertEquals(setOf("a2"), after.imported.reviewedWarnings)
+        assertEquals(3, before.imported.weeks.size)
+        assertNull(ImportEdits.apply(after, ImportEditOp.KeepOnlyWeek(1)))
+    }
+
+    @Test
+    fun `duplicar una sesion conserva sus prescripciones, renueva ids y deja el dia sin asignar`() {
+        val firstWeek = snapshot.imported.weeks.first()
+        val source = snapshot.imported.copy(
+            weeks = listOf(firstWeek.copy(days = firstWeek.days.map { day ->
+                    if (day.id != "w1-d1") day else day.copy(
+                        dayOfWeek = 2,
+                        exercises = day.exercises.map { it.copy(rir = 2, restSeconds = 90, notes = "Pausa", catalogSelectionId = "cfg-squat") },
+                    )
+                })),
+        )
+        val initial = ImportSnapshot(source, snapshot.resolutions)
+        val (after, label) = ImportEdits.apply(initial, ImportEditOp.DuplicateDay("w1-d1"))!!
+
+        assertEquals("Duplicaste «Pierna».", label)
+        val week = after.imported.weeks.single()
+        assertEquals(listOf("w1-d1", "x1", "w1-d2"), week.days.map { it.id })
+        val duplicate = week.days[1]
+        assertNull(duplicate.dayOfWeek)
+        val copied = duplicate.exercises.first { it.rawName == "Sentadilla" }
+        assertEquals("Sentadilla", copied.rawName)
+        assertEquals(2, copied.rir)
+        assertEquals(90, copied.restSeconds)
+        assertEquals("Pausa", copied.notes)
+        assertEquals("cfg-squat", copied.catalogSelectionId)
+        val ids = week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } }
+        assertEquals(ids.size, ids.toSet().size)
+
+        assertEquals("Quitaste «Pierna (copia)».", ImportEdits.apply(after, ImportEditOp.RemoveDay(duplicate.id))?.second)
     }
 
     @Test

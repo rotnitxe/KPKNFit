@@ -1,0 +1,9 @@
+case_id	input	expected_definition_id	expected_configuration_id	label
+es_low_bar	Sentadilla trasera barra baja	low_bar_back_squat	low_bar_back_squat__barbell	UNIQUE
+en_db_row	DB Plank Rows	back_remo_renegado_mancuernas	back_remo_renegado_mancuernas__dumbbells	UNIQUE
+en_machine_triceps	Seated Triceps Press	triceps_press_maquina	triceps_press_maquina__default	UNIQUE
+ambiguous_squat	Sentadilla			AMBIGUOUS
+ambiguous_bench	Press banca			AMBIGUOUS
+equipment_conflict	Dumbbell Hip Thrust			INCOMPATIBLE_EQUIPMENT
+ocr_typo	sentadila			OCR_REVIEW
+unmatched	ejercicio inventado xyz			UNMATCHED

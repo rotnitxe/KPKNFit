@@ -213,12 +213,18 @@ private class OcrRowsReport(private val results: List<FileResult>) {
         if (r.message.isNotEmpty()) appendLine("Mensaje: ${r.message}")
         appendLine()
         appendLine("## Ejercicios (primeros 120)")
-        appendLine("| semana | día | ejercicio | series×reps | kg | notas |")
+        appendLine("| semana | día | ejercicio | prescripción | kg | notas |")
         appendLine("|---:|---|---|---|---:|---|")
         for (p in r.placed.take(120)) {
             val e = p.exercise
-            val reps = if (e.repsMin == e.repsMax) "${e.repsMin}" else "${e.repsMin}–${e.repsMax}"
-            appendLine("| ${p.week} | ${cell(p.day)} | ${cell(e.rawName)} | ${e.sets}×$reps | ${e.loadKg ?: ""} | ${cell(e.notes.orEmpty())} |")
+            val prescription = e.durationSeconds?.let { seconds ->
+                val time = "$seconds s"
+                if (e.sets > 0) "${e.sets}×$time" else "Series por indicar · $time"
+            } ?: run {
+                val reps = if (e.repsMin == e.repsMax) "${e.repsMin}" else "${e.repsMin}–${e.repsMax}"
+                if (e.sets > 0) "${e.sets}×$reps" else "Series por indicar · $reps reps"
+            }
+            appendLine("| ${p.week} | ${cell(p.day)} | ${cell(e.rawName)} | $prescription | ${e.loadKg ?: ""} | ${cell(e.notes.orEmpty())} |")
         }
         appendLine()
         appendLine("## Avisos (primeros 120)")

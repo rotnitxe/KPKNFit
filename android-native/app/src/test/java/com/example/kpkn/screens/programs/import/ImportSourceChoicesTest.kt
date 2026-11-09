@@ -5,7 +5,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.example.kpkn.data.importer.PROGRAM_IMPORT_MIME_TYPES
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,20 +24,24 @@ class ImportSourceChoicesTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private fun setChoices(onPaste: () -> Unit = {}) {
+    private fun setChoices(onPaste: () -> Unit = {}, onUrl: () -> Unit = {}) {
         rule.setContent {
-            ImportSourceChoices(onChooseFile = {}, onPaste = onPaste, onPhoto = { _, _ -> })
+            ImportSourceChoices(onChooseFile = {}, onPaste = onPaste, onPhoto = { _, _ -> }, onUrl = onUrl)
         }
     }
 
     @Test
-    fun theThreeSymbolsAreOfferedAndTheFileOneSaysItReadsPdfToo() {
+    fun theThreeSymbolsAndUrlActionAreOfferedAndTheFileOneSaysItReadsPdfToo() {
         setChoices()
 
         rule.onNodeWithTag("import-choose-file").assertExists()
         rule.onNodeWithTag("import-paste-text").assertExists()
         rule.onNodeWithTag("import-source-photo").assertExists()
-        rule.onNodeWithContentDescription("Elegir un archivo de Excel, CSV, Word, texto o PDF").assertExists()
+        rule.onNodeWithTag("import-source-url").assertExists()
+        rule.onNodeWithText("Importar desde un enlace").assertExists()
+        rule.onNodeWithContentDescription("Elegir un archivo de Excel (.xls, .xlsx o .xlsm), ODS, CSV, Word (.docx), texto o PDF").assertExists()
+        assertTrue(PROGRAM_IMPORT_MIME_TYPES.contains("application/vnd.ms-excel"))
+        assertTrue(PROGRAM_IMPORT_MIME_TYPES.contains("application/vnd.ms-excel.sheet.macroenabled.12"))
     }
 
     @Test
@@ -47,6 +53,7 @@ class ImportSourceChoicesTest {
 
         rule.onNodeWithText("Hacer una foto").assertExists()
         rule.onNodeWithText("Elegir de la galería").assertExists()
+        rule.onNodeWithText(IMPORT_PHOTO_TIP).assertExists()
     }
 
     @Test
@@ -60,5 +67,15 @@ class ImportSourceChoicesTest {
         assertEquals(1, pasted)
         rule.onNodeWithTag("import-photo-camera").assertDoesNotExist()
         rule.onNodeWithTag("import-photo-gallery").assertDoesNotExist()
+    }
+
+    @Test
+    fun tappingTheUrlActionCallsItsHandler() {
+        var opened = 0
+        setChoices(onUrl = { opened++ })
+
+        rule.onNodeWithTag("import-source-url").performClick()
+
+        assertEquals(1, opened)
     }
 }

@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
 
 /**
- * Los iconos del lienzo v6 de Programas que el set KPKN Line todavía no trae: subir, destello, filtro, pegar y ojo. Mismas reglas del
+ * Los iconos del lienzo v6 de Programas que el set KPKN Line todavía no trae: documento, subir, destello, filtro, pegar, enlace y ojo. Mismas reglas del
  * set (retícula de 24, trazo de 1,75 con extremos y uniones redondeados) y los mismos trazados que `app.js` del lienzo. Viven aquí y no
  * en `KpknLineIcons` para no pisar a otros paquetes que tocan ese archivo.
  */
@@ -18,6 +18,11 @@ internal object ProgramLineIcons {
     /** Subir: flecha hacia arriba sobre una bandeja. Archivar, Importar y «Elegir archivo». */
     val Upload: ImageVector by lazy {
         icono("ProgramLine.Upload", listOf("M12 15V4", "M7.5 8.5 12 4l4.5 4.5", "M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"))
+    }
+
+    /** Documento de rutina. El acceso «Archivo» del importador. */
+    val Document: ImageVector by lazy {
+        icono("ProgramLine.Document", listOf("M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z", "M14 3v5h5", "M9 13h6", "M9 17h4"))
     }
 
     /** Destello de cuatro puntas. «A tu medida» y «Crear a mi medida». */
@@ -41,6 +46,11 @@ internal object ProgramLineIcons {
                 "M9 16h4",
             ),
         )
+    }
+
+    /** Enlace entre dos extremos. «Importar desde un enlace». */
+    val Link: ImageVector by lazy {
+        icono("ProgramLine.Link", listOf("M10 13.5 14 9.5", "M8.5 16H7a4 4 0 0 1 0-8h4", "M15.5 8H17a4 4 0 0 1 0 8h-4"))
     }
 
     /** Ojo con pupila. «Foto de tu rutina». */

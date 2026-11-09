@@ -53,7 +53,7 @@ class ImportCorpusReporterTest {
             ),
             report.files.map { it.path to it.outcome },
         )
-        assertEquals("No es un libro de Excel (.xlsx) válido", report.files[0].note)
+        assertEquals("No es un libro de Excel (.xlsx o .xlsm) válido", report.files[0].note)
         // Veintiuna hojas no es un rechazo: se leen 20 y el aviso de hoja lo dice.
         val veintiuna = report.files.single { it.path == "004-veintiuna/004-veintiuna.xlsx" }
         assertEquals(20, veintiuna.sheets.size)

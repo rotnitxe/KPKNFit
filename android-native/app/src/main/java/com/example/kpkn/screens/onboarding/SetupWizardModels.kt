@@ -1474,6 +1474,7 @@ internal fun SetupWizardDraft.importProblem(): String? {
     fun has(kind: ImportIssueKind) = issues.any { it.kind == kind }
     return when {
         !hasExercises -> "No encontramos ejercicios en lo que importaste."
+        has(ImportIssueKind.INCOMPLETE_EXERCISE) -> "Completa las series o la prescripción antes de guardar."
         has(ImportIssueKind.UNDECIDED_EXERCISE) -> "Elige en el catálogo los ejercicios con dudas."
         has(ImportIssueKind.EMPTY_WEEK) -> "Hay semanas sin ejercicios: quítalas o añade ejercicios."
         has(ImportIssueKind.EMPTY_DAY) -> "Hay días sin ejercicios: quítalos o añade ejercicios."

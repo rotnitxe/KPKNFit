@@ -18,14 +18,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportedDay
 import com.example.kpkn.domain.training.importer.ImportedExercise
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
@@ -43,7 +40,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * HOJAS DE DIBUJO de los menús de día y de semana y del panel «Añadir ejercicio» (no comprueba nada: escribe PNG). Solo corre con
+ * HOJAS DE DIBUJO de los menús de día y de semana (no comprueba nada: escribe PNG). Solo corre con
  * la variable de entorno `KPKN_RENDER_DIR`; sin ella se salta. Cada vista se dibuja a 411 dp y a 320 dp con la letra al 130 %, con
  * los gráficos nativos de Robolectric. Patrón de [ImportEditorRenderTest].
  */
@@ -111,9 +108,6 @@ class ImportStructureRenderTest {
         "Remo con barra" to null,
     )
 
-    /** Un resultado del catálogo para «Añadir ejercicio». */
-    private val remo = ExerciseNameCandidate("cfg-row", "Remo con barra (barra)", 0.0, "barbell")
-
     /** Un recuadro de la hoja: fondo negro y el ancho de la pantalla, con su etiqueta de prueba «sheet». */
     @Composable
     private fun Sheet(width: Dp = 411.dp, fontScale: Float = 1f, content: @Composable () -> Unit) {
@@ -129,17 +123,15 @@ class ImportStructureRenderTest {
     }
 
     @Composable
-    private fun Preview(draft: ImportedProgramDraft, search: suspend (String) -> List<ExerciseNameCandidate> = { emptyList() }) {
+    private fun Preview(draft: ImportedProgramDraft) {
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             ImportPreviewWeeks(
                 imported = draft,
                 resolutions = resolutions,
-                openedExerciseId = null,
-                onOpen = {},
                 onEdit = {},
-                suggest = { emptyList() },
-                search = search,
                 namesOf = { emptyMap() },
+                onOpenCatalog = { _, _ -> },
+                onEditSession = { _, _ -> },
             )
         }
     }
@@ -175,50 +167,6 @@ class ImportStructureRenderTest {
             Sheet(width = width, fontScale = fontScale) { Preview(draft) }
         }
         rule.onNodeWithTag("import-week-menu-1").performClick()
-        save(name)
-    }
-
-    /** (c) «Añadir ejercicio» con un resultado del catálogo ya elegido: el nombre queda fijado. */
-    @Test
-    fun renderTheAddPanelWithACatalogChoice() = renderAddWithCatalog(width = 411.dp, fontScale = 1f, name = "c_anadir_elegido")
-
-    @Test
-    fun renderTheAddPanelWithACatalogChoiceAt320WithLargeText() =
-        renderAddWithCatalog(width = 320.dp, fontScale = 1.3f, name = "c2_anadir_elegido_320_letra_130")
-
-    private fun renderAddWithCatalog(width: Dp, fontScale: Float, name: String) {
-        onlyWhenAsked()
-        val draft = program()
-        rule.setContent {
-            Sheet(width = width, fontScale = fontScale) { Preview(draft, search = { listOf(remo) }) }
-        }
-        rule.onNodeWithTag("import-day-menu-w1-d2").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
-        rule.onNodeWithTag("import-choice-search").performTextInput("remo")
-        rule.waitUntil(timeoutMillis = 5_000) {
-            rule.onAllNodesWithTag("import-candidate-cfg-row").fetchSemanticsNodes().isNotEmpty()
-        }
-        rule.onNodeWithTag("import-candidate-cfg-row").performClick()
-        save(name)
-    }
-
-    /** (d) «Añadir ejercicio» con un nombre propio escrito a mano. */
-    @Test
-    fun renderTheAddPanelWithAnOwnName() = renderAddWithOwnName(width = 411.dp, fontScale = 1f, name = "d_anadir_propio")
-
-    @Test
-    fun renderTheAddPanelWithAnOwnNameAt320WithLargeText() =
-        renderAddWithOwnName(width = 320.dp, fontScale = 1.3f, name = "d2_anadir_propio_320_letra_130")
-
-    private fun renderAddWithOwnName(width: Dp, fontScale: Float, name: String) {
-        onlyWhenAsked()
-        val draft = program()
-        rule.setContent {
-            Sheet(width = width, fontScale = fontScale) { Preview(draft) }
-        }
-        rule.onNodeWithTag("import-day-menu-w1-d2").performClick()
-        rule.onNodeWithTag("import-day-add-exercise").performClick()
-        rule.onNodeWithTag("import-add-name").performTextInput("Fondos en paralelas")
         save(name)
     }
 

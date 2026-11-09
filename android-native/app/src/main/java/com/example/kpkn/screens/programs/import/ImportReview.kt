@@ -69,6 +69,9 @@ private fun ReviewAction(
     onRestart: () -> Unit,
 ) {
     when (issue.kind) {
+        ImportIssueKind.INCOMPLETE_EXERCISE -> issue.exerciseId?.let { id ->
+            ImportTextAction(label = "Completar", onClick = { onOpenExercise(id) }, modifier = Modifier.testTag("import-review-complete"))
+        }
         ImportIssueKind.UNDECIDED_EXERCISE -> issue.exerciseId?.let { id ->
             ImportTextAction(label = "Elegir", onClick = { onOpenExercise(id) }, modifier = Modifier.testTag("import-review-choose"))
         }

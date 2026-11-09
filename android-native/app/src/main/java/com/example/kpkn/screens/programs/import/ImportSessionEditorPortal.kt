@@ -57,6 +57,8 @@ internal fun ImportSessionEditorPortal(
     macroIndex: Int,
     mesoIndex: Int,
     dayOfWeek: Int?,
+    importedOriginTitle: String? = null,
+    importedOriginText: String? = null,
     onClose: () -> Unit,
 ) {
     val application = LocalContext.current.applicationContext as Application
@@ -121,6 +123,8 @@ internal fun ImportSessionEditorPortal(
                 draftMesoIndex = mesoIndex,
                 draftDayOfWeek = dayOfWeek,
                 importedProgramStore = store,
+                importedOriginTitle = importedOriginTitle,
+                importedOriginText = importedOriginText,
                 onBack = ::closeAfterSave,
                 onSavedAndExit = ::closeAfterSave,
                 onOpenCatalog = { requestJson = Json.encodeToString(CatalogLaunchRequest.serializer(), it) },

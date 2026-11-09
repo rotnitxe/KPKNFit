@@ -46,6 +46,23 @@ class ProgramImportParserNoiseTest {
     }
 
     @Test
+    fun `una hoja llamada rutina con instrucciones se conserva si contiene ejercicios`() {
+        val draft = ProgramImportParser.parseSheets(
+            listOf(
+                ImportSheet(
+                    name = "Rutina con instrucciones",
+                    rows = listOf(listOf("Lunes"), listOf("Sentadilla 3x8")),
+                ),
+            ),
+            title = "Rutina",
+        )
+
+        assertEquals(listOf("Sentadilla"), draft.weeks.single().days.single().exercises.map { it.rawName })
+        assertEquals(1, draft.weeks.single().days.single().dayOfWeek)
+        assertTrue(draft.warnings.none { it.message.contains("Se omitió la hoja") })
+    }
+
+    @Test
     fun `la prosa no es un dia ni un aviso suelto, se cuenta por hoja`() {
         val sheet = ImportSheet(
             name = "Guía de uso",
@@ -65,6 +82,8 @@ class ProgramImportParserNoiseTest {
         assertEquals(listOf("Hoja «Guía de uso»: se omitieron 3 líneas de texto."), draft.warningMessages)
         assertEquals(ImportWarningKind.SHEET_NOTE, draft.warnings.single().kind)
         assertEquals("Hoja «Guía de uso»", draft.warnings.single().location)
+        assertTrue(draft.warnings.single().sourceText.orEmpty().contains("fila 1"))
+        assertTrue(draft.warnings.single().sourceText.orEmpty().contains("Esta hoja reparte"))
     }
 
     @Test

@@ -132,10 +132,11 @@ class ImportActivationWizardTest {
         confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT)
         vm.importMatchNames = { throw IllegalStateException("catálogo no disponible") }
 
-        vm.importFromText("Día 1\nSentadilla 3x5\nPress banca 3x8")
+        vm.importFromText("# Día 1\n\n| Ejercicio | Series | Reps |\n|---|---|---|\n| Sentadilla | 3 | 5 |\n| Press banca | 3 | 8 |")
         val result = await(vm, "programa leído sin catálogo") { !it.importBusy && it.draft.importedProgram != null && it.importError != null }
         val exercises = result.draft.importedProgram!!.weeks.flatMap { it.days }.flatMap { it.exercises }
         assertEquals(listOf("Sentadilla", "Press banca"), exercises.map { it.rawName })
+        assertEquals(listOf(5, 8), exercises.map { it.repsMin })
         assertTrue(result.draft.importResolutions.isEmpty())
         assertEquals(com.example.kpkn.screens.programs.importer.IMPORT_CATALOG_UNAVAILABLE, result.importError)
     }
