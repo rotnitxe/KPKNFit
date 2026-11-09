@@ -623,7 +623,7 @@ class ProgramRepository private constructor(
                 mesoIndex = mesoIndex,
                 session = session,
             ) ?: return false
-            updateProgram(updated)
+            updateProgram(updated.withManualSessionOverride(session, weekId))
             return true
         }
     }
@@ -642,9 +642,18 @@ class ProgramRepository private constructor(
             mesoIndex = mesoIndex,
             session = session,
         ) ?: return false
-        updateProgramNow(updated)
+        updateProgramNow(updated.withManualSessionOverride(session, weekId))
         return true
     }
+
+    private fun Program.withManualSessionOverride(session: Session, weekId: String): Program =
+        PlanMaterializer.withManualSessionOverride(
+            program = this,
+            sessionId = session.id,
+            weekId = weekId,
+            weekOccurrence = null,
+            recipeDayId = null,
+        )
 
     fun deleteProgram(programId: String): ProgramDeleteResult {
         // Serializa la decisión con start/update/finalize de una sesión. Si el lock
