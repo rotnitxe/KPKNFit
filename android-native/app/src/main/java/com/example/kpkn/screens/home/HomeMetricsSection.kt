@@ -59,7 +59,8 @@ private val OverAmber = Color(0xFFFFA15C)
 internal fun HomeMetricsSection(
     metrics: HomeTrainingMetrics,
     onOpenHistory: () -> Unit,
-    onOpenProgress: () -> Unit,
+    onOpenProgress: (String) -> Unit,
+    onOpenProgressList: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var metric by rememberSaveable { mutableStateOf(HomeMetric.SERIES) }
@@ -113,7 +114,7 @@ internal fun HomeMetricsSection(
 
         if (metrics.progress.isNotEmpty()) {
             Divider()
-            ProgressBlock(progress = metrics.progress, onOpenProgress = onOpenProgress)
+            ProgressBlock(progress = metrics.progress, onOpenProgress = onOpenProgress, onOpenProgressList = onOpenProgressList)
         }
     }
 }
@@ -263,16 +264,25 @@ private fun ReadinessRow(readiness: HomeReadiness) {
 }
 
 @Composable
-private fun ProgressBlock(progress: List<HomeLiftProgress>, onOpenProgress: () -> Unit) {
+private fun ProgressBlock(
+    progress: List<HomeLiftProgress>,
+    onOpenProgress: (String) -> Unit,
+    onOpenProgressList: () -> Unit,
+) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text("PROGRESO", style = KpknType.eyebrow.copy(fontSize = 12.sp), color = WizardColors.textMuted)
         Spacer(Modifier.weight(1f))
-        KpknTextAction(text = "Ver los 5 ›", onClick = onOpenProgress)
+        if (progress.size > 2) {
+            KpknTextAction(text = "Ver los ${progress.size} ›", onClick = onOpenProgressList)
+        }
     }
     Spacer(Modifier.height(8.dp))
     progress.take(2).forEach { lift ->
         Row(
-            Modifier.fillMaxWidth().padding(vertical = 6.dp),
+            Modifier.fillMaxWidth()
+                .clickable { onOpenProgress(lift.progressId) }
+                .padding(vertical = 6.dp)
+                .testTag("home-progress-row-${lift.progressId}"),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(

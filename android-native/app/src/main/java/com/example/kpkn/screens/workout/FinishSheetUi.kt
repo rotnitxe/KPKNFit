@@ -268,14 +268,14 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
                 }
             }
             Column(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp),
+                Modifier.weight(1f, fill = !m.empty).fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (m.sets > 0) DataModule(state, actions)
                 m.cardio?.let { CardioRow(it) }
                 m.record?.let { RecordStrip(it) }
-                if (d.showMuscles(m.muscles.isNotEmpty() && !m.empty)) MusclesModule(state)
-                if (d.showLifts && m.lifts.isNotEmpty() && !m.empty) LiftChips(m.lifts)
+                if (m.muscles.isNotEmpty() && !m.empty) MusclesModule(state)
+                if (m.lifts.isNotEmpty() && !m.empty) LiftChips(m.lifts)
             }
             Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = if (m.empty) 18.dp else 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!m.empty) StoryCard(state, actions)
@@ -374,7 +374,8 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
             }.padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            val effort = state.effortSelected ?: m.effort
+            val effort = m.recordedEffort.value
+            val effortSub = if (effort != null) "${m.recordedEffort.coveredSets} de ${m.recordedEffort.totalSets} series" else "Sin intensidad registrada"
             val i0 = 0.55f
             val durationSeconds = m.durationSeconds
             val durationValue = if (durationSeconds in 1..59) durationSeconds.toString() else m.minutes.toString()
@@ -382,7 +383,7 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
             Tile(Modifier.weight(1f), m.durationFraction, durationValue, "Duración", durationUnit, d, i0 + 0.07f, false, null)
             Tile(Modifier.weight(1f), m.setsFraction, "${m.sets}", "Series", "de ${m.plannedSets}", d, i0 + 0.14f, false, null)
             Tile(Modifier.weight(1f), if (effort != null) (effort / 10.0).toFloat() else 0f, effort?.let { finishGrouped(it, 1) } ?: "—", "Esfuerzo",
-                if (effort != null) "sRPE" else "sin valorar", d, i0 + 0.21f, false, actions.onOpenRate)
+                effortSub, d, i0 + 0.21f, false, actions.onOpenRate)
             Tile(Modifier.weight(1f), if (m.records > 0) 1f else 0f, "${m.records}", "Récords", if (m.records > 0) "e1RM" else "esta vez no", d, i0 + 0.28f, m.records > 0, null)
         }
     }

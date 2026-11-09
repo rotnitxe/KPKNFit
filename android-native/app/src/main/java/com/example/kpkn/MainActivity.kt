@@ -1118,6 +1118,9 @@ private fun KPKNNavGraph(
                         }
                     }
                 },
+                onOpenExerciseProgress = { exerciseId ->
+                    navController.navigate(KpknRoute.ExerciseProgress.create(exerciseId)) { launchSingleTop = true }
+                },
                 onHeaderOverlayChange = onHomeGlassOverlayChange,
                 onNutritionOverlayChange = onHomeModalOverlayChange,
                 onOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -1306,7 +1309,7 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
-                onOpenCheckin = { navController.navigate(KpknRoute.NutritionCalibration.route) { launchSingleTop = true } },
+                onOpenCheckin = { navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true } },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
@@ -1493,16 +1496,12 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {
-            NutritionCalibrationScreen(
-                onBack = { navController.popBackStack() },
-                onResumeLogging = {
-                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                    nutritionViewModel.refreshToday()
-                    nutritionViewModel.setSelectedDate(nutritionViewModel.today.value.toString())
-                    nutritionViewModel.requestFoodLoggerOpen()
-                },
-                onWeighIn = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
-            )
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                navController.navigate(KpknRoute.Nutrition.route) {
+                    popUpTo(KpknRoute.NutritionCalibration.route) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {

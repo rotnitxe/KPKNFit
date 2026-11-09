@@ -152,6 +152,8 @@ fun HomeScreen(
     onResumeWorkout: () -> Unit = {},
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
+    /** Abre la trayectoria exacta de un ejercicio desde Progreso de Inicio. */
+    onOpenExerciseProgress: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
     onHeaderOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -363,26 +365,27 @@ fun HomeScreen(
         }
     }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
-            HomeWithProgram(
-                viewModel = viewModel,
-                todaySessions = uiState.todaySessions,
-                homeCompetition = uiState.homeCompetition,
-                hasActiveProgram = uiState.hasActiveProgram,
-                activeProgramId = uiState.activeProgramId,
-                programs = uiState.programs,
-                listState = listState,
-                onSessionAnchorPositionChanged = { sessionAnchorY = it },
-                onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
-                onStartWorkout = onStartWorkout,
-                onRegisterCompetition = onRegisterCompetition,
-                onOpenCompetitionToday = onOpenCompetitionToday,
-                onOpenCompetitions = onOpenCompetitions,
-                onResumeWorkout = onResumeWorkout,
-                onEditSession = onEditSession,
-                onNavigateToProgram = onNavigateToProgram,
-                onCreateProgram = openCreate,
-                onNavigateToCard = onNavigateToCard,
-                onNavigate = onNavigate,
+        HomeWithProgram(
+            viewModel = viewModel,
+            todaySessions = uiState.todaySessions,
+            homeCompetition = uiState.homeCompetition,
+            hasActiveProgram = uiState.hasActiveProgram,
+            activeProgramId = uiState.activeProgramId,
+            programs = uiState.programs,
+            listState = listState,
+            onSessionAnchorPositionChanged = { sessionAnchorY = it },
+            onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
+            onStartWorkout = onStartWorkout,
+            onRegisterCompetition = onRegisterCompetition,
+            onOpenCompetitionToday = onOpenCompetitionToday,
+            onOpenCompetitions = onOpenCompetitions,
+            onResumeWorkout = onResumeWorkout,
+            onEditSession = onEditSession,
+            onNavigateToProgram = onNavigateToProgram,
+            onCreateProgram = openCreate,
+            onNavigateToCard = onNavigateToCard,
+            onOpenExerciseProgress = onOpenExerciseProgress,
+            onNavigate = onNavigate,
                  onAddMeal = { meal ->
                      if (showNutrition) {
                          loggerMealChoice = meal
@@ -491,6 +494,7 @@ private fun HomeFoodLoggerHost(
 private data class HomeSupplementCeiling(val def: SupplementDef, val dose: Double, val projected: Double)
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 private fun HomeWithProgram(
     viewModel: HomeViewModel,
     todaySessions: List<TodaySessionItem>,
@@ -510,6 +514,7 @@ private fun HomeWithProgram(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onNavigateToCard: (String) -> Unit,
+    onOpenExerciseProgress: (String) -> Unit = {},
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
     onAddMeal: (MealType?) -> Unit = {},
@@ -555,6 +560,7 @@ private fun HomeWithProgram(
         }
     }
     var showSupplementQuickSheet by remember { mutableStateOf(false) }
+    var showProgressList by rememberSaveable { mutableStateOf(false) }
     var homeSupplementDetailId by remember { mutableStateOf<String?>(null) }
     var homeSupplementCeiling by remember { mutableStateOf<HomeSupplementCeiling?>(null) }
     fun homeHhmmNow(): String = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
@@ -686,16 +692,6 @@ private fun HomeWithProgram(
                     competitionDatePromptProgramId = competitionDatePromptProgramId,
                     onOpenProgramForCompetitionDate = onNavigateToProgram,
                 )
-                HomeSessionCue(
-                    cues = trainingMetrics.cues,
-                    onAction = { cue ->
-                        val today = todaySessions.firstOrNull { it.program != null }
-                        if (cue.action == "Ajustar" && today?.program != null) {
-                            onEditSession(today.session, today.program)
-                        } else onNavigateToCard("training-metrics")
-                    },
-                    modifier = Modifier.padding(top = 12.dp),
-                )
             }
         }
 
@@ -703,7 +699,8 @@ private fun HomeWithProgram(
             HomeMetricsSection(
                 metrics = trainingMetrics,
                 onOpenHistory = { onNavigateToCard("training-metrics") },
-                onOpenProgress = { onNavigateToCard("training-metrics") },
+                onOpenProgress = onOpenExerciseProgress,
+                onOpenProgressList = { showProgressList = true },
             )
         }
         item(key = "cards") {
@@ -755,6 +752,35 @@ private fun HomeWithProgram(
     }
     // Registro rápido desde Inicio (sp-rapida): la hoja que antes se abría sin montarse. Toma, detalle y techo
     // comparten motor y reglas con Nutrición; «Añadir» lleva a la pila completa.
+    if (showProgressList) {
+        ModalBottomSheet(
+            onDismissRequest = { showProgressList = false },
+            containerColor = WizardColors.cardFill,
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text("Progreso por ejercicio", style = WizardTypography.questionCompact, color = WizardColors.text)
+                Text("Los mismos ejercicios y el mismo orden que muestra Inicio.", style = WizardTypography.caption, color = WizardColors.textMuted)
+                Spacer(Modifier.height(8.dp))
+                trainingMetrics.progress.forEach { lift ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .clickable {
+                                showProgressList = false
+                                onOpenExerciseProgress(lift.progressId)
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(lift.name, Modifier.weight(1f), style = WizardTypography.body, color = WizardColors.text, maxLines = 1)
+                        Text(progressDeltaLabel(lift.deltaKg), style = WizardTypography.cardTitle, color = WizardColors.textMuted)
+                    }
+                }
+            }
+        }
+    }
     if (showSupplementQuickSheet) {
         val caffeineTotal = todayMeals.sumOf { log -> log.foods.sumOf { it.caffeineMg } }
         SupplementQuickSheet(
@@ -1406,4 +1432,16 @@ internal fun NutritionTodayGlassOverlay(
             }
         }
     }
+}
+
+private fun progressDeltaLabel(delta: Double?): String {
+    if (delta == null) return "—"
+    val absolute = kotlin.math.abs(delta)
+    val number = String.format(java.util.Locale.US, "%.1f", absolute).replace('.', ',')
+    val sign = when {
+        delta > 0.0 -> "+"
+        delta < 0.0 -> "−"
+        else -> ""
+    }
+    return "$sign$number kg"
 }

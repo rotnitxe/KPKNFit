@@ -4,10 +4,9 @@ import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.performance.StrengthModel
+import com.example.kpkn.domain.training.ExerciseProgress
 import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
 import com.example.kpkn.domain.training.insights.RpeConversion
-import com.example.kpkn.domain.training.insights.SessionCue
-import com.example.kpkn.domain.training.insights.SessionCueEngine
 import com.example.kpkn.domain.training.insights.VolumeLandmarks
 import com.example.kpkn.domain.training.insights.VolumeZone
 import java.time.LocalDate
@@ -34,6 +33,8 @@ data class HomeLiftProgress(
     val estimated1Rm: Double,
     val deltaKg: Double?,
     val points: List<Double> = emptyList(),
+    /** Identidad de ExerciseProgress que abre la trayectoria exacta de esta fila. */
+    val progressId: String = "",
 )
 
 /** Métrica elegida en el control segmentado de Inicio. */
@@ -45,7 +46,6 @@ data class HomeTrainingMetrics(
     val topMuscles: List<HomeMuscleVolume> = emptyList(),
     val readiness: HomeReadiness? = null,
     val progress: List<HomeLiftProgress> = emptyList(),
-    val cues: List<SessionCue> = emptyList(),
 ) {
     fun valueOf(week: HomeMetricWeek, metric: HomeMetric): Double = when (metric) {
         HomeMetric.SERIES -> week.series
@@ -110,17 +110,6 @@ object HomeTrainingMetricsBuilder {
             )
         }
 
-        val todayExercises = todaySessions.map { it.session }
-            .flatMap { it.allExercises() }
-        val todayIds = todayExercises.map { it.id }.toSet()
-        val todayNames = todayExercises.associate { it.id to it.name }
-        val todayMuscles = todayExercises.flatMap { it.effectiveMuscles.orEmpty() }
-            .map { it.muscle }
-            .toSet()
-        val starIds = todaySessions.mapNotNull { it.program }
-            .flatMap { program -> program.starExerciseIds() }
-            .toSet()
-
         return HomeTrainingMetrics(
             weeks = weeks,
             previousWeeks = previousWeeks,
@@ -131,17 +120,6 @@ object HomeTrainingMetricsBuilder {
                 .sortedByDescending { it.sets },
             readiness = readinessOf(wellbeing),
             progress = progressOf(logs),
-            cues = SessionCueEngine.cues(
-                logs = logs,
-                todayExerciseIds = todayIds,
-                todayExerciseNames = todayNames,
-                todayMuscleNames = todayMuscles,
-                muscleWeeksAboveMrv = MuscleVolumeAccounting.weeksAboveMrv(logs, today),
-                discomfortLabels = com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
-                    .mapValues { it.value.label },
-                starExerciseIds = starIds,
-                nowMs = nowMs,
-            ),
         )
     }
 
@@ -205,7 +183,8 @@ object HomeTrainingMetricsBuilder {
                             com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it)
                     }
                     .maxOfOrNull { StrengthModel.estimate1RM(it) } ?: return@forEach
-                best.getOrPut(exercise.exerciseId) { mutableListOf() }
+                val identity = ExerciseProgress.identity(exercise)
+                best.getOrPut(identity) { mutableListOf() }
                     .add(exercise.exerciseName to value)
             }
         }
@@ -218,18 +197,11 @@ object HomeTrainingMetricsBuilder {
                 estimated1Rm = latest.second,
                 deltaKg = previousBest?.let { latest.second - it },
                 points = values.takeLast(8).map { it.second },
+                progressId = id,
             )
         }
             .sortedByDescending { it.estimated1Rm }
             .take(5)
     }
 
-    private fun com.example.kpkn.data.models.Program.starExerciseIds(): List<String> =
-        macrocycles.flatMap { it.blocks }
-            .flatMap { it.mesocycles }
-            .flatMap { it.weeks }
-            .flatMap { it.sessions }
-            .flatMap { it.allExercises() }
-            .filter { it.isStarTarget }
-            .map { it.id }
 }

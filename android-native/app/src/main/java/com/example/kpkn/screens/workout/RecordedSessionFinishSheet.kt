@@ -89,10 +89,11 @@ internal fun RecordedSessionFinishSheet(
 
     val lifts = remember(completedExercises, presentation) { buildFinishLiftProgress(completedExercises, presentation.history) }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
-    val story = remember(completedExercises, presentation, durationMinutes, effort) {
+    val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
+    val story = remember(completedExercises, presentation, durationMinutes, recordedEffort) {
         WorkoutStoryData(
             name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
-            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = RpeConversion.sessionRpe(effort, completedExercises),
+            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = recordedEffort.value,
         )
     }
     LaunchedEffect(name, completedExercises, durationMinutes) {
@@ -144,28 +145,30 @@ internal fun RecordedSessionFinishSheet(
 
     // La hoja del lienzo: 94 % del alto (a lo que mida el contenido si no hay series), fondo #1B1B1D, radio 28 y asa de 40 × 4 a 8 dp del borde.
     ModalBottomSheet(
-        onDismissRequest = { if (!saving) onDismiss() },
+        onDismissRequest = { if (showStory) showStory = false else if (!saving) onDismiss() },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = Color(0xFF1B1B1D),
         scrimColor = Color(0xA8000000),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         dragHandle = null,
     ) {
-        Box(Modifier.fillMaxWidth().heightIn(max = (config.screenHeightDp * 0.94f).dp)) {
-            FinishSheetContent(state, actions)
-            Box(Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF)))
+        Box(Modifier.fillMaxWidth().then(if (model.empty) Modifier else Modifier.fillMaxHeight(0.94f))) {
+            if (showStory) {
+                WorkoutStorySheet(
+                    data = story,
+                    hazeState = remember { HazeState() },
+                    options = storyOptions,
+                    onOptionsChange = { storyOptions = it },
+                    shareAfterSave = shareAfterSave,
+                    onShareAfterSaveChange = { shareAfterSave = it },
+                    onDismiss = { showStory = false },
+                    embedded = true,
+                )
+            } else {
+                FinishSheetContent(state, actions)
+                Box(Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF)))
+            }
         }
-    }
-    if (showStory) {
-        WorkoutStorySheet(
-            data = story,
-            hazeState = remember { HazeState() },
-            options = storyOptions,
-            onOptionsChange = { storyOptions = it },
-            shareAfterSave = shareAfterSave,
-            onShareAfterSaveChange = { shareAfterSave = it },
-            onDismiss = { showStory = false },
-        )
     }
     if (showEmptyDiscardConfirmation) {
         AlertDialog(

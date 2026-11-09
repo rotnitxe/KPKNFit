@@ -2,6 +2,8 @@ package com.example.kpkn.domain.training.insights
 
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.IntensityMode
+import java.util.Locale
 
 /**
  * El atleta registra RIR; la app habla en RPE por dentro.
@@ -10,6 +12,16 @@ import com.example.kpkn.data.models.CompletedSet
  * en su historial. Existe una única fórmula: `rpe = 10 - rir`.
  */
 object RpeConversion {
+    data class RecordedSessionEffort(
+        val value: Double?,
+        val coveredSets: Int,
+        val totalSets: Int,
+    ) {
+        val coverageLabel: String
+            get() = value?.let { "${formatRpe(it)}/10 · $coveredSets de $totalSets series" }
+                ?: "Sin intensidad registrada"
+    }
+
     fun fromRir(rir: Int): Double = (10 - rir).coerceIn(0, 10).toDouble()
 
     fun fromRirOrNull(rir: Int?): Double? = rir?.let(::fromRir)
@@ -23,6 +35,48 @@ object RpeConversion {
     fun sessionRpe(declared: Double?, exercises: List<CompletedExercise>): Double? {
         return declared?.takeIf { it in 0.0..10.0 }
     }
+
+    /**
+     * Esfuerzo medio derivado de la intensidad realmente registrada por serie.
+     * Promedia primero los lados de una serie unilateral y después las series de trabajo.
+     * Una prescripción, un AMRAP sin intensidad o un fallo de ejecución sin dato no aportan.
+     */
+    fun recordedEffort(exercises: List<CompletedExercise>): RecordedSessionEffort {
+        val logicalSets = linkedMapOf<String, MutableList<Double?>>()
+        exercises.filter { it.cardioDetails == null }.forEach { exercise ->
+            exercise.sets.filter { !it.skipped && !it.isWarmup }.forEachIndexed { index, set ->
+                val key = "${exercise.exerciseId}:${set.setIndex ?: index}"
+                logicalSets.getOrPut(key) { mutableListOf() }.add(recordedSetEffort(set))
+            }
+        }
+        val perSet = logicalSets.values.mapNotNull { values ->
+            values.filterNotNull().takeIf { it.isNotEmpty() }?.average()
+        }
+        val covered = logicalSets.values.count { values -> values.any { it != null } }
+        return RecordedSessionEffort(
+            value = perSet.takeIf { it.isNotEmpty() }?.average(),
+            coveredSets = covered,
+            totalSets = logicalSets.size,
+        )
+    }
+
+    private fun recordedSetEffort(set: CompletedSet): Double? {
+        val payload = set.recordedPayloadV3
+        val mode = set.actualIntensityMode ?: payload?.actualIntensityMode
+        val value = set.actualIntensityValue ?: payload?.actualIntensityValue
+        if (mode == IntensityMode.FAILURE) return 10.0
+        if (payload?.reachedFailure == true || set.homologatedResultV3?.reachedFailure == true ||
+            set.setOutcomeV2?.reachedFailure == true
+        ) {
+            return 10.0
+        }
+        if (mode == IntensityMode.RPE) return value?.takeIf { it in 0.0..10.0 }
+        if (mode == IntensityMode.RIR) return value?.let { (10.0 - it).coerceIn(0.0, 10.0) }
+        return setRpe(set.rpe, set.rir)
+    }
+
+    private fun formatRpe(value: Double): String =
+        String.format(Locale.US, "%.1f", value).replace('.', ',')
 
     /** Igual que [sessionRpe] pero a partir de las series ya filtradas por la pantalla. */
     fun averageSetRpe(sets: List<CompletedSet>): Double? = sets

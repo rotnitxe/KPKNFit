@@ -48,6 +48,9 @@ internal data class FinishModel(
     /** Volumen de las últimas sesiones iguales (hasta 7) y, al final, el de hoy. Sin comparación (< 2 puntos) no se dibuja la línea. */
     val trend: List<Double>,
     val effort: Double?,
+    /** Esfuerzo medio derivado de la intensidad realmente registrada; la valoración manual vive aparte. */
+    val recordedEffort: com.example.kpkn.domain.training.insights.RpeConversion.RecordedSessionEffort =
+        com.example.kpkn.domain.training.insights.RpeConversion.RecordedSessionEffort(null, 0, 0),
     val records: Int,
     val record: FinishRecord?,
     val cardio: FinishCardio?,
@@ -60,7 +63,7 @@ internal data class FinishModel(
     val durationFraction: Float
         get() = if (empty) 0f else ((durationSeconds / 60f) / (targetMinutes?.takeIf { it > 0 } ?: 60)).coerceIn(0f, 1f)
     val setsFraction: Float get() = if (plannedSets > 0) (sets.toFloat() / plannedSets).coerceIn(0f, 1f) else 0f
-    val effortFraction: Float get() = ((effort ?: 0.0) / 10.0).toFloat().coerceIn(0f, 1f)
+    val effortFraction: Float get() = ((recordedEffort.value ?: 0.0) / 10.0).toFloat().coerceIn(0f, 1f)
 }
 
 internal fun finishDurationLabel(durationSeconds: Int, durationMinutes: Int): String =
@@ -110,6 +113,7 @@ internal fun buildFinishModel(
 ): FinishModel {
     val strength = completedExercises.filter { it.cardioDetails == null }
     val sets = logicalSetCountFromCompleted(strength)
+    val recordedEffort = com.example.kpkn.domain.training.insights.RpeConversion.recordedEffort(completedExercises)
     val volume = sessionTonnage(strength)
     val previousSessions = presentation.history.filter { it.sessionName == name }.sortedBy { it.date }
     val previous = previousSessions.lastOrNull()
@@ -168,6 +172,7 @@ internal fun buildFinishModel(
         volumeDelta = previous?.let { volume - it.totalVolume }.takeIf { sets > 0 },
         trend = trend,
         effort = effort,
+        recordedEffort = recordedEffort,
         records = presentation.records,
         record = record,
         cardio = cardio,
