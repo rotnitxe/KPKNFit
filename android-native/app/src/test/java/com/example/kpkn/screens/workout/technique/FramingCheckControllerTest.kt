@@ -13,13 +13,19 @@ import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -68,6 +74,20 @@ class FramingCheckControllerTest {
         override val engine: PoseEngineInfo = PoseEngineInfo("fake", "test", "CPU")
         override fun estimate(frame: RgbaFrame, timestampMs: Long): List<DetectedPose> =
             throw IllegalStateException("estimator failed")
+        override fun close() {}
+    }
+
+    private class BlockingPoseEstimator(
+        private val entered: CountDownLatch,
+        private val release: CountDownLatch,
+        private val result: List<DetectedPose>,
+    ) : PoseEstimator {
+        override val engine: PoseEngineInfo = PoseEngineInfo("fake", "test", "CPU")
+        override fun estimate(frame: RgbaFrame, timestampMs: Long): List<DetectedPose> {
+            entered.countDown()
+            check(release.await(3, TimeUnit.SECONDS)) { "el test no liberó la inferencia" }
+            return result
+        }
         override fun close() {}
     }
 
@@ -132,6 +152,39 @@ class FramingCheckControllerTest {
             )
         } finally {
             testBitmap.recycle()
+            controller.close()
+        }
+    }
+
+    @Test
+    fun late_result_from_a_replaced_preview_cannot_publish_its_verdict() = runTest {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val controller = FramingCheckController(
+            scope = this,
+            spec = sideSpec,
+            gravityRollProvider = { 0f },
+            externalEstimator = BlockingPoseEstimator(entered, release, listOf(createGoodPose())),
+        )
+        val bitmap = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888)
+        try {
+            val oldGeneration = controller.beginSamplingGeneration()
+            val oldInference = async(Dispatchers.Default) {
+                controller.processBitmapForGeneration(bitmap, oldGeneration)
+            }
+            assertTrue("la inferencia vieja empieza", entered.await(2, TimeUnit.SECONDS))
+
+            controller.stop()
+            controller.beginSamplingGeneration()
+            release.countDown()
+            withTimeout(4_000L) { oldInference.await() }
+
+            assertEquals("el controlador espera una muestra de la nueva vista", FramingCheckStatus.CHECKING, controller.status.value)
+            assertFalse(controller.verdict.value.ok)
+            assertNull("el encuadre de la lente previa no aparece", controller.verdict.value.view)
+        } finally {
+            release.countDown()
+            bitmap.recycle()
             controller.close()
         }
     }

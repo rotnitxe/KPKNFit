@@ -213,6 +213,7 @@ internal class FinishSheetState(
     val photoCount: Int,
     val shareAfterSave: Boolean,
     val panelOpen: Boolean,
+    val panelKind: FinishPanelKind = FinishPanelKind.NOTES,
     val checklist: List<SessionChecklistItem>,
     val effortSelected: Double?,
     val storyThumb: androidx.compose.ui.graphics.ImageBitmap?,
@@ -220,14 +221,18 @@ internal class FinishSheetState(
     val ridgeRecordIndex: Int,
 )
 
+internal enum class FinishPanelKind { NOTES, EFFORT }
+
 internal class FinishSheetActions(
     val onShare: (Boolean) -> Unit = {},
     val onPrepareStory: () -> Unit = {},
     val onOpenNotes: () -> Unit = {},
+    val onOpenRate: () -> Unit = {},
     val onClosePanel: () -> Unit = {},
     val onPhotos: () -> Unit = {},
     val onSave: () -> Unit = {},
     val onBack: () -> Unit = {},
+    val onDiscard: () -> Unit = {},
     val onNotes: (String) -> Unit = {},
     val onEffort: (Double?) -> Unit = {},
     val onAddTask: (String) -> Unit = {},
@@ -243,14 +248,11 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
     Box(modifier.fillMaxWidth().clipToBounds().testTag("finish-sheet")) {
         // `.lx-art`: 200 dp de líneas detrás de todo, pegadas arriba (posición absoluta en el lienzo: no empuja nada).
         RidgeArt(state.ridges, state.ridgeRecordIndex, Modifier.fillMaxWidth().height(200.dp).align(Alignment.TopStart))
-        Column(Modifier.fillMaxWidth().then(if (m.empty) Modifier else Modifier.fillMaxHeight())) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
             Box {
                 Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = d.headerTop.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(17.dp).clip(CircleShape).background(Lx.Done), contentAlignment = Alignment.Center) {
-                            Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = Color(0xFF0B0B0B))
-                        }
-                        Text("SESIÓN COMPLETADA", style = Lx.inter(11.sp, FontWeight.SemiBold, 1.5.sp), color = Lx.Done)
+                        Text("RESUMEN DE SESIÓN", style = Lx.inter(11.sp, FontWeight.SemiBold, 1.5.sp), color = Lx.Muted)
                     }
                     Text(m.name, Modifier.padding(top = 5.dp, bottom = 3.dp).testTag("finish-title"),
                         style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 25.sp, lineHeight = 27.5.sp, letterSpacing = (-0.6).sp),
@@ -258,18 +260,18 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
                     Text(
                         androidx.compose.ui.text.buildAnnotatedString {
                             append("${m.dateLine} · ")
-                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold, color = Lx.Ink)); append("${m.minutes}"); pop()
-                            append(" min · ${if (m.empty) "sin series" else "${m.sets} series"}")
+                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold, color = Lx.Ink)); append(finishDurationLabel(m.durationSeconds, m.minutes)); pop()
+                            append(" · ${finishActivityLabel(m)}")
                         },
                         style = Lx.inter(12.5.sp), color = Lx.Muted,
                     )
                 }
             }
             Column(
-                Modifier.weight(1f, fill = !m.empty).fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp),
+                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                DataModule(state, actions)
+                if (m.sets > 0) DataModule(state, actions)
                 m.cardio?.let { CardioRow(it) }
                 m.record?.let { RecordStrip(it) }
                 if (d.showMuscles(m.muscles.isNotEmpty() && !m.empty)) MusclesModule(state)
@@ -374,10 +376,13 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
         ) {
             val effort = state.effortSelected ?: m.effort
             val i0 = 0.55f
-            Tile(Modifier.weight(1f), m.durationFraction, "${m.minutes}", "Duración", "minutos", d, i0 + 0.07f, false, null)
+            val durationSeconds = m.durationSeconds
+            val durationValue = if (durationSeconds in 1..59) durationSeconds.toString() else m.minutes.toString()
+            val durationUnit = if (durationSeconds in 1..59) "segundos" else "minutos"
+            Tile(Modifier.weight(1f), m.durationFraction, durationValue, "Duración", durationUnit, d, i0 + 0.07f, false, null)
             Tile(Modifier.weight(1f), m.setsFraction, "${m.sets}", "Series", "de ${m.plannedSets}", d, i0 + 0.14f, false, null)
             Tile(Modifier.weight(1f), if (effort != null) (effort / 10.0).toFloat() else 0f, effort?.let { finishGrouped(it, 1) } ?: "—", "Esfuerzo",
-                if (effort != null) "sRPE" else "sin valorar", d, i0 + 0.21f, false, actions.onOpenNotes)
+                if (effort != null) "sRPE" else "sin valorar", d, i0 + 0.21f, false, actions.onOpenRate)
             Tile(Modifier.weight(1f), if (m.records > 0) 1f else 0f, "${m.records}", "Récords", if (m.records > 0) "e1RM" else "esta vez no", d, i0 + 0.28f, m.records > 0, null)
         }
     }
@@ -473,9 +478,10 @@ private fun CardioRow(c: FinishCardio) {
         Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0x1F8FB2FF)), contentAlignment = Alignment.Center) {
             Icon(KpknLineIcons.Run, null, Modifier.size(18.dp), tint = Color(0xFF8FB2FF))
         }
-        Text(c.type, style = Lx.inter(13.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        Text(c.type + if (c.blockCount > 1) " · " + c.blockCount + " bloques" else "", style = Lx.inter(13.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
         listOfNotNull(
-            c.minutes?.let { "$it" to "min" }, c.km?.let { finishGrouped(it, 1) to "km" },
+            c.durationFormatted,
+            c.km?.let { finishGrouped(it, 1) to "km" },
             c.heartRate?.let { "$it" to "lpm" }, c.kcal?.let { "$it" to "kcal" },
         ).forEach { (value, unit) ->
             Text(
@@ -656,7 +662,7 @@ private fun QuickRow(state: FinishSheetState, actions: FinishSheetActions) {
     val effort = state.effortSelected ?: state.model.effort
     Row(Modifier.fillMaxWidth().kpknAnimate(rise(1050)), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         QuickButton(Modifier.weight(1f), "Notas", FreeClockIcons.Note, if (state.notes.isNotBlank()) "✓" else null, actions.onOpenNotes, "finish-notes-open")
-        QuickButton(Modifier.weight(1f), "Valorar", KpknLineIcons.Flame, effort?.let { finishGrouped(it, 1) }, actions.onOpenNotes, "finish-rate-open")
+        QuickButton(Modifier.weight(1f), "Valorar", KpknLineIcons.Flame, effort?.let { finishGrouped(it, 1) }, actions.onOpenRate, "finish-rate-open")
         QuickButton(Modifier.weight(1f), "Fotos", FreeClockIcons.Image, state.photoCount.takeIf { it > 0 }?.toString(), actions.onPhotos, "finish-photos-open")
     }
 }
@@ -692,20 +698,35 @@ private fun SaveButton(state: FinishSheetState, actions: FinishSheetActions) {
                 drawArc(Lx.OnInk, -135f, 90f, false, topLeft = Offset(w / 2, w / 2), size = inset, style = Stroke(w))
             }
         }
-        Text(if (state.saving) "Guardando…" else "Guardar sesión", style = Lx.inter(16.sp, FontWeight.SemiBold), color = Lx.OnInk)
+        Text(
+            when { state.saving -> "Guardando…"; state.model.empty -> "Sin datos para guardar"; else -> "Guardar sesión" },
+            style = Lx.inter(16.sp, FontWeight.SemiBold), color = Lx.OnInk,
+        )
     }
 }
 
 @Composable
 private fun BackButton(state: FinishSheetState, actions: FinishSheetActions) {
     val primary = state.model.empty
-    Box(
-        Modifier.fillMaxWidth().height(if (primary) 50.dp else 34.dp).graphicsLayer { alpha = if (state.saving) 0.38f else 1f }
-            .then(if (primary) Modifier.clip(RoundedCornerShape(25.dp)).background(Lx.Ink) else Modifier)
-            .clickable(enabled = !state.saving, role = Role.Button, onClick = actions.onBack).testTag("finish-back"),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("Volver a la sesión", style = Lx.inter(if (primary) 15.sp else 14.sp, if (primary) FontWeight.SemiBold else FontWeight.Medium), color = if (primary) Lx.OnInk else Lx.Muted)
+    if (primary) {
+        Column(Modifier.fillMaxWidth().graphicsLayer { alpha = if (state.saving) 0.38f else 1f }, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(
+                Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(Lx.Ink)
+                    .clickable(enabled = !state.saving, role = Role.Button, onClick = actions.onBack).testTag("finish-back"),
+                contentAlignment = Alignment.Center,
+            ) { Text("Volver a la sesión", style = Lx.inter(15.sp, FontWeight.SemiBold), color = Lx.OnInk) }
+            Box(
+                Modifier.fillMaxWidth().height(44.dp).clip(RoundedCornerShape(22.dp)).background(Color(0x18F07878))
+                    .clickable(enabled = !state.saving, role = Role.Button, onClick = actions.onDiscard).testTag("finish-discard-empty"),
+                contentAlignment = Alignment.Center,
+            ) { Text("Descartar sesión…", style = Lx.inter(14.sp, FontWeight.SemiBold), color = Lx.Danger) }
+        }
+    } else {
+        Box(
+            Modifier.fillMaxWidth().height(34.dp).graphicsLayer { alpha = if (state.saving) 0.38f else 1f }
+                .clickable(enabled = !state.saving, role = Role.Button, onClick = actions.onBack).testTag("finish-back"),
+            contentAlignment = Alignment.Center,
+        ) { Text("Volver a la sesión", style = Lx.inter(14.sp, FontWeight.Medium), color = Lx.Muted) }
     }
 }
 
@@ -727,12 +748,17 @@ private fun NotesPanel(state: FinishSheetState, actions: FinishSheetActions) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.size(44.dp).clip(CircleShape).background(Color(0x0DFFFFFF)).clickable(role = Role.Button, onClick = actions.onClosePanel)
-                        .semantics { contentDescription = "Cerrar anotaciones" }.testTag("finish-notes-back"),
+                .semantics { contentDescription = if (state.panelKind == FinishPanelKind.NOTES) "Cerrar anotaciones" else "Cerrar valoración" }
+                .testTag(if (state.panelKind == FinishPanelKind.NOTES) "finish-notes-back" else "finish-rate-back"),
                     contentAlignment = Alignment.Center,
                 ) { Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(18.dp), tint = Lx.Ink) }
-                Text("Anotaciones", style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 21.sp, letterSpacing = (-0.4).sp), color = Lx.Ink)
+                Text(
+                    if (state.panelKind == FinishPanelKind.NOTES) "Anotaciones" else "Valorar sesión",
+                    style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 21.sp, letterSpacing = (-0.4).sp),
+                    color = Lx.Ink,
+                )
             }
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            if (state.panelKind == FinishPanelKind.NOTES) Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("NOTAS", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
                     Box(Modifier.padding(top = 6.dp).fillMaxWidth().heightIn(min = 84.dp).clip(RoundedCornerShape(16.dp)).background(ModuleBg).padding(12.dp)) {
@@ -744,7 +770,6 @@ private fun NotesPanel(state: FinishSheetState, actions: FinishSheetActions) {
                         if (state.notes.isBlank()) Text("Nota de la sesión", style = Lx.inter(14.sp, line = 19.6.sp), color = Lx.Faint)
                     }
                 }
-                EffortScale(state.effortSelected, actions.onEffort)
                 Column {
                     Text("TAREAS", Modifier.padding(bottom = 2.dp), style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
                     state.checklist.forEach { item -> TaskRow(item, actions) }
@@ -772,6 +797,12 @@ private fun NotesPanel(state: FinishSheetState, actions: FinishSheetActions) {
                     Text("Fotos y medios de la sesión", Modifier.weight(1f), style = Lx.inter(14.sp, FontWeight.Medium), color = Lx.Ink)
                     Icon(KpknLineIcons.ChevronRight, null, Modifier.size(15.dp), tint = Lx.Faint)
                 }
+            }
+            else Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("ESFUERZO PERCIBIDO", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+                Text("¿Qué tan exigente fue la sesión?", style = Lx.inter(15.sp, FontWeight.Medium), color = Lx.Ink)
+                EffortScale(state.effortSelected, actions.onEffort)
+                Text("La valoración queda guardada con el resumen de esta sesión.", style = Lx.inter(12.sp, line = 16.sp), color = Lx.Faint)
             }
             LxButton("Listo", actions.onClosePanel, Modifier.fillMaxWidth(), fontSize = 16.sp, tag = "finish-notes-done")
         }

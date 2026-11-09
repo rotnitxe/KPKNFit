@@ -61,7 +61,7 @@ internal fun finishFailureMessage(error: Throwable): String =
 
 /** Single source of the predicate that makes [WorkoutFinishController.finish] abort. */
 internal fun isFinishBlockedForEmptySession(completedExercises: List<CompletedExercise>): Boolean =
-    completedExercises.isEmpty()
+    logicalSetCountFromCompleted(completedExercises) == 0
 
 /** Message for the finish sheet, or null when the session has sets and can be saved. */
 internal fun finishEmptySessionGuidance(completedExercises: List<CompletedExercise>): String? =

@@ -9,10 +9,14 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.example.kpkn.data.models.ApreBlockReference
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.isEffectivelyUnilateral
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.screens.sessioneditor.apreExitPreview
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -36,6 +40,28 @@ class ExerciseOptionsBarComposeTest {
         rule.setContent { EditorOverlayTestHost(content) }
     }
 
+    private fun showOptionsBar(exercise: Exercise, onUpdate: ((Exercise) -> Exercise) -> Unit) {
+        setEditorContent {
+            val local = rememberExerciseEditorLocalState(exercise)
+            ExerciseOptionsBar(
+                exercise = exercise,
+                local = local,
+                accentColor = Color(0xFFF49A6E),
+                isSupersetExercise = false,
+                suppressIndividualRest = false,
+                relationshipAnchorName = null,
+                onUpdateExercise = onUpdate,
+                onOpenSuperset = {},
+                onOpenRelationshipPicker = {},
+                onClearRelationship = {},
+                onOpenCustomUnit = {},
+                onOpenSmartLoad = {},
+                onOpenGoal = {},
+                onOpenRest = {},
+            )
+        }
+    }
+
     private val press = Exercise(
         id = "press",
         name = "Press",
@@ -57,6 +83,114 @@ class ExerciseOptionsBarComposeTest {
     }
 
     /** B1/B8: la barra lleva Modo y Descanso; la lateralidad ya no es un alternador fijo, vive en el menú ⋯ y abre su hoja. */
+    @Test
+    fun elSelectorOfreceApreComoModoVisibleYAbreLaHojaDeBloque() {
+        var apreRequested = false
+        setEditorContent {
+            ExerciseModeSheetBody(
+                current = TrainingMode.REPS,
+                onSelect = {},
+                onSelectApre = { apreRequested = true },
+            )
+        }
+        rule.onNodeWithText("APRE").assertIsDisplayed().performClick()
+        assertTrue(apreRequested)
+    }
+
+    @Test
+    fun salirDeApreEsUnaAccionExplicitaQueConservaLasCuatroSeries() {
+        var confirmed = false
+        setEditorContent {
+            ExerciseModeSheetBody(
+                current = TrainingMode.REPS,
+                onSelect = {},
+                onConfirm = { confirmed = true },
+                hasApreBlock = true,
+                onSelectApre = {},
+            )
+        }
+        rule.onNodeWithText("Vista previa: se conservan las cuatro series", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Salir de APRE y conservar las cuatro series").assertIsDisplayed().performClick()
+        assertTrue(confirmed)
+    }
+
+    @Test
+    fun convertirUnBloqueApreMuestraEfectosAntesDeConfirmarElNuevoModo() {
+        setEditorContent {
+            ExerciseModeSheetBody(
+                current = TrainingMode.REPS,
+                selected = TrainingMode.TIME,
+                onSelect = {},
+                hasApreBlock = true,
+                onSelectApre = {},
+            )
+        }
+        rule.onNodeWithText("Vista previa: se retiran el marcador y las reglas APRE", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Aplicar Tiempo").assertIsDisplayed()
+    }
+
+    @Test
+    fun marcadorApreInvalidoPermiteSalidaRevisableQueNoConvierteAmrapAjena() {
+        val invalid = press.copy(
+            reference1RM = 200.0,
+            referenceTrainingMax = 180.0,
+            sets = listOf(
+                ExerciseSet("s1", targetReps = 5, weight = 100.0),
+                ExerciseSet("ambiguous", targetReps = 6, weight = 120.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+                ExerciseSet("foreign", targetReps = 8, weight = 80.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+                ExerciseSet("s4", targetReps = 6, weight = 140.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+            ),
+            apreBlock = ApreBlockReference(6, listOf("s1", "ambiguous", "ambiguous", "s4")),
+        )
+        var updated: Exercise? = null
+        showOptionsBar(invalid) { transform -> updated = transform(invalid) }
+
+        rule.onNodeWithText("Modo: APRE · revisar").assertIsDisplayed().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        val preview = invalid.apreExitPreview().summary
+        rule.onNodeWithText(preview, substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Salir de APRE con esta previsualización").performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+
+        assertEquals(TrainingMode.REPS, updated!!.trainingMode)
+        assertEquals(null, updated!!.apreBlock)
+        assertEquals(SetPurpose.AMRAP, updated!!.sets[1].purpose)
+        assertEquals(SetPurpose.AMRAP, updated!!.sets[2].purpose)
+        assertEquals(SetPurpose.NONE, updated!!.sets[3].purpose)
+        assertEquals(200.0, updated!!.reference1RM!!, 0.0)
+        assertEquals(180.0, updated!!.referenceTrainingMax!!, 0.0)
+    }
+
+    @Test
+    fun marcadorApreInvalidoEntraEnLaRutaDeReparacionConCuatroIdsDistintos() {
+        val invalid = press.copy(
+            reference1RM = 200.0,
+            sets = listOf(ExerciseSet("s1", targetReps = 8, weight = 80.0, purpose = SetPurpose.AMRAP)),
+            apreBlock = ApreBlockReference(10, listOf("missing")),
+        )
+        var updated: Exercise? = null
+        showOptionsBar(invalid) { transform -> updated = transform(invalid) }
+
+        rule.onNodeWithText("Modo: APRE · revisar").assertIsDisplayed().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("Revisar APRE").assertIsDisplayed().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("El marcador guardado está incompleto.", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("Aplicar APRE 10").performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+
+        assertEquals(TrainingMode.REPS, updated!!.trainingMode)
+        assertEquals(4, updated!!.apreBlock!!.setIds.size)
+        assertEquals(4, updated!!.apreBlock!!.setIds.distinct().size)
+        assertEquals(updated!!.apreBlock!!.setIds, updated!!.sets.map { it.id })
+        assertEquals(10, resolveLiveApreBlock(updated!!)!!.variant.xrmReps)
+    }
+
     @Test
     fun laBarraMuestraModoYDescansoYLaLateralidadViveEnElMenu() {
         setEditorContent {

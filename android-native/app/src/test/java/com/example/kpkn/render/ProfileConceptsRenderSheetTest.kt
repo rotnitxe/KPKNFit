@@ -165,8 +165,19 @@ class ProfileConceptsRenderSheetTest {
 
     @Test fun search() {
         show(1f, phone = true) { ConceptosClaveScreen(null) {} }
+        rule.onNodeWithTag("concept_search_toggle").performClick()
         rule.onNodeWithTag("concept_search_field").performTextInput("creatina")
         capture("conceptos_busqueda_100")
+    }
+
+    @Test fun titleAndSearchShareTheTopIsland() {
+        show(1f, phone = true) { ConceptosClaveScreen(null) {} }
+        rule.onNodeWithTag("concept_search_toggle").assertExists()
+        rule.onNodeWithTag("concept_search_field").assertDoesNotExist()
+        rule.onNodeWithTag("concept_search_toggle").performClick()
+        rule.onNodeWithTag("concept_search_field").assertExists()
+        rule.onNodeWithTag("concept_search_field").performTextInput("creatina")
+        rule.onNodeWithTag("concept_result_count").assertExists()
     }
 
     @Test fun topic() {

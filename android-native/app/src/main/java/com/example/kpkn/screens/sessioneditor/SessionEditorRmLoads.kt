@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.domain.training.generator.Prescriber
 import com.example.kpkn.domain.training.observedApreXrmBlock
 
@@ -21,7 +22,8 @@ internal fun rmSetLoadKg(exercise: Exercise, set: ExerciseSet): Double? {
         set.loadBasis != LoadBasis.PERCENT_TM &&
         (set.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
     if (!plainPercent) return calculateSuggestedLoad(exercise, set)
-    val reference = resolveReferenceCapacity(exercise) ?: return null
+    val reference = (if (set.loadBasis == null) resolveSmartLoadReference(exercise)?.kilograms
+        else resolveReferenceCapacity(exercise)) ?: return null
     val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
     return Prescriber.roundLoad(reference * percent.coerceIn(40.0, 100.0) / 100.0).takeIf { it > 0.0 }
 }
@@ -50,6 +52,8 @@ internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
     val switchedToRm = previous.trainingMode != TrainingMode.RM
     // Cada base tiene su referencia: cambiar el 1RM recalcula las series en %1RM y cambiar el TM las series en %TM.
     val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
+    val smartReferenceChanged = resolveSmartLoadReference(previous)?.kilograms != resolveSmartLoadReference(this)?.kilograms
+    val smartBasisChanged = previous.smartLoadBasis != smartLoadBasis
     val trainingMaxChanged = previous.referenceTrainingMax != referenceTrainingMax
     val previousSets = previous.sets.associateBy { it.id }
     val protectedApreIds = observedApreXrmBlock(this)?.setIds.orEmpty().toSet()
@@ -58,8 +62,13 @@ internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
             if (set.id in protectedApreIds) return@map set
             val old = previousSets[set.id] ?: return@map set
             val percentChanged = old.targetPercentageRM != set.targetPercentageRM
-            val referenceChanged = if (set.loadBasis == LoadBasis.PERCENT_TM) trainingMaxChanged else oneRmChanged
-            if (switchedToRm || referenceChanged || percentChanged) set.withRmLoad(this) else set
+            val referenceChanged = when (set.loadBasis) {
+                LoadBasis.PERCENT_TM -> trainingMaxChanged
+                null -> smartBasisChanged || smartReferenceChanged || oneRmChanged
+                else -> oneRmChanged
+            }
+            val basisChanged = old.loadBasis != set.loadBasis
+            if (switchedToRm || referenceChanged || percentChanged || basisChanged) set.withRmLoad(this) else set
         },
     )
 }

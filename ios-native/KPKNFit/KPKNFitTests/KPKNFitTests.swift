@@ -2,6 +2,53 @@ import XCTest
 @testable import KPKNFit
 
 final class KPKNFitTests: XCTestCase {
+    func testSmartLoadBasisIsOptionalAndRoundTrips() throws {
+        let decoder = JSONDecoder()
+        let encoder = JSONEncoder()
+        let legacy = try decoder.decode(Exercise.self, from: Data(#"{"id":"legacy","name":"Press"}"#.utf8))
+        XCTAssertNil(legacy.smartLoadBasis)
+
+        let selected = Exercise(id: "press", name: "Press", smartLoadBasis: .TRAINING_MAX)
+        let restored = try decoder.decode(Exercise.self, from: encoder.encode(selected))
+        XCTAssertEqual(restored.smartLoadBasis, .TRAINING_MAX)
+    }
+
+    func testNutritionPreparationFieldsRemainOptionalAndSurviveDuplicateTransport() throws {
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+        let legacyFood = LoggedFood(
+            id: "legacy-food", foodName: "Papas cocidas", amount: 200,
+            calories: 174, protein: 3.8, carbs: 40.2, fats: 0.2
+        )
+        var legacyPayload = try XCTUnwrap(JSONSerialization.jsonObject(with: encoder.encode(legacyFood)) as? [String: Any])
+        legacyPayload.removeValue(forKey: "preparation")
+        legacyPayload.removeValue(forKey: "preparationOilLevel")
+        let decodedLegacy = try decoder.decode(LoggedFood.self, from: JSONSerialization.data(withJSONObject: legacyPayload))
+        XCTAssertNil(decodedLegacy.preparation)
+        XCTAssertNil(decodedLegacy.preparationOilLevel)
+
+        let selectedFood = LoggedFood(
+            id: "prepared-food", foodName: "Papas cocidas", amount: 200,
+            calories: 260, protein: 3.8, carbs: 40.2, fats: 10,
+            cookingMethod: .SALTEADO, preparation: "SAUTEED", preparationOilLevel: "abundante"
+        )
+        let log = NutritionLog(
+            id: "prepared-log", date: "2026-11-06T12:00:00.000Z", mealType: .LUNCH,
+            foods: [selectedFood], notes: "", status: .CONSUMED
+        )
+        let duplicate = duplicateLog(log: log, targetDate: "2026-11-07")
+        let reopenedDuplicate = try decoder.decode(NutritionLog.self, from: encoder.encode(duplicate))
+        let duplicatedFood = try XCTUnwrap(reopenedDuplicate.foods.first)
+
+        XCTAssertNotEqual(log.id, duplicate.id)
+        XCTAssertNotEqual(selectedFood.id, duplicatedFood.id)
+        XCTAssertEqual(duplicatedFood.preparation, "SAUTEED")
+        XCTAssertEqual(duplicatedFood.preparationOilLevel, "abundante")
+        XCTAssertEqual(duplicatedFood.cookingMethod, .SALTEADO)
+        XCTAssertEqual(duplicatedFood.calories, selectedFood.calories)
+        XCTAssertEqual(duplicatedFood.fats, selectedFood.fats)
+    }
+
     func testCompetitionPlanningTransportReadsOlderDocumentsAndPreservesNewFields() throws {
         let encoder = JSONEncoder()
         let decoder = JSONDecoder()

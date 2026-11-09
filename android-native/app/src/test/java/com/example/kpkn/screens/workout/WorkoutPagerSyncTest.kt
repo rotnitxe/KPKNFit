@@ -20,6 +20,19 @@ class WorkoutPagerSyncTest {
     }
 
     @Test
+    fun programmaticSettle_remainsNonUserUntilTheTargetPageIsObserved() {
+        val coordinator = WorkoutPagerSyncCoordinator()
+        assertEquals(WorkoutPagerSettlementOrigin.INITIAL, coordinator.onSettledPage(0))
+
+        coordinator.beginProgrammaticScroll(targetPage = 2)
+        // The animation can finish before snapshotFlow delivers settledPage.
+        // An intermediate/stale page and then the target are both programmatic.
+        assertEquals(WorkoutPagerSettlementOrigin.PROGRAMMATIC, coordinator.onSettledPage(0))
+        assertEquals(WorkoutPagerSettlementOrigin.PROGRAMMATIC, coordinator.onSettledPage(2))
+        assertEquals(WorkoutPagerSettlementOrigin.USER, coordinator.onSettledPage(3))
+    }
+
+    @Test
     fun roadmapSelection_isAcceptedOnlyAsAnActualUserSettledPage() {
         val key = workoutPagerStepKey(
             exerciseId = "press",

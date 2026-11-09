@@ -96,6 +96,29 @@ class CaptureMetadataTest {
     }
 
     @Test
+    fun manual_analysis_request_roundtrips_separately_from_the_per_capture_choice() {
+        CaptureMetadataFile.write(
+            file,
+            CaptureMetadata(analysisRequestedForCapture = false),
+        )
+
+        CaptureMetadataFile.update(file) {
+            it.copy(manualAnalysisRequestId = "request-1", manualAnalysisRequestMode = "PLATE_ONLY")
+        }
+
+        assertEquals(false, CaptureMetadataFile.read(file).analysisRequestedForCapture)
+        assertEquals("request-1", CaptureMetadataFile.read(file).manualAnalysisRequestId)
+        assertEquals("PLATE_ONLY", CaptureMetadataFile.read(file).manualAnalysisRequestMode)
+
+        CaptureMetadataFile.update(file) {
+            it.copy(manualAnalysisRequestId = null, manualAnalysisRequestMode = null)
+        }
+        assertNull(CaptureMetadataFile.read(file).manualAnalysisRequestId)
+        assertNull(CaptureMetadataFile.read(file).manualAnalysisRequestMode)
+        assertEquals(false, CaptureMetadataFile.read(file).analysisRequestedForCapture)
+    }
+
+    @Test
     fun concurrentWritersDoNotLoseEachOthersKeys() {
         val t1 = Thread {
             for (i in 1..200) {

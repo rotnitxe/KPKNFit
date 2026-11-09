@@ -16,6 +16,7 @@ import com.example.kpkn.domain.training.generator.Prescriber
 import com.example.kpkn.domain.training.generator.Rx
 import com.example.kpkn.domain.training.generator.RoutineLevel
 import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.domain.training.generator.RoutinePattern
 import com.example.kpkn.domain.workout.SupersetRules
 import java.time.LocalDate
@@ -612,9 +613,13 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
  * carga. El cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
  */
 internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: ExerciseSet): Double? {
-    // El bloque declara cargas de Mann sobre el XRM, no una estimación genérica desde las reps de S1/S2.
-    val apre = exercise.apreBlock
-    if (apre != null && apre.xrmReps in listOf(3, 6, 10) && id in apre.setIds) return normalized.weight
+    // Un marcador dañado requiere revisión explícita. No rellenamos cargas a
+    // partir del 1RM mientras no se repare o se confirme la salida a Reps.
+    val apreBlock = resolveLiveApreBlock(exercise)
+    if (exercise.apreBlock != null && apreBlock == null) return normalized.weight
+    // Las cargas de las cuatro series APRE pertenecen a la tabla de Mann; no se
+    // sustituyen al normalizar el resto de la prescripción.
+    if (apreBlock?.setIds?.contains(id) == true) return normalized.weight
     val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
         (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
@@ -731,6 +736,76 @@ internal fun ExerciseSet.withoutBeyondFailureTechniques(): ExerciseSet = copy(
     },
     isDropSet = false, isRestPause = false, dropSets = emptyList(), restPauses = emptyList(),
 )
+
+internal data class ApreExitPreview(
+    val markedSetIds: Set<String>,
+    val preservedAmrapIndices: List<Int>,
+    val markerIsValid: Boolean,
+    val idToPosition: Map<String, Int>,
+) {
+    val summary: String get() {
+        val marked = markedSetIds.mapNotNull { id -> idToPosition[id]?.let { "S$it" } }
+        val converted = when {
+            marked.isEmpty() -> "No se convertirá ninguna serie: el marcador no identifica series sin ambigüedad."
+            else -> "Se convertirán solo ${marked.joinToString(", ")} por sus IDs."
+        }
+        val preserved = when {
+            preservedAmrapIndices.isEmpty() -> "No hay AMRAP ajenas al marcador."
+            else -> "Se conservan como AMRAP las series no vinculadas o ambiguas: " +
+                preservedAmrapIndices.joinToString(", ") { "S${it + 1}" } + "."
+        }
+        val marker = if (markerIsValid) "Vista previa de salida a Reps." else "Vista previa de salida a Reps con marcador dañado."
+        return "$marker $converted $preserved No se deducen series por posición."
+    }
+
+}
+
+/**
+ * Expone una salida de APRE revisable. Solo las IDs que aparecen una vez en el
+ * marcador y una vez en la sesión se consideran vinculadas; cualquier AMRAP
+ * restante queda sin marcar y se conserva al confirmar la salida.
+ */
+internal fun Exercise.apreExitPreview(): ApreExitPreview {
+    val markerIds = apreBlock?.setIds.orEmpty()
+    val markerCounts = markerIds.groupingBy { it }.eachCount()
+    val sessionCounts = sets.groupingBy { it.id }.eachCount()
+    val markedIds = markerIds.asSequence()
+        .filter { it.isNotBlank() && markerCounts[it] == 1 && sessionCounts[it] == 1 }
+        .toSet()
+    val preservedAmrapIndices = sets.mapIndexedNotNull { index, set ->
+        index.takeIf { (set.purpose == SetPurpose.AMRAP || set.amrapMinimumReps != null) && set.id !in markedIds }
+    }
+    return ApreExitPreview(
+        markedSetIds = markedIds,
+        preservedAmrapIndices = preservedAmrapIndices,
+        markerIsValid = apreBlock != null && resolveLiveApreBlock(this) != null,
+        idToPosition = markedIds.associateWith { id -> sets.indexOfFirst { it.id == id } + 1 },
+    )
+}
+
+/**
+ * Salida explícita de APRE a Reps. Mantiene series/cargas y objetivos; solo elimina el comportamiento AMRAP de las series
+ * identificadas sin ambigüedad por el marcador persistido. Nunca infiere series por su posición.
+ */
+internal fun Exercise.withoutApreBlock(): Exercise {
+    val apreSetIds = apreExitPreview().markedSetIds
+    val convertedSets = sets.map { set ->
+        if (set.id !in apreSetIds) return@map set
+        val reps = set.targetReps ?: set.amrapMinimumReps ?: set.targetRepsRange?.max
+        val wasAmrap = set.purpose == SetPurpose.AMRAP || set.amrapMinimumReps != null
+        set.copy(
+            targetReps = reps,
+            purpose = if (wasAmrap) SetPurpose.NONE else set.purpose,
+            amrapMinimumReps = if (wasAmrap) null else set.amrapMinimumReps,
+            calibrationScope = if (wasAmrap) null else set.calibrationScope,
+            intensityMode = if (wasAmrap) set.intensityMode?.takeUnless { it == IntensityMode.AMRAP } else set.intensityMode,
+            unitModeV2 = UnitModeV2.REPS,
+            leftTarget = set.leftTarget?.let { side -> side.copy(targetReps = side.targetReps ?: reps) },
+            rightTarget = set.rightTarget?.let { side -> side.copy(targetReps = side.targetReps ?: reps) },
+        )
+    }
+    return copy(trainingMode = TrainingMode.REPS, sets = convertedSets, apreBlock = null)
+}
 
 /** Solo se llama al confirmar un cambio de modo; nunca durante el guardado o la normalización. */
 internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(

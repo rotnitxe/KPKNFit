@@ -833,26 +833,11 @@ private fun ColumnScope.CatalogReadyContent(
     LaunchedEffect(initialDraftByDefinition) {
         draftByDefinition.value = initialDraftByDefinition + draftByDefinition.value
     }
-    val suggestedDrafts = remember(searchHits, definitionsById) {
-        searchHits.mapNotNull { hit ->
-            val suggestedId = hit.suggestedConfigurationId ?: return@mapNotNull null
-            val def = definitionsById[hit.definitionId] ?: return@mapNotNull null
-            val cfg = def.configurations.firstOrNull { it.id == suggestedId } ?: return@mapNotNull null
-            def.id to cfg.selectedOptions
-        }.toMap()
-    }
-    // Cuando el usuario escribe "Press Inclinado con Mancuernas", el mejor hit
-    // trae su configuración sugerida: se preseleccionan los chips del draft para
-    // que al presionar el ejercicio quede agregado al instante (sin expandir).
-    LaunchedEffect(suggestedDrafts) {
-        if (query.isNotBlank() && suggestedDrafts.isNotEmpty()) {
-            val current = draftByDefinition.value
-            val additions = suggestedDrafts.filter { (id, options) -> current[id] != options }
-            if (additions.isNotEmpty()) {
-                draftByDefinition.value = current + additions
-            }
-        }
-    }
+    // La búsqueda puede sugerir una configuración y mostrar sus términos de
+    // coincidencia, pero nunca convierte esos ejes en una elección. Solo los
+    // chips tocados por la persona o una configuración inicial de edición
+    // forman parte de `draftByDefinition`; por eso cambiar o limpiar la query
+    // conserva las elecciones explícitas sin confirmar sugerencias.
     // Chips del título: las opciones coincidentes de la búsqueda, de-duplicadas
     // y solo las más específicas (ej. "Polea Baja" y no "Polea" + "Polea Baja").
     val searchMatchChips = remember(searchHits, definitionsById) {
@@ -1106,8 +1091,10 @@ private fun ColumnScope.CatalogReadyContent(
                 }
             } else {
                 items(definitions, key = { it.id }, contentType = { "catalog-def" }) { definition ->
+                    val hasOptions = definition.optionAxes.isNotEmpty()
                     val default = remember(definition) {
                         definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+                            ?: definition.configurations.firstOrNull().takeIf { definition.optionAxes.isEmpty() }
                     }
                     val hasExplicitDraft = draftByDefinition.value.containsKey(definition.id)
                     // Sin seleccion explicita, el draft parte VACIO para que el panel
@@ -1124,18 +1111,18 @@ private fun ColumnScope.CatalogReadyContent(
                     val compatibility = remember(repository, definition.id, selectedOptions) {
                         repository.compatibility(definition.id, selectedOptions)
                     }
-                    val selectedConfigurationId = compatibility.exactConfigurationId
-                    // Fallback: si el draft del usuario tiene opciones seleccionadas pero no
-                    // colapsa a una configuración exacta, resolver la mejor configuración
-                    // compatible en lugar de caer en silencio a la configuración por defecto.
-                    val resolvedConfigurationId = selectedConfigurationId
-                        ?: bestMatchingConfigurationId(definition, selectedOptions, default)
-                    // A compatible partial draft can resolve to exactly one materialized
-                    // configuration (for example implement=cable implies station=standing).
-                    // Render all implied axis values as selected so the chips never show
-                    // an apparently incomplete state while the summary says otherwise.
+                    val axesComplete = catalogAxisChoicesComplete(definition, selectedOptions)
+                    val existingSelection = selectedRows.value.values.firstOrNull { it.catalogDefinitionId == definition.id }
+                    val selectedConfigurationId = compatibility.exactConfigurationId.takeIf { axesComplete && hasOptions }
+                    val resolvedConfigurationId = when {
+                        hasOptions && !axesComplete -> existingSelection?.catalogConfigurationId
+                        hasOptions -> selectedConfigurationId ?: bestMatchingConfigurationId(definition, selectedOptions, default)
+                        else -> existingSelection?.catalogConfigurationId ?: default?.id
+                    }
                     val effectiveConfiguration = definition.configurations.firstOrNull { it.id == resolvedConfigurationId }
-                    val effectiveSelectedOptions = effectiveConfiguration?.selectedOptions ?: selectedOptions
+                    // In a partial draft, only the axes the user tapped are shown as selected.
+                    val effectiveSelectedOptions = if (hasOptions && !axesComplete) selectedOptions
+                        else effectiveConfiguration?.selectedOptions ?: selectedOptions
                     val effectiveExerciseInfo = remember(catalog, definition.id, resolvedConfigurationId) {
                         exactInfo(catalog, definition, resolvedConfigurationId)
                     }
@@ -1147,7 +1134,6 @@ private fun ColumnScope.CatalogReadyContent(
                                 (info.catalogConfigurationId == resolvedConfigurationId || info.id == resolvedConfigurationId)
                         }
                     val isExpanded = expandedDefinitionId == definition.id
-                    val hasOptions = definition.optionAxes.isNotEmpty()
                     val shownMuscles = effectiveConfiguration?.profile?.primaryMuscles.orEmpty()
                     val selectedImplementation = effectiveSelectedOptions["implement"]
                     // La imagen es la del implemento que se ve: el elegido y, si no hay elección, el de la configuración que «Añadir»
@@ -1178,7 +1164,8 @@ private fun ColumnScope.CatalogReadyContent(
                         draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
                         // En selección múltiple cada configuración es independiente: cambiar un eje permite añadir otra variante.
                         // Reemplazo y Técnica mantienen un único candidato pendiente y sí actualizan su configuración en el sitio.
-                        if ((confirmSelection && isSelected) || definition.id in selectedRows.value) {
+                        val complete = catalogAxisChoicesComplete(definition, newDraft)
+                        if (complete && ((confirmSelection && isSelected) || definition.id in selectedRows.value)) {
                             val nextConfigId = repository.compatibility(definition.id, newDraft).exactConfigurationId
                                 ?: bestMatchingConfigurationId(definition, newDraft, default)
                             val info = exactInfo(catalog, definition, nextConfigId)
@@ -1209,6 +1196,9 @@ private fun ColumnScope.CatalogReadyContent(
                             selectedRows.value = next
                             if (confirmSelection) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
+                        } else if (!axesComplete) {
+                            variantsDefinitionId = definition.id
+                            if (variantValues.isEmpty()) expandedDefinitionId = definition.id
                         } else {
                             val info = exactInfo(catalog, definition, resolvedConfigurationId)
                             if (info != null) {
@@ -1300,7 +1290,7 @@ private fun ColumnScope.CatalogReadyContent(
                         if (variantsOpen) {
                             CatalogInlineVariants(
                                 definitionId = definition.id,
-                                axes = catalogInlineAxes(definition, effectiveSelectedOptions, hasExplicitDraft),
+                                axes = catalogInlineAxes(definition, selectedOptions, hasExplicitDraft),
                                 onSelect = selectOption,
                                 onOpenFicha = {
                                     expandedDefinitionId = toggleCatalogDefinitionExpansion(
@@ -1309,6 +1299,22 @@ private fun ColumnScope.CatalogReadyContent(
                                     )
                                 },
                             )
+                            if (hasOptions && !axesComplete) {
+                                val missingAxes = definition.optionAxes.filter { selectedOptions[it].isNullOrBlank() }
+                                Text(
+                                    "Elige ${missingAxes.joinToString(" y ") { exerciseCatalogAxisLabel(it, definition.id) }} para añadir esta variante.",
+                                    style = KpknType.caption,
+                                    color = WizardColors.textMuted,
+                                    modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
+                                )
+                            } else if (hasOptions && resolvedConfigurationId == null) {
+                                Text(
+                                    "Esa combinación no existe en el catálogo. Cambia una de las opciones.",
+                                    style = KpknType.caption,
+                                    color = WizardColors.danger,
+                                    modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
+                                )
+                            }
                             effectiveExerciseInfo?.let { info ->
                                 CatalogMuscleContribution(
                                     exercise = info,
@@ -1813,6 +1819,21 @@ internal fun catalogInlineAxes(
         values = values,
         selectedValue = shownOptions[axis].takeIf { hasExplicitDraft },
     )
+}
+
+/** An axis is resolved only when the user chose it; uniqueness of a partial match is not consent to infer the rest. */
+internal fun catalogAxisChoicesComplete(
+    definition: ExerciseDefinitionV2,
+    selectedOptions: Map<String, String>,
+): Boolean {
+    val compatible = definition.configurations.filter { configuration ->
+        selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
+    }
+    if (compatible.isEmpty()) return false
+    return definition.optionAxes.all { axis ->
+        val appliesToSelection = compatible.any { axis in it.selectedOptions }
+        !appliesToSelection || !selectedOptions[axis].isNullOrBlank()
+    }
 }
 
 /** E7 abre un borrador revisable; no se publica ni selecciona un ejercicio antes de guardarlo. */

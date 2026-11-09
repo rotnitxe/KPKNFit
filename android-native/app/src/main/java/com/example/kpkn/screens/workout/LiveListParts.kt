@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.testTag
@@ -300,20 +302,47 @@ internal fun LiveListWarmupEditor(
         Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 10.dp).clip(RoundedCornerShape(14.dp)).background(ListPanelFill)
             .listTapGuard().padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 10.dp).testTag("$tag-editor"),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                LiveListNumberField(kgText, { kgText = it; error = null }, metric.copy(fontSize = 26.sp, lineHeight = 32.sp),
-                    Modifier.width(IntrinsicSize.Max).widthIn(min = 40.dp), "$tag-kg", "Kilos levantados en la aproximación $label",
-                    KeyboardType.Decimal, placeholder = "—")
-                Text("kg", Modifier.padding(start = 4.dp, top = 6.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
-            }
-            LiveListStep(KpknLineIcons.Minus, "Restar 2,5 kg", "$tag-kg-minus") { stepKg(-2.5) }
-            LiveListStep(KpknLineIcons.Plus, "Sumar 2,5 kg", "$tag-kg-plus") { stepKg(2.5) }
-            Row(Modifier.weight(.8f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                LiveListNumberField(repsText, { next -> repsText = next.filter(Char::isDigit); error = null },
-                    metric.copy(fontSize = 22.sp, lineHeight = 28.sp, textAlign = TextAlign.End), Modifier.width(44.dp), "$tag-reps",
-                    "Repeticiones de la aproximación $label", KeyboardType.Number)
-                Text("reps", Modifier.padding(start = 3.dp, top = 5.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val fontScale = LocalDensity.current.fontScale
+            val split = maxWidth < 340.dp || fontScale >= 1.35f
+            if (split) {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            LiveListNumberField(kgText, { kgText = it; error = null }, metric.copy(fontSize = 26.sp, lineHeight = 32.sp),
+                                Modifier.width(IntrinsicSize.Max).widthIn(min = 44.dp), "$tag-kg", "Kilos levantados en la aproximación $label",
+                                KeyboardType.Decimal, placeholder = "—")
+                            Text("kg", Modifier.padding(start = 4.dp, top = 6.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            LiveListStep(KpknLineIcons.Minus, "Restar 2,5 kg", "$tag-kg-minus") { stepKg(-2.5) }
+                            LiveListStep(KpknLineIcons.Plus, "Sumar 2,5 kg", "$tag-kg-plus") { stepKg(2.5) }
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                        LiveListNumberField(repsText, { next -> repsText = next.filter(Char::isDigit); error = null },
+                            metric.copy(fontSize = 22.sp, lineHeight = 28.sp, textAlign = TextAlign.End), Modifier.width(IntrinsicSize.Max).widthIn(min = 44.dp), "$tag-reps",
+                            "Repeticiones de la aproximación $label", KeyboardType.Number)
+                        Text("reps", Modifier.padding(start = 3.dp, top = 5.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
+                    }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                        LiveListNumberField(kgText, { kgText = it; error = null }, metric.copy(fontSize = 26.sp, lineHeight = 32.sp),
+                            Modifier.width(IntrinsicSize.Max).widthIn(min = 44.dp), "$tag-kg", "Kilos levantados en la aproximación $label",
+                            KeyboardType.Decimal, placeholder = "—")
+                        Text("kg", Modifier.padding(start = 4.dp, top = 6.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
+                    }
+                    LiveListStep(KpknLineIcons.Minus, "Restar 2,5 kg", "$tag-kg-minus") { stepKg(-2.5) }
+                    LiveListStep(KpknLineIcons.Plus, "Sumar 2,5 kg", "$tag-kg-plus") { stepKg(2.5) }
+                    Row(Modifier.weight(.8f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                        LiveListNumberField(repsText, { next -> repsText = next.filter(Char::isDigit); error = null },
+                            metric.copy(fontSize = 22.sp, lineHeight = 28.sp, textAlign = TextAlign.End), Modifier.width(IntrinsicSize.Max).widthIn(min = 44.dp), "$tag-reps",
+                            "Repeticiones de la aproximación $label", KeyboardType.Number)
+                        Text("reps", Modifier.padding(start = 3.dp, top = 5.dp), style = ListBody.copy(fontSize = 13.sp), color = WizardColors.textFaint)
+                    }
+                }
             }
         }
         Text(error ?: hint, Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 8.dp), style = ListBody.copy(fontSize = 12.sp),

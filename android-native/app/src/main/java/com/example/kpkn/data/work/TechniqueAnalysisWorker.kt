@@ -60,11 +60,19 @@ class TechniqueAnalysisWorker(
     params: WorkerParameters,
 ) : CoroutineWorker(appContext, params) {
 
+    private var manualRequestIdForWork: String? = null
+    private var analysisGenerationIdForWork: String? = null
+
     override suspend fun doWork(): Result {
         val mediaId = inputData.getString(KEY_MEDIA_ID)?.takeIf { it.isNotBlank() } ?: return Result.failure()
         val mode = AnalysisMode.entries.firstOrNull { it.name == inputData.getString(KEY_MODE) } ?: AnalysisMode.FULL
         val repository = VideoAnalysisRepository.init(applicationContext)
         return try {
+            manualRequestIdForWork = inputData.getString(KEY_MANUAL_REQUEST_ID)?.takeIf(String::isNotBlank)
+            analysisGenerationIdForWork = inputData.getString(KEY_ANALYSIS_GENERATION_ID)?.takeIf(String::isNotBlank)
+                ?: manualRequestIdForWork
+            // Never infer an old Worker's generation from the current pending request: that could bless stale work.
+            if (!repository.isCurrentAnalysisGeneration(mediaId, analysisGenerationIdForWork)) return Result.success()
             // Sin análisis que hacer: se descarta ANTES de esperar el turno.
             if (discardIfUnwanted(repository, mediaId)) return Result.success()
             AnalysisGate.mutex.withLock { runLocked(repository, mediaId, mode) }
@@ -75,7 +83,7 @@ class TechniqueAnalysisWorker(
                 // aunque el contexto del Worker ya esté cancelado; al borrar el medio no se crea ninguna fila.
                 withContext(NonCancellable) {
                     try {
-                        repository.markState(mediaId, status, 0)
+                        repository.markStateForGeneration(mediaId, analysisGenerationIdForWork, status, 0)
                     } catch (error: Exception) {
                         Log.w(TAG, "No se pudo devolver $mediaId a la cola tras el paro del sistema (motivo=$stopReason).", error)
                     }
@@ -84,7 +92,16 @@ class TechniqueAnalysisWorker(
             throw cancelled
         } catch (error: Exception) {
             Log.w(TAG, "El Worker de análisis de $mediaId falló por un error inesperado.", error)
-            runCatching { repository.markState(mediaId, VideoAnalysisStatus.FAILED, 0, errorCode = ERROR_WORKER) }
+            val marked = runCatching {
+                repository.markStateForGeneration(
+                    mediaId,
+                    analysisGenerationIdForWork,
+                    VideoAnalysisStatus.FAILED,
+                    0,
+                    errorCode = ERROR_WORKER,
+                )
+            }.getOrDefault(false)
+            if (marked) clearManualRequestIfFulfilled(repository, mediaId)
             Result.failure(workDataOf(KEY_ERROR_CODE to ERROR_WORKER))
         }
     }
@@ -93,8 +110,11 @@ class TechniqueAnalysisWorker(
 
     private suspend fun runLocked(repository: VideoAnalysisRepository, mediaId: String, mode: AnalysisMode): Result {
         // Los ajustes y el medio pudieron cambiar mientras se esperaba el turno.
+        if (!repository.isCurrentAnalysisGeneration(mediaId, analysisGenerationIdForWork)) return Result.success()
         if (discardIfUnwanted(repository, mediaId)) return Result.success()
-        if (!repository.markState(mediaId, VideoAnalysisStatus.RUNNING, 0)) return Result.success()
+        if (!repository.markStateForGeneration(mediaId, analysisGenerationIdForWork, VideoAnalysisStatus.RUNNING, 0)) {
+            return Result.success()
+        }
         AnalysisGate.awaitClear(applicationContext)
         // Ya en marcha, el análisis sigue aunque el ajuste se apague mientras se espera a la cámara.
         val (media, settings) = load(repository, mediaId) ?: return Result.success()
@@ -135,7 +155,7 @@ class TechniqueAnalysisWorker(
                 val percent = throttle.accept(raw) ?: return@analyze
                 written = percent
                 try {
-                    repository.writeProgress(media.id, percent)
+                    repository.writeProgressForGeneration(media.id, analysisGenerationIdForWork, percent)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
@@ -167,7 +187,11 @@ class TechniqueAnalysisWorker(
                         mode = mode,
                         poseVersion = if (mode == AnalysisMode.FULL) outcome.poseVersion else null,
                         poseEngine = if (mode == AnalysisMode.FULL) outcome.poseEngine else null,
-                    )
+                        fulfilledManualRequestId = manualRequestIdForWork,
+                        analysisGenerationId = analysisGenerationIdForWork,
+                    ).also { saved ->
+                        if (saved) clearManualRequestIfFulfilled(repository, media.id)
+                    }
                     Result.success()
                 } catch (cancelled: CancellationException) {
                     throw cancelled
@@ -179,13 +203,21 @@ class TechniqueAnalysisWorker(
                 }
             }
             is TechniqueAnalysisOutcome.Unsupported -> {
-                repository.deleteReport(media)
-                repository.markState(media.id, VideoAnalysisStatus.UNSUPPORTED, 0, errorCode = outcome.reason)
+                val applied = repository.withCurrentAnalysisGeneration(media.id, analysisGenerationIdForWork) {
+                    repository.deleteReport(media)
+                    repository.markState(media.id, VideoAnalysisStatus.UNSUPPORTED, 0, errorCode = outcome.reason)
+                }
+                if (applied == null) return Result.success()
+                clearManualRequestIfFulfilled(repository, media.id)
                 Result.success()
             }
             is TechniqueAnalysisOutcome.NeedsProfile -> {
-                repository.deleteReport(media)
-                repository.markState(media.id, VideoAnalysisStatus.NEEDS_PROFILE, 0, profileGuess = outcome.guess)
+                val applied = repository.withCurrentAnalysisGeneration(media.id, analysisGenerationIdForWork) {
+                    repository.deleteReport(media)
+                    repository.markState(media.id, VideoAnalysisStatus.NEEDS_PROFILE, 0, profileGuess = outcome.guess)
+                }
+                if (applied == null) return Result.success()
+                clearManualRequestIfFulfilled(repository, media.id)
                 Result.success()
             }
             is TechniqueAnalysisOutcome.Failed -> failed(repository, media.id, outcome, written)
@@ -206,9 +238,22 @@ class TechniqueAnalysisWorker(
      */
     private suspend fun discardIfUnwanted(repository: VideoAnalysisRepository, mediaId: String): Boolean {
         val (_, settings) = load(repository, mediaId) ?: return true
-        if (inputData.getBoolean(KEY_EXPLICIT, false) || settings.techniqueVideo.analyzeVideos) return false
-        repository.restoreOrDrop(mediaId)
+        val manualRequest = repository.pendingManualAnalysisRequest(mediaId)
+        if (inputData.getBoolean(KEY_EXPLICIT, false) || manualRequest?.mode == currentMode() || settings.techniqueVideo.analyzeVideos) return false
+        repository.restoreOrDropForGeneration(mediaId, analysisGenerationIdForWork)
         return true
+    }
+
+    private fun currentMode(): AnalysisMode =
+        AnalysisMode.entries.firstOrNull { it.name == inputData.getString(KEY_MODE) } ?: AnalysisMode.FULL
+
+    private suspend fun clearManualRequestIfFulfilled(repository: VideoAnalysisRepository, mediaId: String) {
+        val requestId = manualRequestIdForWork ?: return
+        try {
+            repository.clearManualAnalysisRequest(mediaId, requestId)
+        } catch (error: Exception) {
+            Log.w(TAG, "No se pudo cerrar la solicitud manual de análisis de $mediaId.", error)
+        }
     }
 
     /** Un fallo transitorio se reintenta hasta el 3.er intento; si no, FAILED con su código. */
@@ -219,10 +264,15 @@ class TechniqueAnalysisWorker(
         progressPct: Int,
     ): Result {
         if (outcome.transient && runAttemptCount < MAX_ATTEMPTS - 1) {
-            repository.markState(mediaId, VideoAnalysisStatus.QUEUED, 0)
+            if (!repository.markStateForGeneration(mediaId, analysisGenerationIdForWork, VideoAnalysisStatus.QUEUED, 0)) {
+                return Result.success()
+            }
             return Result.retry()
         }
-        repository.markState(mediaId, VideoAnalysisStatus.FAILED, progressPct, errorCode = outcome.errorCode)
+        if (!repository.markStateForGeneration(mediaId, analysisGenerationIdForWork, VideoAnalysisStatus.FAILED, progressPct, errorCode = outcome.errorCode)) {
+            return Result.success()
+        }
+        clearManualRequestIfFulfilled(repository, mediaId)
         return Result.failure(workDataOf(KEY_ERROR_CODE to outcome.errorCode))
     }
 
@@ -331,6 +381,8 @@ class TechniqueAnalysisWorker(
          * No es `userInitiated`, que decide si el trabajo es urgente.
          */
         const val KEY_EXPLICIT = "explicit"
+        const val KEY_MANUAL_REQUEST_ID = "manualAnalysisRequestId"
+        const val KEY_ANALYSIS_GENERATION_ID = "analysisGenerationId"
 
         /** Dato de salida de un trabajo que acabó en FAILED. */
         const val KEY_ERROR_CODE = "errorCode"

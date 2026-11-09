@@ -212,6 +212,7 @@ internal data class LiveSetStepperSnapshot(
     val canAddSet: Boolean,
     val activePageIndex: Int? = null,
     val calibratedPageLoads: Map<Int, Double> = emptyMap(),
+    val activeStepKey: String? = null,
 )
 
 internal class LiveSetStepperHolder {

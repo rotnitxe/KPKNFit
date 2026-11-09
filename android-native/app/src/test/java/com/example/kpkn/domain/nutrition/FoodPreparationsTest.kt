@@ -61,6 +61,7 @@ class FoodPreparationsTest {
         assertEquals(FRIED, FoodPreparations.of(FoodStateV2.FRIED))
         assertEquals(STEAMED, FoodPreparations.of(FoodStateV2.STEAMED))
         assertEquals(FRIED, FoodPreparations.of(CookingMethod.EMPANIZADO_FRITO))
+        assertEquals(SAUTEED, FoodPreparations.of(CookingMethod.SALTEADO))
         assertEquals(GRILLED, FoodPreparations.of(CookingMethod.ASADO_PARRILLA))
         assertNull(FoodPreparations.of(CookingMethod.AHUMADO))
         // Las chips de estado del catálogo llegan con estas etiquetas.
@@ -142,5 +143,37 @@ class FoodPreparationsTest {
         assertEquals(0.0, less.fats, 1e-9)
         assertEquals(0.0, less.calories, 1e-9)
         assertEquals(base, FoodPreparations.withOil(base, 0.0))
+    }
+
+    @Test fun replacingPersistedSauteOilDoesNotApplyItTwice() {
+        val starch = OilAbsorptionCategory.STARCH_BATTER
+        val base = LoggedFood(foodName = "Papas cocidas", amount = 200.0, calories = 174.0, fats = 0.2)
+        val normalOil = FoodPreparations.oilGrams(SAUTEED, OilAmount.NORMAL, starch, base.amount)
+        val recorded = FoodPreparations.withOil(base, normalOil).copy(
+            preparation = SAUTEED.name,
+            preparationOilLevel = OilAmount.NORMAL.level,
+        )
+
+        val reopened = FoodPreparations.replaceOil(
+            logged = recorded,
+            previousPreparation = SAUTEED,
+            previousAmount = OilAmount.NORMAL,
+            preparation = SAUTEED,
+            amount = OilAmount.NORMAL,
+            category = starch,
+            grams = recorded.amount,
+        )
+        assertEquals(recorded, reopened)
+
+        val lowerOil = FoodPreparations.replaceOil(
+            logged = recorded,
+            previousPreparation = SAUTEED,
+            previousAmount = OilAmount.NORMAL,
+            preparation = SAUTEED,
+            amount = OilAmount.LITTLE,
+            category = starch,
+            grams = recorded.amount,
+        )
+        assertEquals(base.fats + FoodPreparations.oilGrams(SAUTEED, OilAmount.LITTLE, starch, base.amount), lowerOil.fats, 1e-9)
     }
 }

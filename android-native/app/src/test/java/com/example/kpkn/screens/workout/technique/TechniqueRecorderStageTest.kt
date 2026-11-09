@@ -138,6 +138,20 @@ class TechniqueRecorderStageTest {
         assertEquals(1, folds)
     }
 
+    @Test fun saved_video_with_accessory_warning_stays_visible_until_the_user_acknowledges_it() {
+        val completion = TechniqueRecorderCompletion()
+        var folds = 0
+        val warning = "Vídeo guardado; metadatos pendientes de recuperación."
+
+        completion.start({}, { folds++ }) {
+            it(TechniqueRecordingResult.Saved(media, warning))
+        }
+
+        assertFalse(completion.pending)
+        assertEquals(warning, completion.errorMessage)
+        assertEquals("el aviso no cierra la escena antes de que se pueda leer", 0, folds)
+    }
+
     @Test fun callback_duplicado_de_un_intento_fallido_no_cierra_el_reintento() {
         val completion = TechniqueRecorderCompletion()
         var folds = 0

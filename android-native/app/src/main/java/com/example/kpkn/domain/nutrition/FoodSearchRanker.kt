@@ -225,6 +225,8 @@ object FoodSearchRanker {
         learnedFoodId: String?,
         limit: Int,
         loggerFilter: Boolean,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
     ): List<FoodCandidate> {
         if (limit <= 0 || q.tokens.isEmpty()) return emptyList()
         val rows = pool as? List<FoodItem> ?: pool.toList()
@@ -239,7 +241,7 @@ object FoodSearchRanker {
             val candidate = entry.candidate
             val food = candidate.food
             if (!seen.add(food.id.ifBlank { "${food.name}|${food.brand.orEmpty()}" })) continue
-            if (loggerFilter && !(entry.carriesRequired && NutrientBasis.isVerified(food) && FoodIdentity.matchesDeclaredIdentity(q.raw, food))) continue
+            if (loggerFilter && !(entry.carriesRequired && LoggerFoodEligibility.accepts(q.raw, food, brandHint, excludedIngredients))) continue
             result.add(candidate)
             if (result.size == limit) break
         }

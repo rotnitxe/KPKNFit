@@ -42,6 +42,9 @@ internal data class CustomExerciseEditorState(
     }.orEmpty()
 }
 
+internal fun CustomExerciseEditorState.hasExplicitTechnicalAxes(): Boolean =
+    !implement.isNullOrBlank() && !station.isNullOrBlank() && !laterality.isNullOrBlank()
+
 /** El borrador no publica cambios: referencia, foto y datos manuales solo se guardan al confirmar. */
 internal class CustomExerciseEditorViewModel(
     private val initial: ExerciseMuscleInfo?,
@@ -78,7 +81,12 @@ internal class CustomExerciseEditorViewModel(
         refresh()
     }
 
-    fun review(value: Boolean) { if (!_state.value.saving && _state.value.preview != null) _state.value = _state.value.copy(reviewed = value) }
+    fun review(value: Boolean) {
+        val current = _state.value
+        if (!current.saving && current.preview != null && (initial != null || current.hasExplicitTechnicalAxes())) {
+            _state.value = current.copy(reviewed = value)
+        }
+    }
     fun cover(value: CustomExerciseCoverDraft) {
         if (_state.value.saving || (value is CustomExerciseCoverDraft.PrivatePhoto && value.media.kind != WorkoutMediaKind.PHOTO)) return
         _state.value = _state.value.copy(cover = value, error = null)
@@ -111,7 +119,7 @@ internal class CustomExerciseEditorViewModel(
     fun save() {
         val draft = _state.value
         val preview = draft.preview ?: return
-        if (draft.saving || !draft.reviewed || draft.name.isBlank()) return
+        if (draft.saving || !draft.reviewed || draft.name.isBlank() || (initial == null && !draft.hasExplicitTechnicalAxes())) return
         _state.value = draft.copy(saving = true, error = null)
         viewModelScope.launch {
             try {

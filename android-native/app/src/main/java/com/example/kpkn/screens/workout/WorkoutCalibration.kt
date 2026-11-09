@@ -236,10 +236,7 @@ internal fun resolveCalibration(
     val d = record.decision
     if (record.apre != null && action == CalibrationStatus.APPLIED) {
         val plannedExercise = calibrationExercises(state).firstOrNull { it.id == d.exerciseId } ?: return state
-        val block = liveApreBlock(state, plannedExercise) ?: return state
-        if (block.variant.xrmReps != record.apre.xrmReps ||
-            plannedExercise.sets[block.thirdIndex].id != record.apre.sourcePlannedSetId ||
-            plannedExercise.sets[block.fourthIndex].id != record.apre.targetPlannedSetId) return state
+        if (!validateApreApplicationContract(state, plannedExercise, record).canApply) return state
     }
     if (action == CalibrationStatus.APPLIED && d.type == CalibrationDecisionType.NOT_APPLIED) return state
     val exercise = calibrationExercises(state).firstOrNull { it.id == d.exerciseId } ?: return state

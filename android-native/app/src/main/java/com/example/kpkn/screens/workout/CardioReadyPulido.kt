@@ -46,6 +46,7 @@ internal fun CardioReadyPulido(
     steps: List<CardioStep>, plannedSeconds: Int, hasLiveHr: Boolean, gpsMode: Boolean,
     gpsState: CardioGpsState?, keepScreenOn: Boolean, hazeState: HazeState?,
     onStart: () -> Unit, onSeePlan: () -> Unit,
+    showBottomButton: Boolean = true,
 ) {
     val first = steps.firstOrNull()
     val zone = first?.zone ?: 2
@@ -96,22 +97,20 @@ internal fun CardioReadyPulido(
                     }
                     CardioProfile(steps, -1, 0f, height = 40.dp)
                 }
-            } else {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("Ver el plan", Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onSeePlan).padding(horizontal = 18.dp, vertical = 12.dp).testTag("cardio-ready-plan"), style = readyBody.copy(fontSize = 12.5.sp), color = readyInk)
-                }
             }
         }
-        val shape = RoundedCornerShape(32.dp)
-        Column(Modifier.align(Alignment.BottomCenter).padding(start = 10.dp, end = 10.dp, bottom = if (compact) 14.dp else 20.dp)
-            .fillMaxWidth().kpknGlassPreset(hazeState, KpknGlassPreset.VidrioIsla, shape).border(1.dp, Color(0x1FFFFFFF), shape).padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Row(Modifier.fillMaxWidth().height(56.dp).clip(CircleShape).background(readyInk).clickable(role = Role.Button, onClick = onStart).testTag("cardio-start"),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
-                Icon(KpknLineIcons.Play, null, Modifier.size(20.dp), tint = Color(0xFF111111))
-                Text("Empezar", style = readyBody.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
+        if (showBottomButton) {
+            val shape = RoundedCornerShape(32.dp)
+            Column(Modifier.align(Alignment.BottomCenter).padding(start = 10.dp, end = 10.dp, bottom = if (compact) 14.dp else 20.dp)
+                .fillMaxWidth().kpknGlassPreset(hazeState, KpknGlassPreset.VidrioIsla, shape).border(1.dp, Color(0x1FFFFFFF), shape).padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Row(Modifier.fillMaxWidth().height(56.dp).clip(CircleShape).background(readyInk).clickable(role = Role.Button, onClick = onStart).testTag("cardio-start"),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(KpknLineIcons.Play, null, Modifier.size(20.dp), tint = Color(0xFF111111))
+                    Text("Empezar", style = readyBody.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
+                }
+                Text("Empieza con una cuenta atr\u00e1s de 3 segundos", style = readyBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint)
             }
-            Text("Empieza con una cuenta atr\u00e1s de 3 segundos", style = readyBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Faint)
         }
     }
 }

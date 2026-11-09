@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.workout.normalizeWarmupPercentage
 import com.example.kpkn.domain.workout.restPauseDescription
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.workout.LiveRoadmapCheck
@@ -103,6 +104,10 @@ internal fun LiveRouteSheetContent(
     onAddExercise: (() -> Unit)?,
     /** Número (1, 2…) de la serie en curso de la tarjeta: el chip que se resalta bajo el ejercicio actual. */
     currentSetNumber: Int? = null,
+    warmupCompletedIds: Set<String> = emptySet(),
+    mobilityCompletedIds: Set<String> = emptySet(),
+    activeStepKey: String? = null,
+    onSelectStep: (String) -> Unit = {},
 ) {
     val groups = remember(exercises, supersetGroups) { liveRouteGroups(exercises, supersetGroups) }
     val paceWork = remember(exercises, completedSets, omittedSetKeys) { sessionPaceWork(exercises, completedSets, omittedSetKeys) }
@@ -135,6 +140,7 @@ internal fun LiveRouteSheetContent(
             CardioHeader()
         }
         RouteGroupRows(position, group, completedSets, omittedSetKeys, currentExerciseId, supersetGroups, calibratedLoads, currentSetNumber,
+            warmupCompletedIds, mobilityCompletedIds, activeStepKey, onSelectStep,
             onSelectExercise, onSelectSuperset, onSelectSet, onOpenExerciseOptions, onOpenSupersetOptions)
     }
     onReorder?.let { RouteMenuRow("Reordenar pendientes", KpknLineIcons.Grip, it, Modifier.padding(top = 10.dp).testTag("live-route-reorder")) }
@@ -195,6 +201,10 @@ private fun RouteGroupRows(
     supersetGroups: List<SupersetGroup>,
     calibratedLoads: Map<String, Double>,
     currentSetNumber: Int?,
+    warmupCompletedIds: Set<String>,
+    mobilityCompletedIds: Set<String>,
+    activeStepKey: String?,
+    onSelectStep: (String) -> Unit,
     onSelectExercise: (String) -> Unit,
     onSelectSuperset: (String) -> Unit,
     onSelectSet: ((exerciseId: String, setIndex: Int) -> Unit)?,
@@ -271,6 +281,67 @@ private fun RouteGroupRows(
             }
         }
     }
+    val prepMembers = members.filter { it.mobilitySeries.isNotEmpty() || it.warmupSets.isNotEmpty() }
+    if (prepMembers.isNotEmpty()) {
+        Column(Modifier.fillMaxWidth().padding(start = 37.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            prepMembers.forEach { member ->
+                val memberPrefix = if (members.size > 1) displayWorkoutExerciseName(member) + " · " else ""
+                if (member.mobilitySeries.isNotEmpty()) {
+                    Text(memberPrefix + "MOVILIDAD", style = inter(10f, FontWeight.SemiBold, 13f),
+                        color = Ruta.Fnt, modifier = Modifier.padding(top = 5.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        member.mobilitySeries.forEachIndexed { index, mobility ->
+                            val setCount = mobility.sets.coerceAtLeast(1)
+                            val stepKeys = (0 until setCount).map { setIndex ->
+                                WorkoutStepRules.mobilityStepKey(member.id, mobility.id, setIndex)
+                            }
+                            val doneCount = stepKeys.count { key -> key in mobilityCompletedIds || member.id in mobilityCompletedIds }
+                            val active = stepKeys.any { key ->
+                                activeStepKey == key || activeStepKey?.startsWith(key + "_set_") == true
+                            }
+                            val target = stepKeys.firstOrNull { key -> key !in mobilityCompletedIds && member.id !in mobilityCompletedIds }
+                                ?: stepKeys.first()
+                            RoutePreparationChip(
+                                label = "M" + (index + 1),
+                                detail = mobility.name + " · " + doneCount + "/" + setCount,
+                                done = doneCount == setCount,
+                                active = active,
+                                accessibilityLabel = "Movilidad " + mobility.name + ", " + doneCount + " de " + setCount +
+                                    " series para " + displayWorkoutExerciseName(member),
+                                tag = "live-route-mobility-" + member.id + "-" + mobility.id,
+                                onClick = { onSelectStep(target) },
+                            )
+                        }
+                    }
+                }
+                if (member.warmupSets.isNotEmpty()) {
+                    Text(memberPrefix + "APROXIMACIONES", style = inter(10f, FontWeight.SemiBold, 13f),
+                        color = Ruta.Fnt, modifier = Modifier.padding(top = 5.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        member.warmupSets.forEachIndexed { index, warmup ->
+                            val stepKey = WorkoutStepRules.warmupStepKey(member.id, warmup.id)
+                            val done = stepKey in warmupCompletedIds || member.id in warmupCompletedIds
+                            val active = activeStepKey == stepKey
+                            val fraction = normalizeWarmupPercentage(warmup.percentageOfWorkingWeight)
+                            val percentageLabel = if (fraction > 0.0) "${(fraction * 100.0).toInt()}%" else "—%"
+                            val detail = percentageLabel + " · " +
+                                warmup.targetReps + " rep"
+                            RoutePreparationChip(
+                                label = "A" + (index + 1),
+                                detail = detail,
+                                done = done,
+                                active = active,
+                                accessibilityLabel = "Aproximación " + (index + 1) + ", " + detail +
+                                    " para " + displayWorkoutExerciseName(member),
+                                tag = "live-route-warmup-" + member.id + "-" + warmup.id,
+                                onClick = { onSelectStep(stepKey) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
     // Bajo el ejercicio en curso, sus series («S2 ✓»): elegir una lleva la tarjeta a esa serie para consultarla o editarla.
     val exercise = members.singleOrNull()
     if (current && exercise != null && !cardio && onSelectSet != null && exercise.sets.isNotEmpty()) {
@@ -297,6 +368,36 @@ private fun RouteGroupRows(
     extras.forEach { Text(it, Modifier.padding(start = 37.dp, bottom = 8.dp), style = inter(12f, lineHeight = 14.4f), color = Ruta.Fnt) }
 }
 
+@Composable
+private fun RoutePreparationChip(
+    label: String,
+    detail: String,
+    done: Boolean,
+    active: Boolean,
+    accessibilityLabel: String,
+    tag: String,
+    onClick: () -> Unit,
+) {
+    val fill = when {
+        active -> Ruta.Ink
+        done -> Ruta.Done.copy(alpha = 0.14f)
+        else -> Ruta.Chip
+    }
+    val ink = if (active) Ruta.InkDark else Ruta.Ink
+    Row(
+        Modifier.heightIn(min = 36.dp).clip(RoundedCornerShape(18.dp)).background(fill)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = accessibilityLabel }
+            .testTag(tag)
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(label, style = inter(12f, FontWeight.SemiBold), color = if (done && !active) Ruta.Done else ink)
+        Text(detail, style = inter(10f), color = if (active) Ruta.InkDark else Ruta.Mut, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (done) Text("✓", style = inter(11f, FontWeight.Bold), color = if (active) Ruta.InkDark else Ruta.Done)
+    }
+}
 @Composable
 private fun RouteMetric(label: String, value: String, unit: String?, modifier: Modifier) {
     Column(modifier) {

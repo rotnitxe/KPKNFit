@@ -67,6 +67,7 @@ object FoodPreparations {
         CookingMethod.PLANCHA, CookingMethod.ASADO_PARRILLA -> FoodPreparation.GRILLED
         CookingMethod.HORNO -> FoodPreparation.BAKED
         CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> FoodPreparation.FRIED
+        CookingMethod.SALTEADO -> FoodPreparation.SAUTEED
         CookingMethod.AHUMADO -> null
     }
 
@@ -176,6 +177,21 @@ object FoodPreparations {
             fats = ((logged.fats + oilGrams).coerceAtLeast(0.0) * 10.0).roundToInt() / 10.0,
             calories = (logged.calories + oilGrams * 9.0).coerceAtLeast(0.0).roundToInt().toDouble(),
         )
+    }
+
+    /** Replace the oil contribution already recorded for [previousPreparation] with the user's current choice once. */
+    fun replaceOil(
+        logged: LoggedFood,
+        previousPreparation: FoodPreparation?,
+        previousAmount: OilAmount?,
+        preparation: FoodPreparation,
+        amount: OilAmount?,
+        category: OilAbsorptionCategory,
+        grams: Double,
+    ): LoggedFood {
+        val previousDelta = oilDeltaGrams(previousPreparation, previousAmount, category, logged.amount)
+        val stableBase = withOil(logged, -previousDelta)
+        return withOil(stableBase, oilDeltaGrams(preparation, amount, category, grams))
     }
 
     private fun formatThousands(value: Int): String {

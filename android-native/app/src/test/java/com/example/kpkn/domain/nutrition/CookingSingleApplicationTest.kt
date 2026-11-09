@@ -272,15 +272,29 @@ class CookingSingleApplicationTest {
         val tag = resolveText("100 g champiñones salteados").single()
 
         assertEquals("gen038", tag.food().id)
+        assertEquals(CookingMethod.SALTEADO, tag.cookingMethod)
         val logged = tag.logged()
-        // 100 g cooked = 100 / 0.75 = 133.3 g raw x 0.22 kcal/g = 29, plus 8 g of oil x 9 = 72. Before: yield 1.0 (the name never matched)
-        // and the FRITO factor x1.10: 24 + 72 = 96.
+        // 100 g cooked = 100 / 0.75 = 133.3 g raw x 0.22 kcal/g = 29, plus 4 g of salteado oil x 9 = 36.
         assertEquals(0.75, tag.recordedYield(), 0.0)
         assertEquals(29.0, logged.calories - (tag.appliedOilGrams ?: 0.0) * 9.0, 0.0)
-        assertEquals(8.0, tag.appliedOilGrams ?: 0.0, 0.0)
-        assertEquals(101.0, logged.calories, 0.0)
+        assertEquals(4.0, tag.appliedOilGrams ?: 0.0, 0.0)
+        assertEquals(65.0, logged.calories, 0.0)
+        assertEquals("SAUTEED", logged.preparation)
+        assertEquals("medio", logged.preparationOilLevel)
         assertEquals(4.1, logged.protein, 0.0) // 3.1 x 1.333
-        assertEquals(8.4, logged.fats, 0.0) // 0.3 x 1.333 + 8
+        assertEquals(4.4, logged.fats, 0.0) // 0.3 x 1.333 + 4
+    }
+
+    @Test
+    fun `an estimated saute keeps its oil metadata for the next edit`() {
+        val tag = resolveItem(mass("plato inventado", 100.0, CookingMethod.SALTEADO)).single()
+        val logged = tag.logged()
+
+        assertNull(tag.foodItem)
+        assertEquals("SAUTEED", logged.preparation)
+        assertEquals("medio", logged.preparationOilLevel)
+        assertTrue(tag.oilApplied)
+        assertTrue((tag.appliedOilGrams ?: 0.0) > 0.0)
     }
 
     // ─── "arroz": se asume cocido y no se convierte ─────────────────────────────
@@ -588,17 +602,19 @@ class CookingSingleApplicationTest {
     // ─── Plato sin ficha: el método actúa una sola vez sobre el perfil ───────────
 
     @Test
-    fun `an estimated fried dish carries the frying fat once`() {
+    fun `an estimated sauteed dish carries its oil once`() {
         val tag = resolveText("verduras salteadas").single()
 
         assertNull(tag.foodItem)
         val grams = tag.amountGrams ?: 0.0
         assertTrue(grams > 0.0)
         val logged = tag.logged()
-        // VEGETABLE profile 28 kcal, 2 P, 5 C, 0.3 F per 100 g + 6 g of fat: 82 kcal and 6.3 g of fat per 100 g.
-        assertEquals(82.0, logged.calories / grams * 100.0, 0.5)
-        assertEquals(6.3, logged.fats / grams * 100.0, 0.1)
+        // VEGETABLE profile 28 kcal, 2 P, 5 C, 0.3 F per 100 g + 4 g of salteado oil: 64 kcal and 4.3 g of fat.
+        assertEquals(64.0, logged.calories / grams * 100.0, 0.5)
+        assertEquals(4.3, logged.fats / grams * 100.0, 0.1)
         assertEquals(2.0, logged.protein / grams * 100.0, 0.1)
-        assertEquals(CookingMethod.FRITO, logged.cookingMethod)
+        assertEquals(CookingMethod.SALTEADO, logged.cookingMethod)
+        assertEquals("SAUTEED", logged.preparation)
+        assertEquals("medio", logged.preparationOilLevel)
     }
 }

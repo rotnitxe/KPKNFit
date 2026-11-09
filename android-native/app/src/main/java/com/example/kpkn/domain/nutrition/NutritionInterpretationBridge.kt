@@ -114,7 +114,9 @@ object NutritionInterpretationBridge {
         val cut = FoodStapleOntology.cutClarification(tag.tag, mentionText, tag.learnedFoodId, CookingStateResolver.stateForMethod(tag.cookingMethod))
             ?.takeIf { (item?.amountIntent ?: tag.amountIntent) == AmountIntent.UNSPECIFIED }
             ?.let { clarification -> clarification.copy(options = clarification.options.filter { option ->
-                findStaticFoodById(option.foodId)?.let { NutrientBasis.isVerified(it) && FoodIdentity.matchesExclusions(it, tag.excludedIngredients) } == true
+                findStaticFoodById(option.foodId)?.let {
+                    LoggerFoodEligibility.accepts(tag.foodQuery.ifBlank { tag.tag }, it, tag.brandHint, tag.excludedIngredients)
+                } == true
             }) }
             ?.takeIf { clarification ->
                 val foods = clarification.options.mapNotNull { findStaticFoodById(it.foodId) }
@@ -124,8 +126,7 @@ object NutritionInterpretationBridge {
         val compositionPending = tag.nutritionEstimate?.requiresCompositionClarification == true &&
             !compositionConfirmed && !acceptedEstimate && !tag.isExcluded
         val validCandidates = tag.reviewCandidates.filter {
-            NutrientBasis.isVerified(it) && FoodIdentity.matchesDeclaredIdentity(tag.foodQuery.ifBlank { tag.tag }, it) &&
-                FoodIdentity.matchesExclusions(it, tag.excludedIngredients)
+            LoggerFoodEligibility.accepts(tag.foodQuery.ifBlank { tag.tag }, it, tag.brandHint, tag.excludedIngredients)
         }
         val identityPending = !tag.isExcluded && !acceptedEstimate && !compositionConfirmed && "identity" !in tag.confirmedDimensions &&
             (tag.foodItem == null || tag.resolutionStatus in setOf(FoodResolutionStatus.NEEDS_REVIEW, FoodResolutionStatus.NO_RESOLVED) ||

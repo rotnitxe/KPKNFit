@@ -26,6 +26,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.domain.performance.StrengthModel
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -962,6 +963,9 @@ internal fun SetInputCardV2(
     val activeRestPauseSeconds = if(currentSet.isMyoReps()) (myoParams["pauseSeconds"]?.toIntOrNull() ?: 15).coerceIn(10,30) else RestPausePlanDefaults.PauseSeconds
     val recordActionInstanceOwner = remember { Any() }
     val isNarrowScreen = LocalLivePagerShouldReflow.current
+    val liveApreBlock = remember(exercise.id, exercise.apreBlock, exercise.sets) { resolveLiveApreBlock(exercise) }
+    val invalidApreMarker = exercise.apreBlock != null && liveApreBlock == null
+    val apreSetNumber = liveApreBlock?.setIds?.indexOf(currentSet.id)?.takeIf { it >= 0 }?.plus(1)
     val resolvedWeightSuggestion = weightSuggestion.takeUnless { exercise.trainingMode == TrainingMode.SOLO_RPE }
     val suggestedWeightText: String? = resolvedWeightSuggestion?.let { suggestion ->
         suggestion.suggestedWeight.toTrimmedNumberString()
@@ -2303,6 +2307,13 @@ internal fun SetInputCardV2(
                     // unilateral) y el total atenuado; a la derecha, el lado y la configuración de la serie.
                     val sideSuffix = if (supportsIndependentSides) (if (selectedSide == "left") "L" else "R") else ""
                     val purpose = when {
+                        invalidApreMarker -> "APRE · revisar"
+                        apreSetNumber != null -> when (apreSetNumber) {
+                            1 -> "APRE ${liveApreBlock!!.variant.xrmReps} · S1 BASE"
+                            2 -> "APRE ${liveApreBlock!!.variant.xrmReps} · S2 BASE"
+                            3 -> "APRE ${liveApreBlock!!.variant.xrmReps} · S3 AMRAP → S4"
+                            else -> "APRE ${liveApreBlock!!.variant.xrmReps} · S4 XRM FUTURO"
+                        }
                         currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR -> "Calibrador"
                         isAmrap -> "AMRAP"
                         supersetLabel != null -> "RONDA ${setIndex + 1} · $supersetLabel"

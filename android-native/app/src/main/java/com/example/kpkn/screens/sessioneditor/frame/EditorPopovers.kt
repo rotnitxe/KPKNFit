@@ -43,6 +43,7 @@ import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.design.depth.KpknGlassPreset
 import com.example.kpkn.ui.design.depth.KpknShadow
 import com.example.kpkn.ui.design.depth.kpknShadow
+import dev.chrisbanes.haze.HazeState
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -104,9 +105,10 @@ internal fun EdGlassPopover(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     originXFraction: Float? = null,
+    hazeState: HazeState? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val hazeState = LocalHazeState.current
+    val resolvedHazeState = hazeState ?: LocalHazeState.current
     val density = LocalDensity.current
     val reduced = wizardReducedMotion()
     var origin by remember { mutableStateOf<Offset?>(null) }
@@ -138,7 +140,7 @@ internal fun EdGlassPopover(
                                 // pulido:sombra ed-S05 .ed-pop 0 18px 44px #000d (preset popover)
                                 .kpknShadow(KpknShadow.Popover, shape)
                                 // pulido:vidrio ed-V02 .ed-pop.glassy blur 22 · saturate 1,5
-                                .kpknGlassOrFallback(hazeState, shape, withBorder = false, preset = KpknGlassPreset.VidrioIsla)
+                                .kpknGlassOrFallback(resolvedHazeState, shape, withBorder = false, preset = KpknGlassPreset.VidrioIsla)
                                 .background(Color(0xD91B1B1D))
                                 .border(1.dp, Color(0x1CFFFFFF), shape)
                                 .padding(6.dp),

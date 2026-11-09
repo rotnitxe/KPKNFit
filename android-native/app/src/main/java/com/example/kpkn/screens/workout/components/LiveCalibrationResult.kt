@@ -32,6 +32,8 @@ internal fun LiveCalibrationResult(
     val muted = ink.copy(alpha = .65f)
     val accent = Color(0xFFF49A6E)
     val d = record?.decision
+    val apreContract = record?.let { validateApreApplicationContract(state, exercise, it) }
+        ?: ApreApplicationContract(canApply = true)
     val resolution = record?.let { r -> when (r.status) {
         CalibrationStatus.APPLIED -> when {
             r.apre != null -> if (r.appliedSetIds.isEmpty()) "APRE · S4 se conserva" else "APRE · carga de S4 aplicada"
@@ -41,6 +43,7 @@ internal fun LiveCalibrationResult(
         }
         CalibrationStatus.KEPT -> "Conservaste las cargas del plan"
         CalibrationStatus.REVERTED -> "Revertida · cargas pendientes restauradas"
+        CalibrationStatus.PROPOSED -> if (r.apre != null && !apreContract.canApply) apreContract.reviewReason else null
         else -> null
     } }
     val busy = state.calibrationActionId != null || state.recordingSetKey != null
@@ -142,7 +145,10 @@ internal fun LiveCalibrationResult(
         Box(Modifier.fillMaxWidth().heightIn(min = if (compact) 51.dp else 57.dp)
             .padding(start = inset, end = inset, top = if (compact) 4.dp else 6.dp, bottom = if (compact) 9.dp else 12.dp),
             contentAlignment = androidx.compose.ui.Alignment.Center) {
-            if (record?.status == CalibrationStatus.PROPOSED && d?.type != CalibrationDecisionType.NOT_APPLIED) {
+            if (record?.status == CalibrationStatus.PROPOSED && record.apre != null && !apreContract.canApply) {
+                RestRef02Button("Revisar APRE", onEdit, primary = true, modifier = Modifier.fillMaxWidth(),
+                    tag = "calibration-review", enabled = !busy, height = 48.dp, radius = 16.dp)
+            } else if (record?.status == CalibrationStatus.PROPOSED && d?.type != CalibrationDecisionType.NOT_APPLIED) {
                 RestRef02Button("Aplicar propuesta", { onResolve(record.id, CalibrationStatus.APPLIED) }, primary = true,
                     modifier = Modifier.fillMaxWidth().semantics { contentDescription = applyLabel }, tag = "calibration-apply", enabled = !busy, height = 48.dp, radius = 16.dp)
             } else {

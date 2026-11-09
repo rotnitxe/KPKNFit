@@ -18,14 +18,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsTopHeight
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,6 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,9 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -58,6 +60,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.wikilab.ConceptCategory
@@ -73,8 +77,13 @@ import com.example.kpkn.domain.concepts.nextConceptCategory
 import com.example.kpkn.domain.concepts.orderConceptosClave
 import com.example.kpkn.domain.concepts.searchConceptosClaveHits
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.ui.components.KpknGlassVariant
+import com.example.kpkn.ui.components.KpknPortal
+import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknTopIsland
 import java.text.Collator
 import java.text.Normalizer
@@ -92,6 +101,7 @@ fun ConceptosClaveScreen(
     expandedConceptId: String? = null,
     onBack: () -> Unit,
 ) {
+    val bottomOcclusion = LocalConceptsBottomOcclusion.current
     val linked = remember(expandedConceptId) { findTrainingConcept(expandedConceptId)?.id }
     var stack by rememberSaveable(linked) { mutableStateOf(listOf(linked?.let { "read:$it" } ?: "library")) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -137,6 +147,11 @@ fun ConceptosClaveScreen(
         Box(
             Modifier.fillMaxWidth().windowInsetsTopHeight(WindowInsets.statusBars)
                 .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Black, Color.Black.copy(alpha = 0.6f)))),
+        )
+        Box(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(bottomOcclusion + ConceptBottomFadeLead)
+                .testTag("concept_bottom_fade")
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.96f)))),
         )
     }
 }
@@ -195,6 +210,7 @@ private fun ConceptLibrary(
     val searching = query.isNotBlank()
     val daily = remember { dailyConceptoClave(LocalDate.now().toEpochDay()) }
     val alphabetical = remember { concepts.sortedWith { a, b -> spanishCollator.compare(a.name, b.name) }.groupBy { indexLetter(it.name) } }
+    val lastConceptId = alphabetical.values.lastOrNull()?.lastOrNull()?.id
 
     LazyColumn(
         state = listState,
@@ -202,32 +218,13 @@ private fun ConceptLibrary(
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp),
     ) {
         item(key = "head") {
-            Column(Modifier.statusBarsPadding().padding(top = 62.dp)) {
+            Column(Modifier.statusBarsPadding().padding(top = 76.dp)) {
                 ConceptEyebrow("Aprende")
                 Text(
-                    "Conceptos clave", Modifier.padding(top = 8.dp, bottom = 8.dp).semantics { heading() },
-                    style = ConceptType.syne(30, FontWeight.ExtraBold, 33), color = ConceptTokens.Ink,
-                )
-                Text(
                     "Aprende lo que cambia tu entrenamiento. ${concepts.size} conceptos en $topicCount temas.",
+                    Modifier.padding(top = 8.dp),
                     style = ConceptType.rowSub.copy(fontSize = 14.sp, lineHeight = 20.sp), color = ConceptTokens.Muted,
                 )
-            }
-        }
-        stickyHeader(key = "search") {
-            // Fijado arriba, el buscador queda bajo la isla; en su sitio, pegado al título.
-            val stuck by remember { derivedStateOf { listState.firstVisibleItemIndex >= 1 } }
-            // Fijado, una banda negra (que cubre también el margen lateral de la lista) tapa lo que pasa por debajo.
-            val band = Modifier.drawBehind {
-                val bleed = 18.dp.toPx()
-                drawRect(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(0f to Color.Black, 0.82f to Color.Black, 1f to Color.Transparent),
-                    topLeft = androidx.compose.ui.geometry.Offset(-bleed, 0f),
-                    size = androidx.compose.ui.geometry.Size(size.width + bleed * 2, size.height),
-                )
-            }
-            Box(Modifier.fillMaxWidth().then(if (stuck) band.statusBarsPadding().padding(top = 62.dp) else Modifier).padding(top = 8.dp, bottom = 10.dp)) {
-                ConceptSearchField(query, onQueryChange)
             }
         }
         if (searching) {
@@ -263,17 +260,27 @@ private fun ConceptLibrary(
                 }
                 item(key = "letter-group-$letter") {
                     ConceptModule {
-                        items.forEachIndexed { index, concept -> ConceptRow(concept, onOpen, divider = index > 0) }
+                        items.forEachIndexed { index, concept ->
+                            ConceptRow(
+                                concept,
+                                onOpen,
+                                divider = index > 0,
+                                testTag = if (concept.id == lastConceptId) {
+                                    "concept_library_last_action"
+                                } else {
+                                    "concept_row_${concept.id}"
+                                },
+                            )
+                        }
                     }
                 }
             }
         }
         item(key = "bottom") {
-            Spacer(Modifier.height(48.dp))
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            ConceptBottomClearanceSpacer()
         }
     }
-    ConceptTopBar(listState, close = true, title = "Conceptos clave", subtitle = "${concepts.size} conceptos", onClick = onClose)
+    ConceptLibraryTopIsland(query, onQueryChange, onClose, concepts.size)
 }
 
 private fun LazyListScope.librarySearchResults(
@@ -314,39 +321,83 @@ private fun LazyListScope.librarySearchResults(
 }
 
 @Composable
-private fun ConceptSearchField(query: String, onQueryChange: (String) -> Unit) {
-    val shape = RoundedCornerShape(26.dp)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 52.dp)
-            .clip(shape)
-            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF262626), Color(0xFF151515))))
-            .border(1.dp, Color(0x1FFFFFFF), shape)
-            .padding(start = 16.dp, end = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(KpknLineIcons.Search, null, Modifier.size(19.dp), tint = ConceptTokens.Muted)
-        BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 14.dp).testTag("concept_search_field")
-                .semantics { contentDescription = "Buscar conceptos" },
-            singleLine = true,
-            textStyle = TextStyle(fontFamily = WizardFonts.body, fontSize = 16.sp, color = ConceptTokens.Ink),
-            cursorBrush = SolidColor(ConceptTokens.Ink),
-            decorationBox = { inner ->
-                if (query.isEmpty()) Text("Buscar conceptos", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 16.sp), color = ConceptTokens.Faint)
-                inner()
-            },
-        )
-        if (query.isNotEmpty()) {
+private fun ConceptLibraryTopIsland(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClose: () -> Unit,
+    resultCount: Int,
+) {
+    var searchActive by rememberSaveable { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(searchActive) {
+        if (searchActive) focusRequester.requestFocus()
+    }
+    val shape = RoundedCornerShape(28.dp)
+    KpknPortal {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(start = 12.dp, top = 12.dp, end = 12.dp)
+                .heightIn(min = 56.dp)
+                .clip(shape)
+                .kpknGlassOrFallback(LocalHazeState.current, KpknShape.island, variant = KpknGlassVariant.ISLAND)
+                .padding(horizontal = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Box(
-                Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button) { onQueryChange("") }
-                    .semantics { contentDescription = "Limpiar búsqueda" },
+                Modifier.size(44.dp).clip(CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = "Cerrar conceptos", onClick = onClose)
+                    .semantics { contentDescription = "Cerrar conceptos" },
                 contentAlignment = Alignment.Center,
-            ) {
-                Icon(KpknLineIcons.Close, null, Modifier.size(16.dp), tint = ConceptTokens.Muted)
+            ) { Icon(KpknLineIcons.Close, null, Modifier.size(18.dp), tint = ConceptTokens.Ink) }
+            if (searchActive) {
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier.weight(1f).focusRequester(focusRequester).padding(horizontal = 8.dp, vertical = 12.dp)
+                        .testTag("concept_search_field").semantics { contentDescription = "Buscar conceptos" },
+                    singleLine = true,
+                    textStyle = TextStyle(fontFamily = WizardFonts.body, fontSize = 16.sp, color = ConceptTokens.Ink),
+                    cursorBrush = SolidColor(ConceptTokens.Ink),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    decorationBox = { inner ->
+                        if (query.isEmpty()) Text(
+                            "Buscar conceptos",
+                            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 16.sp),
+                            color = ConceptTokens.Faint,
+                            maxLines = 1,
+                        )
+                        inner()
+                    },
+                )
+                Box(
+                    Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button) {
+                        if (query.isNotEmpty()) onQueryChange("") else {
+                            keyboard?.hide()
+                            searchActive = false
+                        }
+                    }.semantics { contentDescription = if (query.isNotEmpty()) "Limpiar búsqueda" else "Cerrar búsqueda" },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(KpknLineIcons.Close, null, Modifier.size(16.dp), tint = ConceptTokens.Muted) }
+            } else {
+                Column(Modifier.weight(1f).padding(start = 8.dp)) {
+                    Text(
+                        "Conceptos clave", style = ConceptType.rowTitle, color = ConceptTokens.Ink,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() },
+                    )
+                    Text(
+                        "$resultCount conceptos", style = ConceptType.rowSub.copy(fontSize = 12.sp), color = ConceptTokens.Muted,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Box(
+                    Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = "Buscar conceptos") {
+                        searchActive = true
+                }.testTag("concept_search_toggle").semantics { contentDescription = "Buscar conceptos" },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(KpknLineIcons.Search, null, Modifier.size(19.dp), tint = ConceptTokens.Ink) }
             }
         }
     }
@@ -496,7 +547,8 @@ private fun ConceptTopicPage(
                     Modifier.padding(top = 14.dp).fillMaxWidth().clip(ConceptTokens.ModuleShape).background(ConceptTokens.Module)
                         .border(1.dp, ConceptTokens.Line, ConceptTokens.ModuleShape)
                         .clickable(role = Role.Button, onClickLabel = "Siguiente tema: ${next.label}") { onNextTopic(next) }
-                        .padding(14.dp),
+                        .padding(14.dp)
+                        .testTag("concept_next_topic"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -510,8 +562,7 @@ private fun ConceptTopicPage(
             }
         }
         item(key = "bottom") {
-            Spacer(Modifier.height(48.dp))
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            ConceptBottomClearanceSpacer()
         }
     }
     ConceptTopBar(listState, close = false, title = category.label, subtitle = "Tema", onClick = onBack)

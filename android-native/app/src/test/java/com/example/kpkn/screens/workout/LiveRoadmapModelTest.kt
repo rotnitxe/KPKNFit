@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.WarmupSetDefinition
 import org.junit.Assert.assertEquals
@@ -26,6 +27,14 @@ class LiveRoadmapModelTest {
         assertEquals(LiveRoadmapVariant.A, liveRoadmapVariantFor(740))
         assertEquals(112f, LiveRoadmapVariant.A.height.value, 0f)
         assertEquals(132f, LiveRoadmapVariant.B.height.value, 0f)
+    }
+
+    @Test fun cardioOnlyUsesDedicatedCardsWithoutChangingStrengthPreference() {
+        val cardioOnly = Session(id = "cardio", name = "Cardio", exercises = listOf(cardio))
+        val mixed = Session(id = "mixed", name = "Mixta", exercises = listOf(cardio, lift("press")))
+        assertEquals(LiveSessionView.CARDS, effectiveLiveSessionView(cardioOnly, LiveSessionView.LIST.name))
+        assertEquals(LiveSessionView.LIST, effectiveLiveSessionView(mixed, LiveSessionView.LIST.name))
+        assertEquals(LiveSessionView.LIST, effectiveLiveSessionView(null, LiveSessionView.LIST.name))
     }
 
     @Test fun bandsAddUpToTheMeasuresOfTheCanvas() {

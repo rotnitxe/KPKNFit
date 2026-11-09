@@ -3,14 +3,18 @@ package com.example.kpkn.screens.workout
 import android.app.Application
 import android.view.View
 import androidx.compose.foundation.background
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -42,6 +46,9 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.Density
@@ -120,7 +127,7 @@ class PrepLiveCardsUiTest {
 
     // ---- Escena: cabecera, relator, tarjeta y línea ---------------------------------------------------------------------
 
-    private fun scene(height: Int, font: Float = 1f, card: @Composable () -> Unit) {
+    private fun scene(height: Int, font: Float = 1f, adaptHeightToContent: Boolean = false, card: @Composable () -> Unit) {
         rule.setContent {
             view = LocalView.current
             density = LocalDensity.current.density
@@ -159,8 +166,8 @@ class PrepLiveCardsUiTest {
                                 modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band).testTag("prep-relator"),
                             )
                             Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
-                                LiveSessionCardFrame {
-                                    Box(Modifier.fillMaxSize()) { card() }
+                                LiveSessionCardFrame(adaptHeightToContent = adaptHeightToContent) {
+                                    if (adaptHeightToContent) card() else Box(Modifier.fillMaxSize()) { card() }
                                 }
                             }
                             LiveSessionLine(
@@ -210,12 +217,16 @@ class PrepLiveCardsUiTest {
     }
 
     /** La tarjeta mide 312 dp de ancho y lo que dice `liveSessionCardHeightDp` para el viewport (394 dp, o 430 dp con pantalla alta), llena el marco y no hay nada pulsable entre el relator y ella ni entre ella y la línea. */
-    private fun assertFrame(height: Int): Rect {
+    private fun assertFrame(height: Int, adaptHeight: Boolean = false): Rect {
         val frame = bounds("live-card-frame")
         val card = bounds(PrepLiveCardTag)
         println("LV-C marco a $height dp: frame=$frame card=$card density=$density")
         assertEquals("ancho de la tarjeta a $height", 312f, frame.width / density, .5f)
-        assertEquals("alto de la tarjeta a $height", cardHeight(height), frame.height / density, .5f)
+        if (adaptHeight) {
+            assertTrue("alto adaptable dentro del marco a $height", frame.height / density <= cardHeight(height) + .5f)
+        } else {
+            assertEquals("alto de la tarjeta a $height", cardHeight(height), frame.height / density, .5f)
+        }
         assertEquals(frame.width, card.width, 1.5f)
         assertEquals(frame.height, card.height, 1.5f)
         assertEquals(frame.left, card.left, 1.5f)
@@ -257,7 +268,7 @@ class PrepLiveCardsUiTest {
     }
 
     private fun showWarmup(h: WarmupHarness, height: Int = 880, font: Float = 1f, effectiveSets: Int = 0, working: Double? = 100.0) {
-        scene(height, font) {
+        scene(height, font, adaptHeightToContent = h.restSeconds < 0) {
             WarmupPhaseLiveCard(
                 rows = h.rows.toList(),
                 sessionAccentColor = Color(0xFFF49A6E),
@@ -272,7 +283,7 @@ class PrepLiveCardsUiTest {
                     h.rows.indices.forEach { h.rows[it] = h.rows[it].copy(isCompleted = true) }
                 },
                 onContinue = { h.continues++ },
-                modifier = Modifier.fillMaxSize(),
+                modifier = if (h.restSeconds < 0) Modifier.fillMaxWidth().wrapContentHeight(unbounded = true) else Modifier.fillMaxSize(),
                 onAddSet = {
                     h.adds++
                     val last = h.rows.last().warmup
@@ -318,7 +329,7 @@ class PrepLiveCardsUiTest {
     }
 
     private fun assertWarmupControlsInside(height: Int, h: WarmupHarness) {
-        val card = assertFrame(height)
+        val card = assertFrame(height, adaptHeight = true)
         val add = nodeOfDescription("Añadir aproximación")
         assertInside(card, "Añadir aproximación", add.boundsInRoot); assertTouch("Añadir aproximación", add)
         val skip = nodeOfTag("prep-skip"); assertInside(card, "Omitir", skip.boundsInRoot); assertTouch("Omitir", skip)
@@ -357,6 +368,14 @@ class PrepLiveCardsUiTest {
     @Test fun h5ControlsStayInsideTheCardAt740() { val h = WarmupHarness(threeRows()); showWarmup(h, 740); assertWarmupControlsInside(740, h) }
     @Test fun h5ControlsStayInsideTheCardAt880WithLargeFont() { val h = WarmupHarness(threeRows()); showWarmup(h, 880, 1.3f); assertWarmupControlsInside(880, h) }
     @Test fun h5ControlsStayInsideTheCardAt740WithLargeFont() { val h = WarmupHarness(threeRows()); showWarmup(h, 740, 1.3f); assertWarmupControlsInside(740, h) }
+
+    @Test fun h5CardUsesOnlyTheHeightNeededByItsContent() {
+        val h = WarmupHarness(threeRows())
+        showWarmup(h)
+        val frame = bounds("live-card-frame")
+        assertTrue("La tarjeta de aproximaciones no conserva el hueco vacío", frame.height / density < cardHeight(880) - 16f)
+        assertEquals(frame.height, bounds(PrepLiveCardTag).height, 1.5f)
+    }
 
     @Test fun h5ShortRestStaysInsideAt740() {
         val h = WarmupHarness(threeRows()); h.restSeconds = 45
@@ -508,7 +527,7 @@ class PrepLiveCardsUiTest {
         val rows = (0 until 12).map { warmupRow(it, 0.3 + it * 0.05, 5) }
         val h = WarmupHarness(rows)
         showWarmup(h, 740)
-        val card = assertFrame(740)
+        val card = assertFrame(740, adaptHeight = true)
         val list = bounds("warmup-list")
         assertInside(card, "lista", list)
         rule.onNodeWithContentDescription("Completar aproximación A12").assertDoesNotExist()
@@ -523,6 +542,48 @@ class PrepLiveCardsUiTest {
         // El pie y la paginación no se mueven con la lista.
         assertInside(card, "Omitir", bounds("prep-skip"))
         assertInside(card, "Página anterior", boundsOfDescription("Página anterior"))
+    }
+
+    @Test fun h5PagesCanBeChangedWithHorizontalGestures() {
+        val h = WarmupHarness((0 until 6).map { warmupRow(it, 0.3 + it * 0.05, 5) })
+        showWarmup(h)
+        rule.onNodeWithTag("warmup-page-indicator").assertTextEquals("1/2")
+        rule.onNodeWithTag("warmup-list").performTouchInput { swipeLeft() }
+        rule.onNodeWithTag("warmup-page-indicator").assertTextEquals("2/2")
+        rule.onNodeWithContentDescription("Completar aproximación A4").assertIsDisplayed()
+        rule.onNodeWithTag("warmup-list").performTouchInput { swipeRight() }
+        rule.onNodeWithTag("warmup-page-indicator").assertTextEquals("1/2")
+        rule.onNodeWithContentDescription("Completar aproximación A1").assertIsDisplayed()
+    }
+
+    @Test fun singlePagePreparationSwipeRemainsAvailableToTheOuterPager() {
+        var outerPage = 0
+        rule.setContent {
+            val pager = rememberPagerState(pageCount = { 2 })
+            androidx.compose.runtime.LaunchedEffect(pager.currentPage) { outerPage = pager.currentPage }
+            CompositionLocalProvider(
+                LocalWizardReducedMotion provides true,
+                LocalKpknOverlayHost provides null,
+                LocalLiveSessionCompactLayout provides false,
+            ) {
+                KPKNTheme {
+                    HorizontalPager(state = pager) { page ->
+                        if (page == 0) {
+                            WarmupPhaseLiveCard(
+                                rows = threeRows(), sessionAccentColor = Color(0xFFF49A6E),
+                                onToggleComplete = { _, _, _ -> }, onSkip = {}, onContinue = {},
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            Box(Modifier.fillMaxSize().testTag("outer-card-two"))
+                        }
+                    }
+                }
+            }
+        }
+        rule.onNodeWithTag("warmup-list").performTouchInput { swipeLeft() }
+        rule.waitUntil(3_000) { outerPage == 1 }
+        rule.onNodeWithTag("outer-card-two").assertIsDisplayed()
     }
 
     @Test fun h5RoadmapActionMarksTheNextRow() {
@@ -844,6 +905,51 @@ class PrepLiveCardsUiTest {
         assertEquals(1, h.continues)
     }
 
+    @Test fun warmupCompletingA3AdvancesPageToShowA4() {
+        val fourRows = (0..3).map { warmupRow(it, 0.4 + it * 0.15, 5, done = it < 2) }
+        val h = WarmupHarness(fourRows)
+        showWarmup(h)
+
+        // Initially active is A3 (index 2), on page 0
+        rule.onNodeWithText("A3").assertIsDisplayed()
+        rule.onNodeWithText("A4").assertDoesNotExist()
+
+        // Complete A3
+        roadmapPress(h.holder)
+        rule.waitForIdle()
+
+        // Paging must now advance to page 1 showing A4
+        rule.onNodeWithText("A4").assertIsDisplayed()
+        rule.onNodeWithText("A1").assertDoesNotExist()
+    }
+
+    @Test fun warmupInitialLoadLandsOnActiveSetPage() {
+        val fourRows = (0..3).map { warmupRow(it, 0.4 + it * 0.15, 5, done = it < 3) }
+        val h = WarmupHarness(fourRows)
+        showWarmup(h)
+
+        // A1, A2, A3 were already completed; active is A4 (index 3, page 1)
+        rule.onNodeWithText("A4").assertIsDisplayed()
+        rule.onNodeWithText("A1").assertDoesNotExist()
+    }
+
+    @Test fun warmupManualSwipeWithinSameActiveSetIsNotReverted() {
+        val fourRows = (0..3).map { warmupRow(it, 0.4 + it * 0.15, 5, done = it < 3) }
+        val h = WarmupHarness(fourRows)
+        showWarmup(h)
+
+        // Initially on page 1 with A4
+        rule.onNodeWithText("A4").assertIsDisplayed()
+
+        // Swipe right to inspect page 0
+        rule.onNodeWithTag("warmup-list").performTouchInput { swipeRight() }
+        rule.waitForIdle()
+
+        // Page 0 (A1..A3) is displayed and not immediately reverted to page 1
+        rule.onNodeWithText("A1").assertIsDisplayed()
+        rule.onNodeWithText("A4").assertDoesNotExist()
+    }
+
     @Test fun h6RoadmapActionMarksTheMovementOnScreen() {
         val h = MobilityHarness(mobilityItems())
         showMobility(h)
@@ -856,11 +962,11 @@ class PrepLiveCardsUiTest {
 
     private fun render(name: String) = saveLiveQaRender(rule, view, "lv-c-$name")
 
-    @Test fun renderH5At880() { showWarmup(WarmupHarness(threeRows().mapIndexed { i, r -> if (i == 0) r.copy(isCompleted = true, actualWeightKg = 50.0) else r })); assertFrame(880); render("h5-880") }
-    @Test fun renderH5At740() { showWarmup(WarmupHarness(threeRows()), 740); assertFrame(740); render("h5-740") }
+    @Test fun renderH5At880() { showWarmup(WarmupHarness(threeRows().mapIndexed { i, r -> if (i == 0) r.copy(isCompleted = true, actualWeightKg = 50.0) else r })); assertFrame(880, adaptHeight = true); render("h5-880") }
+    @Test fun renderH5At740() { showWarmup(WarmupHarness(threeRows()), 740); assertFrame(740, adaptHeight = true); render("h5-740") }
     @Test fun renderH5RestAt880() { val h = WarmupHarness(threeRows()); h.restSeconds = 45; showWarmup(h); assertFrame(880); render("h5-descanso-880") }
-    @Test fun renderH5LongListAt740() { showWarmup(WarmupHarness((0 until 8).map { warmupRow(it, 0.3 + it * 0.05, 5) }), 740); assertFrame(740); render("h5-lista-larga-740") }
-    @Test fun renderH5At740WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 740, 1.3f); assertFrame(740); render("h5-740-130") }
+    @Test fun renderH5LongListAt740() { showWarmup(WarmupHarness((0 until 8).map { warmupRow(it, 0.3 + it * 0.05, 5) }), 740); assertFrame(740, adaptHeight = true); render("h5-lista-larga-740") }
+    @Test fun renderH5At740WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 740, 1.3f); assertFrame(740, adaptHeight = true); render("h5-740-130") }
     @Test fun renderH6RepsAt880() { showMobility(MobilityHarness(mobilityItems())); assertFrame(880); render("h6-reps-880") }
     @Test fun renderH6RepsAt740() { showMobility(MobilityHarness(mobilityItems()), 740); assertFrame(740); render("h6-reps-740") }
     @Test fun renderH6MovementAt880() { showMobility(MobilityHarness(mobilityItems())); openMovement(); assertFrame(880); render("h6-movimiento-880") }

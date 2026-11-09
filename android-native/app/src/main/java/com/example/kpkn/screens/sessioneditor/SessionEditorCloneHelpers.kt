@@ -276,20 +276,20 @@ internal fun cloneExerciseForTransfer(
     val newSupersetId = exercise.supersetGroupRefOrLegacyId()?.let { old ->
         supersetIdMap.getOrPut(old) { UUID.randomUUID().toString() }
     }
+    val copiedSets = exercise.sets.map { it.freshPlannedCopy() }
     return exercise.copy(
         id = newId,
         occurrenceId = UUID.randomUUID().toString(),
         supersetId = newSupersetId,
         supersetGroupRef = newSupersetId,
         warmupSets = exercise.warmupSets.map { it.copy(id = UUID.randomUUID().toString()) },
-        sets = exercise.sets.map { it.freshPlannedCopy() },
+        sets = copiedSets,
         mobilitySeries = exercise.mobilitySeries.map { it.copy(id = UUID.randomUUID().toString()) },
         cardioDetails = exercise.cardioDetails?.let { details ->
             details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(id = UUID.randomUUID().toString()) })
         },
-    )
+    ).remapApreSetIdsFrom(exercise.sets, copiedSets)
 }
-
 internal fun mergeSessionWithPayload(
     base: Session,
     source: Session,

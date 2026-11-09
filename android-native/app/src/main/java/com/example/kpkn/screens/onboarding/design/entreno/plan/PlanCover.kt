@@ -145,7 +145,7 @@ internal fun PlanCover(
     val accent = goalAccent(profile)
     val art = remember(profile) { goalCoverArt(profile) }
     val variant = remember(model.coverSeed) { coverVariantOf(model.coverSeed) }
-    // Los programas «a medida» tienen identidad propia (`CoverStudio`); el catálogo sigue con el arte de siempre.
+    // Las entradas publicadas de catálogo y las generadas comparten su identidad estable con Program Detail.
     val identity = remember(model.id) { assignedCoverIdentity(model.id) }
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -364,7 +365,7 @@ private fun EdStepButton(
     Box(
         modifier = Modifier
             .width(width)
-            .fillMaxHeight()
+            .heightIn(min = 48.dp)
             .background(background)
             .clickable(interactionSource = source, indication = null, enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick)
             .semantics { contentDescription = description },
@@ -379,9 +380,9 @@ private fun EdStepButton(
 }
 
 /**
- * `.ed-st`: campo de 50 dp con − y + y el valor en medio. El valor se arrastra de lado a lado (un paso cada 16 dp, con un tic) y,
- * si [keyboard] no es nulo, tocarlo lo edita con el teclado. [leading] es la unidad integrada (intensidad); [centerContent] sustituye
- * el valor (descanso, «Hasta el fallo»).
+ * `.ed-st`: campo de al menos 50 dp con − y + y el valor en medio. Se apila cuando el ancho o la escala de fuente lo requieren; el
+ * valor se arrastra de lado a lado (un paso cada 16 dp, con un tic) y, si [keyboard] no es nulo, tocarlo lo edita con el teclado.
+ * [leading] es la unidad integrada (intensidad); [centerContent] sustituye el valor (descanso, «Hasta el fallo»).
  */
 @Composable
 internal fun EdStepperField(
@@ -412,6 +413,7 @@ internal fun EdStepperField(
 ) {
     val shape = RoundedCornerShape(16.dp)
     val haptic = LocalHapticFeedback.current
+    val density = LocalDensity.current
     val currentStep by rememberUpdatedState(onStep)
     // pulido:ed-A15 / ed-J06 `stepField`: la cifra rebota 0,24 s (`.ed-stv.bump b`) con cada paso o arrastre, no al aparecer
     val bumps = remember { mutableIntStateOf(0) }
@@ -432,95 +434,153 @@ internal fun EdStepperField(
     androidx.compose.runtime.LaunchedEffect(editing) { if (editing) focus.requestFocus() }
     // pulido:ed-T27 .ed-st borde 0,16 s ease (.edit = #f2eee6aa)
     val borderColor = edTransitionColor(if (highlighted || editing) EdColors.ink.copy(alpha = 0.667f) else EdColors.line, 160)
+    val currentText = if (editing) draft.text else text
+    val textSize = if (compact) 19f else 20f
+    val estimatedTextWidth = currentText.length * textSize * 0.56f * density.fontScale
+    val trailingText = if (compact && !editing) null else unit ?: small
+    val estimatedTrailingWidth = (trailingText?.length ?: 0) * 6.5f * density.fontScale
+    val estimatedCenterWidth = estimatedTextWidth + estimatedTrailingWidth +
+        (if (trailingText != null) 6f else 0f) + (if (centerContent != null) 28f else 0f)
+    // El selector de intensidad mide 96 dp con su divisor; reserva su ancho, los dos controles y su separación antes de apilar.
+    val leadingWidth = if (leading == null) 0f else 105f
+    val requiredInlineWidth = estimatedCenterWidth + leadingWidth +
+        (if (showSteppers) max(stepWidth.value, 48f) * 2f else 0f) + 8f
     EdBumpProvider(bumps.intValue) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(shape)
-            .background(EdColors.field, shape)
-            .border(1.dp, borderColor, shape),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        leading?.invoke(this)
-        if (showSteppers) EdStepButton(KpknLineIcons.Minus, minusDescription, stepWidth, canDecrement, { stepAndBump(-1) }, minusText)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .then(
-                    if (scrubbable && !editing) Modifier.pointerInput(Unit) {
-                        // pulido:ed-J (arrastrar el valor) un paso cada 16 dp, `moved` bloquea el clic siguiente
-                        val stepPx = 16.dp.toPx()
-                        var accumulated = 0f
-                        detectHorizontalDragGestures(
-                            onDragStart = { accumulated = 0f },
-                            onDragEnd = { accumulated = 0f },
-                            onDragCancel = { accumulated = 0f },
-                        ) { change, dragAmount ->
-                            change.consume()
-                            accumulated += dragAmount
-                            while (abs(accumulated) >= stepPx) {
-                                val direction = if (accumulated > 0f) 1 else -1
-                                accumulated -= direction * stepPx
-                                stepAndBump(direction)
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+            val wrap = showSteppers &&
+                // A 1,5×, los controles siguen bajo el valor en filas compactas; para otros casos basta el cálculo de contenido.
+                ((density.fontScale >= 1.5f && maxWidth < 360.dp) || maxWidth.value < requiredInlineWidth)
+            @Composable
+            fun CenterContents(centerModifier: Modifier, fillHeight: Boolean = true) {
+                Box(
+                    modifier = centerModifier
+                        .then(if (fillHeight) Modifier.fillMaxHeight() else Modifier)
+                        .then(
+                            if (scrubbable && !editing) Modifier.pointerInput(Unit) {
+                                // pulido:ed-J (arrastrar el valor) un paso cada 16 dp, `moved` bloquea el clic siguiente
+                                val stepPx = 16.dp.toPx()
+                                var accumulated = 0f
+                                detectHorizontalDragGestures(
+                                    onDragStart = { accumulated = 0f },
+                                    onDragEnd = { accumulated = 0f },
+                                    onDragCancel = { accumulated = 0f },
+                                ) { change, dragAmount ->
+                                    change.consume()
+                                    accumulated += dragAmount
+                                    while (abs(accumulated) >= stepPx) {
+                                        val direction = if (accumulated > 0f) 1 else -1
+                                        accumulated -= direction * stepPx
+                                        stepAndBump(direction)
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
+                                }
+                            } else Modifier,
+                        )
+                        .then(
+                            if (onCenterClick != null) Modifier.clickable(role = Role.Button, onClick = onCenterClick)
+                            else if (editable && !editing) Modifier.clickable(role = Role.Button, onClickLabel = "Editar") {
+                                draft = TextFieldValue(text = text, selection = TextRange(0, text.length))
+                                sawFocus = false
+                                editing = true
+                            } else Modifier,
+                        )
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = label
+                            stateDescription = text + (unit?.let { " $it" } ?: "")
+                            customActions = listOf(
+                                CustomAccessibilityAction("Aumentar") { stepAndBump(1); true },
+                                CustomAccessibilityAction("Disminuir") { stepAndBump(-1); true },
+                            )
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (centerContent != null) {
+                        centerContent()
+                    } else if (editing) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            BasicTextField(
+                                value = draft,
+                                onValueChange = { draft = it },
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .fillMaxWidth()
+                                    .focusRequester(focus)
+                                    .onFocusChanged { state ->
+                                        if (state.isFocused) sawFocus = true else if (sawFocus) commit()
+                                    },
+                                textStyle = edText(textSize, FontWeight.SemiBold, EdColors.ink, tabularNums = true).copy(textAlign = TextAlign.Center),
+                                cursorBrush = SolidColor(EdColors.ink),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = keyboard ?: KeyboardType.Number, imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = { commit() }),
+                            )
+                            val extra = unit ?: small
+                            if (extra != null) {
+                                Text(
+                                    extra,
+                                    style = edText(if (compact) 11f else 12f, FontWeight.Medium, EdColors.muted),
+                                    maxLines = 1,
+                                )
                             }
                         }
-                    } else Modifier,
-                )
-                .then(
-                    if (onCenterClick != null) Modifier.clickable(role = Role.Button, onClick = onCenterClick)
-                    else if (editable && !editing) Modifier.clickable(role = Role.Button, onClickLabel = "Editar") {
-                        draft = TextFieldValue(text = text, selection = TextRange(0, text.length))
-                        sawFocus = false
-                        editing = true
-                    } else Modifier,
-                )
-                .semantics(mergeDescendants = true) {
-                    contentDescription = label
-                    stateDescription = text + (unit?.let { " $it" } ?: "")
-                    customActions = listOf(
-                        CustomAccessibilityAction("Aumentar") { stepAndBump(1); true },
-                        CustomAccessibilityAction("Disminuir") { stepAndBump(-1); true },
-                    )
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            if (centerContent != null) {
-                centerContent()
-            } else if (editing) {
-                BasicTextField(
-                    value = draft,
-                    onValueChange = { draft = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focus)
-                        .onFocusChanged { state ->
-                            if (state.isFocused) sawFocus = true else if (sawFocus) commit()
-                        },
-                    textStyle = edText(if (compact) 19f else 20f, FontWeight.SemiBold, EdColors.ink, tabularNums = true).copy(textAlign = TextAlign.Center),
-                    cursorBrush = SolidColor(EdColors.ink),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboard ?: KeyboardType.Number, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { commit() }),
-                )
-            } else if (compact) {
-                // .ed-st2 .ed-stv: columna, cifra de 19 px y rótulo de 11 px sin interlineado
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text, modifier = Modifier.edBump(), style = edText(19f, FontWeight.SemiBold, EdColors.ink, 22f, true), maxLines = 1)
-                    if (small != null) Text(small, style = edText(11f, FontWeight.Medium, EdColors.muted, 11f), maxLines = 1)
+                    } else if (compact) {
+                        // .ed-st2 .ed-stv: columna, cifra de 19 px y rótulo de 11 px sin interlineado
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text, modifier = Modifier.edBump(), style = edText(19f, FontWeight.SemiBold, EdColors.ink, 22f, true), maxLines = 1)
+                            if (small != null) Text(small, style = edText(11f, FontWeight.Medium, EdColors.muted, 11f), maxLines = 1)
+                        }
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text,
+                                modifier = Modifier.weight(1f, fill = false).edBump(),
+                                style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true),
+                                maxLines = 1,
+                                overflow = TextOverflow.Clip,
+                            )
+                            val extra = unit ?: small
+                            if (extra != null) Text(extra, style = edText(12f, FontWeight.Medium, EdColors.muted, 14f), maxLines = 1)
+                        }
+                    }
+                }
+            }
+
+            val shell = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(EdColors.field, shape)
+                .border(1.dp, borderColor, shape)
+            if (wrap) {
+                Column(modifier = shell, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = height),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        leading?.invoke(this)
+                        CenterContents(Modifier.weight(1f), fillHeight = false)
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(EdColors.line2))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        EdStepButton(KpknLineIcons.Minus, minusDescription, stepWidth, canDecrement, { stepAndBump(-1) }, minusText)
+                        EdStepButton(KpknLineIcons.Plus, plusDescription, stepWidth, canIncrement, { stepAndBump(1) }, plusText)
+                    }
                 }
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(text, modifier = Modifier.edBump(), style = edText(20f, FontWeight.SemiBold, EdColors.ink, 24f, true), maxLines = 1, overflow = TextOverflow.Clip)
-                    val extra = unit ?: small
-                    if (extra != null) Text(extra, style = edText(12f, FontWeight.Medium, EdColors.muted, 14f), maxLines = 1)
+                Row(
+                    modifier = shell.heightIn(min = height),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    leading?.invoke(this)
+                    if (showSteppers) EdStepButton(KpknLineIcons.Minus, minusDescription, stepWidth, canDecrement, { stepAndBump(-1) }, minusText)
+                    CenterContents(Modifier.weight(1f))
+                    if (showSteppers) EdStepButton(KpknLineIcons.Plus, plusDescription, stepWidth, canIncrement, { stepAndBump(1) }, plusText)
                 }
             }
         }
-        if (showSteppers) EdStepButton(KpknLineIcons.Plus, plusDescription, stepWidth, canIncrement, { stepAndBump(1) }, plusText)
-    }
     }
 }
 

@@ -13,8 +13,14 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.data.repository.CaptureOverrides
+import com.example.kpkn.data.repository.CaptureOverridesFile
 import com.example.kpkn.data.work.TechniqueWorkTestKit
 import com.example.kpkn.testsupport.RoomTestRule
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
+import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -740,6 +746,140 @@ class WorkoutMediaRepositoryRecoveryTest {
             database.openHelper.writableDatabase.execSQL("DROP TRIGGER IF EXISTS \"" + trigger + "\"")
         }
     }
+
+    @Test
+    fun technical_metadata_failure_preserves_journal_snapshot_and_recovers_without_duplicate_media() = runBlocking {
+        val journal = WorkoutMediaCaptureJournal(context.filesDir)
+        val database = db()
+        val repository = WorkoutMediaRepository.forDatabase(context, database)
+        repository.recoverPendingCaptures().await()
+        val (entry, sourceBytes) = technicalEntry("tech-failure-id", journal)
+
+        val targetVideo = WorkoutMediaStore(context.filesDir)
+            .destinationFile(entry.media.id, WorkoutMediaKind.VIDEO, entry.media.createdAtMs)
+        val captureFile = TechniqueSidecars.captureFile(targetVideo)
+        assertTrue("el directorio en el destino provoca una falla real al reemplazar capture.json", captureFile.mkdir())
+        val savedVideo = requireNotNull(repository.submitFinalizedVideoCapture(entry, hasError = false, errorCode = 0).await())
+        assertTrue(File(savedVideo.filePath).isFile)
+        assertArrayEquals(sourceBytes, File(savedVideo.filePath).readBytes())
+        assertEquals(1, database.workoutMediaDao().count())
+        assertEquals("el journal conserva el snapshot original antes del retry", entry.copy(readyToIngest = true), journal.read(entry.media.id))
+
+        assertTrue(captureFile.deleteRecursively())
+        val overrides = expectedOverrides()
+        CaptureOverridesFile.update(captureFile) { overrides }
+
+        assertRecoveredSnapshotAfterRecreation(database, journal, savedVideo, entry, sourceBytes, overrides)
+    }
+
+    @Test
+    fun an_incomplete_technical_write_keeps_the_snapshot_and_later_preserves_a_saved_preference() = runBlocking {
+        val journal = WorkoutMediaCaptureJournal(context.filesDir)
+        val database = db()
+        val repository = WorkoutMediaRepository.forDatabaseForTests(
+            context,
+            database,
+            captureMetadataUpdater = { file, change ->
+                // Write a real but incomplete sidecar, as if a technical field was lost during serialization.
+                CaptureMetadataFile.update(file) { current -> change(current).copy(requestedFps = null) }
+            },
+        )
+        repository.recoverPendingCaptures().await()
+        val (entry, sourceBytes) = technicalEntry("tech-partial-failure", journal)
+
+        val savedVideo = requireNotNull(repository.submitFinalizedVideoCapture(entry, hasError = false, errorCode = 0).await())
+        val persistedVideo = File(savedVideo.filePath)
+        assertTrue(persistedVideo.isFile)
+        assertArrayEquals(sourceBytes, persistedVideo.readBytes())
+        assertEquals(1, database.workoutMediaDao().count())
+        assertEquals(entry.copy(readyToIngest = true), journal.read(entry.media.id))
+        assertNull(CaptureMetadataFile.read(TechniqueSidecars.captureFile(persistedVideo)).requestedFps)
+
+        val overrides = expectedOverrides()
+        CaptureOverridesFile.update(TechniqueSidecars.captureFile(persistedVideo)) { overrides }
+
+        assertRecoveredSnapshotAfterRecreation(database, journal, savedVideo, entry, sourceBytes, overrides)
+    }
+
+    private suspend fun assertRecoveredSnapshotAfterRecreation(
+        database: KpknDatabase,
+        journal: WorkoutMediaCaptureJournal,
+        savedVideo: WorkoutMedia,
+        originalEntry: WorkoutMediaCaptureJournalEntry,
+        sourceBytes: ByteArray,
+        overrides: CaptureOverrides,
+    ) {
+        val recreatedRepository = WorkoutMediaRepository.forDatabase(context, database)
+        val recovery = recreatedRepository.recoverPendingCaptures().await()
+        assertEquals(emptySet<String>(), recovery.failedSessionKeys)
+
+        val captureFile = TechniqueSidecars.captureFile(File(savedVideo.filePath))
+        val metadata = CaptureMetadataFile.read(captureFile)
+        assertEquals(60f, metadata.requestedFps)
+        assertEquals(48f, metadata.grantedFps)
+        assertEquals(-3.5f, metadata.gravityRollDeg)
+        assertEquals(81.2f, metadata.gravityPitchDeg)
+        assertEquals(1450f, metadata.focalLengthPx)
+        assertEquals("wide", metadata.lens)
+        assertEquals("TestPhone Pro", metadata.deviceModel)
+        assertEquals(originalEntry.media.createdAtMs, metadata.recordedAtMs ?: Long.MIN_VALUE)
+        assertEquals(false, metadata.analysisRequestedForCapture)
+        assertEquals(true, metadata.framingGateBypassed)
+        assertEquals("camera_moved", metadata.framingWarning)
+        assertEquals(overrides, CaptureOverridesFile.read(captureFile))
+        assertTrue(journal.readAll().isEmpty())
+        assertTrue(File(savedVideo.filePath).isFile)
+        assertArrayEquals(sourceBytes, File(savedVideo.filePath).readBytes())
+        assertEquals(1, database.workoutMediaDao().count())
+
+        // A later process recovery is a no-op and still leaves exactly one medium.
+        val secondRecreatedRepository = WorkoutMediaRepository.forDatabase(context, database)
+        secondRecreatedRepository.recoverPendingCaptures().await()
+        assertEquals(1, database.workoutMediaDao().count())
+        assertTrue(journal.readAll().isEmpty())
+        assertEquals(metadata, CaptureMetadataFile.read(captureFile))
+    }
+
+    private fun technicalEntry(
+        id: String,
+        journal: WorkoutMediaCaptureJournal,
+    ): Pair<WorkoutMediaCaptureJournalEntry, ByteArray> {
+        val sourceBytes = mp4FtypBytes()
+        val source = journal.pendingSourceFile(id, "mp4").apply { writeBytes(sourceBytes) }
+        val createdAtMs = 1700000010000L
+        val entry = WorkoutMediaCaptureJournalEntry(
+            media = WorkoutMedia(
+                id = id,
+                kind = WorkoutMediaKind.VIDEO,
+                filePath = source.absolutePath,
+                createdAtMs = createdAtMs,
+                sessionKey = "session::$id",
+                exerciseId = "bench_press",
+            ),
+            sourceFilePath = source.absolutePath,
+            deleteSourceAfterCommit = false,
+            readyToIngest = true,
+            analysisRequestedForCapture = false,
+            framingGateBypassed = true,
+            framingWarning = "camera_moved",
+            requestedFps = 60f,
+            grantedFps = 48f,
+            gravityRollDeg = -3.5f,
+            gravityPitchDeg = 81.2f,
+            focalLengthPx = 1450f,
+            lens = "wide",
+            deviceModel = "TestPhone Pro",
+            recordedAtMs = createdAtMs,
+        )
+        journal.writeReady(entry)
+        return entry to sourceBytes
+    }
+
+    private fun expectedOverrides() = CaptureOverrides(
+        userProfileOverride = AnalysisProfileId.ROW,
+        plateSeed = PlateSeed(tUs = 1_500_000L, cx = 500f, cy = 300f, r = 40f, userConfirmed = true),
+        plateDiameterMm = 450,
+    )
     private data class PhotoFixture(
         val mime: String,
         val expectedExtension: String?,

@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,7 +72,7 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
-
+import kotlin.math.roundToInt
 private val ReadinessInk = WizardColors.text
 private val ReadinessBody = TextStyle(fontFamily = WizardFonts.body)
 private val ReadinessSyne = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold)
@@ -152,9 +155,9 @@ internal fun WorkoutReadinessSheet(
         },
     ) {
         LiveSheetSubtitle(listOfNotNull(session.name, weekLabel).joinToString(" · "))
-        ScaleRow("Energía", energy, 0..10) { energy = it }
-        ScaleRow("Sueño", sleep, 1..5) { sleep = it }
-        ScaleRow("Estrés", stress, 1..5) { stress = it }
+        ScaleRow("Energía", "energy", energy, 0..10, "Muy baja", "Muy alta") { energy = it }
+        ScaleRow("Sueño", "sleep", sleep, 1..5, "Muy malo", "Muy bueno") { sleep = it }
+        ScaleRow("Estrés", "stress", stress, 1..5, "Bajo", "Alto") { stress = it }
 
         if (muscles.isNotEmpty()) {
             LiveSheetSectionLabel("Molestia muscular · DOMS")
@@ -212,35 +215,71 @@ internal fun WorkoutReadinessSheet(
     }
 }
 
-/** `.readiness-scale`: la etiqueta y la cifra elegida (Syne 19) arriba; debajo las opciones a lo ancho (`.scale-options`). */
+/** `.readiness-scale`: slider discreto y accesible; el valor permanece sin responder hasta interacción real. */
 @Composable
-private fun ScaleRow(label: String, value: Int?, range: IntRange, onChange: (Int) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(label.uppercase(), Modifier.weight(1f), style = ReadinessBody.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                color = LiveSheetTokens.Faint)
-            Text(value?.toString() ?: "—", style = ReadinessSyne.copy(fontSize = 21.sp, lineHeight = 24.sp), color = ReadinessInk)
+private fun ScaleRow(
+    label: String,
+    tag: String,
+    value: Int?,
+    range: IntRange,
+    startLabel: String,
+    endLabel: String,
+    onChange: (Int) -> Unit,
+) {
+    val reducedMotion = wizardReducedMotion()
+    val target = value?.toFloat() ?: ((range.first + range.last) / 2f)
+    val animatedValue by animateFloatAsState(
+        targetValue = target,
+        animationSpec = liveSpec(reducedMotion, 180),
+        label = "readiness-$tag-value",
+    )
+    val answered = value != null
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                label.uppercase(),
+                Modifier.weight(1f),
+                style = ReadinessBody.copy(fontSize = 11.sp, letterSpacing = 1.sp),
+                color = LiveSheetTokens.Faint,
+            )
+            Text(
+                value?.toString() ?: "Sin responder",
+                style = ReadinessSyne.copy(fontSize = if (answered) 21.sp else 14.sp, lineHeight = 24.sp),
+                color = if (answered) ReadinessInk else LiveSheetTokens.Muted,
+                modifier = Modifier.testTag("readiness-value-$tag"),
+            )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-            range.forEach { option ->
-                val on = option == value
-                val reduced = wizardReducedMotion()
-                val fill by animateColorAsState(if (on) ReadinessInk else Color(0x0DFFFFFF), liveSpec(reduced, 180), label = "readiness-scale-fill")
-                val ink by animateColorAsState(if (on) Color(0xFF111111) else LiveSheetTokens.Muted, liveSpec(reduced, 180), label = "readiness-scale-ink")
-                Box(
-                    Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(8.dp))
-                        .background(fill)
-                        .clickable(role = Role.RadioButton) { onChange(option) }
-                        .semantics { selected = on; contentDescription = "$label $option" },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("$option", style = ReadinessBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
-                        color = ink)
-                }
-            }
+        Slider(
+            value = animatedValue,
+            onValueChange = { onChange(it.roundToInt().coerceIn(range.first, range.last)) },
+            valueRange = range.first.toFloat()..range.last.toFloat(),
+            steps = (range.count() - 2).coerceAtLeast(0),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .testTag("readiness-scale-$tag")
+                .semantics {
+                    contentDescription = if (value == null) {
+                        "$label, sin responder, rango de ${range.first} a ${range.last}"
+                    } else {
+                        "$label, $value de ${range.first} a ${range.last}"
+                    }
+                },
+            colors = SliderDefaults.colors(
+                thumbColor = if (answered) ReadinessInk else Color.Transparent,
+                activeTrackColor = if (answered) ReadinessInk else LiveSheetTokens.Line,
+                inactiveTrackColor = LiveSheetTokens.Line,
+                activeTickColor = if (answered) Color(0xFF111111) else LiveSheetTokens.Line,
+                inactiveTickColor = LiveSheetTokens.Faint,
+            ),
+        )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(startLabel, Modifier.weight(1f), style = ReadinessBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
+            Text(endLabel, style = ReadinessBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
         }
     }
 }
+
 
 /** `.doms-grid`: dos columnas de recuadros (zona y cifra); cada toque sube un punto y del 5 vuelve a 0. */
 @Composable

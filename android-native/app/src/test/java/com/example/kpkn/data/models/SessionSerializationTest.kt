@@ -59,6 +59,16 @@ class SessionSerializationTest {
     }
 
     @Test
+    fun smartLoadBasisIsOptionalForLegacyAndRoundTripsWhenSelected() {
+        val legacy = json.decodeFromString<Exercise>("""{"id":"legacy","name":"Press"}""")
+        assertEquals(null, legacy.smartLoadBasis)
+
+        val selected = legacy.copy(smartLoadBasis = SmartLoadBasis.TRAINING_MAX)
+        val restored = json.decodeFromString<Exercise>(json.encodeToString(Exercise.serializer(), selected))
+        assertEquals(SmartLoadBasis.TRAINING_MAX, restored.smartLoadBasis)
+    }
+
+    @Test
     fun mobility_series_without_rest_field_keeps_zero_default() {
         val mobility = json.decodeFromString<MobilitySeries>("""
             {

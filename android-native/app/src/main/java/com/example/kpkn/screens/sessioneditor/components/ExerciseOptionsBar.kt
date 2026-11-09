@@ -31,15 +31,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.data.models.UnilateralIntensityMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isInSuperset
 import com.example.kpkn.screens.sessioneditor.RestBundleDialog
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.sessioneditor.apreExitPreview
 import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
+import com.example.kpkn.screens.sessioneditor.withoutApreBlock
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknSetFormat
 
 /**
@@ -72,13 +77,21 @@ internal fun ExerciseOptionsBar(
     var showApreSheet by remember { mutableStateOf(false) }
     val unilateral = exercise.isEffectivelyUnilateral()
     val chainWithSides = unilateral && !isSupersetExercise
+    val apre = remember(exercise) { resolveLiveApreBlock(exercise) }
+    val apreNeedsReview = exercise.apreBlock != null && apre == null
+    val apreExitPreview = remember(exercise) { exercise.apreExitPreview().summary }
+    val modeLabel = when {
+        exercise.apreBlock == null -> trainingModeLabel(exercise.trainingMode)
+        apre == null -> "APRE · revisar"
+        else -> "APRE ${apre.variant.xrmReps}"
+    }
 
     EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
         EdChip(
-            text = "Modo: ${trainingModeLabel(exercise.trainingMode)}",
+            text = "Modo: $modeLabel",
             trailingIcon = KpknLineIcons.ChevronDown,
             onClick = { showModeSheet = true },
-            description = "Modo del ejercicio: ${trainingModeLabel(exercise.trainingMode)}",
+            description = "Modo del ejercicio: $modeLabel",
         )
         if (!suppressIndividualRest) {
             EdChip(
@@ -121,19 +134,6 @@ internal fun ExerciseOptionsBar(
                         }
                     },
                 )
-                if (exercise.trainingMode in listOf(TrainingMode.REPS, TrainingMode.RM, TrainingMode.AMRAP)) {
-                    EdMenuRow(
-                        title = "Bloque APRE",
-                        icon = EdIcons.Target2,
-                        onClick = {
-                            // pulido:ed-J05 closeLayer(cb): la hoja baja (230 ms) y después abre lo elegido
-                            closeExerciseMenu {
-                                showExerciseOptionsMenu = false
-                                showApreSheet = true
-                            }
-                        },
-                    )
-                }
                 // Pulido v1 (15) · `lv-rom-editor`: «Medir ROM» pasa a ser el interruptor «Registrar ROM» (el mismo nombre que en «Detalle del
                 // registro» de la sesión en vivo) y NO cierra la hoja. Es `Exercise.trackRom`: activo, la tarjeta de cada serie del ejercicio
                 // lleva el deslizador de ROM al 100 %; apagado, sin ROM.
@@ -219,6 +219,13 @@ internal fun ExerciseOptionsBar(
                 // B4: el modo se aplica con `withTrainingMode` para que AMRAP conserve propósito y mínimo.
                 onUpdateExercise { current -> current.withTrainingMode(mode) }
             },
+            onSelectApre = if (exercise.apreBlock != null || exercise.trainingMode in listOf(TrainingMode.REPS, TrainingMode.RM, TrainingMode.AMRAP)) {
+                { showModeSheet = false; showApreSheet = true }
+            } else null,
+            hasApreBlock = exercise.apreBlock != null,
+            hasInvalidApreBlock = apreNeedsReview,
+            apreExitPreview = apreExitPreview,
+            onExitApre = { onUpdateExercise { current -> current.withoutApreBlock() } },
             onDismiss = { showModeSheet = false },
         )
     }
@@ -230,7 +237,12 @@ internal fun ExerciseOptionsBar(
             onDismiss = { showLateralitySheet = false },
         )
     }
-    if (showApreSheet) ApreBlockSheet(exercise, onUpdateExercise) { showApreSheet = false }
+    if (showApreSheet) ApreBlockSheet(
+        exercise = exercise,
+        onApply = onUpdateExercise,
+        onDismiss = { showApreSheet = false },
+        onOpenSmartLoad = { showApreSheet = false; onOpenSmartLoad() },
+    )
 }
 
 /**
@@ -292,6 +304,11 @@ internal fun ExerciseModeSheet(
     current: TrainingMode,
     onSelect: (TrainingMode) -> Unit,
     onDismiss: () -> Unit,
+    onSelectApre: (() -> Unit)? = null,
+    hasApreBlock: Boolean = false,
+    hasInvalidApreBlock: Boolean = false,
+    apreExitPreview: String? = null,
+    onExitApre: (() -> Unit)? = null,
 ) {
     var selected by remember(current) { mutableStateOf(current) }
     EdSheet(onDismiss = onDismiss) {
@@ -301,8 +318,18 @@ internal fun ExerciseModeSheet(
             current = current,
             selected = selected,
             onSelect = { selected = it },
+            onSelectApre = onSelectApre,
+            hasApreBlock = hasApreBlock,
+            hasInvalidApreBlock = hasInvalidApreBlock,
+            apreExitPreview = apreExitPreview,
             onConfirm = {
-                close { if (selected != current) onSelect(selected) else onDismiss() }
+                close {
+                    when {
+                        hasApreBlock && selected == TrainingMode.REPS -> onExitApre?.invoke() ?: onDismiss()
+                        selected != current -> onSelect(selected)
+                        else -> onDismiss()
+                    }
+                }
             },
         )
     }
@@ -315,7 +342,18 @@ internal fun ExerciseModeSheetBody(
     selected: TrainingMode = current,
     onSelect: (TrainingMode) -> Unit,
     onConfirm: () -> Unit = {},
+    onSelectApre: (() -> Unit)? = null,
+    hasApreBlock: Boolean = false,
+    hasInvalidApreBlock: Boolean = false,
+    apreExitPreview: String? = null,
 ) {
+    val apreModePreview = when {
+        hasApreBlock && selected == TrainingMode.REPS ->
+            apreExitPreview ?: "Vista previa: se conservan las cuatro series, cargas y objetivos; S3 deja de ajustar S4 y se retira la calibración APRE."
+        hasApreBlock && selected != current ->
+            "Vista previa: se retiran el marcador y las reglas APRE S1–S4; se conservan las series, cargas y objetivos antes de aplicar ${trainingModeLabel(selected)}."
+        else -> null
+    }
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         EdSheetHeader("Modo del ejercicio", "Cómo se prescriben sus series")
         Column(
@@ -325,15 +363,36 @@ internal fun ExerciseModeSheetBody(
             exerciseModeOptions.forEach { (mode, label, description) ->
                 EdMenuRow(
                     title = label,
-                    subtitle = description,
+                    subtitle = if (mode == TrainingMode.REPS && hasApreBlock) {
+                        "Salir de APRE y conservar sus cuatro series como repeticiones fijas."
+                    } else description,
                     checked = mode == selected,
                     description = if (mode == selected) "$label, ${if (mode == current) "modo actual" else "modo elegido"}" else label,
                     onClick = { onSelect(mode) },
                 )
             }
+            onSelectApre?.let { selectApre ->
+                EdMenuRow(
+                    title = if (hasInvalidApreBlock) "Revisar APRE" else "APRE",
+                    subtitle = if (hasInvalidApreBlock) "El marcador está dañado. Reparar crea cuatro series APRE con IDs distintos."
+                    else if (hasApreBlock) "Editar la variante y los objetivos S1–S4 del bloque APRE activo."
+                    else "Bloque de cuatro series APRE 3, 6 o 10; calcula S1–S4 desde la referencia del ejercicio.",
+                    checked = hasApreBlock,
+                    description = if (hasInvalidApreBlock) "Revisar o reparar bloque APRE" else if (hasApreBlock) "APRE activo" else "Elegir el modo de series APRE",
+                    onClick = selectApre,
+                )
+            }
+        }
+        apreModePreview?.let { preview ->
+            Text(preview, style = KpknType.caption, color = WizardColors.textMuted)
         }
         EdPrimaryButton(
-            text = if (selected == current) "Listo" else "Aplicar ${trainingModeLabel(selected)}",
+            text = when {
+                hasApreBlock && hasInvalidApreBlock && selected == TrainingMode.REPS -> "Salir de APRE con esta previsualización"
+                hasApreBlock && selected == TrainingMode.REPS -> "Salir de APRE y conservar las cuatro series"
+                selected == current -> "Listo"
+                else -> "Aplicar ${trainingModeLabel(selected)}"
+            },
             onClick = onConfirm,
         )
     }

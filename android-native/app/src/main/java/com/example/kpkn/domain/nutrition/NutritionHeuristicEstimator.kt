@@ -332,6 +332,7 @@ object NutritionHeuristicEstimator {
         val boost = when (method) {
             CookingMethod.FRITO -> frying()
             CookingMethod.EMPANIZADO_FRITO -> frying(HEURISTIC_BREADING_CARBS_G_PER_100G)
+            CookingMethod.SALTEADO -> sauteing(foodName)
             in CONCENTRATING_METHODS -> dryMethod(method)
             else -> return profile
         }
@@ -415,6 +416,15 @@ private data class CookingEstimateBoost(
 private fun frying(addedCarbsGrams: Double = 0.0) =
     CookingEstimateBoost(addedFatGrams = HEURISTIC_FRYING_FAT_G_PER_100G, addedCarbsGrams = addedCarbsGrams)
 
+private fun sauteing(foodName: String) = CookingEstimateBoost(
+    addedFatGrams = FoodPreparations.oilGrams(
+        preparation = FoodPreparation.SAUTEED,
+        amount = OilAmount.NORMAL,
+        category = oilAbsorptionCategory(foodName),
+        grams = 100.0,
+    ),
+)
+
 private fun dryMethod(method: CookingMethod) = CookingEstimateBoost(factor = cookingFactorFor(method))
 
 private val REGEX_FRITO = Regex("""\bfrit[oa]s?\b|\bfritura\b|\bfre[ií]do\b""")
@@ -437,7 +447,7 @@ private fun detectCookingBoost(foodName: String): CookingEstimateBoost? {
         boost = frying(HEURISTIC_BREADING_CARBS_G_PER_100G)
     }
     if (REGEX_SALTEADO.containsMatchIn(lower)) {
-        boost = frying()
+        boost = sauteing(foodName)
     }
     if (REGEX_CONFITADO.containsMatchIn(lower)) {
         boost = frying()

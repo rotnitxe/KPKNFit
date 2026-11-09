@@ -31,6 +31,25 @@ internal fun parseProgramStudioCover(coverImage: String?): ProgramStudioChoice? 
     return ProgramStudioChoice(style, palette)
 }
 
+/** El fondo equivalente de líneas para una de las tres paletas de CoverStudio. */
+internal fun lineBackgroundForPalette(palette: CoverPaletteKind): LineCoverBackground = when (palette) {
+    CoverPaletteKind.NOCHE -> LineCoverBackground.NOCHE
+    CoverPaletteKind.TINTA -> LineCoverBackground.CARBON
+    CoverPaletteKind.PAPEL -> LineCoverBackground.CREMA
+}
+
+/** La variante de líneas más cercana para los controles que editan una portada heredada de CoverStudio. */
+internal fun lineStyleForStudioStyle(style: CoverStudioStyle): LineCoverStyle = when (style) {
+    CoverStudioStyle.NUMERAL, CoverStudioStyle.ENGRAVING -> LineCoverStyle.RELIEVE
+    CoverStudioStyle.TOPO, CoverStudioStyle.PLATES -> LineCoverStyle.ORBITAS
+    CoverStudioStyle.GRID -> LineCoverStyle.CAMPO
+    CoverStudioStyle.WAVES -> LineCoverStyle.ONDAS
+    CoverStudioStyle.HALFTONE -> LineCoverStyle.ECO
+    CoverStudioStyle.TRACK -> LineCoverStyle.ESPIRAL
+    CoverStudioStyle.TRAIL -> LineCoverStyle.PERFIL
+    CoverStudioStyle.BAUHAUS -> LineCoverStyle.ABANICO
+}
+
 /**
  * La identidad de portada de [program] para la cabecera, Home y las miniaturas. Con `kpkn-lines://` (elegida en «Editar programa»),
  * la portada de líneas con su estilo y su fondo. Sin portada (null, vacía o `gradient://`), la de líneas por defecto: Perfil sobre
@@ -62,13 +81,18 @@ internal fun coverIdentityForProgram(program: Program): CoverIdentity {
  * (un «531» sigue siendo «531»); si cambia, el dato se recalcula con la semilla y el numeral pasa a ser semanas.
  */
 internal fun CoverIdentity.restyled(style: CoverStudioStyle, palette: CoverPaletteKind): CoverIdentity =
-    if (style == this.style) {
-        copy(palette = palette)
-    } else {
-        copy(
-            style = style,
-            palette = palette,
-            motif = motifFor(style, (seed and Int.MAX_VALUE) / 7),
-            numeralIsWeeks = true,
-        )
-    }
+    copy(
+        style = style,
+        palette = palette,
+        motif = if (style == this.style) motif else motifFor(style, (seed and Int.MAX_VALUE) / 7),
+        numeralIsWeeks = if (style == this.style) numeralIsWeeks else true,
+        // PLATES conserva el motor de discos de líneas, con el fondo sincronizado a la paleta elegida. Al pasar a otro estilo,
+        // descarta la especificación heredada: CoverStudioArt le da prioridad y, si queda aquí, tapa la elección nueva.
+        lines = if (style == CoverStudioStyle.PLATES) {
+            val lineSeed = lines?.seed ?: seed
+            (lines ?: LineCoverSpec(LineCoverStyle.ORBITAS, lineBackgroundForPalette(palette), lineSeed))
+                .copy(style = LineCoverStyle.ORBITAS, background = lineBackgroundForPalette(palette), seed = lineSeed)
+        } else {
+            null
+        },
+    )

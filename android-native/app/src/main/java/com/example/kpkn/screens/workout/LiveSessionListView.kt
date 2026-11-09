@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -70,6 +71,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -89,8 +91,12 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.data.models.CalibrationStatus
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.workout.components.LiveCalibrationResult
 import com.example.kpkn.screens.workout.components.LiveSetDetailSheet
 import com.example.kpkn.screens.workout.components.RomBand
 import com.example.kpkn.screens.workout.components.liveSetInitialRom
@@ -345,6 +351,7 @@ internal fun LiveSessionListView(
                     val exerciseDone = rows.isNotEmpty() && rows.all { it.completed != null }
                     val registered = rows.count { it.completed != null && !it.completed.skipped }
                     val summary = listOfNotNull(
+                        "APRE · revisar".takeIf { exercise.apreBlock != null && resolveLiveApreBlock(exercise) == null },
                         exercise.mobilitySeries.takeIf { it.isNotEmpty() }?.let { list ->
                             "Movilidad ${list.count { mobilityDone(uiState, exercise.id, it.id, it.sets) }}/${list.size}"
                         },
@@ -638,12 +645,21 @@ internal fun LiveSessionListView(
                             Modifier.padding(horizontal = 14.dp).supersetRail(inner = false).padding(start = 13.dp).supersetRail(inner = true).padding(start = 10.dp)
                         } else Modifier.padding(horizontal = 12.dp)
                         Box(inset) {
-                            ListRowWithEditor(row, expandedKey == row.key, entry.active, uiState, viewModel,
-                                recordRequest, onOpen = { open(row) }, onRegister = { register(row) }, onClose = { expandedKey = null },
-                                onEffort = { openEffort(row) }, onRecorded = { advanceFrom(row.key, selectStep = true) },
-                                autoRecord = autoRecordKey == row.key, onAutoRecordConsumed = { autoRecordKey = null },
-                                openPanel = panelOpen?.takeIf { it.first == row.key }?.second, onPanelConsumed = { panelOpen = null },
-                                supersetColumns = entry.superset, media = media)
+                            Column {
+                                ListRowWithEditor(row, expandedKey == row.key, entry.active, uiState, viewModel,
+                                    recordRequest, onOpen = { open(row) }, onRegister = { register(row) }, onClose = { expandedKey = null },
+                                    onEffort = { openEffort(row) }, onRecorded = { advanceFrom(row.key, selectStep = true) },
+                                    autoRecord = autoRecordKey == row.key, onAutoRecordConsumed = { autoRecordKey = null },
+                                    openPanel = panelOpen?.takeIf { it.first == row.key }?.second, onPanelConsumed = { panelOpen = null },
+                                    supersetColumns = entry.superset, media = media)
+                                ListApreProposal(
+                                    row = row,
+                                    uiState = uiState,
+                                    viewModel = viewModel,
+                                    onContinue = { advanceFrom(row.key, selectStep = true) },
+                                    onEdit = { open(row) },
+                                )
+                            }
                         }
                     }
                     is ListEntry.SupersetHead -> Box(Modifier.padding(horizontal = 14.dp)) {
@@ -832,14 +848,53 @@ private fun ListRowWithEditor(
     supersetColumns: Boolean = false,
     media: ListEditorMedia = ListEditorMedia(),
 ) {
+    val displayedRow = liveListDisplayedRow(row, uiState)
     Column(Modifier.fillMaxWidth().animateContentSize()) {
-        SetListRow(row, active = expanded || isCurrent, onOpen = onOpen, onRegister = onRegister, onEffort = onEffort, supersetColumns = supersetColumns)
+        SetListRow(displayedRow, uiState, active = expanded || isCurrent, onOpen = onOpen, onRegister = onRegister,
+            onEffort = onEffort, supersetColumns = supersetColumns)
         // El editor de la serie se despliega y se pliega animado (fundido + alto), no a saltos.
         val reducedMotion = wizardReducedMotion()
         AnimatedVisibility(visible = expanded, enter = liveEnter(reducedMotion), exit = liveExit(reducedMotion)) {
-            InlineSetEditor(row, uiState, viewModel, recordRequest, onRecorded, autoRecord, onAutoRecordConsumed, openPanel, onPanelConsumed,
+            InlineSetEditor(displayedRow, uiState, viewModel, recordRequest, onRecorded, autoRecord, onAutoRecordConsumed, openPanel, onPanelConsumed,
                 media)
         }
+    }
+}
+
+/**
+ * La lista muestra el mismo resultado APRE que la tarjeta una vez registrada
+ * S3. El registro y su estado vienen del ViewModel persistido, de modo que la
+ * propuesta reaparece al cambiar de vista o reanudar la sesión; la aplicación
+ * sigue pasando por la misma validación idempotente del ViewModel.
+ */
+@Composable
+private fun ListApreProposal(
+    row: ListSetRow,
+    uiState: WorkoutUiState,
+    viewModel: WorkoutViewModel,
+    onContinue: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    val completed = row.completed ?: return
+    if (completed.performedPurpose() != SetPurpose.AMRAP) return
+    val record = viewModel.calibrationForSet(completed)
+        ?.takeIf { it.apre != null && it.status != CalibrationStatus.SUPERSEDED }
+        ?: return
+    Box(
+        Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
+            .heightIn(min = 320.dp, max = 460.dp)
+            .testTag("live-list-apre-proposal-${row.key}"),
+    ) {
+        LiveCalibrationResult(
+            state = uiState,
+            exercise = row.exercise,
+            completed = completed,
+            record = record,
+            program = viewModel.amrapProgramPreview(row.exercise, row.setIndex, completed),
+            onResolve = viewModel::resolveCalibrationDecision,
+            onContinue = onContinue,
+            onEdit = onEdit,
+        )
     }
 }
 
@@ -891,6 +946,43 @@ internal fun rowsForSet(
             completed = completedSets[key],
         )
     }
+}
+
+internal data class LiveListApreSetPresentation(
+    val xrmReps: Int,
+    val ordinal: Int,
+    val role: String,
+)
+
+/** El rol sale del marcador por ID, nunca de la posición visual de una AMRAP. */
+internal fun liveListApreSetPresentation(exercise: Exercise, setId: String): LiveListApreSetPresentation? {
+    val block = resolveLiveApreBlock(exercise) ?: return null
+    val ordinal = block.setIds.indexOf(setId).takeIf { it >= 0 }?.plus(1) ?: return null
+    val role = when (ordinal) {
+        1 -> "BASE"
+        2 -> "BASE"
+        3 -> "AMRAP → S4"
+        4 -> "XRM FUTURO"
+        else -> return null
+    }
+    return LiveListApreSetPresentation(block.variant.xrmReps, ordinal, role)
+}
+
+internal fun liveListApreSetLabel(row: ListSetRow): String? {
+    val marker = row.exercise.apreBlock ?: return null
+    val presentation = liveListApreSetPresentation(row.exercise, row.planned.id)
+    if (presentation == null) {
+        return "APRE · revisar".takeIf { row.planned.id in marker.setIds }
+    }
+    return "APRE ${presentation.xrmReps} · S${presentation.ordinal} ${presentation.role}"
+}
+
+/** Refleja en la fila y en su editor la asignación APRE S4 ya aplicada al borrador vivo. */
+internal fun liveListDisplayedRow(row: ListSetRow, uiState: WorkoutUiState): ListSetRow {
+    if (row.completed != null || liveListApreSetPresentation(row.exercise, row.planned.id)?.ordinal != 4) return row
+    val appliedLoad = calibrationLoadForSet(uiState, row.exercise, row.setIndex, row.side)
+        ?.takeIf { it.calibrated }?.weight ?: return row
+    return row.copy(planned = row.planned.copy(weight = appliedLoad))
 }
 
 /**
@@ -1083,6 +1175,7 @@ private fun warmupDone(uiState: WorkoutUiState, exerciseId: String, warmupId: St
 @Composable
 private fun SetListRow(
     row: ListSetRow,
+    uiState: WorkoutUiState,
     active: Boolean,
     onOpen: () -> Unit,
     onRegister: () -> Unit,
@@ -1090,6 +1183,7 @@ private fun SetListRow(
     supersetColumns: Boolean = false,
 ) {
     val done = row.completed != null && !row.completed.skipped
+    val apreLabel = liveListApreSetLabel(row)
     // Columnas del prototipo: 25 · tipo · 91 · 47 · 24 (en superserie, 18 · tipo · 87 · 43 · 30).
     val indexWidth = if (supersetColumns) 18.dp else 25.dp
     val valueWidth = if (supersetColumns) 87.dp else 91.dp
@@ -1112,23 +1206,28 @@ private fun SetListRow(
                     Offset(1.dp.toPx(), size.height - 10.dp.toPx()), 2.dp.toPx())
             }
             .clickable(onClick = onOpen)
-            .semantics { contentDescription = "Serie ${row.label} de ${row.exercise.name}, ${rowType(row.planned)}" }
+            .semantics { contentDescription = "Serie ${row.label} de ${row.exercise.name}, ${apreLabel ?: rowType(row.planned)}" }
             .padding(top = 3.dp, bottom = 3.dp)
             .testTag("live-list-row-${row.key}"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(row.label, Modifier.width(indexWidth), style = Body.copy(fontSize = 12.sp), color = WizardColors.textFaint, textAlign = TextAlign.Center)
-        Text(rowType(row.planned), Modifier.weight(1f), style = Body.copy(fontSize = 12.sp),
+        Text(apreLabel ?: rowType(row.planned), Modifier.weight(1f), style = Body.copy(fontSize = 12.sp),
             color = if (active) WizardColors.text else WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         // La cifra siempre con su unidad («100 kg × 8») y coma decimal; la columna crece si la carga lleva decimales.
         Column(Modifier.widthIn(min = valueWidth), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(rowValue(row), style = SyneValue.copy(fontSize = 15.sp, lineHeight = 20.sp),
+            Text(rowValue(row, uiState), style = SyneValue.copy(fontSize = 15.sp, lineHeight = 20.sp),
                 color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 1)
             // Pulido v1 (15): una sola línea bajo la cifra, con el ROM registrado en la serie («+ 2 parciales · ROM 80 %»), como en el historial.
             listOfNotNull(
                 row.completed?.partialReps?.takeIf { it > 0 }?.let { "+ $it parciales" },
                 row.completed?.rom?.let { liveSetRomLabel(it) },
+                liveListApreSetPresentation(row.exercise, row.planned.id)
+                    ?.takeIf { it.ordinal == 4 }
+                    ?.let { row.completed?.apreXrm?.reference?.capturedLoadKg }
+                    ?.takeIf { it.isFinite() && it > 0.0 }
+                    ?.let { "XRM futuro · ${listNumber(it)} kg" },
             ).takeIf { it.isNotEmpty() }?.let { parts ->
                 Text(parts.joinToString(" · "), Modifier.padding(top = 3.dp), style = Body.copy(fontSize = 11.sp), color = WizardColors.textFaint)
             }
@@ -1396,23 +1495,50 @@ private fun InlineSetEditor(
                 .padding(start = 14.dp, end = 14.dp, top = 7.dp, bottom = 5.dp)
                 .testTag("live-list-editor-${row.key}"),
         ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                // La carga lleva más sitio que la cantidad: «102,5 kg» cabe sin que «kg» se parta en dos líneas.
-                Row(Modifier.weight(1.15f), verticalAlignment = Alignment.Bottom) {
-                    ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
-                        Modifier.width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—")
-                    Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
-                        maxLines = 1, softWrap = false)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-2.5) }
-                    MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(2.5) }
-                }
-                Row(Modifier.weight(.85f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
-                    ListMetricField(valueText, { valueText = it; persist() }, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
-                        Modifier.width(40.dp), "live-list-value-${row.key}", "Cantidad realizada", !busy)
-                    Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
-                        style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val fontScale = LocalDensity.current.fontScale
+                val split = maxWidth < 340.dp || fontScale >= 1.35f
+                if (split) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
+                                    Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—")
+                                Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
+                                    maxLines = 1, softWrap = false)
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-2.5) }
+                                MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(2.5) }
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+                            ListMetricField(valueText, { valueText = it; persist() }, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
+                                Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy)
+                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
+                                style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                        }
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // La carga lleva más sitio que la cantidad: «102,5 kg» cabe sin que «kg» se parta en dos líneas.
+                        Row(Modifier.weight(1.15f), verticalAlignment = Alignment.Bottom) {
+                            ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
+                                Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—")
+                            Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
+                                maxLines = 1, softWrap = false)
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-2.5) }
+                            MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(2.5) }
+                        }
+                        Row(Modifier.weight(.85f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+                            ListMetricField(valueText, { valueText = it; persist() }, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
+                                Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy)
+                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
+                                style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                        }
+                    }
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically,
@@ -1657,7 +1783,7 @@ private fun rowType(set: ExerciseSet): String = when {
  * La cifra de la fila: «100 kg × 8» (carga × cantidad, pedido del usuario del 29-oct: la carga siempre dice que son kilos), «— kg × 8» sin
  * carga y la unidad si no son repeticiones. Coma decimal es-CL.
  */
-private fun rowValue(row: ListSetRow): androidx.compose.ui.text.AnnotatedString {
+private fun rowValue(row: ListSetRow, uiState: WorkoutUiState): androidx.compose.ui.text.AnnotatedString {
     val completed = row.completed
     if (completed != null && !completed.skipped) {
         val value = completed.reps.takeIf { it > 0 }?.toString()
@@ -1667,12 +1793,15 @@ private fun rowValue(row: ListSetRow): androidx.compose.ui.text.AnnotatedString 
         return listDose(completed.weight, value)
     }
     val set = row.planned
+    val apre = liveListApreSetPresentation(row.exercise, set.id)
     val value = when (set.unitModeV2) {
         UnitModeV2.TIME -> set.targetDuration?.let { "$it s" } ?: set.plannedTargetV2?.let { "${listNumber(it)} s" }
         UnitModeV2.DISTANCE -> set.plannedTargetV2?.let { "${listNumber(it)} km" }
-        else -> set.targetReps?.toString() ?: set.plannedTargetV2?.let(::listNumber)
+        else -> if (apre != null && apre.ordinal in 3..4) "${apre.xrmReps}+"
+        else set.targetReps?.toString() ?: set.plannedTargetV2?.let(::listNumber)
     } ?: "—"
-    return listDose(set.weight, value)
+    val load = liveListDisplayedRow(row, uiState).planned.weight ?: set.weight
+    return listDose(load, value)
 }
 
 internal fun performedEffort(completed: CompletedSet?): String {

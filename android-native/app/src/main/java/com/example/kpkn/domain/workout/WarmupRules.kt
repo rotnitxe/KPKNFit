@@ -65,6 +65,8 @@ fun warmupValidationMessages(
     }
 }
 
-/** Accepts the legacy 50.0 representation while keeping new editor values as 0.50. */
-private fun normalizeWarmupPercentage(rawPercentage: Double): Double =
-    if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
+/** Accepts fractions and legacy whole percentages, returning zero for invalid input. */
+fun normalizeWarmupPercentage(rawPercentage: Double): Double {
+    if (!rawPercentage.isFinite() || rawPercentage <= 0.0 || rawPercentage > 100.0) return 0.0
+    return if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
+}

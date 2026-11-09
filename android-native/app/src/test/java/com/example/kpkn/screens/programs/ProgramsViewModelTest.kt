@@ -318,13 +318,14 @@ class ProgramsViewModelTest {
     fun createBlankProgram_uses_the_given_name_mode_and_cover() {
         val vm = createViewModel()
 
-        val id = vm.createBlankProgram(name = "  Mi fuerza  ", mode = ProgramMode.POWERLIFTING, coverImage = "kpkn-lines://PERFIL/CARBON")
+        val id = vm.createBlankProgram(name = "  Mi fuerza  ", mode = ProgramMode.POWERLIFTING, coverImage = "kpkn-lines://PERFIL/CARBON", identityLabel = "  Powerlifting  ")
 
         // El nombre se recorta; el modo y la portada son los que eligió la hoja «Desde cero».
         val created = ProgramRepository.getInstance().getProgramById(id)!!
         assertEquals("Mi fuerza", created.name)
         assertEquals(ProgramMode.POWERLIFTING, created.mode)
         assertEquals("kpkn-lines://PERFIL/CARBON", created.coverImage)
+        assertEquals("Powerlifting", created.identityLabel)
     }
 
     @Test

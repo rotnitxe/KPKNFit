@@ -32,6 +32,7 @@ import java.nio.ByteBuffer
 import java.util.EnumMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Controlador de comprobación continua de encuadre (§1 punto 1 y §4 punto 14).
@@ -76,6 +77,8 @@ class FramingCheckController(
 
     private var samplingJob: Job? = null
     private val isProcessing = AtomicBoolean(false)
+    private val evaluationLock = Any()
+    private val generation = AtomicLong(0L)
 
     @Volatile
     var isRecording: Boolean = false
@@ -110,29 +113,43 @@ class FramingCheckController(
      * Inicia el bucle de muestreo continuo de la vista previa a ~2 Hz.
      */
     fun start(bitmapProvider: () -> Bitmap?) {
-        isSampling = true
-        evaluator.reset()
-        _status.value = FramingCheckStatus.CHECKING
+        val activeGeneration = beginSamplingGeneration()
         samplingJob?.cancel()
         samplingJob = scope.launch(Dispatchers.Main) {
             while (isActive) {
-                if (!isRecording && isSampling) {
+                // Claim the inference slot before asking PreviewView for a bitmap. This avoids full-resolution copies
+                // every 500 ms while a previous pose inference is still running.
+                if (!isRecording && isSampling && isProcessing.compareAndSet(false, true)) {
                     val bmp = runCatching { bitmapProvider() }.getOrNull()
-                    if (bmp != null) {
-                        if (isProcessing.compareAndSet(false, true)) {
-                            launch(framingDispatcher) {
-                                try {
-                                    processBitmapInternal(bmp)
-                                } catch (_: Throwable) {
-                                } finally {
-                                    isProcessing.set(false)
-                                }
+                    if (bmp == null) {
+                        isProcessing.set(false)
+                    } else {
+                        launch(framingDispatcher) {
+                            try {
+                                processBitmapInternal(bmp, activeGeneration)
+                            } catch (_: Throwable) {
+                            } finally {
+                                // PreviewView.bitmap returns an owned snapshot; release it after inference.
+                                if (!bmp.isRecycled) bmp.recycle()
+                                isProcessing.set(false)
                             }
                         }
                     }
                 }
                 delay(500L) // ~2 Hz
             }
+        }
+    }
+
+    /** Starts a fresh preview identity; exposed internally for deterministic lifecycle regression tests. */
+    internal fun beginSamplingGeneration(): Long {
+        isSampling = true
+        return synchronized(evaluationLock) {
+            val next = generation.incrementAndGet()
+            evaluator.reset()
+            _verdict.value = FramingVerdict(ok = false, issues = emptyList(), view = null)
+            _status.value = FramingCheckStatus.CHECKING
+            next
         }
     }
 
@@ -143,6 +160,7 @@ class FramingCheckController(
         isSampling = false
         samplingJob?.cancel()
         samplingJob = null
+        synchronized(evaluationLock) { generation.incrementAndGet() }
     }
 
     /**
@@ -152,7 +170,11 @@ class FramingCheckController(
         processBitmapInternal(bitmap)
     }
 
-    private fun processBitmapInternal(bitmap: Bitmap): FramingVerdict {
+    /** Evaluates a sample captured by one preview generation; stale generations cannot publish. */
+    internal suspend fun processBitmapForGeneration(bitmap: Bitmap, expectedGeneration: Long): FramingVerdict =
+        withContext(framingDispatcher) { processBitmapInternal(bitmap, expectedGeneration) }
+
+    private fun processBitmapInternal(bitmap: Bitmap, expectedGeneration: Long? = null): FramingVerdict {
         val origW = bitmap.width
         val origH = bitmap.height
         if (origW <= 0 || origH <= 0) return _verdict.value
@@ -181,14 +203,12 @@ class FramingCheckController(
 
             val estimator = getOrInitEstimator()
             val detectedPoses = if (estimator == null) {
-                _status.value = FramingCheckStatus.UNAVAILABLE
-                return _verdict.value
+                return publishUnavailableIfCurrent(expectedGeneration)
             } else {
                 runCatching {
                     estimator.estimate(RgbaFrame(w, h, buffer), 0L)
                 }.getOrElse {
-                    _status.value = FramingCheckStatus.UNAVAILABLE
-                    return _verdict.value
+                    return publishUnavailableIfCurrent(expectedGeneration)
                 }
             }
 
@@ -200,23 +220,34 @@ class FramingCheckController(
                 null
             }
 
-            val roll = gravityRollProvider()
-            val v = evaluator.evaluate(
-                poses = mappedPoses,
-                frameWidth = w,
-                frameHeight = h,
-                spec = spec,
-                rollDeg = roll,
-                plateSeen = plateSeen,
-            )
-            _verdict.value = v
-            _status.value = FramingCheckStatus.EVALUATED
-            return v
+            return synchronized(evaluationLock) {
+                if (expectedGeneration != null && (generation.get() != expectedGeneration || !isSampling)) {
+                    return@synchronized _verdict.value
+                }
+                val v = evaluator.evaluate(
+                    poses = mappedPoses,
+                    frameWidth = w,
+                    frameHeight = h,
+                    spec = spec,
+                    rollDeg = gravityRollProvider(),
+                    plateSeen = plateSeen,
+                )
+                _verdict.value = v
+                _status.value = FramingCheckStatus.EVALUATED
+                v
+            }
         } finally {
             if (needRecycle) {
                 scaled.recycle()
             }
         }
+    }
+
+    private fun publishUnavailableIfCurrent(expectedGeneration: Long?): FramingVerdict = synchronized(evaluationLock) {
+        if (expectedGeneration == null || (generation.get() == expectedGeneration && isSampling)) {
+            _status.value = FramingCheckStatus.UNAVAILABLE
+        }
+        _verdict.value
     }
 
     private fun detectPlatePresence(scaledBitmap: Bitmap, w: Int, h: Int): Boolean {
@@ -254,10 +285,9 @@ class FramingCheckController(
 
     override fun close() {
         stop()
-        if (externalEstimator == null) {
-            internalEstimator?.close()
-            internalEstimator = null
-        }
-        executor.shutdown()
+        val ownedEstimator = if (externalEstimator == null) internalEstimator else null
+        internalEstimator = null
+        if (ownedEstimator != null) runCatching { executor.execute { ownedEstimator.close() } }
+        framingDispatcher.close()
     }
 }

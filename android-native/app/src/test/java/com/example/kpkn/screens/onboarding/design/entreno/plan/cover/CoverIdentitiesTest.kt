@@ -204,4 +204,20 @@ class CoverIdentitiesTest {
             }
         }
     }
+
+    @Test
+    fun platesStyleRemapsToModernOrbitasLineEngine() {
+        val platesRows = allIds.map { identityOf(it) }.filter { it.style == CoverStudioStyle.PLATES }
+        assertTrue("Hay portadas con estilo PLATES", platesRows.isNotEmpty())
+        for (identity in platesRows) {
+            assertNotNull("PLATES debe tener especificación de líneas", identity.lines)
+            assertEquals(LineCoverStyle.ORBITAS, identity.lines!!.style)
+            val expectedBg = when (identity.palette) {
+                CoverPaletteKind.NOCHE -> LineCoverBackground.NOCHE
+                CoverPaletteKind.TINTA -> LineCoverBackground.CARBON
+                CoverPaletteKind.PAPEL -> LineCoverBackground.CREMA
+            }
+            assertEquals(expectedBg, identity.lines!!.background)
+        }
+    }
 }

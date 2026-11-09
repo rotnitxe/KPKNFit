@@ -195,13 +195,17 @@ internal fun CustomExerciseEditorContent(
                 "Generada solo desde la configuración confirmada" else "Sin descripción automática: falta una configuración confirmada.",
                 style = KpknType.caption, color = WizardColors.textMuted)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CustomOptionField("Material", state.implement ?: info?.equipment?.let(SmartExerciseCreator::implementoIdFromLabel), SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
+                CustomOptionField("Material", state.implement, SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
                     { value -> onEdit { it.copy(implement = value) } }, Modifier.weight(1f))
-                CustomOptionField("Estación", state.station ?: info?.catalogVariantChips?.firstNotNullOfOrNull(SmartExerciseCreator::estacionIdFromLabel), SmartExerciseCreator.ESTACION_IDS, SmartExerciseCreator::estacionLabel,
+                CustomOptionField("Estación", state.station, SmartExerciseCreator.ESTACION_IDS, SmartExerciseCreator::estacionLabel,
                     { value -> onEdit { it.copy(station = value) } }, Modifier.weight(1f))
             }
-            CustomOptionField("Lateralidad", state.laterality ?: info?.catalogVariantChips?.firstNotNullOfOrNull(SmartExerciseCreator::lateralidadIdFromLabel), SmartExerciseCreator.LATERALIDAD_IDS, SmartExerciseCreator::lateralidadLabel,
+            CustomOptionField("Lateralidad", state.laterality, SmartExerciseCreator.LATERALIDAD_IDS, SmartExerciseCreator::lateralidadLabel,
                 { value -> onEdit { it.copy(laterality = value) } }, Modifier.fillMaxWidth())
+            if (!editing && !state.hasExplicitTechnicalAxes()) {
+                Text("Para añadirlo, elige material, estación y lateralidad. La sugerencia del nombre no cuenta como selección.",
+                    style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("custom-exercise-axes-required"))
+            }
             val patternName = info?.movementPattern?.let(::canonicalPatternKnowledge)?.name
             Text(if (patternName != null) "Patrón · $patternName" else preview?.detectedPattern?.label?.let {
                 "Patrón sugerido · $it · por confirmar"
@@ -211,14 +215,14 @@ internal fun CustomExerciseEditorContent(
             KpknTextAction(if (manual) "Ocultar ajuste manual" else "Ajustar involucramiento muscular", onClick = { manual = !manual })
             if (manual) ManualMuscleEditor(state.muscles ?: info?.involvedMuscles.orEmpty()) { muscles -> onEdit { it.copy(muscles = muscles) } }
             KpknCheckRow(checked = state.reviewed, title = "He revisado material, patrón y músculos",
-                onClick = { onReview(!state.reviewed) }, enabled = !state.saving && state.preview != null, modifier = Modifier.testTag("custom-exercise-review"))
+                onClick = { onReview(!state.reviewed) }, enabled = !state.saving && state.preview != null && (editing || state.hasExplicitTechnicalAxes()), modifier = Modifier.testTag("custom-exercise-review"))
             state.error?.let { Text(it, style = KpknType.body, color = WizardColors.danger, modifier = Modifier.testTag("custom-exercise-save-error")) }
         }
         Row(Modifier.fillMaxWidth().background(KpknSurface.module).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             KpknTextAction("Cancelar", onClick = onCancel, modifier = Modifier.testTag("custom-exercise-cancel"))
             KpknPrimaryPill(text = when { state.saving -> "Guardando…"; state.error != null -> "Reintentar"; editing -> "Guardar ejercicio"; else -> "Crear ejercicio" },
-                onClick = onSave, enabled = state.reviewed && state.preview != null && !state.saving && state.name.isNotBlank(),
+                onClick = onSave, enabled = state.reviewed && state.preview != null && !state.saving && state.name.isNotBlank() && (editing || state.hasExplicitTechnicalAxes()),
                 modifier = Modifier.weight(1f).testTag("custom-exercise-save"))
         }
     }

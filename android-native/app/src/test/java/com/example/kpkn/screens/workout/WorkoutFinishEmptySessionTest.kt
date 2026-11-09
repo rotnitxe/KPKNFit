@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.repository.ProgramRepository
@@ -53,9 +56,24 @@ class WorkoutFinishEmptySessionTest {
         assertEquals(FINISH_EMPTY_SESSION_GUIDANCE, finishEmptySessionGuidance(emptyList()))
         assertTrue(isFinishBlockedForEmptySession(emptyList()))
 
-        val withExercise = listOf(CompletedExercise(exerciseId = "ex-1", exerciseName = "Press banca"))
-        assertNull(finishEmptySessionGuidance(withExercise))
-        assertFalse(isFinishBlockedForEmptySession(withExercise))
+        val plannedOnly = listOf(CompletedExercise(exerciseId = "ex-1", exerciseName = "Press banca"))
+        assertEquals(FINISH_EMPTY_SESSION_GUIDANCE, finishEmptySessionGuidance(plannedOnly))
+        assertTrue(isFinishBlockedForEmptySession(plannedOnly))
+
+        val recordedStrength = plannedOnly.map { it.copy(sets = listOf(CompletedSet("set-1", weight = 50.0, reps = 5))) }
+        assertNull(finishEmptySessionGuidance(recordedStrength))
+        assertFalse(isFinishBlockedForEmptySession(recordedStrength))
+
+        val recordedCardio = listOf(
+            CompletedExercise(
+                exerciseId = "run",
+                exerciseName = "Cinta",
+                cardioDetails = CardioDetails(type = CardioType.TREADMILL),
+                sets = listOf(CompletedSet("cardio-1", timeSeconds = 30)),
+            ),
+        )
+        assertNull(finishEmptySessionGuidance(recordedCardio))
+        assertFalse(isFinishBlockedForEmptySession(recordedCardio))
     }
 
     @Test

@@ -18,12 +18,29 @@ internal data class FinishLiftChip(val name: String, val deltaKg: Double?)
 
 internal data class FinishRecord(val exerciseName: String, val e1rm: Double, val previousE1rm: Double?)
 
-internal data class FinishCardio(val type: String, val minutes: Int?, val km: Double?, val heartRate: Int?, val kcal: Int?)
+internal data class FinishCardio(
+    val type: String,
+    val minutes: Int?,
+    val km: Double?,
+    val heartRate: Int?,
+    val kcal: Int?,
+    val blockCount: Int = 1,
+    val seconds: Int? = null,
+) {
+    val durationFormatted: Pair<String, String>?
+        get() = when {
+            seconds != null && seconds in 1..59 -> "$seconds" to "s"
+            minutes != null && minutes > 0 -> "$minutes" to "min"
+            seconds != null && seconds >= 60 -> "${seconds / 60}" to "min"
+            else -> null
+        }
+}
 
 internal data class FinishModel(
     val name: String,
     val dateLine: String,
     val minutes: Int,
+    val durationSeconds: Int = minutes * 60,
     val sets: Int,
     val plannedSets: Int,
     val volume: Double,
@@ -41,9 +58,20 @@ internal data class FinishModel(
 ) {
     /** Vuelta de reloj de 60 min, o el avance hacia el objetivo de tiempo si lo había (decisión aprobada «En vivo · más»). */
     val durationFraction: Float
-        get() = if (empty) 0f else (minutes.toFloat() / (targetMinutes?.takeIf { it > 0 } ?: 60)).coerceIn(0f, 1f)
+        get() = if (empty) 0f else ((durationSeconds / 60f) / (targetMinutes?.takeIf { it > 0 } ?: 60)).coerceIn(0f, 1f)
     val setsFraction: Float get() = if (plannedSets > 0) (sets.toFloat() / plannedSets).coerceIn(0f, 1f) else 0f
     val effortFraction: Float get() = ((effort ?: 0.0) / 10.0).toFloat().coerceIn(0f, 1f)
+}
+
+internal fun finishDurationLabel(durationSeconds: Int, durationMinutes: Int): String =
+    if (durationSeconds in 1..59) "${durationSeconds} s" else "${durationMinutes} min"
+
+internal fun finishActivityLabel(model: FinishModel): String = when {
+    model.empty -> "sin actividad"
+    model.sets > 0 && model.cardio != null -> "${model.sets} series · ${model.cardio.blockCount} bloques de cardio"
+    model.sets > 0 -> "${model.sets} series"
+    model.cardio != null -> if (model.cardio.blockCount == 1) "cardio" else "${model.cardio.blockCount} bloques de cardio"
+    else -> "sin actividad"
 }
 
 /** Los tres niveles de degradación sin scroll (alto útil ÷ escala de texto): A ≥ 760, B 600–759, C < 600. */
@@ -78,6 +106,7 @@ internal fun buildFinishModel(
     lifts: List<FinishLiftProgress>,
     plannedSets: Int?,
     targetMinutes: Int?,
+    durationSeconds: Int = durationMinutes * 60,
 ): FinishModel {
     val strength = completedExercises.filter { it.cardioDetails == null }
     val sets = logicalSetCountFromCompleted(strength)
@@ -99,24 +128,40 @@ internal fun buildFinishModel(
     val record = milestone?.let { m ->
         FinishRecord(m.exerciseName, m.value, lifts.firstOrNull { it.exerciseId == m.exerciseId }?.previous?.estimated1Rm)
     }
-    val cardio = completedExercises.firstOrNull { it.cardioDetails != null }?.let { ex ->
-        val sets = ex.sets.filter { !it.skipped }
+    val cardioBlocks = completedExercises.mapNotNull { exercise ->
+        val sets = exercise.sets.filter { !it.skipped }
+        if (exercise.cardioDetails == null || sets.isEmpty()) null else exercise to sets
+    }
+    val cardio = cardioBlocks.takeIf { it.isNotEmpty() }?.let { blocks ->
+        val sets = blocks.flatMap { it.second }
         val seconds = sets.sumOf { it.timeSeconds ?: 0 }
         val km = sets.sumOf { it.distanceKm ?: 0.0 }
-        val hr = sets.mapNotNull { it.avgHeartRate }.takeIf { it.isNotEmpty() }?.average()?.toInt()
+        val hrSamples = sets.filter { it.avgHeartRate != null }
+        val hrCoverage = hrSamples.filter { (it.timeSeconds ?: 0) > 0 }
+        val hr = when {
+            hrCoverage.isNotEmpty() -> {
+                val coveredSeconds = hrCoverage.sumOf { it.timeSeconds!!.toLong() }
+                (hrCoverage.sumOf { it.avgHeartRate!!.toLong() * it.timeSeconds!!.toLong() } / coveredSeconds).toInt()
+            }
+            hrSamples.isNotEmpty() -> hrSamples.mapNotNull { it.avgHeartRate }.average().toInt()
+            else -> null
+        }
         val kcal = sets.sumOf { it.calories ?: 0.0 }
         FinishCardio(
-            type = ex.exerciseName,
-            minutes = (seconds / 60).takeIf { seconds > 0 },
+            type = blocks.map { it.first.exerciseName }.distinct().joinToString(" + "),
+            minutes = (seconds / 60).takeIf { it > 0 },
             km = km.takeIf { it > 0.0 },
             heartRate = hr,
             kcal = kcal.toInt().takeIf { kcal > 0.0 },
+            blockCount = blocks.size,
+            seconds = seconds.takeIf { it > 0 },
         )
     }
     return FinishModel(
         name = name,
         dateLine = finishDateLabel(presentation.today),
         minutes = durationMinutes,
+        durationSeconds = durationSeconds.coerceAtLeast(0),
         sets = sets,
         plannedSets = (plannedSets ?: sets).coerceAtLeast(sets),
         volume = volume,

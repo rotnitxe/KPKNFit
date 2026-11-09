@@ -33,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -44,7 +46,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.programs.ProgramCoverRepository
+import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.training.SystemAppClock
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -101,9 +109,17 @@ internal fun ProgramShareSheet(
     val story = remember(program, logs, template, styleChoice) {
         ProgramStoryBuilder.build(program, template, logs, SystemAppClock.today(ZoneId.systemDefault()), styleChoice)
     }
+    var personalPhoto by remember(story.personalCoverValue) { mutableStateOf<ImageBitmap?>(null) }
+    var personalPhotoReady by remember(story.personalCoverValue) { mutableStateOf(story.personalCoverValue == null) }
+    LaunchedEffect(context, story.personalCoverValue) {
+        val value = story.personalCoverValue ?: return@LaunchedEffect
+        personalPhoto = loadProgramStoryCover(context, value)?.asImageBitmap()
+        personalPhotoReady = true
+    }
+    val coverLoading = story.personalCoverValue != null && !personalPhotoReady
     val progress = remember { Animatable(if (reduced) 1f else 0f) }
-    LaunchedEffect(template, styleChoice, reduced) {
-        if (reduced) {
+    LaunchedEffect(template, styleChoice, reduced, story.studioCover, story.personalCoverValue) {
+        if (reduced || story.studioCover != null || story.personalCoverValue != null) {
             progress.snapTo(1f)
         } else {
             progress.snapTo(0f)
@@ -112,12 +128,18 @@ internal fun ProgramShareSheet(
     }
 
     // Pinta la historia en segundo plano y se la pasa a [action]. Mientras dura, los botones están apagados.
+    suspend fun showShareToast(message: String) {
+        withContext(Dispatchers.Main.immediate) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun withStoryBitmap(action: suspend (Bitmap) -> Unit) {
         if (busy) return
         busy = true
         scope.launch {
             try {
-                val bitmap = withContext(Dispatchers.Default) { renderProgramStory(context, story) }
+                val bitmap = withContext(Dispatchers.Default) { renderProgramStory(context, story, personalPhoto) }
                 try {
                     action(bitmap)
                 } finally {
@@ -126,16 +148,16 @@ internal fun ProgramShareSheet(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                Toast.makeText(context, SHARE_ERROR, Toast.LENGTH_SHORT).show()
+                showShareToast(SHARE_ERROR)
             } finally {
-                busy = false
+                withContext(Dispatchers.Main.immediate) { busy = false }
             }
         }
     }
 
     fun saveStory() = withStoryBitmap { bitmap ->
         StoryShare.save(context, bitmap)
-        Toast.makeText(context, "Imagen guardada en Fotos", Toast.LENGTH_SHORT).show()
+        showShareToast("Imagen guardada en Fotos")
     }
 
     val storagePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -161,7 +183,7 @@ internal fun ProgramShareSheet(
             )
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 StoryPreview(modifier = Modifier.width(190.dp).testTag("story-preview")) { measurer ->
-                    drawProgramStory(story, measurer, progress.value)
+                    drawProgramStory(story, measurer, progress.value, personalPhoto)
                 }
             }
             // Con una sola plantilla no hay nada que elegir.
@@ -208,7 +230,7 @@ internal fun ProgramShareSheet(
                 onClick = { withStoryBitmap { bitmap -> StoryShare.shareToStories(context, bitmap) } },
                 modifier = Modifier.fillMaxWidth(),
                 tag = "story-share",
-                enabled = !busy,
+                enabled = !busy && !coverLoading,
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 KpknSecondaryPill(
@@ -216,16 +238,31 @@ internal fun ProgramShareSheet(
                     onClick = { onSaveClick() },
                     modifier = Modifier.weight(1f),
                     tag = "story-save",
-                    enabled = !busy,
+                    enabled = !busy && !coverLoading,
                 )
                 KpknSecondaryPill(
                     text = "Más apps",
                     onClick = { withStoryBitmap { bitmap -> StoryShare.shareWithChooser(context, bitmap) } },
                     modifier = Modifier.weight(1f),
                     tag = "story-more",
-                    enabled = !busy,
+                    enabled = !busy && !coverLoading,
                 )
             }
         }
     }
+}
+
+/** Loads old catalog-cover references and personal URI/URL photos for both the preview and the exported story. */
+private suspend fun loadProgramStoryCover(context: android.content.Context, value: String): Bitmap? {
+    programCoverEntryIdOf(value)?.let { entryId ->
+        return ProgramCoverRepository.getInstance(context).load(entryId, StoryCanvas.WIDTH)
+    }
+    if (value.startsWith("https://") || value.startsWith("http://")) {
+        return withContext(Dispatchers.IO) {
+            (context.imageLoader.execute(
+                ImageRequest.Builder(context).data(value).allowHardware(false).size(StoryCanvas.WIDTH, StoryCanvas.HEIGHT).build(),
+            ) as? SuccessResult)?.drawable?.toBitmap()
+        }
+    }
+    return loadStoryPhoto(context, value)
 }

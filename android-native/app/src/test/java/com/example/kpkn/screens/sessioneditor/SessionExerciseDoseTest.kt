@@ -7,6 +7,9 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.ApreBlockReference
+import com.example.kpkn.screens.sessioneditor.components.withApreBlock
+import com.example.kpkn.domain.training.ApreVariant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -73,6 +76,29 @@ class SessionExerciseDoseTest {
     }
 
     @Test
+    fun apreDoseShowsAllFourObjectivesAndRoles() {
+        var index = 0
+        val exercise = Exercise("press", "Press", reference1RM = 120.0)
+            .withApreBlock(ApreVariant.APRE_6) { "apre" + (++index) }
+        val dose = sessionExerciseListDose(exercise, includeRest = false)
+        assertTrue(dose.startsWith("APRE 6 · S1 10@"))
+        assertTrue(dose.contains("S2 6@"))
+        assertTrue(dose.contains("S3 6+@"))
+        assertTrue(dose.contains("AMRAP→S4"))
+        assertTrue(dose.contains("S4 6+@"))
+        assertTrue(dose.contains("AMRAP→XRM"))
+    }
+
+    @Test
+    fun invalidApreDoseAsksForRepairInsteadOfShowingOrdinaryAmrap() {
+        var index = 0
+        val exercise = Exercise("press", "Press", reference1RM = 120.0)
+            .withApreBlock(ApreVariant.APRE_6) { "apre" + (++index) }
+            .copy(apreBlock = ApreBlockReference(6, listOf("missing")))
+        assertEquals("APRE · revisar", sessionExerciseListDose(exercise, includeRest = false))
+    }
+
+    @Test
     fun cardioContinuoUsaLaLineaDeDosisDelEditor() {
         val details = CardioDetails(type = CardioType.RUN_OUTDOOR, targetDurationSeconds = 20 * 60, targetHrPercent = 65)
         val exercise = Exercise(id = "carrera", name = "Carrera", trainingMode = TrainingMode.TIME, cardioDetails = details)
@@ -86,7 +112,7 @@ class SessionExerciseDoseTest {
             hiit = CardioHiitConfig(rounds = 8, workSeconds = 30, restSeconds = 30),
         )
         val exercise = Exercise(id = "bici", name = "Bici", trainingMode = TrainingMode.TIME, cardioDetails = details)
-        assertEquals("8 × 30 s / 30 s · RPE 9", sessionExerciseListDose(exercise, includeRest = true))
+        assertEquals("8 × 0:30 / 0:30 · RPE 9", sessionExerciseListDose(exercise, includeRest = true))
     }
 
     @Test

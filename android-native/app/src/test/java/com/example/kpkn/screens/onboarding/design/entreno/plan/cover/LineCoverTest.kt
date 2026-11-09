@@ -17,6 +17,16 @@ class LineCoverTest {
     }
 
     @Test
+    fun proceduralCoversIncludeInterferenceFanAndTheRequestedColorFamilies() {
+        assertTrue(LineCoverStyle.INTERFERENCIA in LineCoverStyle.entries)
+        assertTrue(LineCoverStyle.ABANICO in LineCoverStyle.entries)
+        assertTrue(
+            setOf("CARBON", "AZUL", "JADE", "VIOLETA", "CORAL", "AMBAR", "CIAN", "ROSADO")
+                .all { expected -> LineCoverBackground.entries.any { it.name == expected } },
+        )
+    }
+
+    @Test
     fun anUnreadableLineCoverValueGivesNull() {
         assertNull(parseLineCover(null))
         assertNull(parseLineCover(""))

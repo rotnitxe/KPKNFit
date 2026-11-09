@@ -11,6 +11,8 @@ internal data class LiveSessionLineStep(
     val volumeReplaced: Boolean = false,
     val pageIndex: Int? = null,
     val preparationSelect: (() -> Unit)? = null,
+    val preparationTargets: List<TimelineElement.PreparationTarget> = emptyList(),
+    val activePreparationTargetIndex: Int? = null,
     val preparationProgress: Float? = null,
     val calibratedLoad: Double? = null,
 )
@@ -27,12 +29,16 @@ internal fun liveSessionLineSteps(snapshot: LiveSetStepperSnapshot, activePageIn
             is TimelineElement.MobilityPill -> add(LiveSessionLineStep(
                 key = "mobility-$timelineIndex", label = "MOV", description = "Movilidad",
                 active = selectedElement || element.isCurrent, completed = element.isCompleted,
-                preparationSelect = element.onSelect, preparationProgress = element.progress,
+                preparationSelect = element.onSelect, preparationTargets = element.navigationTargets,
+                activePreparationTargetIndex = element.activeNavigationTargetIndex,
+                preparationProgress = element.progress,
             ))
             is TimelineElement.WarmupPill -> add(LiveSessionLineStep(
                 key = "warmup-$timelineIndex", label = "APROX", description = "Aproximación",
                 active = selectedElement || element.isCurrent, completed = element.isCompleted,
-                preparationSelect = element.onSelect, preparationProgress = element.progress,
+                preparationSelect = element.onSelect, preparationTargets = element.navigationTargets,
+                activePreparationTargetIndex = element.activeNavigationTargetIndex,
+                preparationProgress = element.progress,
             ))
             is TimelineElement.RoundBadge -> add(LiveSessionLineStep(
                 key = "round-${element.roundIndex}", label = "R${element.roundIndex + 1}",

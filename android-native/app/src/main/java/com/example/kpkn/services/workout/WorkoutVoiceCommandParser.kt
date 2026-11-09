@@ -91,6 +91,11 @@ object WorkoutVoiceCommandParser {
         "comenzar grabacion", "comienza grabacion", "iniciar la grabacion", "comenzar la grabacion",
     )
 
+    private val FORCE_START_VIDEO_CAPTURE_KEYWORDS = setOf(
+        "grabar de todas formas", "graba de todas formas", "grabar video de todas formas",
+        "iniciar video de todas formas", "comenzar video de todas formas",
+    )
+
     private val STOP_VIDEO_CAPTURE_KEYWORDS = setOf(
         "detener video", "deten video", "parar video", "para video",
         "terminar video", "termina video", "cortar video", "corta video",
@@ -324,6 +329,7 @@ object WorkoutVoiceCommandParser {
         // Las órdenes de vídeo se mantienen en la gramática de todas las etapas: el grabador
         // puede abrirse con una confirmación de serie pendiente y aun así debe poder detenerse.
         base += START_VIDEO_CAPTURE_KEYWORDS
+        base += FORCE_START_VIDEO_CAPTURE_KEYWORDS
         base += STOP_VIDEO_CAPTURE_KEYWORDS
         if (includeFeedback) {
             base += setOf(
@@ -437,6 +443,9 @@ object WorkoutVoiceCommandParser {
         // La captura manda sobre cualquier espera: repetir «detener vídeo» nunca debe
         // quedar atrapado en una confirmación de serie ni en un descanso activo.
         if (captureActive) {
+            if (matchesAnyKeyword(lower, FORCE_START_VIDEO_CAPTURE_KEYWORDS)) {
+                return VoiceSessionCommand.StartVideoCaptureAnyway
+            }
             if (matchesAnyKeyword(lower, STOP_VIDEO_CAPTURE_KEYWORDS)) {
                 return VoiceSessionCommand.StopVideoCapture
             }

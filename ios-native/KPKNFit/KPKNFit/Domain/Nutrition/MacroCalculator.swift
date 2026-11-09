@@ -310,7 +310,7 @@ func duplicateLog(log: NutritionLog, targetDate: String) -> NutritionLog {
         id: UUID().uuidString,
         date: "\(targetDate)T12:00:00.000Z",
         mealType: log.mealType,
-        foods: log.foods.map { LoggedFood(id: UUID().uuidString, foodName: $0.foodName, amount: $0.amount, unit: $0.unit, calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fats: $0.fats, fiber: $0.fiber, sugar: $0.sugar, sodiumMg: $0.sodiumMg, potassiumMg: $0.potassiumMg, waterMl: $0.waterMl, fatBreakdown: $0.fatBreakdown, micronutrients: $0.micronutrients, portionPreset: $0.portionPreset, cookingMethod: $0.cookingMethod, quantity: $0.quantity) },
+        foods: log.foods.map { LoggedFood(id: UUID().uuidString, foodName: $0.foodName, amount: $0.amount, unit: $0.unit, calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fats: $0.fats, fiber: $0.fiber, sugar: $0.sugar, sodiumMg: $0.sodiumMg, potassiumMg: $0.potassiumMg, waterMl: $0.waterMl, fatBreakdown: $0.fatBreakdown, micronutrients: $0.micronutrients, portionPreset: $0.portionPreset, cookingMethod: $0.cookingMethod, quantity: $0.quantity, preparation: $0.preparation, preparationOilLevel: $0.preparationOilLevel) },
         notes: log.notes.map { "\($0) (duplicado)" },
         status: .CONSUMED
     )

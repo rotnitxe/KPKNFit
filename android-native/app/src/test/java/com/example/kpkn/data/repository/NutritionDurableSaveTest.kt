@@ -7,6 +7,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
+import com.example.kpkn.domain.nutrition.FoodPreparation
+import com.example.kpkn.domain.nutrition.OilAmount
+import com.example.kpkn.domain.nutrition.cookingMethodFor
+import com.example.kpkn.domain.nutrition.duplicateLog
+import com.example.kpkn.domain.nutrition.loggedFoodToEditableTag
+import com.example.kpkn.domain.nutrition.recalculatePreparedFood
 import com.example.kpkn.testsupport.SyncRoomExecutor
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
@@ -117,6 +123,62 @@ class NutritionDurableSaveTest {
             assertTrue(food.isUncertain)
             assertTrue(food.evidenceJson!!.contains("CURATED_LOCAL"))
             assertEquals("Porción habitual estimada.", food.nutritionReferenceNote)
+        } finally { closeDatabase(reopened); context.deleteDatabase(name) }
+    }
+
+    @Test fun `prepared oil survives reopen and duplicate`() = runBlocking {
+        val name = "nutrition-preparation-${UUID.randomUUID()}.db"
+        val potato = FoodItem(
+            id = "potato-cooked", name = "Papas cocidas", calories = 87.0, protein = 1.9, carbs = 20.1, fats = 0.1,
+            nutritionBasis = "PER_100G", foodState = "COOKED", source = "USDA_FOUNDATION", sourceRecordId = "potato-cooked",
+        )
+        fun choose(oil: OilAmount) = recalculatePreparedFood(
+            food = potato,
+            quantity = 1.0,
+            portion = PortionPreset.MEDIUM,
+            amountGrams = 200.0,
+            cookingMethod = cookingMethodFor(FoodPreparation.SAUTEED),
+            preparation = FoodPreparation.SAUTEED,
+            oil = oil,
+        )
+        val normal = choose(OilAmount.NORMAL)
+        val lots = choose(OilAmount.LOTS)
+        val replaced = choose(OilAmount.NORMAL)
+        assertTrue("choosing more oil changes the result", lots.logged.fats > normal.logged.fats)
+        assertEquals("returning to Normal replaces the previous oil", normal.logged.fats, replaced.logged.fats, 0.0)
+        assertEquals(normal.logged.calories, replaced.logged.calories, 0.0)
+
+        val sourceLog = NutritionLog(
+            id = "prepared-source",
+            date = "2026-09-12T12:00:00.000Z",
+            foods = listOf(replaced.logged.copy(id = "prepared-potato")),
+        )
+        val first = Room.databaseBuilder(context, KpknDatabase::class.java, name).build()
+        try { repository(first).saveNutritionLog(sourceLog) } finally { closeDatabase(first) }
+
+        val reopened = Room.databaseBuilder(context, KpknDatabase::class.java, name).build()
+        try {
+            val storedOriginal = reopened.nutritionDao().getAllLogs().single().toNutritionLog()
+            val storedFood = storedOriginal.foods.single()
+            assertEquals(FoodPreparation.SAUTEED.name, storedFood.preparation)
+            assertEquals(OilAmount.NORMAL.level, storedFood.preparationOilLevel)
+            assertEquals(replaced.logged.fats, storedFood.fats, 0.0)
+            val editable = loggedFoodToEditableTag(storedFood)
+            assertEquals(FoodPreparation.SAUTEED.name, editable.loggedFood?.preparation)
+            assertTrue(editable.interpretationV2?.pendingQuestions.isNullOrEmpty())
+
+            val duplicate = duplicateLog(storedOriginal, "2026-09-13")
+            assertNotEquals(storedFood.id, duplicate.foods.single().id)
+            assertEquals(storedFood.preparation, duplicate.foods.single().preparation)
+            assertEquals(storedFood.preparationOilLevel, duplicate.foods.single().preparationOilLevel)
+            repository(reopened).saveNutritionLog(duplicate)
+            val durableLogs = reopened.nutritionDao().getAllLogs().map { it.toNutritionLog() }.associateBy { it.id }
+            val durableDuplicate = durableLogs.getValue(duplicate.id).foods.single()
+            assertEquals(2, durableLogs.size)
+            assertEquals(storedFood.preparation, durableDuplicate.preparation)
+            assertEquals(storedFood.preparationOilLevel, durableDuplicate.preparationOilLevel)
+            assertEquals(storedFood.calories, durableDuplicate.calories, 0.0)
+            assertEquals(storedFood.fats, durableDuplicate.fats, 0.0)
         } finally { closeDatabase(reopened); context.deleteDatabase(name) }
     }
 }

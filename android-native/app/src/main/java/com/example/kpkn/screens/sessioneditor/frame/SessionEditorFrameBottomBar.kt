@@ -185,6 +185,7 @@ internal fun SessionEditorFrameBottomBar(
             side = EdPopoverSide.AboveStart,
             onDismiss = { menuOpen = false },
             originXFraction = 0.6f,
+            hazeState = hazeState,
         ) {
             frameAddEntries(hasStrengthSpace = hasStrengthSpace, hasCardioSpace = hasCardioSpace).forEach { entry ->
                 when (entry) {

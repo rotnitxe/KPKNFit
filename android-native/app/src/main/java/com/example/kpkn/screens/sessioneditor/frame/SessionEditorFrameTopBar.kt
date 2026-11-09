@@ -171,7 +171,7 @@ internal fun SessionEditorFrameTopBar(
 
     val anchor = islandBounds
     if (moreOpen && anchor != null) {
-        EdGlassPopover(anchor = anchor, width = 208.dp, side = EdPopoverSide.BelowEnd, onDismiss = { moreOpen = false }) {
+        EdGlassPopover(anchor = anchor, width = 208.dp, side = EdPopoverSide.BelowEnd, onDismiss = { moreOpen = false }, hazeState = hazeState) {
             EdMenuRow(
                 title = "Transferir",
                 icon = EdListIcons.Swap,

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.SmartLoadBasis
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.sessions.SessionTemplateDurationClass
@@ -36,6 +37,8 @@ internal class AssistantCallbacks(
     val onApplySuggestion: (AssistantSuggestion, List<String>, Int) -> Unit = { _, _, _ -> },
     val onDismissSuggestion: (String, Int) -> Unit = { _, _ -> },
     val onUndoOutcome: (String) -> Unit = {},
+    val onApplySmartLoadBasis: (SmartLoadBasis, List<String>) -> Unit = { _, _ -> },
+    val onUndoSmartLoadBasis: () -> Unit = {},
     val onTemplateSearchChange: (String) -> Unit = {},
     val onSelectTemplate: (SessionTemplate) -> Unit = {},
     val onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit = {},
@@ -162,6 +165,8 @@ internal fun AssistantSheetContent(
                     onGoSuggestions = { tab = AssistantTab.SUGGESTIONS.ordinal },
                     onToast = ::showToast,
                     onApplied = { toastMs = 1500; closeAt += 1 },
+                    onApplySmartLoadBasis = callbacks.onApplySmartLoadBasis,
+                    onUndoSmartLoadBasis = callbacks.onUndoSmartLoadBasis,
                 )
             }
         }

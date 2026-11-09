@@ -21,7 +21,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,12 +42,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -70,13 +73,15 @@ internal val NewProgramTitleStyle = TextStyle(
 )
 
 /** Las portadas que ofrece «Desde cero», en su orden; la primera es la de por defecto. */
-private val BLANK_COVER_STYLES = listOf(LineCoverStyle.PERFIL, LineCoverStyle.RELIEVE, LineCoverStyle.ONDAS, LineCoverStyle.ESPIRAL)
+private val BLANK_COVER_STYLES = listOf(
+    LineCoverStyle.PERFIL, LineCoverStyle.RELIEVE, LineCoverStyle.ONDAS,
+    LineCoverStyle.INTERFERENCIA, LineCoverStyle.ABANICO, LineCoverStyle.ESPIRAL,
+)
 
-/** Las modalidades de «Desde cero» con su etiqueta; la primera, Hipertrofia, es la de por defecto. */
-private val BLANK_MODES: List<Pair<ProgramMode, String>> = listOf(
-    ProgramMode.HYPERTROPHY to "Hipertrofia",
-    ProgramMode.POWERBUILDING to "Powerbuilding",
-    ProgramMode.POWERLIFTING to "Powerlifting",
+/** Etiquetas deportivas del programa; solo describen su identidad y no eligen un motor de prescripción. */
+private val BLANK_MODALITIES = listOf(
+    "Fuerza general", "Hipertrofia", "Powerlifting", "Powerbuilding", "Levantamiento olímpico",
+    "Calistenia", "CrossFit", "HYROX", "Running", "Ciclismo", "Natación", "Remo", "Movilidad", "Personalizada",
 )
 
 /**
@@ -171,14 +176,17 @@ private fun NewProgramIcon(icon: ImageVector, tint: Color) {
  * guardar. Las semanas y las sesiones se arman después, dentro del programa.
  */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun BlankProgramSheet(
     suggestedName: String,
     onDismiss: () -> Unit,
-    onCreate: (name: String, mode: ProgramMode, coverImage: String) -> Unit,
+    onCreate: (name: String, coverImage: String, identityLabel: String) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
-    var mode by remember { mutableStateOf(ProgramMode.HYPERTROPHY) }
+    var selectedModality by remember { mutableStateOf<String?>(null) }
+    var customModality by remember { mutableStateOf("") }
     var style by remember { mutableStateOf(BLANK_COVER_STYLES.first()) }
+    var background by remember { mutableStateOf(LineCoverBackground.CARBON) }
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -202,16 +210,42 @@ internal fun BlankProgramSheet(
                 placeholder = suggestedName,
                 modifier = Modifier.testTag("blank-program-name"),
             )
-            BlankGroup(label = "Modalidad") {
-                FlowRowOfModes(selected = mode, onSelect = { mode = it })
+            BlankGroup(label = "Modalidad del programa · etiqueta") {
+                FlowRowOfModalities(selected = selectedModality, onSelect = { selectedModality = it })
+                if (selectedModality == "Personalizada") {
+                    KpknTextField(
+                        value = customModality,
+                        onValueChange = { customModality = it.take(48) },
+                        label = "Etiqueta personalizada",
+                        placeholder = "Ej. Escalada",
+                        modifier = Modifier.testTag("blank-program-custom-modality"),
+                    )
+                }
             }
             BlankGroup(label = "Portada") {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     BLANK_COVER_STYLES.forEach { option ->
                         BlankCoverChoice(
                             style = option,
+                            background = background,
                             selected = option == style,
                             onSelect = { style = option },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    LineCoverBackground.entries.forEach { bgOption ->
+                        BlankBackgroundDot(
+                            background = bgOption,
+                            selected = bgOption == background,
+                            onSelect = { background = bgOption },
                         )
                     }
                 }
@@ -219,14 +253,17 @@ internal fun BlankProgramSheet(
             KpknPrimaryPill(
                 text = "Crear y abrir",
                 onClick = {
+                    val modality = selectedModality?.let { if (it == "Personalizada") customModality.trim() else it }
+                        ?.takeIf(String::isNotBlank) ?: return@KpknPrimaryPill
                     onCreate(
                         name.trim().ifBlank { suggestedName },
-                        mode,
-                        lineCoverValue(style, LineCoverBackground.CARBON),
+                        lineCoverValue(style, background),
+                        modality,
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 tag = "blank-program-create",
+                enabled = selectedModality != null && (selectedModality != "Personalizada" || customModality.isNotBlank()),
             )
         }
     }
@@ -235,18 +272,18 @@ internal fun BlankProgramSheet(
 /** Los chips de modalidad de «Desde cero»: el elegido va relleno. Si no caben en una línea, bajan a la siguiente. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FlowRowOfModes(selected: ProgramMode, onSelect: (ProgramMode) -> Unit) {
+private fun FlowRowOfModalities(selected: String?, onSelect: (String) -> Unit) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        BLANK_MODES.forEach { (value, label) ->
+        BLANK_MODALITIES.forEach { label ->
             KpknChip(
                 height = 30.dp,
                 text = label,
-                selected = value == selected,
-                onClick = { onSelect(value) },
-                modifier = Modifier.testTag("blank-mode-${value.name}"),
+                selected = label == selected,
+                onClick = { onSelect(label) },
+                modifier = Modifier.testTag("blank-modality-${label.lowercase().replace(' ', '-')}") ,
             )
         }
     }
@@ -266,7 +303,12 @@ private fun BlankGroup(label: String, content: @Composable () -> Unit) {
  * hasta la miniatura; la caja es siempre de 60 × 72 dp, así no salta el diseño al elegir.
  */
 @Composable
-private fun BlankCoverChoice(style: LineCoverStyle, selected: Boolean, onSelect: () -> Unit) {
+internal fun BlankCoverChoice(
+    style: LineCoverStyle,
+    background: LineCoverBackground,
+    selected: Boolean,
+    onSelect: () -> Unit,
+) {
     val shape = RoundedCornerShape(16.dp)
     val interaction = remember { MutableInteractionSource() }
     Box(
@@ -281,11 +323,14 @@ private fun BlankCoverChoice(style: LineCoverStyle, selected: Boolean, onSelect:
                 role = Role.RadioButton,
                 onClick = onSelect,
             )
-            .semantics { contentDescription = "Portada ${style.label}" },
+            .semantics {
+                contentDescription = "Portada ${style.label}, fondo ${background.label}"
+                this.selected = selected
+            },
         contentAlignment = Alignment.Center,
     ) {
         LineCoverArt(
-            spec = LineCoverSpec(style = style, background = LineCoverBackground.CARBON, seed = 3),
+            spec = LineCoverSpec(style = style, background = background, seed = 3),
             modifier = Modifier.size(width = 52.dp, height = 64.dp).clip(RoundedCornerShape(12.dp)),
         )
     }
@@ -372,4 +417,37 @@ private fun NewProgramCard(
         Text(text = title, style = KpknType.bodyStrong, color = WizardColors.text)
         Text(text = caption, style = KpknType.caption, color = WizardColors.textFaint)
     }
+}
+
+@Composable
+private fun BlankBackgroundDot(
+    background: LineCoverBackground,
+    selected: Boolean,
+    onSelect: () -> Unit,
+) {
+    val bg = Color(background.bg)
+    val accent = Color(background.accent)
+    val ring = WizardColors.text
+    Box(
+        modifier = Modifier
+            .size(26.dp)
+            .drawBehind {
+                if (selected) {
+                    drawCircle(color = ring, radius = size.minDimension / 2f + 3.dp.toPx(), style = Stroke(width = 2.dp.toPx()))
+                }
+            }
+            .clip(CircleShape)
+            .background(bg)
+            .drawBehind {
+                val path = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(size.width, 0f)
+                    lineTo(size.width, size.height)
+                    lineTo(0f, size.height)
+                    close()
+                }
+                drawPath(path, accent)
+            }
+            .clickable(role = Role.RadioButton, onClick = onSelect)
+            .testTag("blank-cover-bg-${background.name.lowercase()}"),
+    )
 }

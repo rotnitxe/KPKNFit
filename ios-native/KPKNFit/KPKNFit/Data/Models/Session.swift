@@ -6,6 +6,10 @@ public enum TrainingMode: String, Codable {
     case REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE, AMRAP
 }
 
+public enum SmartLoadBasis: String, Codable {
+    case ONE_RM, TRAINING_MAX
+}
+
 public enum TimeStrategy: String, Codable {
     case COUNTDOWN, CHRONOMETER, FREE
 }
@@ -776,6 +780,7 @@ public struct Exercise: Identifiable, Codable {
     public let trainingMode: TrainingMode
     public let customUnit: String?
     public let reference1RM: Double?
+    public let smartLoadBasis: SmartLoadBasis?
     public let targetSessionGoal: String?
     public let isStarTarget: Bool
     public let trackHeartRate: Bool
@@ -829,6 +834,7 @@ public struct Exercise: Identifiable, Codable {
         trainingMode: TrainingMode = .REPS,
         customUnit: String? = nil,
         reference1RM: Double? = nil,
+        smartLoadBasis: SmartLoadBasis? = nil,
         targetSessionGoal: String? = nil,
         isStarTarget: Bool = false,
         trackHeartRate: Bool = false,
@@ -881,6 +887,7 @@ public struct Exercise: Identifiable, Codable {
         self.trainingMode = trainingMode
         self.customUnit = customUnit
         self.reference1RM = reference1RM
+        self.smartLoadBasis = smartLoadBasis
         self.targetSessionGoal = targetSessionGoal
         self.isStarTarget = isStarTarget
         self.trackHeartRate = trackHeartRate
@@ -921,7 +928,7 @@ public struct Exercise: Identifiable, Codable {
     private static let knownCodingKeys: Set<String> = [
         "id", "name", "exerciseDbId", "exerciseId", "canonicalExerciseId", "exerciseFamilyId", "relativeToCanonicalExerciseId",
         "relationshipType", "relationshipNotes", "sets", "warmupSets", "restTime", "isFavorite", "trainingMode", "customUnit",
-        "reference1RM", "targetSessionGoal", "isStarTarget", "trackHeartRate", "trackRom", "setupDetails", "supersetId",
+        "reference1RM", "smartLoadBasis", "targetSessionGoal", "isStarTarget", "trackHeartRate", "trackRom", "setupDetails", "supersetId",
         "supersetRestBetween", "supersetRestAfter", "supersetGroupRef", "variantName", "selectedExecutionOption",
         "selectedMovementPattern", "prFor1RM", "consolidatedWeight", "brandEquivalencies", "isUnilateral", "unilateralMode",
         "unilateralSideOrder", "unilateralIntensityMode", "restBetweenSidesSeconds", "isCalibratorAmrap", "goal1RM", "goalPr",
@@ -947,6 +954,7 @@ public struct Exercise: Identifiable, Codable {
         trainingMode = try c.decode(TrainingMode.self, "trainingMode", default: .REPS)
         customUnit = try c.decodeOptional(String.self, "customUnit")
         reference1RM = try c.decodeOptional(Double.self, "reference1RM")
+        smartLoadBasis = try c.decodeOptional(SmartLoadBasis.self, "smartLoadBasis")
         targetSessionGoal = try c.decodeOptional(String.self, "targetSessionGoal")
         isStarTarget = try c.decode(Bool.self, "isStarTarget", default: false)
         trackHeartRate = try c.decode(Bool.self, "trackHeartRate", default: false)
@@ -1002,6 +1010,7 @@ public struct Exercise: Identifiable, Codable {
         try c.encode(trainingMode, forKey: DynamicCodingKey("trainingMode"))
         try c.encodeIfPresent(customUnit, forKey: DynamicCodingKey("customUnit"))
         try c.encodeIfPresent(reference1RM, forKey: DynamicCodingKey("reference1RM"))
+        try c.encodeIfPresent(smartLoadBasis, forKey: DynamicCodingKey("smartLoadBasis"))
         try c.encodeIfPresent(targetSessionGoal, forKey: DynamicCodingKey("targetSessionGoal"))
         try c.encode(isStarTarget, forKey: DynamicCodingKey("isStarTarget"))
         try c.encode(trackHeartRate, forKey: DynamicCodingKey("trackHeartRate"))

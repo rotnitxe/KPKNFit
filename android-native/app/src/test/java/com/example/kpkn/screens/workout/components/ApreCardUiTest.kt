@@ -121,6 +121,10 @@ class ApreCardUiTest {
         ApreVariant.entries.forEach { variant ->
             rule.runOnIdle { seed(variant) }
             rule.waitForIdle(); frame(height)
+            val record = state.value.calibrationDecisions.single()
+            assertEquals(variant.xrmReps, record.apre!!.xrmReps)
+            assertNull("XRM observado no se convierte en capacidad 1RM", record.decision.capacityKg)
+            assertNull("XRM observado tampoco se guarda como Training Max/referencia", record.decision.referenceKg)
             rule.onNodeWithText("APRE").assertIsDisplayed()
             completeText(rule.onNodeWithTag("apre-set4-result"))
             completeText(rule.onNodeWithText("Propuesta para", substring = true))
@@ -145,4 +149,22 @@ class ApreCardUiTest {
     @Test fun v7At880Font130() = verify(880,1.3f)
     @Test @Config(qualifiers = "w360dp-h740dp-mdpi") fun v7At740Font100() = verify(740,1f)
     @Test @Config(qualifiers = "w360dp-h740dp-mdpi") fun v7At740Font130() = verify(740,1.3f)
+
+    @Test fun staleS3IdentityShowsReviewAndCannotApply() {
+        seed(ApreVariant.APRE_6)
+        val base = state.value
+        val current = base.calibrationDecisions.single()
+        val stale = current.copy(apre = current.apre!!.copy(sourcePlannedSetId = "stale-s3"))
+        state.value = base.copy(calibrationDecisions = listOf(stale))
+        mount(1f)
+
+        rule.onNodeWithTag("calibration-resolution")
+            .assertTextEquals("La identidad de S3 cambió; revisa el resultado registrado.")
+        rule.onNodeWithTag("calibration-apply").assertDoesNotExist()
+        rule.onNodeWithTag("calibration-review").assertIsDisplayed().performClick()
+        assertEquals(1, edited)
+
+        val rejected = resolveCalibration(state.value, stale.id, CalibrationStatus.APPLIED, 2_000)
+        assertEquals(CalibrationStatus.PROPOSED, rejected.calibrationDecisions.single().status)
+    }
 }

@@ -13,6 +13,73 @@ internal fun liveApreBlock(state: WorkoutUiState, exercise: Exercise): LiveApreB
     state.livePlanContext?.progression is ProgressionRule.ApreXrm,
 )
 
+internal data class ApreApplicationContract(
+    val canApply: Boolean,
+    val reviewReason: String? = null,
+)
+
+/** Shared presentation/commit contract: the exact S3→S4 proposal must still match the live block and its pending target. */
+internal fun validateApreApplicationContract(
+    state: WorkoutUiState,
+    exercise: Exercise,
+    record: CalibrationDecisionRecord,
+): ApreApplicationContract {
+    val apre = record.apre ?: return ApreApplicationContract(canApply = true)
+    val block = liveApreBlock(state, exercise)
+        ?: return ApreApplicationContract(false, "El bloque APRE cambió; revisa S3 antes de aplicar.")
+    if (block.variant.xrmReps != apre.xrmReps) {
+        return ApreApplicationContract(false, "Cambió el XRM de APRE; revisa S3 y su serie de destino.")
+    }
+    if (exercise.sets.getOrNull(block.thirdIndex)?.id != apre.sourcePlannedSetId) {
+        return ApreApplicationContract(false, "La identidad de S3 cambió; revisa el resultado registrado.")
+    }
+    val target = exercise.sets.getOrNull(block.fourthIndex)
+        ?: return ApreApplicationContract(false, "S4 ya no está disponible; revisa el bloque APRE.")
+    if (target.id != apre.targetPlannedSetId) {
+        return ApreApplicationContract(false, "La identidad de S4 cambió; revisa la serie de destino.")
+    }
+
+    val sourceEntry = state.completedSets.entries.firstOrNull { it.value.id == record.sourceSetId }
+        ?: return ApreApplicationContract(false, "El resultado de S3 ya no está disponible; revísalo antes de aplicar.")
+    val sourceKey = parseCompletedSetKey(sourceEntry.key)
+        ?: return ApreApplicationContract(false, "La identidad registrada de S3 no se puede verificar; revisa el resultado.")
+    if (sourceKey.exerciseId != exercise.id || sourceKey.setIdx != block.thirdIndex ||
+        sourceKey.side != record.decision.context.side ||
+        sourceEntry.value.performedPurpose() != SetPurpose.AMRAP ||
+        sourceEntry.value.amrapMinimumReps?.let { it != apre.xrmReps } == true) {
+        return ApreApplicationContract(false, "El marcador de S3 no coincide con esta propuesta; revisa el resultado.")
+    }
+
+    val targetId = calibrationSetId(target, sourceKey.side)
+    val targetKey = workoutSetKey(exercise.id, block.fourthIndex, sourceKey.side)
+    if (target.completedReps != null || targetKey in state.completedSets ||
+        workoutSetKey(exercise.id, block.fourthIndex) in state.completedSets) {
+        return ApreApplicationContract(false, "S4 ya está completada; revisa la carga registrada.")
+    }
+    val targetPending = pendingCalibrationSets(state, exercise, block.thirdIndex, record.decision.context)
+        .firstOrNull { it.setId == targetId }
+    if (targetPending == null) {
+        return ApreApplicationContract(false, "S4 ya no está pendiente; revisa el bloque APRE.")
+    }
+    if (targetPending.isCompleted) {
+        return ApreApplicationContract(false, "S4 ya está completada; revisa la carga registrada.")
+    }
+    if (targetPending.isManuallyFixed) {
+        return ApreApplicationContract(false, "S4 tiene una carga fijada; revisa su valor antes de aplicar.")
+    }
+    val savedPrescription = record.pendingPrescriptions[targetId]
+    if (targetPending.context != record.decision.context || savedPrescription?.let {
+            it.targetReps != targetPending.targetReps || it.targetRir != targetPending.targetRir
+        } == true) {
+        return ApreApplicationContract(false, "La prescripción de S4 cambió; revisa la serie de destino.")
+    }
+    val proposedChange = record.decision.affectedSets.firstOrNull { it.setId == targetId }
+    if (proposedChange == null || proposedChange.beforeKg != targetPending.baseLoadKg) {
+        return ApreApplicationContract(false, "La carga base de S4 cambió; revisa la propuesta.")
+    }
+    return ApreApplicationContract(canApply = true)
+}
+
 /** S3 propone exclusivamente su S4. La tabla usa reps completas, ya separadas de las parciales por CAL1. */
 internal fun buildRecordedApreCalibration(
     state: WorkoutUiState, exercise: Exercise, index: Int, completed: CompletedSet, now: Long,

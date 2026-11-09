@@ -65,6 +65,15 @@ object FoodIdentity {
             "|\\s+(?:cruda?|cocida?|cocinada?|hidratada?|frita?|frito|plancha|horno|asada?|vapor|parrilla)\\b",
         RegexOption.IGNORE_CASE,
     )
+    private val PREPARATION_SUFFIX = Regex(
+        "(?:\\s*\\(\\s*(?:crudos?|crudas?|secos?|secas?|cocidos?|cocidas?|cocinados?|cocinadas?|" +
+            "hervidos?|hervidas?|hidratados?|hidratadas?|deshidratados?|deshidratadas?|fritos?|fritas?|" +
+            "plancha|horno|asados?|asadas?|vapor|parrilla|salteados?|salteadas?)\\s*\\)|\\s+(?:(?:a\\s+la|al|en)\\s+)?" +
+            "(?:crudos?|crudas?|secos?|secas?|cocidos?|cocidas?|cocinados?|cocinadas?|hervidos?|hervidas?|" +
+            "hidratados?|hidratadas?|deshidratados?|deshidratadas?|fritos?|fritas?|plancha|horno|asados?|" +
+            "asadas?|vapor|parrilla|salteados?|salteadas?))\\s*$",
+        RegexOption.IGNORE_CASE,
+    )
 
     // raw/cooked en inglés: las filas USDA/OFF traen el estado en la descripción
     // ("Chicken… cooked, braised") y antes quedaban UNKNOWN, ignorando la
@@ -83,6 +92,9 @@ object FoodIdentity {
 
     /** Search key. Delegates to the single precompiled normalizer, [TextKeys.normalize]. */
     fun normalize(value: String): String = TextKeys.normalize(value)
+
+    /** Core identity for a catalog row when a preparation is being changed in place. */
+    fun identityQueryWithoutPreparation(value: String): String = normalize(value).replace(PREPARATION_SUFFIX, "").trim()
 
     // Related breads share portion priors; their identities remain distinct.
     private val BREAD_CHILENO_WORDS = setOf(
@@ -479,9 +491,13 @@ object FoodIdentity {
         val values = listOf(food.calories, food.protein, food.carbs, food.fats)
         if (values.any { !it.isFinite() || it < 0.0 }) return false
         // An all-zero row is a broken one, unless the catalog declares it zero-energy (water, diet soda).
-        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return NutrientBasis.isZeroEnergy(food)
+        if (food.calories <= 0.0) {
+            // Macros with zero energy are contradictory unless the row is an
+            // explicitly declared zero-energy food with all macros at zero.
+            return values.drop(1).all { it == 0.0 } && NutrientBasis.isZeroEnergy(food)
+        }
         val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
-        if (food.calories <= 0.0 || macroEnergy <= 0.0) return true
+        if (macroEnergy <= 0.0) return true
         return kotlin.math.abs(food.calories - macroEnergy) <= maxOf(80.0, food.calories * 0.70)
     }
 }

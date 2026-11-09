@@ -87,6 +87,18 @@ class WarmupRulesTest {
     }
 
     @Test
+    fun percentages_share_normalization_and_invalid_values_cannot_create_extreme_loads() {
+        for ((raw, fraction) in listOf(0.5 to 0.5, 50.0 to 0.5, 0.7 to 0.7, 70.0 to 0.7)) {
+            assertEquals(fraction, normalizeWarmupPercentage(raw), 0.0001)
+            assertEquals(fraction, WarmupCalibrationEngine.normalizePercentage(raw), 0.0001)
+        }
+        for (invalid in listOf(Double.NaN, Double.POSITIVE_INFINITY, -0.5, 0.0, 100.1, 5000.0)) {
+            assertEquals(0.0, normalizeWarmupPercentage(invalid), 0.0)
+            assertNull(warmupLoadKg(invalid, workingWeightKg = 100.0, capacityKg = 100.0))
+        }
+    }
+
+    @Test
     fun exceeding_the_recommended_max_is_reported_with_the_new_rule() {
         val six = (1..7).map { WarmupSetDefinition("w$it", 0.5, 8) }
         val messages = warmupValidationMessages(warmupSets = six, effectiveSetCount = 3)

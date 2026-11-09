@@ -8,6 +8,7 @@ import androidx.work.WorkManager
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.VideoAnalysisStatus
@@ -19,6 +20,9 @@ import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -36,6 +40,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.IOException
 
 /**
  * `VideoAnalysisRepository` sobre Room en memoria y el WorkManager de pruebas: los flujos que lee la interfaz, las peticiones
@@ -56,6 +61,8 @@ class VideoAnalysisRepositoryTest {
 
     @Before
     fun setUp() {
+        File(context.filesDir, "analysis_requests").deleteRecursively()
+        File(context.filesDir, "analysis_publications").deleteRecursively()
         db = KpknDatabase.createInMemory(context)
         store = WorkoutMediaStore(folder.newFolder("files"))
         repository = VideoAnalysisRepository.forDatabase(context, db, store)
@@ -67,6 +74,8 @@ class VideoAnalysisRepositoryTest {
         TechniqueWorkTestKit.tearDownWorkManager()
         db.close()
         KpknDatabase.closeInstance()
+        File(context.filesDir, "analysis_requests").deleteRecursively()
+        File(context.filesDir, "analysis_publications").deleteRecursively()
     }
 
     private fun infos(mediaId: String): List<WorkInfo> =
@@ -295,6 +304,366 @@ class VideoAnalysisRepositoryTest {
         assertEquals(2, TechniqueWorkTestKit.awaitStarted(2).size)
         assertEquals("FULL", TechniqueWorkTestKit.started.last().getString(TechniqueAnalysisWorker.KEY_MODE))
         assertTrue(TechniqueWorkTestKit.started.last().getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+    }
+
+    @Test
+    fun a_manual_request_is_durable_and_does_not_change_the_choice_for_automatic_capture_analysis() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-manual")
+        val sidecar = TechniqueSidecars.captureFile(File(media.filePath))
+        CaptureMetadataFile.update(sidecar) { it.copy(analysisRequestedForCapture = false) }
+
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+
+        val metadata = CaptureMetadataFile.read(sidecar)
+        assertEquals("la petición manual no enciende el automático de esta toma", false, metadata.analysisRequestedForCapture)
+        assertEquals("PLATE_ONLY", metadata.manualAnalysisRequestMode)
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        assertTrue(started.getBoolean(TechniqueAnalysisWorker.KEY_EXPLICIT, false))
+        assertEquals(
+            metadata.manualAnalysisRequestId,
+            started.getString(TechniqueAnalysisWorker.KEY_MANUAL_REQUEST_ID),
+        )
+    }
+
+    @Test
+    fun a_failed_capture_metadata_copy_does_not_prevent_a_durable_manual_request_from_being_queued() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-metadata-copy-fails")
+        val capture = TechniqueSidecars.captureFile(File(media.filePath))
+        assertTrue("la carpeta en la ruta del sidecar fuerza un error real al reemplazar capture.json", capture.mkdir())
+
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        val pending = repository.pendingManualAnalysisRequest(media.id)!!
+        assertEquals("PLATE_ONLY", started.getString(TechniqueAnalysisWorker.KEY_MODE))
+        assertEquals(pending.id, started.getString(TechniqueAnalysisWorker.KEY_MANUAL_REQUEST_ID))
+        assertEquals(AnalysisMode.PLATE_ONLY, pending.mode)
+        assertTrue(File(context.filesDir, "analysis_requests/${media.id}.json").isFile)
+        assertNull("el directorio bloquea de verdad el sidecar auxiliar", CaptureMetadataFile.read(capture).manualAnalysisRequestId)
+    }
+
+    @Test
+    fun an_enqueue_failure_keeps_the_request_for_recovery_and_reconcile_does_not_duplicate_it() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-enqueue-retry")
+        val failingRepository = VideoAnalysisRepository.forDatabaseForTests(
+            context,
+            db,
+            store,
+            manualEnqueuer = { _, _, _, _, _ -> throw IOException("fallo WorkManager inyectado") },
+        )
+
+        assertFalse(failingRepository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        val savedRequest = failingRepository.pendingManualAnalysisRequest(media.id)!!
+        assertEquals(AnalysisMode.PLATE_ONLY, savedRequest.mode)
+        assertTrue("la solicitud queda recuperable aunque falle el primer enqueue", File(context.filesDir, "analysis_requests/${media.id}.json").isFile)
+
+        val recreatedRepository = VideoAnalysisRepository.forDatabase(context, db, store)
+        val firstRecovery = TechniqueAnalysisScheduler.reconcile(context, recreatedRepository)
+        assertEquals(1, firstRecovery.requeued)
+        val started = TechniqueWorkTestKit.awaitStarted(1)
+        assertEquals(savedRequest.id, started.single().getString(TechniqueAnalysisWorker.KEY_MANUAL_REQUEST_ID))
+        assertEquals("PLATE_ONLY", started.single().getString(TechniqueAnalysisWorker.KEY_MODE))
+
+        val secondRecovery = TechniqueAnalysisScheduler.reconcile(context, recreatedRepository)
+        assertEquals(0, secondRecovery.requeued)
+        assertEquals("la misma generación conserva un solo trabajo activo", 1, infos(media.id).count { !it.state.isFinished })
+        assertEquals("reconciliar otra vez no crea otra ejecución", 1, TechniqueWorkTestKit.started.size)
+    }
+
+    @Test
+    fun stale_generations_never_publish_over_the_latest_request_for_full_and_plate_only_modes() = runBlocking {
+        val scenarios = listOf(
+            Triple("full-full", AnalysisMode.FULL, AnalysisMode.FULL),
+            Triple("full-plate", AnalysisMode.FULL, AnalysisMode.PLATE_ONLY),
+            Triple("plate-full", AnalysisMode.PLATE_ONLY, AnalysisMode.FULL),
+        )
+        var expectedStarted = 0
+
+        for ((suffix, oldMode, currentMode) in scenarios) {
+            val mediaId = "vid-stale-$suffix"
+            val media = done(mediaId)
+            val analysisFile = TechniqueSidecars.analysisFile(File(media.filePath))
+            val originalSidecar = analysisFile.readBytes()
+
+            assertTrue(repository.requestAnalysis(mediaId, oldMode))
+            expectedStarted++
+            TechniqueWorkTestKit.awaitStarted(expectedStarted)
+            val oldRequest = repository.pendingManualAnalysisRequest(mediaId)!!
+
+            assertTrue(repository.requestAnalysis(mediaId, currentMode))
+            expectedStarted++
+            TechniqueWorkTestKit.awaitStarted(expectedStarted)
+            val currentRequest = repository.pendingManualAnalysisRequest(mediaId)!!
+            val queuedBeforeStaleResult = repository.getByMedia(mediaId)!!
+            assertEquals(currentMode, currentRequest.mode)
+            assertTrue("cada toque inicia una generación distinta", oldRequest.id != currentRequest.id)
+
+            assertTrue(
+                repository.completeDone(
+                    media,
+                    TechniqueReportSamples.fullReport(),
+                    TechniqueReportSamples.exercise(),
+                    80.0,
+                    oldMode,
+                    fulfilledManualRequestId = oldRequest.id,
+                ),
+            )
+
+            assertEquals("un resultado antiguo no cambia el sidecar publicado", originalSidecar.toList(), analysisFile.readBytes().toList())
+            assertEquals("un resultado antiguo no cambia Room", queuedBeforeStaleResult, repository.getByMedia(mediaId))
+            assertEquals("la generación vigente sigue recuperable", currentRequest, repository.pendingManualAnalysisRequest(mediaId))
+            val generationFile = File(context.filesDir, "analysis_requests/$mediaId.json")
+            assertTrue(generationFile.isFile)
+            assertTrue("el identificador vigente queda persistido por medio", generationFile.readText().contains(currentRequest.id))
+
+            val recreatedRepository = VideoAnalysisRepository.forDatabase(context, db, store)
+            assertEquals(currentRequest, recreatedRepository.pendingManualAnalysisRequest(mediaId))
+            val recovery = TechniqueAnalysisScheduler.reconcile(context, recreatedRepository)
+            assertEquals("el trabajo vigente ya está representado", 0, recovery.requeued)
+            assertEquals(1, infos(mediaId).count { !it.state.isFinished })
+            assertEquals(expectedStarted, TechniqueWorkTestKit.started.size)
+        }
+    }
+
+    @Test
+    fun generation_change_waits_until_the_checked_report_publication_finishes() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-serialized-publication")
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        TechniqueWorkTestKit.awaitStarted(1)
+        val firstRequest = repository.pendingManualAnalysisRequest(media.id)!!
+        val enteredPublication = CompletableDeferred<Unit>()
+        val finishPublication = CompletableDeferred<Unit>()
+        val publishingRepository = VideoAnalysisRepository.forDatabaseForTests(
+            context,
+            db,
+            store,
+            beforeAnalysisPublication = { _, _ ->
+                enteredPublication.complete(Unit)
+                finishPublication.await()
+            },
+        )
+
+        val publication = async {
+            publishingRepository.completeDone(
+                media,
+                TechniqueReportSamples.fullReport(),
+                TechniqueReportSamples.exercise(),
+                80.0,
+                AnalysisMode.FULL,
+                fulfilledManualRequestId = firstRequest.id,
+            )
+        }
+        withTimeout(5_000L) { enteredPublication.await() }
+        val nextRequest = async { repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY) }
+        delay(50L)
+        assertFalse("la nueva generación no puede cruzarse entre comprobación y publicación", nextRequest.isCompleted)
+
+        finishPublication.complete(Unit)
+        assertTrue(publication.await())
+        assertTrue(nextRequest.await())
+        val currentRequest = repository.pendingManualAnalysisRequest(media.id)!!
+        assertEquals(AnalysisMode.PLATE_ONLY, currentRequest.mode)
+
+        val publishedFile = TechniqueSidecars.analysisFile(File(media.filePath))
+        val publishedBytes = publishedFile.readBytes()
+        val queuedRow = repository.getByMedia(media.id)!!
+        repository.completeDone(
+            media,
+            TechniqueReportSamples.fullReport(),
+            TechniqueReportSamples.exercise(),
+            80.0,
+            AnalysisMode.FULL,
+            fulfilledManualRequestId = firstRequest.id,
+        )
+        assertEquals(publishedBytes.toList(), publishedFile.readBytes().toList())
+        assertEquals(queuedRow, repository.getByMedia(media.id))
+        assertEquals(currentRequest, repository.pendingManualAnalysisRequest(media.id))
+    }
+
+    @Test
+    fun an_automatic_generation_stays_stale_while_a_manual_request_is_pending_and_after_it_is_confirmed() = runBlocking {
+        val media = done("vid-auto-stale")
+        assertTrue(TechniqueAnalysisScheduler.enqueue(context, media.id, AnalysisMode.FULL, repository = repository))
+        val automaticWork = TechniqueWorkTestKit.awaitStarted(1).single()
+        val automaticGeneration = requireNotNull(automaticWork.getString(TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID))
+
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        TechniqueWorkTestKit.awaitStarted(2)
+        val currentRequest = requireNotNull(repository.pendingManualAnalysisRequest(media.id))
+        val initialAnalysis = TechniqueSidecars.analysisFile(File(media.filePath)).readBytes()
+        val queuedRow = requireNotNull(repository.getByMedia(media.id))
+        assertEquals(AnalysisMode.FULL, currentRequest.mode)
+
+        assertTrue(
+            repository.completeDone(
+                media,
+                TechniqueReportSamples.fullReport().copy(repCount = 19),
+                TechniqueReportSamples.exercise(),
+                80.0,
+                AnalysisMode.FULL,
+                analysisGenerationId = automaticGeneration,
+            ),
+        )
+        assertEquals(initialAnalysis.toList(), TechniqueSidecars.analysisFile(File(media.filePath)).readBytes().toList())
+        assertEquals(queuedRow, repository.getByMedia(media.id))
+        assertEquals(currentRequest, repository.pendingManualAnalysisRequest(media.id))
+
+        val currentReport = TechniqueReportSamples.fullReport().copy(repCount = 23)
+        assertTrue(
+            repository.completeDone(
+                media,
+                currentReport,
+                TechniqueReportSamples.exercise(),
+                80.0,
+                AnalysisMode.FULL,
+                fulfilledManualRequestId = currentRequest.id,
+                analysisGenerationId = currentRequest.id,
+            ),
+        )
+        repository.clearManualAnalysisRequest(media.id, currentRequest.id)
+        assertNull(repository.pendingManualAnalysisRequest(media.id))
+        val committedFile = TechniqueSidecars.analysisFile(File(media.filePath)).readBytes()
+        val committedRow = requireNotNull(repository.getByMedia(media.id))
+        val acknowledgedGeneration = requireNotNull(repository.currentAnalysisGeneration(media.id))
+        assertEquals(currentRequest.id, acknowledgedGeneration.id)
+        assertFalse(acknowledgedGeneration.manualRequestPending)
+        assertEquals(23, committedRow.repCount)
+
+        // Simulate the old automatic Worker both with its original token and without a token (pre-ledger WorkManager input).
+        repository.completeDone(
+            media,
+            TechniqueReportSamples.fullReport().copy(repCount = 31),
+            TechniqueReportSamples.exercise(),
+            80.0,
+            AnalysisMode.FULL,
+            analysisGenerationId = automaticGeneration,
+        )
+        repository.completeDone(
+            media,
+            TechniqueReportSamples.fullReport().copy(repCount = 37),
+            TechniqueReportSamples.exercise(),
+            80.0,
+            AnalysisMode.FULL,
+            analysisGenerationId = null,
+        )
+        assertEquals(committedFile.toList(), TechniqueSidecars.analysisFile(File(media.filePath)).readBytes().toList())
+        assertEquals(committedRow, repository.getByMedia(media.id))
+        assertEquals(acknowledgedGeneration, repository.currentAnalysisGeneration(media.id))
+        assertNull(repository.pendingManualAnalysisRequest(media.id))
+    }
+
+    @Test
+    fun an_old_manual_generation_cannot_publish_after_the_new_request_is_confirmed() = runBlocking {
+        val media = done("vid-manual-confirmed")
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        TechniqueWorkTestKit.awaitStarted(1)
+        val oldRequest = requireNotNull(repository.pendingManualAnalysisRequest(media.id))
+
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        TechniqueWorkTestKit.awaitStarted(2)
+        val currentRequest = requireNotNull(repository.pendingManualAnalysisRequest(media.id))
+        val currentReport = TechniqueReportSamples.fullReport().copy(repCount = 29)
+        assertTrue(
+            repository.completeDone(
+                media,
+                currentReport,
+                TechniqueReportSamples.exercise(),
+                80.0,
+                AnalysisMode.PLATE_ONLY,
+                fulfilledManualRequestId = currentRequest.id,
+                analysisGenerationId = currentRequest.id,
+            ),
+        )
+        repository.clearManualAnalysisRequest(media.id, currentRequest.id)
+        val committedFile = TechniqueSidecars.analysisFile(File(media.filePath)).readBytes()
+        val committedRow = requireNotNull(repository.getByMedia(media.id))
+
+        repository.completeDone(
+            media,
+            TechniqueReportSamples.fullReport().copy(repCount = 41),
+            TechniqueReportSamples.exercise(),
+            80.0,
+            AnalysisMode.FULL,
+            fulfilledManualRequestId = oldRequest.id,
+            analysisGenerationId = oldRequest.id,
+        )
+
+        assertEquals(committedFile.toList(), TechniqueSidecars.analysisFile(File(media.filePath)).readBytes().toList())
+        assertEquals(committedRow, repository.getByMedia(media.id))
+        assertEquals(currentRequest.id, repository.currentAnalysisGeneration(media.id)?.id)
+        assertNull(repository.pendingManualAnalysisRequest(media.id))
+    }
+
+    @Test
+    fun reconcile_recovers_a_sidecar_committed_before_room_and_clears_the_publication_journal() = runBlocking {
+        val media = done("vid-publication-recovery")
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        TechniqueWorkTestKit.awaitStarted(1)
+        val generation = requireNotNull(repository.pendingManualAnalysisRequest(media.id))
+        val beforeFailure = requireNotNull(repository.getByMedia(media.id))
+        val recoveredReport = TechniqueReportSamples.fullReport().copy(repCount = 43)
+        val interruptedRepository = VideoAnalysisRepository.forDatabaseForTests(
+            context,
+            db,
+            store,
+            afterAnalysisSidecarWrite = { _, _ -> throw IOException("simulated process interruption after atomic sidecar rename") },
+        )
+        var interrupted = false
+        try {
+            interruptedRepository.completeDone(
+                media,
+                recoveredReport,
+                TechniqueReportSamples.exercise(),
+                80.0,
+                AnalysisMode.FULL,
+                fulfilledManualRequestId = generation.id,
+                analysisGenerationId = generation.id,
+            )
+        } catch (_: IOException) {
+            interrupted = true
+        }
+        assertTrue("la interrupción debe ocurrir después de escribir el sidecar", interrupted)
+        assertEquals(beforeFailure, repository.getByMedia(media.id))
+        assertEquals(1, db.videoAnalysisDao().count())
+        val journal = File(context.filesDir, "analysis_publications/${media.id}.json")
+        assertTrue(journal.isFile)
+        assertEquals(43, TechniqueSidecars.readAnalysis(TechniqueSidecars.analysisFile(File(media.filePath)))?.report?.repCount)
+
+        val recreatedRepository = VideoAnalysisRepository.forDatabase(context, db, store)
+        val recovered = recreatedRepository.reconcile()
+        assertEquals(1, recovered.rebuiltRows)
+        assertEquals(VideoAnalysisStatus.DONE, recreatedRepository.getByMedia(media.id)?.status)
+        assertEquals(43, recreatedRepository.getByMedia(media.id)?.repCount)
+        assertEquals(generation.id, TechniqueSidecars.readAnalysis(TechniqueSidecars.analysisFile(File(media.filePath)))?.analysisGenerationId)
+        assertFalse(journal.exists())
+        assertEquals(1, db.videoAnalysisDao().count())
+
+        assertEquals(0, recreatedRepository.reconcile().rebuiltRows)
+        assertEquals(1, db.videoAnalysisDao().count())
+    }
+
+    @Test
+    fun a_corrupt_generation_ledger_does_not_bless_a_legacy_worker_without_a_token() = runBlocking {
+        val media = done("vid-corrupt-analysis-ledger")
+        val analysisFile = TechniqueSidecars.analysisFile(File(media.filePath))
+        val publishedBytes = analysisFile.readBytes()
+        val publishedRow = repository.getByMedia(media.id)
+        val ledger = File(context.filesDir, "analysis_requests/${media.id}.json")
+        assertTrue(ledger.parentFile!!.mkdirs() || ledger.parentFile!!.isDirectory)
+        ledger.writeText("{broken-json", Charsets.UTF_8)
+
+        assertFalse(repository.isCurrentAnalysisGeneration(media.id, null))
+        repository.completeDone(
+            media,
+            TechniqueReportSamples.fullReport().copy(repCount = 47),
+            TechniqueReportSamples.exercise(),
+            80.0,
+            AnalysisMode.FULL,
+            analysisGenerationId = null,
+        )
+
+        assertEquals(publishedBytes.toList(), analysisFile.readBytes().toList())
+        assertEquals(publishedRow, repository.getByMedia(media.id))
     }
 
     @Test

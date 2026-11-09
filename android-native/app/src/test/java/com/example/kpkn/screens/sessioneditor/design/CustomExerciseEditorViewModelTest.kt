@@ -56,6 +56,11 @@ class CustomExerciseEditorViewModelTest {
         advanceUntilIdle()
         editor.save(); advanceUntilIdle()
         assertEquals(0, calls)
+        editor.edit { it.copy(
+            implement = SmartExerciseCreator.IMPLEMENTO_IDS.first(),
+            station = SmartExerciseCreator.ESTACION_IDS.first(),
+            laterality = SmartExerciseCreator.LATERALIDAD_IDS.first(),
+        ) }; advanceUntilIdle()
         editor.review(true); editor.save(); runCurrent()
         assertTrue(editor.state.value.saving)
         assertNull(editor.state.value.saved)
@@ -74,6 +79,11 @@ class CustomExerciseEditorViewModelTest {
             if (++attempts == 1) Result.failure(IllegalStateException("Room rechazó")) else Result.success(info)
         }, photo = { pending, info -> imports++; WorkoutMedia(pending.importId, WorkoutMediaKind.PHOTO, "private.jpg", createdAtMs = 1, canonicalExerciseId = info.id) })
         advanceUntilIdle()
+        editor.edit { it.copy(
+            implement = SmartExerciseCreator.IMPLEMENTO_IDS.first(),
+            station = SmartExerciseCreator.ESTACION_IDS.first(),
+            laterality = SmartExerciseCreator.LATERALIDAD_IDS.first(),
+        ) }; advanceUntilIdle()
         editor.edit { it.copy(description = "Texto personal") }; advanceUntilIdle()
         val choice = CustomExerciseCoverDraft.DevicePhoto("content://picker/photo", "photo-id")
         editor.cover(choice)
@@ -114,6 +124,11 @@ class CustomExerciseEditorViewModelTest {
             WorkoutMedia(pending.importId, WorkoutMediaKind.PHOTO, "private.jpg", createdAtMs = 1)
         })
         advanceUntilIdle()
+        editor.edit { it.copy(
+            implement = SmartExerciseCreator.IMPLEMENTO_IDS.first(),
+            station = SmartExerciseCreator.ESTACION_IDS.first(),
+            laterality = SmartExerciseCreator.LATERALIDAD_IDS.first(),
+        ) }; advanceUntilIdle()
         val choice = CustomExerciseCoverDraft.DevicePhoto("content://picker/photo", "same-photo")
         editor.cover(choice); editor.review(true); editor.save(); advanceUntilIdle()
         assertEquals(0, writes)
@@ -141,5 +156,66 @@ class CustomExerciseEditorViewModelTest {
         assertTrue(editor.state.value.preview!!.exercise.involvedMuscles.isNotEmpty())
         editor.edit { it.copy(muscles = emptyList()) }; advanceUntilIdle()
         assertTrue(editor.state.value.preview!!.exercise.involvedMuscles.isEmpty())
+    }
+
+    @Test fun altaManualExigeElegirLosTresEjesAntesDeRevisarYGuardar() = runTest(dispatcher) {
+        var writes = 0
+        val editor = vm("Press personalizado", save = { writes++; Result.success(it) })
+        advanceUntilIdle()
+
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+        assertFalse(editor.state.value.reviewed)
+        assertEquals(0, writes)
+
+        editor.edit { it.copy(implement = SmartExerciseCreator.IMPLEMENTO_IDS.first()) }
+        advanceUntilIdle()
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+        assertFalse(editor.state.value.reviewed)
+        assertEquals(0, writes)
+
+        editor.edit { it.copy(station = SmartExerciseCreator.ESTACION_IDS.first()) }
+        advanceUntilIdle()
+        editor.edit { it.copy(laterality = SmartExerciseCreator.LATERALIDAD_IDS.first()) }
+        advanceUntilIdle()
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+        assertEquals(1, writes)
+        assertNotNull(editor.state.value.saved)
+    }
+
+    @Test fun edicionCargaYConservaLosEjesTecnicosYaGuardados() = runTest(dispatcher) {
+        val implement = SmartExerciseCreator.IMPLEMENTO_IDS.first()
+        val station = SmartExerciseCreator.ESTACION_IDS.first()
+        val laterality = SmartExerciseCreator.LATERALIDAD_IDS.first()
+        val original = ExerciseMuscleInfo(
+            id = "custom:axes",
+            name = "Press propio",
+            equipment = SmartExerciseCreator.implementoLabel(implement),
+            catalogVariantChips = listOf(SmartExerciseCreator.estacionLabel(station), SmartExerciseCreator.lateralidadLabel(laterality)),
+            isCustom = true,
+        )
+        val editor = vm("", initial = original)
+        advanceUntilIdle()
+
+        assertEquals(implement, editor.state.value.implement)
+        assertEquals(station, editor.state.value.station)
+        assertEquals(laterality, editor.state.value.laterality)
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+        assertEquals(original.equipment, editor.state.value.saved!!.equipment)
+        assertEquals(
+            listOf(
+                SmartExerciseCreator.implementoLabel(implement),
+                SmartExerciseCreator.estacionLabel(station),
+                SmartExerciseCreator.lateralidadLabel(laterality),
+            ),
+            editor.state.value.saved!!.catalogVariantChips,
+        )
     }
 }

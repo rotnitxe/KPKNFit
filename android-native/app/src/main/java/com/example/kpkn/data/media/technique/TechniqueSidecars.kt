@@ -26,6 +26,8 @@ data class AnalysisSidecar(
     val loadKg: Double? = null,
     val setKey: String? = null,
     val analyzedAtMs: Long,
+    /** Durable analysis generation; `null` only for legacy sidecars written before generation fencing. */
+    val analysisGenerationId: String? = null,
 )
 
 /** La confianza propia de las parciales no puede superar la confianza general del informe. */
@@ -177,7 +179,8 @@ object TechniqueSidecars {
         loadKg: Double?,
         setKey: String?,
         analyzedAtMs: Long,
-    ): Unit = writeAnalysis(file, AnalysisSidecar(SUMMARY_VERSION, report, exercise, loadKg, setKey, analyzedAtMs))
+        analysisGenerationId: String? = null,
+    ): Unit = writeAnalysis(file, AnalysisSidecar(SUMMARY_VERSION, report, exercise, loadKg, setKey, analyzedAtMs, analysisGenerationId))
 
     /**
      * Lee `<id>.analysis.json`. `null` si no existe, está vacío o corrupto, o es de una versión posterior del formato:

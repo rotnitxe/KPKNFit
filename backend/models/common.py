@@ -181,6 +181,8 @@ class NutritionLogFood(BaseModel):
     protein: float = 0
     carbs: float = 0
     fats: float = 0
+    preparation: Optional[str] = None
+    preparationOilLevel: Optional[str] = None
 
 
 class NutritionLog(BaseModel):

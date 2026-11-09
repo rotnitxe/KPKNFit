@@ -14,6 +14,7 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournal
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
 import com.example.kpkn.data.media.technique.CaptureFileLock
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.PartialSummary
 import com.example.kpkn.data.media.technique.PersonalRangeReference
 import com.example.kpkn.data.media.technique.TechniqueSidecars
@@ -34,11 +35,16 @@ import com.example.kpkn.domain.biomechanics.metrics.RangeReference
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -51,6 +57,8 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.longOrNull
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.UUID
 
 /**
  * Lo que dejó [VideoAnalysisRepository.reconcile] (y, con la cola, `TechniqueAnalysisScheduler.reconcile`).
@@ -69,6 +77,35 @@ data class ReconcileResult(
     val removedFiles: Int = 0,
     val requeued: Int = 0,
 )
+
+/** A durable user request that must survive WorkManager or process database loss. */
+@Serializable
+internal data class ManualAnalysisRequest(
+    val id: String,
+    val mode: AnalysisMode,
+    val mediaId: String = "",
+    val requestedAtMs: Long = 0L,
+    /** This file is also the last-generation ledger after the manual request has been acknowledged. */
+    val manualRequestPending: Boolean = true,
+)
+
+@Serializable
+internal data class AnalysisPublicationJournal(
+    val mediaId: String,
+    val generationId: String?,
+    val analyzedAtMs: Long,
+)
+
+internal typealias ManualAnalysisEnqueuer = suspend (
+    Context,
+    String,
+    AnalysisMode,
+    String,
+    VideoAnalysisRepository,
+) -> Boolean
+
+internal typealias AnalysisPublicationHook = suspend (String, String?) -> Unit
+internal typealias AnalysisSidecarWrittenHook = suspend (String, String?) -> Unit
 
 /**
  * El análisis de técnica en vídeo visto desde la interfaz y desde la cola (§9.5): lee Room, pide análisis y guarda lo que el
@@ -91,6 +128,19 @@ class VideoAnalysisRepository internal constructor(
     private val db: KpknDatabase = KpknDatabase.getInstance(context),
     store: WorkoutMediaStore? = null,
     private val nowMs: () -> Long = { System.currentTimeMillis() },
+    private val manualEnqueuer: ManualAnalysisEnqueuer = { enqueueContext, mediaId, mode, requestId, repository ->
+        TechniqueAnalysisScheduler.enqueue(
+            enqueueContext,
+            mediaId,
+            mode,
+            userInitiated = true,
+            explicit = true,
+            manualRequestId = requestId,
+            repository = repository,
+        )
+    },
+    private val beforeAnalysisPublication: AnalysisPublicationHook = { _, _ -> },
+    private val afterAnalysisSidecarWrite: AnalysisSidecarWrittenHook = { _, _ -> },
 ) {
     private val appContext = context.applicationContext
     private val injectedStore = store
@@ -129,13 +179,250 @@ class VideoAnalysisRepository internal constructor(
 
     // --- Lo que pide la interfaz ---
 
+    private val manualRequestsDir = File(appContext.filesDir, "analysis_requests")
+    private val manualRequestJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val analysisPublicationsDir = File(appContext.filesDir, "analysis_publications")
+    private val publicationJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+    private fun manualRequestFile(mediaId: String): File = File(manualRequestsDir, "$mediaId.json")
+
+    /** Serializes generation changes with report publication, across repository instances in this process. */
+    private fun generationMutex(mediaId: String): Mutex {
+        val filesPath = runCatching { appContext.filesDir.canonicalPath }
+            .getOrDefault(appContext.filesDir.absolutePath)
+        return generationLocks.computeIfAbsent("$filesPath::$mediaId") { Mutex() }
+    }
+
+    private fun writeManualRequestEntry(request: ManualAnalysisRequest) {
+        if (!manualRequestsDir.exists()) manualRequestsDir.mkdirs()
+        val target = manualRequestFile(request.mediaId)
+        val temp = File(manualRequestsDir, "${request.mediaId}.${UUID.randomUUID()}.tmp")
+        try {
+            temp.writeText(manualRequestJson.encodeToString(request), Charsets.UTF_8)
+            TechniqueSidecars.writeAtomically(target, temp.readBytes())
+        } finally {
+            temp.delete()
+        }
+    }
+
+    private fun readManualRequestEntry(mediaId: String): ManualAnalysisRequest? {
+        val file = manualRequestFile(mediaId)
+        if (!file.isFile) return null
+        return try {
+            manualRequestJson.decodeFromString<ManualAnalysisRequest>(file.readText(Charsets.UTF_8))
+                .takeIf { it.mediaId.isBlank() || it.mediaId == mediaId }
+                ?.let { if (it.mediaId.isBlank()) it.copy(mediaId = mediaId) else it }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun readAnalysisGenerationEntry(mediaId: String, media: WorkoutMedia? = null): ManualAnalysisRequest? {
+        readManualRequestEntry(mediaId)?.let { return it }
+        val requestFileExists = manualRequestFile(mediaId).isFile
+        val video = media ?: return invalidGenerationEntry(mediaId).takeIf { requestFileExists }
+        val capture = try {
+            CaptureMetadataFile.read(TechniqueSidecars.captureFile(File(video.filePath)))
+        } catch (_: Exception) {
+            return invalidGenerationEntry(mediaId).takeIf { requestFileExists }
+        }
+        val id = capture.manualAnalysisRequestId ?: return invalidGenerationEntry(mediaId).takeIf { requestFileExists }
+        val mode = AnalysisMode.entries.firstOrNull { it.name == capture.manualAnalysisRequestMode }
+            ?: AnalysisMode.FULL
+        return ManualAnalysisRequest(id, mode, mediaId)
+    }
+
+    /** A corrupt ledger must not make a legacy token-less Worker look current. */
+    private fun invalidGenerationEntry(mediaId: String) = ManualAnalysisRequest(
+        id = "$INVALID_GENERATION_PREFIX$mediaId",
+        mode = AnalysisMode.FULL,
+        mediaId = mediaId,
+        manualRequestPending = false,
+    )
+
+    private fun publicationFile(mediaId: String): File = File(analysisPublicationsDir, "$mediaId.json")
+
+    private fun writePublicationJournal(entry: AnalysisPublicationJournal) {
+        if (!analysisPublicationsDir.exists() && !analysisPublicationsDir.mkdirs() && !analysisPublicationsDir.isDirectory) {
+            throw IOException("No se pudo preparar el journal de publicación para ${entry.mediaId}.")
+        }
+        val bytes = publicationJson.encodeToString(entry).toByteArray(Charsets.UTF_8)
+        TechniqueSidecars.writeAtomically(publicationFile(entry.mediaId), bytes)
+    }
+
+    private fun readPublicationJournal(file: File): AnalysisPublicationJournal? = try {
+        publicationJson.decodeFromString<AnalysisPublicationJournal>(file.readText(Charsets.UTF_8))
+    } catch (_: Exception) {
+        null
+    }
+
+    /** Returns the durable generation, including an acknowledged manual or automatic request. */
+    internal suspend fun currentAnalysisGeneration(mediaId: String): ManualAnalysisRequest? =
+        generationMutex(mediaId).withLock {
+            val media = videoOf(mediaId)
+            withContext(Dispatchers.IO) { readAnalysisGenerationEntry(mediaId, media) }
+        }
+
+    /** Atomically advances the generation for a newly accepted non-manual enqueue. */
+    internal suspend fun beginAnalysisGeneration(mediaId: String, mode: AnalysisMode): String? =
+        generationMutex(mediaId).withLock {
+            val media = videoOf(mediaId) ?: return@withLock null
+            withContext(Dispatchers.IO) {
+                val current = readAnalysisGenerationEntry(mediaId, media)
+                if (current?.manualRequestPending == true) return@withContext null
+                val next = ManualAnalysisRequest(
+                    id = UUID.randomUUID().toString(),
+                    mode = mode,
+                    mediaId = mediaId,
+                    requestedAtMs = nowMs(),
+                    manualRequestPending = false,
+                )
+                writeManualRequestEntry(next)
+                next.id
+            }
+        }
+
+    private suspend fun isCurrentAnalysisGenerationUnlocked(mediaId: String, generationId: String?): Boolean {
+        val media = videoOf(mediaId)
+        val current = withContext(Dispatchers.IO) { readAnalysisGenerationEntry(mediaId, media) }
+        return current?.id == generationId
+    }
+
+    internal suspend fun isCurrentAnalysisGeneration(mediaId: String, generationId: String?): Boolean =
+        generationMutex(mediaId).withLock { isCurrentAnalysisGenerationUnlocked(mediaId, generationId) }
+
+    /** Serializes a short Worker state/file mutation against generation changes and report publication. */
+    internal suspend fun <T> withCurrentAnalysisGeneration(
+        mediaId: String,
+        generationId: String?,
+        action: suspend () -> T,
+    ): T? = generationMutex(mediaId).withLock {
+        if (!isCurrentAnalysisGenerationUnlocked(mediaId, generationId)) return@withLock null
+        action()
+    }
+
     /**
      * Encola un análisis que pide el usuario (la fila pasa a QUEUED). `false` si el medio ya no existe o no es un vídeo.
      * Corre aunque el ajuste «Analizar la técnica de los vídeos» esté apagado: ese ajuste solo gobierna el análisis automático
      * al guardar un vídeo, no lo que el usuario pide (también [reanalyze], [setPlateSeed] y [setUserProfileOverride]).
      */
-    suspend fun requestAnalysis(mediaId: String, mode: AnalysisMode = AnalysisMode.FULL): Boolean =
-        TechniqueAnalysisScheduler.enqueue(appContext, mediaId, mode, userInitiated = true, explicit = true, repository = this)
+    suspend fun requestAnalysis(mediaId: String, mode: AnalysisMode = AnalysisMode.FULL): Boolean {
+        val requestId = generationMutex(mediaId).withLock {
+            val media = videoOf(mediaId) ?: return@withLock null
+            val requestId = UUID.randomUUID().toString()
+            val request = ManualAnalysisRequest(
+                id = requestId,
+                mode = mode,
+                mediaId = mediaId,
+                requestedAtMs = nowMs(),
+            )
+            try {
+                withContext(Dispatchers.IO) { writeManualRequestEntry(request) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(TAG, "No se pudo guardar la solicitud manual durable de análisis de ${media.id}.", error)
+                return@withLock null
+            }
+
+            // The queue file is the durable request. capture.json is an auxiliary compatibility snapshot;
+            // an I/O failure there must not lose an otherwise recoverable user request.
+            try {
+                withContext(Dispatchers.IO) {
+                    CaptureMetadataFile.update(TechniqueSidecars.captureFile(File(media.filePath))) { current ->
+                        current.copy(
+                            manualAnalysisRequestId = requestId,
+                            manualAnalysisRequestMode = mode.name,
+                        )
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(TAG, "No se pudo copiar la solicitud de ${media.id} a capture.json; queda en el ledger durable.", error)
+            }
+            requestId
+        } ?: return false
+
+        // Enqueue only after releasing the ledger lock. The scheduler fences its WorkManager changes
+        // against this ID, so a newer tap can supersede this request without deadlocking on the lock.
+        return try {
+            manualEnqueuer(appContext, mediaId, mode, requestId, this)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            // Keep the durable request so TechniqueAnalysisScheduler.reconcile can retry after startup.
+            Log.w(TAG, "No se pudo encolar la solicitud manual de análisis de $mediaId; queda pendiente de recuperación.", error)
+            false
+        }
+    }
+
+    /** Recovered by the scheduler after a process/WorkManager interruption. */
+    internal suspend fun pendingManualAnalysisRequest(mediaId: String): ManualAnalysisRequest? {
+        val media = videoOf(mediaId) ?: return null
+        return withContext(Dispatchers.IO) {
+            readAnalysisGenerationEntry(mediaId, media)?.takeIf { it.manualRequestPending }
+        }
+    }
+
+    /** Clears only the request fulfilled by [requestId], leaving a newer tap intact. */
+    internal suspend fun clearManualAnalysisRequest(mediaId: String, requestId: String) {
+        generationMutex(mediaId).withLock {
+            val media = videoOf(mediaId)
+            withContext(Dispatchers.IO) {
+                val current = readAnalysisGenerationEntry(mediaId, media)
+                if (current?.id == requestId && current.manualRequestPending) {
+                    writeManualRequestEntry(current.copy(manualRequestPending = false))
+                }
+                if (media != null) {
+                    CaptureMetadataFile.update(TechniqueSidecars.captureFile(File(media.filePath))) { current ->
+                        if (current.manualAnalysisRequestId == requestId) {
+                            current.copy(manualAnalysisRequestId = null, manualAnalysisRequestMode = null)
+                        } else current
+                    }
+                }
+            }
+        }
+    }
+
+    /** Returns all durable pending manual requests across the database and file queue. */
+    internal suspend fun allPendingManualAnalysisRequests(): Map<String, ManualAnalysisRequest> {
+        return withContext(Dispatchers.IO) {
+            val result = mutableMapOf<String, ManualAnalysisRequest>()
+            val knownGenerationIds = mutableSetOf<String>()
+            val allVideos = db.workoutMediaDao().getAll().filter { it.kind == WorkoutMediaKind.VIDEO.name }
+            val videosById = allVideos.associate { it.id to it.toWorkoutMedia() }
+            if (manualRequestsDir.isDirectory) {
+                val requestFiles = manualRequestsDir.listFiles()?.filter { it.isFile && it.name.endsWith(".json") }.orEmpty()
+                for (file in requestFiles) {
+                    val mediaId = file.name.removeSuffix(".json")
+                    generationMutex(mediaId).withLock {
+                        val entry = readAnalysisGenerationEntry(mediaId, videosById[mediaId])
+                        if (entry != null) {
+                            knownGenerationIds += mediaId
+                            if (entry.manualRequestPending) result[mediaId] = entry
+                            if (readManualRequestEntry(mediaId) == null && entry.manualRequestPending) {
+                                writeManualRequestEntry(entry)
+                            }
+                        }
+                    }
+                }
+            }
+            for (v in allVideos) {
+                generationMutex(v.id).withLock {
+                    if (v.id !in knownGenerationIds) {
+                        val entry = readAnalysisGenerationEntry(v.id, v.toWorkoutMedia())
+                        if (entry?.manualRequestPending == true) {
+                            result[v.id] = entry
+                            writeManualRequestEntry(entry)
+                            knownGenerationIds += v.id
+                        }
+                    }
+                }
+            }
+            result
+        }
+    }
 
     /** «Reanalizar»: vuelve a decodificar el vídeo y a estimar la pose con la versión actual. */
     suspend fun reanalyze(mediaId: String): Boolean = requestAnalysis(mediaId, AnalysisMode.FULL)
@@ -250,12 +537,29 @@ class VideoAnalysisRepository internal constructor(
         true
     }
 
+    internal suspend fun markStateForGeneration(
+        mediaId: String,
+        generationId: String?,
+        status: VideoAnalysisStatus,
+        progressPct: Int = 0,
+        errorCode: String? = null,
+        profileGuess: AnalysisProfileId? = null,
+    ): Boolean = withCurrentAnalysisGeneration(mediaId, generationId) {
+        markState(mediaId, status, progressPct, errorCode, profileGuess)
+    } ?: false
+
     /** El avance de un análisis en curso: solo estado y avance, sin releer el medio. Sin fila, la crea. */
     internal suspend fun writeProgress(mediaId: String, progressPct: Int) {
         val pct = progressPct.coerceIn(0, 100)
         val changed = db.videoAnalysisDao().updateProgress(mediaId, VideoAnalysisStatus.RUNNING.name, pct, nowMs())
         if (changed == 0) markState(mediaId, VideoAnalysisStatus.RUNNING, pct)
     }
+
+    internal suspend fun writeProgressForGeneration(mediaId: String, generationId: String?, progressPct: Int): Boolean =
+        withCurrentAnalysisGeneration(mediaId, generationId) {
+            writeProgress(mediaId, progressPct)
+            true
+        } ?: false
 
     /**
      * Cierra un análisis bien hecho: escribe `<id>.analysis.json` (la fuente de verdad) y SOLO DESPUÉS, en una transacción que
@@ -273,25 +577,50 @@ class VideoAnalysisRepository internal constructor(
         mode: AnalysisMode,
         poseVersion: Int? = null,
         poseEngine: String? = null,
+        fulfilledManualRequestId: String? = null,
+        analysisGenerationId: String? = fulfilledManualRequestId,
     ): Boolean {
-        val video = File(media.filePath)
-        val file = TechniqueSidecars.analysisFile(video)
-        val analyzedAtMs = nowMs()
-        withContext(Dispatchers.IO) {
-            TechniqueSidecars.writeAnalysis(file, report, exercise, loadKg, media.techniqueSetKey(), analyzedAtMs)
+        return generationMutex(media.id).withLock {
+            val video = File(media.filePath)
+            val file = TechniqueSidecars.analysisFile(video)
+            val analyzedAtMs = nowMs()
+            val currentGeneration = withContext(Dispatchers.IO) { readAnalysisGenerationEntry(media.id, media) }
+            // Keep the acknowledged ID as a tombstone: an older automatic job must remain stale after a newer
+            // manual request is confirmed and its pending flag is cleared.
+            if (currentGeneration?.id != analysisGenerationId) {
+                if (currentGeneration != null || analysisGenerationId != null) return@withLock true
+            }
+
+            beforeAnalysisPublication(media.id, analysisGenerationId)
+            withContext(Dispatchers.IO) {
+                writePublicationJournal(AnalysisPublicationJournal(media.id, analysisGenerationId, analyzedAtMs))
+                TechniqueSidecars.writeAnalysis(
+                    file,
+                    report,
+                    exercise,
+                    loadKg,
+                    media.techniqueSetKey(),
+                    analyzedAtMs,
+                    analysisGenerationId,
+                )
+            }
+            afterAnalysisSidecarWrite(media.id, analysisGenerationId)
+            val stored = upsertDoneRow(
+                mediaId = media.id,
+                report = report,
+                loadKg = loadKg,
+                reportPath = file.absolutePath,
+                createdAtFallbackMs = analyzedAtMs,
+                keepPose = mode != AnalysisMode.FULL,
+                poseVersion = poseVersion,
+                poseEngine = poseEngine,
+            )
+            withContext(Dispatchers.IO) {
+                if (!stored) TechniqueSidecars.deleteAll(video, store::isManagedPath)
+                publicationFile(media.id).delete()
+            }
+            stored
         }
-        val stored = upsertDoneRow(
-            mediaId = media.id,
-            report = report,
-            loadKg = loadKg,
-            reportPath = file.absolutePath,
-            createdAtFallbackMs = analyzedAtMs,
-            keepPose = mode != AnalysisMode.FULL,
-            poseVersion = poseVersion,
-            poseEngine = poseEngine,
-        )
-        if (!stored) withContext(Dispatchers.IO) { TechniqueSidecars.deleteAll(video, store::isManagedPath) }
-        return stored
     }
 
     /**
@@ -350,6 +679,14 @@ class VideoAnalysisRepository internal constructor(
         return restored
     }
 
+    internal suspend fun restoreOrDropForGeneration(mediaId: String, generationId: String?): Boolean? =
+        withCurrentAnalysisGeneration(mediaId, generationId) {
+            val media = videoOf(mediaId)
+            val restored = media != null && rebuildFromSidecar(media)
+            if (!restored) db.videoAnalysisDao().delete(mediaId)
+            restored
+        }
+
     private suspend fun upsertDoneRow(
         mediaId: String,
         report: SetTechniqueReport,
@@ -393,6 +730,61 @@ class VideoAnalysisRepository internal constructor(
         )
     }
 
+    private data class PublicationRecoveryResult(
+        val rebuiltRows: Int = 0,
+        val recoveredMediaIds: Set<String> = emptySet(),
+        val staleMediaIds: Set<String> = emptySet(),
+    )
+
+    /** Finishes sidecar → Room publications interrupted after the atomic sidecar rename. */
+    private suspend fun recoverInterruptedPublications(videosById: Map<String, WorkoutMedia>): PublicationRecoveryResult {
+        val files = withContext(Dispatchers.IO) {
+            analysisPublicationsDir.listFiles { file -> file.isFile && file.extension == "json" }.orEmpty().toList()
+        }
+        var rebuiltRows = 0
+        val recovered = mutableSetOf<String>()
+        val stale = mutableSetOf<String>()
+        for (journalFile in files) {
+            val journal = withContext(Dispatchers.IO) { readPublicationJournal(journalFile) }
+            if (journal == null) {
+                withContext(Dispatchers.IO) { journalFile.delete() }
+                continue
+            }
+            val media = videosById[journal.mediaId]
+            if (media == null) {
+                withContext(Dispatchers.IO) { journalFile.delete() }
+                continue
+            }
+            generationMutex(media.id).withLock {
+                val current = withContext(Dispatchers.IO) { readAnalysisGenerationEntry(media.id, media) }
+                if (current?.id != journal.generationId) {
+                    // The file may hold an abandoned generation. Do not let the generic cache rebuild publish it.
+                    stale += media.id
+                    withContext(Dispatchers.IO) { journalFile.delete() }
+                    return@withLock
+                }
+                val sidecar = withContext(Dispatchers.IO) {
+                    TechniqueSidecars.readAnalysis(TechniqueSidecars.analysisFile(File(media.filePath)))
+                }
+                if (
+                    sidecar == null ||
+                    sidecar.analyzedAtMs != journal.analyzedAtMs ||
+                    sidecar.analysisGenerationId != journal.generationId
+                ) {
+                    // The journal was written, but the atomic sidecar replacement did not finish.
+                    withContext(Dispatchers.IO) { journalFile.delete() }
+                    return@withLock
+                }
+                if (rebuildFromSidecar(media)) {
+                    rebuiltRows++
+                    recovered += media.id
+                    withContext(Dispatchers.IO) { journalFile.delete() }
+                }
+            }
+        }
+        return PublicationRecoveryResult(rebuiltRows, recovered, stale)
+    }
+
     /** Los vídeos con una fila QUEUED o RUNNING (un análisis pedido y aún sin terminar). */
     internal suspend fun activeIds(): List<String> {
         val dao = db.videoAnalysisDao()
@@ -416,6 +808,7 @@ class VideoAnalysisRepository internal constructor(
     suspend fun reconcile(orphanGraceMs: Long = ORPHAN_GRACE_MS): ReconcileResult {
         val media = db.workoutMediaDao().getAll()
         val videos = media.filter { it.kind == WorkoutMediaKind.VIDEO.name }
+        val videosById = videos.associate { entity -> entity.id to entity.toWorkoutMedia() }
         val videoIds = videos.mapTo(HashSet()) { it.id }
         val dao = db.videoAnalysisDao()
         val rowIds = dao.allIds()
@@ -425,10 +818,11 @@ class VideoAnalysisRepository internal constructor(
             if (id !in videoIds) removedRows += dao.delete(id)
         }
 
-        val withRow = rowIds.toHashSet()
-        var rebuilt = 0
+        val publicationRecovery = recoverInterruptedPublications(videosById)
+        val withRow = rowIds.toHashSet().apply { addAll(publicationRecovery.recoveredMediaIds) }
+        var rebuilt = publicationRecovery.rebuiltRows
         for (entity in videos) {
-            if (entity.id in withRow) continue
+            if (entity.id in withRow || entity.id in publicationRecovery.staleMediaIds) continue
             try {
                 if (rebuildFromSidecar(entity.toWorkoutMedia())) rebuilt++
             } catch (cancelled: CancellationException) {
@@ -480,7 +874,9 @@ class VideoAnalysisRepository internal constructor(
         private const val PRIOR_ROWS_TO_READ = 24
 
         private const val TAG = "VideoAnalysisRepo"
+        private const val INVALID_GENERATION_PREFIX = "!invalid-ledger:"
         private val MONTH_DIR = Regex("\\d{4}-\\d{2}")
+        private val generationLocks = ConcurrentHashMap<String, Mutex>()
 
         @Volatile
         private var INSTANCE: VideoAnalysisRepository? = null
@@ -493,6 +889,33 @@ class VideoAnalysisRepository internal constructor(
         /** Una instancia sobre [db] (y, si se da, [store]) que no es la del proceso. */
         fun forDatabase(context: Context, db: KpknDatabase, store: WorkoutMediaStore? = null): VideoAnalysisRepository =
             VideoAnalysisRepository(context.applicationContext, db, store)
+
+        /** Injection seams for repository acceptance tests; production callers use [forDatabase]. */
+        internal fun forDatabaseForTests(
+            context: Context,
+            db: KpknDatabase,
+            store: WorkoutMediaStore? = null,
+            manualEnqueuer: ManualAnalysisEnqueuer = { enqueueContext, mediaId, mode, requestId, repository ->
+                TechniqueAnalysisScheduler.enqueue(
+                    enqueueContext,
+                    mediaId,
+                    mode,
+                    userInitiated = true,
+                    explicit = true,
+                    manualRequestId = requestId,
+                    repository = repository,
+                )
+            },
+            beforeAnalysisPublication: AnalysisPublicationHook = { _, _ -> },
+            afterAnalysisSidecarWrite: AnalysisSidecarWrittenHook = { _, _ -> },
+        ): VideoAnalysisRepository = VideoAnalysisRepository(
+            context.applicationContext,
+            db,
+            store,
+            manualEnqueuer = manualEnqueuer,
+            beforeAnalysisPublication = beforeAnalysisPublication,
+            afterAnalysisSidecarWrite = afterAnalysisSidecarWrite,
+        )
 
         fun getInstance(): VideoAnalysisRepository =
             INSTANCE ?: error("VideoAnalysisRepository not initialized — call init(context) first.")

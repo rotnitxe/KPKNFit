@@ -27,6 +27,12 @@ import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.ProgramArchiveResult
+import com.example.kpkn.data.repository.ProgramDeleteResult
+import com.example.kpkn.screens.programs.ProgramDeleteDialog
+import com.example.kpkn.screens.programs.ProgramLineIcons
+import com.example.kpkn.screens.programs.ProgramSessionActionRequest
+import com.example.kpkn.screens.programs.ProgramSessionGuardDialog
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
@@ -174,6 +180,8 @@ fun ProgramDetailScreen(
     /** «Planificar intentos» y «Modo competición» viven en la competencia (Registros, c-plan y c-today): abren su recorrido. */
     onOpenCompetitionPlan: ((String) -> Unit)? = null,
     onOpenCompetitionToday: ((String) -> Unit)? = null,
+    onReturnToSession: (programId: String, sessionId: String) -> Unit = { _, _ -> },
+    onProgramDeleted: () -> Unit = onBack,
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
@@ -258,6 +266,12 @@ fun ProgramDetailScreen(
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
+    var showDeleteProgramConfirm by rememberSaveable { mutableStateOf(false) }
+    var blockedDeleteSessionId by remember { mutableStateOf<String?>(null) }
+    var deleteCheckBusy by remember { mutableStateOf(false) }
+    var archiveGuard by remember { mutableStateOf<ProgramSessionActionRequest?>(null) }
+    var archiveBlockedSessionId by remember { mutableStateOf<String?>(null) }
+    var archiveCheckBusy by remember { mutableStateOf(false) }
     // «Versiones guardadas» (⋯): la hoja de copias del programa, la misma que abre Estructura.
     var showVersions by rememberSaveable { mutableStateOf(false) }
     // «Compartir en historias»: desde el botón de la portada o desde «Más opciones» (⋯).
@@ -296,6 +310,43 @@ fun ProgramDetailScreen(
         }
         ProgramDetailPlaceholder(programsReady = programsReady, onBack = onBack, snackbarHostState = snackbarHostState)
         return
+    }
+
+    fun archiveProgram() {
+        when (val result = viewModel.archiveProgram()) {
+            ProgramArchiveResult.Archived -> {
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+                onBack()
+            }
+            is ProgramArchiveResult.OpenSession -> {
+                archiveGuard = ProgramSessionActionRequest(p, "archivar")
+                archiveBlockedSessionId = result.sessionId
+                archiveCheckBusy = false
+            }
+            ProgramArchiveResult.Busy -> {
+                archiveGuard = ProgramSessionActionRequest(p, "archivar")
+                archiveBlockedSessionId = null
+                archiveCheckBusy = true
+            }
+        }
+    }
+
+    fun deleteProgram() {
+        when (val result = viewModel.deleteProgram()) {
+            ProgramDeleteResult.Deleted -> {
+                showDeleteProgramConfirm = false
+                blockedDeleteSessionId = null
+                deleteCheckBusy = false
+                onProgramDeleted()
+            }
+            is ProgramDeleteResult.OpenSession -> {
+                blockedDeleteSessionId = result.sessionId
+                deleteCheckBusy = false
+            }
+            ProgramDeleteResult.Busy -> deleteCheckBusy = true
+        }
     }
 
     val bundledCover = rememberProgramCover(programCoverEntryIdOf(p.coverImage), with(density) { 88.dp.roundToPx() })
@@ -529,7 +580,7 @@ fun ProgramDetailScreen(
         name = p.name,
         status = status,
         meta = programHeadlineMeta(
-            goalLabel = programModeLabel(p.mode),
+            goalLabel = p.identityLabel?.takeIf(String::isNotBlank) ?: programModeLabel(p.mode),
             weekCount = weekCount,
             blockCount = p.macrocycles.sumOf { it.blocks.size },
             isRoutine = repeatingWeek,
@@ -888,6 +939,30 @@ fun ProgramDetailScreen(
                     ),
                 )
                 add(ProgramMenuItem(icon = KpknLineIcons.Edit, label = "Editar nombre, nota y portada", onClick = openEdit))
+                add(
+                    ProgramMenuItem(
+                        icon = ProgramLineIcons.Upload,
+                        label = "Archivar programa",
+                        detail = "Lo quitas de la lista sin borrar tus registros",
+                        group = "Programa",
+                        onClick = {
+                            showMoreMenu = false
+                            archiveProgram()
+                        },
+                    ),
+                )
+                add(
+                    ProgramMenuItem(
+                        icon = KpknLineIcons.Trash,
+                        label = "Eliminar programa",
+                        detail = "Borra el plan; conserva registros y medios",
+                        group = "Programa",
+                        onClick = {
+                            showMoreMenu = false
+                            showDeleteProgramConfirm = true
+                        },
+                    ),
+                )
                 // Pausar, reanudar o activar: la misma llamada que tenía el botón de la cabecera.
                 add(
                     ProgramMenuItem(
@@ -924,6 +999,47 @@ fun ProgramDetailScreen(
                 )
             },
             onDismiss = { showMoreMenu = false },
+        )
+    }
+    if (showDeleteProgramConfirm) {
+        ProgramDeleteDialog(
+            program = p,
+            onConfirm = ::deleteProgram,
+            blockedSessionId = blockedDeleteSessionId,
+            sessionCheckBusy = deleteCheckBusy,
+            onReturnToSession = {
+                val sessionId = blockedDeleteSessionId ?: return@ProgramDeleteDialog
+                showDeleteProgramConfirm = false
+                blockedDeleteSessionId = null
+                deleteCheckBusy = false
+                onReturnToSession(p.id, sessionId)
+            },
+            onDismiss = {
+                showDeleteProgramConfirm = false
+                blockedDeleteSessionId = null
+                deleteCheckBusy = false
+            },
+        )
+    }
+    archiveGuard?.let { request ->
+        ProgramSessionGuardDialog(
+            program = request.program,
+            actionVerb = request.actionVerb,
+            blockedSessionId = archiveBlockedSessionId,
+            sessionCheckBusy = archiveCheckBusy,
+            onRetry = ::archiveProgram,
+            onReturnToSession = {
+                val sessionId = archiveBlockedSessionId ?: return@ProgramSessionGuardDialog
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+                onReturnToSession(p.id, sessionId)
+            },
+            onDismiss = {
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+            },
         )
     }
     if (showVersions) {

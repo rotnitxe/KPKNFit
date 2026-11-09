@@ -185,6 +185,7 @@ internal fun LiveSessionLine(
     restActive: Boolean = false,
     onEndRest: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    stepperSnapshotProvider: () -> LiveSetStepperSnapshot? = { snapshot },
 ) {
     val variant = liveRoadmapVariantFor(LocalConfiguration.current.screenHeightDp)
     val big = LocalDensity.current.fontScale > 1.2f
@@ -194,6 +195,8 @@ internal fun LiveSessionLine(
     } }.orEmpty()
     val selected = steps.indexOfFirst { it.active }.coerceAtLeast(0)
     val activeStep = steps.getOrNull(selected)
+    val latestSteps by rememberUpdatedState(steps)
+    val latestSelected by rememberUpdatedState(selected)
     val adjacent by rememberUpdatedState(onNavigateAdjacentExercise)
     fun selectStep(step: LiveSessionLineStep) {
         if (step.preparationSelect != null) step.preparationSelect.invoke() else step.pageIndex?.let(onSelectPage)
@@ -226,7 +229,40 @@ internal fun LiveSessionLine(
         else -> RoadTail.Name(currentExercise?.let(::displayWorkoutExerciseName).orEmpty())
     }
     fun step(forward: Boolean) {
-        val target = steps.getOrNull(selected + if (forward) 1 else -1)
+        // Read the holder at click time. The line and the pager publish through
+        // separate composition scopes; captured steps can still describe the
+        // prior warm-up after the pager has advanced to a working set.
+        val currentSnapshot = stepperSnapshotProvider()
+        val availableSteps = currentSnapshot?.let { liveSessionLineSteps(it, it.activePageIndex) } ?: latestSteps
+        val activePreparation = currentSnapshot?.activeStepKey?.let { activeKey ->
+            availableSteps.indexOfFirst { step -> step.preparationTargets.any { it.stepKey == activeKey } }
+        }?.takeIf { it >= 0 }
+        val activePage = currentSnapshot?.activePageIndex
+        val pageSelection = activePage?.let { page -> availableSteps.indexOfFirst { it.pageIndex == page } }
+            ?.takeIf { it >= 0 }
+        val currentIndex = activePreparation ?: pageSelection ?: latestSelected
+        val current = availableSteps.getOrNull(currentIndex)
+        val currentPreparationIndex = current?.let { step ->
+            currentSnapshot?.activeStepKey?.let { activeKey ->
+                step.preparationTargets.indexOfFirst { it.stepKey == activeKey }.takeIf { it >= 0 }
+            } ?: step.activePreparationTargetIndex
+        }
+        if (currentPreparationIndex != null) {
+            val internalTarget = current.preparationTargets.getOrNull(currentPreparationIndex + if (forward) 1 else -1)
+            if (internalTarget != null) {
+                internalTarget.onSelect()
+                return
+            }
+        }
+        if (!forward) {
+            val previous = availableSteps.getOrNull(currentIndex - 1)
+            val lastPreparationTarget = previous?.preparationTargets?.lastOrNull()
+            if (lastPreparationTarget != null) {
+                lastPreparationTarget.onSelect()
+                return
+            }
+        }
+        val target = availableSteps.getOrNull(currentIndex + if (forward) 1 else -1)
         if (target != null) selectStep(target) else adjacent?.invoke(forward)
     }
 

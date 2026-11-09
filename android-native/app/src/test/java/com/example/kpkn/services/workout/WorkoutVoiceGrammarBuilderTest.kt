@@ -143,6 +143,26 @@ class WorkoutVoiceGrammarBuilderTest {
         )
     }
 
+    @Test
+    fun forceCapturePhraseSurvivesRestrictedGrammarAndIntentMatching() {
+        listOf(VoicePipelineStage.LISTENING, VoicePipelineStage.CONFIRM_WAIT).forEach { stage ->
+            val grammar = WorkoutVoiceGrammarBuilder.build(stage = stage, context = null)
+            assertTrue(grammar.contains("\"grabar de todas formas\""))
+
+            val command = WorkoutVoiceIntentMatcher.match(
+                transcript = "grabar de todas formas",
+                stage = stage,
+                isTimeMode = false,
+                isUnilateral = false,
+                isRestTimerActive = false,
+                showPostExerciseSheet = false,
+                showFinishSheet = false,
+                captureActive = true,
+            )
+            assertEquals(VoiceSessionCommand.StartVideoCaptureAnyway, command)
+        }
+    }
+
     private fun assertParsesAs(
         rawGrammarPhrase: String,
         expected: VoiceSessionCommand,

@@ -73,6 +73,7 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.estimatePercent1RM
 import com.example.kpkn.domain.training.RepRangeParser
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.sessioneditor.withoutBeyondFailureTechniques
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.kpknEditorFieldColors
@@ -1086,7 +1087,9 @@ private fun AccentSetValueField(
         },
         shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(
+            fontFamily = if (keyboardType == KeyboardType.Number || keyboardType == KeyboardType.Decimal || keyboardType == KeyboardType.Ascii) WizardFonts.body else MaterialTheme.typography.bodySmall.fontFamily,
             fontWeight = FontWeight.Bold,
+            fontFeatureSettings = if (keyboardType == KeyboardType.Number || keyboardType == KeyboardType.Decimal || keyboardType == KeyboardType.Ascii) "'tnum' 1" else null,
             color = Color.White.copy(alpha = 0.94f),
         ),
         colors = OutlinedTextFieldDefaults.colors(

@@ -29,6 +29,7 @@ import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourSeenStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -59,6 +60,26 @@ class CatalogScreensV2Test {
         return InMemoryExerciseCatalogRepositoryV2(real.copy(families = real.families.mapNotNull { family ->
             family.definitions.filter { it.id in ids }.takeIf { it.isNotEmpty() }?.let { family.copy(definitions = it) }
         })).also { runBlocking { it.load() } }
+    }
+
+    private fun repositoryWithSuggestedConfiguration(
+        definitionId: String,
+        configurationForQuery: (String) -> String,
+        lastSearchQuery: AtomicReference<String>? = null,
+    ): ExerciseCatalogRepositoryV2 {
+        val delegate = repository(definitionId)
+        return object : ExerciseCatalogRepositoryV2 by delegate {
+            override fun search(query: String, filters: ExerciseSearchFiltersV2): List<ExerciseSearchHitV2> {
+                lastSearchQuery?.set(query)
+                if (query.isBlank()) return emptyList()
+                return listOf(ExerciseSearchHitV2(
+                    definitionId = definitionId,
+                    suggestedConfigurationId = configurationForQuery(query),
+                    matchedTerm = query,
+                    score = 100,
+                ))
+            }
+        }
     }
 
     private fun mount(
@@ -136,6 +157,103 @@ class CatalogScreensV2Test {
         rule.onNodeWithContentDescription(description).assertHeightIsAtLeast(48.dp).performClick()
     }
 
+    /** Elige cada eje visible de la configuración aprobada antes de añadir el ejercicio a una selección. */
+    private fun chooseDefaultAxes(id: String, closeAfter: Boolean = true) {
+        val definition = definition(id)
+        if (definition.optionAxes.isEmpty()) return
+        val firstAxis = definition.optionAxes.first()
+        val variantsTag = "catalog_inline_$firstAxis"
+        if (rule.onAllNodesWithTag(variantsTag).fetchSemanticsNodes().isEmpty()) {
+            rule.onNodeWithText(name(id)).performClick()
+            rule.waitForIdle()
+        }
+        val configuration = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+            ?: error("$id no tiene una configuración aprobada para el fixture")
+        definition.optionAxes.forEach { axis ->
+            // Some catalog axes only apply to one implement (for example pulley
+            // height for cable variants); the approved default may not contain them.
+            val value = configuration.selectedOptions[axis] ?: return@forEach
+            val label = exerciseCatalogVariantTagLabel(value, id)
+            if (axis == "pulley_height") {
+                rule.onNodeWithContentDescription("Polea $label").performClick()
+            } else {
+                rule.onNodeWithText(label).performClick()
+            }
+            rule.waitForIdle()
+        }
+        if (closeAfter) {
+            rule.onNodeWithText(name(id)).performClick()
+            rule.waitForIdle()
+        }
+    }
+
+    private fun selectDefault(id: String) {
+        chooseDefaultAxes(id)
+        select(id)
+    }
+
+    private fun optionChip(definitionId: String, value: String): SemanticsMatcher =
+        hasText(exerciseCatalogVariantTagLabel(value, definitionId)) and
+            SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState)
+
+    @Test fun soloExigeEjesCompatiblesConElImplementoElegido() {
+        val definition = definition("chest_supported_row")
+        val dumbbells = definition.configurations.single { it.id == definition.defaultConfigurationId }
+        assertTrue(catalogAxisChoicesComplete(definition, dumbbells.selectedOptions))
+        assertFalse(catalogAxisChoicesComplete(definition, mapOf("implement" to "dumbbells")))
+        assertFalse(catalogAxisChoicesComplete(definition, mapOf("implement" to "cable")))
+        val cable = definition.configurations.first { it.selectedOptions["implement"] == "cable" }
+        assertTrue(catalogAxisChoicesComplete(definition, cable.selectedOptions))
+    }
+
+    @Test fun sugerenciaDeBusquedaNoConfirmaEjesNiHabilitaAnadir() {
+        val definition = definition("chest_supported_row")
+        val suggestionId = "chest_supported_row__cable__low__close"
+        val source = repositoryWithSuggestedConfiguration(definition.id, { suggestionId })
+        mount(query = "consulta técnica", source = source)
+        waitFor(name(definition.id))
+
+        rule.onNodeWithContentDescription("Añadir ${name(definition.id)} a la selección").performClick()
+
+        assertTrue(selection.isEmpty())
+        rule.onNodeWithText("Añadir 1").assertDoesNotExist()
+        rule.onNode(optionChip(definition.id, "cable")).assertIsOff()
+    }
+
+    @Test fun cambiarYLimpiarLaQueryConservaLaConfiguracionElegida() {
+        val definition = definition("chest_supported_row")
+        val lowCloseId = "chest_supported_row__cable__low__close"
+        val highWideId = "chest_supported_row__cable__high__wide"
+        val lastSearchQuery = AtomicReference("")
+        val source = repositoryWithSuggestedConfiguration(
+            definitionId = definition.id,
+            configurationForQuery = { if (it == "consulta B") highWideId else lowCloseId },
+            lastSearchQuery = lastSearchQuery,
+        )
+        mount(query = "consulta A", source = source)
+        waitFor(name(definition.id))
+        rule.onNodeWithText(name(definition.id)).performClick()
+        rule.onNodeWithText("En polea").performClick()
+        rule.onNodeWithContentDescription("Polea Baja").performClick()
+        rule.onNodeWithText("Cerrado").performClick()
+        select(definition.id)
+        assertEquals(lowCloseId, selection.single().catalogConfigurationId)
+
+        rule.onNode(hasSetTextAction()).performTextReplacement("consulta B")
+        rule.waitUntil(15_000) { lastSearchQuery.get() == "consulta B" }
+        rule.waitForIdle()
+        rule.onNode(optionChip(definition.id, "low")).assertIsOn()
+        rule.onNode(optionChip(definition.id, "close")).assertIsOn()
+        rule.onNode(optionChip(definition.id, "high")).assertIsOff()
+
+        rule.onNodeWithContentDescription("Borrar búsqueda").performClick()
+        rule.waitUntil(15_000) { latestQuery.isBlank() }
+        rule.onNode(optionChip(definition.id, "low")).assertIsOn()
+        rule.onNode(optionChip(definition.id, "close")).assertIsOn()
+        rule.onNodeWithText("Añadir 1").performClick()
+        assertEquals(lowCloseId, committed.single().catalogConfigurationId)
+    }
+
     @Test fun e1AportesDelCatalogoRealSinPorcentajes() {
         val catalog = CatalogTestBuilders.real
         val configurationId = "chest_supported_row__cable__low__close"
@@ -164,6 +282,7 @@ class CatalogScreensV2Test {
     @Test fun e1LaFilaRealMuestraElAporteAlDesplegarSinAbrirLaFicha() {
         mount("bench_press")
         rule.onNodeWithText(name("bench_press")).performClick()
+        chooseDefaultAxes("bench_press", closeAfter = false)
         rule.onNodeWithTag("catalog_muscle_contribution").assertExists()
         rule.onNodeWithText("Primario · 1 serie").assertExists()
         rule.onNodeWithTag("exercise-ficha").assertDoesNotExist()
@@ -191,7 +310,7 @@ class CatalogScreensV2Test {
 
     @Test fun e2CambiarMaterialOcultaLaAlturaInaplicableYPermiteAnadirOtraVariante() {
         mount("bench_press", "chest_supported_row")
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithText(name("chest_supported_row")).performClick()
         rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Alta").performClick()
@@ -223,7 +342,7 @@ class CatalogScreensV2Test {
 
     @Test fun e3ElOrdenSeEditaSeRestauraYSeEntregaCompleto() {
         val restoration = mount("bench_press", "chest_supported_row")
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithContentDescription("Ver los ejercicios elegidos").performClick()
         rule.onNodeWithText("ORDEN DE LA SELECCIÓN").assertExists()
         rule.onNodeWithContentDescription("Subir ${name("chest_supported_row")} en el orden").performClick()
@@ -237,7 +356,7 @@ class CatalogScreensV2Test {
 
     @Test fun e3LaListaElegidaSeConservaAlRecrearYSoloSePliegaAlVaciar() {
         val restoration = mount("bench_press", "chest_supported_row")
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithContentDescription("Ver los ejercicios elegidos").performClick()
         rule.onNodeWithText("ORDEN DE LA SELECCIÓN").assertExists()
         rule.onNodeWithContentDescription("Quitar ${name("bench_press")}").performClick()
@@ -245,7 +364,7 @@ class CatalogScreensV2Test {
         rule.waitUntil(10_000) {
             rule.onAllNodesWithText("ORDEN DE LA SELECCIÓN").fetchSemanticsNodes().isEmpty()
         }
-        select("bench_press")
+        selectDefault("bench_press")
         rule.onNodeWithContentDescription("Ver los ejercicios elegidos").performClick()
         rule.onNodeWithText("ORDEN DE LA SELECCIÓN").assertExists()
         restoration.emulateSavedInstanceStateRestore()
@@ -255,9 +374,9 @@ class CatalogScreensV2Test {
     @Test fun e4CuatroPermitenSuperserieYCincoSoloAnadir() {
         val ids = arrayOf("bench_press", "chest_supported_row", "romanian_deadlift", "gironda_row", "push_up")
         mount(*ids)
-        ids.take(4).forEach(::select)
+        ids.take(4).forEach(::selectDefault)
         rule.onNodeWithText("Superserie").assertExists()
-        select(ids.last())
+        selectDefault(ids.last())
         rule.onNodeWithText("Superserie").assertDoesNotExist()
         rule.onNodeWithText("Añadir 5").assertExists()
         assertNull(superset)
@@ -266,7 +385,7 @@ class CatalogScreensV2Test {
 
     @Test fun e4CreadorConservaRondasDescansosYOrdenAlRecrear() {
         val restoration = mount("bench_press", "chest_supported_row")
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithText("Superserie").performClick()
         checkpoint("tras Superserie", "Configurar superserie")
         settleSheet()
@@ -289,7 +408,7 @@ class CatalogScreensV2Test {
     @Test fun e4AnadirAUnaSuperserieTieneSuTituloYSuAccionDirecta() {
         mount("bench_press", "chest_supported_row", addingToSuperset = true)
         rule.onNodeWithText("Añadir a la superserie").assertExists()
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithText("Superserie").assertDoesNotExist()
         rule.onNodeWithText("Añadir 2").performClick()
         assertEquals(2, committed.size)
@@ -312,7 +431,7 @@ class CatalogScreensV2Test {
 
     @Test fun e4LaHojaSePliegaSinCrearNiPerderLaSeleccion() {
         mount("bench_press", "chest_supported_row")
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithText("Superserie").performClick()
         waitFor("Configurar superserie")
         settleSheet()
@@ -330,7 +449,7 @@ class CatalogScreensV2Test {
         mount("bench_press", replacing = true)
         rule.onAllNodesWithText("Reemplazar").assertCountEquals(2)
         rule.onNodeWithText("REEMPLAZANDO").assertExists()
-        select("bench_press")
+        selectDefault("bench_press")
         assertTrue(committed.isEmpty())
         rule.onNodeWithText("Se mantienen las series del plan: 4 × 4–6 · RIR 2").assertExists()
         rule.onNodeWithTag(CatalogReplaceButtonTag).performClick()
@@ -400,7 +519,7 @@ class CatalogScreensV2Test {
         val restoration = mount("bench_press", "chest_supported_row", technique = true)
         rule.onNodeWithText("Elegir ejercicio").assertExists()
         rule.onNodeWithTag("catalog_technique_confirm").assertIsNotEnabled()
-        select("bench_press"); select("chest_supported_row")
+        selectDefault("bench_press"); selectDefault("chest_supported_row")
         assertTrue(committed.isEmpty())
         assertEquals(listOf("chest_supported_row"), selection.map { it.catalogDefinitionId })
         rule.onNodeWithText("Añadir 1").assertDoesNotExist()
@@ -412,7 +531,7 @@ class CatalogScreensV2Test {
 
     @Test fun e9LaVarianteCambiaElCandidatoPendienteSinConfirmarlo() {
         mount("chest_supported_row", technique = true)
-        select("chest_supported_row")
+        selectDefault("chest_supported_row")
         rule.onAllNodesWithText(name("chest_supported_row")).onFirst().performClick()
         rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Baja").performClick()

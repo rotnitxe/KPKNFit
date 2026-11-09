@@ -48,6 +48,23 @@ class HomeProgramsSectionTest {
     }
 
     @Test
+    fun `la foto personal cubre la identidad del programa en Home`() {
+        val withPhoto = active.copy(coverImage = "content://media/external/images/media/42")
+        rule.setContent {
+            HomeProgramsSection(
+                programs = listOf(withPhoto),
+                activeProgramId = withPhoto.id,
+                onProgramClick = {},
+                onCreateProgram = {},
+            )
+        }
+
+        rule.waitForIdle()
+        rule.onNodeWithTag(homeProgramCardTag(withPhoto.id)).assertIsDisplayed()
+        rule.onNodeWithTag("home-program-photo-${withPhoto.id}", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
     fun `el resto muestra semanas y dias solo si el programa los dice`() {
         rule.setContent {
             HomeProgramsSection(

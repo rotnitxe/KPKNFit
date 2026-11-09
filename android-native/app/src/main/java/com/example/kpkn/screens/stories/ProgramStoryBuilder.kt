@@ -7,13 +7,18 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.totalProgramWeeks
+import com.example.kpkn.data.programs.PROGRAM_COVER_SCHEME
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.progress.LiftTrend
 import com.example.kpkn.domain.training.progress.LiftTrendEngine
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.lineBackgroundForPalette
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.lineStyleForStudioStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.screens.programdetail.components.HeroCoverKind
+import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.screens.programdetail.components.focusModeLabel
 import com.example.kpkn.screens.programdetail.components.getDynamicDays
 import com.example.kpkn.screens.programdetail.design.structure.blockProgressionLabel
@@ -53,8 +58,8 @@ internal object ProgramStoryBuilder {
     }
 
     /**
-     * La historia de [template] para [program], con los registros [logs] y la fecha de hoy [today]. [style] fuerza el estilo de la
-     * portada; sin él, cada plantilla usa el suyo: Semana, el de la portada del programa; Bloques, Espiral; Progreso, Relieve.
+     * La historia de [template] para [program], con los registros [logs] y la fecha de hoy [today]. La portada usa la identidad del
+     * programa en las tres plantillas; [style] solo la reemplaza cuando quien comparte elige otro estilo.
      */
     fun build(
         program: Program,
@@ -63,12 +68,8 @@ internal object ProgramStoryBuilder {
         today: LocalDate,
         style: LineCoverStyle? = null,
     ): ProgramStory {
-        val base = baseCover(program)
-        val defaultStyle = when (template) {
-            ProgramStoryTemplate.SEMANA -> base.style
-            ProgramStoryTemplate.BLOQUES -> LineCoverStyle.ESPIRAL
-            ProgramStoryTemplate.PROGRESO -> LineCoverStyle.RELIEVE
-        }
+        val identity = coverIdentityForProgram(program)
+        val base = storyLineCoverFor(program, identity)
         val content = when (template) {
             ProgramStoryTemplate.SEMANA -> weekContent(program)
             ProgramStoryTemplate.BLOQUES -> blocksContent(program)
@@ -77,16 +78,31 @@ internal object ProgramStoryBuilder {
         return ProgramStory(
             name = program.name,
             eyebrow = eyebrowOf(program, template, today),
-            cover = base.copy(style = style ?: defaultStyle),
+            cover = base.copy(style = style ?: base.style),
             content = content,
+            studioCover = identity.takeIf { style == null && it.lines == null },
+            personalCoverValue = programStoryPhotoValue(program).takeIf { style == null },
         )
     }
 
     /**
      * La portada base del programa: la de líneas que ya tiene (la de Home y la cabecera), o Perfil sobre Carbón si no tiene ninguna.
      */
-    internal fun baseCover(program: Program): LineCoverSpec =
-        coverIdentityForProgram(program).lines ?: LineCoverSpec(LineCoverStyle.PERFIL, LineCoverBackground.CARBON, seed = 3)
+    internal fun baseCover(program: Program): LineCoverSpec = storyLineCoverFor(program, coverIdentityForProgram(program))
+
+    /** The line-style choice shown by the share sheet for any CoverStudio identity. */
+    private fun storyLineCoverFor(program: Program, identity: com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity): LineCoverSpec =
+        identity.lines ?: LineCoverSpec(
+            style = lineStyleForStudioStyle(identity.style),
+            background = lineBackgroundForPalette(identity.palette),
+            seed = identity.seed,
+            weeks = program.totalProgramWeeks.coerceAtLeast(1),
+        )
+
+    /** Local photos and old bundled-cover references are painted above the resolved program identity in stories. */
+    private fun programStoryPhotoValue(program: Program): String? = program.coverImage?.takeIf { value ->
+        value.startsWith(PROGRAM_COVER_SCHEME) || heroCoverKind(value, hasBundledCover = false) == HeroCoverKind.REMOTE
+    }
 
     /**
      * La ganancia en kilos, con coma decimal y sin «,0», redondeada a medio kilo: 7.5 → «+7,5 kg», 4.0 → «+4 kg», 2.3 → «+2,5 kg».

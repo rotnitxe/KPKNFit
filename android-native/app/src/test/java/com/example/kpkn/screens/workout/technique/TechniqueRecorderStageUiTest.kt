@@ -45,6 +45,7 @@ import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.screens.workout.TechniqueRecordingResult
 import com.example.kpkn.screens.workout.awaitTechniqueRecordingResult
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
+import com.example.kpkn.screens.workout.technique.design.framingGuideDrawableId
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import kotlinx.coroutines.CompletableDeferred
@@ -80,10 +81,11 @@ class TechniqueRecorderStageUiTest {
         warning: Boolean = false,
         status: FramingCheckStatus = FramingCheckStatus.EVALUATED,
         canRecord: Boolean = true,
-        spokenGuideEnabled: Boolean = false,
+        analysisEnabledForTake: Boolean = false,
+        canRecordAnyway: Boolean = true,
         voiceCommandsEnabled: Boolean = false,
     ) {
-        var guideOn by mutableStateOf(spokenGuideEnabled)
+        var analysisOn by mutableStateOf(analysisEnabledForTake)
         var voiceOn by mutableStateOf(voiceCommandsEnabled)
         rule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(3f, scale), LocalWizardReducedMotion provides true) {
@@ -100,8 +102,9 @@ class TechniqueRecorderStageUiTest {
                                 verdict = FramingVerdict(!warning, if (warning) listOf(FramingIssue.FEET_OUT) else emptyList(), ViewKind.SIDE),
                                 framingStatus = status,
                                 canRecord = canRecord,
-                                spokenGuideEnabled = guideOn,
-                                onToggleSpokenGuide = { guideOn = it; actions += "guide:$it" },
+                                canRecordAnyway = canRecordAnyway,
+                                analysisEnabledForTake = analysisOn,
+                                onToggleAnalysisEnabledForTake = { analysisOn = it; actions += "analysis:$it" },
                                 onRepeatGuide = { actions += "repeat" },
                                 voiceCommandsEnabled = voiceOn,
                                 onToggleVoiceCommands = {
@@ -110,6 +113,7 @@ class TechniqueRecorderStageUiTest {
                                 },
                                 hasPermission = permission,
                                 onRecord = { actions += "rec" },
+                                onRecordAnyway = { actions += "rec-anyway" },
                                 onSwitchToPhoto = { actions += "photo" },
                                 onOpenFicha = { actions += "ficha" },
                                 onOpenAlbum = { actions += "album" },
@@ -154,9 +158,9 @@ class TechniqueRecorderStageUiTest {
             }
     }
 
-    @Test fun escena_en_reposo_al_100_sin_texto_cortado() { show(1f); checkLayout() }
-    @Test fun escena_en_reposo_al_130_sin_texto_cortado() { show(1.3f, warning = true); checkLayout() }
-    @Test fun escena_grabando_al_130_separa_guia_cronometro_y_rec() { show(1.3f, recording = true); checkLayout() }
+    @Test fun escena_en_reposo_al_100_sin_texto_cortado() { show(1f, analysisEnabledForTake = true); checkLayout() }
+    @Test fun escena_en_reposo_al_130_sin_texto_cortado() { show(1.3f, warning = true, analysisEnabledForTake = true); checkLayout() }
+    @Test fun escena_grabando_al_130_separa_guia_cronometro_y_rec() { show(1.3f, recording = true, analysisEnabledForTake = true); checkLayout() }
 
     @Test fun sin_permiso_la_grabacion_esta_desactivada() {
         show(1.3f, permission = false)
@@ -173,24 +177,22 @@ class TechniqueRecorderStageUiTest {
         assertEquals(listOf("photo", "ficha", "gallery", "album", "rec"), actions)
     }
 
-    @Test fun la_guia_hablada_funciona_con_modo_voz_apagado() {
+    @Test fun el_toggle_maestro_inicia_apagado_y_solo_entonces_activa_la_guia() {
         show(1f)
-        rule.onNodeWithText("Guía hablada de encuadre").assertExists()
-        rule.onNodeWithText("Funciona aunque Modo Voz esté apagado.").assertExists()
-        rule.onNodeWithTag("technique_guide_toggle").assertIsOff()
+        rule.onNodeWithText("Análisis técnico").assertExists()
+        rule.onNodeWithText("Apagado para esta toma; el vídeo queda disponible para análisis manual.").assertExists()
+        rule.onNodeWithTag("technique_analysis_toggle").assertIsOff()
+        rule.onNodeWithTag("technique_guide_text").assertDoesNotExist()
         rule.onNodeWithTag("technique_voice_action").assertTextEquals("Activar Modo Voz")
-        rule.onNodeWithTag("technique_voice_hint", useUnmergedTree = true)
-            .assertTextEquals("Activa Modo Voz para controlar la grabación.")
 
-        rule.onNodeWithTag("technique_guide_toggle").performClick()
-        rule.onNodeWithTag("technique_guide_toggle").assertIsOn()
+        rule.onNodeWithTag("technique_analysis_toggle").performClick()
+        rule.onNodeWithTag("technique_analysis_toggle").assertIsOn()
         rule.onNodeWithContentDescription("Escuchar guía de ejemplo").assertExists()
         rule.onNodeWithTag("technique_guide_repeat").performClick()
         rule.onNodeWithTag("technique_voice_action").assertTextEquals("Activar Modo Voz")
-        rule.onNodeWithTag("technique_guide_toggle").assertIsOn()
-        rule.runOnIdle { assertEquals(listOf("guide:true", "repeat"), actions) }
+        rule.onNodeWithTag("technique_analysis_toggle").assertIsOn()
+        rule.runOnIdle { assertEquals(listOf("analysis:true", "repeat"), actions) }
     }
-
     @Test fun el_control_de_modo_voz_cambia_su_accion_sin_tocar_la_guia() {
         show(1f)
         rule.onNodeWithTag("technique_voice_action").performClick()
@@ -199,12 +201,12 @@ class TechniqueRecorderStageUiTest {
             .assertTextEquals("«Iniciar vídeo» · «Detener vídeo»")
         rule.onNodeWithTag("technique_voice_command", useUnmergedTree = true)
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Comando disponible"))
-        rule.onNodeWithTag("technique_guide_toggle").assertIsOff()
+        rule.onNodeWithTag("technique_analysis_toggle").assertIsOff()
         rule.runOnIdle { assertEquals(listOf("voice:true"), actions) }
     }
 
     @Test fun mientras_comprueba_bloquea_la_grabacion_y_lo_explica() {
-        show(1f, status = FramingCheckStatus.CHECKING, canRecord = false)
+        show(1f, status = FramingCheckStatus.CHECKING, canRecord = false, analysisEnabledForTake = true)
         rule.onNodeWithTag("technique_framing").assertExists()
         rule.onNodeWithText("Comprobando encuadre…", useUnmergedTree = true).assertExists()
         rule.onNodeWithTag("technique_capture_title").assertTextEquals("Comprobando encuadre")
@@ -213,7 +215,7 @@ class TechniqueRecorderStageUiTest {
     }
 
     @Test fun sin_veredicto_permite_grabar_con_error_explicito() {
-        show(1f, status = FramingCheckStatus.UNAVAILABLE, canRecord = true)
+        show(1f, status = FramingCheckStatus.UNAVAILABLE, canRecord = true, analysisEnabledForTake = true)
         // El chip del encuadre da la frase completa de la guía; el subtítulo hablado dice lo mismo.
         rule.onNode(hasText(FramingInstruction.UNAVAILABLE_SPEECH) and hasAnyAncestor(hasTestTag("technique_framing")),
             useUnmergedTree = true).assertExists()
@@ -223,6 +225,17 @@ class TechniqueRecorderStageUiTest {
         rule.onNodeWithTag("technique_capture_hint")
             .assertTextEquals("No se pudo comprobar el encuadre; puedes grabar igualmente")
         rule.onNodeWithTag("technique_record").assertIsEnabled()
+    }
+
+    @Test fun grabar_de_todas_formas_solo_aparece_si_la_camara_esta_lista() {
+        show(1f, warning = true, canRecord = false, analysisEnabledForTake = true, canRecordAnyway = true)
+        rule.onNodeWithTag("technique_record_anyway").assertExists().performClick()
+        rule.runOnIdle { assertEquals(listOf("rec-anyway"), actions) }
+    }
+
+    @Test fun grabar_de_todas_formas_se_oculta_si_la_camara_no_esta_lista() {
+        show(1f, warning = true, canRecord = false, analysisEnabledForTake = true, canRecordAnyway = false)
+        rule.onNodeWithTag("technique_record_anyway").assertDoesNotExist()
     }
 
     @Test fun el_overlay_espera_finalize_al_recibir_la_orden_de_plegar() {
@@ -255,7 +268,7 @@ class TechniqueRecorderStageUiTest {
 
 
     @Test fun el_selector_de_disco_conserva_la_eleccion() {
-        show(1.3f)
+        show(1.3f, analysisEnabledForTake = true)
         rule.onNodeWithText("Disco 45\u00A0cm").performClick()
         rule.onNodeWithText("35 cm").performClick()
         rule.onNodeWithText("Disco 35\u00A0cm").assertExists()
@@ -361,4 +374,9 @@ class TechniqueRecorderStageUiTest {
         assertTrue("La guía roza la silueta", guide.top >= silhouette.bottom + 12f * 3f)
     }
 
-}
+
+    @Test
+    fun framingGuideSelectsApprovedFrontAndSideAssets() {
+        assertEquals(com.example.kpkn.R.drawable.technique_framing_front, framingGuideDrawableId(ViewKind.FRONT))
+        assertEquals(com.example.kpkn.R.drawable.technique_framing_side, framingGuideDrawableId(ViewKind.SIDE))
+    }}

@@ -1208,16 +1208,16 @@ private fun MiniSessionCard(
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = if (!hasPrograms) Arrangement.Center else Arrangement.SpaceBetween,
     ) {
         if (!hasPrograms) {
             Button(
                 onClick = onCreateProgram,
-                modifier = Modifier.weight(1f).height(48.dp),
+                modifier = Modifier.height(40.dp).width(168.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = WizardColors.text, contentColor = WizardColors.ctaContent),
                 shape = RoundedCornerShape(8.dp),
             ) {
-                Text("Crear programa", style = HomeTypography.barLabel, maxLines = 1)
+                Text("Crear programa", style = HomeTypography.barLabel.copy(fontSize = 14.sp), maxLines = 1)
             }
         } else if (isRestDay || primarySession == null) {
             Text(

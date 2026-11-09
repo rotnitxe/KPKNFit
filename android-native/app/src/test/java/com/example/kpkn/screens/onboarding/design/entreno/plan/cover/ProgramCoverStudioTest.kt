@@ -34,6 +34,76 @@ class ProgramCoverStudioTest {
     }
 
     @Test
+    fun anExplicitWaveChoiceClearsTheInheritedPlatesSpec() {
+        val plates = coverIdentityFor("generated:strength-muscle", null)
+        assertEquals(LineCoverStyle.ORBITAS, plates.lines?.style)
+
+        val waves = plates.restyled(CoverStudioStyle.WAVES, CoverPaletteKind.PAPEL)
+
+        assertEquals(CoverStudioStyle.WAVES, waves.style)
+        assertEquals(CoverPaletteKind.PAPEL, waves.palette)
+        assertNull("CoverStudioArt must draw WAVES instead of its inherited ORBITAS lines", waves.lines)
+    }
+
+    @Test
+    fun selectingNightRebuildsTheVisiblePlatesBackground() {
+        val plates = coverIdentityFor("generated:strength-muscle", null)
+            .copy(lines = LineCoverSpec(LineCoverStyle.ORBITAS, LineCoverBackground.CREMA, seed = 77))
+
+        val night = plates.restyled(CoverStudioStyle.PLATES, CoverPaletteKind.NOCHE)
+
+        assertEquals(CoverPaletteKind.NOCHE, night.palette)
+        assertEquals(LineCoverStyle.ORBITAS, night.lines?.style)
+        assertEquals(LineCoverBackground.NOCHE, night.lines?.background)
+        assertEquals(77, night.lines?.seed)
+    }
+
+    @Test
+    fun aSavedStudioChoiceWinsOverAPlatesTemplateIdentity() {
+        val program = Program(
+            id = "mi-programa",
+            name = "Mi programa",
+            structureTemplateId = "generated:strength-muscle",
+            coverImage = "kpkn-studio://WAVES/NOCHE",
+        )
+
+        val identity = coverIdentityForProgram(program)
+
+        assertEquals(CoverStudioStyle.WAVES, identity.style)
+        assertEquals(CoverPaletteKind.NOCHE, identity.palette)
+        assertNull(identity.lines)
+    }
+
+    @Test
+    fun anActivatedProgramKeepsItsCatalogIdentityAndBundledReference() {
+        val identity = assignedCoverIdentity("native:strength-foundation-v2")!!
+        val program = Program(
+            id = "programa-creado",
+            name = "Fuerza inicial",
+            structureTemplateId = "native:strength-foundation-v2",
+            coverImage = "kpkn-cover://native:strength-foundation-v2",
+        )
+
+        assertEquals(identity, coverIdentityForProgram(program))
+        assertEquals("kpkn-cover://native:strength-foundation-v2", program.coverImage)
+    }
+
+    @Test
+    fun anExplicitPersonalLineCoverWinsAcrossProgramSurfaces() {
+        val program = Program(
+            id = "programa-propio",
+            name = "Mi programa",
+            structureTemplateId = "generated:strength-muscle",
+            coverImage = "kpkn-lines://ONDAS/VIOLETA",
+        )
+
+        val identity = coverIdentityForProgram(program)
+
+        assertEquals(LineCoverStyle.ONDAS, identity.lines?.style)
+        assertEquals(LineCoverBackground.VIOLETA, identity.lines?.background)
+    }
+
+    @Test
     fun keepingTheStyleKeepsItsMotifAsAMethodNumeral() {
         // «531» es un numeral de método: si el estilo no cambia, el dato de la base se conserva.
         val base = coverIdentityFor("protocol:wendler-531-bbb", null)

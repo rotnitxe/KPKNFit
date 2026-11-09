@@ -2,6 +2,9 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
+import com.example.kpkn.domain.training.ApreVariant
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.screens.sessioneditor.components.withApreBlock
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -48,6 +51,35 @@ class SessionEditorAuditCopiesTest {
         assertNotEquals(exercise.warmupSets.single().id, copy.warmupSets.single().id)
         assertNotEquals(recorded.plannedIntensityTechniques.single().id, copy.sets.single().plannedIntensityTechniques.single().id)
         assertNull(copy.sets.single().completedReps)
+    }
+
+    @Test fun cloningAndTransferringApreRemapItsFourSeriesIds() {
+        var index = 0
+        val sourceExercise = Exercise("press-apre", "Press", reference1RM = 120.0)
+            .withApreBlock(ApreVariant.APRE_3) { "apre-" + (++index) }
+        val session = Session(id = "source", name = "Origen", exercises = listOf(sourceExercise))
+
+        val duplicate = duplicateExerciseInSession(session, null, sourceExercise.id).exercises.last()
+        assertNotEquals(sourceExercise.apreBlock!!.setIds, duplicate.apreBlock!!.setIds)
+        assertEquals(duplicate.sets.map { it.id }, duplicate.apreBlock!!.setIds)
+        assertNotNull(resolveLiveApreBlock(duplicate))
+
+        val transferred = buildClonePayload(session, null).parts.single().exercises.single()
+        assertNotEquals(sourceExercise.apreBlock!!.setIds, transferred.apreBlock!!.setIds)
+        assertEquals(transferred.sets.map { it.id }, transferred.apreBlock!!.setIds)
+        assertNotNull(resolveLiveApreBlock(transferred))
+    }
+
+    @Test fun invalidApreMarkerStaysInvalidAndDoesNotRetainOldSetIdsWhenCloned() {
+        var index = 0
+        val sourceExercise = Exercise("press-apre", "Press", reference1RM = 120.0)
+            .withApreBlock(ApreVariant.APRE_3) { "apre-" + (++index) }
+            .copy(apreBlock = ApreBlockReference(3, listOf("missing")))
+        val source = Session(id = "source", name = "Origen", exercises = listOf(sourceExercise))
+        val cloned = buildClonePayload(source, null).parts.single().exercises.single()
+
+        assertNull(resolveLiveApreBlock(cloned))
+        assertNotEquals("missing", cloned.apreBlock!!.setIds.single())
     }
 
     @Test fun repeatedTransfersNeverDuplicateCatalogOccurrences() {

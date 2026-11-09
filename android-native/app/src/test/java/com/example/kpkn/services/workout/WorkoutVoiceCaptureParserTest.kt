@@ -36,6 +36,12 @@ class WorkoutVoiceCaptureParserTest {
     }
 
     @Test
+    fun forceStartIsAnExplicitCaptureCommandOnlyWhileTheRecorderIsOpen() {
+        assertTrue(parse("grabar de todas formas") is VoiceSessionCommand.StartVideoCaptureAnyway)
+        assertTrue(parse("grabar vídeo de todas formas") is VoiceSessionCommand.StartVideoCaptureAnyway)
+        assertFalse(parse("grabar de todas formas", captureActive = false) is VoiceSessionCommand.StartVideoCaptureAnyway)
+    }
+    @Test
     fun stopsVideoWithTheAgreedCommandsAndAliases() {
         listOf(
             "detener vídeo",

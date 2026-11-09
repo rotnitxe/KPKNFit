@@ -146,6 +146,14 @@ data class SessionEditorRuleLimits(
 )
 
 
+data class AssistantSmartLoadBasisUndo(
+    val basis: SmartLoadBasis,
+    val exerciseNames: List<String>,
+    val previousByExerciseId: Map<String, SmartLoadBasis?>,
+    val variant: WeekVariant,
+    val stamp: Long?,
+)
+
 data class SessionEditorUiState(
     val session: Session? = null,
     val originalSession: Session? = null,
@@ -203,6 +211,7 @@ data class SessionEditorUiState(
     val assistantEntry: AssistantEntry? = null,
     /** Sugerencias del asistente aplicadas o descartadas, plegadas en una línea con «Deshacer». */
     val assistantOutcomes: List<AssistantSuggestionOutcome> = emptyList(),
+    val assistantSmartLoadBasisUndo: AssistantSmartLoadBasisUndo? = null,
     /** Aplicando / aplicada de una plantilla, dentro de la hoja del asistente. */
     val templateApplyProgress: TemplateApplyProgress? = null,
     /** Sugerencias del coach de tiempo (estimado vs límite). */

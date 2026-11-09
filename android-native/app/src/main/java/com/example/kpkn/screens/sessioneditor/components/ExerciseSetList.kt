@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
+import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
 import com.example.kpkn.screens.sessioneditor.withPlannedConfigOf
@@ -101,7 +102,7 @@ internal fun ExerciseSetList(
     val unilateral = exercise.isEffectivelyUnilateral()
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
-    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.prFor1RM, exercise.sets) {
+    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.smartLoadBasis, exercise.loadReference, exercise.prFor1RM, exercise.sets) {
         exercise.sets.associate { set -> set.id to calculateSuggestedLoad(exercise, set) }
     }
 
@@ -195,7 +196,7 @@ internal fun ExerciseSetList(
             } else InlineSetRow(
                 set = set,
                 index = index,
-                reference1RM = reference1RM,
+                reference1RM = if (set.loadBasis == null) resolveSmartLoadReference(exercise)?.kilograms else reference1RM,
                 trainingMax = exercise.referenceTrainingMax,
                 predictedWeight = predictedWeight,
                 estimatedMetric = estimatedMetric,

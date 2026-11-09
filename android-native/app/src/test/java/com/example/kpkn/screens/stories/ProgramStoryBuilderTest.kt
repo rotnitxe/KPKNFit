@@ -12,9 +12,16 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.font.createFontFamilyResolver
+import androidx.compose.ui.unit.LayoutDirection
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,19 +63,104 @@ class ProgramStoryBuilderTest {
     }
 
     @Test
+    fun tituloLargoConservaLosSieteDiasEnElOrdenDeInicioAunqueEntreneTres() {
+        val longName = "Plan de fuerza con preparación física, técnica y sesiones distribuidas toda la semana ".repeat(5)
+        val program = dosBloques().copy(name = longName, startDay = 3, weekDays = 3)
+
+        val story = ProgramStoryBuilder.build(program, ProgramStoryTemplate.SEMANA, emptyList(), hoy)
+        val content = story.content as ProgramStoryContent.Week
+
+        assertEquals(longName, story.name)
+        assertEquals(listOf("X", "J", "V", "S", "D", "L", "M"), content.days.map { it.letter })
+        assertEquals("C", content.days[1].label)
+        assertEquals("A · B", content.days[5].label)
+    }
+
+    @Test
     fun bloquesTieneUnaPastillaPorSemanaYUnaFilaPorBloque() {
         val story = ProgramStoryBuilder.build(dosBloques(), ProgramStoryTemplate.BLOQUES, emptyList(), hoy)
         val content = story.content as ProgramStoryContent.Blocks
         assertEquals(StoryBlockRow("Base", "2 sem · Carga lineal"), content.blocks[0])
         assertEquals(StoryBlockRow("Fuerza", "1 sem"), content.blocks[1])
         assertEquals(3, content.weekColors.size)
-        assertEquals(LineCoverStyle.ESPIRAL, story.cover.style)
+        assertEquals(ProgramStoryBuilder.baseCover(dosBloques()).style, story.cover.style)
+    }
+
+    @Test
+    fun muchosBloquesConservanTodasLasFilasYElIndicadorDeSemanas() {
+        val blocks = (1..12).map { index ->
+            bloque("b$index", "Bloque $index · Fuerza", weeks = listOf(semana("s$index")))
+        }
+        val program = programa("doce-bloques", blocks).copy(name = "Fuerza y técnica · ciclo completo")
+
+        val content = ProgramStoryBuilder.build(program, ProgramStoryTemplate.BLOQUES, emptyList(), hoy).content as ProgramStoryContent.Blocks
+
+        assertEquals(12, content.blocks.size)
+        assertEquals(12, content.weekColors.size)
+    }
+
+    @Test
+    fun historiaConstruidaDeCuarentaBloquesMantieneElIndicadorCompleto() {
+        val longName = "Programa de fuerza con muchos bloques de acumulación e intensificación ".repeat(5)
+        val blocks = (1..40).map { index ->
+            bloque("b$index", "Bloque $index · Fuerza", weeks = listOf(semana("s$index")))
+        }
+        val program = programa("cuarenta-bloques", blocks).copy(name = longName)
+        val story = ProgramStoryBuilder.build(program, ProgramStoryTemplate.BLOQUES, emptyList(), hoy)
+        val content = story.content as ProgramStoryContent.Blocks
+        val context = RuntimeEnvironment.getApplication()
+        val measurer = TextMeasurer(createFontFamilyResolver(context), StoryCanvas.Density1, LayoutDirection.Ltr)
+        val layout = measureBlocksStoryLayout(measurer, content, availableHeight = 900f)
+        val visibleBlocks = layout.rows.size - 1
+        val remainder = layout.rows.last().left
+
+        assertEquals(longName, story.name)
+        assertEquals(40, content.blocks.size)
+        assertEquals(40, content.weekColors.size)
+        assertTrue("La historia reserva una fila para indicar los bloques omitidos", visibleBlocks in 1 until content.blocks.size)
+        assertEquals("+${content.blocks.size - visibleBlocks} bloques más", remainder.layoutInput.text.text)
+        assertEquals(1, remainder.lineCount)
+        assertFalse("El indicador completo cabe en su columna", remainder.hasVisualOverflow)
     }
 
     @Test
     fun elEstiloElegidoSustituyeAlDeLaPlantilla() {
         val story = ProgramStoryBuilder.build(dosBloques(), ProgramStoryTemplate.BLOQUES, emptyList(), hoy, LineCoverStyle.ONDAS)
         assertEquals(LineCoverStyle.ONDAS, story.cover.style)
+    }
+
+    @Test
+    fun laHistoriaPorDefectoConservaLaIdentidadEstudioYLaEleccionGuardada() {
+        val program = Program(
+            id = "mi-plan",
+            name = "Plan propio",
+            structureTemplateId = "generated:strength-muscle",
+            coverImage = "kpkn-studio://WAVES/NOCHE",
+        )
+
+        val week = ProgramStoryBuilder.build(program, ProgramStoryTemplate.SEMANA, emptyList(), hoy)
+        val blocks = ProgramStoryBuilder.build(program, ProgramStoryTemplate.BLOQUES, emptyList(), hoy)
+        val edited = ProgramStoryBuilder.build(program, ProgramStoryTemplate.SEMANA, emptyList(), hoy, LineCoverStyle.ONDAS)
+        val reopened = ProgramStoryBuilder.build(program.copy(), ProgramStoryTemplate.SEMANA, emptyList(), hoy)
+
+        assertEquals(CoverStudioStyle.WAVES, week.studioCover?.style)
+        assertEquals(CoverPaletteKind.NOCHE, week.studioCover?.palette)
+        assertEquals(week.studioCover, blocks.studioCover)
+        assertEquals(LineCoverStyle.ONDAS, week.cover.style)
+        assertEquals(LineCoverBackground.NOCHE, week.cover.background)
+        assertEquals(null, edited.studioCover)
+        assertEquals(week.studioCover, reopened.studioCover)
+        assertEquals(week.cover, reopened.cover)
+    }
+
+    @Test
+    fun unaFotoPersonalYUnaReferenciaEmpaquetadaLleganALaHistoria() {
+        val photo = "content://media/external/images/media/42"
+        val withPhoto = programa("foto", listOf(bloque("b", "Ciclo", weeks = listOf(semana("s1"))))).copy(coverImage = photo)
+        val withLegacyCover = withPhoto.copy(coverImage = "kpkn-cover://native:strength-foundation-v2")
+
+        assertEquals(photo, ProgramStoryBuilder.build(withPhoto, ProgramStoryTemplate.SEMANA, emptyList(), hoy).personalCoverValue)
+        assertEquals("kpkn-cover://native:strength-foundation-v2", ProgramStoryBuilder.build(withLegacyCover, ProgramStoryTemplate.SEMANA, emptyList(), hoy).personalCoverValue)
     }
 
     @Test

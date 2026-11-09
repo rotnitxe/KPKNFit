@@ -56,4 +56,63 @@ class CardioCueRulesTest {
         assertTrue(cue.phaseChangeTone)
         assertEquals(listOf(3), CardioCueRules.countdownCue(3, CardioBlockType.WORK, null).countdownBeeps)
     }
+
+    @Test
+    fun continuousCardioHasCountdownStartAndFinishCues() {
+        val continuous = CardioDetails(
+            type = CardioType.TREADMILL,
+            targetDurationSeconds = 600,
+        )
+        assertEquals(listOf(3), CardioCueRules.sessionCountdownCue(3, continuous).countdownBeeps)
+        assertEquals("Tres", CardioCueRules.sessionCountdownCue(3, continuous).speech)
+        assertTrue(CardioCueRules.sessionStartCue(continuous).phaseChangeTone)
+        assertEquals(VibCue.DOUBLE_WORK, CardioCueRules.sessionStartCue(continuous).vibration)
+        assertTrue(CardioCueRules.sessionStartCue(continuous).speech!!.contains("Empieza"))
+        assertTrue(CardioCueRules.sessionFinishCue(continuous).phaseChangeTone)
+        assertEquals(VibCue.LONG_FINISH, CardioCueRules.sessionFinishCue(continuous).vibration)
+        assertTrue(CardioCueRules.sessionFinishCue(continuous).speech!!.contains("terminado"))
+    }
+
+    @Test
+    fun continuousCuePreferencesCanSilenceEachSignal() {
+        val quiet = CardioDetails(
+            type = CardioType.TREADMILL,
+            targetDurationSeconds = 600,
+            beepsEnabled = false,
+            voiceCuesEnabled = false,
+            vibrationEnabled = false,
+        )
+        listOf(
+            CardioCueRules.sessionCountdownCue(3, quiet),
+            CardioCueRules.sessionStartCue(quiet),
+            CardioCueRules.sessionFinishCue(quiet),
+        ).forEach { cue ->
+            assertTrue(cue.countdownBeeps.isEmpty())
+            assertFalse(cue.phaseChangeTone)
+            assertEquals(null, cue.vibration)
+            assertEquals(null, cue.speech)
+        }
+    }
+
+    @Test
+    fun globalSoundAndHapticPreferencesGateOnlyTheirOwnOutputs() {
+        val cue = CardioCuePlan(
+            countdownBeeps = listOf(3, 2, 1),
+            phaseChangeTone = true,
+            vibration = VibCue.DOUBLE_WORK,
+            speech = "Trabajo",
+        )
+
+        val soundOff = cue.withSystemOutputPreferences(soundsEnabled = false, hapticsEnabled = true)
+        assertTrue(soundOff.countdownBeeps.isEmpty())
+        assertFalse(soundOff.phaseChangeTone)
+        assertEquals(VibCue.DOUBLE_WORK, soundOff.vibration)
+        assertEquals("Trabajo", soundOff.speech)
+
+        val hapticsOff = cue.withSystemOutputPreferences(soundsEnabled = true, hapticsEnabled = false)
+        assertEquals(listOf(3, 2, 1), hapticsOff.countdownBeeps)
+        assertTrue(hapticsOff.phaseChangeTone)
+        assertEquals(null, hapticsOff.vibration)
+        assertEquals("Trabajo", hapticsOff.speech)
+    }
 }

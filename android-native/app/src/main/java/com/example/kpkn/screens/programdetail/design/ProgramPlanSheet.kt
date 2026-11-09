@@ -112,6 +112,13 @@ internal fun programPlanFicha(
     val entry = summary.catalogEntry
     val blocks = program?.macrocycles?.flatMap { it.blocks }.orEmpty()
     val totalWeeks = blocks.flatMap { it.mesocycles }.sumOf { it.weeks.size }
+    val allSessions = blocks.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+    val exerciseCount = allSessions.flatMap { it.allExercises() }.map { it.id }.distinct().size
+    val manualStructure = when {
+        program == null || entry != null -> null
+        allSessions.isEmpty() -> "Todavía no hay sesiones. Añade semanas, días y ejercicios para dar forma a tu programa."
+        else -> "${totalWeeks} semanas · ${allSessions.size} sesiones · $exerciseCount ejercicios"
+    }
     val week = program?.let { shownWeekOf(it, currentWeekId, today) }
     val sessions = week?.sessions.orEmpty()
         .mapIndexed { index, session -> (SetupPlanReveals.dayOf(session) ?: (index % 7 + 1)) to session }
@@ -121,7 +128,7 @@ internal fun programPlanFicha(
         id = entry?.id ?: program?.id ?: summary.planName,
         title = program?.name?.trim()?.takeIf { it.isNotEmpty() } ?: summary.planName,
         kicker = if (isActive) PlanFichaCopy.EYEBROW_PROGRAM_ACTIVE else PlanFichaCopy.EYEBROW_PROGRAM,
-        blurb = summary.summary.orEmpty(),
+        blurb = summary.summary ?: manualStructure.orEmpty(),
         // Sin perfil: el acento verde de «hecho» del lienzo y la portada neutra.
         profile = null,
         daysLabel = entry?.let(PlanInfoFicha::goalLabelOf).orEmpty(),
@@ -129,7 +136,7 @@ internal fun programPlanFicha(
         levelLabel = if (blocks.size > 1) SpanishPlurals.blocks(blocks.size) else "",
         coverSeed = Math.floorMod((program?.id ?: summary.planName).hashCode(), 9973),
     )
-    val body = summary.summary ?: description?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }
+    val body = summary.summary ?: description?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() } ?: manualStructure
     val detail = PlanDetailModel(
         card = card,
         description = body.orEmpty(),

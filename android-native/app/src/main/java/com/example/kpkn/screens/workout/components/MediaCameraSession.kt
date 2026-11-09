@@ -55,6 +55,14 @@ internal class MediaCameraSession(
         bindCount += 1
     }
 
+    /** An app-owned camera session suspended by another owner releases its bound flag. */
+    fun onUnbound() {
+        if (bound) {
+            bound = false
+            unbindCount += 1
+        }
+    }
+
     /** La vista previa pasa a pintarse en [surface] (la de la tarjeta o la del overlay expandido). */
     fun attach(surface: Any) {
         this.surface = surface
@@ -80,10 +88,7 @@ internal class MediaCameraSession(
      */
     fun release(isRecording: Boolean): Boolean {
         if (isRecording) return false
-        if (bound) {
-            bound = false
-            unbindCount += 1
-        }
+        onUnbound()
         return true
     }
 }
@@ -151,8 +156,8 @@ internal fun rememberMediaCameraSession(
         fun releaseOwned() {
             if (!providerFuture.isDone) return
             val provider = runCatching { providerFuture.get() }.getOrNull() ?: return
-            if (session.release(isRecording = false) && provider.isBound(preview)) {
-                provider.unbind(preview, imageCapture, videoCapture)
+            if (session.release(isRecording = false)) {
+                CameraXProcessUseCaseOwner.release(provider, session)
             }
         }
         val listener = Runnable {
@@ -166,16 +171,23 @@ internal fun rememberMediaCameraSession(
                     capture.updateCameraAvailability(back, front)
                     val selected = cameraChoice.detected(back, front).lens
                     val bound = runCatching {
-                        provider.unbindAll()
-                        provider.bindToLifecycle(
-                            lifecycleOwner,
-                            if (selected == WorkoutCameraLens.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA,
-                            preview,
-                            imageCapture,
-                            videoCapture,
-                        )
+                        CameraXProcessUseCaseOwner.bind(
+                            provider = provider,
+                            owner = session,
+                            useCases = listOf(preview, imageCapture, videoCapture),
+                            onSuspended = session::onUnbound,
+                        ) {
+                            provider.bindToLifecycle(
+                                lifecycleOwner,
+                                if (selected == WorkoutCameraLens.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                imageCapture,
+                                videoCapture,
+                            )
+                            session.onBound()
+                        }
                     }
-                    if (bound.isFailure) bindFailed() else session.onBound()
+                    if (bound.isFailure) bindFailed()
                 }
             }
         }

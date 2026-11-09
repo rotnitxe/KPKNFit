@@ -6,6 +6,9 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdenti
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.lineCoverValue
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.lineBackgroundForPalette
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.lineStyleForStudioStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.parseProgramStudioCover
 import com.example.kpkn.screens.programdetail.components.HeroCoverKind
 import com.example.kpkn.screens.programdetail.components.heroCoverKind
 
@@ -55,7 +58,7 @@ internal data class ProgramEditDraft(
             cover != program.coverImage
 }
 
-/** Los estilos que se eligen en la rejilla (los ocho de la pestaña Portadas; «Sesión» es solo de las historias). */
+/** Los estilos que se eligen en la rejilla («Sesión» es solo de las historias). */
 internal val editableLineStyles: List<LineCoverStyle> = LineCoverStyle.entries.filter { it != LineCoverStyle.SESION }
 
 /**
@@ -64,12 +67,15 @@ internal val editableLineStyles: List<LineCoverStyle> = LineCoverStyle.entries.f
  */
 internal fun programEditDraftOf(program: Program): ProgramEditDraft {
     val lines = coverIdentityForProgram(program).lines
+    val studio = parseProgramStudioCover(program.coverImage)
     return ProgramEditDraft(
         name = program.name,
         description = program.description.orEmpty(),
         cover = program.coverImage,
-        lineStyle = lines?.style?.takeIf { it != LineCoverStyle.SESION } ?: LineCoverStyle.PERFIL,
-        background = lines?.background ?: LineCoverBackground.CARBON,
+        lineStyle = studio?.style?.let(::lineStyleForStudioStyle)
+            ?: lines?.style?.takeIf { it != LineCoverStyle.SESION }
+            ?: LineCoverStyle.PERFIL,
+        background = studio?.palette?.let(::lineBackgroundForPalette) ?: lines?.background ?: LineCoverBackground.CARBON,
         mode = program.mode,
     )
 }

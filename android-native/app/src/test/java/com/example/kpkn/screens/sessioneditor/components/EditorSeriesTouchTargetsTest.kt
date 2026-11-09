@@ -1,23 +1,45 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextInputSelection
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +54,7 @@ import org.robolectric.annotation.GraphicsMode
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h880dp-mdpi")
+@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w412dp-h1000dp-mdpi")
 class EditorSeriesTouchTargetsTest {
     @get:Rule
     val rule = createComposeRule()
@@ -40,7 +62,7 @@ class EditorSeriesTouchTargetsTest {
     private fun assertTouch48(name: String, tag: String? = null, description: String? = null, text: String? = null) {
         val interaction = when {
             tag != null -> rule.onNodeWithTag(tag)
-            description != null -> rule.onNodeWithContentDescription(description)
+            description != null -> rule.onNodeWithContentDescription(description, useUnmergedTree = true)
             else -> rule.onNodeWithText(text!!)
         }
         val touch = interaction.fetchSemanticsNode().touchBoundsInRoot
@@ -120,5 +142,120 @@ class EditorSeriesTouchTargetsTest {
         assertTouch48("⋯ Más acciones", description = "Más acciones de la serie")
         assertTouch48("− de las repeticiones", description = "Menos repeticiones")
         assertTouch48("+ de las repeticiones", description = "Más repeticiones")
+    }
+
+    @Test
+    fun valoresUnidadesYControlesSeDistribuyenEnAnchosReducidosYFuentesGrandes() {
+        data class ValueCase(val text: String, val unit: String?, val label: String)
+        val cases = listOf(
+            ValueCase("181,8", "kg", "Carga con coma"),
+            ValueCase("181.8", "kg", "Carga con punto"),
+            ValueCase("1000", "m", "Distancia larga"),
+            ValueCase("123", "series", "Cantidad de tres cifras"),
+        )
+        val viewportWidth = mutableIntStateOf(320)
+        val fontScale = mutableFloatStateOf(1f)
+        val valueCase = mutableStateOf(cases.first())
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale.value)) {
+                Box(Modifier.width(viewportWidth.intValue.dp).height(760.dp)) {
+                    EditorOverlayTestHost {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)) {
+                            EdStepperField(
+                                text = valueCase.value.text,
+                                label = valueCase.value.label,
+                                unit = valueCase.value.unit,
+                                modifier = Modifier.testTag("adaptive-field"),
+                                onStep = {},
+                                onCommitText = {},
+                                keyboard = if (valueCase.value.text.contains('.') || valueCase.value.text.contains(',')) KeyboardType.Decimal else KeyboardType.Number,
+                                minusDescription = "Menos ${valueCase.value.label}",
+                                plusDescription = "Más ${valueCase.value.label}",
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        for (case in cases) {
+            rule.runOnIdle { valueCase.value = case }
+            for (width in listOf(320, 360, 412)) {
+                for (scale in listOf(1f, 1.3f, 1.5f, 2f)) {
+                    rule.runOnIdle {
+                        viewportWidth.intValue = width
+                        fontScale.value = scale
+                    }
+                    rule.waitForIdle()
+
+                    val field = rule.onNodeWithTag("adaptive-field").fetchSemanticsNode().boundsInRoot
+                    val value = rule.onNodeWithText(case.text, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                    val minus = rule.onNodeWithContentDescription("Menos ${case.label}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                    val plus = rule.onNodeWithContentDescription("Más ${case.label}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                    assertEquals("ancho útil ${width}dp", (width - 32).toFloat(), field.width, 1f)
+                    assertTrue("${case.text} queda dentro del campo en ${width}dp / $scale×", value.left >= field.left - 1f && value.right <= field.right + 1f)
+                    assertTrue(
+                        "${case.text} conserva su ancho legible en ${width}dp / $scale×",
+                        value.width >= case.text.length * 20f * scale * 0.45f,
+                    )
+                    assertTrue(
+                        "el botón menos se mantiene dentro del campo: ${case.text}, ${width}dp / $scale×, campo=$field, botón=$minus",
+                        minus.left >= field.left - 1f,
+                    )
+                    assertTrue(
+                        "el botón más se mantiene dentro del campo: ${case.text}, ${width}dp / $scale×, campo=$field, botón=$plus",
+                        plus.right <= field.right + 1f,
+                    )
+                    if (case.unit != null) {
+                        val unit = rule.onNodeWithText(case.unit, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+                        assertTrue("la unidad ${case.unit} queda reservada", unit.left >= field.left && unit.right <= field.right + 1f)
+                    }
+                    if (scale >= 1.5f && width <= 360) {
+                        assertTrue("los controles pasan a la segunda línea para ${case.text}", minus.top >= value.bottom - 1f)
+                    } else {
+                        val verticalOverlap = minus.top < value.bottom && value.top < minus.bottom
+                        assertFalse(
+                            "el control menos no invade el valor ${case.text}",
+                            verticalOverlap && minus.right > value.left,
+                        )
+                    }
+                    assertTouch48("menos ${case.label}", description = "Menos ${case.label}")
+                    assertTouch48("más ${case.label}", description = "Más ${case.label}")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun edicionDeLaCifraConservaElFocoYConfirmaElPuntoDecimal() {
+        val saved = mutableStateOf<String?>(null)
+        rule.setContent {
+            EditorOverlayTestHost {
+                EdStepperField(
+                    text = "181,8",
+                    label = "Carga de prueba",
+                    unit = "kg",
+                    modifier = Modifier.padding(16.dp).testTag("editable-load"),
+                    onStep = {},
+                    keyboard = androidx.compose.ui.text.input.KeyboardType.Decimal,
+                    onCommitText = { saved.value = it },
+                    minusDescription = "Menos carga de prueba",
+                    plusDescription = "Más carga de prueba",
+                )
+            }
+        }
+        rule.onNodeWithContentDescription("Carga de prueba").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("kg", useUnmergedTree = true).assertIsDisplayed()
+        val focusedField = rule.onNode(hasSetTextAction() and isFocused())
+        focusedField.assertIsFocused()
+        focusedField.performTextReplacement("181.8")
+        focusedField.performTextInputSelection(TextRange(3))
+        focusedField.performTextInput("7")
+        focusedField.performImeAction()
+        rule.waitForIdle()
+
+        assertEquals("1817.8", saved.value)
     }
 }

@@ -8,7 +8,14 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.ApreBlockReference
+import com.example.kpkn.data.models.SetPurpose
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.domain.training.ApreVariant
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.screens.sessioneditor.components.withApreBlock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -68,6 +75,90 @@ class SessionEditorSessionHelpersTest {
         val program = session("s1", modifiedAt = 1L)
         val resolved = resolveNewestSession(existing = program, fallback = program, persistedDraft = null)
         assertSame(program, resolved)
+    }
+
+    @Test
+    fun invalidApreExitPreviewConvertsOnlyUniqueMarkerIdsAndPreservesForeignAmraps() {
+        val exercise = Exercise(
+            id = "apre-invalid",
+            name = "Press",
+            trainingMode = TrainingMode.REPS,
+            reference1RM = 200.0,
+            referenceTrainingMax = 180.0,
+            sets = listOf(
+                ExerciseSet("s1", targetReps = 5, weight = 100.0),
+                ExerciseSet("ambiguous", targetReps = 6, weight = 120.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+                ExerciseSet("foreign", targetReps = 8, weight = 80.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+                ExerciseSet("s4", targetReps = 6, weight = 140.0, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+            ),
+            apreBlock = ApreBlockReference(6, listOf("s1", "ambiguous", "ambiguous", "s4")),
+        )
+
+        assertNull(resolveLiveApreBlock(exercise))
+        val preview = exercise.apreExitPreview()
+        assertEquals(setOf("s1", "s4"), preview.markedSetIds)
+        assertEquals(listOf(1, 2), preview.preservedAmrapIndices)
+        assertTrue(preview.summary.contains("S1, S4"))
+        assertTrue(preview.summary.contains("S2, S3"))
+        assertTrue(preview.summary.contains("No se deducen series por posición"))
+
+        val converted = exercise.withoutApreBlock()
+        assertEquals(TrainingMode.REPS, converted.trainingMode)
+        assertNull(converted.apreBlock)
+        assertEquals(SetPurpose.AMRAP, converted.sets[1].purpose)
+        assertEquals(6, converted.sets[1].amrapMinimumReps)
+        assertEquals(SetPurpose.AMRAP, converted.sets[2].purpose)
+        assertEquals(6, converted.sets[2].amrapMinimumReps)
+        assertEquals(SetPurpose.NONE, converted.sets[3].purpose)
+        assertNull(converted.sets[3].amrapMinimumReps)
+        assertEquals(200.0, converted.reference1RM!!, 0.0)
+        assertEquals(180.0, converted.referenceTrainingMax!!, 0.0)
+    }
+
+    @Test
+    fun normalizationDoesNotCalculateLoadsWhileApreMarkerNeedsReview() {
+        val exercise = Exercise(
+            id = "apre-invalid-loads",
+            name = "Press",
+            trainingMode = TrainingMode.REPS,
+            reference1RM = 200.0,
+            sets = listOf(
+                ExerciseSet("s1", targetReps = 5),
+                ExerciseSet("s2", targetReps = 8),
+                ExerciseSet("s3", targetReps = 10, purpose = SetPurpose.AMRAP, amrapMinimumReps = 10),
+                ExerciseSet("s4", targetReps = 10, purpose = SetPurpose.AMRAP, amrapMinimumReps = 10),
+            ),
+            apreBlock = ApreBlockReference(10, listOf("s1", "s2", "missing", "s4")),
+        )
+
+        val normalized = exercise.normalizeExercise()
+
+        assertNull(resolveLiveApreBlock(normalized))
+        assertEquals(listOf(null, null, null, null), normalized.sets.map { it.weight })
+    }
+
+    @Test
+    fun repairingApreCreatesFourDistinctIdsAndKeepsRepsAndXrmSeparateFromRmReferences() {
+        val exercise = Exercise(
+            id = "apre-repair",
+            name = "Press",
+            trainingMode = TrainingMode.REPS,
+            reference1RM = 200.0,
+            referenceTrainingMax = 180.0,
+            apreBlock = ApreBlockReference(10, listOf("missing")),
+            sets = listOf(ExerciseSet("old", targetReps = 8, weight = 80.0, purpose = SetPurpose.AMRAP)),
+        )
+        var next = 0
+
+        val repaired = exercise.withApreBlock(ApreVariant.APRE_6) { "repaired-${++next}" }
+
+        assertEquals(TrainingMode.REPS, repaired.trainingMode)
+        assertEquals(4, repaired.apreBlock!!.setIds.size)
+        assertEquals(4, repaired.apreBlock!!.setIds.distinct().size)
+        assertEquals(repaired.apreBlock!!.setIds, repaired.sets.map { it.id })
+        assertEquals(ApreVariant.APRE_6.xrmReps, resolveLiveApreBlock(repaired)!!.variant.xrmReps)
+        assertEquals(200.0, repaired.reference1RM!!, 0.0)
+        assertEquals(180.0, repaired.referenceTrainingMax!!, 0.0)
     }
 
     @Test

@@ -8,7 +8,7 @@ enum class PortionPreset { SMALL, MEDIUM, LARGE, EXTRA }
 
 enum class CookingMethod {
     CRUDO, COCIDO, PLANCHA, HORNO, FRITO, EMPANIZADO_FRITO,
-    AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO
+    AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO, SALTEADO
 }
 
 enum class PortionReference {
@@ -170,6 +170,10 @@ data class LoggedFood(
     val nutrientsPer100g: Map<String, Double>? = null,
     /** F4: generación del paquete de catálogo de la que salió la instantánea. */
     val catalogGeneration: String? = null,
+    /** Preparación elegida en el registro nuevo; opcional para conservar logs antiguos y salteado sin traducirlo a frito. */
+    val preparation: String? = null,
+    /** Nivel de aceite explícito de esa preparación, necesario para recalcular cantidades sin duplicarlo. */
+    val preparationOilLevel: String? = null,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────

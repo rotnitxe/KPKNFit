@@ -97,8 +97,7 @@ object WarmupCalibrationEngine {
         ),
     )
 
-    fun normalizePercentage(rawPercentage: Double): Double =
-        if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
+    fun normalizePercentage(rawPercentage: Double): Double = normalizeWarmupPercentage(rawPercentage)
 
     /** Applies a small first-working-set correction from the athlete's warm-up RPE. */
     fun adjustWorkingLoad(baseKg: Double, warmupRpe: Double?): Double {

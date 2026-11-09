@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SmartLoadBasis
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
@@ -176,6 +177,20 @@ class SessionEditorUndoViewModelTest {
 
         assertEquals(listOf("e1", "e2"), ids(vm))
         assertNull(vm.uiState.value.pendingExerciseRemoval)
+    }
+
+    @Test
+    fun asistenteAplicaBaseSoloASeleccionadosYDeshacerRestauraPreferenciasAnteriores() {
+        val vm = loadedViewModel()
+
+        vm.applyAssistantSmartLoadBasis(SmartLoadBasis.TRAINING_MAX, listOf("e1"))
+        assertEquals(SmartLoadBasis.TRAINING_MAX, vm.uiState.value.session!!.exercises.first { it.id == "e1" }.smartLoadBasis)
+        assertNull(vm.uiState.value.session!!.exercises.first { it.id == "e2" }.smartLoadBasis)
+        assertNotNull(vm.uiState.value.assistantSmartLoadBasisUndo)
+
+        vm.undoAssistantSmartLoadBasis()
+        assertNull(vm.uiState.value.session!!.exercises.first { it.id == "e1" }.smartLoadBasis)
+        assertNull(vm.uiState.value.assistantSmartLoadBasisUndo)
     }
 
     @Test

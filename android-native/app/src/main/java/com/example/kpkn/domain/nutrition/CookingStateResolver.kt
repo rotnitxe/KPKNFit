@@ -71,6 +71,7 @@ object CookingStateResolver {
         // B5: "revuelto" también es una fila preparada para FRITO (huevos revueltos);
         // sin esto se aplicaba factor FRITO + aceite sobre la fila cruda aunque existiera.
         CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frit", "revuelt")
+        CookingMethod.SALTEADO -> listOf("saltead", "sofrit", "wokead")
         CookingMethod.PLANCHA -> listOf("plancha")
         CookingMethod.HORNO -> listOf("horno")
         CookingMethod.VAPOR -> listOf("vapor")
@@ -107,6 +108,7 @@ object CookingStateResolver {
     fun methodSearchSuffixes(method: CookingMethod): List<String> = when (method) {
         CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO ->
             listOf("frita", "frito", "revuelto", "revuelta", "fritas", "fritos", "revueltos", "revueltas")
+        CookingMethod.SALTEADO -> listOf("salteada", "salteado", "salteadas", "salteados", "sofrita", "sofrito")
         CookingMethod.PLANCHA -> listOf("plancha")
         CookingMethod.HORNO -> listOf("horno")
         CookingMethod.VAPOR -> listOf("vapor")
@@ -365,7 +367,7 @@ object CookingStateResolver {
     }
 
     fun shouldApplyOil(food: FoodItem?, method: CookingMethod?): Boolean {
-        if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) return false
+        if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO && method != CookingMethod.SALTEADO) return false
         if (food == null) return true
         return !isAlreadyPreparedForMethod(food, method)
     }

@@ -61,14 +61,18 @@ internal fun liveSessionCardHeight(): Dp {
 
 /** A single measured frame for recording, preparation, rest and both reverse faces. */
 @Composable
-internal fun LiveSessionCardFrame(content: @Composable BoxScope.() -> Unit) {
+internal fun LiveSessionCardFrame(adaptHeightToContent: Boolean = false, content: @Composable BoxScope.() -> Unit) {
     val measuredHeight = LocalLivePagerWorkingSetVisualHeightPx.current
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val frameWidth = liveSessionCardWidthDp(screenWidthDp)
     val frameHeight = liveSessionCardHeightDp(screenWidthDp, LocalConfiguration.current.screenHeightDp)
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        val frameSize = Modifier.width(frameWidth).then(
+            if (adaptHeightToContent) Modifier.heightIn(max = frameHeight).wrapContentHeight()
+            else Modifier.height(frameHeight),
+        )
         Box(
-            Modifier.width(frameWidth).height(frameHeight).testTag("live-card-frame")
+            frameSize.testTag("live-card-frame")
                 .onSizeChanged { publishLivePagerWorkingSetVisualHeight(measuredHeight, it.height) },
         ) {
             CompositionLocalProvider(LocalLiveSessionCardHeight provides frameHeight) { content() }

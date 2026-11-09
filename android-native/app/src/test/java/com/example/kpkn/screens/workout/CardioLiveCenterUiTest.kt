@@ -173,10 +173,22 @@ class CardioLiveCenterUiTest {
     @Test
     fun dataPageWithoutHeartRateOpensManualEntry() {
         scene(continuous)
+        rule.onNodeWithText("Plan").assertDoesNotExist()
+        rule.onNodeWithText("Ahora").assertIsDisplayed()
+        rule.onNodeWithText("Datos").assertIsDisplayed()
         rule.onNodeWithTag("cardio-page-2").performClick()
         rule.onNodeWithTag("cardio-summary").assertIsDisplayed()
         rule.onNodeWithTag("cardio-data-add-hr").performScrollTo().performClick()
         rule.onNodeWithTag("cardio-hr-sheet-title", useUnmergedTree = true).assertTextContains("Añadir pulso")
+    }
+
+    @Test
+    fun continuousReadyDoesNotOfferARedundantPlanPage() {
+        scene(continuous, status = CardioExecutionStatus.READY)
+        rule.onNodeWithTag("cardio-ready").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-start").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-ready-plan").assertDoesNotExist()
+        rule.onNodeWithText("Ver el plan").assertDoesNotExist()
     }
 
     @Test
@@ -244,5 +256,26 @@ class CardioLiveCenterUiTest {
         assertTrue("más rápido en trabajo que en recuperación", work > recover)
         assertEquals(0f, cardioFigureCadence(CardioFigureKind.RUN, zone = 4, moving = false))
         assertEquals(1.5f, cardioFigureCadence(CardioFigureKind.BIKE, zone = 3, moving = true, rpm = 90), 1e-4f)
+    }
+
+    @Test
+    fun datos_page_is_accessible_in_ready_status_before_starting_exercise() {
+        scene(continuous, status = CardioExecutionStatus.READY)
+        // In READY status, on page 0 (Ahora), CardioReadyPulido is shown with Empezar
+        rule.onNodeWithText("Empezar").assertIsDisplayed()
+
+        // Switch to page 2 (Datos) before starting
+        rule.onNodeWithTag("cardio-page-2").assertIsDisplayed().performClick()
+        rule.waitForIdle()
+
+        // Page 2 (Datos) must show its summary metrics and not be intercepted by CardioReadyPulido
+        rule.onNodeWithTag("cardio-summary").assertIsDisplayed()
+        rule.onNodeWithText("TIEMPO ACTIVO").assertIsDisplayed()
+        rule.onNodeWithText("DISTANCIA").assertIsDisplayed()
+
+        // Switch to page 0 (Ahora) again
+        rule.onNodeWithTag("cardio-page-0").assertIsDisplayed().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("cardio-summary").assertDoesNotExist()
     }
 }

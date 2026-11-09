@@ -11,9 +11,70 @@ import com.example.kpkn.data.models.WeekVariant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutStepNavigatorNavigationTest {
+    @Test
+    fun cardioCompletionUsesItsRpeAndDoesNotOpenStrengthFeedback() {
+        val cardio = Exercise(
+            id = "run",
+            name = "Carrera",
+            sets = listOf(ExerciseSet("run-a")),
+            cardioDetails = CardioDetails(type = CardioType.RUN_OUTDOOR),
+        )
+        val strength = Exercise(id = "press", name = "Press", sets = listOf(ExerciseSet("press-a")))
+        val session = Session(id = "session", name = "Mixta", exercises = listOf(cardio, strength))
+        var state = WorkoutUiState(
+            session = session,
+            currentExerciseIdx = 0,
+            activeStepKey = WorkoutStepRules.cardioStepKey("run"),
+            completedSets = mapOf(WorkoutStepRules.cardioCompletionKey("run", 0) to CompletedSet(id = "run-done", rpe = 7.0)),
+        )
+        var feedbackCalls = 0
+        var finishCalls = 0
+        val navigator = WorkoutStepNavigator(
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            getState = { state },
+            updateState = { transform -> state = transform(state) },
+            ports = object : WorkoutStepNavigator.Ports {
+                override fun visibleExercises(state: WorkoutUiState) = state.session?.exercises.orEmpty()
+                override fun sessionForActiveMode(base: Session, mode: WeekVariant) = base
+                override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
+                    WorkoutStepRules.cardioCompletionKey(exerciseId, setIdx) in completedSets || "${exerciseId}_$setIdx" in completedSets
+                override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
+                override fun stopRestTimer() = Unit
+                override fun persistOngoingState(immediate: Boolean) = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
+                override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+                override fun computeImbalanceNotice(exercise: Exercise, setIdx: Int, completedSets: Map<String, CompletedSet>) = null
+                override fun openFinishSheet() { finishCalls++ }
+                override fun speakCurrentStepAnnouncementIfEnabled() = Unit
+                override fun isRecordingBusy() = false
+                override fun onRecordingBusyBlocked(message: String) = Unit
+                override fun announcePostExerciseFeedback(exerciseIds: List<String>) { feedbackCalls++ }
+                override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) { feedbackCalls++ }
+            },
+        )
+
+        navigator.nextSet()
+
+        assertEquals(1, state.currentExerciseIdx)
+        assertEquals(WorkoutStepRules.workingStepKey("press", 0), state.activeStepKey)
+        assertFalse(state.showPostExerciseSheet)
+        assertEquals(0, feedbackCalls)
+        assertEquals(0, finishCalls)
+
+        state = state.copy(session = Session(id = "only-cardio", name = "Cardio", exercises = listOf(cardio)), currentExerciseIdx = 0,
+            activeStepKey = WorkoutStepRules.cardioStepKey("run"), completedSets = mapOf(WorkoutStepRules.cardioCompletionKey("run", 0) to CompletedSet(id = "run-done")))
+        navigator.nextSet()
+        assertTrue(state.showFinishSheet)
+        assertEquals(0, feedbackCalls)
+        assertEquals(1, finishCalls)
+    }
+
     @Test
     fun nextSet_afterFirstCardioCommit_selectsSecondCardioSetBeforeMobility() {
         val cardio = Exercise(

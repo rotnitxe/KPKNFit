@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.graphics.lerp
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 
 @Composable
 internal fun EditorMiniField(
@@ -115,7 +116,9 @@ internal fun EditorMiniField(
         },
         shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodySmall.copy(
+            fontFamily = if (keyboardType == KeyboardType.Number || keyboardType == KeyboardType.Decimal) WizardFonts.body else MaterialTheme.typography.bodySmall.fontFamily,
             fontWeight = FontWeight.Bold,
+            fontFeatureSettings = if (keyboardType == KeyboardType.Number || keyboardType == KeyboardType.Decimal) "'tnum' 1" else null,
             color = Color.White.copy(alpha = 0.92f),
         ),
         colors = kpknEditorFieldColors(accentColor),

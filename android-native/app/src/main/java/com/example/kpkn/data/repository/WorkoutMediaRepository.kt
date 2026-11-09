@@ -26,6 +26,8 @@ import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.WorkoutMediaThumbnailer
 import com.example.kpkn.data.media.PoseTrajectoryAnalysis
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadata
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
@@ -55,16 +57,21 @@ import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicLong
 import java.util.UUID
 
+internal typealias CaptureMetadataUpdater = (File, (CaptureMetadata) -> CaptureMetadata) -> Unit
+
 /**
  * Unified persistence for workout photos and videos (Room + private filesDir store).
  *
  * Does not own live-session UI. Capture/albums call this repository.
  * [importLegacyIfNeeded] is idempotent via Settings.workoutMediaLegacyImportDone.
  */
-class WorkoutMediaRepository(
+class WorkoutMediaRepository internal constructor(
     context: Context,
     private val db: KpknDatabase = KpknDatabase.getInstance(context),
     store: WorkoutMediaStore? = null,
+    private val captureMetadataUpdater: CaptureMetadataUpdater = { file, change ->
+        CaptureMetadataFile.update(file, change)
+    },
 ) {
     private val appContext = context.applicationContext
     private val executionBindings by lazy { com.example.kpkn.data.media.WorkoutMediaExecutionBindings(appContext.filesDir) }
@@ -253,7 +260,7 @@ class WorkoutMediaRepository(
         val existing = db.workoutMediaDao().getById(entry.media.id)
         if (existing != null) {
             val media = persistWithAssociation(existing.toWorkoutMedia())
-            cleanupCommittedCapture(entry, media)
+            finishCommittedCapture(entry, media)
             return@enqueueTracked media
         }
         val source = File(entry.sourceFilePath)
@@ -663,7 +670,25 @@ class WorkoutMediaRepository(
             lateinit var deferred: Deferred<WorkoutMedia?>
             deferred = MediaPersistenceOwner.scope.async(start = CoroutineStart.LAZY) {
                 val saved = try {
-                    work().also { MediaPersistenceOwner.clearPendingIfCurrent(id, attempt) }
+                    work().also { committed ->
+                        if (committed != null) {
+                            val remainingJournal = try {
+                                captureJournal.read(id)
+                            } catch (error: Exception) {
+                                MediaPersistenceOwner.markJournalUnreadable()
+                                Log.w(TAG, "No se pudo comprobar si quedaron metadatos auxiliares pendientes de $id.", error)
+                                null
+                            }
+                            if (remainingJournal != null) {
+                                MediaPersistenceOwner.recordFailureIfCurrent(
+                                    id,
+                                    attempt,
+                                    remainingJournal,
+                                    "El vídeo quedó guardado, pero faltan metadatos auxiliares. Puedes reintentar sin duplicar el medio.",
+                                )
+                            } else MediaPersistenceOwner.clearPendingIfCurrent(id, attempt)
+                        } else MediaPersistenceOwner.clearPendingIfCurrent(id, attempt)
+                    }
                 } catch (cancelled: CancellationException) {
                     publishCaptureFailure(entry, failureMessage, attempt)
                     throw cancelled
@@ -676,7 +701,11 @@ class WorkoutMediaRepository(
                     }
                 }
                 // Fuera del try: encolar el análisis nunca convierte una captura ya guardada en un fallo de captura.
-                if (saved != null) scheduleTechniqueAnalysis(saved, imported = entry.sourceUri != null)
+                if (saved != null) scheduleTechniqueAnalysis(
+                    saved,
+                    imported = entry.sourceUri != null,
+                    captureChoice = entry.analysisRequestedForCapture,
+                )
                 saved
             }
             inFlight[id] = deferred
@@ -709,10 +738,20 @@ class WorkoutMediaRepository(
      * deja la fila como estaría sin él (la borra, o la rehace desde su sidecar). Nada de lo que falle aquí rompe el guardado: se
      * anota y se sigue.
      */
-    private suspend fun scheduleTechniqueAnalysis(media: WorkoutMedia, imported: Boolean) {
+    private suspend fun scheduleTechniqueAnalysis(
+        media: WorkoutMedia,
+        imported: Boolean,
+        captureChoice: Boolean?,
+    ) {
         if (media.kind != WorkoutMediaKind.VIDEO || !media.hasExerciseContext()) return
         try {
-            if (!analysis.readSettings().techniqueVideo.analyzeVideos) return
+            val sidecarChoice = runCatching {
+                CaptureMetadataFile.read(TechniqueSidecars.captureFile(File(media.filePath))).analysisRequestedForCapture
+            }.getOrNull()
+            val requestedForCapture = captureChoice ?: sidecarChoice
+            if (requestedForCapture == false) return
+            val explicit = requestedForCapture == true
+            if (!explicit && !analysis.readSettings().techniqueVideo.analyzeVideos) return
             if (db.videoAnalysisDao().getByMedia(media.id) != null) return
             TechniqueAnalysisScheduler.enqueue(
                 appContext,
@@ -720,7 +759,7 @@ class WorkoutMediaRepository(
                 AnalysisMode.FULL,
                 userInitiated = true,
                 imported = imported,
-                explicit = false,
+                explicit = explicit,
                 repository = analysis,
             )
         } catch (cancelled: CancellationException) {
@@ -729,7 +768,6 @@ class WorkoutMediaRepository(
             Log.w(TAG, "No se pudo encolar el análisis de técnica de ${media.id}.", error)
         }
     }
-
     private fun WorkoutMedia.hasExerciseContext(): Boolean =
         listOf(exerciseId, canonicalExerciseId, catalogDefinitionId, catalogConfigurationId, exerciseName)
             .any { !it.isNullOrBlank() }
@@ -739,7 +777,7 @@ class WorkoutMediaRepository(
         val existing = db.workoutMediaDao().getById(entry.media.id)
         if (existing != null) {
             val media = persistWithAssociation(existing.toWorkoutMedia())
-            cleanupCommittedCapture(entry, media)
+            finishCommittedCapture(entry, media)
             return media
         }
         val source = ensureSourceFile(entry)
@@ -750,8 +788,75 @@ class WorkoutMediaRepository(
             moveIfUnmanaged = false,
             destinationExtension = entry.resolvedExtension,
         ) ?: throw IOException("No se pudo guardar el medio de la sesión.")
-        cleanupCommittedCapture(entry, saved)
+        finishCommittedCapture(entry, saved)
         return saved
+    }
+
+    /**
+     * Persists the per-take policy before dropping its journal. If the accessory sidecar cannot be written,
+     * the already-saved video remains delivered and the READY journal remains for an idempotent retry.
+     */
+    private fun finishCommittedCapture(entry: WorkoutMediaCaptureJournalEntry, media: WorkoutMedia) {
+        if (!persistCaptureChoice(entry, media)) {
+            runCatching { captureJournal.writeReady(entry.copy(readyToIngest = true)) }
+                .onFailure { error -> Log.w(TAG, "No se pudo conservar el reintento de metadatos de ${media.id}.", error) }
+            return
+        }
+        cleanupCommittedCapture(entry, media)
+    }
+
+    private fun persistCaptureChoice(entry: WorkoutMediaCaptureJournalEntry, media: WorkoutMedia): Boolean {
+        if (entry.media.kind != WorkoutMediaKind.VIDEO) return true
+        val hasPerTakeMetadata = entry.analysisRequestedForCapture != null ||
+            entry.framingGateBypassed != null || entry.framingWarning != null
+        val hasTechnicalMetadata = entry.gravityRollDeg != null || entry.focalLengthPx != null ||
+            entry.requestedFps != null || entry.grantedFps != null || entry.lens != null ||
+            entry.deviceModel != null || entry.recordedAtMs != null || entry.gravityPitchDeg != null
+        if (!hasPerTakeMetadata && !hasTechnicalMetadata) return true
+        return try {
+            val captureFile = TechniqueSidecars.captureFile(File(media.filePath))
+            captureMetadataUpdater(captureFile) { current ->
+                current.copy(
+                    requestedFps = entry.requestedFps ?: current.requestedFps,
+                    grantedFps = entry.grantedFps ?: current.grantedFps,
+                    gravityRollDeg = entry.gravityRollDeg ?: current.gravityRollDeg,
+                    gravityPitchDeg = entry.gravityPitchDeg ?: current.gravityPitchDeg,
+                    focalLengthPx = entry.focalLengthPx ?: current.focalLengthPx,
+                    lens = entry.lens ?: current.lens,
+                    deviceModel = entry.deviceModel ?: current.deviceModel,
+                    recordedAtMs = entry.recordedAtMs ?: current.recordedAtMs,
+                    analysisRequestedForCapture = entry.analysisRequestedForCapture ?: current.analysisRequestedForCapture,
+                    framingGateBypassed = entry.framingGateBypassed ?: current.framingGateBypassed,
+                    framingWarning = entry.framingWarning ?: current.framingWarning,
+                )
+            }
+            val written = CaptureMetadataFile.read(captureFile)
+            val fieldsNotPersisted = mutableListOf<String>()
+            if (entry.requestedFps != null && written.requestedFps != entry.requestedFps) fieldsNotPersisted += "requestedFps"
+            if (entry.grantedFps != null && written.grantedFps != entry.grantedFps) fieldsNotPersisted += "grantedFps"
+            if (entry.gravityRollDeg != null && written.gravityRollDeg != entry.gravityRollDeg) fieldsNotPersisted += "gravityRollDeg"
+            if (entry.gravityPitchDeg != null && written.gravityPitchDeg != entry.gravityPitchDeg) fieldsNotPersisted += "gravityPitchDeg"
+            if (entry.focalLengthPx != null && written.focalLengthPx != entry.focalLengthPx) fieldsNotPersisted += "focalLengthPx"
+            if (entry.lens != null && written.lens != entry.lens) fieldsNotPersisted += "lens"
+            if (entry.deviceModel != null && written.deviceModel != entry.deviceModel) fieldsNotPersisted += "deviceModel"
+            if (entry.recordedAtMs != null && written.recordedAtMs != entry.recordedAtMs) fieldsNotPersisted += "recordedAtMs"
+            if (entry.analysisRequestedForCapture != null && written.analysisRequestedForCapture != entry.analysisRequestedForCapture) {
+                fieldsNotPersisted += "analysisRequestedForCapture"
+            }
+            if (entry.framingGateBypassed != null && written.framingGateBypassed != entry.framingGateBypassed) {
+                fieldsNotPersisted += "framingGateBypassed"
+            }
+            if (entry.framingWarning != null && written.framingWarning != entry.framingWarning) fieldsNotPersisted += "framingWarning"
+            if (fieldsNotPersisted.isNotEmpty()) {
+                Log.w(TAG, "Metadatos auxiliares incompletos para ${media.id}: ${fieldsNotPersisted.joinToString()}.")
+                false
+            } else {
+                true
+            }
+        } catch (error: Exception) {
+            Log.w(TAG, "No se pudieron guardar metadatos auxiliares de ${media.id}; se conserva el diario para reintentar.", error)
+            false
+        }
     }
 
     private suspend fun persistUriCapture(
@@ -776,7 +881,7 @@ class WorkoutMediaRepository(
         // revoke access after the durable row has already been written.
         db.workoutMediaDao().getById(mediaSeed.id)?.let { existing ->
             val saved = persistWithAssociation(existing.toWorkoutMedia())
-            existingEntry?.let { cleanupCommittedCapture(it, saved) }
+            existingEntry?.let { finishCommittedCapture(it, saved) }
             synchronized(pendingUriRequestsLock) { pendingUriRequests.remove(mediaSeed.id) }
             return saved
         }
@@ -1066,7 +1171,7 @@ class WorkoutMediaRepository(
         enqueueTracked(entry, captureRetryMessage(entry)) {
             db.workoutMediaDao().getById(entry.media.id)?.let { existing ->
                 val saved = persistWithAssociation(existing.toWorkoutMedia())
-                cleanupCommittedCapture(entry, saved)
+                finishCommittedCapture(entry, saved)
                 return@enqueueTracked saved
             }
             when {
@@ -1171,6 +1276,19 @@ class WorkoutMediaRepository(
 
         fun forDatabase(context: Context, db: KpknDatabase): WorkoutMediaRepository =
             WorkoutMediaRepository(context.applicationContext, db)
+
+        /** Injection seam for capture-metadata recovery acceptance tests. */
+        internal fun forDatabaseForTests(
+            context: Context,
+            db: KpknDatabase,
+            store: WorkoutMediaStore? = null,
+            captureMetadataUpdater: CaptureMetadataUpdater = { file, change -> CaptureMetadataFile.update(file, change) },
+        ): WorkoutMediaRepository = WorkoutMediaRepository(
+            context.applicationContext,
+            db,
+            store,
+            captureMetadataUpdater,
+        )
 
         fun getInstance(): WorkoutMediaRepository =
             INSTANCE ?: error("WorkoutMediaRepository not initialized — call init(context) first.")

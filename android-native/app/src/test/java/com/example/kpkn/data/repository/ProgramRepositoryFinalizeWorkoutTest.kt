@@ -35,6 +35,7 @@ import kotlinx.coroutines.delay
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -394,7 +395,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
     }
 
     @Test
-    fun delete_program_serializes_ongoing_clear_against_in_flight_update() = runBlocking {
+    fun delete_program_blocks_when_session_is_open_and_preserves_it() = runBlocking<Unit> {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = ProgramRepository.initForTests(context)
         withTimeout(10_000) { repository.isReady.first { it } }
@@ -411,19 +412,20 @@ class ProgramRepositoryFinalizeWorkoutTest {
             ),
         )
 
+        val result = repository.deleteProgram(program.id)
+        assertEquals(ProgramDeleteResult.OpenSession("delete-race-session"), result)
+
         val updating = async(Dispatchers.Default) {
             repeat(24) { index ->
                 repository.updateOngoingWorkout { it.copy(activeSetIndex = index) }
             }
         }
-        repository.deleteProgram(program.id)
         withTimeout(10_000) { updating.await() }
 
         val room = repository.databaseForTests()
-        withTimeout(5_000) {
-            while (room.stateDao().getOngoingWorkout() != null) delay(10)
-        }
-        assertNull(room.stateDao().getOngoingWorkout())
+        assertEquals(program.id, repository.ongoingWorkout.value?.programId)
+        assertNotNull(room.stateDao().getOngoingWorkout())
+        assertNotNull(room.programDao().getById(program.id))
     }
 
     @Test

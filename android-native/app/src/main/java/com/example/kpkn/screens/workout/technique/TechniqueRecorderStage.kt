@@ -87,6 +87,7 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.WorkoutCameraChoice
 import com.example.kpkn.screens.workout.WorkoutCameraLens
+import com.example.kpkn.screens.workout.components.CameraXProcessUseCaseOwner
 import com.example.kpkn.screens.workout.components.WorkoutCameraSwitchButton
 import com.example.kpkn.screens.workout.technique.design.FramingChip
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
@@ -100,6 +101,7 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -147,9 +149,6 @@ data class TechniqueRecorderRequest(
 
 
 private const val TAG = "KpknRecorder"
-private const val WORKOUT_PREFS = "workout_prefs"
-internal const val SpokenFramingGuidePrefKey = "technique_spoken_framing_guide"
-
 internal const val TechniqueRecorderStageTag = "technique_recorder_stage"
 internal val TechniqueRecorderRequestKey = SemanticsPropertyKey<WorkoutMediaCaptureRequest>("TechniqueRecorderRequest")
 
@@ -182,7 +181,7 @@ internal class TechniqueRecorderCompletion {
                 pending = false
                 errorMessage = result.errorMessage
                 onResult(result)
-                if (result is TechniqueRecordingResult.Saved) onFinished()
+                if (result is TechniqueRecordingResult.Saved && result.warning == null) onFinished()
             }
         }
         try {
@@ -322,70 +321,82 @@ internal fun TechniqueRecorderStage(
         )
     }
 
-    DisposableEffect(metadataRecorder) {
-        metadataRecorder.startPreview(targetRotation)
-        onDispose { metadataRecorder.close() }
+    var analysisEnabledForTake by remember { mutableStateOf(false) }
+    DisposableEffect(metadataRecorder) { onDispose { metadataRecorder.close() } }
+    DisposableEffect(metadataRecorder, analysisEnabledForTake, targetRotation) {
+        if (analysisEnabledForTake) metadataRecorder.startPreview(targetRotation) else metadataRecorder.stopPreview()
+        onDispose { metadataRecorder.stopPreview() }
     }
     LaunchedEffect(metadataRecorder, targetRotation) { metadataRecorder.updateTargetRotation(targetRotation) }
     val latestMetadataRecorder by rememberUpdatedState(metadataRecorder)
-    val framingController = remember(framingSpec) {
-        FramingCheckController(
+    val framingController = remember(framingSpec, analysisEnabledForTake) {
+        if (analysisEnabledForTake) FramingCheckController(
             scope = scope,
             spec = framingSpec,
             context = context,
             gravityRollProvider = { latestMetadataRecorder.currentRollDeg },
-        )
+        ) else null
     }
-
-    DisposableEffect(framingController) { onDispose { framingController.close() } }
+    DisposableEffect(framingController) { onDispose { framingController?.close() } }
     LaunchedEffect(previewView, activeSession, framingController) {
         val view = previewView
-        if (view != null && activeSession != null) framingController.start { view.bitmap }
+        val controller = framingController
+        if (view == null || activeSession == null || controller == null) {
+            controller?.stop()
+            return@LaunchedEffect
+        }
+        controller.start { view.bitmap }
+        try {
+            awaitCancellation()
+        } finally {
+            // A lens/session change invalidates in-flight samples before the next preview starts.
+            controller.stop()
+        }
     }
-    val framingVerdict by framingController.verdict.collectAsStateWithLifecycle()
-    val framingStatus by framingController.status.collectAsStateWithLifecycle()
+    val inactiveFramingVerdict = remember {
+        MutableStateFlow(FramingVerdict(ok = false, issues = emptyList(), view = null))
+    }
+    val inactiveFramingStatus = remember { MutableStateFlow(FramingCheckStatus.UNAVAILABLE) }
+    val framingVerdict by (framingController?.verdict ?: inactiveFramingVerdict).collectAsStateWithLifecycle()
+    val framingStatus by (framingController?.status ?: inactiveFramingStatus).collectAsStateWithLifecycle()
 
-    // La guía hablada es independiente de Modo Voz: su preferencia vive en la app,
-    // arranca apagada como el prototipo y nunca enciende el micrófono.
-    val guidePreferences = remember(context) {
-        context.getSharedPreferences(WORKOUT_PREFS, Context.MODE_PRIVATE)
-    }
-    var spokenGuideEnabled by remember {
-        mutableStateOf(guidePreferences.getBoolean(SpokenFramingGuidePrefKey, false))
-    }
     val guidePolicy = remember { SpokenFramingGuidePolicy() }
-    val guideTts = remember(context) { WorkoutTtsManager(context) }
-    DisposableEffect(guideTts) {
-        guideTts.initialize()
-        onDispose { guideTts.shutdown() }
+    val guideTts = remember(context, analysisEnabledForTake) {
+        if (analysisEnabledForTake) WorkoutTtsManager(context) else null
     }
-    // «Detener» de la cápsula de voz mientras habla la guía.
-    LaunchedEffect(guideTts) { TechniqueCaptureVoiceLink.stopGuideRequests.collect { guideTts.stop() } }
+    DisposableEffect(guideTts) {
+        guideTts?.initialize()
+        onDispose { guideTts?.shutdown() }
+    }
+    LaunchedEffect(guideTts) {
+        val tts = guideTts ?: return@LaunchedEffect
+        TechniqueCaptureVoiceLink.stopGuideRequests.collect { tts.stop() }
+    }
     val voiceCommandsEnabled by TechniqueCaptureVoiceLink.voiceEnabled.collectAsStateWithLifecycle()
 
-    // Política inicial aprobada: guía antes de grabar; durante la serie el evaluador
-    // congela el veredicto, así que no se interrumpe por oscilaciones del detector.
-    LaunchedEffect(spokenGuideEnabled, framingStatus, framingVerdict, isRecordingState, preferredView) {
-        if (!spokenGuideEnabled || isRecordingState) return@LaunchedEffect
+    LaunchedEffect(analysisEnabledForTake, guideTts, framingStatus, framingVerdict, isRecordingState, preferredView) {
+        if (!analysisEnabledForTake || isRecordingState) return@LaunchedEffect
+        val tts = guideTts ?: return@LaunchedEffect
         val now = SystemClock.elapsedRealtime()
         val text = guidePolicy.onEvaluation(framingStatus, framingVerdict, preferredView, now)
             ?: return@LaunchedEffect
         TechniqueCaptureVoiceLink.noteGuideSpoken(text, now)
-        guideTts.speak(text, queueFlush = true)
+        tts.speak(text, queueFlush = true)
     }
 
-    fun setSpokenGuide(enabled: Boolean) {
-        spokenGuideEnabled = enabled
-        guidePreferences.edit().putBoolean(SpokenFramingGuidePrefKey, enabled).apply()
+    fun setAnalysisEnabledForTake(enabled: Boolean) {
+        analysisEnabledForTake = enabled
         if (enabled) {
             guidePolicy.reset()
         } else {
-            guideTts.stop()
+            guideTts?.stop()
             TechniqueCaptureVoiceLink.clearGuideSpeech()
         }
     }
 
     fun repeatGuide() {
+        if (!analysisEnabledForTake) return
+        val tts = guideTts ?: return
         val text = if (isRecordingState) {
             FramingInstruction.RECORDING_CAPTION
         } else {
@@ -394,9 +405,8 @@ internal fun TechniqueRecorderStage(
         val now = SystemClock.elapsedRealtime()
         guidePolicy.noteSpoken(text, now)
         TechniqueCaptureVoiceLink.noteGuideSpoken(text, now)
-        guideTts.speak(text, queueFlush = true)
+        tts.speak(text, queueFlush = true)
     }
-
     var cameraPermissionGranted by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
@@ -429,9 +439,9 @@ internal fun TechniqueRecorderStage(
     // «No se pudo comprobar» es un error explícito y permite grabar; «comprobando» espera
     // el veredicto estable y un veredicto negativo exige corregir el encuadre.
     val framingReady = framingStatus.allowsCapture(framingVerdict)
-    val canRecord = profileResolution != null && cameraPermissionGranted && !isCameraUnavailable &&
-        activeSession != null && mediaCapture != null && framingReady
-
+    val cameraReady = cameraPermissionGranted && !isCameraUnavailable && activeSession != null && mediaCapture != null
+    val canRecord = cameraReady && (!analysisEnabledForTake || (profileResolution != null && framingReady))
+    val canRecordAnyway = cameraReady
     var audioPermissionGranted by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
@@ -449,29 +459,38 @@ internal fun TechniqueRecorderStage(
     val originalOrientation = remember { activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
     var isStopping by remember { mutableStateOf(false) }
 
-    fun startRecording(): TechniqueCaptureStartResult {
+    fun startRecording(ignoreFramingGate: Boolean = false): TechniqueCaptureStartResult {
         val capture = mediaCapture ?: return TechniqueCaptureStartResult.UNAVAILABLE
         if (isStopping || completion.pending) return TechniqueCaptureStartResult.BUSY
         if (capture.isRecording.value) return TechniqueCaptureStartResult.ALREADY_RECORDING
-        if (!cameraPermissionGranted || isCameraUnavailable || profileResolution == null) {
-            return TechniqueCaptureStartResult.UNAVAILABLE
-        }
+        if (!cameraPermissionGranted || isCameraUnavailable) return TechniqueCaptureStartResult.UNAVAILABLE
         val session = activeSession ?: return TechniqueCaptureStartResult.UNAVAILABLE
-        if (framingStatus == FramingCheckStatus.CHECKING) return TechniqueCaptureStartResult.CHECKING
-        if (!framingReady) return TechniqueCaptureStartResult.NOT_READY
+        if (analysisEnabledForTake && !ignoreFramingGate) {
+            if (profileResolution == null || framingStatus == FramingCheckStatus.CHECKING) {
+                return TechniqueCaptureStartResult.CHECKING
+            }
+            if (!framingReady) return TechniqueCaptureStartResult.NOT_READY
+        }
+        val captureRequest = latestRequest.captureRequest.copy(
+            analysisRequestedForCapture = analysisEnabledForTake,
+            framingGateBypassed = ignoreFramingGate.takeIf { analysisEnabledForTake },
+            framingWarning = if (ignoreFramingGate && analysisEnabledForTake) {
+                (listOf(framingStatus.name) + framingVerdict.issues.map { it.name }).joinToString(" | ")
+            } else null,
+        )
         completion.start(
             onResult = {
                 activity?.requestedOrientation = originalOrientation
-                framingController.isRecording = false
+                framingController?.isRecording = false
                 isStopping = false
             },
             onFinished = { latestOnFinished() },
             capture = { onFinalized ->
                 activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-                framingController.isRecording = true
+                framingController?.isRecording = true
                 session.videoCapture.targetRotation = targetRotation
                 capture.startTechniqueRecording(
-                    requestProvider = { latestRequest.captureRequest },
+                    requestProvider = { captureRequest },
                     audioGranted = audioPermissionGranted,
                     session = session,
                     exercise = request.exercise,
@@ -495,7 +514,7 @@ internal fun TechniqueRecorderStage(
             return TechniqueCaptureStopResult.NOT_RECORDING
         }
         isStopping = true
-        framingController.isRecording = false
+        framingController?.isRecording = false
         capture.stopVideo()
         return TechniqueCaptureStopResult.STOPPED
     }
@@ -504,10 +523,12 @@ internal fun TechniqueRecorderStage(
     // «Iniciar/Detener vídeo»; las órdenes repetidas no crean otra captura.
     val latestStartRecording = rememberUpdatedState<(()->TechniqueCaptureStartResult)>({ startRecording() })
     val latestStopRecording = rememberUpdatedState<(()->TechniqueCaptureStopResult)>({ stopRecording() })
+    val latestStartRecordingAnyway = rememberUpdatedState<(()->TechniqueCaptureStartResult)>({ startRecording(ignoreFramingGate = true) })
     val voiceLinkHandlers = remember {
         TechniqueCaptureVoiceLink.Handlers(
             start = { latestStartRecording.value() },
             stop = { latestStopRecording.value() },
+            startAnyway = { latestStartRecordingAnyway.value() },
         )
     }
     DisposableEffect(voiceLinkHandlers) {
@@ -529,7 +550,12 @@ internal fun TechniqueRecorderStage(
     // Enlace de ciclo de vida con CameraX
     DisposableEffect(previewView, lifecycleOwner, cameraPermissionGranted, profileResolution, desiredWant60, cameraRetryGeneration, lens) {
         val view = previewView ?: return@DisposableEffect onDispose {}
-        if (mediaCapture == null || !cameraPermissionGranted || profileResolution == null) return@DisposableEffect onDispose {}
+        if (mediaCapture == null || !cameraPermissionGranted) return@DisposableEffect onDispose {}
+        // Invalidate the previous lens session immediately; start cannot capture on stale use cases during the async rebind.
+        activeSession = null
+        activeCameraInfo = null
+        hasCheckedCameras = false
+        cameraBindFailed = false
 
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? android.hardware.camera2.CameraManager
         val cameraIds = runCatching { cameraManager?.cameraIdList }.getOrNull() ?: emptyArray()
@@ -567,51 +593,53 @@ internal fun TechniqueRecorderStage(
                 val want60 = desiredWant60
 
                 runCatching {
-                    cameraProvider.unbindAll()
                     val cameraInfo = cameraProvider.getCameraInfo(cameraSelector)
                     activeCameraInfo = cameraInfo
                     val session = RecorderSessionFactory.createSession(cameraInfo, want60)
-                    // Capturar los casos creados por ESTE efecto antes del bind, también si un enlace falla a medias.
+                    // Capture and release only the use cases registered under this recorder owner.
                     ownership.own {
-                        if (activeSession?.sharesUseCasesWith(session) == true) activeSession = null
-                        fun releaseOwned() {
-                            if (cameraProvider.isBound(session.preview) || cameraProvider.isBound(session.videoCapture)) {
-                                cameraProvider.unbind(session.preview, session.videoCapture)
-                            }
-                        }
+                        val releaseOwned = { CameraXProcessUseCaseOwner.release(cameraProvider, ownership) }
                         val capture = mediaCapture
                         if (capture?.isRecording?.value == true) {
                             lifecycleOwner.lifecycleScope.launch {
                                 capture.isRecording.first { !it }
-                                runCatching { releaseOwned() }
+                                releaseOwned()
                             }
-                        } else runCatching { releaseOwned() }
+                        } else releaseOwned()
                     }
                     session.preview.surfaceProvider = view.surfaceProvider
                     session.videoCapture.targetRotation = targetRotation
-                    val binding = RecorderSessionFactory.bindWithFallback(
-                        session = session,
-                        bindConfigured = {
-                            cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                session.sessionConfig,
-                            )
+                    CameraXProcessUseCaseOwner.bind(
+                        provider = cameraProvider,
+                        owner = ownership,
+                        useCases = listOf(session.preview, session.videoCapture),
+                        onSuspended = {
+                            if (activeSession?.sharesUseCasesWith(session) == true) activeSession = null
                         },
-                        bindUnconfigured = {
-                            cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                session.preview,
-                                session.videoCapture,
-                            )
-                        },
-                        onConfiguredBindFailure = {
-                            Log.w(TAG, "Configured camera session bind failed; using nominal 30 FPS fallback")
-                        },
-                    )
-                    activeSession = binding.effectiveSession
-                    binding.camera
+                    ) {
+                        val binding = RecorderSessionFactory.bindWithFallback(
+                            session = session,
+                            bindConfigured = {
+                                cameraProvider.bindToLifecycle(
+                                    lifecycleOwner,
+                                    cameraSelector,
+                                    session.sessionConfig,
+                                )
+                            },
+                            bindUnconfigured = {
+                                cameraProvider.bindToLifecycle(
+                                    lifecycleOwner,
+                                    cameraSelector,
+                                    session.preview,
+                                    session.videoCapture,
+                                )
+                            },
+                            onConfiguredBindFailure = {
+                                Log.w(TAG, "Configured camera session bind failed; using nominal 30 FPS fallback")
+                            },
+                        )
+                        activeSession = binding.effectiveSession
+                    }
                 }.onSuccess {
                     cameraBindFailed = false
                 }.onFailure { e ->
@@ -629,7 +657,7 @@ internal fun TechniqueRecorderStage(
         .collectAsStateWithLifecycle()
     LaunchedEffect(captureError) {
         if (captureError != null && !isRecordingState && !completion.pending) {
-            framingController.isRecording = false
+            framingController?.isRecording = false
             isStopping = false
             activity?.requestedOrientation = originalOrientation
         }
@@ -651,8 +679,8 @@ internal fun TechniqueRecorderStage(
         profileId = resolvedProfile?.id,
         verdict = framingVerdict,
         framingStatus = framingStatus,
-        spokenGuideEnabled = spokenGuideEnabled,
-        onToggleSpokenGuide = { enabled -> setSpokenGuide(enabled) },
+        analysisEnabledForTake = analysisEnabledForTake,
+        onToggleAnalysisEnabledForTake = { enabled -> setAnalysisEnabledForTake(enabled) },
         onRepeatGuide = { repeatGuide() },
         voiceCommandsEnabled = voiceCommandsEnabled,
         onToggleVoiceCommands = TechniqueCaptureVoiceLink::requestVoiceToggle,
@@ -661,8 +689,10 @@ internal fun TechniqueRecorderStage(
         isPermanentlyDenied = isPermanentlyDenied,
         captureError = completion.errorMessage ?: captureError,
         canRecord = canRecord && !completion.pending,
+        canRecordAnyway = canRecordAnyway && !completion.pending,
         isProcessing = completion.pending && (!isRecordingState || isStopping),
         onRecord = { if (isRecordingState) stopRecording() else startRecording() },
+        onRecordAnyway = { latestStartRecordingAnyway.value() },
         onSwitchToPhoto = onSwitchToPhoto,
         onOpenFicha = onOpenFicha,
         onOpenAlbum = onOpenAlbum,
@@ -706,8 +736,8 @@ internal fun TechniqueRecorderStageContent(
     profileId: AnalysisProfileId? = null,
     verdict: FramingVerdict = FramingVerdict(ok = false, issues = emptyList(), view = null),
     framingStatus: FramingCheckStatus = FramingCheckStatus.EVALUATED,
-    spokenGuideEnabled: Boolean = false,
-    onToggleSpokenGuide: (Boolean) -> Unit = {},
+    analysisEnabledForTake: Boolean = false,
+    onToggleAnalysisEnabledForTake: (Boolean) -> Unit = {},
     onRepeatGuide: () -> Unit = {},
     voiceCommandsEnabled: Boolean = false,
     onToggleVoiceCommands: () -> Unit = {},
@@ -716,7 +746,9 @@ internal fun TechniqueRecorderStageContent(
     isPermanentlyDenied: Boolean = false,
     captureError: String? = null,
     canRecord: Boolean = true,
+    canRecordAnyway: Boolean = true,
     onRecord: () -> Unit = {},
+    onRecordAnyway: () -> Unit = {},
     onSwitchToPhoto: () -> Unit = {},
     onOpenFicha: (() -> Unit)? = null,
     onOpenAlbum: (() -> Unit)? = null,
@@ -732,12 +764,14 @@ internal fun TechniqueRecorderStageContent(
     val framingReady = framingStatus.allowsCapture(verdict)
     val captureTitle = when {
         isRecording -> "Grabación en curso"
+        !analysisEnabledForTake -> "Grabación libre"
         framingStatus == FramingCheckStatus.CHECKING -> "Comprobando encuadre"
         framingReady -> "Listo para grabar"
         else -> "Ajusta el encuadre"
     }
     val captureHint = when {
         isRecording -> "Toca para detener"
+        !analysisEnabledForTake -> "Análisis apagado para esta toma; puedes analizar el vídeo manualmente después"
         framingStatus == FramingCheckStatus.CHECKING -> "Espera el veredicto antes de grabar"
         framingStatus == FramingCheckStatus.UNAVAILABLE -> "No se pudo comprobar el encuadre; puedes grabar igualmente"
         else -> "El encuadre se revisa antes de comenzar"
@@ -778,15 +812,16 @@ internal fun TechniqueRecorderStageContent(
                     !hasCamera -> RecorderNoticeCard(
                         title = "No se pudo abrir la cámara", actionLabel = "Reintentar", onAction = onRetryCamera,
                     )
-                    else -> FramingGuideOverlay(
+                    analysisEnabledForTake -> FramingGuideOverlay(
                         preferredView = preferredView, hasBarbell = showsPlateBadge, profileId = profileId,
                         expandedScene = true, showSilhouette = !isRecording, showGuideText = false,
                     )
+                    else -> Box(Modifier.fillMaxSize())
                 }
                 // `.v2-framing-corners`: el marco de cuatro esquinas, ámbar mientras falta y verde al estar listo.
-                if (available) FramingCornerFrame(ready = framingReady && !isRecording,
+                if (available && analysisEnabledForTake) FramingCornerFrame(ready = framingReady && !isRecording,
                     Modifier.matchParentSize().padding(start = 28.dp, end = 28.dp, top = 39.dp, bottom = 32.dp))
-                if (available && !isRecording) Row(
+                if (available && analysisEnabledForTake && !isRecording) Row(
                     Modifier.align(Alignment.TopStart).fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.Top,
                 ) {
@@ -827,7 +862,7 @@ internal fun TechniqueRecorderStageContent(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     // `.v2-framing-view`: «Vista lateral · cómo encuadrar» abre «Preparar el encuadre».
-                    if (!isRecording) Text(
+                    if (!isRecording && analysisEnabledForTake) Text(
                         "${framingViewLabel(preferredView)} · cómo encuadrar",
                         // Con letra grande cede ancho (y pasa a dos líneas) en vez de aplastar «Ver álbum».
                         Modifier.weight(1f, fill = false).heightIn(min = 32.dp).wrapContentHeight(Alignment.CenterVertically)
@@ -846,8 +881,8 @@ internal fun TechniqueRecorderStageContent(
             if (available) {
                 CaptureGuidePanel(
                     caption = guideCaption,
-                    spokenGuideEnabled = spokenGuideEnabled,
-                    onToggleSpokenGuide = onToggleSpokenGuide,
+                    analysisEnabledForTake = analysisEnabledForTake,
+                    onToggleAnalysisEnabledForTake = onToggleAnalysisEnabledForTake,
                     onRepeatGuide = onRepeatGuide,
                     voiceCommandsEnabled = voiceCommandsEnabled,
                     onToggleVoiceCommands = onToggleVoiceCommands,
@@ -881,17 +916,30 @@ internal fun TechniqueRecorderStageContent(
                         color = WizardColors.textMuted,
                         modifier = Modifier.testTag("technique_capture_hint"),
                     )
+                    if (!isRecording && analysisEnabledForTake && !canRecord && canRecordAnyway && !isProcessing) {
+                        RecorderTextAction(
+                            text = "Grabar de todas formas",
+                            onClick = onRecordAnyway,
+                            modifier = Modifier.testTag("technique_record_anyway"),
+                        )
+                    }
                 }
+                val useForceStart = !isRecording && analysisEnabledForTake && !canRecord
                 CaptureCommandPill(
-                    text = if (isRecording) "«Detener vídeo»" else "«Iniciar vídeo»",
-                    enabled = voiceCommandsEnabled && available && !isProcessing && (isRecording || canRecord),
+                    text = when {
+                        isRecording -> "«Detener vídeo»"
+                        useForceStart -> "«Grabar de todas formas»"
+                        else -> "«Iniciar vídeo»"
+                    },
+                    enabled = voiceCommandsEnabled && available && !isProcessing &&
+                        (isRecording || canRecord || (useForceStart && canRecordAnyway)),
                     modifier = Modifier.testTag("technique_voice_command"),
-                    onClick = onRecord,
+                    onClick = if (useForceStart) onRecordAnyway else onRecord,
                 )
             }
         }
     }
-    if (showFramingGuide) {
+    if (showFramingGuide && analysisEnabledForTake) {
         // `framing-guide` del prototipo 02: los cuatro pasos para preparar el encuadre.
         com.example.kpkn.screens.workout.components.LiveSheet(title = "Preparar el encuadre", onDismiss = { showFramingGuide = false },
             tag = "technique_framing_guide") {
@@ -981,9 +1029,9 @@ private fun Ref02RecordControl(isRecording: Boolean, onClick: () -> Unit, enable
  */
 @Composable
 private fun CaptureGuidePanel(
+    analysisEnabledForTake: Boolean,
+    onToggleAnalysisEnabledForTake: (Boolean) -> Unit,
     caption: String,
-    spokenGuideEnabled: Boolean,
-    onToggleSpokenGuide: (Boolean) -> Unit,
     onRepeatGuide: () -> Unit,
     voiceCommandsEnabled: Boolean,
     onToggleVoiceCommands: () -> Unit,
@@ -999,39 +1047,41 @@ private fun CaptureGuidePanel(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Guía hablada de encuadre", style = KpknType.bodyStrong, color = WizardColors.text)
+                Text("Análisis técnico", style = KpknType.bodyStrong, color = WizardColors.text)
                 Text(
-                    text = "Funciona aunque Modo Voz esté apagado.",
+                    text = if (analysisEnabledForTake) "Guía de encuadre y análisis automático al guardar." else "Apagado para esta toma; el vídeo queda disponible para análisis manual.",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                 )
             }
             KpknSwitch(
-                checked = spokenGuideEnabled,
-                onCheckedChange = onToggleSpokenGuide,
+                checked = analysisEnabledForTake,
+                onCheckedChange = onToggleAnalysisEnabledForTake,
                 modifier = Modifier
-                    .testTag("technique_guide_toggle")
-                    .semantics { contentDescription = "Guía hablada de encuadre" },
+                    .testTag("technique_analysis_toggle")
+                    .semantics { contentDescription = "Análisis técnico de esta toma" },
             )
         }
-        Row(
-            Modifier.fillMaxWidth().testTag("technique_guide_text"),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = caption,
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-                modifier = Modifier.weight(1f).testTag("technique_spoken_caption"),
-            )
-            Spacer(Modifier.width(4.dp))
-            RecorderTextAction(
-                text = "Escuchar",
-                onClick = onRepeatGuide,
-                modifier = Modifier
-                    .testTag("technique_guide_repeat")
-                    .semantics { contentDescription = "Escuchar guía de ejemplo" },
-            )
+        if (analysisEnabledForTake) {
+            Row(
+                Modifier.fillMaxWidth().testTag("technique_guide_text"),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = caption,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.weight(1f).testTag("technique_spoken_caption"),
+                )
+                Spacer(Modifier.width(4.dp))
+                RecorderTextAction(
+                    text = "Escuchar",
+                    onClick = onRepeatGuide,
+                    modifier = Modifier
+                        .testTag("technique_guide_repeat")
+                        .semantics { contentDescription = "Escuchar guía de ejemplo" },
+                )
+            }
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -1049,7 +1099,8 @@ private fun CaptureGuidePanel(
         }
         Text(
             text = if (voiceCommandsEnabled) {
-                "«Iniciar vídeo» · «Detener vídeo»"
+                if (analysisEnabledForTake) "«Iniciar vídeo» · «Grabar de todas formas» · «Detener vídeo»"
+                else "«Iniciar vídeo» · «Detener vídeo»"
             } else {
                 "Activa Modo Voz para controlar la grabación."
             },
@@ -1059,7 +1110,6 @@ private fun CaptureGuidePanel(
         )
     }
 }
-
 /** Acción de texto con zona táctil de 48 dp y sin recorte de texto. */
 @Composable
 private fun RecorderTextAction(

@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.calculations
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.LoadBasis
 
 /** Resolves authored load bases only. No energy, body-state coefficients or physiological estimates. */
 object TrainingLoadEvidence {
@@ -21,7 +22,11 @@ object TrainingLoadEvidence {
                 return ResolvedPlannedLoad(externalLoadKg = kg, source = ResolvedLoadSource.PERCENT_1RM)
             }
         }
-        val reference = resolveReferenceCapacity(exercise)
+        val reference = when (set.loadBasis) {
+            null -> resolveSmartLoadReference(exercise)?.kilograms
+            LoadBasis.PERCENT_TM -> exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
+            else -> resolveReferenceCapacity(exercise)
+        }
         if (reference != null && reference > 0.0) {
             if (!usesTrainingMaxPercent) {
                 set.targetPercentageRM?.takeIf { it > 0.0 }?.let { pct ->

@@ -55,6 +55,18 @@ private const val PROGRAM_DATA_CHUNK_CHARS = 128_000
 private const val NATIVE_RESOLVE_MAX_ATTEMPTS = 5
 private const val NATIVE_RESOLVE_RETRY_DELAY_MS = 25L
 
+sealed interface ProgramDeleteResult {
+    object Deleted : ProgramDeleteResult
+    data class OpenSession(val sessionId: String) : ProgramDeleteResult
+    object Busy : ProgramDeleteResult
+}
+
+sealed interface ProgramArchiveResult {
+    object Archived : ProgramArchiveResult
+    data class OpenSession(val sessionId: String) : ProgramArchiveResult
+    object Busy : ProgramArchiveResult
+}
+
 /**
  * ProgramRepository — Single source of truth para programas, historial,
  * estado activo, settings y ongoing workout.
@@ -549,45 +561,51 @@ class ProgramRepository private constructor(
         }
     }
 
-    fun archiveProgram(programId: String) {
-        val archived = _settings.value.archivedProgramIds
-        if (programId in archived) return
-        if (_activeProgramState.value?.programId == programId) {
-            clearActiveProgram()
+    fun archiveProgram(programId: String): ProgramArchiveResult {
+        // Mantiene la misma guardia que el borrado: archivar nunca descarta una
+        // ejecución abierta ni decide usando una foto vieja durante su commit.
+        if (!ongoingWorkoutMutex.tryLock()) {
+            val open = _ongoingWorkout.value?.takeIf { it.programId == programId }
+            return open?.let { ProgramArchiveResult.OpenSession(it.session.id) } ?: ProgramArchiveResult.Busy
         }
-        if (_ongoingWorkout.value?.programId == programId) {
-            clearOngoingWorkout()
-        }
-        val nextArchived = archived + programId
-        val nextQueue = _programQueue.value.filterNot { it == programId }
-        _programQueue.value = nextQueue
-        scope.launch {
-            val updated = _settings.value.copy(
-                archivedProgramIds = nextArchived,
-                programQueueIds = nextQueue,
-            )
-            _settings.value = updated
-            db.settingsDao().upsert(updated.toEntity())
+        try {
+            val open = _ongoingWorkout.value?.takeIf { it.programId == programId }
+            if (open != null) return ProgramArchiveResult.OpenSession(open.session.id)
+            if (_ongoingWorkoutCorrupt.value) return ProgramArchiveResult.Busy
+
+            val nextQueue = _programQueue.value.filterNot { it == programId }
+            if (_activeProgramState.value?.programId == programId) clearActiveProgram()
+            _programQueue.value = nextQueue
+            _settings.update {
+                it.copy(
+                    archivedProgramIds = it.archivedProgramIds + programId,
+                    programQueueIds = nextQueue,
+                )
+            }
+            scope.launch {
+                PersistenceWriteCoordinator.mutex.withLock {
+                    db.settingsDao().upsert(_settings.value.toEntity())
+                }
+            }
+            return ProgramArchiveResult.Archived
+        } finally {
+            ongoingWorkoutMutex.unlock()
         }
     }
 
     fun restoreArchivedProgram(programId: String) {
-        val nextArchived = _settings.value.archivedProgramIds.filterNot { it == programId }
+        _settings.update { it.copy(archivedProgramIds = it.archivedProgramIds.filterNot { id -> id == programId }) }
         scope.launch {
-            val updated = _settings.value.copy(archivedProgramIds = nextArchived)
-            _settings.value = updated
-            db.settingsDao().upsert(updated.toEntity())
+            PersistenceWriteCoordinator.mutex.withLock {
+                db.settingsDao().upsert(_settings.value.toEntity())
+            }
         }
     }
 
-    fun permanentlyDeleteProgram(programId: String) {
-        deleteProgram(programId)
-        val nextArchived = _settings.value.archivedProgramIds.filterNot { it == programId }
-        scope.launch {
-            val updated = _settings.value.copy(archivedProgramIds = nextArchived)
-            _settings.value = updated
-            db.settingsDao().upsert(updated.toEntity())
-        }
+    fun permanentlyDeleteProgram(programId: String): ProgramDeleteResult {
+        // El borrado normal y el definitivo limpian las mismas referencias;
+        // lo que cambia es desde qué estado de UI se llegó aquí.
+        return deleteProgram(programId)
     }
 
     fun upsertSessionInProgram(
@@ -628,30 +646,47 @@ class ProgramRepository private constructor(
         return true
     }
 
-    fun deleteProgram(programId: String) {
-        // Reserva + retirada de la caché atómicas: un commit durable en vuelo
-        // no puede re-publicar la fila entre ambas (re-animación en memoria).
-        val version = synchronized(programMutationLock) {
-            val reserved = reserveProgramWrite(programId)
-            _programs.update { list -> list.filter { it.id != programId } }
-            reserved
+    fun deleteProgram(programId: String): ProgramDeleteResult {
+        // Serializa la decisión con start/update/finalize de una sesión. Si el lock
+        // está ocupado no borramos basándonos en una fotografía potencialmente vieja.
+        if (!ongoingWorkoutMutex.tryLock()) {
+            val open = _ongoingWorkout.value?.takeIf { it.programId == programId }
+            return open?.let { ProgramDeleteResult.OpenSession(it.session.id) } ?: ProgramDeleteResult.Busy
         }
-        val nextQueue = _programQueue.value.filterNot { it == programId }
-        _programQueue.value = nextQueue
-        if (_activeProgramState.value?.programId == programId) {
-            clearActiveProgram()
-        }
-        // The in-flight workout writer and lifecycle flush share this mutex.
-        // The program check is intentionally inside the lane: a stale
-        // startWorkout must not win after this delete has removed the cache row.
-        clearOngoingWorkoutForProgram(programId)
-        scope.launch {
-            programWriteMutex.withLock {
-                if (newestProgramWrite[programId] == version) db.programDao().delete(programId)
+        try {
+            val open = _ongoingWorkout.value?.takeIf { it.programId == programId }
+            if (open != null) return ProgramDeleteResult.OpenSession(open.session.id)
+            if (_ongoingWorkoutCorrupt.value) return ProgramDeleteResult.Busy
+
+            // Reserva + retirada de la caché atómicas: un commit durable en vuelo
+            // no puede re-publicar la fila entre ambas (re-animación en memoria).
+            // Mantener ongoingWorkoutMutex hasta retirar el programa hace que un
+            // startWorkout que espere al lock vea la ausencia y no abra sesión nueva.
+            val version = synchronized(programMutationLock) {
+                val reserved = reserveProgramWrite(programId)
+                _programs.update { list -> list.filter { it.id != programId } }
+                reserved
             }
-            val updatedSettings = _settings.value.copy(programQueueIds = nextQueue)
-            _settings.value = updatedSettings
-            db.settingsDao().upsert(updatedSettings.toEntity())
+            val nextQueue = _programQueue.value.filterNot { it == programId }
+            _programQueue.value = nextQueue
+            if (_activeProgramState.value?.programId == programId) clearActiveProgram()
+            _settings.update {
+                it.copy(
+                    programQueueIds = nextQueue,
+                    archivedProgramIds = it.archivedProgramIds.filterNot { id -> id == programId },
+                )
+            }
+            scope.launch {
+                PersistenceWriteCoordinator.mutex.withLock {
+                    programWriteMutex.withLock {
+                        if (newestProgramWrite[programId] == version) db.programDao().delete(programId)
+                    }
+                    db.settingsDao().upsert(_settings.value.toEntity())
+                }
+            }
+            return ProgramDeleteResult.Deleted
+        } finally {
+            ongoingWorkoutMutex.unlock()
         }
     }
 
@@ -679,10 +714,11 @@ class ProgramRepository private constructor(
 
     private fun persistProgramQueue(queue: List<String>) {
         _programQueue.value = queue
+        _settings.update { it.copy(programQueueIds = queue) }
         scope.launch {
-            val updated = _settings.value.copy(programQueueIds = queue)
-            _settings.value = updated
-            db.settingsDao().upsert(updated.toEntity())
+            PersistenceWriteCoordinator.mutex.withLock {
+                db.settingsDao().upsert(_settings.value.toEntity())
+            }
         }
     }
 
@@ -1113,7 +1149,10 @@ class ProgramRepository private constructor(
                         logs = historyForProgress,
                         transitionContext = buildTransitionContext(program, historyForProgress),
                         weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
-                        compositionMetadata = if (program.sourceRecipe != null) CompositionMetadataHolder.resolve() else CompositionMetadataHolder.current,
+                        // A missing catalog provider is a supported recovery state:
+                        // the engine leaves recipe materialization pending while
+                        // preserving recorded evidence and updating the training max.
+                        compositionMetadata = CompositionMetadataHolder.current,
                         nowMs = System.currentTimeMillis(),
                         reviewCatalog = exerciseCatalogSnapshot(),
                         // B.S3: la progresión de autor redondea el TM que sube con los discos reales

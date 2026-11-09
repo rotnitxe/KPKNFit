@@ -8,7 +8,7 @@ public enum PortionPreset: String, Codable {
 
 public enum CookingMethod: String, Codable {
     case CRUDO, COCIDO, PLANCHA, HORNO, FRITO, EMPANIZADO_FRITO
-    case AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO
+    case AHUMADO, VAPOR, OLLA, ASADO_PARRILLA, GUISADO, SALTEADO
 }
 
 public enum PortionReference: String, Codable {
@@ -234,6 +234,8 @@ public struct LoggedFood: Codable, Identifiable, Equatable {
     public let cookingMethod: CookingMethod?
     public let quantity: Double
     public let analysisSource: AnalysisSource?
+    public let preparation: String?
+    public let preparationOilLevel: String?
 
     public init(
         id: String = "",
@@ -254,7 +256,9 @@ public struct LoggedFood: Codable, Identifiable, Equatable {
         portionPreset: PortionPreset? = nil,
         cookingMethod: CookingMethod? = nil,
         quantity: Double = 1.0,
-        analysisSource: AnalysisSource? = nil
+        analysisSource: AnalysisSource? = nil,
+        preparation: String? = nil,
+        preparationOilLevel: String? = nil
     ) {
         self.id = id
         self.foodName = foodName
@@ -275,6 +279,8 @@ public struct LoggedFood: Codable, Identifiable, Equatable {
         self.cookingMethod = cookingMethod
         self.quantity = quantity
         self.analysisSource = analysisSource
+        self.preparation = preparation
+        self.preparationOilLevel = preparationOilLevel
     }
 }
 

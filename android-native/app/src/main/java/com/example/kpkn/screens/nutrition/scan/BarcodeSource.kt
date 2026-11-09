@@ -9,6 +9,7 @@ import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.example.kpkn.screens.workout.components.CameraXProcessUseCaseOwner
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -198,19 +199,27 @@ class CameraBarcodeSource(
                 }
             }
             try {
-                provider.unbind(previewUseCase, analysisUseCase)
-                val bound = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, previewUseCase, analysisUseCase)
                 cameraProvider = provider
-                camera = bound
                 preview = previewUseCase
                 analysis = analysisUseCase
                 executor = analysisExecutor
                 scope = analysisScope
-                torch.value = bound.cameraInfo.hasFlashUnit()
-                if (torchWanted && torch.value) bound.cameraControl.enableTorch(true)
+                CameraXProcessUseCaseOwner.bind(
+                    provider = provider,
+                    owner = this@CameraBarcodeSource,
+                    useCases = listOf(previewUseCase, analysisUseCase),
+                    onSuspended = {
+                        camera = null
+                        torch.value = false
+                    },
+                ) {
+                    val bound = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, previewUseCase, analysisUseCase)
+                    camera = bound
+                    torch.value = bound.cameraInfo.hasFlashUnit()
+                    if (torchWanted && torch.value) bound.cameraControl.enableTorch(true)
+                }
             } catch (error: Exception) {
-                analysisScope.cancel()
-                analysisExecutor.shutdown()
+                release()
                 onFailure?.invoke()
             }
         }, ContextCompat.getMainExecutor(context))
@@ -220,8 +229,8 @@ class CameraBarcodeSource(
         val provider = cameraProvider
         val useCases = listOfNotNull<androidx.camera.core.UseCase>(preview, analysis)
         analysis?.clearAnalyzer()
-        if (provider != null && useCases.isNotEmpty()) runCatching { provider.unbind(*useCases.toTypedArray()) }
         camera?.cameraControl?.runCatching { enableTorch(false) }
+        if (provider != null && useCases.isNotEmpty()) CameraXProcessUseCaseOwner.release(provider, this)
         scope?.cancel()
         executor?.shutdown()
         cameraProvider = null

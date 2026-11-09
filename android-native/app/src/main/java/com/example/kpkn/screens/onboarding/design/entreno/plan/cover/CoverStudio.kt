@@ -1020,6 +1020,14 @@ internal class CoverStudioPainter(
     }
 }
 
+/** Draws a resolved CoverStudio identity into a non-Compose story canvas. */
+internal fun DrawScope.drawCoverStudioFrame(identity: CoverIdentity, measurer: TextMeasurer, progress: Float = 1f) {
+    identity.lines?.let { drawLineCover(it, measurer, progress); return }
+    val animated = progress < 1f
+    val painter = CoverStudioPainter(identity, size.width, size.height, measurer, this)
+    painter.draw(this, progress.coerceIn(0f, 1f) * 1.8f, animated, dx = 0f)
+}
+
 /**
  * El arte a sangre de [identity]: el fondo de su paleta y el grafismo de su estilo, sin texto, sin velo y sin franja. Con [animate] y
  * sin movimiento reducido, cada estilo se mueve con un bucle lento; si no, queda en su cuadro fijo. [parallax] (−1 a 1, se lee al

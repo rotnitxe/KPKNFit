@@ -25,6 +25,8 @@ import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.ProgramDeleteResult
+import com.example.kpkn.data.repository.ProgramArchiveResult
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
@@ -202,20 +204,20 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
      *
      * @param programId ID of program to delete.
      */
-    fun deleteProgram(programId: String) {
-        repository.deleteProgram(programId)
+    fun deleteProgram(programId: String): ProgramDeleteResult {
+        return repository.deleteProgram(programId)
     }
 
-    fun archiveProgram(programId: String) {
-        repository.archiveProgram(programId)
+    fun archiveProgram(programId: String): ProgramArchiveResult {
+        return repository.archiveProgram(programId)
     }
 
     fun restoreArchivedProgram(programId: String) {
         repository.restoreArchivedProgram(programId)
     }
 
-    fun permanentlyDeleteProgram(programId: String) {
-        repository.permanentlyDeleteProgram(programId)
+    fun permanentlyDeleteProgram(programId: String): ProgramDeleteResult {
+        return repository.permanentlyDeleteProgram(programId)
     }
 
     /**
@@ -226,6 +228,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         name: String? = null,
         mode: ProgramMode = ProgramMode.HYPERTROPHY,
         coverImage: String? = null,
+        identityLabel: String? = null,
     ): String {
         val programId = UUID.randomUUID().toString()
         // El número sale del mayor «Nuevo programa N» que ya existe (contar nombres repetía números tras borrar uno).
@@ -235,7 +238,12 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Nuevo programa $nextNumber",
             mode = mode,
         )
-        repository.addProgram(coverImage?.let { base.copy(coverImage = it) } ?: base)
+        repository.addProgram(
+            base.copy(
+                coverImage = coverImage ?: base.coverImage,
+                identityLabel = identityLabel?.trim()?.takeIf(String::isNotEmpty),
+            ),
+        )
         return programId
     }
 
@@ -543,7 +551,8 @@ internal fun programTrainingDays(program: Program): Int =
  */
 internal fun programListMeta(program: Program, stats: ProgramStats): String {
     val days = programTrainingDays(program).takeIf { it > 0 }?.let { pluralDias(it) }
-    val head = if (program.isSimpleProgram && program.totalProgramWeeks <= 1) "Rutina" else pluralSemanas(stats.weeks)
+    val head = program.identityLabel?.takeIf(String::isNotBlank)
+        ?: if (program.isSimpleProgram && program.totalProgramWeeks <= 1) "Rutina" else pluralSemanas(stats.weeks)
     return listOfNotNull(head, days).joinToString(" · ")
 }
 

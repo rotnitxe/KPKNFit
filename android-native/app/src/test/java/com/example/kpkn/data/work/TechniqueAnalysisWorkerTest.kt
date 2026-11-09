@@ -13,6 +13,7 @@ import androidx.work.workDataOf
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueAnalysisOutcome
 import com.example.kpkn.data.media.technique.TechniqueAnalysisRequest
 import com.example.kpkn.data.media.technique.TechniqueAnalyzer
@@ -116,6 +117,7 @@ class TechniqueAnalysisWorkerTest {
         attempt: Int = 0,
         imported: Boolean = false,
         explicit: Boolean = false,
+        manualRequestId: String? = null,
     ): TechniqueAnalysisWorker =
         TestListenableWorkerBuilder<TechniqueAnalysisWorker>(context)
             .setInputData(
@@ -125,6 +127,7 @@ class TechniqueAnalysisWorkerTest {
                     TechniqueAnalysisWorker.KEY_USER_INITIATED to true,
                     TechniqueAnalysisWorker.KEY_IMPORTED to imported,
                     TechniqueAnalysisWorker.KEY_EXPLICIT to explicit,
+                    TechniqueAnalysisWorker.KEY_MANUAL_REQUEST_ID to manualRequestId,
                 ),
             )
             .setRunAttemptCount(attempt)
@@ -190,6 +193,42 @@ class TechniqueAnalysisWorkerTest {
         assertEquals("Sentadilla trasera", request.exercise.name)
         assertFalse(request.exercise.isCustom)
         assertNull(request.exercise.userProfileOverride)
+    }
+
+    @Test
+    fun legacy_automatic_work_without_a_generation_does_not_adopt_a_new_same_mode_manual_request() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = true, heightCm = 178.0, plateMm = 400)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "vid-stale-auto")
+        val previousReport = TechniqueReportSamples.fullReport().copy(repCount = 7)
+        val initialAnalyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(previousReport) }
+        assertEquals(ListenableWorker.Result.success(), work(media.id, mode = AnalysisMode.FULL).doWork())
+        val previousBytes = analysisFile(media.filePath).readBytes()
+        assertEquals(7, repository.getByMedia(media.id)?.repCount)
+        assertEquals(1, initialAnalyzer.calls.get())
+
+        val queuedRepository = VideoAnalysisRepository.forDatabaseForTests(
+            context = context,
+            db = db,
+            store = store,
+            manualEnqueuer = { _, queuedMediaId, _, _, queuedRepo ->
+                queuedRepo.markState(queuedMediaId, VideoAnalysisStatus.QUEUED)
+            },
+        )
+        repository = queuedRepository
+        VideoAnalysisRepository.installForTests(queuedRepository)
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        val currentRequest = repository.pendingManualAnalysisRequest(media.id)!!
+        val queuedRow = repository.getByMedia(media.id)!!
+        assertEquals(VideoAnalysisStatus.QUEUED, queuedRow.status)
+
+        val staleAnalyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport().copy(repCount = 99)) }
+        // This uses legacy automatic WorkManager input without a manual ID or generation token.
+        assertEquals(ListenableWorker.Result.success(), work(media.id, mode = AnalysisMode.FULL).doWork())
+
+        assertEquals("the stale automatic job is discarded before analysis", 0, staleAnalyzer.calls.get())
+        assertEquals("the published sidecar remains intact", previousBytes.toList(), analysisFile(media.filePath).readBytes().toList())
+        assertEquals("the pending row remains queued", queuedRow, repository.getByMedia(media.id))
+        assertEquals("the newer manual request remains pending", currentRequest, repository.pendingManualAnalysisRequest(media.id))
     }
 
     @Test
@@ -592,6 +631,32 @@ class TechniqueAnalysisWorkerTest {
         assertEquals(VideoAnalysisStatus.DONE, row.status)
         assertEquals(2, row.repCount)
         assertTrue(analysisFile(media.filePath).isFile)
+    }
+
+    @Test
+    fun persisted_manual_request_runs_even_when_the_take_and_automatic_setting_are_off() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "manual-pending")
+        val requestId = "manual-request-1"
+        CaptureMetadataFile.update(TechniqueSidecars.captureFile(File(media.filePath))) {
+            it.copy(
+                analysisRequestedForCapture = false,
+                manualAnalysisRequestId = requestId,
+                manualAnalysisRequestMode = AnalysisMode.FULL.name,
+            )
+        }
+        repository.markState(media.id, VideoAnalysisStatus.QUEUED)
+        val analyzer = install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
+
+        val result = work(media.id, explicit = false, manualRequestId = requestId).doWork()
+
+        assertEquals(ListenableWorker.Result.success(), result)
+        assertEquals("la marca manual prevalece aunque el input antiguo no tuviera explicit", 1, analyzer.calls.get())
+        assertEquals(VideoAnalysisStatus.DONE, repository.getByMedia(media.id)!!.status)
+        val metadata = CaptureMetadataFile.read(TechniqueSidecars.captureFile(File(media.filePath)))
+        assertEquals(false, metadata.analysisRequestedForCapture)
+        assertNull("el worker cierra su solicitud durable", metadata.manualAnalysisRequestId)
+        assertNull(metadata.manualAnalysisRequestMode)
     }
 
     @Test

@@ -46,6 +46,7 @@ import com.example.kpkn.ui.design.KpknType
 
 /** Qué borrar y cómo: «Eliminar» del ⋯ (deleteProgram) o la papelera de Archivados (permanentlyDeleteProgram). */
 internal data class ProgramDeleteRequest(val program: Program, val permanent: Boolean)
+internal data class ProgramSessionActionRequest(val program: Program, val actionVerb: String)
 
 /** Una fila de la hoja ⋯: icono en círculo, título y, si hay, la línea que explica la acción. */
 private data class ProgramMenuEntry(
@@ -77,6 +78,8 @@ internal fun ProgramMoreSheet(
     onActivate: () -> Unit,
     onEdit: () -> Unit,
     onQueue: () -> Unit,
+    canRemoveFromQueue: Boolean = false,
+    onRemoveFromQueue: () -> Unit = {},
     onShare: () -> Unit,
     onArchive: () -> Unit,
     onDelete: () -> Unit,
@@ -86,13 +89,16 @@ internal fun ProgramMoreSheet(
         if (canActivate) add(ProgramMenuEntry(KpknLineIcons.Play, "Activar programa", "Pasa a ser el programa en curso", false, onActivate))
         add(ProgramMenuEntry(KpknLineIcons.Edit, "Editar nombre y portada", null, false, onEdit))
         if (canQueue) add(ProgramMenuEntry(KpknLineIcons.Repeat, "Añadir a la cola", "Empieza cuando termine el actual", false, onQueue))
+        if (canRemoveFromQueue) {
+            add(ProgramMenuEntry(KpknLineIcons.Close, "Quitar de la cola", "El programa sigue guardado", false, onRemoveFromQueue))
+        }
         add(ProgramMenuEntry(ProgramShareIcon, "Compartir en historias", null, false, onShare))
         add(ProgramMenuEntry(ProgramLineIcons.Upload, "Archivar", "Lo quitas de la lista sin borrarlo", false, onArchive))
         add(
             ProgramMenuEntry(
                 icon = KpknLineIcons.Trash,
                 title = "Eliminar",
-                subtitle = "Borra el programa y su plan. Tus registros se conservan.",
+                subtitle = "Borra el programa y su plan. Tus registros, fotos y vídeos se conservan.",
                 danger = true,
                 onClick = onDelete,
             ),
@@ -178,21 +184,66 @@ internal fun ArchivedProgramsSheet(
     }
 }
 
-/** Confirmación de borrado, la de «Eliminar» del ⋯ y la de la papelera de Archivados: el botón de borrar va en rojo. */
+/** Confirmación compartida de borrado para la lista, la ficha y la cola. */
 @Composable
 internal fun ProgramDeleteDialog(
     program: Program,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    blockedSessionId: String? = null,
+    sessionCheckBusy: Boolean = false,
+    onReturnToSession: () -> Unit = {},
 ) {
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = "¿Eliminar ${program.name}?",
-        text = "Borra el programa y su plan. Tus registros se conservan.",
-        confirmLabel = "Eliminar",
-        onConfirm = onConfirm,
-        dismissLabel = "Cancelar",
-        destructive = true,
+        title = when {
+            blockedSessionId != null -> "Sesión abierta"
+            sessionCheckBusy -> "No se pudo comprobar la sesión"
+            else -> "¿Eliminar ${program.name}?"
+        },
+        text = when {
+            blockedSessionId != null -> "Finaliza o descarta la sesión abierta antes de borrar el programa. No se borró nada. Sus registros y medios se conservan."
+            sessionCheckBusy -> "Hay una operación de sesión en curso. Espera un momento y vuelve a intentarlo; no se borró nada."
+            else -> "Elimina el programa y su plan. Tus registros, fotos y vídeos se conservan."
+        },
+        confirmLabel = when {
+            blockedSessionId != null -> "Volver a sesión"
+            sessionCheckBusy -> "Reintentar"
+            else -> "Eliminar"
+        },
+        onConfirm = if (blockedSessionId != null) onReturnToSession else onConfirm,
+        dismissLabel = if (blockedSessionId != null) "Volver" else "Cancelar",
+        destructive = blockedSessionId == null && !sessionCheckBusy,
+    )
+}
+
+/** Resultado visible cuando una acción sobre el programa encuentra una sesión abierta o no puede comprobar su estado. */
+@Composable
+internal fun ProgramSessionGuardDialog(
+    program: Program,
+    actionVerb: String,
+    blockedSessionId: String?,
+    sessionCheckBusy: Boolean,
+    onRetry: () -> Unit,
+    onReturnToSession: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = when {
+            blockedSessionId != null -> "Sesión abierta"
+            sessionCheckBusy -> "No se pudo comprobar la sesión"
+            else -> "No se aplicó la acción"
+        },
+        text = when {
+            blockedSessionId != null -> "Finaliza o descarta la sesión abierta antes de $actionVerb ${program.name}. No se cambió el programa."
+            sessionCheckBusy -> "Hay una operación de sesión en curso. Espera un momento y vuelve a intentarlo; el programa sigue igual."
+            else -> "El programa sigue igual."
+        },
+        confirmLabel = if (blockedSessionId != null) "Volver a sesión" else "Reintentar",
+        onConfirm = if (blockedSessionId != null) onReturnToSession else onRetry,
+        dismissLabel = if (blockedSessionId != null) "Volver" else "Cancelar",
+        onDismiss = onDismiss,
     )
 }
 

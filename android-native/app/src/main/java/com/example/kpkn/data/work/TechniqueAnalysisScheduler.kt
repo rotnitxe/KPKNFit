@@ -15,6 +15,8 @@ import androidx.work.WorkManager
 import androidx.work.await
 import androidx.work.workDataOf
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
+import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.data.repository.ReconcileResult
 import com.example.kpkn.data.repository.VideoAnalysisRepository
@@ -25,9 +27,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.withLock
+import java.io.File
 import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * La cola del análisis de técnica en vídeo (§9.4): encola, cancela y reconcilia los [TechniqueAnalysisWorker].
@@ -59,14 +65,28 @@ object TechniqueAnalysisScheduler {
     /** Prefijo de la etiqueta con el modo (`technique-analysis-mode:FULL`): con ella se sabe qué hace un trabajo pendiente. */
     const val TAG_MODE_PREFIX = "technique-analysis-mode:"
 
+    /** Prefijo de la etiqueta con el id de una solicitud manual durable. */
+    const val TAG_MANUAL_REQUEST_PREFIX = "technique-analysis-manual-request:"
+
+    /** Prefijo de la etiqueta con la generación durable de cualquier trabajo, automático o manual. */
+    const val TAG_GENERATION_PREFIX = "technique-analysis-generation:"
+
     /** Espera del primer reintento tras un fallo transitorio; WorkManager la dobla en cada intento. */
     const val BACKOFF_SECONDS = 30L
 
     private const val TAG = "TechniqueScheduler"
 
     private val reconcileLock = Mutex()
+    private val enqueueLocks = ConcurrentHashMap<String, Mutex>()
     private val backgroundReconcileStarted = AtomicBoolean(false)
     private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    @Volatile
+    internal var beforeEnqueueCommitForTests: suspend (String, String) -> Unit = { _, _ -> }
+
+    internal fun resetEnqueueHooksForTests() {
+        beforeEnqueueCommitForTests = { _, _ -> }
+    }
 
     /** Nombre del trabajo único del análisis de [mediaId]. */
     fun uniqueName(mediaId: String): String = UNIQUE_PREFIX + mediaId
@@ -85,24 +105,45 @@ object TechniqueAnalysisScheduler {
         userInitiated: Boolean = true,
         imported: Boolean = false,
         explicit: Boolean = false,
+        manualRequestId: String? = null,
         repository: VideoAnalysisRepository = VideoAnalysisRepository.init(context),
-    ): Boolean {
+    ): Boolean = enqueueLocks.computeIfAbsent(mediaId) { Mutex() }.withLock {
         val app = context.applicationContext
         if (repository.videoOf(mediaId) == null) return false
         val workManager = WorkManager.getInstance(app)
         val name = uniqueName(mediaId)
-        if (mode == AnalysisMode.FULL) {
-            val pending = unfinishedWork(workManager, name)
-            if (pending.isNotEmpty()) {
-                // KEEP: ya hay un FULL pendiente o en curso, no se toca nada (ni la fila).
-                if (pending.all { TAG_MODE_PREFIX + AnalysisMode.FULL.name in it.tags }) return true
-                // Un RECOMPUTE o un PLATE_ONLY pendiente no puede dejar sin efecto a un FULL, que ya lo contiene.
-                workManager.cancelUniqueWork(name).await()
+        val currentGeneration = if (manualRequestId == null) repository.currentAnalysisGeneration(mediaId) else null
+        val pending = unfinishedWork(workManager, name)
+        if (manualRequestId == null && currentGeneration?.manualRequestPending == true) {
+            // A durable user request owns this media until it is fulfilled; an automatic capture/reconcile must not replace it.
+            return pending.any { TAG_GENERATION_PREFIX + currentGeneration.id in it.tags }
+        }
+        val representedGenerationId = manualRequestId ?: currentGeneration?.id
+        if (pending.isNotEmpty()) {
+            val sameMode = pending.all { TAG_MODE_PREFIX + mode.name in it.tags }
+            val generationAlreadyRepresented = representedGenerationId != null && pending.any {
+                TAG_GENERATION_PREFIX + representedGenerationId in it.tags
+            }
+            if (sameMode && generationAlreadyRepresented && (manualRequestId != null || mode == AnalysisMode.FULL)) {
+                return true
             }
         }
-        if (!repository.markState(mediaId, VideoAnalysisStatus.QUEUED)) return false
-        workManager.enqueueUniqueWork(name, policyFor(mode), requestFor(mediaId, mode, userInitiated, imported, explicit)).await()
-        return true
+        val generationId = manualRequestId ?: repository.beginAnalysisGeneration(mediaId, mode) ?: return false
+        beforeEnqueueCommitForTests(mediaId, generationId)
+        repository.withCurrentAnalysisGeneration(mediaId, generationId) {
+            // Keep cancellation, the Room transition, and WorkManager's unique enqueue in one generation fence.
+            // A newer manual tap may replace the durable token while generation creation is otherwise in flight.
+            if (pending.isNotEmpty()) {
+                workManager.cancelUniqueWork(name).await()
+            }
+            if (!repository.markState(mediaId, VideoAnalysisStatus.QUEUED)) return@withCurrentAnalysisGeneration false
+            workManager.enqueueUniqueWork(
+                name,
+                policyFor(mode),
+                requestFor(mediaId, mode, userInitiated, imported, explicit, manualRequestId, generationId),
+            ).await()
+            true
+        } ?: false
     }
 
     /** Cancela el análisis de [mediaId], esté pendiente o en curso (al borrar el medio). No toca la fila. */
@@ -171,6 +212,8 @@ object TechniqueAnalysisScheduler {
         userInitiated: Boolean,
         imported: Boolean = false,
         explicit: Boolean = false,
+        manualRequestId: String? = null,
+        analysisGenerationId: String? = manualRequestId,
     ): OneTimeWorkRequest {
         val builder = OneTimeWorkRequestBuilder<TechniqueAnalysisWorker>()
             .setInputData(
@@ -180,12 +223,16 @@ object TechniqueAnalysisScheduler {
                     TechniqueAnalysisWorker.KEY_USER_INITIATED to userInitiated,
                     TechniqueAnalysisWorker.KEY_IMPORTED to imported,
                     TechniqueAnalysisWorker.KEY_EXPLICIT to explicit,
+                    TechniqueAnalysisWorker.KEY_MANUAL_REQUEST_ID to manualRequestId,
+                    TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID to analysisGenerationId,
                 ),
             )
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_SECONDS, TimeUnit.SECONDS)
             .addTag(TAG_ALL)
             .addTag(TAG_MEDIA_PREFIX + mediaId)
             .addTag(TAG_MODE_PREFIX + mode.name)
+        manualRequestId?.takeIf(String::isNotBlank)?.let { builder.addTag(TAG_MANUAL_REQUEST_PREFIX + it) }
+        analysisGenerationId?.takeIf(String::isNotBlank)?.let { builder.addTag(TAG_GENERATION_PREFIX + it) }
         // Un trabajo urgente solo admite restricciones de red y almacenamiento: la batería va en los demás.
         val batteryNotLow = Constraints.Builder().setRequiresBatteryNotLow(true).build()
         when (mode) {
@@ -217,24 +264,95 @@ object TechniqueAnalysisScheduler {
             Log.w(TAG, "WorkManager no está listo: no se vuelven a encolar los análisis pendientes.", error)
             return ReconcileResult()
         }
-        val alive = workManager.getWorkInfosByTagFlow(TAG_ALL).first()
+        val aliveWorks = workManager.getWorkInfosByTagFlow(TAG_ALL).first()
             .filter { !it.state.isFinished }
-            .flatMapTo(HashSet()) { info ->
-                info.tags.filter { it.startsWith(TAG_MEDIA_PREFIX) }.map { it.removePrefix(TAG_MEDIA_PREFIX) }
+        val aliveByMedia = HashMap<String, MutableList<WorkInfo>>()
+        for (info in aliveWorks) {
+            for (tag in info.tags) {
+                if (tag.startsWith(TAG_MEDIA_PREFIX)) {
+                    val mediaId = tag.removePrefix(TAG_MEDIA_PREFIX)
+                    aliveByMedia.getOrPut(mediaId) { mutableListOf() }.add(info)
+                }
             }
+        }
         val automaticOn = repository.readSettings().techniqueVideo.analyzeVideos
         var requeued = 0
         var restored = 0
         var dropped = 0
-        for (id in repository.activeIds()) {
-            if (id in alive) continue
+
+        val pendingRequests = repository.allPendingManualAnalysisRequests()
+        val allIds = (repository.activeIds() + pendingRequests.keys).distinct()
+
+        for (id in allIds) {
             try {
-                if (automaticOn) {
-                    if (enqueue(app, id, AnalysisMode.FULL, userInitiated = false, explicit = false, repository = repository)) requeued++
-                } else if (repository.restoreOrDrop(id)) {
-                    restored++
+                val media = repository.videoOf(id)
+                if (media == null) {
+                    pendingRequests[id]?.let { repository.clearManualAnalysisRequest(id, it.id) }
+                    continue
+                }
+                val manualRequest = repository.pendingManualAnalysisRequest(id)
+                val aliveForMedia = aliveByMedia[id].orEmpty()
+
+                if (manualRequest != null) {
+                    val matchingWork = aliveForMedia.firstOrNull { info ->
+                        val hasMode = (TAG_MODE_PREFIX + manualRequest.mode.name) in info.tags
+                        val hasRequestId = (TAG_MANUAL_REQUEST_PREFIX + manualRequest.id) in info.tags
+                        val hasGeneration = (TAG_GENERATION_PREFIX + manualRequest.id) in info.tags
+                        hasMode && hasRequestId && hasGeneration
+                    }
+                    if (matchingWork != null) {
+                        continue
+                    }
+                    if (aliveForMedia.isNotEmpty()) {
+                        workManager.cancelUniqueWork(uniqueName(id)).await()
+                    }
+                    if (enqueue(
+                            app,
+                            id,
+                            manualRequest.mode,
+                            userInitiated = true,
+                            explicit = true,
+                            manualRequestId = manualRequest.id,
+                            repository = repository,
+                        )
+                    ) {
+                        requeued++
+                    }
                 } else {
-                    dropped++
+                    val currentGeneration = repository.currentAnalysisGeneration(id)
+                    val represented = currentGeneration?.let { generation ->
+                        aliveForMedia.any { info ->
+                            TAG_MODE_PREFIX + generation.mode.name in info.tags &&
+                                TAG_GENERATION_PREFIX + generation.id in info.tags
+                        }
+                    } == true
+                    if (represented) continue
+                    if (aliveForMedia.isNotEmpty()) workManager.cancelUniqueWork(uniqueName(id)).await()
+                    val takeChoice = withContext(Dispatchers.IO) {
+                        runCatching {
+                            CaptureMetadataFile.read(TechniqueSidecars.captureFile(File(media.filePath)))
+                                .analysisRequestedForCapture
+                        }.getOrNull()
+                    }
+                    val shouldQueue = takeChoice ?: automaticOn
+                    if (shouldQueue) {
+                        if (enqueue(
+                                app,
+                                id,
+                                AnalysisMode.FULL,
+                                userInitiated = takeChoice == true,
+                                explicit = takeChoice == true,
+                                manualRequestId = null,
+                                repository = repository,
+                            )
+                        ) {
+                            requeued++
+                        }
+                    } else if (repository.restoreOrDrop(id)) {
+                        restored++
+                    } else {
+                        dropped++
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled

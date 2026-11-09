@@ -66,6 +66,7 @@ object WorkoutVoiceIntentMatcher {
                 is VoiceSessionCommand.AddSetSessionOnly,
                 is VoiceSessionCommand.AddSetPermanent,
                 is VoiceSessionCommand.StartVideoCapture,
+                is VoiceSessionCommand.StartVideoCaptureAnyway,
                 is VoiceSessionCommand.StopVideoCapture,
                 -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)
@@ -105,6 +106,7 @@ object WorkoutVoiceIntentMatcher {
             VoicePipelineStage.TTS_SPEAKING -> when (parsed) {
                 is VoiceSessionCommand.StopSpeaking -> parsed
                 is VoiceSessionCommand.StartVideoCapture,
+                is VoiceSessionCommand.StartVideoCaptureAnyway,
                 is VoiceSessionCommand.StopVideoCapture,
                 -> parsed
                 else -> VoiceSessionCommand.Unknown(transcript)

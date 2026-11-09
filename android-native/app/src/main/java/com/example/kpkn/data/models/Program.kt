@@ -23,6 +23,8 @@ data class Program(
     val description: String? = null,
     val coverImage: String? = null,
     val mode: ProgramMode = ProgramMode.HYPERTROPHY,
+    /** Etiqueta editorial elegida por el usuario; no cambia motores, recetas ni prescripciones. */
+    val identityLabel: String? = null,
     val structure: ProgramStructure = ProgramStructure.SIMPLE,
     val blockLabel: String? = null,
     val macrocycles: List<Macrocycle> = emptyList(),

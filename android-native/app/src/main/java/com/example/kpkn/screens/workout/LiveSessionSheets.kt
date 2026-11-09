@@ -38,6 +38,14 @@ internal enum class LiveSessionDestination(val title: String) {
 /** Tarjetas y Lista comparten el mismo borrador; Foco quedó descartada (Refinamiento 02). */
 internal enum class LiveSessionView(val title: String) { CARDS("Tarjetas"), LIST("Lista") }
 
+/** Cardio-only sessions always open their dedicated ready/run view without changing the stored strength-view preference. */
+internal fun effectiveLiveSessionView(session: Session?, preferredName: String?): LiveSessionView {
+    val preferred = LiveSessionView.entries.firstOrNull { it.name == preferredName } ?: LiveSessionView.CARDS
+    val exercises = session?.allExercises().orEmpty()
+    val cardioOnly = exercises.isNotEmpty() && exercises.all { it.isCardio }
+    return if (cardioOnly) LiveSessionView.CARDS else preferred
+}
+
 /** Monotonic time survives closing the sheet; paused time never includes time spent away. */
 @Stable
 internal class LiveSessionTimerState(paused: Long = 0L, started: Long? = null) {
@@ -74,6 +82,10 @@ internal fun LiveSessionSheetsHost(
     currentExerciseId: String? = null,
     /** Número de la serie en curso de la tarjeta (el chip resaltado de la «Ruta»). */
     currentSetNumber: Int? = null,
+    warmupCompletedIds: Set<String> = emptySet(),
+    mobilityCompletedIds: Set<String> = emptySet(),
+    activeStepKey: String? = null,
+    onSelectStep: (String) -> Unit = {},
     supersetGroups: List<SupersetGroup> = emptyList(),
     liveEnergySummary: SessionEnergySummary? = null,
     bodyWeight: Double? = null,
@@ -211,6 +223,10 @@ internal fun LiveSessionSheetsHost(
                     onReorder = onReorder?.let { reorder -> { onDestination(null); reorder() } },
                     onAddExercise = { onDestination(null); onAddExercise() },
                     currentSetNumber = currentSetNumber,
+                    warmupCompletedIds = warmupCompletedIds,
+                    mobilityCompletedIds = mobilityCompletedIds,
+                    activeStepKey = activeStepKey,
+                    onSelectStep = { key -> onSelectStep(key); onDestination(null) },
                 )
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }

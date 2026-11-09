@@ -305,6 +305,8 @@ data class Exercise(
     val reference1RM: Double? = null,
     /** Training max in kg for PERCENT_TM prescriptions. Never a 1RM. */
     val referenceTrainingMax: Double? = null,
+    /** Preferred reference for generated smart loads; null preserves legacy 1RM behavior. */
+    val smartLoadBasis: SmartLoadBasis? = null,
     val targetSessionGoal: String? = null,
     val isStarTarget: Boolean = false,
     val trackHeartRate: Boolean = false,
@@ -570,6 +572,10 @@ enum class CardioIntensity(val defaultRpe: Double) {
 }
 
 enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE, AMRAP }
+
+/** Base for inferred loads only. Explicit ExerciseSet.loadBasis prescriptions keep their own semantics. */
+@Serializable
+enum class SmartLoadBasis { ONE_RM, TRAINING_MAX }
 enum class TimeStrategy { COUNTDOWN, CHRONOMETER, FREE }
 enum class DamageProfile { STRETCH, SQUEEZE, NORMAL }
 enum class ExerciseRelationshipType { VARIATION, ASSISTANCE, OVERLOAD, TECHNIQUE }

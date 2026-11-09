@@ -213,9 +213,16 @@ internal fun DragLiftPreview(
     }
     val shape = RoundedCornerShape(20.dp)
     val displayParts = remember(exercise, exerciseInfo) { exerciseDisplayParts(exercise, exerciseInfo) }
-    val thumbnailRes = remember(exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+    val thumbnailRes = remember(
+        exercise.id,
+        exercise.catalogDefinitionId,
+        exercise.catalogConfigurationId,
+        exercise.exerciseDbId,
+        exercise.exerciseId,
+    ) {
         ExerciseTechniqueImageLookup.resolveImageResId(
-            catalogDefinitionId = null,
+            catalogDefinitionId = exercise.catalogDefinitionId,
+            catalogConfigurationId = exercise.catalogConfigurationId,
             exerciseDbId = exercise.exerciseDbId,
             exerciseId = exercise.exerciseId ?: exercise.id,
         )

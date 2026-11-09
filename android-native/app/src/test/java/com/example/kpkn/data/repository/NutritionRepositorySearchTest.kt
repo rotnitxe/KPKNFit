@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -66,8 +67,8 @@ class NutritionRepositorySearchTest {
     }
 
     /** A repository over the in-memory database seeded with the OFF fixture, with the static catalog published. */
-    private fun seededRepository(): NutritionRepository = runBlocking {
-        db.nutritionDao().insertGlobalFoods(OffSearchFixture.entities())
+    private fun seededRepository(extraFoods: List<com.example.kpkn.data.db.GlobalFoodEntity> = emptyList()): NutritionRepository = runBlocking {
+        db.nutritionDao().insertGlobalFoods(OffSearchFixture.entities() + extraFoods)
         val ctor = NutritionRepository::class.java.getDeclaredConstructor(
             Context::class.java,
             KpknDatabase::class.java,
@@ -118,6 +119,34 @@ class NutritionRepositorySearchTest {
         assertEquals("gen019", results.first().foodId)
         assertTrue(results.none { candidate -> listOf("empanad", "panch", "pancake", "biopan").any { it in TextKeys.normalize(candidate.food.name) } })
         assertTrue(results.all { NutrientBasis.isVerified(it.food) && FoodIdentity.matchesDeclaredIdentity("pan", it.food) })
+    }
+
+    @Test
+    fun `logger search rows pass the same final brand verification and exclusion gate`() {
+        val garlicBread = com.example.kpkn.data.db.GlobalFoodEntity(
+            foodId = "off_test_garlic_bread", name = "Pan con ajo", brand = "Ideal",
+            normalizedName = "pan con ajo", normalizedBrand = "ideal",
+            calories = 280.0, protein = 8.0, carbs = 50.0, fats = 5.0,
+            source = "OFF Chile", sourcePriority = 80, verifiedScore = 0.95,
+            sourceRecordId = "7791234567890", nutritionBasis = "PER_100G_AS_SOLD", datasetVersion = "test",
+        )
+        val repo = seededRepository(listOf(garlicBread))
+
+        val brandedResults = runBlocking { repo.searchLoggerCandidates("leche colun", limit = 30) }
+        assertTrue("The query should find verified Colun milk", brandedResults.isNotEmpty())
+        assertTrue(brandedResults.all { repo.isLoggerFoodEligible("leche colun", it.food) })
+        val selected = brandedResults.first().food
+        assertTrue(repo.isLoggerFoodEligible("leche colun", selected))
+        assertFalse(repo.isLoggerFoodEligible("leche colun", selected.copy(brand = "Lider")))
+        assertFalse(repo.isLoggerFoodEligible("leche colun", selected.copy(calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0)))
+
+        val unfiltered = runBlocking { repo.searchLoggerCandidates("pan con ajo", limit = 20) }
+        assertTrue("The seeded mixed product should be found before exclusions", unfiltered.any { it.foodId == garlicBread.foodId })
+        val excluded = runBlocking {
+            repo.searchLoggerCandidates("pan con ajo", limit = 20, excludedIngredients = setOf("ajo"))
+        }
+        assertTrue(excluded.none { it.foodId == garlicBread.foodId })
+        assertTrue(excluded.all { repo.isLoggerFoodEligible("pan con ajo", it.food, excludedIngredients = setOf("ajo")) })
     }
 
     @Test

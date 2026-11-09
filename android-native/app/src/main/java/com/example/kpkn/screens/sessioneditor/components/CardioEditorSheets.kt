@@ -201,11 +201,9 @@ internal fun cardioAvisosSummary(details: CardioDetails): String {
     val a = details.avisos()
     val phased = cardioHasPhases(details)
     val parts = buildList {
-        if (phased) {
-            if (a.beeps) add("Sonidos")
-            if (a.voice) add("Voz")
-            if (a.vibration) add("Vibración")
-        }
+        if (a.beeps) add("Sonidos")
+        if (a.voice) add("Voz")
+        if (a.vibration) add("Vibración")
         if (a.screen) add("Pantalla encendida")
     }
     return if (parts.isEmpty()) "Todo apagado" else parts.joinToString(" · ")
@@ -233,15 +231,15 @@ internal fun CardioAvisosSheet(
     CeSheet(onDismiss = onDismiss, modifier = Modifier.verticalScroll(rememberScrollState())) {
         CeSheetHeader("Avisos y pantalla", typeName)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CeEyebrow("Avisos de fase")
+            CeEyebrow(if (phased) "Avisos de fase" else "Avisos de inicio y final")
             Column {
-                CeSwitchRow(CeIcons.Beep, "Sonidos", "Pitidos al cambiar de fase y cuenta atrás de 3 segundos.", a.beeps, { onChange(details.withBeeps(!a.beeps)) }, enabled = phased, topRule = true)
-                CeSwitchRow(CeIcons.Voice, "Voz", "Dice la fase, la duración y la consigna del bloque.", a.voice, { onChange(details.withVoice(!a.voice)) }, enabled = phased)
-                CeSwitchRow(CeIcons.Vib, "Vibración", "Doble vibración al empezar cada esfuerzo.", a.vibration, { onChange(details.withVibration(!a.vibration)) }, enabled = phased)
+                CeSwitchRow(CeIcons.Beep, "Sonidos", if (phased) "Pitidos al cambiar de fase y cuenta atrás de 3 segundos." else "Pitidos durante la cuenta atrás y al empezar o terminar.", a.beeps, { onChange(details.withBeeps(!a.beeps)) }, topRule = true)
+                CeSwitchRow(CeIcons.Voice, "Voz", if (phased) "Dice la fase, la duración y la consigna del bloque." else "Cuenta atrás hablada y aviso al empezar o terminar.", a.voice, { onChange(details.withVoice(!a.voice)) })
+                CeSwitchRow(CeIcons.Vib, "Vibración", if (phased) "Doble vibración al empezar cada esfuerzo." else "Vibra al empezar y al terminar.", a.vibration, { onChange(details.withVibration(!a.vibration)) })
             }
             CeHint(
                 if (phased) "Dependen también de lo que tengas activado en Ajustes."
-                else "Los avisos de fase son del cardio por series o por intervalos: en Continuo no hay cambios de fase que avisar.",
+                else "En continuo los avisos acompañan el inicio y el final de la sesión.",
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

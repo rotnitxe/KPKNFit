@@ -23,6 +23,7 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.Apre
 import com.example.kpkn.domain.training.ApreVariant
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.ui.components.KpknSheet
@@ -49,8 +50,20 @@ internal fun Exercise.withApreBlock(variant: ApreVariant, newId: () -> String = 
 }
 
 @Composable
-internal fun ApreBlockSheet(exercise: Exercise, onApply: ((Exercise) -> Exercise) -> Unit, onDismiss: () -> Unit) {
-    var variant by remember { mutableStateOf(ApreVariant.APRE_6) }
+internal fun ApreBlockSheet(
+    exercise: Exercise,
+    onApply: ((Exercise) -> Exercise) -> Unit,
+    onDismiss: () -> Unit,
+    onOpenSmartLoad: (() -> Unit)? = null,
+) {
+    var variant by remember(exercise.id, exercise.apreBlock) {
+        mutableStateOf(
+            resolveLiveApreBlock(exercise)?.variant
+                ?: Apre.variantOfXrmReps(exercise.apreBlock?.xrmReps ?: -1)
+                ?: ApreVariant.APRE_6,
+        )
+    }
+    val markerNeedsRepair = exercise.apreBlock != null && resolveLiveApreBlock(exercise) == null
     val block = exercise.reference1RM?.let { Apre.block(it, variant) }.orEmpty()
     KpknSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -59,15 +72,38 @@ internal fun ApreBlockSheet(exercise: Exercise, onApply: ((Exercise) -> Exercise
                 ApreVariant.entries.forEach { option -> KpknChip(text = option.label, selected = variant == option,
                     onClick = { variant = option }) }
             }
-            if (block.isEmpty()) Text("Falta el 1RM. Indícalo en Carga inteligente antes de crear el bloque.",
-                style = KpknType.caption, color = WizardColors.danger)
-            block.forEach { item -> Text("S${item.ordinal} · ${formatEditableNumber(item.loadKg).replace('.', ',')}\u00a0kg · " +
-                (item.minimumReps?.let { "$it+" } ?: "${item.targetReps} reps"), style = KpknType.bodyStrong, color = WizardColors.text) }
+            if (block.isEmpty()) {
+                Text("Falta el 1RM. Indícalo en Carga inteligente antes de crear el bloque.",
+                    style = KpknType.caption, color = WizardColors.danger)
+                onOpenSmartLoad?.let { openSmartLoad ->
+                    KpknTextAction(
+                        text = "Configurar en Carga inteligente",
+                        onClick = { onDismiss(); openSmartLoad() },
+                    )
+                }
+            }
+            if (markerNeedsRepair) Text(
+                "El marcador guardado está incompleto. Aplicar una variante nueva reemplaza las series actuales y repara APRE.",
+                style = KpknType.caption, color = WizardColors.danger,
+            )
+            block.forEach { item ->
+                val role = when (item.ordinal) {
+                    1 -> "base · 50 % XRM"
+                    2 -> "base · 75 % XRM"
+                    3 -> "AMRAP · ajusta S4"
+                    else -> "AMRAP · registra XRM futuro"
+                }
+                val reps = item.minimumReps?.let { "$it+ reps" } ?: "${item.targetReps} reps"
+                Text(
+                    "S${item.ordinal} · $role · ${formatEditableNumber(item.loadKg).replace('.', ',')}\u00a0kg · $reps",
+                    style = KpknType.bodyStrong, color = WizardColors.text,
+                )
+            }
             Text("S3 es AMRAP. Su resultado ajusta S4 con la tabla de Mann; S4 propone el XRM de la próxima semana.",
                 style = KpknType.caption, color = WizardColors.textMuted)
             Text("Al aplicar se sustituirán las ${exercise.sets.size} series actuales por estas cuatro.",
                 style = KpknType.body, color = WizardColors.textMuted)
-            KpknPrimaryPill(text = "Aplicar bloque APRE", enabled = block.isNotEmpty(), modifier = Modifier.fillMaxWidth(),
+            KpknPrimaryPill(text = "Aplicar ${variant.label}", enabled = block.isNotEmpty(), modifier = Modifier.fillMaxWidth(),
                 onClick = { onApply { it.withApreBlock(variant) }; onDismiss() })
             KpknTextAction(text = "Cancelar", onClick = onDismiss)
         }

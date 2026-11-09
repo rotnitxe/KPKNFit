@@ -29,6 +29,14 @@ class FoodIdentityReliabilityTest {
             scaleFoodByPortion(wholegrain, amountGrams = 100.0).calories, 0.01)
     }
 
+    @Test fun `preparation changes strip gender plural and cooking phrases from identity`() {
+        assertEquals("papas", FoodIdentity.identityQueryWithoutPreparation("Papas cocidas"))
+        assertEquals("arroz blanco", FoodIdentity.identityQueryWithoutPreparation("Arroz blanco (cocido)"))
+        assertEquals("pollo", FoodIdentity.identityQueryWithoutPreparation("Pollo a la plancha"))
+        assertEquals("pescado", FoodIdentity.identityQueryWithoutPreparation("Pescado al vapor"))
+        assertEquals("pollo", FoodIdentity.identityQueryWithoutPreparation("Pollo en crudo"))
+    }
+
     @Test fun `legacy custom JSON keeps the original per serving meaning`() {
         val legacy = Json.decodeFromString<FoodItem>("""{"id":"my-bar","name":"Mi barrita","isCustom":true,"servingSize":40.0,"calories":180.0,"protein":8.0,"carbs":16.0,"fats":9.0,"nutritionBasis":"PER_100G_AS_SOLD"}""")
         assertEquals(180.0, scaleFoodByPortion(legacy, amountGrams = 40.0).calories, 0.01)

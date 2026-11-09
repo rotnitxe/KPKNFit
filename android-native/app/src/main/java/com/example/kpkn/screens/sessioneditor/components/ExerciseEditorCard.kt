@@ -191,9 +191,12 @@ internal fun ExerciseEditorCard(
         }
     }
     val cardio = exercise.cardioDetails
-    val thumbnailRes = remember(exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+    val thumbnailRes = remember(
+        exercise.id, exercise.catalogDefinitionId, exercise.catalogConfigurationId, exercise.exerciseDbId, exercise.exerciseId,
+    ) {
         ExerciseTechniqueImageLookup.resolveImageResId(
-            catalogDefinitionId = null,
+            catalogDefinitionId = exercise.catalogDefinitionId,
+            catalogConfigurationId = exercise.catalogConfigurationId,
             exerciseDbId = exercise.exerciseDbId,
             exerciseId = exercise.exerciseId ?: exercise.id,
         )

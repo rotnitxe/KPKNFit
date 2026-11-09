@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.programCoverEntryIdOf
@@ -49,6 +50,8 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.COVER_INK
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverPaletteKind
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.screens.programdetail.components.HeroCoverKind
+import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.rememberProgramCover
 
@@ -172,6 +175,9 @@ private fun ProgramPoster(
     }
     // La foto propia manda; el arte del motor sale del id del programa y de su plantilla (la de Home, como en las portadas).
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), with(LocalDensity.current) { PosterWidth.roundToPx() })
+    val personalPhotoUrl = program.coverImage.takeIf {
+        heroCoverKind(it, hasBundledCover = false) == HeroCoverKind.REMOTE
+    }
     // La portada de estudio («Editar programa») manda; sin ella, la identidad de siempre.
     val identity = remember(program.id, program.structureTemplateId, program.coverImage) { coverIdentityForProgram(program) }
     val summary = if (isActive) null else programSummaryLine(program)
@@ -201,11 +207,20 @@ private fun ProgramPoster(
         } else {
             CoverStudioArt(identity = identity, modifier = Modifier.fillMaxSize(), animate = false, reduced = reduced)
         }
+        personalPhotoUrl?.let { photo ->
+            AsyncImage(
+                model = photo,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().testTag("home-program-photo-${program.id}"),
+                contentScale = ContentScale.Crop,
+            )
+        }
         // Velo de la parte baja, con el criterio de K3a (PlanCover.CoverBottomVeil): en tinta y en papel, una peana negra sólida desde
         // el 56 % para que el título se lea sobre cualquier arte; en noche, un degradado; con foto propia, el velo de foto de K3a.
-        val solidBase = cover == null && identity.palette != CoverPaletteKind.NOCHE
+        val hasPhotoCover = cover != null || personalPhotoUrl != null
+        val solidBase = !hasPhotoCover && identity.palette != CoverPaletteKind.NOCHE
         val veil = when {
-            cover != null -> arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f))
+            hasPhotoCover -> arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f))
             solidBase -> arrayOf(0.50f to Color.Transparent, 0.56f to COVER_INK, 1f to COVER_INK)
             else -> arrayOf(0.45f to Color.Transparent, 1f to COVER_INK.copy(alpha = 0.92f))
         }

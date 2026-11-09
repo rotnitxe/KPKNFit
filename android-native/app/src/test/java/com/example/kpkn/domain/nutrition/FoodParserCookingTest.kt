@@ -44,10 +44,10 @@ class FoodParserCookingTest {
     }
 
     @Test
-    fun `detects salteado as frito`() {
+    fun `detects salteado with its own method`() {
         val result = parseMealDescription("salteado de verduras")
         assertEquals(1, result.items.size)
-        assertEquals(CookingMethod.FRITO, result.items[0].cookingMethod)
+        assertEquals(CookingMethod.SALTEADO, result.items[0].cookingMethod)
     }
 
     @Test
@@ -111,9 +111,9 @@ class FoodParserCookingTest {
     }
 
     @Test
-    fun `detects al wok as frito`() {
+    fun `detects al wok as salteado`() {
         val result = parseMealDescription("verduras al wok")
-        assertEquals(CookingMethod.FRITO, result.items[0].cookingMethod)
+        assertEquals(CookingMethod.SALTEADO, result.items[0].cookingMethod)
     }
 
     @Test

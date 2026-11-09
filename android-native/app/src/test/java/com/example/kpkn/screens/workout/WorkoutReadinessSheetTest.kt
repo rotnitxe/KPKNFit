@@ -47,8 +47,7 @@ class WorkoutReadinessSheetTest {
         show({ stored = it })
         // La hoja es desplazable y en Robolectric (sin modo táctil) abre con el cuerpo desplazado: se pulsa la opción por su acción
         // de accesibilidad, que es lo que comprueba este test (qué se guarda), no la posición del toque.
-        rule.onNodeWithContentDescription("Energía 10").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
-        rule.onNodeWithContentDescription("Energía 10").assertIsSelected()
+        rule.onNodeWithTag("readiness-scale-energy").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.SetProgress) { action -> assertTrue(action(10f)) }
         rule.onNodeWithTag("readiness-confirm").performClick()
         rule.runOnIdle {
             assertEquals(10, stored!!.energy)

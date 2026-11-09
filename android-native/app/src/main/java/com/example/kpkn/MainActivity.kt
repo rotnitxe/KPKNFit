@@ -43,9 +43,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -87,6 +87,7 @@ import com.example.kpkn.screens.home.rememberHomeViewModel
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.home.ConceptosClaveScreen
+import com.example.kpkn.screens.home.LocalConceptsBottomOcclusion
 import com.example.kpkn.screens.competitions.CompetitionDetailScreen
 import com.example.kpkn.screens.competitions.CompetitionFlowScreen
 import com.example.kpkn.screens.competitions.CompetitionsHubScreen
@@ -124,6 +125,7 @@ import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.KpknBottomBar
 import com.example.kpkn.ui.components.KpknBottomBarItem
+import com.example.kpkn.ui.components.MeasuredKpknBottomDock
 import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -148,7 +150,6 @@ import kotlinx.serialization.json.Json
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialog
-import com.example.kpkn.ui.design.KpknShape
 
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
@@ -642,6 +643,17 @@ fun KPKNApp(
     val hazeState = remember { HazeState() }
     val overlayHost = rememberKpknOverlayHostController()
     var bottomBarHeightPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val bottomBarHeightDp = remember(bottomBarHeightPx, density) {
+        with(density) { bottomBarHeightPx.toDp() }
+    }
+    // KpknBottomBar's measured height includes its 64 dp row, 8 dp outer margin, and navigation-bar safe inset.
+    // The 72 dp fallback is used for the first frame before measurement; the fullscreen wizard has no dock.
+    val conceptsBottomOcclusion = when {
+        isFullscreenWizard -> 0.dp
+        bottomBarHeightDp > 0.dp -> bottomBarHeightDp
+        else -> 72.dp
+    }
     var homeGlassOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
     var homeModalOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
     var homeOnboardingOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
@@ -692,6 +704,7 @@ fun KPKNApp(
         },
         LocalHazeState provides hazeState,
         LocalKpknOverlayHost provides overlayHost,
+        LocalConceptsBottomOcclusion provides conceptsBottomOcclusion,
     ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isFullscreenWizard) {
@@ -740,11 +753,6 @@ fun KPKNApp(
             // Glass overlays must be siblings drawn after hazeSource.
             val isHomeOrTrainingTab = currentTab == KpknRoute.Home.route || currentTab == KpknRoute.Training.route
             val showOngoingFloatingCard = ongoingWorkout != null && isHomeOrTrainingTab && !isFullscreenWizard
-
-            val density = LocalDensity.current
-            val bottomBarHeightDp = remember(bottomBarHeightPx, density) {
-                with(density) { bottomBarHeightPx.toDp() }
-            }
 
             if (showOngoingFloatingCard) {
                 val targetClearance = 12.dp + (if (bottomBarHeightDp > 0.dp) bottomBarHeightDp else (if (showContextualSubtabbar) 130.dp else 76.dp)) + 8.dp
@@ -889,17 +897,10 @@ fun KPKNApp(
                 },
                 KpknBottomBarItem(KpknRoute.BodyProgress.route, stringResource(R.string.nav_body), KpknLineIcons.Body),
             )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
-                    .onSizeChanged { bottomBarHeightPx = it.height }
-                    .kpknGlass(
-                        hazeState = hazeState,
-                        shape = KpknShape.island,
-                    ),
+            MeasuredKpknBottomDock(
+                hazeState = hazeState,
+                onMeasuredHeightChanged = { bottomBarHeightPx = it },
+                modifier = Modifier.align(Alignment.BottomCenter).testTag("main_measured_bottom_dock"),
             ) {
                 KpknBottomBar(
                     items = bottomBarItems,
@@ -1202,6 +1203,9 @@ private fun KPKNNavGraph(
                 // asistente lo guarda como intención con el objetivo prefijado.
                 onSelectPlan = { entry -> openLibraryPlanInWizard(navController, entry.id) },
                 onCreateTailoredProgram = { openLibraryPlanInWizard(navController) },
+                onReturnToSession = { programId, sessionId ->
+                    navController.navigate(KpknRoute.Workout.create(programId, sessionId)) { launchSingleTop = true }
+                },
                 onOpenConcept = { conceptId ->
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
@@ -1655,14 +1659,21 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramFourWeeks.create(volumeProgramId ?: id)) { launchSingleTop = true }
                 },
             ) {
+            val returnToTraining = {
+                if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
+                    navController.navigate(KpknRoute.Training.route) {
+                        popUpTo(KpknRoute.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            }
             ProgramDetailScreen(
                 programId = id,
-                onBack = {
-                    if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
-                        navController.navigate(KpknRoute.Training.route) {
-                            popUpTo(KpknRoute.Home.route) { inclusive = false }
-                            launchSingleTop = true
-                        }
+                onBack = returnToTraining,
+                onProgramDeleted = returnToTraining,
+                onReturnToSession = { programId, sessionId ->
+                    navController.navigate(KpknRoute.Workout.create(programId, sessionId)) {
+                        launchSingleTop = true
                     }
                 },
                 onStartWorkout = { session, program ->

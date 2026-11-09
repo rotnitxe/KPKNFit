@@ -583,6 +583,8 @@ class NutritionRepository private constructor(
         query: String,
         limit: Int = 50,
         loggerFilter: Boolean = false,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
     ): List<FoodCandidate> = withContext(Dispatchers.IO) {
         val normalizedQuery = TextKeys.normalize(query)
         if (normalizedQuery.isBlank()) return@withContext emptyList()
@@ -598,6 +600,8 @@ class NutritionRepository private constructor(
             learnedFoodId = _foodQueryLearning.value[normalizedQuery]?.foodId,
             limit = limit,
             loggerFilter = loggerFilter,
+            brandHint = brandHint,
+            excludedIngredients = excludedIngredients,
         )
     }
 
@@ -606,18 +610,55 @@ class NutritionRepository private constructor(
      * propio, los conceptos v2, el buscador anterior ([searchFoodCandidates] con su filtro del registro) y los productos del
      * paquete de catálogo ([LoggerSearchV2.merge]). Sin vocabulario o sin paquete, esas partes quedan vacías y responde el resto.
      */
-    suspend fun searchLoggerCandidates(query: String, limit: Int = 20): List<FoodCandidate> = withContext(Dispatchers.IO) {
+    suspend fun searchLoggerCandidates(
+        query: String,
+        limit: Int = 20,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
+    ): List<FoodCandidate> = withContext(Dispatchers.IO) {
         val normalizedQuery = TextKeys.normalize(query)
         if (normalizedQuery.isBlank() || limit <= 0) return@withContext emptyList()
-        val legacy = searchFoodCandidates(query, limit = limit, loggerFilter = true)
+        ensureDatasetKnowledge()
+        initFoodIndex()
+        val requestedBrandHint = foodIndex.brandHintFor(query) ?: brandHint
+        val legacy = searchFoodCandidates(
+            query,
+            limit = limit,
+            loggerFilter = true,
+            brandHint = requestedBrandHint,
+            excludedIngredients = excludedIngredients,
+        )
         val concepts = NutritionParserV2Holder.parser(appContext)?.catalog?.let { catalog ->
-            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.conceptCandidates(conceptSearchFor(catalog), query) }
+            searchRead<List<FoodCandidate>>(emptyList()) {
+                LoggerSearchV2.conceptCandidates(conceptSearchFor(catalog), query, brandHint = requestedBrandHint, excludedIngredients = excludedIngredients)
+            }
         }.orEmpty()
         val pack = NutritionCatalogHolder.current?.let { port ->
-            searchRead<List<FoodCandidate>>(emptyList()) { LoggerSearchV2.packCandidates(port, query) }
+            searchRead<List<FoodCandidate>>(emptyList()) {
+                LoggerSearchV2.packCandidates(port, query, brandHint = requestedBrandHint, excludedIngredients = excludedIngredients)
+            }
         }.orEmpty()
-        LoggerSearchV2.merge(legacy, concepts, pack, limit, _foodQueryLearning.value[normalizedQuery]?.foodId)
+        LoggerSearchV2.merge(
+            legacy, concepts, pack, limit, _foodQueryLearning.value[normalizedQuery]?.foodId,
+            query = query, brandHint = requestedBrandHint, excludedIngredients = excludedIngredients,
+        )
     }
+
+    /** The final logger selection uses the same query, verified-data, brand and exclusion gate as its search results. */
+    fun isLoggerFoodEligible(
+        query: String,
+        food: FoodItem,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
+    ): Boolean {
+        val requestedBrandHint = foodIndex.brandHintFor(query) ?: brandHint
+        return com.example.kpkn.domain.nutrition.LoggerFoodEligibility.accepts(
+            query, food, requestedBrandHint, excludedIngredients,
+        )
+    }
+
+    /** Brand present in a logger query, falling back to its parsed identity hint. */
+    fun loggerBrandHint(query: String, brandHint: String? = null): String? = foodIndex.brandHintFor(query) ?: brandHint
 
     /** Carga el vocabulario v2 y arma el índice de «Buscar»; el registro lo llama al abrirse para que la primera búsqueda no espere. */
     suspend fun prepareLoggerSearch() {

@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.longOrNull
@@ -37,8 +38,22 @@ data class CaptureMetadata(
     val lens: String? = null,
     val deviceModel: String? = null,
     val recordedAtMs: Long? = null,
+    /** Explicit per-capture request; null preserves legacy/global behavior. */
+    val analysisRequestedForCapture: Boolean? = null,
+    /** Durable user-requested analysis intent, separate from the automatic per-capture choice. */
+    val manualAnalysisRequestId: String? = null,
+    /** Analysis mode belonging to [manualAnalysisRequestId]; null is read as FULL for legacy compatibility. */
+    val manualAnalysisRequestMode: String? = null,
+    /** The user explicitly chose to continue without a clear framing verdict. */
+    val framingGateBypassed: Boolean? = null,
+    val framingWarning: String? = null,
 ) {
     companion object {
+        const val KEY_ANALYSIS_REQUESTED = "analysisRequestedForCapture"
+        const val KEY_MANUAL_ANALYSIS_REQUEST_ID = "manualAnalysisRequestId"
+        const val KEY_MANUAL_ANALYSIS_REQUEST_MODE = "manualAnalysisRequestMode"
+        const val KEY_FRAMING_BYPASSED = "framingGateBypassed"
+        const val KEY_FRAMING_WARNING = "framingWarning"
         const val KEY_REQUESTED_FPS = "requestedFps"
         const val KEY_GRANTED_FPS = "grantedFps"
         const val KEY_ROLL = "gravityRollDeg"
@@ -90,6 +105,11 @@ object CaptureMetadataFile {
             merged.setOrRemove(CaptureMetadata.KEY_LENS, next.lens?.let { JsonPrimitive(it) })
             merged.setOrRemove(CaptureMetadata.KEY_DEVICE, next.deviceModel?.let { JsonPrimitive(it) })
             merged.setOrRemove(CaptureMetadata.KEY_RECORDED_AT, next.recordedAtMs?.let { JsonPrimitive(it) })
+            merged.setOrRemove(CaptureMetadata.KEY_ANALYSIS_REQUESTED, next.analysisRequestedForCapture?.let { JsonPrimitive(it) })
+            merged.setOrRemove(CaptureMetadata.KEY_MANUAL_ANALYSIS_REQUEST_ID, next.manualAnalysisRequestId?.takeIf(String::isNotBlank)?.let { JsonPrimitive(it) })
+            merged.setOrRemove(CaptureMetadata.KEY_MANUAL_ANALYSIS_REQUEST_MODE, next.manualAnalysisRequestMode?.takeIf(String::isNotBlank)?.let { JsonPrimitive(it) })
+            merged.setOrRemove(CaptureMetadata.KEY_FRAMING_BYPASSED, next.framingGateBypassed?.let { JsonPrimitive(it) })
+            merged.setOrRemove(CaptureMetadata.KEY_FRAMING_WARNING, next.framingWarning?.let { JsonPrimitive(it) })
             TechniqueSidecars.writeAtomically(file, JsonObject(merged).toString().toByteArray(Charsets.UTF_8))
         }
     }
@@ -128,6 +148,13 @@ object CaptureMetadataFile {
         lens = obj.text(CaptureMetadata.KEY_LENS),
         deviceModel = obj.text(CaptureMetadata.KEY_DEVICE),
         recordedAtMs = (obj[CaptureMetadata.KEY_RECORDED_AT] as? JsonPrimitive)?.takeIf { !it.isString }?.longOrNull,
+        analysisRequestedForCapture = (obj[CaptureMetadata.KEY_ANALYSIS_REQUESTED] as? JsonPrimitive)
+            ?.takeIf { !it.isString }?.booleanOrNull,
+        manualAnalysisRequestId = obj.text(CaptureMetadata.KEY_MANUAL_ANALYSIS_REQUEST_ID),
+        manualAnalysisRequestMode = obj.text(CaptureMetadata.KEY_MANUAL_ANALYSIS_REQUEST_MODE),
+        framingGateBypassed = (obj[CaptureMetadata.KEY_FRAMING_BYPASSED] as? JsonPrimitive)
+            ?.takeIf { !it.isString }?.booleanOrNull,
+        framingWarning = obj.text(CaptureMetadata.KEY_FRAMING_WARNING),
     )
 
     /** Un número finito; un texto, un `null` o un valor que no es un número vale «sin dato». */

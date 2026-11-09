@@ -1096,6 +1096,8 @@ fun SessionEditorScreen(
                     onApplySuggestion = { suggestion, detailIds, position -> viewModel.applyAssistantSuggestionUndoable(suggestion, detailIds, position) },
                     onDismissSuggestion = viewModel::dismissAssistantSuggestion,
                     onUndoOutcome = viewModel::undoAssistantOutcome,
+                    onApplySmartLoadBasis = viewModel::applyAssistantSmartLoadBasis,
+                    onUndoSmartLoadBasis = viewModel::undoAssistantSmartLoadBasis,
                     onTemplateSearchChange = viewModel::setTemplateSearchQuery,
                     onSelectTemplate = viewModel::selectTemplate,
                     onConfirmApplyTemplate = viewModel::confirmTemplateApply,

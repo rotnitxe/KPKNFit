@@ -15,12 +15,17 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournal
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.VideoAnalysisRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,6 +42,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * La cola del análisis sobre el WorkManager de pruebas (cuyo trabajo de análisis se queda esperando, ver
@@ -66,11 +72,14 @@ class TechniqueAnalysisSchedulerTest {
 
     @After
     fun tearDown() {
+        TechniqueAnalysisScheduler.resetEnqueueHooksForTests()
         VideoAnalysisRepository.installForTests(null)
         TechniqueWorkTestKit.tearDownWorkManager()
         db.close()
         KpknDatabase.closeInstance()
         File(context.filesDir, WorkoutMediaCaptureJournal.ROOT_DIR).deleteRecursively()
+        File(context.filesDir, "analysis_requests").deleteRecursively()
+        File(context.filesDir, "analysis_publications").deleteRecursively()
     }
 
     private fun infos(mediaId: String): List<WorkInfo> =
@@ -171,7 +180,91 @@ class TechniqueAnalysisSchedulerTest {
         assertTrue(automatic.workSpec.expedited)
     }
 
+    @Test
+    fun manual_request_id_is_tagged_so_pending_work_can_be_matched_after_enqueue() {
+        val requestId = "manual-request-123"
+        val manual = TechniqueAnalysisScheduler.requestFor(
+            "m1",
+            AnalysisMode.FULL,
+            userInitiated = true,
+            explicit = true,
+            manualRequestId = requestId,
+        )
+        val automatic = TechniqueAnalysisScheduler.requestFor("m1", AnalysisMode.FULL, userInitiated = true)
+
+        assertTrue(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX + requestId in manual.tags)
+        assertTrue(TechniqueAnalysisScheduler.TAG_GENERATION_PREFIX + requestId in manual.tags)
+        assertEquals(requestId, manual.workSpec.input.getString(TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID))
+        assertFalse(automatic.tags.any { it.startsWith(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX) })
+    }
+
     // --- Encolar y cancelar ---
+
+    @Test
+    fun stale_automatic_generation_cannot_overwrite_a_new_manual_request() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val automaticGenerationReady = CompletableDeferred<String>()
+        val releaseAutomatic = CompletableDeferred<Unit>()
+        TechniqueAnalysisScheduler.beforeEnqueueCommitForTests = { mediaId, generationId ->
+            if (mediaId == "vid-1") {
+                automaticGenerationReady.complete(generationId)
+                releaseAutomatic.await()
+            }
+        }
+
+        val automatic = async { enqueue("vid-1") }
+        val oldGenerationId = automaticGenerationReady.await()
+        val manual = async { repository.requestAnalysis("vid-1", AnalysisMode.FULL) }
+        withTimeout(5_000L) {
+            while (repository.currentAnalysisGeneration("vid-1")?.id == oldGenerationId) yield()
+        }
+        val manualGeneration = requireNotNull(repository.currentAnalysisGeneration("vid-1"))
+        assertTrue(manualGeneration.manualRequestPending)
+        assertNotEquals(oldGenerationId, manualGeneration.id)
+
+        releaseAutomatic.complete(Unit)
+        assertFalse("el enqueue automático obsoleto no debe tocar Room ni WorkManager", automatic.await())
+        assertTrue("la petición manual nueva debe encolarse", manual.await())
+
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        val active = infos("vid-1").filter { !it.state.isFinished }
+        assertEquals(1, active.size)
+        assertTrue(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX + manualGeneration.id in active.single().tags)
+        assertTrue(TechniqueAnalysisScheduler.TAG_GENERATION_PREFIX + manualGeneration.id in active.single().tags)
+        assertEquals(manualGeneration.id, started.getString(TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID))
+        assertEquals(VideoAnalysisStatus.QUEUED, status("vid-1"))
+    }
+
+    @Test
+    fun concurrent_automatic_enqueues_keep_one_generation_and_one_worker() = runBlocking {
+        TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
+        val firstGenerationReady = CompletableDeferred<String>()
+        val releaseFirst = CompletableDeferred<Unit>()
+        val commitHookCalls = AtomicInteger()
+        TechniqueAnalysisScheduler.beforeEnqueueCommitForTests = { mediaId, generationId ->
+            if (mediaId == "vid-1") {
+                commitHookCalls.incrementAndGet()
+                firstGenerationReady.complete(generationId)
+                releaseFirst.await()
+            }
+        }
+
+        val first = async { enqueue("vid-1") }
+        val firstGeneration = firstGenerationReady.await()
+        val second = async { enqueue("vid-1") }
+        yield()
+        assertEquals("el segundo enqueue espera el lock del medio", 1, commitHookCalls.get())
+
+        releaseFirst.complete(Unit)
+        assertTrue(first.await())
+        assertTrue(second.await())
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
+        val active = infos("vid-1").filter { !it.state.isFinished }
+        assertEquals(1, active.size)
+        assertEquals(firstGeneration, repository.currentAnalysisGeneration("vid-1")?.id)
+        assertEquals(firstGeneration, started.getString(TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID))
+        assertEquals(1, commitHookCalls.get())
+    }
 
     @Test
     fun enqueue_puts_the_row_in_queued_and_creates_one_work() = runBlocking {
@@ -184,9 +277,14 @@ class TechniqueAnalysisSchedulerTest {
         assertEquals(0, row.progressPct)
         assertEquals("back_squat", row.exerciseKey)
         assertEquals(80.0, row.loadKg!!, 0.0)
+        val started = TechniqueWorkTestKit.awaitStarted(1).single()
         val work = infos("vid-1").single()
         assertFalse(work.state.isFinished)
         assertTrue("technique-analysis-media:vid-1" in work.tags)
+        val generation = requireNotNull(repository.currentAnalysisGeneration("vid-1"))
+        assertFalse(generation.manualRequestPending)
+        assertEquals(generation.id, started.getString(TechniqueAnalysisWorker.KEY_ANALYSIS_GENERATION_ID))
+        assertTrue(TechniqueAnalysisScheduler.TAG_GENERATION_PREFIX + generation.id in work.tags)
     }
 
     @Test
@@ -207,11 +305,13 @@ class TechniqueAnalysisSchedulerTest {
         TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
         assertTrue(enqueue("vid-1"))
         val first = infos("vid-1").single()
+        val firstGeneration = repository.currentAnalysisGeneration("vid-1")!!.id
         repository.writeProgress("vid-1", 40) // el Worker va por el 40 %
 
         assertTrue(enqueue("vid-1"))
 
         assertEquals("KEEP: el mismo trabajo", listOf(first.id), infos("vid-1").map { it.id })
+        assertEquals("KEEP conserva también la generación persistida", firstGeneration, repository.currentAnalysisGeneration("vid-1")?.id)
         val row = repository.getByMedia("vid-1")!!
         assertEquals("la fila de un análisis en curso no vuelve a QUEUED", VideoAnalysisStatus.RUNNING, row.status)
         assertEquals(40, row.progressPct)
@@ -445,6 +545,25 @@ class TechniqueAnalysisSchedulerTest {
     }
 
     @Test
+    fun reconcile_requeues_a_manual_request_even_when_that_capture_disabled_automatic_analysis() = runBlocking {
+        TechniqueWorkTestKit.putSettings(db, analyzeVideos = false)
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "manual-after-crash")
+        val capture = TechniqueSidecars.captureFile(File(media.filePath))
+        CaptureMetadataFile.update(capture) { it.copy(analysisRequestedForCapture = false) }
+
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        val requestId = repository.pendingManualAnalysisRequest(media.id)!!.id
+        TechniqueAnalysisScheduler.cancel(context, media.id)
+
+        val result = TechniqueAnalysisScheduler.reconcile(context, repository)
+
+        assertEquals(1, result.requeued)
+        val work = infos(media.id).single { !it.state.isFinished }
+        assertTrue(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX + requestId in work.tags)
+        assertEquals(false, CaptureMetadataFile.read(capture).analysisRequestedForCapture)
+    }
+
+    @Test
     fun reconcile_with_the_automatic_analysis_on_still_requeues_them() = runBlocking {
         TechniqueWorkTestKit.putSettings(db, analyzeVideos = true)
         TechniqueWorkTestKit.insertVideo(db, store, "perdido")
@@ -494,6 +613,97 @@ class TechniqueAnalysisSchedulerTest {
         // Llamar a reconcile() a mano sí sigue funcionando.
         assertEquals(1, TechniqueAnalysisScheduler.reconcile(context, repository).rebuiltRows)
         assertEquals(VideoAnalysisStatus.DONE, status("vid-a"))
+    }
+
+    @Test
+    fun reconcile_requeues_interrupted_manual_request_even_if_row_was_never_queued_and_repo_recreated() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "crash-before-queued")
+        // Request analysis manually
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        val requestId = repository.pendingManualAnalysisRequest(media.id)!!.id
+
+        // Simulate crash: cancel WorkManager work and delete room row
+        TechniqueAnalysisScheduler.cancel(context, media.id)
+        db.videoAnalysisDao().delete(media.id)
+        assertNull(repository.getByMedia(media.id))
+
+        // Recreate repository as on fresh application start
+        val newRepo = VideoAnalysisRepository.forDatabase(context, db, store)
+        val result = TechniqueAnalysisScheduler.reconcile(context, newRepo)
+
+        assertEquals(1, result.requeued)
+        val activeWork = infos(media.id).single { !it.state.isFinished }
+        assertTrue(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX + requestId in activeWork.tags)
+        assertTrue(TechniqueAnalysisScheduler.TAG_MODE_PREFIX + AnalysisMode.PLATE_ONLY.name in activeWork.tags)
+        assertEquals(VideoAnalysisStatus.QUEUED, newRepo.getByMedia(media.id)?.status)
+    }
+
+    @Test
+    fun reconcile_discovers_and_requeues_manual_request_when_previous_analysis_was_done() = runBlocking {
+        val media = analyzedVideo("previous-done")
+        assertEquals(VideoAnalysisStatus.DONE, status("previous-done"))
+
+        // User requests new analysis on a DONE video
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        val requestId = repository.pendingManualAnalysisRequest(media.id)!!.id
+
+        // Cancel WorkManager work to simulate lost work while row is reset to DONE
+        TechniqueAnalysisScheduler.cancel(context, media.id)
+        db.openHelper.writableDatabase.execSQL("UPDATE video_analysis SET status = 'DONE' WHERE mediaId = 'previous-done'")
+        assertEquals(VideoAnalysisStatus.DONE, status("previous-done"))
+
+        val newRepo = VideoAnalysisRepository.forDatabase(context, db, store)
+        val result = TechniqueAnalysisScheduler.reconcile(context, newRepo)
+
+        assertEquals(1, result.requeued)
+        val work = infos("previous-done").single { !it.state.isFinished }
+        assertTrue(TechniqueAnalysisScheduler.TAG_MANUAL_REQUEST_PREFIX + requestId in work.tags)
+        assertTrue(TechniqueAnalysisScheduler.TAG_MODE_PREFIX + AnalysisMode.PLATE_ONLY.name in work.tags)
+    }
+
+    @Test
+    fun requesting_plate_only_replaces_and_cancels_alive_full_work() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "mode-conflict")
+        assertTrue(enqueue(media.id, AnalysisMode.FULL))
+        val fullWork = infos(media.id).single { !it.state.isFinished }
+        assertTrue(TechniqueAnalysisScheduler.TAG_MODE_PREFIX + AnalysisMode.FULL.name in fullWork.tags)
+
+        // Request PLATE_ONLY while FULL is active
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        val activeWork = infos(media.id).filter { !it.state.isFinished }
+        assertEquals(1, activeWork.size)
+        assertTrue(TechniqueAnalysisScheduler.TAG_MODE_PREFIX + AnalysisMode.PLATE_ONLY.name in activeWork.single().tags)
+    }
+
+    @Test
+    fun late_completion_of_older_work_does_not_consume_or_overwrite_newer_manual_request() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "late-finisher")
+        // Request 1 is started
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        val req1 = repository.pendingManualAnalysisRequest(media.id)!!.id
+
+        // User immediately submits Request 2
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.PLATE_ONLY))
+        val req2 = repository.pendingManualAnalysisRequest(media.id)!!.id
+        assertNotEquals(req1, req2)
+
+        // Job 1 finishes late and tries to complete done with req1
+        repository.completeDone(
+            media = media,
+            report = TechniqueReportSamples.fullReport(),
+            exercise = TechniqueReportSamples.exercise(),
+            loadKg = media.weightKg,
+            mode = AnalysisMode.FULL,
+            fulfilledManualRequestId = req1,
+        )
+
+        // Newer request should not be cleared by req1 completion
+        val pending = repository.pendingManualAnalysisRequest(media.id)
+        assertNotNull(pending)
+        assertEquals(req2, pending?.id)
+        assertEquals(AnalysisMode.PLATE_ONLY, pending?.mode)
+        // Row should remain QUEUED for req2
+        assertEquals(VideoAnalysisStatus.QUEUED, status(media.id))
     }
 
     private companion object {

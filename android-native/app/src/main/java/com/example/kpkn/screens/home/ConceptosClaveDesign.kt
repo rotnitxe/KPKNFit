@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +48,19 @@ import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.design.KpknSurface
+
+/**
+ * Height of the real bottom navigation dock, measured by MainActivity after its navigation-bar inset and outer margin.
+ * The value already includes the system safe area, so concept lists must not append navigationBars insets a second time.
+ * The default is only for isolated previews/tests before the app host provides its measurement.
+ */
+internal val LocalConceptsBottomOcclusion = compositionLocalOf { 72.dp }
+internal val ConceptBottomFadeLead = 84.dp
+
+@Composable
+internal fun ConceptBottomClearanceSpacer() {
+    Spacer(Modifier.fillMaxWidth().height(LocalConceptsBottomOcclusion.current).testTag("concept_bottom_clearance"))
+}
 
 /** Tokens de Conceptos clave: los del prototipo aprobado (`docs/design/profile-concepts-v1/src/styles.css`). */
 internal object ConceptTokens {
@@ -156,6 +172,7 @@ internal fun ConceptRow(
     divider: Boolean,
     query: String = "",
     snippet: String? = null,
+    testTag: String = "concept_row_${concept.id}",
 ) {
     Row(
         Modifier
@@ -164,7 +181,7 @@ internal fun ConceptRow(
             .clickable(role = Role.Button, onClickLabel = "Leer ${concept.name}") { onOpen(concept.id) }
             .heightIn(min = 56.dp)
             .padding(horizontal = 14.dp, vertical = 13.dp)
-            .testTag("concept_row_${concept.id}"),
+            .testTag(testTag),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

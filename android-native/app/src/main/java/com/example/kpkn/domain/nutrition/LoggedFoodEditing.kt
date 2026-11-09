@@ -2,9 +2,12 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.AnalysisSource
+import com.example.kpkn.data.models.CookingMethod
+import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
+import com.example.kpkn.data.models.PortionPreset
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -54,6 +57,19 @@ fun loggedFoodToEditableTag(food: LoggedFood): ResolvedTag {
             cookingMethod = food.cookingMethod,
             loggedFood = food,
             baseLoggedFood = food,
+            oilLevel = food.preparationOilLevel ?: "medio",
+            appliedOilGrams = food.preparation?.let { raw ->
+                runCatching { FoodPreparation.valueOf(raw) }.getOrNull()?.let { preparation ->
+                    val oil = OilAmount.fromLevel(food.preparationOilLevel)
+                    FoodPreparations.oilGrams(preparation, oil, oilAbsorptionCategory(food.foodName), grams)
+                }
+            } ?: 0.0,
+            oilApplied = food.preparation?.let { raw ->
+                runCatching { FoodPreparation.valueOf(raw) }.getOrNull()?.let { preparation ->
+                    val oil = OilAmount.fromLevel(food.preparationOilLevel)
+                    FoodPreparations.oilGrams(preparation, oil, oilAbsorptionCategory(food.foodName), grams) > 0.0
+                }
+            } ?: false,
             isResolved = true,
             analysisSource = food.analysisSource ?: AnalysisSource.RULES,
             statusText = "",
@@ -68,6 +84,68 @@ fun loggedFoodToEditableTag(food: LoggedFood): ResolvedTag {
             origin = TagOrigin.EDIT,
         ),
     )
+}
+
+/** Full resolved state for one selected catalog row, preparation, amount and oil choice. */
+internal data class PreparedFoodSelection(
+    val base: LoggedFood,
+    val logged: LoggedFood,
+    val preparation: FoodPreparation?,
+    val oil: OilAmount?,
+    val oilGrams: Double,
+)
+
+/**
+ * Rebuilds a selected food from its catalog row in one pass. Switching preparations never starts from the previous
+ * logged macros, so oil from an earlier choice cannot accumulate. A row that already names the preparation retains its
+ * recorded baseline; the selected oil replaces that baseline instead of being added a second time.
+ */
+internal fun recalculatePreparedFood(
+    food: FoodItem,
+    quantity: Double,
+    portion: PortionPreset,
+    amountGrams: Double?,
+    cookingMethod: CookingMethod?,
+    preparation: FoodPreparation? = cookingMethod?.let(FoodPreparations::of),
+    oil: OilAmount? = null,
+    portionAdjustment: Double = 1.0,
+): PreparedFoodSelection {
+    val method = cookingMethod ?: preparation?.let(::cookingMethodFor)
+    val resolvedPreparation = preparation ?: method?.let(FoodPreparations::of)
+    val alreadyPrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, method)
+    val base = scaleFoodByPortion(
+        food = food,
+        quantity = quantity,
+        portion = portion,
+        amountGrams = amountGrams,
+        cookingMethod = method.takeUnless { alreadyPrepared },
+        portionAdjustment = portionAdjustment,
+    )
+    val options = FoodPreparations.oilOptions(resolvedPreparation)
+    val selectedOil = oil?.takeIf { it in options } ?: FoodPreparations.recordOil(resolvedPreparation)
+    val category = oilAbsorptionCategory(food.name)
+    val amount = base.amount
+    val wantedOil = FoodPreparations.oilGrams(resolvedPreparation, selectedOil, category, amount)
+    val recordedOil = if (alreadyPrepared) {
+        FoodPreparations.oilGrams(resolvedPreparation, FoodPreparations.recordOil(resolvedPreparation), category, amount)
+    } else 0.0
+    val logged = FoodPreparations.withOil(base, wantedOil - recordedOil).copy(
+        analysisSource = AnalysisSource.DATABASE,
+        cookingMethod = method,
+        preparation = resolvedPreparation?.name,
+        preparationOilLevel = selectedOil?.level,
+    )
+    return PreparedFoodSelection(base, logged, resolvedPreparation, selectedOil, wantedOil)
+}
+
+internal fun cookingMethodFor(preparation: FoodPreparation): CookingMethod = when (preparation) {
+    FoodPreparation.RAW -> CookingMethod.CRUDO
+    FoodPreparation.COOKED -> CookingMethod.COCIDO
+    FoodPreparation.STEAMED -> CookingMethod.VAPOR
+    FoodPreparation.GRILLED -> CookingMethod.PLANCHA
+    FoodPreparation.BAKED -> CookingMethod.HORNO
+    FoodPreparation.SAUTEED -> CookingMethod.SALTEADO
+    FoodPreparation.FRIED -> CookingMethod.FRITO
 }
 
 /**
@@ -174,6 +252,7 @@ fun mergeEditedFoods(edited: List<LoggedFood>, original: List<LoggedFood>): List
 /** Mismo alimento, con la misma cantidad y los mismos nutrientes centrales. */
 private fun sameFood(a: LoggedFood, b: LoggedFood): Boolean =
     a.foodName == b.foodName && a.amount == b.amount && a.cookingMethod == b.cookingMethod &&
+        a.preparation == b.preparation && a.preparationOilLevel == b.preparationOilLevel &&
         a.calories == b.calories && a.protein == b.protein && a.carbs == b.carbs && a.fats == b.fats
 
 /**

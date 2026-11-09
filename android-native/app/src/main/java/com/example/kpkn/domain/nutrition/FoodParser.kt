@@ -72,8 +72,10 @@ private val COOKING_PATTERNS = listOf(
     // 3. HORNO
     Pair(Regex("""\b(?:al\s+)?horno\b|\bhorn(?:ead[oa]s?|er[oa]?)\b|\b(?:baked|airfryer|air\s*fryer|frito\s+al\s+aire)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
     
-    // 4. FRITO + SALTEADO + REVUELTO (unificados como PWA)
-    Pair(Regex(RegexEs.bounded("""frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried"""), RegexOption.IGNORE_CASE), CookingMethod.FRITO),
+    // Salteado conserva su método y usa la ficha cocida más aceite medido como preparación propia.
+    Pair(Regex(RegexEs.bounded("""saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|wokead[oa]s?"""), RegexOption.IGNORE_CASE), CookingMethod.SALTEADO),
+    // 4. FRITO + REVUELTO
+    Pair(Regex(RegexEs.bounded("""frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|fried"""), RegexOption.IGNORE_CASE), CookingMethod.FRITO),
     
     // 5. COCIDO / HERVIDO / SANCOCHADO (incluye "duro": "huevo duro" es cocido, IT3;
     //     "cocinado/cocinada" son sinónimos cotidianos de cocido y antes quedaban
@@ -104,7 +106,7 @@ private val COOKING_PATTERNS = listOf(
     Pair(Regex(RegexEs.bounded("""olla\s+(?:de\s+)?presi[oó]n|olla\s+expr[eé]s"""), RegexOption.IGNORE_CASE), CookingMethod.OLLA),
     Pair(Regex("""\b(?:en\s+ceviche|estilo\s+ceviche|aguachile)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
     Pair(Regex("""\b(?:papillote|en\s+papillote|empapelad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
-    Pair(Regex("""\b(?:al\s+wok|wok-wok)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
+    Pair(Regex("""\b(?:al\s+wok|wok-wok)\b""", RegexOption.IGNORE_CASE), CookingMethod.SALTEADO),
     Pair(Regex(RegexEs.bounded("""a\s+la\s+brasa|al\s+carb[oó]n|a\s+la\s+le[nñ]a"""), RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
 )
 

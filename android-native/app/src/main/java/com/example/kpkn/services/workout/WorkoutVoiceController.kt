@@ -2559,15 +2559,20 @@ class WorkoutVoiceController(
                 resumeListening()
                 return
             }
-            is VoiceSessionCommand.StartVideoCapture -> {
-                val result = TechniqueCaptureVoiceLink.tryStart()
+            is VoiceSessionCommand.StartVideoCapture,
+            is VoiceSessionCommand.StartVideoCapture,
+            is VoiceSessionCommand.StartVideoCaptureAnyway -> {
+                val forced = command is VoiceSessionCommand.StartVideoCaptureAnyway
+                val result = if (forced) TechniqueCaptureVoiceLink.tryStartAnyway() else TechniqueCaptureVoiceLink.tryStart()
                 _state.update { it.copy(lastCommand = command) }
                 WorkoutVoiceDiagnosticLogger.event(
                     "capture_voice_command",
-                    mapOf("action" to "start", "result" to result.name),
+                    mapOf("action" to if (forced) "start_anyway" else "start", "result" to result.name),
                 )
                 val message = when (result) {
-                    TechniqueCaptureStartResult.STARTED -> "Iniciando vídeo."
+                    TechniqueCaptureStartResult.STARTED -> if (forced) {
+                        "Iniciando vídeo de todas formas; la advertencia de encuadre quedará asociada a esta toma."
+                    } else "Iniciando vídeo."
                     TechniqueCaptureStartResult.ALREADY_RECORDING -> "Ya estoy grabando."
                     TechniqueCaptureStartResult.CHECKING -> "Espera a que termine la comprobación del encuadre."
                     TechniqueCaptureStartResult.NOT_READY -> "Ajusta el encuadre antes de grabar."

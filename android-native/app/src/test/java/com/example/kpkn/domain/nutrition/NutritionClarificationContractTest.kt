@@ -45,4 +45,26 @@ class NutritionClarificationContractTest {
         )
         assertFalse(auto.hasMaterialQuestion())
     }
+
+    @Test
+    fun `identity clarification chips hide unverified and wrong brand candidates`() {
+        fun milk(id: String, brand: String, calories: Double = 61.0) = FoodItem(
+            id = id, name = "Leche entera", brand = brand, calories = calories,
+            protein = 3.1, carbs = 4.7, fats = 3.3, nutritionBasis = "PER_100G",
+            source = "OPEN_FOOD_FACTS", sourceRecordId = id,
+        )
+        val tag = ResolvedTag(
+            tag = "Leche Colun",
+            foodQuery = "leche colun",
+            brandHint = "Colun",
+            reviewCandidates = listOf(milk("colun", "Colun"), milk("lider", "Lider"), milk("bad", "Colun", calories = 0.0)),
+            resolutionStatus = FoodResolutionStatus.NEEDS_REVIEW,
+            resolutionConfidence = 0.4,
+        )
+
+        val refreshed = NutritionInterpretationBridge.refresh(tag)
+        val identity = refreshed.interpretationV2!!.pendingQuestions.filterIsInstance<ClarificationRequest.Identity>().single()
+
+        assertEquals(listOf("colun"), identity.candidateIds)
+    }
 }

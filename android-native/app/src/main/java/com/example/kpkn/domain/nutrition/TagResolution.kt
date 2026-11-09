@@ -67,6 +67,8 @@ data class ResolvedTag(
     val learnedFoodId: String? = null,
     /** Identity span without portion units; UI correction searches this. */
     val foodQuery: String = "",
+    /** Explicit or resolver-inferred brand requested for this identity, retained through corrections. */
+    val brandHint: String? = null,
     val unitId: String? = null,
     val interpretationV2: FoodInterpretationV2? = null,
     val confirmedDimensions: Set<String> = emptySet(),
@@ -166,6 +168,7 @@ class TagResolver(
             cookingMethod = original.cookingMethod,
             amountIntent = amountIntent,
             portion = if (preservesDeclaredAmount) original.portion else PortionPreset.MEDIUM,
+            brandHint = original.brandHint,
             foodQuery = query,
             unitId = original.unitId.takeIf { preservesDeclaredAmount },
             excludedIngredients = original.excludedIngredients,
@@ -187,6 +190,7 @@ class TagResolver(
                 amountGrams = original.amountGrams.takeIf { preservesDeclaredAmount },
                 quantity = quantity,
                 portion = if (preservesDeclaredAmount) original.portion else PortionPreset.MEDIUM,
+                brandHint = original.brandHint,
                 unitId = original.unitId.takeIf { preservesDeclaredAmount },
                 excludedIngredients = original.excludedIngredients,
                 statusText = "No pude resolver la ficha de $query; conservé la identidad declarada.",
@@ -253,7 +257,7 @@ class TagResolver(
         for ((itemIndex, item) in parsed.items.withIndex()) {
             val tagStart = System.nanoTime()
             val declaredQuery = item.effectiveFoodQuery()
-            val hasGreaseCooking = item.cookingMethod in setOf(CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO)
+            val hasGreaseCooking = item.cookingMethod in setOf(CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO, CookingMethod.SALTEADO)
             val hasExcludedOil = item.excludedIngredients.any(::isOilExclusion)
             // Frying "sin aceite" is a dry pan (WP-N10): no oil and no frying factor. The prepared fried row is dropped (it carries its
             // oil) and, for a food that loses water when it is cooked from raw, the cooked weight is rebuilt from its raw row.
@@ -624,22 +628,26 @@ class TagResolver(
                     )
                 } else logged
 
+                val persistedPreparation = item.cookingMethod?.let { FoodPreparations.of(it)?.name }
                 val oiled = if (applyOil && rememberedOil != null) {
                     val addedOil = rememberedOil * finalLogged.amount / 100.0
                     finalLogged.copy(calories = finalLogged.calories + addedOil * 9.0,
                         fats = finalLogged.fats + addedOil, analysisSource = AnalysisSource.DATABASE,
-                        cookingMethod = item.cookingMethod)
+                        cookingMethod = item.cookingMethod,
+                        preparation = persistedPreparation,
+                        preparationOilLevel = effectiveOilLevel)
                 } else if (applyOil) {
                     adjustLoggedFoodForOil(
                         finalLogged.copy(analysisSource = AnalysisSource.DATABASE),
                         item.cookingMethod,
                         effectiveOilLevel,
                         foodName = effectiveFood.name,
-                    )
+                    ).copy(preparation = persistedPreparation, preparationOilLevel = effectiveOilLevel)
                 } else {
                     finalLogged.copy(
                         analysisSource = AnalysisSource.DATABASE,
                         cookingMethod = item.cookingMethod ?: finalLogged.cookingMethod,
+                        preparation = persistedPreparation ?: finalLogged.preparation,
                     )
                 }
 
@@ -711,6 +719,7 @@ class TagResolver(
                     appliedOilGrams = if (applyOil) (oiled.fats - finalLogged.fats).coerceAtLeast(0.0) else 0.0,
                     learnedFoodId = learnedFoodId,
                     foodQuery = identityQuery,
+                    brandHint = effectiveBrandHint,
                     unitId = if (countApplied) item.unitId ?: HouseholdPortions.COUNT_UNIT_ID else item.unitId,
                     excludedIngredients = item.excludedIngredients,
                     ambiguousPackageGrams = ambiguousPackageGrams,
@@ -785,6 +794,18 @@ class TagResolver(
                         fats = logged.fats * factor,
                     )
                 }
+                val estimatedSaute = item.cookingMethod == CookingMethod.SALTEADO
+                val estimatedSauteOil = if (estimatedSaute) FoodPreparations.oilGrams(
+                    FoodPreparation.SAUTEED,
+                    OilAmount.NORMAL,
+                    oilAbsorptionCategory(identityQuery),
+                    dishGrams,
+                ) else 0.0
+                val persistedEstimate = logged.copy(
+                    analysisSource = AnalysisSource.LOCAL_HEURISTIC,
+                    preparation = if (estimatedSaute) FoodPreparation.SAUTEED.name else logged.preparation,
+                    preparationOilLevel = if (estimatedSaute) OilAmount.NORMAL.level else logged.preparationOilLevel,
+                )
                 val fallbackStatus = listOfNotNull(
                     contextResult.assumedLabel?.let { "Asumí $it." },
                     if (item.excludedIngredients.isNotEmpty()) "No hay una ficha verificada para esta preparación sin ${item.excludedIngredients.joinToString(", ")}." else null,
@@ -804,12 +825,12 @@ class TagResolver(
                     portionMaxGrams = if (item.amountIntent == AmountIntent.EXPLICIT_MASS || countApplied) dishGrams else dishGrams * 1.35,
                     cookingMethod = item.cookingMethod,
                     foodItem = null,
-                    loggedFood = logged.copy(analysisSource = AnalysisSource.LOCAL_HEURISTIC),
+                    loggedFood = persistedEstimate,
                     isResolved = estimateSaveable,
                     isFuzzyMatch = true,
                     analysisSource = AnalysisSource.LOCAL_HEURISTIC,
                     statusText = fallbackStatus,
-                    oilLevel = effectiveOilLevel,
+                    oilLevel = if (estimatedSaute) OilAmount.NORMAL.level else effectiveOilLevel,
                     isExcluded = item.isExcluded,
                     amountIntent = if (countApplied) AmountIntent.RESOLVED_SUBJECTIVE else itemIntent,
                     needsCookingClarification = false,
@@ -822,7 +843,10 @@ class TagResolver(
                     nutritionEstimate = estimate.evidence,
                     resolutionConfidence = resolutionConfidence,
                     resolutionMargin = resolutionMargin,
+                    oilApplied = estimatedSauteOil > 0.0,
+                    appliedOilGrams = estimatedSauteOil,
                     foodQuery = identityQuery,
+                    brandHint = item.brandHint,
                     unitId = if (countApplied) item.unitId ?: HouseholdPortions.COUNT_UNIT_ID else item.unitId,
                     excludedIngredients = item.excludedIngredients,
                     ambiguousPackageGrams = ambiguousPackageGrams,
@@ -1086,6 +1110,19 @@ fun adjustLoggedFoodForOil(
     oilLevel: String,
     foodName: String?,
 ): LoggedFood {
+    if (method == CookingMethod.SALTEADO) {
+        val portionGrams = logged.amount
+            .takeIf { logged.unit.equals("g", ignoreCase = true) && it.isFinite() && it > 0.0 }
+            ?: 100.0
+        val amount = OilAmount.fromLevel(oilLevel) ?: OilAmount.NORMAL
+        val oil = FoodPreparations.oilGrams(
+            FoodPreparation.SAUTEED,
+            amount,
+            oilAbsorptionCategory(foodName.orEmpty()),
+            portionGrams,
+        )
+        return FoodPreparations.withOil(logged, oil)
+    }
     if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
         return logged
     }
@@ -1115,6 +1152,19 @@ fun stripOilFromLoggedFood(
     oilLevel: String,
     foodName: String?,
 ): LoggedFood {
+    if (method == CookingMethod.SALTEADO) {
+        val portionGrams = logged.amount
+            .takeIf { logged.unit.equals("g", ignoreCase = true) && it.isFinite() && it > 0.0 }
+            ?: 100.0
+        val amount = OilAmount.fromLevel(oilLevel) ?: OilAmount.NORMAL
+        val oil = FoodPreparations.oilGrams(
+            FoodPreparation.SAUTEED,
+            amount,
+            oilAbsorptionCategory(foodName.orEmpty()),
+            portionGrams,
+        )
+        return FoodPreparations.withOil(logged, -oil)
+    }
     if (method != CookingMethod.FRITO && method != CookingMethod.EMPANIZADO_FRITO) {
         return logged
     }

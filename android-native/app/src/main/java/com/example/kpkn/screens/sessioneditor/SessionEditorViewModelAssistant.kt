@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SmartLoadBasis
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionPreview
 
@@ -66,6 +68,50 @@ fun SessionEditorViewModel.undoAssistantOutcome(suggestionId: String) {
         refreshAssistantImmediate()
     }
 }
+
+/** Applies a confirmed smart-load base to selected strength exercises and keeps a guarded one-step undo. */
+fun SessionEditorViewModel.applyAssistantSmartLoadBasis(basis: SmartLoadBasis, selectedExerciseIds: List<String>) {
+    val before = currentUiState.activeVariantSession ?: currentUiState.session ?: return
+    val selectedIds = selectedExerciseIds.toSet()
+    val selected = before.allExercises().filter { it.id in selectedIds && !it.isCardio }.distinctBy { it.id }
+    val changed = selected.filter { it.smartLoadBasis != basis }
+    if (changed.isEmpty()) return
+    val previous = changed.associate { it.id to it.smartLoadBasis }
+    updateSession(reason = "Base de carga inteligente del asistente") { session -> session.withSmartLoadBasis(basis, selectedIds) }
+    val after = currentUiState.activeVariantSession ?: currentUiState.session ?: return
+    val outcome = AssistantSmartLoadBasisUndo(
+        basis = basis,
+        exerciseNames = changed.map { it.name },
+        previousByExerciseId = previous,
+        variant = currentUiState.activeVariant,
+        stamp = after.lastModifiedAtMs,
+    )
+    updateUi { it.copy(assistantSmartLoadBasisUndo = outcome) }
+}
+
+/** Undo only applies while the same session variant remains at the exact edit stamp. */
+fun SessionEditorViewModel.undoAssistantSmartLoadBasis() {
+    val outcome = currentUiState.assistantSmartLoadBasisUndo ?: return
+    val current = currentUiState.activeVariantSession ?: currentUiState.session
+    updateUi { it.copy(assistantSmartLoadBasisUndo = null) }
+    if (currentUiState.activeVariant == outcome.variant && current?.lastModifiedAtMs == outcome.stamp) {
+        updateSession(reason = "Deshacer base de carga inteligente") { session -> session.restoreSmartLoadBasis(outcome.previousByExerciseId) }
+    }
+}
+
+private fun Session.withSmartLoadBasis(basis: SmartLoadBasis, exerciseIds: Set<String>): Session = copy(
+    exercises = exercises.map { exercise -> if (exercise.id in exerciseIds) exercise.copy(smartLoadBasis = basis) else exercise },
+    parts = parts.map { part ->
+        part.copy(exercises = part.exercises.map { exercise -> if (exercise.id in exerciseIds) exercise.copy(smartLoadBasis = basis) else exercise })
+    },
+)
+
+private fun Session.restoreSmartLoadBasis(previous: Map<String, SmartLoadBasis?>): Session = copy(
+    exercises = exercises.map { exercise -> if (exercise.id in previous) exercise.copy(smartLoadBasis = previous[exercise.id]) else exercise },
+    parts = parts.map { part ->
+        part.copy(exercises = part.exercises.map { exercise -> if (exercise.id in previous) exercise.copy(smartLoadBasis = previous[exercise.id]) else exercise })
+    },
+)
 
 /** Deshace la última plantilla aplicada desde la hoja y cierra su resultado. */
 fun SessionEditorViewModel.undoTemplateApply() {

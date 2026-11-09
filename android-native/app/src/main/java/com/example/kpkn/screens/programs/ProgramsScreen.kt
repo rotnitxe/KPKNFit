@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -75,6 +76,8 @@ import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.ProgramDeleteResult
+import com.example.kpkn.data.repository.ProgramArchiveResult
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
@@ -121,6 +124,7 @@ fun ProgramsScreen(
     /** Abre un concepto de «Conceptos clave» desde la hoja «Cómo funciona» de la biblioteca; null = sin enlace. */
     onOpenConcept: ((String) -> Unit)? = null,
     onCreateTailoredProgram: (() -> Unit)? = null,
+    onReturnToSession: (programId: String, sessionId: String) -> Unit = { _, _ -> },
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()
@@ -134,6 +138,11 @@ fun ProgramsScreen(
     var shareProgram by remember { mutableStateOf<Program?>(null) }
     var showArchived by remember { mutableStateOf(false) }
     var deleteRequest by remember { mutableStateOf<ProgramDeleteRequest?>(null) }
+    var blockedDeleteSessionId by remember { mutableStateOf<String?>(null) }
+    var deleteCheckBusy by remember { mutableStateOf(false) }
+    var archiveGuard by remember { mutableStateOf<ProgramSessionActionRequest?>(null) }
+    var archiveBlockedSessionId by remember { mutableStateOf<String?>(null) }
+    var archiveCheckBusy by remember { mutableStateOf(false) }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showCatalog by remember { mutableStateOf(false) }
     var showBlankSheet by remember { mutableStateOf(false) }
@@ -144,6 +153,26 @@ fun ProgramsScreen(
     // «Listo para empezar» (cr-listo) de los caminos sin asistente: el programa ya guardado que espera la decisión.
     var readyProgramId by rememberSaveable { mutableStateOf<String?>(null) }
     val createScope = rememberCoroutineScope()
+
+    fun archive(program: Program) {
+        when (val result = viewModel.archiveProgram(program.id)) {
+            ProgramArchiveResult.Archived -> {
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+            }
+            is ProgramArchiveResult.OpenSession -> {
+                archiveGuard = ProgramSessionActionRequest(program, "archivar")
+                archiveBlockedSessionId = result.sessionId
+                archiveCheckBusy = false
+            }
+            ProgramArchiveResult.Busy -> {
+                archiveGuard = ProgramSessionActionRequest(program, "archivar")
+                archiveBlockedSessionId = null
+                archiveCheckBusy = true
+            }
+        }
+    }
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
         if (openCreateSheetOnStart || ProgramCreationRequests.openSheet) {
@@ -199,8 +228,10 @@ fun ProgramsScreen(
                     ProgramQueueSection(
                         queue = programQueue,
                         viewModel = viewModel,
+                        onNavigate = onNavigateToProgram,
                         onMove = viewModel::moveQueuedProgram,
                         onRemove = viewModel::removeFromQueue,
+                        onMore = { moreProgram = it },
                     )
                 }
             }
@@ -260,13 +291,18 @@ fun ProgramsScreen(
                 moreProgram = null
                 viewModel.addToQueue(program.id)
             },
+            canRemoveFromQueue = isQueued,
+            onRemoveFromQueue = {
+                moreProgram = null
+                viewModel.removeFromQueue(program.id)
+            },
             onShare = {
                 moreProgram = null
                 shareProgram = program
             },
             onArchive = {
                 moreProgram = null
-                viewModel.archiveProgram(program.id)
+                archive(program)
             },
             onDelete = {
                 moreProgram = null
@@ -299,14 +335,66 @@ fun ProgramsScreen(
         ProgramDeleteDialog(
             program = request.program,
             onConfirm = {
-                if (request.permanent) {
-                    viewModel.permanentlyDeleteProgram(request.program.id)
+                val openSessionId = blockedDeleteSessionId
+                if (openSessionId != null) {
+                    deleteRequest = null
+                    blockedDeleteSessionId = null
+                    deleteCheckBusy = false
+                    onReturnToSession(request.program.id, openSessionId)
                 } else {
-                    viewModel.deleteProgram(request.program.id)
+                    when (val result = if (request.permanent) {
+                        viewModel.permanentlyDeleteProgram(request.program.id)
+                    } else {
+                        viewModel.deleteProgram(request.program.id)
+                    }) {
+                        ProgramDeleteResult.Deleted -> {
+                            deleteRequest = null
+                            deleteCheckBusy = false
+                        }
+                        is ProgramDeleteResult.OpenSession -> {
+                            blockedDeleteSessionId = result.sessionId
+                            deleteCheckBusy = false
+                        }
+                        ProgramDeleteResult.Busy -> deleteCheckBusy = true
+                    }
                 }
-                deleteRequest = null
             },
-            onDismiss = { deleteRequest = null },
+            blockedSessionId = blockedDeleteSessionId,
+            sessionCheckBusy = deleteCheckBusy,
+            onReturnToSession = {
+                val sessionId = blockedDeleteSessionId ?: return@ProgramDeleteDialog
+                deleteRequest = null
+                blockedDeleteSessionId = null
+                deleteCheckBusy = false
+                onReturnToSession(request.program.id, sessionId)
+            },
+            onDismiss = {
+                deleteRequest = null
+                blockedDeleteSessionId = null
+                deleteCheckBusy = false
+            },
+        )
+    }
+
+    archiveGuard?.let { request ->
+        ProgramSessionGuardDialog(
+            program = request.program,
+            actionVerb = request.actionVerb,
+            blockedSessionId = archiveBlockedSessionId,
+            sessionCheckBusy = archiveCheckBusy,
+            onRetry = { archive(request.program) },
+            onReturnToSession = {
+                val sessionId = archiveBlockedSessionId ?: return@ProgramSessionGuardDialog
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+                onReturnToSession(request.program.id, sessionId)
+            },
+            onDismiss = {
+                archiveGuard = null
+                archiveBlockedSessionId = null
+                archiveCheckBusy = false
+            },
         )
     }
 
@@ -384,8 +472,8 @@ fun ProgramsScreen(
         BlankProgramSheet(
             suggestedName = viewModel.suggestedBlankProgramName(),
             onDismiss = { showBlankSheet = false },
-            onCreate = { name, mode, coverImage ->
-                val id = viewModel.createBlankProgram(name = name, mode = mode, coverImage = coverImage)
+            onCreate = { name, coverImage, identityLabel ->
+                val id = viewModel.createBlankProgram(name = name, coverImage = coverImage, identityLabel = identityLabel)
                 showBlankSheet = false
                 // cr-cero: «Crear y abrir» lleva al programa vacío; si hay uno en curso, antes pasa por «Listo para empezar».
                 if (activeProgram != null) readyProgramId = id else onNavigateToProgram(id)
@@ -570,9 +658,11 @@ private fun ActiveProgramCard(
     val coverWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), coverWidthPx)
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
+    val coverKind = heroCoverKind(program.coverImage, hasBundledCover = false)
+    val personalPhotoUrl = program.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE }
     // Portada de estudio (`kpkn-studio://`): la misma que pinta la cabecera de Program Detail, sin animación.
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (heroCoverKind(program.coverImage, hasBundledCover = false) !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
+        if (coverKind !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
     }
     val todaySession = summary?.todaySessionName
     val ribbon = summary?.ribbon.orEmpty()
@@ -594,6 +684,14 @@ private fun ActiveProgramCard(
             coverPainter?.let { painter ->
                 Image(
                     painter = painter,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            personalPhotoUrl?.let { photo ->
+                AsyncImage(
+                    model = photo,
                     contentDescription = null,
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop,
@@ -686,8 +784,10 @@ private fun ProgramStatusChip(label: String, dot: Color, modifier: Modifier = Mo
 private fun ProgramQueueSection(
     queue: List<Program>,
     viewModel: ProgramsViewModel,
+    onNavigate: (String) -> Unit,
     onMove: (String, Int) -> Unit,
     onRemove: (String) -> Unit,
+    onMore: (Program) -> Unit,
 ) {
     ProgramGroupLabel(text = "En cola", trailing = "Empieza al terminar")
     val spacing = 10.dp
@@ -725,7 +825,9 @@ private fun ProgramQueueSection(
                         if (steps != 0) onMove(program.id, steps)
                     },
                     onMove = onMove,
+                    onNavigate = { onNavigate(program.id) },
                     onRemove = onRemove,
+                    onMore = { onMore(program) },
                 )
             }
         }
@@ -775,7 +877,9 @@ private fun ProgramQueueRow(
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
     onMove: (String, Int) -> Unit,
+    onNavigate: () -> Unit,
     onRemove: (String) -> Unit,
+    onMore: () -> Unit,
 ) {
     // TalkBack no arrastra: las mismas dos acciones que antes eran flechas pasan a acciones de accesibilidad de la fila.
     val moveActions = buildList {
@@ -794,6 +898,7 @@ private fun ProgramQueueRow(
             }
             .onSizeChanged { onHeight(it.height) }
             .semantics { customActions = moveActions },
+        onClick = onNavigate,
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -839,6 +944,11 @@ private fun ProgramQueueRow(
                     color = WizardColors.textFaint,
                 )
             }
+            KpknIconButton(
+                icon = KpknLineIcons.More,
+                contentDescription = "Más opciones de ${program.name}",
+                onClick = onMore,
+            )
             KpknIconButton(
                 icon = KpknLineIcons.Close,
                 contentDescription = "Quitar ${program.name} de la cola",
@@ -1001,8 +1111,10 @@ internal fun ProgramCoverThumb(
     val widthPx = with(LocalDensity.current) { width.roundToPx() }
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), widthPx)
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
+    val coverKind = heroCoverKind(program.coverImage, hasBundledCover = false)
+    val personalPhotoUrl = program.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE }
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (heroCoverKind(program.coverImage, hasBundledCover = false) !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
+        if (coverKind !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
     }
     Box(
         modifier = modifier
@@ -1016,6 +1128,14 @@ internal fun ProgramCoverThumb(
         coverPainter?.let { painter ->
             Image(
                 painter = painter,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
+        personalPhotoUrl?.let { photo ->
+            AsyncImage(
+                model = photo,
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,

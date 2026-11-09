@@ -694,6 +694,7 @@ internal fun WorkoutV2Body(
                                             liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf {
                                                 cardioHealthState.exerciseId == currentExercise.id
                                             },
+                                            onCountdownCue = { remaining -> viewModel.playCardioCountdownCue(currentExercise.id, currentCardioSetIndex, remaining) },
                                             onStartTimer = {
                                                 if (cardioPageActionIsCurrent()) {
                                                     val isLibre = !cardioDetails.hasIntervals() &&
@@ -1198,14 +1199,19 @@ internal fun WorkoutV2Body(
                                             ),
                                         )
                                     }
-                                } finally {
+                                } catch (error: Throwable) {
+                                    // Keep the programmatic origin until the settled-page collector
+                                    // observes its target. Clearing on animation return can race
+                                    // snapshotFlow and make this settle look like a user swipe.
                                     pagerSyncCoordinator.clearProgrammaticScroll(activeSwipePageIndex)
+                                    throw error
                                 }
                             }
                         }
                         LaunchedEffect(forcePagerScrollEpoch) {
                             val page = forcePagerScrollPage ?: return@LaunchedEffect
                             if (page !in 0 until totalSetPages) return@LaunchedEffect
+                            if (pagerState.settledPage == page) return@LaunchedEffect
                             pagerSyncCoordinator.beginProgrammaticScroll(page)
                             try {
                                 pagerState.animateScrollToPage(
@@ -1215,8 +1221,9 @@ internal fun WorkoutV2Body(
                                         easing = FastOutSlowInEasing,
                                     ),
                                 )
-                            } finally {
+                            } catch (error: Throwable) {
                                 pagerSyncCoordinator.clearProgrammaticScroll(page)
+                                throw error
                             }
                         }
                         val requestPagerPage: (Int) -> Unit = requestPagerPage@{ pageIndex ->
@@ -1269,6 +1276,12 @@ internal fun WorkoutV2Body(
                             val isSuperset = pagerSupersetMembers.size > 1 && pagerSupersetGroupId != null
                             val mobilityMembers = if (isSuperset) pagerSupersetMembers.filter { it.mobilitySeries.isNotEmpty() } else listOfNotNull(pagerExercise.takeIf { it.mobilitySeries.isNotEmpty() })
                             if (mobilityMembers.isNotEmpty()) {
+                                val mobilityTargets = mobilityMembers.flatMap { member ->
+                                    member.mobilitySeries.map { mobility ->
+                                        val key = WorkoutStepRules.mobilityStepKey(member.id, mobility.id, 0)
+                                        TimelineElement.PreparationTarget(key) { viewModel.selectWorkoutStep(key) }
+                                    }
+                                }
                                 val mobilityKeys = mobilityMembers.flatMap { member ->
                                     member.mobilitySeries.map { WorkoutStepRules.mobilityStepKey(member.id, it.id, 0) }
                                 }
@@ -1292,6 +1305,10 @@ internal fun WorkoutV2Body(
                                         isCurrent = isAnyMobActive,
                                         isCompleted = isMobDone,
                                         progress = mobProgress,
+                                        navigationTargets = mobilityTargets,
+                                        activeNavigationTargetIndex = mobilityTargets.indexOfFirst {
+                                            it.stepKey == uiState.activeStepKey
+                                        }.takeIf { it >= 0 },
                                         onSelect = {
                                             val first = mobilityMembers.first()
                                             first.mobilitySeries.firstOrNull()?.let { mob ->
@@ -1304,6 +1321,12 @@ internal fun WorkoutV2Body(
 
                             val warmupMembers = if (isSuperset) pagerSupersetMembers.filter { it.warmupSets.isNotEmpty() } else listOfNotNull(pagerExercise.takeIf { it.warmupSets.isNotEmpty() })
                             if (warmupMembers.isNotEmpty()) {
+                                val warmupTargets = warmupMembers.flatMap { member ->
+                                    member.warmupSets.map { warmup ->
+                                        val key = WorkoutStepRules.warmupStepKey(member.id, warmup.id)
+                                        TimelineElement.PreparationTarget(key) { viewModel.selectWorkoutStep(key) }
+                                    }
+                                }
                                 val allWarmupKeys = warmupMembers.flatMap { member ->
                                     member.warmupSets.map { WorkoutStepRules.warmupStepKey(member.id, it.id) }
                                 }
@@ -1337,6 +1360,10 @@ internal fun WorkoutV2Body(
                                         isCurrent = isAnyWarmActive,
                                         isCompleted = isWarmDone,
                                         progress = warmProgress,
+                                        navigationTargets = warmupTargets,
+                                        activeNavigationTargetIndex = warmupTargets.indexOfFirst {
+                                            it.stepKey == uiState.activeStepKey
+                                        }.takeIf { it >= 0 },
                                         onSelect = {
                                             val first = warmupMembers.first()
                                             first.warmupSets.firstOrNull()?.let { warmup ->
@@ -1678,6 +1705,7 @@ internal fun WorkoutV2Body(
                             sessionAccentColor = sessionAccentColor,
                             canAddSet = canAddSetToCurrentExercise,
                             activePageIndex = pagerState.settledPage,
+                            activeStepKey = uiState.activeStepKey,
                             calibratedPageLoads = setPagerPages.mapIndexedNotNull { pageIndex, page ->
                                 if (page.type != LivePageType.NORMAL) return@mapIndexedNotNull null
                                 val owner = uiState.session?.allExercises()?.firstOrNull { it.id == (page.exerciseId ?: currentExercise.id) }
@@ -1774,6 +1802,7 @@ internal fun WorkoutV2Body(
                                         setIndex = uiState.currentSetIdx,
                                         side = activeSide,
                                     )
+                                val adaptWarmupHeight = pageSpec.type == LivePageType.WARMUP && !warmupRestActive
                                 val recordActionPageKey = workoutRecordPageKey(
                                     page = pageSpec,
                                     fallbackExerciseId = currentExercise.id,
@@ -1829,12 +1858,15 @@ internal fun WorkoutV2Body(
                                             }
                                         },
                                 ) {
-                        LiveSessionCardFrame {
+                        LiveSessionCardFrame(adaptHeightToContent = adaptWarmupHeight) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         val isActivePage = page == pagerState.settledPage
                         val isSettledPage = isActivePage
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+                        val pageContentModifier = Modifier.fillMaxWidth().then(
+                            if (adaptWarmupHeight) Modifier.wrapContentHeight() else Modifier.fillMaxHeight(),
+                        )
+                        Box(modifier = pageContentModifier) {
+                        Box(modifier = pageContentModifier) {
                         when (pageSpec.type) {
                             LivePageType.MOBILITY -> {
                                 val mobilityItems = prepMobilityMembers.flatMap { member ->
@@ -2029,7 +2061,7 @@ internal fun WorkoutV2Body(
                                     },
                                     workingWeightKg = firstWorkingWeight,
                                     effectiveSetCount = prepWarmupMembers.sumOf { it.sets.size },
-                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                    modifier = Modifier.fillMaxWidth().wrapContentHeight(unbounded = true),
                                 )
                             }
                             LivePageType.CARDIO -> {
@@ -2061,6 +2093,7 @@ internal fun WorkoutV2Body(
                                         tickElapsed,
                                     ),
                                     liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == pageExercise.id },
+                                    onCountdownCue = { remaining -> viewModel.playCardioCountdownCue(pageExercise.id, pageSetIndex, remaining) },
                                     onStartTimer = {
                                         if (cardioPageActionIsCurrent()) {
                                             viewModel.startCardioTimer(
@@ -2301,6 +2334,7 @@ internal fun WorkoutV2Body(
                                             tickElapsed,
                                         ),
                                         liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == targetExercise.id },
+                                        onCountdownCue = { remaining -> viewModel.playCardioCountdownCue(targetExercise.id, activeSetIndex, remaining) },
                                         onStartTimer = {
                                             if (cardioPageActionIsCurrent()) {
                                                 viewModel.startCardioTimer(

@@ -428,7 +428,8 @@ class WorkoutStepNavigator(
             }
             if (stopRest) ports.stopRestTimer()
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
-            val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
+            // Cardio ya recoge un único RPE real en su cierre; no abrir además el feedback de fuerza.
+            val shouldShowFeedback = !currentEx.isCardio && feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
             updateState {
                 it.copy(
                     showPostExerciseSheet = shouldShowFeedback,
@@ -463,7 +464,8 @@ class WorkoutStepNavigator(
 
         if (exerciseChanged && !staysInSameSuperset && isExerciseCompleteInSteps(state, currentEx)) {
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
-            val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
+            // Al pasar de cardio a fuerza, el RPE del cardio ya quedó registrado desde su resumen.
+            val shouldShowFeedback = !currentEx.isCardio && feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
             if (shouldShowFeedback) {
                 val transitionTarget = state.session?.let {
                     buildWorkoutContinuityTransitionTarget(

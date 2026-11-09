@@ -1,6 +1,7 @@
 package com.example.kpkn.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.Typography
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,8 +27,59 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+
+/** Tipografía numérica local: evita heredar Syne y mantiene dígitos tabulares al tamaño accesible del sistema. */
+internal fun timePickerNumericTypography(base: Typography): Typography {
+    return base.copy(
+        displayLarge = base.displayLarge.copy(
+            fontFamily = WizardFonts.body,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 48.sp,
+            lineHeight = 56.sp,
+            letterSpacing = 0.sp,
+            fontFeatureSettings = "'tnum' 1",
+        ),
+        displayMedium = base.displayMedium.copy(
+            fontFamily = WizardFonts.body,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 40.sp,
+            lineHeight = 48.sp,
+            letterSpacing = 0.sp,
+            fontFeatureSettings = "'tnum' 1",
+        ),
+        displaySmall = base.displaySmall.copy(
+            fontFamily = WizardFonts.body,
+            fontWeight = FontWeight.Medium,
+            fontSize = 32.sp,
+            lineHeight = 40.sp,
+            letterSpacing = 0.sp,
+            fontFeatureSettings = "'tnum' 1",
+        ),
+    )
+}
+
+/**
+ * Gives the Material picker the dialog panel width. KpknAlertDialog reserves 24 dp per side for ordinary text; reclaim that space for
+ * the clock and keyboard so both time fields remain inside the panel at large font scales.
+ */
+private fun Modifier.timePickerPanelWidthBleed() = layout { measurable, constraints ->
+    if (!constraints.hasBoundedWidth) {
+        val child = measurable.measure(constraints)
+        layout(child.width, child.height) { child.placeRelative(0, 0) }
+    } else {
+        val bleed = 24.dp.roundToPx()
+        val expandedWidth = constraints.maxWidth + bleed * 2
+        val child = measurable.measure(constraints.copy(minWidth = expandedWidth, maxWidth = expandedWidth))
+        layout(constraints.maxWidth, child.height) { child.placeRelative(-bleed, 0) }
+    }
+}
 
 /**
  * Official Material3 time picker (clock dial or keyboard [TimeInput]) hosted in [KpknAlertDialog].
@@ -45,6 +98,7 @@ fun KpknNativeTimePickerDialog(
     hint: String? = null,
 ) {
     var useKeyboard by remember { mutableStateOf(false) }
+    val numericTypography = timePickerNumericTypography(MaterialTheme.typography)
     val pickerState = rememberTimePickerState(
         initialHour = initialHour.coerceIn(0, 23),
         initialMinute = initialMinute.coerceIn(0, 59),
@@ -59,7 +113,14 @@ fun KpknNativeTimePickerDialog(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(title, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(
+                    title,
+                    modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 IconButton(onClick = { useKeyboard = !useKeyboard }) {
                     Icon(
                         imageVector = if (useKeyboard) Icons.Default.Schedule else Icons.Default.Keyboard,
@@ -82,10 +143,24 @@ fun KpknNativeTimePickerDialog(
                         color = Color.White.copy(alpha = 0.7f),
                     )
                 }
-                if (useKeyboard) {
-                    TimeInput(state = pickerState)
-                } else {
-                    TimePicker(state = pickerState)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .timePickerPanelWidthBleed(),
+                ) {
+                    MaterialTheme(typography = numericTypography) {
+                        if (useKeyboard) {
+                            TimeInput(
+                                state = pickerState,
+                                modifier = Modifier.fillMaxWidth().testTag("native-time-picker-keyboard"),
+                            )
+                        } else {
+                            TimePicker(
+                                state = pickerState,
+                                modifier = Modifier.fillMaxWidth().testTag("native-time-picker-dial"),
+                            )
+                        }
+                    }
                 }
             }
         },

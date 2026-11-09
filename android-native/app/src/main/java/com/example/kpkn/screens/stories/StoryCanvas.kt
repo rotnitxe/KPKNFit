@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -13,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
@@ -20,13 +22,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.createFontFamilyResolver
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -36,12 +39,16 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.drawCoverStudioFrame
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.drawLineCover
 import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * Piezas comunes de las historias de Instagram, en píxeles del lienzo de 1080 × 1920. [Density1] hace que 1 sp sea 1 px en
@@ -173,13 +180,22 @@ internal fun DrawScope.drawStoryBackdrop(
     measurer: TextMeasurer,
     progress: Float = 1f,
     artBottom: Float = StoryCanvas.ART_BOTTOM,
+    studioCover: CoverIdentity? = null,
+    personalPhoto: ImageBitmap? = null,
 ) {
     val width = StoryCanvas.WIDTH.toFloat()
     drawRect(StoryCanvas.Background, topLeft = Offset.Zero, size = Size(width, StoryCanvas.HEIGHT.toFloat()))
     // El inset deja el DrawScope de (1080 × artBottom), tanto en el lienzo real como en la vista previa escalada.
     clipRect(0f, 0f, width, artBottom - 2f) {
         inset(left = 0f, top = 0f, right = size.width - width, bottom = size.height - artBottom) {
-            drawLineCover(cover, measurer, progress)
+            when {
+                personalPhoto != null -> {
+                    drawCoverPhoto(personalPhoto, width, artBottom)
+                    drawRect(Color.Black.copy(alpha = 0.28f), size = Size(width, artBottom))
+                }
+                studioCover != null -> drawCoverStudioFrame(studioCover, measurer, progress)
+                else -> drawLineCover(cover, measurer, progress)
+            }
         }
     }
     val fadeTop = artBottom * 0.55f
@@ -195,6 +211,32 @@ internal fun DrawScope.drawStoryBackdrop(
         size = Size(width, solidTop - fadeTop),
     )
     drawRect(StoryCanvas.Background, topLeft = Offset(0f, solidTop), size = Size(width, artBottom - solidTop))
+}
+
+/** Crop a personal photo to the 1080 × [artBottom] cover area, matching the program poster's center crop. */
+private fun DrawScope.drawCoverPhoto(photo: ImageBitmap, width: Float, artBottom: Float) {
+    if (photo.width <= 0 || photo.height <= 0 || width <= 0f || artBottom <= 0f) return
+    val targetWidth = width.roundToInt().coerceAtLeast(1)
+    val targetHeight = artBottom.roundToInt().coerceAtLeast(1)
+    val targetRatio = targetWidth.toFloat() / targetHeight
+    val sourceRatio = photo.width.toFloat() / photo.height
+    val sourceWidth: Int
+    val sourceHeight: Int
+    if (sourceRatio > targetRatio) {
+        sourceHeight = photo.height
+        sourceWidth = (photo.height * targetRatio).roundToInt().coerceIn(1, photo.width)
+    } else {
+        sourceWidth = photo.width
+        sourceHeight = (photo.width / targetRatio).roundToInt().coerceIn(1, photo.height)
+    }
+    drawImage(
+        image = photo,
+        srcOffset = IntOffset((photo.width - sourceWidth) / 2, (photo.height - sourceHeight) / 2),
+        srcSize = IntSize(sourceWidth, sourceHeight),
+        dstOffset = IntOffset.Zero,
+        dstSize = IntSize(targetWidth, targetHeight),
+        filterQuality = FilterQuality.Medium,
+    )
 }
 
 /**
@@ -272,7 +314,11 @@ internal fun renderStory(context: Context, draw: DrawScope.(TextMeasurer) -> Uni
  */
 @Composable
 internal fun StoryPreview(modifier: Modifier = Modifier, draw: DrawScope.(TextMeasurer) -> Unit) {
-    val measurer = rememberTextMeasurer()
+    // La vista previa comparte el lienzo fijo de 1080 × 1920 con el PNG: la escala del dispositivo y la preferencia de fuente del
+    // sistema no deben volver a medir su texto en la previsualización ni cambiar el recorte que se guardará.
+    val context = LocalContext.current
+    val resolver = remember(context) { createFontFamilyResolver(context) }
+    val measurer = remember(resolver) { TextMeasurer(resolver, StoryCanvas.Density1, LayoutDirection.Ltr) }
     Box(
         modifier
             .aspectRatio(9f / 16f)

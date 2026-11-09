@@ -36,6 +36,7 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.missingPercentReferences
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.sheets.formatDecimalComma
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
@@ -124,7 +125,7 @@ internal fun ExerciseSmartLoadDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var trainingMaxInput by remember(exercise.id) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
+    var trainingMaxInput by remember(exercise.id, exercise.referenceTrainingMax) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
 EditorDialogImeArea {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
@@ -137,21 +138,51 @@ EditorSheetDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Configura la referencia que alimenta las sugerencias de carga y %RM.",
+                "Elige la base de las cargas sugeridas. La fuente del 1RM se configura por separado.",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
-            if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
-                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
-                    EditorKpknField(
-                        label = "Training max (TM)", value = trainingMaxInput,
-                        keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth(),
-                    ) { input ->
-                        trainingMaxInput = input
-                        val parsed = input.safeDoubleOrNull()?.takeIf { it > 0.0 }
-                        onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
-                    }
+            Text("Base de carga inteligente", style = KpknType.bodyStrong, color = WizardColors.text)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknChip(
+                    text = "1RM",
+                    selected = (exercise.smartLoadBasis ?: SmartLoadBasis.ONE_RM) == SmartLoadBasis.ONE_RM,
+                    onClick = { onUpdateExercise { it.copy(smartLoadBasis = SmartLoadBasis.ONE_RM) } },
+                )
+                KpknChip(
+                    text = "Training Max",
+                    selected = exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX,
+                    onClick = { onUpdateExercise { it.copy(smartLoadBasis = SmartLoadBasis.TRAINING_MAX) } },
+                )
+            }
+            val smartReference = resolveSmartLoadReference(exercise)
+            val smartReferenceLabel = when (smartReference?.source) {
+                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.ONE_RM -> "1RM"
+                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.EXPLICIT_TRAINING_MAX -> "TM explícito"
+                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.RECIPE_TRAINING_MAX -> "TM según receta"
+                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.DEFAULT_TRAINING_MAX -> "TM calculado al 90%"
+                null -> "Referencia pendiente"
+            }
+            Text(
+                smartReference?.let { "Base usada: $smartReferenceLabel · ${formatDecimalComma(it.kilograms)} kg" }
+                    ?: "Base usada: $smartReferenceLabel. Agrega un 1RM o PR para calcularla.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+            val hasExplicitTmSets = exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
+            if (exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX || hasExplicitTmSets) {
+                EditorKpknField(
+                    label = "Training max (TM) explícito",
+                    value = trainingMaxInput,
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { input ->
+                    trainingMaxInput = input
+                    val parsed = input.safeDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
+                    onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
                 }
+            }
+            if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KpknChip(text = "RM directo", selected = rmInputMode == "direct", onClick = { onRmInputModeChange("direct") })
                     KpknChip(text = "Desde PR", selected = rmInputMode == "pr", onClick = { onRmInputModeChange("pr") })

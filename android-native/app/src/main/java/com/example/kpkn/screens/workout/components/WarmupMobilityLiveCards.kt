@@ -17,6 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +71,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -696,6 +698,24 @@ internal fun WarmupPhaseLiveCard(
     var loadSheet by rememberSaveable { mutableStateOf(false) }
     val pages = ((rows.size + 2) / 3).coerceAtLeast(1)
     val safePage = page.coerceIn(0, pages - 1)
+    val rowOwnerKey = rows.map { it.exerciseId }.distinct()
+    val activeIndex = rows.indexOfFirst { !it.isCompleted }.takeIf { it >= 0 } ?: (rows.size - 1).coerceAtLeast(0)
+    val targetActivePage = (activeIndex / 3).coerceIn(0, pages - 1)
+    val activeRowKey = rows.getOrNull(activeIndex)?.let { "${it.exerciseId}|${it.warmup.id}|${it.index}" } ?: activeIndex.toString()
+    var lastActiveKey by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(rowOwnerKey) {
+        page = targetActivePage
+        lastActiveKey = activeRowKey
+    }
+    LaunchedEffect(activeRowKey) {
+        if (lastActiveKey != activeRowKey) {
+            lastActiveKey = activeRowKey
+            page = targetActivePage
+        }
+    }
+    LaunchedEffect(pages) { page = page.coerceIn(0, pages - 1) }
+    val swipeThresholdPx = with(LocalDensity.current) { 44.dp.toPx() }
     val warmupSkipFooter: @Composable () -> Unit = {
         RestRef02Button("Omitir", {
             skipRequested = true
@@ -728,6 +748,7 @@ internal fun WarmupPhaseLiveCard(
             RestRef02Card(
                 compact = compact,
                 tag = PrepLiveCardTag,
+                contentSized = inlineRest == null,
                 // Registrar la aproximación siguiente (o ir a las efectivas) es el botón del roadmap; la tarjeta solo ofrece «Omitir».
                 footer = if (allDone || skipped) null else warmupSkipFooter,
             ) {
@@ -736,20 +757,20 @@ internal fun WarmupPhaseLiveCard(
                 // Fase omitida ↔ lista de aproximaciones: se funden, no saltan.
                 AnimatedContent(
                     targetState = skipped,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     transitionSpec = { liveContentSwap(reducedMotion) },
                     label = "warmup-skipped-swap",
                 ) { isSkipped ->
                 if (isSkipped) {
                     PrepCenteredNote(
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)
                             .semantics { message?.let { liveRegion = LiveRegionMode.Polite; stateDescription = it } },
                         tag = "warmup-skipped-pane",
                         title = "Fase omitida",
                         text = "Las series efectivas siguen pendientes.",
                     )
                 } else {
-                Column(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxWidth()) {
                     // `.v2-reference`: «Trabajo · 100 kg» y «Ajustar» (los kg de cada aproximación).
                     Row(Modifier.fillMaxWidth().heightIn(min = 25.dp), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -767,8 +788,24 @@ internal fun WarmupPhaseLiveCard(
                     }
                     Column(
                         // Con editor no llena: el editor queda pegado a las filas y el aire sobrante va al final.
-                        Modifier.weight(1f, fill = editorRow == null).fillMaxWidth().testTag("warmup-list")
-                            .semantics { message?.let { liveRegion = LiveRegionMode.Polite; stateDescription = it } },
+                        Modifier.fillMaxWidth()
+                            .then(if (pages > 1) Modifier.pointerInput(safePage, pages, swipeThresholdPx) {
+                                var dragDistance = 0f
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        if (dragDistance <= -swipeThresholdPx && safePage < pages - 1) page = safePage + 1
+                                        else if (dragDistance >= swipeThresholdPx && safePage > 0) page = safePage - 1
+                                        dragDistance = 0f
+                                    },
+                                    onDragCancel = { dragDistance = 0f },
+                                    onHorizontalDrag = { _, delta -> dragDistance += delta },
+                                )
+                            } else Modifier)
+                            .testTag("warmup-list")
+                            .semantics {
+                                contentDescription = "Lista de aproximaciones, página ${safePage + 1} de $pages. Desliza horizontalmente para cambiar de página."
+                                message?.let { liveRegion = LiveRegionMode.Polite; stateDescription = it }
+                            },
                     ) {
                         AnimatedContent(
                             targetState = safePage,
@@ -849,7 +886,13 @@ internal fun WarmupPhaseLiveCard(
                                     .semantics { contentDescription = "Página anterior" }, contentAlignment = Alignment.Center) {
                                     Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(13.dp), tint = PrepRef02Muted.copy(alpha = if (safePage > 0) 1f else .35f))
                                 }
-                                Text("${safePage + 1}/$pages", style = PrepRef02Body(10.sp), color = PrepRef02Muted)
+                                Text(
+                                    "${safePage + 1}/$pages",
+                                    Modifier.testTag("warmup-page-indicator").semantics {
+                                        contentDescription = "Página ${safePage + 1} de $pages"
+                                    },
+                                    style = PrepRef02Body(10.sp), color = PrepRef02Muted,
+                                )
                                 Box(Modifier.size(36.dp).clickable(enabled = safePage < pages - 1, role = Role.Button) { page = safePage + 1 }
                                     .semantics { contentDescription = "Página siguiente" }, contentAlignment = Alignment.Center) {
                                     Icon(KpknLineIcons.ChevronRight, null, Modifier.size(13.dp),
@@ -1169,7 +1212,7 @@ private fun PrepStatus(text: String) {
 @Composable
 private fun PrepCenteredNote(modifier: Modifier, tag: String, title: String, text: String) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).testTag(tag),
+        modifier = modifier.testTag(tag),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
     ) {

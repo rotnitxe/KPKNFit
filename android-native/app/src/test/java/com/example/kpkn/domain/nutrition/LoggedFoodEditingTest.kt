@@ -3,10 +3,13 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.AnalysisSource
 import com.example.kpkn.data.models.CookingMethod
+import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.domain.nutrition.FoodPreparation.SAUTEED
+import com.example.kpkn.domain.nutrition.OilAmount.LOTS
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -106,6 +109,57 @@ class LoggedFoodEditingTest {
         assertTrue("an estimate is still finalizable: acceptance is the user's decision", interpretation.canFinalize())
         assertTrue(interpretation.pendingQuestions.isEmpty())
         assertEquals(NutritionSourceKind.HEURISTIC_ESTIMATE, tag.nutritionSource)
+    }
+
+    @Test
+    fun `a saved saute preparation and oil level survive reopening and saving`() {
+        val sauteed = rice.copy(
+            cookingMethod = CookingMethod.SALTEADO,
+            preparation = SAUTEED.name,
+            preparationOilLevel = LOTS.level,
+        )
+        val reopened = loggedFoodToEditableTag(sauteed)
+        val reopenedFood = loggedOf(reopened)
+        assertEquals(SAUTEED.name, reopenedFood.preparation)
+        assertEquals(LOTS.level, reopenedFood.preparationOilLevel)
+        assertEquals(LOTS.level, reopened.oilLevel)
+
+        val unchangedSave = savedAs(reopened)
+        assertEquals(SAUTEED.name, unchangedSave.preparation)
+        assertEquals(LOTS.level, unchangedSave.preparationOilLevel)
+        assertSame(sauteed, mergeEditedFoods(listOf(unchangedSave), listOf(sauteed)).single())
+
+        val resized = refreshAfterEdit(withGrams(reopened, 225.0), "portion")
+        assertEquals(SAUTEED.name, loggedOf(resized).preparation)
+        assertEquals(LOTS.level, loggedOf(resized).preparationOilLevel)
+    }
+
+    @Test
+    fun `changing preparation and oil always rebuilds from the selected food row`() {
+        val cookedPotato = FoodItem(
+            id = "potato-cooked", name = "Papas cocidas", calories = 87.0, protein = 1.9, carbs = 20.1, fats = 0.1,
+            nutritionBasis = "PER_100G", foodState = "COOKED", source = "USDA_FOUNDATION", sourceRecordId = "potato-cooked",
+        )
+        val friedPotato = FoodItem(
+            id = "potato-fried", name = "Papas fritas", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0,
+            nutritionBasis = "PER_100G", foodState = "COOKED", source = "USDA_FOUNDATION", sourceRecordId = "potato-fried",
+        )
+        fun selected(food: FoodItem, preparation: FoodPreparation, oil: OilAmount?) = recalculatePreparedFood(
+            food = food, quantity = 1.0, portion = com.example.kpkn.data.models.PortionPreset.MEDIUM, amountGrams = 200.0,
+            cookingMethod = cookingMethodFor(preparation), preparation = preparation, oil = oil,
+        )
+
+        val sauteed = selected(cookedPotato, SAUTEED, OilAmount.NORMAL)
+        val fried = selected(friedPotato, FoodPreparation.FRIED, LOTS)
+        val sauteedAgain = selected(cookedPotato, SAUTEED, OilAmount.NORMAL)
+
+        assertTrue("the selected fried record should retain its distinct macros", fried.logged.fats != sauteed.logged.fats)
+        assertEquals(sauteed.logged.fats, sauteedAgain.logged.fats, 0.0)
+        assertEquals(sauteed.logged.calories, sauteedAgain.logged.calories, 0.0)
+        assertEquals(sauteed.base.fats, sauteedAgain.base.fats, 0.0)
+        assertEquals(CookingMethod.SALTEADO, sauteedAgain.logged.cookingMethod)
+        assertEquals(SAUTEED.name, sauteedAgain.logged.preparation)
+        assertEquals(OilAmount.NORMAL.level, sauteedAgain.logged.preparationOilLevel)
     }
 
     @Test

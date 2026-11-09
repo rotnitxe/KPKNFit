@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -681,12 +682,133 @@ private fun LoggerEditableFigure(
 }
 
 /** Un candidato de la duda de identidad (f-identity): nombre, «2 rebanadas · 158 kcal» y si es «Muy probable» o «Posible». */
-data class LoggerCandidate(val id: String, val name: String, val caption: String, val likely: Boolean)
+data class LoggerCandidate(
+    val id: String,
+    val name: String,
+    val caption: String,
+    val likely: Boolean,
+    val queryContext: String? = null,
+)
 
 /**
  * «¿Cuál se parece más?» (lienzo f-identity): «Escribiste «tostadas»», los candidatos con su radio, su ración y cuánto encajan, «Buscar
  * otro» (abre un campo dentro de la hoja; los resultados llegan en [searchResults]) y «Usar este».
  */
+@Composable
+fun LoggerIdentitySheet(
+    typed: String,
+    candidates: List<LoggerCandidate>,
+    onUse: (id: String, queryContext: String?) -> Unit,
+    onDismiss: () -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    searchResults: List<LoggerCandidate>?,
+    initiallySearching: Boolean = false,
+) {
+    KpknSheet(onDismissRequest = onDismiss, backdropScrim = Color.Black.copy(alpha = 0.67f)) {
+        LoggerIdentitySheetBody(
+            typed = typed,
+            candidates = candidates,
+            onUse = onUse,
+            searchQuery = searchQuery,
+            onSearchQueryChange = onSearchQueryChange,
+            searchResults = searchResults,
+            initiallySearching = initiallySearching,
+        )
+    }
+}
+
+@Composable
+fun LoggerIdentitySheetBody(
+    typed: String,
+    candidates: List<LoggerCandidate>,
+    onUse: (id: String, queryContext: String?) -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    searchResults: List<LoggerCandidate>?,
+    initiallySearching: Boolean = false,
+) {
+    var searching by remember { mutableStateOf(initiallySearching || candidates.isEmpty()) }
+    val isQueryTyped = searching && searchQuery.isNotBlank()
+    var selected by remember(candidates, isQueryTyped) {
+        mutableStateOf<String?>(if (isQueryTyped) null else candidates.firstOrNull { it.likely }?.id ?: candidates.firstOrNull()?.id)
+    }
+
+    var lastQuery by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(searchQuery) {
+        if (lastQuery != null && lastQuery != searchQuery) {
+            selected = if (searchQuery.isBlank()) {
+                candidates.firstOrNull { it.likely }?.id ?: candidates.firstOrNull()?.id
+            } else {
+                null
+            }
+        }
+        lastQuery = searchQuery
+    }
+
+    val shown = when {
+        isQueryTyped -> searchResults.orEmpty()
+        else -> candidates
+    }
+    val selectedCandidate = shown.firstOrNull { it.id == selected }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
+    ) {
+        Text(
+            text = "Escribiste «$typed»".uppercase(java.util.Locale.forLanguageTag("es")),
+            style = LoggerText.eyebrow,
+            color = LoggerColors.faint,
+        )
+        LoggerSheetTitle(title = "¿Cuál se parece más?", modifier = Modifier.padding(top = 6.dp))
+        if (isQueryTyped && searchResults == null) {
+            Text(
+                text = "Buscando…",
+                style = LoggerText.cap,
+                color = LoggerColors.faint,
+                modifier = Modifier.padding(vertical = 14.dp, horizontal = 4.dp),
+            )
+        } else if (isQueryTyped && searchResults?.isEmpty() == true) {
+            Text(
+                text = "No se encontraron alimentos",
+                style = LoggerText.cap,
+                color = LoggerColors.faint,
+                modifier = Modifier.padding(vertical = 14.dp, horizontal = 4.dp),
+            )
+        } else {
+            shown.forEachIndexed { index, candidate ->
+                if (index > 0) LoggerRowDivider()
+                LoggerCandidateRow(candidate, candidate.id == selected) { selected = candidate.id }
+            }
+        }
+        if (searching) {
+            LoggerSearchField(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                onScan = {},
+                placeholder = "Busca otro alimento",
+                modifier = Modifier.padding(top = 10.dp),
+            )
+        } else {
+            LoggerAct(
+                text = "Buscar otro",
+                onClick = { searching = true },
+                leadingIcon = KpknLineIcons.Search,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+        LoggerPill(
+            text = "Usar este",
+            onClick = { selectedCandidate?.let { onUse(it.id, it.queryContext) } },
+            enabled = selectedCandidate != null,
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+        )
+    }
+}
+
 @Composable
 fun LoggerIdentitySheet(
     typed: String,
@@ -697,52 +819,16 @@ fun LoggerIdentitySheet(
     onSearchQueryChange: (String) -> Unit,
     searchResults: List<LoggerCandidate>?,
     initiallySearching: Boolean = false,
-) {
-    var selected by remember(candidates) { mutableStateOf(candidates.firstOrNull()?.id) }
-    var searching by remember { mutableStateOf(initiallySearching || candidates.isEmpty()) }
-    KpknSheet(onDismissRequest = onDismiss, backdropScrim = Color.Black.copy(alpha = 0.67f)) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
-        ) {
-            Text(
-                text = "Escribiste «$typed»".uppercase(java.util.Locale.forLanguageTag("es")),
-                style = LoggerText.eyebrow,
-                color = LoggerColors.faint,
-            )
-            LoggerSheetTitle(title = "¿Cuál se parece más?", modifier = Modifier.padding(top = 6.dp))
-            val shown = if (searching && searchResults != null) searchResults else candidates
-            shown.forEachIndexed { index, candidate ->
-                if (index > 0) LoggerRowDivider()
-                LoggerCandidateRow(candidate, candidate.id == selected) { selected = candidate.id }
-            }
-            if (searching) {
-                LoggerSearchField(
-                    query = searchQuery,
-                    onQueryChange = onSearchQueryChange,
-                    onScan = {},
-                    placeholder = "Busca otro alimento",
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-            } else {
-                LoggerAct(
-                    text = "Buscar otro",
-                    onClick = { searching = true },
-                    leadingIcon = KpknLineIcons.Search,
-                    modifier = Modifier.padding(top = 6.dp),
-                )
-            }
-            LoggerPill(
-                text = "Usar este",
-                onClick = { selected?.let(onUse) },
-                enabled = selected != null,
-                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
-            )
-        }
-    }
-}
+) = LoggerIdentitySheet(
+    typed = typed,
+    candidates = candidates,
+    onUse = { id, _ -> onUse(id) },
+    onDismiss = onDismiss,
+    searchQuery = searchQuery,
+    onSearchQueryChange = onSearchQueryChange,
+    searchResults = searchResults,
+    initiallySearching = initiallySearching,
+)
 
 @Composable
 private fun LoggerCandidateRow(candidate: LoggerCandidate, on: Boolean, onClick: () -> Unit) {

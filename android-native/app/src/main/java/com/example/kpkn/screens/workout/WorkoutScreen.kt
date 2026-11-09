@@ -355,8 +355,9 @@ fun WorkoutScreen(
 
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
-    // Decisión 6: la vista es una preferencia global (Settings.liveSessionView); Tarjetas es la inicial.
-    val liveSessionView = LiveSessionView.entries.firstOrNull { it.name == settings.liveSessionView } ?: LiveSessionView.CARDS
+    // La preferencia sigue siendo global, pero una sesión exclusivamente de cardio necesita su preparación dedicada.
+    // La vista efectiva no escribe de vuelta sobre Settings.liveSessionView.
+    val liveSessionView = effectiveLiveSessionView(session, settings.liveSessionView)
     val allPrograms by com.example.kpkn.data.repository.ProgramRepository.getInstance().programs.collectAsStateWithLifecycle()
     val activeProgram = remember(allPrograms, programId) { allPrograms.firstOrNull { it.id == programId } }
     LaunchedEffect(settings.exerciseNicknames) {
@@ -1049,6 +1050,7 @@ fun WorkoutScreen(
                     structureSheets.exerciseContextExerciseId = id
                 },
                 onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
+                stepperSnapshotProvider = { liveSetStepperHolder.snapshot },
                 recordVisible = recordFabHolder.visible && uiState.seriesTypeTarget == null,
                 recordEnabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
                     hasActivePageAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey) != null,
@@ -1091,6 +1093,10 @@ fun WorkoutScreen(
         omittedSetKeys = uiState.omittedSetKeys,
         currentExerciseId = currentExercise?.id,
         currentSetNumber = liveRoadmapActiveSetNumber(liveSetStepperHolder.snapshot),
+        warmupCompletedIds = uiState.warmupCompletedExerciseIds,
+        mobilityCompletedIds = uiState.mobilityCompletedExerciseIds,
+        activeStepKey = uiState.activeStepKey,
+        onSelectStep = viewModel::selectWorkoutStep,
         supersetGroups = modeSession.allSupersetGroups(),
         liveEnergySummary = uiState.liveEnergySummary,
         bodyWeight = viewModel.currentBodyWeight(),
@@ -1427,6 +1433,7 @@ fun WorkoutScreen(
             name = session.name,
             completedExercises = completedExercisesForSummary,
             durationMinutes = ((completionMs - uiState.startTimeMs) / 60_000).toInt().coerceAtLeast(0),
+            durationSeconds = ((completionMs - uiState.startTimeMs) / 1_000).toInt().coerceAtLeast(0),
             initialNotes = uiState.sessionNotes,
             saving = uiState.isFinishingWorkout,
             calibrationDecisions = uiState.calibrationDecisions,
@@ -1455,6 +1462,7 @@ fun WorkoutScreen(
                     })
             },
             onDismiss = viewModel::hideFinish,
+            onDiscardEmpty = viewModel::cancelWorkout,
         )
     }
 

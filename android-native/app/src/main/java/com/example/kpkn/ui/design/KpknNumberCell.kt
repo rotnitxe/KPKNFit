@@ -59,6 +59,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import kotlin.math.abs
 
@@ -120,6 +121,7 @@ fun KpknNumberCell(
     )
     val shape = RoundedCornerShape(12.dp)
     val cellStyle = KpknType.bodyStrong.copy(
+        fontFamily = WizardFonts.body,
         color = WizardColors.text,
         textAlign = TextAlign.Center,
         fontFeatureSettings = "'tnum' 1",

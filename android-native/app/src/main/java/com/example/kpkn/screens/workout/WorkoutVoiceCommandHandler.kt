@@ -545,6 +545,7 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.ApplySuggestedLoad -> Unit
             // La captura la ejecuta el controlador a través del grabador abierto.
             is VoiceSessionCommand.StartVideoCapture,
+            is VoiceSessionCommand.StartVideoCaptureAnyway,
             is VoiceSessionCommand.StopVideoCapture -> Unit
             is VoiceSessionCommand.ApplyTag -> handleVoiceApplyTag(command.tagName)
             is VoiceSessionCommand.ApplyConfirmedTag -> applyVoiceTag(command.tagName)

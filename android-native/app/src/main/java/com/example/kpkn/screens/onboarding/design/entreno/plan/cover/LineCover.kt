@@ -1,7 +1,10 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan.cover
 
 /** Estilos de las portadas de líneas (lienzo v6). SESION solo se usa en la historia de un entreno. */
-internal enum class LineCoverStyle(val label: String) { RELIEVE("Relieve"), PERFIL("Perfil"), ONDAS("Ondas"), ORBITAS("Órbitas"), CAMPO("Campo"), ESPIRAL("Espiral"), ECO("Eco"), BRUMA("Bruma"), SESION("Sesión") }
+internal enum class LineCoverStyle(val label: String) {
+    RELIEVE("Relieve"), PERFIL("Perfil"), ONDAS("Ondas"), ORBITAS("Órbitas"), CAMPO("Campo"),
+    ESPIRAL("Espiral"), ECO("Eco"), BRUMA("Bruma"), INTERFERENCIA("Interferencia"), ABANICO("Abanico"), SESION("Sesión"),
+}
 
 /** Fondos: [bg]→[bg2] degradado, [line] tono de las líneas, [accent] la única línea de acento. Colores ARGB. */
 internal enum class LineCoverBackground(val label: String, val bg: Long, val bg2: Long, val line: Long, val accent: Long, val dark: Boolean) {
@@ -9,6 +12,13 @@ internal enum class LineCoverBackground(val label: String, val bg: Long, val bg2
     GRAFITO("Grafito", 0xFF1D2024, 0xFF0B0C0E, 0xFFA3ACB6, 0xFFF2EEE6, true),
     NOCHE("Noche", 0xFF101830, 0xFF04070E, 0xFF93A9DA, 0xFFF7CF73, true),
     MUSGO("Musgo", 0xFF131C17, 0xFF050907, 0xFFA4BCAA, 0xFFF49A6E, true),
+    AZUL("Azul", 0xFF0D1C2D, 0xFF06101C, 0xFF9BCBFF, 0xFF49A5F5, true),
+    JADE("Jade", 0xFF10241F, 0xFF07110E, 0xFFB0E3D0, 0xFF54C7A0, true),
+    VIOLETA("Violeta", 0xFF21192E, 0xFF0D0914, 0xFFD1B9F4, 0xFFAD7BE8, true),
+    CORAL("Coral", 0xFF2A1715, 0xFF100908, 0xFFFFC1AD, 0xFFFF8069, true),
+    AMBAR("Ámbar", 0xFF251D0D, 0xFF100C05, 0xFFFFDEA0, 0xFFFFB84A, true),
+    CIAN("Cian", 0xFF0D2025, 0xFF061014, 0xFFABEDF2, 0xFF5AD3E0, true),
+    ROSADO("Rosado", 0xFF291823, 0xFF10090E, 0xFFF7C4DB, 0xFFE783B5, true),
     CREMA("Crema", 0xFFECE6DB, 0xFFDCD3C4, 0xFF1D1B19, 0xFFD9673A, false),
 }
 

@@ -129,6 +129,21 @@ class CaptureMetadataRecorderTest {
         recorder.close()
     }
 
+    @Test fun sensors_are_used_for_a_free_capture_then_released_when_its_metadata_is_frozen() {
+        val gravity = FakeGravity()
+        val recorder = CaptureMetadataRecorder(org.robolectric.RuntimeEnvironment.getApplication(), null, 30f, 30f, gravity)
+
+        recorder.start()
+        assertEquals(1, gravity.starts)
+        gravity.emit(0f, g)
+        assertNotNull(recorder.stop().recordedAtMs)
+
+        assertEquals("la toma libre libera el sensor al terminar", 1, gravity.closes)
+        assertNull(recorder.currentRollDeg)
+        recorder.close()
+        assertEquals("cerrar después de detener no libera dos veces", 1, gravity.closes)
+    }
+
     @Test fun focal_requires_real_finite_video_dimensions() {
         assertNull(recordedFocalPx(4.38f, 5.6f, null))
         assertNull(recordedFocalPx(4.38f, 5.6f, Float.NaN))
@@ -201,6 +216,19 @@ class CaptureMetadataRecorderTest {
         // Un callback de sensor ya en cola tampoco puede contaminar el intervalo cerrado.
         queuedSensorCallback(0f, g, 0f)
         assertEquals(20f, recorder.stop().gravityRollDeg!!, 0.05f)
+    }
+    @Test fun per_capture_analysis_choice_roundtrips_and_preserves_unknown_sidecar_fields() {
+        val video = files.newFile("capture-choice.mp4")
+        val sidecar = TechniqueSidecars.captureFile(video)
+        sidecar.writeText("""{"legacyNote":"keep"}""", Charsets.UTF_8)
+
+        CaptureMetadataFile.update(sidecar) { it.copy(analysisRequestedForCapture = false) }
+        assertEquals(false, CaptureMetadataFile.read(sidecar).analysisRequestedForCapture)
+        assertTrue(sidecar.readText(Charsets.UTF_8).contains("legacyNote"))
+
+        CaptureMetadataFile.update(sidecar) { it.copy(analysisRequestedForCapture = true) }
+        assertEquals(true, CaptureMetadataFile.read(sidecar).analysisRequestedForCapture)
+        assertNull(CaptureMetadataFile.read(files.newFile("legacy.mp4").let(TechniqueSidecars::captureFile)).analysisRequestedForCapture)
     }
 
 }

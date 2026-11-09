@@ -139,7 +139,10 @@ class NutritionViewModelTest {
             id = "original",
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.BREAKFAST,
-            foods = listOf(LoggedFood(id = "f1", foodName = "Avena", amount = 100.0, calories = 300.0)),
+            foods = listOf(LoggedFood(
+                id = "f1", foodName = "Avena", amount = 100.0, calories = 300.0, fats = 12.0,
+                cookingMethod = CookingMethod.SALTEADO, preparation = "SAUTEED", preparationOilLevel = "abundante",
+            )),
             notes = "Nota",
         )
         vm.addLog(original)
@@ -147,6 +150,12 @@ class NutritionViewModelTest {
 
         vm.duplicateLog(original)
         awaitTodayLogs { logs -> logs.size >= 2 && logs.any { it.notes?.contains("duplicado") == true } }
+        val duplicate = vm.todayLogs.value.first { it.id != original.id && it.notes?.contains("duplicado") == true }
+        assertNotEquals(original.foods.single().id, duplicate.foods.single().id)
+        assertEquals("SAUTEED", duplicate.foods.single().preparation)
+        assertEquals("abundante", duplicate.foods.single().preparationOilLevel)
+        assertEquals(original.foods.single().calories, duplicate.foods.single().calories, 0.0)
+        assertEquals(original.foods.single().fats, duplicate.foods.single().fats, 0.0)
     }
 
     // ─── Deshacer y editar (WP-U11 / C9) ────────────────────────────────────

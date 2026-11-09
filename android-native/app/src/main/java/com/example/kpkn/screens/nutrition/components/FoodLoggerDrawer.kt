@@ -71,6 +71,8 @@ import com.example.kpkn.data.food.v2.NutritionParserV2Holder
 import com.example.kpkn.domain.nutrition.v2.ResolvedTagAdapterV2
 import com.example.kpkn.domain.nutrition.TagOrigin
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
+import com.example.kpkn.domain.nutrition.recalculatePreparedFood
+import com.example.kpkn.domain.nutrition.cookingMethodFor
 import com.example.kpkn.domain.nutrition.ClarificationRequest
 import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.domain.nutrition.canFinalize
@@ -770,20 +772,33 @@ fun FoodLoggerDrawer(
         reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
-    fun resolveFood(tagId: String, food: FoodItem, correctedQuery: String? = null) {
-        val targetTag = tags.firstOrNull { it.id == tagId } ?: return
+    fun resolveFood(
+        tagId: String,
+        food: FoodItem,
+        correctedQuery: String? = null,
+        preparationOverride: FoodPreparation? = null,
+        oilOverride: OilAmount? = null,
+        confirmedDimension: String? = null,
+    ): Boolean {
+        val targetTag = tags.firstOrNull { it.id == tagId } ?: return false
         val selectedQuery = correctedQuery ?: targetTag.foodQuery.ifBlank { targetTag.tag }
-        if (!FoodIdentity.matchesDeclaredIdentity(selectedQuery, food)) {
-            saveError = "Esta ficha no coincide con el alimento indicado. Revisa la búsqueda."
-            return
-        }
+        val eligibilityQuery = if (preparationOverride != null && correctedQuery == null) {
+            targetTag.foodItem?.let { FoodIdentity.identityQueryWithoutPreparation(it.name) }
+                ?.takeIf { it.isNotBlank() }
+                ?: FoodIdentity.identityQueryWithoutPreparation(selectedQuery)
+        } else selectedQuery
         if (!NutrientBasis.isVerified(food)) {
             saveError = "Esta ficha no tiene nutrientes verificables. Elige otra o conserva la estimación."
-            return
+            return false
         }
         if (!FoodIdentity.matchesExclusions(food, targetTag.excludedIngredients)) {
             saveError = "Esta ficha incluye un ingrediente que excluiste. Elige una preparación compatible."
-            return
+            return false
+        }
+        val selectedBrandHint = nutritionRepo.loggerBrandHint(eligibilityQuery, targetTag.brandHint)
+        if (!nutritionRepo.isLoggerFoodEligible(eligibilityQuery, food, selectedBrandHint, targetTag.excludedIngredients)) {
+            saveError = "Esta ficha no coincide con el alimento o la marca solicitada. Revisa la búsqueda."
+            return false
         }
         // FIX NUT-04: real rank from candidate position (was always 0)
         val realRank = targetTag.reviewCandidates.indexOfFirst { it.id == food.id }
@@ -793,53 +808,61 @@ fun FoodLoggerDrawer(
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val adj = scalingForIntent(tag.amountIntent, portionAdj)
-                val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
-                val scaleMethod = if (usePrepared) null else tag.cookingMethod
-                val applyOil = CookingStateResolver.shouldApplyOil(food, tag.cookingMethod) && !usePrepared
-                val logged = scaleFoodByPortion(
+                val selectedMethod = preparationOverride?.let(::cookingMethodFor) ?: tag.cookingMethod
+                val selectedPreparation = preparationOverride
+                    ?: tag.loggedFood?.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
+                    ?: selectedMethod?.let(FoodPreparations::of)
+                val selectedOil = oilOverride
+                    ?: OilAmount.fromLevel(tag.loggedFood?.preparationOilLevel)
+                    ?: OilAmount.fromLevel(tag.oilLevel)
+                val prepared = recalculatePreparedFood(
                     food = food,
                     quantity = tag.quantity,
                     portion = tag.portion,
                     amountGrams = tag.amountGrams,
-                    cookingMethod = scaleMethod,
+                    cookingMethod = selectedMethod,
+                    preparation = selectedPreparation,
+                    oil = selectedOil,
                     portionAdjustment = adj,
                 )
-                val adjustedLogged = if (applyOil) {
-                    adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
-                } else {
-                    logged.copy(cookingMethod = tag.cookingMethod ?: logged.cookingMethod)
-                }
                 tag.copy(
                     foodItem = food,
-                    loggedFood = adjustedLogged.copy(analysisSource = AnalysisSource.DATABASE),
-                    baseLoggedFood = adjustedLogged,
+                    loggedFood = prepared.logged,
+                    baseLoggedFood = prepared.base,
                     nutrientsManuallyEdited = false,
                     nutritionEstimate = null,
                     foodQuery = selectedQuery,
-                    baseAmountGrams = tag.baseAmountGrams ?: tag.amountGrams ?: adjustedLogged.amount,
-                    portionMinGrams = tag.portionMinGrams ?: tag.amountGrams ?: adjustedLogged.amount,
-                    portionMaxGrams = tag.portionMaxGrams ?: tag.amountGrams ?: adjustedLogged.amount,
+                    brandHint = selectedBrandHint,
+                    baseAmountGrams = tag.baseAmountGrams ?: tag.amountGrams ?: prepared.logged.amount,
+                    portionMinGrams = tag.portionMinGrams ?: tag.amountGrams ?: prepared.logged.amount,
+                    portionMaxGrams = tag.portionMaxGrams ?: tag.amountGrams ?: prepared.logged.amount,
                     isResolved = true,
                     isFuzzyMatch = false,
                     analysisSource = AnalysisSource.DATABASE,
                     statusText = "",
                     hasManualEdits = true,
-                    oilApplied = applyOil,
-                    appliedOilGrams = (adjustedLogged.fats - logged.fats).coerceAtLeast(0.0),
+                    cookingMethod = selectedMethod,
+                    oilLevel = prepared.oil?.level ?: "sin aceite",
+                    oilApplied = prepared.oil != null,
+                    appliedOilGrams = prepared.oilGrams,
                     learnedWeightBasis = null, learnedOilGramsPer100g = null,
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                     canonicalFamily = FoodIdentity.familyFor(food),
-                    foodState = CookingStateResolver.stateForMethod(tag.cookingMethod) ?: FoodIdentity.stateFor(food),
+                    foodState = CookingStateResolver.stateForMethod(selectedMethod) ?: FoodIdentity.stateFor(food),
                     resolutionStatus = FoodResolutionStatus.AUTO,
                     nutritionSource = NutrientBasis.source(food),
                     resolutionConfidence = 1.0,
                     explicitDecision = true,
                     isUncertain = false,
+                    variantChoices = tag.variantChoices.filter { choice ->
+                        nutritionRepo.isLoggerFoodEligible(eligibilityQuery, choice.food, selectedBrandHint, tag.excludedIngredients)
+                    },
                 )
             } else tag
         }
-        refreshTag(tagId, "identity")
+        refreshTag(tagId, confirmedDimension ?: if (preparationOverride != null) "state" else "identity")
+        return true
     }
 
     fun updateTagPortion(tagId: String, portion: PortionPreset) {
@@ -858,19 +881,19 @@ fun FoodLoggerDrawer(
                         ?: tag.amountGrams?.takeIf { it > 0.0 }
                         ?: HouseholdPortions.defaultGrams(food, tag.tag)
                     val newGrams = baseGrams * multiplier
-                    val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
-                    val scaleMethod = if (usePrepared) null else tag.cookingMethod
-                    val logged = scaleFoodByPortion(
+                    val preparation = tag.loggedFood?.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
+                        ?: tag.cookingMethod?.let(FoodPreparations::of)
+                    val selectedOil = OilAmount.fromLevel(tag.loggedFood?.preparationOilLevel) ?: OilAmount.fromLevel(tag.oilLevel)
+                    val prepared = recalculatePreparedFood(
                         food = food,
                         quantity = tag.quantity,
                         portion = portion,
                         amountGrams = newGrams,
-                        cookingMethod = scaleMethod,
+                        cookingMethod = tag.cookingMethod,
+                        preparation = preparation,
+                        oil = selectedOil,
                         portionAdjustment = adj,
                     )
-                    val adjustedLogged = if (tag.oilApplied) {
-                        adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
-                    } else logged
                     tag.copy(
                         portion = portion,
                         amountGrams = newGrams,
@@ -880,8 +903,11 @@ fun FoodLoggerDrawer(
                         amountIntent = AmountIntent.RESOLVED_SUBJECTIVE,
                         unresolvedDeclaredAmount = false,
                         ambiguousPackageGrams = null,
-                        loggedFood = adjustedLogged,
-                        appliedOilGrams = (adjustedLogged.fats - logged.fats).coerceAtLeast(0.0),
+                        loggedFood = prepared.logged,
+                        baseLoggedFood = prepared.base,
+                        oilLevel = prepared.oil?.level ?: "sin aceite",
+                        oilApplied = prepared.oil != null,
+                        appliedOilGrams = prepared.oilGrams,
                         hasManualEdits = true,
                     )
                 } else if (tag.loggedFood != null) {
@@ -894,6 +920,10 @@ fun FoodLoggerDrawer(
                     val scale = if (baseGrams > 0.0) newGrams / baseGrams else 1.0
                     val baseLogged = tag.baseLoggedFood ?: tag.loggedFood
                     val scaledLogged = rescaleEstimatedFood(baseLogged, newGrams)
+                    val persistedLogged = scaledLogged.copy(
+                        preparation = tag.cookingMethod?.let(FoodPreparations::of)?.name ?: tag.loggedFood.preparation,
+                        preparationOilLevel = if (tag.oilApplied) tag.oilLevel else null,
+                    )
                     tag.copy(
                         portion = portion,
                         amountGrams = newGrams,
@@ -903,7 +933,7 @@ fun FoodLoggerDrawer(
                         amountIntent = AmountIntent.RESOLVED_SUBJECTIVE,
                         unresolvedDeclaredAmount = false,
                         ambiguousPackageGrams = null,
-                        loggedFood = scaledLogged,
+                        loggedFood = persistedLogged,
                         hasManualEdits = true,
                     )
                 } else {
@@ -935,7 +965,7 @@ fun FoodLoggerDrawer(
         compositionRequestToken = requestToken
         // The answer is a declaration, so a stale wheat preview must immediately
         // stop being eligible for Unsure or saving while the replacement resolves.
-        val pending = ResolvedTag(id = original.id, tag = query, foodQuery = query, origin = original.origin,
+        val pending = ResolvedTag(id = original.id, tag = query, foodQuery = query, brandHint = original.brandHint, origin = original.origin,
             isExpanded = original.isExpanded, excludedIngredients = original.excludedIngredients,
             quantity = original.quantity, portion = original.portion, cookingMethod = original.cookingMethod,
             amountIntent = original.amountIntent,
@@ -1004,24 +1034,28 @@ fun FoodLoggerDrawer(
                 val adj = scalingForIntent(AmountIntent.EXPLICIT_MASS, portionAdj)
                 var appliedOil = tag.appliedOilGrams
                 val logged = if (food != null && !tag.nutrientsManuallyEdited && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
-                    val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
-                    val scaleMethod = if (usePrepared) null else tag.cookingMethod
-                    val baseLogged = scaleFoodByPortion(
+                    val preparation = tag.loggedFood?.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
+                        ?: tag.cookingMethod?.let(FoodPreparations::of)
+                    val selectedOil = OilAmount.fromLevel(tag.loggedFood?.preparationOilLevel) ?: OilAmount.fromLevel(tag.oilLevel)
+                    val prepared = recalculatePreparedFood(
                         food = food,
                         quantity = tag.quantity,
                         portion = tag.portion,
                         amountGrams = grams,
-                        cookingMethod = scaleMethod,
+                        cookingMethod = tag.cookingMethod,
+                        preparation = preparation,
+                        oil = selectedOil,
                         portionAdjustment = adj,
                     )
-                    if (tag.oilApplied) {
-                        adjustLoggedFoodForOil(baseLogged, tag.cookingMethod, tag.oilLevel, foodName = food.name).also {
-                            appliedOil = (it.fats - baseLogged.fats).coerceAtLeast(0.0)
-                        }
-                    } else baseLogged
+                    appliedOil = prepared.oilGrams
+                    prepared.logged
                 } else {
                     (tag.baseLoggedFood ?: tag.loggedFood)?.let { rescaleEstimatedFood(it, grams) }
                 }
+                val persistedLogged = logged?.copy(
+                    preparation = tag.loggedFood?.preparation ?: tag.cookingMethod?.let(FoodPreparations::of)?.name,
+                    preparationOilLevel = if (tag.oilApplied) tag.oilLevel else tag.loggedFood?.preparationOilLevel,
+                )
                 tag.copy(
                     amountGrams = grams,
                     portion = PortionPreset.MEDIUM,
@@ -1031,8 +1065,15 @@ fun FoodLoggerDrawer(
                     amountIntent = AmountIntent.EXPLICIT_MASS,
                     unresolvedDeclaredAmount = false,
                     ambiguousPackageGrams = null,
-                    loggedFood = logged,
-                    baseLoggedFood = logged,
+                    loggedFood = persistedLogged,
+                    baseLoggedFood = if (food != null && !tag.nutrientsManuallyEdited) {
+                        val preparation = tag.loggedFood?.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
+                            ?: tag.cookingMethod?.let(FoodPreparations::of)
+                        recalculatePreparedFood(food, tag.quantity, PortionPreset.MEDIUM, grams, tag.cookingMethod,
+                            preparation, OilAmount.fromLevel(tag.loggedFood?.preparationOilLevel) ?: OilAmount.fromLevel(tag.oilLevel), adj).base
+                    } else persistedLogged,
+                    oilLevel = OilAmount.fromLevel(tag.loggedFood?.preparationOilLevel)?.level ?: tag.oilLevel,
+                    oilApplied = tag.oilApplied || tag.loggedFood?.preparationOilLevel != null,
                     appliedOilGrams = appliedOil,
                     hasManualEdits = true,
                 )
@@ -1066,24 +1107,27 @@ fun FoodLoggerDrawer(
             if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE &&
                 tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE
             ) {
-                val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
-                val scaleMethod = if (usePrepared) null else tag.cookingMethod
-                val logged = scaleFoodByPortion(
+                val preparation = tag.loggedFood?.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
+                    ?: tag.cookingMethod?.let(FoodPreparations::of)
+                val prepared = recalculatePreparedFood(
                     food = food,
                     quantity = tag.quantity,
                     portion = tag.portion,
                     amountGrams = tag.amountGrams,
-                    cookingMethod = scaleMethod,
+                    cookingMethod = tag.cookingMethod,
+                    preparation = preparation,
+                    oil = OilAmount.fromLevel(oilLevel),
                     portionAdjustment = adj,
                 )
-                val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel, foodName = food.name)
                 tag.copy(
                     oilLevel = oilLevel,
-                    appliedOilGrams = (adjustedLogged.fats - logged.fats).coerceAtLeast(0.0),
+                    cookingMethod = tag.cookingMethod ?: prepared.preparation?.let(::cookingMethodFor),
+                    baseLoggedFood = prepared.base,
+                    appliedOilGrams = prepared.oilGrams,
                     learnedOilGramsPer100g = null,
-                    loggedFood = adjustedLogged,
+                    loggedFood = prepared.logged,
                     hasManualEdits = true,
-                    oilApplied = true,
+                    oilApplied = prepared.oil != null,
                     needsOilClarification = false,
                     explicitDecision = true,
                     isResolved = true,
@@ -1096,7 +1140,10 @@ fun FoodLoggerDrawer(
                     oilLevel = oilLevel,
                     appliedOilGrams = (adjusted.fats - stripped.fats).coerceAtLeast(0.0),
                     learnedOilGramsPer100g = null,
-                    loggedFood = adjusted,
+                    loggedFood = adjusted.copy(
+                        preparation = tag.loggedFood.preparation ?: tag.cookingMethod?.let(FoodPreparations::of)?.name,
+                        preparationOilLevel = oilLevel,
+                    ),
                     hasManualEdits = true,
                     oilApplied = true,
                     needsOilClarification = false,
@@ -1112,8 +1159,19 @@ fun FoodLoggerDrawer(
     }
 
     fun updateTagCutClarification(tagId: String, foodId: String) {
-        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "staple_cut", "foodId" to foodId))
         val target = tags.firstOrNull { it.id == tagId }
+        val selectedFood = findStaticFoodById(foodId)
+        val eligibilityQuery = target?.foodItem?.let { FoodIdentity.identityQueryWithoutPreparation(it.name) }
+            ?.takeIf { it.isNotBlank() }
+            ?: target?.let { FoodIdentity.identityQueryWithoutPreparation(it.foodQuery.ifBlank { it.tag }) }.orEmpty()
+        if (target == null || selectedFood == null || !nutritionRepo.isLoggerFoodEligible(
+                eligibilityQuery, selectedFood, target.brandHint, target.excludedIngredients,
+            )
+        ) {
+            saveError = "Ese corte no tiene una ficha compatible con el alimento o la marca solicitada."
+            return
+        }
+        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "staple_cut", "foodId" to foodId))
         tags = tags.map { tag ->
             if (tag.id != tagId) tag else NutritionInterpretationBridge.applyCutOption(tag, foodId)
         }
@@ -1123,60 +1181,34 @@ fun FoodLoggerDrawer(
     fun updateTagCookingClarification(tagId: String, wantCooked: Boolean) {
         val target = tags.firstOrNull { it.id == tagId } ?: return
         val selectedVariant = CookingStateResolver.findDryOrCookedVariant(target.tag, wantCooked) ?: target.foodItem
-        if (selectedVariant != null && (!NutrientBasis.isVerified(selectedVariant) || !FoodIdentity.matchesExclusions(selectedVariant, target.excludedIngredients))) {
+        val method = if (wantCooked) CookingMethod.COCIDO else CookingMethod.CRUDO
+        val eligibilityQuery = target.foodItem?.let { FoodIdentity.identityQueryWithoutPreparation(it.name) }
+            ?.takeIf { it.isNotBlank() }
+            ?: FoodIdentity.identityQueryWithoutPreparation(target.foodQuery.ifBlank { target.tag })
+        if (selectedVariant != null && !nutritionRepo.isLoggerFoodEligible(
+                eligibilityQuery, selectedVariant, target.brandHint, target.excludedIngredients,
+            )
+        ) {
             saveError = "No hay una ficha compatible para ese estado. Elige otra preparación o conserva la estimación."
             return
         }
         NutritionTelemetry.event("clarification_answered", mapOf("kind" to "cooking_state", "answer" to if (wantCooked) "cooked" else "raw"))
-        val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        tags = tags.map { tag ->
-            if (tag.id != tagId) return@map tag
-            val method = if (wantCooked) CookingMethod.COCIDO else CookingMethod.CRUDO
-            val variant = CookingStateResolver.findDryOrCookedVariant(tag.tag, wantCooked)
-                ?: tag.foodItem
-            val food = variant ?: tag.foodItem
-            if (food == null) return@map tag.copy(
+        if (selectedVariant != null) {
+            resolveFood(
+                tagId = tagId,
+                food = selectedVariant,
+                preparationOverride = if (wantCooked) FoodPreparation.COOKED else FoodPreparation.RAW,
+            )
+        } else {
+            tags = tags.map { tag -> if (tag.id == tagId) tag.copy(
                 cookingMethod = method,
                 needsCookingClarification = false,
                 clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                 statusText = "",
                 hasManualEdits = true,
-            )
-            val adj = scalingForIntent(tag.amountIntent, portionAdj)
-            val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, method)
-            val scaleMethod = if (usePrepared) null else method
-            val logged = scaleFoodByPortion(
-                food = food,
-                quantity = tag.quantity,
-                portion = tag.portion,
-                amountGrams = tag.amountGrams,
-                cookingMethod = scaleMethod,
-                portionAdjustment = adj,
-            )
-            tag.copy(
-                cookingMethod = method,
-                foodItem = food,
-                loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE, cookingMethod = method),
-                baseAmountGrams = tag.baseAmountGrams ?: tag.amountGrams ?: logged.amount,
-                portionMinGrams = tag.portionMinGrams ?: tag.amountGrams ?: logged.amount,
-                portionMaxGrams = tag.portionMaxGrams ?: tag.amountGrams ?: logged.amount,
-                isResolved = true,
-                analysisSource = AnalysisSource.DATABASE,
-                statusText = "",
-                needsCookingClarification = false,
-                clarificationKind = CookingStateResolver.ClarificationKind.NONE,
-                hasManualEdits = true,
-                oilApplied = false, appliedOilGrams = 0.0, learnedWeightBasis = null,
-                canonicalFamily = FoodIdentity.familyFor(food),
-                foodState = CookingStateResolver.stateForMethod(method) ?: FoodIdentity.stateFor(food),
-                resolutionStatus = FoodResolutionStatus.AUTO,
-                nutritionSource = NutrientBasis.source(food),
-                resolutionConfidence = 1.0,
-                explicitDecision = true,
-                isUncertain = false,
-            )
+            ) else tag }
+            refreshTag(tagId, "state")
         }
-        refreshTag(tagId, "state")
     }
 
                     fun updateTagCalories(tagId: String, calories: Double) {
@@ -1442,6 +1474,8 @@ fun FoodLoggerDrawer(
     var identityTagId by remember { mutableStateOf<String?>(null) }
     var identityQuery by remember { mutableStateOf("") }
     var identityResults by remember { mutableStateOf<List<FoodCandidate>?>(null) }
+    var identityResultsQuery by remember { mutableStateOf<String?>(null) }
+    var identityResultsTagId by remember { mutableStateOf<String?>(null) }
     var detailFood by remember { mutableStateOf<FoodItem?>(null) }
     var showForget by remember { mutableStateOf(false) }
     var showAllFavorites by remember { mutableStateOf(false) }
@@ -1456,25 +1490,94 @@ fun FoodLoggerDrawer(
      */
     fun applyPreparationOil(tagId: String, explicit: Boolean) {
         val tag = tags.firstOrNull { it.id == tagId } ?: return
-        val food = tag.foodItem ?: return
-        val choice = prepChoice[tagId]?.takeIf { it.foodId == food.id } ?: return
+        val food = tag.foodItem
         val logged = tag.loggedFood ?: return
+        val foodKey = food?.id ?: "estimate:${tag.id}"
+        val category = oilAbsorptionCategory(food?.name ?: logged.foodName.ifBlank { tag.tag })
+        val choice = prepChoice[tagId]?.takeIf { it.foodId == foodKey } ?: run {
+            val preparation = logged.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() } ?: return
+            LoggerPrepChoice(
+                preparation = preparation,
+                oil = OilAmount.fromLevel(logged.preparationOilLevel) ?: FoodPreparations.recordOil(preparation),
+                foodId = foodKey,
+            )
+        }
         if (!explicit && tag.nutrientsManuallyEdited) return
+        if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE &&
+            tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE
+        ) {
+            val method = cookingMethodFor(choice.preparation)
+            val prepared = recalculatePreparedFood(
+                food = food,
+                quantity = tag.quantity,
+                portion = tag.portion,
+                amountGrams = tag.amountGrams,
+                cookingMethod = method,
+                preparation = choice.preparation,
+                oil = choice.oil,
+                portionAdjustment = scalingForIntent(tag.amountIntent, detectedContext?.portionAdjustment ?: 1.0),
+            )
+            tags = tags.map { current ->
+                if (current.id != tagId) current else current.copy(
+                    cookingMethod = method,
+                    loggedFood = prepared.logged,
+                    baseLoggedFood = prepared.base,
+                    oilLevel = prepared.oil?.level ?: "sin aceite",
+                    appliedOilGrams = prepared.oilGrams,
+                    oilApplied = prepared.oil != null,
+                    needsOilClarification = false,
+                    hasManualEdits = true,
+                    foodState = CookingStateResolver.stateForMethod(method) ?: FoodIdentity.stateFor(food),
+                )
+            }
+            refreshTag(tagId, if (explicit) "state" else null)
+            tags.firstOrNull { it.id == tagId }?.loggedFood?.let { prepApplied[tagId] = LoggerPrepApplied(prepared.base, it) }
+            return
+        }
         val last = prepApplied[tagId]
-        val base = if (last != null && last.oiled == logged) last.base else logged
+        if (last == null && logged.preparation == choice.preparation.name &&
+            logged.preparationOilLevel == choice.oil?.level) return
+        val reusedBase = last?.takeIf { it.oiled == logged }?.base
+        val previousPreparation = if (reusedBase == null) logged.preparation
+            ?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() } else null
+        val previousOil = if (reusedBase == null) OilAmount.fromLevel(logged.preparationOilLevel) else null
+        val base = reusedBase ?: logged
         val grams = tag.amountGrams ?: base.amount
-        val delta = FoodPreparations.oilDeltaGrams(choice.preparation, choice.oil, oilAbsorptionCategory(food.name), grams)
-        val oiled = FoodPreparations.withOil(base, delta)
+        val delta = FoodPreparations.oilDeltaGrams(choice.preparation, choice.oil, category, grams)
+        val oiled = if (reusedBase != null) FoodPreparations.withOil(base, delta) else {
+            FoodPreparations.replaceOil(
+                logged = logged,
+                previousPreparation = previousPreparation,
+                previousAmount = previousOil,
+                preparation = choice.preparation,
+                amount = choice.oil,
+                category = category,
+                grams = grams,
+            )
+        }
         tags = tags.map {
             if (it.id != tagId) it else it.copy(
-                loggedFood = oiled,
+                loggedFood = oiled.copy(
+                    preparation = choice.preparation.name,
+                    preparationOilLevel = choice.oil?.level,
+                    cookingMethod = when (choice.preparation) {
+                        FoodPreparation.RAW -> CookingMethod.CRUDO
+                        FoodPreparation.COOKED -> CookingMethod.COCIDO
+                        FoodPreparation.STEAMED -> CookingMethod.VAPOR
+                        FoodPreparation.GRILLED -> CookingMethod.PLANCHA
+                        FoodPreparation.BAKED -> CookingMethod.HORNO
+                        FoodPreparation.SAUTEED -> CookingMethod.SALTEADO
+                        FoodPreparation.FRIED -> CookingMethod.FRITO
+                    },
+                ),
                 oilLevel = choice.oil?.level ?: "sin aceite",
                 appliedOilGrams = delta.coerceAtLeast(0.0),
+                oilApplied = delta > 0.0,
                 needsOilClarification = false,
                 hasManualEdits = true,
             )
         }
-        refreshTag(tagId, "oil")
+        refreshTag(tagId, if (explicit) "oil" else null)
         tags.firstOrNull { it.id == tagId }?.loggedFood?.let { prepApplied[tagId] = LoggerPrepApplied(base, it) }
     }
 
@@ -1491,39 +1594,45 @@ fun FoodLoggerDrawer(
         performSearch()
     }
     LaunchedEffect(identityQuery, identityTagId) {
-        val target = tags.firstOrNull { it.id == identityTagId }
-        if (target == null || identityQuery.isBlank()) {
+        val query = identityQuery
+        val tagId = identityTagId
+        val target = tags.firstOrNull { it.id == tagId }
+        identityResults = null
+        identityResultsQuery = null
+        identityResultsTagId = null
+        if (target == null || query.isBlank()) {
             identityResults = null
             return@LaunchedEffect
         }
         delay(CORRECTION_SEARCH_DEBOUNCE_MS)
-        identityResults = withContext(Dispatchers.Default) {
-            nutritionRepo.searchLoggerCandidates(identityQuery, limit = 15)
-                .filter { FoodIdentity.matchesExclusions(it.food, target.excludedIngredients) }
-                .take(5)
+        val results = nutritionRepo.searchLoggerCandidates(
+            query,
+            limit = 15,
+            brandHint = target.brandHint,
+            excludedIngredients = target.excludedIngredients,
+        ).take(5)
+        if (identityQuery == query && identityTagId == tagId) {
+            identityResults = results
+            identityResultsQuery = query
+            identityResultsTagId = tagId
         }
     }
 
     /** Un alimento del buscador, de la ficha o de un atajo entra como una tarjeta más; la ración es la mostrada salvo [gramsOverride]. */
     fun addSearchFood(selectedFood: FoodItem, gramsOverride: Double? = null) {
         val queryUsed = searchQuery.ifBlank { selectedFood.name }
-        if (selectedFood.recipe != null) {
-            if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
-                saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
-                errorPulse++
-                return
-            }
-            recipeToOpen = selectedFood; editRecipe = false; showRecipes = true
-            return
-        }
         if (!NutrientBasis.isVerified(selectedFood)) {
-            saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
+            saveError = "Esta ficha no tiene nutrientes verificables. Elige otra o conserva la estimación."
             errorPulse++
             return
         }
-        if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
-            saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+        if (!nutritionRepo.isLoggerFoodEligible(queryUsed, selectedFood)) {
+            saveError = "Esa ficha no coincide con el alimento o la marca que buscaste. Elige otra."
             errorPulse++
+            return
+        }
+        if (selectedFood.recipe != null) {
+            recipeToOpen = selectedFood; editRecipe = false; showRecipes = true
             return
         }
         // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
@@ -1583,21 +1692,34 @@ fun FoodLoggerDrawer(
         }
     }
 
-    fun identityChoice(tag: ResolvedTag, id: String, requestId: String?) {
+    fun identityChoice(tag: ResolvedTag, id: String, requestId: String?, correctedQuery: String? = null) {
         when {
             id == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID -> confirmComposition(tag.id)
             requestId == "cut" -> updateTagCutClarification(tag.id, id)
-            else -> ((tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id }
-                ?: identityResults?.firstOrNull { it.food.id == id }?.food
-                ?: findStaticFoodById(id))
-                ?.let { resolveFood(tag.id, it, identityQuery.takeIf { q -> q.isNotBlank() }) }
+            else -> {
+                val selected = (tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id }
+                ?: identityResults
+                    ?.takeIf { identityResultsTagId == tag.id && identityResultsQuery == correctedQuery }
+                    ?.firstOrNull { it.food.id == id }?.food
+                ?: findStaticFoodById(id)
+                val previousId = tag.foodItem?.id
+                val resolved = selected?.let { resolveFood(tag.id, it, correctedQuery?.takeIf(String::isNotBlank)) } == true
+                if (resolved && previousId != selected?.id) {
+                    prepChoice.remove(tag.id)
+                    prepApplied.remove(tag.id)
+                }
+            }
         }
     }
 
     /** La respuesta [key] de la duda de [tag] (claves de [LoggerChoiceKeys]). */
     fun answerQuestion(tag: ResolvedTag, question: ClarificationRequest, shown: LoggerQuestion, key: String) {
         when {
-            key == LoggerChoiceKeys.MORE -> { identityQuery = ""; identityTagId = tag.id; return }
+            key == LoggerChoiceKeys.MORE -> {
+                identityQuery = ""; identityTagId = tag.id
+                identityResults = null; identityResultsQuery = null; identityResultsTagId = null
+                return
+            }
             key == LoggerChoiceKeys.ADJUST -> { sheetTagId = tag.id; return }
             key.startsWith(LoggerChoiceKeys.IDENTITY) -> identityChoice(tag, key.removePrefix(LoggerChoiceKeys.IDENTITY), question.requestId)
             key.startsWith(LoggerChoiceKeys.COMPOSITION) -> correctTortillaComposition(tag.id, key.removePrefix(LoggerChoiceKeys.COMPOSITION))
@@ -1706,7 +1828,27 @@ fun FoodLoggerDrawer(
         val approx = logged != null && (tag.isUncertain || logged.isUncertain || tag.interpretationV2?.isUncertain == true ||
             tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE)
         val question = if (tag.isExcluded) null else tag.interpretationV2?.pendingQuestions?.firstOrNull()
-        val shown = question?.let { loggerQuestionFor(tag, it) }
+        val displayQuestion = when (question) {
+            is ClarificationRequest.Identity -> {
+                val knownCandidates = tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase
+                val identityChoices = clarificationCandidateChoices(question).filter { (candidateId, _) ->
+                    if (question.requestId == "composition" && candidateId == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID) {
+                        true
+                    } else {
+                        val food = knownCandidates.firstOrNull { it.id == candidateId } ?: findStaticFoodById(candidateId)
+                        food != null && nutritionRepo.isLoggerFoodEligible(
+                            tag.foodQuery.ifBlank { tag.tag }, food, tag.brandHint, tag.excludedIngredients,
+                        )
+                    }
+                }
+                question.copy(
+                    candidateIds = identityChoices.map { it.first },
+                    candidateLabels = identityChoices.map { it.second },
+                )
+            }
+            else -> question
+        }
+        val shown = displayQuestion?.let { loggerQuestionFor(tag, it) }
         val justAnswered = answered[tag.id]
         if (justAnswered != null && shown == null) {
             LaunchedEffect(justAnswered) {
@@ -1725,7 +1867,7 @@ fun FoodLoggerDrawer(
             onOpen = { if (logged == null) { identityQuery = ""; identityTagId = tag.id } else sheetTagId = tag.id },
             question = shown,
             answered = if (shown == null) justAnswered else null,
-            onChoice = { key -> if (question != null && shown != null) answerQuestion(tag, question, shown, key) },
+            onChoice = { key -> if (displayQuestion != null && shown != null) answerQuestion(tag, displayQuestion, shown, key) },
             onSkip = { useEstimate(tag.id) },
             index = index,
             compact = compact,
@@ -2073,6 +2215,7 @@ fun FoodLoggerDrawer(
             } else emptyMap()
             val chosen = prepChoice[tag.id]?.takeIf { it.foodId == currentFoodId }
             val currentPrep = chosen?.preparation
+                ?: logged.preparation?.let { runCatching { FoodPreparation.valueOf(it) }.getOrNull() }
                 ?: stateRecords.entries.firstOrNull { it.value == currentFoodId }?.key
                 ?: tag.cookingMethod?.let { FoodPreparations.of(it) }
             // «Crudo» se queda si el alimento estaba en crudo al abrir la hoja, aunque su grupo no se coma crudo (arroz pesado en crudo).
@@ -2085,6 +2228,7 @@ fun FoodLoggerDrawer(
             val oil = when {
                 oilOptions.isEmpty() -> null
                 chosen != null -> chosen.oil
+                logged.preparationOilLevel != null -> OilAmount.fromLevel(logged.preparationOilLevel)
                 legacyOil -> OilAmount.fromLevel(tag.oilLevel)
                 else -> FoodPreparations.recordOil(currentPrep)
             }?.takeIf { it in oilOptions }
@@ -2127,21 +2271,50 @@ fun FoodLoggerDrawer(
                     applyPreparationOil(tag.id, explicit = false)
                 },
                 onPreparationChange = { preparation ->
+                    val currentTag = tags.firstOrNull { it.id == tag.id }
                     val targetId = stateRecords[FoodPreparations.recordOf(preparation)] ?: currentFoodId
-                    if (targetId != null) {
-                        if (targetId != currentFoodId) identityChoice(tag, targetId, null)
-                        if (tags.firstOrNull { it.id == tag.id }?.foodItem?.id == targetId) {
-                            prepChoice[tag.id] = LoggerPrepChoice(preparation, FoodPreparations.defaultOil(preparation), targetId)
-                            applyPreparationOil(tag.id, explicit = true)
+                    val selectedFood = targetId?.let { id ->
+                        (tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id }
+                            ?: findStaticFoodById(id)
+                    } ?: currentTag?.foodItem
+                    if (currentTag != null && selectedFood != null &&
+                        currentTag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE &&
+                        currentTag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE
+                    ) {
+                        val selectedOil = FoodPreparations.defaultOil(preparation)
+                        if (resolveFood(tag.id, selectedFood, preparationOverride = preparation, oilOverride = selectedOil)) {
+                            prepChoice[tag.id] = LoggerPrepChoice(preparation, selectedOil, selectedFood.id)
+                            prepApplied.remove(tag.id)
                         }
+                    } else if (currentTag != null) {
+                        val key = selectedFood?.id ?: "estimate:${tag.id}"
+                        prepChoice[tag.id] = LoggerPrepChoice(preparation, FoodPreparations.defaultOil(preparation), key)
+                        applyPreparationOil(tag.id, explicit = true)
                     }
                 },
                 onOilChange = { amount ->
                     if (legacyOil) {
                         updateTagOilLevel(tag.id, amount.level)
-                    } else if (currentPrep != null && currentFoodId != null) {
-                        prepChoice[tag.id] = LoggerPrepChoice(currentPrep, amount, currentFoodId)
-                        applyPreparationOil(tag.id, explicit = true)
+                    } else if (currentPrep != null) {
+                        val currentTag = tags.firstOrNull { it.id == tag.id }
+                        val currentFood = currentTag?.foodItem
+                        if (currentTag != null && currentFood != null &&
+                            currentTag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE &&
+                            currentTag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE
+                        ) {
+                            if (resolveFood(
+                                    tag.id, currentFood, preparationOverride = currentPrep, oilOverride = amount,
+                                    confirmedDimension = "oil",
+                                )
+                            ) {
+                                prepChoice[tag.id] = LoggerPrepChoice(currentPrep, amount, currentFood.id)
+                                prepApplied.remove(tag.id)
+                            }
+                        } else if (currentTag != null) {
+                            val key = currentFoodId ?: "estimate:${tag.id}"
+                            prepChoice[tag.id] = LoggerPrepChoice(currentPrep, amount, key)
+                            applyPreparationOil(tag.id, explicit = true)
+                        }
                     }
                 },
                 onToggleExcluded = {
@@ -2182,28 +2355,60 @@ fun FoodLoggerDrawer(
                 ?: "${kotlin.math.round(grams).toInt()} g"
             return "$amount · $kcal kcal"
         }
+        val identityQueryForCandidates = tag.foodQuery.ifBlank { tag.tag }
+        fun eligible(food: FoodItem): Boolean = nutritionRepo.isLoggerFoodEligible(
+            identityQueryForCandidates, food, tag.brandHint, tag.excludedIngredients,
+        )
         val pool = tag.variantChoices.map { it.food } + tag.reviewCandidates + foodDatabase
         val fromQuestion = question?.let { clarificationCandidateChoices(it) }.orEmpty().map { (id, label) ->
-            LoggerCandidate(id, label, captionFor(pool.firstOrNull { it.id == id } ?: findStaticFoodById(id)), likely = false)
-        }
-        val current = tag.foodItem?.let { food ->
-            LoggerCandidate(food.id, food.name, captionFor(food), likely = (tag.resolutionConfidence ?: 0.0) >= 0.8)
+            val food = pool.firstOrNull { it.id == id } ?: findStaticFoodById(id)
+            food?.takeIf(::eligible)?.let {
+                LoggerCandidate(id, label, captionFor(it), likely = false, queryContext = identityQueryForCandidates)
+            }
+        }.filterNotNull()
+        val current = tag.foodItem?.takeIf(::eligible)?.let { food ->
+            LoggerCandidate(
+                food.id,
+                food.name,
+                captionFor(food),
+                likely = (tag.resolutionConfidence ?: 0.0) >= 0.8,
+                queryContext = identityQueryForCandidates,
+            )
         }
         val others = (tag.reviewCandidates + tag.variantChoices.map { it.food }).distinctBy { it.id }
             .filter { it.id != current?.id }
-            .map { LoggerCandidate(it.id, it.name, captionFor(it), likely = false) }
+            .filter(::eligible)
+            .map { LoggerCandidate(it.id, it.name, captionFor(it), likely = false, queryContext = identityQueryForCandidates) }
         val candidates = (listOfNotNull(current) + fromQuestion + others).distinctBy { it.id }.take(4)
         LoggerIdentitySheet(
             typed = tag.foodQuery.ifBlank { tag.tag },
             candidates = candidates,
-            onUse = { id ->
+            onUse = { id, queryContext ->
+                val chosenQuery = queryContext?.takeIf { it.isNotBlank() } ?: identityQueryForCandidates
+                if (id != tag.foodItem?.id) identityChoice(tag, id, question?.requestId, chosenQuery)
                 identityTagId = null
-                if (id != tag.foodItem?.id) identityChoice(tag, id, question?.requestId)
+                identityQuery = ""
+                identityResults = null
+                identityResultsQuery = null
+                identityResultsTagId = null
             },
-            onDismiss = { identityTagId = null },
+            onDismiss = {
+                identityTagId = null; identityQuery = ""; identityResults = null
+                identityResultsQuery = null; identityResultsTagId = null
+            },
             searchQuery = identityQuery,
             onSearchQueryChange = { identityQuery = it },
-            searchResults = identityResults?.map { LoggerCandidate(it.food.id, it.food.name, captionFor(it.food), likely = false) },
+            searchResults = identityResults
+                ?.takeIf { identityResultsQuery == identityQuery && identityResultsTagId == tag.id }
+                ?.map {
+                    LoggerCandidate(
+                        id = it.food.id,
+                        name = it.food.name,
+                        caption = captionFor(it.food),
+                        likely = false,
+                        queryContext = identityResultsQuery ?: identityQuery,
+                    )
+                },
         )
     }
 

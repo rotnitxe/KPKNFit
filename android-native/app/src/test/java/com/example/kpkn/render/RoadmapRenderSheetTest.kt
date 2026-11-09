@@ -165,7 +165,7 @@ class RoadmapRenderSheetTest {
             })
         }
         val elements: List<TimelineElement> = when {
-            sc.prep -> listOf(TimelineElement.WarmupPill(true, false, 0f) {}) + sets
+            sc.prep -> listOf(TimelineElement.WarmupPill(true, false, 0f, onSelect = {})) + sets
             sc.rest != null -> sets.take(sc.cur + 1) + TimelineElement.RestPill(88, sc.rest.second, sc.rest.first) + sets.drop(sc.cur + 1)
             else -> sets
         }

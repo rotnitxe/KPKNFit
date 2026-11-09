@@ -7,6 +7,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -115,7 +117,10 @@ internal fun ProgramEditSheet(
                 radius = 18.dp,
             )
             Column(modifier = Modifier.weight(1f)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 10.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 10.dp),
+                ) {
                     LineCoverBackground.entries.forEach { background ->
                         BackgroundDot(
                             background = background,
@@ -178,7 +183,7 @@ private fun BackgroundDot(background: LineCoverBackground, selected: Boolean, on
     )
 }
 
-/** Los ocho estilos en cuatro columnas (6 dp entre ellas), 4:5 y radio de 8 dp; el elegido con un anillo de tinta de 2 dp a 1 dp. */
+/** Los estilos disponibles en cuatro columnas (6 dp entre ellas), 4:5 y radio de 8 dp; el elegido con un anillo de tinta. */
 @Composable
 private fun StyleGrid(base: LineCoverSpec, background: LineCoverBackground, selected: LineCoverStyle?, onSelect: (LineCoverStyle) -> Unit) {
     val ring = WizardColors.text

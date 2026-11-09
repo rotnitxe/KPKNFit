@@ -38,6 +38,7 @@ object TechniqueCaptureVoiceLink {
     data class Handlers(
         val start: () -> TechniqueCaptureStartResult,
         val stop: () -> TechniqueCaptureStopResult,
+        val startAnyway: () -> TechniqueCaptureStartResult = start,
     )
 
     private val handlers = AtomicReference<Handlers?>(null)
@@ -91,6 +92,9 @@ object TechniqueCaptureVoiceLink {
 
     fun tryStart(): TechniqueCaptureStartResult =
         handlers.get()?.start() ?: TechniqueCaptureStartResult.UNAVAILABLE
+
+    fun tryStartAnyway(): TechniqueCaptureStartResult =
+        handlers.get()?.startAnyway?.invoke() ?: TechniqueCaptureStartResult.UNAVAILABLE
 
     fun tryStop(): TechniqueCaptureStopResult =
         handlers.get()?.stop() ?: TechniqueCaptureStopResult.UNAVAILABLE

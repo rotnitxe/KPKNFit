@@ -53,7 +53,7 @@ internal fun buildProgramPlanDisplaySummary(program: Program): ProgramPlanDispla
         macro.blocks.flatMap { block -> block.mesocycles.flatMap { it.weeks } }
     }
     val sessions = weeks.flatMap { it.sessions }
-    val material = requiredMaterial(program, sessions.flatMap { it.allExercises().mapNotNull { exercise -> exercise.catalogConfigurationId } }.toSet())
+    val material = requiredMaterial(program, sessions.flatMap { it.allExercises() })
     val dayCounts = weeks.mapNotNull { week ->
         week.sessions.mapNotNull { session -> session.dayOfWeek }.toSet().takeIf { it.isNotEmpty() }?.size
     }
@@ -216,21 +216,51 @@ private fun sourceLine(provenance: PlanProvenance): String? = listOfNotNull(
     provenance.sourceEdition,
 ).filter { it.isNotBlank() }.distinct().joinToString(" · ").ifBlank { null }
 
-private fun requiredMaterial(program: Program, configurationIds: Set<String>): String {
-    if (configurationIds.isEmpty()) return "Sin configuraciones catalogadas"
-    val catalog = approvedExerciseCatalogV2() ?: return "No disponible: catálogo de configuraciones pendiente"
-    val configurations = catalog.families.flatMap { it.definitions }.flatMap { it.configurations }
-        .filter { it.id in configurationIds }
-    if (configurations.isEmpty()) return "No disponible para las configuraciones materializadas"
-    val terms = configurations.flatMap { configuration ->
-        configuration.profile.richMetadata?.programming?.requiredEquipment.orEmpty() + configuration.profile.equipmentId
-    }.map(::materialLabel).filter { it.isNotBlank() }.distinct().sorted()
-    val adaptations = program.planProvenance?.slotChanges.orEmpty()
-    val opaqueChangeCount = adaptations.count { it.toConfigurationId != null && it.toConfigurationId !in configurationIds }
-    return buildList {
-        addAll(terms)
-        if (opaqueChangeCount > 0) add("Revisar cambios de configuración")
-    }.distinct().joinToString(", ").ifBlank { "Sin material específico declarado" }
+private fun requiredMaterial(program: Program, exercises: List<com.example.kpkn.data.models.Exercise>): String {
+    if (exercises.isEmpty()) return "Material por configurar"
+    val catalog = approvedExerciseCatalogV2()
+    val definitions = catalog?.families?.flatMap { it.definitions }.orEmpty()
+    val allConfigurations = definitions.flatMap { it.configurations }
+    val known = linkedSetOf<String>()
+    var pending = false
+    var hasExplicitNotes = false
+
+    fun termsFor(configuration: com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2): Set<String> =
+        (configuration.profile.richMetadata?.programming?.requiredEquipment.orEmpty() + configuration.profile.equipmentId)
+            .map(::materialLabel)
+            .filter { it.isNotBlank() }
+            .toSortedSet()
+
+    exercises.forEach { exercise ->
+        val explicit = exercise.setupDetails?.equipmentNotes?.trim()?.takeIf { it.isNotEmpty() }
+        val exact = exercise.catalogConfigurationId?.let { id -> allConfigurations.firstOrNull { it.id == id } }
+        val derived = exact?.let(::termsFor).orEmpty().ifEmpty {
+            val definition = exercise.catalogDefinitionId?.let { id -> definitions.firstOrNull { it.id == id } }
+            val possible = definition?.configurations.orEmpty().map(::termsFor).distinct()
+            possible.singleOrNull().orEmpty()
+        }
+        if (derived.isNotEmpty()) known += derived
+        if (explicit != null) {
+            known += explicit
+            hasExplicitNotes = true
+        } else if (derived.isEmpty()) {
+            pending = true
+        }
+    }
+
+    val configurationIds = exercises.mapNotNull { it.catalogConfigurationId }.toSet()
+    val opaqueChangeCount = program.planProvenance?.slotChanges.orEmpty().count { change ->
+        change.toConfigurationId != null && change.toConfigurationId !in configurationIds
+    }
+    if (opaqueChangeCount > 0) pending = true
+    val listed = known.distinct().sorted().joinToString(", ")
+    return when {
+        listed.isEmpty() -> "Material por configurar"
+        hasExplicitNotes && pending -> "Material declarado: $listed · Material por configurar"
+        hasExplicitNotes -> "Material declarado: $listed"
+        pending -> "$listed · Material por configurar"
+        else -> listed
+    }
 }
 
 private fun materialLabel(raw: String): String {

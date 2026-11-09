@@ -4,12 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,10 +64,13 @@ internal fun RecordedSessionFinishSheet(
     onAlbum: () -> Unit,
     onConfirm: (String, Double?) -> Unit,
     onDismiss: () -> Unit,
+    onDiscardEmpty: () -> Unit = {},
     /** Series planificadas de la sesión (para el anillo «Series»); null = las hechas. */
     plannedSets: Int? = null,
     /** Tiempo objetivo de la sesión en minutos (para el anillo «Duración»); null = vuelta de reloj de 60 min. */
     targetMinutes: Int? = null,
+    /** Duración exacta para conservar sesiones de menos de un minuto en el resumen. */
+    durationSeconds: Int = durationMinutes * 60,
     /** «No se pudo guardar la sesión…» en rojo suave sobre el botón; la hoja se queda y el botón vuelve a estar activo. */
     errorMessage: String? = null,
 ) {
@@ -73,6 +79,8 @@ internal fun RecordedSessionFinishSheet(
     var shareAfterSave by rememberSaveable { mutableStateOf(false) }
     var showStory by rememberSaveable { mutableStateOf(false) }
     var panelOpen by rememberSaveable { mutableStateOf(false) }
+    var panelKind by rememberSaveable { mutableStateOf(FinishPanelKind.NOTES) }
+    var showEmptyDiscardConfirmation by rememberSaveable { mutableStateOf(false) }
     var storyOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
     // El mensaje de error se queda mientras la hoja siga abierta (el aviso del controlador se consume al mostrarse).
     var shownError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -90,8 +98,8 @@ internal fun RecordedSessionFinishSheet(
     LaunchedEffect(name, completedExercises, durationMinutes) {
         onSummaryReady(WorkoutSessionSummary(durationMinutes, logicalSetCountFromCompleted(completedExercises), discomforts))
     }
-    val model = remember(name, completedExercises, durationMinutes, sessionRpe, presentation, lifts, plannedSets, targetMinutes) {
-        buildFinishModel(name, completedExercises, durationMinutes, sessionRpe, presentation, lifts, plannedSets, targetMinutes)
+    val model = remember(name, completedExercises, durationMinutes, durationSeconds, sessionRpe, presentation, lifts, plannedSets, targetMinutes) {
+        buildFinishModel(name, completedExercises, durationMinutes, sessionRpe, presentation, lifts, plannedSets, targetMinutes, durationSeconds)
     }
     val blocked = finishEmptySessionGuidance(completedExercises)
 
@@ -116,17 +124,20 @@ internal fun RecordedSessionFinishSheet(
     }
     val state = FinishSheetState(
         model = model, dims = dims, saving = saving, errorMessage = shownError, blockedMessage = blocked, notes = notes,
-        photoCount = presentation.photos.size, shareAfterSave = shareAfterSave, panelOpen = panelOpen, checklist = checklist,
+        photoCount = presentation.photos.size, shareAfterSave = shareAfterSave, panelOpen = panelOpen, panelKind = panelKind, checklist = checklist,
         effortSelected = effort, storyThumb = thumb, ridges = ridges, ridgeRecordIndex = ridgeRecord,
     )
     val actions = FinishSheetActions(
-        onShare = { shareAfterSave = it }, onPrepareStory = { showStory = true }, onOpenNotes = { panelOpen = true },
+        onShare = { shareAfterSave = it }, onPrepareStory = { showStory = true },
+        onOpenNotes = { panelKind = FinishPanelKind.NOTES; panelOpen = true },
+        onOpenRate = { panelKind = FinishPanelKind.EFFORT; panelOpen = true },
         onClosePanel = { panelOpen = false }, onPhotos = onAlbum,
         onSave = {
             if (shareAfterSave) onShareAfterSave(story, storyOptions)
             onConfirm(notes, effort)
         },
         onBack = { if (!saving) onDismiss() },
+        onDiscard = { if (!saving && model.empty) showEmptyDiscardConfirmation = true },
         onNotes = { notes = it; onNotes(it) }, onEffort = { effort = it },
         onAddTask = onAddTask, onToggleTask = onToggleTask, onRemoveTask = onRemoveTask,
     )
@@ -140,7 +151,7 @@ internal fun RecordedSessionFinishSheet(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         dragHandle = null,
     ) {
-        Box(Modifier.fillMaxWidth().then(if (model.empty) Modifier else Modifier.fillMaxHeight(0.94f))) {
+        Box(Modifier.fillMaxWidth().heightIn(max = (config.screenHeightDp * 0.94f).dp)) {
             FinishSheetContent(state, actions)
             Box(Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF)))
         }
@@ -154,6 +165,15 @@ internal fun RecordedSessionFinishSheet(
             shareAfterSave = shareAfterSave,
             onShareAfterSaveChange = { shareAfterSave = it },
             onDismiss = { showStory = false },
+        )
+    }
+    if (showEmptyDiscardConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showEmptyDiscardConfirmation = false },
+            title = { Text("¿Descartar esta sesión?") },
+            text = { Text("Todavía no hay series ni datos de cardio guardados. Se eliminará el borrador de esta sesión.") },
+            confirmButton = { TextButton(onClick = { showEmptyDiscardConfirmation = false; onDiscardEmpty() }) { Text("Descartar") } },
+            dismissButton = { TextButton(onClick = { showEmptyDiscardConfirmation = false }) { Text("Seguir en la sesión") } },
         )
     }
 }

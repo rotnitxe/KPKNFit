@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.view.Surface
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -19,6 +20,8 @@ import com.example.kpkn.data.media.DeferredMediaDelete
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.data.media.technique.CaptureMetadata
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
@@ -62,14 +65,18 @@ data class WorkoutMediaCaptureRequest(
     /** Definición y configuración del catálogo v2 del ejercicio (null = ejercicio fuera del catálogo o sin resolver). */
     val catalogDefinitionId: String? = null,
     val catalogConfigurationId: String? = null,
+    /** Null for old/imported media; camera technique captures store the explicit per-take choice. */
+    val analysisRequestedForCapture: Boolean? = null,
+    val framingGateBypassed: Boolean? = null,
+    val framingWarning: String? = null,
 )
 
 /** Resultado de persistencia, independiente del código Finalize de CameraX. */
 sealed interface TechniqueRecordingResult {
     val errorMessage: String?
 
-    data class Saved(val media: WorkoutMedia) : TechniqueRecordingResult {
-        override val errorMessage: String? = null
+    data class Saved(val media: WorkoutMedia, val warning: String? = null) : TechniqueRecordingResult {
+        override val errorMessage: String? = warning
     }
     data object Discarded : TechniqueRecordingResult {
         override val errorMessage = "No se pudo guardar el vídeo. Puedes volver a grabar."
@@ -100,7 +107,7 @@ class WorkoutMediaCaptureController(
     private val effortLabelProvider: (WorkoutMedia) -> String? = { null },
     private val onCapturedRef: (String, com.example.kpkn.data.models.WorkoutSetExecutionRef) -> Unit = { _, _ -> },
 ) {
-    data class ExternalPhotoCapture internal constructor(
+    class ExternalPhotoCapture internal constructor(
         val uri: Uri,
         internal val entry: WorkoutMediaCaptureJournalEntry,
         internal val request: WorkoutMediaCaptureRequest,
@@ -534,17 +541,36 @@ class WorkoutMediaCaptureController(
                             val finalRequest = requestProvider().withExerciseCaptureContext(exercise)
 
                             scope.launch(Dispatchers.IO) {
+                                var accessoryWarning: String? = null
+                                val technicalSnapshot = metadataInterval.snapshot(dest)
                                 val result = awaitTechniqueRecordingResult {
                                     // 1. Guardar metadatos de captura (gravedad, focal y fps) en capture.json antes de entregar el vídeo
-                                    metadataInterval.save(dest)
+                                    if (!metadataInterval.save(dest)) {
+                                        accessoryWarning = "Vídeo guardado; los metadatos técnicos quedaron pendientes de sincronización. El vídeo sigue disponible para análisis manual."
+                                    }
+                                    try {
+                                        CaptureMetadataFile.update(TechniqueSidecars.captureFile(dest)) { current ->
+                                            current.copy(
+                                                analysisRequestedForCapture = initialRequest.analysisRequestedForCapture,
+                                                framingGateBypassed = initialRequest.framingGateBypassed,
+                                                framingWarning = initialRequest.framingWarning,
+                                            )
+                                        }
+                                    } catch (error: Exception) {
+                                        accessoryWarning = "Vídeo guardado; no se pudo escribir la ficha técnica auxiliar. Se conservará la solicitud para reintentar."
+                                        Log.w("WorkoutMediaCapture", "No se pudieron guardar los metadatos auxiliares de $id.", error)
+                                    }
 
                                     // 2. Si el usuario seleccionó un diámetro distinto al de los ajustes, guardarlo con CaptureOverridesFile.update
                                     if (plateDiameterOverrideMm != null && plateDiameterOverrideMm != defaultPlateDiameterMm) {
                                         val captureFile = TechniqueSidecars.captureFile(dest)
-                                        runCatching {
+                                        try {
                                             CaptureOverridesFile.update(captureFile) { current ->
                                                 current.copy(plateDiameterMm = plateDiameterOverrideMm)
                                             }
+                                        } catch (error: Exception) {
+                                            accessoryWarning = "Vídeo guardado; no se pudo guardar el diámetro de calibración. Puedes volver a intentarlo desde el análisis."
+                                            Log.w("WorkoutMediaCapture", "No se pudo guardar el diámetro auxiliar de $id.", error)
                                         }
                                     }
 
@@ -556,15 +582,36 @@ class WorkoutMediaCaptureController(
                                         id = id,
                                         createdAtMs = createdAtMs,
                                         meta = meta,
+                                        technicalSnapshot = technicalSnapshot,
                                     )
 
-                                    repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error).await()
+                                    val saved = repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error).await()
+                                    if (saved != null) {
+                                        val storedMetadata = runCatching {
+                                            CaptureMetadataFile.read(TechniqueSidecars.captureFile(File(saved.filePath)))
+                                        }.getOrNull()
+                                        val technicalMissing = technicalSnapshot != null && (
+                                            (technicalSnapshot.gravityRollDeg != null && storedMetadata?.gravityRollDeg == null) ||
+                                            (technicalSnapshot.focalLengthPx != null && storedMetadata?.focalLengthPx == null)
+                                        )
+                                        if (technicalMissing) {
+                                            accessoryWarning = "Vídeo guardado; los datos técnicos quedaron pendientes de sincronización."
+                                        } else if (initialRequest.analysisRequestedForCapture != null &&
+                                            storedMetadata?.analysisRequestedForCapture != initialRequest.analysisRequestedForCapture
+                                        ) {
+                                            accessoryWarning = "Vídeo guardado; la preferencia de análisis de esta toma quedó pendiente de recuperación."
+                                        }
+                                    }
+                                    saved
                                 }
 
                                 withContext(Dispatchers.Main) {
-                                    _captureError.value = result.errorMessage
+                                    val deliveredResult = if (result is TechniqueRecordingResult.Saved && accessoryWarning != null) {
+                                        result.copy(warning = accessoryWarning)
+                                    } else result
+                                    _captureError.value = deliveredResult.errorMessage
                                     refreshSessionMedia()
-                                    onFinalized?.invoke(result)
+                                    onFinalized?.invoke(deliveredResult)
                                 }
                             }
                         }
@@ -764,6 +811,7 @@ class WorkoutMediaCaptureController(
         meta: WorkoutMediaSessionMeta,
         sourceUri: String? = null,
         deleteSourceAfterCommit: Boolean = false,
+        technicalSnapshot: CaptureMetadata? = null,
     ): WorkoutMediaCaptureJournalEntry {
         val media = captureMedia(
             filePath = file.absolutePath,
@@ -778,6 +826,17 @@ class WorkoutMediaCaptureController(
             sourceFilePath = file.absolutePath,
             sourceUri = sourceUri,
             deleteSourceAfterCommit = deleteSourceAfterCommit,
+            analysisRequestedForCapture = request.analysisRequestedForCapture.takeIf { kind == WorkoutMediaKind.VIDEO },
+            framingGateBypassed = request.framingGateBypassed.takeIf { kind == WorkoutMediaKind.VIDEO },
+            framingWarning = request.framingWarning.takeIf { kind == WorkoutMediaKind.VIDEO },
+            requestedFps = technicalSnapshot?.requestedFps,
+            grantedFps = technicalSnapshot?.grantedFps,
+            gravityRollDeg = technicalSnapshot?.gravityRollDeg,
+            gravityPitchDeg = technicalSnapshot?.gravityPitchDeg,
+            focalLengthPx = technicalSnapshot?.focalLengthPx,
+            lens = technicalSnapshot?.lens,
+            deviceModel = technicalSnapshot?.deviceModel,
+            recordedAtMs = technicalSnapshot?.recordedAtMs,
         )
     }
 

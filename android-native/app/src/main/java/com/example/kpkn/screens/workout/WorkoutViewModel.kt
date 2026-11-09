@@ -25,6 +25,7 @@ import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.cardio.CardioCueRules
+import com.example.kpkn.domain.cardio.withSystemOutputPreferences
 import com.example.kpkn.domain.cardio.cueFlags
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
@@ -2315,6 +2316,7 @@ class WorkoutViewModel(
             VoiceSessionCommand.AddSet -> "Añadir serie" to "serie"
             VoiceSessionCommand.UndoLastSet -> "Deshacer serie" to "serie"
             VoiceSessionCommand.StartVideoCapture -> "Iniciar vídeo" to "captura"
+            VoiceSessionCommand.StartVideoCaptureAnyway -> "Grabar de todas formas" to "captura"
             VoiceSessionCommand.StopVideoCapture -> "Detener vídeo" to "captura"
             VoiceSessionCommand.StartCardio -> "Empezar cardio" to "cardio"
             VoiceSessionCommand.PauseCardio -> "Pausar cardio" to "cardio"
@@ -5845,6 +5847,8 @@ class WorkoutViewModel(
             state.cardioTimerState?.status == CardioExecutionStatus.AWAITING_CONFIRMATION) return
         val exercise = currentExercise
         val details = exercise.cardioDetails
+        val previousTimer = state.cardioTimerState?.takeIf { isTimerForCardioSet(it, exerciseId, setIndex, setId) }
+        val isFreshStart = previousTimer == null || previousTimer.status == CardioExecutionStatus.READY
         val isLibre = details != null && !details.hasIntervals() && details.targetDurationSeconds == null
         val safeTotal = if (isLibre) {
             0
@@ -5861,11 +5865,32 @@ class WorkoutViewModel(
                 activeStepKey = WorkoutStepRules.cardioStepKey(exerciseId, setIndex),
             )
         }
+        if (isFreshStart && details != null) dispatchCardioCue(details, CardioCueRules.sessionStartCue(details))
         publishCardioTick(running)
         persistOngoingState()
         cardioHealthProvider.start(exerciseId)
         launchCardioInfoTicker(exerciseId)
         launchCardioTimerJob(exerciseId)
+    }
+
+    /** Plays only a countdown cue for the still-current ready cardio card. */
+    fun playCardioCountdownCue(exerciseId: String, expectedSetIndex: Int, remaining: Int) {
+        if (remaining !in 1..3) return
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.id == exerciseId && it.isCardio } ?: return
+        if (!isCurrentCardioPageAction(exerciseId, expectedSetIndex) || !canRunWorkoutTimers(state)) return
+        val details = exercise.cardioDetails ?: return
+        dispatchCardioCue(details, CardioCueRules.sessionCountdownCue(remaining, details))
+    }
+
+    private fun dispatchCardioCue(details: CardioDetails, cue: com.example.kpkn.domain.cardio.CardioCuePlan) {
+        val settings = repository.settings.value
+        val gated = cue.withSystemOutputPreferences(settings.soundsEnabled, settings.hapticFeedbackEnabled)
+        cardioCuePlayer.play(gated)
+        if (details.cueFlags().voice && voiceController.isEnabled()) {
+            cue.speech?.let(voiceController::speakAnnouncement)
+        }
     }
 
     private fun launchCardioTimerJob(exerciseId: String) {
@@ -5914,14 +5939,9 @@ class WorkoutViewModel(
                             val countdown = curr.currentBlock?.let {
                                 CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details)
                             }
-                            val settings = repository.settings.value
-                            if (settings.soundsEnabled || settings.hapticFeedbackEnabled) {
-                                cardioCuePlayer.play(transition)
-                                countdown?.let(cardioCuePlayer::play)
-                            }
-                            if (voiceController.isEnabled() && transition.speech != null && details.cueFlags().voice) {
-                                voiceController.speakAnnouncement(transition.speech)
-                            } else if (voiceController.isEnabled() && prev?.currentIndex != curr.currentIndex && curr.currentBlock != null && !curr.isComplete && details.hiit == null) {
+                            dispatchCardioCue(details, transition)
+                            if (countdown != null) dispatchCardioCue(details, countdown)
+                            if (voiceController.isEnabled() && transition.speech == null && details.cueFlags().voice && prev?.currentIndex != curr.currentIndex && curr.currentBlock != null && !curr.isComplete && details.hiit == null) {
                                 val b = curr.currentBlock
                                 val speedLabel = b.speedKmh?.let { "${it.toString().trimEnd('0').trimEnd('.') } km/h" }
                                     ?: b.watts?.let { "${it}W" }
@@ -6308,7 +6328,10 @@ class WorkoutViewModel(
         committed = true
         if (result is WorkoutPersistResult.UiPublicationFailed) updateUiState(applyRecorded)
         CardioGpsTracker.clearSession(gpsKey)
-        if (!alreadyCompleted) stepNavigator.nextSet()
+        if (!alreadyCompleted) {
+            dispatchCardioCue(details, CardioCueRules.sessionFinishCue(details))
+            stepNavigator.nextSet()
+        }
         return true
         } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
         catch (error: Throwable) {

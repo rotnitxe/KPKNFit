@@ -68,8 +68,13 @@ private fun row(
     motif: Int,
     days: Int = 4,
     weeks: Boolean = true,
-): Pair<String, CoverIdentity> =
-    id to CoverIdentity(style, palette, primary, secondary, motif, seed = stableHash(id), days = days, numeralIsWeeks = weeks)
+): Pair<String, CoverIdentity> {
+    val seed = stableHash(id)
+    val lines = if (style == CoverStudioStyle.PLATES) {
+        LineCoverSpec(LineCoverStyle.ORBITAS, lineBackgroundForPalette(palette), seed)
+    } else null
+    return id to CoverIdentity(style, palette, primary, secondary, motif, seed = seed, days = days, numeralIsWeeks = weeks, lines = lines)
+}
 
 /**
  * Los 30 programas «a medida» (`generated:<perfil>`, `:blocks` y `:periodized`) y los 47 listados del catálogo. En cada perfil, sus
@@ -180,8 +185,12 @@ internal val assignedCoverProgramIds: Set<String> get() = ASSIGNED.keys
  * medida con el que se creó el programa) y luego la de [programId]. Si ninguna existe (un programa propio o importado), devuelve
  * una identidad determinista del hash de [programId]: el mismo id da siempre la misma.
  */
-internal fun coverIdentityFor(programId: String, templateId: String?): CoverIdentity =
-    templateId?.let { ASSIGNED[it] } ?: ASSIGNED[programId] ?: fallbackCoverIdentity(programId)
+internal fun coverIdentityFor(programId: String, templateId: String?): CoverIdentity {
+    val raw = templateId?.let { ASSIGNED[it] } ?: ASSIGNED[programId] ?: fallbackCoverIdentity(programId)
+    return if (raw.style == CoverStudioStyle.PLATES && raw.lines == null) {
+        raw.copy(lines = LineCoverSpec(LineCoverStyle.ORBITAS, lineBackgroundForPalette(raw.palette), raw.seed))
+    } else raw
+}
 
 /** La identidad de respaldo de [programId]: estilo, fondo, dos acentos distintos y semilla salen de su hash. */
 internal fun fallbackCoverIdentity(programId: String): CoverIdentity {
@@ -189,14 +198,19 @@ internal fun fallbackCoverIdentity(programId: String): CoverIdentity {
     val first = positive(h / 13) % ACCENTS.size
     val second = (first + 1 + positive(h / 29) % (ACCENTS.size - 1)) % ACCENTS.size
     val style = CoverStudioStyle.entries[positive(h) % CoverStudioStyle.entries.size]
+    val palette = CoverPaletteKind.entries[positive(h / 7) % CoverPaletteKind.entries.size]
+    val lines = if (style == CoverStudioStyle.PLATES) {
+        LineCoverSpec(LineCoverStyle.ORBITAS, lineBackgroundForPalette(palette), h)
+    } else null
     return CoverIdentity(
         style = style,
-        palette = CoverPaletteKind.entries[positive(h / 7) % CoverPaletteKind.entries.size],
+        palette = palette,
         primary = ACCENTS[first],
         secondary = ACCENTS[second],
         motif = motifFor(style, positive(h / 53)),
         seed = h,
         days = 3 + positive(h / 97) % 3,
+        lines = lines,
     )
 }
 

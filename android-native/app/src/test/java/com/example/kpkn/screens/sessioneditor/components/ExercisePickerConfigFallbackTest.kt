@@ -11,7 +11,9 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseKineticChainV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseLateralityV2
 import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseProfileV2
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -100,5 +102,15 @@ class ExercisePickerConfigFallbackTest {
             default = default,
         )
         assertNull(resolved)
+    }
+
+    @Test
+    fun newCatalogSelectionRequiresEveryDeclaredAxisButAxislessDefinitionsAreDirect() {
+        assertFalse(catalogAxisChoicesComplete(definition, emptyMap()))
+        assertFalse(catalogAxisChoicesComplete(definition, mapOf("setup" to "standing")))
+        assertTrue(catalogAxisChoicesComplete(definition, mapOf("setup" to "standing", "implement" to "cable")))
+
+        val axisless = definition.copy(optionAxes = emptyList())
+        assertTrue(catalogAxisChoicesComplete(axisless, emptyMap()))
     }
 }

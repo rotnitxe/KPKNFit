@@ -124,10 +124,10 @@ class NutritionHeuristicEstimatorTest {
     }
 
     @Test
-    fun `salteado de verduras carries the frying fat in grams`() {
+    fun `salteado de verduras carries its oil in grams`() {
         val verduras = NutritionHeuristicEstimator.estimatePer100g("verduras")
         val salteadas = estimateNutritionByKeyword("verduras salteadas")!!
-        assertEquals(verduras.fats + 6.0, salteadas.fats, 0.001)
-        assertEquals(verduras.calories + 54.0, salteadas.calories, 0.001)
+        assertEquals(verduras.fats + 4.0, salteadas.fats, 0.001)
+        assertEquals(verduras.calories + 36.0, salteadas.calories, 0.001)
     }
 }

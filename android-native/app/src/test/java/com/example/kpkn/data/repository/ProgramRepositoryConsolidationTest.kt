@@ -7,6 +7,7 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toProgram
+import com.example.kpkn.data.db.toOngoingWorkoutState
 import com.example.kpkn.data.db.toWorkoutLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
@@ -370,18 +371,26 @@ class ProgramRepositoryConsolidationTest {
     }
 
     @Test
-    fun archiveProgram_withOngoingSession_clearsItWithoutThrowing() = runBlocking {
+    fun archiveProgram_withOngoingSession_returnsExplicitBlockAndPreservesIt() = runBlocking {
         val repository = newRepository()
         val program = Program(id = "archive-ongoing", name = "Archive ongoing")
         repository.addProgram(program)
         withTimeout(5_000) { repository.programs.first { list -> list.any { it.id == program.id } } }
         val session = executableSession("archive-ongoing-session", "Press")
-        repository.startWorkout(OngoingWorkoutState(programId = program.id, session = session, startTime = 7L))
+        val ongoing = OngoingWorkoutState(programId = program.id, session = session, startTime = 7L)
+        repository.startWorkout(ongoing)
+        val persistedBeforeArchive = repository.ongoingWorkout.value
+        assertNotNull(persistedBeforeArchive)
 
-        repository.archiveProgram(program.id)
+        assertEquals(
+            ProgramArchiveResult.OpenSession(session.id),
+            repository.archiveProgram(program.id),
+        )
 
-        withTimeout(10_000) { repository.ongoingWorkout.first { it == null } }
-        assertNull(repository.databaseForTests().stateDao().getOngoingWorkout())
+        assertEquals(persistedBeforeArchive, repository.ongoingWorkout.value)
+        assertEquals(persistedBeforeArchive, repository.databaseForTests().stateDao().getOngoingWorkout()?.toOngoingWorkoutState())
+        assertTrue(repository.programs.value.any { it.id == program.id })
+        assertTrue(program.id !in repository.settings.value.archivedProgramIds)
     }
 
     // ─── (3) orden global de locks ───────────────────────────────────────────

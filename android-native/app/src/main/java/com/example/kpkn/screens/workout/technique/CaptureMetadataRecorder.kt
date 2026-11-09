@@ -98,6 +98,7 @@ class CaptureMetadataRecorder(
 ) : java.io.Closeable {
 
     private var previewStarted = false
+    private var previewRequested = false
     private var collecting = false
     private var closed = false
     private var frozenSamples: CaptureMetadataSamples? = null
@@ -117,6 +118,24 @@ class CaptureMetadataRecorder(
 
     /** La inclinación se mide desde la vista previa; las medianas solo incluyen la grabación. */
     fun startPreview(targetRotation: Int = Surface.ROTATION_0) {
+        synchronized(this) { previewRequested = true }
+        ensureSensorStarted(targetRotation)
+    }
+
+    /** Releases preview-only sampling when analysis/framing is off or this preview is replaced. */
+    fun stopPreview() {
+        val shouldStop = synchronized(this) {
+            previewRequested = false
+            if (collecting || !previewStarted) false else {
+                previewStarted = false
+                latestGravity = null
+                true
+            }
+        }
+        if (shouldStop) gravitySource.close()
+    }
+
+    private fun ensureSensorStarted(targetRotation: Int) {
         synchronized(this) {
             if (closed) return
             activeTargetRotation = targetRotation
@@ -131,28 +150,33 @@ class CaptureMetadataRecorder(
     }
 
     fun start(targetRotation: Int = Surface.ROTATION_0) {
-        startPreview(targetRotation)
         synchronized(this) {
             if (closed) return
+            activeTargetRotation = targetRotation
             frozenSamples = null
             rollSamples.clear()
             pitchSamples.clear()
             collecting = true
             recordingStartedAtMs = System.currentTimeMillis()
         }
+        ensureSensorStarted(targetRotation)
     }
 
     /** Solo congela memoria; Camera2, las medianas y el archivo se resuelven después en IO. */
-    internal fun stopCollecting(): CaptureMetadataSamples = synchronized(this) {
-        collecting = false
-        frozenSamples ?: CaptureMetadataSamples(
-            rollSamples.toList(), pitchSamples.toList(), recordingStartedAtMs,
-        ).also { frozenSamples = it }
+    internal fun stopCollecting(): CaptureMetadataSamples {
+        val result = synchronized(this) {
+            collecting = false
+            frozenSamples ?: CaptureMetadataSamples(
+                rollSamples.toList(), pitchSamples.toList(), recordingStartedAtMs,
+            ).also { frozenSamples = it }
+        }
+        stopPreviewIfUnrequested()
+        return result
     }
 
     fun stop(videoLongEdgePx: Float? = null): CaptureMetadata = metadata(stopCollecting(), videoLongEdgePx)
 
-    private fun metadata(samples: CaptureMetadataSamples, videoLongEdgePx: Float?): CaptureMetadata {
+    internal fun metadata(samples: CaptureMetadataSamples, videoLongEdgePx: Float?): CaptureMetadata {
         val medianRoll = median(samples.roll)
         val medianPitch = median(samples.pitch)
         val startedAt = samples.startedAtMs
@@ -181,9 +205,7 @@ class CaptureMetadataRecorder(
         val longEdge = readVideoLongEdgePx(videoFile)
         val metadata = metadata(samples, longEdge)
         val captureFile = TechniqueSidecars.captureFile(videoFile)
-        runCatching {
-            CaptureMetadataFile.write(captureFile, metadata)
-        }
+        CaptureMetadataFile.write(captureFile, metadata)
         return metadata
     }
 
@@ -203,12 +225,26 @@ class CaptureMetadataRecorder(
 
     override fun close() {
         stopCollecting()
-        synchronized(this) {
+        val shouldStop = synchronized(this) {
             closed = true
+            previewRequested = false
+            val wasStarted = previewStarted
             previewStarted = false
             latestGravity = null
+            wasStarted
         }
-        gravitySource.close()
+        if (shouldStop) gravitySource.close()
+    }
+
+    private fun stopPreviewIfUnrequested() {
+        val shouldStop = synchronized(this) {
+            if (previewRequested || !previewStarted || collecting) false else {
+                previewStarted = false
+                latestGravity = null
+                true
+            }
+        }
+        if (shouldStop) gravitySource.close()
     }
 
     private fun calculateFocalLengthPx(recordedLongEdge: Float? = null): Float? {
@@ -305,9 +341,25 @@ internal class TechniqueCaptureMetadataInterval(
         samples = if (started) recorder?.stopCollecting() else CaptureMetadataSamples(emptyList(), emptyList(), null)
     }
 
-    fun save(videoFile: File) {
+    fun snapshot(videoFile: File): CaptureMetadata? {
         stopCollecting()
-        val frozen = synchronized(this) { samples } ?: return
-        recorder?.save(videoFile, frozen)
+        val frozen = synchronized(this) { samples } ?: return null
+        return try {
+            val longEdge = readVideoLongEdgePx(videoFile)
+            recorder?.metadata(frozen, longEdge)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun save(videoFile: File): Boolean {
+        stopCollecting()
+        val frozen = synchronized(this) { samples } ?: return true
+        return try {
+            recorder?.save(videoFile, frozen)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 }

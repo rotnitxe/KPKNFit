@@ -14,6 +14,13 @@ data class CardioCuePlan(
     val speech: String? = null,
 )
 
+/** Apply the global sound and haptic switches without coupling either output to the other. */
+fun CardioCuePlan.withSystemOutputPreferences(soundsEnabled: Boolean, hapticsEnabled: Boolean): CardioCuePlan = copy(
+    countdownBeeps = countdownBeeps.takeIf { soundsEnabled }.orEmpty(),
+    phaseChangeTone = phaseChangeTone && soundsEnabled,
+    vibration = vibration.takeIf { hapticsEnabled },
+)
+
 /**
  * Los tres avisos de fase de un cardio (sonidos, voz y vibración). Salen de [CardioDetails.cueFlags]: lo que el usuario fijó para ese cardio
  * (también en «Intervalos», que no tiene [CardioHiitConfig]) y, si no fijó nada, lo de su protocolo por series o «activo».
@@ -41,6 +48,39 @@ fun CardioDetails.cueFlags(): CardioCueFlags = CardioCueFlags(
 
 /** Pure cue policy; platform playback and settings gates live outside this class. */
 object CardioCueRules {
+    fun sessionStartCue(details: CardioDetails): CardioCuePlan {
+        val flags = details.cueFlags()
+        val firstBlock = details.intervalBlocks.firstOrNull()
+        val label = firstBlock?.let { CardioIntervalEngine.blockTypeLabel(it.type) }
+        val speech = if (flags.voice) {
+            if (label == null) "Empieza el cardio. Buen trabajo." else "Empieza el cardio: $label, ${firstBlock.durationSeconds} segundos."
+        } else null
+        return CardioCuePlan(
+            phaseChangeTone = flags.beeps,
+            vibration = if (flags.vibration) VibCue.DOUBLE_WORK else null,
+            speech = speech,
+        )
+    }
+
+    fun sessionFinishCue(details: CardioDetails): CardioCuePlan {
+        val flags = details.cueFlags()
+        return CardioCuePlan(
+            phaseChangeTone = flags.beeps,
+            vibration = if (flags.vibration) VibCue.LONG_FINISH else null,
+            speech = if (flags.voice) "Cardio terminado. Buen trabajo." else null,
+        )
+    }
+
+    fun sessionCountdownCue(remaining: Int, details: CardioDetails): CardioCuePlan {
+        val flags = details.cueFlags()
+        val number = when (remaining) { 3 -> "Tres"; 2 -> "Dos"; 1 -> "Uno"; else -> null }
+        return CardioCuePlan(
+            countdownBeeps = if (flags.beeps && remaining in 1..3) listOf(remaining) else emptyList(),
+            vibration = if (flags.vibration && remaining == 1) VibCue.SHORT_TICK else null,
+            speech = number?.takeIf { flags.voice },
+        )
+    }
+
     fun transitionCue(
         prev: CardioIntervalEngine.Progress?,
         curr: CardioIntervalEngine.Progress,
@@ -118,6 +158,12 @@ object CardioCueRules {
         val vibrationEnabled = flags.vibration
         val beeps = if (beepsEnabled && remainingInBlock in 1..3) listOf(remainingInBlock) else emptyList()
         val vibration = if (vibrationEnabled && remainingInBlock == 1) VibCue.SHORT_TICK else null
-        return CardioCuePlan(countdownBeeps = beeps, vibration = vibration)
+        val countdownSpeech = when (remainingInBlock) {
+            3 -> "Tres"
+            2 -> "Dos"
+            1 -> "Uno"
+            else -> null
+        }.takeIf { flags.voice }
+        return CardioCuePlan(countdownBeeps = beeps, vibration = vibration, speech = countdownSpeech)
     }
 }

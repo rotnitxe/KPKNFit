@@ -28,6 +28,18 @@ data class WorkoutMediaCaptureJournalEntry(
     val discardedByRetention: Boolean = false,
     /** MIME-resolved extension for URI captures; null on older journals and camera captures. */
     val resolvedExtension: String? = null,
+    /** Per-take auto-analysis choice; null preserves legacy/global behavior. */
+    val analysisRequestedForCapture: Boolean? = null,
+    val framingGateBypassed: Boolean? = null,
+    val framingWarning: String? = null,
+    val requestedFps: Float? = null,
+    val grantedFps: Float? = null,
+    val gravityRollDeg: Float? = null,
+    val gravityPitchDeg: Float? = null,
+    val focalLengthPx: Float? = null,
+    val lens: String? = null,
+    val deviceModel: String? = null,
+    val recordedAtMs: Long? = null,
 )
 
 data class WorkoutMediaCaptureRecoveryResult(

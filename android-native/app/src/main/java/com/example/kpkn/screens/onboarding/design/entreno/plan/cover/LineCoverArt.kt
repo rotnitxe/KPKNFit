@@ -185,6 +185,8 @@ private class LineCoverPainter(
             LineCoverStyle.ESPIRAL -> espiral(spec)
             LineCoverStyle.ECO -> eco(spec, measurer, density)
             LineCoverStyle.BRUMA -> bruma()
+            LineCoverStyle.INTERFERENCIA -> interferencia()
+            LineCoverStyle.ABANICO -> abanico()
             LineCoverStyle.SESION -> sesion(sessionRows)
         }
         animatedCount = marks.count { it !is FillMark }
@@ -275,6 +277,42 @@ private class LineCoverPainter(
             addFill(points, alpha = 0.9f)
             addLine(polyline(points), accent = k == 15)
         }
+    }
+
+    /** INTERFERENCIA: dos trenes de ondas se cruzan y forman nodos de luz. */
+    private fun interferencia() {
+        halo(150.0, 188.0, 84.0, 0.22)
+        for (row in 0..30) {
+            val y0 = 52.0 + row * 9.2
+            val points = ArrayList<Offset>(61)
+            for (column in 0..60) {
+                val x = column * 5.0
+                val envelope = exp(-((x - 150.0) / 142.0).let { it * it })
+                val waveA = sin(x * 0.042 + row * 0.36 + seed * 0.012)
+                val waveB = sin((LINE_W - x) * 0.031 - row * 0.28 + seed * 0.009)
+                points += at(x, y0 - envelope * abs(waveA + waveB) * (8.0 + row * 0.18))
+            }
+            addLine(polyline(points), accent = row == 15)
+        }
+    }
+
+    /** ABANICO: rayos curvos desde un origen común, como un abanico de trazos. */
+    private fun abanico() {
+        val apexX = 150.0
+        val apexY = 54.0
+        for (ray in 0..28) {
+            val endX = 12.0 + ray * 9.85
+            val bend = (endX - apexX) * 0.045
+            val points = ArrayList<Offset>(49)
+            for (step in 0..48) {
+                val t = step / 48.0
+                val x = apexX + (endX - apexX) * t + sin(t * PI) * bend
+                val y = apexY + (LINE_H - apexY) * t
+                points += at(x, y)
+            }
+            addLine(polyline(points), accent = ray == 14)
+        }
+        halo(apexX, apexY, 30.0, 0.16)
     }
 
     /** ÓRBITAS: elipses finas e inclinadas alrededor de la torre; la novena, en acento con un planeta. Luego, 30 estrellas. */

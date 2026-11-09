@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.resolveUnitModeV2
@@ -150,6 +151,22 @@ private fun formatValue(value: Double): String =
 internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exercise, includeRest: Boolean): String {
     val details = exercise.cardioDetails
     if (details != null) return cardioDoseLine(details)
+    if (exercise.apreBlock != null) {
+        val block = resolveLiveApreBlock(exercise) ?: return "APRE · revisar"
+        fun setDose(index: Int, amrap: Boolean = false): String {
+            val set = exercise.sets[block.indices[index]]
+            val reps = if (amrap) (set.amrapMinimumReps?.toString() ?: "—") + "+" else set.targetReps?.toString() ?: "—"
+            val load = set.weight?.takeIf { it > 0.0 }?.let { formatValue(it) + "\u00A0kg" } ?: "— kg"
+            return "S" + (index + 1) + " " + reps + "@" + load
+        }
+        val details = listOf(
+            setDose(0),
+            setDose(1),
+            setDose(2, amrap = true) + " AMRAP→S4",
+            setDose(3, amrap = true) + " AMRAP→XRM",
+        ).joinToString(" · ")
+        return "APRE " + block.variant.xrmReps + " · " + details
+    }
     val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest, exercise.customUnit) ?: "Sin series"
     val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por\u00A0lado" else ""
     return hardUnitSpaces(base + side)

@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.SmartLoadBasis
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
@@ -190,6 +191,44 @@ fun resolveReferenceCapacity(
         .maxOrNull()
 }
 
+enum class SmartLoadReferenceSource { ONE_RM, EXPLICIT_TRAINING_MAX, RECIPE_TRAINING_MAX, DEFAULT_TRAINING_MAX }
+
+data class SmartLoadReference(val basis: SmartLoadBasis, val kilograms: Double, val source: SmartLoadReferenceSource)
+
+/** Resolves only the optional smart-load preference. Explicit set.loadBasis prescriptions use their own reference. */
+fun resolveSmartLoadReference(exercise: Exercise, history: List<WorkoutLog> = emptyList()): SmartLoadReference? {
+    val basis = exercise.smartLoadBasis ?: SmartLoadBasis.ONE_RM
+    if (basis == SmartLoadBasis.ONE_RM) {
+        val oneRm = if (history.isEmpty()) resolveReferenceCapacity(exercise) else resolveReferenceCapacity(exercise, history)
+        return oneRm?.takeIf { it.isFinite() && it > 0.0 }
+            ?.let { SmartLoadReference(basis, it, SmartLoadReferenceSource.ONE_RM) }
+    }
+
+    exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }?.let {
+        return SmartLoadReference(basis, it, SmartLoadReferenceSource.EXPLICIT_TRAINING_MAX)
+    }
+    val capacity = (if (history.isEmpty()) resolveReferenceCapacity(exercise) else resolveReferenceCapacity(exercise, history))
+        ?: return null
+    val recipeFraction = exercise.loadReference?.metadata?.tmFraction
+        ?.takeIf { it.isFinite() && it > 0.0 && it <= 1.0 }
+    val fraction = recipeFraction ?: 0.90
+    val source = if (recipeFraction == null) SmartLoadReferenceSource.DEFAULT_TRAINING_MAX
+        else SmartLoadReferenceSource.RECIPE_TRAINING_MAX
+    return (capacity * fraction).takeIf { it.isFinite() && it > 0.0 }
+        ?.let { SmartLoadReference(basis, it, source) }
+}
+
+private fun generatedLoadReference(exercise: Exercise, set: ExerciseSet, history: List<WorkoutLog>?): Double? {
+    fun oneRm() = if (history.isNullOrEmpty()) resolveReferenceCapacity(exercise) else resolveReferenceCapacity(exercise, history)
+    return when (set.loadBasis) {
+        null -> if (history.isNullOrEmpty()) resolveSmartLoadReference(exercise)?.kilograms
+            else resolveSmartLoadReference(exercise, history)?.kilograms
+        LoadBasis.PERCENT_1RM -> oneRm()
+        LoadBasis.PERCENT_TM -> exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
+        else -> oneRm()
+    }
+}
+
 /** PERCENT_TM declares the reference base, not authorship or a guessed history 1RM. */
 private fun explicitTrainingMaxLoad(exercise: Exercise, set: ExerciseSet): Double? {
     val trainingMax = exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 } ?: return null
@@ -270,7 +309,7 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
     if (exercise.trainingMode == TrainingMode.RM && set.loadBasis == LoadBasis.PERCENT_TM) {
         return explicitTrainingMaxLoad(exercise, set)
     }
-    val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
+    val referenceCapacity = generatedLoadReference(exercise, set, null) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
             val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.plannedRepAnchor() ?: 1)).coerceIn(40.0, 100.0)
@@ -325,7 +364,7 @@ fun calculateSuggestedLoad(
     if (exercise.trainingMode == TrainingMode.RM && set.loadBasis == LoadBasis.PERCENT_TM) {
         return explicitTrainingMaxLoad(exercise, set)
     }
-    val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
+    val referenceCapacity = generatedLoadReference(exercise, set, history) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
             val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.plannedRepAnchor() ?: 1)).coerceIn(40.0, 100.0)

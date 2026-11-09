@@ -54,6 +54,7 @@ class WorkoutMediaCaptureJournalTest {
             ),
             sourceFilePath = source.absolutePath,
             deleteSourceAfterCommit = true,
+            analysisRequestedForCapture = false,
         )
 
         journal.writeCapturing(entry)
@@ -61,10 +62,12 @@ class WorkoutMediaCaptureJournalTest {
         assertFalse(capturing.readyToIngest)
         assertEquals("Frozen name", capturing.media.sessionName)
         assertEquals(2, capturing.media.setIndex)
+        assertEquals(false, capturing.analysisRequestedForCapture)
 
         journal.writeReady(entry)
         val recovered = journal().readAll().single()
         assertTrue(recovered.readyToIngest)
+        assertEquals(false, recovered.analysisRequestedForCapture)
         assertEquals(entry.media, recovered.media)
         assertTrue(source.exists())
 

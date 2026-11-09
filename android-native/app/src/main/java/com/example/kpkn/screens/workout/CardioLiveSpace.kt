@@ -333,6 +333,7 @@ internal fun CardioChip(
 @Composable
 internal fun CardioDock(
     page: Int,
+    visiblePages: List<Int> = listOf(0, 1, 2),
     onPage: (Int) -> Unit,
     locked: Boolean,
     mainLabel: String,
@@ -344,6 +345,7 @@ internal fun CardioDock(
     onSkip: (() -> Unit)?,
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
+    mainTag: String = "cardio-main",
 ) {
     val shape = RoundedCornerShape(32.dp)
     val compact = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp < 800
@@ -353,14 +355,16 @@ internal fun CardioDock(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BoxWithConstraints(Modifier.fillMaxWidth().height(36.dp)) {
-            val indicatorX by animateDpAsState(maxWidth * ((page * 2 + 1) / 6f) - 11.dp,
+            val selectedPosition = visiblePages.indexOf(page).coerceAtLeast(0)
+            val indicatorX by animateDpAsState(maxWidth * ((selectedPosition * 2 + 1) / (visiblePages.size * 2f)) - 11.dp,
                 animationSpec = tween(com.example.kpkn.ui.design.motion.KpknDuration(420).ms, easing = KpknMotion.Estandar), label = "cv-ind")
             Row(Modifier.fillMaxSize()) {
-                listOf("Ahora", "Plan", "Datos").forEachIndexed { i, name ->
-                    Box(Modifier.weight(1f).fillMaxHeight().clickable(enabled = !locked, role = Role.Tab) { onPage(i) }
-                        .semantics { contentDescription = name; selected = i == page }.testTag("cardio-page-$i"), contentAlignment = Alignment.Center) {
+                visiblePages.forEach { pageIndex ->
+                    val name = when (pageIndex) { 0 -> "Ahora"; 1 -> "Plan"; else -> "Datos" }
+                    Box(Modifier.weight(1f).fillMaxHeight().clickable(enabled = !locked, role = Role.Tab) { onPage(pageIndex) }
+                        .semantics { contentDescription = name; selected = pageIndex == page }.testTag("cardio-page-$pageIndex"), contentAlignment = Alignment.Center) {
                         Text(name, style = CardioBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
-                            color = if (i == page) CardioInk else LiveSheetTokens.Faint)
+                            color = if (pageIndex == page) CardioInk else LiveSheetTokens.Faint)
                     }
                 }
             }
@@ -371,7 +375,7 @@ internal fun CardioDock(
         } else {
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 CardioCtrl("Bloquear", null, onLock, Modifier.weight(1f), compact = compact, lockGlyph = true, tag = "cardio-lock")
-                CardioCtrl(mainLabel, mainIcon, onMain, Modifier.weight(1.5f), main = true, enabled = mainEnabled, compact = compact, tag = "cardio-main")
+                CardioCtrl(mainLabel, mainIcon, onMain, Modifier.weight(1.5f), main = true, enabled = mainEnabled, compact = compact, tag = mainTag)
                 // Sin pasos que saltar (cardio continuo o aún sin empezar) el mando no se enseña: nada de botones apagados que no hacen nada.
                 if (onSkip != null) CardioCtrl("Saltar paso", KpknLineIcons.FrameForward, onSkip, Modifier.weight(1f), compact = compact, tag = "cardio-skip")
             }
@@ -576,8 +580,10 @@ internal fun CardioTransitionIn(
             CardioProfile(steps, current = -1, progress = 0f, modifier = Modifier.padding(top = 12.dp))
             Text(totalLabel, Modifier.padding(top = 6.dp), style = CardioBody.copy(fontSize = 10.sp), color = LiveSheetTokens.Faint)
         }
-        Text("Ver el plan", Modifier.padding(top = 12.dp).heightIn(min = 40.dp).clickable(role = Role.Button, onClick = onSeePlan).padding(vertical = 10.dp)
-            .testTag("cardio-see-plan"), style = CardioBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+        if (steps.size > 1) {
+            Text("Ver el plan", Modifier.padding(top = 12.dp).heightIn(min = 40.dp).clickable(role = Role.Button, onClick = onSeePlan).padding(vertical = 10.dp)
+                .testTag("cardio-see-plan"), style = CardioBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+        }
         Spacer(Modifier.weight(1f))
         CardioSwipeToStart(onSwipeStart, Modifier.padding(bottom = 18.dp))
     }

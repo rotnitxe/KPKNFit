@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.SearchConfidence
 import com.example.kpkn.data.models.SearchSource
 import com.example.kpkn.domain.nutrition.FoodIdentity
+import com.example.kpkn.domain.nutrition.LoggerFoodEligibility
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.NutrientBasis
 import com.example.kpkn.domain.nutrition.TextKeys
@@ -28,8 +29,8 @@ object LoggerSearchV2 {
     /** Fila del paquete con el nombre que se mostraría y cómo coincide con la consulta. */
     private class PackRow(val record: CatalogRecord, val name: String, val level: Int)
 
-    private fun accepted(query: String, food: FoodItem): Boolean =
-        NutrientBasis.isVerified(food) && FoodIdentity.matchesDeclaredIdentity(query, food)
+    private fun accepted(query: String, food: FoodItem, brandHint: String?, excludedIngredients: Set<String>): Boolean =
+        LoggerFoodEligibility.accepts(query, food, brandHint, excludedIngredients)
 
     /** Agua, café o bebida zero con todo en 0 pasan [NutrientBasis.isVerified] solo con esta etiqueta. */
     private fun zeroEnergyTags(per100g: Map<String, Double>): List<String> {
@@ -38,13 +39,19 @@ object LoggerSearchV2 {
     }
 
     /** Conceptos del vocabulario v2 que coinciden con [query], como filas del registro (las que el registro aceptaría). */
-    fun conceptCandidates(search: ConceptSearchV2, query: String, limit: Int = CONCEPT_LIMIT): List<FoodCandidate> {
+    fun conceptCandidates(
+        search: ConceptSearchV2,
+        query: String,
+        limit: Int = CONCEPT_LIMIT,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
+    ): List<FoodCandidate> {
         if (limit <= 0) return emptyList()
         val generation = search.catalog.generation
         val out = ArrayList<FoodCandidate>()
         for (hit in search.search(query, limit * 2)) {
             val food = conceptFood(hit, generation)
-            if (!accepted(query, food)) continue
+            if (!accepted(query, food, brandHint, excludedIngredients)) continue
             out.add(
                 FoodCandidate(
                     foodId = food.id,
@@ -62,7 +69,13 @@ object LoggerSearchV2 {
     }
 
     /** Productos del paquete de catálogo que coinciden con [query], mejor nombre primero, como filas del registro. */
-    fun packCandidates(port: NutritionCatalogPort, query: String, limit: Int = PACK_LIMIT): List<FoodCandidate> {
+    fun packCandidates(
+        port: NutritionCatalogPort,
+        query: String,
+        limit: Int = PACK_LIMIT,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
+    ): List<FoodCandidate> {
         if (limit <= 0) return emptyList()
         val q = ConceptSearchV2.searchTokens(query)
         // Minúsculas sin tildes: el lector del paquete tokeniza con [a-z0-9]+.
@@ -80,7 +93,7 @@ object LoggerSearchV2 {
         for (row in rows) {
             val record = row.record
             val food = packFood(record, row.name, port.nutrientsPer100(record.id), port.portions(record.id), port.generation) ?: continue
-            if (!accepted(query, food)) continue
+            if (!accepted(query, food, brandHint, excludedIngredients)) continue
             out.add(
                 FoodCandidate(
                     foodId = food.id,
@@ -122,13 +135,22 @@ object LoggerSearchV2 {
         pack: List<FoodCandidate>,
         limit: Int,
         learnedFoodId: String? = null,
+        query: String? = null,
+        brandHint: String? = null,
+        excludedIngredients: Set<String> = emptySet(),
     ): List<FoodCandidate> {
         if (limit <= 0) return emptyList()
+        fun eligible(candidates: List<FoodCandidate>): List<FoodCandidate> = if (query.isNullOrBlank()) candidates else
+            candidates.filter { accepted(query, it.food, brandHint, excludedIngredients) }
+        val eligibleLegacy = eligible(legacy)
+        val eligibleConcepts = eligible(concepts)
+        val eligiblePack = eligible(pack)
         fun isLearned(candidate: FoodCandidate): Boolean =
             candidate.learned || (learnedFoodId != null && candidate.foodId == learnedFoodId)
 
-        val all = legacy + concepts + pack
-        val ordered = all.filter { isLearned(it) } + all.filter { it.food.isCustom } + concepts + legacy + pack
+        val all = eligibleLegacy + eligibleConcepts + eligiblePack
+        val ordered = all.filter { isLearned(it) } + all.filter { it.food.isCustom } +
+            eligibleConcepts + eligibleLegacy + eligiblePack
 
         val seenIds = HashSet<String>()
         val seenNames = HashSet<String>()

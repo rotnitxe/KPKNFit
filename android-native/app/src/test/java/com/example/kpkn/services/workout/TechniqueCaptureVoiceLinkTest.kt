@@ -15,6 +15,7 @@ class TechniqueCaptureVoiceLinkTest {
     @Test
     fun withoutARecorderTheCommandsAreUnavailable() {
         assertEquals(TechniqueCaptureStartResult.UNAVAILABLE, TechniqueCaptureVoiceLink.tryStart())
+        assertEquals(TechniqueCaptureStartResult.UNAVAILABLE, TechniqueCaptureVoiceLink.tryStartAnyway())
         assertEquals(TechniqueCaptureStopResult.UNAVAILABLE, TechniqueCaptureVoiceLink.tryStop())
         assertFalse(TechniqueCaptureVoiceLink.recorderOpen.value)
     }
@@ -26,6 +27,7 @@ class TechniqueCaptureVoiceLinkTest {
         try {
             assertTrue(TechniqueCaptureVoiceLink.recorderOpen.value)
             assertEquals(TechniqueCaptureStartResult.STARTED, TechniqueCaptureVoiceLink.tryStart())
+            assertEquals(TechniqueCaptureStartResult.STARTED, TechniqueCaptureVoiceLink.tryStartAnyway())
             assertEquals(TechniqueCaptureStopResult.STOPPED, TechniqueCaptureVoiceLink.tryStop())
         } finally {
             TechniqueCaptureVoiceLink.detach(linkHandlers)
@@ -35,27 +37,36 @@ class TechniqueCaptureVoiceLinkTest {
 
     @Test
     fun repeatedCommandsAreAnsweredByTheRecorderWithoutASecondCapture() {
-        var starts = 0
+        var recording = false
+        var startAttempts = 0
+        var captures = 0
         var stops = 0
-        val linkHandlers = handlers(
-            onStart = {
-                starts += 1
-                if (starts == 1) TechniqueCaptureStartResult.STARTED
-                else TechniqueCaptureStartResult.ALREADY_RECORDING
-            },
-            onStop = {
+        fun start(): TechniqueCaptureStartResult {
+            startAttempts++
+            if (recording) return TechniqueCaptureStartResult.ALREADY_RECORDING
+            recording = true
+            captures++
+            return TechniqueCaptureStartResult.STARTED
+        }
+        val linkHandlers = TechniqueCaptureVoiceLink.Handlers(
+            start = ::start,
+            startAnyway = ::start,
+            stop = {
                 stops += 1
+                recording = false
                 TechniqueCaptureStopResult.STOPPED
             },
         )
         TechniqueCaptureVoiceLink.attach(linkHandlers)
         try {
             assertEquals(TechniqueCaptureStartResult.STARTED, TechniqueCaptureVoiceLink.tryStart())
+            assertEquals(TechniqueCaptureStartResult.ALREADY_RECORDING, TechniqueCaptureVoiceLink.tryStartAnyway())
             assertEquals(
                 TechniqueCaptureStartResult.ALREADY_RECORDING,
                 TechniqueCaptureVoiceLink.tryStart(),
             )
-            assertEquals(2, starts)
+            assertEquals(3, startAttempts)
+            assertEquals(1, captures)
             assertEquals(TechniqueCaptureStopResult.STOPPED, TechniqueCaptureVoiceLink.tryStop())
             assertEquals(1, stops)
         } finally {

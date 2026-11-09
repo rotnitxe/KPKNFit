@@ -1,10 +1,15 @@
 package com.example.kpkn.screens.programdetail
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSetupDetails
 import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
@@ -56,6 +61,34 @@ class ProgramPlanDisplaySummaryTest {
         planProvenance = planProvenance,
         author = author,
         macrocycles = macrocycles,
+    )
+
+    private fun programWithExercise(exercise: Exercise) = program(
+        macrocycles = listOf(
+            Macrocycle(
+                id = "macro",
+                name = "Macro",
+                blocks = listOf(
+                    Block(
+                        id = "block",
+                        name = "Bloque",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso",
+                                name = "Meso",
+                                weeks = listOf(
+                                    ProgramWeek(
+                                        id = "week",
+                                        name = "Semana 1",
+                                        sessions = listOf(Session("session", "Día 1", exercises = listOf(exercise))),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
     )
 
     /** Pictogramas: pares sustitutos, selector de variación (U+FE0F), cierre de keycap (U+20E3) o símbolo gráfico. */
@@ -157,6 +190,24 @@ class ProgramPlanDisplaySummaryTest {
 
         assertEquals("Programa guardado", summary.provenanceLabel)
         assertEquals("Autor · Ana Pérez", summary.sourceLine)
+    }
+
+    @Test
+    fun manualProgramMaterialUsesExplicitExerciseNotesOrClearlyAsksForConfiguration() {
+        val missing = buildProgramPlanDisplaySummary(programWithExercise(Exercise(id = "manual", name = "Ejercicio manual")))
+        assertEquals("Material por configurar", missing.requiredMaterial)
+        assertFalse(missing.requiredMaterial.contains("Sin configuraciones catalogadas"))
+
+        val declared = buildProgramPlanDisplaySummary(
+            programWithExercise(
+                Exercise(
+                    id = "manual",
+                    name = "Ejercicio manual",
+                    setupDetails = ExerciseSetupDetails(equipmentNotes = "Banco y banda propia"),
+                ),
+            ),
+        )
+        assertEquals("Material declarado: Banco y banda propia", declared.requiredMaterial)
     }
 
     // ─── (e) método que ya no existe ─────────────────────────────────────────

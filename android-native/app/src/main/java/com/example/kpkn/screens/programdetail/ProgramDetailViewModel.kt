@@ -42,6 +42,8 @@ import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.ProgramArchiveResult
+import com.example.kpkn.data.repository.ProgramDeleteResult
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.BlockProgressionEngine
@@ -970,6 +972,10 @@ class ProgramDetailViewModel(
     fun activateOrResume() {
         if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
     }
+
+    fun archiveProgram(): ProgramArchiveResult = repository.archiveProgram(programId)
+
+    fun deleteProgram(): ProgramDeleteResult = repository.deleteProgram(programId)
 
     /** Aviso puntual de la pantalla (el mismo canal que el resto de mensajes). */
     fun showMessage(message: String) {

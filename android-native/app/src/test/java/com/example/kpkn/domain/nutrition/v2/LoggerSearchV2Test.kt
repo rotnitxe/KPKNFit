@@ -218,6 +218,13 @@ class LoggerSearchV2Test {
         learned = learned,
     )
 
+    private fun verifiedCandidate(id: String, name: String, brand: String? = null) = candidate(id, name, brand).copy(
+        food = FoodItem(
+            id = id, name = name, brand = brand, calories = 120.0, protein = 4.0, carbs = 18.0, fats = 3.0,
+            nutritionBasis = "PER_100G", source = "OPEN_FOOD_FACTS", sourceRecordId = id,
+        ),
+    )
+
     private val legacy = listOf(candidate("static_1", "Pan amasado"), candidate("custom_1", "Mi pan", custom = true))
     private val concepts = listOf(candidate("kpkn_m", "Marraqueta"), candidate("usda_5", "Pan amasado"))
     private val pack = listOf(candidate("off_9", "Pan amasado", brand = "Ideal"), candidate("kpkn_m", "Marraqueta del paquete"))
@@ -241,5 +248,35 @@ class LoggerSearchV2Test {
         assertEquals(2, LoggerSearchV2.merge(legacy, concepts, pack, limit = 2).size)
         assertTrue(LoggerSearchV2.merge(legacy, concepts, pack, limit = 0).isEmpty())
         assertNotNull(LoggerSearchV2.merge(emptyList(), emptyList(), emptyList(), limit = 5))
+    }
+
+    @Test
+    fun mergeAppliesIdentityVerificationBrandAndExclusionsBeforeEveryOrderingPath() {
+        val rightBrand = verifiedCandidate("colun", "Leche entera", "Colun")
+        val wrongBrand = verifiedCandidate("lider", "Leche entera", "Lider").copy(learned = true)
+        val unverified = candidate("guess", "Leche entera", "Colun")
+
+        val milk = LoggerSearchV2.merge(
+            legacy = listOf(wrongBrand, rightBrand),
+            concepts = listOf(unverified),
+            pack = emptyList(),
+            limit = 10,
+            learnedFoodId = "lider",
+            query = "leche colun",
+            brandHint = "Colun",
+        )
+        assertEquals(listOf("colun"), milk.map { it.foodId })
+
+        val garlicBread = verifiedCandidate("garlic-bread", "Pan con ajo")
+        val plainBread = verifiedCandidate("plain-bread", "Pan integral")
+        val bread = LoggerSearchV2.merge(
+            legacy = listOf(garlicBread, plainBread),
+            concepts = emptyList(),
+            pack = emptyList(),
+            limit = 10,
+            query = "pan con ajo",
+            excludedIngredients = setOf("ajo"),
+        )
+        assertTrue(bread.isEmpty())
     }
 }

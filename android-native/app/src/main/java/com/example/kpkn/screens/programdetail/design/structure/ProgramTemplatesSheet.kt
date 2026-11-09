@@ -74,10 +74,12 @@ import com.example.kpkn.data.programs.PlanKind
 import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverArt
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.catalogCoverIdentityFor
 import com.example.kpkn.screens.programs.isLibraryFamilyEntry
 import com.example.kpkn.screens.programs.libraryOrder
 import com.example.kpkn.ui.components.KpknSheet
@@ -397,30 +399,6 @@ internal fun catalogEquipmentLabels(entry: CatalogEntry): List<String> = entry.r
         else -> null
     }
 }.distinct()
-
-/** Portada de líneas helper para CatalogEntry */
-internal fun catalogCoverSpecFor(entry: CatalogEntry): LineCoverSpec {
-    val bg = when {
-        entry.references.contains(TrainingReference.POWERLIFTING) -> LineCoverBackground.CARBON
-        entry.references.contains(TrainingReference.HYPERTROPHY) -> LineCoverBackground.MUSGO
-        entry.references.contains(TrainingReference.POWERBUILDING) -> LineCoverBackground.NOCHE
-        else -> LineCoverBackground.GRAFITO
-    }
-    val st = when {
-        entry.kind == PlanKind.ESTRUCTURA -> LineCoverStyle.RELIEVE
-        (entry.durationWeeks ?: 1) > 1 -> LineCoverStyle.PERFIL
-        else -> LineCoverStyle.ONDAS
-    }
-    val hash = entry.id.hashCode() and 0x7FFFFFFF
-    return LineCoverSpec(
-        style = st,
-        background = bg,
-        seed = (hash % 100) + 4,
-        weekLoads = listOf(0.62f, 0.7f, 0.8f, 0.66f, 0.74f, 0.38f),
-        currentWeek = 2,
-        weeks = catalogWeeks(entry) ?: 1
-    )
-}
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Vista Principal: Inicio del Catálogo (.ct-head, .ct-body, .ct-hs, .ct-row)
@@ -929,9 +907,10 @@ private fun FeaturedPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
             .clickable(onClick = onClick)
     ) {
         // Portada generativa de fondo (.ct-cv)
-        LineCoverArt(
-            spec = catalogCoverSpecFor(entry),
-            modifier = Modifier.fillMaxSize()
+        CoverStudioArt(
+            identity = catalogCoverIdentityFor(entry),
+            modifier = Modifier.fillMaxSize(),
+            reduced = true,
         )
 
         // Degradado oscuro superpuesto (.ct-hc::after: ct-G02)
@@ -992,9 +971,10 @@ private fun CatalogRow(entry: CatalogEntry, onClick: () -> Unit) {
                 .kpknInset(KpknShadow.BordeInterior, coverShape)
                 .clip(coverShape)
         ) {
-            LineCoverArt(
-                spec = catalogCoverSpecFor(entry),
-                modifier = Modifier.fillMaxSize()
+            CoverStudioArt(
+                identity = catalogCoverIdentityFor(entry),
+                modifier = Modifier.fillMaxSize(),
+                reduced = true,
             )
         }
 
@@ -1134,9 +1114,10 @@ private fun CatalogDetail(
                     .background(Color(0xFF111111))
             ) {
                 // Portada a sangre
-                LineCoverArt(
-                    spec = catalogCoverSpecFor(entry),
-                    modifier = Modifier.fillMaxSize()
+                CoverStudioArt(
+                    identity = catalogCoverIdentityFor(entry),
+                    modifier = Modifier.fillMaxSize(),
+                    reduced = true,
                 )
 
                 // Velo degradado inferior (.ct-hero::after: ct-G03)

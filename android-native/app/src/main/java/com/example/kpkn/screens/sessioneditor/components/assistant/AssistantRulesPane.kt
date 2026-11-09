@@ -135,6 +135,8 @@ internal fun AssistantRulesPane(
     onGoSuggestions: () -> Unit,
     onToast: (title: String, sub: String?) -> Unit,
     onApplied: () -> Unit,
+    onApplySmartLoadBasis: (com.example.kpkn.data.models.SmartLoadBasis, List<String>) -> Unit = { _, _ -> },
+    onUndoSmartLoadBasis: () -> Unit = {},
     modifier: Modifier = Modifier,
     initialScope: RuleScope? = null,
 ) {
@@ -182,24 +184,33 @@ internal fun AssistantRulesPane(
                 dots = if (clashDot) setOf(RulesSection.LIMITS.ordinal) else emptySet(),
             )
             when (section) {
-                RulesSection.VALUES -> ValuesSection(
-                    uiState = uiState,
-                    session = session,
-                    defaults = defaults,
-                    selectedScope = selectedScope,
-                    scopePartId = scopePartId,
-                    actions = actions,
-                    onScope = { scope ->
-                        selectedScope = scope
-                        if (scope != RuleScope.PER_GROUP) scopePartId = null
-                        if (scope == RuleScope.PER_GROUP && scopePartId == null) scopePartId = session?.parts?.firstOrNull()?.id
-                        val target = scopePartId.takeIf { scope == RuleScope.PER_GROUP }
-                        actions.onPatchRuleDefaults(target) { it.copy(scope = scope) }
-                    },
-                    onPart = { scopePartId = it },
-                    onRest = { restDialog = it },
-                    onToast = onToast,
-                )
+                RulesSection.VALUES -> {
+                    ValuesSection(
+                        uiState = uiState,
+                        session = session,
+                        defaults = defaults,
+                        selectedScope = selectedScope,
+                        scopePartId = scopePartId,
+                        actions = actions,
+                        onScope = { scope ->
+                            selectedScope = scope
+                            if (scope != RuleScope.PER_GROUP) scopePartId = null
+                            if (scope == RuleScope.PER_GROUP && scopePartId == null) scopePartId = session?.parts?.firstOrNull()?.id
+                            val target = scopePartId.takeIf { scope == RuleScope.PER_GROUP }
+                            actions.onPatchRuleDefaults(target) { it.copy(scope = scope) }
+                        },
+                        onPart = { scopePartId = it },
+                        onRest = { restDialog = it },
+                        onToast = onToast,
+                    )
+                    AssistantSmartLoadBasisSection(
+                        session = session,
+                        activeVariant = uiState.activeVariant,
+                        outcome = uiState.assistantSmartLoadBasisUndo,
+                        onApply = onApplySmartLoadBasis,
+                        onUndo = onUndoSmartLoadBasis,
+                    )
+                }
                 RulesSection.LIMITS -> LimitsSection(uiState, actions, limitStatuses, clashBanner, onGoSuggestions)
                 RulesSection.TIME -> TimeSection(uiState, actions, onOpenDuration = { durationTarget = it }, onRest = { restDialog = it }, onToast = onToast)
             }

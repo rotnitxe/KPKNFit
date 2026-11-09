@@ -347,6 +347,7 @@ internal fun RestRef02Card(
     modifier: Modifier = Modifier,
     tag: String = "rest-card",
     footer: (@Composable () -> Unit)? = null,
+    contentSized: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val horizontal = if (compact) 15.dp else 18.dp
@@ -356,11 +357,12 @@ internal fun RestRef02Card(
     if (footer != null) heldFooter = footer
     val bottomPadding by animateDpAsState(if (footer == null) 12.dp else 0.dp, liveSpec(reduced, 240), label = "rest-card-bottom")
     Column(
-        modifier.fillMaxSize().clip(CardShape).background(RestRef02Tokens.CardFill).border(1.dp, RestRef02Tokens.CardBorder, CardShape)
+        (if (contentSized) modifier.fillMaxWidth().wrapContentHeight(unbounded = true) else modifier.fillMaxSize())
+            .clip(CardShape).background(RestRef02Tokens.CardFill).border(1.dp, RestRef02Tokens.CardBorder, CardShape)
             .testTag(tag),
     ) {
         Column(
-            Modifier.weight(1f).fillMaxWidth()
+            Modifier.then(if (contentSized) Modifier.fillMaxWidth() else Modifier.weight(1f).fillMaxWidth())
                 .padding(start = horizontal, end = horizontal, top = if (compact) 9.dp else 13.dp, bottom = bottomPadding),
             content = content,
         )

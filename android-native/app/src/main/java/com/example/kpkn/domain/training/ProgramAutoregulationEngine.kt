@@ -718,8 +718,7 @@ object ProgramAutoregulationEngine {
             val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds, sessionVariants)
             session.allExercises().forEach { exercise ->
                 val hasApreProgression = recipe?.progression is ProgressionRule.ApreXrm
-                val isApreBlock = exercise.apreBlock != null ||
-                    resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression) != null
+                val isApreBlock = resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression) != null
                 val exerciseLogs = if (isApreBlock) {
                     sessionLogs.filter { log -> hasUnambiguousVariantExercise(log, exercise, sessionVariants) }
                 } else sessionLogs

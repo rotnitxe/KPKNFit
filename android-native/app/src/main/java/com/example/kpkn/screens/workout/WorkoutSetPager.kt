@@ -75,6 +75,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
 internal sealed class TimelineElement {
+    data class PreparationTarget(
+        val stepKey: String,
+        val onSelect: () -> Unit,
+    )
+
     data class RoundBadge(
         val roundIndex: Int,
         val isCurrentRound: Boolean,
@@ -106,6 +111,8 @@ internal sealed class TimelineElement {
         val isCompleted: Boolean,
         val progress: Float,
         val onSelect: () -> Unit,
+        val navigationTargets: List<PreparationTarget> = emptyList(),
+        val activeNavigationTargetIndex: Int? = null,
     ) : TimelineElement()
 
     data class WarmupPill(
@@ -113,6 +120,8 @@ internal sealed class TimelineElement {
         val isCompleted: Boolean,
         val progress: Float,
         val onSelect: () -> Unit,
+        val navigationTargets: List<PreparationTarget> = emptyList(),
+        val activeNavigationTargetIndex: Int? = null,
     ) : TimelineElement()
 
     data class RestPill(

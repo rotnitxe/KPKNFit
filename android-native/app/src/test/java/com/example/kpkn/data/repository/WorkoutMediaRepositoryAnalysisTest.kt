@@ -14,6 +14,7 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournal
 import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.CaptureMetadataFile
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.VideoAnalysisStatus
@@ -163,6 +164,34 @@ class WorkoutMediaRepositoryAnalysisTest {
 
         assertEquals(0, db.videoAnalysisDao().count())
         assertTrue(infos("vid-1").isEmpty())
+    }
+
+    @Test
+    fun failed_capture_sidecar_keeps_the_saved_video_and_retries_by_uuid_without_duplicating_it() = runBlocking {
+        val entry = cameraEntry("sidecar-retry").copy(analysisRequestedForCapture = false)
+        val sidecar = TechniqueSidecars.captureFile(File(entry.media.filePath))
+        assertTrue("el sidecar es el fallo accesorio", sidecar.mkdir())
+        File(sidecar, "blocker").writeText("keep the directory non-empty")
+
+        val saved = save(entry)!!
+
+        assertNotNull("la grabación finalizada se entrega aun si falla el sidecar", repository.getById(saved.id))
+        assertEquals("un único medio", 1, db.workoutMediaDao().count())
+        assertTrue("el diario READY conserva el UUID para reintentar", WorkoutMediaCaptureJournal(context.filesDir).read(saved.id)!!.readyToIngest)
+        assertTrue(
+            "la pantalla puede ofrecer un reintento accesorio",
+            repository.pendingCaptureRetryState.value.capturesById[saved.id]?.errorMessage?.contains("sin duplicar") == true,
+        )
+        assertTrue("OFF no encola el análisis automático", infos(saved.id).isEmpty())
+
+        sidecar.deleteRecursively()
+        repository.retryPendingCapturesForSession(saved.sessionKey!!)
+
+        assertEquals("el reintento no duplica el vídeo", 1, db.workoutMediaDao().count())
+        assertEquals(false, CaptureMetadataFile.read(sidecar).analysisRequestedForCapture)
+        assertNull("solo se limpia el diario después de persistir la preferencia", WorkoutMediaCaptureJournal(context.filesDir).read(saved.id))
+        assertFalse(repository.pendingCaptureRetryState.value.capturesById.containsKey(saved.id))
+        assertTrue(infos(saved.id).isEmpty())
     }
 
     @Test

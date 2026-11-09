@@ -53,10 +53,8 @@ import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverArt
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
-import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.catalogCoverIdentityFor
 import com.example.kpkn.screens.programdetail.design.ProgramAnchoredMenuItem
 import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
 import com.example.kpkn.screens.programdetail.design.structure.catalogDurationLabel
@@ -69,11 +67,7 @@ import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
-import kotlin.math.abs
 
-/** Las portadas de líneas de las miniaturas del catálogo: el par sale del id del plan, así cada plan conserva siempre la suya. */
-private val CATALOG_LINE_STYLES = listOf(LineCoverStyle.ECO, LineCoverStyle.ORBITAS, LineCoverStyle.BRUMA, LineCoverStyle.RELIEVE)
-private val CATALOG_LINE_BACKS = listOf(LineCoverBackground.CARBON, LineCoverBackground.GRAFITO, LineCoverBackground.NOCHE, LineCoverBackground.MUSGO)
 
 /** Qué menú anclado de los chips está abierto. */
 private enum class CatalogMenu { DAYS, DURATION }
@@ -339,14 +333,10 @@ private fun CatalogPlanCard(entry: CatalogEntry, onClick: () -> Unit) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        LineCoverArt(
-            spec = LineCoverSpec(
-                style = CATALOG_LINE_STYLES[abs(entry.id.hashCode()) % CATALOG_LINE_STYLES.size],
-                background = CATALOG_LINE_BACKS[abs(entry.id.hashCode() / 4) % CATALOG_LINE_BACKS.size],
-                seed = abs(entry.id.hashCode()) % 9 + 1,
-                weekLoads = emptyList(),
-            ),
+        CoverStudioArt(
+            identity = catalogCoverIdentityFor(entry),
             modifier = Modifier.size(width = 64.dp, height = 80.dp).clip(RoundedCornerShape(14.dp)),
+            reduced = true,
         )
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {

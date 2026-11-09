@@ -190,7 +190,7 @@ class LiveSessionLineTest {
     }
     @Test fun preparationShowsItsOwnLeadAndLabel() {
         val warm = exercise.copy(warmupSets = listOf(WarmupSetDefinition("w1", 50.0, 8), WarmupSetDefinition("w2", 70.0, 5)))
-        val snapshot = LiveSetStepperSnapshot(listOf(TimelineElement.WarmupPill(true, false, .5f) {}), 0, 0, 14, null, true)
+        val snapshot = LiveSetStepperSnapshot(listOf(TimelineElement.WarmupPill(true, false, .5f, onSelect = {})), 0, 0, 14, null, true)
         content { LiveSessionLine(listOf(warm, row), warm.id, snapshot, {}, {}, {}, {}, {}, recordVisible = true, recordEnabled = true,
             recordLabel = "Registrar aproximación A2", modifier = Modifier.width(340.dp)) }
         rule.onNodeWithText("Aproximación 2 de 2").assertIsDisplayed()

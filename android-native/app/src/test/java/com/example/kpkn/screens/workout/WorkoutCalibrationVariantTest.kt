@@ -68,6 +68,79 @@ class WorkoutCalibrationVariantTest {
         assertEquals(state, resolveCalibration(state, f.record.id, CalibrationStatus.APPLIED, now + 1))
     }
 
+    @Test fun anInvalidS3MarkerOrPlannedIdRejectsTheProposalWhileS4IsPending() {
+        val f = fixture()
+        val invalidPlannedId = f.record.copy(apre = f.record.apre!!.copy(sourcePlannedSetId = "stale-s3"))
+        val plannedState = f.state.copy(calibrationDecisions = listOf(invalidPlannedId))
+        assertFalse(validateApreApplicationContract(plannedState, f.exercise, invalidPlannedId).canApply)
+        assertEquals(plannedState, resolveCalibration(plannedState, f.record.id, CalibrationStatus.APPLIED, now + 1))
+
+        val invalidMarker = f.state.copy(
+            completedSets = mapOf(workoutSetKey(f.exercise.id, 1) to f.source),
+        )
+        assertFalse(validateApreApplicationContract(invalidMarker, f.exercise, f.record).canApply)
+        assertEquals(invalidMarker, resolveCalibration(invalidMarker, f.record.id, CalibrationStatus.APPLIED, now + 1))
+    }
+
+    @Test fun aChangedBaseLoadOrS4PrescriptionRejectsTheOldProposal() {
+        val f = fixture()
+        fun stateWith(changedExercise: Exercise): WorkoutUiState {
+            val base = f.state.session!!
+            return f.state.copy(session = base.copy(
+                sessionB = base.sessionB!!.copy(exercises = listOf(changedExercise)),
+            ))
+        }
+
+        val changedLoadSets = f.exercise.sets.mapIndexed { index, set ->
+            if (index == 3) set.copy(weight = set.weight!! + 2.5) else set
+        }
+        val changedLoadExercise = f.exercise.copy(
+            sets = changedLoadSets,
+            apreBlock = f.exercise.apreBlock!!.copy(setIds = changedLoadSets.map { it.id }),
+        )
+        val changedLoadState = stateWith(changedLoadExercise)
+        val changedLoadContract = validateApreApplicationContract(changedLoadState, changedLoadExercise, f.record)
+        assertFalse(changedLoadContract.canApply)
+        assertTrue(changedLoadContract.reviewReason.orEmpty().contains("carga base de S4 cambió"))
+        assertEquals(changedLoadState, resolveCalibration(changedLoadState, f.record.id, CalibrationStatus.APPLIED, now + 1))
+
+        val changedPrescriptionSets = f.exercise.sets.mapIndexed { index, set ->
+            if (index == 3) set.copy(targetRPE = 7.0) else set
+        }
+        val changedPrescriptionExercise = f.exercise.copy(
+            sets = changedPrescriptionSets,
+            apreBlock = f.exercise.apreBlock!!.copy(setIds = changedPrescriptionSets.map { it.id }),
+        )
+        val changedPrescriptionState = stateWith(changedPrescriptionExercise)
+        val changedPrescriptionContract = validateApreApplicationContract(
+            changedPrescriptionState,
+            changedPrescriptionExercise,
+            f.record,
+        )
+        assertFalse(changedPrescriptionContract.canApply)
+        assertTrue(changedPrescriptionContract.reviewReason.orEmpty().contains("prescripción de S4 cambió"))
+        assertEquals(
+            changedPrescriptionState,
+            resolveCalibration(changedPrescriptionState, f.record.id, CalibrationStatus.APPLIED, now + 1),
+        )
+    }
+
+    @Test fun aCompletedS4IsNotAnApplicableTarget() {
+        val f = fixture()
+        val sets = f.exercise.sets.mapIndexed { index, set ->
+            if (index == 3) set.copy(completedReps = 10) else set
+        }
+        val completedExercise = f.exercise.copy(sets = sets)
+        val base = f.state.session!!
+        val completedState = f.state.copy(session = base.copy(
+            sessionB = base.sessionB!!.copy(exercises = listOf(completedExercise)),
+        ))
+        val contract = validateApreApplicationContract(completedState, completedExercise, f.record)
+        assertFalse(contract.canApply)
+        assertTrue(contract.reviewReason.orEmpty().contains("S4 ya está completada"))
+        assertEquals(completedState, resolveCalibration(completedState, f.record.id, CalibrationStatus.APPLIED, now + 1))
+    }
+
     @Test fun correctedS3RebuildsTheBProposalWithoutBorrowingASetIds() = runBlocking {
         val f = fixture()
         val applied = resolveCalibration(f.state, f.record.id, CalibrationStatus.APPLIED, now + 1)
