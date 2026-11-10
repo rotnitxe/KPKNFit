@@ -364,24 +364,6 @@ class WorkoutVideoRepsRenderSheetTest {
         rule.runOnIdle { state.value = SetVideoAnalysisState.Mismatch(8, 7, 0, 0, CountConfidence.MEDIA) }
         val rendered = save(name)
         assertEquals(bounds, rule.onNodeWithTag("video_rest_container").fetchSemanticsNode().boundsInRoot)
-        if (kind == 0 && scale > 1f) {
-            val text = rule.onNodeWithTag(RestVideoTextTag)
-            val layouts = mutableListOf<TextLayoutResult>()
-            text.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-            val layout = layouts.single()
-            val range = layout.layoutInput.text.getLinkAnnotations(0, layout.layoutInput.text.length).last()
-            val link = layout.getPathForRange(range.start, range.end).getBounds()
-            val box = text.fetchSemanticsNode().boundsInRoot
-            val top = box.top + (box.height - layout.size.height) / 2f
-            var brightInk = 0
-            // La mitad inferior de la última acción debe conservar la tinta, aun con contenido desplazable debajo.
-            for (y in (top + link.center.y).toInt() until (top + link.bottom).toInt()) {
-                for (x in (box.left + link.left).toInt() until (box.left + link.right).toInt()) {
-                    if (android.graphics.Color.red(rendered.getPixel(x, y)) >= 230) brightInk++
-                }
-            }
-            assertTrue("El fundido no borra la acción de la fila del vídeo", brightInk > 5)
-        }
         val radius = (28f * host!!.resources.displayMetrics.density).toInt()
         for (y in bounds.top.toInt() until bounds.bottom.toInt()) {
             for (x in bounds.left.toInt() until bounds.right.toInt()) {

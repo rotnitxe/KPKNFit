@@ -2,6 +2,7 @@ package com.example.kpkn.domain.calculations
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.screens.workout.LiveSetPrPolicy
@@ -34,7 +35,7 @@ class Cal1CapacityContractTest {
             assertEquals(capacity, resolveReferenceCapacity(exercise.copy(prFor1RM = PrReference(100.0, reps)))!!, 0.0)
             assertEquals(capacity, evaluated.homologated.estimatedRm!!, 0.0)
             assertEquals(capacity, LoadSuggestionEngine.estimatedCapacity(done)!!, 0.0)
-            assertEquals(CAPACITY_ESTIMATOR_VERSION, evaluated.homologated.estimatorVersion)
+            assertEquals(WORKOUT_DERIVED_ESTIMATOR_VERSION, evaluated.homologated.estimatorVersion)
             assertTrue(LiveSetPrPolicy.isPrSeries(null, done, "e", listOf(
                 SessionMilestone("pr", "e", "Press", "pr_e1rm", "PR", capacity),
             )))
