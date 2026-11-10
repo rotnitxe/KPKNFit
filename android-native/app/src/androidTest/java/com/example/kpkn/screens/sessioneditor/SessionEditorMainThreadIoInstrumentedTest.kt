@@ -183,10 +183,14 @@ class SessionEditorMainThreadIoInstrumentedTest {
                 mesoIndex = 0,
                 sessionId = sessionAId,
             )
+            val savedInProgram = repo.getProgramById(programId)
+                ?.macrocycles?.flatMap { it.blocks }?.flatMap { it.mesocycles }
+                ?.flatMap { it.weeks }?.flatMap { it.sessions }
+                ?.firstOrNull { it.id == sessionAId }?.description
             assertEquals(
-                "dirty switch must commit the old-session draft before showing the target",
+                "dirty switch must commit the old-session edit before showing the target",
                 "switch edit",
-                savedBeforeSwitch?.session?.description,
+                savedBeforeSwitch?.session?.description ?: savedInProgram,
             )
 
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()

@@ -14,9 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -114,7 +116,7 @@ class WorkoutRestFeedbackDeviceTest {
         rule.onNodeWithContentDescription("Calidad técnica")
             .performSemanticsAction(SemanticsActions.SetProgress) { it(4f) }
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
-        rule.onNodeWithText("/ 10 · irregular").assertExists()
+        rule.onNodeWithTag("rest-feedback-quality-sq").assertTextEquals("4/10")
         rule.onNodeWithText("Rodilla anterior").performClick()
         rule.onNodeWithText("Reportar molestia").performClick()
         rule.onNodeWithText("Guardar").performClick()

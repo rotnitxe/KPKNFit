@@ -124,6 +124,15 @@ android {
     }
 }
 
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    // C1 evita el fallo intermitente del compilador C2 de Temurin al compilar SQLite bajo carga.
+    jvmArgs("-XX:TieredStopAtLevel=1")
+    // Las hojas de render son generadores de PNG opt-in; sin KPKN_RENDER_DIR no son pruebas.
+    if (System.getenv("KPKN_RENDER_DIR").isNullOrBlank()) {
+        filter.excludeTestsMatching("com.example.kpkn.render.*")
+    }
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
