@@ -31,6 +31,8 @@ val COOKING_FACTORS: Map<CookingMethod, CookingFactor> = mapOf(
     CookingMethod.GUISADO to CookingFactor(kcal = 1.30, fats = 1.20, carbs = 1.00, protein = 1.00, waterChange = 0.05),
     CookingMethod.AHUMADO to CookingFactor(kcal = 1.10, fats = 0.95, carbs = 1.00, protein = 1.05, waterChange = -0.15),
     CookingMethod.FRITO to CookingFactor(kcal = 1.10, fats = 1.00, carbs = 1.00, protein = 1.10, waterChange = -0.20),
+    // El salteado no multiplica macros: su grasa entra en gramos por la ruta del aceite.
+    CookingMethod.SALTEADO to CookingFactor(),
     CookingMethod.EMPANIZADO_FRITO to CookingFactor(kcal = 1.20, fats = 1.00, carbs = 1.20, protein = 1.10, waterChange = -0.15),
 )
 

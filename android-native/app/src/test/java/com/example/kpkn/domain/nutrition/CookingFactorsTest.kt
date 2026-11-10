@@ -79,8 +79,8 @@ class CookingFactorsTest {
     }
 
     @Test
-    fun `all 11 methods have factors`() {
-        assertEquals(11, COOKING_FACTORS.size)
+    fun `all 12 methods have factors`() {
+        assertEquals(12, COOKING_FACTORS.size)
         for (method in CookingMethod.entries) {
             assert(COOKING_FACTORS.containsKey(method)) { "Missing factor for $method" }
         }

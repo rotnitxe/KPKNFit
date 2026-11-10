@@ -493,8 +493,10 @@ object FoodIdentity {
         // An all-zero row is a broken one, unless the catalog declares it zero-energy (water, diet soda).
         if (food.calories <= 0.0) {
             // Macros with zero energy are contradictory unless the row is an
-            // explicitly declared zero-energy food with all macros at zero.
-            return values.drop(1).all { it == 0.0 } && NutrientBasis.isZeroEnergy(food)
+            // explicitly declared zero-energy food and its macro energy stays
+            // within the zero-energy tolerance (a diet soda may declare 0.1 g carbs).
+            val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
+            return NutrientBasis.isZeroEnergy(food) && macroEnergy <= NutrientBasis.ZERO_ENERGY_MAX_KCAL
         }
         val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
         if (macroEnergy <= 0.0) return true
