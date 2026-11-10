@@ -36,7 +36,7 @@ object TrainingLoadEvidence {
                     )
                 }
             }
-            calculateWeightFrom1RMAndIntensity(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
+            com.example.kpkn.domain.performance.StrengthModel.weightFor(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
                 return ResolvedPlannedLoad(raw, ResolvedLoadSource.ONE_RM_INTENSITY)
             }
             calculateSuggestedLoad(exercise, set)?.takeIf { it > 0.0 }?.let { raw ->

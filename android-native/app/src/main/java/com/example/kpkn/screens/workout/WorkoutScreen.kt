@@ -134,7 +134,6 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIdsFrom
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
 import com.example.kpkn.screens.sessioneditor.ExerciseSetsCarousel

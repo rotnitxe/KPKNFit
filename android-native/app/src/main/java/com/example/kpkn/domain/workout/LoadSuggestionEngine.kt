@@ -7,7 +7,6 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.performedPurpose
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.plannedRepAnchor
 import kotlin.math.abs

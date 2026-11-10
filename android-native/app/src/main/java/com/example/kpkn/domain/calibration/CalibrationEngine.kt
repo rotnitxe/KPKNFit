@@ -2,8 +2,6 @@ package com.example.kpkn.domain.calibration
 
 import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.LoadModeV2
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 
 /** No lookups or side effects: every reference, timestamp, base load and material is supplied. */
@@ -88,7 +86,7 @@ object CalibrationEngine {
         // Cap the observed full reps BEFORE adding the declared reserve. Thus 10 @RIR1 = 11 to failure.
         val effectiveReps = source.fullReps.coerceAtMost(policy.maximumFullReps) +
             if (source.reachedFailure) 0 else source.declaredRir!!
-        val capacity = calculateHybrid1RM(source.externalLoadKg, effectiveReps)
+        val capacity = com.example.kpkn.domain.performance.StrengthModel.estimate1RM(source.externalLoadKg, effectiveReps)
         val ratio = reference.capacityKg?.let { capacity / it }
         val factor = sessionCapacityAdjustmentFactor(capacity, reference.capacityKg, policy)
         val note = if (source.fullReps > policy.maximumFullReps) {
@@ -99,7 +97,7 @@ object CalibrationEngine {
             val reps = set.targetReps?.takeIf { it > 0 } ?: return@mapNotNull null
             if (set.targetRir < 0) return@mapNotNull null
             val repsToFailure = (reps.toLong() + set.targetRir).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-            val load = calculateWeightFrom1RM(capacity, repsToFailure)
+            val load = com.example.kpkn.domain.performance.StrengthModel.weightFor(capacity, repsToFailure)
             CalibrationLoadChange(set.setId, set.baseLoadKg, LoadSuggestionEngine.roundLoad(load, equipment.incrementKg))
         } else changes(factor)
         val type = when {

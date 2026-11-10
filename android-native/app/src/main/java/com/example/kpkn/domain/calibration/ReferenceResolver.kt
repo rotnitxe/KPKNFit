@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.calibration
 
 import com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 
 /** Only applied/accepted calibrations are supplied here, never kept/reverted proposals. */
 data class AcceptedCalibrationReference(
@@ -60,7 +59,7 @@ object ReferenceResolver {
         candidates.declaredPr?.takeIf {
             it.context == context && validCapacity(it.weightKg) && it.reps > 0
         }?.let {
-            val capacity = calculateHybrid1RM(it.weightKg, it.reps)
+            val capacity = com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it.weightKg, it.reps)
             if (validCapacity(capacity)) return ResolvedCalibrationReference(capacity, CalibrationReferenceSource.DECLARED_PR)
         }
         return ResolvedCalibrationReference(null, CalibrationReferenceSource.NONE)

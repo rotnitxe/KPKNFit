@@ -22,7 +22,6 @@ import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.AmrapHit
 import com.example.kpkn.domain.training.LiveApreBlock

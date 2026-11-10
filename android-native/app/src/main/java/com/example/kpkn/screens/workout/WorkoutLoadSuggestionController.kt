@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.percentLoadReferenceKg
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver

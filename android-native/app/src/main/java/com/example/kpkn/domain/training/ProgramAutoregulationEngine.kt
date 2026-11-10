@@ -31,7 +31,6 @@ import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calibration.CalibrationContext
 import com.example.kpkn.domain.calibration.CalibrationDecisionType
 import com.example.kpkn.domain.calibration.CalibrationEngine

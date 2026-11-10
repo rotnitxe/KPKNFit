@@ -2,7 +2,6 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimateRepsFromPercent1RM
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity

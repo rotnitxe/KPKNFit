@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.text.NumberFormat
 import java.time.LocalDate

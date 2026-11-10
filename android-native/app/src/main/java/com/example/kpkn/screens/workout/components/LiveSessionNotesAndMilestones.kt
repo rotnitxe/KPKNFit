@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 
@@ -89,7 +88,7 @@ internal fun LiveSessionMilestonesContent(
                     }
                     .values
                     .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
-                    .maxOfOrNull { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+                    .maxOfOrNull { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it.weight ?: 0.0, it.reps) }
                     ?: 0.0
                 val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
                 Surface(

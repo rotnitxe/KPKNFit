@@ -136,7 +136,7 @@ internal fun calibrationHistoryReference(history: List<WorkoutLog>, context: Cal
         .mapNotNull { set ->
             val external = set.originalLoad ?: set.recordedPayloadV3?.externalLoad
                 ?: set.weight.takeUnless { context.loadMode == LoadModeV2.LASTRE }
-            external?.let { calculateHybrid1RM(it, set.reps) }
+            external?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it, set.reps) }
         }
         .filter { it.isFinite() && it > 0.0 }
     val ewma = WorkoutPerformanceHomologationEngine.capacityHistoryEwma(capacities)
@@ -323,7 +323,7 @@ internal fun acceptedCalibrationLoad(state: WorkoutUiState, exercise: Exercise, 
     val capacity = reference.capacityKg ?: return null
     val prescription = calibrationPrescription(set, side)
     val load = prescription.targetPercentageRM?.takeIf { it.isFinite() && it > 0 }?.let { capacity * it / 100.0 }
-        ?: calculateWeightFrom1RMAndIntensity(capacity, prescription)
+        ?: com.example.kpkn.domain.performance.StrengthModel.weightFor(capacity, prescription)
     return load?.let {
         LoadSuggestionEngine.roundLoad(it, calibrationIncrement(exercise, set, inventory))
     }

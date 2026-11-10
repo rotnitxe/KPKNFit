@@ -7,7 +7,6 @@ import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calibration.CalibrationDecisionType
 import com.example.kpkn.domain.text.SpanishPlurals
 import kotlin.math.abs
@@ -586,7 +585,7 @@ object AmrapProgramPreview {
         ) {
             return noChange(gate, lift, "${prefix}el máximo de repeticiones se compara con tu TM al cerrar la semana.")
         }
-        val e1rm = calculateHybrid1RM(weight, hit.actualReps)
+        val e1rm = com.example.kpkn.domain.performance.StrengthModel.estimate1RM(weight, hit.actualReps)
         val implied = tm / recipe.trainingMaxPercent
         val change = ProgramAutoregulationEngine.repMaxTmChange(e1rm, implied)
             ?: return noChange(gate, lift, "${prefix}el TM no cambia: tu e1RM de ${kg(e1rm)} kg está cerca de los ${kg(implied)} kg que implica tu TM.")
