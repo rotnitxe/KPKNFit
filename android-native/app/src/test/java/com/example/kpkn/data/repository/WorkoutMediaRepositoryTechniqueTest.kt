@@ -87,6 +87,8 @@ class WorkoutMediaRepositoryTechniqueTest {
         side = side,
         weightKg = weightKg,
         reps = reps,
+        catalogDefinitionId = "squat",
+        catalogConfigurationId = "squat__barbell",
     )
 
     private fun analysis(mediaId: String) = VideoAnalysisEntity(

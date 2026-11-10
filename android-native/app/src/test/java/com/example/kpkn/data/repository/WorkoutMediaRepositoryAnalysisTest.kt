@@ -201,8 +201,17 @@ class WorkoutMediaRepositoryAnalysisTest {
         TechniqueWorkTestKit.awaitStarted(1)
         // El análisis terminó bien.
         val media = repository.getById("vid-1")!!
-        VideoAnalysisRepository.forDatabase(context, db, store)
-            .completeDone(media, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), media.weightKg, AnalysisMode.FULL)
+        val analysisRepository = VideoAnalysisRepository.forDatabase(context, db, store)
+        val generation = analysisRepository.currentAnalysisGeneration("vid-1")?.id
+        analysisRepository
+            .completeDone(
+                media,
+                TechniqueReportSamples.fullReport(),
+                TechniqueReportSamples.exercise(),
+                media.weightKg,
+                AnalysisMode.FULL,
+                analysisGenerationId = generation,
+            )
         TechniqueAnalysisScheduler.cancel(context, "vid-1")
 
         // Una recuperación o un reintento vuelve a pasar por el mismo medio ya guardado.
