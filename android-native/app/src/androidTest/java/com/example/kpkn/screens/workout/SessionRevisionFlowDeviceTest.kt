@@ -25,7 +25,6 @@ import com.example.kpkn.MainActivity
 import com.example.kpkn.BuildConfig
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
@@ -125,7 +124,6 @@ class SessionRevisionFlowDeviceTest {
             }
             context = FixtureContext(app, suffix)
             NutritionRepository.closeInstance()
-            clearSingleton(AugeRepository::class.java)
             repository = ProgramRepository.initForTests(context)
             setDatabase(repository.databaseForTests())
             runBlocking {
@@ -140,7 +138,6 @@ class SessionRevisionFlowDeviceTest {
 
         override fun after() {
             // Activity rule has already closed its real navigation/ViewModelStore.
-            clearSingleton(AugeRepository::class.java)
             NutritionRepository.closeInstance()
             WorkoutMediaRepository.closeInstance()
             ProgramRepository.closeInstance()

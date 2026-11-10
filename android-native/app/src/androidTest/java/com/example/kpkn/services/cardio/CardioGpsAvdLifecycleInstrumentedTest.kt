@@ -33,7 +33,6 @@ import com.example.kpkn.data.models.MobilityUnit
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.workout.WorkoutViewModel
@@ -139,7 +138,6 @@ class CardioGpsAvdLifecycleInstrumentedTest {
         // MainActivity nutrition owns the database selected by this fixture.
         // Cancel its previous owner before replacing/closing the test Room singleton.
         NutritionRepository.closeInstance()
-        clearSingleton(AugeRepository::class.java)
         repository = ProgramRepository.initForTests(context)
         db = repository.databaseForTests()
         setDatabaseSingletonForTest(db)
@@ -190,7 +188,6 @@ class CardioGpsAvdLifecycleInstrumentedTest {
         }
         runCatching { activityScenario?.close() }
         activityScenario = null
-        runCatching { clearSingleton(AugeRepository::class.java) }
         NutritionRepository.closeInstance()
         ProgramRepository.closeInstance()
         runCatching { KpknDatabase.closeInstance() }

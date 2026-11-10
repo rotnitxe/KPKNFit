@@ -6,7 +6,6 @@ import android.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.kpkn.data.models.*
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
@@ -24,7 +23,7 @@ class WorkoutStoryDeviceTest {
     private fun data(photos:List<StoryPhoto> = emptyList()):WorkoutStoryData {
         val previous=log("previous","2026-09-15T12:00:00Z",exercise(80.0))
         return WorkoutStoryData("Pierna",FinishPresentationContext(program=Program("program","Base",coverImage="gradient://forest"),
-            weekNumber=3,photos=photos,today=LocalDate.of(2026,10,16)),40,4080.0,8,2.0,"Alta",TowerRingValues(65,70,75),
+            weekNumber=3,photos=photos,today=LocalDate.of(2026,10,16)),40,4080.0,8,2.0,"Alta",
             buildFinishLiftProgress(listOf(exercise()),listOf(previous)))
     }
 
@@ -72,9 +71,9 @@ class WorkoutStoryDeviceTest {
                     // Solo fixtures de prueba, exportados por Android para la inspección física del ZFlip.
                     val output=File(context.getExternalFilesDir(null),"qa-stories").apply { mkdirs() }
                     File(output,"lv13-demo-${template.name.lowercase()}.png").outputStream().use { base.compress(Bitmap.CompressFormat.PNG,100,it) }
-                    val toggles=listOf("rings" to options.copy(rings=false),"improvements" to options.copy(improvements=false),"duration" to options.copy(duration=false),"intensity" to options.copy(intensity=false))
+                    val toggles=listOf("improvements" to options.copy(improvements=false),"duration" to options.copy(duration=false),"intensity" to options.copy(intensity=false),"exercises" to options.copy(exerciseList=true))
                     val applicable=when(template){
-                        WorkoutStoryTemplate.GENERAL->setOf("rings","improvements","duration","intensity")
+                        WorkoutStoryTemplate.GENERAL->setOf("improvements","duration","intensity","exercises")
                         WorkoutStoryTemplate.EXERCISE->setOf("improvements")
                         WorkoutStoryTemplate.PHOTOS->setOf("duration")
                     }

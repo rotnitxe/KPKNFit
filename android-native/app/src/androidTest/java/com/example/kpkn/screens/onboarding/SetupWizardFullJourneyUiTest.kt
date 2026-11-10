@@ -121,7 +121,7 @@ import org.junit.runner.RunWith
 
 /**
  * Recorrido COMPLETO del wizard por UI real: Bienvenida → Datos básicos →
- * Entreno → Nutrición → Rings → Revisión y activación, con la activación REAL
+ * Entreno → Nutrición → Revisión y activación, con la activación REAL
  * (Room del dispositivo) al final.
  *
  * Recorridos actuales (Entreno v2) — Powerbuilding a cinco días con su plan propio,
@@ -453,7 +453,6 @@ class SetupWizardFullJourneyUiTest {
         walkBasics(ageText = ageText, weightKg = weightKg, equationSexLabel = equationSexLabel)
         walkTraining(scenario = scenario, screenshotDirectory = screenshotDirectory)
         walkNutrition(flavor = flavor)
-        walkRings()
         walkReviewAndActivate(
             scenario = scenario,
             flavor = flavor,
@@ -902,50 +901,7 @@ class SetupWizardFullJourneyUiTest {
                 answerAndContinue(SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
             }
         }
-        answerAndContinue(SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_RECENT)
-    }
-
-    // ─── Bloque 4: Rings ─────────────────────────────────────────────────────
-
-    private fun walkRings() {
-        // «No lo sé» del historial no equivale a no haber entrenado: no añade
-        // sesiones (RINGS_SESSIONS queda fuera de la ruta) y no fabrica evidencia.
-        answerAndContinue(SetupStepId.RINGS_RECENT, SetupStepId.RINGS_MUSCLE_FEELING) {
-            clickOption(SetupStepId.RINGS_RECENT, "No lo sé")
-        }
-        answerAndContinue(SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING) {
-            clickOption(SetupStepId.RINGS_MUSCLE_FEELING, "Algo cargados")
-        }
-        answerAndContinue(SetupStepId.RINGS_ENERGY_FEELING, SetupStepId.RINGS_STRUCTURE_FEELING) {
-            clickOption(SetupStepId.RINGS_ENERGY_FEELING, "Prefiero omitir esta sensación")
-        }
-        answerAndContinue(SetupStepId.RINGS_STRUCTURE_FEELING, SetupStepId.RINGS_DISCOMFORT) {
-            clickOption(SetupStepId.RINGS_STRUCTURE_FEELING, "Prefiero omitir esta sensación")
-        }
-        answerAndContinue(SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT) {
-            clickOption(SetupStepId.RINGS_DISCOMFORT, "Prefiero omitir las molestias")
-        }
-
-        val rings = checkNotNull(vm.state.value.draft.ringsAnswers) { "respuestas de RINGS" }
-        assertEquals("una sola sensación declarada", 2, rings.muscleFeeling)
-        assertNull("energía omitida, sin nivel fabricado", rings.energy)
-        assertNull("columna omitida, sin nivel fabricado", rings.structureFeeling)
-        assertEquals(SetupRecentTrainingState.UNKNOWN, rings.recentTrainingState)
-        assertFalse(
-            "el desconocido del historial nunca añade sesiones",
-            SetupStepId.RINGS_SESSIONS in vm.state.value.draft.stepProgress.visited,
-        )
-
-        if (vm.state.value.ringsPreviewLoading) {
-            awaitState("preview de RINGS listo", PREVIEW_TIMEOUT_MS) { state ->
-                !state.ringsPreviewLoading && state.ringsPreviewError == null &&
-                    state.ringsBatteriesPreview != null
-            }
-        }
-        // El resultado expone cobertura por canal; sin datos jamás un 100 %.
-        assertInTree("no afirma un porcentaje", substring = true)
-        answerAndContinue(SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS)
-        answerAndContinue(SetupStepId.MILESTONE_RINGS, SetupStepId.REVIEW_ACTIVATE)
+        answerAndContinue(SetupStepId.MILESTONE_NUTRITION, SetupStepId.REVIEW_ACTIVATE)
     }
 
     // ─── Revisión y activación ───────────────────────────────────────────────
@@ -960,7 +916,6 @@ class SetupWizardFullJourneyUiTest {
         screenshotDirectory: File?,
     ) {
         assertCurrentStep(SetupStepId.REVIEW_ACTIVATE)
-        val ringsWasLoading = vm.state.value.ringsPreviewLoading
 
         // La revisión en carrusel pinta una página a la vez: la primera es «TÚ», con los datos básicos.
         assertInTree("TÚ")
@@ -996,11 +951,7 @@ class SetupWizardFullJourneyUiTest {
         awaitState("previews listas para activar", PREVIEW_TIMEOUT_MS) { state ->
             state.programPreview != null && state.previewError == null && !state.isPreviewLoading &&
                 state.nutritionPreparation != null && state.nutritionErrors.isEmpty() &&
-                !state.ringsPreviewLoading && state.ringsPreviewError == null &&
                 state.errors.isEmpty()
-        }
-        if (ringsWasLoading) {
-            awaitState("baterías de RINGS calculadas", PREVIEW_TIMEOUT_MS) { it.ringsBatteriesPreview != null }
         }
         val selectedPreview = checkNotNull(vm.state.value.programPreview) { "programa preparado para revisión" }
         assertEquals("revisión del candidato seleccionado", scenario.expectedCandidateId, vm.state.value.draft.selectedCatalogId)
@@ -1855,7 +1806,7 @@ class SetupWizardFullJourneyUiTest {
                 "«$calorieTarget.0 kcal», o el caption anclado «$caption») · " +
                 "días con objetivo=${state.nutritionPreparation?.days?.size} · " +
                 "aviso «$NO_DAYS_LABEL»=${existsInTree(NO_DAYS_LABEL)} · " +
-                "anillos en pantalla=${existsByContentDescription(RINGS_PREFIX, substring = true)} · " +
+                "kilocalorías en pantalla=${existsByContentDescription(CALORIE_PREFIX, substring = true)} · " +
                 state.describe(),
         )
     }
@@ -1976,8 +1927,7 @@ class SetupWizardFullJourneyUiTest {
     private fun SetupWizardState.describe(): String =
         "paso=$currentStep canConfirm=$canConfirmStep validación=$stepValidation " +
             "errores=$errors machine=$machineState candidatos=${availablePlanCandidates.size} " +
-            "preview=${previewError ?: "ok"} nutrición=${nutritionErrors} " +
-            "rings=${ringsPreviewError ?: "ok"} baterías=${ringsBatteriesPreview != null}"
+            "preview=${previewError ?: "ok"} nutrición=${nutritionErrors}"
 
     private fun <T> room(block: suspend () -> T): T = runBlocking { block() }
 
@@ -2000,7 +1950,7 @@ class SetupWizardFullJourneyUiTest {
         const val WEIGHT_VALUE_TAG = "setup-weight-value"
         const val RULE_CONTENT_DESCRIPTION = "Regla de peso en kilogramos"
         const val NO_DAYS_LABEL = "Todavía no hay objetivos por fecha."
-        const val RINGS_PREFIX = "kilocalorías al día"
+        const val CALORIE_PREFIX = "kilocalorías al día"
         const val VM_STORE_KEY = "setup-wizard-full-journey"
 
         // Marcas de prueba del paso PLAN y de los músculos (los demás controles de Entreno v2 las derivan de su símbolo).

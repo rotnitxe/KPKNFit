@@ -87,7 +87,7 @@ class WorkoutRestFeedbackDeviceTest {
                                     shape = RestClockShape.TOWER,
                                     feedbackExercises = listOf(squat),
                                     draft = draft,
-                                    insights = FeedbackInsights(likely = listOf("knee_patellar")),
+                                    insights = FeedbackInsights(reported = listOf(ReportedDiscomfort("knee_patellar", null))),
                                     explainDiscomfort = { null },
                                     linked = emptyList(),
                                     onSave = feedbackSave(listOf(squat), draft, emptyMap(), emptyList(), { it.id }) { saved = it },
@@ -103,7 +103,7 @@ class WorkoutRestFeedbackDeviceTest {
                                     canonicalKeyOf = { it.id },
                                     onSave = { saved = it },
                                     draft = draft,
-                                    insights = FeedbackInsights(likely = listOf("knee_patellar")),
+                                    insights = FeedbackInsights(reported = listOf(ReportedDiscomfort("knee_patellar", null))),
                                 )
                             }
                         }

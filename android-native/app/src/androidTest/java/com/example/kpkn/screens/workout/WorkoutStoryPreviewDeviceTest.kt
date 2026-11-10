@@ -17,7 +17,6 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CompletableDeferred
@@ -40,7 +39,7 @@ class WorkoutStoryPreviewDeviceTest {
 
     @Test fun cancelledRenderCannotExposePreviousBitmapOrEnableShareBeforeLatestPreview() {
         val initial=WorkoutStoryOptions()
-        val second=initial.copy(rings=false)
+        val second=initial.copy(exerciseList=true)
         val latest=second.copy(duration=false)
         val requests=listOf(initial,second,latest).associateWith { CompletableDeferred<Bitmap>() }
         val started=ConcurrentHashMap.newKeySet<WorkoutStoryOptions>()
@@ -50,7 +49,7 @@ class WorkoutStoryPreviewDeviceTest {
             if(options.template!=WorkoutStoryTemplate.GENERAL) Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)}
             else withContext(NonCancellable) { started.add(options);requests.getValue(options).await() }
         }
-        val data=WorkoutStoryData("Fixture",FinishPresentationContext(),40,400.0,4,2.0,"Alta",TowerRingValues(60,70,80),emptyList())
+        val data=WorkoutStoryData("Fixture",FinishPresentationContext(),40,400.0,4,2.0,"Alta",emptyList())
         fun image(color:Int)=Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply { eraseColor(color) }
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
@@ -64,7 +63,7 @@ class WorkoutStoryPreviewDeviceTest {
             rule.runOnIdle { requests.getValue(initial).complete(image(Color.GREEN)) }
             rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
-            rule.onNodeWithTag("story-toggle-RINGS").performClick()
+            rule.onNodeWithTag("story-toggle-Ejercicios").performClick()
             rule.waitUntil(10_000) { second in started }
             rule.onNodeWithTag("story-preview", useUnmergedTree = true).assertDoesNotExist()
             rule.onNodeWithTag("story-share").assertIsNotEnabled()
@@ -97,7 +96,7 @@ class WorkoutStoryPreviewDeviceTest {
         var selected by mutableStateOf(WorkoutStoryOptions())
         var density=1f
         val lift=buildFinishLiftProgress(listOf(CompletedExercise("fixture","Sentadilla de prueba",sets=listOf(CompletedSet("set",weight=80.0,reps=6,rir=2)))),emptyList())
-        val data=WorkoutStoryData("Fixture",FinishPresentationContext(photos=listOf(StoryPhoto(file.absolutePath))),40,480.0,1,2.0,"Alta",TowerRingValues(60,70,80),lift)
+        val data=WorkoutStoryData("Fixture",FinishPresentationContext(photos=listOf(StoryPhoto(file.absolutePath))),40,480.0,1,2.0,"Alta",lift)
         val renderer:suspend (Context,WorkoutStoryData,WorkoutStoryOptions)->Bitmap={_,_,_->Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)}}
         try {
             rule.setContent {
@@ -110,16 +109,16 @@ class WorkoutStoryPreviewDeviceTest {
                 val bounds=rule.onNodeWithTag("story-preview",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
                 assertEquals("La historia central debe conservar 9:16",9f/16f,bounds.width/bounds.height,.01f)
                 assertTrue("El preview central no supera 220dp",bounds.width<=220f*density+2f)
-                listOf("RINGS","Mejoras en kg","Duración","Intensidad media").forEach{label->
+                listOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios").forEach{label->
                     if(label in offered)rule.onNodeWithTag("story-toggle-$label").assertIsDisplayed()
                     else rule.onNodeWithTag("story-toggle-$label").assertDoesNotExist()
                 }
                 rule.onNodeWithTag("story-share").assertIsEnabled()
             }
-            check("General",setOf("RINGS","Mejoras en kg","Duración","Intensidad media"))
+            check("General",setOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios"))
             check("Ejercicio",setOf("Mejoras en kg"))
             check("Fotos",setOf("Duración"))
-            check("General",setOf("RINGS","Mejoras en kg","Duración","Intensidad media"))
+            check("General",setOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios"))
         }finally{file.delete()}
     }
 

@@ -17,7 +17,6 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
@@ -69,7 +68,6 @@ class SessionEditorMainThreadIoInstrumentedTest {
 
         try {
             // Remove any process-cached repositories before installing this test's DB.
-            singletonSnapshots += detachSingleton(AugeRepository::class.java)
             singletonSnapshots += detachSingleton(CompetitionRepository::class.java)
             singletonSnapshots += detachSingleton(NutritionRepository::class.java)
             singletonSnapshots += detachSingleton(RuleTemplateStore::class.java)
