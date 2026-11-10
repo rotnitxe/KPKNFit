@@ -76,7 +76,8 @@ class CombinedNutritionTrainingMigrationTest {
             db.version=version
         }
         val db=Room.databaseBuilder(context,KpknDatabase::class.java,"qa.db")
-            .addMigrations(*COMBINED_NUTRITION_TRAINING_35, NUTRITION_CATALOG_35_36).allowMainThreadQueries().build()
+            .addMigrations(*COMBINED_NUTRITION_TRAINING_35, NUTRITION_CATALOG_35_36, WORKOUT_VOICE_HISTORY_36_37)
+            .allowMainThreadQueries().build()
         try {
             if (corruptOriginal || conflictingOriginal) {
                 val failure = runCatching { db.openHelper.writableDatabase }.exceptionOrNull()
@@ -98,7 +99,7 @@ class CombinedNutritionTrainingMigrationTest {
                 return
             }
             val sql=db.openHelper.writableDatabase // Room validates the combined history and current catalog storage.
-            assertEquals(36,sql.version)
+            assertEquals(37,sql.version)
             fun value(query:String)=sql.query(query).use { check(it.moveToFirst());it.getString(0) }
             assertEquals(food,value("SELECT data FROM nutrition_custom_foods WHERE id='qa-food'"))
             assertEquals("Alimento original",value("SELECT name FROM nutrition_custom_foods WHERE id='qa-food'"))

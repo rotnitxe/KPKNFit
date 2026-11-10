@@ -57,10 +57,10 @@ class Room36CompatibilityTest {
             old.version = 35
         }
         fun open() = Room.databaseBuilder(context, KpknDatabase::class.java, "test.db")
-            .addMigrations(NUTRITION_CATALOG_35_36).allowMainThreadQueries().build()
+            .addMigrations(NUTRITION_CATALOG_35_36, WORKOUT_VOICE_HISTORY_36_37).allowMainThreadQueries().build()
         var db = open()
         try {
-            assertEquals(36, db.openHelper.writableDatabase.version) // Full generated Room schema validation.
+            assertEquals(37, db.openHelper.writableDatabase.version) // Full generated Room schema validation.
             assertEquals(NutritionFoodUsageEntity("used", 7, "2026-10-23"), db.nutritionCatalogDao().usage("used"))
             db.openHelper.writableDatabase.query("SELECT data FROM nutrition_logs WHERE id='history'").use {
                 assertTrue(it.moveToFirst()); assertEquals("{\"original\":\"histórico\"}", it.getString(0))
