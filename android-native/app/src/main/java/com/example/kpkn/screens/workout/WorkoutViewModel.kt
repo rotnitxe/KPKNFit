@@ -7,11 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.sharedLoadConfigurationId
 import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.WorkoutVoiceHistoryRepository
+import com.example.kpkn.data.repository.SharedExerciseLoadReferenceRepository
 import com.example.kpkn.data.repository.withConfirmedExerciseReferences
 import com.example.kpkn.data.repository.rematerializeExerciseReferences
 import com.example.kpkn.domain.training.ExerciseTrainingMax
@@ -163,6 +165,7 @@ class WorkoutViewModel(
 ) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
+    private val sharedLoadReferences = SharedExerciseLoadReferenceRepository.getInstance(appContext)
     private var ongoingWriterToken = Any()
     private var ongoingWriterGeneration = 0L
     @Volatile private var ongoingWriterReady = false
@@ -505,6 +508,7 @@ class WorkoutViewModel(
         prepareVoiceDiagnosticExport = ::prepareVoiceDiagnosticExport,
         awaitRecordingIdle = recordingGate::awaitIdle,
         clearActiveWorkout = { ActiveWorkoutHolder.clear(this@WorkoutViewModel) },
+        onLogCommitted = ::recordSharedLoadObservations,
         onEmptySession = ::handleEmptySessionFinishBlocked,
         persistOngoing = { persistOngoingStateAndAwait() },
         workoutMediaRepository = runCatching {
@@ -649,6 +653,7 @@ class WorkoutViewModel(
     )
 
     private val loadSuggestionController = WorkoutLoadSuggestionController(
+        sharedLoadReferences = sharedLoadReferences,
         equipmentInventory = { repository.settings.value.resolvedEquipmentInventory() },
         performanceRangeStore = performanceRangeStore,
         scope = viewModelScope,
@@ -667,6 +672,21 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.getExerciseHistory(exerciseDbId, limit, preferredTag)
             override fun activeContextProfile(exerciseId: String) =
                 this@WorkoutViewModel.activeContextProfile(exerciseId)
+            override fun lastComparableSet(
+                exercise: Exercise,
+                setIdx: Int,
+                side: String?,
+                tagId: String?,
+                loadMode: LoadModeV2,
+                unitMode: UnitModeV2,
+            ) = this@WorkoutViewModel.lastComparableSetForLoad(exercise, setIdx, side, tagId, loadMode, unitMode)
+
+            override fun loadIncrementKg(exercise: Exercise, setIdx: Int): Double? {
+                val inventory = repository.settings.value.resolvedEquipmentInventory()
+                return inventory?.machines?.singleOrNull {
+                    it.configurationId != null && it.configurationId == exercise.catalogConfigurationId
+                }?.incrementKg?.takeIf { it.isFinite() && it > 0.0 }
+            }
         },
     )
 
@@ -1438,20 +1458,17 @@ class WorkoutViewModel(
     private fun voiceStructuralPersistencePrompt(
         options: List<ReplacementPersistenceScopeV2>,
     ): String = when {
-        ReplacementPersistenceScopeV2.BLOCK_MATCHING in options ->
-            "Serie añadida. Di solo esta sesión o aplicar a todo el bloque."
         ReplacementPersistenceScopeV2.PERMANENT in options ->
-            "Serie añadida. Di solo esta sesión o guardar permanente."
+            "Serie añadida. Di solo hoy o guardar en el programa."
         else ->
-            "Serie añadida. Este cambio solo se guardará en esta sesión."
+            "Serie añadida. Este cambio solo se guardará hoy."
     }
 
     private fun voiceStructuralPersistenceSuccess(
         options: List<ReplacementPersistenceScopeV2>,
     ): String = when {
-        ReplacementPersistenceScopeV2.BLOCK_MATCHING in options -> "Serie aplicada a todo el bloque."
         ReplacementPersistenceScopeV2.PERMANENT in options -> "Serie guardada permanentemente."
-        else -> "Serie solo para esta sesión."
+        else -> "Cambio guardado solo hoy."
     }
 
 
@@ -1580,6 +1597,8 @@ class WorkoutViewModel(
     fun createTag(exerciseId: String, name: String, setup: TagSetupInput? = null): CreateTagResult =
         tagsContextController.createTag(exerciseId, name, setup)
 
+    fun upsertWorkoutTag(tag: WorkoutTag) = repository.upsertWorkoutTag(tag)
+
     fun adoptUntaggedHistory(exerciseId: String, tagId: String) =
         tagsContextController.adoptUntaggedHistory(exerciseId, tagId)
 
@@ -1603,7 +1622,12 @@ class WorkoutViewModel(
         tagsContextController.renameTag(exerciseId, tagId, newName)
 
 
-    fun toggleMainTagActive(exerciseId: String, tagId: String) = tagsContextController.toggleMainTagActive(exerciseId, tagId)
+    fun toggleMainTagActive(exerciseId: String, tagId: String) {
+        val previousTagId = activeLoadTagId(_uiState.value, exerciseId)
+        tagsContextController.toggleMainTagActive(exerciseId, tagId)
+        val nextTagId = activeLoadTagId(_uiState.value, exerciseId)
+        if (previousTagId != nextTagId) switchSetDraftTagContext(exerciseId, previousTagId, nextTagId)
+    }
 
     fun selectMainTag(exerciseId: String, tagId: String) = tagsContextController.selectMainTag(exerciseId, tagId)
 
@@ -2096,17 +2120,28 @@ class WorkoutViewModel(
         side: String? = null,
         draft: WorkoutSetDraft,
     ) {
+        val currentState = _uiState.value
+        val tagId = activeLoadTagId(currentState, exerciseId)
         val key = workoutSetKey(exerciseId, setIdx, side)
         val fallbackKey = if (side != null) workoutSetKey(exerciseId, setIdx) else null
-        val previousDraft = _uiState.value.setDrafts[key] ?: _uiState.value.setDrafts[fallbackKey]
+        val taggedKey = tagScopedWorkoutSetDraftKey(key, tagId)
+        val taggedFallbackKey = fallbackKey?.let { tagScopedWorkoutSetDraftKey(it, tagId) }
+        val stampedDraft = draft.copy(tagId = tagId)
+        val previousDraft = currentState.setDrafts[taggedKey]
+            ?: currentState.setDrafts[key]?.takeIf { it.tagId == tagId || it.tagId == null }
+            ?: taggedFallbackKey?.let(currentState.setDrafts::get)
+            ?: fallbackKey?.let(currentState.setDrafts::get)?.takeIf { it.tagId == tagId || it.tagId == null }
         updateUiState { state ->
             state.copy(
-                setDrafts = if (draft.isDirty) {
-                    state.setDrafts + (key to draft.copy(updatedAtMs = System.currentTimeMillis()))
+                setDrafts = if (stampedDraft.isDirty) {
+                    val saved = stampedDraft.copy(updatedAtMs = System.currentTimeMillis())
+                    state.setDrafts + (key to saved) + (taggedKey to saved)
                 } else {
                     state.setDrafts
                         .minus(key)
+                        .minus(taggedKey)
                         .let { map -> fallbackKey?.let(map::minus) ?: map }
+                        .let { map -> taggedFallbackKey?.let(map::minus) ?: map }
                 },
             )
         }
@@ -2138,18 +2173,34 @@ class WorkoutViewModel(
         side: String? = null,
     ): WorkoutSetDraft? {
         val state = _uiState.value
-        val exact = state.setDrafts[workoutSetKey(exerciseId, setIdx, side)]
+        val tagId = activeLoadTagId(state, exerciseId)
+        fun currentFor(key: String): WorkoutSetDraft? =
+            state.setDrafts[tagScopedWorkoutSetDraftKey(key, tagId)]
+                ?: state.setDrafts[key]?.takeIf { it.tagId == tagId || it.tagId == null }
+        val exact = currentFor(workoutSetKey(exerciseId, setIdx, side))
         if (exact != null) return exact
 
         if (side != null) {
-            return state.setDrafts[workoutSetKey(exerciseId, setIdx)]
+            return currentFor(workoutSetKey(exerciseId, setIdx))
         }
 
         return listOfNotNull(
-            state.setDrafts[workoutSetKey(exerciseId, setIdx)],
-            state.setDrafts[workoutSetKey(exerciseId, setIdx, "left")],
-            state.setDrafts[workoutSetKey(exerciseId, setIdx, "right")],
+            currentFor(workoutSetKey(exerciseId, setIdx)),
+            currentFor(workoutSetKey(exerciseId, setIdx, "left")),
+            currentFor(workoutSetKey(exerciseId, setIdx, "right")),
         ).maxByOrNull { it.updatedAtMs }
+    }
+
+    private fun activeLoadTagId(state: WorkoutUiState, exerciseId: String): String? =
+        state.activeTagsByExercise[exerciseId]?.firstOrNull()
+            ?: visibleExercises(state).firstOrNull { it.id == exerciseId }?.workoutTagId
+
+    private fun switchSetDraftTagContext(exerciseId: String, fromTagId: String?, toTagId: String?) {
+        updateUiState { state ->
+            state.copy(setDrafts = switchWorkoutSetDraftTagContext(
+                state.setDrafts, exerciseId, fromTagId, toTagId,
+            ))
+        }
     }
 
     /**
@@ -3728,7 +3779,10 @@ class WorkoutViewModel(
             if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom)
         }
         // «Guardar también en el programa»: sin él, el ROM vale solo para esta sesión.
-        if (persistToProgram) structuralPersistence.persistExerciseTrackRom(exerciseId, trackRom)
+        if (persistToProgram) viewModelScope.launch {
+            awaitPendingLiveMutation()
+            structuralPersistence.persistExerciseTrackRom(exerciseId, trackRom)
+        }
     }
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
@@ -4117,13 +4171,14 @@ class WorkoutViewModel(
             ?: return
         val currentExerciseId = target.id
         val exerciseName = displayWorkoutExerciseName(target)
+        val newSetId = UUID.randomUUID().toString()
         // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
         pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).
             val effectiveMode = effectiveLoadModeForExercise(exercise, exercise.sets.lastIndex)
-            exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, loadMode = effectiveMode))
+            exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, loadMode = effectiveMode, id = newSetId))
         }
         // Show persistence prompt
         updateUiState { it.copy(
@@ -4132,6 +4187,7 @@ class WorkoutViewModel(
                 exerciseName = exerciseName,
                 exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { it.id == currentExerciseId }.takeIf { it >= 0 },
                 exerciseCanonicalKey = visibleExercises(_uiState.value).firstOrNull { it.id == currentExerciseId }?.resolvedCanonicalExerciseId(),
+                newSetId = newSetId,
             )
         )}
         offerLiveVolumeAdvanceAfterSet()
@@ -4258,8 +4314,9 @@ class WorkoutViewModel(
         updateUiState { it.copy(pendingStructuralPersistence = null) }
     }
 
-    fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) =
-        structuralPersistence.commitStructuralPersistence(scope)
+    fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) {
+        viewModelScope.launch { structuralPersistence.commitStructuralPersistence(scope) }
+    }
 
     private fun applySessionMutation(
         updatedSession: Session,
@@ -4297,8 +4354,9 @@ class WorkoutViewModel(
     fun dismissPendingReplacementPersistencePrompt() =
         structuralPersistence.dismissPendingReplacementPersistencePrompt()
 
-    fun commitPendingReplacementPersistence(scope: ReplacementPersistenceScopeV2) =
-        structuralPersistence.commitPendingReplacementPersistence(scope)
+    fun commitPendingReplacementPersistence(scope: ReplacementPersistenceScopeV2) {
+        viewModelScope.launch { structuralPersistence.commitPendingReplacementPersistence(scope) }
+    }
 
     fun replaceExercise(
         exerciseId: String,
@@ -6769,11 +6827,13 @@ class WorkoutViewModel(
         if (!canMutateLivePlan()) return
         val state = _uiState.value
         val session = state.session ?: return
-        val updatedSession = session.copy(targetDurationMinutes = totalMinutes)
+        val updatedSession = withModeSession(session, state.activeMode) { active ->
+            active.copy(targetDurationMinutes = totalMinutes)
+        }
         commitLiveMutation(state, state.copy(session = updatedSession, targetDurationMinutes = totalMinutes)) {
-            if (state.programId.isNotBlank() && state.weekId.isNotBlank()) repository.upsertSessionInProgram(
-                programId = state.programId, weekId = state.weekId, macroIndex = state.macroIndex,
-                mesoIndex = state.mesoIndex, session = updatedSession)
+            if (state.programId.isNotBlank() && state.weekId.isNotBlank()) {
+                viewModelScope.launch { structuralPersistence.persistSessionTargetDuration(totalMinutes) }
+            }
         }
     }
 
@@ -7031,6 +7091,7 @@ class WorkoutViewModel(
     }
 
     fun setExerciseTag(exerciseId: String, tag: String) {
+        val previousTagId = activeLoadTagId(_uiState.value, exerciseId)
         val requestedTag = tag.trim()
         if (requestedTag.isBlank()) {
             clearExerciseTag(exerciseId)
@@ -7088,6 +7149,8 @@ class WorkoutViewModel(
         } else {
             syncActiveProfileTag(exerciseId, selectedTagName)
         }
+        val nextTagId = activeLoadTagId(_uiState.value, exerciseId)
+        if (previousTagId != nextTagId) switchSetDraftTagContext(exerciseId, previousTagId, nextTagId)
         persistOngoingState()
     }
 
@@ -7096,8 +7159,11 @@ class WorkoutViewModel(
             .replace("\\p{Mn}+".toRegex(), "")
 
     fun clearExerciseTag(exerciseId: String) {
+        val previousTagId = activeLoadTagId(_uiState.value, exerciseId)
         clearAllTags(exerciseId)
         syncActiveProfileTag(exerciseId, null)
+        val nextTagId = activeLoadTagId(_uiState.value, exerciseId)
+        if (previousTagId != nextTagId) switchSetDraftTagContext(exerciseId, previousTagId, nextTagId)
         persistOngoingState()
     }
 
@@ -7597,6 +7663,117 @@ class WorkoutViewModel(
             tags = tags,
             strictTag = preferredTag != null,
         )
+    }
+
+    /** Last completed set for the exact catalog configuration, tag UUID, side, mode and unit. */
+    private fun lastComparableSetForLoad(
+        exercise: Exercise,
+        setIdx: Int,
+        side: String?,
+        tagId: String?,
+        loadMode: LoadModeV2,
+        unitMode: UnitModeV2,
+    ): CompletedSet? {
+        val configurationId = sharedLoadConfigurationId(exercise) ?: return null
+        val keys = identityKeysForExercise(exercise)
+        val exerciseKey = canonicalExerciseKey(exercise)
+        val tags = _uiState.value.userCreatedTags[exerciseKey].orEmpty()
+            .ifEmpty { repository.getWorkoutTagsForExercise(exerciseKey) }
+        val tag = tagId?.let { id -> tags.firstOrNull { it.id == id } }
+        val logs = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys).sortedByDescending { it.date }
+        for (log in logs) {
+            val completed = matchingCompletedExercise(log, keys) ?: continue
+            if (completed.catalogConfigurationId != configurationId) continue
+            val resolvedLogTag = WorkoutTagResolver.resolvedTagIdFromLog(log, completed, tags)
+            if (resolvedLogTag != tagId) continue
+            for ((position, set) in completed.sets.withIndex().reversed()) {
+                val resolvedIndex = set.setIndex ?: position
+                if (resolvedIndex != setIdx || set.side != side || set.isWarmup || set.skipped ||
+                    set.techniqueStatus != null || set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty()
+                ) continue
+                val setTagId = set.tagId ?: set.tagName?.let { name -> tags.firstOrNull { WorkoutTagResolver.namesMatch(it.name, name) }?.id }
+                if (setTagId != null && setTagId != tagId) continue
+                val actualMode = set.loadMode ?: set.recordedPayloadV3?.loadInputMode
+                    ?: set.homologatedResultV3?.loadMode ?: LoadModeV2.LOAD
+                val actualUnit = set.recordedPayloadV3?.unitMode ?: set.homologatedResultV3?.unitMode ?: UnitModeV2.REPS
+                if (actualMode != loadMode || actualUnit != unitMode || set.reps <= 0 ||
+                    com.example.kpkn.domain.workout.LoadSuggestionEngine.inputLoad(set, actualMode) <= 0.0
+                ) continue
+                if (tag != null && setTagId != null && setTagId != tag.id) continue
+                return set
+            }
+        }
+        return null
+    }
+
+    private fun recordSharedLoadObservations(log: WorkoutLog) {
+        val state = _uiState.value
+        val exercises = visibleExercises(state)
+        // Seed exact historical evidence lazily as each session closes. This lets existing logs
+        // participate in homologation without rewriting any workout observation.
+        val logs = (historyByExerciseDbId.value.values.flatten() + log).distinctBy { it.id }
+        viewModelScope.launch(Dispatchers.Default) {
+            data class ObservationKey(
+                val exerciseKey: String,
+                val configurationId: String,
+                val tagId: String?,
+                val unit: UnitModeV2,
+                val mode: LoadModeV2,
+                val convention: LoadQuantityConvention,
+            )
+            logs.forEach { sourceLog ->
+                val observedAtMs = runCatching { Instant.parse(sourceLog.date).toEpochMilli() }
+                    .getOrDefault(System.currentTimeMillis())
+                val bestByIdentity = mutableMapOf<ObservationKey, Double>()
+                sourceLog.completedExercises.forEach completedLoop@{ completed ->
+                    val configurationId = sharedLoadConfigurationId(completed) ?: return@completedLoop
+                    val exercise = exercises.firstOrNull {
+                        sharedLoadConfigurationId(it) == configurationId
+                    } ?: return@completedLoop
+                    val exerciseKey = canonicalExerciseKey(exercise)
+                    val tags = tagsForExerciseKey(exerciseKey)
+                    val projectedDefault = tags.firstOrNull { it.isDefault || WorkoutTagResolver.isDefaultName(it.name) }?.id
+                    completed.sets.forEach setLoop@{ set ->
+                        if (set.isWarmup || set.skipped || set.side != null || set.techniqueStatus != null ||
+                            set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty() ||
+                            set.performedPurpose() != null && set.performedPurpose() != SetPurpose.NONE ||
+                            set.rom != 100 || set.reps <= 0
+                        ) return@setLoop
+                        val mode = set.loadMode ?: set.recordedPayloadV3?.loadInputMode ?: set.homologatedResultV3?.loadMode
+                            ?: return@setLoop
+                        val unit = set.recordedPayloadV3?.unitMode ?: set.homologatedResultV3?.unitMode ?: UnitModeV2.REPS
+                        if (mode != LoadModeV2.LOAD || unit != UnitModeV2.REPS) return@setLoop
+                        val effortKnown = set.rpe != null || set.rir != null || set.isFailure || set.isFailedSet ||
+                            set.actualIntensityMode == IntensityMode.FAILURE || set.actualIntensityMode == IntensityMode.RPE ||
+                            set.actualIntensityMode == IntensityMode.RIR
+                        if (!effortKnown) return@setLoop
+                        val convention = exercise.loadQuantityConvention
+                        if (convention == LoadQuantityConvention.UNSPECIFIED) return@setLoop
+                        val explicitName = set.tagName ?: sourceLog.exerciseTags[completed.exerciseId]
+                        val tagId = set.tagId
+                            ?: sourceLog.exerciseTagIds[completed.exerciseId]
+                            ?: explicitName?.let { name -> tags.firstOrNull { WorkoutTagResolver.namesMatch(it.name, name) }?.id }
+                            ?: projectedDefault
+                        val capacity = StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0.0 } ?: return@setLoop
+                        val key = ObservationKey(exerciseKey, configurationId, tagId, unit, mode, convention)
+                        bestByIdentity[key] = maxOf(bestByIdentity[key] ?: 0.0, capacity)
+                    }
+                }
+                bestByIdentity.forEach { (key, capacity) ->
+                    sharedLoadReferences.recordComparableObservation(
+                        exerciseKey = key.exerciseKey,
+                        configurationId = key.configurationId,
+                        tagId = key.tagId,
+                        unitMode = key.unit.name,
+                        loadMode = key.mode.name,
+                        quantityConvention = key.convention.name,
+                        sessionId = sourceLog.id,
+                        observedAtMs = observedAtMs,
+                        capacityKg = capacity,
+                    )
+                }
+            }
+        }
     }
 
     private fun tagsForExerciseKey(exerciseKey: String): List<WorkoutTag> {

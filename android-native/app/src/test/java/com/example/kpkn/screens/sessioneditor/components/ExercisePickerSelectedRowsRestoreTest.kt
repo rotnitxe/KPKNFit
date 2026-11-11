@@ -15,6 +15,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseLateralityV2
 import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseProfileV2
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ExercisePickerSelectedRowsRestoreTest {
@@ -85,7 +86,7 @@ class ExercisePickerSelectedRowsRestoreTest {
     private val firstCatalogId = tBarRow.configurations.first().id
 
     @Test
-    fun resolve_never_uses_first_catalog_row_as_default() {
+    fun resolve_requires_an_explicit_choice_when_axes_are_pending() {
         assertEquals("t_bar_row__machine__wide", firstCatalogId)
         val resolved = resolveSelectedCatalogConfigurationId(
             definition = tBarRow,
@@ -93,8 +94,7 @@ class ExercisePickerSelectedRowsRestoreTest {
             previousConfigurationId = null,
             initialConfigurationId = null,
         )
-        assertEquals("t_bar_row__t_bar__medium", resolved)
-        assertNotEquals(firstCatalogId, resolved)
+        assertEquals(null, resolved)
     }
 
     @Test
@@ -128,7 +128,7 @@ class ExercisePickerSelectedRowsRestoreTest {
     }
 
     @Test
-    fun restore_without_previous_uses_default_not_first_row() {
+    fun restore_without_identity_does_not_guess_a_variant() {
         val restored = restoreSelectedCatalogRows(
             catalog = catalog,
             definitionsById = definitionsById,
@@ -136,7 +136,7 @@ class ExercisePickerSelectedRowsRestoreTest {
             previous = emptyMap(),
             draftByDefinition = emptyMap(),
         )
-        assertEquals("t_bar_row__t_bar__medium", row(restored).catalogConfigurationId)
+        assertTrue(restored.isEmpty())
     }
 
     @Test
@@ -151,6 +151,38 @@ class ExercisePickerSelectedRowsRestoreTest {
             initialCatalogConfigurationId = "t_bar_row__machine__medium",
         )
         assertEquals("t_bar_row__machine__medium", row(restored).catalogConfigurationId)
+    }
+
+    @Test
+    fun duplicate_configurations_are_ignored_and_replacements_keep_their_position() {
+        val first = ExerciseMuscleInfo(
+            id = "t_bar_row__machine__wide",
+            name = "Remo en Barra T · máquina ancha",
+            catalogDefinitionId = "t_bar_row",
+            catalogConfigurationId = "t_bar_row__machine__wide",
+        )
+        val second = ExerciseMuscleInfo(
+            id = "t_bar_row__t_bar__medium",
+            name = "Remo en Barra T · barra media",
+            catalogDefinitionId = "t_bar_row",
+            catalogConfigurationId = "t_bar_row__t_bar__medium",
+        )
+        val third = ExerciseMuscleInfo(
+            id = "t_bar_row__machine__medium",
+            name = "Remo en Barra T · máquina media",
+            catalogDefinitionId = "t_bar_row",
+            catalogConfigurationId = "t_bar_row__machine__medium",
+        )
+
+        val one = replaceOrAddCatalogSelection(emptyMap(), null, first)
+        val duplicate = replaceOrAddCatalogSelection(one, null, first)
+        val two = replaceOrAddCatalogSelection(duplicate, null, second)
+        val replaced = replaceOrAddCatalogSelection(two, first.catalogConfigurationId, third)
+
+        assertEquals(1, duplicate.size)
+        assertEquals(listOf(third.catalogConfigurationId, second.catalogConfigurationId), replaced.keys.toList())
+        assertEquals(listOf(third.catalogConfigurationId, second.catalogConfigurationId),
+            catalogSelectionFingerprint(replaced.values.toList()).split('|'))
     }
 
     private fun row(restored: Map<String, ExerciseMuscleInfo>): ExerciseMuscleInfo =

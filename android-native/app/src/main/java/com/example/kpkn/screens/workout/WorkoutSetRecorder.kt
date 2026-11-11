@@ -628,10 +628,18 @@ class WorkoutSetRecorder(
             val submitted = getState()
             val draftKey = workoutSetKey(exercise.id, targetSetIdx, resolvedSide)
             val fallbackKey = workoutSetKey(exercise.id, targetSetIdx)
+            val completedTagId = completedSet.tagId
+                ?: submitted.activeTagsByExercise[exercise.id]?.firstOrNull()
+                ?: exercise.workoutTagId
+            val taggedDraftKey = tagScopedWorkoutSetDraftKey(draftKey, completedTagId)
+            val taggedFallbackKey = tagScopedWorkoutSetDraftKey(fallbackKey, completedTagId)
+            val consumedDraftKeys = setOf(draftKey, fallbackKey, taggedDraftKey, taggedFallbackKey)
             val recordedCandidate = applyRecorded(submitted).copy(
-                setDrafts = if (isOpenTechnique) submitted.setDrafts + (draftKey to
-                    (submitted.setDrafts[draftKey] ?: WorkoutSetDraft()).withCommittedTechniqueProgress(report.techniqueProgress))
-                    else submitted.setDrafts.minus(draftKey).minus(fallbackKey),
+                setDrafts = if (isOpenTechnique) {
+                    val committed = (submitted.setDrafts[draftKey] ?: WorkoutSetDraft(tagId = completedTagId))
+                        .withCommittedTechniqueProgress(report.techniqueProgress)
+                    submitted.setDrafts + (draftKey to committed) + (taggedDraftKey to committed)
+                } else submitted.setDrafts - consumedDraftKeys,
                 persistedLoadModeBySet = submitted.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
@@ -649,10 +657,12 @@ class WorkoutSetRecorder(
                 submitted.calibrationDecisions, completedSet.id, calibrationRecord, now)))
             val publishRecorded: () -> Unit = {
                 updateState { current ->
-                    val remainingDrafts = if (isOpenTechnique) current.setDrafts + (draftKey to
-                        (current.setDrafts[draftKey] ?: WorkoutSetDraft()).withCommittedTechniqueProgress(report.techniqueProgress))
-                    else current.setDrafts.filter { (draftId, draft) ->
-                        draftId !in setOf(draftKey, fallbackKey) || submitted.setDrafts[draftId] != draft
+                    val remainingDrafts = if (isOpenTechnique) {
+                        val committed = (current.setDrafts[draftKey] ?: WorkoutSetDraft(tagId = completedTagId))
+                            .withCommittedTechniqueProgress(report.techniqueProgress)
+                        current.setDrafts + (draftKey to committed) + (taggedDraftKey to committed)
+                    } else current.setDrafts.filter { (draftId, draft) ->
+                        draftId !in consumedDraftKeys || submitted.setDrafts[draftId] != draft
                     }
                     current.copy(
                         completedSets = current.completedSets + candidate.completedSets,

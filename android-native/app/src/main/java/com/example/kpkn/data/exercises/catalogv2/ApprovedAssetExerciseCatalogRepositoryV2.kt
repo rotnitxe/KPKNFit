@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogResolveResultV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogSearchResultsV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationCompatibilityV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
@@ -54,6 +55,13 @@ class ApprovedAssetExerciseCatalogRepositoryV2(
 
     override fun search(query: String, filters: ExerciseSearchFiltersV2): List<ExerciseSearchHitV2> =
         delegate?.search(query, filters).orEmpty()
+
+    override fun searchResults(
+        query: String,
+        filters: ExerciseSearchFiltersV2,
+    ): ExerciseCatalogSearchResultsV2 =
+        delegate?.searchResults(query, filters)
+            ?: ExerciseCatalogSearchResultsV2(emptyList(), emptyList())
 
     override fun compatibility(
         definitionId: String,

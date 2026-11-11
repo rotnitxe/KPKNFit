@@ -21,6 +21,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutGlobalPerformanceEntity::class,
         WorkoutContextProfileEntity::class,
         WorkoutTagEntity::class,
+        SharedExerciseLoadReferenceEntity::class,
+        ProgramVersionEntity::class,
         WorkoutReplacementDecisionEntity::class,
         // Tabla legacy (encuesta 24h eliminada); se conserva para el schema.
         // Nutrition entities (v2)
@@ -68,7 +70,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         // Historial de capturas de voz de la sesión en vivo (v37)
         WorkoutVoiceHistoryEntity::class,
     ],
-    version = 37,
+    version = 38,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -80,6 +82,8 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
     abstract fun stateDao(): StateDao
     abstract fun workoutV2Dao(): WorkoutV2Dao
+    abstract fun sharedExerciseLoadReferenceDao(): SharedExerciseLoadReferenceDao
+    abstract fun programVersionDao(): ProgramVersionDao
     abstract fun nutritionDao(): NutritionDao
     abstract fun nutritionCatalogDao(): NutritionCatalogDao
     abstract fun bodyProgressDao(): BodyProgressDao
@@ -117,6 +121,55 @@ abstract class KpknDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `nutrition_pantry` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`id`))")
                 db.execSQL("CREATE TABLE IF NOT EXISTS `nutrition_templates` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`id`))")
                 db.execSQL("CREATE TABLE IF NOT EXISTS `nutrition_custom_foods` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`id`))")
+            }
+        }
+
+        /** v38: shared load references and immutable live-edit program versions. */
+        val PROGRAM_EDIT_HISTORY_37_38 = object : Migration(37, 38) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `shared_exercise_load_references` (
+                        `id` TEXT NOT NULL,
+                        `exerciseKey` TEXT NOT NULL,
+                        `configurationId` TEXT NOT NULL,
+                        `tagId` TEXT,
+                        `unitMode` TEXT NOT NULL,
+                        `loadMode` TEXT NOT NULL,
+                        `quantityConvention` TEXT NOT NULL,
+                        `kind` TEXT NOT NULL,
+                        `valueKg` REAL NOT NULL,
+                        `sourceAtMs` INTEGER NOT NULL,
+                        `sourceId` TEXT,
+                        `repCount` INTEGER,
+                        `effortMode` TEXT,
+                        `effortValue` REAL,
+                        `payloadJson` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shared_exercise_load_references_exerciseKey_configurationId_tagId_unitMode_loadMode_quantityConvention` ON `shared_exercise_load_references` (`exerciseKey`, `configurationId`, `tagId`, `unitMode`, `loadMode`, `quantityConvention`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_shared_exercise_load_references_sourceAtMs` ON `shared_exercise_load_references` (`sourceAtMs`)")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `program_versions` (
+                        `id` TEXT NOT NULL,
+                        `programId` TEXT NOT NULL,
+                        `sessionId` TEXT NOT NULL,
+                        `variantId` TEXT,
+                        `operationId` TEXT NOT NULL,
+                        `savedAtEpochMs` INTEGER NOT NULL,
+                        `origin` TEXT NOT NULL,
+                        `reason` TEXT NOT NULL,
+                        `isInitial` INTEGER NOT NULL,
+                        `snapshotJson` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_program_versions_programId_savedAtEpochMs` ON `program_versions` (`programId`, `savedAtEpochMs`)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_program_versions_programId_operationId` ON `program_versions` (`programId`, `operationId`)")
             }
         }
 
@@ -797,6 +850,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     *COMBINED_NUTRITION_TRAINING_35,
                     NUTRITION_CATALOG_35_36,
                     WORKOUT_VOICE_HISTORY_36_37,
+                    PROGRAM_EDIT_HISTORY_37_38,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .apply { source?.let { createFromFile(it) } }

@@ -55,11 +55,11 @@ class WorkoutVoiceHistoryMigration36To37Test {
         }
 
         val db = Room.databaseBuilder(context, KpknDatabase::class.java, "test.db")
-            .addMigrations(WORKOUT_VOICE_HISTORY_36_37)
+            .addMigrations(WORKOUT_VOICE_HISTORY_36_37, KpknDatabase.PROGRAM_EDIT_HISTORY_37_38)
             .allowMainThreadQueries()
             .build()
         try {
-            assertEquals(37, db.openHelper.writableDatabase.version)
+            assertEquals(38, db.openHelper.writableDatabase.version)
             db.openHelper.writableDatabase.query("SELECT data FROM programs WHERE id='program'").use {
                 assertTrue(it.moveToFirst())
                 assertEquals("{\"id\":\"program\"}", it.getString(0))

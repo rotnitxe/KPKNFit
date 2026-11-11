@@ -91,6 +91,51 @@ object JointMobility {
         MobilityExerciseCatalog.getAllMobilityExercises().associateBy { it.id }
     }
 
+    data class Recommendation(
+        val movement: MobilityExercise,
+        val score: Int,
+        val matchedPrimaryJoints: Set<String>,
+        val matchedSecondaryJoints: Set<String>,
+        val matchedMuscles: Set<String>,
+    ) {
+        val reason: String
+            get() = when {
+                matchedPrimaryJoints.isNotEmpty() -> "Articulación principal: ${matchedPrimaryJoints.joinToString { jointLabel(it) }}"
+                matchedSecondaryJoints.isNotEmpty() -> "Articulación secundaria: ${matchedSecondaryJoints.joinToString { jointLabel(it) }}"
+                else -> "Músculos implicados: ${matchedMuscles.joinToString()}"
+            }
+    }
+
+    /** Recommend preparation movements from exact exercise metadata; unknown metadata yields no guess. */
+    fun recommendationsFor(
+        primaryJointIds: List<String>,
+        secondaryJointIds: List<String>,
+        primaryMuscleIds: List<String>,
+        secondaryMuscleIds: List<String>,
+        excludedMovementIds: Set<String> = emptySet(),
+        limit: Int = 4,
+    ): List<Recommendation> {
+        val primary = primaryJointIds.mapNotNull(::canonicalJointId).toSet()
+        val secondary = secondaryJointIds.mapNotNull(::canonicalJointId).toSet() - primary
+        val targetMuscles = (primaryMuscleIds + secondaryMuscleIds).flatMap(::muscleAliases).toSet()
+        if (primary.isEmpty() && secondary.isEmpty() && targetMuscles.isEmpty()) return emptyList()
+        return catalogById.values.asSequence()
+            .filterNot { it.id in excludedMovementIds }
+            .mapNotNull { movement ->
+                val covered = jointsOf(movement.id)
+                val matchedPrimary = covered intersect primary
+                val matchedSecondary = covered intersect secondary
+                val muscleMatches = movement.targetMuscles
+                    .filter { muscle -> muscleAliases(muscle).any { it in targetMuscles } }
+                    .toSet()
+                val score = matchedPrimary.size * 100 + matchedSecondary.size * 30 + muscleMatches.size * 5
+                if (score == 0) null else Recommendation(movement, score, matchedPrimary, matchedSecondary, muscleMatches)
+            }
+            .sortedWith(compareByDescending<Recommendation> { it.score }.thenBy { it.movement.name })
+            .take(limit.coerceAtLeast(0))
+            .toList()
+    }
+
     private val jointsByMovement: Map<String, Set<String>> by lazy {
         val result = HashMap<String, MutableSet<String>>()
         curated.forEach { (joint, ids) -> ids.forEach { id -> result.getOrPut(id) { linkedSetOf() } += joint } }
@@ -111,6 +156,57 @@ object JointMobility {
 
     /** El movimiento del catálogo con ese id, si existe. */
     fun movement(id: String): MobilityExercise? = catalogById[id]
+
+    fun canonicalJointId(value: String): String? {
+        val normalized = nfc(value.trim().lowercase())
+        return normalized.takeIf { it in allJointIds } ?: jointByCatalogTerm[normalized]
+    }
+
+    private val muscleAliasesByCatalogId = mapOf(
+        "latissimus_dorsi" to setOf("dorsal ancho", "dorsales", "dorsal"),
+        "trapezius" to setOf("trapecio", "trapecio superior"),
+        "rhomboids" to setOf("romboides"),
+        "deltoid" to setOf("deltoides", "deltoide"),
+        "pectoralis" to setOf("pectoral mayor", "pectoral", "pecho"),
+        "biceps" to setOf("bíceps", "biceps"),
+        "triceps" to setOf("tríceps", "triceps"),
+        "forearm" to setOf("antebrazo", "flexores de dedos"),
+        "gluteus_maximus" to setOf("glúteo mayor", "glúteos", "glúteo"),
+        "gluteus_medius" to setOf("glúteo medio"),
+        "hamstrings" to setOf("isquiosurales", "isquios", "isquiotibiales"),
+        "quadriceps" to setOf("cuádriceps", "recto femoral"),
+        "adductors" to setOf("aductores"),
+        "calves" to setOf("gemelos", "sóleo", "pantorrilla"),
+        "tibialis_anterior" to setOf("tibial anterior"),
+        "erector_spinae" to setOf("erectores espinales", "extensores torácicos"),
+        "hip_flexors" to setOf("flexores de cadera", "psoas", "recto femoral"),
+        "neck" to setOf("cervicales", "cuello"),
+        "abdominals" to setOf("abdominales", "oblicuos"),
+        "core" to setOf("core", "abdominales"),
+    )
+
+    private fun muscleAliases(value: String): Set<String> {
+        val raw = value.trim()
+        if (raw.isBlank()) return emptySet()
+        val aliases = muscleAliasesByCatalogId[raw.lowercase()] ?: setOf(raw)
+        return aliases.map(::normalizeTerm).filter { it.isNotBlank() }.toSet()
+    }
+
+    private fun jointLabel(id: String): String = when (id) {
+        GLENOHUMERAL -> "hombro"
+        SCAPULOTHORACIC -> "escápula"
+        THORACIC_SPINE -> "columna torácica"
+        LUMBAR_SPINE -> "columna lumbar"
+        CERVICAL_SPINE -> "columna cervical"
+        PROXIMAL_RADIOULNAR -> "antebrazo"
+        else -> id.replaceFirstChar { it.uppercase() }
+    }
+
+    private fun normalizeTerm(value: String): String =
+        Normalizer.normalize(value.lowercase().trim(), Normalizer.Form.NFD)
+            .replace("\\p{Mn}+".toRegex(), "")
+            .replace("[^a-z0-9]+".toRegex(), " ")
+            .trim()
 
     /** Articulaciones (ids de `joints.json`) que moviliza el movimiento [movementId]; vacío si no se conoce. */
     fun jointsOf(movementId: String): Set<String> = jointsByMovement[movementId].orEmpty()

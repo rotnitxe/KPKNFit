@@ -57,6 +57,8 @@ import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
 import com.example.kpkn.screens.programdetail.design.scheduleCopy
 import com.example.kpkn.screens.programdetail.design.sessionFocus
 import com.example.kpkn.screens.programdetail.design.sessionProposalLabel
+import com.example.kpkn.screens.drag.DropInsertionStop
+import com.example.kpkn.screens.drag.resolveDropInsertion
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
@@ -626,16 +628,16 @@ private fun resolveTargetIndex(
     cardBounds: Map<String, Rect>,
 ): Int {
     if (entries.isEmpty()) return 0
-    val ordered = entries.mapNotNull { entry ->
-        val rect = cardBounds[entry.session.id] ?: return@mapNotNull null
-        entry to rect
+    val stops = entries.mapIndexedNotNull { index, entry ->
+        val rect = cardBounds[entry.session.id] ?: return@mapIndexedNotNull null
+        DropInsertionStop(midpointY = rect.center.y, targetIndex = index)
     }
-    if (ordered.isEmpty()) return entries.size
-
-    ordered.forEachIndexed { index, (_, rect) ->
-        if (pointer.y < rect.center.y) return index
-    }
-    return ordered.size.coerceAtMost(entries.count { it.dayId == targetDayId })
+    if (stops.isEmpty()) return entries.size
+    return resolveDropInsertion(
+        pointerY = pointer.y,
+        stops = stops,
+        appendIndex = stops.size.coerceAtMost(entries.count { it.dayId == targetDayId }),
+    ).targetIndex
 }
 
 private fun moveSessionToDay(

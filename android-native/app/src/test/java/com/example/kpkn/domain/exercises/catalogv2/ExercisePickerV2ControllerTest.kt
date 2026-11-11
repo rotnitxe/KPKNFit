@@ -46,6 +46,8 @@ class ExercisePickerV2ControllerTest {
             mapOf("setup" to "seated"),
             controller.draftFor("parent_a").selectedOptions,
         )
+        assertTrue(controller.confirm("parent_a") is ExercisePickerV2ConfirmResult.Blocked)
+        controller.updateOption("parent_a", "implement", "dumbbells")
         val result = controller.confirm("parent_a") as ExercisePickerV2ConfirmResult.Confirmed
         assertEquals("parent_a__seated__dumbbells", result.selection.configurationId)
     }

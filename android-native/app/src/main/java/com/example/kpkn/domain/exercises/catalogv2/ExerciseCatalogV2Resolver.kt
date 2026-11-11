@@ -134,6 +134,19 @@ class ExerciseCatalogV2Resolver(
         val rawTokens: Set<String>,
         val keys: Set<String>,
         val familyName: String,
+        val normalizedAliases: Set<String>,
+    )
+
+    private data class SearchTerm(
+        val value: String,
+        val stem: String,
+        val synonymKey: String,
+    )
+
+    private data class PreparedQuery(
+        val normalized: String,
+        val terms: List<SearchTerm>,
+        val isOpen: Boolean,
     )
 
     private data class ConfigurationMatch(
@@ -226,84 +239,117 @@ class ExerciseCatalogV2Resolver(
         query: String,
         filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
     ): List<ExerciseSearchHitV2> {
-        val normalizedQuery = ExerciseMatchLexicon.normalize(query)
-        val queryTerms = normalizedQuery.split(' ').filter(String::isNotBlank)
-        val rawTerms = queryTerms
+        val prepared = prepareQuery(query) ?: return emptyList()
+        return sortHits(definitionsById.values.asSequence()
+            .filter { matchesFilters(it, filters) }
+            .mapNotNull { scoreDefinition(it, prepared) }
+            .toList())
+    }
+
+    /** Scores every definition once, then derives the filtered and global views. */
+    fun searchResults(
+        query: String,
+        filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
+    ): ExerciseCatalogSearchResultsV2 {
+        val prepared = prepareQuery(query) ?: return ExerciseCatalogSearchResultsV2(emptyList(), emptyList())
+        val filtered = ArrayList<ExerciseSearchHitV2>()
+        val global = ArrayList<ExerciseSearchHitV2>()
+        definitionsById.values.forEach { definition ->
+            val hit = scoreDefinition(definition, prepared) ?: return@forEach
+            global += hit
+            if (matchesFilters(definition, filters)) filtered += hit
+        }
+        val sortedGlobal = sortHits(global)
+        return ExerciseCatalogSearchResultsV2(
+            filteredHits = if (filters.isEmpty()) sortedGlobal else sortHits(filtered),
+            globalHits = sortedGlobal,
+        )
+    }
+
+    private fun prepareQuery(query: String): PreparedQuery? {
+        val normalized = ExerciseMatchLexicon.normalize(query)
+        val queryTerms = normalized.split(' ').filter(String::isNotBlank)
+        val terms = queryTerms
             .filterNot { it in SEARCH_STOP_WORDS }
             .ifEmpty { queryTerms }
-        if (rawTerms.isEmpty()) return emptyList()
-        val openQuery = isOpenQuery(normalizedQuery)
-
-        return definitionsById.values
-            .filter { definition ->
-                val configurations = definition.configurations
-                (filters.familyIds.isEmpty() || definition.familyId in filters.familyIds) &&
-                    (filters.kinds.isEmpty() || definition.kind in filters.kinds) &&
-                    (filters.bodyRegions.isEmpty() || configurations.any { it.profile.bodyRegion in filters.bodyRegions }) &&
-                    (filters.equipmentIds.isEmpty() || configurations.any { it.profile.equipmentId in filters.equipmentIds }) &&
-                    (filters.movementPatternIds.isEmpty() || configurations.any { it.profile.movementPatternId in filters.movementPatternIds }) &&
-                    (filters.muscleIds.isEmpty() || configurations.any { config ->
-                        config.profile.primaryMuscles.any { it in filters.muscleIds }
-                    })
-            }
-            .mapNotNull { definition ->
-                val index = definitionIndex.getValue(definition.id)
-                if (!rawTerms.all { termMatchesIndex(index, it) }) return@mapNotNull null
-
-                // A query may contain both the parent name and a configuration
-                // term ("curl bayesiano"). The parent satisfies the full query,
-                // while the configuration term selects one explicit config. It
-                // must never synthesize a configuration from the remaining axes.
-                val configurationMatch = bestConfigurationMatch(
-                    definition = definition,
-                    normalizedQuery = normalizedQuery,
-                    terms = rawTerms,
-                )
-                val exactNameBonus = if (index.name == normalizedQuery) 180 else 0
-                val exactAliasBonus = if (
-                    definition.searchTerms.any { ExerciseMatchLexicon.normalize(it) == normalizedQuery }
-                ) {
-                    150
-                } else {
-                    0
-                }
-                val phraseBonus = if (normalizedQuery.length >= 4 && index.name.contains(normalizedQuery)) 60 else 0
-                val allNameTermsBonus = if (rawTerms.all { term ->
-                    index.nameTokens.any { token -> token == term || token.startsWith(term) }
-                }) {
-                    40
-                } else {
-                    0
-                }
-                val score = rawTerms.sumOf { term ->
-                    val name = index.name
-                    val nameTokens = index.nameTokens
-                    val stemmed = ExerciseMatchLexicon.stem(term)
-                    when {
-                        name == term -> 100
-                        name.startsWith(term) -> 48
-                        nameTokens.any { it.startsWith(term) } -> 40
-                        name.contains(term) -> 30
-                        ExerciseMatchLexicon.synonymKey(term) in index.keys -> 26
-                        stemmed.length >= 2 && nameTokens.any { it == stemmed || it.startsWith(stemmed) } -> 22
-                        index.familyName.contains(term) -> 18
-                        index.text.contains(term) -> 12
-                        else -> 6
-                    }
-                } + exactNameBonus + exactAliasBonus + phraseBonus + allNameTermsBonus +
-                    configurationMatch.score + if (openQuery) openQueryPriorityBonus(definition, normalizedQuery) else 0
-
-                ExerciseSearchHitV2(
-                    definitionId = definition.id,
-                    suggestedConfigurationId = configurationMatch.configuration?.id,
-                    matchedTerm = normalizedQuery,
-                    score = score,
+            .map { term ->
+                SearchTerm(
+                    value = term,
+                    stem = ExerciseMatchLexicon.stem(term),
+                    synonymKey = ExerciseMatchLexicon.synonymKey(term),
                 )
             }
-            .sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }
-                .thenBy { definitionsById.getValue(it.definitionId).canonicalName.length }
-                .thenBy(String.CASE_INSENSITIVE_ORDER) { definitionsById.getValue(it.definitionId).canonicalName })
+        return terms.takeIf { it.isNotEmpty() }?.let {
+            PreparedQuery(normalized = normalized, terms = it, isOpen = isOpenQuery(normalized))
+        }
     }
+
+    private fun scoreDefinition(
+        definition: ExerciseDefinitionV2,
+        query: PreparedQuery,
+    ): ExerciseSearchHitV2? {
+        val index = definitionIndex.getValue(definition.id)
+        if (!query.terms.all { termMatchesIndex(index, it.value) }) return null
+
+        // A query may contain both the parent name and a configuration term
+        // ("curl bayesiano"). The parent satisfies the full query, while the
+        // configuration term selects one explicit config. It must never
+        // synthesize a configuration from the remaining axes.
+        val configurationMatch = bestConfigurationMatch(
+            definition = definition,
+            normalizedQuery = query.normalized,
+            terms = query.terms.map(SearchTerm::value),
+        )
+        val exactNameBonus = if (index.name == query.normalized) 180 else 0
+        val exactAliasBonus = if (query.normalized in index.normalizedAliases) 150 else 0
+        val phraseBonus = if (query.normalized.length >= 4 && index.name.contains(query.normalized)) 60 else 0
+        val allNameTermsBonus = if (query.terms.all { term ->
+                index.nameTokens.any { token -> token == term.value || token.startsWith(term.value) }
+            }) 40 else 0
+        val score = query.terms.sumOf { term ->
+            val name = index.name
+            val nameTokens = index.nameTokens
+            when {
+                name == term.value -> 100
+                name.startsWith(term.value) -> 48
+                nameTokens.any { it.startsWith(term.value) } -> 40
+                name.contains(term.value) -> 30
+                term.synonymKey in index.keys -> 26
+                term.stem.length >= 2 && nameTokens.any { it == term.stem || it.startsWith(term.stem) } -> 22
+                index.familyName.contains(term.value) -> 18
+                index.text.contains(term.value) -> 12
+                else -> 6
+            }
+        } + exactNameBonus + exactAliasBonus + phraseBonus + allNameTermsBonus +
+            configurationMatch.score + if (query.isOpen) openQueryPriorityBonus(definition, query.normalized) else 0
+
+        return ExerciseSearchHitV2(
+            definitionId = definition.id,
+            suggestedConfigurationId = configurationMatch.configuration?.id,
+            matchedTerm = query.normalized,
+            score = score,
+        )
+    }
+
+    private fun matchesFilters(
+        definition: ExerciseDefinitionV2,
+        filters: ExerciseSearchFiltersV2,
+    ): Boolean {
+        val configurations = definition.configurations
+        return (filters.familyIds.isEmpty() || definition.familyId in filters.familyIds) &&
+            (filters.kinds.isEmpty() || definition.kind in filters.kinds) &&
+            (filters.bodyRegions.isEmpty() || configurations.any { it.profile.bodyRegion in filters.bodyRegions }) &&
+            (filters.equipmentIds.isEmpty() || configurations.any { it.profile.equipmentId in filters.equipmentIds }) &&
+            (filters.movementPatternIds.isEmpty() || configurations.any { it.profile.movementPatternId in filters.movementPatternIds }) &&
+            (filters.muscleIds.isEmpty() || configurations.any { config ->
+                config.profile.primaryMuscles.any { it in filters.muscleIds }
+            })
+    }
+
+    private fun sortHits(hits: List<ExerciseSearchHitV2>): List<ExerciseSearchHitV2> =
+        hits.sortedWith(compareByDescending<ExerciseSearchHitV2> { it.score }
+            .thenBy { definitionsById.getValue(it.definitionId).canonicalName.length }
+            .thenBy(String.CASE_INSENSITIVE_ORDER) { definitionsById.getValue(it.definitionId).canonicalName })
 
     private fun buildIndex(definition: ExerciseDefinitionV2, familyName: String): SearchIndex {
         val raw = buildString {
@@ -342,6 +388,8 @@ class ExerciseCatalogV2Resolver(
             rawTokens = ExerciseMatchLexicon.stemTokens(text),
             keys = ExerciseMatchLexicon.tokenKeys(text),
             familyName = ExerciseMatchLexicon.normalize(familyName),
+            normalizedAliases = definition.searchTerms
+                .mapTo(hashSetOf(), ExerciseMatchLexicon::normalize),
         )
     }
 

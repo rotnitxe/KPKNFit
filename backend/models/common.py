@@ -98,6 +98,15 @@ class ExerciseSet(BaseModel):
     rir: Optional[float] = None
 
 
+class PrReference(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    weight: float
+    reps: int
+    effortMode: Optional[str] = None
+    effortValue: Optional[float] = None
+
+
 class Exercise(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -107,6 +116,9 @@ class Exercise(BaseModel):
     sets: list[ExerciseSet] = []
     restTime: Optional[float] = None
     targetMuscles: Optional[list[InvolvedMuscle]] = None
+    workoutTagId: Optional[str] = None
+    prFor1RM: Optional[PrReference] = None
+    goalPr: Optional[PrReference] = None
 
 
 class SessionPart(BaseModel):

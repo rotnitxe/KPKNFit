@@ -56,12 +56,12 @@ internal fun HistorySheet(
             color = WizardColors.text,
             modifier = Modifier.fillMaxWidth(),
         )
-        SheetCaption("Versiones estructurales guardadas al completar un entreno.")
+        SheetCaption("Historial de cambios permanentes y estructuras guardadas al completar un entreno.")
         if (uiState.localDraftHistory.isEmpty()) {
             KpknEmptyState(
                 icon = KpknLineIcons.History,
                 title = "Todavía no hay versiones",
-                body = "Se guardan al terminar un entreno si la estructura cambió.",
+                body = "Aquí aparecerán los cambios guardados desde un entreno en vivo y las versiones creadas al completar un entreno.",
             )
         } else {
             uiState.localDraftHistory.asReversed().forEachIndexed { index, snapshot ->

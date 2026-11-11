@@ -1,6 +1,9 @@
 package com.example.kpkn.data.exercises
 
+import com.example.kpkn.data.exercises.sharedLoadConfigurationId
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.Exercise
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -38,6 +41,32 @@ class ExerciseDatabaseResolutionTest {
                 exerciseName = custom.name,
             )
             assertEquals(custom.id, resolved?.id)
+        } finally {
+            setCustomExerciseOverlay(emptyList())
+        }
+    }
+
+    @Test
+    fun shared_load_identity_uses_exact_configuration_or_known_personal_id_only() {
+        val personal = custom.copy(isCustom = true)
+        setCustomExerciseOverlay(listOf(personal))
+        try {
+            assertEquals("squat__barbell", sharedLoadConfigurationId(
+                Exercise(id = "occurrence-1", name = "Squat", catalogConfigurationId = "squat__barbell"),
+            ))
+            val planned = Exercise(
+                id = "occurrence-2",
+                name = personal.name,
+                exerciseDbId = personal.id,
+            )
+            val completed = CompletedExercise(
+                exerciseId = "occurrence-2",
+                exerciseName = personal.name,
+                exerciseDbId = personal.id,
+            )
+            assertEquals("personal:${personal.id}", sharedLoadConfigurationId(planned))
+            assertEquals("personal:${personal.id}", sharedLoadConfigurationId(completed))
+            assertNull(sharedLoadConfigurationId(planned.copy(exerciseDbId = "custom:deleted")))
         } finally {
             setCustomExerciseOverlay(emptyList())
         }

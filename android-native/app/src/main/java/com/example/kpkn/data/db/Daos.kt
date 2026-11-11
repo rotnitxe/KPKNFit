@@ -198,6 +198,52 @@ interface WorkoutV2Dao {
     suspend fun upsertReplacementDecision(entity: WorkoutReplacementDecisionEntity)
 }
 
+@Dao
+interface SharedExerciseLoadReferenceDao {
+    @Query("SELECT * FROM shared_exercise_load_references WHERE exerciseKey = :exerciseKey AND configurationId = :configurationId AND tagId IS :tagId AND unitMode = :unitMode AND loadMode = :loadMode AND quantityConvention = :quantityConvention ORDER BY sourceAtMs DESC")
+    suspend fun getCompatible(
+        exerciseKey: String,
+        configurationId: String,
+        tagId: String?,
+        unitMode: String,
+        loadMode: String,
+        quantityConvention: String,
+    ): List<SharedExerciseLoadReferenceEntity>
+
+    @Query("SELECT * FROM shared_exercise_load_references")
+    suspend fun getAll(): List<SharedExerciseLoadReferenceEntity>
+
+    @Upsert
+    suspend fun upsert(entity: SharedExerciseLoadReferenceEntity)
+
+    @Upsert
+    suspend fun upsert(entities: List<SharedExerciseLoadReferenceEntity>)
+
+    @Query("DELETE FROM shared_exercise_load_references")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface ProgramVersionDao {
+    @Query("SELECT * FROM program_versions WHERE programId = :programId ORDER BY savedAtEpochMs DESC")
+    suspend fun getForProgram(programId: String): List<ProgramVersionEntity>
+
+    @Query("SELECT * FROM program_versions WHERE programId IN (:programIds) ORDER BY savedAtEpochMs DESC")
+    suspend fun getForProgramIds(programIds: Set<String>): List<ProgramVersionEntity>
+
+    @Query("SELECT * FROM program_versions WHERE programId = :programId AND operationId = :operationId LIMIT 1")
+    suspend fun getByOperation(programId: String, operationId: String): ProgramVersionEntity?
+
+    @Upsert
+    suspend fun upsert(entity: ProgramVersionEntity)
+
+    @Upsert
+    suspend fun upsert(entities: List<ProgramVersionEntity>)
+
+    @Query("DELETE FROM program_versions")
+    suspend fun deleteAll()
+}
+
 // ─── Nutrition ───────────────────────────────────────────────────────────────
 
 /** Contadores de uso de un alimento global: lo que WP-S8 conserva al reemplazar el catálogo importado. */

@@ -141,6 +141,8 @@ internal fun ExerciseEditorExpanded(
     onClearRelationship: () -> Unit,
     onUpdateRelationshipType: (ExerciseRelationshipType?) -> Unit,
     onUpdateRelationshipNotes: (String?) -> Unit,
+    tagOptions: List<WorkoutTag> = emptyList(),
+    onSaveTag: (WorkoutTag) -> Unit = {},
 ) {
     var mobilityBlockExpanded by local.mobilityBlockExpanded
     var warmupBlockExpanded by local.warmupBlockExpanded
@@ -273,6 +275,8 @@ internal fun ExerciseEditorExpanded(
                     localPrEstimatedRm = localPrEstimatedRm,
                     resolved1RM = resolved1RM,
                     onUpdateExercise = onUpdateExercise,
+                    availableTags = tagOptions,
+                    onSaveTag = onSaveTag,
                     onDismiss = { showSmartLoadSheet = false },
                 )
             }

@@ -317,9 +317,31 @@ internal fun catalogExerciseForSession(
     history: List<WorkoutLog>,
     defaults: SessionEditorRuleDefaults,
     isMeetDay: Boolean,
-): Exercise = createExerciseFromInfo(info, history)
-    .let { base -> if (isMeetDay) base.asCompetitionMovement() else base }
-    .withSessionEditorDefaults(defaults, info)
+): Exercise {
+    val mobility = if (info.category.equals("Movilidad", ignoreCase = true)) {
+        MobilityExerciseCatalog.findById(info.id)
+    } else null
+    if (mobility != null) {
+        return Exercise(
+            id = UUID.randomUUID().toString(),
+            name = mobility.name,
+            exerciseDbId = mobility.id,
+            sets = listOf(
+                ExerciseSet(
+                    id = UUID.randomUUID().toString(),
+                    targetDuration = mobility.durationSeconds.coerceAtLeast(1),
+                    unitModeV2 = UnitModeV2.TIME,
+                    timeProgressionStrategyV3 = TimeProgressionStrategyV3.TIME_ONLY,
+                ),
+            ),
+            trainingMode = TrainingMode.TIME,
+            customUnit = "s",
+        )
+    }
+    return createExerciseFromInfo(info, history)
+        .let { base -> if (isMeetDay) base.asCompetitionMovement() else base }
+        .withSessionEditorDefaults(defaults, info)
+}
 
 fun SessionEditorViewModel.removeExercise(partId: String?, exerciseId: String) = updateSession { session ->
     val stripped = if (partId == null) {
@@ -374,7 +396,14 @@ fun SessionEditorViewModel.updateExercise(partId: String?, exerciseId: String, t
         val withPurpose = if (changed.trainingMode != exercise.trainingMode && !validManualApre) {
             changed.withTrainingMode(changed.trainingMode)
         } else changed
-        return withPurpose.normalizeExercise()
+        val normalized = withPurpose.normalizeExercise()
+        return if (normalized.reference1RM != exercise.reference1RM ||
+            normalized.referenceTrainingMax != exercise.referenceTrainingMax ||
+            normalized.prFor1RM != exercise.prFor1RM || normalized.workoutTagId != exercise.workoutTagId ||
+            normalized.catalogConfigurationId != exercise.catalogConfigurationId ||
+            normalized.sets.map { it.loadModeV2 } != exercise.sets.map { it.loadModeV2 } ||
+            normalized.loadQuantityConvention != exercise.loadQuantityConvention
+        ) saveSharedLoadReferences(normalized) else normalized
     }
     if (partId == null) {
         session.copy(exercises = session.exercises.map(::update))

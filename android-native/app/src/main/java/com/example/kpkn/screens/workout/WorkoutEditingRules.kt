@@ -73,10 +73,12 @@ object WorkoutEditingRules {
     }
 
     fun liveEditPersistenceScope(program: Program): WorkoutLiveEditPersistenceScope {
-        val isSimpleCyclic = program.isSimpleProgram &&
-            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
-            program.calendarization?.mode != ProgramCalendarizationMode.SIMPLE_DATED
-        return if (isSimpleCyclic) {
+        val hasEditableSession = program.macrocycles.any { macro ->
+            macro.blocks.any { block ->
+                block.mesocycles.any { meso -> meso.weeks.any { week -> week.sessions.isNotEmpty() } }
+            }
+        }
+        return if (hasEditableSession) {
             WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
         } else {
             WorkoutLiveEditPersistenceScope.SESSION_ONLY
@@ -90,15 +92,13 @@ object WorkoutEditingRules {
         program: Program,
         sessionId: String? = null,
     ): List<ReplacementPersistenceScopeV2> = when {
-        canPersistLiveStructuralChanges(program) -> listOf(
+        sessionId != null && program.macrocycles.any { macro ->
+            macro.blocks.any { block -> block.mesocycles.any { meso ->
+                meso.weeks.any { week -> week.sessions.any { it.id == sessionId } }
+            } }
+        } -> listOf(
             ReplacementPersistenceScopeV2.SESSION_ONLY,
             ReplacementPersistenceScopeV2.PERMANENT,
-        )
-        program.structure.name == "COMPLEX" &&
-            sessionId != null &&
-            hasRepeatedLogicalSessionInBlock(program, sessionId) -> listOf(
-            ReplacementPersistenceScopeV2.SESSION_ONLY,
-            ReplacementPersistenceScopeV2.BLOCK_MATCHING,
         )
         else -> listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
     }

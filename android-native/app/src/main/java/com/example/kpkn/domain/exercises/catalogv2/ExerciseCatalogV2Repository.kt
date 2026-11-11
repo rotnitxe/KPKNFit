@@ -18,6 +18,20 @@ interface ExerciseCatalogRepositoryV2 {
 
     fun search(query: String, filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2()): List<ExerciseSearchHitV2>
 
+    /**
+     * Returns filtered and global matches from one ranked query pass. The
+     * default keeps simple adapters source-compatible; production catalog
+     * implementations override it to avoid scoring the full catalog twice.
+     */
+    fun searchResults(
+        query: String,
+        filters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
+    ): ExerciseCatalogSearchResultsV2 {
+        val filtered = search(query, filters)
+        val global = if (filters.isEmpty()) filtered else search(query)
+        return ExerciseCatalogSearchResultsV2(filtered, global)
+    }
+
     fun compatibility(
         definitionId: String,
         selectedOptions: Map<String, String> = emptyMap(),
@@ -27,6 +41,15 @@ interface ExerciseCatalogRepositoryV2 {
 
     fun resolve(selection: ExerciseSelectionV2): ExerciseCatalogResolveResultV2
 }
+
+data class ExerciseCatalogSearchResultsV2(
+    val filteredHits: List<ExerciseSearchHitV2>,
+    val globalHits: List<ExerciseSearchHitV2>,
+)
+
+internal fun ExerciseSearchFiltersV2.isEmpty(): Boolean =
+    familyIds.isEmpty() && kinds.isEmpty() && bodyRegions.isEmpty() && equipmentIds.isEmpty() &&
+        movementPatternIds.isEmpty() && muscleIds.isEmpty()
 
 data class ExerciseSelectionDraftV2(
     val definitionId: String,
@@ -83,6 +106,13 @@ class InMemoryExerciseCatalogRepositoryV2(
     override fun search(query: String, filters: ExerciseSearchFiltersV2): List<ExerciseSearchHitV2> =
         if (_state.value is ExerciseCatalogStateV2.Ready) resolver.search(query, filters) else emptyList()
 
+    override fun searchResults(
+        query: String,
+        filters: ExerciseSearchFiltersV2,
+    ): ExerciseCatalogSearchResultsV2 =
+        if (_state.value is ExerciseCatalogStateV2.Ready) resolver.searchResults(query, filters)
+        else ExerciseCatalogSearchResultsV2(emptyList(), emptyList())
+
     override fun compatibility(
         definitionId: String,
         selectedOptions: Map<String, String>,
@@ -103,8 +133,7 @@ class InMemoryExerciseCatalogRepositoryV2(
         // actually differ.  Fixed downstream values are inferred by the
         // resolver and never become meaningless singleton chips.
         val nextUnselectedAxis = definition.optionAxes.firstOrNull { axis ->
-            if (axis in selectedOptions) return@firstOrNull false
-            matching.mapNotNull { it.selectedOptions[axis] }.distinct().size > 1
+            axis !in selectedOptions && matching.any { axis in it.selectedOptions }
         }
         val visibleAxes = definition.optionAxes.filter { axis ->
             axis in selectedOptions || axis == nextUnselectedAxis
@@ -150,10 +179,16 @@ class InMemoryExerciseCatalogRepositoryV2(
                 options = values,
             )
         }
+        val applicableAxes = matching.flatMap { configuration ->
+            definition.optionAxes.filter { it in configuration.selectedOptions }
+        }.toSet()
+        val exactConfigurationId = matching.singleOrNull()
+            ?.takeIf { configuration -> applicableAxes.all { selectedOptions[it] == configuration.selectedOptions[it] } }
+            ?.id
         return ExerciseConfigurationCompatibilityV2(
             matchingConfigurationIds = matchingIds,
             axes = axes,
-            exactConfigurationId = matching.singleOrNull()?.id,
+            exactConfigurationId = exactConfigurationId,
         )
     }
 

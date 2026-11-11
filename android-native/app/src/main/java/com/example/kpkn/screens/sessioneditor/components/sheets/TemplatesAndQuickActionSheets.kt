@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
@@ -411,6 +412,7 @@ private data class QuickAction(
 
 @Composable
 internal fun MobilityPickerSheet(
+    activeExercise: Exercise? = null,
     selectedMobilityIds: Set<String> = emptySet(),
     onAdd: (MobilityExercise) -> Unit,
     onRemove: (MobilityExercise) -> Unit = {},
@@ -421,9 +423,32 @@ internal fun MobilityPickerSheet(
     var expandedMobilityId by rememberSaveable { mutableStateOf<String?>(null) }
     val allMobility = remember { MobilityExerciseCatalog.getAllMobilityExercises() }
     val uniqueRegions = remember(allMobility) { allMobility.map { it.bodyRegion }.distinct().sorted() }
+    val mobilityRecommendations = remember(activeExercise?.catalogConfigurationId, selectedMobilityIds) {
+        val configurationId = activeExercise?.catalogConfigurationId?.takeIf(String::isNotBlank)
+        val configuration = configurationId?.let { id ->
+            approvedExerciseCatalogV2()?.families.orEmpty().asSequence()
+                .flatMap { it.definitions.asSequence() }
+                .flatMap { it.configurations.asSequence() }
+                .firstOrNull { it.id == id }
+        }
+        val profile = configuration?.profile ?: return@remember emptyList()
+        com.example.kpkn.domain.training.approach.JointMobility.recommendationsFor(
+            primaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.PRIMARY }.map { it.jointId },
+            secondaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.SECONDARY }.map { it.jointId },
+            primaryMuscleIds = profile.primaryMuscles,
+            secondaryMuscleIds = profile.secondaryMuscles,
+            excludedMovementIds = selectedMobilityIds,
+            limit = 4,
+        )
+    }
+    val recommendationById = remember(mobilityRecommendations) { mobilityRecommendations.associateBy { it.movement.id } }
     val results = remember(query, selectedRegion, allMobility) {
         val byQuery = if (query.isBlank()) allMobility else MobilityExerciseCatalog.searchMobility(query)
         if (selectedRegion.isBlank()) byQuery else byQuery.filter { it.bodyRegion == selectedRegion }
+    }
+    val orderedResults = remember(results, mobilityRecommendations, query, selectedRegion) {
+        if (query.isNotBlank() || selectedRegion.isNotBlank()) results
+        else mobilityRecommendations.map { it.movement } + results.filterNot { it.id in recommendationById }
     }
 
     Column(
@@ -476,6 +501,11 @@ internal fun MobilityPickerSheet(
             modifier = Modifier.heightIn(max = 520.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (mobilityRecommendations.isNotEmpty() && query.isBlank() && selectedRegion.isBlank()) {
+                item(key = "mobility-picker-suggested-heading") {
+                    KpknModuleHeader(label = "Sugeridas para ${activeExercise?.name.orEmpty()}")
+                }
+            }
             if (results.isEmpty()) {
                 item(key = "mobility-picker-empty") {
                     Column(
@@ -489,7 +519,7 @@ internal fun MobilityPickerSheet(
                     }
                 }
             }
-            items(results, key = { it.id }) { mobility ->
+            items(orderedResults, key = { it.id }) { mobility ->
                 val alreadyAdded = mobility.id in selectedMobilityIds
                 val expanded = expandedMobilityId == mobility.id
                 KpknModule(modifier = Modifier.testTag("mobility-picker-item-${mobility.id}"),
@@ -505,6 +535,13 @@ internal fun MobilityPickerSheet(
                             details,
                             style = KpknType.caption,
                             color = WizardColors.textMuted,
+                        )
+                    }
+                    if (mobility.id in recommendationById) {
+                        Text(
+                            recommendationById.getValue(mobility.id).reason,
+                            style = KpknType.caption,
+                            color = WizardColors.done,
                         )
                     }
                     Spacer(Modifier.height(4.dp))

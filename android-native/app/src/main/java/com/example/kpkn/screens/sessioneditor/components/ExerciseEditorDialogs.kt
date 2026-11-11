@@ -122,9 +122,61 @@ internal fun ExerciseSmartLoadDialog(
     localPrEstimatedRm: Double?,
     resolved1RM: Double?,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
+    availableTags: List<WorkoutTag> = emptyList(),
+    onSaveTag: (WorkoutTag) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     var trainingMaxInput by remember(exercise.id, exercise.referenceTrainingMax) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
+    var prEffortMode by rememberSaveable(exercise.id, exercise.prFor1RM?.effortMode) {
+        mutableStateOf(exercise.prFor1RM?.effortMode?.name ?: "UNKNOWN")
+    }
+    var prEffortInput by rememberSaveable(exercise.id, exercise.prFor1RM?.effortValue) {
+        mutableStateOf(exercise.prFor1RM?.effortValue?.toString().orEmpty())
+    }
+    var newTagName by rememberSaveable(exercise.id) { mutableStateOf("") }
+    var renameTagId by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
+    var renameTagValue by rememberSaveable(exercise.id) { mutableStateOf("") }
+    val selectedTag = availableTags.firstOrNull { it.id == exercise.workoutTagId }
+    val effortMode = runCatching { PrEffortMode.valueOf(prEffortMode) }.getOrNull()
+    val effortValue = prEffortInput.safeDoubleOrNull()?.takeIf { it.isFinite() }
+
+    fun updatePr(
+        weightText: String = prWeightInput,
+        repsText: String = prRepsInput,
+        mode: PrEffortMode? = effortMode,
+        effortText: String = prEffortInput,
+    ) {
+        val weight = weightText.safeDoubleOrNull()
+        val reps = repsText.safeIntOrNull()
+        val rawEffort = effortText.safeDoubleOrNull()?.takeIf { it.isFinite() }
+        val value = when (mode) {
+            PrEffortMode.RPE -> rawEffort?.coerceIn(0.0, 10.0)
+            PrEffortMode.RIR -> rawEffort?.coerceAtLeast(0.0)
+            PrEffortMode.FAILURE, null -> null
+        }
+        if (weight != null && weight > 0.0 && reps != null && reps > 0) {
+            val updatedPr = PrReference(weight, reps, mode, value)
+            val estimated = StrengthModel.estimate1RM(
+                weight = weight,
+                reps = reps,
+                rir = value?.toInt()?.takeIf { mode == PrEffortMode.RIR },
+                rpe = value?.takeIf { mode == PrEffortMode.RPE },
+                toFailure = mode == PrEffortMode.FAILURE,
+            )
+            onUpdateExercise { current -> current.copy(prFor1RM = updatedPr, reference1RM = estimated) }
+        } else {
+            onUpdateExercise { current ->
+                current.copy(
+                    prFor1RM = current.prFor1RM?.copy(
+                        weight = weight ?: current.prFor1RM.weight,
+                        reps = reps ?: current.prFor1RM.reps,
+                        effortMode = mode,
+                        effortValue = value,
+                    ),
+                )
+            }
+        }
+    }
 EditorDialogImeArea {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
@@ -141,6 +193,86 @@ EditorSheetDialog(
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
+            Text("Etiqueta de referencia", style = KpknType.bodyStrong, color = WizardColors.text)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknChip(
+                    text = "Sin etiqueta",
+                    selected = exercise.workoutTagId == null,
+                    onClick = { onUpdateExercise { it.copy(workoutTagId = null) } },
+                )
+                availableTags.forEach { tag ->
+                    KpknChip(
+                        text = tag.name,
+                        selected = tag.id == exercise.workoutTagId,
+                        onClick = { onUpdateExercise { it.copy(workoutTagId = tag.id) } },
+                    )
+                }
+            }
+            if (selectedTag != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknTextAction(
+                        text = if (renameTagId == selectedTag.id) "Cancelar nombre" else "Renombrar ${selectedTag.name}",
+                        onClick = {
+                            if (renameTagId == selectedTag.id) renameTagId = null else {
+                                renameTagId = selectedTag.id
+                                renameTagValue = selectedTag.name
+                            }
+                        },
+                    )
+                }
+                if (renameTagId == selectedTag.id) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        KpknTextField(
+                            value = renameTagValue,
+                            onValueChange = { renameTagValue = it },
+                            label = "Nombre de etiqueta",
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                        )
+                        KpknTextAction(
+                            text = "Guardar",
+                            onClick = {
+                                val name = renameTagValue.trim()
+                                if (name.isNotEmpty()) {
+                                    val renamed = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(selectedTag.copy(name = name))
+                                    onSaveTag(renamed)
+                                }
+                                renameTagId = null
+                            },
+                        )
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                KpknTextField(
+                    value = newTagName,
+                    onValueChange = { newTagName = it },
+                    label = "Nueva etiqueta",
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                )
+                KpknTextAction(
+                    text = "Crear",
+                    onClick = {
+                        val name = newTagName.trim()
+                        if (name.isNotEmpty()) {
+                            val now = java.time.Instant.now().toString()
+                            val tag = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(
+                                WorkoutTag(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    name = name,
+                                    exerciseKey = exercise.resolvedCanonicalExerciseId(),
+                                    createdAtIso = now,
+                                    lastUsedAtIso = now,
+                                ),
+                            )
+                            onSaveTag(tag)
+                            onUpdateExercise { it.copy(workoutTagId = tag.id) }
+                            newTagName = ""
+                        }
+                    },
+                )
+            }
             Text("Base de carga inteligente", style = KpknType.bodyStrong, color = WizardColors.text)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 KpknChip(
@@ -198,6 +330,34 @@ EditorSheetDialog(
                         onUpdateExercise { current -> current.copy(reference1RM = parsed) }
                     }
                 } else {
+                    Text("Esfuerzo del PR", style = KpknType.bodyStrong, color = WizardColors.text)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("UNKNOWN" to "Sin dato", "RPE" to "RPE", "RIR" to "RIR", "FAILURE" to "Fallo").forEach { (id, label) ->
+                            KpknChip(
+                                text = label,
+                                selected = prEffortMode == id,
+                                onClick = {
+                                    prEffortMode = id
+                                    prEffortInput = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput
+                                    updatePr(
+                                        mode = runCatching { PrEffortMode.valueOf(id) }.getOrNull(),
+                                        effortText = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                    if (effortMode == PrEffortMode.RPE || effortMode == PrEffortMode.RIR) {
+                        EditorKpknField(
+                            label = if (effortMode == PrEffortMode.RPE) "RPE del PR (0–10)" else "RIR del PR",
+                            value = prEffortInput,
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { input ->
+                            prEffortInput = input
+                            updatePr()
+                        }
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         EditorKpknField(
                             label = "PR kg",
@@ -206,18 +366,7 @@ EditorSheetDialog(
                             modifier = Modifier.weight(1f),
                         ) {
                             onPrWeightInputChange(it)
-                            val weight = it.safeDoubleOrNull()
-                            val reps = prRepsInput.safeIntOrNull()
-                            onUpdateExercise { current ->
-                                if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
-                                } else {
-                                    current.copy(
-                                        prFor1RM = current.prFor1RM?.copy(weight = weight ?: current.prFor1RM.weight),
-                                        reference1RM = current.reference1RM,
-                                    )
-                                }
-                            }
+                            updatePr(weightText = it)
                         }
                         EditorKpknField(
                             label = "PR reps",
@@ -226,23 +375,21 @@ EditorSheetDialog(
                             modifier = Modifier.weight(1f),
                         ) {
                             onPrRepsInputChange(it)
-                            val weight = prWeightInput.safeDoubleOrNull()
-                            val reps = it.safeIntOrNull()
-                            onUpdateExercise { current ->
-                                if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
-                                } else {
-                                    current.copy(
-                                        prFor1RM = current.prFor1RM?.copy(reps = reps ?: current.prFor1RM.reps),
-                                        reference1RM = current.reference1RM,
-                                    )
-                                }
-                            }
+                            updatePr(repsText = it)
                         }
                     }
-                    localPrEstimatedRm?.let { estimate ->
+                    (prWeightInput.safeDoubleOrNull()?.let { weight ->
+                        prRepsInput.safeIntOrNull()?.takeIf { it > 0 }?.let { reps ->
+                            StrengthModel.estimate1RM(
+                                weight, reps,
+                                rir = effortValue?.toInt()?.takeIf { effortMode == PrEffortMode.RIR },
+                                rpe = effortValue?.takeIf { effortMode == PrEffortMode.RPE },
+                                toFailure = effortMode == PrEffortMode.FAILURE,
+                            )
+                        }
+                    } ?: localPrEstimatedRm)?.let { estimate ->
                         Text(
-                            "RM calculado: ${formatDecimalComma(estimate)} kg",
+                            "Origen: PR · ${formatDecimalComma(prWeightInput.safeDoubleOrNull() ?: 0.0)} kg × ${prRepsInput.safeIntOrNull() ?: 0} reps${effortMode?.let { " · ${it.name} ${effortValue ?: ""}" }.orEmpty()} · 1RM estimado: ${formatDecimalComma(estimate)} kg",
                             style = KpknType.bodyStrong,
                             color = WizardColors.text,
                         )

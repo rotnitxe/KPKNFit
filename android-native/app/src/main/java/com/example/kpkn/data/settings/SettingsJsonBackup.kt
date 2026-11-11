@@ -163,6 +163,8 @@ object SettingsJsonBackup {
             contextProfiles = readBackupRows(v2.getAllContextProfiles(), "workout_context_profiles", { it.id }) { it.toWorkoutContextProfile() },
             workoutTags = v2.getAllWorkoutTags().map { it.toWorkoutTag() },
             replacementDecisions = readBackupRows(v2.getAllReplacementDecisions(), "workout_replacement_decisions", { it.id }) { it.toExerciseReplacementDecisionV2() },
+            sharedLoadReferences = db.sharedExerciseLoadReferenceDao().getAll(),
+            programVersions = db.programVersionDao().getForProgramIds(programs.map { it.id }.toSet()),
             performanceRanges = performanceRanges,
             performanceSnapshots = performanceSnapshots,
             workoutMedia = workoutMedia,
@@ -177,6 +179,7 @@ object SettingsJsonBackup {
             setupCommitReceipts = setupCommitReceipts,
             includesNutritionDayStateSection = true,
             includesFoodUsageSection = true,
+            includesSharedLoadAndVersionSection = true,
             foodUsage = db.nutritionDao().getGlobalFoodUsage().map { FoodUsageBackup(it.foodId, it.usageCount, it.lastUsedAt) },
             nutritionDayMarks = db.nutritionDao().getAllDayMarks().map { NutritionDayMarkBackup(it.date, it.mark, it.source, it.updatedAt) },
             nutritionCheckIns = db.nutritionDao().getAllCheckIns().map {
@@ -200,6 +203,7 @@ object SettingsJsonBackup {
         // Extensión aditiva de v6: copias antiguas sin esta sección conservan las declaraciones locales.
         val hasDayState = payload.schemaVersion >= 6 && payload.includesNutritionDayStateSection
         val hasFoodUsage = payload.schemaVersion >= 8 && payload.includesFoodUsageSection
+        val hasSharedLoadAndVersions = payload.schemaVersion >= 9 && payload.includesSharedLoadAndVersionSection
         val foodUsage = if (hasFoodUsage) payload.foodUsage.map { it.toEntity() } else emptyList()
         require(foodUsage.map { it.foodId }.distinct().size == foodUsage.size) { "Duplicate personal food usage IDs" }
         // Resolver antes de borrar: una copia canónica ilegible falla sin modificar los datos locales.
@@ -216,6 +220,7 @@ object SettingsJsonBackup {
             hasNutritionDayStateSection = hasDayState,
             hasCalibrationDecisionsSection = calibrationRowsForRestore != null,
             hasFoodUsageSection = hasFoodUsage,
+            hasSharedLoadAndVersionSection = hasSharedLoadAndVersions,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -239,6 +244,10 @@ object SettingsJsonBackup {
                 // Clear the legacy ranking cache too; otherwise an explicitly empty section could resurrect old usage.
                 sqlite.execSQL("UPDATE global_foods SET usageCount = 0, lastUsedAt = NULL WHERE usageCount <> 0 OR lastUsedAt IS NOT NULL")
                 foodUsage.forEach { db.nutritionDao().restoreGlobalFoodUsage(it.foodId, it.usageCount, it.lastUsedAt) }
+            }
+            if (hasSharedLoadAndVersions) {
+                db.sharedExerciseLoadReferenceDao().upsert(payload.sharedLoadReferences.orEmpty())
+                db.programVersionDao().upsert(payload.programVersions.orEmpty())
             }
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
@@ -421,6 +430,10 @@ data class SettingsExportPayload(
     val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
     val includesFoodUsageSection: Boolean = false,
     val foodUsage: List<FoodUsageBackup> = emptyList(),
+    /** Shared, exact-identity load evidence and immutable permanent-edit snapshots (v9). */
+    val sharedLoadReferences: List<com.example.kpkn.data.db.SharedExerciseLoadReferenceEntity>? = null,
+    val programVersions: List<com.example.kpkn.data.db.ProgramVersionEntity>? = null,
+    val includesSharedLoadAndVersionSection: Boolean = false,
     /** Extensión opcional de v6: si no existe, importar conserva las preferencias locales. */
     val nutritionPreferences: NutritionPreferencesBackup? = null,
     /** Forma JSON de CalibrationDecisionRecord publicada por screens-v2, sin acoplar su runtime. */

@@ -81,10 +81,12 @@ class TrainingMigrationRoomValidationTest {
                 old.version=version
             }
             val db=Room.databaseBuilder(context,KpknDatabase::class.java,"test.db").allowMainThreadQueries()
-                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33,RETIRE_PENDING_TRAINING_PROPOSALS_33_34,*COMBINED_NUTRITION_TRAINING_35,NUTRITION_CATALOG_35_36,WORKOUT_VOICE_HISTORY_36_37).build()
+                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33,RETIRE_PENDING_TRAINING_PROPOSALS_33_34,*COMBINED_NUTRITION_TRAINING_35,NUTRITION_CATALOG_35_36,WORKOUT_VOICE_HISTORY_36_37,KpknDatabase.PROGRAM_EDIT_HISTORY_37_38).build()
             try {
                 val sqlite=db.openHelper.writableDatabase // Full Room delegate validates the final schema, not only SQL execution.
-                assertEquals(37,sqlite.version)
+                assertEquals(38,sqlite.version)
+                sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('shared_exercise_load_references','program_versions')").use { assertEquals(2,it.count) }
+                sqlite.query("SELECT name FROM sqlite_master WHERE type='index' AND name='index_program_versions_programId_operationId'").use { assertEquals(1,it.count) }
                 sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'auge_%'").use { assertEquals(0,it.count) }
                 sqlite.query("SELECT data FROM programs WHERE id='program'").use { c ->
                     assertTrue(c.moveToFirst());val program=JSONObject(c.getString(0))

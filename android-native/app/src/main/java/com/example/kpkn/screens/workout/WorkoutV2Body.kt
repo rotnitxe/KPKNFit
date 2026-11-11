@@ -173,10 +173,12 @@ internal fun WorkoutV2Body(
     var pendingUpdateAction by remember { mutableStateOf<Pair<() -> Unit, () -> Unit>?>(null) }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showTagListOverlay by remember { mutableStateOf(false) }
+    var tagTargetExerciseId by remember(currentExercise?.id) { mutableStateOf(currentExercise?.id) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
     var pendingUntaggedAdoption by remember { mutableStateOf<PendingUntaggedAdoption?>(null) }
     LaunchedEffect(requestLiveTagList) {
         if (requestLiveTagList) {
+            tagTargetExerciseId = currentExercise?.id
             showTagListOverlay = true
             onRequestLiveTagListConsumed()
         }
@@ -204,6 +206,14 @@ internal fun WorkoutV2Body(
         val subTagIds = uiState.activeSubTagsByExercise[exId].orEmpty()
         currentExerciseTags.flatMap { it.subTags }.filter { it.id in subTagIds }
     }
+    val tagTargetExercise = visibleExercises.firstOrNull { it.id == tagTargetExerciseId } ?: currentExercise
+    val tagTargetExerciseKey = tagTargetExercise?.let(viewModel::canonicalExerciseKey).orEmpty()
+    val tagTargetTags = remember(tagTargetExercise?.id, allUserTags) {
+        tagTargetExercise?.let { viewModel.tagsForExercise(it.id) }.orEmpty()
+    }
+    val tagTargetActiveIds = tagTargetExercise?.id?.let { uiState.activeTagsByExercise[it].orEmpty() }.orEmpty()
+    val tagTargetActiveMainTags = tagTargetTags.filter { it.id in tagTargetActiveIds }
+    val tagTargetProfiles = tagTargetExercise?.let { viewModel.profilesForExercise(it) }.orEmpty()
     val currentExerciseProfiles = currentExercise?.let { viewModel.profilesForExercise(it) }.orEmpty()
     val currentExerciseActiveTagLabels = remember(
         currentExercise?.id,
@@ -318,11 +328,17 @@ internal fun WorkoutV2Body(
                 activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
                 hasCreatedTags = currentExerciseTags.isNotEmpty(),
-                onTagClick = { tagId -> tagManagerTagId = tagId },
+                onTagClick = { tagId ->
+                    tagTargetExerciseId = currentExercise?.id
+                    tagManagerTagId = tagId
+                },
                 onRemoveSubTag = { subTagId ->
                     viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
                 },
-                onOpenTagList = { showTagListOverlay = true },
+                onOpenTagList = {
+                    tagTargetExerciseId = currentExercise?.id
+                    showTagListOverlay = true
+                },
                 voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
                 onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
                 voiceSessionEnabled = uiState.voiceSessionEnabled,
@@ -397,7 +413,7 @@ internal fun WorkoutV2Body(
                             ),
                     ) {
             val createTagAndRoute: (String, TagSetupInput?) -> CreateTagResult = { name, setup ->
-                val exercise = currentExercise
+                val exercise = tagTargetExercise ?: currentExercise
                 if (exercise == null) CreateTagResult.InvalidName else {
                     val result = viewModel.createTag(exercise.id, name, setup)
                     when (result) {
@@ -424,40 +440,41 @@ internal fun WorkoutV2Body(
             }
 
             // ─── Tag manager modal ────────────────────────────────────────────
-            if (tagManagerTagId != null && currentExercise != null) {
-                val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
-                    ?: currentExerciseTags.firstOrNull { it.id == tagManagerTagId }
+            if (tagManagerTagId != null && tagTargetExercise != null) {
+                val exercise = tagTargetExercise
+                val tag = tagTargetActiveMainTags.firstOrNull { it.id == tagManagerTagId }
+                    ?: tagTargetTags.firstOrNull { it.id == tagManagerTagId }
                 if (tag != null) {
-                    val tagProfile = viewModel.profileForTag(currentExercise.id, tag.id)
+                    val tagProfile = viewModel.profileForTag(exercise.id, tag.id)
                     WorkoutTagManagerModal(
                         tag = tag,
-                        exerciseId = currentExercise.id,
+                        exerciseId = exercise.id,
                         onRename = { newName ->
-                            viewModel.renameTag(currentExercise.id, tag.id, newName)
+                            viewModel.renameTag(exercise.id, tag.id, newName)
                         },
                         onDelete = {
-                            viewModel.deleteTag(currentExercise.id, tag.id)
+                            viewModel.deleteTag(exercise.id, tag.id)
                             tagManagerTagId = null
                         },
                         onResetHistory = {
-                            viewModel.resetTagHistory(currentExercise.id, tag.id)
+                            viewModel.resetTagHistory(exercise.id, tag.id)
                         },
                         onAddSubTag = { name, category ->
-                            viewModel.addSubTag(currentExercise.id, tag.id, name, category)
+                            viewModel.addSubTag(exercise.id, tag.id, name, category)
                         },
                         onRemoveSubTag = { subTagId ->
-                            viewModel.removeSubTag(currentExercise.id, tag.id, subTagId)
+                            viewModel.removeSubTag(exercise.id, tag.id, subTagId)
                         },
                         onToggleSubTagActive = { subTagId ->
-                            viewModel.toggleSubTagActive(currentExercise.id, subTagId)
+                            viewModel.toggleSubTagActive(exercise.id, subTagId)
                         },
-                        activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
+                        activeSubTagIds = uiState.activeSubTagsByExercise[exercise.id].orEmpty(),
                         onDismiss = { tagManagerTagId = null },
                         onViewAll = {
                             tagManagerTagId = null
                             showTagListOverlay = true
                         },
-                        history = viewModel.historyForTag(currentExercise, tag),
+                        history = viewModel.historyForTag(exercise, tag),
                         machineBrand = tagProfile?.machineBrand.orEmpty(),
                         baseLoadKg = (tagProfile?.baseLoadKg ?: tagProfile?.setupDetails?.baseLoadKg)
                             ?.takeIf { it > 0 }
@@ -465,36 +482,37 @@ internal fun WorkoutV2Body(
                             .orEmpty(),
                         setupNotes = (tagProfile?.notes ?: tagProfile?.setupDetails?.equipmentNotes).orEmpty(),
                         onSaveSetup = { setup ->
-                            viewModel.upsertTagSetup(currentExercise.id, tag.id, setup)
+                            viewModel.upsertTagSetup(exercise.id, tag.id, setup)
                         },
-                        exerciseName = displayWorkoutExerciseName(currentExercise),
-                        referenceLabel = viewModel.lastLoadLabelForTag(currentExercise, tag),
+                        exerciseName = displayWorkoutExerciseName(exercise),
+                        referenceLabel = viewModel.lastLoadLabelForTag(exercise, tag),
                     )
                 } else {
                     tagManagerTagId = null
                 }
             }
 
-            if (showTagListOverlay && currentExercise != null) {
-                val activeIds = uiState.activeTagsByExercise[currentExercise.id].orEmpty()
+            if (showTagListOverlay && tagTargetExercise != null) {
+                val exercise = tagTargetExercise
+                val activeIds = uiState.activeTagsByExercise[exercise.id].orEmpty()
                 WorkoutTagListOverlay(
-                    rows = currentExerciseTags.map { tag ->
+                    rows = tagTargetTags.map { tag ->
                         WorkoutTagListRow(
                             tag = tag,
                             title = workoutTagDisplayTitle(
                                 tagName = tag.name,
-                                machineBrand = currentExerciseProfiles.firstOrNull { profile ->
+                                machineBrand = tagTargetProfiles.firstOrNull { profile ->
                                     profile.tagId == tag.id || profile.tagId == tag.name
                                 }?.machineBrand,
                             ),
-                            lastLoadLabel = viewModel.lastLoadLabelForTag(currentExercise, tag),
+                            lastLoadLabel = viewModel.lastLoadLabelForTag(exercise, tag),
                             isActive = tag.id in activeIds,
                         )
                     },
                     onSelectTag = { tagId ->
-                        viewModel.selectMainTag(currentExercise.id, tagId)
+                        viewModel.selectMainTag(exercise.id, tagId)
                     },
-                    exerciseName = displayWorkoutExerciseName(currentExercise),
+                    exerciseName = displayWorkoutExerciseName(exercise),
                     onCreateTag = {
                         showTagListOverlay = false
                         showCreateTagDialog = true
@@ -504,13 +522,13 @@ internal fun WorkoutV2Body(
                     onOpened = { viewModel.markWorkoutTagEducationSeen() },
                     onCreateInline = createTagAndRoute,
                     onManageTag = { tagId -> showTagListOverlay = false; tagManagerTagId = tagId },
-                    activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
-                    onToggleSubTag = { viewModel.toggleSubTagActive(currentExercise.id, it) },
+                    activeSubTagIds = uiState.activeSubTagsByExercise[exercise.id].orEmpty(),
+                    onToggleSubTag = { viewModel.toggleSubTagActive(exercise.id, it) },
                 )
             }
 
             // ─── Create tag dialog ────────────────────────────────────────────
-            if (showCreateTagDialog && currentExercise != null) {
+            if (showCreateTagDialog && tagTargetExercise != null) {
                 WorkoutCreateTagOverlay(
                     onCreate = createTagAndRoute,
                     onDismiss = {
@@ -525,16 +543,19 @@ internal fun WorkoutV2Body(
                     pending = pending,
                     onAdopt = {
                         viewModel.adoptUntaggedHistory(pending.exerciseId, pending.tagId)
+                        tagTargetExerciseId = pending.exerciseId
                         pendingUntaggedAdoption = null
                         showTagListOverlay = true
                     },
                     onReject = {
                         viewModel.rejectUntaggedAdoption(pending.exerciseId, pending.tagId)
+                        tagTargetExerciseId = pending.exerciseId
                         pendingUntaggedAdoption = null
                         showTagListOverlay = true
                     },
                     onDismiss = {
                         viewModel.rejectUntaggedAdoption(pending.exerciseId, pending.tagId)
+                        tagTargetExerciseId = pending.exerciseId
                         pendingUntaggedAdoption = null
                         showTagListOverlay = true
                     },
@@ -589,6 +610,10 @@ internal fun WorkoutV2Body(
                     workingRestTotal = if (workingRestActive) uiState.restModalState?.totalRestSeconds() else null,
                     onOpenExerciseOptions = onOpenExerciseOptions,
                     onOpenSupersetSettings = onOpenSupersetSettings,
+                    onOpenTagList = { exerciseId ->
+                        tagTargetExerciseId = exerciseId
+                        showTagListOverlay = true
+                    },
                 )
             } else if (currentExercise != null && (
                     currentSet != null ||

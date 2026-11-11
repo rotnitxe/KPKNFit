@@ -199,6 +199,9 @@ data class WorkoutLoadSuggestionUi(
 enum class WorkoutLoadSuggestionSource {
     PROGRAM,
     HISTORY,
+    SHARED_REFERENCE,
+    HOMOLOGATED,
+    ADAPTATION,
     SESSION_ERM,
     MANUAL_BASE,
 }

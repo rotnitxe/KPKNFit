@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toExerciseMuscleInfo
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.exercises.catalogv2.toLegacyDefaultCatalog
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
@@ -178,6 +180,39 @@ fun resolveCatalogExerciseInfo(
     exerciseId = exerciseId,
     exerciseName = exerciseName,
 )
+
+/** Exact catalog configuration, or a stable own-exercise identity when that custom record is known. */
+fun sharedLoadConfigurationId(exercise: Exercise): String? = sharedLoadConfigurationId(
+    catalogConfigurationId = exercise.catalogConfigurationId,
+    exerciseDbId = exercise.exerciseDbId,
+    exerciseId = exercise.exerciseId,
+    exerciseName = exercise.name,
+)
+
+/** Uses only the immutable configuration/custom ID stored in the completed observation. */
+fun sharedLoadConfigurationId(exercise: CompletedExercise): String? = sharedLoadConfigurationId(
+    catalogConfigurationId = exercise.catalogConfigurationId,
+    exerciseDbId = exercise.exerciseDbId,
+    exerciseId = exercise.exerciseId,
+    exerciseName = exercise.exerciseName,
+)
+
+private fun sharedLoadConfigurationId(
+    catalogConfigurationId: String?,
+    exerciseDbId: String?,
+    exerciseId: String?,
+    exerciseName: String,
+): String? {
+    catalogConfigurationId?.trim()?.takeIf(String::isNotBlank)?.let { return it }
+    val customId = resolveCatalogExerciseInfo(
+        catalogConfigurationId = null,
+        exerciseDbId = exerciseDbId,
+        exerciseId = exerciseId,
+        exerciseName = exerciseName,
+    )?.takeIf(ExerciseMuscleInfo::isCustom)?.id?.trim()?.takeIf(String::isNotBlank)
+        ?: return null
+    return "personal:${customId.lowercase()}"
+}
 
 internal fun resolveCatalogExerciseInfoInIndex(
     index: Map<String, ExerciseMuscleInfo>,

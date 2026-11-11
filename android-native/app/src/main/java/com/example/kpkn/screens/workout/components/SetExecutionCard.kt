@@ -1065,11 +1065,11 @@ internal fun SetInputCardV2(
     val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
     // Un parche persistido puede conservar el id. Su snapshot nuevo prevalece sobre el borrador anterior;
     // con el mismo snapshot las recomposiciones no reinicializan lo que la persona está editando.
-    val draftBaseline = remember(exercise.id, setIndex, lockedSide) { sessionCompletedSet }
+    val draftBaseline = remember(exercise.id, setIndex, lockedSide, activeTag) { sessionCompletedSet }
     val restoredDraft = initialDraft.takeIf { sessionCompletedSet == draftBaseline }
     val initialSelectedSide = restoredDraft?.selectedSide ?: lockedSide ?: "left"
-    val draftWeightText = restoredDraft?.weightText?.takeIf { it.isNotBlank() }
-    val draftValueText = restoredDraft?.valueText?.takeIf { it.isNotBlank() }
+    val draftWeightText = restoredDraft?.takeIf { it.isDirty && it.weightText != null }?.weightText
+    val draftValueText = restoredDraft?.takeIf { it.isDirty && it.valueText != null }?.valueText
     val volumeReplacedTechnique = currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED
     val initialTechniqueWeight = if (volumeReplacedTechnique) {
         (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
@@ -1083,14 +1083,14 @@ internal fun SetInputCardV2(
         !currentSet.isInlineEditorScheduledTechnique()
     ) "3" else null
 
-    var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var weightText by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(draftWeightText ?: completedWeightText ?: initialTechniqueWeight ?: "")
     }
-    var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(defaultWeight) }
-    var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
-        mutableStateOf(restoredDraft?.weightManuallyFixed ?: (!draftWeightText.isNullOrBlank() || completedWeightText != null))
+    var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) { mutableStateOf(defaultWeight) }
+    var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
+        mutableStateOf(restoredDraft?.weightManuallyFixed ?: (draftWeightText != null || completedWeightText != null))
     }
-    var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var valueText by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { initialValueGhost })
     }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
@@ -1144,7 +1144,7 @@ internal fun SetInputCardV2(
             ?: currentSet.targetRPE?.toTrimmedNumberString()
             ?: currentSet.targetRIR?.toString()
     ).orEmpty()
-    var intensityText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var intensityText by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(
             restoredDraft?.intensityText
                 ?: sessionCompletedSet?.actualIntensityValue?.toTrimmedNumberString()
@@ -1154,7 +1154,7 @@ internal fun SetInputCardV2(
     }
     // H-VERIF (LV8): el esfuerzo es obligatorio y nunca llega preseleccionado. Una intensidad solo cuenta como «reserva cumplida» para
     // proponer una subida si la persona la marcó: un borrador con un valor o con el fallo, o una serie ya registrada, ya están reportados.
-    var intensityTouched by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var intensityTouched by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(
             sessionCompletedSet?.let { it.recordedPayloadV3?.intensityAdjusted ?: true }
                 ?: (restoredDraft?.let { !it.intensityText.isNullOrBlank() || it.reachedFailure == true } == true)
@@ -1170,12 +1170,12 @@ internal fun SetInputCardV2(
     val tracksRom = exercise.trackRom
     val pristineRomValue: Int? = sessionCompletedSet?.rom ?: (if (tracksRom) DEFAULT_ROM_PERCENT else null)
     // `tracksRom` no entra en las claves: al activarlo desde la hoja el plan cambia a mitad de la serie y no debe reiniciar lo que se está editando.
-    var romValue by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var romValue by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf<Int?>(liveSetInitialRom(tracksRom, restoredDraft?.rom, sessionCompletedSet?.rom))
     }
     // Si el interruptor del editor (o la hoja de otra serie) cambia `trackRom` con la tarjeta a la vista, esta serie lo sigue: se enciende al
     // 100 % o se apaga, salvo que ya lleve un ROM registrado (editar nunca borra un dato guardado).
-    var seenTracksRom by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(tracksRom) }
+    var seenTracksRom by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) { mutableStateOf(tracksRom) }
     LaunchedEffect(tracksRom) {
         if (tracksRom != seenTracksRom) {
             seenTracksRom = tracksRom
@@ -1184,7 +1184,7 @@ internal fun SetInputCardV2(
     }
     // «Guardar también en el programa» de la hoja: por defecto, el ROM vale solo para esta sesión.
     var saveRomToProgram by remember(exercise.id) { mutableStateOf(false) }
-    var selectedSide by remember(exercise.id, setIndex, lockedSide) { mutableStateOf(initialSelectedSide) }
+    var selectedSide by remember(exercise.id, setIndex, lockedSide, activeTag) { mutableStateOf(initialSelectedSide) }
     val sideKey = if (supportsIndependentSides) lockedSide ?: selectedSide else "B"
     var quantityError by remember(exercise.id, setIndex, sideKey) { mutableStateOf<String?>(null) }
     val pristineRmReference = liveRmReference(exercise, ghostSet)
@@ -1193,8 +1193,8 @@ internal fun SetInputCardV2(
     val pristineRmPercent = completedWeightText?.replace(',', '.')?.toDoubleOrNull()?.let { weight ->
         pristineRmLoadReference?.let { weight / it * 100 }
     } ?: prescribedRmPercent
-    var rmReference by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(restoredDraft?.rmReference1RM ?: pristineRmReference) }
-    var rmPercent by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var rmReference by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) { mutableStateOf(restoredDraft?.rmReference1RM ?: pristineRmReference) }
+    var rmPercent by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         val reference = liveRmValues(exercise, currentSet, pristineRmPercent, rmReference).loadReference
         val restoredWeight = draftWeightText?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
         mutableDoubleStateOf(restoredDraft?.rmPercent ?: if (restoredWeight != null && reference != null) restoredWeight / reference * 100 else pristineRmPercent)
@@ -1705,7 +1705,7 @@ internal fun SetInputCardV2(
         )
     }
     // La marca elegida (nula = sin marcar). Una serie ya registrada, o un borrador con un valor o con el fallo, llegan marcados.
-    var effortIndex by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
+    var effortIndex by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(
             restoreEffortIndex(
                 items = effortScale.items,

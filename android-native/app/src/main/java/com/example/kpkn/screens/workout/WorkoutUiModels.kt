@@ -5,6 +5,7 @@ import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.domain.relator.RelatorProgressionContext
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 /** Molestia repetida ≥N sesiones en el mismo ejercicio/patrón. */
 data class PersistentDiscomfortHit(
@@ -20,15 +21,18 @@ data class PendingReplacementPersistencePrompt(
     val fromCatalogRevision: String? = null,
     val fromCatalogDefinitionId: String? = null,
     val fromCatalogConfigurationId: String? = null,
+    val operationId: String = UUID.randomUUID().toString(),
 )
 
-sealed class PendingStructuralChange {
+sealed class PendingStructuralChange(open val operationId: String) {
     data class AddSet(
         val exerciseId: String,
         val exerciseName: String,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
-    ) : PendingStructuralChange()
+        val newSetId: String = UUID.randomUUID().toString(),
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class AddExercise(
         val afterExerciseId: String,
         val newExerciseId: String,
@@ -36,13 +40,15 @@ sealed class PendingStructuralChange {
         val afterExerciseSlot: Int? = null,
         val afterExerciseCanonicalKey: String? = null,
         val newExerciseTemplate: Exercise? = null,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class AddExercises(
         val afterExerciseId: String?,
         val newExerciseIds: List<String>,
         val newExerciseNames: List<String>,
         val newExerciseTemplates: List<Exercise> = emptyList(),
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     /** One logical persistence payload for a catalog-created live superserie. */
     data class AddSuperset(
         val groupId: String,
@@ -53,35 +59,50 @@ sealed class PendingStructuralChange {
         val group: SupersetGroup,
         /** Variant in which the live mutation was created (A/B/C). */
         val activeMode: WeekVariant = WeekVariant.A,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class ReorderExercises(
         val orderedExerciseIds: List<String>,
         val originalPartMap: Map<String, String>,
         val isGlobal: Boolean,
         val orderedExerciseCanonicalKeys: List<String> = emptyList(),
         val orderedExercisePartKeys: List<String?> = emptyList(),
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class RemoveSet(
         val exerciseId: String,
         val exerciseName: String,
         val setIndex: Int,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class RemoveExercise(
         val exerciseId: String,
         val exerciseName: String,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class RemoveExercises(
         val exerciseIds: List<String>,
         val exerciseNames: List<String>,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
     data class DissolveSuperset(
         val groupId: String,
         val exerciseNames: List<String>,
-    ) : PendingStructuralChange()
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
+    data class SetExerciseRom(
+        val exerciseId: String,
+        val trackRom: Boolean,
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
+    data class SetSessionTargetDuration(
+        val targetDurationMinutes: Int?,
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
 }
 
 @Serializable

@@ -30,8 +30,11 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
@@ -41,6 +44,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import androidx.room.Room
 import androidx.room.withTransaction
 import kotlin.time.Duration.Companion.seconds
@@ -66,6 +71,13 @@ sealed interface ProgramArchiveResult {
     data class OpenSession(val sessionId: String) : ProgramArchiveResult
     object Busy : ProgramArchiveResult
 }
+
+data class LiveProgramEditCommit(
+    val program: Program,
+    val session: Session,
+    val variant: WeekVariant,
+    val versions: List<ProgramVersionEntity>,
+)
 
 /**
  * ProgramRepository — Single source of truth para programas, historial,
@@ -93,6 +105,8 @@ class ProgramRepository private constructor(
 
     private val _programs = MutableStateFlow<List<Program>>(emptyList())
     val programs: StateFlow<List<Program>> = _programs.asStateFlow()
+    private val _liveProgramEditCommits = MutableSharedFlow<LiveProgramEditCommit>(extraBufferCapacity = 32)
+    val liveProgramEditCommits: SharedFlow<LiveProgramEditCommit> = _liveProgramEditCommits.asSharedFlow()
     /** Serializes program blobs so an older async editor write cannot win later. */
     private val programWriteMutex = Mutex()
     private val programWriteSequence = AtomicLong(0L)
@@ -272,6 +286,7 @@ class ProgramRepository private constructor(
         version: Long,
         repairActiveState: Boolean = false,
         guardInTransaction: (suspend () -> Boolean)? = null,
+        atomicWrite: (suspend () -> Unit)? = null,
     ): Boolean =
         PersistenceWriteCoordinator.mutex.withLock {
             programWriteMutex.withLock storage@{
@@ -284,10 +299,14 @@ class ProgramRepository private constructor(
                 if (!canWrite) {
                     false
                 } else {
-                    if (guardInTransaction == null) db.programDao().upsert(program.toEntity())
+                    if (guardInTransaction == null && atomicWrite == null) db.programDao().upsert(program.toEntity())
                     else {
                         val saved = db.withTransaction {
-                            if (!guardInTransaction()) false else { db.programDao().upsert(program.toEntity()); true }
+                            if (guardInTransaction?.invoke() == false) false else {
+                                db.programDao().upsert(program.toEntity())
+                                atomicWrite?.invoke()
+                                true
+                            }
                         }
                         if (!saved) return@storage false
                     }
@@ -324,11 +343,12 @@ class ProgramRepository private constructor(
         version: Long,
         repairActiveState: Boolean = false,
         guardInTransaction: (suspend () -> Boolean)? = null,
+        atomicWrite: (suspend () -> Unit)? = null,
     ): Boolean {
         val callerJob = currentCoroutineContext()[Job]
         return withContext(NonCancellable + Dispatchers.IO) {
             try {
-                commitProgramDurable(program, version, repairActiveState,guardInTransaction)
+                commitProgramDurable(program, version, repairActiveState, guardInTransaction, atomicWrite)
             } catch (cancelled: CancellationException) {
                 if (callerJob?.isActive == false) throw cancelled
                 throw IllegalStateException("No se pudo guardar el programa en Room.", cancelled)
@@ -644,6 +664,136 @@ class ProgramRepository private constructor(
         ) ?: return false
         updateProgramNow(updated.withManualSessionOverride(session, weekId))
         return true
+    }
+
+    /**
+     * Commits one live edit to the exact stored session and active variant. The transform is
+     * applied while holding the program read-modify-write lane, so a retry uses the same
+     * operation ID and the latest committed session instead of replaying a stale whole-program
+     * snapshot. Program JSON and its immutable version records share one Room transaction.
+     */
+    suspend fun commitLiveProgramSessionEditNow(
+        programId: String,
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        sessionId: String,
+        variant: WeekVariant,
+        operationId: String,
+        reason: String,
+        origin: String = "Entreno en vivo",
+        transform: (Session) -> Session,
+    ): LiveProgramEditCommit? = withContext(Dispatchers.IO) {
+        require(operationId.isNotBlank()) { "A live edit needs a stable operation ID." }
+        programRmwMutex.withLock edit@{
+            val dao = db.programVersionDao()
+            val repeated = dao.getByOperation(programId, operationId)
+            if (repeated != null) {
+                val program = getProgramById(programId) ?: return@edit null
+                val session = findStoredSession(program, weekId, macroIndex, mesoIndex, sessionId)
+                    ?.variantSession(variant)
+                    ?: runCatching { dbJson.decodeFromString<Session>(repeated.snapshotJson) }.getOrNull()
+                    ?: return@edit null
+                val versions = dao.getForProgram(programId).filter {
+                    it.sessionId == sessionId && it.variantId == variant.name
+                }
+                return@edit LiveProgramEditCommit(program, session, variant, versions).also {
+                    _liveProgramEditCommits.tryEmit(it)
+                }
+            }
+
+            val currentProgram = getProgramById(programId) ?: return@edit null
+            val currentSession = findStoredSession(currentProgram, weekId, macroIndex, mesoIndex, sessionId)
+                ?: return@edit null
+            val previousVariant = currentSession.variantSession(variant) ?: return@edit null
+            val nextSession = transform(currentSession)
+            if (nextSession.id != currentSession.id) return@edit null
+            val nextVariant = nextSession.variantSession(variant) ?: return@edit null
+            if (nextVariant == previousVariant) return@edit null
+
+            val editedProgram = currentProgram.upsertSessionInWeek(
+                weekId = weekId,
+                macroIndex = macroIndex,
+                mesoIndex = mesoIndex,
+                session = nextSession,
+            )?.withManualSessionOverride(nextSession, weekId) ?: return@edit null
+            val normalized = normalizeProgramWithCompetitions(editedProgram)
+            val persistedSession = findStoredSession(normalized, weekId, macroIndex, mesoIndex, sessionId)
+                ?.variantSession(variant) ?: nextVariant
+            val savedAtMs = System.currentTimeMillis()
+            val previousVersions = dao.getForProgram(programId).filter {
+                it.sessionId == sessionId && it.variantId == variant.name
+            }
+            val initial = if (previousVersions.none { it.isInitial }) {
+                ProgramVersionEntity(
+                    id = UUID.randomUUID().toString(),
+                    programId = programId,
+                    sessionId = sessionId,
+                    variantId = variant.name,
+                    operationId = "initial:$sessionId:${variant.name}",
+                    savedAtEpochMs = savedAtMs,
+                    origin = origin,
+                    reason = "Estado anterior al primer guardado en vivo",
+                    isInitial = true,
+                    snapshotJson = dbJson.encodeToString(previousVariant),
+                )
+            } else null
+            val versionRecord = ProgramVersionEntity(
+                id = UUID.randomUUID().toString(),
+                programId = programId,
+                sessionId = sessionId,
+                variantId = variant.name,
+                operationId = operationId,
+                savedAtEpochMs = savedAtMs,
+                origin = origin,
+                reason = reason.ifBlank { "Cambio de estructura en vivo" },
+                snapshotJson = dbJson.encodeToString(persistedSession),
+            )
+            val writeVersion = synchronized(programMutationLock) { reserveProgramWrite(programId) }
+            val committed = commitProgramDurableForCaller(
+                program = normalized,
+                version = writeVersion,
+                repairActiveState = true,
+                guardInTransaction = { dao.getByOperation(programId, operationId) == null },
+                atomicWrite = {
+                    if (initial != null) dao.upsert(initial)
+                    dao.upsert(versionRecord)
+                },
+            )
+            if (!committed) throw ProgramWriteConflictException(programId)
+            val versions = dao.getForProgram(programId).filter {
+                it.sessionId == sessionId && it.variantId == variant.name
+            }
+            LiveProgramEditCommit(normalized, persistedSession, variant, versions).also {
+                _liveProgramEditCommits.tryEmit(it)
+            }
+        }
+    }
+
+    suspend fun getLiveSessionVersions(programId: String, sessionId: String): List<ProgramVersionEntity> =
+        withContext(Dispatchers.IO) {
+            db.programVersionDao().getForProgram(programId)
+                .filter { it.sessionId == sessionId }
+                .sortedBy { it.savedAtEpochMs }
+        }
+
+    private fun findStoredSession(
+        program: Program,
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        sessionId: String,
+    ): Session? = program.macrocycles.getOrNull(macroIndex)
+        ?.blocks?.flatMap { it.mesocycles }
+        ?.getOrNull(mesoIndex)?.weeks
+        ?.firstOrNull { it.id == weekId }
+        ?.sessions?.firstOrNull { it.id == sessionId }
+
+    private fun Session.variantSession(variant: WeekVariant): Session? = when (variant) {
+        WeekVariant.A -> this
+        WeekVariant.B -> sessionB
+        WeekVariant.C -> sessionC
+        WeekVariant.D -> sessionD
     }
 
     private fun Program.withManualSessionOverride(session: Session, weekId: String): Program =

@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.kpkn.data.models.*
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
@@ -161,6 +162,55 @@ data class WorkoutTagEntity(
     val normalizedName: String,
     val lastUsedAt: String,
     val data: String,
+)
+
+/** Shared, tag-scoped load evidence used by both the editor and live workout. */
+@Serializable
+@Entity(
+    tableName = "shared_exercise_load_references",
+    indices = [
+        Index(value = ["exerciseKey", "configurationId", "tagId", "unitMode", "loadMode", "quantityConvention"]),
+        Index("sourceAtMs"),
+    ],
+)
+data class SharedExerciseLoadReferenceEntity(
+    @PrimaryKey val id: String,
+    val exerciseKey: String,
+    val configurationId: String,
+    val tagId: String?,
+    val unitMode: String,
+    val loadMode: String,
+    val quantityConvention: String,
+    val kind: String,
+    val valueKg: Double,
+    val sourceAtMs: Long,
+    val sourceId: String? = null,
+    val repCount: Int? = null,
+    val effortMode: String? = null,
+    val effortValue: Double? = null,
+    val payloadJson: String = "{}",
+)
+
+/** Immutable, restorable program snapshot recorded with the corresponding live edit. */
+@Serializable
+@Entity(
+    tableName = "program_versions",
+    indices = [
+        Index(value = ["programId", "savedAtEpochMs"]),
+        Index(value = ["programId", "operationId"], unique = true),
+    ],
+)
+data class ProgramVersionEntity(
+    @PrimaryKey val id: String,
+    val programId: String,
+    val sessionId: String,
+    val variantId: String?,
+    val operationId: String,
+    val savedAtEpochMs: Long,
+    val origin: String,
+    val reason: String,
+    val isInitial: Boolean = false,
+    val snapshotJson: String,
 )
 
 fun WorkoutTag.toEntity() = WorkoutTagEntity(
