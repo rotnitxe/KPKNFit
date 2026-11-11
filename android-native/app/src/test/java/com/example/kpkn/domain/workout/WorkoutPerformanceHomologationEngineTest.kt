@@ -422,7 +422,7 @@ class WorkoutPerformanceHomologationEngineTest {
         )
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, null)
         assertNull(result.outcome.estimatedRm)
-        assertEquals(55.0, result.outcome.augeEquivalentLoad, 0.001)
+        assertEquals(0.0, result.outcome.augeEquivalentLoad, 0.001)
     }
 
     @Test
@@ -445,22 +445,24 @@ class WorkoutPerformanceHomologationEngineTest {
             ),
             0.001,
         )
+        // Body mass never becomes lifted load: BW is 0 kg external,
+        // lastre keeps only the added kg, asistencia keeps 0 kg external.
         assertEquals(
-            80.0,
+            0.0,
             WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
                 entry(LoadModeV2.BODYWEIGHT, 0.0, 80.0),
             ),
             0.001,
         )
         assertEquals(
-            100.0,
+            20.0,
             WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
                 entry(LoadModeV2.LASTRE, 20.0, 80.0),
             ),
             0.001,
         )
         assertEquals(
-            55.0,
+            0.0,
             WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
                 entry(LoadModeV2.ASSISTED, 25.0, 80.0),
             ),

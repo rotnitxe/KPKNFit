@@ -78,10 +78,38 @@ class CompletedSetLoadSemanticsTest {
     fun missingInputKeepsModalityAndSaysNoDetail() {
         val value = set(weight = 0.0, mode = LoadModeV2.LASTRE, external = null, originalLoad = null)
         assertEquals(
-            "Peso corporal + lastre · Carga sin detalle · 5 reps",
+            "Carga sin detalle · 5 reps",
             CompletedSetLoadSemantics.displaySet(value),
         )
-        assertNull(CompletedSetLoadSemantics.externalLoadKg(value)?.takeIf { it > 0.0 })
+        assertNull(CompletedSetLoadSemantics.externalLoadKg(value))
+    }
+
+    @Test
+    fun athlete106KgAbWheelAndLastreTonnage() {
+        val abWheel = set(weight = 0.0, reps = 5, mode = LoadModeV2.BODYWEIGHT, body = 106.0)
+        assertFalse(CompletedSetLoadSemantics.supportsEstimatedOneRm(abWheel))
+        assertEquals(0.0, CompletedSetLoadSemantics.externalTonnageKg(abWheel, 5.0), 0.001)
+        assertEquals(0.0, com.example.kpkn.domain.performance.StrengthModel.estimate1RM(abWheel), 0.001)
+
+        val lastre = set(weight = 40.0, reps = 5, mode = LoadModeV2.LASTRE, external = 40.0, body = 106.0)
+        assertFalse(CompletedSetLoadSemantics.supportsEstimatedOneRm(lastre))
+        assertEquals(200.0, CompletedSetLoadSemantics.externalTonnageKg(lastre, 5.0), 0.001)
+        assertEquals(0.0, com.example.kpkn.domain.performance.StrengthModel.estimate1RM(lastre), 0.001)
+    }
+
+    @Test
+    fun legacyLastreWithOnlySyntheticWeightHasNoExternalLoadDetail() {
+        val legacyLastre = CompletedSet(
+            id = "legacy-lastre",
+            weight = 146.0, // 106 kg bodyweight + 40 kg lastre synthetic total
+            reps = 5,
+            loadMode = LoadModeV2.LASTRE,
+            originalLoad = null,
+            recordedPayloadV3 = null,
+        )
+        assertNull(CompletedSetLoadSemantics.externalLoadKg(legacyLastre))
+        assertEquals(0.0, CompletedSetLoadSemantics.externalTonnageKg(legacyLastre, 5.0), 0.001)
+        assertEquals("Carga sin detalle · 5 reps", CompletedSetLoadSemantics.displaySet(legacyLastre))
     }
 
     @Test

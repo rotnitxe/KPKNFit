@@ -51,6 +51,11 @@ data class Program(
     val timelineStartDate: String? = null,
     val calendarization: ProgramCalendarization? = null,
     val simpleProgramKind: SimpleProgramKind = SimpleProgramKind.CYCLIC,
+    /**
+     * Explicit finite/infinite decision (remediation 5). null = unresolved
+     * (legacy). A legacy LINEAR kind alone never terminates the program.
+     */
+    val programEndMode: ProgramEndMode? = null,
     val pausedCyclicSnapshot: SimpleProgramSnapshot? = null,
     val keyDates: List<ProgramKeyDate> = emptyList(),
     val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
@@ -274,6 +279,8 @@ enum class TrainingPhase { ACCUMULATION, TRANSFORMATION, REALIZATION }
 enum class VolumeSystem { ISRAETEL, KPNK, MANUAL }
 enum class ProgramCalendarizationMode { ADVANCED_COMPETITION, SIMPLE_DATED }
 enum class SimpleProgramKind { CYCLIC, CALENDARIZED, LINEAR }
+/** Explicit finite/infinite decision; persisted in the program JSON. */
+enum class ProgramEndMode { REPEATING, HAS_END }
 
 @Serializable
 data class ProgramCalendarization(
@@ -553,9 +560,27 @@ val Program.isSimpleTemporalProgram: Boolean
 val Program.isSimpleCalendarizedProgram: Boolean
     get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
 
-/** Programa simple de una sola pasada (especialización finita): avanza semana a semana y termina. */
+/** Explicit finite decision: only HAS_END (or a declared competition/end signal) ends a program. */
+val Program.hasExplicitEnd: Boolean
+    get() = programEndMode == ProgramEndMode.HAS_END ||
+        calendarization?.activatedByCompetition == true ||
+        calendarization?.manualEndDate != null ||
+        resolvedSchedulePlan().targetEndDate != null ||
+        (sourceRecipe?.repeats == false && sourceRecipe?.hasDeclaredEnd == true)
+
+/**
+ * Programas que repiten su estructura: sin señal terminal explícita.
+ * La etiqueta legacy LINEAR por sí sola no constituye cierre.
+ */
+val Program.repeatsIndefinitely: Boolean
+    get() = !hasExplicitEnd
+
+/** Legacy alias — LINEAR alone is NOT finite anymore (remediation 5). */
 val Program.isSimpleLinearProgram: Boolean
-    get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.LINEAR
+    get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.LINEAR && hasExplicitEnd
+
+/** Only finite programs may terminate; repeating programs never COMPLETE on cycle close. */
+val Program.isFiniteProgram: Boolean get() = hasExplicitEnd
 
 /** Identidad del break calendarizado activo; aisla logs del run cíclico pausado. */
 val Program.activeCalendarBreakId: String?

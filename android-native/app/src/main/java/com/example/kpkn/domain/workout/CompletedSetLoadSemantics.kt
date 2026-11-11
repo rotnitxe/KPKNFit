@@ -22,7 +22,9 @@ object CompletedSetLoadSemantics {
     /** External kg used by tonnage, external-load records and comparable 1RM. */
     fun externalLoadKg(set: CompletedSet): Double? = when (mode(set)) {
         LoadModeV2.BODYWEIGHT, LoadModeV2.ASSISTED -> 0.0
-        LoadModeV2.LOAD, LoadModeV2.LASTRE -> set.recordedPayloadV3?.externalLoad?.takeIf { it.isFinite() && it >= 0.0 }
+        LoadModeV2.LASTRE -> set.recordedPayloadV3?.externalLoad?.takeIf { it.isFinite() && it >= 0.0 }
+            ?: set.originalLoad?.takeIf { it.isFinite() && it >= 0.0 }
+        LoadModeV2.LOAD -> set.recordedPayloadV3?.externalLoad?.takeIf { it.isFinite() && it >= 0.0 }
             ?: set.originalLoad?.takeIf { it.isFinite() && it >= 0.0 }
             ?: set.weight.takeIf { it.isFinite() && it >= 0.0 }
         null -> set.weight.takeIf { it.isFinite() && it >= 0.0 }
@@ -64,10 +66,10 @@ object CompletedSetLoadSemantics {
         LoadModeV2.BODYWEIGHT -> "Peso corporal"
         LoadModeV2.LASTRE -> externalLoadKg(set)?.takeIf { it > 0.0 }
             ?.let { "Peso corporal + ${formatKg(it)} kg de lastre" }
-            ?: "Peso corporal + lastre · Carga sin detalle"
+            ?: "Carga sin detalle"
         LoadModeV2.ASSISTED -> assistanceKg(set)?.takeIf { it > 0.0 }
             ?.let { "${formatKg(it)} kg de asistencia" }
-            ?: "Asistencia · Carga sin detalle"
+            ?: "Carga sin detalle"
         LoadModeV2.LOAD, null -> externalLoadKg(set)?.takeIf { it > 0.0 }
             ?.let { "${formatKg(it)} kg" }
             ?: "Carga sin detalle"

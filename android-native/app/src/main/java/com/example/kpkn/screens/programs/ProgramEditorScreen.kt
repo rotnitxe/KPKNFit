@@ -138,6 +138,11 @@ fun ProgramEditorScreen(
                         }
                     }
                     item {
+                        EditorSectionCard("¿Cómo termina?") {
+                            com.example.kpkn.screens.programs.EndModeSection(state, viewModel)
+                        }
+                    }
+                    item {
                         EditorSectionCard("Portada") {
                             CoverSection(state, viewModel)
                         }
@@ -233,6 +238,29 @@ private fun ModeSection(state: ProgramEditorUiState, viewModel: ProgramEditorVie
             )
         }
     }
+}
+
+@Composable
+fun EndModeSection(state: ProgramEditorUiState, viewModel: ProgramEditorViewModel) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(
+            com.example.kpkn.data.models.ProgramEndMode.REPEATING to "Se repite",
+            com.example.kpkn.data.models.ProgramEndMode.HAS_END to "Tiene un final",
+        ).forEach { (mode, label) ->
+            FilterChip(
+                selected = state.programEndMode == mode,
+                onClick = { viewModel.setProgramEndMode(mode) },
+                label = { Text(label) },
+                enabled = !state.isSaving,
+            )
+        }
+    }
+    Text(
+        if (state.programEndMode == com.example.kpkn.data.models.ProgramEndMode.REPEATING)
+            "Toda la estructura vuelve a empezar y el historial se guarda por ciclo."
+        else "Al completar la estructura el programa se marca como finalizado.",
+        style = MaterialTheme.typography.bodySmall,
+    )
 }
 
 private data class CoverOption(val cover: String, val label: String)

@@ -84,12 +84,14 @@ object StrengthModel {
 
     /** Estima una serie realizada con su esfuerzo registrado; una serie saltada no estima. */
     fun estimate1RM(set: CompletedSet, region: StrengthRegion = StrengthRegion.UNSPECIFIED): Double {
+        if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)) return 0.0
         val payload = set.recordedPayloadV3
         if (set.skipped || payload?.skipped == true) return 0.0
         val mode = set.actualIntensityMode ?: payload?.actualIntensityMode
         val value = set.actualIntensityValue ?: payload?.actualIntensityValue
+        val externalWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: set.weight
         return estimate1RM(
-            weight = set.weight,
+            weight = externalWeight,
             reps = set.reps,
             rir = set.rir ?: value?.takeIf { mode in listOf(IntensityMode.RIR, IntensityMode.AMRAP) && it.isFinite() }?.toInt(),
             rpe = set.rpe ?: value?.takeIf { mode == IntensityMode.RPE },

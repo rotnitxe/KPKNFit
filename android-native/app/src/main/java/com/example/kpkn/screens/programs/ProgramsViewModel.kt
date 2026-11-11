@@ -457,6 +457,7 @@ fun buildNewProgram(
     description: String? = null,
     coverImage: String = "gradient://ember",
     mode: ProgramMode = ProgramMode.HYPERTROPHY,
+    programEndMode: com.example.kpkn.data.models.ProgramEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
 ): Program = Program(
     id = id,
     name = name,
@@ -464,6 +465,7 @@ fun buildNewProgram(
     coverImage = coverImage,
     structure = ProgramStructure.SIMPLE,
     mode = mode,
+    programEndMode = programEndMode,
     macrocycles = listOf(
         Macrocycle(
             id = UUID.randomUUID().toString(),

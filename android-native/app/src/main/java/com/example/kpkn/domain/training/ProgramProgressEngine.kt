@@ -21,9 +21,11 @@ import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.hasExplicitEnd
 import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleLinearProgram
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.repeatsIndefinitely
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.ProgressionRule
 
@@ -279,7 +281,10 @@ object ProgramProgressEngine {
         /** Inventario del atleta: redondea el TM que sube la progresión de autor (B.S3). */
         inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
-        if (program.structure == ProgramStructure.COMPLEX || program.isSimpleLinearProgram) {
+        // LINEAR alone is not finite: only route to the complex (terminating)
+        // path when the program has an explicit end. Repeating LINEAR falls
+        // through to the cyclic advance below and recycles via completeCycle.
+        if (program.structure == ProgramStructure.COMPLEX || (program.isSimpleLinearProgram && program.hasExplicitEnd)) {
             return advanceComplexAfterSessionComplete(
                 program = program,
                 activeState = activeState,
@@ -931,7 +936,7 @@ object ProgramProgressEngine {
             )
         }
 
-        if (program.isSimpleLinearProgram) {
+        if (program.isSimpleLinearProgram && program.hasExplicitEnd) {
             val progressedComplete = ProgramAutoregulationEngine.expirePending(
                 program,
                 reason = "Caducada al completar el programa: la propuesta no se resolvió.",
@@ -954,6 +959,19 @@ object ProgramProgressEngine {
                     programRunId = completedRun.runId,
                 ),
                 advancedCycle = true,
+            )
+        }
+        // Repeating programs (no explicit end) never COMPLETE on cycle close:
+        // advance to cycle N+1 keeping programId/runId and history per cycle.
+        if (program.repeatsIndefinitely) {
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            return completeCycle(
+                program = program,
+                activeState = activeState,
+                cycleNumber = cycleNumber,
+                logs = logs,
+                compositionMetadata = compositionMetadata,
+                inventory = inventory,
             )
         }
 
@@ -1383,6 +1401,37 @@ object ProgramProgressEngine {
             autoregulationProposals = closingApre.proposals,
         )
     }
+    /**
+     * «Reanudar rutina»: a repeating program left COMPLETED (by the legacy
+     * LINEAR termination) re-enters ACTIVE on cycle+1, keeping programId,
+     * runId, calendar, variants and per-cycle history.
+     */
+    fun resumeRecurringProgram(program: Program): Program {
+        val run = program.runState ?: return program
+        if (run.status != ProgramRunStatus.COMPLETED || !program.repeatsIndefinitely) return program
+        val newCycle = run.cycleNumber + 1
+        val instances = resolveCurrentWeekInstances(program, newCycle)
+        val first = instances.firstOrNull()
+        return program.copy(
+            runState = run.copy(
+                cycleNumber = newCycle,
+                weekInstanceId = first?.instanceId,
+                weekId = first?.templateWeekId,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.ACTIVE,
+                pendingAction = null,
+            ),
+            loopState = (program.loopState ?: LoopState()).copy(currentCycle = newCycle),
+        )
+    }
+
+    /** Reconciliation on open: repeating programs stuck COMPLETED become resumable. */
+    fun reconcileOnOpen(program: Program): Program {
+        if (!program.repeatsIndefinitely) return program
+        val run = program.runState ?: return program
+        return if (run.status == ProgramRunStatus.COMPLETED) resumeRecurringProgram(program) else program
+    }
+
     fun newRunId(idProvider: IdProvider = UuidIdProvider): String = "run_${idProvider.newId()}"
 
     /**

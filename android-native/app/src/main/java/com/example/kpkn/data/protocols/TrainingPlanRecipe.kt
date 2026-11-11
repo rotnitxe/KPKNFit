@@ -543,6 +543,8 @@ data class TrainingPlanRecipe(
     val claimedLevel: String? = null,
     /** True si el microciclo se repite (METHOD / WEEKLY_SPLIT). False = especialización finita. */
     val repeats: Boolean = false,
+    /** Explicit end declared by the author/catalog (FINITE_CYCLE). */
+    val hasDeclaredEnd: Boolean = false,
     /** Versión de contenido de la receta; parte de la identidad (recipeId, contentVersion, ...) de §14.4. */
     val contentVersion: Int = 1,
     /** Procedencia editorial (§10/§14.1); null = receta legacy sin procedencia declarada. */

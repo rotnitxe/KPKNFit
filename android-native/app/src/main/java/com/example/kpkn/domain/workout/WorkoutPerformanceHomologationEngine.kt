@@ -312,13 +312,14 @@ object WorkoutPerformanceHomologationEngine {
     }
 
     fun computeNormalizedLoad(entry: SetEntryV2): Double {
-        val userKg = entry.bodyWeight?.takeIf { it > 0.0 } ?: 0.0
+        // Body mass is a reference, never a lifted load: BW/lastre/asistencia
+        // must not feed 1RM or external tonnage from the homologated load.
         val logged = entry.loggedLoad ?: 0.0
         return when (entry.loadMode) {
             LoadModeV2.LOAD -> logged
-            LoadModeV2.BODYWEIGHT -> userKg
-            LoadModeV2.LASTRE -> userKg + logged
-            LoadModeV2.ASSISTED -> (userKg - logged).coerceAtLeast(0.0)
+            LoadModeV2.BODYWEIGHT -> 0.0
+            LoadModeV2.LASTRE -> logged
+            LoadModeV2.ASSISTED -> 0.0
         }
     }
 

@@ -37,6 +37,7 @@ data class ProgramEditorUiState(
     val name: String = "",
     val description: String = "",
     val mode: ProgramMode = ProgramMode.HYPERTROPHY,
+    val programEndMode: com.example.kpkn.data.models.ProgramEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
     val coverImage: String = "gradient://ember",
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
@@ -98,6 +99,7 @@ class ProgramEditorViewModel(
                         name = "",
                         description = "",
                         mode = ProgramMode.HYPERTROPHY,
+                        programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
                         coverImage = "gradient://ember",
                     )
                 }
@@ -115,6 +117,7 @@ class ProgramEditorViewModel(
                         name = existing.name,
                         description = existing.description.orEmpty(),
                         mode = existing.mode,
+                        programEndMode = existing.programEndMode ?: com.example.kpkn.data.models.ProgramEndMode.REPEATING,
                         coverImage = existing.coverImage ?: "gradient://ember",
                     )
                 }
@@ -125,6 +128,7 @@ class ProgramEditorViewModel(
     fun setName(value: String) = mutate { it.copy(name = value) }
     fun setDescription(value: String) = mutate { it.copy(description = value) }
     fun setMode(mode: ProgramMode) = mutate { it.copy(mode = mode) }
+    fun setProgramEndMode(mode: com.example.kpkn.data.models.ProgramEndMode) = mutate { it.copy(programEndMode = mode) }
     fun setCoverImage(cover: String) = mutate { it.copy(coverImage = cover) }
 
     /**
@@ -184,6 +188,7 @@ class ProgramEditorViewModel(
                                 name = name,
                                 description = description,
                                 mode = snapshot.mode,
+                                programEndMode = snapshot.programEndMode,
                                 coverImage = snapshot.coverImage,
                             )
                         }
@@ -228,6 +233,7 @@ class ProgramEditorViewModel(
                     description = description,
                     coverImage = snapshot.coverImage,
                     mode = snapshot.mode,
+                    programEndMode = snapshot.programEndMode,
                 )
                 // persistProgram puede lanzar (no solo devolver Result): un throw
                 // sin capturar dejaría el spinner clavado y el estado sin resolver.

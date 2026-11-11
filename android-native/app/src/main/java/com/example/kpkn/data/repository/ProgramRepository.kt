@@ -879,6 +879,20 @@ class ProgramRepository private constructor(
 
     fun startProgram(programId: String) = whenHybridCalendarCommitFree {
         val program = _programs.value.find { it.id == programId }
+        // Recurring program completed by the legacy rule: resume the same
+        // program on the next cycle (same id/run/history) instead of
+        // re-activating it from scratch or switching programs.
+        val resumed = program?.let { ProgramProgressEngine.resumeRecurringProgram(it) }
+        if (resumed != null && resumed !== program) {
+            updateProgram(resumed)
+            val state = (ProgramActiveStateEngine.repairForProgram(resumed,
+                buildDefaultActiveProgramState(resumed, programId))
+                ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
+                .copy(status = ProgramStatus.ACTIVE)
+            _activeProgramState.value = state
+            persistActiveProgramStateAsync(state)
+            return@whenHybridCalendarCommitFree
+        }
         val resolved = program?.let { buildDefaultActiveProgramState(it, programId) }
             ?.let { state -> ProgramActiveStateEngine.repairForProgram(program, state) }
         val state = (resolved ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
@@ -886,6 +900,19 @@ class ProgramRepository private constructor(
         _activeProgramState.value = state
         persistActiveProgramStateAsync(state)
         syncRunLifecycle(ProgramRunStatus.ACTIVE)
+    }
+
+    fun resumeRecurringRoutine(programId: String) = whenHybridCalendarCommitFree {
+        val program = _programs.value.find { it.id == programId } ?: return@whenHybridCalendarCommitFree
+        val resumed = ProgramProgressEngine.resumeRecurringProgram(program)
+        if (resumed === program) return@whenHybridCalendarCommitFree
+        updateProgram(resumed)
+        val state = (ProgramActiveStateEngine.repairForProgram(resumed,
+            buildDefaultActiveProgramState(resumed, programId))
+            ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
+            .copy(status = ProgramStatus.ACTIVE)
+        _activeProgramState.value = state
+        persistActiveProgramStateAsync(state)
     }
 
     fun pauseProgram() = whenHybridCalendarCommitFree {
