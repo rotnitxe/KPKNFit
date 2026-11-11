@@ -1100,9 +1100,8 @@ private fun KPKNNavGraph(
                 },
                 onNavigateToCard = { cardId ->
                     when (cardId) {
-                        "training-metrics" -> {
-                            navController.navigate(KpknRoute.MuscleVolumePanel.create(null)) { launchSingleTop = true }
-                        }
+                        // Remediation 4: retired destination — no-op.
+                        "training-metrics" -> Unit
                         "body-progress", "ffmi", "imc", "fat", "muscle" -> {
                             navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
                         }
@@ -1309,7 +1308,6 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
-                onOpenCheckin = { navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true } },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },

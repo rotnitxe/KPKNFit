@@ -116,12 +116,10 @@ fun NutritionScreen(
     onNavigateToPlanEditor: (planId: String?) -> Unit = { _ -> },
     /** Borrador pendiente (pauta profesional a medias) → editor directo. */
     onOpenPendingDraft: (draftId: String) -> Unit = {},
-    onOpenCheckin: () -> Unit = {},
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val dayState by viewModel.dayState.collectAsState()
     val nutrients by viewModel.nutrients.collectAsState()
-    val checkinAvailability by viewModel.checkinAvailability.collectAsState()
     val goals by viewModel.goals.collectAsState()
     val driProfile by viewModel.driProfile.collectAsState()
     // El objetivo de kcal del día que se registra: el aro del registro, «te quedan N» y la escala de la huella.

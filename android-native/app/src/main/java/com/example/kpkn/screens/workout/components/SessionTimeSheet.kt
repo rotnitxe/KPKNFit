@@ -171,8 +171,8 @@ internal fun SessionTimeSheetContent(
             Column(Modifier.fillMaxWidth().kpknAnimate(PendingEntry).clip(RoundedCornerShape(16.dp)).background(Color(0x08FFFFFF)).padding(12.dp)) {
                 Text(pendingDescription, style = Lx.inter(13.sp, FontWeight.Medium), color = Lx.Muted, modifier = Modifier.padding(bottom = 10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LxButton("Solo esta vez", { onApplyPending(false) }, Modifier.weight(1f), ghost = true, height = 40.dp, fontSize = 13.5.sp)
-                    LxButton("Siempre", { onApplyPending(true) }, Modifier.weight(1f), height = 40.dp, fontSize = 13.5.sp)
+                    LxButton("Solo hoy", { onApplyPending(false) }, Modifier.weight(1f), ghost = true, height = 40.dp, fontSize = 13.5.sp)
+                    LxButton("Guardar en el programa", { onApplyPending(true) }, Modifier.weight(1f), height = 40.dp, fontSize = 13.5.sp)
                 }
             }
         }

@@ -887,18 +887,16 @@ class NutritionViewModel(
         }
     }
 
+    // Remediation 6: weekly check-in availability retired; historical
+    // records stay in the repository. The flow no longer surfaces.
     private val checkinWeekStart = combine(programRepo.programs, programRepo.activeProgramState) { programs, active ->
         com.example.kpkn.screens.nutrition.checkin.checkinWeekStart(programs.find { it.id == active?.programId })
     }
 
     val checkinAvailability: StateFlow<com.example.kpkn.domain.nutrition.checkin.CheckinAvailability> = combine(
         activePlan, programRepo.settings, _today, checkinRecords, checkinWeekStart,
-    ) { plan, settings, today, records, weekStart ->
-        val day = settings.nutritionCheckin.dayOfWeek?.takeIf { it in 1..7 }?.let(java.time.DayOfWeek::of) ?: weekStart
-        val key = com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.weekKey(today, weekStart, day)
-        com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.state(today, weekStart, records.find { it.weekKey == key },
-            plan != null && !settings.nutritionTrackingOnly, day)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE)
+    ) { _, _, _, _, _ -> com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE }
+        .stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE)
 
     // ─── Reutilización del diario (N4): copiar, repetir, plantillas ─────────────
 

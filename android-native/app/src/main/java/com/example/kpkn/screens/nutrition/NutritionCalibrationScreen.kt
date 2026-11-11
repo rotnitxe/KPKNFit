@@ -25,8 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.NutritionCalibrationProfile
-import com.example.kpkn.domain.nutrition.checkin.CheckinAvailability
-import com.example.kpkn.screens.nutrition.checkin.*
+import com.example.kpkn.screens.nutrition.checkin.NutritionCheckinController
+import com.example.kpkn.screens.nutrition.checkin.NutritionCheckinUiState
 import com.example.kpkn.screens.nutrition.design.NutritionSubpageHeader
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationStatusModule
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationWizardModule
@@ -128,18 +128,6 @@ internal fun NutritionCalibrationContent(
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val pagePadding = Modifier.padding(horizontal = 16.dp)
     val listState = rememberLazyListState()
-    val reducedMotion = wizardReducedMotion()
-    // Al abrir con el check-in disponible y en cada cambio de paso, la lista lleva el módulo a la parte alta de la ventana;
-    // con movimiento reducido el salto es directo.
-    val checkinReady = checkinState.plan != null && checkinState.availability == CheckinAvailability.NOW
-    LaunchedEffect(checkinReady, checkinState.stepIndex) {
-        if (!checkinReady) return@LaunchedEffect
-        val info = listState.layoutInfo
-        val item = info.visibleItemsInfo.firstOrNull { it.key == CHECKIN_ITEM_KEY }
-        if (shouldScrollToCheckin(item?.offset, info.viewportEndOffset - info.viewportStartOffset)) {
-            if (reducedMotion) listState.scrollToItem(CHECKIN_ITEM_INDEX) else listState.animateScrollToItem(CHECKIN_ITEM_INDEX)
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
         LazyColumn(
@@ -165,22 +153,9 @@ internal fun NutritionCalibrationContent(
                     modifier = pagePadding,
                 )
             }
-            item(key = CHECKIN_ITEM_KEY) {
-                NutritionCheckinContent(
-                    state = checkinState,
-                    onNext = { checkinController?.next() }, onPrevious = { checkinController?.back() },
-                    onAccept = { checkinController?.accept() }, onDecline = { checkinController?.decline() },
-                    onPostpone = { checkinController?.postpone() }, onDismissModule = { checkinController?.dismissModule(it) },
-                    onPartial = { checkinController?.markPartial(it) }, onComplete = { checkinController?.keepComplete(it) },
-                    onFasting = { checkinController?.confirmFasting(it) }, onResumeLogging = onResumeLogging,
-                    onWeighIn = onWeighIn, modifier = pagePadding,
-                    // El gasto estimado ya está arriba, en «Gasto estimado»: los módulos no lo repiten.
-                    showEstimateSummary = false,
-                )
-            }
-            item(key = "calibration-checkin-day") {
-                CheckinDaySetting(checkinState.checkinDay, { checkinController?.setCheckinDay(it) }, pagePadding)
-            }
+            // Remediation 6: weekly check-in card/flow retired. History,
+            // snapshots and portion profile are preserved; goal adjustment
+            // lives in "Editar plan". Only historical state is read.
             item(key = "calibration-evaluate") {
                 KpknPrimaryPill(
                     text = if (state.isLoading) "Evaluando…" else "Evaluar mis últimos datos",
