@@ -371,11 +371,14 @@ fun ProgramDetailScreen(
     val status = programHeaderStatusOf(isActive = isActive, isPaused = isPaused)
     val weekCount = remember(p) { p.allWeekLocations().size }
     val repeatingWeek = p.isSimpleProgram && weekCount <= 1
+    val isCompletedRecurring = !isActive && p.runState?.status == com.example.kpkn.data.models.ProgramRunStatus.COMPLETED &&
+        !(p.programEndMode == com.example.kpkn.data.models.ProgramEndMode.HAS_END)
     val primaryAction = programHeaderPrimaryOf(
         isActive = isActive,
         sessionName = primarySession?.takeIf { !it.isCompleted }?.session?.name,
         sessionOngoing = primarySession?.isOngoing == true,
         isPaused = isPaused,
+        isCompletedRecurring = isCompletedRecurring,
     )
     val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
     val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
@@ -610,7 +613,7 @@ fun ProgramDetailScreen(
         onPrimary = {
             when (primaryAction) {
                 is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue -> primarySession?.let { onStartWorkout(it.session, p) }
-                ProgramHeaderPrimary.Activate, ProgramHeaderPrimary.Resume -> viewModel.activateOrResume()
+                ProgramHeaderPrimary.Activate, ProgramHeaderPrimary.Resume, ProgramHeaderPrimary.ResumeRecurring -> viewModel.activateOrResume()
                 ProgramHeaderPrimary.None -> Unit
             }
         },

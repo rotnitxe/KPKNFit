@@ -36,8 +36,11 @@ internal sealed interface ProgramHeaderPrimary {
     /** «Continuar · <sesión>»: la sesión de hoy ya está en curso (C-D5: el patrón de «Empezar · Tirón»). */
     data class Continue(val sessionName: String) : ProgramHeaderPrimary
 
-    /** «Reanudar»: el programa está pausado (p-paused). */
+    /** «Reanudar»: el programa está pausado (p-paused) o es recurrente ya completado. */
     object Resume : ProgramHeaderPrimary
+
+    /** «Reanudar rutina»: recurrente ya completado que vuelve al siguiente ciclo. */
+    object ResumeRecurring : ProgramHeaderPrimary
 
     /** «Activar programa»: el programa es un borrador (no está activo ni pausado). */
     object Activate : ProgramHeaderPrimary
@@ -55,8 +58,10 @@ internal fun programHeaderPrimaryOf(
     sessionName: String?,
     sessionOngoing: Boolean,
     isPaused: Boolean = false,
+    isCompletedRecurring: Boolean = false,
 ): ProgramHeaderPrimary = when {
     isPaused -> ProgramHeaderPrimary.Resume
+    isCompletedRecurring -> ProgramHeaderPrimary.ResumeRecurring
     !isActive -> ProgramHeaderPrimary.Activate
     sessionName == null -> ProgramHeaderPrimary.None
     sessionOngoing -> ProgramHeaderPrimary.Continue(sessionName)
@@ -68,6 +73,7 @@ internal fun programHeaderPrimaryLabel(primary: ProgramHeaderPrimary): String? =
     is ProgramHeaderPrimary.Start -> "Empezar · ${primary.sessionName}"
     is ProgramHeaderPrimary.Continue -> "Continuar · ${primary.sessionName}"
     ProgramHeaderPrimary.Resume -> "Reanudar"
+    ProgramHeaderPrimary.ResumeRecurring -> "Reanudar rutina"
     ProgramHeaderPrimary.Activate -> "Activar programa"
     ProgramHeaderPrimary.None -> null
 }

@@ -73,10 +73,25 @@ internal fun ProgramEditSheet(
     }
     val preview = remember(program, draft.cover) { coverIdentityForProgram(program.copy(coverImage = draft.cover)) }
     // La foto propia queda guardada como `content://`: se pide el permiso persistente para que la portada siga ahí al reabrir la app.
+    // Si el proveedor no concede permiso persistente, se guarda una copia en almacenamiento privado (remediación 12).
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
         if (uri != null) {
-            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            onDraftChange(draft.withPhoto(uri.toString()))
+            val persistable = runCatching {
+                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }.isSuccess
+            val savedUri = if (persistable) {
+                uri.toString()
+            } else {
+                runCatching {
+                    val dir = java.io.File(context.filesDir, "program_covers").apply { mkdirs() }
+                    val target = java.io.File(dir, "cover_${program.id}_${System.currentTimeMillis()}.jpg")
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        target.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    Uri.fromFile(target).toString()
+                }.getOrDefault(uri.toString())
+            }
+            onDraftChange(draft.withPhoto(savedUri))
         }
     }
     ProgramLienzoSheet(onDismiss = onDismiss) {

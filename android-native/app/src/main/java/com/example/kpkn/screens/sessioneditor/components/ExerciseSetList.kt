@@ -229,13 +229,9 @@ internal fun ExerciseSetList(
             SetActions(
                 canApply = exercise.sets.size > 1,
                 canDuplicate = onTransformExercise != null,
-                canMoveUp = index > 0,
-                canMoveDown = index < exercise.sets.lastIndex,
                 canDelete = exercise.sets.size > 1,
                 onApply = { requestApply(set, side) },
                 onDuplicate = { onTransformExercise?.invoke { current -> current.withSetDuplicated(set.id) } },
-                onMoveUp = { onMoveSet(set.id, -1) },
-                onMoveDown = { onMoveSet(set.id, 1) },
                 onDelete = {
                     val position = exercise.sets.indexOfFirst { it.id == set.id }
                     if (onTransformExercise != null && position >= 0) deletedSet = DeletedSet(set, position)
@@ -349,20 +345,16 @@ private fun SeriesNavButton(icon: androidx.compose.ui.graphics.vector.ImageVecto
 }
 
 /**
- * `.ed-acts`: «Aplicar a todas» y «Duplicar» como botones con icono (crecen para repartirse el ancho) y, al final, «⋯» con Subir, Bajar y,
- * separada, «Eliminar serie» en rosa. Subir se desactiva en la primera serie, Bajar en la última y Eliminar cuando solo queda una.
+ * `.ed-acts`: «Aplicar a todas» y «Duplicar» como botones con icono (crecen para repartirse el ancho) y, al final, «⋯» con
+ * «Eliminar serie» en rosa. Subir/Bajar retirados (remediación 11); Eliminar se desactiva cuando solo queda una serie.
  */
 @Composable
 private fun SetActions(
     canApply: Boolean,
     canDuplicate: Boolean,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
     canDelete: Boolean,
     onApply: () -> Unit,
     onDuplicate: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }

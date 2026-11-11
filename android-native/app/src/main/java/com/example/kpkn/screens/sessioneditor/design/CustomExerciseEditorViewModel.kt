@@ -77,8 +77,25 @@ internal class CustomExerciseEditorViewModel(
         val next = transform(previous)
         val identityChanged = next.name != previous.name || next.implement != previous.implement ||
             next.station != previous.station || next.laterality != previous.laterality
-        _state.value = next.copy(reviewed = false, error = null, saved = null, preview = null,
-            cover = if (identityChanged && next.cover is CustomExerciseCoverDraft.Reference) CustomExerciseCoverDraft.Pattern else next.cover)
+        val preservedPreview = if (next.name.isBlank()) null else {
+            previous.preview?.let { current ->
+                var p = current
+                if (next.muscles != null) {
+                    p = p.copy(exercise = p.exercise.copy(involvedMuscles = next.muscles))
+                }
+                if (next.description != null) {
+                    p = p.copy(exercise = p.exercise.copy(description = next.description, descriptionOrigin = "USER"))
+                }
+                p
+            }
+        }
+        _state.value = next.copy(
+            reviewed = if (identityChanged) false else next.reviewed,
+            error = null,
+            saved = null,
+            preview = preservedPreview,
+            cover = if (identityChanged && next.cover is CustomExerciseCoverDraft.Reference) CustomExerciseCoverDraft.Pattern else next.cover,
+        )
         refresh()
     }
 
