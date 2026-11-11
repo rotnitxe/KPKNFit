@@ -639,7 +639,9 @@ private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
                         todayValue != null && lift.previousWeek != null ->
                             "hoy ${finishGrouped(todayValue, 1)} · semana ${finishGrouped(lift.previousWeek.estimated1Rm, 1)}"
                         todayValue != null -> "hoy ${finishGrouped(todayValue, 1)} · sin dato comparable la semana anterior"
-                        todayLabel != null -> todayLabel
+                        todayLabel != null && lift.previousWeek?.displayLabel != null ->
+                            "hoy $todayLabel · semana ${lift.previousWeek.displayLabel}"
+                        todayLabel != null -> "hoy $todayLabel · sin dato comparable la semana anterior"
                         else -> "sin dato comparable"
                     },
                     style = Lx.num(11.5.sp, weight = FontWeight.Medium), color = Lx.Faint, maxLines = 1,

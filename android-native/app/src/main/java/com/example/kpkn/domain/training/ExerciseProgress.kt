@@ -42,7 +42,7 @@ object ExerciseProgress {
                 exercise.selectedAspects?.values?.joinToString(" · ")?.takeIf(String::isNotBlank)).joinToString(" · "), rows.map { it.first }.distinct().size)
         }.sortedWith(compareByDescending<ExerciseProgressChoice> { it.sessions }.thenBy { it.name })
     private data class Row(val set: CompletedSet, val mode: LoadModeV2, val unit: UnitModeV2, val load: Double,
-        val reps: Int, val amount: Double, val normalizedLoad: Double, val bodyKnown: Boolean, val lineage: String, val context: String)
+        val reps: Int, val amount: Double, val bodyKnown: Boolean, val lineage: String, val context: String)
     private fun row(exercise: CompletedExercise, set: CompletedSet): Row? {
         val payload = set.recordedPayloadV3; val homologated = set.homologatedResultV3; val outcome = set.setOutcomeV2
         if (set.skipped || set.isWarmup || payload?.skipped == true || set.isFailedSet || payload?.failedSet == true || homologated?.failedSet == true || outcome?.failedSet == true) return null
@@ -60,15 +60,12 @@ object ExerciseProgress {
         if (!load.isFinite() || load < 0 || !amount.isFinite() || amount <= 0 || (unit == UnitModeV2.REPS && mode == LoadModeV2.LOAD && load <= 0)) return null
         // No reinterpretar reps parciales antiguas como repeticiones completas.
         if (unit == UnitModeV2.REPS && (set.isPartial || (payload?.partialReps ?: set.partialReps ?: 0) > 0)) return null
-        val entry = SetEntryV2(exercise.exerciseId, setIndex = set.setIndex ?: 0, loadMode = mode, unitMode = unit,
-            actualValue = amount, loggedLoad = load, bodyWeight = payload?.bodyWeightSnapshot, contextKey = "progress")
-        val normalized = WorkoutPerformanceHomologationEngine.computeNormalizedLoad(entry)
         val context = listOfNotNull(set.machineBrand, set.tagName, set.side ?: payload?.side).joinToString(" · ")
         val lineage = listOf(identity(exercise), mode.name, unit.name, exercise.selectedAspects.orEmpty().toSortedMap().toString(),
             set.contextProfileId ?: payload?.contextProfileId ?: homologated?.contextKey ?: outcome?.contextKey ?: "legacy",
             exercise.variantName.orEmpty(), exercise.performanceProfileId.orEmpty(), exercise.exerciseDbId.orEmpty(), set.setupProfileId.orEmpty(), set.machineBrand.orEmpty(), set.side ?: payload?.side.orEmpty(), set.tagId.orEmpty(),
             set.subTagIds.sorted().joinToString(","), if (unit != UnitModeV2.REPS) load.toString() else "").joinToString("|")
-        return Row(set, mode, unit, load, reps, amount, normalized, payload?.bodyWeightSnapshot?.let { it.isFinite() && it > 0 } == true, lineage, context)
+        return Row(set, mode, unit, load, reps, amount, payload?.bodyWeightSnapshot?.let { it.isFinite() && it > 0 } == true, lineage, context)
     }
     private fun available(row: Row): Set<ExerciseProgressMetric> = when (row.unit) {
         UnitModeV2.TIME -> setOf(ExerciseProgressMetric.DURATION, ExerciseProgressMetric.SETS)
@@ -77,7 +74,7 @@ object ExerciseProgress {
             add(ExerciseProgressMetric.MAX_REPS); add(ExerciseProgressMetric.SETS)
             if (row.mode != LoadModeV2.BODYWEIGHT) { add(ExerciseProgressMetric.MAX_WEIGHT); add(ExerciseProgressMetric.BEST_SET) }
             if (row.mode == LoadModeV2.LOAD) add(ExerciseProgressMetric.E1RM)
-            if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE || row.bodyKnown) add(ExerciseProgressMetric.VOLUME)
+            if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) add(ExerciseProgressMetric.VOLUME)
         }
     }
     private fun displayNumber(value: Double): String = java.math.BigDecimal.valueOf(value)
@@ -86,7 +83,7 @@ object ExerciseProgress {
         val usable = rows.filter { metric in available(it) }; if (usable.isEmpty()) return null
         val first = usable.first(); val descending = !(metric in setOf(ExerciseProgressMetric.MAX_WEIGHT, ExerciseProgressMetric.BEST_SET) && first.mode == LoadModeV2.ASSISTED)
         fun score(row: Row): Double = when (metric) {
-            ExerciseProgressMetric.E1RM -> StrengthModel.estimate1RM(row.set.copy(weight = row.load, reps = row.reps))
+            ExerciseProgressMetric.E1RM -> if (row.mode == LoadModeV2.LOAD) StrengthModel.estimate1RM(row.set.copy(weight = row.load, reps = row.reps)) else 0.0
             ExerciseProgressMetric.MAX_WEIGHT -> row.load
             ExerciseProgressMetric.BEST_SET -> if (row.mode == LoadModeV2.ASSISTED) {
                 // La puntuación nativa ordena menor asistencia como mejora y respeta las reps; nunca se rotula e1RM.
@@ -94,7 +91,7 @@ object ExerciseProgress {
                     actualValue = row.reps.toDouble(), loggedLoad = row.load, contextKey = row.lineage), null).homologated.metricValue
             } else row.load * row.reps
             ExerciseProgressMetric.MAX_REPS -> row.reps.toDouble()
-            ExerciseProgressMetric.VOLUME -> if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) row.load * row.reps else row.normalizedLoad * row.reps
+            ExerciseProgressMetric.VOLUME -> if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) row.load * row.reps else 0.0
             ExerciseProgressMetric.SETS -> 1.0
             else -> row.amount
         }

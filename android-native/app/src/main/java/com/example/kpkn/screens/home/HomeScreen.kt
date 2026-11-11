@@ -698,7 +698,7 @@ private fun HomeWithProgram(
         item(key = "training-history") {
             HomeMetricsSection(
                 metrics = trainingMetrics,
-                onOpenHistory = { onNavigateToCard("training-metrics") },
+                onOpenHistory = { showProgressList = true },
                 onOpenProgress = onOpenExerciseProgress,
                 onOpenProgressList = { showProgressList = true },
             )

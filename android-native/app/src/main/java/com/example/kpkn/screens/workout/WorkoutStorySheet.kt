@@ -23,9 +23,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -78,7 +81,7 @@ internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
     },
 )
 private data class StoryPreviewRequest(val data: WorkoutStoryData, val options: WorkoutStoryOptions)
-private data class StoryPreviewResult(val request: StoryPreviewRequest, val bitmap: Bitmap)
+private data class StoryPagesResult(val request: StoryPreviewRequest, val bitmaps: List<Bitmap>)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -90,12 +93,13 @@ internal fun WorkoutStorySheet(
     shareAfterSave: Boolean,
     onShareAfterSaveChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
-    renderStory: suspend (Context, WorkoutStoryData, WorkoutStoryOptions) -> Bitmap = ::renderWorkoutStory,
+    renderStoryPages: suspend (Context, WorkoutStoryData, WorkoutStoryOptions) -> List<Bitmap> = ::renderWorkoutStoryPages,
     embedded: Boolean = false,
 ) {
     val context=LocalContext.current
     val scope=rememberCoroutineScope()
-    var preview by remember { mutableStateOf<StoryPreviewResult?>(null) }
+    var pagesResult by remember { mutableStateOf<StoryPagesResult?>(null) }
+    var currentPageIndex by rememberSaveable { mutableIntStateOf(0) }
     var failedRequest by remember { mutableStateOf<StoryPreviewRequest?>(null) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -103,14 +107,16 @@ internal fun WorkoutStorySheet(
     val templates=remember(data.presentation.photos){WorkoutStoryTemplate.entries.filter{it!=WorkoutStoryTemplate.PHOTOS||data.presentation.photos.isNotEmpty()}}
     val safeOptions=options.copy(template=options.template.takeIf{it in templates}?:WorkoutStoryTemplate.GENERAL)
     val request=StoryPreviewRequest(data,safeOptions)
-    val image=preview?.takeIf{it.request==request}?.bitmap
+    val bitmaps=pagesResult?.takeIf{it.request==request}?.bitmaps.orEmpty()
+    val safePageIndex=if(bitmaps.isEmpty()) 0 else currentPageIndex.coerceIn(0, bitmaps.lastIndex)
+    val image=bitmaps.getOrNull(safePageIndex)
     val rendering=image==null&&failedRequest!=request
-    LaunchedEffect(request,renderStory){
+    LaunchedEffect(request,renderStoryPages){
         message=null
         try {
-            val bitmap=renderStory(context.applicationContext,data,safeOptions)
-            try{currentCoroutineContext().ensureActive()}catch(error:CancellationException){bitmap.recycle();throw error}
-            preview=StoryPreviewResult(request,bitmap);failedRequest=null
+            val list=renderStoryPages(context.applicationContext,data,safeOptions)
+            try{currentCoroutineContext().ensureActive()}catch(error:CancellationException){list.forEach{it.recycle()};throw error}
+            pagesResult=StoryPagesResult(request,list);failedRequest=null
         }catch(error:CancellationException){throw error}
         catch(_:Exception){currentCoroutineContext().ensureActive();failedRequest=request;message="No se pudo crear la historia. Inténtalo de nuevo."}
     }
@@ -127,7 +133,7 @@ internal fun WorkoutStorySheet(
     val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates) {
         templates.forEach { template ->
             val small = try {
-                val full = renderStory(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId, exerciseList = safeOptions.exerciseList))
+                val full = renderStoryPages(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId, exerciseList = safeOptions.exerciseList)).first()
                 Bitmap.createScaledBitmap(full, 96, 171, true).also { if (it !== full) full.recycle() }
             } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
             if (small != null) value = value + (template to small.asImageBitmap())
@@ -163,6 +169,33 @@ internal fun WorkoutStorySheet(
                             drawArc(Color(0x33F2EEE6), 0f, 360f, false, topLeft = androidx.compose.ui.geometry.Offset(w / 2, w / 2), size = box, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
                             drawArc(FinishCream, -135f, 90f, false, topLeft = androidx.compose.ui.geometry.Offset(w / 2, w / 2), size = box, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
                         } else if (failedRequest == request) Icon(com.example.kpkn.ui.components.icons.KpknLineIcons.Info, null, Modifier.size(24.dp), tint = FinishMuted)
+                    }
+                }
+            }
+            if (bitmaps.size > 1) {
+                Row(
+                    Modifier.fillMaxWidth().testTag("story-pagination"),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        Modifier.size(32.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x1AFFFFFF))
+                            .clickable(enabled = !busy && safePageIndex > 0) { currentPageIndex = safePageIndex - 1 },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Default.KeyboardArrowLeft, "Página anterior", Modifier.size(20.dp), tint = if (safePageIndex > 0) FinishCream else FinishMuted)
+                    }
+                    Text(
+                        "Página ${safePageIndex + 1} de ${bitmaps.size}",
+                        style = com.example.kpkn.screens.workout.components.Lx.inter(12.sp, FontWeight.Medium),
+                        color = FinishCream,
+                    )
+                    Box(
+                        Modifier.size(32.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x1AFFFFFF))
+                            .clickable(enabled = !busy && safePageIndex < bitmaps.lastIndex) { currentPageIndex = safePageIndex + 1 },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Default.KeyboardArrowRight, "Página siguiente", Modifier.size(20.dp), tint = if (safePageIndex < bitmaps.lastIndex) FinishCream else FinishMuted)
                     }
                 }
             }

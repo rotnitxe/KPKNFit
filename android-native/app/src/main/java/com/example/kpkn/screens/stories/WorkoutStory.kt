@@ -62,14 +62,14 @@ internal data class WorkoutStory(
     val stats: List<WorkoutStat>,
     val gains: List<WorkoutGain>,
     val records: Int,
-    val exerciseName: String?,
-    val exerciseE1rm: String?,
-    val exerciseDelta: String?,
-    val exerciseSessions: Int,
-    val exercisePoints: List<Double>,
-    val bestSet: String?,
-    val bestEffort: String?,
-    val photoPath: String?,
+    val exerciseName: String? = null,
+    val exerciseE1rm: String? = null,
+    val exerciseDelta: String? = null,
+    val exerciseSessions: Int = 0,
+    val exercisePoints: List<Double> = emptyList(),
+    val bestSet: String? = null,
+    val bestEffort: String? = null,
+    val photoPath: String? = null,
     val exerciseLines: List<WorkoutExerciseLine> = emptyList(),
 )
 
@@ -130,6 +130,41 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         photoPath = presentation.photos.firstOrNull()?.path,
         exerciseLines = exerciseLines,
     )
+}
+
+/**
+ * Historias de entreno para [data] y [options], con soporte de páginas de continuación (9:16)
+ * cuando la lista de ejercicios de la plantilla General supera el espacio legible.
+ */
+internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStoryOptions): List<WorkoutStory> {
+    val single = workoutStoryFrom(data, options)
+    if (options.template != WorkoutStoryTemplate.GENERAL || !options.exerciseList || data.lifts.size <= 6) {
+        return listOf(single)
+    }
+    val allLifts = data.lifts
+    val page1Lifts = allLifts.take(6)
+    val remaining = allLifts.drop(6)
+    val chunks = remaining.chunked(8)
+    val totalPages = 1 + chunks.size
+    val programName = data.presentation.program?.name
+
+    val page1 = single.copy(
+        exerciseLines = page1Lifts.map { WorkoutExerciseLine(it.name, "${it.setCount} series") },
+        meta = listOfNotNull(programName, "1/$totalPages").joinToString(" · "),
+    )
+    val continuationPages = chunks.mapIndexed { idx, chunk ->
+        val pageNum = idx + 2
+        WorkoutStory(
+            dateLine = workoutDateLine(data.presentation.today, data.presentation.weekNumber),
+            title = data.sessionName,
+            meta = listOfNotNull(programName, "Continuación · $pageNum/$totalPages").joinToString(" · "),
+            stats = emptyList(),
+            gains = emptyList(),
+            records = 0,
+            exerciseLines = chunk.map { WorkoutExerciseLine(it.name, "${it.setCount} series") },
+        )
+    }
+    return listOf(page1) + continuationPages
 }
 
 /** Días de la semana y meses en español en mayúsculas, con tablas propias para no depender de la configuración regional. */

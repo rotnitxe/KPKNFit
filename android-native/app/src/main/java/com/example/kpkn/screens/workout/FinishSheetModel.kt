@@ -122,9 +122,13 @@ internal fun buildFinishModel(
     val sets = logicalSetCountFromCompleted(strength)
     val recordedEffort = com.example.kpkn.domain.training.insights.RpeConversion.recordedEffort(completedExercises)
     val volume = sessionTonnage(strength)
+    // Historical tonnage is recomputed from the recorded sets with the
+    // modality-correct reading; legacy totalVolume may mix synthetic body
+    // mass and must not seed the trend.
     val previousSessions = presentation.history.filter { it.sessionName == name }.sortedBy { it.date }
-    val previous = previousSessions.lastOrNull()
-    val trend = (previousSessions.takeLast(7).map { it.totalVolume } + volume).takeIf { sets > 0 && it.size >= 2 } ?: emptyList()
+    val previousSessionVolumes = previousSessions.map { sessionTonnage(it.completedExercises.filter { ex -> ex.cardioDetails == null }) }
+    val previous = previousSessions.lastOrNull()?.let { previousSessions.lastIndex to previousSessionVolumes.last() }
+    val trend = (previousSessionVolumes.takeLast(7) + volume).takeIf { sets > 0 && it.size >= 2 } ?: emptyList()
     val direct = MuscleVolumeAccounting.sessionDirectSets(strength)
     val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }
         .map { FinishMuscle(it.key, it.value, direct[it.key] ?: 0.0) }
@@ -192,7 +196,7 @@ internal fun buildFinishModel(
         sets = sets,
         plannedSets = (plannedSets ?: sets).coerceAtLeast(sets),
         volume = volume,
-        volumeDelta = previous?.let { volume - it.totalVolume }.takeIf { sets > 0 },
+        volumeDelta = previous?.let { volume - it.second }.takeIf { sets > 0 },
         trend = trend,
         effort = effort,
         recordedEffort = recordedEffort,

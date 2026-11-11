@@ -76,7 +76,7 @@ internal fun HomeMetricsSection(
     ) {
         KpknModuleHeader(
             label = "Métricas de tu entreno",
-            action = { KpknTextAction(text = "Historial ›", onClick = onOpenHistory) },
+            action = { KpknTextAction(text = "Progreso ›", onClick = onOpenHistory) },
         )
         Spacer(Modifier.height(12.dp))
         KpknSegmentedControl(

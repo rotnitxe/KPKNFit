@@ -220,4 +220,30 @@ class WorkoutStoryModelTest {
         assertEquals("/fotos/1.jpg", story.photoPath)
         assertNull(workoutStoryFrom(datos(), WorkoutStoryOptions()).photoPath)
     }
+
+    @Test
+    fun listaCortaDeEjerciciosGeneraUnaSolaPagina() {
+        val lifts = (1..4).map { ejercicio("e$it", "Ejercicio $it", 50.0, 45.0) }
+        val pages = workoutStoryPagesFrom(datos(lifts = lifts), WorkoutStoryOptions(exerciseList = true))
+        assertEquals(1, pages.size)
+        assertEquals(4, pages[0].exerciseLines.size)
+    }
+
+    @Test
+    fun listaLargaDeEjerciciosGeneraTarjetasDeContinuacion916() {
+        val lifts = (1..10).map { ejercicio("e$it", "Ejercicio $it", 50.0, 45.0) }
+        val pages = workoutStoryPagesFrom(
+            datos(lifts = lifts, program = Program(id = "p1", name = "Fuerza")),
+            WorkoutStoryOptions(exerciseList = true),
+        )
+        assertEquals(2, pages.size)
+        assertEquals(6, pages[0].exerciseLines.size)
+        assertEquals(4, pages[1].exerciseLines.size)
+        assertEquals("Ejercicio 1", pages[0].exerciseLines.first().name)
+        assertEquals("Ejercicio 6", pages[0].exerciseLines.last().name)
+        assertEquals("Ejercicio 7", pages[1].exerciseLines.first().name)
+        assertEquals("Ejercicio 10", pages[1].exerciseLines.last().name)
+        assertTrue(pages[0].meta!!.contains("1/2"))
+        assertTrue(pages[1].meta!!.contains("Continuación · 2/2"))
+    }
 }
