@@ -178,6 +178,7 @@ data class SessionEditorUiState(
     val cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
     val feedbackByLogId: Map<String, PostSessionFeedback> = emptyMap(),
     val localDraftHistory: List<SessionDraftSnapshot> = emptyList(),
+    val pendingLiveEditConflict: PendingLiveEditConflict? = null,
     val sheet: SessionEditorSheet = SessionEditorSheet.NONE,
     val searchQuery: String = "",
     val pickerTargetPartId: String? = null,
@@ -301,6 +302,18 @@ data class SessionDraftSnapshot(
     val exerciseCount: Int,
     val setCount: Int,
     val partCount: Int,
+    val programVersionId: String? = null,
+    val programVariant: WeekVariant? = null,
+)
+
+data class PendingLiveEditConflict(
+    val base: Session,
+    val local: Session,
+    val remote: Session,
+    val variant: WeekVariant,
+    val remoteBaseSession: Session,
+    val conflicts: List<SessionMergeConflict>,
+    val remoteChoices: Map<String, Boolean> = emptyMap(),
 )
 
 data class SessionEditorSaveResult(

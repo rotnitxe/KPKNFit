@@ -18,6 +18,8 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
@@ -32,6 +34,61 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class SettingsJsonBackupTest {
+    @Test fun `shared load references and program versions roundtrip and legacy restore preserves them`() = runBlocking {
+        val exportDb = KpknDatabase.createInMemory(context)
+        val importDb = KpknDatabase.createInMemory(context)
+        val importRepository = nutritionRepo(importDb)
+        try {
+            val programId = "program-backup"
+            val loadReference = com.example.kpkn.data.db.SharedExerciseLoadReferenceEntity(
+                id = "ref", exerciseKey = "bench", configurationId = "barbell", tagId = "hammer",
+                unitMode = "REPS", loadMode = "LOAD", quantityConvention = "TOTAL_EXTERNAL",
+                kind = "ESTIMATED_PR", valueKg = 120.0, sourceAtMs = 1_000L,
+                sourceId = "pr", repCount = 5, effortMode = "RIR", effortValue = 1.0,
+                payloadJson = "{\"evidence\":\"kept\"}",
+            )
+            val version = com.example.kpkn.data.db.ProgramVersionEntity(
+                id = "version", programId = programId, sessionId = "session", variantId = "A",
+                operationId = "operation", savedAtEpochMs = 2_000L, origin = "Entreno en vivo",
+                reason = "Añadió una serie", isInitial = false, snapshotJson = "{\"session\":\"snapshot\"}",
+            )
+            exportDb.sharedExerciseLoadReferenceDao().upsert(loadReference)
+            exportDb.programVersionDao().upsert(version)
+            val repository = nutritionRepo(exportDb)
+            val rawPayload = SettingsJsonBackup.buildPayload(
+                context = context, settings = Settings(), profilePhotoJpegBase64 = null,
+                programs = listOf(Program(id = programId, name = "Programa")), workoutLogs = emptyList(),
+                activeProgramState = null, ongoingWorkout = null, nutritionLogs = emptyList(), nutritionPlans = emptyList(),
+                activeNutritionPlanId = null, pantryItems = emptyList(), mealTemplates = emptyList(), customFoods = emptyList(),
+                learnedResolutions = emptyList(), foodCatalogMeta = null, bodyObservations = emptyList(), bodyGoals = emptyList(),
+                measurementSchedule = null, calibrationProfile = null, dailyGoalSnapshots = emptyList(), wellbeingLogs = emptyList(),
+                sleepLogs = emptyList(), sleepLogsExtended = emptyList(), postSessionFeedback = emptyList(), sessionTemplates = emptyList(),
+                customExercises = emptyList(), db = exportDb,
+            )
+            assertTrue(rawPayload.includesSharedLoadAndVersionSection)
+            assertEquals(listOf(loadReference), rawPayload.sharedLoadReferences)
+            assertEquals(listOf(version), rawPayload.programVersions)
+            val portable = dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(rawPayload))
+            SettingsJsonBackup.importPayload(context, portable, importDb, importRepository) {}
+            assertEquals(listOf(loadReference), importDb.sharedExerciseLoadReferenceDao().getAll())
+            assertEquals(listOf(version), importDb.programVersionDao().getForProgram(programId))
+
+            SettingsJsonBackup.importPayload(
+                context,
+                portable.copy(schemaVersion = 8, includesSharedLoadAndVersionSection = false,
+                    sharedLoadReferences = null, programVersions = null),
+                importDb, importRepository,
+            ) {}
+            assertEquals(listOf(loadReference), importDb.sharedExerciseLoadReferenceDao().getAll())
+            assertEquals(listOf(version), importDb.programVersionDao().getForProgram(programId))
+        } finally {
+            val field = NutritionRepository::class.java.getDeclaredField("repositoryJob").apply { isAccessible = true }
+            (field.get(importRepository) as Job).cancelAndJoin()
+            exportDb.close()
+            importDb.close()
+        }
+    }
+
     @Test fun calibrationDecisionsRoundTripAndLegacyPayloadsNeverClearThem() = runBlocking {
         val db = KpknDatabase.createInMemory(context)
         try {

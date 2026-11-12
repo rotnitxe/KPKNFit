@@ -133,6 +133,8 @@ internal fun ExerciseEditorCard(
     onClearRelationship: () -> Unit,
     onUpdateRelationshipType: (ExerciseRelationshipType?) -> Unit,
     onUpdateRelationshipNotes: (String?) -> Unit,
+    tagOptions: List<WorkoutTag> = emptyList(),
+    onSaveTag: (WorkoutTag) -> Unit = {},
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
@@ -353,6 +355,8 @@ internal fun ExerciseEditorCard(
                 onClearRelationship = onClearRelationship,
                 onUpdateRelationshipType = onUpdateRelationshipType,
                 onUpdateRelationshipNotes = onUpdateRelationshipNotes,
+                tagOptions = tagOptions,
+                onSaveTag = onSaveTag,
             )
         }
     }

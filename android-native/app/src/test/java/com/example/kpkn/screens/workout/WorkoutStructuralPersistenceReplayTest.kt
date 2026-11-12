@@ -175,7 +175,7 @@ class WorkoutStructuralPersistenceReplayTest {
             fx.controller.replaceExercise("e1b", replacement, deferPersistencePrompt = true)
             fx.controller.showDeferredReplacementPromptIfNeeded("e1b")
             assertNotNull(fx.state.pendingReplacementPersistencePrompt)
-            fx.controller.commitPendingReplacementPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+            runBlocking { fx.controller.commitPendingReplacementPersistence(ReplacementPersistenceScopeV2.PERMANENT) }
             runBlocking { fx.controller.awaitPendingPersistence() }
 
             val updatedSession = fx.repository.getProgramById(program.id)!!
@@ -240,7 +240,7 @@ class WorkoutStructuralPersistenceReplayTest {
         )
         try {
             runBlocking { fx.repository.addProgramNow(program).getOrThrow() }
-            fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.BLOCK_MATCHING)
+            runBlocking { fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.BLOCK_MATCHING) }
             runBlocking { fx.controller.awaitPendingPersistence() }
 
             val updatedProgram = fx.repository.getProgramById(program.id)!!
@@ -298,7 +298,7 @@ class WorkoutStructuralPersistenceReplayTest {
             )
             runBlocking { fx.repository.mutateProgramNow(program.id) { emptied } }
 
-            fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+            runBlocking { fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT) }
             runBlocking { fx.controller.awaitPendingPersistence() }
 
             assertNotNull("La confirmación pendiente se conserva para reintentar", fx.state.pendingStructuralPersistence)

@@ -5,6 +5,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 
 class ExercisePickerV2SearchStateTest {
 
@@ -23,6 +25,15 @@ class ExercisePickerV2SearchStateTest {
                 customResultCount = 0,
             ),
         )
+    }
+
+    @Test
+    fun filters_are_part_of_the_published_search_identity() {
+        val upper = ExerciseSearchFiltersV2(bodyRegions = setOf(ExerciseBodyRegionV2.UPPER))
+        val lower = ExerciseSearchFiltersV2(bodyRegions = setOf(ExerciseBodyRegionV2.LOWER))
+
+        assertFalse(catalogSearchResultsAreCurrent("press", "press", true, upper, lower))
+        assertTrue(catalogSearchResultsAreCurrent("press", "press", true, upper, upper))
     }
 
     @Test

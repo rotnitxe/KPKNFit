@@ -114,8 +114,8 @@ class ExerciseCatalogV2RepositoryTest {
             definitionId = "parent",
             selectedOptions = mapOf("setup" to "seated"),
         )
-        assertEquals(listOf("setup"), fixed.axes.map { it.axis })
-        assertEquals("parent__seated__dumbbells", fixed.exactConfigurationId)
+        assertEquals(listOf("setup", "implement"), fixed.axes.map { it.axis })
+        assertEquals(null, fixed.exactConfigurationId)
     }
 
     @Test
@@ -163,4 +163,17 @@ class ExerciseCatalogV2RepositoryTest {
             "rich_metadata_missing:parent__standing__cable",
             (result as ExerciseCatalogResolveResultV2.Invalid).reason,
         )
-    }}
+    }
+
+    @Test
+    fun combined_search_results_match_filtered_and_global_queries() = runTest {
+        val repository = InMemoryExerciseCatalogRepositoryV2(catalog)
+        repository.load()
+        val filters = ExerciseSearchFiltersV2(bodyRegions = setOf(ExerciseBodyRegionV2.UPPER))
+
+        val combined = repository.searchResults("ejercicio", filters)
+
+        assertEquals(repository.search("ejercicio", filters), combined.filteredHits)
+        assertEquals(repository.search("ejercicio"), combined.globalHits)
+    }
+}

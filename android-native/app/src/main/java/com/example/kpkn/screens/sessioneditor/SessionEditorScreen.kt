@@ -1460,5 +1460,39 @@ fun SessionEditorScreen(
                 }
             },
         )
+    } else {
+        uiState.pendingLiveEditConflict?.let { pending ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = {},
+                title = { Text("El entreno y el editor cambiaron los mismos campos") },
+                text = {
+                    Column(
+                        modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text("Elige qué valor conservar en cada campo. Los cambios en otros campos se combinarán automáticamente.")
+                        pending.conflicts.forEach { conflict ->
+                            val hasChoice = pending.remoteChoices.containsKey(conflict.path)
+                            val useRemote = pending.remoteChoices[conflict.path] == true
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(conflict.label(), fontWeight = FontWeight.SemiBold)
+                                Text("Antes: ${conflict.valueText(conflict.base)}")
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    TextButton(onClick = { viewModel.chooseLiveEditConflict(conflict.path, false) }) {
+                                        Text(if (hasChoice && !useRemote) "✓ Mis cambios" else "Mis cambios")
+                                    }
+                                    TextButton(onClick = { viewModel.chooseLiveEditConflict(conflict.path, true) }) {
+                                        Text(if (hasChoice && useRemote) "✓ Entreno en vivo" else "Entreno en vivo")
+                                    }
+                                }
+                                Text("Editor: ${conflict.valueText(conflict.local)}")
+                                Text("Entreno: ${conflict.valueText(conflict.remote)}")
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+            )
+        }
     }
 }

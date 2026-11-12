@@ -225,6 +225,7 @@ internal fun LiveSessionListView(
     viewModel: WorkoutViewModel,
     modifier: Modifier = Modifier,
     onOpenExerciseOptions: (String) -> Unit = {},
+    onOpenTagList: (String) -> Unit = {},
     onOpenSupersetSettings: (String) -> Unit = {},
     /** Descanso de aproximación en marcha (`warmup-rest` del prototipo): segundos que quedan, total y cómo terminarlo. */
     warmupRestRemaining: Int? = null,
@@ -589,16 +590,24 @@ internal fun LiveSessionListView(
             Box(motion.fillMaxWidth().then(entry.segment?.let { Modifier.listCardSegment(it) } ?: Modifier).listTapGuard()) {
                 when (entry) {
                     is ListEntry.Intro -> ListIntro("REGISTRO DE LA SESIÓN", entry.count)
-                    is ListEntry.Header -> ExerciseListHeader(
-                        exercise = entry.exercise,
-                        summary = entry.summary,
-                        collapsed = entry.collapsed,
-                        done = entry.done,
-                        onToggleCollapse = {
-                            collapsed = if (entry.collapsed) collapsed - entry.exercise.id else collapsed + entry.exercise.id
-                        },
-                        onOptions = { onOpenExerciseOptions(entry.exercise.id) },
-                    )
+                    is ListEntry.Header -> {
+                        val activeTagIds = uiState.activeTagsByExercise[entry.exercise.id].orEmpty()
+                        val activeTagNames = viewModel.tagsForExercise(entry.exercise.id)
+                            .filter { it.id in activeTagIds }
+                            .map { it.name }
+                        ExerciseListHeader(
+                            exercise = entry.exercise,
+                            summary = entry.summary,
+                            tagLabel = activeTagNames.takeIf { it.isNotEmpty() }?.joinToString(" · ") ?: "Default",
+                            collapsed = entry.collapsed,
+                            done = entry.done,
+                            onToggleCollapse = {
+                                collapsed = if (entry.collapsed) collapsed - entry.exercise.id else collapsed + entry.exercise.id
+                            },
+                            onOpenTags = { onOpenTagList(entry.exercise.id) },
+                            onOptions = { onOpenExerciseOptions(entry.exercise.id) },
+                        )
+                    }
                     is ListEntry.Collapsed -> Text(
                         "Tocar para desplegar",
                         Modifier.fillMaxWidth().heightIn(min = 40.dp).clickable(role = Role.Button) { unfold(entry.exercise.id) }
@@ -993,9 +1002,11 @@ internal fun liveListDisplayedRow(row: ListSetRow, uiState: WorkoutUiState): Lis
 private fun ExerciseListHeader(
     exercise: Exercise,
     summary: String,
+    tagLabel: String,
     collapsed: Boolean,
     done: Boolean,
     onToggleCollapse: () -> Unit,
+    onOpenTags: () -> Unit,
     onOptions: () -> Unit,
 ) {
     val reduced = wizardReducedMotion()
@@ -1020,6 +1031,15 @@ private fun ExerciseListHeader(
             )
             Text(summary, Modifier.padding(top = 3.dp), style = Body.copy(fontSize = 12.sp), color = WizardColors.textFaint, maxLines = 1,
                 overflow = TextOverflow.Ellipsis)
+            Text(
+                "Etiqueta · $tagLabel  ⌄",
+                Modifier.padding(top = 3.dp).clickable(role = Role.Button, onClick = onOpenTags)
+                    .testTag("live-list-active-tag-${exercise.id}"),
+                style = Body.copy(fontSize = 11.sp),
+                color = WizardColors.textMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         if (done) {
             Box(Modifier.size(22.dp).clip(RoundedCornerShape(11.dp)).background(Color(0x1FFFFFFF)), contentAlignment = Alignment.Center) {

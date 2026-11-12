@@ -127,12 +127,22 @@ public struct RestPauseData: Codable {
     }
 }
 
+public enum PrEffortMode: String, Codable {
+    case RPE
+    case RIR
+    case FAILURE
+}
+
 public struct PrReference: Codable {
     public let weight: Double
     public let reps: Int
-    public init(weight: Double, reps: Int) {
+    public let effortMode: PrEffortMode?
+    public let effortValue: Double?
+    public init(weight: Double, reps: Int, effortMode: PrEffortMode? = nil, effortValue: Double? = nil) {
         self.weight = weight
         self.reps = reps
+        self.effortMode = effortMode
+        self.effortValue = effortValue
     }
 }
 
@@ -793,6 +803,7 @@ public struct Exercise: Identifiable, Codable {
     public let variantName: String?
     public let selectedExecutionOption: String?
     public let selectedMovementPattern: String?
+    public let workoutTagId: String?
     public let prFor1RM: PrReference?
     public let consolidatedWeight: ConsolidatedWeight?
     public let brandEquivalencies: [BrandEquivalency]
@@ -847,6 +858,7 @@ public struct Exercise: Identifiable, Codable {
         variantName: String? = nil,
         selectedExecutionOption: String? = nil,
         selectedMovementPattern: String? = nil,
+        workoutTagId: String? = nil,
         prFor1RM: PrReference? = nil,
         consolidatedWeight: ConsolidatedWeight? = nil,
         brandEquivalencies: [BrandEquivalency] = [],
@@ -900,6 +912,7 @@ public struct Exercise: Identifiable, Codable {
         self.variantName = variantName
         self.selectedExecutionOption = selectedExecutionOption
         self.selectedMovementPattern = selectedMovementPattern
+        self.workoutTagId = workoutTagId
         self.prFor1RM = prFor1RM
         self.consolidatedWeight = consolidatedWeight
         self.brandEquivalencies = brandEquivalencies
@@ -930,7 +943,7 @@ public struct Exercise: Identifiable, Codable {
         "relationshipType", "relationshipNotes", "sets", "warmupSets", "restTime", "isFavorite", "trainingMode", "customUnit",
         "reference1RM", "smartLoadBasis", "targetSessionGoal", "isStarTarget", "trackHeartRate", "trackRom", "setupDetails", "supersetId",
         "supersetRestBetween", "supersetRestAfter", "supersetGroupRef", "variantName", "selectedExecutionOption",
-        "selectedMovementPattern", "prFor1RM", "consolidatedWeight", "brandEquivalencies", "isUnilateral", "unilateralMode",
+        "selectedMovementPattern", "workoutTagId", "prFor1RM", "consolidatedWeight", "brandEquivalencies", "isUnilateral", "unilateralMode",
         "unilateralSideOrder", "unilateralIntensityMode", "restBetweenSidesSeconds", "isCalibratorAmrap", "goal1RM", "goalPr",
         "calculated1RM", "damageProfile", "isCompetitionLift", "setupCues", "executionCues", "contextProfilesV3",
         "defaultContextProfileIdV3", "mobilitySeries", "timeStrategy", "targetDurationMinutes", "occurrenceLabel",
@@ -967,6 +980,7 @@ public struct Exercise: Identifiable, Codable {
         variantName = try c.decodeOptional(String.self, "variantName")
         selectedExecutionOption = try c.decodeOptional(String.self, "selectedExecutionOption")
         selectedMovementPattern = try c.decodeOptional(String.self, "selectedMovementPattern")
+        workoutTagId = try c.decodeOptional(String.self, "workoutTagId")
         prFor1RM = try c.decodeOptional(PrReference.self, "prFor1RM")
         consolidatedWeight = try c.decodeOptional(ConsolidatedWeight.self, "consolidatedWeight")
         brandEquivalencies = try c.decode([BrandEquivalency].self, "brandEquivalencies", default: [])
@@ -1023,6 +1037,7 @@ public struct Exercise: Identifiable, Codable {
         try c.encodeIfPresent(variantName, forKey: DynamicCodingKey("variantName"))
         try c.encodeIfPresent(selectedExecutionOption, forKey: DynamicCodingKey("selectedExecutionOption"))
         try c.encodeIfPresent(selectedMovementPattern, forKey: DynamicCodingKey("selectedMovementPattern"))
+        try c.encodeIfPresent(workoutTagId, forKey: DynamicCodingKey("workoutTagId"))
         try c.encodeIfPresent(prFor1RM, forKey: DynamicCodingKey("prFor1RM"))
         try c.encodeIfPresent(consolidatedWeight, forKey: DynamicCodingKey("consolidatedWeight"))
         try c.encode(brandEquivalencies, forKey: DynamicCodingKey("brandEquivalencies"))

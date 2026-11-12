@@ -91,7 +91,7 @@ class WorkoutStructuralPersistenceController(
         job.start()
     }
 
-    fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) {
+    suspend fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) {
         if (!ports.canMutateWorkout()) return
         val state = getState()
         val change = state.pendingStructuralPersistence ?: return
@@ -105,20 +105,46 @@ class WorkoutStructuralPersistenceController(
         launchPersistenceWork {
             try {
                 val nowMs = System.currentTimeMillis()
-                val saved = repository.mutateProgramNow(programId) { latestProgram ->
-                    val latestLocation = findSessionLocation(latestProgram, sessionId) ?: return@mutateProgramNow null
-                    val effectiveScope = sanitizeLiveEditPersistenceScope(latestProgram, scope)
-                    if (effectiveScope == ReplacementPersistenceScopeV2.SESSION_ONLY) {
-                        return@mutateProgramNow null
+                val program = repository.getProgramById(programId)
+                val location = program?.let { findSessionLocation(it, sessionId) }
+                val effectiveScope = sanitizeLiveEditPersistenceScope(program, scope)
+                val saved = if (
+                    effectiveScope == ReplacementPersistenceScopeV2.PERMANENT &&
+                    program != null &&
+                    location != null
+                ) {
+                    // Un cambio permanente deja sesión + registro de versión en la misma transacción (master).
+                    val weekIdInProgram = programWeekId(program, state.weekId)
+                    repository.commitLiveProgramSessionEditNow(
+                        programId = programId,
+                        weekId = weekIdInProgram,
+                        macroIndex = location.macroIndex,
+                        mesoIndex = location.mesoIndex,
+                        sessionId = sessionId,
+                        variant = state.activeMode,
+                        operationId = change.operationId,
+                        reason = structuralChangeReason(change),
+                        transform = { latest ->
+                            val updated = applyPendingStructuralChangeToSession(latest, change, state)
+                            if (updated == latest) updated else updated.copy(lastModifiedAtMs = nowMs)
+                        },
+                    ) != null
+                } else {
+                    repository.mutateProgramNow(programId) { latestProgram ->
+                        val latestLocation = findSessionLocation(latestProgram, sessionId) ?: return@mutateProgramNow null
+                        val latestScope = sanitizeLiveEditPersistenceScope(latestProgram, scope)
+                        if (latestScope == ReplacementPersistenceScopeV2.SESSION_ONLY) {
+                            return@mutateProgramNow null
+                        }
+                        applyStructuralChangeToProgram(
+                            program = latestProgram,
+                            location = latestLocation,
+                            change = change,
+                            state = state,
+                            effectiveScope = latestScope,
+                            nowMs = nowMs,
+                        )
                     }
-                    applyStructuralChangeToProgram(
-                        program = latestProgram,
-                        location = latestLocation,
-                        change = change,
-                        state = state,
-                        effectiveScope = effectiveScope,
-                        nowMs = nowMs,
-                    )
                 }
                 if (!saved) {
                     ports.onMutationRejected("No se pudo guardar el cambio en el programa. Se conserva tu sesión; reintenta o elige «Solo hoy».")
@@ -255,7 +281,9 @@ class WorkoutStructuralPersistenceController(
         }
         is PendingStructuralChange.RemoveSet,
         is PendingStructuralChange.RemoveExercise,
-        is PendingStructuralChange.RemoveExercises -> applyPendingStructuralChangeToSession(targetSession, change, state)
+        is PendingStructuralChange.RemoveExercises,
+        is PendingStructuralChange.SetExerciseRom,
+        is PendingStructuralChange.SetSessionTargetDuration -> applyPendingStructuralChangeToSession(targetSession, change, state)
     }
 
     private fun applyManualOverridesForChangedSessions(
@@ -293,6 +321,20 @@ class WorkoutStructuralPersistenceController(
                 }
             }
         return result
+    }
+
+    private fun structuralChangeReason(change: PendingStructuralChange): String = when (change) {
+        is PendingStructuralChange.AddSet -> "Añadió una serie a ${change.exerciseName}"
+        is PendingStructuralChange.AddExercise -> "Añadió ${change.newExerciseName}"
+        is PendingStructuralChange.AddExercises -> "Añadió ${change.newExerciseNames.size} ejercicios"
+        is PendingStructuralChange.AddSuperset -> "Creó una superserie"
+        is PendingStructuralChange.ReorderExercises -> "Reordenó ejercicios"
+        is PendingStructuralChange.RemoveSet -> "Quitó una serie de ${change.exerciseName}"
+        is PendingStructuralChange.RemoveExercise -> "Quitó ${change.exerciseName}"
+        is PendingStructuralChange.RemoveExercises -> "Quitó ${change.exerciseNames.size} ejercicios"
+        is PendingStructuralChange.DissolveSuperset -> "Disolvió una superserie"
+        is PendingStructuralChange.SetExerciseRom -> "Actualizó el registro de ROM"
+        is PendingStructuralChange.SetSessionTargetDuration -> "Actualizó la duración objetivo"
     }
 
     private fun applyStructuralChangeToBlock(
@@ -367,7 +409,7 @@ class WorkoutStructuralPersistenceController(
                     ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
                     ?: return@withModeSession modeSession
                 modeSession.replaceExerciseById(targetExercise.id) { exercise ->
-                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise)))
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, id = change.newSetId)))
                 }
             }
             is PendingStructuralChange.AddExercise -> {
@@ -376,10 +418,7 @@ class WorkoutStructuralPersistenceController(
                         modeSession.allExercises().firstOrNull { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) }
                     }
                 val template = change.newExerciseTemplate ?: return@withModeSession modeSession
-                val cloned = template.copy(
-                    id = UUID.randomUUID().toString(),
-                    sets = template.sets.map { it.copy(id = UUID.randomUUID().toString()) },
-                )
+                val cloned = template.copy(id = change.newExerciseId)
                 if (afterExercise == null) insertExerciseAtEnd(modeSession, cloned)
                 else insertExerciseAfter(modeSession, afterExercise.id, cloned)
             }
@@ -434,6 +473,14 @@ class WorkoutStructuralPersistenceController(
             }
             is PendingStructuralChange.RemoveExercises -> {
                 WorkoutStructuralEditor.removeExercisesByIds(modeSession, change.exerciseIds)
+            }
+            is PendingStructuralChange.SetExerciseRom -> {
+                modeSession.replaceExerciseById(change.exerciseId) { exercise ->
+                    if (exercise.trackRom == change.trackRom) exercise else exercise.copy(trackRom = change.trackRom)
+                }
+            }
+            is PendingStructuralChange.SetSessionTargetDuration -> {
+                modeSession.copy(targetDurationMinutes = change.targetDurationMinutes)
             }
         }
     }
@@ -684,56 +731,55 @@ class WorkoutStructuralPersistenceController(
      * programa (la semana en curso), el mismo dato que el interruptor «Registrar ROM» del editor. Sin programa o con un programa que no
      * admite cambios en vivo, no hace nada: el ROM sigue valiendo para esta sesión.
      */
-    fun persistExerciseTrackRom(exerciseId: String, trackRom: Boolean) {
+    suspend fun persistExerciseTrackRom(exerciseId: String, trackRom: Boolean) {
         val state = getState()
-        if (state.weekId.isBlank() || programId.isBlank()) return
-        launchPersistenceWork {
-            val nowMs = System.currentTimeMillis()
-            val saved = repository.mutateProgramNow(programId) { latestProgram ->
-                if (!WorkoutEditingRules.canPersistLiveStructuralChanges(latestProgram, sessionId)) {
-                    return@mutateProgramNow null
-                }
-                val weekIdInProgram = programWeekId(latestProgram, state.weekId)
-                var sessionFound = false
-                var changed = false
-                val updatedProgram = latestProgram.updateWeekSessions(state.macroIndex, state.mesoIndex, weekIdInProgram) { sessions ->
-                    sessions.map { session ->
-                        if (session.id != sessionId) {
-                            session
-                        } else {
-                            sessionFound = true
-                            val next = withModeSession(session, state.activeMode) { modeSession ->
-                                modeSession.replaceExerciseById(exerciseId) { exercise ->
-                                    if (exercise.trackRom == trackRom) exercise else exercise.copy(trackRom = trackRom)
-                                }
-                            }
-                            if (next != session) {
-                                changed = true
-                                next.copy(lastModifiedAtMs = nowMs)
-                            } else {
-                                session
-                            }
-                        }
-                    }
-                }
-                if (!sessionFound) return@mutateProgramNow null
-                if (!changed) return@mutateProgramNow latestProgram
-                PlanMaterializer.withManualSessionOverride(
-                    program = updatedProgram,
-                    sessionId = sessionId,
-                    weekId = weekIdInProgram,
-                    weekOccurrence = null,
-                    recipeDayId = null,
-                    scope = ManualOverrideScope.SESSION,
-                    reason = "Registrar ROM en vivo",
-                    nowMs = nowMs,
-                )
-            }
-            if (saved) {
-                ports.invalidateEditorDraft(nowMs)
-            } else {
-                ports.onMutationRejected("No se pudo guardar el ajuste de ROM en el programa. Se conserva tu sesión.")
-            }
+        val program = repository.getProgramById(programId) ?: return
+        val location = findSessionLocation(program, sessionId) ?: return
+        val change = PendingStructuralChange.SetExerciseRom(exerciseId, trackRom)
+        try {
+            repository.commitLiveProgramSessionEditNow(
+                programId = programId,
+                weekId = programWeekId(program, state.weekId),
+                macroIndex = location.macroIndex,
+                mesoIndex = location.mesoIndex,
+                sessionId = sessionId,
+                variant = state.activeMode,
+                operationId = change.operationId,
+                reason = structuralChangeReason(change),
+                transform = { latest ->
+                    val updated = applyPendingStructuralChangeToSession(latest, change, state)
+                    if (updated == latest) updated else updated.copy(lastModifiedAtMs = System.currentTimeMillis())
+                },
+            ) ?: error("La sesión del programa no recibió el cambio de ROM.")
+        } catch (error: Exception) {
+            updateState { it.copy(pendingStructuralPersistence = change) }
+            ports.onMutationRejected("No se guardó el ROM en el programa. Puedes reintentar.")
+        }
+    }
+
+    suspend fun persistSessionTargetDuration(targetDurationMinutes: Int?) {
+        val state = getState()
+        val program = repository.getProgramById(programId) ?: return
+        val location = findSessionLocation(program, sessionId) ?: return
+        val change = PendingStructuralChange.SetSessionTargetDuration(targetDurationMinutes)
+        try {
+            repository.commitLiveProgramSessionEditNow(
+                programId = programId,
+                weekId = programWeekId(program, state.weekId),
+                macroIndex = location.macroIndex,
+                mesoIndex = location.mesoIndex,
+                sessionId = sessionId,
+                variant = state.activeMode,
+                operationId = change.operationId,
+                reason = structuralChangeReason(change),
+                transform = { latest ->
+                    val updated = applyPendingStructuralChangeToSession(latest, change, state)
+                    if (updated == latest) updated else updated.copy(lastModifiedAtMs = System.currentTimeMillis())
+                },
+            ) ?: error("La sesión del programa no recibió la duración objetivo.")
+        } catch (error: Exception) {
+            updateState { it.copy(pendingStructuralPersistence = change) }
+            ports.onMutationRejected("No se guardó la duración en el programa. Puedes reintentar.")
         }
     }
 
@@ -742,7 +788,7 @@ class WorkoutStructuralPersistenceController(
         updateState { it.copy(pendingReplacementPersistencePrompt = null) }
     }
 
-    fun commitPendingReplacementPersistence(scope: ReplacementPersistenceScopeV2) {
+    suspend fun commitPendingReplacementPersistence(scope: ReplacementPersistenceScopeV2) {
         if (!ports.canMutateWorkout()) return
         val state = getState()
         val prompt = state.pendingReplacementPersistencePrompt ?: return
@@ -750,7 +796,12 @@ class WorkoutStructuralPersistenceController(
         val programSnapshot = repository.getProgramById(programId)
         val locationSnapshot = programSnapshot?.let { findSessionLocation(it, sessionId) }
 
-        if (scope == ReplacementPersistenceScopeV2.SESSION_ONLY || programId.isBlank()) {
+        val effectiveScope = sanitizeLiveEditPersistenceScope(programSnapshot, scope)
+
+        if (scope == ReplacementPersistenceScopeV2.SESSION_ONLY ||
+            programId.isBlank() ||
+            effectiveScope == ReplacementPersistenceScopeV2.SESSION_ONLY
+        ) {
             if (programSnapshot != null && locationSnapshot != null) {
                 runCatching {
                     repository.createAndSaveReplacementDecision(
@@ -782,66 +833,125 @@ class WorkoutStructuralPersistenceController(
             try {
                 val nowMs = System.currentTimeMillis()
                 var decisionLocation = locationSnapshot
-                var decisionScope = scope
-                val saved = repository.mutateProgramNow(programId) { latestProgram ->
-                    val latestLocation = findSessionLocation(latestProgram, sessionId) ?: return@mutateProgramNow null
-                    val effectiveScope = sanitizeLiveEditPersistenceScope(latestProgram, scope)
-                    if (effectiveScope == ReplacementPersistenceScopeV2.SESSION_ONLY) {
-                        return@mutateProgramNow null
-                    }
-                    decisionLocation = latestLocation
-                    decisionScope = effectiveScope
-                    var updatedProgram = applyReplacementToProgram(
-                        program = latestProgram,
-                        currentLocation = latestLocation,
-                        sourceExerciseDbId = prompt.sourceExerciseDbId,
-                        sourceExerciseId = prompt.exerciseId,
-                        sourceCatalogConfigurationId = prompt.fromCatalogConfigurationId,
-                        sourceExerciseSlot = prompt.sourceExerciseSlot,
-                        replacement = prompt.replacement,
-                        scope = effectiveScope,
-                        activeMode = state.activeMode,
-                        nowMs = nowMs,
-                    )
-                    if (updatedProgram == latestProgram) {
-                        // Reemplazos encadenados (A por B «solo esta vez» y luego B por C «en todo el programa»): el programa sigue guardando
-                        // el ejercicio del plan original en ese hueco, no el B que había en la sesión. Se sustituye ése (LV5).
-                        val planned = state.plannedSessionBaseline
-                            ?.let { ports.sessionForActiveMode(it, state.activeMode) }
-                            ?.allExercises()
-                            ?.firstOrNull { it.id == prompt.exerciseId }
-                        val plannedConfiguration = planned?.catalogConfigurationId
-                        if (planned != null &&
-                            (!plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true) ||
-                                !planned.resolvedCanonicalExerciseId().equals(prompt.sourceExerciseDbId, ignoreCase = true))
-                        ) {
-                            updatedProgram = applyReplacementToProgram(
-                                program = latestProgram,
-                                currentLocation = latestLocation,
-                                sourceExerciseDbId = planned.resolvedCanonicalExerciseId(),
-                                sourceExerciseId = prompt.exerciseId,
-                                sourceCatalogConfigurationId = plannedConfiguration,
-                                sourceExerciseSlot = prompt.sourceExerciseSlot,
-                                replacement = prompt.replacement,
-                                scope = effectiveScope,
-                                activeMode = state.activeMode,
-                                nowMs = nowMs,
-                            )
+                var decisionScope = effectiveScope
+                val saved = if (
+                    effectiveScope == ReplacementPersistenceScopeV2.PERMANENT &&
+                    programSnapshot != null &&
+                    locationSnapshot != null
+                ) {
+                    // El reemplazo permanente escribe sesión + registro de versión en una transacción (master).
+                    val sourceExercise = state.session?.allExercises()?.firstOrNull { it.id == prompt.exerciseId }
+                    repository.commitLiveProgramSessionEditNow(
+                        programId = programId,
+                        weekId = programWeekId(programSnapshot, state.weekId),
+                        macroIndex = locationSnapshot.macroIndex,
+                        mesoIndex = locationSnapshot.mesoIndex,
+                        sessionId = sessionId,
+                        variant = state.activeMode,
+                        operationId = prompt.operationId,
+                        reason = "Reemplazó ${sourceExercise?.name ?: "un ejercicio"} por ${prompt.replacement.name}",
+                        transform = { latest ->
+                            val updated = withModeSession(latest, state.activeMode) { active ->
+                                val requested = applyReplacementToSession(
+                                    active,
+                                    prompt.sourceExerciseDbId,
+                                    prompt.exerciseId,
+                                    prompt.fromCatalogConfigurationId,
+                                    prompt.sourceExerciseSlot,
+                                    prompt.replacement,
+                                    slotStrict = prompt.sourceExerciseSlot != null,
+                                )
+                                if (requested != active) {
+                                    requested
+                                } else {
+                                    val planned = state.plannedSessionBaseline
+                                        ?.let { ports.sessionForActiveMode(it, state.activeMode) }
+                                        ?.allExercises()
+                                        ?.firstOrNull { it.id == prompt.exerciseId }
+                                    val plannedConfiguration = planned?.catalogConfigurationId
+                                    if (
+                                        planned != null &&
+                                        (!plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true) ||
+                                            !planned.resolvedCanonicalExerciseId().equals(prompt.sourceExerciseDbId, ignoreCase = true))
+                                    ) {
+                                        applyReplacementToSession(
+                                            active,
+                                            planned.resolvedCanonicalExerciseId(),
+                                            prompt.exerciseId,
+                                            plannedConfiguration,
+                                            prompt.sourceExerciseSlot,
+                                            prompt.replacement,
+                                            slotStrict = prompt.sourceExerciseSlot != null,
+                                        )
+                                    } else {
+                                        active
+                                    }
+                                }
+                            }
+                            if (updated == latest) updated else updated.copy(lastModifiedAtMs = nowMs)
+                        },
+                    ) != null
+                } else {
+                    repository.mutateProgramNow(programId) { latestProgram ->
+                        val latestLocation = findSessionLocation(latestProgram, sessionId) ?: return@mutateProgramNow null
+                        val latestScope = sanitizeLiveEditPersistenceScope(latestProgram, scope)
+                        if (latestScope == ReplacementPersistenceScopeV2.SESSION_ONLY) {
+                            return@mutateProgramNow null
                         }
-                    }
-                    if (updatedProgram != latestProgram) {
-                        applyManualOverridesForChangedSessions(
-                            before = latestProgram,
-                            after = updatedProgram,
-                            reason = if (effectiveScope == ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
-                                "Reemplazo de ejercicio en bloque"
-                            } else {
-                                "Reemplazo de ejercicio en vivo"
-                            },
+                        decisionLocation = latestLocation
+                        decisionScope = latestScope
+                        var updatedProgram = applyReplacementToProgram(
+                            program = latestProgram,
+                            currentLocation = latestLocation,
+                            sourceExerciseDbId = prompt.sourceExerciseDbId,
+                            sourceExerciseId = prompt.exerciseId,
+                            sourceCatalogConfigurationId = prompt.fromCatalogConfigurationId,
+                            sourceExerciseSlot = prompt.sourceExerciseSlot,
+                            replacement = prompt.replacement,
+                            scope = latestScope,
+                            activeMode = state.activeMode,
                             nowMs = nowMs,
                         )
-                    } else {
-                        latestProgram
+                        if (updatedProgram == latestProgram) {
+                            // Reemplazos encadenados (A por B «solo esta vez» y luego B por C «en todo el programa»): el programa sigue guardando
+                            // el ejercicio del plan original en ese hueco, no el B que había en la sesión. Se sustituye ése (LV5).
+                            val planned = state.plannedSessionBaseline
+                                ?.let { ports.sessionForActiveMode(it, state.activeMode) }
+                                ?.allExercises()
+                                ?.firstOrNull { it.id == prompt.exerciseId }
+                            val plannedConfiguration = planned?.catalogConfigurationId
+                            if (planned != null &&
+                                (!plannedConfiguration.equals(prompt.fromCatalogConfigurationId, ignoreCase = true) ||
+                                    !planned.resolvedCanonicalExerciseId().equals(prompt.sourceExerciseDbId, ignoreCase = true))
+                            ) {
+                                updatedProgram = applyReplacementToProgram(
+                                    program = latestProgram,
+                                    currentLocation = latestLocation,
+                                    sourceExerciseDbId = planned.resolvedCanonicalExerciseId(),
+                                    sourceExerciseId = prompt.exerciseId,
+                                    sourceCatalogConfigurationId = plannedConfiguration,
+                                    sourceExerciseSlot = prompt.sourceExerciseSlot,
+                                    replacement = prompt.replacement,
+                                    scope = latestScope,
+                                    activeMode = state.activeMode,
+                                    nowMs = nowMs,
+                                )
+                            }
+                        }
+                        if (updatedProgram != latestProgram) {
+                            applyManualOverridesForChangedSessions(
+                                before = latestProgram,
+                                after = updatedProgram,
+                                reason = if (latestScope == ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
+                                    "Reemplazo de ejercicio en bloque"
+                                } else {
+                                    "Reemplazo de ejercicio en vivo"
+                                },
+                                nowMs = nowMs,
+                            )
+                        } else {
+                            latestProgram
+                        }
                     }
                 }
                 if (!saved) {

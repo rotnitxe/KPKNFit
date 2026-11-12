@@ -77,6 +77,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
@@ -757,6 +758,8 @@ internal fun WorkoutStructureSheetsHost(
         sessionAccentColor = sessionAccentColor,
         bottomHazeState = bottomHazeState,
         initialSetIndex = if (state.editSheetExerciseId == currentExercise?.id) uiState.currentSetIdx else 0,
+        availableTags = viewModel::tagsForExercise,
+        onSaveTag = viewModel::upsertWorkoutTag,
         onSaveDefinition = { exerciseId, draft ->
             viewModel.updateExerciseDefinition(exerciseId) { current -> draft.copy(id = current.id) }
         },
@@ -1075,6 +1078,8 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.RemoveExercise -> "Eliminar ejercicio"
             is PendingStructuralChange.RemoveExercises -> "Eliminar ejercicios"
             is PendingStructuralChange.DissolveSuperset -> "Disolver superserie"
+            is PendingStructuralChange.SetExerciseRom -> "Guardar registro de ROM"
+            is PendingStructuralChange.SetSessionTargetDuration -> "Guardar duración objetivo"
         }
         val question = when (change) {
                             is PendingStructuralChange.AddSet -> {
@@ -1103,6 +1108,12 @@ internal fun WorkoutStructureSheetsHost(
                             }
                             is PendingStructuralChange.DissolveSuperset -> {
                                 "Se disolvió una superserie (${change.exerciseNames.size} ejercicios). ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.SetExerciseRom -> {
+                                "Se actualizó el registro de ROM. ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.SetSessionTargetDuration -> {
+                                "Se actualizó la duración objetivo. ¿Cómo quieres guardar este cambio?"
                             }
                         }
         com.example.kpkn.screens.workout.components.LiveSheet(title = title,
@@ -1475,6 +1486,8 @@ internal fun WorkoutEditSeriesSheet(
     bottomHazeState: HazeState,
     /** La serie de turno de la sesión: la que se abre en el foco de «Editar series» (G1). */
     initialSetIndex: Int = 0,
+    availableTags: (String) -> List<WorkoutTag> = { emptyList() },
+    onSaveTag: (WorkoutTag) -> Unit = {},
     onSaveDefinition: (exerciseId: String, draft: Exercise) -> Unit,
 ) {
     if (state.editSheetExerciseId != null) {
@@ -1585,6 +1598,8 @@ internal fun WorkoutEditSeriesSheet(
                                 val previous = draftExercise
                                 draftExercise = transform(previous).normalizeLiveEditRmLoads(previous)
                             },
+                            availableTags = availableTags(editEx.id),
+                            onSaveTag = onSaveTag,
                             onDismiss = { showSmartLoadDialog = false },
                         )
                     }

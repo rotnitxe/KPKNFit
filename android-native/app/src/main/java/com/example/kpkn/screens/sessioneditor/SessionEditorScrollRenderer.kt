@@ -703,6 +703,8 @@ private fun LooseExerciseItem(
                 onDragEnd = { endExerciseDrag() },
                 onDragCancel = { cancelExerciseDrag() },
                 onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
+                tagOptions = viewModel.workoutTagsForExercise(exercise),
+                onSaveTag = viewModel::saveWorkoutTag,
                 onDeleteExercise = { viewModel.requestExerciseRemoval(null, exercise.id) },
                 onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
                 onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
@@ -804,6 +806,8 @@ private fun PartExerciseItem(
                 onDragEnd = { endExerciseDrag() },
                 onDragCancel = { cancelExerciseDrag() },
                 onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
+                tagOptions = viewModel.workoutTagsForExercise(exercise),
+                onSaveTag = viewModel::saveWorkoutTag,
                 onDeleteExercise = { viewModel.requestExerciseRemoval(part.id, exercise.id) },
                 onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
                 onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
@@ -969,6 +973,8 @@ private fun LooseSupersetItem(
                         onDragEnd = { endExerciseDrag() },
                         onDragCancel = { cancelExerciseDrag() },
                         onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
+                        tagOptions = viewModel.workoutTagsForExercise(member),
+                        onSaveTag = viewModel::saveWorkoutTag,
                         // Deslizar un miembro lo saca de la superserie (como antes), con «Deshacer».
                         onDeleteExercise = {
                             viewModel.requestExerciseRemoval(null, member.id, supersetGroupId = supersetGroup.id)
@@ -1134,6 +1140,8 @@ private fun PartSupersetItem(
                         onDragEnd = { endExerciseDrag() },
                         onDragCancel = { cancelExerciseDrag() },
                         onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
+                        tagOptions = viewModel.workoutTagsForExercise(member),
+                        onSaveTag = viewModel::saveWorkoutTag,
                         onDeleteExercise = {
                             viewModel.requestExerciseRemoval(part.id, member.id, supersetGroupId = supersetGroup.id)
                         },

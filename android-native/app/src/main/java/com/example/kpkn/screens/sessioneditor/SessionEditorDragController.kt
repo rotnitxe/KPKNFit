@@ -12,6 +12,8 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.screens.drag.DropInsertionStop
+import com.example.kpkn.screens.drag.resolveDropInsertion
 
 /** Outcome of [SessionEditorDragController.endExerciseDrag] for UI feedback. */
 enum class ExerciseDragEndResult {
@@ -761,55 +763,27 @@ class SessionEditorDragController {
                 // Collapsed part: append (N10). Empty expanded part: index 0.
                 newDropTargetIndex = if (isCollapsedTarget) targetList.size else 0
             } else {
-                val pointerY = pointer.y
-                // Use the real slot midlines.  The previous implementation
-                // derived shifts from one arbitrary card height, so an
-                // expanded card could move the indicator several slots at
-                // once.  The insertion boundaries below are monotonic and
-                // every visible slot participates in the decision.
-                val first = candidateEntries.first()
-                val firstBoundary = first.value.top + first.value.height / 2f
-                val last = candidateEntries.last()
-                val lastBoundary = last.value.top + last.value.height / 2f
-
-                if (pointerY < firstBoundary) {
-                    val firstExId = candidateEntries.first().key.substringAfter("|")
-                    val idx = targetList.indexOfFirst { it.id == firstExId }.coerceAtLeast(0)
-                    newDropTargetKey = candidateEntries.first().key
-                    newDropTargetIndex = idx
-                } else if (pointerY >= lastBoundary) {
-                    val lastExId = candidateEntries.last().key.substringAfter("|")
-                    val lastIdx = targetList.indexOfFirst { it.id == lastExId }
-                    val lastGroupId = targetList.getOrNull(lastIdx)?.supersetGroupRefOrLegacyId()
-                    val span = if (lastIdx >= 0 && lastGroupId != null) {
-                        targetList.drop(lastIdx).takeWhile { it.supersetGroupRefOrLegacyId() == lastGroupId }.size
-                    } else {
-                        1
-                    }
-                    val idx = if (lastIdx >= 0) lastIdx + span else targetList.size
-                    newDropTargetKey = null
-                    newDropTargetIndex = idx
-                } else {
-                    var found = false
-                    for (i in 0 until candidateEntries.size - 1) {
-                        val currentEntry = candidateEntries[i]
-                        val nextEntry = candidateEntries[i + 1]
-                        val currBoundary = currentEntry.value.top + currentEntry.value.height / 2f
-                        val nextBoundary = nextEntry.value.top + nextEntry.value.height / 2f
-                        if (pointerY >= currBoundary && pointerY < nextBoundary) {
-                            val nextExId = nextEntry.key.substringAfter("|")
-                            val idx = targetList.indexOfFirst { it.id == nextExId }.coerceAtLeast(0)
-                            newDropTargetKey = nextEntry.key
-                            newDropTargetIndex = idx
-                            found = true
-                            break
-                        }
-                    }
-                    if (!found) {
-                        newDropTargetKey = null
-                        newDropTargetIndex = targetList.size
-                    }
+                // The agenda and editor share the same visual midpoint rule; editor-specific
+                // group spans still determine the append slot after the last visible card.
+                val stops = candidateEntries.mapNotNull { entry ->
+                    val id = entry.key.substringAfter("|")
+                    val index = targetList.indexOfFirst { it.id == id }
+                    if (index < 0) null else DropInsertionStop(
+                        midpointY = entry.value.center.y,
+                        targetIndex = index,
+                        targetKey = entry.key,
+                    )
                 }
+                val lastId = candidateEntries.last().key.substringAfter("|")
+                val lastIndex = targetList.indexOfFirst { it.id == lastId }
+                val lastGroupId = targetList.getOrNull(lastIndex)?.supersetGroupRefOrLegacyId()
+                val lastGroupSpan = if (lastIndex >= 0 && lastGroupId != null) {
+                    targetList.drop(lastIndex).takeWhile { it.supersetGroupRefOrLegacyId() == lastGroupId }.size
+                } else 1
+                val appendIndex = if (lastIndex >= 0) lastIndex + lastGroupSpan else targetList.size
+                val insertion = resolveDropInsertion(pointer.y, stops, appendIndex)
+                newDropTargetKey = insertion.targetKey
+                newDropTargetIndex = insertion.targetIndex
             }
 
             val rawTargetIndex = newDropTargetIndex

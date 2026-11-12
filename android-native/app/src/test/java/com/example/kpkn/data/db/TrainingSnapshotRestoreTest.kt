@@ -82,7 +82,7 @@ class TrainingSnapshotRestoreTest {
         DatabaseBackupHelper.restoreSnapshot(context, source)
 
         assertSame(active, KpknDatabase.getInstance(context))
-        assertEquals(37, db.version)
+        assertEquals(38, db.version)
         assertEquals(listOf("active"), ids(context))
         db.query("SELECT payload FROM training_observations WHERE sourceIdentity='original'").use {
             assertTrue(it.moveToFirst()); assertEquals(original, it.getString(0))

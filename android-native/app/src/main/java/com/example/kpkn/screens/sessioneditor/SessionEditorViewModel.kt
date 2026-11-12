@@ -7,12 +7,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.sharedLoadConfigurationId
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.data.repository.SharedExerciseLoadReferenceRepository
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
@@ -24,6 +26,7 @@ import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +42,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 @Serializable
 internal data class PersistedSessionEditorDraft(
@@ -112,6 +117,103 @@ class SessionEditorViewModel(
     }
 
     internal val repository = ProgramRepository.getInstance()
+    private val sharedLoadReferences = SharedExerciseLoadReferenceRepository.getInstance(application)
+
+    internal fun workoutTagsForExercise(exercise: Exercise): List<WorkoutTag> =
+        repository.getWorkoutTagsForExercise(exercise.resolvedCanonicalExerciseId())
+
+    internal fun saveWorkoutTag(tag: WorkoutTag) = repository.upsertWorkoutTag(tag)
+
+    internal fun saveSharedLoadReferences(exercise: Exercise): Exercise {
+        val configurationId = sharedLoadConfigurationId(exercise) ?: return exercise
+        val exerciseKey = exercise.resolvedCanonicalExerciseId()
+        val hasReference = exercise.prFor1RM != null ||
+            exercise.reference1RM?.let { it.isFinite() && it > 0.0 } == true ||
+            exercise.referenceTrainingMax?.let { it.isFinite() && it > 0.0 } == true
+        val tagId = exercise.workoutTagId ?: if (hasReference) ensureDefaultLoadReferenceTag(exerciseKey) else null
+        val taggedExercise = if (tagId == exercise.workoutTagId) exercise else exercise.copy(workoutTagId = tagId)
+        val unitMode = taggedExercise.trainingMode.toUnitModeV2()
+        val loadMode = taggedExercise.sets.firstNotNullOfOrNull { it.loadModeV2 } ?: LoadModeV2.LOAD
+        val now = System.currentTimeMillis()
+        val pr = taggedExercise.prFor1RM
+        if (pr != null && taggedExercise.reference1RM?.let { it.isFinite() && it > 0.0 } == true) {
+            sharedLoadReferences.save(
+                SharedExerciseLoadReference(
+                    id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                    exerciseKey, configurationId, tagId, unitMode, loadMode,
+                        taggedExercise.loadQuantityConvention, SharedLoadReferenceKind.ESTIMATED_PR,
+                    ),
+                    exerciseKey = exerciseKey,
+                    configurationId = configurationId,
+                    tagId = tagId,
+                    unitMode = unitMode,
+                    loadMode = loadMode,
+                    quantityConvention = taggedExercise.loadQuantityConvention,
+                    kind = SharedLoadReferenceKind.ESTIMATED_PR,
+                    baseValueKg = taggedExercise.reference1RM,
+                    sourceAtMs = now,
+                    sourceId = "editor-pr:${exercise.id}",
+                    prWeightKg = pr.weight,
+                    prReps = pr.reps,
+                    effortMode = pr.effortMode,
+                    effortValue = pr.effortValue,
+                ),
+            )
+        } else {
+            taggedExercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 }?.let { value ->
+                sharedLoadReferences.save(
+                    SharedExerciseLoadReference(
+                        id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                            exerciseKey, configurationId, tagId, unitMode, loadMode,
+                            taggedExercise.loadQuantityConvention, SharedLoadReferenceKind.ONE_RM,
+                        ),
+                        exerciseKey, configurationId, tagId, unitMode, loadMode,
+                        taggedExercise.loadQuantityConvention, SharedLoadReferenceKind.ONE_RM, value, now,
+                        sourceId = "editor-1rm:${exercise.id}",
+                    ),
+                )
+            }
+        }
+        taggedExercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }?.let { value ->
+            sharedLoadReferences.save(
+                SharedExerciseLoadReference(
+                    id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                        exerciseKey, configurationId, tagId, unitMode, loadMode,
+                        taggedExercise.loadQuantityConvention, SharedLoadReferenceKind.TRAINING_MAX,
+                    ),
+                    exerciseKey, configurationId, tagId, unitMode, loadMode,
+                    taggedExercise.loadQuantityConvention, SharedLoadReferenceKind.TRAINING_MAX, value, now,
+                    sourceId = "editor-tm:${exercise.id}",
+                ),
+            )
+        }
+        return taggedExercise
+    }
+
+    private fun ensureDefaultLoadReferenceTag(exerciseKey: String): String {
+        val existing = repository.getWorkoutTagsForExercise(exerciseKey).firstOrNull {
+            it.isDefault || WorkoutTagResolver.isDefaultName(it.name)
+        }
+        if (existing != null) {
+            val stableDefault = existing.copy(isDefault = true, ownsUntaggedHistory = true)
+            if (stableDefault != existing) repository.upsertWorkoutTag(stableDefault)
+            return existing.id
+        }
+        val now = java.time.Instant.now().toString()
+        val created = WorkoutTagResolver.withNormalized(
+            WorkoutTag(
+                id = java.util.UUID.randomUUID().toString(),
+                name = WorkoutTagResolver.DEFAULT_TAG_NAME,
+                exerciseKey = exerciseKey,
+                createdAtIso = now,
+                lastUsedAtIso = now,
+                ownsUntaggedHistory = true,
+                isDefault = true,
+            ),
+        )
+        repository.upsertWorkoutTag(created)
+        return created.id
+    }
 
     /** Lee el programa provisional sin consultar ni publicar en la biblioteca. */
     internal fun editorProgram(id: String = programId): Program? =
@@ -654,6 +756,141 @@ class SessionEditorViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            repository.liveProgramEditCommits.collect { commit ->
+                if (commit.program.id != programId || commit.versions.none { it.sessionId == sessionId }) return@collect
+                val state = _uiState.value
+                val current = state.session ?: return@collect
+                val original = state.originalSession ?: current
+                val remoteBase = original.replaceVariantPreservingOtherVariants(commit.variant, commit.session)
+                val snapshots = commit.versions.mapNotNull(::programVersionSnapshot)
+                val history = (state.localDraftHistory + snapshots)
+                    .distinctBy { it.programVersionId ?: it.id }
+                    .sortedBy { it.savedAtMs }
+
+                if (state.activeVariant != commit.variant) {
+                    val updated = current.replaceVariantPreservingOtherVariants(commit.variant, commit.session)
+                    updateUi { it.copy(
+                        session = updated,
+                        originalSession = remoteBase,
+                        weekSessions = it.weekSessions.map { weekSession ->
+                            if (weekSession.id == sessionId) weekSession.replaceVariantPreservingOtherVariants(commit.variant, commit.session) else weekSession
+                        },
+                        programSnapshotForVolume = commit.program,
+                        localDraftHistory = history,
+                    ) }
+                    return@collect
+                }
+
+                val local = current.variantSession(commit.variant) ?: return@collect
+                val base = original.variantSession(commit.variant) ?: local
+                val choices = state.pendingLiveEditConflict
+                    ?.takeIf { it.variant == commit.variant }
+                    ?.remoteChoices
+                    .orEmpty()
+                val result = mergeSessionThreeWay(base, local, commit.session, choices)
+                if (!state.hasUnsavedChanges && result.conflicts.isEmpty()) {
+                    val updated = current.replaceVariantPreservingOtherVariants(commit.variant, commit.session)
+                    updateUi { it.copy(
+                        session = updated,
+                        originalSession = remoteBase,
+                        weekSessions = it.weekSessions.map { weekSession ->
+                            if (weekSession.id == sessionId) weekSession.replaceVariantPreservingOtherVariants(commit.variant, commit.session) else weekSession
+                        },
+                        programSnapshotForVolume = commit.program,
+                        localDraftHistory = history,
+                        pendingLiveEditConflict = null,
+                    ) }
+                    scheduleEditorAnalysis()
+                } else if (result.conflicts.isNotEmpty()) {
+                    updateUi { it.copy(
+                        originalSession = remoteBase,
+                        programSnapshotForVolume = commit.program,
+                        localDraftHistory = history,
+                        pendingLiveEditConflict = PendingLiveEditConflict(
+                            base = base,
+                            local = local,
+                            remote = commit.session,
+                            variant = commit.variant,
+                            remoteBaseSession = remoteBase,
+                            conflicts = result.conflicts,
+                            remoteChoices = choices,
+                        ),
+                    ) }
+                } else {
+                    val merged = draftJson.decodeFromJsonElement<Session>(result.merged)
+                    val updated = current.replaceVariantPreservingOtherVariants(commit.variant, merged)
+                    updateUi { it.copy(
+                        session = updated,
+                        originalSession = remoteBase,
+                        weekSessions = it.weekSessions.map { weekSession ->
+                            if (weekSession.id == sessionId) weekSession.replaceVariantPreservingOtherVariants(commit.variant, commit.session) else weekSession
+                        },
+                        programSnapshotForVolume = commit.program,
+                        localDraftHistory = history,
+                        pendingLiveEditConflict = null,
+                    ) }
+                    scheduleEditorAnalysis()
+                    scheduleAutoSave()
+                }
+            }
+        }
+    }
+
+    private fun programVersionSnapshot(version: com.example.kpkn.data.db.ProgramVersionEntity): SessionDraftSnapshot? {
+        val snapshot = runCatching { draftJson.decodeFromString<Session>(version.snapshotJson) }.getOrNull() ?: return null
+        val exercises = snapshot.allExercises()
+        return SessionDraftSnapshot(
+            id = version.id,
+            session = snapshot,
+            savedAtMs = version.savedAtEpochMs,
+            reason = listOf(version.origin, version.reason).filter(String::isNotBlank).joinToString(" · "),
+            changedFields = listOf(version.reason).filter(String::isNotBlank),
+            exerciseCount = exercises.size,
+            setCount = exercises.sumOf { it.sets.size },
+            partCount = snapshot.parts.size,
+            programVersionId = version.id,
+            programVariant = version.variantId?.let { runCatching { WeekVariant.valueOf(it) }.getOrNull() },
+        )
+    }
+
+    private fun Session.variantSession(variant: WeekVariant): Session? = when (variant) {
+        WeekVariant.A -> this
+        WeekVariant.B -> sessionB
+        WeekVariant.C -> sessionC
+        WeekVariant.D -> sessionD
+    }
+
+    private fun Session.replaceVariantPreservingOtherVariants(variant: WeekVariant, updated: Session): Session = when (variant) {
+        WeekVariant.A -> updated.copy(sessionB = sessionB, sessionC = sessionC, sessionD = sessionD)
+        WeekVariant.B -> copy(sessionB = updated)
+        WeekVariant.C -> copy(sessionC = updated)
+        WeekVariant.D -> copy(sessionD = updated)
+    }
+
+    fun chooseLiveEditConflict(path: String, useRemote: Boolean) {
+        val pending = _uiState.value.pendingLiveEditConflict ?: return
+        if (pending.conflicts.none { it.path == path }) return
+        val choices = pending.remoteChoices + (path to useRemote)
+        if (pending.conflicts.any { it.path !in choices }) {
+            updateUi { it.copy(pendingLiveEditConflict = pending.copy(remoteChoices = choices)) }
+            return
+        }
+        val merged = mergeSessionThreeWay(pending.base, pending.local, pending.remote, choices)
+        val resolved = runCatching { draftJson.decodeFromJsonElement<Session>(merged.merged) }.getOrNull() ?: return
+        val current = _uiState.value.session ?: return
+        val updated = current.replaceVariantPreservingOtherVariants(pending.variant, resolved)
+        updateUi { it.copy(
+            session = updated,
+            originalSession = pending.remoteBaseSession,
+            weekSessions = it.weekSessions.map { weekSession ->
+                if (weekSession.id == sessionId) weekSession.replaceVariantPreservingOtherVariants(pending.variant, pending.remote) else weekSession
+            },
+            pendingLiveEditConflict = null,
+            snackbarMessage = "Cambios de la sesión combinados. Revisa y guarda el borrador.",
+        ) }
+        scheduleEditorAnalysis()
+        scheduleAutoSave()
     }
 
     private fun observeBodyMeasurements() {
@@ -806,6 +1043,13 @@ class SessionEditorViewModel(
         val localDraftHistory = runCatching { trainedVersionStore.loadForSession(draft.id) }
             .onFailure { error -> Log.w("SessionEditor", "Unable to load trained session history", error) }
             .getOrDefault(emptyList())
+        val durableVersionHistory = runCatching {
+            repository.getLiveSessionVersions(programId, draft.id).mapNotNull(::programVersionSnapshot)
+        }.onFailure { error -> Log.w("SessionEditor", "Unable to load live edit history", error) }
+            .getOrDefault(emptyList())
+        val combinedHistory = (localDraftHistory + durableVersionHistory)
+            .distinctBy { it.programVersionId ?: it.id }
+            .sortedBy { it.savedAtMs }
 
         val allProgramExerciseCandidates = program.macrocycles
             .flatMap { it.blocks }
@@ -870,7 +1114,7 @@ class SessionEditorViewModel(
             cloneDayOptions = cloneDayOptions,
             cloneSourceOptions = cloneSourceOptions,
             selectedSiblingSessionId = draft.id,
-            localDraftHistory = localDraftHistory,
+            localDraftHistory = combinedHistory,
             ruleDefaults = resolvedRuleDefaults,
             partRuleDefaults = resolvedPartRuleDefaults,
             ruleLimits = resolvedRuleLimits,
@@ -1314,6 +1558,34 @@ calculateSessionTimeBreakdown(
     /** Opens the template browser sheet. */
 
     fun restoreDraftSnapshot(snapshot: SessionDraftSnapshot) {
+        val sourceVariant = snapshot.programVariant
+        if (snapshot.programVersionId != null && sourceVariant != null && programId.isNotBlank()) {
+            val state = _uiState.value
+            viewModelScope.launch {
+                runCatching {
+                    repository.commitLiveProgramSessionEditNow(
+                        programId = programId,
+                        weekId = state.weekId,
+                        macroIndex = state.macroIndex,
+                        mesoIndex = state.mesoIndex,
+                        sessionId = sessionId,
+                        variant = sourceVariant,
+                        operationId = "restore:${java.util.UUID.randomUUID()}",
+                        reason = "Restauró versión ${formatHistoryTimestamp(snapshot.savedAtMs)}",
+                        origin = "Editor de sesión",
+                        transform = { latest ->
+                            latest.replaceVariantPreservingOtherVariants(sourceVariant, snapshot.session)
+                        },
+                    ) ?: error("La sesión dejó de estar disponible para restaurar la versión.")
+                }.onSuccess {
+                    updateUi { it.copy(activeVariant = sourceVariant, snackbarMessage = "Restaurando versión y guardando un nuevo historial.") }
+                }.onFailure { error ->
+                    Log.w("SessionEditor", "Unable to restore durable program version", error)
+                    updateUi { it.copy(snackbarMessage = "No se pudo restaurar la versión. El borrador actual sigue intacto.") }
+                }
+            }
+            return
+        }
         updateUi { state ->
             val restoredSession = snapshot.session
             val variants = computeAvailableVariants(restoredSession)

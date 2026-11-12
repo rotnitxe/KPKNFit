@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 8
+    const val JSON_BACKUP_SCHEMA_VERSION = 9
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -26,6 +26,8 @@ object BackupTableManifest {
         "workout_global_performance" to Category.USER_DATA,
         "workout_context_profiles" to Category.USER_DATA,
         "workout_tags" to Category.USER_DATA,
+        "shared_exercise_load_references" to Category.USER_DATA,
+        "program_versions" to Category.USER_DATA,
         "workout_replacement_decisions" to Category.USER_DATA,
         "training_observations" to Category.USER_DATA,
         "nutrition_logs" to Category.USER_DATA,
@@ -99,6 +101,7 @@ object BackupTableManifest {
         hasNutritionDayStateSection: Boolean = false,
         hasCalibrationDecisionsSection: Boolean = false,
         hasFoodUsageSection: Boolean = false,
+        hasSharedLoadAndVersionSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
@@ -125,6 +128,9 @@ object BackupTableManifest {
         }
         if (schemaVersion >= 6 && hasCalibrationDecisionsSection) tables += "calibration_decisions"
         if (schemaVersion >= 8 && hasFoodUsageSection) tables += "nutrition_food_usage"
+        if (schemaVersion >= 9 && hasSharedLoadAndVersionSection) {
+            tables += listOf("shared_exercise_load_references", "program_versions")
+        }
         return tables.distinct()
     }
 

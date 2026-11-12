@@ -86,7 +86,7 @@ object DatabaseBackupHelper {
                 android.database.DatabaseErrorHandler { throw IllegalStateException("Snapshot corrupto; se conservan los datos activos y el archivo externo") })
             try {
                 // Upper bound = @Database(version) of KpknDatabase; NutritionDayStateBackupTest fails when it falls behind.
-                require(checked.version in 1..37) { "Versión de snapshot no compatible" }
+                require(checked.version in 1..38) { "Versión de snapshot no compatible" }
                 checked.rawQuery("PRAGMA quick_check",null).use { check ->
                     require(check.count==1 && check.moveToFirst() && check.getString(0)=="ok") { "Snapshot SQLite corrupto" }
                 }

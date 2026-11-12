@@ -120,14 +120,16 @@ class LiveExerciseOptionsAuditTest {
         assertTrue(created is CreateTagResult.Created)
         val tagId = (created as CreateTagResult.Created).tag.id
         assertEquals(listOf(tagId), vm.uiState.value.activeTagsByExercise["b"])
-        assertEquals(listOf("Banco inclinado"), vm.tagsForExercise("b").map { it.name })
+        // Al abrir la sesión se siembra la etiqueta estable «Default» (historial sin etiqueta) de cada ejercicio;
+        // la recién creada se suma a ella y queda activa.
+        assertEquals(setOf("Default", "Banco inclinado"), vm.tagsForExercise("b").map { it.name }.toSet())
         vm.flushOngoingForBackgroundAndAwait()
         assertEquals("lo guardado", listOf(tagId), fixture!!.storedOngoing().activeTags["b"])
 
         // La hoja «Etiquetas» elige por nombre; un nombre nuevo se crea y queda activo.
         vm.setExerciseTag("b", "Agarre ancho")
         assertEquals("Agarre ancho", vm.uiState.value.exerciseTags["b"])
-        assertEquals(setOf("Banco inclinado", "Agarre ancho"), vm.tagsForExercise("b").map { it.name }.toSet())
+        assertEquals(setOf("Default", "Banco inclinado", "Agarre ancho"), vm.tagsForExercise("b").map { it.name }.toSet())
 
         // Un nombre repetido no crea otra.
         assertTrue(vm.createTag("b", "agarre ancho") is CreateTagResult.Duplicate)

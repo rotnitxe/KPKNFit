@@ -70,6 +70,8 @@ data class WorkoutTechniqueProgressDraft(
 
 @Serializable
 data class WorkoutSetDraft(
+    /** Active workout tag when this per-set field draft was edited. */
+    val tagId: String? = null,
     val weightText: String? = null,
     val valueText: String? = null,
     val intensityText: String? = null,
@@ -99,6 +101,31 @@ data class WorkoutSetDraft(
     val rmReference1RM: Double? = null,
     val rmPercent: Double? = null,
 )
+
+internal fun tagScopedWorkoutSetDraftKey(setKey: String, tagId: String?): String =
+    "$setKey#tag#${tagId ?: "__untagged__"}"
+
+internal fun switchWorkoutSetDraftTagContext(
+    setDrafts: Map<String, WorkoutSetDraft>,
+    exerciseId: String,
+    fromTagId: String?,
+    toTagId: String?,
+): Map<String, WorkoutSetDraft> {
+    if (fromTagId == toTagId) return setDrafts
+    val prefix = "${exerciseId}_"
+    val next = setDrafts.toMutableMap()
+    setDrafts.keys.filter { it.startsWith(prefix) && "#tag#" !in it }.forEach { key ->
+        val activeDraft = setDrafts[key]
+        if (activeDraft != null && (activeDraft.tagId == fromTagId || activeDraft.tagId == null)) {
+            next[tagScopedWorkoutSetDraftKey(key, fromTagId)] = activeDraft.copy(tagId = fromTagId)
+        }
+        next.remove(key)
+        setDrafts[tagScopedWorkoutSetDraftKey(key, toTagId)]?.let { destinationDraft ->
+            next[key] = destinationDraft.copy(tagId = toTagId)
+        }
+    }
+    return next
+}
 
 @Serializable
 data class WorkoutRestModalState(

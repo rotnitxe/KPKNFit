@@ -96,6 +96,7 @@ class WorkoutFinishController(
     private val workoutMediaRepository: com.example.kpkn.data.repository.WorkoutMediaRepository? = null,
     private val mediaSessionKey: () -> String = { "" },
     private val clearActiveWorkout: () -> Unit = { ActiveWorkoutHolder.clear() },
+    private val onLogCommitted: (WorkoutLog) -> Unit = {},
 ) {
     fun finish(
         notes: String,
@@ -351,6 +352,7 @@ class WorkoutFinishController(
                     )
                     // Mark the commit before returning to the caller's cancellable context.
                     durableLogId = log.id
+                    runPostCommitSafely(log.id, "shared_load_references") { onLogCommitted(log) }
                 }
 
                 if (retainOngoingForVolume) {

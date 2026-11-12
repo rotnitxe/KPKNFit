@@ -224,48 +224,74 @@ class WorkoutSessionHydrator(
         }
 
         if (resumedState == null) {
-            val historicalLogs = repository.history.value
-            val dayOfWeek = java.time.LocalDate.now().dayOfWeek
             for (exercise in exercisesForMode) {
                 val exKey = ports.canonicalExerciseKey(exercise)
-                val tags = restoredUserCreatedTags[exKey].orEmpty()
-                val keys = identityKeysForExercise(exercise)
-                val observations = historicalLogs.map { log ->
-                    val completed = log.completedExercises.firstOrNull { item ->
-                        identityKeysOverlap(identityKeysForCompleted(item), keys)
+                val tags = restoredUserCreatedTags[exKey].orEmpty().toMutableList()
+                val selectedPlanTag = exercise.workoutTagId?.let { id -> tags.firstOrNull { it.id == id } }
+                val existingDefault = tags.firstOrNull { it.isDefault || WorkoutTagResolver.isDefaultName(it.name) }
+                val defaultTag = existingDefault?.let { existing ->
+                    existing.copy(isDefault = true, ownsUntaggedHistory = true).also { updated ->
+                        if (updated != existing) repository.upsertWorkoutTag(updated)
                     }
-                    val tagId = completed?.let { item ->
-                        WorkoutTagResolver.resolvedTagIdFromLog(log, item, tags)
-                    }
-                    val setupId = completed?.sets?.firstNotNullOfOrNull { it.setupProfileId }
-                    WorkoutContextRecurrenceEngine.RecurrenceObservation(
-                        dateIso = log.date,
-                        tagId = tagId,
-                        profileId = setupId,
-                    )
+                } ?: WorkoutTagResolver.withNormalized(
+                    com.example.kpkn.data.models.WorkoutTag(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = WorkoutTagResolver.DEFAULT_TAG_NAME,
+                        exerciseKey = exKey,
+                        createdAtIso = java.time.Instant.now().toString(),
+                        lastUsedAtIso = java.time.Instant.now().toString(),
+                        ownsUntaggedHistory = true,
+                        isDefault = true,
+                    ),
+                ).also { created -> repository.upsertWorkoutTag(created) }
+                if (defaultTag !in tags) tags += defaultTag
+                restoredUserCreatedTags[exKey] = tags
+                val chosen = selectedPlanTag?.takeUnless { it.id == defaultTag.id } ?: defaultTag
+                restoredActiveTags[exercise.id] = listOf(chosen.id)
+                restoredTags[exercise.id] = chosen.name
+                val chosenProfile = hydratedProfiles.first.values.firstOrNull { profile ->
+                    profile.exerciseKey == exKey &&
+                        (profile.tagId == chosen.id || profile.tagId == chosen.name)
                 }
-                val recurrence = WorkoutContextRecurrenceEngine.detectDayRecurrence(dayOfWeek, observations)
-                val chosen = when {
-                    recurrence.confidence >= 2 && recurrence.tagId != null ->
-                        WorkoutTagResolver.resolveTag(recurrence.tagId, tags)
-                    else -> tags.maxByOrNull { it.lastUsedAtIso.ifBlank { it.createdAtIso } }
-                }
-                if (chosen != null) {
-                    restoredActiveTags[exercise.id] = listOf(chosen.id)
-                    restoredTags[exercise.id] = chosen.name
-                }
-                if (recurrence.confidence >= 2 &&
-                    recurrence.profileId != null &&
-                    hydratedProfiles.first.containsKey(recurrence.profileId)
-                ) {
-                    restoredActiveProfiles[exercise.id] = recurrence.profileId!!
-                }
+                chosenProfile?.let { restoredActiveProfiles[exercise.id] = it.id }
             }
         } else {
             hydratedProfiles.second.forEach { (exerciseId, profileId) ->
                 val profileTag = hydratedProfiles.first[profileId]?.legacyTagName() ?: return@forEach
                 restoredTags.putIfAbsent(exerciseId, profileTag)
             }
+        }
+        // A resumed execution keeps its own selected UUID. If that execution has
+        // no recoverable choice, use the planned UUID and finally its stable Default.
+        exercisesForMode.filter { it.id !in restoredActiveTags }.forEach { exercise ->
+            val exKey = ports.canonicalExerciseKey(exercise)
+            val tags = restoredUserCreatedTags[exKey].orEmpty().toMutableList()
+            val default = tags.firstOrNull { it.isDefault || WorkoutTagResolver.isDefaultName(it.name) }
+                ?.let { it.copy(isDefault = true, ownsUntaggedHistory = true) }
+                ?: WorkoutTagResolver.withNormalized(
+                    com.example.kpkn.data.models.WorkoutTag(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = WorkoutTagResolver.DEFAULT_TAG_NAME,
+                        exerciseKey = exKey,
+                        createdAtIso = java.time.Instant.now().toString(),
+                        lastUsedAtIso = java.time.Instant.now().toString(),
+                        ownsUntaggedHistory = true,
+                        isDefault = true,
+                    ),
+                )
+            if (default !in tags) tags += default
+            if (tags.firstOrNull { it.id == default.id } != default) repository.upsertWorkoutTag(default)
+            restoredUserCreatedTags[exKey] = tags
+            val executionTag = restoredTags[exercise.id]?.let { token ->
+                tags.firstOrNull { it.id == token || WorkoutTagResolver.namesMatch(it.name, token) }
+            }
+            val plannedTag = exercise.workoutTagId?.let { id -> tags.firstOrNull { it.id == id } }
+            val chosen = executionTag ?: plannedTag ?: default
+            restoredActiveTags[exercise.id] = listOf(chosen.id)
+            restoredTags[exercise.id] = chosen.name
+            hydratedProfiles.first.values.firstOrNull { profile ->
+                profile.exerciseKey == exKey && (profile.tagId == chosen.id || profile.tagId == chosen.name)
+            }?.let { restoredActiveProfiles[exercise.id] = it.id }
         }
         val resumeProbe = WorkoutUiState(
             session = restoredSession,

@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -60,6 +61,8 @@ import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.MobilityExercise
+import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
@@ -125,6 +128,7 @@ private typealias CatalogExerciseImageVariant = ExerciseTechniqueImageVariant
 
 private data class CatalogSearchResultState(
     val committedQuery: String = "",
+    val committedFilters: ExerciseSearchFiltersV2 = ExerciseSearchFiltersV2(),
     val filteredHits: List<ExerciseSearchHitV2> = emptyList(),
     val globalHits: List<ExerciseSearchHitV2> = emptyList(),
     val isSettled: Boolean = false,
@@ -166,7 +170,9 @@ internal fun catalogSearchResultsAreCurrent(
     query: String,
     committedQuery: String,
     isSettled: Boolean,
-): Boolean = query == committedQuery && isSettled
+    filters: ExerciseSearchFiltersV2? = null,
+    committedFilters: ExerciseSearchFiltersV2? = filters,
+): Boolean = query == committedQuery && isSettled && filters == committedFilters
 
 /**
  * Lista visible del catálogo para una consulta.
@@ -732,7 +738,7 @@ private fun ColumnScope.CatalogReadyContent(
             muscleIds = filterMuscle?.let { setOf(it) }.orEmpty(),
         )
     }
-    // Debounced search: one fuzzy pass per ~150 ms pause on Dispatchers.Default
+    // Debounced search: one fuzzy pass per 75 ms pause on Dispatchers.Default
     // instead of a synchronous stemming pass on the main thread per keystroke.
     // Keep the query that produced the hits alongside them; otherwise a new
     // keystroke can render stale cards and the create prompt before the search
@@ -743,30 +749,31 @@ private fun ColumnScope.CatalogReadyContent(
         repository,
         searchFilters,
     ) {
-        snapshotFlow { currentQuery }
-            .debounce(150)
-            .collectLatest { committedQuery ->
+        snapshotFlow { currentQuery to searchFilters }
+            .debounce(75)
+            .collectLatest { (committedQuery, committedFilters) ->
                 if (committedQuery.isBlank()) {
                     value = CatalogSearchResultState(
                         committedQuery = committedQuery,
+                        committedFilters = committedFilters,
                         isSettled = true,
                     )
                 } else {
-                    val hasActiveFilters = searchFilters.bodyRegions.isNotEmpty() || searchFilters.muscleIds.isNotEmpty()
-                    val (filteredHits, globalHits) = withContext(Dispatchers.Default) {
-                        if (hasActiveFilters) {
-                            repository.search(committedQuery, searchFilters) to
-                                repository.search(committedQuery)
-                        } else {
-                            repository.search(committedQuery, searchFilters).let { it to it }
-                        }
+                    val result = withContext(Dispatchers.Default) {
+                        repository.searchResults(committedQuery, committedFilters)
                     }
-                    value = CatalogSearchResultState(
-                        committedQuery = committedQuery,
-                        filteredHits = filteredHits,
-                        globalHits = globalHits,
-                        isSettled = true,
-                    )
+                    // collectLatest cancels superseded work; this final guard
+                    // also prevents a completed calculation from publishing
+                    // after the query or filter changed during a non-cancellable section.
+                    if (currentQuery == committedQuery && searchFilters == committedFilters) {
+                        value = CatalogSearchResultState(
+                            committedQuery = committedQuery,
+                            committedFilters = committedFilters,
+                            filteredHits = result.filteredHits,
+                            globalHits = result.globalHits,
+                            isSettled = true,
+                        )
+                    }
                 }
             }
     }
@@ -775,6 +782,8 @@ private fun ColumnScope.CatalogReadyContent(
             query = query,
             committedQuery = searchState.committedQuery,
             isSettled = searchState.isSettled,
+            filters = searchFilters,
+            committedFilters = searchState.committedFilters,
         )
     )
     val searchHits = if (searchSettled) searchState.filteredHits else emptyList()
@@ -811,28 +820,40 @@ private fun ColumnScope.CatalogReadyContent(
         catalogProjection,
         initialCatalogDefinitionId,
         initialCatalogConfigurationId,
+        selectedExercisesIds,
         replacementSelectionIds,
     ) {
-        val definition = when {
-            initialCatalogDefinitionId != null -> definitionsById[initialCatalogDefinitionId]
-            initialCatalogConfigurationId != null -> definitionsById.values.firstOrNull { definition ->
-                definition.configurations.any { it.id == initialCatalogConfigurationId }
-            }
-            else -> null
-        }
-        val configuration = definition?.configurations?.firstOrNull { it.id == initialCatalogConfigurationId }
-        val initial = if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
-        val restoredChoices = replacementSelectionIds.orEmpty().mapNotNull { id ->
+        val savedConfigurationIds = listOfNotNull(initialCatalogConfigurationId) + selectedExercisesIds + replacementSelectionIds.orEmpty()
+        val restoredChoices = savedConfigurationIds.mapNotNull { id ->
             val chosenDefinition = definitionsById.values.firstOrNull { candidate -> candidate.configurations.any { it.id == id } }
                 ?: return@mapNotNull null
             chosenDefinition.id to chosenDefinition.configurations.first { it.id == id }.selectedOptions
         }.toMap()
-        initial + restoredChoices
+        restoredChoices
     }
     val draftByDefinition = rememberSaveable { mutableStateOf(initialDraftByDefinition) }
     LaunchedEffect(initialDraftByDefinition) {
         draftByDefinition.value = initialDraftByDefinition + draftByDefinition.value
     }
+    val initialExplicitConfigurationByDefinition = remember(catalog, initialCatalogConfigurationId, selectedExercisesIds, replacementSelectionIds) {
+        val configurationIds = listOfNotNull(initialCatalogConfigurationId) + selectedExercisesIds + replacementSelectionIds.orEmpty()
+        buildMap {
+            configurationIds.forEach { configurationId ->
+                val definition = catalog.families.asSequence().flatMap { it.definitions.asSequence() }
+                    .firstOrNull { candidate -> candidate.configurations.any { it.id == configurationId } }
+                    ?: return@forEach
+                if (definition.optionAxes.isEmpty() && definition.configurations.size > 1) {
+                    put(definition.id, configurationId)
+                }
+            }
+        }
+    }
+    val explicitConfigurationByDefinition = rememberSaveable { mutableStateOf(initialExplicitConfigurationByDefinition) }
+    LaunchedEffect(initialExplicitConfigurationByDefinition) {
+        explicitConfigurationByDefinition.value = initialExplicitConfigurationByDefinition + explicitConfigurationByDefinition.value
+    }
+    var addingVariantDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
+    val activeSelectionKeyByDefinition = rememberSaveable { mutableStateOf<Map<String, String>>(emptyMap()) }
     // La búsqueda puede sugerir una configuración y mostrar sus términos de
     // coincidencia, pero nunca convierte esos ejes en una elección. Solo los
     // chips tocados por la persona o una configuración inicial de edición
@@ -884,6 +905,12 @@ private fun ColumnScope.CatalogReadyContent(
             selectedRows.value = restored
         }
     }
+    var lastConfirmedMultiSelection by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(selectedRows.value) {
+        if (lastConfirmedMultiSelection != catalogSelectionFingerprint(selectedRows.value.values.toList())) {
+            lastConfirmedMultiSelection = null
+        }
+    }
     var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
     // Solo se pliega cuando la persona vacía la selección; al recrear la actividad la selección puede estar vacía un instante
     // mientras se restaura y no debe perder la lista desplegada.
@@ -910,6 +937,20 @@ private fun ColumnScope.CatalogReadyContent(
                 ExerciseMatchLexicon.normalize(value).contains(normalizedCustomQuery)
             }
         }
+    }
+    val mobilityPickerEnabled = !editingExisting && replacement == null && !singleChoice
+    val mobilityResults = remember(query, filterRegion, filterMuscle, mobilityPickerEnabled) {
+        if (!mobilityPickerEnabled) emptyList() else MobilityExerciseCatalog.searchMobility(query)
+            .filter { movement ->
+                val regionMatches = when (filterRegion) {
+                    null -> true
+                    "UPPER" -> movement.bodyRegion.lowercase() in setOf("neck", "shoulder", "scapula", "upper", "back", "chest", "arm", "elbow", "wrist", "spine", "thoracic", "thoracic_spine")
+                    "LOWER" -> movement.bodyRegion.lowercase() in setOf("hip", "pelvis", "leg", "knee", "ankle", "foot", "lower", "glute", "glutes")
+                    "CORE" -> movement.bodyRegion.lowercase() in setOf("core", "trunk", "lumbar", "lower_back")
+                    else -> true
+                }
+                regionMatches && (filterMuscle == null || filterMuscle in movement.targetMuscles)
+            }
     }
 
     val creatorFocusManager = LocalFocusManager.current
@@ -990,12 +1031,17 @@ private fun ColumnScope.CatalogReadyContent(
     val showIsland = replacement == null && !editingExisting && !singleChoice && selectedRows.value.isNotEmpty() && !imeVisible
     // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
     fun selectReplacement(definitionId: String, info: ExerciseMuscleInfo) {
+        if (!isValidPendingCatalogSelection(catalog, info)) return
         selectedRows.value = mapOf(definitionId to info)
         replacementSelectionIds = listOf(info.id)
         onSelectionChange(listOf(info))
     }
     val showReplaceBar = replacement != null && !imeVisible
     val showChoiceBar = singleChoice && !imeVisible
+    val validatedSelectionRows = remember(catalog, selectedRows.value) {
+        selectedRows.value.filterValues { isValidPendingCatalogSelection(catalog, it) }
+    }
+    val allPendingSelectionsValid = validatedSelectionRows.size == selectedRows.value.size
     CatalogPickerViewport {
         LazyColumn(
             state = listState,
@@ -1013,7 +1059,7 @@ private fun ColumnScope.CatalogReadyContent(
                     committedQuery = searchState.committedQuery,
                     projectionReady = catalogProjection != null,
                     isSettled = searchState.isSettled,
-                    resultCount = definitions.size + visibleCustomExercises.size,
+                    resultCount = definitions.size + visibleCustomExercises.size + mobilityResults.size,
                 )
             },
             contentPadding = PaddingValues(
@@ -1092,10 +1138,6 @@ private fun ColumnScope.CatalogReadyContent(
             } else {
                 items(definitions, key = { it.id }, contentType = { "catalog-def" }) { definition ->
                     val hasOptions = definition.optionAxes.isNotEmpty()
-                    val default = remember(definition) {
-                        definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
-                            ?: definition.configurations.firstOrNull().takeIf { definition.optionAxes.isEmpty() }
-                    }
                     val hasExplicitDraft = draftByDefinition.value.containsKey(definition.id)
                     // Sin seleccion explicita, el draft parte VACIO para que el panel
                     // expandido muestre TODOS los implementos del primer eje. Si se
@@ -1111,13 +1153,20 @@ private fun ColumnScope.CatalogReadyContent(
                     val compatibility = remember(repository, definition.id, selectedOptions) {
                         repository.compatibility(definition.id, selectedOptions)
                     }
-                    val axesComplete = catalogAxisChoicesComplete(definition, selectedOptions)
-                    val existingSelection = selectedRows.value.values.firstOrNull { it.catalogDefinitionId == definition.id }
-                    val selectedConfigurationId = compatibility.exactConfigurationId.takeIf { axesComplete && hasOptions }
+                    val explicitConfigurationId = explicitConfigurationByDefinition.value[definition.id]
+                    val selectedConfigurationId = exactCatalogConfigurationId(
+                        definition,
+                        selectedOptions,
+                        explicitConfigurationId,
+                    )
+                    val axesComplete = selectedConfigurationId != null
+                    val existingSelections = selectedRows.value.entries.filter { it.value.catalogDefinitionId == definition.id }
+                    val existingSelection = existingSelections.lastOrNull()?.value
+                    val hasCommittedChoice = hasExplicitDraft || explicitConfigurationId != null || existingSelection != null
                     val resolvedConfigurationId = when {
-                        hasOptions && !axesComplete -> existingSelection?.catalogConfigurationId
-                        hasOptions -> selectedConfigurationId ?: bestMatchingConfigurationId(definition, selectedOptions, default)
-                        else -> existingSelection?.catalogConfigurationId ?: default?.id
+                        selectedConfigurationId != null && hasCommittedChoice -> selectedConfigurationId
+                        hasExplicitDraft -> null
+                        else -> existingSelection?.catalogConfigurationId
                     }
                     val effectiveConfiguration = definition.configurations.firstOrNull { it.id == resolvedConfigurationId }
                     // In a partial draft, only the axes the user tapped are shown as selected.
@@ -1136,8 +1185,6 @@ private fun ColumnScope.CatalogReadyContent(
                     val isExpanded = expandedDefinitionId == definition.id
                     val shownMuscles = effectiveConfiguration?.profile?.primaryMuscles.orEmpty()
                     val selectedImplementation = effectiveSelectedOptions["implement"]
-                    // La imagen es la del implemento que se ve: el elegido y, si no hay elección, el de la configuración que «Añadir»
-                    // añadiría. Antes, sin elección se enseñaba la primera foto de la lista aunque la fila dijera otro material (LV5).
                     val shownImplementation = catalogShownImplementation(definition, effectiveSelectedOptions, resolvedConfigurationId)
                     val imageVariants = remember(definition.id, resolvedConfigurationId, shownImplementation) {
                         exerciseCatalogImageVariants(
@@ -1153,7 +1200,38 @@ private fun ColumnScope.CatalogReadyContent(
                             .mapNotNull { it.selectedOptions[firstAxis] }
                             .distinct()
                     }
+                    val explicitChoices = remember(definition) { explicitConfigurationChoices(definition) }
                     val selectOption: (axis: String, value: String) -> Unit = select@{ axis, value ->
+                        if (axis == "configuration") {
+                            val choice = explicitChoices.firstOrNull { it.id == value } ?: return@select
+                            explicitConfigurationByDefinition.value = explicitConfigurationByDefinition.value + (definition.id to choice.id)
+                            val info = exactInfo(catalog, definition, choice.id) ?: return@select
+                            val replaceKey = activeSelectionKeyByDefinition.value[definition.id]
+                                ?: existingSelections.lastOrNull()?.key
+                            if (addingVariantDefinitionId == definition.id) {
+                                val next = replaceOrAddCatalogSelection(selectedRows.value, null, info)
+                                if (next != selectedRows.value) {
+                                    selectedRows.value = next
+                                    activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
+                                        (definition.id to (info.catalogConfigurationId ?: info.id))
+                                    addingVariantDefinitionId = null
+                                    onSelectionChange(next.values.toList())
+                                }
+                            } else if (confirmSelection) {
+                                selectedRows.value = mapOf(definition.id to info)
+                                replacementSelectionIds = listOf(info.id)
+                                onSelectionChange(listOf(info))
+                            } else if (editingExisting) {
+                                onSelect(info)
+                            } else if (replaceKey != null) {
+                                val next = replaceOrAddCatalogSelection(selectedRows.value, replaceKey, info)
+                                selectedRows.value = next
+                                activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
+                                    (definition.id to (info.catalogConfigurationId ?: info.id))
+                                onSelectionChange(next.values.toList())
+                            }
+                            return@select
+                        }
                         if (axis == "implement" && value.equals("default", ignoreCase = true)) return@select
                         val newDraft = draftAfterAxisSelection(
                             definition = definition,
@@ -1162,27 +1240,36 @@ private fun ColumnScope.CatalogReadyContent(
                             value = value,
                         )
                         draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
-                        // En selección múltiple cada configuración es independiente: cambiar un eje permite añadir otra variante.
-                        // Reemplazo y Técnica mantienen un único candidato pendiente y sí actualizan su configuración en el sitio.
-                        val complete = catalogAxisChoicesComplete(definition, newDraft)
-                        if (complete && ((confirmSelection && isSelected) || definition.id in selectedRows.value)) {
-                            val nextConfigId = repository.compatibility(definition.id, newDraft).exactConfigurationId
-                                ?: bestMatchingConfigurationId(definition, newDraft, default)
+                        val nextConfigId = exactCatalogConfigurationId(definition, newDraft)
+                        if (nextConfigId != null && (addingVariantDefinitionId == definition.id || existingSelections.isNotEmpty() || editingExisting || (confirmSelection && isSelected))) {
                             val info = exactInfo(catalog, definition, nextConfigId)
                             if (info != null) {
-                                // Al reemplazar (H1) lo elegido se guarda por su definición: así lo sigue cada cambio de variante.
-                                val key = if (confirmSelection) {
-                                    definition.id
+                                if (addingVariantDefinitionId == definition.id) {
+                                    val next = replaceOrAddCatalogSelection(selectedRows.value, null, info)
+                                    if (next != selectedRows.value) {
+                                        selectedRows.value = next
+                                        activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
+                                            (definition.id to (info.catalogConfigurationId ?: info.id))
+                                        addingVariantDefinitionId = null
+                                        onSelectionChange(next.values.toList())
+                                    }
+                                } else if (confirmSelection) {
+                                    selectedRows.value = mapOf(definition.id to info)
+                                    replacementSelectionIds = listOf(info.id)
+                                    onSelectionChange(listOf(info))
+                                } else if (editingExisting) {
+                                    onSelect(info)
                                 } else {
-                                    info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                                    val replacementKey = activeSelectionKeyByDefinition.value[definition.id]
+                                        ?: existingSelections.lastOrNull()?.key
+                                    val next = replaceOrAddCatalogSelection(selectedRows.value, replacementKey, info)
+                                    if (next != selectedRows.value) {
+                                        selectedRows.value = next
+                                        activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
+                                            (definition.id to (info.catalogConfigurationId ?: info.id))
+                                        onSelectionChange(next.values.toList())
+                                    }
                                 }
-                                // Reemplazar en su posición conserva el orden.
-                                selectedRows.value = selectedRows.value.entries.associate { entry ->
-                                    if (entry.key == definition.id || entry.value.catalogDefinitionId == definition.id) key to info
-                                    else entry.key to entry.value
-                                }
-                                if (confirmSelection) replacementSelectionIds = selectedRows.value.values.map { it.id }
-                                onSelectionChange(selectedRows.value.values.toList())
                             }
                         }
                     }
@@ -1200,7 +1287,7 @@ private fun ColumnScope.CatalogReadyContent(
                             variantsDefinitionId = definition.id
                             if (variantValues.isEmpty()) expandedDefinitionId = definition.id
                         } else {
-                            val info = exactInfo(catalog, definition, resolvedConfigurationId)
+                            val info = exactInfo(catalog, definition, selectedConfigurationId)
                             if (info != null) {
                                 if (confirmSelection) {
                                     // Al reemplazar (H1) se elige uno y se confirma abajo: el círculo no reemplaza de golpe.
@@ -1210,16 +1297,27 @@ private fun ColumnScope.CatalogReadyContent(
                                 } else if (editingExisting) {
                                     onSelect(info)
                                 } else {
-                                    val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
-                                    val next = selectedRows.value.filterKeys { it != definition.id } + (key to info)
+                                    val existingKey = activeSelectionKeyByDefinition.value[definition.id]
+                                        ?: existingSelections.lastOrNull()?.key
+                                    val next = if (addingVariantDefinitionId == definition.id) {
+                                        replaceOrAddCatalogSelection(selectedRows.value, null, info)
+                                    } else if (existingKey != null) {
+                                        replaceOrAddCatalogSelection(selectedRows.value, existingKey, info)
+                                    } else {
+                                        replaceOrAddCatalogSelection(selectedRows.value, null, info)
+                                    }
                                     selectedRows.value = next
+                                    activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
+                                        (definition.id to (info.catalogConfigurationId ?: info.id))
+                                    addingVariantDefinitionId = null
                                     onSelectionChange(next.values.toList())
                                 }
                             }
                         }
                     }
                     val pattern = remember(definition.canonicalName) { exercisePatternOf(definition.canonicalName) }
-                    val thumbnailResId = selectedCatalogImageVariantIndex(imageVariants, shownImplementation)
+                    val shownPattern = if (resolvedConfigurationId == null) ExercisePattern.GENERIC else pattern
+                    val thumbnailResId = if (resolvedConfigurationId == null) null else selectedCatalogImageVariantIndex(imageVariants, shownImplementation)
                         ?.let { imageVariants[it].imageResId }
                     val muscleLabel = shownMuscles.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
                     val materialLabel = effectiveConfiguration?.selectedOptions?.get("implement")
@@ -1228,7 +1326,7 @@ private fun ColumnScope.CatalogReadyContent(
                     // La fila y la ficha nombran el implemento que se está mostrando.
                     val fichaMaterialLabel = catalogFichaMaterialLabel(
                         selectedImplementation = selectedImplementation,
-                        defaultImplementation = default?.selectedOptions?.get("implement"),
+                        defaultImplementation = null,
                         definitionId = definition.id,
                     )
                     // Al reemplazar (H1), la línea de cada candidato dice su implemento y lo que cambia respecto al ejercicio actual.
@@ -1247,7 +1345,7 @@ private fun ColumnScope.CatalogReadyContent(
                     } else {
                         searchMatchLabel
                     }
-                    val hasVariants = variantValues.isNotEmpty()
+                    val hasVariants = variantValues.isNotEmpty() || (!hasOptions && definition.configurations.size > 1)
                     val variantsOpen = hasVariants && variantsDefinitionId == definition.id
                     Column(modifier = Modifier.fillMaxWidth()) {
                         CatalogExerciseRow(
@@ -1255,7 +1353,7 @@ private fun ColumnScope.CatalogReadyContent(
                             subtitle = subtitle.takeIf { it.isNotBlank() },
                             matchLabel = matchLabel,
                             thumbnailResId = thumbnailResId,
-                            pattern = pattern,
+                            pattern = shownPattern,
                             selected = isSelected,
                             selectionOrder = selectedRows.value.values.indexOfFirst {
                                 it.catalogDefinitionId == definition.id && it.catalogConfigurationId == resolvedConfigurationId
@@ -1263,6 +1361,11 @@ private fun ColumnScope.CatalogReadyContent(
                                 .takeIf { it >= 0 }?.plus(1)?.takeUnless { confirmSelection },
                             onOpenFicha = { expandedDefinitionId = definition.id },
                             onClick = {
+                                val activeKey = activeSelectionKeyByDefinition.value[definition.id]
+                                    ?: existingSelections.lastOrNull()?.key
+                                if (activeKey != null) {
+                                    activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value + (definition.id to activeKey)
+                                }
                                 if (hasVariants) {
                                     variantsDefinitionId = toggleCatalogDefinitionExpansion(
                                         currentDefinitionId = variantsDefinitionId,
@@ -1288,21 +1391,47 @@ private fun ColumnScope.CatalogReadyContent(
                             },
                         )
                         if (variantsOpen) {
-                            CatalogInlineVariants(
-                                definitionId = definition.id,
-                                axes = catalogInlineAxes(definition, selectedOptions, hasExplicitDraft),
-                                onSelect = selectOption,
-                                onOpenFicha = {
-                                    expandedDefinitionId = toggleCatalogDefinitionExpansion(
-                                        currentDefinitionId = expandedDefinitionId,
-                                        tappedDefinitionId = definition.id,
-                                    )
-                                },
-                            )
-                            if (hasOptions && !axesComplete) {
-                                val missingAxes = definition.optionAxes.filter { selectedOptions[it].isNullOrBlank() }
+                            if (existingSelections.isNotEmpty() && !confirmSelection && !editingExisting) {
+                                TextButton(onClick = {
+                                    draftByDefinition.value = draftByDefinition.value + (definition.id to emptyMap())
+                                    explicitConfigurationByDefinition.value = explicitConfigurationByDefinition.value - definition.id
+                                    addingVariantDefinitionId = definition.id
+                                }) { Text("Añadir otra variante") }
+                            }
+                            if (hasOptions) {
+                                CatalogInlineVariants(
+                                    definitionId = definition.id,
+                                    axes = catalogInlineAxes(definition, selectedOptions, hasExplicitDraft),
+                                    onSelect = selectOption,
+                                    onOpenFicha = {
+                                        expandedDefinitionId = toggleCatalogDefinitionExpansion(
+                                            currentDefinitionId = expandedDefinitionId,
+                                            tappedDefinitionId = definition.id,
+                                        )
+                                    },
+                                )
+                            } else if (explicitChoices.isNotEmpty()) {
+                                ExplicitCatalogConfigurationChoices(
+                                    definition = definition,
+                                    selectedConfigurationId = explicitConfigurationId,
+                                    onSelect = { selectOption("configuration", it) },
+                                )
+                            } else if (definition.configurations.size > 1) {
                                 Text(
-                                    "Elige ${missingAxes.joinToString(" y ") { exerciseCatalogAxisLabel(it, definition.id) }} para añadir esta variante.",
+                                    "El catálogo no distingue estas configuraciones; no se puede confirmar una variante con seguridad.",
+                                    style = KpknType.caption,
+                                    color = WizardColors.danger,
+                                    modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
+                                )
+                            }
+                            if (hasOptions && !axesComplete) {
+                                val missingAxes = catalogMissingApplicableAxes(definition, selectedOptions)
+                                Text(
+                                    if (missingAxes.isNotEmpty()) {
+                                        "Elige ${missingAxes.joinToString(" y ") { exerciseCatalogAxisLabel(it, definition.id) }} para confirmar esta configuración."
+                                    } else {
+                                        "La selección no identifica una configuración única del catálogo."
+                                    },
                                     style = KpknType.caption,
                                     color = WizardColors.textMuted,
                                     modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
@@ -1330,7 +1459,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     caption = listOfNotNull(
                                         muscleLabel,
                                         fichaMaterialLabel,
-                                        pattern.label.takeIf { pattern != ExercisePattern.GENERIC },
+                                        pattern.label.takeIf { effectiveConfiguration != null && pattern != ExercisePattern.GENERIC },
                                     ).joinToString(" · ").takeIf { it.isNotBlank() },
                                     description = definition.description.takeIf { it.isNotBlank() },
                                     imageVariants = imageVariants,
@@ -1352,6 +1481,21 @@ private fun ColumnScope.CatalogReadyContent(
                                                     },
                                             )
                                         }
+                                    } else if (explicitChoices.isNotEmpty()) {
+                                        listOf(
+                                            CatalogDetailAxis(
+                                                axis = "configuration",
+                                                label = "Configuración",
+                                                options = explicitChoices.map { choice ->
+                                                    CatalogDetailOption(
+                                                        value = choice.id,
+                                                        label = choice.displaySummary,
+                                                        selected = explicitConfigurationId == choice.id,
+                                                        enabled = true,
+                                                    )
+                                                },
+                                            ),
+                                        )
                                     } else {
                                         emptyList()
                                     },
@@ -1365,7 +1509,7 @@ private fun ColumnScope.CatalogReadyContent(
                                         .orEmpty(),
                                     patternId = effectiveConfiguration?.profile?.movementPatternId,
                                     isSelected = isSelected,
-                                    canSelect = resolvedConfigurationId != null || !hasOptions,
+                                    canSelect = selectedConfigurationId != null,
                                     selectionLabel = singleSelectionLabel,
                                     setupCues = effectiveConfiguration?.profile?.setupCues.orEmpty(),
                                     executionCues = effectiveConfiguration?.profile?.executionCues.orEmpty(),
@@ -1391,11 +1535,57 @@ private fun ColumnScope.CatalogReadyContent(
                 }
             }
 
+            if (mobilityResults.isNotEmpty()) {
+                item("mobility-heading") {
+                    Text(
+                        "Movilidad · ${mobilityResults.size}",
+                        color = WizardColors.textMuted,
+                        style = KpknType.caption,
+                        modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+                    )
+                }
+                items(mobilityResults, key = { "mobility:${it.id}" }, contentType = { "mobility" }) { movement ->
+                    val info = remember(movement) {
+                        ExerciseMuscleInfo(
+                            id = movement.id,
+                            name = movement.name,
+                            description = movement.description,
+                            involvedMuscles = movement.targetMuscles.map {
+                                com.example.kpkn.data.models.InvolvedMuscle(it, MuscleRole.PRIMARY)
+                            },
+                            equipment = movement.equipment,
+                            category = "Movilidad",
+                            type = "Movilidad",
+                            bodyPart = movement.bodyRegion,
+                        )
+                    }
+                    val selected = selectedRows.value.containsKey(info.id)
+                    val selectionOrder = selectedRows.value.keys.indexOf(info.id).takeIf { it >= 0 }?.plus(1)
+                    val toggle: () -> Unit = {
+                        val next = if (selected) selectedRows.value - info.id else selectedRows.value + (info.id to info)
+                        selectedRows.value = next
+                        onSelectionChange(next.values.toList())
+                    }
+                    CatalogExerciseRow(
+                        name = info.name,
+                        subtitle = "${movement.durationSeconds} s · ${movement.equipment}",
+                        matchLabel = if (query.isNotBlank()) "Catálogo de movilidad" else null,
+                        thumbnailResId = null,
+                        pattern = ExercisePattern.GENERIC,
+                        selected = selected,
+                        selectionOrder = selectionOrder,
+                        onClick = toggle,
+                        onToggleSelection = toggle,
+                        modifier = Modifier.testTag("catalog-mobility-${movement.id}"),
+                    )
+                }
+            }
+
             // Creation is a terminal empty-state action, never a banner for a
             // merely non-exact query. Use the unfiltered catalog result so an
             // active body/muscle filter cannot suggest duplicating an exercise that
             // exists elsewhere in the catalog.
-            if (searchSettled && definitions.isEmpty() && visibleCustomExercises.isEmpty() &&
+            if (searchSettled && definitions.isEmpty() && visibleCustomExercises.isEmpty() && mobilityResults.isEmpty() &&
                 (filterRegion != null || filterMuscle != null) &&
                 (query.isBlank() || globalSearchHits.isNotEmpty())
             ) {
@@ -1411,8 +1601,8 @@ private fun ColumnScope.CatalogReadyContent(
             if (shouldShowCatalogCreateSuggestion(
                     query = query,
                     searchSettled = searchSettled,
-                    visibleCatalogResultCount = definitions.size,
-                    globalCatalogResultCount = globalSearchHits.size,
+                    visibleCatalogResultCount = definitions.size + mobilityResults.size,
+                    globalCatalogResultCount = globalSearchHits.size + if (mobilityPickerEnabled) MobilityExerciseCatalog.searchMobility(query).size else 0,
                     customResultCount = visibleCustomExercises.size,
                 )
             ) {
@@ -1427,7 +1617,7 @@ private fun ColumnScope.CatalogReadyContent(
 
         // Al reemplazar (H1), abajo van la nota de lo que se mantiene del plan y el botón que confirma lo elegido.
         if (showReplaceBar) {
-            val chosen = selectedRows.value.values.firstOrNull()
+            val chosen = validatedSelectionRows.values.singleOrNull()
             CatalogReplaceBar(
                 note = replacement?.preservationNote ?: replacement?.planSummary?.takeIf { it.isNotBlank() }?.let { "Se mantienen las series del plan: $it" },
                 buttonText = chosen?.let { "Reemplazar por ${it.name}" } ?: "Reemplazar",
@@ -1440,7 +1630,7 @@ private fun ColumnScope.CatalogReadyContent(
         }
 
         if (showChoiceBar) {
-            val chosen = selectedRows.value.values.singleOrNull()
+            val chosen = validatedSelectionRows.values.singleOrNull()
             CatalogTechniqueChoiceBar(
                 name = chosen?.name,
                 onConfirm = { chosen?.let(onSelect) },
@@ -1462,14 +1652,32 @@ private fun ColumnScope.CatalogReadyContent(
                 listExpanded = selectedListExpanded,
                 onToggleList = { selectedListExpanded = !selectedListExpanded },
                 onAdd = {
-                    val ids = onMultiSelect(selectedRows.value.values.toList())
-                    if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                    if (allPendingSelectionsValid) {
+                        val pending = validatedSelectionRows.values.toList()
+                        val fingerprint = catalogSelectionFingerprint(pending)
+                        if (fingerprint != lastConfirmedMultiSelection) {
+                            val ids = onMultiSelect(pending)
+                            if (ids.isNotEmpty()) {
+                                lastConfirmedMultiSelection = fingerprint
+                                if (dismissAfterMultiSelect) onDismiss()
+                            }
+                        }
+                    }
                 },
                 onSuperset = if (supersetAvailable) {
                     {
                         if (isSupersetAddMode) {
-                            val ids = onMultiSelect(selectedRows.value.values.toList())
-                            if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                            if (allPendingSelectionsValid) {
+                                val pending = validatedSelectionRows.values.toList()
+                                val fingerprint = catalogSelectionFingerprint(pending)
+                                if (fingerprint != lastConfirmedMultiSelection) {
+                                    val ids = onMultiSelect(pending)
+                                    if (ids.isNotEmpty()) {
+                                        lastConfirmedMultiSelection = fingerprint
+                                        if (dismissAfterMultiSelect) onDismiss()
+                                    }
+                                }
+                            }
                         } else {
                             showSupersetConfigurator = true
                         }
@@ -1825,14 +2033,97 @@ internal fun catalogInlineAxes(
 internal fun catalogAxisChoicesComplete(
     definition: ExerciseDefinitionV2,
     selectedOptions: Map<String, String>,
-): Boolean {
+    explicitConfigurationId: String? = null,
+): Boolean = exactCatalogConfigurationId(definition, selectedOptions, explicitConfigurationId) != null
+
+internal fun catalogMissingApplicableAxes(
+    definition: ExerciseDefinitionV2,
+    selectedOptions: Map<String, String>,
+): List<String> {
     val compatible = definition.configurations.filter { configuration ->
         selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
     }
-    if (compatible.isEmpty()) return false
-    return definition.optionAxes.all { axis ->
-        val appliesToSelection = compatible.any { axis in it.selectedOptions }
-        !appliesToSelection || !selectedOptions[axis].isNullOrBlank()
+    return definition.optionAxes.filter { axis ->
+        compatible.any { axis in it.selectedOptions } && selectedOptions[axis].isNullOrBlank()
+    }
+}
+
+/** Returns an identity only when the person's choices select one materialized row exactly. */
+internal fun exactCatalogConfigurationId(
+    definition: ExerciseDefinitionV2,
+    selectedOptions: Map<String, String>,
+    explicitConfigurationId: String? = null,
+): String? {
+    if (definition.optionAxes.isEmpty()) {
+        if (definition.configurations.size == 1) return definition.configurations.single().id
+        return explicitConfigurationId?.takeIf { id ->
+            definition.configurations.any { it.id == id } && explicitConfigurationIdHasUniqueLabel(definition)
+        }
+    }
+    val compatible = definition.configurations.filter { configuration ->
+        selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
+    }
+    if (compatible.isEmpty()) return null
+    val applicableAxes = compatible.flatMap { configuration ->
+        definition.optionAxes.filter { axis -> axis in configuration.selectedOptions }
+    }.toSet()
+    if (applicableAxes.any { selectedOptions[it].isNullOrBlank() }) return null
+    return compatible.singleOrNull()?.id
+}
+
+internal fun explicitConfigurationChoices(definition: ExerciseDefinitionV2): List<ExerciseConfigurationV2> =
+    definition.configurations.takeIf { configurations ->
+        definition.optionAxes.isEmpty() && configurations.size > 1 && explicitConfigurationIdHasUniqueLabel(definition)
+    }.orEmpty()
+
+private fun explicitConfigurationIdHasUniqueLabel(definition: ExerciseDefinitionV2): Boolean {
+    val labels = definition.configurations.map { it.displaySummary.trim() }
+    return labels.all(String::isNotBlank) && labels.distinct().size == labels.size
+}
+
+internal fun replaceOrAddCatalogSelection(
+    selected: Map<String, ExerciseMuscleInfo>,
+    replacedKey: String?,
+    info: ExerciseMuscleInfo,
+): Map<String, ExerciseMuscleInfo> {
+    val newKey = info.catalogConfigurationId?.takeIf(String::isNotBlank) ?: info.id
+    val duplicate = selected.any { (key, existing) ->
+        key != replacedKey && existing.catalogConfigurationId == info.catalogConfigurationId &&
+            !info.catalogConfigurationId.isNullOrBlank()
+    }
+    if (duplicate) return selected
+    if (replacedKey == null) {
+        if (newKey in selected) return selected
+        return LinkedHashMap(selected).apply { put(newKey, info) }
+    }
+    if (replacedKey !in selected) return selected
+    return LinkedHashMap<String, ExerciseMuscleInfo>().apply {
+        selected.forEach { (key, value) ->
+            if (key == replacedKey) put(newKey, info) else put(key, value)
+        }
+    }
+}
+
+internal fun catalogSelectionFingerprint(infos: List<ExerciseMuscleInfo>): String =
+    infos.joinToString("|") { it.catalogConfigurationId?.takeIf(String::isNotBlank) ?: it.id }
+
+@Composable
+internal fun ExplicitCatalogConfigurationChoices(
+    definition: ExerciseDefinitionV2,
+    selectedConfigurationId: String?,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.padding(start = 60.dp, bottom = 8.dp)) {
+        Text("Configuración", style = KpknType.caption, color = WizardColors.textMuted)
+        definition.configurations.forEach { configuration ->
+            TextButton(onClick = { onSelect(configuration.id) }) {
+                Text(
+                    text = configuration.displaySummary,
+                    color = if (configuration.id == selectedConfigurationId) WizardColors.text else WizardColors.textMuted,
+                )
+            }
+        }
     }
 }
 
@@ -1878,14 +2169,11 @@ internal fun resolveSelectedCatalogConfigurationId(
     initialConfigurationId: String?,
 ): String? {
     fun exists(id: String?) = !id.isNullOrBlank() && definition.configurations.any { it.id == id }
+    val exactDraft = draftOptions?.let { exactCatalogConfigurationId(definition, it) }
+    if (exists(exactDraft)) return exactDraft
     if (exists(previousConfigurationId)) return previousConfigurationId
-    val default = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
-    val fromDraft = draftOptions?.takeIf { it.isNotEmpty() }?.let { options ->
-        bestMatchingConfigurationId(definition, options, default)
-    }
-    if (fromDraft != null) return fromDraft
     if (exists(initialConfigurationId)) return initialConfigurationId
-    return default?.id
+    return null
 }
 
 internal fun restoreSelectedCatalogRows(
@@ -1948,6 +2236,25 @@ private fun exactInfo(
             catalogRevision = catalog.catalogRevision,
         ),
     )
+}
+
+internal fun isValidPendingCatalogSelection(
+    catalog: ExerciseCatalogV2,
+    info: ExerciseMuscleInfo,
+): Boolean {
+    if (info.isCustom) return true
+    val definition = catalog.families.asSequence().flatMap { it.definitions.asSequence() }
+        .firstOrNull { candidate ->
+            candidate.id == info.catalogDefinitionId || candidate.configurations.any { it.id == info.catalogConfigurationId || it.id == info.id }
+        } ?: return false
+    val configurationId = info.catalogConfigurationId?.takeIf(String::isNotBlank) ?: info.id
+    val configuration = definition.configurations.firstOrNull { it.id == configurationId } ?: return false
+    return if (definition.optionAxes.isEmpty()) {
+        definition.configurations.size == 1 && definition.configurations.single().id == configurationId ||
+            explicitConfigurationChoices(definition).any { it.id == configurationId }
+    } else {
+        exactCatalogConfigurationId(definition, configuration.selectedOptions) == configurationId
+    }
 }
 
 private fun draftAfterAxisSelection(

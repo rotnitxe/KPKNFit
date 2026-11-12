@@ -44,7 +44,7 @@ class NutritionFoodUsageBackupTest {
                 wellbeingLogs = emptyList(), sleepLogs = emptyList(), sleepLogsExtended = emptyList(), postSessionFeedback = emptyList(),
                 sessionTemplates = emptyList(), customExercises = emptyList(), db = db,
             ).let { dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(it)) }
-            assertEquals(8, payload.schemaVersion)
+            assertEquals(9, payload.schemaVersion)
             assertTrue(payload.includesFoodUsageSection)
             assertEquals(setOf("orphan-product", "catalog-local"), payload.foodUsage.map { it.foodId }.toSet())
             db.nutritionCatalogDao().recordUse("extra", "2026-10-24T11:00:00Z")

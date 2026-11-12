@@ -110,7 +110,18 @@ class ExercisePickerConfigFallbackTest {
         assertFalse(catalogAxisChoicesComplete(definition, mapOf("setup" to "standing")))
         assertTrue(catalogAxisChoicesComplete(definition, mapOf("setup" to "standing", "implement" to "cable")))
 
-        val axisless = definition.copy(optionAxes = emptyList())
-        assertTrue(catalogAxisChoicesComplete(axisless, emptyMap()))
+        val ambiguousAxisless = definition.copy(optionAxes = emptyList())
+        assertFalse(catalogAxisChoicesComplete(ambiguousAxisless, emptyMap()))
+        assertNull(exactCatalogConfigurationId(ambiguousAxisless, emptyMap()))
+        assertTrue(explicitConfigurationChoices(ambiguousAxisless).isNotEmpty())
+
+        val singleAxisless = ambiguousAxisless.copy(configurations = listOf(ambiguousAxisless.configurations.first()))
+        assertTrue(catalogAxisChoicesComplete(singleAxisless, emptyMap()))
+        assertEquals(singleAxisless.configurations.single().id, exactCatalogConfigurationId(singleAxisless, emptyMap()))
+        assertTrue(catalogAxisChoicesComplete(ambiguousAxisless, emptyMap(), "parent__standing__cable"))
+        assertEquals(
+            "parent__standing__cable",
+            exactCatalogConfigurationId(ambiguousAxisless, emptyMap(), "parent__standing__cable"),
+        )
     }
 }

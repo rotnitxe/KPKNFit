@@ -606,6 +606,7 @@ internal fun SessionEditorSheets(
             SessionEditorSheet.ASSISTANT -> Unit // handled as glass overlay in SessionEditorScreen
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
+                activeExercise = uiState.quickActionsExerciseId?.let { id -> session.allExercises().firstOrNull { it.id == id } },
                 selectedMobilityIds = mobilityTargetSeries.map { it.catalogIdentityKey() }.toSet(),
                 onAdd = onAddMobilityExercise,
                 onRemove = onRemoveMobilityExercise,

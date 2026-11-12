@@ -195,4 +195,36 @@ class JointMobilityTest {
         val mapped = JointMobility.allJointIds.map(::nfc).toSet()
         assertTrue("articulaciones del catálogo sin mapa: ${usedByCatalog - mapped}", mapped.containsAll(usedByCatalog))
     }
+
+    @Test
+    fun exercise_metadata_ranks_primary_then_secondary_joints_and_matches_muscle_ids() {
+        val recommendations = JointMobility.recommendationsFor(
+            primaryJointIds = listOf("glenohumeral"),
+            secondaryJointIds = listOf("cadera"),
+            primaryMuscleIds = listOf("latissimus_dorsi"),
+            secondaryMuscleIds = emptyList(),
+            limit = 4,
+        )
+        assertEquals(4, recommendations.size)
+        assertTrue(recommendations.first().matchedPrimaryJoints.contains(JointMobility.GLENOHUMERAL))
+        assertTrue(recommendations.first().reason.startsWith("Articulación principal:"))
+
+        val muscleOnly = JointMobility.recommendationsFor(
+            primaryJointIds = emptyList(), secondaryJointIds = emptyList(),
+            primaryMuscleIds = listOf("latissimus_dorsi"), secondaryMuscleIds = emptyList(), limit = 4,
+        )
+        assertTrue(muscleOnly.any { "dorsal ancho" in it.matchedMuscles })
+        assertTrue(muscleOnly.all { it.reason.startsWith("Músculos implicados:") })
+
+        val excluded = recommendations.first().movement.id
+        assertTrue(JointMobility.recommendationsFor(
+            primaryJointIds = listOf("glenohumeral"), secondaryJointIds = emptyList(),
+            primaryMuscleIds = emptyList(), secondaryMuscleIds = emptyList(),
+            excludedMovementIds = setOf(excluded), limit = 4,
+        ).none { it.movement.id == excluded })
+        assertTrue(JointMobility.recommendationsFor(
+            primaryJointIds = listOf("unknown"), secondaryJointIds = emptyList(),
+            primaryMuscleIds = listOf("unknown-muscle"), secondaryMuscleIds = emptyList(),
+        ).isEmpty())
+    }
 }

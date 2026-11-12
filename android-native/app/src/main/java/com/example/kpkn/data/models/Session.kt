@@ -323,6 +323,8 @@ data class Exercise(
     val effectiveMuscles: List<InvolvedMuscle>? = null,
     val selectedExecutionOption: String? = null,
     val selectedMovementPattern: String? = null,
+    /** Optional stable workout_tags UUID chosen for this planned exercise. */
+    val workoutTagId: String? = null,
     val prFor1RM: PrReference? = null,
     val consolidatedWeight: ConsolidatedWeight? = null,
     val brandEquivalencies: List<BrandEquivalency> = emptyList(),
@@ -745,7 +747,13 @@ data class ExerciseSetupDetails(
 data class PrReference(
     val weight: Double,
     val reps: Int,
+    /** Null preserves historical PRs whose effort was not recorded. */
+    val effortMode: PrEffortMode? = null,
+    val effortValue: Double? = null,
 )
+
+@Serializable
+enum class PrEffortMode { RPE, RIR, FAILURE }
 
 @Serializable
 data class ConsolidatedWeight(
