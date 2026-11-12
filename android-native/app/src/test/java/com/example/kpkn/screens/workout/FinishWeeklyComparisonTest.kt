@@ -72,4 +72,99 @@ class FinishWeeklyComparisonTest {
         val result = buildFinishLiftProgress(listOf(exercise("today", 100.0)), listOf(old), today).single()
         assertNull(result.previousWeek)
     }
+
+    @Test
+    fun unrecoverableLastreAndMixedRepsSuppressBogusKgDelta() {
+        val today = LocalDate.of(2026, 11, 9)
+        val todayUnrecoverable = CompletedExercise(
+            exerciseId = "dip",
+            exerciseName = "Fondos lastrados",
+            sets = listOf(
+                CompletedSet(
+                    id = "today-dip",
+                    weight = 78.0,
+                    reps = 6,
+                    loadMode = LoadModeV2.LASTRE,
+                ),
+            ),
+        )
+        val prevLog = WorkoutLog(
+            id = "prev",
+            programId = "p",
+            sessionId = "s",
+            sessionName = "Tirón",
+            date = "2026-11-04T10:00:00.000Z",
+            durationMinutes = 40,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "dip",
+                    exerciseName = "Fondos lastrados",
+                    sets = listOf(
+                        CompletedSet(
+                            id = "prev-dip",
+                            weight = 75.0,
+                            reps = 6,
+                            loadMode = LoadModeV2.LASTRE,
+                        ),
+                    ),
+                ),
+                CompletedExercise(
+                    exerciseId = "bench",
+                    exerciseName = "Press banca",
+                    exerciseDbId = "bench",
+                    canonicalExerciseId = "bench",
+                    sets = listOf(
+                        CompletedSet(
+                            id = "prev-bench",
+                            weight = 100.0,
+                            reps = 8,
+                            loadMode = LoadModeV2.LOAD,
+                            originalLoad = 100.0,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val benchToday = exercise("today-bench", 105.0)
+        val progress = buildFinishLiftProgress(listOf(todayUnrecoverable, benchToday), listOf(prevLog), today)
+        assertNull(progress[0].deltaKg)
+        assertEquals(false, progress[0].previousWeek?.loadKnown)
+        // Mixed reps (5 today vs 8 previous): no bogus kg delta even on LOAD.
+        assertNull(progress[1].deltaKg)
+    }
+
+    @Test
+    fun assistedRanksLowerAssistanceFirstAndDoesNotEmitBogusKgGain() {
+        val today = LocalDate.of(2026, 11, 9)
+        fun assistedSet(id: String, assistance: Double) = CompletedSet(
+            id = id,
+            weight = 0.0,
+            reps = 8,
+            loadMode = LoadModeV2.ASSISTED,
+            originalLoad = assistance,
+            recordedPayloadV3 = RecordedSetPayload(
+                actualValue = 8.0,
+                exerciseId = "pullup",
+                loadInputMode = LoadModeV2.ASSISTED,
+                unitMode = UnitModeV2.REPS,
+                assistedLoad = assistance,
+                completedReps = 8,
+            ),
+        )
+        val prevLog = WorkoutLog(
+            id = "prev",
+            programId = "p",
+            sessionId = "s",
+            sessionName = "Tirón",
+            date = "2026-11-04T10:00:00.000Z",
+            durationMinutes = 40,
+            completedExercises = listOf(
+                CompletedExercise("pullup", "Dominadas asistidas", sets = listOf(assistedSet("p1", 30.0), assistedSet("p2", 20.0))),
+            ),
+        )
+        val todayEx = CompletedExercise("pullup", "Dominadas asistidas", sets = listOf(assistedSet("t1", 15.0)))
+        val lift = buildFinishLiftProgress(listOf(todayEx), listOf(prevLog), today).single()
+        assertNull(lift.deltaKg)
+        assertEquals(20.0, lift.previousWeek?.weight ?: -1.0, 0.0)
+    }
 }

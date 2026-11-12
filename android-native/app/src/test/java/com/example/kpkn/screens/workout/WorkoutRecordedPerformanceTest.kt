@@ -37,7 +37,7 @@ class WorkoutRecordedPerformanceTest {
         assertEquals(1.0, after.debt, 0.0)
         assertNotEquals(initial.homologatedResultV3!!.estimatedRm, after.homologatedResultV3!!.estimatedRm)
         assertEquals(3.0, after.homologatedResultV3!!.actualValue, 0.0)
-        assertEquals(3, after.homologatedResultV3!!.estimatorVersion)
+        assertEquals(com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION, after.homologatedResultV3!!.estimatorVersion)
     }
 
     @Test fun movingTheSameObservationsMustNotChangeTheirStatisticalOrder() {

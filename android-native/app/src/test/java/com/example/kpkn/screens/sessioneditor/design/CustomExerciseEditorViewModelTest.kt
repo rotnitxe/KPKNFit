@@ -4,9 +4,12 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.testsupport.MotCatalog
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.test.*
+import kotlin.coroutines.CoroutineContext
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -217,5 +220,133 @@ class CustomExerciseEditorViewModelTest {
             ),
             editor.state.value.saved!!.catalogVariantChips,
         )
+    }
+
+    @Test fun debounceYResultadosFueraDeOrdenNuncaPermitenRevisarOGuardarLaIdentidadAnterior() = runTest(dispatcher) {
+        val pendingPreviewTasks = mutableListOf<Runnable>()
+        val manualPreviewDispatcher = object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                pendingPreviewTasks += block
+            }
+        }
+        var savedInfo: ExerciseMuscleInfo? = null
+        val editor = CustomExerciseEditorViewModel(
+            initial = null,
+            initialName = "Sentadilla con barra",
+            catalog = MotCatalog.legacyDefaultCatalog,
+            catalogV2 = MotCatalog.catalog,
+            persist = { info -> savedInfo = info; Result.success(info) },
+            importPhoto = { _, _ -> error("no photo") },
+            previewDispatcher = manualPreviewDispatcher,
+        )
+        advanceTimeBy(360)
+        runCurrent()
+        assertEquals(1, pendingPreviewTasks.size)
+        pendingPreviewTasks.removeAt(0).run()
+        advanceUntilIdle()
+        assertTrue(editor.state.value.isPreviewCurrent)
+
+        editor.edit {
+            it.copy(
+                implement = SmartExerciseCreator.IMPLEMENTO_IDS.first(),
+                station = SmartExerciseCreator.ESTACION_IDS.first(),
+                laterality = SmartExerciseCreator.LATERALIDAD_IDS.first(),
+            )
+        }
+        advanceTimeBy(360)
+        runCurrent()
+        pendingPreviewTasks.removeAt(0).run()
+        advanceUntilIdle()
+        editor.review(true)
+        assertTrue(editor.state.value.reviewed)
+
+        // Rapid identity switch #1 ("Press inclinado"): blocked during 350ms debounce & slow preview computation.
+        editor.edit { it.copy(name = "Press inclinado propio") }
+        assertFalse(editor.state.value.reviewed)
+        assertTrue(editor.state.value.recalculating)
+        advanceTimeBy(150)
+        runCurrent()
+        editor.review(true)
+        editor.save()
+        assertFalse(editor.state.value.reviewed)
+        assertNull(savedInfo)
+
+        // Advance past 350ms so task #1 is dispatched to manualPreviewDispatcher (held uncompleted).
+        advanceTimeBy(250)
+        runCurrent()
+        assertEquals(1, pendingPreviewTasks.size)
+
+        // Identity switch #2 ("Peso muerto rumano propio") before task #1 completes.
+        editor.edit { it.copy(name = "Peso muerto rumano propio") }
+        advanceTimeBy(360)
+        runCurrent()
+        assertEquals(2, pendingPreviewTasks.size)
+
+        // Out-of-order completion: task #2 (index 1) finishes BEFORE stale task #1 (index 0).
+        pendingPreviewTasks[1].run()
+        advanceUntilIdle()
+        assertEquals("Peso muerto rumano propio", editor.state.value.preview!!.exercise.name)
+        assertTrue(editor.state.value.isPreviewCurrent)
+
+        // Late task #1 arrives after task #2 already published — must be ignored cleanly.
+        pendingPreviewTasks[0].run()
+        advanceUntilIdle()
+        assertEquals("Peso muerto rumano propio", editor.state.value.preview!!.exercise.name)
+        assertTrue(editor.state.value.isPreviewCurrent)
+
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+        assertEquals("Peso muerto rumano propio", savedInfo!!.name)
+    }
+
+    @Test fun nombreVacioTemporalConservaBorradorYAporteEditadoSeConservaAlReabrir() = runTest(dispatcher) {
+        var savedInfo: ExerciseMuscleInfo? = null
+        val editor = vm("Curl propio", save = { info -> savedInfo = info; Result.success(info) })
+        advanceUntilIdle()
+        editor.edit {
+            it.copy(
+                implement = SmartExerciseCreator.IMPLEMENTO_IDS.first(),
+                station = SmartExerciseCreator.ESTACION_IDS.first(),
+                laterality = SmartExerciseCreator.LATERALIDAD_IDS.first(),
+            )
+        }
+        advanceUntilIdle()
+        editor.review(true)
+        assertTrue(editor.state.value.reviewed)
+
+        val customMuscles = listOf(
+            InvolvedMuscle("Bíceps", MuscleRole.PRIMARY, 0.85),
+            InvolvedMuscle("Antebrazo", MuscleRole.SECONDARY, 0.70),
+            InvolvedMuscle("Core", MuscleRole.STABILIZER, 0.40),
+        )
+        editor.edit { it.copy(description = "Codos pegados", muscles = customMuscles) }
+        // Changing muscles must invalidate prior technical review and apply contributions immediately.
+        assertFalse(editor.state.value.reviewed)
+        assertEquals(customMuscles, editor.state.value.preview!!.exercise.involvedMuscles)
+        assertEquals("Codos pegados", editor.state.value.preview!!.exercise.description)
+
+        // Clearing name temporarily preserves typed description, muscles & axes.
+        editor.edit { it.copy(name = "") }
+        assertNull(editor.state.value.preview)
+        assertEquals("Codos pegados", editor.state.value.description)
+        assertEquals(customMuscles, editor.state.value.muscles)
+        assertFalse(editor.state.value.isPreviewCurrent)
+
+        // Re-typing final name recalculates and keeps draft muscles + description.
+        editor.edit { it.copy(name = "Curl concentrado propio") }
+        advanceUntilIdle()
+        editor.review(true)
+        editor.save()
+        advanceUntilIdle()
+
+        assertEquals("Curl concentrado propio", savedInfo!!.name)
+        assertEquals("Codos pegados", savedInfo!!.description)
+        assertEquals(customMuscles, savedInfo!!.involvedMuscles)
+
+        // Reopening existing custom exercise preserves customized 0.85/0.70/0.40 contributions until edited.
+        val reopened = vm("", initial = savedInfo)
+        advanceUntilIdle()
+        assertEquals(customMuscles, reopened.state.value.preview!!.exercise.involvedMuscles)
     }
 }

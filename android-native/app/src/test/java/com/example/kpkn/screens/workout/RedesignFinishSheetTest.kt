@@ -195,4 +195,80 @@ class RedesignFinishSheetTest {
         rule.onNodeWithText("Descartar").performClick()
         rule.runOnIdle { assertTrue(discarded) }
     }
+
+    @Test fun negativeDeltaFormatsMinusAndShareSwitchCancelsPendingShare() {
+        var cancelled = false
+        val today = java.time.LocalDate.of(2026, 11, 9)
+        val previousLog = WorkoutLog(
+            id = "prev",
+            programId = "p",
+            sessionId = "s",
+            sessionName = "Empuje",
+            date = "2026-11-04T10:00:00.000Z",
+            durationMinutes = 40,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "bench",
+                    exerciseName = "Press banca",
+                    exerciseDbId = "bench",
+                    canonicalExerciseId = "bench",
+                    sets = listOf(
+                        CompletedSet(
+                            id = "p1",
+                            weight = 100.0,
+                            reps = 5,
+                            loadMode = LoadModeV2.LOAD,
+                            originalLoad = 100.0,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val todayEx = listOf(
+            CompletedExercise(
+                exerciseId = "bench",
+                exerciseName = "Press banca",
+                exerciseDbId = "bench",
+                canonicalExerciseId = "bench",
+                sets = listOf(
+                    CompletedSet(
+                        id = "t1",
+                        weight = 95.0,
+                        reps = 5,
+                        loadMode = LoadModeV2.LOAD,
+                        originalLoad = 95.0,
+                    ),
+                ),
+            ),
+        )
+        val presentation = FinishPresentationContext(history = listOf(previousLog), today = today)
+        var shareArmed = false
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    RecordedSessionFinishSheet(
+                        name = "Empuje",
+                        completedExercises = todayEx,
+                        durationMinutes = 40,
+                        initialNotes = "",
+                        saving = false,
+                        presentation = presentation,
+                        onShareAfterSave = { _, _ -> shareArmed = true },
+                        onCancelShareAfterSave = { cancelled = true },
+                        onNotes = {},
+                        onAlbum = {},
+                        onConfirm = { _, _ -> },
+                        onDismiss = {},
+                    )
+                }
+            }
+        }
+        rule.onNodeWithText("−5 kg", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("finish-week-comparison").assertIsDisplayed()
+        rule.onNodeWithTag("finish-share-switch").performClick()
+        rule.onNodeWithTag("finish-save").performClick()
+        rule.runOnIdle { assertTrue(shareArmed) }
+        rule.onNodeWithTag("finish-share-switch").performClick()
+        rule.runOnIdle { assertTrue(cancelled) }
+    }
 }

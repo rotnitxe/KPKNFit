@@ -59,7 +59,10 @@ class PerformanceRangeStore(appContext: Context) {
             val isTechnicalInvalid = techQuality <= 2
 
             val rawSessionErm = completedEx.sets.mapNotNull { set ->
-                if (set.weight > 0 && set.reps > 0) {
+                val externalWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0
+                if (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) &&
+                    externalWeight > 0 && set.reps > 0
+                ) {
                     StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
                 } else {
                     null

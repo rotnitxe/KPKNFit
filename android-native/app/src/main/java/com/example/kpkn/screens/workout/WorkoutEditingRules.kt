@@ -72,35 +72,46 @@ object WorkoutEditingRules {
         else -> "${exerciseId}_${setIdx}"
     }
 
-    fun liveEditPersistenceScope(program: Program): WorkoutLiveEditPersistenceScope {
-        val isSimpleCyclic = program.isSimpleProgram &&
-            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
-            program.calendarization?.mode != ProgramCalendarizationMode.SIMPLE_DATED
-        return if (isSimpleCyclic) {
+    fun liveEditPersistenceScope(
+        program: Program,
+        sessionId: String? = null,
+    ): WorkoutLiveEditPersistenceScope {
+        val allSessions = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+        val sessionEditable = sessionId == null || allSessions.any { it.id == sessionId }
+        return if (allSessions.isNotEmpty() && sessionEditable) {
             WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
         } else {
             WorkoutLiveEditPersistenceScope.SESSION_ONLY
         }
     }
 
-    fun canPersistLiveStructuralChanges(program: Program): Boolean =
-        liveEditPersistenceScope(program) == WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
+    fun canPersistLiveStructuralChanges(
+        program: Program,
+        sessionId: String? = null,
+    ): Boolean = liveEditPersistenceScope(program, sessionId) == WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED
 
     fun replacementPersistenceOptions(
         program: Program,
         sessionId: String? = null,
     ): List<ReplacementPersistenceScopeV2> = when {
-        canPersistLiveStructuralChanges(program) -> listOf(
+        !canPersistLiveStructuralChanges(program, sessionId) -> listOf(
             ReplacementPersistenceScopeV2.SESSION_ONLY,
-            ReplacementPersistenceScopeV2.PERMANENT,
         )
         program.structure.name == "COMPLEX" &&
             sessionId != null &&
             hasRepeatedLogicalSessionInBlock(program, sessionId) -> listOf(
             ReplacementPersistenceScopeV2.SESSION_ONLY,
+            ReplacementPersistenceScopeV2.PERMANENT,
             ReplacementPersistenceScopeV2.BLOCK_MATCHING,
         )
-        else -> listOf(ReplacementPersistenceScopeV2.SESSION_ONLY)
+        else -> listOf(
+            ReplacementPersistenceScopeV2.SESSION_ONLY,
+            ReplacementPersistenceScopeV2.PERMANENT,
+        )
     }
 
     fun hasRepeatedLogicalSessionInBlock(program: Program, sessionId: String): Boolean {

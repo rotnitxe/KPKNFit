@@ -5,7 +5,7 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.domain.training.ProgramProgressEngine
-import com.example.kpkn.domain.training.requiresNativeWeekInstances
+import com.example.kpkn.domain.training.usesCycleWeekInstances
 
 data class PlannedMuscleLoad(val muscleName: String, val plannedSets: Double, val highEffortTargetSets: Double)
 data class PlannedLoadProjection(val weekId: String, val loads: List<PlannedMuscleLoad>, val notes: List<String>,
@@ -25,7 +25,7 @@ object PlannedLoadProjector {
         val ordered = hierarchy.orderedWeeks()
         val index = ordered.indexOfFirst { it.week.id == current }
         if (index < 0) return null
-        val repeating = program.requiresNativeWeekInstances() || program.isSimpleProgram && !program.isSimpleLinearProgram && !program.isSimpleCalendarizedProgram
+        val repeating = program.usesCycleWeekInstances() || (program.isSimpleProgram && program.repeatsIndefinitely && !program.isSimpleCalendarizedProgram)
         val wrap = index == ordered.lastIndex
         if (wrap && !repeating) return null
         val next = ordered[if (wrap) 0 else index + 1].week

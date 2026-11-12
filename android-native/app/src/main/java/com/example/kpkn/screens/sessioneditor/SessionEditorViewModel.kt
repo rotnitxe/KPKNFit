@@ -64,6 +64,9 @@ internal data class PersistedSessionEditorDraft(
      * versioned: its [ruleDefaults] win as a whole, as they always did.
      */
     val committedRuleBaseline: SessionEditorCommittedRuleBaseline? = null,
+    val baselineSession: Session? = null,
+    val baselineLastModifiedAtMs: Long? = null,
+    val liveModifiedAtMs: Long? = null,
 )
 
 private sealed interface SessionEditorLoadResult {
@@ -408,6 +411,7 @@ class SessionEditorViewModel(
             sessionId = sessionId,
         )
         val decoded = withContext(Dispatchers.IO) {
+            draftStore.writer.awaitLatest(key)
             val raw = draftStore.readRaw(key) ?: return@withContext null
             runCatching { draftJson.decodeFromString<PersistedSessionEditorDraft>(raw) }.getOrNull()
         } ?: return null
@@ -439,6 +443,9 @@ class SessionEditorViewModel(
             committedRuleLimits = state.savedRuleLimits,
             // Built here, from an immutable state snapshot, never while encoding in IO.
             committedRuleBaseline = SessionEditorCommittedRuleBaseline(ruleDefaults = state.committedRuleDefaults()),
+            baselineSession = state.originalSession,
+            baselineLastModifiedAtMs = state.originalSession?.lastModifiedAtMs,
+            liveModifiedAtMs = state.liveDraftConflict?.liveModifiedAtMs,
         )
         val key = draftStorageKey(
             weekId = state.weekId,
@@ -609,6 +616,7 @@ class SessionEditorViewModel(
                 activeVariant = WeekVariant.A,
                 availableVariants = restored?.let(::computeAvailableVariants) ?: listOf(WeekVariant.A),
                 pendingExerciseRemoval = null,
+                liveDraftConflict = null,
             )
         }
         textHistoryBaseline = null
@@ -768,9 +776,10 @@ class SessionEditorViewModel(
         val editorRulePreferences = loadEditorRulePreferencesFor(fallbackDraft.id, persistedDraft, originalSession)
         // D3: los programas históricos pueden traer espejo suelto+grupo; el
         // colapso por-id corre al abrir (nombres se reconcilian al guardar).
+        val resolution = resolveNewestSessionWithConflict(existing, fallbackDraft, persistedDraft)
         val draft = SupersetRules.normalizeSession(
             SessionCatalogNameReconciler.normalizeSessionStructure(
-                resolveNewestSession(existing, fallbackDraft, persistedDraft)
+                resolution.session
                     .normalizeEditorScheduledTechniques()
                     .normalizeMobilityCompatibility()
                     .normalizedIdentityFields(),
@@ -884,7 +893,53 @@ class SessionEditorViewModel(
             availableVariants = computeAvailableVariants(draft),
             activeVariant = WeekVariant.A,
             pendingTransferToDays = persistedDraft?.pendingTransferToDays,
+            liveDraftConflict = resolution.liveConflict,
         ))
+    }
+
+    fun resolveLiveDraftConflict(keepDraft: Boolean) {
+        val state = _uiState.value
+        val conflict = state.liveDraftConflict ?: return
+        if (keepDraft) {
+            val normalizedDraft = conflict.draftSession
+            val normalizedProgram = conflict.programSession
+            _uiState.update { current ->
+                val next = current.copy(
+                    session = normalizedDraft,
+                    originalSession = normalizedProgram,
+                    liveDraftConflict = null,
+                    availableVariants = computeAvailableVariants(normalizedDraft),
+                    weekSessions = ensureSessionInList(current.weekSessions, normalizedDraft),
+                    siblingSessions = ensureSessionInList(current.siblingSessions, normalizedDraft).sortedBy { it.dayOfWeek ?: 99 },
+                )
+                next.copy(hasUnsavedChanges = next.hasMeaningfulDraftChanges())
+            }
+            persistDraft()
+        } else {
+            val normalizedProgram = conflict.programSession
+            viewModelScope.launch {
+                clearPersistedDraft(
+                    weekId = state.weekId,
+                    macroIndex = state.macroIndex,
+                    mesoIndex = state.mesoIndex,
+                    sessionId = normalizedProgram.id,
+                )
+            }
+            _uiState.update { current ->
+                val next = current.copy(
+                    session = normalizedProgram,
+                    originalSession = normalizedProgram,
+                    liveDraftConflict = null,
+                    availableVariants = computeAvailableVariants(normalizedProgram),
+                    activeVariant = WeekVariant.A,
+                    weekSessions = ensureSessionInList(current.weekSessions, normalizedProgram),
+                    siblingSessions = ensureSessionInList(current.siblingSessions, normalizedProgram).sortedBy { it.dayOfWeek ?: 99 },
+                    pendingExerciseRemoval = null,
+                )
+                next.copy(hasUnsavedChanges = next.hasMeaningfulDraftChanges())
+            }
+            refreshDerivedStateImmediate()
+        }
     }
 
     private fun buildCompetitionMovementIds(program: Program): Set<String> {

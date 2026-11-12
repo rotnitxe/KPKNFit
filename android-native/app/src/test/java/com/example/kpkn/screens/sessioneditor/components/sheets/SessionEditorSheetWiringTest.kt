@@ -146,4 +146,56 @@ class SessionEditorSheetWiringTest {
         assertTrue(delete.height >= 48f)
         assertTrue(delete.top > rule.onNodeWithTag("quick-action-duplicar").fetchSemanticsNode().boundsInRoot.bottom)
     }
+
+    /** Req 9: distintas configuraciones de una definición resuelven su imagen exacta sin mezclar miniaturas ni caer en texto visible. */
+    @Test
+    fun accionesRapidasResuelveImagenPorConfiguracionYRespetaPropioOSinImagen() {
+        val flatPike = Exercise(
+            id = "pike-occ",
+            name = "Flexión en pica",
+            catalogDefinitionId = "pike_push_up",
+            catalogConfigurationId = "pike_push_up__flat",
+            sets = listOf(ExerciseSet(id = "s1", targetRepsRange = RepRange(8, 12))),
+        )
+        val elevatedPike = flatPike.copy(catalogConfigurationId = "pike_push_up__feet_elevated")
+        val noImagePullup = Exercise(
+            id = "pullup-wide",
+            name = "Dominadas supinas anchas",
+            catalogDefinitionId = "pull_up",
+            catalogConfigurationId = "pull_up__supinated__wide",
+            sets = listOf(ExerciseSet(id = "s2", targetReps = 8)),
+        )
+        val customEx = Exercise(
+            id = "custom:mi_prensa",
+            name = "Mi prensa especial",
+            exerciseDbId = null,
+            sets = listOf(ExerciseSet(id = "s3", targetReps = 10)),
+        )
+        val flatRes = quickActionThumbnailRes(flatPike)
+        val elevatedRes = quickActionThumbnailRes(elevatedPike)
+        assertTrue("flat debe resolver imagen", flatRes != null)
+        assertTrue("elevated debe resolver imagen distinta", elevatedRes != null && elevatedRes != flatRes)
+        assertEquals(null, quickActionThumbnailRes(noImagePullup))
+        assertEquals(null, quickActionThumbnailRes(customEx))
+
+        var openedId: String? = null
+        rule.setContent {
+            ExerciseQuickActionsSheet(
+                exercise = elevatedPike,
+                catalog = emptyList(),
+                workoutLogs = emptyList(),
+                onOpenExerciseDetail = { openedId = it },
+                onOpenPicker = {},
+                onOpenWarmup = {},
+                onOpenMobility = {},
+                onDelete = {},
+                onManageSuperset = {},
+                onDuplicate = {},
+            )
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("Flexión en pica").assertIsDisplayed()
+        rule.onNodeWithTag("quick-action-ficha").performClick()
+        assertEquals("pike-occ", openedId)
+    }
 }

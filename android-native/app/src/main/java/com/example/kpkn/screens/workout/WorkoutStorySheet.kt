@@ -120,14 +120,17 @@ internal fun WorkoutStorySheet(
         }catch(error:CancellationException){throw error}
         catch(_:Exception){currentCoroutineContext().ensureActive();failedRequest=request;message="No se pudo crear la historia. Inténtalo de nuevo."}
     }
-    val save:()->Unit={image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
-        try{WorkoutShareService.saveImage(context,bitmap);message="Imagen guardada en Imágenes/KPKN"}
+    val save:()->Unit={bitmaps.takeIf{!busy&&!rendering&&it.isNotEmpty()}?.let{list->busy=true;scope.launch{
+        try{
+            list.forEach { WorkoutShareService.saveImage(context, it) }
+            message=if(list.size>1) "${list.size} imágenes guardadas en Imágenes/KPKN" else "Imagen guardada en Imágenes/KPKN"
+        }
         catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo guardar la imagen."}finally{busy=false}
     }}}
     val permission=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){granted->
         if(granted)save()else message="Permite guardar imágenes para añadir esta historia a tu galería. Puedes compartirla directamente."
     }
-    val enabled=!busy&&!rendering&&image!=null
+    val enabled=!busy&&!rendering&&bitmaps.isNotEmpty()
     val rendering0 = com.example.kpkn.ui.design.motion.rememberKpknPose(com.example.kpkn.screens.workout.LxSpinAnimation)
     // Miniaturas de las plantillas: la propia historia a baja resolución (una por plantilla), en cuanto se pueden dibujar.
     val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates) {
@@ -240,8 +243,8 @@ internal fun WorkoutStorySheet(
                     Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Download,null,Modifier.size(22.dp),tint=FinishCream)
                 }
                 Row(Modifier.weight(1f).height(52.dp).graphicsLayer { alpha = if (enabled) 1f else 0.38f }.clip(RoundedCornerShape(50)).background(FinishCream)
-                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
-                        try{WorkoutShareService.shareBitmap(context,bitmap)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
+                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){bitmaps.takeIf{!busy&&!rendering&&it.isNotEmpty()}?.let{list->busy=true;scope.launch{
+                        try{WorkoutShareService.shareBitmaps(context,list)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
                     }}}.padding(horizontal = 12.dp).testTag("story-share"),
                     horizontalArrangement=Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically){
                     Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Share,null,Modifier.size(17.dp),tint=Color(0xFF111111))

@@ -36,6 +36,8 @@ internal class StructuralControllerFixture private constructor(
 ) {
     /** El estado vivo de la pantalla: lo lee y lo escribe el controlador. */
     var state: WorkoutUiState = initialState
+    val rejectedMessages = mutableListOf<String>()
+    var invalidatedLiveTimestampMs: Long? = null
 
     val controller: WorkoutStructuralPersistenceController
 
@@ -85,8 +87,17 @@ internal class StructuralControllerFixture private constructor(
             getState = { state },
             updateState = { transform -> state = transform(state) },
             ports = object : WorkoutStructuralPersistenceController.Ports {
-                override fun visibleExercises(state: WorkoutUiState): List<Exercise> = state.session!!.allExercises()
-                override fun sessionForActiveMode(base: Session, mode: WeekVariant): Session = base
+                override fun onMutationRejected(message: String) {
+                    rejectedMessages += message
+                }
+                override fun visibleExercises(state: WorkoutUiState): List<Exercise> =
+                    sessionForActiveMode(state.session!!, state.activeMode).allExercises()
+                override fun sessionForActiveMode(base: Session, mode: WeekVariant): Session = when (mode) {
+                    WeekVariant.A -> base
+                    WeekVariant.B -> base.sessionB ?: base
+                    WeekVariant.C -> base.sessionC ?: base
+                    WeekVariant.D -> base.sessionD ?: base
+                }
                 override fun normalizeSupersetsForWorkout(session: Session): Session = session
                 override fun canonicalExerciseKey(exercise: Exercise): String = exercise.resolvedCanonicalExerciseId()
                 override fun activeContextProfile(exerciseId: String): WorkoutContextProfile? = null
@@ -95,6 +106,9 @@ internal class StructuralControllerFixture private constructor(
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun persistOngoingState() = Unit
                 override fun invalidateEditorDraft() = Unit
+                override fun invalidateEditorDraft(liveModifiedAtMs: Long) {
+                    invalidatedLiveTimestampMs = liveModifiedAtMs
+                }
                 override fun firstIncompleteStepKey(state: WorkoutUiState): String? = null
                 override fun stepKeyExists(state: WorkoutUiState, stepKey: String?): Boolean = false
             },

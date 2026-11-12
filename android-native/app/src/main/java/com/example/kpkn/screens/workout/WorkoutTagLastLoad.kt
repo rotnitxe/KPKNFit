@@ -146,7 +146,11 @@ internal object WorkoutTagLastLoad {
     }
 
     private fun isWorkingLoad(set: CompletedSet): Boolean =
-        !set.isWarmup && !set.skipped && set.weight > 0.0 && set.reps > 0
+        !set.isWarmup &&
+            !set.skipped &&
+            set.reps > 0 &&
+            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(set) != com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT &&
+            inputLoad(set) > 0.0
 
     private fun inputLoad(set: CompletedSet): Double =
         LoadSuggestionEngine.inputLoad(set, LoadSuggestionEngine.resolvedLoadMode(set))

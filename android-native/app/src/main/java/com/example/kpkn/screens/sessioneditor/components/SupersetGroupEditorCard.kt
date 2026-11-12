@@ -137,7 +137,7 @@ internal fun SupersetGroupEditorCard(
     val haptics = LocalHapticFeedback.current
     // Sin color de grupo (ER1b): la superserie es tinta sobre su módulo.
     val accentColor = WizardColors.text
-    val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
+    val rounds = maxOf(group.rounds ?: 0, exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
     val pendingRemovalExercise = pendingRemovalExerciseId?.let { id ->
         exercises.firstOrNull { it.id == id }
     }

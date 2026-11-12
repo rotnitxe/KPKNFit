@@ -58,7 +58,10 @@ internal fun liftSessionsOf(logs: List<WorkoutLog>): Map<String, List<LiftSessio
         for (exercise in log.completedExercises) {
             val key = ExerciseProgress.identity(exercise)
             for (set in exercise.sets) {
-                if (!set.isWorkingSet() || set.weight <= 0.0) continue
+                if (!set.isWorkingSet() ||
+                    !com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) ||
+                    (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0) <= 0.0
+                ) continue
                 val e1rm = StrengthModel.estimate1RM(set)
                 if (!e1rm.isFinite() || e1rm <= 0.0) continue
                 val current = best[key]
@@ -154,7 +157,9 @@ private fun liftSummary(sessions: List<LiftSession>): String {
 private fun liftReading(last: LiftSession, before: LiftSession, status: LiftTrendStatus, deloadWeek: Int?): String? {
     val lastRir = last.set.rir ?: return null
     val beforeRir = before.set.rir ?: return null
-    if (last.set.weight != before.set.weight || last.set.reps != before.set.reps || lastRir == beforeRir) return null
+    val lastLoad = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(last.set) ?: last.set.weight
+    val beforeLoad = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(before.set) ?: before.set.weight
+    if (lastLoad != beforeLoad || last.set.reps != before.set.reps || lastRir == beforeRir) return null
     val gap = beforeRir - lastRir
     val amount = if (kotlin.math.abs(gap) == 1) "un RIR" else "${kotlin.math.abs(gap)} RIR"
     val days = ChronoUnit.DAYS.between(before.date, last.date)
@@ -183,7 +188,8 @@ private fun agoText(days: Long): String {
 
 /** «100 kg × 8 · RIR 2»; sin RIR registrado, sin esa parte. */
 private fun setDetail(set: CompletedSet): String {
-    val base = "${kgText(set.weight)} kg × ${set.reps}"
+    val load = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: set.weight
+    val base = "${kgText(load)} kg × ${set.reps}"
     return set.rir?.let { "$base · RIR $it" } ?: base
 }
 

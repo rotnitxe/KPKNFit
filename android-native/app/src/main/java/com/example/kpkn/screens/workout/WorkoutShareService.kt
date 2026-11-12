@@ -28,8 +28,8 @@ object WorkoutShareService {
     internal fun shareAfterFinish(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions) {
         shareScope.launch {
             runCatching {
-                val bitmap = renderWorkoutStory(context.applicationContext, data, options)
-                try { shareBitmap(context, bitmap) } finally { bitmap.recycle() }
+                val bitmaps = renderWorkoutStoryPages(context.applicationContext, data, options)
+                try { shareBitmaps(context, bitmaps) } finally { bitmaps.forEach { it.recycle() } }
             }.onFailure { Toast.makeText(context, "No se pudo abrir la pantalla para compartir.", Toast.LENGTH_SHORT).show() }
         }
     }
@@ -51,8 +51,43 @@ object WorkoutShareService {
     ) {
         val data = WorkoutStoryData(sessionName, FinishPresentationContext(), durationMinutes, totalVolume, totalSets,
             finishAverageRir(completedExercises), "Sin registro", buildFinishLiftProgress(completedExercises, emptyList()))
-        val bitmap = renderWorkoutStory(context.applicationContext, data, WorkoutStoryOptions())
-        try { shareBitmap(context, bitmap) } finally { bitmap.recycle() }
+        val bitmaps = renderWorkoutStoryPages(context.applicationContext, data, WorkoutStoryOptions())
+        try { shareBitmaps(context, bitmaps) } finally { bitmaps.forEach { it.recycle() } }
+    }
+
+    internal suspend fun shareBitmaps(context: Context, bitmaps: List<Bitmap>) {
+        if (bitmaps.isEmpty()) return
+        if (bitmaps.size == 1) {
+            shareBitmap(context, bitmaps.first())
+            return
+        }
+        val uris = withContext(Dispatchers.IO) {
+            val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+            val result = ArrayList<Uri>(bitmaps.size)
+            bitmaps.forEachIndexed { index, bitmap ->
+                val file = File.createTempFile("workout-story-${index + 1}-", ".png", dir)
+                FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+                result += FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            }
+            result
+        }
+        withContext(Dispatchers.Main) {
+            val clip = ClipData.newRawUri("workout_story", uris.first()).apply {
+                uris.drop(1).forEach { addItem(ClipData.Item(it)) }
+            }
+            val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = "image/png"
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                clipData = clip
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val chooser = Intent.createChooser(send, "Compartir entrenamiento").apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(chooser)
+        }
     }
 
     internal suspend fun shareBitmap(context: Context, bitmap: Bitmap) {

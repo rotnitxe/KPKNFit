@@ -125,14 +125,16 @@ object MonthlyReportEngine {
     private fun bestMarkOf(sets: List<WorkingSetRef>): MonthlyBestMark? {
         var best: MonthlyBestMark? = null
         for (ref in sets) {
-            if (ref.set.weight <= 0.0) continue
+            if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(ref.set)) continue
+            val externalWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(ref.set) ?: 0.0
+            if (externalWeight <= 0.0) continue
             val e1rm = StrengthModel.estimate1RM(ref.set)
             if (!e1rm.isFinite() || e1rm <= 0.0) continue
             val current = best
             val wins = current == null || e1rm > current.e1rm ||
                 (e1rm == current.e1rm && !ref.date.isBefore(current.date))
             if (wins) {
-                best = MonthlyBestMark(ref.exercise.exerciseName, e1rm, ref.set.weight, ref.set.reps, ref.set.rir, ref.date)
+                best = MonthlyBestMark(ref.exercise.exerciseName, e1rm, externalWeight, ref.set.reps, ref.set.rir, ref.date)
             }
         }
         return best
@@ -181,8 +183,7 @@ object MonthlyReportEngine {
     }
 
     private fun tonnageOf(sets: List<WorkingSetRef>): Double = sets
-        .filter { it.set.weight > 0.0 }
-        .sumOf { it.set.weight * it.set.reps }
+        .sumOf { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.totalExternalTonnageKg(it.set) }
 
     private fun workingSetsOf(entries: List<DatedLog>): List<WorkingSetRef> = entries.flatMap { entry ->
         entry.log.completedExercises.flatMap { exercise ->

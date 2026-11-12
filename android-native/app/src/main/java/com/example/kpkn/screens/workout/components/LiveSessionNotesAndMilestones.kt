@@ -87,8 +87,15 @@ internal fun LiveSessionMilestonesContent(
                             !key.contains("_warmup_")
                     }
                     .values
-                    .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
-                    .maxOfOrNull { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it.weight ?: 0.0, it.reps) }
+                    .filter {
+                        !it.isWarmup &&
+                            !it.skipped &&
+                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                            (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0 &&
+                            it.reps > 0
+                    }
+                    .maxOfOrNull { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }
+                    ?.takeIf { it > 0.0 }
                     ?: 0.0
                 val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
                 Surface(

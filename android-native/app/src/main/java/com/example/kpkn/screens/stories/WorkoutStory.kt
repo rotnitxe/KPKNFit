@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
@@ -71,7 +74,29 @@ internal data class WorkoutStory(
     val bestEffort: String? = null,
     val photoPath: String? = null,
     val exerciseLines: List<WorkoutExerciseLine> = emptyList(),
+    val exerciseEyebrow: String = "E1RM",
+    val exerciseUnit: String? = "kg",
 )
+
+private fun formatStoryBestSet(set: CompletedSet): String {
+    val time = set.timeSeconds?.takeIf { it > 0 }
+    val distanceMeters = set.distanceKm?.takeIf { it > 0.0 }?.times(1000.0)
+    if (distanceMeters != null && time != null) return "${workoutThousands(distanceMeters)} m · ${time} s"
+    if (distanceMeters != null) return "${workoutThousands(distanceMeters)} m"
+    if (time != null && set.reps <= 0) return "${time} s"
+    return when (CompletedSetLoadSemantics.mode(set)) {
+        LoadModeV2.BODYWEIGHT -> "Peso corporal × ${set.reps}"
+        LoadModeV2.LASTRE -> CompletedSetLoadSemantics.externalLoadKg(set)
+            ?.let { "+${workoutKgText(it)} kg lastre × ${set.reps}" }
+            ?: "${CompletedSetLoadSemantics.displayLoad(set)} × ${set.reps}"
+        LoadModeV2.ASSISTED -> CompletedSetLoadSemantics.assistanceKg(set)
+            ?.let { "${workoutKgText(it)} kg asist. × ${set.reps}" }
+            ?: "${CompletedSetLoadSemantics.displayLoad(set)} × ${set.reps}"
+        LoadModeV2.LOAD, null -> CompletedSetLoadSemantics.externalLoadKg(set)
+            ?.let { "${workoutKgText(it)} kg × ${set.reps}" }
+            ?: "${CompletedSetLoadSemantics.displayLoad(set)} × ${set.reps}"
+    }
+}
 
 /**
  * Historia del entreno [data] con las [options]: solo entran las cifras, ganancias y ejercicio que la plantilla pide. Sin datos
@@ -81,16 +106,17 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val presentation = data.presentation
     val stats = buildList<WorkoutStat> {
         if (options.duration) add(WorkoutStat(data.durationMinutes.toString(), "min", "Duración"))
-        add(WorkoutStat(workoutThousands(data.volume), "kg", "Volumen"))
-        add(WorkoutStat(data.sets.toString(), null, "Series"))
-        val rir = data.averageRir
-        if (options.intensity && rir != null) add(WorkoutStat(workoutDecimalComma(rir), null, "RIR medio"))
+        if (data.volume > 0.0) add(WorkoutStat(workoutThousands(data.volume), "kg", "Volumen"))
+        if (data.sets > 0) add(WorkoutStat(data.sets.toString(), null, "Series"))
+        val sRpe = data.sessionRpe?.takeIf { it.isFinite() && it in 0.0..10.0 }
+        if (options.intensity && sRpe != null) add(WorkoutStat(workoutKgText(sRpe), null, "sRPE"))
     }
     val gains = if (options.improvements) {
         data.lifts
             .filter { lift ->
                 lift.isImproved && lift.best?.let {
-                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it)
+                    val mode = CompletedSetLoadSemantics.mode(it)
+                    CompletedSetLoadSemantics.supportsEstimatedOneRm(it) || mode == LoadModeV2.LASTRE
                 } == true
             }
             .sortedByDescending { it.deltaKg ?: 0.0 }
@@ -104,15 +130,87 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val lift = exerciseId?.let { id -> data.lifts.firstOrNull { it.exerciseId == id } }
     val history = lift?.history.orEmpty()
     val best = lift?.best
-    val last = history.lastOrNull()
     val exerciseLines = if (options.exerciseList) {
         val visible = data.lifts.take(8).map { WorkoutExerciseLine(it.name, "${it.setCount} series") }
         if (data.lifts.size > 8) visible + WorkoutExerciseLine("…", "${data.lifts.size - 8} más") else visible
     } else {
         emptyList()
     }
-    // Ganancia del historial: último e1RM menos el primero; solo se muestra si al redondear a la décima sigue siendo positiva.
-    val diff = if (history.size >= 2) history.last().estimated1Rm - history.first().estimated1Rm else 0.0
+    val bestMode = best?.let { CompletedSetLoadSemantics.mode(it) }
+    val supportsE1rm = best?.let { CompletedSetLoadSemantics.supportsEstimatedOneRm(it) }
+        ?: history.any { it.estimated1Rm > 0.0 }
+    val isCardio = best != null && ((best.distanceKm ?: 0.0) > 0.0 || ((best.timeSeconds ?: 0) > 0 && best.reps <= 0))
+
+    val exerciseEyebrow: String
+    val exerciseUnit: String?
+    val exerciseValue: String?
+    val exercisePoints: List<Double>
+    val exerciseDelta: String?
+
+    when {
+        isCardio && best != null -> {
+            val meters = best.distanceKm?.takeIf { it > 0.0 }?.times(1000.0)
+            val secs = best.timeSeconds?.takeIf { it > 0 }
+            if (meters != null) {
+                exerciseEyebrow = "DISTANCIA"
+                exerciseUnit = "m"
+                exerciseValue = workoutThousands(meters)
+                exercisePoints = emptyList()
+            } else {
+                exerciseEyebrow = "TIEMPO"
+                exerciseUnit = "s"
+                exerciseValue = secs?.toString()
+                exercisePoints = emptyList()
+            }
+            exerciseDelta = null
+        }
+        bestMode == LoadModeV2.LASTRE && best != null -> {
+            val ext = CompletedSetLoadSemantics.externalLoadKg(best)
+            val lastreHistory = history.filter { it.loadKnown && it.weight >= 0.0 }
+            val diff = if (lastreHistory.size >= 2) lastreHistory.last().weight - lastreHistory.first().weight else 0.0
+            exerciseEyebrow = "LASTRE"
+            exerciseUnit = if (ext != null) "kg" else null
+            exerciseValue = ext?.let(::workoutKgText)
+            exercisePoints = lastreHistory.takeLast(8).map { it.weight }
+            exerciseDelta = if (diff > 0 && workoutTenths(diff) > 0) "+${workoutKgText(diff)} kg" else null
+        }
+        bestMode == LoadModeV2.ASSISTED && best != null -> {
+            val assist = CompletedSetLoadSemantics.assistanceKg(best)
+            val assistHistory = history.filter { it.loadKnown && it.weight >= 0.0 }
+            val diff = if (assistHistory.size >= 2) assistHistory.last().weight - assistHistory.first().weight else 0.0
+            exerciseEyebrow = "ASISTENCIA"
+            exerciseUnit = if (assist != null) "kg" else null
+            exerciseValue = assist?.let(::workoutKgText)
+            exercisePoints = assistHistory.takeLast(8).map { it.weight }
+            exerciseDelta = if (diff < 0 && workoutTenths(-diff) > 0) "−${workoutKgText(-diff)} kg" else null
+        }
+        bestMode == LoadModeV2.BODYWEIGHT && best != null -> {
+            exerciseEyebrow = "PESO CORPORAL"
+            exerciseUnit = if (best.reps > 0) "reps" else "s"
+            exerciseValue = if (best.reps > 0) best.reps.toString() else best.timeSeconds?.toString()
+            exercisePoints = if (best.reps > 0) history.map { it.reps.toDouble() }.takeLast(8) else emptyList()
+            val diff = if (history.size >= 2) history.last().reps - history.first().reps else 0
+            exerciseDelta = if (diff > 0) "+$diff reps" else null
+        }
+        supportsE1rm -> {
+            val e1rmHistory = history.filter { it.estimated1Rm > 0.0 }
+            val last = e1rmHistory.lastOrNull()
+            val diff = if (e1rmHistory.size >= 2) e1rmHistory.last().estimated1Rm - e1rmHistory.first().estimated1Rm else 0.0
+            exerciseEyebrow = "E1RM"
+            exerciseUnit = "kg"
+            exerciseValue = last?.let { workoutKgText(it.estimated1Rm) }
+            exercisePoints = e1rmHistory.takeLast(8).map { it.estimated1Rm }
+            exerciseDelta = if (diff > 0 && workoutTenths(diff) > 0) "+${workoutKgText(diff)} kg" else null
+        }
+        else -> {
+            exerciseEyebrow = "SERIE"
+            exerciseUnit = null
+            exerciseValue = null
+            exercisePoints = emptyList()
+            exerciseDelta = null
+        }
+    }
+
     return WorkoutStory(
         dateLine = workoutDateLine(presentation.today, presentation.weekNumber),
         title = data.sessionName,
@@ -121,14 +219,16 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         gains = gains,
         records = presentation.records,
         exerciseName = lift?.name,
-        exerciseE1rm = last?.let { workoutKgText(it.estimated1Rm) },
-        exerciseDelta = if (diff > 0 && workoutTenths(diff) > 0) "+${workoutKgText(diff)} kg" else null,
+        exerciseE1rm = exerciseValue,
+        exerciseDelta = exerciseDelta,
         exerciseSessions = history.size,
-        exercisePoints = history.takeLast(8).map { it.estimated1Rm },
-        bestSet = best?.let { "${workoutKgText(it.weight)} kg × ${it.reps}" },
+        exercisePoints = exercisePoints,
+        bestSet = best?.let(::formatStoryBestSet),
         bestEffort = best?.rir?.let { "RIR $it" },
         photoPath = presentation.photos.firstOrNull()?.path,
         exerciseLines = exerciseLines,
+        exerciseEyebrow = exerciseEyebrow,
+        exerciseUnit = exerciseUnit,
     )
 }
 
@@ -780,14 +880,14 @@ private fun DrawScope.drawWorkoutExercise(story: WorkoutStory, measurer: TextMea
     val rowsTop = footTop - WORKOUT_FOOT_GAP - workoutStackHeight(rows.map { it.height })
 
     val eyebrow = measurer.storyText(
-        "$name · E1RM".uppercase(Locale.forLanguageTag("es")),
+        "$name · ${story.exerciseEyebrow}".uppercase(Locale.forLanguageTag("es")),
         WorkoutType.eyebrow,
         width = StoryCanvas.COLUMN_WIDTH.toInt(),
         maxLines = 1,
         ellipsis = true,
     )
     val value = story.exerciseE1rm?.let { measurer.storyText(it, WorkoutType.bigValue) }
-    val unit = value?.let { measurer.storyText("kg", WorkoutType.bigUnit) }
+    val unit = if (value != null) story.exerciseUnit?.let { measurer.storyText(it, WorkoutType.bigUnit) } else null
     val line = measurer.workoutDeltaLine(story.exerciseDelta, story.exerciseSessions)
     val blockTop = rowsTop - WORKOUT_EXERCISE_BLOCK_GAP - workoutNumberBlockHeight(eyebrow, value, line)
 
@@ -826,8 +926,8 @@ private fun DrawScope.drawWorkoutPhotos(story: WorkoutStory, measurer: TextMeasu
         size = Size(StoryCanvas.WIDTH.toFloat(), StoryCanvas.HEIGHT - WORKOUT_FADE_TOP),
     )
     val footTop = drawStoryFoot(measurer, WORKOUT_FOOT, bottom = WORKOUT_PHOTO_FOOT_BOTTOM)
-    // La línea de Fotos lleva tres cifras como el prototipo (duración, volumen y series): el RIR medio queda para Sesión.
-    val photoStats = story.stats.filterNot { it.label == "RIR medio" }
+    // La línea de Fotos lleva tres cifras como el prototipo (duración, volumen y series): el sRPE queda para Sesión.
+    val photoStats = story.stats.filterNot { it.label == "RIR medio" || it.label == "sRPE" }
     val natural = measurer.workoutPhotoLine(photoStats, 1f)
     val line = if (natural.width > StoryCanvas.COLUMN_WIDTH) {
         measurer.workoutPhotoLine(photoStats, StoryCanvas.COLUMN_WIDTH / natural.width)

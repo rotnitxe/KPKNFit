@@ -284,6 +284,8 @@ public struct CompletedSet: Identifiable, Codable {
     public let setOutcomeV2: SetOutcomeV2?
     public let rom: Int?
     public let assistedReps: Int?
+    public let loadMode: LoadModeV2?
+    public let originalLoad: Double?
 
     public init(
         id: String,
@@ -319,7 +321,9 @@ public struct CompletedSet: Identifiable, Codable {
         homologatedResultV3: HomologatedPerformanceResult? = nil,
         setOutcomeV2: SetOutcomeV2? = nil,
         rom: Int? = nil,
-        assistedReps: Int? = nil
+        assistedReps: Int? = nil,
+        loadMode: LoadModeV2? = nil,
+        originalLoad: Double? = nil
     ) {
         self.id = id
         self.weight = weight
@@ -355,6 +359,8 @@ public struct CompletedSet: Identifiable, Codable {
         self.setOutcomeV2 = setOutcomeV2
         self.rom = rom
         self.assistedReps = assistedReps
+        self.loadMode = loadMode
+        self.originalLoad = originalLoad
     }
 }
 
@@ -362,6 +368,80 @@ extension CompletedSet {
     public func effectiveRepEquivalent() -> Double {
         // Partial repetitions remain an independent observation, as on Android.
         return Double(max(reps, 0))
+    }
+
+    public func resolvedLoadMode() -> LoadModeV2? {
+        return loadMode
+            ?? recordedPayloadV3?.loadInputMode
+            ?? homologatedResultV3?.loadMode
+            ?? setOutcomeV2?.loadMode
+    }
+
+    public func externalLoadKg() -> Double? {
+        let valid: (Double?) -> Double? = { value in
+            guard let v = value, v.isFinite, v >= 0.0 else { return nil }
+            return v
+        }
+        switch resolvedLoadMode() {
+        case .BODYWEIGHT, .ASSISTED:
+            return 0.0
+        case .LASTRE:
+            return valid(recordedPayloadV3?.externalLoad) ?? valid(originalLoad)
+        case .LOAD:
+            return valid(recordedPayloadV3?.externalLoad) ?? valid(originalLoad) ?? valid(weight)
+        case .none:
+            return valid(weight)
+        }
+    }
+
+    public func assistanceKg() -> Double? {
+        let valid: (Double?) -> Double? = { value in
+            guard let v = value, v.isFinite, v >= 0.0 else { return nil }
+            return v
+        }
+        guard resolvedLoadMode() == .ASSISTED else { return nil }
+        return valid(recordedPayloadV3?.assistedLoad) ?? valid(originalLoad)
+    }
+
+    public func supportsEstimatedOneRm() -> Bool {
+        switch resolvedLoadMode() {
+        case .none, .LOAD:
+            return true
+        case .BODYWEIGHT, .LASTRE, .ASSISTED:
+            return false
+        }
+    }
+
+    public func totalExternalTonnageKg() -> Double {
+        let extLoad = externalLoadKg() ?? 0.0
+        let mainTonnage = extLoad * max(0.0, effectiveRepEquivalent())
+        let mode = resolvedLoadMode()
+        let dropTonnage: Double
+        if mode == .BODYWEIGHT || mode == .ASSISTED {
+            dropTonnage = 0.0
+        } else {
+            dropTonnage = dropSets.reduce(0.0) { acc, drop in
+                let w = (drop.weight.isFinite && drop.weight >= 0.0) ? drop.weight : 0.0
+                return acc + w * Double(max(0, drop.reps))
+            }
+        }
+        let rpTonnage = restPauses.reduce(0.0) { acc, rp in
+            acc + extLoad * Double(max(0, rp.reps))
+        }
+        return mainTonnage + dropTonnage + rpTonnage
+    }
+}
+
+extension WorkoutLog {
+    public func recomputedExternalTonnageKg() -> Double {
+        if completedExercises.isEmpty {
+            return (totalVolume.isFinite && totalVolume >= 0.0) ? totalVolume : 0.0
+        }
+        return completedExercises.reduce(0.0) { acc, ex in
+            acc + ex.sets
+                .filter { !$0.skipped && !$0.isWarmup }
+                .reduce(0.0) { $0 + $1.totalExternalTonnageKg() }
+        }
     }
 }
 

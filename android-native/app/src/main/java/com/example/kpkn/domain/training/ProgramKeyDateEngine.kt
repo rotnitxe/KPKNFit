@@ -329,6 +329,11 @@ object ProgramKeyDateEngine {
         var updated = program.copy(
             timelineStartDate = startRaw.ifBlank { null },
             calendarization = calendarization,
+            programEndMode = when {
+                competitionKeyDate != null || manualRaw.isNotBlank() ->
+                    com.example.kpkn.data.models.ProgramEndMode.HAS_END
+                else -> program.programEndMode
+            },
             keyDates = program.keyDates.filterNot { it.type == KeyDateType.COMPETITION } +
                 listOfNotNull(competitionKeyDate),
             schedulePlan = program.schedulePlan?.copy(

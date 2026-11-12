@@ -142,7 +142,8 @@ internal fun CustomExerciseEditorContent(
     onPickDevice: () -> Unit, onPickPrivate: () -> Unit,
     referenceCover: ExerciseCover? = customExerciseReferenceCover(state.preview),
 ) {
-    var manual by remember { mutableStateOf(false) }
+    var manual by rememberSaveable { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
     val preview = state.preview
     val info = preview?.exercise
 
@@ -150,10 +151,18 @@ internal fun CustomExerciseEditorContent(
         KpknTopRow(onBack = onCancel)
         Text(if (editing) "Editar ejercicio" else "Crear ejercicio", style = KpknType.title, color = WizardColors.text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState).padding(horizontal = 16.dp, vertical = 8.dp)
             .testTag("custom-exercise-editor-scroll"), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             KpknTextField(value = state.name, onValueChange = { value -> onEdit { it.copy(name = value) } }, label = "Nombre del ejercicio",
                 modifier = Modifier.testTag("custom-exercise-name"))
+            if (state.recalculating) {
+                Text(
+                    "Actualizando sugerencias…",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.testTag("custom-exercise-recalculating"),
+                )
+            }
             preview?.referenceResult?.let { result ->
                 if (state.candidates.isNotEmpty()) {
                     Text("Ya existe algo parecido", style = KpknType.bodyStrong, color = WizardColors.text)
@@ -173,27 +182,6 @@ internal fun CustomExerciseEditorContent(
                     color = if (result.outcome == ReferenceOutcome.CONFIRMED) WizardColors.textMuted else SymbolPalette.energia,
                     modifier = Modifier.testTag("custom-reference-reason"))
             }
-            KpknModule(contentPadding = PaddingValues(12.dp)) {
-                Text("Imagen del ejercicio", style = KpknType.bodyStrong, color = WizardColors.text)
-                CustomExerciseDraftCover(state, info)
-                // Cuatro fuentes: documento, foto privada, referencia compatible o patrón.
-                KpknTextAction("Añadir foto", onClick = onPickDevice, modifier = Modifier.testTag("custom-cover-device"))
-                KpknTextAction("Elegir foto privada", onClick = onPickPrivate, modifier = Modifier.testTag("custom-cover-private"))
-                if (referenceCover != null) KpknTextAction("Usar la del parecido", onClick = { onCover(CustomExerciseCoverDraft.Reference(referenceCover)) },
-                    modifier = Modifier.testTag("custom-cover-reference"))
-                KpknTextAction("Usar ilustración del patrón", onClick = { onCover(CustomExerciseCoverDraft.Pattern) },
-                    modifier = Modifier.testTag("custom-cover-pattern"))
-            }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Descripción", style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
-                KpknTextAction("Regenerar", onClick = { onEdit { it.copy(description = null) } })
-            }
-            KpknTextField(value = state.description ?: info?.description.orEmpty(), onValueChange = { value -> onEdit { it.copy(description = value) } },
-                label = "Descripción editable", placeholder = "Describe el ejercicio si no hay una configuración confirmada",
-                singleLine = false, minLines = 3, maxLines = 8, modifier = Modifier.testTag("custom-exercise-description"))
-            Text(if (state.description != null) "Descripción editada por ti" else if (preview?.referenceResult?.outcome == ReferenceOutcome.CONFIRMED)
-                "Generada solo desde la configuración confirmada" else "Sin descripción automática: falta una configuración confirmada.",
-                style = KpknType.caption, color = WizardColors.textMuted)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CustomOptionField("Material", state.implement, SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
                     { value -> onEdit { it.copy(implement = value) } }, Modifier.weight(1f))
@@ -212,17 +200,42 @@ internal fun CustomExerciseEditorContent(
             } ?: "Patrón por confirmar", style = KpknType.body, color = WizardColors.text)
             if (info != null && info.involvedMuscles.isNotEmpty()) MuscleInvolvementSection(info)
             else Text("Músculos por completar: el nombre no confirma una configuración.", style = KpknType.caption, color = WizardColors.textMuted)
-            KpknTextAction(if (manual) "Ocultar ajuste manual" else "Ajustar involucramiento muscular", onClick = { manual = !manual })
+            KpknTextAction(
+                if (manual) "Ocultar ajuste manual" else "Ajustar involucramiento muscular",
+                onClick = { manual = !manual },
+                modifier = Modifier.testTag("custom-exercise-manual-toggle"),
+            )
             if (manual) ManualMuscleEditor(state.muscles ?: info?.involvedMuscles.orEmpty()) { muscles -> onEdit { it.copy(muscles = muscles) } }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Descripción", style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+                KpknTextAction("Regenerar", onClick = { onEdit { it.copy(description = null) } })
+            }
+            KpknTextField(value = state.description ?: info?.description.orEmpty(), onValueChange = { value -> onEdit { it.copy(description = value) } },
+                label = "Descripción editable", placeholder = "Describe el ejercicio si no hay una configuración confirmada",
+                singleLine = false, minLines = 3, maxLines = 8, modifier = Modifier.testTag("custom-exercise-description"))
+            Text(if (state.description != null) "Descripción editada por ti" else if (preview?.referenceResult?.outcome == ReferenceOutcome.CONFIRMED)
+                "Generada solo desde la configuración confirmada" else "Sin descripción automática: falta una configuración confirmada.",
+                style = KpknType.caption, color = WizardColors.textMuted)
+            KpknModule(contentPadding = PaddingValues(12.dp), modifier = Modifier.testTag("custom-exercise-cover-section")) {
+                Text("Imagen del ejercicio", style = KpknType.bodyStrong, color = WizardColors.text)
+                CustomExerciseDraftCover(state, info)
+                // Cuatro fuentes: documento, foto privada, referencia compatible o patrón.
+                KpknTextAction("Añadir foto", onClick = onPickDevice, modifier = Modifier.testTag("custom-cover-device"))
+                KpknTextAction("Elegir foto privada", onClick = onPickPrivate, modifier = Modifier.testTag("custom-cover-private"))
+                if (referenceCover != null) KpknTextAction("Usar la del parecido", onClick = { onCover(CustomExerciseCoverDraft.Reference(referenceCover)) },
+                    modifier = Modifier.testTag("custom-cover-reference"))
+                KpknTextAction("Usar ilustración del patrón", onClick = { onCover(CustomExerciseCoverDraft.Pattern) },
+                    modifier = Modifier.testTag("custom-cover-pattern"))
+            }
             KpknCheckRow(checked = state.reviewed, title = "He revisado material, patrón y músculos",
-                onClick = { onReview(!state.reviewed) }, enabled = !state.saving && state.preview != null && (editing || state.hasExplicitTechnicalAxes()), modifier = Modifier.testTag("custom-exercise-review"))
+                onClick = { onReview(!state.reviewed) }, enabled = !state.saving && state.isPreviewCurrent && (editing || state.hasExplicitTechnicalAxes()), modifier = Modifier.testTag("custom-exercise-review"))
             state.error?.let { Text(it, style = KpknType.body, color = WizardColors.danger, modifier = Modifier.testTag("custom-exercise-save-error")) }
         }
         Row(Modifier.fillMaxWidth().background(KpknSurface.module).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             KpknTextAction("Cancelar", onClick = onCancel, modifier = Modifier.testTag("custom-exercise-cancel"))
             KpknPrimaryPill(text = when { state.saving -> "Guardando…"; state.error != null -> "Reintentar"; editing -> "Guardar ejercicio"; else -> "Crear ejercicio" },
-                onClick = onSave, enabled = state.reviewed && state.preview != null && !state.saving && state.name.isNotBlank() && (editing || state.hasExplicitTechnicalAxes()),
+                onClick = onSave, enabled = state.reviewed && state.isPreviewCurrent && !state.saving && (editing || state.hasExplicitTechnicalAxes()),
                 modifier = Modifier.weight(1f).testTag("custom-exercise-save"))
         }
     }
@@ -231,7 +244,7 @@ internal fun CustomExerciseEditorContent(
 @Composable
 private fun CustomOptionField(title: String, value: String?, options: List<String>, label: (String) -> String,
     onSelect: (String) -> Unit, modifier: Modifier) {
-    var open by remember { mutableStateOf(false) }
+    var open by rememberSaveable { mutableStateOf(false) }
     Column(modifier.heightIn(min = 64.dp).clip(KpknShape.module).background(KpknSurface.inset)
         .clickable(role = Role.Button) { open = true }.padding(12.dp).testTag("custom-option-$title")) {
         Text(title, style = KpknType.caption, color = WizardColors.textMuted)
@@ -291,99 +304,140 @@ private fun ManualMuscleEditor(
     muscles: List<InvolvedMuscle>,
     onChange: (List<InvolvedMuscle>) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.testTag("custom-exercise-manual-muscles")) {
         Text(
             text = "Involucramiento manual",
             style = KpknType.bodyStrong,
             color = WizardColors.text,
         )
         muscles.forEachIndexed { index, muscle ->
-            val volume = (muscle.volumeContribution ?: resolveMuscleVolumeContribution(muscle)).toFloat()
-            val percent = formatVolumePercent(volume.toDouble())
-            KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = muscle.muscle,
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknTextAction(
-                            text = "Restablecer",
-                            onClick = {
-                                onChange(
-                                    muscles.toMutableList().also {
-                                        it[index] = muscle.copy(volumeContribution = defaultMuscleContribution(muscle.role))
-                                    },
-                                )
-                            },
-                            color = WizardColors.textMuted,
-                        )
-                        KpknTextAction(
-                            text = "Quitar",
-                            onClick = { onChange(muscles.filterIndexed { i, _ -> i != index }) },
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        listOf(
-                            MuscleRole.PRIMARY to "Primario",
-                            MuscleRole.SECONDARY to "Secundario",
-                            MuscleRole.STABILIZER to "Estabilizador",
-                        ).forEach { (role, label) ->
-                            KpknChip(
-                                text = label,
-                                selected = muscle.role == role,
-                                onClick = {
-                                    onChange(
-                                        muscles.toMutableList().also {
-                                            it[index] = muscle.copy(
-                                                role = role,
-                                                volumeContribution = defaultMuscleContribution(role),
-                                            )
-                                        },
-                                    )
-                                },
+            key(muscle.muscle.lowercase()) {
+                val volume = (muscle.volumeContribution ?: resolveMuscleVolumeContribution(muscle)).toFloat()
+                val percent = formatVolumePercent(volume.toDouble())
+                KpknModule(
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                    modifier = Modifier.testTag("custom-muscle-row-${muscle.muscle}"),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = muscle.muscle,
+                                style = KpknType.bodyStrong,
+                                color = WizardColors.text,
+                                modifier = Modifier.weight(1f),
+                            )
+                            KpknTextAction(
+                                text = "Quitar",
+                                onClick = { onChange(muscles.filterIndexed { i, _ -> i != index }) },
+                                color = WizardColors.textMuted,
+                                modifier = Modifier.testTag("custom-muscle-remove-${muscle.muscle}"),
                             )
                         }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Aporte por 1 serie",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknNumberCell(
-                            value = percent,
-                            input = KpknCellInput.Text(
-                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
-                                onCommit = { raw ->
-                                    raw.replace("%", "").replace(',', '.').trim().toDoubleOrNull()
-                                        ?.takeIf { it.isFinite() && it in 0.0..100.0 }
-                                        ?.let { next ->
-                                            onChange(
-                                                muscles.toMutableList().also {
-                                                    it[index] = muscle.copy(volumeContribution = next / 100.0)
-                                                },
-                                            )
-                                        }
-                                },
-                            ),
-                            contentDescription = "Aporte de ${muscle.muscle}: $percent",
-                            onStep = { step ->
-                                onChange(
-                                    muscles.toMutableList().also {
-                                        it[index] = muscle.copy(volumeContribution = stepVolume(volume, step))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            listOf(
+                                MuscleRole.PRIMARY to "Primario",
+                                MuscleRole.SECONDARY to "Secundario",
+                                MuscleRole.STABILIZER to "Estabilizador",
+                            ).forEach { (role, label) ->
+                                KpknChip(
+                                    text = label,
+                                    selected = muscle.role == role,
+                                    onClick = {
+                                        onChange(
+                                            muscles.toMutableList().also {
+                                                it[index] = muscle.copy(
+                                                    role = role,
+                                                    volumeContribution = defaultMuscleContribution(role),
+                                                )
+                                            },
+                                        )
                                     },
+                                    modifier = Modifier.testTag("custom-muscle-role-${muscle.muscle}-${role.name}"),
                                 )
-                            },
-                            modifier = Modifier.width(88.dp),
-                        )
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "Aporte (0–100 %)",
+                                    style = KpknType.caption,
+                                    color = WizardColors.textMuted,
+                                )
+                                KpknTextAction(
+                                    text = "Restablecer según rol",
+                                    onClick = {
+                                        onChange(
+                                            muscles.toMutableList().also {
+                                                it[index] = muscle.copy(volumeContribution = defaultMuscleContribution(muscle.role))
+                                            },
+                                        )
+                                    },
+                                    color = WizardColors.textMuted,
+                                    modifier = Modifier.testTag("custom-muscle-reset-${muscle.muscle}"),
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                KpknTextAction(
+                                    text = "−",
+                                    onClick = {
+                                        onChange(
+                                            muscles.toMutableList().also {
+                                                it[index] = muscle.copy(volumeContribution = stepVolume(volume, -1))
+                                            },
+                                        )
+                                    },
+                                    modifier = Modifier.testTag("custom-muscle-step-down-${muscle.muscle}"),
+                                )
+                                KpknNumberCell(
+                                    value = percent,
+                                    input = KpknCellInput.Text(
+                                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                                        onCommit = { raw ->
+                                            raw.replace("%", "").replace(',', '.').trim().toDoubleOrNull()
+                                                ?.takeIf { it.isFinite() && it in 0.0..100.0 }
+                                                ?.let { next ->
+                                                    onChange(
+                                                        muscles.toMutableList().also {
+                                                            it[index] = muscle.copy(volumeContribution = (next / 100.0).coerceIn(0.0, 1.0))
+                                                        },
+                                                    )
+                                                }
+                                        },
+                                    ),
+                                    contentDescription = "Aporte de ${muscle.muscle}: $percent",
+                                    onStep = { step ->
+                                        onChange(
+                                            muscles.toMutableList().also {
+                                                it[index] = muscle.copy(volumeContribution = stepVolume(volume, step))
+                                            },
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .width(74.dp)
+                                        .testTag("custom-muscle-percent-${muscle.muscle}"),
+                                )
+                                KpknTextAction(
+                                    text = "+",
+                                    onClick = {
+                                        onChange(
+                                            muscles.toMutableList().also {
+                                                it[index] = muscle.copy(volumeContribution = stepVolume(volume, 1))
+                                            },
+                                        )
+                                    },
+                                    modifier = Modifier.testTag("custom-muscle-step-up-${muscle.muscle}"),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -405,7 +459,7 @@ private fun ManualMuscleEditor(
                     KpknChip(
                         text = option,
                         selected = false,
-                        onClick = { onChange(muscles + InvolvedMuscle(option, MuscleRole.SECONDARY, 0.5)) },
+                        onClick = { onChange(muscles + InvolvedMuscle(option, MuscleRole.SECONDARY, defaultMuscleContribution(MuscleRole.SECONDARY))) },
                     )
                 }
             }
@@ -421,5 +475,5 @@ private fun defaultMuscleContribution(role: MuscleRole): Double = when (role) {
     MuscleRole.PRIMARY -> 1.0
     MuscleRole.SECONDARY -> 0.5
     MuscleRole.STABILIZER -> 0.4
-    else -> 0.5
+    else -> VOLUME_CONTRIBUTION_FALLBACKS[role] ?: 0.5
 }

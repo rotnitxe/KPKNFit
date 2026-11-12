@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramEndMode
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStatus
@@ -94,6 +95,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
             structure = ProgramStructure.COMPLEX,
             macrocycles = listOf(macro),
             runState = run,
+            programEndMode = ProgramEndMode.HAS_END,
         )
         repository.addProgram(program)
         withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }
@@ -169,6 +171,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
             structure = ProgramStructure.COMPLEX,
             macrocycles = listOf(macro),
             runState = run,
+            programEndMode = ProgramEndMode.HAS_END,
         )
         repository.addProgram(program)
         withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }
@@ -272,6 +275,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
             structure = ProgramStructure.COMPLEX,
             macrocycles = listOf(macro),
             runState = run,
+            programEndMode = ProgramEndMode.HAS_END,
         )
         repository.addProgram(program)
         withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }

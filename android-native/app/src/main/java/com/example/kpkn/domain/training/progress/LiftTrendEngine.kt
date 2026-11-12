@@ -94,7 +94,11 @@ object LiftTrendEngine {
 
     /** Mejor e1RM de las series de trabajo con carga > 0; null si la sesión no tiene ninguna. */
     private fun bestE1rm(exercise: CompletedExercise): Double? = exercise.sets
-        .filter { it.isWorkingSet() && it.weight > 0.0 }
+        .filter {
+            it.isWorkingSet() &&
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0.0
+        }
         .map { StrengthModel.estimate1RM(it) }
         .filter { it.isFinite() && it > 0.0 }
         .maxOrNull()

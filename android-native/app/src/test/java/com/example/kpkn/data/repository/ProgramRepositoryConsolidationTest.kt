@@ -25,6 +25,7 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.PlateStock
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramEndMode
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
@@ -131,6 +132,7 @@ class ProgramRepositoryConsolidationTest {
         cycle: Int = 1,
         week1Sessions: Int = 1,
         native: Boolean = true,
+        endMode: ProgramEndMode? = null,
     ): NativeFixture {
         val week1 = ProgramWeek(
             id = "$id-w1",
@@ -156,6 +158,7 @@ class ProgramRepositoryConsolidationTest {
             id = id,
             name = "Plan $id",
             structure = ProgramStructure.COMPLEX,
+            programEndMode = endMode,
             macrocycles = listOf(macro),
             runState = ProgramRunState(
                 runId = runId,
@@ -264,8 +267,8 @@ class ProgramRepositoryConsolidationTest {
         )
         assertEquals(2, repository.history.value.single { it.id == "finalize-explicit-log" }.cycleNumber)
 
-        // Un COMPLEX sin instancias de ciclo nunca avanza de ciclo: sigue forzando 1.
-        val linear = nativeFixture("finalize-linear", cycle = 1, week1Sessions = 2, native = false)
+        // Un COMPLEX finito (HAS_END) nunca avanza de ciclo: sigue forzando 1.
+        val linear = nativeFixture("finalize-linear", cycle = 1, week1Sessions = 2, native = false, endMode = ProgramEndMode.HAS_END)
         seedActive(repository, linear, cycle = 1, native = false)
         repository.finalizeWorkout(
             logOf("finalize-linear-log", linear, linear.week1.sessions.first(), linear.week1, cycle = 2),
@@ -307,9 +310,9 @@ class ProgramRepositoryConsolidationTest {
     }
 
     @Test
-    fun executedTrainingEvidence_nonNativeProgramKeepsEveryLogOfTheRun() = runBlocking {
+    fun executedTrainingEvidence_nonNativeFiniteProgramKeepsEveryLogOfTheRun() = runBlocking {
         val repository = newRepository()
-        val fixture = nativeFixture("evidence-linear", cycle = 2, week1Sessions = 1, native = false)
+        val fixture = nativeFixture("evidence-linear", cycle = 2, week1Sessions = 1, native = false, endMode = ProgramEndMode.HAS_END)
         repository.addProgram(fixture.program)
         withTimeout(5_000) { repository.programs.first { list -> list.any { it.id == fixture.program.id } } }
         val s1 = fixture.week1.sessions.single()
@@ -856,5 +859,116 @@ class ProgramRepositoryConsolidationTest {
         } finally {
             CompositionMetadataHolder.current = saved
         }
+    }
+
+    @Test
+    fun repeatingNonNativeComplexProgramIsolatesCycleTwoLogs_andReopenReconcilesCompletedRecurring() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val dbName = "c.db"
+        context.deleteDatabase(dbName)
+        val repository = ProgramRepository.initForTestsWithDatabaseFile(context, dbName)
+        withTimeout(10_000) { repository.isReady.first { it } }
+        try {
+            val fixture = nativeFixture("rep-nonnative", cycle = 2, week1Sessions = 2, native = false, endMode = ProgramEndMode.REPEATING)
+            val seededProgram = fixture.program.copy(
+                runState = fixture.program.runState!!.copy(
+                    cycleNumber = 2,
+                    weekId = fixture.week1.id,
+                    weekInstanceId = ProgramProgressEngine.instanceIdFor(2, fixture.week1.id),
+                ),
+            )
+            repository.addProgram(seededProgram)
+            repository.updateActiveProgramState(
+                ActiveProgramState(
+                    programId = fixture.program.id,
+                    status = ProgramStatus.ACTIVE,
+                    currentMacrocycleId = fixture.macroId,
+                    currentBlockId = fixture.blockId,
+                    currentMesocycleId = fixture.mesoId,
+                    currentWeekId = fixture.week1.id,
+                    currentWeekInstanceId = ProgramProgressEngine.instanceIdFor(2, fixture.week1.id),
+                    currentCycleNumber = 2,
+                    programRunId = fixture.runId,
+                ),
+            )
+
+            repository.addWorkoutLog(logOf("rep-c1-s1", fixture, fixture.week1.sessions[0], fixture.week1, cycle = 1, withInstance = true))
+            val preEvidence = repository.executedTrainingEvidence(repository.getProgramById(fixture.program.id)!!)
+            assertEquals(emptySet<String>(), preEvidence.sessionIds)
+
+            repository.finalizeWorkout(logOf("rep-c2-s1", fixture, fixture.week1.sessions[0], fixture.week1, runId = null))
+            val savedLog = repository.history.value.single { it.id == "rep-c2-s1" }
+            assertEquals(2, savedLog.cycleNumber)
+            assertEquals(ProgramProgressEngine.instanceIdFor(2, fixture.week1.id), savedLog.weekInstanceId)
+
+            // Legacy completed repeating program pinned as active reconciles to ACTIVE cycle 2 on reopen.
+            val legacyCompleted = fixture.program.copy(
+                id = "legacy-reconcile",
+                runState = fixture.program.runState!!.copy(
+                    runId = "legacy-run",
+                    cycleNumber = 1,
+                    status = com.example.kpkn.data.models.ProgramRunStatus.COMPLETED,
+                    weekId = null,
+                    weekInstanceId = null,
+                ),
+            )
+            repository.addProgram(legacyCompleted)
+            repository.updateActiveProgramState(
+                ActiveProgramState(
+                    programId = legacyCompleted.id,
+                    status = ProgramStatus.COMPLETED,
+                    programRunId = "legacy-run",
+                ),
+            )
+            repository.flushPendingWrites()
+
+            ProgramRepository.closeInstance()
+            KpknDatabase.closeInstance()
+            val reopened = ProgramRepository.initForTestsWithDatabaseFile(context, dbName)
+            withTimeout(10_000) { reopened.isReady.first { it } }
+            val reconciled = reopened.getProgramById(legacyCompleted.id)!!
+            assertEquals(com.example.kpkn.data.models.ProgramRunStatus.ACTIVE, reconciled.runState?.status)
+            assertEquals(2, reconciled.runState?.cycleNumber)
+            assertEquals("legacy-run", reconciled.runState?.runId)
+            assertEquals(ProgramStatus.ACTIVE, reopened.activeProgramState.value?.status)
+        } finally {
+            ProgramRepository.closeInstance()
+            KpknDatabase.closeInstance()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun resumeRecurringRoutineNow_keepsIdentityScheduleAndHistoryWhileSwitchingActiveProgram() = runBlocking {
+        val repository = newRepository()
+        val other = nativeFixture("other-active", cycle = 1, week1Sessions = 1, native = false).program
+        repository.addProgram(other)
+        repository.updateActiveProgramState(
+            ActiveProgramState(programId = other.id, status = ProgramStatus.ACTIVE, currentWeekId = other.macrocycles.first().blocks.first().mesocycles.first().weeks.first().id),
+        )
+
+        val base = nativeFixture("resume-recurring", cycle = 1, week1Sessions = 1, native = false, endMode = ProgramEndMode.REPEATING)
+        val completedRecurring = base.program.copy(
+            startDay = 2,
+            schedulePlan = com.example.kpkn.data.models.ProgramSchedulePlan(weekStartDay = 1, trainingDays = setOf(2, 4, 6)),
+            runState = base.program.runState!!.copy(
+                status = com.example.kpkn.data.models.ProgramRunStatus.COMPLETED,
+                weekId = null,
+                weekInstanceId = null,
+            ),
+        )
+        repository.addProgram(completedRecurring)
+        repository.addWorkoutLog(logOf("hist-c1", base, base.week1.sessions.single(), base.week1, cycle = 1))
+        repository.flushPendingWrites()
+
+        assertTrue(repository.resumeRecurringRoutineNow(completedRecurring.id))
+        val resumed = repository.getProgramById(completedRecurring.id)!!
+        assertEquals(com.example.kpkn.data.models.ProgramRunStatus.ACTIVE, resumed.runState?.status)
+        assertEquals(2, resumed.runState?.cycleNumber)
+        assertEquals(base.runId, resumed.runState?.runId)
+        assertEquals(setOf(2, 4, 6), resumed.schedulePlan?.trainingDays)
+        assertEquals(completedRecurring.id, repository.activeProgramState.value?.programId)
+        assertEquals(ProgramStatus.ACTIVE, repository.activeProgramState.value?.status)
+        assertEquals(1, repository.getLogsForProgram(completedRecurring.id).size)
     }
 }

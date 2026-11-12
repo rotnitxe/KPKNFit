@@ -145,6 +145,7 @@ class WorkoutReplaceChainedPersistenceTest {
         fixture.controller.showDeferredReplacementPromptIfNeeded("slot-1")
         assertTrue("la pregunta de persistencia debe aparecer", fixture.state.pendingReplacementPersistencePrompt != null)
         fixture.controller.commitPendingReplacementPersistence(scope)
+        runBlocking { fixture.controller.awaitPendingPersistence() }
         assertNull(fixture.state.pendingReplacementPersistencePrompt)
     }
 

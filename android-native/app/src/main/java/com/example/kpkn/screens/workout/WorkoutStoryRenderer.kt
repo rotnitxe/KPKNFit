@@ -56,7 +56,16 @@ internal data class WorkoutStoryData(
     /** sRPE declarado por el atleta; null si no se registró. */
     val sessionRpe: Double? = null,
 ) {
-    val defaultExerciseId: String? get() = (lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 } ?: lifts.firstOrNull())?.exerciseId
+    val defaultExerciseId: String?
+        get() = (
+            lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 }
+                ?: lifts.firstOrNull {
+                    it.best?.let { set ->
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)
+                    } == true
+                }
+                ?: lifts.firstOrNull()
+            )?.exerciseId
 }
 
 /**
@@ -351,7 +360,7 @@ private class StoryDrawing(
             .filter { it.sessionName == data.sessionName }
             .sortedBy { it.date }
             .takeLast(5)
-            .map { it.totalVolume }
+            .map { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.historicalLogTonnageKg(it) }
         return history + data.volume
     }
 

@@ -171,6 +171,7 @@ object ImportedProgramBuilder {
             id = programId,
             name = draft.title.trim().ifEmpty { DEFAULT_TITLE },
             structure = if (weeks.size <= 1) ProgramStructure.SIMPLE else ProgramStructure.COMPLEX,
+            programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = listOf(block))),
             startDay = trainingDays.firstOrNull(),
             schedulePlan = if (trainingDays.isEmpty()) {

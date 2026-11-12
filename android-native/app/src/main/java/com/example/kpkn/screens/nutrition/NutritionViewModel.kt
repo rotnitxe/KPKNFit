@@ -60,7 +60,6 @@ class NutritionViewModel(
     private val clock: AppClock = SystemAppClock,
     private val zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val checkinRecords: Flow<List<com.example.kpkn.domain.nutrition.checkin.CheckinRecord>> = flowOf(emptyList()),
 ) : ViewModel() {
 
     private val nutritionRepo = NutritionRepository.getInstance()
@@ -887,16 +886,8 @@ class NutritionViewModel(
         }
     }
 
-    // Remediation 6: weekly check-in availability retired; historical
-    // records stay in the repository. The flow no longer surfaces.
-    private val checkinWeekStart = combine(programRepo.programs, programRepo.activeProgramState) { programs, active ->
-        com.example.kpkn.screens.nutrition.checkin.checkinWeekStart(programs.find { it.id == active?.programId })
-    }
-
-    val checkinAvailability: StateFlow<com.example.kpkn.domain.nutrition.checkin.CheckinAvailability> = combine(
-        activePlan, programRepo.settings, _today, checkinRecords, checkinWeekStart,
-    ) { _, _, _, _, _ -> com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE }
-        .stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE)
+    // Weekly nutrition check-in UI chain was retired per Remediation 6;
+    // historical Room records remain untouched in NutritionCheckinStore / repository.
 
     // ─── Reutilización del diario (N4): copiar, repetir, plantillas ─────────────
 

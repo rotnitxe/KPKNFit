@@ -77,4 +77,19 @@ class SessionTonnageLoadModeTest {
         val legacy = CompletedSet(id = "legacy", weight = 80.0, reps = 5)
         assertEquals(500.0 + 400.0, sessionTonnage(listOf(exercise(load, legacy))), 0.0)
     }
+
+    @Test
+    fun liveHistoryBestSetAndFormattingRespectBodyweightLastreAndAssisted() {
+        val bw = set("bw", weight = 0.0, reps = 10, mode = LoadModeV2.BODYWEIGHT)
+        assertEquals("Corporal × 10", historySetValue(historyBestSet(listOf(bw))!!))
+
+        val unrecoverableLastre = CompletedSet(id = "ul", weight = 146.0, reps = 6, loadMode = LoadModeV2.LASTRE, originalLoad = null)
+        val validLastre = set("vl", weight = 40.0, reps = 5, mode = LoadModeV2.LASTRE, external = 40.0)
+        assertEquals("+40 kg × 5", historySetValue(historyBestSet(listOf(unrecoverableLastre, validLastre))!!))
+        assertEquals("Lastre · sin detalle × 6", historySetValue(unrecoverableLastre))
+
+        val highAssist = set("ha", weight = 0.0, reps = 8, mode = LoadModeV2.ASSISTED, assisted = 35.0)
+        val lowAssist = set("la", weight = 0.0, reps = 6, mode = LoadModeV2.ASSISTED, assisted = 15.0)
+        assertEquals("15 asist. × 6", historySetValue(historyBestSet(listOf(highAssist, lowAssist))!!))
+    }
 }

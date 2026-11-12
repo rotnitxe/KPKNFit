@@ -246,12 +246,16 @@ internal fun ExerciseQuickActionsSheet(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // D1: la cabecera del tablero: ficha de 52 dp con la imagen real del catálogo, el nombre y el resumen de la prescripción.
-        val thumbnailRes = remember(exercise.id, exercise.catalogDefinitionId, exercise.exerciseDbId, exercise.exerciseId) {
-            ExerciseTechniqueImageLookup.resolveImageResId(
-                catalogDefinitionId = exercise.catalogDefinitionId,
-                exerciseDbId = exercise.exerciseDbId,
-                exerciseId = exercise.exerciseId ?: exercise.id,
-            )
+        val selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull()
+        val thumbnailRes = remember(
+            exercise.id,
+            exercise.catalogDefinitionId,
+            exercise.catalogConfigurationId,
+            exercise.exerciseDbId,
+            exercise.exerciseId,
+            selectedImplementation,
+        ) {
+            quickActionThumbnailRes(exercise)
         }
         val thumbnailPattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -590,3 +594,12 @@ private fun MobilityPickerActions(
         }
     }
 }
+
+internal fun quickActionThumbnailRes(exercise: Exercise): Int? =
+    ExerciseTechniqueImageLookup.resolveImageResId(
+        catalogDefinitionId = exercise.catalogDefinitionId,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId ?: exercise.id,
+        selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull(),
+    )

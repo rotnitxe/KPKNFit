@@ -92,11 +92,15 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorSpacing
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -1421,5 +1425,40 @@ fun SessionEditorScreen(
                 cardioHistory = detailExercise.cardioDetails?.type?.let { uiState.cardioHistoryByType[it] },
             )
         }
+    }
+
+    if (uiState.liveDraftConflict != null) {
+        KpknAlertDialog(
+            onDismissRequest = {},
+            title = {
+                Text(
+                    text = "Cambios en vivo y borrador sin guardar",
+                    style = KpknType.dialogTitle,
+                    color = WizardColors.text,
+                )
+            },
+            text = {
+                Text(
+                    text = "Esta sesión cambió en el entrenamiento en vivo mientras tenías un borrador sin guardar en el editor. Elige qué versión quieres conservar.",
+                    style = KpknType.body,
+                    color = WizardColors.textMuted,
+                )
+            },
+            confirmButton = {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknPrimaryPill(
+                        text = "Mantener mi borrador",
+                        onClick = { viewModel.resolveLiveDraftConflict(keepDraft = true) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    TextButton(
+                        onClick = { viewModel.resolveLiveDraftConflict(keepDraft = false) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Usar cambios de la sesión")
+                    }
+                }
+            },
+        )
     }
 }

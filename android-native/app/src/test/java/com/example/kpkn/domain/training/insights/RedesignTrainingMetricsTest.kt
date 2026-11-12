@@ -59,4 +59,72 @@ class RedesignTrainingMetricsTest {
         assertEquals(1.0, metrics.weeks[2].series, 0.0)
     }
 
+    @Test fun homeProgressAlignsWithExerciseProgressAcrossZeroOneManyAndAllModalities() {
+        assertTrue(HomeTrainingMetricsBuilder.build(emptyList(), emptyList(), emptyList(), today, now).progress.isEmpty())
+
+        val day1 = today.minusDays(7)
+        val day2 = today
+        fun sessionLog(day: LocalDate, exercises: List<CompletedExercise>) = WorkoutLog(
+            id = "log-${day}",
+            programId = "p",
+            sessionId = "s",
+            sessionName = "Mixta",
+            date = day.toString(),
+            durationMinutes = 45,
+            completedExercises = exercises,
+        )
+
+        val oneLog = sessionLog(day2, listOf(CompletedExercise("sq", "Sentadilla", catalogConfigurationId = "sq", sets = listOf(CompletedSet("s1", weight = 100.0, reps = 5, loadMode = LoadModeV2.LOAD, originalLoad = 100.0)))))
+        val singleProgress = HomeTrainingMetricsBuilder.build(listOf(oneLog), emptyList(), emptyList(), today, now).progress
+        assertEquals(1, singleProgress.size)
+        assertNull(singleProgress.single().deltaKg)
+
+        val logs = listOf(
+            sessionLog(
+                day1,
+                listOf(
+                    CompletedExercise("sq", "Sentadilla", catalogConfigurationId = "sq", sets = listOf(CompletedSet("1", weight = 100.0, reps = 5, loadMode = LoadModeV2.LOAD, originalLoad = 100.0))),
+                    CompletedExercise("pu", "Flexiones", catalogConfigurationId = "pu", sets = listOf(CompletedSet("2", weight = 0.0, reps = 12, loadMode = LoadModeV2.BODYWEIGHT))),
+                    CompletedExercise("as", "Dominadas asistidas", catalogConfigurationId = "as", sets = listOf(CompletedSet("3", weight = 0.0, reps = 8, loadMode = LoadModeV2.ASSISTED, originalLoad = 30.0))),
+                    CompletedExercise("ls", "Fondos lastre", catalogConfigurationId = "ls", sets = listOf(CompletedSet("4", weight = 10.0, reps = 8, loadMode = LoadModeV2.LASTRE, originalLoad = 10.0))),
+                    CompletedExercise("rn", "Correr", catalogConfigurationId = "rn", sets = listOf(CompletedSet("5", reps = 0, distanceKm = 2.0, recordedPayloadV3 = RecordedSetPayload(actualValue = 2000.0, exerciseId = "rn", unitMode = UnitModeV2.DISTANCE)))),
+                    CompletedExercise("pl", "Plancha", catalogConfigurationId = "pl", sets = listOf(CompletedSet("6", reps = 0, timeSeconds = 40, recordedPayloadV3 = RecordedSetPayload(actualValue = 40.0, exerciseId = "pl", unitMode = UnitModeV2.TIME)))),
+                    CompletedExercise("bp", "Press banca", catalogConfigurationId = "bp", sets = listOf(CompletedSet("7", weight = 80.0, reps = 5, loadMode = LoadModeV2.LOAD, originalLoad = 80.0))),
+                ),
+            ),
+            sessionLog(
+                day2,
+                listOf(
+                    CompletedExercise("sq", "Sentadilla", catalogConfigurationId = "sq", sets = listOf(CompletedSet("1b", weight = 110.0, reps = 5, loadMode = LoadModeV2.LOAD, originalLoad = 110.0))),
+                    CompletedExercise("pu", "Flexiones", catalogConfigurationId = "pu", sets = listOf(CompletedSet("2b", weight = 0.0, reps = 16, loadMode = LoadModeV2.BODYWEIGHT))),
+                    CompletedExercise("as", "Dominadas asistidas", catalogConfigurationId = "as", sets = listOf(CompletedSet("3b", weight = 0.0, reps = 8, loadMode = LoadModeV2.ASSISTED, originalLoad = 20.0))),
+                    CompletedExercise("ls", "Fondos lastre", catalogConfigurationId = "ls", sets = listOf(CompletedSet("4b", weight = 15.0, reps = 8, loadMode = LoadModeV2.LASTRE, originalLoad = 15.0))),
+                    CompletedExercise("rn", "Correr", catalogConfigurationId = "rn", sets = listOf(CompletedSet("5b", reps = 0, distanceKm = 3.0, recordedPayloadV3 = RecordedSetPayload(actualValue = 3000.0, exerciseId = "rn", unitMode = UnitModeV2.DISTANCE)))),
+                    CompletedExercise("pl", "Plancha", catalogConfigurationId = "pl", sets = listOf(CompletedSet("6b", reps = 0, timeSeconds = 60, recordedPayloadV3 = RecordedSetPayload(actualValue = 60.0, exerciseId = "pl", unitMode = UnitModeV2.TIME)))),
+                    CompletedExercise("bp", "Press banca", catalogConfigurationId = "bp", sets = listOf(CompletedSet("7b", weight = 85.0, reps = 5, loadMode = LoadModeV2.LOAD, originalLoad = 85.0))),
+                ),
+            ),
+        )
+        val many = HomeTrainingMetricsBuilder.build(logs, emptyList(), emptyList(), today, now).progress
+        val expectedChoices = com.example.kpkn.domain.training.ExerciseProgress.choices(logs).map { it.id }
+        assertEquals(7, many.size)
+        assertEquals(expectedChoices, many.map { it.progressId })
+
+        val assisted = many.first { it.progressId == "configuration:as" }
+        assertFalse(assisted.higherIsBetter)
+        assertEquals(-10.0, assisted.deltaKg!!, 0.001)
+
+        val pushup = many.first { it.progressId == "configuration:pu" }
+        assertEquals("reps", pushup.unitLabel)
+        assertEquals(4.0, pushup.deltaKg!!, 0.001)
+
+        val run = many.first { it.progressId == "configuration:rn" }
+        assertEquals("m", run.unitLabel)
+        assertEquals(1000.0, run.deltaKg!!, 0.001)
+
+        val plank = many.first { it.progressId == "configuration:pl" }
+        assertEquals("s", plank.unitLabel)
+        assertEquals(20.0, plank.deltaKg!!, 0.001)
+    }
+
 }

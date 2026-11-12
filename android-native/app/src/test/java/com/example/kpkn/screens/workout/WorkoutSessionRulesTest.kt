@@ -146,7 +146,7 @@ class WorkoutSessionRulesTest {
     }
 
     @Test
-    fun live_edit_persistence_scope_only_allows_simple_cyclic_programs() {
+    fun live_edit_persistence_scope_allows_editable_programs_and_block_matching_for_repeated_complex() {
         val simpleCyclic = simpleProgram().copy(simpleProgramKind = SimpleProgramKind.CYCLIC)
         val simpleCalendarized = simpleProgram().copy(
             simpleProgramKind = SimpleProgramKind.CALENDARIZED,
@@ -181,27 +181,31 @@ class WorkoutSessionRulesTest {
         )
 
         assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(simpleCyclic))
-        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(simpleCalendarized))
-        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(advanced))
-        assertEquals(WorkoutLiveEditPersistenceScope.SESSION_ONLY, WorkoutEditingRules.liveEditPersistenceScope(advancedCalendarized))
+        assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(simpleCalendarized))
+        assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(advanced))
+        assertEquals(WorkoutLiveEditPersistenceScope.PERMANENT_ALLOWED, WorkoutEditingRules.liveEditPersistenceScope(advancedCalendarized))
         assertEquals(
             listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.PERMANENT),
             WorkoutEditingRules.replacementPersistenceOptions(simpleCyclic),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.PERMANENT),
             WorkoutEditingRules.replacementPersistenceOptions(simpleCalendarized),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.PERMANENT),
             WorkoutEditingRules.replacementPersistenceOptions(advanced),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY),
+            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.PERMANENT),
             WorkoutEditingRules.replacementPersistenceOptions(advancedCalendarized),
         )
         assertEquals(
-            listOf(ReplacementPersistenceScopeV2.SESSION_ONLY, ReplacementPersistenceScopeV2.BLOCK_MATCHING),
+            listOf(
+                ReplacementPersistenceScopeV2.SESSION_ONLY,
+                ReplacementPersistenceScopeV2.PERMANENT,
+                ReplacementPersistenceScopeV2.BLOCK_MATCHING,
+            ),
             WorkoutEditingRules.replacementPersistenceOptions(advancedRepeated, "session"),
         )
         assertTrue(WorkoutEditingRules.hasRepeatedLogicalSessionInBlock(advancedRepeated, "session"))

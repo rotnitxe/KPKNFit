@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramEndMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -60,8 +61,16 @@ class ProgramScopeTest {
     }
 
     @Test
-    fun `simple linear four weeks are fixed weeks`() {
+    fun `simple linear without a terminal signal repeats its four weeks`() {
         val program = program(ProgramStructure.SIMPLE, SimpleProgramKind.LINEAR, blocks = 1, weeksPerBlock = 4)
+        assertEquals(ProgramScope.RepeatingWeeks(4), ProgramScopes.of(program))
+        assertEquals("4 semanas que se repiten", ProgramScopes.label(ProgramScopes.of(program)))
+    }
+
+    @Test
+    fun `simple linear with an explicit end is fixed weeks`() {
+        val program = program(ProgramStructure.SIMPLE, SimpleProgramKind.LINEAR, blocks = 1, weeksPerBlock = 4)
+            .copy(programEndMode = ProgramEndMode.HAS_END)
         assertEquals(ProgramScope.FixedWeeks(4), ProgramScopes.of(program))
         assertEquals("4 semanas", ProgramScopes.label(ProgramScopes.of(program)))
     }

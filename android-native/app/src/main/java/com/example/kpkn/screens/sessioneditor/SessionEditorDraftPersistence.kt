@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
+import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -136,6 +138,22 @@ internal class SerialDraftWriter<T>(
     /** Removes a snapshot only if no newer editor generation superseded the save that committed it. */
     fun enqueueClearAtGeneration(key: String, generation: Long): CompletableDeferred<DraftWriteOutcome> =
         enqueueOperation(key, generation) { storage.remove(key) }
+
+    fun enqueueTransformLatest(
+        key: String,
+        readCurrent: suspend (String) -> String?,
+        decode: (String) -> T?,
+        transform: (T?) -> T?,
+    ): CompletableDeferred<DraftWriteOutcome> {
+        val generation = invalidate(key)
+        return enqueueOperation(key, generation) {
+            val raw = readCurrent(key) ?: return@enqueueOperation true
+            val current = decode(raw)
+            val next = transform(current)
+            if (next == null) storage.remove(key)
+            else storage.write(key, encode(next))
+        }
+    }
 
     suspend fun clearAtGeneration(key: String, generation: Long): DraftWriteOutcome =
         enqueueClearAtGeneration(key, generation).await()
@@ -308,7 +326,31 @@ internal class SessionEditorDraftStore private constructor(context: Context) {
         fun clearLater(context: Context, key: String) {
             initializationScope.launch { getInstance(context).writer.clear(key) }
         }
+
+        fun reconcileLaterAfterLiveCommit(context: Context, key: String, liveModifiedAtMs: Long) {
+            getInstance(context).enqueueReconcileAfterLiveCommit(key, liveModifiedAtMs)
+        }
     }
+
+    fun enqueueReconcileAfterLiveCommit(key: String, liveModifiedAtMs: Long) =
+        writer.enqueueTransformLatest(
+            key = key,
+            readCurrent = { targetKey -> draftPreferences.await().getString(targetKey, null) },
+            decode = { raw -> runCatching { codec.decodeFromString<PersistedSessionEditorDraft>(raw) }.getOrNull() },
+            transform = { draft ->
+                if (draft == null) {
+                    null
+                } else {
+                    val isDirty = draft.baselineSession != null && !sameSessionEditorContent(draft.session, draft.baselineSession)
+                    if (!isDirty) {
+                        null
+                    } else {
+                        val effectiveTs = maxOf(draft.liveModifiedAtMs ?: 0L, liveModifiedAtMs)
+                        draft.copy(liveModifiedAtMs = effectiveTs)
+                    }
+                }
+            },
+        )
 }
 
 internal fun Session.withoutGeneratedEditorTimestamps(): Session =
@@ -316,10 +358,23 @@ internal fun Session.withoutGeneratedEditorTimestamps(): Session =
         .normalizeMobilityCompatibility()
         .copy(lastModifiedAtMs = 0L)
 
+internal fun Session.canonicalEditorBaselineForDiff(): Session =
+    SupersetRules.normalizeSession(
+        normalizeEditorScheduledTechniques()
+            .normalizeMobilityCompatibility()
+            .normalizedIdentityFields(),
+    ).copy(lastModifiedAtMs = 0L)
+
 internal fun sameSessionEditorContent(first: Session?, second: Session?): Boolean =
     when {
         first == null || second == null -> first == second
         else -> first.withoutGeneratedEditorTimestamps() == second.withoutGeneratedEditorTimestamps()
+    }
+
+internal fun sameEditorBaselineContent(first: Session?, second: Session?): Boolean =
+    when {
+        first == null || second == null -> first == second
+        else -> first.canonicalEditorBaselineForDiff() == second.canonicalEditorBaselineForDiff()
     }
 
 /**

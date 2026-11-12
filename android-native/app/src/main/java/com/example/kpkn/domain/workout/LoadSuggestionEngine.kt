@@ -35,14 +35,14 @@ object LoadSuggestionEngine {
         return ((weight / incrementKg).roundToInt() * incrementKg).coerceAtLeast(incrementKg)
     }
 
-    fun inputLoad(set: CompletedSet, loadMode: LoadModeV2): Double {
-        val payload = set.recordedPayloadV3
-        set.originalLoad?.let { return if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else it }
-        return when (loadMode) {
-            LoadModeV2.ASSISTED -> payload?.assistedLoad ?: set.weight
-            LoadModeV2.BODYWEIGHT -> 0.0
-            else -> payload?.externalLoad ?: set.weight
-        }
+    fun inputLoad(set: CompletedSet, loadMode: LoadModeV2): Double = when (loadMode) {
+        LoadModeV2.ASSISTED -> (set.recordedPayloadV3?.assistedLoad ?: set.originalLoad)
+            ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
+        LoadModeV2.BODYWEIGHT -> 0.0
+        LoadModeV2.LASTRE -> (set.recordedPayloadV3?.externalLoad ?: set.originalLoad)
+            ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
+        LoadModeV2.LOAD -> CompletedSetLoadSemantics.externalLoadKg(set)
+            ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
     }
 
     /** Resolves the load mode that was actually logged for [set]. */
@@ -57,12 +57,14 @@ object LoadSuggestionEngine {
      * `(200 - assistance)` as if it were a barbell 1RM.
      */
     fun estimatedCapacity(set: CompletedSet): Double? {
+        if (!CompletedSetLoadSemantics.supportsEstimatedOneRm(set)) return null
         val mode = resolvedLoadMode(set)
         val unit = set.recordedPayloadV3?.unitMode ?: set.homologatedResultV3?.unitMode ?: UnitModeV2.REPS
         if (unit != UnitModeV2.REPS || mode != LoadModeV2.LOAD) return null
         set.homologatedResultV3?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION }?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
         // Sin valor guardado: modelo único con el esfuerzo registrado, con el mismo rango de repeticiones de siempre.
-        return if (set.weight > 0.0 && set.reps > 0) {
+        val externalWeight = CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0
+        return if (externalWeight > 0.0 && set.reps > 0) {
             StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
         } else {
             null

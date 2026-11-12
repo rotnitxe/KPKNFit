@@ -90,4 +90,66 @@ class ExerciseProgressTest {
         assertEquals(setOf(50.0,100.0),result.records.filter { it.metric==ExerciseProgressMetric.MAX_REPS }.map { it.point.bestSet.weight }.toSet())
         assertTrue(result.points.last().breaksBefore)
     }
+
+    @Test
+    fun legacyLastreWithoutDetailOmitsWeightMetricsAndKeepsRepsAndSetsWithModalityLabel() {
+        val legacyLastre = CompletedSet(
+            id = "legacy-lastre",
+            weight = 146.0, // synthetic BW + added
+            reps = 6,
+            loadMode = LoadModeV2.LASTRE,
+            originalLoad = null,
+            recordedPayloadV3 = null,
+        )
+        val logs = listOf(log("l", "2026-10-01", listOf(legacyLastre)))
+        val maxWeight = report(logs, ExerciseProgressMetric.MAX_WEIGHT)
+        assertFalse(ExerciseProgressMetric.MAX_WEIGHT in maxWeight.available)
+        assertFalse(ExerciseProgressMetric.E1RM in maxWeight.available)
+        assertFalse(ExerciseProgressMetric.VOLUME in maxWeight.available)
+        assertNotEquals(ExerciseProgressMetric.MAX_WEIGHT, maxWeight.metric)
+
+        val maxReps = report(logs, ExerciseProgressMetric.MAX_REPS)
+        assertTrue(ExerciseProgressMetric.MAX_REPS in maxReps.available)
+        assertEquals(6.0, maxReps.points.single().value, 0.0)
+        assertTrue(maxReps.points.single().explanation.contains("Peso corporal + lastre · Carga sin detalle"))
+        assertFalse(maxReps.points.single().explanation.contains("146"))
+    }
+
+    @Test
+    fun lastreVolumeCountsDropsAndRestPausesAndBodyweightExcludesVolume() {
+        val lastreWithDrop = CompletedSet(
+            id = "lastre-drop",
+            weight = 40.0,
+            reps = 5,
+            loadMode = LoadModeV2.LASTRE,
+            originalLoad = 40.0,
+            dropSets = listOf(DropSetData(weight = 30.0, reps = 3)),
+            restPauses = listOf(RestPauseData(restTime = 20, reps = 2)),
+            recordedPayloadV3 = RecordedSetPayload(
+                exerciseId = "e",
+                loadInputMode = LoadModeV2.LASTRE,
+                externalLoad = 40.0,
+                bodyWeightSnapshot = 106.0,
+                completedReps = 5,
+            ),
+        )
+        val bwSet = CompletedSet(
+            id = "bw",
+            weight = 0.0,
+            reps = 10,
+            loadMode = LoadModeV2.BODYWEIGHT,
+            recordedPayloadV3 = RecordedSetPayload(
+                exerciseId = "e",
+                loadInputMode = LoadModeV2.BODYWEIGHT,
+                bodyWeightSnapshot = 106.0,
+                completedReps = 10,
+            ),
+        )
+        val lastreVolume = report(listOf(log("l", "2026-10-01", listOf(lastreWithDrop))), ExerciseProgressMetric.VOLUME)
+        assertEquals(40.0 * 5 + 30.0 * 3 + 40.0 * 2, lastreVolume.points.single().value, 0.0)
+
+        val bwVolume = report(listOf(log("b", "2026-10-02", listOf(bwSet))), ExerciseProgressMetric.VOLUME)
+        assertFalse(ExerciseProgressMetric.VOLUME in bwVolume.available)
+        assertNotEquals(ExerciseProgressMetric.VOLUME, bwVolume.metric)
+    }
 }

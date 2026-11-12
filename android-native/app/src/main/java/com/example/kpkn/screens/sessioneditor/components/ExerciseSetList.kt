@@ -44,6 +44,7 @@ import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
 import com.example.kpkn.screens.sessioneditor.withPlannedConfigOf
+import com.example.kpkn.screens.sessioneditor.withRoundUnilateralConfigOf
 import com.example.kpkn.screens.sessioneditor.withSetDuplicated
 import com.example.kpkn.screens.sessioneditor.withSideConfigOf
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -53,7 +54,7 @@ import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
 
 /** Cuánto dura el aviso «Serie eliminada · Deshacer» (la misma ventana que el del ejercicio eliminado). */
-private const val SET_UNDO_WINDOW_MS = 5_000L
+internal const val SET_UNDO_WINDOW_MS = 5_000L
 
 /**
  * `ed-serie` · Series del ejercicio abierto (B1/B2): las fichas de 85 × 76 dp (la última, punteada, es «+ Añadir serie») y un único foco
@@ -108,17 +109,13 @@ internal fun ExerciseSetList(
 
     /** Pide copiar la configuración de [set] (o de su lado [side]) al resto; si hay series distintas, antes pregunta. */
     fun requestApply(set: ExerciseSet, side: String?) {
-        fun applyTo(current: ExerciseSet): ExerciseSet =
-            if (side == null) current.withPlannedConfigOf(set) else current.withSideConfigOf(set, side, sharedSides)
-        val changed = exercise.sets
-            .filter { it.id != set.id && !it.isEmptySlot }
-            .filter { applyTo(it) != it }
-        if (changed.isEmpty()) return
-        pendingApply = PendingApply(count = changed.size) {
-            changed.forEach { target ->
-                onUpdateSet(target.id) { current -> applyTo(current) }
-            }
-        }
+        buildSetApplyRequest(
+            exercise = exercise,
+            set = set,
+            side = side,
+            sharedSides = sharedSides,
+            onUpdateSet = onUpdateSet,
+        )?.let { pendingApply = it }
     }
 
     /** Añade el lado que falta (L o R) con la carga del otro lado, como «Añadir L/R» del original. */
@@ -226,10 +223,11 @@ internal fun ExerciseSetList(
                 exerciseSeconds = exercise.restTime ?: 90,
                 stateKey = "set-rest-${exercise.id}-$rowKey",
             )
+            val activeSetCount = exercise.sets.count { !it.isEmptySlot }
             SetActions(
-                canApply = exercise.sets.size > 1,
+                canApply = activeSetCount > 1,
                 canDuplicate = onTransformExercise != null,
-                canDelete = exercise.sets.size > 1,
+                canDelete = activeSetCount > 1,
                 onApply = { requestApply(set, side) },
                 onDuplicate = { onTransformExercise?.invoke { current -> current.withSetDuplicated(set.id) } },
                 onDelete = {
@@ -309,21 +307,12 @@ internal fun ExerciseSetList(
     }
 
     pendingApply?.let { request ->
-        EditorConfirmationSheet(
-            onDismissRequest = { pendingApply = null },
-            title = "Aplicar a todas",
-            text = if (request.count == 1) {
-                "Otra serie cambiará para quedar igual que esta. ¿Aplicar?"
-            } else {
-                "${request.count} series cambiarán para quedar iguales que esta. ¿Aplicar?"
-            },
-            confirmLabel = "Aplicar",
-            onConfirm = {
-                request.onApply()
+        SetApplyConfirmationDialog(
+            request = request,
+            onConfirmDone = {
                 pendingApply = null
                 flashCount += 1
             },
-            dismissLabel = "Cancelar",
             onDismiss = { pendingApply = null },
         )
     }
@@ -349,7 +338,7 @@ private fun SeriesNavButton(icon: androidx.compose.ui.graphics.vector.ImageVecto
  * «Eliminar serie» en rosa. Subir/Bajar retirados (remediación 11); Eliminar se desactiva cuando solo queda una serie.
  */
 @Composable
-private fun SetActions(
+internal fun SetActions(
     canApply: Boolean,
     canDuplicate: Boolean,
     canDelete: Boolean,
@@ -390,7 +379,7 @@ private fun SetActions(
 
 /** «Serie eliminada · Deshacer» (función nueva de la decisión «Eliminar serie gana Deshacer»): 5 s, bajo las fichas. */
 @Composable
-private fun SetDeletedNotice(onUndo: () -> Unit) {
+internal fun SetDeletedNotice(onUndo: () -> Unit) {
     val shape = RoundedCornerShape(22.dp)
     Row(
         modifier = Modifier
@@ -417,7 +406,56 @@ private fun SetDeletedNotice(onUndo: () -> Unit) {
 }
 
 /** Confirmación pendiente de «Aplicar a todas»: cuántas series cambian y la copia que se hace al confirmar. */
-private class PendingApply(val count: Int, val onApply: () -> Unit)
+internal class PendingApply(val count: Int, val onApply: () -> Unit)
+
+/** Construye la petición de confirmación para copiar [set] al resto de series reales del ejercicio. */
+internal fun buildSetApplyRequest(
+    exercise: Exercise,
+    set: ExerciseSet,
+    side: String?,
+    sharedSides: Boolean,
+    copyAllUnilateralSides: Boolean = false,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+): PendingApply? {
+    fun applyTo(current: ExerciseSet): ExerciseSet = when {
+        copyAllUnilateralSides && exercise.isEffectivelyUnilateral() -> current.withRoundUnilateralConfigOf(set)
+        side == null -> current.withPlannedConfigOf(set)
+        else -> current.withSideConfigOf(set, side, sharedSides)
+    }
+    val changed = exercise.sets
+        .filter { it.id != set.id && !it.isEmptySlot }
+        .filter { applyTo(it) != it }
+    if (changed.isEmpty()) return null
+    return PendingApply(count = changed.size) {
+        changed.forEach { target ->
+            onUpdateSet(target.id) { current -> applyTo(current) }
+        }
+    }
+}
+
+@Composable
+internal fun SetApplyConfirmationDialog(
+    request: PendingApply,
+    onConfirmDone: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    EditorConfirmationSheet(
+        onDismissRequest = onDismiss,
+        title = "Aplicar a todas",
+        text = if (request.count == 1) {
+            "Otra serie cambiará para quedar igual que esta. ¿Aplicar?"
+        } else {
+            "${request.count} series cambiarán para quedar iguales que esta. ¿Aplicar?"
+        },
+        confirmLabel = "Aplicar",
+        onConfirm = {
+            request.onApply()
+            onConfirmDone()
+        },
+        dismissLabel = "Cancelar",
+        onDismiss = onDismiss,
+    )
+}
 
 /** La serie que acaba de eliminarse y el sitio que ocupaba, para devolverla con «Deshacer». */
 private class DeletedSet(val set: ExerciseSet, val index: Int)

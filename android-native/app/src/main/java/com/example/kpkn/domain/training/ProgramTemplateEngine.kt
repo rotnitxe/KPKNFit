@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.BlockProgressionScheme
@@ -126,7 +127,13 @@ object ProgramTemplateEngine {
                 structureTemplateId = template.id,
                 mode = scheduledDraft.mode,
             )
+            val derivedEndMode = scheduledDraft.programEndMode ?: if (template.recipe.repeats) {
+                com.example.kpkn.data.models.ProgramEndMode.REPEATING
+            } else {
+                com.example.kpkn.data.models.ProgramEndMode.HAS_END
+            }
             val executable = hydrateProgramGoals(materialized).alignTemporalMetadata()
+                .copy(programEndMode = derivedEndMode)
             if (applySplitPrefill) ProgramExecutionContract.requireExecutable(executable)
             return ApplyResult(
                 program = executable,
@@ -171,7 +178,13 @@ object ProgramTemplateEngine {
             },
         )
         val scaled = ProgramProtocolEngine.scaleToCalibratedVolume(materialized, exerciseList, idProvider)
+        val derivedEndMode = scaled.programEndMode ?: if (template.type == ProgramStructure.COMPLEX && template.weeks > 1) {
+            com.example.kpkn.data.models.ProgramEndMode.HAS_END
+        } else {
+            com.example.kpkn.data.models.ProgramEndMode.REPEATING
+        }
         val executable = hydrateProgramGoals(scaled).alignTemporalMetadata()
+            .copy(programEndMode = derivedEndMode)
         if (applySplitPrefill) ProgramExecutionContract.requireExecutable(executable)
         return ApplyResult(
             program = executable,

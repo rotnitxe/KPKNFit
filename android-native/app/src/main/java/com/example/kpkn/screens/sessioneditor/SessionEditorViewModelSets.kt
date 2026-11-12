@@ -56,6 +56,15 @@ internal fun ExerciseSet.withSideConfigOf(source: ExerciseSet, side: String, sha
 }
 
 /**
+ * Copia en una serie de ronda unilateral ambos lados presentes y la configuración planificada base de [source], manteniendo las ranuras
+ * ausentes (`null`) sin inventar lados que no existen.
+ */
+internal fun ExerciseSet.withRoundUnilateralConfigOf(source: ExerciseSet): ExerciseSet = withPlannedConfigOf(source).copy(
+    leftTarget = if (leftTarget != null) source.leftTarget ?: leftTarget else null,
+    rightTarget = if (rightTarget != null) source.rightTarget ?: rightTarget else null,
+)
+
+/**
  * Inserta una copia de la serie [setId] con id nuevo, justo después de ella. En una superserie la copia va al final: insertarla en medio
  * movería las rondas siguientes de este miembro (la ronda es la posición de la serie) y dejaría desalineados a los demás miembros.
  */

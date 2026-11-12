@@ -17,7 +17,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -758,13 +760,19 @@ private fun HomeWithProgram(
             containerColor = WizardColors.cardFill,
         ) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
+                Modifier.fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text("Progreso por ejercicio", style = WizardTypography.questionCompact, color = WizardColors.text)
                 Text("Los mismos ejercicios y el mismo orden que muestra Inicio.", style = WizardTypography.caption, color = WizardColors.textMuted)
                 Spacer(Modifier.height(8.dp))
                 trainingMetrics.progress.forEach { lift ->
+                    val improved = lift.deltaKg?.let { delta ->
+                        if (lift.higherIsBetter) delta > 0.005 else delta < -0.005
+                    } == true
                     Row(
                         Modifier.fillMaxWidth()
                             .clickable {
@@ -775,7 +783,11 @@ private fun HomeWithProgram(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(lift.name, Modifier.weight(1f), style = WizardTypography.body, color = WizardColors.text, maxLines = 1)
-                        Text(progressDeltaLabel(lift.deltaKg), style = WizardTypography.cardTitle, color = WizardColors.textMuted)
+                        Text(
+                            progressDeltaLabel(lift.deltaKg, lift.unitLabel),
+                            style = WizardTypography.cardTitle,
+                            color = if (improved) Color(0xFF7FE3B0) else WizardColors.textMuted,
+                        )
                     }
                 }
             }
@@ -1434,14 +1446,12 @@ internal fun NutritionTodayGlassOverlay(
     }
 }
 
-private fun progressDeltaLabel(delta: Double?): String {
+private fun progressDeltaLabel(delta: Double?, unitLabel: String = "kg"): String {
     if (delta == null) return "—"
+    if (kotlin.math.abs(delta) < 0.005) return "="
     val absolute = kotlin.math.abs(delta)
     val number = String.format(java.util.Locale.US, "%.1f", absolute).replace('.', ',')
-    val sign = when {
-        delta > 0.0 -> "+"
-        delta < 0.0 -> "−"
-        else -> ""
-    }
-    return "$sign$number kg"
+    val sign = if (delta > 0.0) "+" else "−"
+    val suffix = if (unitLabel.isNotBlank()) " $unitLabel" else ""
+    return "$sign$number$suffix"
 }

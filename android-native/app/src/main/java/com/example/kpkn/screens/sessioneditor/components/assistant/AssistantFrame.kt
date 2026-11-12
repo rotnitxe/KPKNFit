@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components.assistant
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -12,6 +13,7 @@ import com.example.kpkn.ui.design.depth.KpknShadow
 import com.example.kpkn.ui.design.depth.kpknShadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -89,12 +92,16 @@ internal fun AssistantSheetFrame(
             AsText(sessionName, 12f, Modifier.widthIn(max = 140.dp), color = AsColors.faint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
         // .as-tabs: cuatro etiquetas repartidas en una línea fina; el indicador es una barra de 2 de tinta bajo la activa
-        Row(
-            Modifier.fillMaxWidth().padding(top = 6.dp).padding(horizontal = 20.dp)
-                .drawBehind { drawLine(AsColors.line, Offset(-20.dp.toPx(), size.height - 0.5f), Offset(size.width + 20.dp.toPx(), size.height - 0.5f), 1.dp.toPx()) },
-            horizontalArrangement = Arrangement.SpaceBetween,
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().padding(top = 6.dp)
+                .drawBehind { drawLine(AsColors.line, Offset(0f, size.height - 0.5f), Offset(size.width, size.height - 0.5f), 1.dp.toPx()) },
         ) {
-            AssistantTab.entries.forEach { entry ->
+            val scrollTabs = maxWidth < 340.dp || LocalDensity.current.fontScale > 1.15f
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()).widthIn(min = maxWidth).padding(horizontal = 20.dp),
+                horizontalArrangement = if (scrollTabs) Arrangement.spacedBy(18.dp) else Arrangement.SpaceBetween,
+            ) {
+                AssistantTab.entries.forEach { entry ->
                 val on = entry == tab
                 // as-T16 as-tabs button — color 0,2 s ease · as-T17 as-tabs button::after — el indicador pasa de scaleX(0) a scaleX(1) en 0,26 s (as-X09 / as-X10)
                 val tabColor by asColorState(if (on) AsColors.ink else AsColors.faint, 200)
@@ -121,6 +128,7 @@ internal fun AssistantSheetFrame(
                         ) { AsText("${badge.value}", 10.5f, color = Color14110a, weight = FontWeight.Bold, cap = 1.1f, maxLines = 1) }
                         AsTabBadge.Dot -> Box(Modifier.size(7.dp).clip(CircleShape).background(AsColors.energy).semantics { contentDescription = "aviso" })
                         null -> Unit
+                    }
                     }
                 }
             }

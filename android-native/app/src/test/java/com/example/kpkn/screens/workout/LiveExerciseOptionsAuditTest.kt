@@ -410,6 +410,7 @@ class LiveExerciseOptionsAuditTest {
         assertTrue(vm.uiState.value.pendingStructuralPersistence is PendingStructuralChange.RemoveExercise)
         val liveWeekId = vm.uiState.value.weekId
         vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+        vm.awaitPendingStructuralPersistence()
 
         assertEquals(
             "la próxima vez que se abra la sesión ya no trae el ejercicio (semana en vivo $liveWeekId)",
@@ -427,6 +428,7 @@ class LiveExerciseOptionsAuditTest {
         assertTrue(vm.uiState.value.pendingStructuralPersistence is PendingStructuralChange.AddSuperset)
         val liveWeekId = vm.uiState.value.weekId
         vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+        vm.awaitPendingStructuralPersistence()
 
         val group = fixture!!.programSession()!!.allSupersetGroups()
         assertEquals("el programa tiene la superserie (semana en vivo $liveWeekId)", 1, group.size)

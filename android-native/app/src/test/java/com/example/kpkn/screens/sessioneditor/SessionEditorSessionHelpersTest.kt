@@ -15,6 +15,7 @@ import com.example.kpkn.domain.training.ApreVariant
 import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.screens.sessioneditor.components.withApreBlock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -75,6 +76,63 @@ class SessionEditorSessionHelpersTest {
         val program = session("s1", modifiedAt = 1L)
         val resolved = resolveNewestSession(existing = program, fallback = program, persistedDraft = null)
         assertSame(program, resolved)
+    }
+
+    @Test
+    fun dirtyDraftDivergedByLiveCommitProducesExplicitConflictWithoutOverwritingEither() {
+        val baseline = session("s1", modifiedAt = 100L, extraSets = 1)
+        val dirtyDraftSession = baseline.copy(name = "Mi edición local")
+        val liveUpdatedSession = session("s1", modifiedAt = 500L, extraSets = 3)
+        val persistedDraft = PersistedSessionEditorDraft(
+            programId = "p",
+            sessionId = "s1",
+            weekId = "w",
+            macroIndex = 0,
+            mesoIndex = 0,
+            session = dirtyDraftSession,
+            savedAtMs = 200L,
+            baselineSession = baseline,
+            baselineLastModifiedAtMs = 100L,
+            liveModifiedAtMs = 500L,
+        )
+
+        val resolution = resolveNewestSessionWithConflict(
+            existing = liveUpdatedSession,
+            fallback = liveUpdatedSession,
+            persistedDraft = persistedDraft,
+        )
+
+        assertEquals("Mi edición local", resolution.session.name)
+        assertNotNull("Debe exponer conflicto explícito", resolution.liveConflict)
+        assertEquals("Mi edición local", resolution.liveConflict!!.draftSession.name)
+        assertEquals(3, resolution.liveConflict!!.programSession.exercises.first().sets.size)
+    }
+
+    @Test
+    fun nonDirtyDraftYieldsSilentlyToNewerLiveProgramSession() {
+        val baseline = session("s1", modifiedAt = 100L, extraSets = 1)
+        val liveUpdatedSession = session("s1", modifiedAt = 500L, extraSets = 3)
+        val persistedDraft = PersistedSessionEditorDraft(
+            programId = "p",
+            sessionId = "s1",
+            weekId = "w",
+            macroIndex = 0,
+            mesoIndex = 0,
+            session = baseline.copy(),
+            savedAtMs = 200L,
+            baselineSession = baseline,
+            baselineLastModifiedAtMs = 100L,
+            liveModifiedAtMs = 500L,
+        )
+
+        val resolution = resolveNewestSessionWithConflict(
+            existing = liveUpdatedSession,
+            fallback = liveUpdatedSession,
+            persistedDraft = persistedDraft,
+        )
+
+        assertNull("Sin edición sucia en el editor no debe molestar con conflicto", resolution.liveConflict)
+        assertEquals(3, resolution.session.exercises.first().sets.size)
     }
 
     @Test

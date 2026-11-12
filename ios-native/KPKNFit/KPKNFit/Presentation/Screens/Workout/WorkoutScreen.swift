@@ -1125,7 +1125,7 @@ private struct WarmupSetCard: View {
             setIdx: 0,
             exerciseDbId: exercise.exerciseDbId ?? exercise.exerciseId,
             activeTag: uiState.exerciseTags[exercise.id]
-        )?.weight ?? exercise.sets.first { $0.weight != nil && $0.weight! > 0 }?.weight
+        )?.externalLoadKg().flatMap { $0 > 0.0 ? $0 : nil } ?? exercise.sets.first { $0.weight != nil && $0.weight! > 0 }?.weight
 
         VStack(spacing: 8) {
             Text("Aproximaciones")

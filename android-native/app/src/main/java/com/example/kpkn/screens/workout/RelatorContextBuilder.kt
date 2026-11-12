@@ -364,6 +364,7 @@ internal object RelatorContextBuilder {
                     sessionLastSet?.let { state.completedSets[workoutSetKey(ex.id, it.setNumber - 1, activeSide)] }
                 } else CompletedSet(
                     id = "vista-previa",
+                    loadMode = currentSet?.loadModeV2,
                     actualIntensityMode = currentSet?.intensityMode,
                     actualIntensityValue = draft?.intensityText?.replace(',', '.')?.toDoubleOrNull(),
                     isFailure = draft?.reachedFailure == true,

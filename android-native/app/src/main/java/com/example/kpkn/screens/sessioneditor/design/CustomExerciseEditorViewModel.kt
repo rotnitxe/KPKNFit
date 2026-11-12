@@ -37,7 +37,13 @@ internal data class CustomExerciseEditorState(
     val saving: Boolean = false,
     val error: String? = null,
     val saved: ExerciseMuscleInfo? = null,
+    val draftRevision: Long = 0L,
+    val previewRevision: Long = 0L,
+    val recalculating: Boolean = false,
 ) {
+    val isPreviewCurrent: Boolean
+        get() = preview != null && draftRevision == previewRevision && !recalculating && name.isNotBlank()
+
     val candidates: List<ReferenceCandidate> get() = preview?.referenceResult?.let {
         if (it.outcome == ReferenceOutcome.NONE) emptyList() else it.candidates
     }.orEmpty()
@@ -67,42 +73,89 @@ internal class CustomExerciseEditorViewModel(
     ))
     val state = _state.asStateFlow()
     private var previewJob: Job? = null
-    private var version = 0
+    private var version = 0L
 
-    init { refresh() }
+    init {
+        if (_state.value.name.isNotBlank()) {
+            val revision = ++version
+            _state.value = _state.value.copy(
+                draftRevision = revision,
+                previewRevision = 0L,
+                recalculating = true,
+            )
+            refresh(revision)
+        }
+    }
 
     fun edit(transform: (CustomExerciseEditorState) -> CustomExerciseEditorState) {
         if (_state.value.saving) return
         val previous = _state.value
         val next = transform(previous)
-        val identityChanged = next.name != previous.name || next.implement != previous.implement ||
-            next.station != previous.station || next.laterality != previous.laterality
-        val preservedPreview = if (next.name.isBlank()) null else {
-            previous.preview?.let { current ->
-                var p = current
-                if (next.muscles != null) {
-                    p = p.copy(exercise = p.exercise.copy(involvedMuscles = next.muscles))
-                }
-                if (next.description != null) {
-                    p = p.copy(exercise = p.exercise.copy(description = next.description, descriptionOrigin = "USER"))
-                }
-                p
-            }
+        val identityChanged = next.name != previous.name ||
+            next.implement != previous.implement ||
+            next.station != previous.station ||
+            next.laterality != previous.laterality
+        val musclesChanged = next.muscles != previous.muscles
+        val regenerateRequested = previous.description != null && next.description == null
+        val updatedCover = if (identityChanged && next.cover is CustomExerciseCoverDraft.Reference) {
+            CustomExerciseCoverDraft.Pattern
+        } else {
+            next.cover
         }
+        val nextReviewed = if (identityChanged || musclesChanged) false else next.reviewed
+
+        if (next.name.isBlank()) {
+            previewJob?.cancel()
+            val revision = ++version
+            _state.value = next.copy(
+                reviewed = false,
+                error = null,
+                saved = null,
+                preview = null,
+                cover = updatedCover,
+                draftRevision = revision,
+                previewRevision = revision,
+                recalculating = false,
+            )
+            return
+        }
+
+        val needsInference = identityChanged || regenerateRequested || previous.preview == null
+        val preservedPreview = previous.preview?.let { applyDraftToPreview(it, next) }
+        if (!needsInference) {
+            _state.value = next.copy(
+                reviewed = nextReviewed,
+                error = null,
+                saved = null,
+                preview = preservedPreview,
+                cover = updatedCover,
+            )
+            return
+        }
+
+        val revision = ++version
+        previewJob?.cancel()
         _state.value = next.copy(
-            reviewed = if (identityChanged) false else next.reviewed,
+            reviewed = false,
             error = null,
             saved = null,
             preview = preservedPreview,
-            cover = if (identityChanged && next.cover is CustomExerciseCoverDraft.Reference) CustomExerciseCoverDraft.Pattern else next.cover,
+            cover = updatedCover,
+            draftRevision = revision,
+            recalculating = true,
         )
-        refresh()
+        refresh(revision)
     }
 
     fun review(value: Boolean) {
         val current = _state.value
-        if (!current.saving && current.preview != null && (initial != null || current.hasExplicitTechnicalAxes())) {
-            _state.value = current.copy(reviewed = value)
+        if (current.saving) return
+        if (!value) {
+            _state.value = current.copy(reviewed = false)
+            return
+        }
+        if (current.isPreviewCurrent && (initial != null || current.hasExplicitTechnicalAxes())) {
+            _state.value = current.copy(reviewed = true)
         }
     }
     fun cover(value: CustomExerciseCoverDraft) {
@@ -111,38 +164,70 @@ internal class CustomExerciseEditorViewModel(
     }
     fun consumeSaved() { _state.value = _state.value.copy(saved = null) }
 
-    private fun refresh() {
-        val revision = ++version
+    private fun applyDraftToPreview(preview: SmartCreatePreview, draft: CustomExerciseEditorState): SmartCreatePreview =
+        preview.copy(exercise = applyDraftToExercise(preview.exercise, draft))
+
+    private fun applyDraftToExercise(exercise: ExerciseMuscleInfo, draft: CustomExerciseEditorState): ExerciseMuscleInfo {
+        var updated = exercise
+        if (draft.muscles != null) {
+            updated = updated.copy(involvedMuscles = draft.muscles)
+        }
+        if (draft.description != null) {
+            updated = updated.copy(description = draft.description, descriptionOrigin = "USER")
+        }
+        return updated
+    }
+
+    private fun refresh(revision: Long) {
         previewJob?.cancel()
-        val draft = _state.value
-        if (draft.name.isBlank()) return
+        val requestDraft = _state.value
+        if (requestDraft.name.isBlank()) return
         previewJob = viewModelScope.launch {
             delay(350)
             val result = withContext(previewDispatcher) {
                 runCatching {
-                    SmartExerciseCreator.preview(SmartCreateRequest(
-                        name = draft.name, implementoId = draft.implement.orEmpty(), estacionId = draft.station,
-                        lateralidadId = draft.laterality, description = draft.description,
-                        musclesOverride = draft.muscles, existingId = draftId, existing = initial,
-                    ), catalog, catalogV2).let { preview ->
+                    val currentDraft = _state.value
+                    val draftForPreview = if (currentDraft.draftRevision == revision) currentDraft else requestDraft
+                    SmartExerciseCreator.preview(
+                        SmartCreateRequest(
+                            name = draftForPreview.name,
+                            implementoId = draftForPreview.implement.orEmpty(),
+                            estacionId = draftForPreview.station,
+                            lateralidadId = draftForPreview.laterality,
+                            description = draftForPreview.description,
+                            musclesOverride = draftForPreview.muscles,
+                            existingId = draftId,
+                            existing = initial,
+                        ),
+                        catalog,
+                        catalogV2,
+                    ).let { preview ->
                         // Vacío explícito también es una edición manual; no vuelve a rellenarse por inferencia.
-                        if (draft.muscles == null) preview else preview.copy(exercise = preview.exercise.copy(involvedMuscles = draft.muscles))
+                        if (draftForPreview.muscles == null) preview else preview.copy(exercise = preview.exercise.copy(involvedMuscles = draftForPreview.muscles))
                     }
                 }
             }
-            if (revision == version) _state.value = _state.value.copy(preview = result.getOrNull(),
-                error = result.exceptionOrNull()?.let { "No se pudo preparar la vista previa. Revisa el nombre e inténtalo de nuevo." })
+            if (revision == version) {
+                val latest = _state.value
+                val computed = result.getOrNull()?.let { applyDraftToPreview(it, latest) }
+                _state.value = latest.copy(
+                    preview = computed ?: latest.preview.takeIf { result.isFailure && latest.name.isNotBlank() },
+                    previewRevision = if (computed != null) revision else latest.previewRevision,
+                    recalculating = false,
+                    error = result.exceptionOrNull()?.let { "No se pudo preparar la vista previa. Revisa el nombre e inténtalo de nuevo." },
+                )
+            }
         }
     }
 
     fun save() {
         val draft = _state.value
         val preview = draft.preview ?: return
-        if (draft.saving || !draft.reviewed || draft.name.isBlank() || (initial == null && !draft.hasExplicitTechnicalAxes())) return
+        if (draft.saving || !draft.reviewed || !draft.isPreviewCurrent || draft.name.isBlank() || (initial == null && !draft.hasExplicitTechnicalAxes())) return
         _state.value = draft.copy(saving = true, error = null)
         viewModelScope.launch {
             try {
-                var info = preview.exercise
+                var info = applyDraftToExercise(preview.exercise, draft)
                 val selectedCover = when (val choice = draft.cover) {
                     CustomExerciseCoverDraft.Keep -> initial?.cover ?: info.cover
                     CustomExerciseCoverDraft.Pattern -> ExerciseCover(patternId = ExerciseCoverResolver.patternIdFor(info))

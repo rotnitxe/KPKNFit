@@ -95,7 +95,6 @@ import com.example.kpkn.screens.stories.CompetitionStoryShareHost
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
-import com.example.kpkn.screens.nutrition.NutritionCalibrationScreen
 import com.example.kpkn.screens.nutrition.NutritionPlanEditorScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
@@ -470,8 +469,7 @@ fun KPKNApp(
     val telemetryHelper = remember { TelemetryHelper(context) }
     val navController = rememberNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
-    val nutritionCheckinStore = remember { com.example.kpkn.screens.nutrition.checkin.NutritionCheckinRuntime.store(context) }
-    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel(checkinRecords = nutritionCheckinStore.records) }
+    val nutritionViewModel: NutritionViewModel = viewModel()
     val activeProgram by programsViewModel.activeProgram.collectAsState()
     val allPrograms by programsViewModel.programs.collectAsState()
     val currentBackStack by navController.currentBackStackEntryAsState()

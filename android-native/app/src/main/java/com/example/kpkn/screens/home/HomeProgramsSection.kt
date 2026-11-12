@@ -12,7 +12,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -178,6 +181,8 @@ private fun ProgramPoster(
     val personalPhotoUrl = program.coverImage.takeIf {
         heroCoverKind(it, hasBundledCover = false) == HeroCoverKind.REMOTE
     }
+    var personalPhotoFailed by remember(personalPhotoUrl) { mutableStateOf(false) }
+    val showPersonalPhoto = personalPhotoUrl != null && !personalPhotoFailed
     // La portada de estudio («Editar programa») manda; sin ella, la identidad de siempre.
     val identity = remember(program.id, program.structureTemplateId, program.coverImage) { coverIdentityForProgram(program) }
     val summary = if (isActive) null else programSummaryLine(program)
@@ -207,17 +212,18 @@ private fun ProgramPoster(
         } else {
             CoverStudioArt(identity = identity, modifier = Modifier.fillMaxSize(), animate = false, reduced = reduced)
         }
-        personalPhotoUrl?.let { photo ->
+        if (showPersonalPhoto) {
             AsyncImage(
-                model = photo,
+                model = personalPhotoUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize().testTag("home-program-photo-${program.id}"),
                 contentScale = ContentScale.Crop,
+                onError = { personalPhotoFailed = true },
             )
         }
         // Velo de la parte baja, con el criterio de K3a (PlanCover.CoverBottomVeil): en tinta y en papel, una peana negra sólida desde
         // el 56 % para que el título se lea sobre cualquier arte; en noche, un degradado; con foto propia, el velo de foto de K3a.
-        val hasPhotoCover = cover != null || personalPhotoUrl != null
+        val hasPhotoCover = cover != null || showPersonalPhoto
         val solidBase = !hasPhotoCover && identity.palette != CoverPaletteKind.NOCHE
         val veil = when {
             hasPhotoCover -> arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f))

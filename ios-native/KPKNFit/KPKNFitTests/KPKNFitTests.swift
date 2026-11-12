@@ -526,3 +526,110 @@ final class RegisteredTrainingDocumentTests: XCTestCase {
         XCTAssertEqual(restored.sportDocuments?.first?.payload.count,1)
     }
 }
+
+final class CompletedSetLoadSemanticsTests: XCTestCase {
+    func testBodyweightAndAssistedExcludeSyntheticExternalLoadAndDropTonnage() {
+        let bwSet = CompletedSet(
+            id: "bw-legacy",
+            weight: 78.0,
+            reps: 10,
+            dropSets: [DropSetData(weight: 10.0, reps: 4)],
+            restPauses: [RestPauseData(restTime: 15, reps: 3)],
+            recordedPayloadV3: RecordedSetPayload(
+                exerciseId: "pushup",
+                loadInputMode: .BODYWEIGHT,
+                bodyWeightSnapshot: 78.0,
+                completedReps: 10
+            ),
+            loadMode: .BODYWEIGHT
+        )
+        XCTAssertEqual(bwSet.externalLoadKg(), 0.0)
+        XCTAssertEqual(bwSet.totalExternalTonnageKg(), 0.0)
+        XCTAssertFalse(bwSet.supportsEstimatedOneRm())
+
+        let assistedSet = CompletedSet(
+            id: "assisted",
+            weight: 30.0,
+            reps: 8,
+            recordedPayloadV3: RecordedSetPayload(
+                exerciseId: "pullup",
+                loadInputMode: .ASSISTED,
+                assistedLoad: 30.0,
+                bodyWeightSnapshot: 80.0,
+                completedReps: 8
+            ),
+            loadMode: .ASSISTED
+        )
+        XCTAssertEqual(assistedSet.externalLoadKg(), 0.0)
+        XCTAssertEqual(assistedSet.assistanceKg(), 30.0)
+        XCTAssertEqual(assistedSet.totalExternalTonnageKg(), 0.0)
+        XCTAssertFalse(assistedSet.supportsEstimatedOneRm())
+    }
+
+    func testLastreRecoversExternalLoadAndExcludesUnrecoverableSyntheticWeight() {
+        let recoveredLastre = CompletedSet(
+            id: "lastre-ok",
+            weight: 100.0,
+            reps: 6,
+            dropSets: [DropSetData(weight: 10.0, reps: 4)],
+            restPauses: [RestPauseData(restTime: 15, reps: 2)],
+            recordedPayloadV3: RecordedSetPayload(
+                exerciseId: "pullup",
+                loadInputMode: .LASTRE,
+                externalLoad: 20.0,
+                bodyWeightSnapshot: 80.0,
+                completedReps: 6
+            ),
+            loadMode: .LASTRE
+        )
+        XCTAssertEqual(recoveredLastre.externalLoadKg(), 20.0)
+        XCTAssertFalse(recoveredLastre.supportsEstimatedOneRm())
+        XCTAssertEqual(recoveredLastre.totalExternalTonnageKg(), 20.0 * 6 + 10.0 * 4 + 20.0 * 2)
+
+        let unrecoverableLastre = CompletedSet(
+            id: "lastre-missing",
+            weight: 95.0,
+            reps: 8,
+            dropSets: [DropSetData(weight: 12.0, reps: 5)],
+            restPauses: [RestPauseData(restTime: 15, reps: 3)],
+            recordedPayloadV3: RecordedSetPayload(
+                exerciseId: "dips",
+                loadInputMode: .LASTRE,
+                bodyWeightSnapshot: 80.0,
+                completedReps: 8
+            ),
+            loadMode: .LASTRE
+        )
+        XCTAssertNil(unrecoverableLastre.externalLoadKg())
+        XCTAssertEqual(unrecoverableLastre.totalExternalTonnageKg(), 12.0 * 5)
+    }
+
+    func testFeedbackUpdatesPreserveLoadModeAndRecordedPayload() {
+        let payload = RecordedSetPayload(
+            exerciseId: "dips",
+            loadInputMode: .LASTRE,
+            externalLoad: 15.0,
+            bodyWeightSnapshot: 80.0,
+            completedReps: 8
+        )
+        let base = CompletedSet(
+            id: "s1",
+            weight: 15.0,
+            reps: 8,
+            recordedPayloadV3: payload,
+            loadMode: .LASTRE,
+            originalLoad: 15.0
+        )
+        let withAdv = applyAdvancedFeedback(base: base, advanced: SetAdvancedFeedback(rir: 2))
+        XCTAssertEqual(withAdv.loadMode, .LASTRE)
+        XCTAssertEqual(withAdv.originalLoad, 15.0)
+        XCTAssertEqual(withAdv.recordedPayloadV3?.externalLoad, 15.0)
+
+        let backfilled = backfillCompletedSetIntensityFromPostExerciseFeedback(
+            completedSets: ["dips_0": withAdv],
+            feedback: PostExerciseFeedback(exerciseId: "dips", canonicalExerciseId: "dips", exerciseName: "Dips", perceivedIntensityRpe: 8.5, perceivedFailure: false)
+        )
+        XCTAssertEqual(backfilled["dips_0"]?.loadMode, .LASTRE)
+        XCTAssertEqual(backfilled["dips_0"]?.recordedPayloadV3?.externalLoad, 15.0)
+    }
+}

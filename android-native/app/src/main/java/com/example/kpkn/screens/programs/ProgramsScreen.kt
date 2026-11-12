@@ -661,9 +661,14 @@ private fun ActiveProgramCard(
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
     val coverKind = heroCoverKind(program.coverImage, hasBundledCover = false)
     val personalPhotoUrl = program.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE }
+    var personalPhotoFailed by remember(personalPhotoUrl) { mutableStateOf(false) }
     // Portada de estudio (`kpkn-studio://`): la misma que pinta la cabecera de Program Detail, sin animación.
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (coverKind !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
+        if (coverKind in PROGRAM_ART_COVERS || (coverKind == HeroCoverKind.REMOTE && personalPhotoFailed)) {
+            coverIdentityForProgram(program)
+        } else {
+            null
+        }
     }
     val todaySession = summary?.todaySessionName
     val ribbon = summary?.ribbon.orEmpty()
@@ -690,12 +695,13 @@ private fun ActiveProgramCard(
                     contentScale = ContentScale.Crop,
                 )
             }
-            personalPhotoUrl?.let { photo ->
+            if (personalPhotoUrl != null && !personalPhotoFailed) {
                 AsyncImage(
-                    model = photo,
+                    model = personalPhotoUrl,
                     contentDescription = null,
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop,
+                    onError = { personalPhotoFailed = true },
                 )
             }
             // El arte se funde con la tarjeta por abajo.
@@ -1114,8 +1120,13 @@ internal fun ProgramCoverThumb(
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
     val coverKind = heroCoverKind(program.coverImage, hasBundledCover = false)
     val personalPhotoUrl = program.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE }
+    var personalPhotoFailed by remember(personalPhotoUrl) { mutableStateOf(false) }
     val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
-        if (coverKind !in PROGRAM_ART_COVERS) null else coverIdentityForProgram(program)
+        if (coverKind in PROGRAM_ART_COVERS || (coverKind == HeroCoverKind.REMOTE && personalPhotoFailed)) {
+            coverIdentityForProgram(program)
+        } else {
+            null
+        }
     }
     Box(
         modifier = modifier
@@ -1134,12 +1145,13 @@ internal fun ProgramCoverThumb(
                 contentScale = ContentScale.Crop,
             )
         }
-        personalPhotoUrl?.let { photo ->
+        if (personalPhotoUrl != null && !personalPhotoFailed) {
             AsyncImage(
-                model = photo,
+                model = personalPhotoUrl,
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
+                onError = { personalPhotoFailed = true },
             )
         }
     }

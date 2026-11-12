@@ -231,6 +231,7 @@ class LiveReorderVmTest {
         val liveWeekId = vm.uiState.value.weekId
 
         vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+        vm.awaitPendingStructuralPersistence()
 
         assertNull("ya no queda nada por guardar", vm.uiState.value.pendingStructuralPersistence)
         val saved = fx.programSession()!!.allExercises().map { it.id }

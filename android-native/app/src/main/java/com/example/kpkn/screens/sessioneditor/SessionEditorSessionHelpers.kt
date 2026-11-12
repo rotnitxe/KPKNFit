@@ -19,6 +19,7 @@ import com.example.kpkn.domain.training.generator.RoutineMode
 import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.domain.training.generator.RoutinePattern
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -303,21 +304,102 @@ fun clearSessionEditorDraft(
     SessionEditorDraftStore.clearLater(context, key)
 }
 
+fun reconcileSessionEditorDraftAfterLiveCommit(
+    context: android.content.Context,
+    programId: String,
+    weekId: String,
+    macroIndex: Int,
+    mesoIndex: Int,
+    sessionId: String,
+    liveModifiedAtMs: Long = System.currentTimeMillis(),
+) {
+    val templateWeekId = com.example.kpkn.domain.training.ProgramProgressEngine.templateWeekIdFromInstance(weekId)
+    val weekIds = buildList {
+        add(weekId)
+        if (!templateWeekId.isNullOrBlank() && templateWeekId != weekId) add(templateWeekId)
+    }
+    weekIds.forEach { candidateWeekId ->
+        val key = sessionEditorDraftStorageKey(
+            programId = programId,
+            weekId = candidateWeekId,
+            macroIndex = macroIndex,
+            mesoIndex = mesoIndex,
+            sessionId = sessionId,
+        )
+        SessionEditorDraftStore.reconcileLaterAfterLiveCommit(context, key, liveModifiedAtMs)
+    }
+}
+
+internal data class SessionDraftResolution(
+    val session: Session,
+    val liveConflict: SessionEditorLiveDraftConflict? = null,
+)
+
 internal fun resolveNewestSession(
     existing: Session?,
     fallback: Session,
     persistedDraft: PersistedSessionEditorDraft?,
-): Session {
-    val persisted = persistedDraft?.session
-    if (persisted == null) return existing ?: fallback
-    val programSession = existing ?: fallback
-    val programTs = programSession.lastModifiedAtMs
-    val draftFileTs = persistedDraft.savedAtMs
-    val draftSessionTs = persisted.lastModifiedAtMs
-    if (programTs > 0L && programTs >= draftFileTs && programTs >= draftSessionTs) {
-        return programSession
+): Session = resolveNewestSessionWithConflict(existing, fallback, persistedDraft).session
+
+internal fun resolveNewestSessionWithConflict(
+    existing: Session?,
+    fallback: Session,
+    persistedDraft: PersistedSessionEditorDraft?,
+): SessionDraftResolution {
+    val persisted = persistedDraft?.session ?: return SessionDraftResolution(existing ?: fallback)
+    if (existing == null) return SessionDraftResolution(persisted)
+
+    val baseline = persistedDraft.baselineSession
+    val liveTsMark = persistedDraft.liveModifiedAtMs
+    if (baseline == null && liveTsMark == null) {
+        val programTs = existing.lastModifiedAtMs
+        val draftFileTs = persistedDraft.savedAtMs
+        val draftSessionTs = persisted.lastModifiedAtMs
+        val chosen = if (programTs > 0L && programTs >= draftFileTs && programTs >= draftSessionTs) {
+            existing
+        } else if (draftFileTs >= programTs) {
+            persisted
+        } else {
+            existing
+        }
+        return SessionDraftResolution(chosen)
     }
-    return if (draftFileTs >= programTs) persisted else programSession
+
+    val draftDirty = baseline == null || !sameSessionEditorContent(persisted, baseline)
+    val programChanged = baseline != null && !sameEditorBaselineContent(existing, baseline)
+    val baselineTs = persistedDraft.baselineLastModifiedAtMs ?: baseline?.lastModifiedAtMs ?: 0L
+    val liveTouchedAfterBaseline = liveTsMark != null ||
+        (existing.lastModifiedAtMs > 0L && existing.lastModifiedAtMs > baselineTs)
+
+    if (!draftDirty) {
+        return SessionDraftResolution(existing)
+    }
+    if (programChanged && liveTouchedAfterBaseline && !sameEditorBaselineContent(persisted, existing)) {
+        val normalizedDraft = com.example.kpkn.domain.workout.SupersetRules.normalizeSession(
+            com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler.normalizeSessionStructure(
+                persisted
+                    .normalizeEditorScheduledTechniques()
+                    .normalizeMobilityCompatibility()
+                    .normalizedIdentityFields(),
+            ),
+        )
+        val normalizedProgram = com.example.kpkn.domain.workout.SupersetRules.normalizeSession(
+            existing
+                .normalizeEditorScheduledTechniques()
+                .normalizeMobilityCompatibility()
+                .normalizedIdentityFields(),
+        )
+        return SessionDraftResolution(
+            session = persisted,
+            liveConflict = SessionEditorLiveDraftConflict(
+                sessionId = existing.id,
+                draftSession = normalizedDraft,
+                programSession = normalizedProgram,
+                liveModifiedAtMs = liveTsMark ?: existing.lastModifiedAtMs,
+            ),
+        )
+    }
+    return SessionDraftResolution(persisted)
 }
 
 internal fun ensureSessionInList(sessions: List<Session>, session: Session): List<Session> {
@@ -529,28 +611,39 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
 
     val completedSets = matchingExercises
         .flatMap { (date, completed) -> completed.sets.map { set -> date to set } }
-        .filter { (_, set) -> !set.isWarmup && !set.skipped && set.weight > 0.0 && set.reps > 0 }
+        .filter { (_, set) ->
+            !set.isWarmup &&
+                !set.skipped &&
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) &&
+                (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0) > 0.0 &&
+                set.reps > 0
+        }
     if (completedSets.isEmpty()) return null
 
     fun estimatedRm(set: CompletedSet): Double =
-        set.homologatedResultV3?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION }?.estimatedRm
+        set.homologatedResultV3?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION }?.estimatedRm
             ?.takeIf { it > 0.0 }
             ?: StrengthModel.estimate1RM(set)
 
     val bestSet = completedSets.maxByOrNull { (_, set) -> estimatedRm(set) } ?: return null
     val latestSet = completedSets.maxByOrNull { (date, _) -> date }?.second
     val bestEstimatedRm = estimatedRm(bestSet.second)
+    val bestWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(bestSet.second)
     val suggestedNextLoad = latestSet
         ?.homologatedResultV3?.takeUnless {
-            it.estimatorVersion < com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION && it.amrapOverride
+            it.estimatorVersion < com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION && it.amrapOverride
         }
         ?.suggestedNextLoad
         ?.takeIf { it > 0.0 }
 
     return SharedExercisePerformance(
         reference1RM = bestEstimatedRm,
-        prReference = PrReference(bestSet.second.weight, bestSet.second.reps),
-        consolidatedWeight = latestSet?.let { ConsolidatedWeight(it.weight, it.reps) },
+        prReference = bestWeight?.let { PrReference(it, bestSet.second.reps) },
+        consolidatedWeight = latestSet?.let { set ->
+            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set)?.let { latestWeight ->
+                ConsolidatedWeight(latestWeight, set.reps)
+            }
+        },
         suggestedNextLoad = suggestedNextLoad,
     )
 }

@@ -56,7 +56,7 @@ internal fun restLastSetFigureText(
     customUnit: String?,
     timeSuffix: String = " s",
 ): String {
-    val load = if (set.weight > 0.0) "${formatRestLoad(set.weight)} kg" else "Peso corporal"
+    val load = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displayLoad(set)
     return "$load × ${restLastSetQuantityText(set, customUnit, timeSuffix)}"
 }
 

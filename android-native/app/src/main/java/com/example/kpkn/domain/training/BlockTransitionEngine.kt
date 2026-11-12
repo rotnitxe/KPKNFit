@@ -82,7 +82,7 @@ object BlockTransitionEngine {
     ): Boolean {
         val weeks = block.mesocycles.flatMap { it.weeks }
         if (weeks.isEmpty()) return false
-        val cycle = if (program.requiresNativeWeekInstances()) program.runState?.cycleNumber ?: 1 else 1
+        val cycle = if (program.usesCycleWeekInstances()) program.runState?.cycleNumber ?: 1 else 1
         return weeks.all { week ->
             if (week.executionKind != com.example.kpkn.data.models.WeekExecutionKind.REST &&
                 week.sessions.none(SessionTemplateEngine::sessionHasExecutableContent)

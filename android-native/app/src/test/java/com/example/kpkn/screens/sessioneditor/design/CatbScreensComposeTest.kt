@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.width
 import androidx.compose.ui.unit.height
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
+import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.*
 import com.example.kpkn.testsupport.MotCatalog
@@ -49,10 +51,36 @@ class CatbScreensComposeTest {
     private var selected = 0
     private var usedCandidate: ReferenceCandidate? = null
 
-    private fun preview(draft: CustomExerciseEditorState) = draft.copy(preview = SmartExerciseCreator.preview(
-        SmartCreateRequest(name = draft.name, implementoId = draft.implement.orEmpty(), estacionId = draft.station,
-            lateralidadId = draft.laterality, description = draft.description,
-            existingId = "custom:catb-test", musclesOverride = draft.muscles), MotCatalog.legacyDefaultCatalog, MotCatalog.catalog))
+    private fun preview(draft: CustomExerciseEditorState) = draft.copy(
+        previewRevision = draft.draftRevision,
+        preview = SmartExerciseCreator.preview(
+            SmartCreateRequest(
+                name = draft.name,
+                implementoId = draft.implement.orEmpty(),
+                estacionId = draft.station,
+                lateralidadId = draft.laterality,
+                description = draft.description,
+                existingId = "custom:catb-test",
+                musclesOverride = draft.muscles,
+            ),
+            MotCatalog.legacyDefaultCatalog,
+            MotCatalog.catalog,
+        ),
+    )
+
+    private fun selectExplicitAxes() {
+        rule.onNodeWithTag("custom-option-Material").performScrollTo().performClick()
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.onNodeWithText(SmartExerciseCreator.implementoLabel("barbell")).performClick()
+        val station = SmartExerciseCreator.ESTACION_IDS.first()
+        rule.onNodeWithTag("custom-option-Estación").performScrollTo().performClick()
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.onNodeWithText(SmartExerciseCreator.estacionLabel(station)).performClick()
+        val side = SmartExerciseCreator.LATERALIDAD_IDS.first()
+        rule.onNodeWithTag("custom-option-Lateralidad").performScrollTo().performClick()
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.onNodeWithText(SmartExerciseCreator.lateralidadLabel(side)).performClick()
+    }
 
     private fun mount(font: Float, name: String = "sentadilla barra baja") {
         state.value = preview(CustomExerciseEditorState(name = name))
@@ -163,10 +191,14 @@ class CatbScreensComposeTest {
 
     @Test fun revisionErrorReintentoYCancelarConservanLosCallbacksNativos() {
         mount(1.3f)
+        rule.onNodeWithTag("custom-exercise-review").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("custom-exercise-save").assertIsNotEnabled()
+        selectExplicitAxes()
+        rule.onNodeWithTag("custom-exercise-review").performScrollTo().assertIsEnabled()
         rule.onNodeWithTag("custom-exercise-save").assertIsNotEnabled()
         rule.onNodeWithTag("custom-exercise-review").performScrollTo().performClick()
         rule.onNodeWithTag("custom-exercise-save").performClick()
-        rule.onNodeWithTag("custom-exercise-save-error").assertExists()
+        rule.onNodeWithTag("custom-exercise-save-error").performScrollTo().assertExists()
         fullText("Reintentar", "custom-exercise-save")
         assertEquals("sentadilla barra baja", state.value.name)
         rule.onNodeWithTag("custom-exercise-save").performClick()
@@ -235,5 +267,87 @@ class CatbScreensComposeTest {
         file.parentFile!!.mkdirs()
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         bitmap.recycle()
+    }
+
+    @Test fun ordenSeccionesRestablecerSegunRolScrollYLecturaEnFichaYVolumen() {
+        mount(1f)
+        val nameY = rule.onNodeWithTag("custom-exercise-name").fetchSemanticsNode().positionInRoot.y
+        val eqY = rule.onNodeWithTag("custom-option-Material").fetchSemanticsNode().positionInRoot.y
+        val manualY = rule.onNodeWithTag("custom-exercise-manual-toggle").fetchSemanticsNode().positionInRoot.y
+        val descY = rule.onNodeWithTag("custom-exercise-description").fetchSemanticsNode().positionInRoot.y
+        val coverY = rule.onNodeWithTag("custom-exercise-cover-section").fetchSemanticsNode().positionInRoot.y
+        val reviewY = rule.onNodeWithTag("custom-exercise-review").fetchSemanticsNode().positionInRoot.y
+        assertTrue("nameY=$nameY < eqY=$eqY", nameY < eqY)
+        assertTrue("eqY=$eqY < manualY=$manualY", eqY < manualY)
+        assertTrue("manualY=$manualY < descY=$descY", manualY < descY)
+        assertTrue("descY=$descY < coverY=$coverY", descY < coverY)
+        assertTrue("coverY=$coverY < reviewY=$reviewY", coverY < reviewY)
+
+        selectExplicitAxes()
+        // Expand manual muscles and keep scroll intact while preview recalculates.
+        rule.onNodeWithTag("custom-exercise-manual-toggle").performScrollTo().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("custom-exercise-manual-muscles").performScrollTo()
+        val scrollBoundsBefore = rule.onNodeWithTag("custom-exercise-description").fetchSemanticsNode().positionInRoot.y
+        rule.runOnIdle {
+            state.value = state.value.copy(
+                name = "Sentadilla personalizada",
+                draftRevision = 2L,
+                previewRevision = 1L,
+                recalculating = true,
+                reviewed = false,
+            )
+        }
+        rule.waitForIdle()
+        rule.onNodeWithTag("custom-exercise-review").assertIsNotEnabled()
+        rule.onNodeWithTag("custom-exercise-save").assertIsNotEnabled()
+        val scrollBoundsDuring = rule.onNodeWithTag("custom-exercise-description").fetchSemanticsNode().positionInRoot.y
+        assertEquals(scrollBoundsBefore, scrollBoundsDuring, 56f)
+
+        // Custom edited muscle contributions (85% primary, 70% secondary, 40% stabilizer) & Restablecer según rol.
+        val editedMuscles = listOf(
+            InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 0.85),
+            InvolvedMuscle("Glúteos", MuscleRole.SECONDARY, 0.70),
+            InvolvedMuscle("Core", MuscleRole.STABILIZER, 0.40),
+        )
+        rule.runOnIdle {
+            state.value = preview(
+                state.value.copy(
+                    muscles = editedMuscles,
+                    draftRevision = 2L,
+                    previewRevision = 2L,
+                    recalculating = false,
+                ),
+            )
+        }
+        rule.waitForIdle()
+        rule.onNodeWithTag("custom-muscle-reset-Glúteos").performScrollTo().performClick()
+        rule.waitForIdle()
+        assertEquals(0.50, state.value.muscles!![1].volumeContribution!!, 0.001)
+        rule.onNodeWithTag("custom-muscle-step-up-Glúteos").performScrollTo().performClick()
+        rule.waitForIdle()
+        assertEquals(0.55, state.value.muscles!![1].volumeContribution!!, 0.001)
+
+        // Verify ficha + MuscleVolumeAccounting + VolumeCalculator read the saved customized contributions.
+        val savedExercise = state.value.preview!!.exercise
+        rule.runOnIdle { scene.value = "catalog" }
+        rule.waitForIdle()
+        rule.onNodeWithTag("exercise-ficha-muscles").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("55\u00A0%", substring = true).performScrollTo().assertIsDisplayed()
+        val sessionVol = MuscleVolumeAccounting.sessionSets(
+            listOf(
+                CompletedExercise(
+                    exerciseId = savedExercise.id,
+                    exerciseName = savedExercise.name,
+                    effectiveMuscles = savedExercise.involvedMuscles,
+                    sets = listOf(CompletedSet("s1", weight = 100.0, reps = 5)),
+                ),
+            ),
+        )
+        assertEquals(0.85, sessionVol.getValue("Cuádriceps"), 0.001)
+        assertEquals(0.55, sessionVol.getValue("Glúteos"), 0.001)
+        assertEquals(0.40, sessionVol.getValue("Core"), 0.001)
+        val perExercise = VolumeCalculator.buildPerExerciseMuscleContributions(savedExercise.involvedMuscles)
+        assertEquals(0.55, perExercise.getValue("Glúteos"), 0.001)
     }
 }

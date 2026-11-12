@@ -35,6 +35,8 @@ data class HomeLiftProgress(
     val points: List<Double> = emptyList(),
     /** Identidad de ExerciseProgress que abre la trayectoria exacta de esta fila. */
     val progressId: String = "",
+    val unitLabel: String = "kg",
+    val higherIsBetter: Boolean = true,
 )
 
 /** Métrica elegida en el control segmentado de Inicio. */
@@ -119,7 +121,7 @@ object HomeTrainingMetricsBuilder {
                 }
                 .sortedByDescending { it.sets },
             readiness = readinessOf(wellbeing),
-            progress = progressOf(logs),
+            progress = progressOf(logs, today),
         )
     }
 
@@ -172,36 +174,46 @@ object HomeTrainingMetricsBuilder {
         )
     }
 
-    private fun progressOf(logs: List<WorkoutLog>): List<HomeLiftProgress> {
-        val ordered = logs.sortedBy { it.date }
-        val best = linkedMapOf<String, MutableList<Pair<String, Double>>>()
-        ordered.forEach { log ->
-            log.completedExercises.forEach { exercise ->
-                val value = exercise.sets
-                    .filter {
-                        !it.skipped && !it.isWarmup && !it.isFailedSet && it.reps > 0 &&
-                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it)
-                    }
-                    .maxOfOrNull { StrengthModel.estimate1RM(it) } ?: return@forEach
-                val identity = ExerciseProgress.identity(exercise)
-                best.getOrPut(identity) { mutableListOf() }
-                    .add(exercise.exerciseName to value)
+    private fun progressOf(logs: List<WorkoutLog>, today: LocalDate): List<HomeLiftProgress> {
+        return ExerciseProgress.choices(logs).mapNotNull { choice ->
+            val report = ExerciseProgress.build(
+                logs = logs,
+                exerciseId = choice.id,
+                window = com.example.kpkn.domain.training.ExerciseProgressWindow.ALL,
+                today = today,
+            )
+            val sameLineagePoints = report.points.lastOrNull()?.lineage?.let { latestLineage ->
+                report.points.filter { it.lineage == latestLineage }
+            } ?: report.points
+            val latest = sameLineagePoints.lastOrNull() ?: return@mapNotNull null
+            val previousBest = sameLineagePoints.dropLast(1).let { prior ->
+                if (prior.isEmpty()) null
+                else if (latest.higherIsBetter) prior.maxOf { it.value }
+                else prior.minOf { it.value }
             }
-        }
-        return best.entries.mapNotNull { (id, values) ->
-            val latest = values.last()
-            val previousBest = values.dropLast(1).maxOfOrNull { it.second }
+            val unit = when (report.metric) {
+                com.example.kpkn.domain.training.ExerciseProgressMetric.E1RM,
+                com.example.kpkn.domain.training.ExerciseProgressMetric.MAX_WEIGHT,
+                com.example.kpkn.domain.training.ExerciseProgressMetric.VOLUME,
+                -> "kg"
+                com.example.kpkn.domain.training.ExerciseProgressMetric.BEST_SET ->
+                    if (latest.mode == com.example.kpkn.data.models.LoadModeV2.ASSISTED) "kg" else ""
+                com.example.kpkn.domain.training.ExerciseProgressMetric.MAX_REPS -> "reps"
+                com.example.kpkn.domain.training.ExerciseProgressMetric.SETS -> "series"
+                com.example.kpkn.domain.training.ExerciseProgressMetric.DURATION -> "s"
+                com.example.kpkn.domain.training.ExerciseProgressMetric.DISTANCE -> "m"
+            }
             HomeLiftProgress(
-                exerciseId = id,
-                name = latest.first,
-                estimated1Rm = latest.second,
-                deltaKg = previousBest?.let { latest.second - it },
-                points = values.takeLast(8).map { it.second },
-                progressId = id,
+                exerciseId = choice.id,
+                name = choice.name,
+                estimated1Rm = latest.value,
+                deltaKg = previousBest?.let { latest.value - it },
+                points = sameLineagePoints.takeLast(8).map { it.value },
+                progressId = choice.id,
+                unitLabel = unit,
+                higherIsBetter = latest.higherIsBetter,
             )
         }
-            .sortedByDescending { it.estimated1Rm }
-            .take(5)
     }
 
 }

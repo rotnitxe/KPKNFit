@@ -438,8 +438,9 @@ fun SessionEditorViewModel.addSet(partId: String?, exerciseId: String, side: Str
 }
 
 fun SessionEditorViewModel.removeSet(partId: String?, exerciseId: String, setId: String) = updateExercise(partId, exerciseId) { exercise ->
-    if (exercise.sets.size <= 1) return@updateExercise exercise
+    val activeCount = exercise.sets.count { !it.isEmptySlot }
     val target = exercise.sets.firstOrNull { it.id == setId } ?: return@updateExercise exercise
+    if (activeCount <= 1 || target.isEmptySlot) return@updateExercise exercise
     if (exercise.supersetGroupRefOrLegacyId() != null) {
         // Superset rounds share their positional index. Removing an item would move
         // every later round up, so keep a serialized empty slot instead.

@@ -151,10 +151,12 @@ internal fun resolveRelatorPrHint(
     goal1RmKg: Double?,
     effort: CompletedSet? = null,
 ): RelatorPrHint? {
+    if (effort != null && !com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(effort)) return null
     val weight = liveWeightKg?.takeIf { it > 0.0 } ?: return null
     val reps = liveReps?.takeIf { it > 0 } ?: return null
     val e1rm = effort?.let { StrengthModel.estimate1RM(it.copy(weight = weight, reps = reps)) }
         ?: StrengthModel.estimate1RM(weight, reps)
+    if (!e1rm.isFinite() || e1rm <= 0.0) return null
     if (!shouldRecordPrE1rmMilestone(e1rm, historyBestE1rm, sessionBestPreviousE1rm)) return null
     val goal = goal1RmKg?.takeIf { it > 0.0 }
     val pct = goal?.let { ((e1rm / it) * 100.0).toInt().coerceAtLeast(0) }
@@ -167,10 +169,15 @@ internal fun resolveRelatorPrHint(
 }
 
 internal fun firstWorkingSetMemory(sets: List<CompletedSet>): RelatorSessionSetMemory? {
-    val first = sets.firstOrNull { !it.isWarmup && !it.skipped && it.weight > 0.0 } ?: return null
+    val first = sets.firstOrNull {
+        !it.isWarmup &&
+            !it.skipped &&
+            (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0.0
+    } ?: return null
+    val external = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(first) ?: return null
     return RelatorSessionSetMemory(
         setNumber = 1,
-        weightKg = first.weight,
+        weightKg = external,
         reps = first.reps,
     )
 }

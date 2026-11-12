@@ -53,22 +53,9 @@ internal fun calibrationStatusLabel(status: String): String = when (status) {
     else -> "En evaluación"
 }
 
-/** Clave y posición del `item` que aloja el flujo del check-in en la lista de la página. */
-internal const val CHECKIN_ITEM_KEY = "calibration-checkin"
-internal const val CHECKIN_ITEM_INDEX = 3
-
 /**
- * ¿Hay que desplazar la lista hasta el inicio del check-in? [itemOffsetPx] es la distancia entre el borde alto de la ventana y el
- * inicio del `item` (negativa si ya se salió por arriba; null si no está dibujado). No salta si la persona ya lo tiene arriba:
- * de su borde alto hasta una cuarta parte de la ventana, con unos píxeles de tolerancia.
- */
-internal fun shouldScrollToCheckin(itemOffsetPx: Int?, viewportHeightPx: Int): Boolean {
-    if (itemOffsetPx == null) return true
-    return itemOffsetPx !in -4..(viewportHeightPx / 4)
-}
-
-/**
- * Detalle del estimador y revisión semanal; conserva el asistente de hábitos y el enlace de calibración.
+ * Detalle del estimador; conserva el asistente de hábitos y el enlace de calibración.
+ * El check-in semanal se retiró (remediation 6): su estado solo alimenta la estimación.
  */
 @Composable
 fun NutritionCalibrationScreen(

@@ -294,10 +294,13 @@ private fun ProgressBlock(
             )
             Sparkline(lift.points)
             Spacer(Modifier.width(10.dp))
+            val improved = lift.deltaKg?.let { delta ->
+                if (lift.higherIsBetter) delta > 0.005 else delta < -0.005
+            } == true
             Text(
-                text = lift.deltaKg?.let { homeKgLabel(it) } ?: "—",
+                text = lift.deltaKg?.let { homeLiftDeltaLabel(it, lift.unitLabel) } ?: "—",
                 style = KpknType.bodyStrong.copy(fontSize = 13.sp),
-                color = if ((lift.deltaKg ?: 0.0) > 0.0) UpGreen else WizardColors.textMuted,
+                color = if (improved) UpGreen else WizardColors.textMuted,
             )
         }
     }
@@ -349,8 +352,10 @@ internal fun homeDeltaLabel(delta: Double, metric: HomeMetric): String = when {
     else -> homeMetricNumber(delta, metric)
 }
 
-private fun homeKgLabel(delta: Double): String = when {
-    kotlin.math.abs(delta) < 0.005 -> "="
-    delta > 0.0 -> "+${com.example.kpkn.screens.workout.finishNumber(delta)}"
-    else -> com.example.kpkn.screens.workout.finishNumber(delta)
+private fun homeLiftDeltaLabel(delta: Double, unitLabel: String): String {
+    if (kotlin.math.abs(delta) < 0.005) return "="
+    val formatted = com.example.kpkn.screens.workout.finishNumber(kotlin.math.abs(delta))
+    val sign = if (delta > 0.0) "+" else "−"
+    val suffix = if (unitLabel.isNotBlank()) " $unitLabel" else ""
+    return "$sign$formatted$suffix"
 }

@@ -64,7 +64,7 @@ class WorkoutStoryRenderSheetTest {
             WorkoutStat("48", "min", "Duración"),
             WorkoutStat("6.240", "kg", "Volumen"),
             WorkoutStat("17", null, "Series"),
-            WorkoutStat("1,6", null, "RIR medio"),
+            WorkoutStat("7,5", null, "sRPE"),
         ),
         gains = listOf(WorkoutGain("Dominadas lastradas", "+2,5 kg"), WorkoutGain("Remo con barra", "+2,5 kg")),
         records = 1,

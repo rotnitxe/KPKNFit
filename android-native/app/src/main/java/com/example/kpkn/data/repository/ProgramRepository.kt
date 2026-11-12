@@ -17,6 +17,7 @@ import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.coerceNativeWeekInstanceId
 import com.example.kpkn.domain.training.requiresNativeWeekInstances
+import com.example.kpkn.domain.training.usesCycleWeekInstances
 import com.example.kpkn.domain.training.NativeWorkoutProgressionRuntime
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.training.WeeklyAutoregulationSignals
@@ -877,6 +878,20 @@ class ProgramRepository private constructor(
         }
     }
 
+    private fun resolvedResumedActiveState(resumed: Program): ActiveProgramState =
+        (ProgramActiveStateEngine.repairForProgram(
+            resumed,
+            buildDefaultActiveProgramState(resumed, resumed.id),
+        ) ?: ActiveProgramState(programId = resumed.id, status = ProgramStatus.ACTIVE))
+            .copy(status = ProgramStatus.ACTIVE)
+
+    private fun activateResumedRecurring(resumed: Program) {
+        updateProgram(resumed)
+        val state = resolvedResumedActiveState(resumed)
+        _activeProgramState.value = state
+        persistActiveProgramStateAsync(state)
+    }
+
     fun startProgram(programId: String) = whenHybridCalendarCommitFree {
         val program = _programs.value.find { it.id == programId }
         // Recurring program completed by the legacy rule: resume the same
@@ -884,13 +899,7 @@ class ProgramRepository private constructor(
         // re-activating it from scratch or switching programs.
         val resumed = program?.let { ProgramProgressEngine.resumeRecurringProgram(it) }
         if (resumed != null && resumed !== program) {
-            updateProgram(resumed)
-            val state = (ProgramActiveStateEngine.repairForProgram(resumed,
-                buildDefaultActiveProgramState(resumed, programId))
-                ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
-                .copy(status = ProgramStatus.ACTIVE)
-            _activeProgramState.value = state
-            persistActiveProgramStateAsync(state)
+            activateResumedRecurring(resumed)
             return@whenHybridCalendarCommitFree
         }
         val resolved = program?.let { buildDefaultActiveProgramState(it, programId) }
@@ -906,13 +915,26 @@ class ProgramRepository private constructor(
         val program = _programs.value.find { it.id == programId } ?: return@whenHybridCalendarCommitFree
         val resumed = ProgramProgressEngine.resumeRecurringProgram(program)
         if (resumed === program) return@whenHybridCalendarCommitFree
-        updateProgram(resumed)
-        val state = (ProgramActiveStateEngine.repairForProgram(resumed,
-            buildDefaultActiveProgramState(resumed, programId))
-            ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
-            .copy(status = ProgramStatus.ACTIVE)
+        activateResumedRecurring(resumed)
+    }
+
+    suspend fun resumeRecurringRoutineNow(programId: String): Boolean {
+        var resumedProgram: Program? = null
+        val mutated = mutateProgramNow(programId) { current ->
+            val resumed = ProgramProgressEngine.resumeRecurringProgram(current)
+            if (resumed === current) {
+                null
+            } else {
+                resumedProgram = resumed
+                resumed
+            }
+        }
+        if (!mutated) return false
+        val target = getProgramById(programId) ?: resumedProgram ?: return false
+        val state = resolvedResumedActiveState(target)
         _activeProgramState.value = state
-        persistActiveProgramStateAsync(state)
+        persistActiveProgramStateNow(state)
+        return true
     }
 
     fun pauseProgram() = whenHybridCalendarCommitFree {
@@ -946,7 +968,7 @@ class ProgramRepository private constructor(
         val templateWeekId = active.currentWeekId.takeIf { it.isNotBlank() }
             ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it }
         val weekInstanceId = when {
-            program.requiresNativeWeekInstances() && !templateWeekId.isNullOrBlank() ->
+            program.usesCycleWeekInstances() && !templateWeekId.isNullOrBlank() ->
                 coerceNativeWeekInstanceId(
                     cycleNumber,
                     templateWeekId,
@@ -1130,7 +1152,7 @@ class ProgramRepository private constructor(
                     // (`inst_c<N>_<semana>`): su ciclo real (log -> run -> cursor)
                     // se respeta. Solo el COMPLEX sin instancias sigue forzando el
                     // ciclo 1 (nunca avanza de ciclo).
-                    val nativeInstances = program?.requiresNativeWeekInstances() == true
+                    val nativeInstances = program?.usesCycleWeekInstances() == true
                     val cycleNumber = if (isComplex && !nativeInstances) 1 else log.cycleNumber
                         ?: program?.runState?.cycleNumber
                         ?: active?.currentCycleNumber
@@ -1387,8 +1409,8 @@ class ProgramRepository private constructor(
         val runId = program.runState?.runId
         // Sin esto, tras cerrar el ciclo 1 de un programa cíclico sus semanas figuraban como
         // entrenadas y la reconstrucción (RE-MATERIALIZAR, propuestas) no tocaba nada.
-        val cyclic = program.requiresNativeWeekInstances() ||
-            (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC)
+        val cyclic = program.usesCycleWeekInstances() ||
+            (program.isSimpleProgram && program.repeatsIndefinitely)
         val currentCycle = program.runState?.cycleNumber?.takeIf { cyclic }
         val logs = getLogsForProgram(program.id)
             .filter { it.calendarBreakId.isNullOrBlank() }
@@ -2511,6 +2533,14 @@ class ProgramRepository private constructor(
         toDefinitionId: String? = null,
         toConfigurationId: String? = null,
     ): ExerciseReplacementDecisionV2 {
+        val hasCompleteFromIdentity =
+            !fromCatalogRevision.isNullOrBlank() &&
+                !fromDefinitionId.isNullOrBlank() &&
+                !fromConfigurationId.isNullOrBlank()
+        val hasCompleteToIdentity =
+            !toCatalogRevision.isNullOrBlank() &&
+                !toDefinitionId.isNullOrBlank() &&
+                !toConfigurationId.isNullOrBlank()
         val decision = ExerciseReplacementDecisionV2(
             id = UUID.randomUUID().toString(),
             programId = programId,
@@ -2522,12 +2552,12 @@ class ProgramRepository private constructor(
             exerciseSlot = exerciseSlot,
             fromExerciseDbId = fromExerciseDbId,
             toExerciseDbId = toExerciseDbId,
-            fromCatalogRevision = fromCatalogRevision,
-            fromDefinitionId = fromDefinitionId,
-            fromConfigurationId = fromConfigurationId,
-            toCatalogRevision = toCatalogRevision,
-            toDefinitionId = toDefinitionId,
-            toConfigurationId = toConfigurationId,
+            fromCatalogRevision = fromCatalogRevision.takeIf { hasCompleteFromIdentity },
+            fromDefinitionId = fromDefinitionId.takeIf { hasCompleteFromIdentity },
+            fromConfigurationId = fromConfigurationId.takeIf { hasCompleteFromIdentity },
+            toCatalogRevision = toCatalogRevision.takeIf { hasCompleteToIdentity },
+            toDefinitionId = toDefinitionId.takeIf { hasCompleteToIdentity },
+            toConfigurationId = toConfigurationId.takeIf { hasCompleteToIdentity },
             scope = scopeType,
             createdAtIso = java.time.Instant.now().toString(),
         )
@@ -2565,8 +2595,14 @@ class ProgramRepository private constructor(
                     entity.id to runCatching { entity.toProgram() }.getOrNull()
                 }
                 val migrationLoad = ProgramMigrationEngine.loadProgramsSafely(rawPrograms)
+                val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
                 val programs = migrationLoad.programs.map { program ->
-                    ProgramPersistNormalizer.repairNativeRunWeekCursor(program.normalizedIdentityFields())
+                    val repaired = ProgramPersistNormalizer.repairNativeRunWeekCursor(program.normalizedIdentityFields())
+                    if (activeProgram?.programId == repaired.id) {
+                        ProgramProgressEngine.reconcileOnOpen(repaired)
+                    } else {
+                        repaired
+                    }
                 }
                 val programsById = programs.associateBy { it.id }
                 if (migrationLoad.corruptedIds.isNotEmpty()) {
@@ -2612,7 +2648,6 @@ class ProgramRepository private constructor(
                         )
                     }
                 }
-                val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
                 val ongoingEntity = db.stateDao().getOngoingWorkout()
                 val ongoingDecode = ongoingEntity?.toOngoingDecode() ?: OngoingDecode.Empty
                 val ongoingWorkout = (ongoingDecode as? OngoingDecode.Ok)?.state?.normalizedIdentityFields()
@@ -2812,7 +2847,14 @@ class ProgramRepository private constructor(
             }
         }
 
-        if (requiresNativeWeekInstances()) {
+        val initialCycle = runState?.cycleNumber ?: 1
+        if (requiresNativeWeekInstances() || (
+                usesCycleWeekInstances() && (
+                    initialCycle > 1 ||
+                        runState?.weekInstanceId?.startsWith("inst_") == true
+                    )
+                )
+        ) {
             val cycle = runState?.cycleNumber ?: 1
             val hierarchy = com.example.kpkn.domain.training.ProgramHierarchyIndex(this)
             val templateWeekId = runState?.weekId

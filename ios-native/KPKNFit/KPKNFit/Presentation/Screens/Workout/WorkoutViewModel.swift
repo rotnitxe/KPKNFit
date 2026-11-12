@@ -845,11 +845,13 @@ import SwiftUI
 
         let externalLoad: Double? = {
             switch resolvedLoadMode {
-            case .LOAD, .BODYWEIGHT, .LASTRE: return weight > 0 ? weight : nil
-            case .ASSISTED: return nil
+            case .LOAD, .LASTRE: return weight > 0 ? weight : nil
+            case .BODYWEIGHT, .ASSISTED: return nil
             }
         }()
         let assistedLoad: Double? = resolvedLoadMode == .ASSISTED ? (weight > 0 ? weight : nil) : nil
+        let recordedWeight: Double = (resolvedLoadMode == .BODYWEIGHT || resolvedLoadMode == .ASSISTED) ? 0.0 : max(0.0, weight)
+        let originalLoad: Double? = resolvedLoadMode == .BODYWEIGHT ? nil : (weight > 0 ? weight : nil)
 
         let resolvedBarWeightKg = activeProfile?.setupDetails?.barWeightKg ?? exercise.setupDetails?.barWeightKg
 
@@ -937,7 +939,7 @@ import SwiftUI
 
         let completedSet = applyAdvancedFeedback(base: CompletedSet(
             id: UUID().uuidString,
-            weight: outcome.augeEquivalentLoad,
+            weight: recordedWeight,
             reps: actualReps,
             timeSeconds: durationSeconds,
             rpe: advanced.reachedFailure ? nil : (actualIntensityValue ?? intensity),
@@ -955,7 +957,9 @@ import SwiftUI
             machineBrand: resolvedMachineBrand,
             homologatedResultV3: evaluation?.homologated,
             recordedPayloadV3: payload,
-            setOutcomeV2: outcome
+            setOutcomeV2: outcome,
+            loadMode: resolvedLoadMode,
+            originalLoad: originalLoad
         ), advanced: advanced)
 
         let key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
@@ -2094,8 +2098,8 @@ import SwiftUI
 
         var totalVolume: Double = 0.0
         for ce in completedExercises {
-            for set in ce.sets {
-                totalVolume += set.weight * set.effectiveRepEquivalent()
+            for set in ce.sets where !set.skipped && !set.isWarmup {
+                totalVolume += set.totalExternalTonnageKg()
             }
         }
         let logId = UUID().uuidString
@@ -2423,7 +2427,13 @@ import SwiftUI
 
         return ordered.compactMap { log -> ExerciseHistoryEntry? in
             guard let ex = log.completedExercises.first(where: { $0.resolvedCanonicalExerciseId() == exerciseDbId }) else { return nil }
-            let best1rm = ex.sets.filter { !$0.isWarmup && $0.weight > 0 && $0.reps > 0 }.map { calculateHybrid1RM($0.weight, reps: $0.reps) }.max()
+            let best1rm = ex.sets
+                .filter { !$0.isWarmup && !$0.skipped && $0.supportsEstimatedOneRm() && $0.reps > 0 }
+                .compactMap { set -> Double? in
+                    guard let ext = set.externalLoadKg(), ext > 0 else { return nil }
+                    return calculateHybrid1RM(ext, reps: set.reps)
+                }
+                .max()
             let latestOutcome = ex.sets.reversed().first(where: { $0.setOutcomeV2 != nil })?.setOutcomeV2
             return ExerciseHistoryEntry(
                 date: log.date,
@@ -2440,8 +2450,14 @@ import SwiftUI
     func latestCompletedSessionSnapshot() -> WorkoutShareSnapshot? {
         guard let last = repository.getLogsForSession(sessionId).max(by: { $0.date < $1.date }) else { return nil }
         let allSets = last.completedExercises.flatMap { $0.sets }
-        let best = allSets.filter { $0.weight > 0 && $0.reps > 0 }.map { calculateHybrid1RM($0.weight, reps: $0.reps) }.max()
-        return WorkoutShareSnapshot(totalVolume: last.totalVolume, totalSets: allSets.count, durationMinutes: last.durationMinutes, bestEstimated1RM: best)
+        let best = allSets
+            .filter { !$0.isWarmup && !$0.skipped && $0.supportsEstimatedOneRm() && $0.reps > 0 }
+            .compactMap { set -> Double? in
+                guard let ext = set.externalLoadKg(), ext > 0 else { return nil }
+                return calculateHybrid1RM(ext, reps: set.reps)
+            }
+            .max()
+        return WorkoutShareSnapshot(totalVolume: last.recomputedExternalTonnageKg(), totalSets: allSets.count, durationMinutes: last.durationMinutes, bestEstimated1RM: best)
     }
 
     // MARK: - Weight Suggestion
@@ -2708,10 +2724,10 @@ import SwiftUI
     private func roundWorkoutLoadSuggestion(_ weight: Double) -> Double { coerceLoadStep(weight) }
 
     private func inputLoadForSuggestion(_ set: CompletedSet, loadMode: LoadModeV2) -> Double {
-        let payload = set.recordedPayloadV3
         switch loadMode {
-        case .ASSISTED: return payload?.assistedLoad ?? set.weight
-        default: return payload?.externalLoad ?? set.weight
+        case .ASSISTED: return set.assistanceKg() ?? 0.0
+        case .BODYWEIGHT: return 0.0
+        case .LOAD, .LASTRE: return set.externalLoadKg() ?? 0.0
         }
     }
 
@@ -2830,17 +2846,20 @@ import SwiftUI
     }
 
     private func estimatedSessionCapacity(_ set: CompletedSet) -> Double? {
+        guard set.supportsEstimatedOneRm() else { return nil }
         if let erm = set.homologatedResultV3?.estimatedRm, erm > 0 { return erm }
-        guard set.weight > 0, set.reps >= 1, set.reps <= 36 else { return nil }
-        return calculateHybrid1RM(set.weight, reps: set.reps)
+        guard let ext = set.externalLoadKg(), ext > 0, set.reps >= 1, set.reps <= 36 else { return nil }
+        return calculateHybrid1RM(ext, reps: set.reps)
     }
 
     private func performanceRatioForSet(_ set: CompletedSet) -> Double? {
         guard let eRM = estimatedSessionCapacity(set), eRM > 0 else { return nil }
-        let payload = set.recordedPayloadV3
         let actualLoad: Double
-        if payload?.loadInputMode == LoadModeV2.ASSISTED { actualLoad = payload?.assistedLoad ?? set.weight }
-        else { actualLoad = payload?.externalLoad ?? set.weight }
+        if set.resolvedLoadMode() == .ASSISTED {
+            actualLoad = set.assistanceKg() ?? 0.0
+        } else {
+            actualLoad = set.externalLoadKg() ?? 0.0
+        }
         guard actualLoad > 0 else { return nil }
         return actualLoad / eRM
     }

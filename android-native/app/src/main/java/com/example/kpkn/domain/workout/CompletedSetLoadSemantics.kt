@@ -1,7 +1,10 @@
 package com.example.kpkn.domain.workout
 
+import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.effectiveRepEquivalent
 
 /**
  * Single read-side contract for recorded load modalities.
@@ -62,14 +65,38 @@ object CompletedSetLoadSemantics {
     fun restPauseTonnageKg(set: CompletedSet, reps: Int): Double =
         (externalLoadKg(set) ?: 0.0) * reps.coerceAtLeast(0)
 
+    /** External tonnage for one set, including valid drops and rest-pauses. */
+    fun totalExternalTonnageKg(
+        set: CompletedSet,
+        effectiveReps: Double = set.effectiveRepEquivalent(),
+    ): Double = externalTonnageKg(set, effectiveReps) +
+        set.dropSets.sumOf { drop -> dropTonnageKg(set, drop.weight, drop.reps) } +
+        set.restPauses.sumOf { rp -> restPauseTonnageKg(set, rp.reps) }
+
+    /** Recalculates session external tonnage directly from completed working sets. */
+    fun sessionExternalTonnageKg(exercises: List<CompletedExercise>): Double =
+        exercises.sumOf { ex ->
+            ex.sets.filter { !it.skipped && !it.isWarmup }.sumOf { set ->
+                totalExternalTonnageKg(set, set.effectiveRepEquivalent())
+            }
+        }
+
+    /** Recomputes historical tonnage from available sets when set-level evidence exists. */
+    fun historicalLogTonnageKg(log: WorkoutLog): Double =
+        if (log.completedExercises.isEmpty()) {
+            log.totalVolume.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
+        } else {
+            sessionExternalTonnageKg(log.completedExercises)
+        }
+
     fun displayLoad(set: CompletedSet): String = when (mode(set)) {
         LoadModeV2.BODYWEIGHT -> "Peso corporal"
         LoadModeV2.LASTRE -> externalLoadKg(set)?.takeIf { it > 0.0 }
             ?.let { "Peso corporal + ${formatKg(it)} kg de lastre" }
-            ?: "Carga sin detalle"
+            ?: "Peso corporal + lastre · Carga sin detalle"
         LoadModeV2.ASSISTED -> assistanceKg(set)?.takeIf { it > 0.0 }
             ?.let { "${formatKg(it)} kg de asistencia" }
-            ?: "Carga sin detalle"
+            ?: "Asistencia · Carga sin detalle"
         LoadModeV2.LOAD, null -> externalLoadKg(set)?.takeIf { it > 0.0 }
             ?.let { "${formatKg(it)} kg" }
             ?: "Carga sin detalle"

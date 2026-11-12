@@ -39,17 +39,33 @@ fun exerciseHistorySummary(history: List<WorkoutLog>, identityKeys: Set<String>,
     val last = matching.maxOfOrNull { it.first } ?: return null
     fun estimate(set: CompletedSet): Double? {
         if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)) return null
-        return set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
-            ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 } else null
+        val externalWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: return null
+        return set.homologatedResultV3
+            ?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION }
+            ?.estimatedRm
+            ?.takeIf { it.isFinite() && it > 0 }
+            ?: if (externalWeight.isFinite() && externalWeight > 0 && set.reps > 0) {
+                StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 }
+            } else null
     }
     val best = matching.mapNotNull { (_, set) -> estimate(set)?.let { set to it } }.maxByOrNull { it.second }
     val fallbackBest = if (best == null) {
         matching.map { it.second }.filter {
             com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it) != null
         }.maxWithOrNull(
-            compareBy<CompletedSet>({ it.reps }, { it.timeSeconds ?: 0 }, {
-                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0
-            }),
+            compareBy<CompletedSet>(
+                { it.reps },
+                { it.timeSeconds ?: 0 },
+                {
+                    when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it)) {
+                        com.example.kpkn.data.models.LoadModeV2.ASSISTED ->
+                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it)?.let { kg -> -kg }
+                                ?: Double.NEGATIVE_INFINITY
+                        else -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it)
+                            ?: Double.NEGATIVE_INFINITY
+                    }
+                },
+            ),
         )
     } else null
     return ExerciseHistorySummary(best?.first ?: fallbackBest, best?.second, last)

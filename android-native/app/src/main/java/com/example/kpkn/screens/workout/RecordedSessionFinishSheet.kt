@@ -61,6 +61,7 @@ internal fun RecordedSessionFinishSheet(
     onRemoveTask: (String) -> Unit = {},
     onSummaryReady: (WorkoutSessionSummary) -> Unit = {},
     onShareAfterSave: (WorkoutStoryData, WorkoutStoryOptions) -> Unit = { _, _ -> },
+    onCancelShareAfterSave: () -> Unit = {},
     onNotes: (String) -> Unit,
     onAlbum: () -> Unit,
     onConfirm: (String, Double?) -> Unit,
@@ -91,10 +92,10 @@ internal fun RecordedSessionFinishSheet(
     val lifts = remember(completedExercises, presentation) { buildFinishLiftProgress(completedExercises, presentation.history, presentation.today) }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
-    val story = remember(completedExercises, presentation, durationMinutes, recordedEffort) {
+    val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts) {
         WorkoutStoryData(
             name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
-            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = recordedEffort.value,
+            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = sessionRpe ?: recordedEffort.value,
         )
     }
     LaunchedEffect(name, completedExercises, durationMinutes) {
@@ -130,12 +131,16 @@ internal fun RecordedSessionFinishSheet(
         effortSelected = effort, storyThumb = thumb, ridges = ridges, ridgeRecordIndex = ridgeRecord,
     )
     val actions = FinishSheetActions(
-        onShare = { shareAfterSave = it }, onPrepareStory = { showStory = true },
+        onShare = { enabled ->
+            shareAfterSave = enabled
+            if (!enabled) onCancelShareAfterSave()
+        },
+        onPrepareStory = { showStory = true },
         onOpenNotes = { panelKind = FinishPanelKind.NOTES; panelOpen = true },
         onOpenRate = { panelKind = FinishPanelKind.EFFORT; panelOpen = true },
         onClosePanel = { panelOpen = false }, onPhotos = onAlbum,
         onSave = {
-            if (shareAfterSave) onShareAfterSave(story, storyOptions)
+            if (shareAfterSave) onShareAfterSave(story, storyOptions) else onCancelShareAfterSave()
             onConfirm(notes, effort)
         },
         onBack = { if (!saving) onDismiss() },

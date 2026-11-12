@@ -47,12 +47,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPen
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolRun
 import com.example.kpkn.screens.onboarding.design.entreno.onSymbolsVisible
+import com.example.kpkn.screens.programdetail.components.HeroCoverKind
+import com.example.kpkn.screens.programdetail.components.heroCoverKind
+import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.screens.onboarding.design.entreno.rememberEntrenoForeground
 import com.example.kpkn.screens.onboarding.design.entreno.rememberSymbolClock
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -178,12 +183,31 @@ internal fun PlanCover(
         val pad = coverPadDp(widthDp).dp
         // Ancho de la caja para la franja de la cabecera: dentro de Row y Column no se ve maxWidth (el alcance de BoxWithConstraints).
         val coverWidth = maxWidth
-        // Con portada propia (`assets/program_covers/`), la foto sustituye al arte y un degradado negro abajo deja leer el título.
-        val photo = rememberProgramCover(model.id, with(LocalDensity.current) { maxWidth.roundToPx() })
-        val mode = coverArtModeOf(hasPhoto = photo != null, identity = identity)
-        if (photo != null) {
+        // Resuelve la misma jerarquía que el detalle: foto personal -> empaquetada (`kpkn-cover://` o id) -> arte estudio/procedural.
+        val widthPx = with(LocalDensity.current) { maxWidth.roundToPx() }
+        val explicitBundledId = remember(model.coverImage) { programCoverEntryIdOf(model.coverImage) }
+        val candidateBundledId = explicitBundledId ?: model.id
+        val bundledPhoto = rememberProgramCover(candidateBundledId, widthPx)
+        val allowsBundled = model.coverImage.isNullOrBlank() || explicitBundledId != null
+        val coverKind = heroCoverKind(model.coverImage, hasBundledCover = bundledPhoto != null && allowsBundled)
+        val personalPhotoUrl = model.coverImage?.takeIf { coverKind == HeroCoverKind.REMOTE }
+        var personalPhotoFailed by remember(personalPhotoUrl) { mutableStateOf(false) }
+        val hasPersonalPhoto = personalPhotoUrl != null && !personalPhotoFailed
+        val activeBundledPhoto = bundledPhoto?.takeIf {
+            !hasPersonalPhoto && (coverKind == HeroCoverKind.BUNDLED || (personalPhotoFailed && explicitBundledId == null))
+        }
+        val hasPhoto = hasPersonalPhoto || activeBundledPhoto != null
+        val mode = coverArtModeOf(hasPhoto = hasPhoto, identity = identity)
+        val studioBand = identity != null && mode == CoverArtMode.STUDIO && identity.palette != CoverPaletteKind.NOCHE
+        if (identity != null && mode == CoverArtMode.STUDIO) {
+            // El motor a sangre; encima, el velo de la parte baja y, en la banda, otro a la izquierda donde va el texto.
+            CoverStudioArt(identity, Modifier.matchParentSize(), animate = animate, reduced = reduced, parallax = parallax)
+            if (banner) CoverLeftScrim()
+            CoverBottomVeil(solidBase = identity.palette != CoverPaletteKind.NOCHE)
+        }
+        if (activeBundledPhoto != null) {
             Image(
-                bitmap = photo,
+                bitmap = activeBundledPhoto,
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
@@ -194,13 +218,19 @@ internal fun PlanCover(
                     .background(Brush.verticalGradient(colorStops = arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f)))),
             )
         }
-        // Con fondo de tinta o de papel, la franja negra del kicker va detrás de la cabecera (ver CoverHeader).
-        val studioBand = identity != null && mode == CoverArtMode.STUDIO && identity.palette != CoverPaletteKind.NOCHE
-        if (identity != null && mode == CoverArtMode.STUDIO) {
-            // El motor a sangre; encima, el velo de la parte baja y, en la banda, otro a la izquierda donde va el texto.
-            CoverStudioArt(identity, Modifier.matchParentSize(), animate = animate, reduced = reduced, parallax = parallax)
-            if (banner) CoverLeftScrim()
-            CoverBottomVeil(solidBase = identity.palette != CoverPaletteKind.NOCHE)
+        if (hasPersonalPhoto) {
+            AsyncImage(
+                model = personalPhotoUrl,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                onError = { personalPhotoFailed = true },
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Brush.verticalGradient(colorStops = arrayOf(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.85f)))),
+            )
         }
         val artModifier = Modifier
         if (banner) {

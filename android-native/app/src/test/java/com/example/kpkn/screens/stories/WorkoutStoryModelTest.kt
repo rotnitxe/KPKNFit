@@ -1,7 +1,10 @@
 package com.example.kpkn.screens.stories
 
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.RecordedSetPayload
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.FinishLiftProgress
 import com.example.kpkn.screens.workout.FinishPresentationContext
 import com.example.kpkn.screens.workout.FinishProgressPoint
@@ -48,6 +51,8 @@ class WorkoutStoryModelTest {
     private fun datos(
         lifts: List<FinishLiftProgress> = emptyList(),
         averageRir: Double? = 1.6,
+        sessionRpe: Double? = 7.5,
+        volume: Double = 6240.0,
         week: Int? = 4,
         records: Int = 0,
         photos: List<StoryPhoto> = emptyList(),
@@ -62,11 +67,12 @@ class WorkoutStoryModelTest {
             today = miercoles,
         ),
         durationMinutes = 48,
-        volume = 6240.0,
+        volume = volume,
         sets = 17,
         averageRir = averageRir,
         intensity = "Intensificación",
         lifts = lifts,
+        sessionRpe = sessionRpe,
     )
 
     @Test
@@ -91,22 +97,22 @@ class WorkoutStoryModelTest {
         assertEquals(WorkoutStat("48", "min", "Duración"), con.stats.first())
 
         val sin = workoutStoryFrom(datos(), WorkoutStoryOptions(duration = false))
-        assertEquals(listOf("Volumen", "Series", "RIR medio"), sin.stats.map { it.label })
+        assertEquals(listOf("Volumen", "Series", "sRPE"), sin.stats.map { it.label })
     }
 
     @Test
-    fun elVolumenTraeSeparadorDeMilesYElRirMedioUnaCifraConComa() {
-        val stats = workoutStoryFrom(datos(), WorkoutStoryOptions()).stats
+    fun elVolumenTraeSeparadorDeMilesYElSrpeDeclaradoSustituyeAlRirMedio() {
+        val stats = workoutStoryFrom(datos(sessionRpe = 7.5, averageRir = 1.6), WorkoutStoryOptions()).stats
 
         assertEquals(WorkoutStat("6.240", "kg", "Volumen"), stats[1])
         assertEquals(WorkoutStat("17", null, "Series"), stats[2])
-        assertEquals(WorkoutStat("1,6", null, "RIR medio"), stats[3])
+        assertEquals(WorkoutStat("7,5", null, "sRPE"), stats[3])
     }
 
     @Test
-    fun elRirSoloAparecePidiendoLaOpcionYTeniendoDato() {
-        assertTrue(workoutStoryFrom(datos(), WorkoutStoryOptions(intensity = false)).stats.none { it.label == "RIR medio" })
-        assertTrue(workoutStoryFrom(datos(averageRir = null), WorkoutStoryOptions()).stats.none { it.label == "RIR medio" })
+    fun elSrpeSoloAparecePidiendoLaOpcionYTeniendoDato() {
+        assertTrue(workoutStoryFrom(datos(), WorkoutStoryOptions(intensity = false)).stats.none { it.label == "sRPE" })
+        assertTrue(workoutStoryFrom(datos(sessionRpe = null, averageRir = 1.5), WorkoutStoryOptions()).stats.none { it.label == "sRPE" || it.label == "RIR medio" })
     }
 
     @Test
@@ -245,5 +251,41 @@ class WorkoutStoryModelTest {
         assertEquals("Ejercicio 10", pages[1].exerciseLines.last().name)
         assertTrue(pages[0].meta!!.contains("1/2"))
         assertTrue(pages[1].meta!!.contains("Continuación · 2/2"))
+    }
+
+    @Test
+    fun modalidadSinCargaExternaNoMuestraCeroKgNiE1rmEnHistoria() {
+        val bwSet = CompletedSet(
+            id = "bw",
+            weight = 0.0,
+            reps = 12,
+            loadMode = LoadModeV2.BODYWEIGHT,
+            recordedPayloadV3 = RecordedSetPayload(
+                actualValue = 12.0,
+                exerciseId = "pushup",
+                loadInputMode = LoadModeV2.BODYWEIGHT,
+                unitMode = UnitModeV2.REPS,
+                completedReps = 12,
+            ),
+        )
+        val lastreSinDetalle = CompletedSet(
+            id = "ls",
+            weight = 75.0,
+            reps = 5,
+            loadMode = LoadModeV2.LASTRE,
+        )
+        val bwLift = FinishLiftProgress("bw", "Flexiones", bwSet, 3, null, emptyList())
+        val lastreLift = FinishLiftProgress("ls", "Fondos lastrados", lastreSinDetalle, 3, null, emptyList())
+
+        val bwStory = workoutStoryFrom(datos(lifts = listOf(bwLift), volume = 0.0), WorkoutStoryOptions())
+        assertTrue(bwStory.stats.none { it.label == "Volumen" })
+        assertEquals("PESO CORPORAL", bwStory.exerciseEyebrow)
+        assertEquals("reps", bwStory.exerciseUnit)
+        assertEquals("Peso corporal × 12", bwStory.bestSet)
+
+        val lastreStory = workoutStoryFrom(datos(lifts = listOf(lastreLift), volume = 0.0), WorkoutStoryOptions())
+        assertEquals("LASTRE", lastreStory.exerciseEyebrow)
+        assertEquals("Peso corporal + lastre · Carga sin detalle × 5", lastreStory.bestSet)
+        assertNull(lastreStory.exerciseE1rm)
     }
 }

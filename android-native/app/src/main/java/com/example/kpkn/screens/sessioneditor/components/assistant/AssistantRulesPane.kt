@@ -172,9 +172,10 @@ internal fun AssistantRulesPane(
         )
     }
 
-    Box(modifier.fillMaxSize()) {
+    Column(modifier.fillMaxSize()) {
         val footer = section == RulesSection.VALUES
-        AsScrollPane(Modifier.fillMaxSize(), bottomPadding = if (footer) 128.dp else 36.dp) {
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            AsScrollPane(Modifier.fillMaxSize(), bottomPadding = 24.dp) {
             val clashDot = limitStatuses?.anyClash == true
             AsSegmented(
                 options = RulesSection.entries.map { it.label },
@@ -215,13 +216,14 @@ internal fun AssistantRulesPane(
                 RulesSection.TIME -> TimeSection(uiState, actions, onOpenDuration = { durationTarget = it }, onRest = { restDialog = it }, onToast = onToast)
             }
         }
+        }
         if (footer) {
             val count = if (activePartId != null) session?.parts?.firstOrNull { it.id == activePartId }?.exercises?.size ?: 0 else session?.allExercises()?.size ?: 0
-            // as-G01 as-foot — `linear-gradient(#1b1b1d00, #1b1b1d 30%)` sobre el contenido (preset velo-hoja)
+            // as-G01 as-foot — pie estructural separado del scroll para no tapar controles con letra grande o pantalla baja
             Column(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .kpknGradient(KpknGradient.VeloHoja)
-                    .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 30.dp),
+                    .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 AsButton(

@@ -836,6 +836,20 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
+    val activeOtherProgramName: StateFlow<String?> = combine(
+        activeProgramState,
+        repository.programs,
+    ) { state, allPrograms ->
+        val otherId = state
+            ?.takeIf { it.status == ProgramStatus.ACTIVE && it.programId != programId }
+            ?.programId
+            ?: return@combine null
+        allPrograms.firstOrNull { it.id == otherId }?.name
+            ?.takeIf { it.isNotBlank() }
+            ?: "otro programa"
+    }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     // ─── Init: Auto-select + Tour ─────────────────────────────────────────
 
     init {
@@ -971,6 +985,10 @@ class ProgramDetailViewModel(
 
     fun activateOrResume() {
         if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
+    }
+
+    fun resumeRecurringRoutine() {
+        repository.resumeRecurringRoutine(programId)
     }
 
     fun archiveProgram(): ProgramArchiveResult = repository.archiveProgram(programId)

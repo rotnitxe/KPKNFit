@@ -153,6 +153,91 @@ def _get_week_id(d: datetime, start_on: int | None = None) -> str:
     return week_start.strftime("%Y-%m-%d")
 
 
+def _normalize_load_mode(raw: dict) -> str | None:
+    payload = raw.get("recordedPayloadV3")
+    homologated = raw.get("homologatedResultV3")
+    outcome = raw.get("setOutcomeV2")
+    for candidate in (
+        raw.get("loadMode"),
+        raw.get("loadModeV2"),
+        payload.get("loadInputMode") if isinstance(payload, dict) else None,
+        homologated.get("loadMode") if isinstance(homologated, dict) else None,
+        outcome.get("loadMode") if isinstance(outcome, dict) else None,
+    ):
+        if isinstance(candidate, str) and candidate.strip():
+            return candidate.strip().upper()
+    return None
+
+
+def _finite_non_negative(value) -> float | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    return numeric if math.isfinite(numeric) and numeric >= 0 else None
+
+
+def _completed_set_external_load_kg(raw: dict, mode: str | None) -> float | None:
+    """Resolve external kg matching Android CompletedSetLoadSemantics (body mass excluded)."""
+    if mode in {"BODYWEIGHT", "ASSISTED"}:
+        return 0.0
+    payload = raw.get("recordedPayloadV3")
+    payload_external = _finite_non_negative(payload.get("externalLoad")) if isinstance(payload, dict) else None
+    original_load = _finite_non_negative(raw.get("originalLoad"))
+    raw_weight = _finite_non_negative(raw.get("weight"))
+    if mode == "LASTRE":
+        return payload_external if payload_external is not None else original_load
+    if payload_external is not None:
+        return payload_external
+    if original_load is not None:
+        return original_load
+    return raw_weight
+
+
+def _completed_set_external_tonnage(s) -> float:
+    raw = s.model_dump() if hasattr(s, "model_dump") else dict(s)
+    if raw.get("skipped") is True or raw.get("isWarmup") is True or raw.get("type") == "warmup":
+        return 0.0
+    # kg × repetitions only: timed work and current body mass are not historical tonnage.
+    dur = _finite_non_negative(raw.get("completedDuration"))
+    if dur is not None and dur > 0:
+        return 0.0
+    payload = raw.get("recordedPayloadV3")
+    reps = raw.get("completedReps")
+    if reps is None:
+        reps = raw.get("reps")
+    if reps is None and isinstance(payload, dict):
+        reps = payload.get("completedReps")
+    time_seconds = _finite_non_negative(raw.get("timeSeconds"))
+    if (reps is None or reps <= 0) and time_seconds is not None and time_seconds > 0:
+        return 0.0
+
+    mode = _normalize_load_mode(raw)
+    ext_load = _completed_set_external_load_kg(raw, mode)
+    vol = 0.0
+    if ext_load is not None and isinstance(reps, (int, float)) and not isinstance(reps, bool) and reps > 0:
+        vol += ext_load * reps
+
+    for drop in raw.get("dropSets") or ():
+        if not isinstance(drop, dict) or mode in {"BODYWEIGHT", "ASSISTED"}:
+            continue
+        drop_w = _finite_non_negative(drop.get("weight"))
+        drop_reps = drop.get("reps")
+        if drop_w is not None and isinstance(drop_reps, (int, float)) and not isinstance(drop_reps, bool) and drop_reps > 0:
+            vol += drop_w * drop_reps
+
+    for rp in raw.get("restPauses") or ():
+        if not isinstance(rp, dict) or ext_load is None:
+            continue
+        rp_reps = rp.get("reps")
+        if isinstance(rp_reps, (int, float)) and not isinstance(rp_reps, bool) and rp_reps > 0:
+            vol += ext_load * rp_reps
+
+    return vol
+
+
 def calculate_weekly_tonnage_comparison(
     history: list[WorkoutLog],
     settings: Settings,
@@ -184,15 +269,7 @@ def calculate_weekly_tonnage_comparison(
         if ld > today:
             continue
         lid = _get_week_id(ld, settings.startWeekOn)
-        vol = 0.0
-        for ex in log.completedExercises:
-            for s in ex.sets:
-                # kg × repetitions only: timed work and current body mass are not historical tonnage.
-                if s.completedDuration is not None and s.completedDuration > 0:
-                    continue
-                if s.weight is None or s.completedReps is None or s.weight < 0 or s.completedReps < 0:
-                    continue
-                vol += s.weight * s.completedReps
+        vol = sum(_completed_set_external_tonnage(s) for ex in log.completedExercises for s in ex.sets)
         if lid == cw_id:
             current += vol
         elif lid == pw_id:

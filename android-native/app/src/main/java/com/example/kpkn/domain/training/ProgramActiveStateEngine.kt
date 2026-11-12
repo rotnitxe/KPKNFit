@@ -5,8 +5,11 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.hasExplicitEnd
+import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.training.requiresNativeWeekInstances
+import com.example.kpkn.domain.training.usesCycleWeekInstances
 
 object ProgramActiveStateEngine {
 
@@ -67,7 +70,11 @@ object ProgramActiveStateEngine {
                         if (state.status == ProgramStatus.PAUSED) ProgramStatus.PAUSED
                         else ProgramStatus.ACTIVE
                 }
-                val nativeInstances = program.requiresNativeWeekInstances()
+                val nativeInstances = program.shouldCoerceCycleInstance(
+                    cycle = run.cycleNumber,
+                    runWeekInstanceId = run.weekInstanceId,
+                    state = state,
+                )
                 val activeWeekId = if (run.status == ProgramRunStatus.COMPLETED) {
                     ""
                 } else if (nativeInstances) {
@@ -104,7 +111,10 @@ object ProgramActiveStateEngine {
             }
         }
 
-        if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
+        if (program.isSimpleProgram &&
+            !program.isSimpleCalendarizedProgram &&
+            (program.simpleProgramKind == SimpleProgramKind.CYCLIC || !program.hasExplicitEnd)
+        ) {
             val cycle = program.runState?.cycleNumber ?: state.currentCycleNumber ?: 1
             val instances = ProgramCurrentWeekResolver.cyclicInstances(program, cycle)
             val instance = instances.firstOrNull { it.instanceId == state.currentWeekInstanceId }
@@ -113,7 +123,15 @@ object ProgramActiveStateEngine {
                 ?: instances.firstOrNull()
             if (instance != null) {
                 val location = hierarchy.locateWeek(instance.templateWeekId)
+                val mappedStatus = when (program.runState?.status) {
+                    ProgramRunStatus.COMPLETED -> ProgramStatus.COMPLETED
+                    ProgramRunStatus.PAUSED, ProgramRunStatus.BREAK -> ProgramStatus.PAUSED
+                    ProgramRunStatus.ACTIVE, null ->
+                        if (state.status == ProgramStatus.PAUSED) ProgramStatus.PAUSED
+                        else ProgramStatus.ACTIVE
+                }
                 return state.copy(
+                    status = mappedStatus,
                     currentMacrocycleIndex = location?.macroIndex ?: instance.macroIndex,
                     currentBlockIndex = location?.blockIndex ?: instance.blockIndex,
                     currentMesocycleIndex = location?.globalMesoIndex ?: instance.mesoIndex,
@@ -142,7 +160,11 @@ object ProgramActiveStateEngine {
             ?: locations.first()
 
         val cycle = program.runState?.cycleNumber ?: state.currentCycleNumber ?: 1
-        val nativeInstances = program.requiresNativeWeekInstances()
+        val nativeInstances = program.shouldCoerceCycleInstance(
+            cycle = cycle,
+            runWeekInstanceId = program.runState?.weekInstanceId,
+            state = state,
+        )
         val weekInstanceId = when {
             program.isSimpleProgram -> exact.week.id
             nativeInstances -> coerceNativeWeekInstanceId(
@@ -168,4 +190,17 @@ object ProgramActiveStateEngine {
 
     fun pausedStateFor(programId: String): ActiveProgramState =
         ActiveProgramState(programId = programId, status = ProgramStatus.PAUSED)
+
+    private fun Program.shouldCoerceCycleInstance(
+        cycle: Int,
+        runWeekInstanceId: String?,
+        state: ActiveProgramState,
+    ): Boolean = requiresNativeWeekInstances() || (
+        usesCycleWeekInstances() && (
+            cycle > 1 ||
+                runWeekInstanceId?.startsWith("inst_") == true ||
+                state.currentWeekInstanceId?.startsWith("inst_") == true ||
+                state.currentWeekId.startsWith("inst_")
+            )
+        )
 }

@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.hasExplicitEnd
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.multisport.HybridOccurrenceResolver
 import java.time.LocalDate
@@ -59,7 +60,10 @@ object ProgramCurrentWeekResolver {
         program: Program,
         cycleNumber: Int,
     ): List<ProgramProgressEngine.WeekInstance> {
-        if (!program.isSimpleProgram || cycleNumber <= 0) return emptyList()
+        val repeatsComplex = program.structure == com.example.kpkn.data.models.ProgramStructure.COMPLEX &&
+            !program.hasExplicitEnd &&
+            !program.requiresNativeWeekInstances()
+        if ((!program.isSimpleProgram && !repeatsComplex) || cycleNumber <= 0) return emptyList()
         val hierarchy = ProgramHierarchyIndex(program)
         val base = hierarchy.orderedWeeks()
             .filterNot { it.week.isLoopWeek }

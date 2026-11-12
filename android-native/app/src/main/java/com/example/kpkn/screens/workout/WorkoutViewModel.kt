@@ -226,7 +226,15 @@ class WorkoutViewModel(
      * esperan aquí. Devuelve null si no hay mutación o si no termina a tiempo.
      */
     internal suspend fun awaitPendingLiveMutation(timeoutMs: Long = 10_000L): WorkoutMutationResult? =
-        withTimeoutOrNull(timeoutMs) { lastLiveMutation?.await() }
+        withTimeoutOrNull(timeoutMs) {
+            val result = lastLiveMutation?.await()
+            structuralPersistence.awaitPendingPersistence()
+            result
+        }
+
+    internal suspend fun awaitPendingStructuralPersistence(timeoutMs: Long = 10_000L) {
+        withTimeoutOrNull(timeoutMs) { structuralPersistence.awaitPendingPersistence() }
+    }
 
     private fun commitLiveMutation(base: WorkoutUiState, proposed: WorkoutUiState, afterCommit: () -> Unit = {}): kotlinx.coroutines.Deferred<WorkoutMutationResult> {
         val completion = kotlinx.coroutines.CompletableDeferred<WorkoutMutationResult>()
@@ -583,15 +591,17 @@ class WorkoutViewModel(
             override fun defaultContextProfileForExercise(exercise: Exercise) = this@WorkoutViewModel.defaultContextProfileForExercise(exercise)
             override fun refreshLoadSuggestions(state: WorkoutUiState) = this@WorkoutViewModel.refreshLoadSuggestions(state)
             override fun persistOngoingState() = this@WorkoutViewModel.persistOngoingState()
-            override fun invalidateEditorDraft() {
+            override fun invalidateEditorDraft() = invalidateEditorDraft(System.currentTimeMillis())
+            override fun invalidateEditorDraft(liveModifiedAtMs: Long) {
                 val state = _uiState.value
-                com.example.kpkn.screens.sessioneditor.clearSessionEditorDraft(
+                com.example.kpkn.screens.sessioneditor.reconcileSessionEditorDraftAfterLiveCommit(
                     context = appContext,
                     programId = programId,
                     weekId = state.weekId,
                     macroIndex = state.macroIndex,
                     mesoIndex = state.mesoIndex,
                     sessionId = sessionId,
+                    liveModifiedAtMs = liveModifiedAtMs,
                 )
             }
             override fun firstIncompleteStepKey(state: WorkoutUiState): String? =
@@ -601,6 +611,7 @@ class WorkoutViewModel(
                 return stepNavigator.workoutStepPositions(state).any { it.stepKey == stepKey }
             }
         },
+        coroutineScope = viewModelScope,
     )
 
     private val pacingController = WorkoutPacingController(
@@ -1628,7 +1639,13 @@ class WorkoutViewModel(
                 val completed = matchingCompletedExercise(log, keys) ?: return@mapNotNull null
                 if (!WorkoutTagResolver.logMatchesTag(log, completed, tag, tags)) return@mapNotNull null
                 completed.sets
-                    .filter { set -> !set.isWarmup && !set.skipped && set.weight > 0 && set.reps > 0 }
+                    .filter { set ->
+                        !set.isWarmup &&
+                            !set.skipped &&
+                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) &&
+                            (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0) > 0 &&
+                            set.reps > 0
+                    }
                     .maxOfOrNull { set -> StrengthModel.estimate1RM(set) }
                     ?.takeIf { it > 0.0 }
             }
@@ -1681,8 +1698,15 @@ class WorkoutViewModel(
             }
             if (taggedSets.isEmpty()) return@mapNotNull null
             val best1rm = taggedSets
-                .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
+                .filter { s ->
+                    !s.isWarmup &&
+                        !s.skipped &&
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(s) &&
+                        (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(s) ?: 0.0) > 0 &&
+                        s.reps > 0
+                }
                 .maxOfOrNull { s -> StrengthModel.estimate1RM(s) }
+                ?.takeIf { it > 0.0 }
             ExerciseHistoryEntry(
                 date = log.date,
                 sets = taggedSets,
@@ -2807,7 +2831,10 @@ class WorkoutViewModel(
             set.reps > 0 -> set.reps.toDouble()
             else -> 0.0
         }
-        return (set.weight.coerceAtLeast(0.0) + 1.0) * metric
+        val recordedWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set)
+            ?: com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(set)
+            ?: 0.0
+        return (recordedWeight.coerceAtLeast(0.0) + 1.0) * metric
     }
 
 
@@ -6564,9 +6591,23 @@ class WorkoutViewModel(
     fun considerSessionMilestoneForSet(exercise: Exercise, weight: Double, reps: Int) {
         if (weight <= 0 || reps <= 0) return
         val state = _uiState.value
-        val recorded = state.setJustLoggedKey?.let { state.completedSets[it] }
-            ?.takeIf { it.weight == weight && it.reps == reps }
+        val recorded = state.setJustLoggedKey?.let { key ->
+            state.completedSets[key]?.takeIf {
+                (key.startsWith("${exercise.id}_") || key == exercise.id) &&
+                    it.reps == reps &&
+                    (it.weight == weight ||
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) == weight ||
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it) == weight)
+            }
+        }
+        val activeLoadMode = effectiveLoadModeForExercise(exercise, state.currentSetIdx)
+        if (recorded != null) {
+            if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(recorded)) return
+        } else if (activeLoadMode != LoadModeV2.LOAD) {
+            return
+        }
         val e1rm = recorded?.let { StrengthModel.estimate1RM(it) } ?: StrengthModel.estimate1RM(weight, reps)
+        if (!e1rm.isFinite() || e1rm <= 0.0) return
         val historyBest = getExerciseHistory(exercise, limit = 20)
             .mapNotNull { it.e1rm }
             .maxOrNull() ?: 0.0
@@ -6577,8 +6618,15 @@ class WorkoutViewModel(
                     !key.contains("_mobility_")
             }
             .values
-            .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0.0 && it.reps > 0 }
+            .filter {
+                !it.isWarmup &&
+                    !it.skipped &&
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                    (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0.0 &&
+                    it.reps > 0
+            }
             .map { StrengthModel.estimate1RM(it) }
+            .filter { it.isFinite() && it > 0.0 }
             .sortedDescending()
         // Current set is already in completedSets; previous best excludes the top match of this e1rm once.
         val sessionBestPrevious = when {
@@ -7651,8 +7699,15 @@ class WorkoutViewModel(
                 ex.sets
             }
             val best1rm = relevantSets
-                .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
+                .filter { s ->
+                    !s.isWarmup &&
+                        !s.skipped &&
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(s) &&
+                        (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(s) ?: 0.0) > 0 &&
+                        s.reps > 0
+                }
                 .maxOfOrNull { s -> StrengthModel.estimate1RM(s) }
+                ?.takeIf { it > 0.0 }
             val latestV2Outcome = relevantSets
                 .asReversed()
                 .mapNotNull { it.setOutcomeV2 }
@@ -7763,7 +7818,9 @@ class WorkoutViewModel(
     }
 
     /** Contexto de presentación del cierre desde los datos locales ya cargados. */
-    internal fun finishPresentationContext(): FinishPresentationContext {
+    internal fun finishPresentationContext(
+        today: java.time.LocalDate = java.time.LocalDate.now(),
+    ): FinishPresentationContext {
         val state = _uiState.value
         val photos = mediaCapture.sessionMedia.value
             .filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
@@ -7781,6 +7838,7 @@ class WorkoutViewModel(
             calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
             milestones = state.sessionMilestones.filter { it.kind == "pr_e1rm" },
+            today = today,
         )
     }
 
@@ -7790,10 +7848,17 @@ class WorkoutViewModel(
             ?: return null
         val allSets = last.completedExercises.flatMap { it.sets }
         val bestEstimated1RM = allSets
-            .filter { it.weight > 0 && it.reps > 0 }
+            .filter {
+                !it.isWarmup &&
+                    !it.skipped &&
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                    (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0 &&
+                    it.reps > 0
+            }
             .maxOfOrNull { StrengthModel.estimate1RM(it) }
+            ?.takeIf { it > 0.0 }
         return WorkoutShareSnapshot(
-            totalVolume = last.totalVolume,
+            totalVolume = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.historicalLogTonnageKg(last),
             totalSets = allSets.size,
             durationMinutes = last.durationMinutes,
             bestEstimated1RM = bestEstimated1RM,

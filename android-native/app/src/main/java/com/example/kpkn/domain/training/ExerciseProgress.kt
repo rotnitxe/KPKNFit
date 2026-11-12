@@ -5,6 +5,7 @@ import com.example.kpkn.domain.exercises.normalizeExerciseIdentityToken
 import com.example.kpkn.domain.exercises.analyticsExerciseKey
 import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.domain.time.ActivityLocalDate
+import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import java.time.LocalDate
 import java.time.ZoneId
@@ -41,30 +42,35 @@ object ExerciseProgress {
             ExerciseProgressChoice(id, exercise.exerciseName, listOfNotNull(exercise.variantName,
                 exercise.selectedAspects?.values?.joinToString(" · ")?.takeIf(String::isNotBlank)).joinToString(" · "), rows.map { it.first }.distinct().size)
         }.sortedWith(compareByDescending<ExerciseProgressChoice> { it.sessions }.thenBy { it.name })
-    private data class Row(val set: CompletedSet, val mode: LoadModeV2, val unit: UnitModeV2, val load: Double,
+    private data class Row(val set: CompletedSet, val mode: LoadModeV2, val unit: UnitModeV2, val load: Double?,
         val reps: Int, val amount: Double, val bodyKnown: Boolean, val lineage: String, val context: String)
     private fun row(exercise: CompletedExercise, set: CompletedSet): Row? {
         val payload = set.recordedPayloadV3; val homologated = set.homologatedResultV3; val outcome = set.setOutcomeV2
         if (set.skipped || set.isWarmup || payload?.skipped == true || set.isFailedSet || payload?.failedSet == true || homologated?.failedSet == true || outcome?.failedSet == true) return null
-        val mode = payload?.loadInputMode ?: homologated?.loadMode ?: outcome?.loadMode ?: LoadModeV2.LOAD
+        val mode = CompletedSetLoadSemantics.mode(set) ?: LoadModeV2.LOAD
         val unit = payload?.unitMode ?: homologated?.unitMode ?: outcome?.unitMode ?: when {
             set.distanceKm != null -> UnitModeV2.DISTANCE; set.timeSeconds != null -> UnitModeV2.TIME; else -> UnitModeV2.REPS }
         if (unit == UnitModeV2.CUSTOM) return null
         val reps = payload?.completedReps ?: set.reps
-        val load = if (mode == LoadModeV2.ASSISTED) payload?.assistedLoad ?: set.weight else payload?.externalLoad ?: set.weight
+        val load: Double? = when (mode) {
+            LoadModeV2.BODYWEIGHT -> 0.0
+            LoadModeV2.ASSISTED -> CompletedSetLoadSemantics.assistanceKg(set)
+            LoadModeV2.LASTRE, LoadModeV2.LOAD -> CompletedSetLoadSemantics.externalLoadKg(set)
+        }
         val amount = when (unit) {
             UnitModeV2.TIME -> (payload?.durationSeconds ?: set.timeSeconds)?.toDouble()
             UnitModeV2.DISTANCE -> set.distanceKm?.times(1000.0) ?: homologated?.actualValue ?: outcome?.actualValue
             else -> reps.toDouble()
         } ?: return null
-        if (!load.isFinite() || load < 0 || !amount.isFinite() || amount <= 0 || (unit == UnitModeV2.REPS && mode == LoadModeV2.LOAD && load <= 0)) return null
+        if (load != null && (!load.isFinite() || load < 0)) return null
+        if (!amount.isFinite() || amount <= 0 || (unit == UnitModeV2.REPS && mode == LoadModeV2.LOAD && (load ?: 0.0) <= 0)) return null
         // No reinterpretar reps parciales antiguas como repeticiones completas.
         if (unit == UnitModeV2.REPS && (set.isPartial || (payload?.partialReps ?: set.partialReps ?: 0) > 0)) return null
         val context = listOfNotNull(set.machineBrand, set.tagName, set.side ?: payload?.side).joinToString(" · ")
         val lineage = listOf(identity(exercise), mode.name, unit.name, exercise.selectedAspects.orEmpty().toSortedMap().toString(),
             set.contextProfileId ?: payload?.contextProfileId ?: homologated?.contextKey ?: outcome?.contextKey ?: "legacy",
             exercise.variantName.orEmpty(), exercise.performanceProfileId.orEmpty(), exercise.exerciseDbId.orEmpty(), set.setupProfileId.orEmpty(), set.machineBrand.orEmpty(), set.side ?: payload?.side.orEmpty(), set.tagId.orEmpty(),
-            set.subTagIds.sorted().joinToString(","), if (unit != UnitModeV2.REPS) load.toString() else "").joinToString("|")
+            set.subTagIds.sorted().joinToString(","), if (unit != UnitModeV2.REPS) (load?.toString() ?: "sin-detalle") else "").joinToString("|")
         return Row(set, mode, unit, load, reps, amount, payload?.bodyWeightSnapshot?.let { it.isFinite() && it > 0 } == true, lineage, context)
     }
     private fun available(row: Row): Set<ExerciseProgressMetric> = when (row.unit) {
@@ -72,9 +78,13 @@ object ExerciseProgress {
         UnitModeV2.DISTANCE -> setOf(ExerciseProgressMetric.DISTANCE, ExerciseProgressMetric.SETS)
         else -> buildSet {
             add(ExerciseProgressMetric.MAX_REPS); add(ExerciseProgressMetric.SETS)
-            if (row.mode != LoadModeV2.BODYWEIGHT) { add(ExerciseProgressMetric.MAX_WEIGHT); add(ExerciseProgressMetric.BEST_SET) }
-            if (row.mode == LoadModeV2.LOAD) add(ExerciseProgressMetric.E1RM)
-            if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) add(ExerciseProgressMetric.VOLUME)
+            if (row.mode != LoadModeV2.BODYWEIGHT && row.load != null) { add(ExerciseProgressMetric.MAX_WEIGHT); add(ExerciseProgressMetric.BEST_SET) }
+            if (row.mode == LoadModeV2.LOAD && (row.load ?: 0.0) > 0.0) add(ExerciseProgressMetric.E1RM)
+            if ((row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) &&
+                (row.load != null || row.set.dropSets.any { it.weight.isFinite() && it.weight > 0.0 && it.reps > 0 })
+            ) {
+                add(ExerciseProgressMetric.VOLUME)
+            }
         }
     }
     private fun displayNumber(value: Double): String = java.math.BigDecimal.valueOf(value)
@@ -83,32 +93,37 @@ object ExerciseProgress {
         val usable = rows.filter { metric in available(it) }; if (usable.isEmpty()) return null
         val first = usable.first(); val descending = !(metric in setOf(ExerciseProgressMetric.MAX_WEIGHT, ExerciseProgressMetric.BEST_SET) && first.mode == LoadModeV2.ASSISTED)
         fun score(row: Row): Double = when (metric) {
-            ExerciseProgressMetric.E1RM -> if (row.mode == LoadModeV2.LOAD) StrengthModel.estimate1RM(row.set.copy(weight = row.load, reps = row.reps)) else 0.0
-            ExerciseProgressMetric.MAX_WEIGHT -> row.load
+            ExerciseProgressMetric.E1RM -> if (CompletedSetLoadSemantics.supportsEstimatedOneRm(row.set)) StrengthModel.estimate1RM(row.set) else 0.0
+            ExerciseProgressMetric.MAX_WEIGHT -> row.load ?: 0.0
             ExerciseProgressMetric.BEST_SET -> if (row.mode == LoadModeV2.ASSISTED) {
                 // La puntuación nativa ordena menor asistencia como mejora y respeta las reps; nunca se rotula e1RM.
                 WorkoutPerformanceHomologationEngine.evaluate(SetEntryV2(log.id, setIndex = 0, loadMode = row.mode, unitMode = row.unit,
-                    actualValue = row.reps.toDouble(), loggedLoad = row.load, contextKey = row.lineage), null).homologated.metricValue
-            } else row.load * row.reps
+                    actualValue = row.reps.toDouble(), loggedLoad = row.load ?: 0.0, contextKey = row.lineage), null).homologated.metricValue
+            } else (row.load ?: 0.0) * row.reps
             ExerciseProgressMetric.MAX_REPS -> row.reps.toDouble()
-            ExerciseProgressMetric.VOLUME -> if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE) row.load * row.reps else 0.0
+            ExerciseProgressMetric.VOLUME -> CompletedSetLoadSemantics.totalExternalTonnageKg(row.set, row.set.effectiveRepEquivalent())
             ExerciseProgressMetric.SETS -> 1.0
             else -> row.amount
         }
         val best = if (metric == ExerciseProgressMetric.BEST_SET && first.mode == LoadModeV2.ASSISTED || descending) usable.maxBy(::score) else usable.minBy(::score)
-        val value = if (metric == ExerciseProgressMetric.BEST_SET && first.mode == LoadModeV2.ASSISTED) best.load else if (metric == ExerciseProgressMetric.VOLUME || metric == ExerciseProgressMetric.SETS) usable.sumOf(::score) else score(best)
+        val value = if (metric == ExerciseProgressMetric.BEST_SET && first.mode == LoadModeV2.ASSISTED) (best.load ?: return null) else if (metric == ExerciseProgressMetric.VOLUME || metric == ExerciseProgressMetric.SETS) usable.sumOf(::score) else score(best)
         if (!value.isFinite() || value <= 0 && !(value == 0.0 && best.mode == LoadModeV2.ASSISTED)) return null
         val loadLabel = when(best.mode) { LoadModeV2.ASSISTED -> "kg de asistencia"; LoadModeV2.LASTRE -> "kg de lastre"; LoadModeV2.BODYWEIGHT -> "peso corporal"; else -> "kg" }
+        val bestLoad = best.load
         val detail = when(metric) {
-            ExerciseProgressMetric.E1RM -> "${displayNumber(best.load)} kg × ${best.reps}" + (best.set.rir?.let { " @ RIR $it" } ?: best.set.rpe?.let { " @ RPE $it" } ?: " · sin reserva declarada") + " → e1RM ${displayNumber(value)} kg estimados"
-            ExerciseProgressMetric.DURATION -> "${displayNumber(best.amount)} s · misma carga registrada"
-            ExerciseProgressMetric.DISTANCE -> "${displayNumber(best.amount)} m · misma carga registrada"
+            ExerciseProgressMetric.E1RM -> "${displayNumber(bestLoad ?: 0.0)} kg × ${best.reps}" + (best.set.rir?.let { " @ RIR $it" } ?: best.set.rpe?.let { " @ RPE $it" } ?: " · sin reserva declarada") + " → e1RM ${displayNumber(value)} kg estimados"
+            ExerciseProgressMetric.DURATION -> if (bestLoad == null) "${displayNumber(best.amount)} s · ${CompletedSetLoadSemantics.displayLoad(best.set)}" else "${displayNumber(best.amount)} s · misma carga registrada"
+            ExerciseProgressMetric.DISTANCE -> if (bestLoad == null) "${displayNumber(best.amount)} m · ${CompletedSetLoadSemantics.displayLoad(best.set)}" else "${displayNumber(best.amount)} m · misma carga registrada"
             ExerciseProgressMetric.SETS -> "${usable.size} series válidas"
             ExerciseProgressMetric.VOLUME -> "${displayNumber(value)} kg de volumen registrado; no incluye peso corporal sin dato"
-            else -> "${displayNumber(best.load)} $loadLabel × ${best.reps} reps"
+            else -> when {
+                best.mode == LoadModeV2.BODYWEIGHT -> "Peso corporal × ${best.reps} reps"
+                bestLoad == null -> "${CompletedSetLoadSemantics.displayLoad(best.set)} × ${best.reps} reps"
+                else -> "${displayNumber(bestLoad)} $loadLabel × ${best.reps} reps"
+            }
         }
         val trajectory = best.lineage + when {
-            metric == ExerciseProgressMetric.MAX_REPS && best.mode != LoadModeV2.BODYWEIGHT -> "|reps@${best.load}"
+            metric == ExerciseProgressMetric.MAX_REPS && best.mode != LoadModeV2.BODYWEIGHT -> "|reps@${bestLoad?.toString() ?: "sin-detalle"}"
             metric == ExerciseProgressMetric.BEST_SET && best.mode == LoadModeV2.ASSISTED -> "|assisted@${best.reps}"
             else -> ""
         }
@@ -133,7 +148,19 @@ object ExerciseProgress {
             Triple(log, date, rows)
         }.sortedWith(compareBy<Triple<WorkoutLog,LocalDate,List<Row>>> { it.second }.thenBy { it.first.actualDate ?: it.first.date }.thenBy { it.first.id })
         val available = sessions.flatMap { it.third.flatMap { row -> available(row) } }.toSet()
-        val selected = metric.takeIf { it in available } ?: ExerciseProgressMetric.entries.firstOrNull { it in available } ?: metric
+        val preferredOrder = listOf(
+            ExerciseProgressMetric.E1RM,
+            ExerciseProgressMetric.BEST_SET,
+            ExerciseProgressMetric.MAX_WEIGHT,
+            ExerciseProgressMetric.MAX_REPS,
+            ExerciseProgressMetric.DISTANCE,
+            ExerciseProgressMetric.DURATION,
+            ExerciseProgressMetric.VOLUME,
+            ExerciseProgressMetric.SETS,
+        )
+        val selected = metric.takeIf { it in available }
+            ?: preferredOrder.firstOrNull { it in available }
+            ?: metric
         fun history(m: ExerciseProgressMetric): List<ExerciseProgressPoint> {
             val raw = sessions.flatMap { (log,date,rows) -> rows.groupBy { it.lineage + when {
                 m == ExerciseProgressMetric.MAX_REPS && it.mode != LoadModeV2.BODYWEIGHT -> "|reps@${it.load}"

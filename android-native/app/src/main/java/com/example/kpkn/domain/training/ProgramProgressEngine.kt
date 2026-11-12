@@ -281,10 +281,12 @@ object ProgramProgressEngine {
         /** Inventario del atleta: redondea el TM que sube la progresión de autor (B.S3). */
         inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
-        // LINEAR alone is not finite: only route to the complex (terminating)
-        // path when the program has an explicit end. Repeating LINEAR falls
-        // through to the cyclic advance below and recycles via completeCycle.
-        if (program.structure == ProgramStructure.COMPLEX || (program.isSimpleLinearProgram && program.hasExplicitEnd)) {
+        // Terminal SIMPLE programs (explicit HAS_END, competition-activated, or manual end date
+        // outside temporary calendar breaks) route to the terminating path; repeating SIMPLE
+        // plans (including legacy LINEAR without explicit end) recycle via completeCycle.
+        if (program.structure == ProgramStructure.COMPLEX ||
+            (program.isSimpleProgram && program.hasExplicitEnd && !program.isSimpleCalendarizedProgram)
+        ) {
             return advanceComplexAfterSessionComplete(
                 program = program,
                 activeState = activeState,
@@ -607,7 +609,65 @@ object ProgramProgressEngine {
         }
         val targetWeek = targetBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
         if (targetWeek == null) {
-            val completed = program.copy(runState = run.copy(
+            val cleared = program.copy(
+                runState = run.copy(pendingAction = null),
+            )
+            if (cleared.repeatsIndefinitely) {
+                val closed = completeCycle(
+                    program = cleared,
+                    activeState = activeState,
+                    cycleNumber = run.cycleNumber,
+                    logs = logs,
+                    compositionMetadata = compositionMetadata,
+                    inventory = inventory,
+                )
+                if (closed.advancedCycle) {
+                    return closed.copy(
+                        activeState = closed.activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.ACTIVE),
+                    )
+                }
+                val newCycle = run.cycleNumber + 1
+                val firstLocation = ProgramHierarchyIndex(cleared).orderedWeeks().firstOrNull()
+                val instances = resolveCurrentWeekInstances(cleared, newCycle)
+                val firstInstance = instances.firstOrNull()
+                val nextWeekId = firstInstance?.templateWeekId ?: firstLocation?.week?.id
+                val nextInstanceId = firstInstance?.instanceId ?: nextWeekId
+                val nextRun = LoopEngine.syncOccurrences(
+                    cleared.copy(
+                        loopState = (cleared.loopState ?: LoopState()).copy(currentCycle = newCycle),
+                        pendingContinuation = null,
+                        runState = run.copy(
+                            cycleNumber = newCycle,
+                            weekInstanceId = nextInstanceId,
+                            weekId = nextWeekId,
+                            macrocycleId = firstLocation?.macrocycleId,
+                            blockId = firstLocation?.blockId,
+                            mesocycleId = firstLocation?.mesocycleId,
+                            completedSessionIds = emptySet(),
+                            status = ProgramRunStatus.ACTIVE,
+                            pendingAction = null,
+                        ),
+                    ),
+                )
+                return ProgressAdvanceResult(
+                    program = nextRun,
+                    activeState = activeState?.copy(
+                        status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+                        currentWeekId = nextInstanceId ?: activeState.currentWeekId,
+                        currentWeekInstanceId = nextInstanceId,
+                        currentCycleNumber = newCycle,
+                        currentMacrocycleIndex = firstLocation?.macroIndex ?: 0,
+                        currentBlockIndex = firstLocation?.blockIndex ?: 0,
+                        currentMesocycleIndex = firstLocation?.globalMesoIndex ?: 0,
+                        currentMacrocycleId = firstLocation?.macrocycleId,
+                        currentBlockId = firstLocation?.blockId,
+                        currentMesocycleId = firstLocation?.mesocycleId,
+                        programRunId = nextRun.runState?.runId ?: activeState.programRunId,
+                    ),
+                    advancedCycle = true,
+                )
+            }
+            val completed = cleared.copy(runState = cleared.runState?.copy(
                 weekInstanceId = null,
                 weekId = null,
                 completedSessionIds = emptySet(),
@@ -920,7 +980,10 @@ object ProgramProgressEngine {
             )
         }
 
-        if (program.requiresNativeWeekInstances()) {
+        if (program.requiresNativeWeekInstances() &&
+            program.programEndMode != com.example.kpkn.data.models.ProgramEndMode.HAS_END &&
+            program.calendarization?.activatedByCompetition != true
+        ) {
             val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
             val progressed = ProgramAutoregulationEngine.expirePending(
                 program,
@@ -936,7 +999,7 @@ object ProgramProgressEngine {
             )
         }
 
-        if (program.isSimpleLinearProgram && program.hasExplicitEnd) {
+        if (program.isSimpleProgram && program.hasExplicitEnd) {
             val progressedComplete = ProgramAutoregulationEngine.expirePending(
                 program,
                 reason = "Caducada al completar el programa: la propuesta no se resolvió.",
@@ -959,19 +1022,6 @@ object ProgramProgressEngine {
                     programRunId = completedRun.runId,
                 ),
                 advancedCycle = true,
-            )
-        }
-        // Repeating programs (no explicit end) never COMPLETE on cycle close:
-        // advance to cycle N+1 keeping programId/runId and history per cycle.
-        if (program.repeatsIndefinitely) {
-            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
-            return completeCycle(
-                program = program,
-                activeState = activeState,
-                cycleNumber = cycleNumber,
-                logs = logs,
-                compositionMetadata = compositionMetadata,
-                inventory = inventory,
             )
         }
 
@@ -1049,6 +1099,19 @@ object ProgramProgressEngine {
                 working,
                 reason = "Caducada al cerrar el bloque: la propuesta no se resolvió.",
             )
+            // Repeating programs complete the entire multi-block structure before
+            // starting cycle N+1, keeping programId, runId and per-cycle history.
+            if (progressedEnd.repeatsIndefinitely) {
+                val cycleNumber = progressedEnd.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+                return completeCycle(
+                    program = progressedEnd,
+                    activeState = activeState,
+                    cycleNumber = cycleNumber,
+                    logs = logs,
+                    compositionMetadata = compositionMetadata,
+                    inventory = inventory,
+                )
+            }
             val completedRun = (progressedEnd.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
                 cycleNumber = 1,
                 weekInstanceId = null,
@@ -1287,11 +1350,15 @@ object ProgramProgressEngine {
         val priorRun = continued.runState
 
         val updatedProgram = continued.copy(
+            pendingContinuation = null,
             runState = ProgramRunState(
                 runId = stableRunId,
                 cycleNumber = newCycle,
                 weekInstanceId = firstInstance?.instanceId,
                 weekId = firstInstance?.templateWeekId,
+                macrocycleId = firstLocation?.macrocycleId,
+                blockId = firstLocation?.blockId,
+                mesocycleId = firstLocation?.mesocycleId,
                 status = ProgramRunStatus.ACTIVE,
                 pendingAction = priorRun?.pendingAction,
                 autoregulationAudit = priorRun?.autoregulationAudit.orEmpty(),
@@ -1412,16 +1479,27 @@ object ProgramProgressEngine {
         val newCycle = run.cycleNumber + 1
         val instances = resolveCurrentWeekInstances(program, newCycle)
         val first = instances.firstOrNull()
-        return program.copy(
-            runState = run.copy(
-                cycleNumber = newCycle,
-                weekInstanceId = first?.instanceId,
-                weekId = first?.templateWeekId,
-                completedSessionIds = emptySet(),
-                status = ProgramRunStatus.ACTIVE,
-                pendingAction = null,
+        val hierarchy = ProgramHierarchyIndex(program)
+        val firstLocation = first?.let { hierarchy.locateWeek(it.templateWeekId) }
+            ?: hierarchy.orderedWeeks().firstOrNull()
+        val weekId = first?.templateWeekId ?: firstLocation?.week?.id
+        val weekInstanceId = first?.instanceId ?: weekId?.let { instanceIdFor(newCycle, it) }
+        return LoopEngine.syncOccurrences(
+            program.copy(
+                pendingContinuation = null,
+                runState = run.copy(
+                    cycleNumber = newCycle,
+                    weekInstanceId = weekInstanceId,
+                    weekId = weekId,
+                    macrocycleId = firstLocation?.macrocycleId,
+                    blockId = firstLocation?.blockId,
+                    mesocycleId = firstLocation?.mesocycleId,
+                    completedSessionIds = emptySet(),
+                    status = ProgramRunStatus.ACTIVE,
+                    pendingAction = null,
+                ),
+                loopState = (program.loopState ?: LoopState()).copy(currentCycle = newCycle),
             ),
-            loopState = (program.loopState ?: LoopState()).copy(currentCycle = newCycle),
         )
     }
 
@@ -1568,7 +1646,7 @@ object ProgramProgressEngine {
     private fun Program.complexWeekRunFields(
         cycleNumber: Int,
         templateWeekId: String,
-    ): Pair<String, String> = if (requiresNativeWeekInstances()) {
+    ): Pair<String, String> = if (usesCycleWeekInstances()) {
         templateWeekId to coerceNativeWeekInstanceId(cycleNumber, templateWeekId, null)
     } else {
         templateWeekId to templateWeekId
@@ -1577,7 +1655,7 @@ object ProgramProgressEngine {
     private fun Program.complexActiveWeekFields(
         cycleNumber: Int,
         templateWeekId: String,
-    ): Pair<String, String> = if (requiresNativeWeekInstances()) {
+    ): Pair<String, String> = if (usesCycleWeekInstances()) {
         val inst = coerceNativeWeekInstanceId(cycleNumber, templateWeekId, null)
         inst to inst
     } else {
@@ -1649,6 +1727,10 @@ fun Program.requiresNativeWeekInstances(): Boolean =
     structure == ProgramStructure.COMPLEX && (
         sourceRecipe?.nativeProgression != null || hasNativeCuratedBlock()
         )
+
+/** Any COMPLEX plan that uses per-cycle occurrence instances (`inst_c<N>_<weekId>`). */
+fun Program.usesCycleWeekInstances(): Boolean =
+    requiresNativeWeekInstances() || (structure == ProgramStructure.COMPLEX && !hasExplicitEnd)
 
 fun coerceNativeWeekInstanceId(
     cycleNumber: Int,

@@ -363,9 +363,10 @@ internal fun SessionEditorViewModel.switchToSession(
         }
         if (generation != sessionSwitchGeneration) return@launch
         if (navigationSourceChanged(sourceAtRequest)) return@launch
+        val resolution = resolveNewestSessionWithConflict(located.session, located.session, persistedDraft)
         val resolvedSession = SupersetRules.normalizeSession(
             com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler.normalizeSessionStructure(
-                resolveNewestSession(located.session, located.session, persistedDraft)
+                resolution.session
                     .normalizeEditorScheduledTechniques().normalizeMobilityCompatibility().normalizedIdentityFields(),
             ),
         )
@@ -415,6 +416,7 @@ internal fun SessionEditorViewModel.switchToSession(
                 availableVariants = computeAvailableVariants(resolvedSession),
                 activeVariant = WeekVariant.A,
                 pendingTransferToDays = persistedDraft?.pendingTransferToDays,
+                liveDraftConflict = resolution.liveConflict,
                 strengthSpaceCommitted = false,
                 cardioSpaceCommitted = false,
                 cardioSpacePlacement = null,

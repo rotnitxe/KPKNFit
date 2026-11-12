@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,8 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,6 +67,7 @@ import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.sessioneditor.withSetDuplicated
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknRestPickerChain
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -80,6 +86,7 @@ import com.example.kpkn.ui.design.KpknSwitch
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
+import kotlinx.coroutines.delay
 
 /**
  * Configuración de un miembro de la superserie (ER1c2, la piel nueva): un panel `inset` con su nombre, la carga inteligente y las opciones
@@ -526,8 +533,22 @@ internal fun SupersetRoundsCarousel(
 ) {
     var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
+    var pendingApply by remember(group.id) { mutableStateOf<PendingApply?>(null) }
+    var deletedSet by remember(group.id) { mutableStateOf<DeletedRoundSet?>(null) }
+    deletedSet?.let { removed ->
+        LaunchedEffect(removed) {
+            delay(SET_UNDO_WINDOW_MS)
+            if (deletedSet === removed) deletedSet = null
+        }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("POR RONDA · TOCA UNA PARA ABRIRLA", style = KpknType.eyebrow, color = WizardColors.textMuted)
+        deletedSet?.takeIf { openRound != it.roundIndex }?.let { removed ->
+            SetDeletedNotice(onUndo = {
+                onUpdateExercise?.invoke(removed.exerciseId) { current -> current.withSetRestored(removed.set, removed.index) }
+                deletedSet = null
+            })
+        }
         (0 until rounds).forEach { roundIndex ->
             val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
             val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
@@ -608,6 +629,12 @@ internal fun SupersetRoundsCarousel(
                                 )
                             }
                         }
+                        deletedSet?.takeIf { it.roundIndex == roundIndex }?.let { removed ->
+                            SetDeletedNotice(onUndo = {
+                                onUpdateExercise?.invoke(removed.exerciseId) { current -> current.withSetRestored(removed.set, removed.index) }
+                                deletedSet = null
+                            })
+                        }
                         exercises.forEach { exercise ->
                             val set = exercise.sets.getOrNull(roundIndex)
                             if (set != null) {
@@ -618,7 +645,23 @@ internal fun SupersetRoundsCarousel(
                                     accentColor = accentColor,
                                     onUpdateSet = { setId, updater -> onUpdateSet(exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> onRemoveSet(exercise.id, setId) },
-                                    onMoveSet = { setId, dir -> onMoveSet(exercise.id, setId, dir) },
+                                    onDuplicateSet = onUpdateExercise?.let { update ->
+                                        { setId -> update(exercise.id) { current -> current.withSetDuplicated(setId) } }
+                                    },
+                                    onRequestApply = { request -> pendingApply = request },
+                                    onNotifyDeleted = { removedSet ->
+                                        if (onUpdateExercise != null) {
+                                            val position = exercise.sets.indexOfFirst { it.id == removedSet.id }
+                                            if (position >= 0) {
+                                                deletedSet = DeletedRoundSet(
+                                                    roundIndex = roundIndex,
+                                                    exerciseId = exercise.id,
+                                                    set = removedSet,
+                                                    index = position,
+                                                )
+                                            }
+                                        }
+                                    },
                                     onUpdateExercise = onUpdateExercise?.let { update -> { transform -> update(exercise.id, transform) } },
                                 )
                             } else {
@@ -654,7 +697,21 @@ internal fun SupersetRoundsCarousel(
             onDismiss = { restPickerRound = null },
         )
     }
+    pendingApply?.let { request ->
+        SetApplyConfirmationDialog(
+            request = request,
+            onConfirmDone = { pendingApply = null },
+            onDismiss = { pendingApply = null },
+        )
+    }
 }
+
+private class DeletedRoundSet(
+    val roundIndex: Int,
+    val exerciseId: String,
+    val set: ExerciseSet,
+    val index: Int,
+)
 
 /** Un punto por miembro: relleno si tiene serie en esa ronda, apagado si el hueco sigue vacío. */
 @Composable
@@ -742,25 +799,106 @@ private fun RoundExerciseSetCard(
     accentColor: Color,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
-    onMoveSet: (String, Int) -> Unit,
+    onDuplicateSet: ((String) -> Unit)?,
+    onRequestApply: (PendingApply) -> Unit,
+    onNotifyDeleted: (ExerciseSet) -> Unit,
     onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
 ) {
     var expanded by rememberSaveable(exercise.id, roundIndex) { mutableStateOf(false) }
     val predictedWeight = calculateSuggestedLoad(exercise, set)
     val estimatedMetric = calculateEstimatedMetric(exercise, set)
-    val summary = buildList {
-        if (exercise.isEffectivelyUnilateral()) {
-            val t = set.leftTarget ?: set.rightTarget
-            (t?.targetRepsRange?.format() ?: t?.targetReps?.toString())?.let { add("$it reps") }
-            t?.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
+    val summary = if (set.isEmptySlot) {
+        "Hueco vacío"
+    } else {
+        buildList {
+            if (exercise.isEffectivelyUnilateral()) {
+                val t = set.leftTarget ?: set.rightTarget
+                (t?.targetRepsRange?.format() ?: t?.targetReps?.toString())?.let { add("$it reps") }
+                t?.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
+            } else {
+                (set.effectiveRepRange()?.format())?.let { add("$it reps") }
+                predictedWeight?.let { add("~${formatEditableNumber(it)} kg") }
+                set.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
+                set.targetRIR?.let { add("RIR $it") }
+                set.targetDuration?.let { add(KpknSetFormat.doseTime(it)) }
+            }
+        }.joinToString(" · ").ifBlank { "Sin objetivo configurado" }
+    }
+    val activeSetCount = exercise.sets.count { !it.isEmptySlot }
+    val unilateral = exercise.isEffectivelyUnilateral()
+    val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
+
+    @Composable
+    fun RoundSetMenuActions(side: String?) {
+        SetActions(
+            canApply = activeSetCount > 1,
+            canDuplicate = onDuplicateSet != null,
+            canDelete = activeSetCount > 1,
+            onApply = {
+                buildSetApplyRequest(
+                    exercise = exercise,
+                    set = set,
+                    side = side,
+                    sharedSides = sharedSides,
+                    copyAllUnilateralSides = unilateral,
+                    onUpdateSet = onUpdateSet,
+                )?.let(onRequestApply)
+            },
+            onDuplicate = { onDuplicateSet?.invoke(set.id) },
+            onDelete = {
+                onNotifyDeleted(set)
+                onRemoveSet(set.id)
+            },
+        )
+    }
+
+    @Composable
+    fun RoundSetBlock(side: String?, showActions: Boolean) {
+        val tag = "round-set-focus-${set.id}${side?.let { ":$it" }.orEmpty()}"
+        if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
+            RoundCanonicalSetFocus(
+                exercise = exercise,
+                set = set,
+                roundIndex = roundIndex,
+                side = side,
+                tag = tag,
+                onUpdateSet = onUpdateSet,
+                onUpdateExercise = onUpdateExercise,
+                actions = { if (showActions) RoundSetMenuActions(side) },
+            )
         } else {
-            (set.effectiveRepRange()?.format())?.let { add("$it reps") }
-            predictedWeight?.let { add("~${formatEditableNumber(it)} kg") }
-            set.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
-            set.targetRIR?.let { add("RIR $it") }
-            set.targetDuration?.let { add(KpknSetFormat.doseTime(it)) }
+            Column(
+                modifier = Modifier.testTag(tag),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                InlineSetRow(
+                    set = set,
+                    index = roundIndex,
+                    reference1RM = resolveReferenceCapacity(exercise),
+                    trainingMax = exercise.referenceTrainingMax,
+                    predictedWeight = predictedWeight,
+                    estimatedMetric = estimatedMetric,
+                    trainingMode = exercise.trainingMode,
+                    customUnit = exercise.customUnit,
+                    // ER1f: la misma presentación en lista que el ejercicio desplegado (ER1c1), no la tarjeta vieja.
+                    presentation = SetRowPresentation.List,
+                    accentColor = accentColor,
+                    canMoveUp = false,
+                    canMoveDown = false,
+                    isUnilateral = unilateral,
+                    fixedUnilateralSide = side,
+                    showSetActions = false,
+                    unilateralIntensityMode = exercise.unilateralIntensityMode,
+                    fillHeight = false,
+                    onUpdate = { updater -> onUpdateSet(set.id, updater) },
+                    onRemove = {},
+                    onMoveUp = {},
+                    onMoveDown = {},
+                )
+                if (showActions) RoundSetMenuActions(side)
+            }
         }
-    }.joinToString(" · ").ifBlank { "Sin objetivo configurado" }
+    }
 
     val cardShape = RoundedCornerShape(16.dp)
     Column(
@@ -810,7 +948,23 @@ private fun RoundExerciseSetCard(
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (exercise.isEffectivelyUnilateral()) {
+                if (set.isEmptySlot) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        color = accentColor.copy(alpha = 0.06f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.42f)),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text("RONDA ${roundIndex + 1} · HUECO VACÍO", fontWeight = FontWeight.Black, color = accentColor)
+                            Text("No reindexa las rondas siguientes", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.58f))
+                        }
+                    }
+                } else if (unilateral) {
                     val orderedSides = when (exercise.unilateralSideOrder) {
                         UnilateralSideOrder.LEFT_RIGHT -> listOf("L", "R")
                         UnilateralSideOrder.RIGHT_LEFT -> listOf("R", "L")
@@ -822,40 +976,7 @@ private fun RoundExerciseSetCard(
                             if (prior == "L") set.leftTarget != null else set.rightTarget != null
                         }
                         if (showCard) {
-                            if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
-                                RoundCanonicalSetFocus(
-                                    exercise = exercise, set = set, roundIndex = roundIndex,
-                                    side = side, showActions = isFirstVisible,
-                                    canMoveUp = isFirstVisible && roundIndex > 0,
-                                    canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
-                                    onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
-                                    onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
-                                )
-                            } else InlineSetRow(
-                                set = set,
-                                index = roundIndex,
-                                reference1RM = resolveReferenceCapacity(exercise),
-                                trainingMax = exercise.referenceTrainingMax,
-                                predictedWeight = predictedWeight,
-                                estimatedMetric = estimatedMetric,
-                                trainingMode = exercise.trainingMode,
-                                customUnit = exercise.customUnit,
-                                // ER1f: la misma presentación en lista que el ejercicio desplegado (ER1c1), no la tarjeta vieja.
-                                presentation = SetRowPresentation.List,
-                                // El lado se dice con la letra (I/D), no con un color: la pieza va en el acento de la superserie.
-                                accentColor = accentColor,
-                                canMoveUp = isFirstVisible && roundIndex > 0,
-                                canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
-                                isUnilateral = true,
-                                fixedUnilateralSide = side,
-                                showSetActions = isFirstVisible,
-                                unilateralIntensityMode = exercise.unilateralIntensityMode,
-                                fillHeight = false,
-                                onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                                onRemove = { onRemoveSet(set.id) },
-                                onMoveUp = { onMoveSet(set.id, -1) },
-                                onMoveDown = { onMoveSet(set.id, 1) },
-                            )
+                            RoundSetBlock(side = side, showActions = isFirstVisible)
                         } else {
                             UnilateralAddGhostCard(
                                 side = side,
@@ -886,36 +1007,7 @@ private fun RoundExerciseSetCard(
                         }
                     }
                 } else {
-                    if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
-                        RoundCanonicalSetFocus(
-                            exercise = exercise, set = set, roundIndex = roundIndex,
-                            side = null, showActions = true,
-                            canMoveUp = roundIndex > 0,
-                            canMoveDown = roundIndex < exercise.sets.lastIndex,
-                            onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
-                            onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
-                        )
-                    } else InlineSetRow(
-                        set = set,
-                        index = roundIndex,
-                        reference1RM = resolveReferenceCapacity(exercise),
-                        trainingMax = exercise.referenceTrainingMax,
-                        predictedWeight = predictedWeight,
-                        estimatedMetric = estimatedMetric,
-                        trainingMode = exercise.trainingMode,
-                        customUnit = exercise.customUnit,
-                        presentation = SetRowPresentation.List,
-                        accentColor = accentColor,
-                        canMoveUp = roundIndex > 0,
-                        canMoveDown = roundIndex < exercise.sets.lastIndex,
-                        isUnilateral = false,
-                        unilateralIntensityMode = exercise.unilateralIntensityMode,
-                        fillHeight = false,
-                        onUpdate = { updater -> onUpdateSet(set.id, updater) },
-                        onRemove = { onRemoveSet(set.id) },
-                        onMoveUp = { onMoveSet(set.id, -1) },
-                        onMoveDown = { onMoveSet(set.id, 1) },
-                    )
+                    RoundSetBlock(side = null, showActions = true)
                 }
             }
         }
@@ -981,16 +1073,13 @@ private fun RoundCanonicalSetFocus(
     set: ExerciseSet,
     roundIndex: Int,
     side: String?,
-    showActions: Boolean,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
+    tag: String,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
-    onRemoveSet: (String) -> Unit,
-    onMoveSet: (String, Int) -> Unit,
+    actions: @Composable () -> Unit,
 ) {
     Column(
-        modifier = Modifier.testTag("round-set-focus-${set.id}${side?.let { ":$it" }.orEmpty()}"),
+        modifier = Modifier.testTag(tag),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (set.purpose.isAmrap) {
@@ -998,11 +1087,6 @@ private fun RoundCanonicalSetFocus(
         } else {
             RmSetFocus(exercise, set, { update -> onUpdateSet(set.id, update) }, onUpdateExercise, fixedUnilateralSide = side)
         }
-        if (showActions) FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(18.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            KpknTextAction(text = "Eliminar", color = WizardColors.danger, onClick = { onRemoveSet(set.id) })
-        }
+        actions()
     }
 }

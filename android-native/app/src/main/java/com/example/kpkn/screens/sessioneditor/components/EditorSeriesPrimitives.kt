@@ -451,10 +451,10 @@ internal fun EdStepperField(
                 // A 1,5×, los controles siguen bajo el valor en filas compactas; para otros casos basta el cálculo de contenido.
                 ((density.fontScale >= 1.5f && maxWidth < 360.dp) || maxWidth.value < requiredInlineWidth)
             @Composable
-            fun CenterContents(centerModifier: Modifier, fillHeight: Boolean = true) {
+            fun CenterContents(centerModifier: Modifier) {
                 Box(
                     modifier = centerModifier
-                        .then(if (fillHeight) Modifier.fillMaxHeight() else Modifier)
+                        .height(height)
                         .then(
                             if (scrubbable && !editing) Modifier.pointerInput(Unit) {
                                 // pulido:ed-J (arrastrar el valor) un paso cada 16 dp, `moved` bloquea el clic siguiente
@@ -553,11 +553,11 @@ internal fun EdStepperField(
             if (wrap) {
                 Column(modifier = shell, horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().heightIn(min = height),
+                        modifier = Modifier.fillMaxWidth().height(height),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         leading?.invoke(this)
-                        CenterContents(Modifier.weight(1f), fillHeight = false)
+                        CenterContents(Modifier.weight(1f))
                     }
                     Box(Modifier.fillMaxWidth().height(1.dp).background(EdColors.line2))
                     Row(
@@ -571,7 +571,7 @@ internal fun EdStepperField(
                 }
             } else {
                 Row(
-                    modifier = shell.heightIn(min = height),
+                    modifier = shell.height(height),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     leading?.invoke(this)

@@ -905,7 +905,8 @@ object ProgramAutoregulationEngine {
                     .distinctBy { it.performed.id }
                     .forEach { pair ->
                         val reps = pair.performed.reps
-                        val weight = pair.performed.weight
+                        if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(pair.performed)) return@forEach
+                        val weight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(pair.performed) ?: 0.0
                         if (reps !in 1..REP_MAX_MAX_REPS || weight <= 0.0) return@forEach
                         out += RepMaxHit(
                             liftSlot = lift,
@@ -1282,7 +1283,13 @@ object ProgramAutoregulationEngine {
         val acc = mutableMapOf<LiftSlot, Double>()
         weekLogs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
-            exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
+            exercise.sets.filter {
+                !it.isWarmup &&
+                    !it.skipped &&
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                    (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0 &&
+                    it.reps > 0
+            }.forEach { set ->
                 val e1 = StrengthModel.estimate1RM(set)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
@@ -1294,7 +1301,13 @@ object ProgramAutoregulationEngine {
         val acc = mutableMapOf<LiftSlot, Double>()
         logs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
-            exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
+            exercise.sets.filter {
+                !it.isWarmup &&
+                    !it.skipped &&
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(it) &&
+                    (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0 &&
+                    it.reps > 0
+            }.forEach { set ->
                 val e1 = StrengthModel.estimate1RM(set)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }

@@ -54,7 +54,7 @@ internal fun toCompletedExercises(
             relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
             variantName = exercise.variantName,
             selectedAspects = exercise.selectedAspects,
-            effectiveMuscles = exercise.effectiveMuscles,
+            effectiveMuscles = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: catalogInfo?.involvedMuscles,
             restTime = exercise.restTime ?: 90,
             supersetId = groupId,
             supersetExerciseCount = groupId?.let { SupersetRules.orderedMembers(session, it).size } ?: 1,
@@ -90,21 +90,7 @@ internal fun completedSetsForExercise(
 }
 
 internal fun sessionTonnage(exercises: List<CompletedExercise>): Double =
-    exercises.sumOf { ex ->
-        ex.sets.filter { !it.skipped && !it.isWarmup }.sumOf { set ->
-            val main = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalTonnageKg(
-                set,
-                set.effectiveRepEquivalent(),
-            )
-            val drops = set.dropSets.sumOf { drop ->
-                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.dropTonnageKg(set, drop.weight, drop.reps)
-            }
-            val restPauses = set.restPauses.sumOf { rp ->
-                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.restPauseTonnageKg(set, rp.reps)
-            }
-            main + drops + restPauses
-        }
-    }
+    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.sessionExternalTonnageKg(exercises)
 
 internal fun sessionLogicalSetCount(
     session: Session,

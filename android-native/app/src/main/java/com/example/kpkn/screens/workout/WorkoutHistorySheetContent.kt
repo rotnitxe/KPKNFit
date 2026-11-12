@@ -183,9 +183,7 @@ private fun HistorySetRow(set: CompletedSet) {
         Text(
             text = buildString {
                 if (sideLabel != null) append("$sideLabel · ")
-                if (set.weight > 0) append("${set.weight.toTrimmedNumberString()} kg")
-                if (set.weight > 0 && set.reps > 0) append(" × ")
-                if (set.reps > 0) append("${set.reps} reps")
+                append(com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(set))
                 if (set.rpe != null) append(" · RPE ${set.rpe}")
                 if (set.rir != null) append(" · RIR ${set.rir}")
                 if ((set.partialReps ?: 0) > 0) append(" · +${set.partialReps} parciales")

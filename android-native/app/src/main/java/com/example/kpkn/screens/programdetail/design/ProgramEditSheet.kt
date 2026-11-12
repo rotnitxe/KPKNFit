@@ -25,8 +25,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +58,8 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBa
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.ui.design.KpknType
+import kotlinx.coroutines.launch
 
 /**
  * «Editar programa» (lienzo v6, m-edit): nombre y descripción en campos `.field`, «Modalidad» en chips y «Portada»: la portada a la
@@ -68,30 +77,29 @@ internal fun ProgramEditSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val latestDraft by rememberUpdatedState(draft)
+    val latestOnDraftChange by rememberUpdatedState(onDraftChange)
+    var coverError by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
     val baseSpec = remember(program) {
         coverIdentityForProgram(program).lines ?: LineCoverSpec(LineCoverStyle.PERFIL, LineCoverBackground.CARBON, seed = 3)
     }
     val preview = remember(program, draft.cover) { coverIdentityForProgram(program.copy(coverImage = draft.cover)) }
-    // La foto propia queda guardada como `content://`: se pide el permiso persistente para que la portada siga ahí al reabrir la app.
-    // Si el proveedor no concede permiso persistente, se guarda una copia en almacenamiento privado (remediación 12).
+    // Valida legibilidad en IO antes de reemplazar la portada y conserva la anterior si falla (remediación 12).
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
         if (uri != null) {
-            val persistable = runCatching {
-                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }.isSuccess
-            val savedUri = if (persistable) {
-                uri.toString()
-            } else {
-                runCatching {
-                    val dir = java.io.File(context.filesDir, "program_covers").apply { mkdirs() }
-                    val target = java.io.File(dir, "cover_${program.id}_${System.currentTimeMillis()}.jpg")
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        target.outputStream().use { output -> input.copyTo(output) }
+            coverError = null
+            scope.launch {
+                when (val outcome = resolvePickedProgramCover(context, program.id, uri)) {
+                    is ProgramCoverPickOutcome.Success -> {
+                        coverError = null
+                        latestOnDraftChange(latestDraft.withPhoto(outcome.uriString))
                     }
-                    Uri.fromFile(target).toString()
-                }.getOrDefault(uri.toString())
+                    is ProgramCoverPickOutcome.Failure -> {
+                        coverError = outcome.message
+                    }
+                }
             }
-            onDraftChange(draft.withPhoto(savedUri))
         }
     }
     ProgramLienzoSheet(onDismiss = onDismiss) {
@@ -140,7 +148,10 @@ internal fun ProgramEditSheet(
                         BackgroundDot(
                             background = background,
                             selected = !draft.hasPhoto && draft.background == background,
-                            onClick = { onDraftChange(draft.withBackground(background)) },
+                            onClick = {
+                                coverError = null
+                                onDraftChange(draft.withBackground(background))
+                            },
                         )
                     }
                 }
@@ -148,7 +159,10 @@ internal fun ProgramEditSheet(
                     base = baseSpec,
                     background = draft.background,
                     selected = draft.lineStyle.takeUnless { draft.hasPhoto },
-                    onSelect = { onDraftChange(draft.withStyle(it)) },
+                    onSelect = {
+                        coverError = null
+                        onDraftChange(draft.withStyle(it))
+                    },
                 )
             }
         }
@@ -158,6 +172,17 @@ internal fun ProgramEditSheet(
             icon = LienzoEyeIcon,
             modifier = Modifier.padding(top = 8.dp),
         )
+        coverError?.let { errorText ->
+            Text(
+                text = errorText,
+                style = KpknType.caption,
+                color = WizardColors.danger,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .testTag("editar_portada_error"),
+            )
+        }
         ProgramLienzoPill(
             text = "Guardar",
             onClick = onSave,

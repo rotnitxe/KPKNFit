@@ -352,7 +352,11 @@ internal func backfillCompletedSetIntensityFromPostExerciseFeedback(
             actualIntensityMode: mode, actualIntensityValue: value, debt: set.debt,
             contextProfileId: set.contextProfileId, tagId: set.tagId, subTagIds: set.subTagIds,
             setupProfileId: set.setupProfileId, machineBrand: set.machineBrand,
-            homologatedResultV3: set.homologatedResultV3, rom: set.rom, assistedReps: set.assistedReps
+            recordedPayloadV3: set.recordedPayloadV3,
+            homologatedResultV3: set.homologatedResultV3,
+            setOutcomeV2: set.setOutcomeV2,
+            rom: set.rom, assistedReps: set.assistedReps,
+            loadMode: set.loadMode, originalLoad: set.originalLoad
         )
     }
     return result
@@ -764,8 +768,12 @@ internal func applyAdvancedFeedback(base: CompletedSet, advanced: SetAdvancedFee
         actualIntensityValue: advanced.actualIntensityValue ?? base.actualIntensityValue,
         debt: base.debt, contextProfileId: base.contextProfileId, tagId: base.tagId,
         subTagIds: base.subTagIds, setupProfileId: base.setupProfileId, machineBrand: base.machineBrand,
-        homologatedResultV3: base.homologatedResultV3, rom: advanced.rom ?? base.rom,
-        assistedReps: advanced.assistedReps ?? base.assistedReps
+        recordedPayloadV3: base.recordedPayloadV3,
+        homologatedResultV3: base.homologatedResultV3,
+        setOutcomeV2: base.setOutcomeV2,
+        rom: advanced.rom ?? base.rom,
+        assistedReps: advanced.assistedReps ?? base.assistedReps,
+        loadMode: base.loadMode, originalLoad: base.originalLoad
     )
 }
 

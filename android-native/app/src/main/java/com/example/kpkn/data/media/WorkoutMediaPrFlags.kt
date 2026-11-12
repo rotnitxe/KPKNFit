@@ -28,7 +28,9 @@ object WorkoutMediaPrFlags {
             .filter { it.exerciseId == exerciseId && it.kind == "pr_e1rm" }
             .maxByOrNull { it.value }
             ?: return false
-        if (set.weight <= 0.0 || set.reps <= 0) return false
+        if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)) return false
+        val externalWeight = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0
+        if (externalWeight <= 0.0 || set.reps <= 0) return false
         val e1rm = StrengthModel.estimate1RM(set)
         return abs(e1rm - milestone.value) <= 0.05
     }

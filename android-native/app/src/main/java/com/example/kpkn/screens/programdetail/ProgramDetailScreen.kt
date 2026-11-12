@@ -67,6 +67,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.repeatsIndefinitely
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.domain.training.HomeSessionResolver.allWeekLocations
 import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
@@ -226,6 +227,8 @@ fun ProgramDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isActive by viewModel.isActiveProgram.collectAsState()
     val isPaused by viewModel.isPausedProgram.collectAsState()
+    val activeOtherProgramName by viewModel.activeOtherProgramName.collectAsStateWithLifecycle()
+    var confirmResumeRecurring by rememberSaveable { mutableStateOf(false) }
     val currentWeeks by viewModel.currentWeeks.collectAsState()
     val displayedSessions by viewModel.displayedSessions.collectAsState()
     val selectedWeekMeta by viewModel.selectedWeekMeta.collectAsState()
@@ -372,7 +375,7 @@ fun ProgramDetailScreen(
     val weekCount = remember(p) { p.allWeekLocations().size }
     val repeatingWeek = p.isSimpleProgram && weekCount <= 1
     val isCompletedRecurring = !isActive && p.runState?.status == com.example.kpkn.data.models.ProgramRunStatus.COMPLETED &&
-        !(p.programEndMode == com.example.kpkn.data.models.ProgramEndMode.HAS_END)
+        p.repeatsIndefinitely
     val primaryAction = programHeaderPrimaryOf(
         isActive = isActive,
         sessionName = primarySession?.takeIf { !it.isCompleted }?.session?.name,
@@ -613,7 +616,14 @@ fun ProgramDetailScreen(
         onPrimary = {
             when (primaryAction) {
                 is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue -> primarySession?.let { onStartWorkout(it.session, p) }
-                ProgramHeaderPrimary.Activate, ProgramHeaderPrimary.Resume, ProgramHeaderPrimary.ResumeRecurring -> viewModel.activateOrResume()
+                ProgramHeaderPrimary.Activate, ProgramHeaderPrimary.Resume -> viewModel.activateOrResume()
+                ProgramHeaderPrimary.ResumeRecurring -> {
+                    if (activeOtherProgramName != null) {
+                        confirmResumeRecurring = true
+                    } else {
+                        viewModel.resumeRecurringRoutine()
+                    }
+                }
                 ProgramHeaderPrimary.None -> Unit
             }
         },
@@ -851,6 +861,24 @@ fun ProgramDetailScreen(
                 viewModel.reviewScheduleContinuation()
             },
             onDismiss = { showMissedSessions = false },
+        )
+    }
+    if (confirmResumeRecurring) {
+        val otherName = activeOtherProgramName
+        KpknAlertDialog(
+            onDismissRequest = { confirmResumeRecurring = false },
+            title = "¿Reanudar rutina y cambiar el programa activo?",
+            text = if (otherName != null) {
+                "\"$otherName\" dejará de estar activo y esta rutina reanudará su ciclo ${(p.runState?.cycleNumber ?: 1) + 1} conservando su historial."
+            } else {
+                "Esta rutina reanudará su ciclo ${(p.runState?.cycleNumber ?: 1) + 1} conservando su historial."
+            },
+            confirmLabel = "Reanudar rutina",
+            onConfirm = {
+                confirmResumeRecurring = false
+                viewModel.resumeRecurringRoutine()
+            },
+            dismissLabel = "Cancelar",
         )
     }
     // Al terminar el programa (m-continue): el resumen de Progreso y las tres salidas; cada una lleva a su confirmación.

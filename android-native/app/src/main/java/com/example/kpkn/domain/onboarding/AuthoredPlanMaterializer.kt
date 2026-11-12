@@ -99,6 +99,12 @@ object AuthoredPlanMaterializer {
             // Como los nativos: el id del plan publicado; la receta efectiva
             // (derivada si hubo adaptación) vive en `sourceRecipe`.
             structureTemplateId = entry.id,
+            programEndMode = request.baseProgram.programEndMode
+                ?: if (entry.duration == com.example.kpkn.data.programs.CatalogDuration.FINITE_CYCLE) {
+                    com.example.kpkn.data.models.ProgramEndMode.HAS_END
+                } else {
+                    com.example.kpkn.data.models.ProgramEndMode.REPEATING
+                },
         )
         return scheduled(prepared, request.expectedDaysPerWeek)
     }

@@ -96,4 +96,20 @@ class TrainingHistoryProjectionTest {
         assertFalse(TrainingInsightsEngine.comparable(point,point.copy(sourceId="other",activityId="other")))
     }
 
+    @Test fun loadModeFactsRespectBodyweightAssistanceAndUnrecoverableLastre() {
+        val bwSet = CompletedSet("bw", weight = 106.0, reps = 8, loadMode = LoadModeV2.BODYWEIGHT, originalLoad = null)
+        val unrecoverableLastre = CompletedSet("ul", weight = 146.0, reps = 6, loadMode = LoadModeV2.LASTRE, originalLoad = null)
+        val validLastre = CompletedSet("vl", weight = 40.0, reps = 5, loadMode = LoadModeV2.LASTRE, originalLoad = 40.0)
+        val assisted = CompletedSet("as", weight = 0.0, reps = 10, loadMode = LoadModeV2.ASSISTED, originalLoad = 25.0)
+        val source = log().copy(
+            completedExercises = listOf(
+                CompletedExercise("e", "Dominadas", sets = listOf(bwSet, unrecoverableLastre, validLastre, assisted)),
+            ),
+        )
+        val facts = TrainingHistoryProjection.facts(listOf(source), now)
+        assertTrue(facts.none { it.metric.contains("Carga") || it.value == 106.0 || it.value == 146.0 })
+        assertEquals(40.0, facts.single { it.metric == "Dominadas · Lastre externo registrado" }.value, 0.0)
+        assertEquals(25.0, facts.single { it.metric == "Dominadas · Asistencia registrada" }.value, 0.0)
+    }
+
 }

@@ -560,13 +560,32 @@ val Program.isSimpleTemporalProgram: Boolean
 val Program.isSimpleCalendarizedProgram: Boolean
     get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
 
-/** Explicit finite decision: only HAS_END (or a declared competition/end signal) ends a program. */
+/**
+ * Explicit terminal decision (remediation 5):
+ * - [ProgramEndMode.HAS_END] always ends at completion.
+ * - [ProgramEndMode.REPEATING] always repeats.
+ * - Legacy/unresolved (`null`) ends ONLY on an explicit terminal signal:
+ *   competition calendarization, a user-chosen manual end date outside temporary
+ *   cyclic break projections, or a non-native `FINITE_CYCLE` recipe (`!repeats`).
+ *   Duration, start date, projected break dates and legacy `LINEAR` never end a plan.
+ */
 val Program.hasExplicitEnd: Boolean
-    get() = programEndMode == ProgramEndMode.HAS_END ||
-        calendarization?.activatedByCompetition == true ||
-        calendarization?.manualEndDate != null ||
-        resolvedSchedulePlan().targetEndDate != null ||
-        (sourceRecipe?.repeats == false && sourceRecipe?.hasDeclaredEnd == true)
+    get() = when (programEndMode) {
+        ProgramEndMode.REPEATING -> false
+        ProgramEndMode.HAS_END -> true
+        null -> {
+            val manualChosenEnd = !isSimpleCalendarizedProgram &&
+                pausedCyclicSnapshot == null &&
+                (!calendarization?.manualEndDate.isNullOrBlank() ||
+                    !schedulePlan?.targetEndDate.isNullOrBlank())
+            val catalogFiniteRecipe = sourceRecipe != null &&
+                !sourceRecipe.repeats &&
+                sourceRecipe.nativeProgression == null
+            calendarization?.activatedByCompetition == true ||
+                manualChosenEnd ||
+                catalogFiniteRecipe
+        }
+    }
 
 /**
  * Programas que repiten su estructura: sin señal terminal explícita.

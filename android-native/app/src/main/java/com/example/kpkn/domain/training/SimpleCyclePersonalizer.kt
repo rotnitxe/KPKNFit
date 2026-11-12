@@ -605,6 +605,7 @@ class SimpleCyclePersonalizer(
             description = "${entry.description}\n${notes.distinct().joinToString("\n")}",
             mode = ProgramMode.HYPERTROPHY, structure = ProgramStructure.SIMPLE,
             simpleProgramKind = SimpleProgramKind.CYCLIC, structureTemplateId = entry.id,
+            programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = listOf(
                 Block(id = "$programId-block", name = "Semana que se repite", mesocycles = listOf(
                     Mesocycle(id = "$programId-meso", name = "Base", weeks = listOf(week)),
@@ -1856,6 +1857,7 @@ class SimpleCyclePersonalizer(
         mode = programModeFor(entry),
         structure = ProgramStructure.COMPLEX,
         simpleProgramKind = SimpleProgramKind.LINEAR,
+        programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
         structureTemplateId = entry.id,
         macrocycles = listOf(
             Macrocycle(

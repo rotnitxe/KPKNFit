@@ -300,7 +300,9 @@ enum ProgramAnalyticsEngine {
             var volumesByExercise: [String: Double] = [:]
             for row in completedRows {
                 let key = row.exercise.exerciseName
-                let vol = row.exercise.sets.reduce(0.0) { $0 + $1.weight * Double(max(1, $1.reps)) }
+                let vol = row.exercise.sets
+                    .filter { !$0.skipped && !$0.isWarmup }
+                    .reduce(0.0) { $0 + $1.totalExternalTonnageKg() }
                 volumesByExercise[key, default: 0.0] += vol
             }
             return volumesByExercise.map { (name, value) in
@@ -514,9 +516,10 @@ enum ProgramAnalyticsEngine {
     }
 
     private static func estimatedE1rm(_ set: CompletedSet) -> Double? {
-        guard !set.skipped, set.reps > 0, set.weight > 0.0 else { return nil }
+        guard !set.skipped, !set.isWarmup, set.supportsEstimatedOneRm(), set.reps > 0 else { return nil }
+        guard let ext = set.externalLoadKg(), ext > 0.0 else { return nil }
         let safeReps = min(set.reps, 36)
-        return set.weight * 36.0 / (37.0 - Double(safeReps))
+        return ext * 36.0 / (37.0 - Double(safeReps))
     }
 
     // MARK: - Metric Builders
@@ -676,9 +679,10 @@ extension Exercise {
 
 extension CompletedSet {
     fileprivate func estimatedE1rm() -> Double? {
-        guard !skipped, reps > 0, weight > 0.0 else { return nil }
+        guard !skipped, !isWarmup, supportsEstimatedOneRm(), reps > 0 else { return nil }
+        guard let ext = externalLoadKg(), ext > 0.0 else { return nil }
         let safeReps = min(reps, 36)
-        return weight * 36.0 / (37.0 - Double(safeReps))
+        return ext * 36.0 / (37.0 - Double(safeReps))
     }
 }
 

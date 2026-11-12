@@ -193,7 +193,7 @@ class LiveSetModesPersistenceTest {
     }
 
     private fun persist(mode: TrainingMode, quantity: Double, weight: Double) = runBlocking {
-        val template = liveModeExercise(mode)
+        val template = liveModeExercise(mode, rom = true)
         val exercise = template.copy(sets = List(2) { template.sets.single().copy(id = "s$it") })
         val f = LiveSessionVmFixture(Session("mode-session", "Modos", exercises = listOf(exercise))).prepare().also { fixture = it }
         val vm = f.open()
@@ -207,12 +207,16 @@ class LiveSetModesPersistenceTest {
         vm.flushOngoingForBackgroundAndAwait()
         val first = f.storedOngoing().completedSets.getValue("${exercise.id}_0")
         assertEquals(unit, first.recordedPayloadV3?.unitMode)
-        assertEquals(weight, first.originalLoad!!, 0.0)
         assertEquals(exercise.sets.first().loadModeV2, first.recordedPayloadV3?.loadInputMode)
         if (exercise.sets.first().loadModeV2 == LoadModeV2.BODYWEIGHT) {
             assertEquals(80.0, first.recordedPayloadV3?.bodyWeightSnapshot!!, 0.0)
-            assertEquals(80.0, first.weight, 0.0) // carga equivalente de Auge, separada de la carga original.
-        } else assertEquals(weight, first.weight, 0.0)
+            assertEquals(0.0, first.weight, 0.0)
+            assertNull(first.originalLoad)
+            assertNull(first.recordedPayloadV3?.externalLoad)
+        } else {
+            assertEquals(weight, first.originalLoad!!, 0.0)
+            assertEquals(weight, first.weight, 0.0)
+        }
         assertEquals(quantity, completedLiveQuantity(first, unit)!!, .00001)
         assertEquals(IntensityMode.RPE, first.actualIntensityMode)
         assertEquals(8.0, first.actualIntensityValue!!, 0.0)
@@ -229,5 +233,83 @@ class LiveSetModesPersistenceTest {
         assertEquals(IntensityMode.RPE, reopened.actualIntensityMode)
         assertEquals(8.0, reopened.actualIntensityValue!!, 0.0)
         if (mode == TrainingMode.CUSTOM) assertEquals("brazadas", recreated.session!!.allExercises().single().customUnit)
+    }
+
+    @Test
+    fun latestSnapshotAndMilestonesRespectNonLoadSemantics() = runBlocking {
+        val sessionId = "snapshot-session"
+        val lastreEx = Exercise(
+            id = "ex-lastre",
+            name = "Dominadas lastradas",
+            sets = listOf(ExerciseSet(id = "s0", targetReps = 5, loadModeV2 = LoadModeV2.LASTRE)),
+        )
+        val bwEx = Exercise(
+            id = "ex-bw",
+            name = "Rueda abdominal",
+            sets = listOf(ExerciseSet(id = "s0", targetReps = 10, loadModeV2 = LoadModeV2.BODYWEIGHT)),
+        )
+        val session = Session(sessionId, "Calistenia", exercises = listOf(lastreEx, bwEx))
+        val f = LiveSessionVmFixture(session).prepare().also { fixture = it }
+        f.repository.addWorkoutLog(
+            WorkoutLog(
+                id = "hist-1",
+                programId = f.programId,
+                sessionId = sessionId,
+                sessionName = session.name,
+                date = "2026-10-20T12:00:00Z",
+                durationMinutes = 30,
+                totalVolume = 9999.0, // polluted legacy value (bodyweight included)
+                completedExercises = listOf(
+                    CompletedExercise(
+                        exerciseId = lastreEx.id,
+                        exerciseName = lastreEx.name,
+                        sets = listOf(
+                            CompletedSet(
+                                id = "l1",
+                                weight = 40.0,
+                                reps = 5,
+                                loadMode = LoadModeV2.LASTRE,
+                                originalLoad = 40.0,
+                                recordedPayloadV3 = RecordedSetPayload(
+                                    exerciseId = lastreEx.id,
+                                    loadInputMode = LoadModeV2.LASTRE,
+                                    externalLoad = 40.0,
+                                    bodyWeightSnapshot = 106.0,
+                                    completedReps = 5,
+                                ),
+                            ),
+                        ),
+                    ),
+                    CompletedExercise(
+                        exerciseId = bwEx.id,
+                        exerciseName = bwEx.name,
+                        sets = listOf(
+                            CompletedSet(
+                                id = "b1",
+                                weight = 0.0,
+                                reps = 10,
+                                loadMode = LoadModeV2.BODYWEIGHT,
+                                recordedPayloadV3 = RecordedSetPayload(
+                                    exerciseId = bwEx.id,
+                                    loadInputMode = LoadModeV2.BODYWEIGHT,
+                                    bodyWeightSnapshot = 106.0,
+                                    completedReps = 10,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        withTimeout(5_000) { f.repository.history.first { logs -> logs.any { it.id == "hist-1" } } }
+        val vm = f.open()
+        val snap = vm.latestCompletedSessionSnapshot()
+        assertNotNull(snap)
+        assertEquals(200.0, snap!!.totalVolume, 0.001)
+        assertNull(snap.bestEstimated1RM)
+
+        vm.considerSessionMilestoneForSet(lastreEx, weight = 146.0, reps = 5)
+        vm.considerSessionMilestoneForSet(bwEx, weight = 106.0, reps = 10)
+        assertTrue(vm.uiState.value.sessionMilestones.none { it.kind == "pr_e1rm" })
     }
 }

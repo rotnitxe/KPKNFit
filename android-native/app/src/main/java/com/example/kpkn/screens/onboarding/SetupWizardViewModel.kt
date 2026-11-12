@@ -16,6 +16,7 @@ import com.example.kpkn.domain.entitlements.CapabilityRequiredException
 import com.example.kpkn.ui.entitlements.capabilityErrorText
 import com.example.kpkn.data.onboarding.*
 import com.example.kpkn.data.programs.CatalogLevel
+import com.example.kpkn.data.programs.CatalogDuration
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
@@ -3591,6 +3592,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
             "La receta fija produce ${SpanishPlurals.days(frequency)}, no ${draft.daysPerWeek}",
         )
         val scheduled = program.copy(
+            programEndMode = program.programEndMode
+                ?: if (entry.duration == CatalogDuration.FINITE_CYCLE) {
+                    com.example.kpkn.data.models.ProgramEndMode.HAS_END
+                } else {
+                    com.example.kpkn.data.models.ProgramEndMode.REPEATING
+                },
             schedulePlan = ProgramSchedulePlan(
                 weekStartDay = program.startDay,
                 trainingDays = sessionDays,

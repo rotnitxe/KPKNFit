@@ -91,7 +91,7 @@ object MuscleVolumeAccounting {
 
     private fun weightOf(muscle: InvolvedMuscle): Double = when (muscle.role) {
         MuscleRole.PRIMARY -> (muscle.volumeContribution ?: 1.0).coerceIn(0.0, 1.0)
-        MuscleRole.SECONDARY -> ((muscle.volumeContribution ?: 1.0) * 0.5).coerceIn(0.0, 0.5)
-        MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> 0.0
+        MuscleRole.SECONDARY -> (muscle.volumeContribution ?: 0.5).coerceIn(0.0, 1.0)
+        MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> (muscle.volumeContribution ?: 0.0).coerceIn(0.0, 1.0)
     }
 }

@@ -206,7 +206,7 @@ class WorkoutFinishController(
                 exerciseDbId = canonicalExerciseKey(exercise),
                 variantName = exercise.variantName,
                 selectedAspects = exercise.selectedAspects,
-                effectiveMuscles = exercise.effectiveMuscles,
+                effectiveMuscles = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: catalogInfo?.involvedMuscles,
             )
         }
 

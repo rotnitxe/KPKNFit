@@ -177,11 +177,14 @@ class SupersetRoundsFocusIntegrationTest {
         assertEquals(RepRange(4, 6), saved.targetRepsRange)
         assertEquals(2, saved.targetRIR)
         assertNull(saved.restAfterSeconds)
-        rule.onNode(hasText("Bajar") and within()).performScrollTo().performClick()
-        rule.onNode(hasText("Eliminar") and within()).performScrollTo().performClick()
-        assertEquals(listOf("s1" to 1), moved)
-        assertEquals(listOf("s1"), removed)
         rule.onNode(hasText("Subir") and within()).assertDoesNotExist()
+        rule.onNode(hasText("Bajar") and within()).assertDoesNotExist()
+        rule.onNode(hasText("Aplicar a todas") and within()).assertExists()
+        rule.onNode(hasText("Duplicar") and within()).assertExists()
+        rule.onNode(hasContentDescription("Más acciones de la serie") and within()).performScrollTo().performClick()
+        rule.onNodeWithText("Eliminar serie").performClick()
+        assertEquals(emptyList<Pair<String, Int>>(), moved)
+        assertEquals(listOf("s1"), removed)
     }
 
     @Test fun etiquetasRmAnidadasSeVenCompletasAl100Y130En880() {
@@ -238,9 +241,10 @@ class SupersetRoundsFocusIntegrationTest {
         rule.onNode(hasContentDescription("Carga de la serie") and within("R")).performScrollTo().assertIsDisplayed()
         rule.onNode(hasContentDescription("Carga de la serie") and within("L")).performScrollTo().assertIsDisplayed()
         val eitherSide = within("R") or within("L")
-        rule.onAllNodes(hasText("Bajar") and eitherSide).assertCountEquals(1)
-        rule.onAllNodes(hasText("Eliminar") and eitherSide).assertCountEquals(1)
-        rule.onNode(hasText("Eliminar") and within("L")).assertDoesNotExist()
+        rule.onAllNodes(hasText("Subir") and eitherSide).assertCountEquals(0)
+        rule.onAllNodes(hasText("Bajar") and eitherSide).assertCountEquals(0)
+        rule.onAllNodes(hasContentDescription("Más acciones de la serie") and eitherSide).assertCountEquals(1)
+        rule.onNode(hasContentDescription("Más acciones de la serie") and within("L")).assertDoesNotExist()
         edit("% del RM", "75", side = "R")
         val saved = state.value.sets.first()
         assertEquals(90.0, saved.leftTarget!!.weight!!, 0.001)
@@ -284,16 +288,16 @@ class SupersetRoundsFocusIntegrationTest {
         assertEquals(source.sets.first().weight, saved.weight)
         assertEquals(source.sets.first().targetRepsRange, saved.targetRepsRange)
         assertEquals(2, saved.targetRIR)
-        rule.onAllNodes(hasText("Eliminar") and within()).assertCountEquals(1)
+        rule.onAllNodes(hasContentDescription("Más acciones de la serie") and within()).assertCountEquals(1)
     }
 
-    @Test fun segundaRondaConservaSubirEliminarYNoBajar() {
+    @Test fun segundaRondaConservaMenuDeSerieSinSubirNiBajar() {
         mount(rm(), round = 2)
-        rule.onNode(hasText("Subir") and within(set = "s2")).performScrollTo().performClick()
-        rule.onNode(hasText("Eliminar") and within(set = "s2")).performScrollTo().performClick()
-        assertEquals(listOf("s2" to -1), moved)
-        assertEquals(listOf("s2"), removed)
+        rule.onNode(hasText("Subir") and within(set = "s2")).assertDoesNotExist()
         rule.onNode(hasText("Bajar") and within(set = "s2")).assertDoesNotExist()
+        rule.onNode(hasContentDescription("Más acciones de la serie") and within(set = "s2")).performScrollTo().performClick()
+        rule.onNodeWithText("Eliminar serie").performClick()
+        assertEquals(listOf("s2"), removed)
     }
 
     @Test fun alcanceAmrapEnC3Al130MuestraAmbasDecisionesCompletasYConservaSusClicks() {

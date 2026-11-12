@@ -1036,12 +1036,12 @@ internal fun WorkoutStructureSheetsHost(
         com.example.kpkn.screens.workout.components.LiveSheet(title = "Guardar el reemplazo",
             onDismiss = { viewModel.dismissPendingReplacementPersistencePrompt() }, tag = "live-replace-scope", footer = null) { close ->
             com.example.kpkn.screens.workout.components.LiveSheetSubtitle("¿Hasta dónde llega este cambio? Lo ya registrado se conserva.")
-            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING && it != ReplacementPersistenceScopeV2.BLOCK_MATCHING }.forEach { scope ->
+            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
                 com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
                     when (scope) {
                         ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo hoy"
                         ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en el programa"
-                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> ""
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en sesiones del bloque"
                         ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                     },
                     { viewModel.commitPendingReplacementPersistence(scope) },
@@ -1108,12 +1108,12 @@ internal fun WorkoutStructureSheetsHost(
         com.example.kpkn.screens.workout.components.LiveSheet(title = title,
             onDismiss = { viewModel.clearPendingStructuralPersistence() }, tag = "live-structure-scope", footer = null) { close ->
             com.example.kpkn.screens.workout.components.LiveSheetSubtitle(question)
-            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING && it != ReplacementPersistenceScopeV2.BLOCK_MATCHING }.forEach { scope ->
+            options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
                 com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
                     when (scope) {
                         ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo hoy"
                         ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en el programa"
-                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> ""
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en sesiones del bloque"
                         ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                     },
                     { viewModel.commitStructuralPersistence(scope) },

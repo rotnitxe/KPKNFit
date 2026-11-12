@@ -37,6 +37,9 @@ internal data class FinishProgressPoint(
     val reps: Int,
     val estimated1Rm: Double,
     val displayLabel: String? = null,
+    val loadKnown: Boolean = true,
+    val comparableScore: Double = estimated1Rm,
+    val mode: com.example.kpkn.data.models.LoadModeV2? = null,
 )
 internal data class FinishLiftProgress(
     val exerciseId: String,
@@ -50,7 +53,21 @@ internal data class FinishLiftProgress(
     /** Mejor serie comparable de la semana calendario inmediatamente anterior (lunes-domingo). */
     val previousWeek: FinishProgressPoint? = null,
 ) {
-    val deltaKg: Double? get() = if (best != null && previous != null && best.reps == previous.reps) best.weight - previous.weight else null
+    val deltaKg: Double?
+        get() {
+            val today = best ?: return null
+            val prev = previous ?: return null
+            if (!prev.loadKnown || today.reps <= 0 || today.reps != prev.reps) return null
+            return when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(today)) {
+                com.example.kpkn.data.models.LoadModeV2.LOAD,
+                com.example.kpkn.data.models.LoadModeV2.LASTRE,
+                null,
+                -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(today)?.let { it - prev.weight }
+                com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT,
+                com.example.kpkn.data.models.LoadModeV2.ASSISTED,
+                -> null
+            }
+        }
     val isImproved: Boolean get() = deltaKg?.let { it > 0.01 } == true
 }
 
@@ -74,10 +91,20 @@ private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? {
                 .thenBy { it.timeSeconds ?: 0 }
         )
     }
-    return sets.filter { (it.reps > 0 || (it.timeSeconds ?: 0) > 0) && it.weight.isFinite() && it.weight >= 0 }
+    return sets.filter { it.reps > 0 || (it.timeSeconds ?: 0) > 0 || (it.distanceKm ?: 0.0) > 0.0 }
         .maxWithOrNull(
             compareBy<CompletedSet> { finishComparableEstimate(it) ?: -1.0 }
-                .thenBy { it.weight }
+                .thenBy { set ->
+                    when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(set)) {
+                        com.example.kpkn.data.models.LoadModeV2.ASSISTED ->
+                            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(set)?.let { -it } ?: Double.NEGATIVE_INFINITY
+                        com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> 0.0
+                        com.example.kpkn.data.models.LoadModeV2.LOAD,
+                        com.example.kpkn.data.models.LoadModeV2.LASTRE,
+                        null,
+                        -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: Double.NEGATIVE_INFINITY
+                    }
+                }
                 .thenBy { it.reps }
                 .thenBy { it.timeSeconds ?: 0 }
         )
@@ -122,32 +149,87 @@ internal fun buildFinishLiftProgress(
                 }
             } else when (currentMode) {
                 com.example.kpkn.data.models.LoadModeV2.LOAD, null -> {
-                    candidateSets.maxByOrNull { finishComparableEstimate(it) ?: it.weight }
+                    val known = candidateSets.filter { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) != null }
+                    known.maxByOrNull {
+                        finishComparableEstimate(it)
+                            ?: com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it)
+                            ?: 0.0
+                    } ?: candidateSets.maxByOrNull { it.reps }
                 }
                 com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> {
                     candidateSets.maxByOrNull { if (it.reps > 0) it.reps.toDouble() else (it.timeSeconds ?: 0).toDouble() }
                 }
                 com.example.kpkn.data.models.LoadModeV2.LASTRE -> {
-                    val equalReps = candidateSets.filter { it.reps == current.reps }
-                    (if (equalReps.isNotEmpty()) equalReps else candidateSets)
-                        .maxByOrNull { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: it.weight }
+                    val known = candidateSets.filter { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) != null }
+                    val pool = if (known.isNotEmpty()) {
+                        known.filter { it.reps == current.reps }.ifEmpty { known }
+                    } else {
+                        candidateSets.filter { it.reps == current.reps }.ifEmpty { candidateSets }
+                    }
+                    pool.maxWithOrNull(
+                        compareBy<CompletedSet> { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: Double.NEGATIVE_INFINITY }
+                            .thenBy { it.reps }
+                    )
                 }
                 com.example.kpkn.data.models.LoadModeV2.ASSISTED -> {
-                    val equalReps = candidateSets.filter { it.reps == current.reps }
-                    (if (equalReps.isNotEmpty()) equalReps else candidateSets)
-                        .minByOrNull { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: it.weight }
+                    val known = candidateSets.filter { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it) != null }
+                    if (known.isNotEmpty()) {
+                        val equalReps = known.filter { it.reps == current.reps }
+                        (if (equalReps.isNotEmpty()) equalReps else known)
+                            .minWithOrNull(
+                                compareBy<CompletedSet> { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it) ?: Double.POSITIVE_INFINITY }
+                                    .thenByDescending { it.reps }
+                            )
+                    } else {
+                        candidateSets.maxByOrNull { it.reps }
+                    }
                 }
             }
             val best = bestCandidate ?: return null
 
+            val resolvedLoad: Double? = when (currentMode) {
+                com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> 0.0
+                com.example.kpkn.data.models.LoadModeV2.ASSISTED -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(best)
+                com.example.kpkn.data.models.LoadModeV2.LASTRE,
+                com.example.kpkn.data.models.LoadModeV2.LOAD,
+                null,
+                -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(best)
+            }
+            val loadKnown = isCardio || currentMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT || resolvedLoad != null
+            val pointWeight = resolvedLoad ?: 0.0
             val estimate = finishComparableEstimate(best) ?: 0.0
+            val comparableScore = when {
+                isCardio -> (best.distanceKm ?: 0.0) * 1000.0 + (best.timeSeconds ?: 0).toDouble()
+                currentMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT ->
+                    if (best.reps > 0) best.reps.toDouble() else (best.timeSeconds ?: 0).toDouble()
+                currentMode == com.example.kpkn.data.models.LoadModeV2.LASTRE -> if (loadKnown) {
+                    (if (best.reps == current.reps) 1_000_000.0 else 0.0) + pointWeight * 1000.0 + best.reps
+                } else {
+                    best.reps.toDouble()
+                }
+                currentMode == com.example.kpkn.data.models.LoadModeV2.ASSISTED -> if (loadKnown) {
+                    (if (best.reps == current.reps) 1_000_000.0 else 0.0) - pointWeight * 1000.0 + best.reps
+                } else {
+                    best.reps.toDouble()
+                }
+                else -> estimate
+            }
             val label = if (isCardio) {
                 if ((best.distanceKm ?: 0.0) > 0.0) "${finishNumber(best.distanceKm ?: 0.0)} km"
                 else "${(best.timeSeconds ?: 0) / 60} min"
             } else {
                 com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(best)
             }
-            return FinishProgressPoint(log.date, best.weight, best.reps, estimate, label)
+            return FinishProgressPoint(
+                date = log.date,
+                weight = pointWeight,
+                reps = best.reps,
+                estimated1Rm = estimate,
+                displayLabel = label,
+                loadKnown = loadKnown,
+                comparableScore = comparableScore,
+                mode = currentMode,
+            )
         }
 
         val sorted = history.sortedBy { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
@@ -162,7 +244,7 @@ internal fun buildFinishLiftProgress(
             }.getOrNull()
             date != null && !date.isBefore(previousStart) && !date.isAfter(previousEnd)
         }.mapNotNull(::pointAt)
-        val previousWeek = previousWeekCandidates.maxByOrNull { it.estimated1Rm }
+        val previousWeek = previousWeekCandidates.maxByOrNull { it.comparableScore }
             ?: previousWeekCandidates.lastOrNull()
 
         FinishLiftProgress(

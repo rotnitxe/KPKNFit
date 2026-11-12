@@ -49,7 +49,11 @@ internal fun sessionBestPreviousE1rm(
     val values = uiState.completedSets.mapNotNull { (key, set) ->
         val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
         if (parsed.exerciseId != exerciseId) return@mapNotNull null
-        if (set.isWarmup || set.skipped || set.weight <= 0.0 || set.reps <= 0) return@mapNotNull null
+        if (set.isWarmup || set.skipped ||
+            !com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) ||
+            (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0) <= 0.0 ||
+            set.reps <= 0
+        ) return@mapNotNull null
         if (side != null && parsed.side != null && parsed.side != side) return@mapNotNull null
         if (!restPhase && parsed.setIdx >= currentSetIdx) return@mapNotNull null
         parsed.setIdx to StrengthModel.estimate1RM(set)

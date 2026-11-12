@@ -63,9 +63,18 @@ object TrainingHistoryProjection {
                     }
                     val payload = set.recordedPayloadV3
                     if (exercise.cardioDetails == null) {
-                        val load = if (payload?.loadInputMode == LoadModeV2.ASSISTED) payload.assistedLoad else payload?.externalLoad
-                        if (load != null) setFact(if (payload?.loadInputMode == LoadModeV2.ASSISTED) "Asistencia registrada" else "Carga externa registrada", load, "kg")
-                        else if (payload == null && set.weight > 0.0) setFact("Carga histórica registrada", set.weight, "kg")
+                        val mode = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(set)
+                        when (mode) {
+                            LoadModeV2.BODYWEIGHT -> Unit
+                            LoadModeV2.ASSISTED -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(set)
+                                ?.let { setFact("Asistencia registrada", it, "kg") }
+                            LoadModeV2.LASTRE -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set)
+                                ?.let { setFact("Lastre externo registrado", it, "kg") }
+                            LoadModeV2.LOAD -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set)
+                                ?.takeIf { it > 0.0 }
+                                ?.let { setFact("Carga externa registrada", it, "kg") }
+                            null -> if (payload == null && set.weight > 0.0) setFact("Carga histórica registrada", set.weight, "kg")
+                        }
                         if (payload?.unitMode == UnitModeV2.REPS) payload.completedReps?.let { setFact("Repeticiones registradas", it.toDouble(), "rep") }
                         else if (payload == null && set.reps > 0 && set.timeSeconds == null) setFact("Repeticiones históricas", set.reps.toDouble(), "rep")
                     }

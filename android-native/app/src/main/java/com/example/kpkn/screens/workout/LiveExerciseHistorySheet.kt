@@ -29,14 +29,59 @@ import com.example.kpkn.screens.workout.components.liveSheetTopLine
 import com.example.kpkn.ui.design.KpknType
 import java.time.LocalDate
 
-/** La mejor serie registrada de una sesión del historial: la de más carga y, a igual carga, más repeticiones. */
+/** La mejor serie registrada de una sesión del historial: respeta modalidad de carga y luego repeticiones. */
 internal fun historyBestSet(sets: List<CompletedSet>): CompletedSet? = sets
-    .filter { !it.isWarmup && !it.isFailedSet && it.failureReason.isNullOrBlank() && (it.weight > 0 || it.reps > 0) }
-    .maxWithOrNull(compareBy<CompletedSet> { it.weight }.thenBy { it.reps })
+    .filter {
+        !it.isWarmup && !it.skipped && !it.isFailedSet && it.failureReason.isNullOrBlank() &&
+            ((com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it) ?: 0.0) > 0.0 ||
+                (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it) ?: 0.0) > 0.0 ||
+                it.reps > 0 ||
+                (it.timeSeconds ?: 0) > 0)
+    }
+    .maxWithOrNull(
+        compareBy<CompletedSet>(
+            {
+                when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it)) {
+                    com.example.kpkn.data.models.LoadModeV2.ASSISTED ->
+                        com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(it)?.let { kg -> -kg }
+                            ?: Double.NEGATIVE_INFINITY
+                    com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> 0.0
+                    com.example.kpkn.data.models.LoadModeV2.LASTRE,
+                    com.example.kpkn.data.models.LoadModeV2.LOAD,
+                    null,
+                    -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(it)
+                        ?: Double.NEGATIVE_INFINITY
+                }
+            },
+            { it.reps },
+            { it.timeSeconds ?: 0 },
+        ),
+    )
+
+private fun historySetRecoveredInputLoad(set: CompletedSet): Double? =
+    when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(set)) {
+        com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> null
+        com.example.kpkn.data.models.LoadModeV2.ASSISTED ->
+            com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(set)?.takeIf { it > 0.0 }
+        com.example.kpkn.data.models.LoadModeV2.LASTRE,
+        com.example.kpkn.data.models.LoadModeV2.LOAD,
+        null,
+        -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set)?.takeIf { it > 0.0 }
+    }
 
 /** «100 × 8», «Corporal × 12»: la serie en una cifra. */
 internal fun historySetValue(set: CompletedSet): String = buildString {
-    if (set.weight > 0) append(set.weight.toTrimmedNumberString()) else append("Corporal")
+    val mode = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(set)
+    val load = historySetRecoveredInputLoad(set)
+    when (mode) {
+        com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> append("Corporal")
+        com.example.kpkn.data.models.LoadModeV2.LASTRE ->
+            if (load != null) append("+${load.toTrimmedNumberString()} kg") else append("Lastre · sin detalle")
+        com.example.kpkn.data.models.LoadModeV2.ASSISTED ->
+            if (load != null) append("${load.toTrimmedNumberString()} asist.") else append("Asist. · sin detalle")
+        com.example.kpkn.data.models.LoadModeV2.LOAD, null ->
+            if (load != null) append(load.toTrimmedNumberString()) else append("Corporal")
+    }
     if (set.reps > 0) append(" × ").append(set.reps)
 }
 
@@ -79,7 +124,9 @@ internal fun LiveExerciseHistorySheet(
             }
             return@LiveSheet
         }
-        val bests = history.take(6).reversed().mapNotNull { historyBestSet(it.sets)?.weight }.filter { it > 0 }
+        val bests = history.take(6).reversed().mapNotNull { entry ->
+            historyBestSet(entry.sets)?.let(::historySetRecoveredInputLoad)
+        }.filter { it > 0 }
         if (bests.size >= 2) {
             val top = bests.max()
             Row(Modifier.fillMaxWidth().height(80.dp).padding(top = 0.dp).drawBehind {
@@ -108,8 +155,9 @@ internal fun LiveExerciseHistorySheet(
                     best?.let {
                         Text(historySetValue(it), style = KpknType.metricM.copy(fontSize = 15.sp), color = WizardColors.text)
                     }
-                    if (best != null && best.weight > 0) {
-                        Box(Modifier.heightIn(min = 39.dp).clickable(role = Role.Button) { onUseWeight(best.weight); close() }
+                    val bestInputLoad = best?.let(::historySetRecoveredInputLoad)
+                    if (best != null && bestInputLoad != null && bestInputLoad > 0) {
+                        Box(Modifier.heightIn(min = 39.dp).clickable(role = Role.Button) { onUseWeight(bestInputLoad); close() }
                             .padding(horizontal = 6.dp), contentAlignment = Alignment.Center) {
                             Text("Usar", style = KpknType.caption.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
                         }

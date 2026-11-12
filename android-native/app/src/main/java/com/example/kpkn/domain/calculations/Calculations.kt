@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 
 /** Version vigente de los snapshots de capacidad; los anteriores se conservan como historia. */
 const val CAPACITY_ESTIMATOR_VERSION = 2
-const val WORKOUT_DERIVED_ESTIMATOR_VERSION = 3
+const val WORKOUT_DERIVED_ESTIMATOR_VERSION = 4
 
 /** El modelo único sustituye las fórmulas seleccionables anteriores. */
 @Deprecated("Usa StrengthModel.estimate1RM")
@@ -186,8 +186,15 @@ fun resolveReferenceCapacity(
         .flatMap { it.completedExercises.asSequence() }
         .filter { completed -> completed.resolvedCanonicalExerciseId() == canonicalId }
         .flatMap { completed -> completed.sets.asSequence() }
-        .filter { set -> !set.isWarmup && set.weight > 0.0 && set.reps > 0 }
+        .filter { set ->
+            !set.isWarmup &&
+                !set.skipped &&
+                com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set) &&
+                (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(set) ?: 0.0) > 0.0 &&
+                set.reps > 0
+        }
         .map { set -> StrengthModel.estimate1RM(set) }
+        .filter { it.isFinite() && it > 0.0 }
         .maxOrNull()
 }
 

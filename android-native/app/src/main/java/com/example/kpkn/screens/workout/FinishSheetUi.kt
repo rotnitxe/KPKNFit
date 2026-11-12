@@ -277,6 +277,8 @@ internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetAct
                 if (m.muscles.isNotEmpty() && !m.empty) MusclesModule(state)
                 if (m.lifts.isNotEmpty() && !m.empty) {
                     LiftChips(m.lifts)
+                }
+                if (m.liftProgress.any { it.best != null } && !m.empty) {
                     WeeklyComparison(m.liftProgress)
                 }
                 m.recordList.drop(1).forEach { RecordExtra(it) }
@@ -594,14 +596,23 @@ private fun MusclesModule(state: FinishSheetState) {
 private fun LiftChips(lifts: List<FinishLiftChip>) {
     FlowRow(Modifier.fillMaxWidth().kpknAnimate(rise(900)).testTag("finish-lifts"), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         lifts.forEach { l ->
-            val up = (l.deltaKg ?: 0.0) > 0.0
+            val delta = l.deltaKg
+            val up = (delta ?: 0.0) > 0.01
+            val down = (delta ?: 0.0) < -0.01
+            val deltaText = when {
+                delta == null -> "—"
+                up -> "+" + finishGrouped(delta, 1) + " kg"
+                down -> "−" + finishGrouped(abs(delta), 1) + " kg"
+                else -> "="
+            }
             Row(
-                Modifier.height(30.dp).clip(RoundedCornerShape(15.dp)).background(Color(0x0AFFFFFF)).padding(start = if (up) 9.dp else 11.dp, end = 11.dp),
+                Modifier.height(30.dp).clip(RoundedCornerShape(15.dp)).background(Color(0x0AFFFFFF)).padding(start = if (up || down) 9.dp else 11.dp, end = 11.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (up) Icon(KpknLineIcons.TrendUp, null, Modifier.size(14.dp), tint = Lx.Done)
+                else if (down) Icon(KpknLineIcons.TrendDown, null, Modifier.size(14.dp), tint = Lx.Muted)
                 Text(l.name, style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted, maxLines = 1)
-                Text(if (up) "+" + finishGrouped(l.deltaKg ?: 0.0, 1) + " kg" else "=", style = Lx.num(12.5.sp), color = if (up) Lx.Done else Lx.Muted)
+                Text(deltaText, style = Lx.num(12.5.sp), color = if (up) Lx.Done else Lx.Muted)
             }
         }
     }
@@ -622,29 +633,46 @@ private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
             val best = lift.best
             val mode = best?.let { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it) }
             val loadComparable = mode == null || mode == com.example.kpkn.data.models.LoadModeV2.LOAD
-            val todayValue = if (loadComparable) {
-                best?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }
+            val todayValue = if (loadComparable && best != null && com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(best)) {
+                com.example.kpkn.domain.performance.StrengthModel.estimate1RM(best).takeIf { it > 0.0 }
             } else {
                 null
             }
             val todayLabel = if (todayValue == null) {
-                best?.let { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(it) }
+                best?.let { set ->
+                    if ((set.distanceKm ?: 0.0) > 0.0 || ((set.timeSeconds ?: 0) > 0 && set.reps == 0)) finishSetLabel(set)
+                    else com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(set)
+                }
             } else {
                 null
             }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            val weekDelta = if (todayValue != null && lift.previousWeek != null && lift.previousWeek.estimated1Rm > 0.0) {
+                todayValue - lift.previousWeek.estimated1Rm
+            } else null
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(lift.name, Modifier.weight(1f), style = Lx.inter(12.5.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (weekDelta != null && kotlin.math.abs(weekDelta) >= 0.01) {
+                    Icon(
+                        imageVector = if (weekDelta > 0) KpknLineIcons.TrendUp else KpknLineIcons.TrendDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp),
+                        tint = if (weekDelta > 0) Lx.Done else Lx.Muted,
+                    )
+                }
                 Text(
                     when {
                         todayValue != null && lift.previousWeek != null ->
-                            "hoy ${finishGrouped(todayValue, 1)} · semana ${finishGrouped(lift.previousWeek.estimated1Rm, 1)}"
-                        todayValue != null -> "hoy ${finishGrouped(todayValue, 1)} · sin dato comparable la semana anterior"
+                            "hoy ${finishGrouped(todayValue, 1)} kg · sem. ant. ${finishGrouped(lift.previousWeek.estimated1Rm, 1)} kg"
+                        todayValue != null -> "hoy ${finishGrouped(todayValue, 1)} kg · sin dato comparable la semana anterior"
                         todayLabel != null && lift.previousWeek?.displayLabel != null ->
-                            "hoy $todayLabel · semana ${lift.previousWeek.displayLabel}"
+                            "hoy $todayLabel · sem. ant. ${lift.previousWeek.displayLabel}"
                         todayLabel != null -> "hoy $todayLabel · sin dato comparable la semana anterior"
-                        else -> "sin dato comparable"
+                        else -> "sin dato comparable la semana anterior"
                     },
-                    style = Lx.num(11.5.sp, weight = FontWeight.Medium), color = Lx.Faint, maxLines = 1,
+                    style = Lx.num(11.5.sp, weight = FontWeight.Medium),
+                    color = if ((weekDelta ?: 0.0) > 0.01) Lx.Done else Lx.Faint,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

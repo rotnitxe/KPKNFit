@@ -3477,4 +3477,45 @@ class ProgramDetailViewModelTest {
             usesTrainingMax(recipeWith(sets = percentSets(120, 5 to 70.0, 5 to 75.0), liftSlot = null)),
         )
     }
+
+    @Test
+    fun activeOtherProgramName_and_resumeRecurringRoutine_handle_other_active_program_switch() = runBlocking {
+        val other = makeProgram(nextId()).copy(name = "Hipertrofia Base")
+        repository.addProgram(other)
+        repository.updateActiveProgramState(
+            ActiveProgramState(
+                programId = other.id,
+                status = ProgramStatus.ACTIVE,
+                currentWeekId = "${other.id}_w1",
+            ),
+        )
+
+        val targetId = nextId()
+        val target = makeProgram(targetId).copy(
+            programEndMode = ProgramEndMode.REPEATING,
+            runState = ProgramRunState(
+                runId = "run_$targetId",
+                cycleNumber = 1,
+                status = ProgramRunStatus.COMPLETED,
+                weekId = null,
+                weekInstanceId = null,
+            ),
+        )
+        repository.addProgram(target)
+        repository.flushPendingWrites()
+
+        val vm = vmFor(targetId)
+        val otherName = withTimeout(10_000) { vm.activeOtherProgramName.first { it != null } }
+        assertEquals("Hipertrofia Base", otherName)
+
+        vm.resumeRecurringRoutine()
+        val activeState = withTimeout(10_000) {
+            repository.activeProgramState.first { it?.programId == targetId && it.status == ProgramStatus.ACTIVE }
+        }!!
+        assertEquals(targetId, activeState.programId)
+        val updated = repository.getProgramById(targetId)!!
+        assertEquals(ProgramRunStatus.ACTIVE, updated.runState?.status)
+        assertEquals(2, updated.runState?.cycleNumber)
+        assertNull(withTimeout(10_000) { vm.activeOtherProgramName.first { it == null } })
+    }
 }

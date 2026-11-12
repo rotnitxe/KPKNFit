@@ -25,36 +25,57 @@ import org.robolectric.annotation.Config
 class NutritionCheckinAvailabilityTest {
     @get:Rule val roomRule = RoomTestRule()
     private val dispatcher = UnconfinedTestDispatcher()
-    private val scope = TestScope(dispatcher)
     private val today = LocalDate.of(2026, 10, 19)
-    private val records = MutableStateFlow<List<CheckinRecord>>(emptyList())
     private lateinit var vm: NutritionViewModel
-    private lateinit var collector: Job
+
     @Before fun setup() {
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
         NutritionRepository.initForTests(context)
         ProgramRepository.initForTests(context)
-        vm = NutritionViewModel(clock = object : AppClock {
-            override fun now() = today.atStartOfDay(ZoneId.of("UTC")).toInstant()
-            override fun today(zoneId: ZoneId) = today
-        }, computeDispatcher = dispatcher, checkinRecords = records)
-        collector = scope.launch { vm.checkinAvailability.collect {} }
+        vm = NutritionViewModel(
+            clock = object : AppClock {
+                override fun now() = today.atStartOfDay(ZoneId.of("UTC")).toInstant()
+                override fun today(zoneId: ZoneId) = today
+            },
+            computeDispatcher = dispatcher,
+        )
     }
+
     @After fun close() {
-        collector.cancel(); vm.viewModelScope.cancel()
-        NutritionRepository.closeInstance(); ProgramRepository.closeInstance(); Dispatchers.resetMain()
+        vm.viewModelScope.cancel()
+        NutritionRepository.closeInstance()
+        ProgramRepository.closeInstance()
+        Dispatchers.resetMain()
     }
-    @Test fun `la tarjeta pasa de NONE a NOW y desaparece al guardar la decision`() = runBlocking {
-        assertEquals(CheckinAvailability.NONE, vm.checkinAvailability.value)
+
+    @Test fun `el check-in semanal retirado preserva historial y permite ajustar objetivos y porciones`() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = com.example.kpkn.screens.nutrition.checkin.NutritionCheckinRuntime.store(context)
+        val weekKey = CheckinPolicy.weekKey(today, DayOfWeek.MONDAY, today.dayOfWeek)
+        store.decline(weekKey, null)
+
         val programs = ProgramRepository.getInstance()
         programs.updateSettings { it.copy(nutritionCheckin = CheckinPreferences(dayOfWeek = today.dayOfWeek.value)) }
-        NutritionRepository.getInstance().addNutritionPlan(NutritionPlan(id = "plan-checkin", calorieTarget = 2200, direction = PlanDirection.MAINTENANCE))
-        NutritionRepository.getInstance().activatePlan("plan-checkin")
-        withTimeout(5000) { vm.checkinAvailability.first { it == CheckinAvailability.NOW } }
-        val key = CheckinPolicy.weekKey(today, com.example.kpkn.screens.nutrition.checkin.checkinWeekStart(null), today.dayOfWeek)
-        records.value = listOf(CheckinRecord(key, CheckinDecision.APPLIED))
-        withTimeout(5000) { vm.checkinAvailability.first { it == CheckinAvailability.DISMISSED } }
-        assertEquals(CheckinAvailability.DISMISSED, vm.checkinAvailability.value)
+        val nutrition = NutritionRepository.getInstance()
+        val initialPlan = NutritionPlan(
+            id = "plan-checkin",
+            calorieTarget = 2200,
+            proteinGoal = 160,
+            carbGoal = 230,
+            fatGoal = 70,
+            direction = PlanDirection.MAINTENANCE,
+        )
+        nutrition.addNutritionPlan(initialPlan)
+        vm.activatePlan("plan-checkin")
+        vm.activePlan.first { it?.id == "plan-checkin" }
+        nutrition.addNutritionPlan(initialPlan.copy(calorieTarget = 2450, proteinGoal = 175, isActive = true))
+        val active = vm.activePlan.first { it?.calorieTarget == 2450 }
+        vm.syncActivePlanGoalsToSettings()
+
+        assertEquals(2450, active?.calorieTarget)
+        assertEquals(2450, programs.settings.first { it.dailyCalorieGoal == 2450 }.dailyCalorieGoal)
+        assertEquals(175, programs.settings.value.dailyProteinGoal)
+        assertEquals(1, store.records.first { it.isNotEmpty() }.size)
     }
 }

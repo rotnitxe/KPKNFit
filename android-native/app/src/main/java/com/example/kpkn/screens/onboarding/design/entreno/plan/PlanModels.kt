@@ -33,6 +33,8 @@ data class PlanCardModel(
     val scopeLabel: String? = null,
     /** Identidad resuelta de la portada guardada (opaca para no exponer el motor visual); null conserva la identidad por id. */
     val coverIdentity: Any? = null,
+    /** URI o esquema de portada del programa (`Program.coverImage`) para resolver foto personal/empaquetada/estudio. */
+    val coverImage: String? = null,
 )
 
 /**

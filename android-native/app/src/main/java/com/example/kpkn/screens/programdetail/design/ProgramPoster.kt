@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
@@ -41,6 +45,8 @@ internal fun ProgramPoster(
 ) {
     val reduced = wizardReducedMotion()
     val shape = RoundedCornerShape(radius)
+    var photoFailed by remember(photoUrl) { mutableStateOf(false) }
+    val showPersonalPhoto = photoUrl != null && !photoFailed
     Box(
         modifier = modifier
             .size(width = width, height = height)
@@ -50,11 +56,12 @@ internal fun ProgramPoster(
             .semantics { contentDescription = "Portada del programa" },
     ) {
         when {
-            photoUrl != null -> AsyncImage(
+            showPersonalPhoto -> AsyncImage(
                 model = photoUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
+                onError = { photoFailed = true },
             )
             bundled != null -> Image(
                 bitmap = bundled,

@@ -179,9 +179,9 @@ private val ProgramTrailingSlot = 60.dp
 @Composable
 private fun ProgramActionRow(state: ProgramHeaderState, actions: ProgramHeaderActions) {
     val primaryLabel = programHeaderPrimaryLabel(state.primary)
-    // «Empezar · Tirón», «Continuar · Tirón» y «Reanudar» llevan el icono play (p-today, p-paused); «Activar programa», ninguno.
+    // «Empezar · Tirón», «Continuar · Tirón», «Reanudar» y «Reanudar rutina» llevan el icono play; «Activar programa», ninguno.
     val primaryIcon = when (state.primary) {
-        is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue, ProgramHeaderPrimary.Resume -> KpknLineIcons.PlayFilled
+        is ProgramHeaderPrimary.Start, is ProgramHeaderPrimary.Continue, ProgramHeaderPrimary.Resume, ProgramHeaderPrimary.ResumeRecurring -> KpknLineIcons.PlayFilled
         else -> null
     }
     // Sin acción principal (día sin sesión), la píldora secundaria enseña la siguiente sesión.

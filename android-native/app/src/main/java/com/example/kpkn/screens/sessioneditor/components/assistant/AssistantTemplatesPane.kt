@@ -169,7 +169,9 @@ internal fun AssistantTemplatesPane(
 
     Box(modifier.fillMaxSize()) {
         val footer = view == AsPlaView.DETAIL
-        AsScrollPane(Modifier.fillMaxSize(), bottomPadding = if (footer) 128.dp else 36.dp) {
+        Column(Modifier.fillMaxSize()) {
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                AsScrollPane(Modifier.fillMaxSize(), bottomPadding = 24.dp) {
             when (view) {
                 AsPlaView.LIST -> CatalogList(
                     ready = ready,
@@ -238,15 +240,17 @@ internal fun AssistantTemplatesPane(
                 }
             }
         }
-        if (footer) {
-            // as-G01 as-foot — `linear-gradient(#1b1b1d00, #1b1b1d 30%)` sobre el contenido (preset velo-hoja)
-            Column(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                    .kpknGradient(KpknGradient.VeloHoja)
-                    .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 30.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                AsButton("Aplicar plantilla", Modifier.fillMaxWidth(), leading = AsIcons.Layers, onClick = { detailId?.let(onApplyTemplate) })
+            }
+            if (footer) {
+                // as-G01 as-foot — pie estructural separado del scroll para no tapar controles con letra grande o pantalla baja
+                Column(
+                    Modifier.fillMaxWidth()
+                        .kpknGradient(KpknGradient.VeloHoja)
+                        .padding(start = 20.dp, top = 14.dp, end = 20.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    AsButton("Aplicar plantilla", Modifier.fillMaxWidth(), leading = AsIcons.Layers, onClick = { detailId?.let(onApplyTemplate) })
+                }
             }
         }
         if (decision != null) DecisionOverlay(decision, onConfirmDecision, onCancelDecision)

@@ -38,7 +38,9 @@ object WeeklyWorkEngine {
                 weekId = weekId,
                 hardSets = sets.size,
                 plannedSets = plannedSetsByWeek[weekId],
-                tonnageKg = sets.filter { it.weight > 0.0 }.sumOf { it.weight * it.reps },
+                tonnageKg = sets.sumOf {
+                    com.example.kpkn.domain.workout.CompletedSetLoadSemantics.totalExternalTonnageKg(it)
+                },
                 reps = sets.sumOf { it.reps },
                 minutes = weekLogs.sumOf { it.durationMinutes },
                 sessions = weekLogs.size,

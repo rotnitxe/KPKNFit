@@ -56,6 +56,12 @@ class PlannedLoadProjectorTest {
         assertEquals(4,next.cycleNumber)
         assertEquals("Semana",next.weekName)
         assertNull(PlannedLoadProjector.next(p.copy(runState = p.runState!!.copy(status = ProgramRunStatus.COMPLETED)),emptyList()))
-        assertNull(PlannedLoadProjector.next(p.copy(structure = ProgramStructure.COMPLEX),emptyList()))
+        // Complex plans without a terminal signal repeat their structure (remediation 5).
+        val repeatingComplex = p.copy(structure = ProgramStructure.COMPLEX)
+        val wrapped = PlannedLoadProjector.next(repeatingComplex,emptyList())!!
+        assertTrue(wrapped.nextCycleTemplate)
+        assertEquals(4,wrapped.cycleNumber)
+        // A declared end keeps the final week truly final.
+        assertNull(PlannedLoadProjector.next(repeatingComplex.copy(programEndMode = ProgramEndMode.HAS_END),emptyList()))
     }
 }

@@ -188,8 +188,11 @@ func resolveReferenceCapacity(_ exercise: Exercise, _ history: [WorkoutLog]) -> 
     return history.flatMap { $0.completedExercises }
         .filter { $0.resolvedCanonicalExerciseId() == canonicalId }
         .flatMap { $0.sets }
-        .filter { !$0.isWarmup && $0.weight > 0.0 && $0.reps > 0 }
-        .map { calculateHybrid1RM(weight: $0.weight, reps: $0.reps) }
+        .filter { !$0.isWarmup && !$0.skipped && $0.supportsEstimatedOneRm() && $0.reps > 0 }
+        .compactMap { set -> Double? in
+            guard let ext = set.externalLoadKg(), ext > 0.0 else { return nil }
+            return calculateHybrid1RM(weight: ext, reps: set.reps)
+        }
         .max()
 }
 

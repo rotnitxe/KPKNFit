@@ -378,10 +378,10 @@ class WorkoutSetRecorder(
                 unitMode = resolvedUnitMode,
                 externalLoad = when (resolvedLoadMode) {
                     LoadModeV2.LOAD,
-                    LoadModeV2.BODYWEIGHT,
                     LoadModeV2.LASTRE,
                     -> weight.takeIf { it > 0.0 }
 
+                    LoadModeV2.BODYWEIGHT,
                     LoadModeV2.ASSISTED -> null
                 },
                 assistedLoad = if (resolvedLoadMode == LoadModeV2.ASSISTED) weight.takeIf { it > 0.0 } else null,
@@ -530,7 +530,13 @@ class WorkoutSetRecorder(
                     amrapMinimumReps = amrapMinimumReps,
                     amrapBelowMinimum = amrapBelowMinimum,
                     loadMode = resolvedLoadMode,
-                    originalLoad = weight,
+                    originalLoad = when (resolvedLoadMode) {
+                        LoadModeV2.BODYWEIGHT -> null
+                        LoadModeV2.ASSISTED,
+                        LoadModeV2.LOAD,
+                        LoadModeV2.LASTRE,
+                        -> weight.takeIf { it > 0.0 }
+                    },
                     contextKey = com.example.kpkn.data.models.buildRecordedSetContextKey(
                         configurationId = exercise.catalogConfigurationId ?: ports.canonicalExerciseKey(exercise),
                         performanceContextKey = contextKey,

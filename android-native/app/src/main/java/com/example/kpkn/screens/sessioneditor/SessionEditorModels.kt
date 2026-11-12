@@ -270,6 +270,11 @@ data class SessionEditorUiState(
      * la misma lista de parts, y el list builder necesita esta señal.
      */
     val cardioSpacePlacement: CardioSpacePlacement? = null,
+    /**
+     * Present when an unsaved editor draft diverged from newer changes committed to Room
+     * (e.g. from the live workout), so neither is silently lost.
+     */
+    val liveDraftConflict: SessionEditorLiveDraftConflict? = null,
 ) {
     /** La sesión de la variante activa (A = sesión principal, B/C/D = sessionB/C/D). */
     val activeVariantSession: Session? get() = when (activeVariant) {
@@ -279,6 +284,13 @@ data class SessionEditorUiState(
         WeekVariant.D -> session?.sessionD
     }
 }
+
+data class SessionEditorLiveDraftConflict(
+    val sessionId: String,
+    val draftSession: Session,
+    val programSession: Session,
+    val liveModifiedAtMs: Long,
+)
 
 data class SessionDraftSnapshot(
     val id: String,

@@ -25,12 +25,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.util.UUID
 
-private val recipeDraftSaver = Saver<RecipeDraft, String>(
+internal val recipeDraftSaver = Saver<RecipeDraft, String>(
     save = { dbJson.encodeToString(it) },
     restore = { runCatching { dbJson.decodeFromString<RecipeDraft>(it) }.getOrDefault(RecipeDraft()) },
 )
 
-private val recipeFoodSaver = Saver<FoodItem?, String>(
+internal val recipeFoodSaver = Saver<FoodItem?, String>(
     save = { it?.let { food -> dbJson.encodeToString(food) } ?: "" },
     restore = { runCatching { if (it.isBlank()) null else dbJson.decodeFromString<FoodItem>(it) }.getOrNull() },
 )
@@ -54,8 +54,9 @@ fun RecipeLibraryOverlay(
     var results by remember { mutableStateOf(emptyList<FoodItem>()) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var deletingId by remember { mutableStateOf<String?>(null) }
-    var confirmDiscard by remember { mutableStateOf(false) }
+    var validationVisible by rememberSaveable { mutableStateOf(false) }
+    var deletingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val preview = remember(draft, recipeId, base) { runCatching { draft.food(recipeId, base) } }
     fun closePage() {
@@ -64,19 +65,19 @@ fun RecipeLibraryOverlay(
             confirmDiscard = true
             return
         }
-        if (editing || selected != null) { editing = false; selected = null; error = null } else onDismiss()
+        if (editing || selected != null) { editing = false; selected = null; error = null; validationVisible = false } else onDismiss()
     }
     fun edit(food: FoodItem?) {
         base = food
         recipeId = food?.id ?: "recipe_${UUID.randomUUID()}"
         draft = food?.let { RecipeDraft.fromFood(it) } ?: RecipeDraft()
         originalDraft = draft
-        editing = true; selected = null; query = ""; error = null
+        editing = true; selected = null; query = ""; error = null; validationVisible = false
     }
     LaunchedEffect(query, editing) {
         if (!editing || query.isBlank()) { results = emptyList(); return@LaunchedEffect }
         delay(250)
-        try { results = repository.searchFood(query).filter { it.id != recipeId }.take(6) }
+        try { results = repository.searchFood(query).filter { it.id != recipeId } }
         catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { error = "No se pudo buscar el ingrediente. Inténtalo de nuevo." }
     }
@@ -97,8 +98,10 @@ fun RecipeLibraryOverlay(
                 onSave = {
                     if (!busy) {
                         val food = preview.getOrNull()
-                        if (food == null) error = preview.exceptionOrNull()?.message ?: "Revisa la receta."
-                        else {
+                        if (food == null) {
+                            validationVisible = true
+                            error = preview.exceptionOrNull()?.message ?: "Revisa la receta."
+                        } else {
                             busy = true
                             scope.launch {
                                 try {
@@ -106,7 +109,7 @@ fun RecipeLibraryOverlay(
                                         food.copy(recipe = food.recipe?.copy(version = old.version + 1))
                                     } ?: food
                                     repository.saveCustomFood(versioned)
-                                    editing = false; error = null; originalDraft = draft
+                                    editing = false; error = null; validationVisible = false; originalDraft = draft
                                 }
                                 catch (cancelled: CancellationException) { throw cancelled }
                                 catch (_: Exception) { error = "No se pudo guardar la receta. Tu borrador sigue aquí." }
@@ -114,7 +117,10 @@ fun RecipeLibraryOverlay(
                             }
                         }
                     }
-                }, onClose = ::closePage, modifier = Modifier.fillMaxSize(),
+                },
+                onClose = ::closePage,
+                modifier = Modifier.fillMaxSize(),
+                showValidationErrors = validationVisible,
             )
             selected != null -> RecipePortionContent(selected!!, onAdd = onAdd, onClose = ::closePage)
             else -> RecipeLibraryContent(
@@ -170,8 +176,8 @@ fun RecipeLibraryOverlay(
 @Composable
 internal fun RecipePortionContent(food: FoodItem, onAdd: (LoggedFood) -> Unit, onClose: () -> Unit, initialByWeight: Boolean = false) {
     val gramsPerServing = food.recipe?.let { it.finalWeightGrams?.div(it.servings) }
-    var amount by remember(food.id) { mutableStateOf(if (initialByWeight && gramsPerServing != null) gramsPerServing.toString() else "1") }
-    var byWeight by remember(food.id) { mutableStateOf(initialByWeight && gramsPerServing != null) }
+    var amount by rememberSaveable(food.id) { mutableStateOf(if (initialByWeight && gramsPerServing != null) gramsPerServing.toString() else "1") }
+    var byWeight by rememberSaveable(food.id) { mutableStateOf(initialByWeight && gramsPerServing != null) }
     val foodId = remember(food.id) { UUID.randomUUID().toString() }
     var added by remember(food.id) { mutableStateOf(false) }
     val preview = remember(food, amount, byWeight) { runCatching {
