@@ -173,7 +173,18 @@ class VivoRestoRenderSheetTest {
 
     private val record = normal.copy(
         volumeDelta = 620.0, trend = listOf(7_380.0, 7_640.0, 7_510.0, 7_790.0, 7_800.0, 8_420.0), records = 1,
-        record = FinishRecord("Peso Muerto Convencional", 182.0, 177.5),
+        record = FinishRecord(
+            exerciseId = "peso-muerto-convencional",
+            exerciseName = "Peso Muerto Convencional",
+            metric = "e1RM",
+            value = 182.0,
+            previousValue = 177.5,
+            improvement = 4.5,
+            unit = "kg",
+            currentLabel = "182,0 kg e1RM",
+            previousLabel = "177,5 kg e1RM",
+            isInitialReference = false,
+        ),
         lifts = listOf(FinishLiftChip("Peso Muerto", 5.0), FinishLiftChip("Hip Thrust", 5.0)),
     )
     private val cardio = normal.copy(

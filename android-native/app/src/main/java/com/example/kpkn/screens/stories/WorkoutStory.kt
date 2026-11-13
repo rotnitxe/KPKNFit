@@ -65,6 +65,7 @@ internal data class WorkoutStory(
     val stats: List<WorkoutStat>,
     val gains: List<WorkoutGain>,
     val records: Int,
+    val recordHighlights: List<WorkoutGain> = emptyList(),
     val exerciseName: String? = null,
     val exerciseE1rm: String? = null,
     val exerciseDelta: String? = null,
@@ -125,6 +126,14 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     } else {
         emptyList<WorkoutGain>()
     }
+    val recordHighlights = if (options.improvements) {
+        data.finishRecords.orEmpty().take(2).map { record ->
+            WorkoutGain(
+                name = "${if (record.isInitialReference) "Referencia" else "Récord"} · ${record.exerciseName}",
+                delta = record.summaryLine,
+            )
+        }
+    } else emptyList()
     // El ejercicio pedido si existe en el entreno; si no, el de la mayor ganancia (o el primero).
     val exerciseId = options.exerciseId?.takeIf { id -> data.lifts.any { it.exerciseId == id } } ?: data.defaultExerciseId
     val lift = exerciseId?.let { id -> data.lifts.firstOrNull { it.exerciseId == id } }
@@ -217,7 +226,8 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         meta = presentation.program?.name,
         stats = stats,
         gains = gains,
-        records = presentation.records,
+        records = data.finishRecords?.count { !it.isInitialReference } ?: presentation.records,
+        recordHighlights = recordHighlights,
         exerciseName = lift?.name,
         exerciseE1rm = exerciseValue,
         exerciseDelta = exerciseDelta,
@@ -261,6 +271,7 @@ internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStory
             stats = emptyList(),
             gains = emptyList(),
             records = 0,
+            recordHighlights = emptyList(),
             exerciseLines = chunk.map { WorkoutExerciseLine(it.name, "${it.setCount} series") },
         )
     }
@@ -839,7 +850,7 @@ private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeas
         artBottom = WORKOUT_GENERAL_ART_BOTTOM,
     )
     val cells = story.stats.map { measurer.workoutStatCell(it) }
-    val rows = story.gains.map { measurer.workoutRow(it.name, it.delta) } +
+    val rows = (story.gains + story.recordHighlights).map { measurer.workoutRow(it.name, it.delta) } +
         story.exerciseLines.map { measurer.workoutRow(it.name, it.detail) }
     val badge = story.records.takeIf { it > 0 }?.let { WorkoutBadge(measurer.storyText(workoutRecordsText(it), WorkoutType.badge)) }
     val gridHeight = workoutGridHeight(cells)

@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.FinishLiftProgress
 import com.example.kpkn.screens.workout.FinishPresentationContext
 import com.example.kpkn.screens.workout.FinishProgressPoint
+import com.example.kpkn.screens.workout.FinishRecord
 import com.example.kpkn.screens.workout.StoryPhoto
 import com.example.kpkn.screens.workout.WorkoutStoryData
 import com.example.kpkn.screens.workout.WorkoutStoryOptions
@@ -57,6 +58,7 @@ class WorkoutStoryModelTest {
         records: Int = 0,
         photos: List<StoryPhoto> = emptyList(),
         program: Program? = null,
+        finishRecords: List<FinishRecord>? = null,
     ): WorkoutStoryData = WorkoutStoryData(
         sessionName = "Tirón",
         presentation = FinishPresentationContext(
@@ -73,6 +75,7 @@ class WorkoutStoryModelTest {
         intensity = "Intensificación",
         lifts = lifts,
         sessionRpe = sessionRpe,
+        finishRecords = finishRecords,
     )
 
     @Test
@@ -225,6 +228,44 @@ class WorkoutStoryModelTest {
         assertEquals(2, story.records)
         assertEquals("/fotos/1.jpg", story.photoPath)
         assertNull(workoutStoryFrom(datos(), WorkoutStoryOptions()).photoPath)
+    }
+
+    @Test
+    fun laHistoriaUsaLaMismaLecturaDeMarcaQueElResumen() {
+        val record = FinishRecord(
+            exerciseId = "pullup",
+            exerciseName = "Dominadas",
+            metric = "Asistencia",
+            value = 20.0,
+            previousValue = 25.0,
+            improvement = 5.0,
+            unit = "kg",
+            currentLabel = "20 kg asistencia × 5 reps",
+            previousLabel = "25 kg asistencia × 5 reps",
+            isInitialReference = false,
+        )
+        val story = workoutStoryFrom(datos(finishRecords = listOf(record)), WorkoutStoryOptions())
+        assertEquals(1, story.records)
+        assertEquals(WorkoutGain("Récord · Dominadas", record.summaryLine), story.recordHighlights.single())
+    }
+
+    @Test
+    fun referenciaInicialNoSeCuentaComoMarcaNueva() {
+        val reference = FinishRecord(
+            exerciseId = "pullup",
+            exerciseName = "Dominadas",
+            metric = "Repeticiones",
+            value = 5.0,
+            previousValue = null,
+            improvement = null,
+            unit = "reps",
+            currentLabel = "5 reps · peso corporal",
+            previousLabel = null,
+            isInitialReference = true,
+        )
+        val story = workoutStoryFrom(datos(finishRecords = listOf(reference)), WorkoutStoryOptions())
+        assertEquals(0, story.records)
+        assertEquals(WorkoutGain("Referencia · Dominadas", reference.summaryLine), story.recordHighlights.single())
     }
 
     @Test

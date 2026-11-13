@@ -7996,9 +7996,10 @@ class WorkoutViewModel(
 
     /** Contexto de presentación del cierre desde los datos locales ya cargados. */
     internal fun finishPresentationContext(
-        today: java.time.LocalDate = java.time.LocalDate.now(),
+        today: java.time.LocalDate? = null,
     ): FinishPresentationContext {
         val state = _uiState.value
+        val sessionLocalDate = today ?: finishSessionLocalDate(state.startTimeMs)
         val photos = mediaCapture.sessionMedia.value
             .filter { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO }
             .map { item -> StoryPhoto(item.filePath, item.exerciseName,
@@ -8015,7 +8016,7 @@ class WorkoutViewModel(
             calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
             milestones = state.sessionMilestones.filter { it.kind == "pr_e1rm" },
-            today = today,
+            today = sessionLocalDate,
         )
     }
 

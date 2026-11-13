@@ -786,7 +786,6 @@ class ImportProgramViewModel @JvmOverloads constructor(
         source: ImportedProgramDraft,
         assignments: Map<String, Int?>,
     ) {
-        if (current.draftPersistencePending) return
         val previousAssignments = effectiveImportedWeekdays(source, current.weekdays)
         if (assignments == previousAssignments) return
         val selectedWeekdays = source.weeks.flatMap { it.days }
@@ -794,6 +793,9 @@ class ImportProgramViewModel @JvmOverloads constructor(
             .mapNotNull { assignments[it.id]?.takeIf { day -> day in 1..7 } }
             .toSet()
         if (current.editorStarted) {
+            // Editor writes are serialized as one durable revision; do not derive another update from
+            // the still-uncommitted editor snapshot while that transaction is pending.
+            if (current.draftPersistencePending) return
             val session = editorDraftSession ?: return
             _state.update { it.copy(draftPersistencePending = true, draftPersistenceError = null, error = null) }
             viewModelScope.launch {

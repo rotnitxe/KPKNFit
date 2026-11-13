@@ -50,7 +50,8 @@ object WorkoutShareService {
         currentBestEstimated1RM: Double? = null,
     ) {
         val data = WorkoutStoryData(sessionName, FinishPresentationContext(), durationMinutes, totalVolume, totalSets,
-            finishAverageRir(completedExercises), "Sin registro", buildFinishLiftProgress(completedExercises, emptyList()))
+            finishAverageRir(completedExercises), "Sin registro", buildFinishLiftProgress(completedExercises, emptyList()),
+            finishRecords = buildFinishRecords(completedExercises, emptyList()))
         val bitmaps = renderWorkoutStoryPages(context.applicationContext, data, WorkoutStoryOptions())
         try { shareBitmaps(context, bitmaps) } finally { bitmaps.forEach { it.recycle() } }
     }

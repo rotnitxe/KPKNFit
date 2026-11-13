@@ -90,19 +90,23 @@ internal fun RecordedSessionFinishSheet(
     LaunchedEffect(saving) { if (saving) shownError = null }
 
     val lifts = remember(completedExercises, presentation) { buildFinishLiftProgress(completedExercises, presentation.history, presentation.today) }
+    val finishRecords = remember(completedExercises, presentation.history) {
+        buildFinishRecords(completedExercises, presentation.history)
+    }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
-    val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts) {
+    val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts, finishRecords) {
         WorkoutStoryData(
             name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
             finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = sessionRpe ?: recordedEffort.value,
+            finishRecords = finishRecords,
         )
     }
     LaunchedEffect(name, completedExercises, durationMinutes) {
         onSummaryReady(WorkoutSessionSummary(durationMinutes, logicalSetCountFromCompleted(completedExercises), discomforts))
     }
-    val model = remember(name, completedExercises, durationMinutes, durationSeconds, sessionRpe, presentation, lifts, plannedSets, targetMinutes) {
-        buildFinishModel(name, completedExercises, durationMinutes, sessionRpe, presentation, lifts, plannedSets, targetMinutes, durationSeconds)
+    val model = remember(name, completedExercises, durationMinutes, durationSeconds, sessionRpe, presentation, lifts, plannedSets, targetMinutes, finishRecords) {
+        buildFinishModel(name, completedExercises, durationMinutes, sessionRpe, presentation, lifts, plannedSets, targetMinutes, durationSeconds, finishRecords)
     }
     val blocked = finishEmptySessionGuidance(completedExercises)
 
@@ -123,7 +127,7 @@ internal fun RecordedSessionFinishSheet(
     }
     val ridges = remember(completedExercises) { finishRidges(completedExercises) }
     val ridgeRecord = remember(completedExercises, model.record) {
-        model.record?.let { r -> completedExercises.filter { it.cardioDetails == null }.indexOfFirst { it.exerciseName == r.exerciseName } } ?: -1
+        model.record?.let { r -> completedExercises.filter { it.cardioDetails == null }.indexOfFirst { it.exerciseId == r.exerciseId } } ?: -1
     }
     val state = FinishSheetState(
         model = model, dims = dims, saving = saving, errorMessage = shownError, blockedMessage = blocked, notes = notes,

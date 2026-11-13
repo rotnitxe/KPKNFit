@@ -128,7 +128,8 @@ class FinishWeeklyComparisonTest {
         val benchToday = exercise("today-bench", 105.0)
         val progress = buildFinishLiftProgress(listOf(todayUnrecoverable, benchToday), listOf(prevLog), today)
         assertNull(progress[0].deltaKg)
-        assertEquals(false, progress[0].previousWeek?.loadKnown)
+        assertNull(progress[0].previousWeek)
+        // Unrecoverable lastre is excluded from the comparable weekly marks altogether.
         // Mixed reps (5 today vs 8 previous): no bogus kg delta even on LOAD.
         assertNull(progress[1].deltaKg)
     }
@@ -166,5 +167,57 @@ class FinishWeeklyComparisonTest {
         val lift = buildFinishLiftProgress(listOf(todayEx), listOf(prevLog), today).single()
         assertNull(lift.deltaKg)
         assertEquals(20.0, lift.previousWeek?.weight ?: -1.0, 0.0)
+    }
+
+    @Test
+    fun contextAndSideMustMatchExactlyIncludingMissingLegacyValues() {
+        val today = LocalDate.of(2026, 11, 9)
+        val current = exercise("today", 100.0).copy(sets = listOf(set("today", 100.0).copy(side = "left")))
+        val mismatched = exercise("old", 110.0).copy(sets = listOf(set("old", 110.0).copy(side = null)))
+        val log = WorkoutLog("old", "p", "s", "Empuje", "2026-11-04T10:00:00.000Z", 40, completedExercises = listOf(mismatched))
+        val result = buildFinishLiftProgress(listOf(current), listOf(log), today).single()
+        assertNull(result.previousWeek)
+    }
+
+    @Test
+    fun lastreAtDifferentRepetitionsIsNotAComparableWeeklyMark() {
+        val today = LocalDate.of(2026, 11, 9)
+        fun lastre(id: String, kg: Double, reps: Int) = CompletedSet(id, weight = 0.0, reps = reps,
+            loadMode = LoadModeV2.LASTRE, originalLoad = kg,
+            recordedPayloadV3 = RecordedSetPayload(actualValue = reps.toDouble(), exerciseId = "dip",
+                loadInputMode = LoadModeV2.LASTRE, unitMode = UnitModeV2.REPS, externalLoad = kg, completedReps = reps))
+        val current = CompletedExercise("dip", "Fondos", sets = listOf(lastre("t", 40.0, 5)))
+        val previous = WorkoutLog("old", "p", "s", "Tirón", "2026-11-04T10:00:00.000Z", 40,
+            completedExercises = listOf(CompletedExercise("dip", "Fondos", sets = listOf(lastre("p", 60.0, 8)))))
+        assertNull(buildFinishLiftProgress(listOf(current), listOf(previous), today).single().previousWeek)
+    }
+
+    @Test
+    fun distanceDoesNotCompareAgainstDurationOnlyCardio() {
+        val today = LocalDate.of(2026, 11, 9)
+        val current = CompletedExercise("run", "Cinta", cardioDetails = com.example.kpkn.data.models.CardioDetails(type = com.example.kpkn.data.models.CardioType.TREADMILL),
+            sets = listOf(CompletedSet("t", distanceKm = 3.0)))
+        val prior = CompletedExercise("run", "Cinta", cardioDetails = com.example.kpkn.data.models.CardioDetails(type = com.example.kpkn.data.models.CardioType.TREADMILL),
+            sets = listOf(CompletedSet("p", timeSeconds = 1200)))
+        val log = WorkoutLog("old", "p", "s", "Cardio", "2026-11-04T10:00:00.000Z", 40, completedExercises = listOf(prior))
+        assertNull(buildFinishLiftProgress(listOf(current), listOf(log), today).single().previousWeek)
+    }
+
+    @Test
+    fun previousWeekUsesItsBestComparableMarkInsteadOfTheMostRecent() {
+        val today = LocalDate.of(2026, 11, 9)
+        fun log(id: String, day: String, load: Double) = WorkoutLog(id, "p", "s", "Empuje", day, 40,
+            completedExercises = listOf(exercise(id, load)))
+        val history = listOf(log("best", "2026-11-02T10:00:00.000Z", 110.0), log("recent", "2026-11-08T10:00:00.000Z", 100.0))
+        val progress = buildFinishLiftProgress(listOf(exercise("today", 120.0)), history, today).single()
+        assertEquals(110.0, progress.previousWeek?.weight ?: -1.0, 0.0)
+    }
+
+    @Test
+    fun resumedSessionKeepsItsLocalStartDateAcrossMidnight() {
+        val zone = java.time.ZoneId.of("America/Santiago")
+        val started = java.time.ZonedDateTime.of(2026, 11, 11, 23, 40, 0, 0, zone).toInstant().toEpochMilli()
+        assertEquals(LocalDate.of(2026, 11, 11), finishSessionLocalDate(started, LocalDate.of(2026, 11, 12), zone))
+        assertEquals(LocalDate.of(2026, 11, 12), finishSessionLocalDate(0L, LocalDate.of(2026, 11, 12), zone))
     }
 }

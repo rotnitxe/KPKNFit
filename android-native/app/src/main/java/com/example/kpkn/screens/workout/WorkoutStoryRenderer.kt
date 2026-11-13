@@ -55,10 +55,13 @@ internal data class WorkoutStoryData(
     val lifts: List<FinishLiftProgress>,
     /** sRPE declarado por el atleta; null si no se registró. */
     val sessionRpe: Double? = null,
+    /** Mismas marcas derivadas que el resumen de cierre. */
+    val finishRecords: List<FinishRecord>? = null,
 ) {
     val defaultExerciseId: String?
         get() = (
-            lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 }
+            finishRecords?.firstOrNull()?.exerciseId?.let { id -> lifts.firstOrNull { it.exerciseId == id } }
+                ?: lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 }
                 ?: lifts.firstOrNull {
                     it.best?.let { set ->
                         com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(set)
@@ -188,12 +191,7 @@ private class StoryDrawing(
         line(42f)
     }
 
-    private fun prLift(data: WorkoutStoryData): FinishLiftProgress? =
-        data.lifts.filter { lift ->
-            lift.best != null && data.presentation.milestones.any {
-                it.kind == "pr_e1rm" && it.exerciseId == lift.exerciseId
-            }
-        }.maxByOrNull { lift -> lift.best?.let { StrengthModel.estimate1RM(it) } ?: 0.0 }
+    private fun prLift(data: WorkoutStoryData): FinishRecord? = data.finishRecords?.firstOrNull()
 
     fun general(data: WorkoutStoryData, options: WorkoutStoryOptions) {
         val program = data.presentation.program?.name
@@ -206,12 +204,12 @@ private class StoryDrawing(
         y += titleLines.size * 30f
 
         val pr = prLift(data)
-        val prSet = pr?.best
-        if (options.improvements && prSet != null) {
+        if (options.improvements && pr != null) {
             y += 4f
             paint.reset(); paint.isAntiAlias = true; paint.color = GREEN
             canvas.drawCircle(24f, y - 3f, 2.4f, paint)
-            text("PR e1RM · ${finishNumber(StrengthModel.estimate1RM(prSet))} kg", 32f, y, 9.5f, bold = true, color = GREEN, maxWidth = 300f)
+            val title = if (pr.isInitialReference) "Referencia" else "Récord"
+            text("$title · ${pr.exerciseName} · ${pr.summaryLine}", 32f, y, 9.5f, bold = true, color = GREEN, maxWidth = 300f)
             y += 4f
         }
 

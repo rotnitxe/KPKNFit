@@ -528,12 +528,11 @@ private fun RecordStrip(r: FinishRecord) {
             Icon(KpknLineIcons.Trophy, null, Modifier.size(20.dp), tint = Lx.Mus)
         }
         Column {
-            Text("Récord · ${r.exerciseName}", style = Lx.inter(13.5.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                "${r.kind} ${finishGrouped(r.e1rm, 1)}" + (if (r.kind.contains("rm", true) || r.kind.contains("kg", true)) " kg" else "") +
-                    (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
-                Modifier.padding(top = 2.dp), style = Lx.num(12.sp, weight = FontWeight.Medium), color = Lx.Mus,
+                "${if (r.isInitialReference) "Referencia" else "Récord"} · ${r.exerciseName}",
+                style = Lx.inter(13.5.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
+            Text(r.summaryLine, Modifier.padding(top = 2.dp), style = Lx.inter(11.5.sp), color = Lx.Mus, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -686,12 +685,11 @@ private fun RecordExtra(r: FinishRecord) {
         horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(KpknLineIcons.Trophy, null, Modifier.size(13.dp), tint = Lx.Mus)
-        Text(r.exerciseName, Modifier.weight(1f), style = Lx.inter(12.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
-            "${r.kind} ${finishGrouped(r.e1rm, 1)}" + (if (r.kind.contains("rm", true) || r.kind.contains("kg", true)) " kg" else "") +
-                (r.previousE1rm?.let { " · antes ${finishGrouped(it, 1)}" } ?: ""),
-            style = Lx.num(11.5.sp), color = Lx.Mus, maxLines = 1,
+            "${if (r.isInitialReference) "Referencia" else "Récord"} · ${r.exerciseName}",
+            Modifier.weight(1f), style = Lx.inter(12.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
+        Text(r.summaryLine, style = Lx.inter(10.5.sp), color = Lx.Mus, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 

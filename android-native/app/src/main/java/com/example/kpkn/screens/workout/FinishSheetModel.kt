@@ -1,6 +1,12 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
+import com.example.kpkn.domain.training.ExerciseProgress
 import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
 import java.time.LocalDate
@@ -17,11 +23,179 @@ internal data class FinishMuscle(val name: String, val total: Double, val direct
 internal data class FinishLiftChip(val name: String, val deltaKg: Double?)
 
 internal data class FinishRecord(
+    val exerciseId: String,
     val exerciseName: String,
-    val e1rm: Double,
-    val previousE1rm: Double?,
-    val kind: String = "e1RM",
+    val metric: String,
+    val value: Double,
+    val previousValue: Double?,
+    /** Delta is positive for every improvement, including lower assistance. */
+    val improvement: Double?,
+    val unit: String,
+    val currentLabel: String,
+    val previousLabel: String?,
+    val isInitialReference: Boolean,
+) {
+    val summaryLine: String
+        get() = if (isInitialReference) {
+            currentLabel
+        } else {
+            "$currentLabel · +${finishGrouped(improvement ?: 0.0, 1)} $unit · antes ${previousLabel.orEmpty()}"
+        }
+}
+
+private enum class FinishRecordMetric(val label: String, val unit: String, val lowerIsBetter: Boolean = false) {
+    E1RM("e1RM", "kg"),
+    BODYWEIGHT_REPS("Repeticiones", "reps"),
+    BODYWEIGHT_TIME("Duración", "s"),
+    LASTRE("Lastre", "kg"),
+    ASSISTANCE("Asistencia", "kg", lowerIsBetter = true),
+    CARDIO_DISTANCE("Distancia", "km"),
+    CARDIO_TIME("Tiempo", "s"),
+}
+
+private data class FinishRecordKey(
+    val exercise: String,
+    val metric: FinishRecordMetric,
+    val mode: LoadModeV2?,
+    val unitMode: UnitModeV2?,
+    val context: List<String>,
+    val reps: Int? = null,
 )
+
+private data class FinishRecordObservation(
+    val key: FinishRecordKey,
+    val exerciseId: String,
+    val exerciseName: String,
+    val value: Double,
+    val reps: Int,
+)
+
+private fun finishRecordExerciseKey(exercise: CompletedExercise): String = listOf(
+    ExerciseProgress.identity(exercise),
+    exercise.variantName.orEmpty(),
+    exercise.selectedAspects.orEmpty().toSortedMap().toString(),
+    exercise.performanceProfileId.orEmpty(),
+).joinToString("|")
+
+private fun finishRecordContext(set: CompletedSet): List<String> = listOf(
+    set.contextKey.orEmpty(),
+    set.recordedPayloadV3?.contextProfileId.orEmpty(),
+    set.homologatedResultV3?.contextKey.orEmpty(),
+    set.setOutcomeV2?.contextKey.orEmpty(),
+    set.setupProfileId.orEmpty(),
+    set.machineBrand.orEmpty(),
+    set.tagId.orEmpty(),
+    set.subTagIds.sorted().joinToString(","),
+    (set.side ?: set.recordedPayloadV3?.side).orEmpty(),
+)
+
+private fun finishRecordUnit(set: CompletedSet): UnitModeV2 =
+    set.recordedPayloadV3?.unitMode
+        ?: set.homologatedResultV3?.unitMode
+        ?: set.setOutcomeV2?.unitMode
+        ?: when {
+            set.distanceKm != null -> UnitModeV2.DISTANCE
+            set.timeSeconds != null && set.reps <= 0 -> UnitModeV2.TIME
+            else -> UnitModeV2.REPS
+        }
+
+private fun recordObservations(exercise: CompletedExercise, set: CompletedSet): List<FinishRecordObservation> {
+    if (set.skipped || set.isWarmup || set.isFailedSet || set.recordedPayloadV3?.skipped == true ||
+        set.recordedPayloadV3?.failedSet == true || set.homologatedResultV3?.failedSet == true || set.setOutcomeV2?.failedSet == true
+    ) return emptyList()
+    val mode = CompletedSetLoadSemantics.mode(set)
+    val unit = finishRecordUnit(set)
+    val exerciseKey = finishRecordExerciseKey(exercise)
+    val context = finishRecordContext(set)
+    val base = { metric: FinishRecordMetric, reps: Int? ->
+        FinishRecordKey(exerciseKey, metric, mode, unit, context, reps)
+    }
+    fun observation(metric: FinishRecordMetric, value: Double, reps: Int = set.reps, repsKey: Int? = null) =
+        FinishRecordObservation(base(metric, repsKey), exercise.exerciseId, exercise.exerciseName, value, reps)
+
+    if (exercise.cardioDetails != null) return buildList {
+        set.distanceKm?.takeIf { it.isFinite() && it > 0.0 }?.let { add(observation(FinishRecordMetric.CARDIO_DISTANCE, it)) }
+        set.timeSeconds?.takeIf { it > 0 }?.let { add(observation(FinishRecordMetric.CARDIO_TIME, it.toDouble())) }
+    }
+
+    return when (mode) {
+        LoadModeV2.BODYWEIGHT -> when (unit) {
+            UnitModeV2.TIME -> set.timeSeconds?.takeIf { it > 0 }
+                ?.let { listOf(observation(FinishRecordMetric.BODYWEIGHT_TIME, it.toDouble())) }.orEmpty()
+            UnitModeV2.REPS -> set.reps.takeIf { it > 0 }
+                ?.let { listOf(observation(FinishRecordMetric.BODYWEIGHT_REPS, it.toDouble())) }.orEmpty()
+            else -> emptyList()
+        }
+        LoadModeV2.LASTRE -> {
+            val load = CompletedSetLoadSemantics.externalLoadKg(set)
+            if (set.reps > 0 && load != null) listOf(observation(FinishRecordMetric.LASTRE, load, repsKey = set.reps)) else emptyList()
+        }
+        LoadModeV2.ASSISTED -> {
+            val load = CompletedSetLoadSemantics.assistanceKg(set)
+            if (set.reps > 0 && load != null) listOf(observation(FinishRecordMetric.ASSISTANCE, load, repsKey = set.reps)) else emptyList()
+        }
+        LoadModeV2.LOAD, null -> {
+            val load = CompletedSetLoadSemantics.externalLoadKg(set)
+            val e1rm = StrengthModel.estimate1RM(set)
+            if (set.reps > 0 && load != null && load > 0.0 && e1rm.isFinite() && e1rm > 0.0)
+                listOf(observation(FinishRecordMetric.E1RM, e1rm))
+            else emptyList()
+        }
+    }
+}
+
+/** Builds current marks from the corrected sets and compares them with the best exact historical match. */
+internal fun buildFinishRecords(
+    completedExercises: List<CompletedExercise>,
+    history: List<WorkoutLog>,
+): List<FinishRecord> {
+    val current = completedExercises.flatMap { exercise -> exercise.sets.flatMap { recordObservations(exercise, it) } }
+        .groupBy { it.key }
+        .mapNotNull { (_, rows) ->
+            val first = rows.first()
+            val metric = first.key.metric
+            val best = if (metric.lowerIsBetter) rows.minByOrNull { it.value } else rows.maxByOrNull { it.value }
+            best
+        }
+    if (current.isEmpty()) return emptyList()
+    val previous = history.flatMap { log ->
+        log.completedExercises.flatMap { exercise -> exercise.sets.flatMap { recordObservations(exercise, it) } }
+    }.groupBy { it.key }
+
+    return current.mapNotNull { now ->
+        val metric = now.key.metric
+        val beforeRows = previous[now.key].orEmpty()
+        val before = if (beforeRows.isEmpty()) null else if (metric.lowerIsBetter) {
+            beforeRows.minByOrNull { it.value }
+        } else {
+            beforeRows.maxByOrNull { it.value }
+        }
+        val improved = before == null || if (metric.lowerIsBetter) now.value < before.value - 1e-6 else now.value > before.value + 1e-6
+        if (!improved) return@mapNotNull null
+        fun label(value: Double, reps: Int): String = when (metric) {
+            FinishRecordMetric.E1RM -> "${finishGrouped(value, 1)} kg e1RM"
+            FinishRecordMetric.BODYWEIGHT_REPS -> "$reps reps · peso corporal"
+            FinishRecordMetric.BODYWEIGHT_TIME -> "${finishGrouped(value, 0)} s · peso corporal"
+            FinishRecordMetric.LASTRE -> "${finishGrouped(value, 1)} kg lastre × $reps reps"
+            FinishRecordMetric.ASSISTANCE -> "${finishGrouped(value, 1)} kg asistencia × $reps reps"
+            FinishRecordMetric.CARDIO_DISTANCE -> "${finishGrouped(value, 2)} km"
+            FinishRecordMetric.CARDIO_TIME -> "${finishGrouped(value, 0)} s"
+        }
+        val difference = before?.let { kotlin.math.abs(now.value - it.value) }
+        FinishRecord(
+            exerciseId = now.exerciseId,
+            exerciseName = now.exerciseName,
+            metric = metric.label,
+            value = now.value,
+            previousValue = before?.value,
+            improvement = difference,
+            unit = metric.unit,
+            currentLabel = label(now.value, now.reps),
+            previousLabel = before?.let { label(it.value, it.reps) },
+            isInitialReference = before == null,
+        )
+    }.sortedWith(compareByDescending<FinishRecord> { !it.isInitialReference }.thenByDescending { it.improvement ?: 0.0 }.thenBy { it.exerciseName })
+}
 
 internal data class FinishCardio(
     val type: String,
@@ -117,6 +291,7 @@ internal fun buildFinishModel(
     plannedSets: Int?,
     targetMinutes: Int?,
     durationSeconds: Int = durationMinutes * 60,
+    finishRecords: List<FinishRecord>? = null,
 ): FinishModel {
     val strength = completedExercises.filter { it.cardioDetails == null }
     val sets = logicalSetCountFromCompleted(strength)
@@ -143,22 +318,8 @@ internal fun buildFinishModel(
         // Primero las que mejoran (de mayor a menor), después las que se mantienen.
         .sortedByDescending { it.deltaKg }
         .take(2)
-    val milestone = presentation.milestones.maxByOrNull { it.value }
-    val recordList = presentation.milestones
-        .groupBy { it.exerciseId to it.kind }
-        .values.mapNotNull { group -> group.maxByOrNull { it.value } }
-        .sortedByDescending { it.value }
-        .map { m ->
-            FinishRecord(
-                exerciseName = m.exerciseName,
-                e1rm = m.value,
-                previousE1rm = lifts.firstOrNull { it.exerciseId == m.exerciseId }?.previous?.estimated1Rm,
-                kind = m.kind,
-            )
-        }
-    val record = recordList.firstOrNull() ?: milestone?.let { m ->
-        FinishRecord(m.exerciseName, m.value, lifts.firstOrNull { it.exerciseId == m.exerciseId }?.previous?.estimated1Rm)
-    }
+    val recordList = finishRecords ?: buildFinishRecords(completedExercises, presentation.history)
+    val record = recordList.firstOrNull()
     val cardioBlocks = completedExercises.mapNotNull { exercise ->
         val sets = exercise.sets.filter { !it.skipped }
         if (exercise.cardioDetails == null || sets.isEmpty()) null else exercise to sets
@@ -200,7 +361,7 @@ internal fun buildFinishModel(
         trend = trend,
         effort = effort,
         recordedEffort = recordedEffort,
-        records = presentation.records,
+        records = recordList.count { !it.isInitialReference },
         record = record,
         recordList = recordList,
         cardio = cardio,
