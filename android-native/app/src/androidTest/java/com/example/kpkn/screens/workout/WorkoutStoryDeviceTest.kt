@@ -21,10 +21,14 @@ class WorkoutStoryDeviceTest {
         sets=listOf(CompletedSet("set",weight=weight,reps=reps,rir=2)))
     private fun log(id:String,date:String,exercise:CompletedExercise)=WorkoutLog(id,"program","session","Pierna",date,40,listOf(exercise))
     private fun data(photos:List<StoryPhoto> = emptyList()):WorkoutStoryData {
-        val previous=log("previous","2026-09-15T12:00:00Z",exercise(80.0))
+        // Two prior points ensure the story has a real historical delta for its improvements toggle.
+        val previous=listOf(
+            log("previous-older","2026-08-15T12:00:00Z",exercise(70.0)),
+            log("previous","2026-09-15T12:00:00Z",exercise(80.0)),
+        )
         return WorkoutStoryData("Pierna",FinishPresentationContext(program=Program("program","Base",coverImage="gradient://forest"),
             weekNumber=3,photos=photos,today=LocalDate.of(2026,10,16)),40,4080.0,8,2.0,"Alta",
-            buildFinishLiftProgress(listOf(exercise()),listOf(previous)))
+            buildFinishLiftProgress(listOf(exercise()),previous,LocalDate.of(2026,10,16)),sessionRpe=8.0)
     }
 
     @Test fun averageRirKeepsHighReserveZeroRpeAndActualModeWithoutAssumingPlannedFailure() {
@@ -45,13 +49,15 @@ class WorkoutStoryDeviceTest {
             CompletedSet("nan",actualIntensityMode=IntensityMode.RIR,actualIntensityValue=Double.NaN)))
     }
 
-    @Test fun progressUsesActualLoadAndSameConfigurationRatherThanEstimated1RmGain() {
+    @Test fun progressDoesNotTreatMoreRepsAtTheSameLoadAsAComparableKgGain() {
         val sameLoadMoreReps=exercise(80.0,10)
         val previous=log("previous","2026-09-15T12:00:00Z",exercise(80.0,5))
         val otherVariant=log("smith","2026-10-15T12:00:00Z",exercise(130.0,5,"smith"))
         val result=buildFinishLiftProgress(listOf(sameLoadMoreReps),listOf(previous,otherVariant)).single()
-        assertEquals(0.0,result.deltaKg!!,0.001)
-        assertEquals("=",finishDeltaLabel(result.deltaKg))
+        assertTrue(com.example.kpkn.domain.performance.StrengthModel.estimate1RM(sameLoadMoreReps.sets.single()) >
+            com.example.kpkn.domain.performance.StrengthModel.estimate1RM(previous.completedExercises.single().sets.single()))
+        assertNull(result.deltaKg)
+        assertEquals("Sin registro previo",finishDeltaLabel(result.deltaKg))
         assertEquals(1,result.history.size)
         assertFalse(result.isImproved)
     }
@@ -113,7 +119,7 @@ class WorkoutStoryDeviceTest {
         assertTrue(empty.presentation.photos.isEmpty())
     }
 
-    @Test fun mosaicRendersOneToFourActualPhotosWithoutRepeatingOrInventingTiles()=runBlocking {
+    @Test fun photoTemplateUsesItsFirstActualPhotoFullScreenForSessionsWithOneToFourPhotos()=runBlocking {
         val colors=listOf(Color.rgb(155,50,40),Color.rgb(40,85,155),Color.rgb(40,140,75),Color.rgb(125,55,150))
         val files=colors.mapIndexed { index,color ->
             File(context.cacheDir,"lv13-real-grid-fixture-$index.png").also { file ->
@@ -121,24 +127,24 @@ class WorkoutStoryDeviceTest {
                 try{file.outputStream().use{image.compress(Bitmap.CompressFormat.PNG,100,it)}}finally{image.recycle()}
             }
         }
+        var singlePhotoReference:Bitmap?=null
         try {
             for(count in 1..4){
                 val photos=files.take(count).mapIndexed{index,file->StoryPhoto(file.absolutePath,"Foto de prueba ${index+1}","Entrada real de fixture")}
                 val bitmap=renderWorkoutStory(context,data(photos),WorkoutStoryOptions(template=WorkoutStoryTemplate.PHOTOS))
                 try {
                     assertEquals(1080,bitmap.width);assertEquals(1920,bitmap.height)
-                    val centers=when(count){
-                        1->listOf(180 to 276)
-                        2->listOf(97 to 276,263 to 276)
-                        3->listOf(97 to 276,263 to 198,263 to 354)
-                        else->listOf(97 to 276,263 to 198,263 to 354,97 to 510)
+                    assertEquals("Fotos usa la primera foto real a pantalla completa",colors.first(),bitmap.getPixel(540,400))
+                    if(count==1){
+                        singlePhotoReference=checkNotNull(bitmap.copy(Bitmap.Config.ARGB_8888,false))
+                    }else{
+                        assertTrue("La plantilla de foto sigue mostrando solo su primera foto de sesión",checkNotNull(singlePhotoReference).sameAs(bitmap))
                     }
-                    centers.forEachIndexed{index,(x,y)->assertEquals("El bloque ${index+1} debe usar su foto real para $count fotos",colors[index],bitmap.getPixel(x*3,y*3))}
                     val output=File(context.getExternalFilesDir(null),"qa-stories").apply{mkdirs()}
-                    File(output,"lv13-demo-mosaic-$count-photos.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+                    File(output,"lv13-demo-photo-template-$count-source-photos.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
                 }finally{bitmap.recycle()}
             }
-        }finally{files.forEach{it.delete()}}
+        }finally{singlePhotoReference?.recycle();files.forEach{it.delete()}}
     }
 
 }

@@ -156,7 +156,7 @@ internal fun WorkoutStorySheet(
                 // Resplandor suave detrás de la vista previa: `inset: 6% 10%`, desenfoque de 26 dp y degradado crema (`lx-V03`, `lx-G02`).
                 Box(Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.88f).kpknFilter(com.example.kpkn.ui.design.depth.KpknFilterPreset.ResplandorDesenfoque)
                     .kpknGradient(com.example.kpkn.ui.design.depth.KpknGradient.ResplandorCrema, androidx.compose.ui.graphics.RectangleShape))
-                Box(Modifier.fillMaxHeight().aspectRatio(9f / 16f, matchHeightConstraintsFirst = true).testTag("story-preview-frame"), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxHeight().widthIn(max = 220.dp).aspectRatio(9f / 16f, matchHeightConstraintsFirst = false).testTag("story-preview-frame"), contentAlignment = Alignment.Center) {
                     val previewShape = RoundedCornerShape(20.dp)
                     Box(
                         Modifier.fillMaxSize().kpknShadow(com.example.kpkn.ui.design.depth.KpknShadow.Historia, previewShape).clip(previewShape).background(Color(0xFF0A0A0A))

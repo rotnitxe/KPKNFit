@@ -47,7 +47,9 @@ class WorkoutStoryPreviewDeviceTest {
         // Simula una decodificación nativa que no coopera con cancelación hasta devolver el bitmap.
         val renderer: suspend (Context,WorkoutStoryData,WorkoutStoryOptions) -> List<Bitmap> = { _,_,options ->
             if(options.template!=WorkoutStoryTemplate.GENERAL) listOf(Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)})
-            else withContext(NonCancellable) { started.add(options);listOf(requests.getValue(options).await()) }
+            // El preview y las miniaturas pueden renderizar la misma plantilla a la vez. Devuelve
+            // una copia por llamada para que reciclar el bitmap de la miniatura no invalide el preview.
+            else withContext(NonCancellable) { started.add(options);listOf(checkNotNull(requests.getValue(options).await().copy(Bitmap.Config.ARGB_8888,false))) }
         }
         val data=WorkoutStoryData("Fixture",FinishPresentationContext(),40,400.0,4,2.0,"Alta",emptyList())
         fun image(color:Int)=Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply { eraseColor(color) }

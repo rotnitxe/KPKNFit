@@ -230,7 +230,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         recordHighlights = recordHighlights,
         exerciseName = lift?.name,
         exerciseE1rm = exerciseValue,
-        exerciseDelta = exerciseDelta,
+        exerciseDelta = exerciseDelta.takeIf { options.improvements },
         exerciseSessions = history.size,
         exercisePoints = exercisePoints,
         bestSet = best?.let(::formatStoryBestSet),

@@ -183,6 +183,26 @@ class WorkoutStoryModelTest {
     }
 
     @Test
+    fun mejorasDesactivadasOcultanElDeltaSinOcultarElValorActualDelEjercicio() {
+        val sentadilla = ejercicio(
+            "s",
+            "Sentadilla trasera",
+            mejorPeso = 135.0,
+            pesoAnterior = 127.5,
+            historial = listOf(punto("2026-10-01", 135.0), punto("2026-10-28", 142.5)),
+        )
+        val data = datos(lifts = listOf(sentadilla))
+
+        val visible = workoutStoryFrom(data, WorkoutStoryOptions())
+        val hidden = workoutStoryFrom(data, WorkoutStoryOptions(improvements = false))
+
+        assertEquals("+7,5 kg", visible.exerciseDelta)
+        assertNull(hidden.exerciseDelta)
+        assertEquals(visible.exerciseE1rm, hidden.exerciseE1rm)
+        assertEquals(visible.exercisePoints, hidden.exercisePoints)
+    }
+
+    @Test
     fun laMejorSerieYSuEsfuerzoSaleDeLaMejorSerieDelEjercicio() {
         val conRir = ejercicio("s", "Sentadilla", mejorPeso = 120.0, pesoAnterior = 115.0, rir = 1)
         val story = workoutStoryFrom(datos(lifts = listOf(conRir)), WorkoutStoryOptions())
