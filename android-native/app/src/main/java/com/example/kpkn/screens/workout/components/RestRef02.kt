@@ -424,8 +424,8 @@ internal fun RestRef02Button(
     onClick: () -> Unit,
     primary: Boolean,
     modifier: Modifier = Modifier,
-    // 39 en el prototipo; 44 de mínimo para la zona táctil (accesibilidad), con el mismo radio.
-    height: Dp = 44.dp,
+    // 39 en el prototipo; 48 dp de mínimo para la zona táctil accesible, con el mismo radio.
+    height: Dp = 48.dp,
     radius: Dp = 14.dp,
     icon: ImageVector? = null,
     tag: String? = null,

@@ -6914,13 +6914,19 @@ class WorkoutViewModel(
         updateUiState { it.copy(sessionNotes = note) }
         sessionNotePersistJob?.cancel()
         if (flush) {
-            persistOngoingState()
+            sessionNotePersistJob = viewModelScope.launch { persistSessionNotesSnapshot() }
             return
         }
         sessionNotePersistJob = viewModelScope.launch {
             delay(450)
-            persistOngoingState()
+            persistSessionNotesSnapshot()
         }
+    }
+
+    private suspend fun persistSessionNotesSnapshot() {
+        // Await the write so a quick close or navigation cannot leave the draft only in UI state.
+        val state = _uiState.value
+        persistOngoingStateAndAwait(state)
     }
 
     fun saveSessionNote(text: String) {

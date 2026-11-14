@@ -1442,6 +1442,8 @@ fun WorkoutScreen(
             plannedSets = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys).total,
             targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
             errorMessage = uiState.finishWarning,
+            openStoryOnStart = storyFromHeader,
+            onNotesCommitted = { viewModel.setSessionNotes(it, flush = true) },
             discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
             presentation = viewModel.finishPresentationContext(),
             checklist = uiState.sessionChecklist,

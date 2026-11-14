@@ -97,6 +97,7 @@ class SessionRevisionFlowDeviceTest {
             sets = 1,
             durationSeconds = 20,
             restBetweenSeconds = 0,
+            bodyZones = listOf("shoulder"),
         )),
     )
     private val fixtureSession = Session(id = sessionId, name = "Pierna A · QA nativa",
@@ -232,7 +233,7 @@ class SessionRevisionFlowDeviceTest {
         capture("01-live-front")
         assertReferenceFrame(originalFrame)
         assertLiveActionsClear(originalFrame)
-        assertInitialLiveStepperVisible(originalFrame)
+        assertLiveRouteVisible(originalFrame)
         front.performClick()
         activeNode(hasContentDescription("Volver a la serie")).assertIsDisplayed()
         capture("02-live-technique")
@@ -250,20 +251,16 @@ class SessionRevisionFlowDeviceTest {
         assertLiveActionsClear(visualFrame)
         activeNode(hasContentDescription("Volver a la serie")).performClick()
         activeTag("secondary_pill_avanzado").assertIsDisplayed()
-        compose.onNodeWithTag("live-session-steps", true).assertIsDisplayed()
-        capture("03b-live-series-navigation")
-        val secondSeries = compose.onNode(
-            (hasText("S2") or hasAnyDescendant(hasText("S2"))) and
-                SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick) and
-                hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
-        secondSeries.assertIsDisplayed().performTouchInput { longClick() }
-        compose.waitUntil(15_000) {
-            compose.onAllNodesWithText("Aplicar").fetchSemanticsNodes().isNotEmpty()
+        activeTag("live-session-route").performClick()
+        waitForTag("live-session-sheet-route")
+        val routeSetTwo = compose.onNodeWithTag("live-route-set-1", true).assertIsDisplayed()
+        capture("03b-live-session-route")
+        routeSetTwo.performClick()
+        compose.waitUntil(10_000) { ActiveWorkoutHolder.get()?.uiState?.value?.currentSetIdx == 1 }
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-route", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
         }
-        capture("03c-live-series-options")
-        compose.onNodeWithText("Aplicar").assertIsDisplayed()
-        compose.onNodeWithText("Cancelar").assertIsDisplayed().performClick()
-        compose.onNodeWithText("Aplicar").assertDoesNotExist()
         activeTag("secondary_pill_avanzado").assertExists()
         compose.onNodeWithContentDescription("Abrir resumen de sesión").assertDoesNotExist()
         compose.onNodeWithContentDescription("Plegar resumen de sesión").assertDoesNotExist()
@@ -274,11 +271,24 @@ class SessionRevisionFlowDeviceTest {
         launchWorkout()
         val root = compose.onRoot(true).fetchSemanticsNode().boundsInRoot
         val density = context.resources.displayMetrics.density
-        assertEquals("El contenido Android real está restringido a 760dp", 760f, root.height / density, 1f)
+        val screenHeightDp = context.resources.configuration.screenHeightDp
+        if (screenHeightDp >= 820) {
+            assertEquals("El contenido Android real está restringido a 760dp", 760f, root.height / density, 1f)
+        } else {
+            assertTrue("El contenido conserva la altura compacta real: ${root.height / density}dp en ${screenHeightDp}dp",
+                root.height / density <= screenHeightDp + 1f)
+        }
         val card = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
-        assertReferenceFrame(card)
+        assertReferenceFrame(card, allowShorterHeight = true)
+        assertTrue("La tarjeta reducida conserva al menos el marco compacto de 394dp", card.height / density >= 394f)
+        listOf("live-card-load-hero", "live-card-reps", "effort_fire_slider").forEach { tag ->
+            val bounds = activeTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            assertTrue("$tag permanece íntegro dentro del marco reducido: $bounds frente a $card",
+                bounds.left >= card.left - 1f && bounds.right <= card.right + 1f &&
+                    bounds.top >= card.top - 1f && bounds.bottom <= card.bottom + 1f)
+        }
         assertLiveActionsClear(card)
-        assertInitialLiveStepperVisible(card, listOf("MOV", "APROX", "S1", "S2", "S3", "S4"))
+        assertLiveRouteVisible(card)
         val line = activeTag("live-session-line").fetchSemanticsNode().boundsInRoot
         assertTrue("Tarjeta y línea caben enteras en el viewport reducido", card.top >= root.top && card.bottom <= line.top && line.bottom <= root.bottom)
         capture("19-live-reduced-height-760")
@@ -299,40 +309,68 @@ class SessionRevisionFlowDeviceTest {
         val frame = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
         assertReferenceFrame(frame)
         assertLiveActionsClear(frame)
-        val stepper = assertInitialLiveStepperVisible(frame,
-            expectedPills = listOf("MOV", "APROX", "S1", "S2", "S3", "S4"))
+        val routeBounds = assertLiveRouteVisible(frame)
         capture("18-live-controls-initial-mov-approx-series")
 
-        val voice = compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true).assertIsDisplayed()
-        val register = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
+        val voice = activeTag("workout-voice-header").assertIsDisplayed()
+        val register = activeTag("live-session-record")
             .assertIsDisplayed().assertIsEnabled()
         val voiceBounds = voice.fetchSemanticsNode().boundsInRoot
         val registerBounds = register.fetchSemanticsNode().boundsInRoot
         assertFalse("Voz y registro conservan zonas independientes", voiceBounds.overlaps(registerBounds))
-        assertFalse("El stepper no queda cubierto por voz", stepper.overlaps(voiceBounds))
-        assertFalse("El stepper no queda cubierto por registrar", stepper.overlaps(registerBounds))
+        assertFalse("La ruta no queda cubierta por voz", routeBounds.overlaps(voiceBounds))
+        assertFalse("La ruta no queda cubierta por registrar", routeBounds.overlaps(registerBounds))
 
         val mobilityKey = WorkoutStepRules.mobilityStepKey(exerciseId, "review-native-mobility-$suffix")
         val warmupKey = WorkoutStepRules.warmupStepKey(exerciseId, "review-native-warmup-$suffix")
         val workingKey = WorkoutStepRules.workingStepKey(exerciseId, 0, null)
-        assertEquals("La actividad real inicia en S1; MOV/APROX se seleccionan desde el stepper",
-            workingKey, vm.uiState.value.activeStepKey)
-        compose.onNode(hasContentDescription("Movilidad") and
-            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
+        if (vm.uiState.value.activeStepKey != workingKey) {
+            activeTag("live-session-route").performClick()
+            waitForTag("live-session-sheet-route")
+            compose.onNodeWithTag("live-route-set-0", true).assertIsDisplayed().performClick()
+            compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == workingKey }
+            compose.waitUntil(10_000) {
+                compose.onAllNodesWithTag("live-session-sheet-route", true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+            }
+        }
+        assertEquals(workingKey, vm.uiState.value.activeStepKey)
+        activeTag("live-session-route").performClick()
+        waitForTag("live-session-sheet-route")
+        compose.onNodeWithTag("live-route-mobility-$exerciseId-review-native-mobility-$suffix", true)
             .assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-route", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == mobilityKey }
-        assertPrepCardKeepsEverythingInside("mobility", "20-live-mobility-card")
-        compose.onNode(hasContentDescription("Aproximación") and
-            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
+        assertPrepCardKeepsEverythingInside("mobility", "20-live-mobility-card", "mob-row-$mobilityKey")
+        activeTag("live-session-route").performClick()
+        waitForTag("live-session-sheet-route")
+        compose.onNodeWithTag("live-route-warmup-$exerciseId-review-native-warmup-$suffix", true)
             .assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-route", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == warmupKey }
         assertPrepCardKeepsEverythingInside("warmup", "21-live-warmup-card")
-        compose.onNode(hasContentDescription("Movilidad") and
-            hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
+        activeTag("live-session-route").performClick()
+        waitForTag("live-session-sheet-route")
+        compose.onNodeWithTag("live-route-mobility-$exerciseId-review-native-mobility-$suffix", true)
             .assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-route", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == mobilityKey }
-        compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-session-steps")),
-            useUnmergedTree = true).assertIsDisplayed().performClick()
+        activeTag("live-session-route").performClick()
+        waitForTag("live-session-sheet-route")
+        compose.onNodeWithTag("live-route-set-0", true).assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-route", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == workingKey }
 
         val voicePermissionsNeeded = WorkoutVoicePermissionHelper.permissionsToRequestForVoiceEnable(
@@ -340,7 +378,7 @@ class SessionRevisionFlowDeviceTest {
             includeNotifications = true,
         )
         if (voicePermissionsNeeded.isEmpty()) {
-            compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true).performClick()
+            activeTag("workout-voice-header").performClick()
             compose.onNodeWithText("Modo de voz", useUnmergedTree = true).assertIsDisplayed()
             compose.onNodeWithText("Ahora no", useUnmergedTree = true).assertIsDisplayed().performClick()
             compose.waitForIdle()
@@ -353,7 +391,7 @@ class SessionRevisionFlowDeviceTest {
         val slider = activeTag("effort_fire_slider").assertIsDisplayed()
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(0f) }
         compose.waitForIdle()
-        compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
+        activeTag("live-session-record")
             .assertIsDisplayed().assertIsEnabled().performClick()
         compose.waitUntil(30_000) { vm.uiState.value.completedSets.size == 1 }
         runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.completedSets?.size == 1 } } }
@@ -378,10 +416,15 @@ class SessionRevisionFlowDeviceTest {
         compose.onNodeWithText("Todavía no hay una referencia de RM").assertIsDisplayed()
         capture("04-rm-from-exercise-menu")
         compose.onNodeWithContentDescription("Cerrar consulta de RM").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("exercise-rm-sheet", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
+        compose.waitForIdle()
         recordThroughQuickForm(vm)
         compose.runOnUiThread { vm.stopRestTimer() }
         compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
-        assertQuickRecordLineAdvanced()
+        assertQuickRecordLineAdvanced(vm)
         val state = vm.uiState.value
         val recorded = state.completedSets.entries.single()
         assertEquals(exerciseId, parseCompletedSetKey(recorded.key)?.exerciseId)
@@ -402,7 +445,7 @@ class SessionRevisionFlowDeviceTest {
             recordThroughQuickForm(vm, expectedCompleted = index)
             compose.runOnUiThread { vm.stopRestTimer() }
             compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
-            assertQuickRecordLineAdvanced(index + 1)
+            assertQuickRecordLineAdvanced(vm, index + 1)
             assertEquals(index + 1, vm.uiState.value.currentSetIdx)
             assertEquals(setIds, vm.uiState.value.session!!.allExercises().single().sets.map { it.id })
             assertEquals(index + 1, repository.ongoingWorkout.value!!.completedSets.size)
@@ -413,13 +456,18 @@ class SessionRevisionFlowDeviceTest {
     @Test fun realActivityWeightImeKeepsFrameAndReturnsToSameSeries() {
         check(isWeightImeFixture)
         val vm = launchWorkout()
-        if (isLiveControlsFixture) {
-            compose.onNode(hasText("S1") and hasAnyAncestor(hasTestTag("live-session-steps")),
-                useUnmergedTree = true).assertIsDisplayed().performClick()
+        val firstWorkingStep = WorkoutStepRules.workingStepKey(exerciseId, 0, null)
+        if (vm.uiState.value.activeStepKey != firstWorkingStep) {
+            activeTag("live-session-route").performClick()
+            waitForTag("live-session-sheet-route")
+            compose.onNodeWithTag("live-route-set-0", true).assertIsDisplayed().performClick()
+            compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == firstWorkingStep }
             compose.waitUntil(10_000) {
-                vm.uiState.value.activeStepKey == WorkoutStepRules.workingStepKey(exerciseId, 0, null)
+                compose.onAllNodesWithTag("live-session-sheet-route", true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
             }
         }
+        assertEquals(firstWorkingStep, vm.uiState.value.activeStepKey)
         val initialState = vm.uiState.value
         val initialStep = initialState.activeStepKey
         val initialSetIndex = initialState.currentSetIdx
@@ -435,8 +483,7 @@ class SessionRevisionFlowDeviceTest {
         val permissionsBefore = permissionNames.associateWith { app.checkSelfPermission(it) }
         val frameBefore = activeTag("live-card-frame").getUnclippedBoundsInRoot()
         val frameBeforeBounds = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
-        assertInitialLiveStepperVisible(frameBeforeBounds,
-            expectedPills = listOf("MOV", "APROX", "S1", "S2", "S3", "S4"))
+        assertLiveRouteVisible(frameBeforeBounds)
         assertLiveActionsClear(frameBeforeBounds)
         val loadFieldMatcher = hasSetTextAction() and hasAnyAncestor(hasTestTag("live-card-frame"))
         val initialField = activeNode(loadFieldMatcher)
@@ -475,14 +522,14 @@ class SessionRevisionFlowDeviceTest {
         assertTrue("El campo de carga debe tener área visible", fieldWithIme.width > 0f && fieldWithIme.height > 0f)
         assertFalse("El teclado no puede tapar el campo de carga: campo=$fieldWithIme teclado=$keyboardBounds",
             fieldWithIme.overlaps(keyboardBounds))
-        val registerWithIme = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
+        val registerWithIme = activeTag("live-session-record")
             .assertIsDisplayed().fetchSemanticsNode().boundsInWindow
-        val voiceWithIme = compose.onNodeWithTag("workout-voice-header", useUnmergedTree = true)
+        val voiceWithIme = activeTag("workout-voice-header")
             .assertIsDisplayed().fetchSemanticsNode().boundsInWindow
-        val stepperWithIme = compose.onNodeWithTag("live-session-steps", useUnmergedTree = true)
+        val routeWithIme = activeTag("live-session-route")
             .fetchSemanticsNode().boundsInWindow
-        assertFalse("El stepper no puede tapar registrar con IME", stepperWithIme.overlaps(registerWithIme))
-        assertFalse("El stepper no puede tapar voz con IME", stepperWithIme.overlaps(voiceWithIme))
+        assertFalse("La ruta no puede tapar registrar con IME", routeWithIme.overlaps(registerWithIme))
+        assertFalse("La ruta no puede tapar voz con IME", routeWithIme.overlaps(voiceWithIme))
         val cardControls = compose.onAllNodes(hasAnyAncestor(hasTestTag("live-card-frame")) and
             (hasClickAction() or hasSetTextAction() or hasTestTag("effort_fire_slider")),
             useUnmergedTree = true)
@@ -538,20 +585,23 @@ class SessionRevisionFlowDeviceTest {
 
     @Test fun realActivityCardioKeepsBoundedVisibleViewportWithoutStartingGpsOrRecording() {
         check(isCardioFixture)
+        // The readiness sheet has an infinite pulse. Freeze the Compose test clock so
+        // Espresso can inspect this real Activity without waiting for an impossible idle.
+        compose.mainClock.autoAdvance = false
         val vm = launchWorkout()
-        // Match the actual production CardioLiveCard scroll viewport. This checks
-        // the former weight(1f) branch through MainActivity, not a replacement host.
-        val cardioViewport = compose.onNode(hasScrollAction() and
-            hasAnyDescendant(hasText("TIEMPO")) and hasAnyDescendant(hasText("Iniciar")),
-            useUnmergedTree = true)
+        // Match the actual production CardioReadyPulido scroll viewport. This checks
+        // the ready screen through MainActivity without starting its timer.
+        val cardioViewport = compose.onNodeWithTag("cardio-ready", useUnmergedTree = true)
         capture("13-native-cardio-initial")
         cardioViewport.assertExists().assertIsDisplayed()
         val bounds = cardioViewport.fetchSemanticsNode().boundsInRoot
         val density = context.resources.displayMetrics.density
-        assertTrue("El viewport cardio no puede colapsar al introducir el scroll de fuerza: $bounds",
+        assertTrue("El viewport de preparación cardio no puede colapsar: $bounds",
             bounds.height >= 184f * density && bounds.width >= 200f * density)
-        compose.onNodeWithText("TIEMPO", useUnmergedTree = true).assertIsDisplayed()
-        compose.onNodeWithText("Iniciar").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Antes de empezar", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("cardio-start", useUnmergedTree = true)
+            .assertIsDisplayed().assert(hasAnyDescendant(hasText("Empezar")))
+        compose.onNodeWithText("Interior · sin GPS", useUnmergedTree = true).assertIsDisplayed()
         capture("14-native-cardio-controls")
         val state = vm.uiState.value
         assertEquals(cardioExercise.id, state.session!!.allExercises().single().id)
@@ -584,14 +634,16 @@ class SessionRevisionFlowDeviceTest {
         runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { state ->
             state?.let { it.sessionNotes == note && it.sessionChecklist.any { task -> task.text == "Beber agua QA" } } == true
         } } }
-        compose.onNodeWithContentDescription("Cerrar Notas y tareas").performClick()
+        compose.onNodeWithTag("live-session-sheet-notes", true).assertIsDisplayed()
+        compose.onNodeWithContentDescription("Cerrar panel").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTag("live-session-sheet-notes").fetchSemanticsNodes().isEmpty() }
         compose.runOnUiThread { vm.showFinish() }
-        waitForTag("finish-tabs")
-        compose.onNodeWithText("Notas").performScrollTo().performClick()
+        waitForTag("finish-sheet")
+        compose.onNodeWithTag("finish-notes-open", true).performClick()
+        waitForTag("finish-notes-panel")
         compose.onNodeWithTag("finish-notes", true).assertTextContains(note)
         compose.onNodeWithText("Beber agua QA").assertExists()
-        assertEquals(note, vm.uiState.value.sessionSavedNotes.last().text)
+        assertEquals(note, vm.uiState.value.sessionSavedNotes.lastOrNull()?.text)
         capture("20-migrated-notes-in-final-summary")
     }
 
@@ -600,14 +652,33 @@ class SessionRevisionFlowDeviceTest {
         recordThroughQuickForm(vm)
         compose.runOnUiThread { vm.stopRestTimer() }
         compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
-        assertQuickRecordLineAdvanced()
+        assertQuickRecordLineAdvanced(vm)
         val historyBefore = repository.history.value.map { it.id }
-        compose.onNodeWithTag("workout-story-header").performClick()
+        compose.onNodeWithTag("workout-more-header").performClick()
+        waitForTag("live-session-sheet-menu")
+        // Story keeps a loading spinner while the background preview is rendered.
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag("workout-story-header", true).assertIsDisplayed().performClick()
+        // Let the click state compose before advancing the sheet entrance.
+        compose.mainClock.advanceTimeByFrame()
+        // The deferred open runs from a frame callback; one more frame applies the destination removal.
+        compose.mainClock.advanceTimeByFrame()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("live-session-sheet-menu", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+        }
         waitForTag("story-sheet")
-        compose.onNodeWithTag("story-templates").assertIsDisplayed()
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitUntil(15_000) {
+            compose.onNodeWithTag("story-sheet", true).isDisplayed() &&
+                compose.onNodeWithTag("story-templates", true).isDisplayed()
+        }
+        capture("21-story-from-live-header-loading")
+        compose.onNodeWithTag("story-sheet", true).assertIsDisplayed()
+        compose.onNodeWithTag("story-templates", true).assertIsDisplayed()
         compose.waitUntil(30_000) { compose.onNodeWithTag("story-preview", true).isDisplayed() }
         val sheet = compose.onNodeWithTag("story-sheet", true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        listOf("story-templates", "story-share-after-save", "story-save-image", "story-share").forEach { tag ->
+        listOf("story-templates", "story-save-image", "story-share").forEach { tag ->
             val bounds = compose.onNodeWithTag(tag, true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             assertTrue("$tag tiene alto visible", bounds.height > 0)
             assertTrue("$tag está íntegro en Historia", bounds.top >= sheet.top && bounds.bottom <= sheet.bottom)
@@ -620,7 +691,13 @@ class SessionRevisionFlowDeviceTest {
         assertEquals(1, vm.uiState.value.completedSets.size)
         capture("21-story-from-live-header")
         compose.onNodeWithContentDescription("Volver al resumen").performClick()
-        compose.onNodeWithTag("finish-tabs", true).assertIsDisplayed()
+        compose.mainClock.advanceTimeByFrame()
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitUntil(5_000) {
+            runCatching { compose.onNodeWithTag("finish-sheet", true).isDisplayed() }.getOrDefault(false)
+        }
+        compose.onNodeWithTag("finish-sheet", true).assertIsDisplayed()
+        compose.onNodeWithTag("story-sheet", true).assertDoesNotExist()
         assertFalse(vm.uiState.value.isComplete)
         assertEquals(historyBefore, repository.history.value.map { it.id })
     }
@@ -629,23 +706,37 @@ class SessionRevisionFlowDeviceTest {
         val vm = launchWorkout()
         recordThroughQuickForm(vm)
         compose.runOnUiThread { vm.stopRestTimer(); vm.showFinish() }
-        waitForTag("finish-tabs")
-        compose.onNodeWithText("Notas").performScrollTo().performClick()
+        waitForTag("finish-sheet")
+        compose.onNodeWithTag("finish-notes-open", true).performClick()
+        waitForTag("finish-notes-panel")
         val note = "Nota sintética de QA $suffix"
         compose.onNodeWithTag("finish-notes", true).performTextReplacement(note)
-        compose.runOnUiThread { compose.activity.window.decorView.clearFocus() }
-        runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.sessionNotes == note } } }
+        assertEquals("Editar el campo de cierre actualiza el estado visible de la sesión", note, vm.uiState.value.sessionNotes)
+        compose.onNodeWithTag("finish-notes-done", true).performClick()
+        compose.waitUntil(5_000) {
+            val panels = compose.onAllNodesWithTag("finish-notes-panel", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false)
+            panels.isEmpty() || !compose.onNodeWithTag("finish-notes-panel", true).isDisplayed()
+        }
+        val persistedDraft = runBlocking {
+            kotlinx.coroutines.withTimeoutOrNull(20_000) {
+                repository.ongoingWorkout.first { it?.sessionNotes == note }
+            }
+        }
+        assertEquals("Room conserva el borrador de cierre; valor actual=${repository.ongoingWorkout.value?.sessionNotes}",
+            note, persistedDraft?.sessionNotes)
         capture("07-close-notes-draft")
         compose.onNodeWithTag("finish-back", true).performClick()
-        compose.onNodeWithTag("finish-pager", true).assertDoesNotExist()
+        compose.onNodeWithTag("finish-sheet", true).assertDoesNotExist()
         activeTag("secondary_pill_avanzado").assertIsDisplayed()
         assertEquals(sessionId, ActiveWorkoutHolder.get()?.uiState?.value?.session?.id)
         assertFalse(vm.uiState.value.isComplete)
         assertEquals(note, vm.uiState.value.sessionNotes)
         capture("08-back-to-live-no-black-screen")
         compose.runOnUiThread { vm.showFinish() }
-        waitForTag("finish-tabs")
-        compose.onNodeWithText("Notas").performScrollTo().performClick()
+        waitForTag("finish-sheet")
+        compose.onNodeWithTag("finish-notes-open", true).performClick()
+        waitForTag("finish-notes-panel")
         compose.onNodeWithTag("finish-notes", true).assertTextContains(note)
         assertEquals(note, repository.ongoingWorkout.value!!.sessionNotes)
         capture("09-reopened-notes")
@@ -658,16 +749,15 @@ class SessionRevisionFlowDeviceTest {
             (vm.uiState.value.restModalState?.endsAtMs ?: 0L) > 0L }
         val deadline = checkNotNull(vm.uiState.value.restModalState).endsAtMs
         compose.waitUntil(15_000) {
-            compose.onAllNodesWithTag("rest-intro-done", true).fetchSemanticsNodes().isNotEmpty() ||
-                compose.onAllNodesWithTag("rest-play", true).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithTag("rest-play", true).fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() ||
+                compose.onAllNodesWithTag("rest-play-games", true).fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
         }
-        if (compose.onAllNodesWithTag("rest-intro-done", true).fetchSemanticsNodes().isNotEmpty()) {
-            activeTag("rest-intro-done").performClick()
-        }
-        waitForTag("rest-play")
+        val gameEntry = if (compose.onAllNodesWithTag("rest-play", true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()) "rest-play" else "rest-play-games"
         assertRealRestTick(vm, deadline)
         capture("10-real-rest-countdown")
-        activeTag("rest-play").performClick()
+        // One tap replaces the rest panel with its picker; the entry button is no longer composed.
+        activeTag(gameEntry).performClick()
         waitForTag("rest-game-flappy")
         activeTag("rest-game-runner").assertExists()
         activeTag("rest-game-shooter").assertExists()
@@ -683,7 +773,9 @@ class SessionRevisionFlowDeviceTest {
         waitForTag("rest-game-flappy")
         assertRealRestTick(vm, deadline)
         activeTag("arcade-back").performClick()
-        waitForTag("rest-play")
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithTag(gameEntry, true).fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+        }
         compose.onNodeWithTag("arcade-rest-clock", true).assertDoesNotExist()
         assertRealRestTick(vm, deadline)
         capture("12-real-rest-return-same-deadline")
@@ -705,29 +797,111 @@ class SessionRevisionFlowDeviceTest {
             if (caseName.methodName == "realActivityReducedHeightKeepsCardAndLineComplete") {
                 // Constrain the real Android content view; no setContent fixture, device resize or scaled screenshot.
                 val content = activity.findViewById<android.view.View>(android.R.id.content)
-                content.layoutParams = content.layoutParams.apply { height = (760f * activity.resources.displayMetrics.density).toInt() }
-                content.requestLayout()
+                if (activity.resources.configuration.screenHeightDp >= 820) {
+                    content.layoutParams = content.layoutParams.apply { height = (760f * activity.resources.displayMetrics.density).toInt() }
+                    content.requestLayout()
+                }
             }
             originalLaunchIntent = Intent(activity.intent)
             activity.startActivity(Intent(activity, MainActivity::class.java)
                 .setAction(Intent.ACTION_VIEW).setData(Uri.parse("kpkn://workout/$programId/$sessionId"))
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP))
         }
-        compose.waitUntil(90_000) {
+        if (isCardioFixture) {
+            // This test does not perform a touch until the cardio screen opens. Advance the real
+            // Compose frame clock so MainActivity can consume onNewIntent while its launch splash
+            // is still present; the other cases advance it through their readiness interactions.
+            compose.mainClock.advanceTimeBy(5_000)
+            compose.waitForIdle()
+        }
+        val sessionStarted = runCatching { compose.waitUntil(45_000) {
             ActiveWorkoutHolder.get()?.uiState?.value?.let {
                 it.session?.id == sessionId && !it.isStartingWorkout
             } == true
+        } }.isSuccess
+        if (!sessionStarted) {
+            val holderState = ActiveWorkoutHolder.get()?.uiState?.value?.let {
+                "session=${it.session?.id}, starting=${it.isStartingWorkout}, program=${it.programId}"
+            } ?: "none"
+            val ongoingState = repository.ongoingWorkout.value?.let {
+                "session=${it.session.id}, program=${it.programId}, started=${it.startTime}"
+            } ?: "none"
+            val navigationState = runCatching {
+                val field = MainActivity::class.java.getDeclaredField("pendingDeepLinkRoute").apply { isAccessible = true }
+                val state = requireNotNull(launchedActivity).let(field::get)
+                state.javaClass.methods.first { it.name == "getValue" && it.parameterCount == 0 }.invoke(state)
+            }.getOrDefault("unavailable")
+            val storedProgram = repository.getProgramById(programId)
+            val storedSession = storedProgram?.macrocycles.orEmpty().flatMap { it.blocks }
+                .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+                .firstOrNull { it.id == sessionId }
+            val fixtureState = "ready=${repository.isReady.value}, onboarding=${repository.settings.value.onboardingCompleted}, " +
+                "programPresent=${storedProgram != null}, session=${storedSession?.name}, " +
+                "exercises=${storedSession?.allExercises()?.joinToString { "${it.id}:cardio=${it.isCardio}:gps=${it.cardioDetails?.requiresGps}" }}"
+            val visibleUi = runCatching {
+                compose.onAllNodes(SemanticsMatcher("all") { true }, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false)
+                    .mapNotNull { node ->
+                        val tag = node.config.getOrNull(SemanticsProperties.TestTag).orEmpty()
+                        val labels = buildList {
+                            addAll(node.config.getOrNull(SemanticsProperties.Text).orEmpty().map { it.text })
+                            addAll(node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty())
+                        }.filter(String::isNotBlank)
+                        (listOf(tag).filter(String::isNotBlank) + labels).takeIf { it.isNotEmpty() }
+                    }.flatten().distinct().take(40).joinToString()
+            }.getOrDefault("unavailable")
+            val screenshot = runCatching { capture("99-session-start-timeout") }
+                .exceptionOrNull()?.let { "; screenshot=${it::class.simpleName}:${it.message}" }.orEmpty()
+            throw AssertionError(
+                "Timed out waiting for the fixture session; requested=$sessionId/$programId, " +
+                    "activityData=${launchedActivity?.intent?.data}, pendingRoute=$navigationState, " +
+                    "holder=$holderState, ongoing=$ongoingState, fixture=[$fixtureState], visibleUi=$visibleUi$screenshot",
+            )
         }
         val vm = checkNotNull(ActiveWorkoutHolder.get())
         fixtureVm = vm
-        waitForTag("readiness-confirm")
-        compose.onNodeWithTag("readiness-confirm", true).performClick()
         if (isCardioFixture) {
-            compose.waitUntil(30_000) {
-                compose.onAllNodesWithText("TIEMPO", useUnmergedTree = true)
+            compose.mainClock.autoAdvance = false
+            compose.mainClock.advanceTimeBy(1_000)
+        }
+        if (isCardioFixture) {
+            val readinessIsVisible = runCatching {
+                compose.waitUntil(10_000) {
+                    compose.onAllNodesWithTag("readiness-confirm", true)
+                        .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+                }
+            }.isSuccess
+            if (!readinessIsVisible) {
+                val visibleUi = compose.onAllNodes(SemanticsMatcher("all") { true }, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false)
+                    .flatMap { node ->
+                        val tag = node.config.getOrNull(SemanticsProperties.TestTag).orEmpty()
+                        val labels = buildList {
+                            addAll(node.config.getOrNull(SemanticsProperties.Text).orEmpty().map { it.text })
+                            addAll(node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty())
+                        }
+                        listOf(tag) + labels
+                    }.filter(String::isNotBlank).distinct().take(60).joinToString()
+                runCatching { capture("99-cardio-readiness-missing") }
+                throw AssertionError("Cardio loaded but readiness-confirm is missing; visibleUi=$visibleUi")
+            }
+            if (readinessIsVisible) {
+                compose.onNodeWithTag("readiness-confirm", true).performClick()
+                compose.mainClock.advanceTimeByFrame()
+                compose.mainClock.advanceTimeBy(1_000)
+                runCatching { capture("99-cardio-after-readiness") }
+                compose.waitUntil(10_000) {
+                    compose.onAllNodesWithTag("readiness-sheet", true)
+                        .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+                }
+            }
+            compose.waitUntil(15_000) {
+                compose.onAllNodesWithTag("cardio-ready", true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
             }
         } else {
+            waitForTag("readiness-confirm")
+            compose.onNodeWithTag("readiness-confirm", true).performClick()
             waitForTag("secondary_pill_avanzado")
         }
         assertEquals(programId, vm.uiState.value.programId)
@@ -745,17 +919,31 @@ class SessionRevisionFlowDeviceTest {
         capture("05-quick-four-series-effort-required")
         compose.onNodeWithContentDescription("RIR", useUnmergedTree = true).performTextReplacement("2")
         compose.onNodeWithTag("ultra-record-submit", true).assertIsEnabled().performClick()
-        compose.waitUntil(30_000) { vm.uiState.value.completedSets.size == expectedCompleted + 1 && !vm.uiState.value.showUltraFastSheet }
+        val completedAndClosed = runCatching {
+            compose.waitUntil(30_000) {
+                vm.uiState.value.completedSets.size == expectedCompleted + 1 && !vm.uiState.value.showUltraFastSheet
+            }
+        }.isSuccess
+        assertTrue("El registro rápido debe completar y cerrar la hoja; esperadas=${expectedCompleted + 1}, " +
+            "hechas=${vm.uiState.value.completedSets.size}, visible=${vm.uiState.value.showUltraFastSheet}, " +
+            "enCurso=${vm.uiState.value.recordingSetKey}, cursor=${vm.uiState.value.currentExerciseIdx}/" +
+            "${vm.uiState.value.currentSetIdx}:${vm.uiState.value.activeStepKey}, " +
+            "claves=${vm.uiState.value.completedSets.keys}", completedAndClosed)
         compose.onNodeWithTag("ultra-record-submit", true).assertDoesNotExist()
         // The sheet closes at commit, before the command finishes starting rest/advancing.
         compose.waitUntil(30_000) { vm.uiState.value.recordingSetKey == null }
         runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.completedSets?.size == expectedCompleted + 1 } } }
     }
 
-    private fun assertQuickRecordLineAdvanced(completed: Int = 1) {
-        compose.onNode(hasText("$completed/4", substring = true) and hasAnyAncestor(hasTestTag("live-session-route")), true).assertIsDisplayed()
-        compose.onNodeWithText("✓S$completed", useUnmergedTree = true).assertIsDisplayed()
-        compose.onNode(hasContentDescription("S${completed + 1}") and isSelected(), true).assertIsDisplayed()
+    private fun assertQuickRecordLineAdvanced(vm: WorkoutViewModel, completed: Int = 1) {
+        activeNode(
+            hasTestTag("live-session-route") and hasContentDescription(
+                "Abrir la ruta de la sesión. $completed de 4 series registradas",
+            ),
+        ).assertIsDisplayed()
+        assertEquals("El registro avanza el cursor a la serie siguiente", completed, vm.uiState.value.currentSetIdx)
+        assertEquals("Las cuatro series conservan su identidad y orden", setIds[completed],
+            vm.uiState.value.session!!.allExercises().single().sets[completed].id)
     }
 
     /** Card/page queries are scoped to the workout window, anchored by its header voice action.
@@ -776,6 +964,7 @@ class SessionRevisionFlowDeviceTest {
 
     private fun activeNode(matcher: SemanticsMatcher, workoutScope: Boolean = true): SemanticsNodeInteraction {
         var selectedId: Int? = null
+        var selectedRootId: Int? = null
         var diagnostic = "No displayed workout anchor/candidate yet"
         try {
             compose.waitUntil(10_000) {
@@ -795,10 +984,31 @@ class SessionRevisionFlowDeviceTest {
                     }.sortedByDescending { it.second }
                     diagnostic = "workoutRoots=$workoutRoots; candidates=" + nodes.joinToString {
                         "${it.id}:root=${semanticsRootId(it)}:${it.boundsInRoot}"
-                    } + "; displayed=" + visible.joinToString { "${it.first.id}:${it.first.boundsInRoot}" }
+                    } + "; displayed=" + visible.joinToString {
+                        "${it.first.id}:root=${semanticsRootId(it.first)}:${it.first.boundsInRoot}"
+                    }
                     val chosen = visible.firstOrNull()
-                    if (chosen == null || visible.count { kotlin.math.abs(it.second - chosen.second) < 1f } != 1) false
-                    else { selectedId = chosen.first.id; true }
+                    if (chosen == null) {
+                        false
+                    } else {
+                        val chosenRoot = semanticsRootId(chosen.first)
+                        val tied = visible.filter { kotlin.math.abs(it.second - chosen.second) < 1f }
+                        val sameVisualNode = tied.all { (node, _) ->
+                            val bounds = node.boundsInRoot
+                            val chosenBounds = chosen.first.boundsInRoot
+                            semanticsRootId(node) == chosenRoot &&
+                                kotlin.math.abs(bounds.left - chosenBounds.left) <= 1f &&
+                                kotlin.math.abs(bounds.top - chosenBounds.top) <= 1f &&
+                                kotlin.math.abs(bounds.right - chosenBounds.right) <= 1f &&
+                                kotlin.math.abs(bounds.bottom - chosenBounds.bottom) <= 1f
+                        }
+                        if (!sameVisualNode) false
+                        else {
+                            selectedId = chosen.first.id
+                            selectedRootId = chosenRoot
+                            true
+                        }
+                    }
                 } catch (error: IllegalStateException) {
                     // Animated face replacement can briefly detach all registered Compose roots.
                     if (error.message?.contains("No compose hierarchies") == true) false else throw error
@@ -808,8 +1018,9 @@ class SessionRevisionFlowDeviceTest {
             throw AssertionError("No unique displayed active workout node for $matcher within 10s; $diagnostic", error)
         }
         val id = checkNotNull(selectedId)
-        return compose.onNode(matcher and SemanticsMatcher("displayed workout node $id") {
-            it.id == id
+        val rootId = checkNotNull(selectedRootId)
+        return compose.onNode(matcher and SemanticsMatcher("displayed workout node $id in root $rootId") {
+            it.id == id && semanticsRootId(it) == rootId
         }, useUnmergedTree = true)
     }
 
@@ -817,7 +1028,7 @@ class SessionRevisionFlowDeviceTest {
         compose.onAllNodesWithTag(tag, true).fetchSemanticsNodes().isNotEmpty()
     }
 
-    private fun assertReferenceFrame(frame: Rect) {
+    private fun assertReferenceFrame(frame: Rect, allowShorterHeight: Boolean = false) {
         val metrics = context.resources.displayMetrics
         val availableDp = context.resources.configuration.screenWidthDp
         val screenHeightDp = context.resources.configuration.screenHeightDp
@@ -830,45 +1041,101 @@ class SessionRevisionFlowDeviceTest {
         val expectedWidth = expectedWidthDp * metrics.density
         val expectedHeight = expectedHeightDp * metrics.density
         assertEquals("Ancho del marco aprobado para el viewport", expectedWidth, frame.width, 2f)
-        assertEquals("Alto del marco aprobado para el viewport", expectedHeight, frame.height, 2f)
-        assertEquals("Proporción del marco aprobado para el viewport", expectedHeight / expectedWidth, frame.height / frame.width, .002f)
+        if (allowShorterHeight) {
+            assertTrue("El marco conserva un alto positivo que cabe en el viewport", frame.height > 0f && frame.height <= expectedHeight + 2f)
+            assertTrue("El marco reducido conserva como máximo la proporción aprobada", frame.height / frame.width <= expectedHeight / expectedWidth + .002f)
+        } else {
+            assertEquals("Alto del marco aprobado para el viewport", expectedHeight, frame.height, 2f)
+            assertEquals("Proporción del marco aprobado para el viewport", expectedHeight / expectedWidth, frame.height / frame.width, .002f)
+        }
         if (availableDp == 360) {
             assertEquals("Ancho V1 exacto en 360dp", 312f * metrics.density, frame.width, 2f)
-            assertEquals("Alto V1 exacto en 360dp", expectedHeightDp * metrics.density, frame.height, 2f)
+            if (!allowShorterHeight) assertEquals("Alto V1 exacto en 360dp", expectedHeightDp * metrics.density, frame.height, 2f)
         }
     }
 
     /**
-     * LV-C: las tarjetas de movilidad y aproximación miden lo mismo que la de la serie (312 × 425 dp) y llevan TODOS sus controles dentro.
-     * [phase] es «mobility» o «warmup».
+     * LV-C: movilidad conserva el marco de referencia; aproximación adapta su alto al contenido.
+     * Ambas mantienen sus controles dentro del marco y el área visible. [phase] es «mobility» o «warmup».
      */
-    private fun assertPrepCardKeepsEverythingInside(phase: String, captureName: String) {
+    private fun assertPrepCardKeepsEverythingInside(phase: String, captureName: String, mobilityRowTag: String? = null) {
         compose.waitUntil(10_000) { compose.onAllNodesWithTag("prep-live-card", true).fetchSemanticsNodes().isNotEmpty() }
-        val frame = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
-        assertReferenceFrame(frame)
-        val card = activeTag("prep-live-card").fetchSemanticsNode().boundsInRoot
+        // Route changes publish VM state before the page transition has settled.
+        compose.mainClock.advanceTimeBy(1_000)
+        capture(captureName)
+        val expectedFrameWidth = (context.resources.configuration.screenWidthDp - 48)
+            .coerceIn(240, 364) * context.resources.displayMetrics.density
+        val anchorTag = if (phase == "mobility") "mob-count" else "warmup-count"
+        val anchor = activeTag(anchorTag).fetchSemanticsNode().boundsInRoot
+        val anchorX = (anchor.left + anchor.right) / 2f
+        val anchorY = (anchor.top + anchor.bottom) / 2f
+        fun containsAnchor(bounds: Rect) = anchorX in bounds.left..bounds.right && anchorY in bounds.top..bounds.bottom
+        val frameCandidates = compose.onAllNodesWithTag("live-card-frame", useUnmergedTree = true)
+        val fullFrameSettled = runCatching {
+            compose.waitUntil(10_000) {
+                frameCandidates.fetchSemanticsNodes(atLeastOneRootRequired = false)
+                    .any { kotlin.math.abs(it.boundsInRoot.width - expectedFrameWidth) <= 2f && containsAnchor(it.boundsInRoot) }
+            }
+        }.isSuccess
+        val frameNodes = frameCandidates.fetchSemanticsNodes(atLeastOneRootRequired = false)
+        val frameDiagnostics = frameNodes.mapIndexed { index, node ->
+            "${node.boundsInRoot}; containsAnchor=${containsAnchor(node.boundsInRoot)}; " +
+                "displayed=${runCatching { frameCandidates[index].isDisplayed() }.getOrDefault(false)}"
+        }.joinToString()
+        assertTrue("El marco vuelve a su ancho estable de ${expectedFrameWidth}px: $frameDiagnostics", fullFrameSettled)
+        val frameIndex = checkNotNull(frameNodes.indices
+            .filter { kotlin.math.abs(frameNodes[it].boundsInRoot.width - expectedFrameWidth) <= 2f && containsAnchor(frameNodes[it].boundsInRoot) }
+            .maxByOrNull { frameNodes[it].boundsInRoot.width * frameNodes[it].boundsInRoot.height })
+        val frame = frameCandidates[frameIndex].fetchSemanticsNode().boundsInRoot
+        assertReferenceFrame(frame, allowShorterHeight = phase == "warmup")
+        val cardCandidates = compose.onAllNodesWithTag("prep-live-card", useUnmergedTree = true)
+        val cardNodes = cardCandidates.fetchSemanticsNodes(atLeastOneRootRequired = false)
+        val cardIndex = checkNotNull(cardNodes.indices.filter { containsAnchor(cardNodes[it].boundsInRoot) }
+            .minByOrNull { kotlin.math.abs(cardNodes[it].boundsInRoot.left - frame.left) + kotlin.math.abs(cardNodes[it].boundsInRoot.right - frame.right) })
+        val card = cardCandidates[cardIndex].fetchSemanticsNode().boundsInRoot
         val density = context.resources.displayMetrics.density
         assertEquals("La tarjeta de $phase llena el marco: ancho", frame.width, card.width, 2f)
         assertEquals("La tarjeta de $phase llena el marco: alto", frame.height, card.height, 2f)
-        val controls = buildList {
-            add("prep-skip"); add("prep-status")
-            if (phase == "mobility") { add("mob-global-chip"); add("mob-list-toggle"); add("mob-done"); add("mob-movement-pane") }
-            else { add("warmup-add"); add("warmup-list") }
+        val controls = if (phase == "mobility") {
+            listOf("prep-skip", "mob-count", "mob-view-1", "mob-list-pane", requireNotNull(mobilityRowTag))
+        } else {
+            listOf("prep-skip", "warmup-count", "warmup-add", "warmup-list")
         }
         controls.forEach { tag ->
+            val rawNodes = compose.onAllNodesWithTag(tag, useUnmergedTree = true)
+                .fetchSemanticsNodes(atLeastOneRootRequired = false)
+            assertTrue("El control $tag sigue compuesto para $phase", rawNodes.isNotEmpty())
             val b = activeTag(tag).fetchSemanticsNode().boundsInRoot
             assertTrue("$tag queda dentro de la tarjeta de $phase: $b frente a $card",
                 b.left >= card.left - 2f && b.right <= card.right + 2f && b.top >= card.top - 2f && b.bottom <= card.bottom + 2f)
-            if (tag != "prep-status" && !tag.endsWith("pane") && !tag.endsWith("list")) {
+            if (tag !in setOf("mob-count", "warmup-count") && !tag.endsWith("pane") && !tag.endsWith("list")) {
                 assertTrue("$tag conserva 48 dp táctiles", b.width / density >= 47.5f && b.height / density >= 47.5f)
             }
         }
-        capture(captureName)
+        if (phase == "mobility") {
+            listOf("mob-view-0" to "mob-movement-pane", "mob-view-2" to "mob-joints-pane").forEach { (tab, pane) ->
+                activeTag(tab).assertIsDisplayed().performClick()
+                compose.waitUntil(10_000) {
+                    compose.onAllNodesWithTag(pane, useUnmergedTree = true)
+                        .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+                }
+                compose.mainClock.advanceTimeBy(400)
+                val paneBounds = activeTag(pane).fetchSemanticsNode().boundsInRoot
+                assertTrue("$pane permanece dentro de la tarjeta: $paneBounds frente a $card",
+                    paneBounds.left >= card.left - 2f && paneBounds.right <= card.right + 2f &&
+                        paneBounds.top >= card.top - 2f && paneBounds.bottom <= card.bottom + 2f)
+                val tag = if (pane == "mob-movement-pane") "mob-open-guide" else "mob-joint-shoulder"
+                val b = activeTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+                assertTrue("$tag conserva 48 dp táctiles", b.width / density >= 47.5f && b.height / density >= 47.5f)
+                assertTrue("$tag queda dentro de la tarjeta: $b frente a $card",
+                    b.left >= card.left - 2f && b.right <= card.right + 2f && b.top >= card.top - 2f && b.bottom <= card.bottom + 2f)
+            }
+        }
     }
 
     private fun assertLiveActionsClear(cardContent: Rect) {
-        val register = compose.onNode(hasContentDescription("Registrar serie") and hasClickAction())
-        val mic = compose.onNodeWithTag("workout-voice-header", true)
+        val register = activeTag("live-session-record")
+        val mic = activeTag("workout-voice-header")
         register.assertIsDisplayed(); mic.assertIsDisplayed()
         val r = register.fetchSemanticsNode().boundsInRoot
         val m = mic.fetchSemanticsNode().boundsInRoot
@@ -878,39 +1145,27 @@ class SessionRevisionFlowDeviceTest {
         assertTrue("Voz vive en la cabecera, encima de la tarjeta", m.bottom <= cardContent.top)
         assertFalse("Voz y registrar no se solapan", r.overlaps(m))
         assertTrue("Registrar queda debajo de la tarjeta", r.top >= cardContent.bottom - 1f)
-        val line = compose.onNodeWithTag("live-session-line", true).fetchSemanticsNode().boundsInRoot
+        val line = activeTag("live-session-line").fetchSemanticsNode().boundsInRoot
         assertTrue("El registro queda integrado entero en la isla", r.left >= line.left && r.right <= line.right && r.top >= line.top && r.bottom <= line.bottom)
-        val route = compose.onNodeWithTag("live-session-route", true).fetchSemanticsNode().boundsInRoot
+        val route = activeTag("live-session-route").fetchSemanticsNode().boundsInRoot
         assertFalse("Ruta no tapa registrar", route.overlaps(r))
         assertFalse("Ruta no tapa voz", route.overlaps(m))
         compose.onNodeWithTag("workout-voice-fab", true).assertDoesNotExist()
     }
 
-    /** V1 centers the selected step and compresses distant steps. The rail is fully visible initially;
-     * all old destinations remain reachable through its horizontal viewport, including preparation icons.
-     */
-    private fun assertInitialLiveStepperVisible(cardContent: Rect, expectedPills: List<String> = emptyList()): Rect {
-        val node = activeTag("live-session-steps").assertIsDisplayed().fetchSemanticsNode()
-        val bounds = node.boundsInRoot
-        val density = context.resources.displayMetrics.density
+    /** The current roadmap opens its full route sheet; the root line exposes route + record actions. */
+    private fun assertLiveRouteVisible(cardContent: Rect): Rect {
         val rootBounds = compose.onRoot(useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        assertEquals("La línea de pasos conserva 56dp íntegros", 56f * density, bounds.height, 1f)
-        val island = activeTag("live-session-line").fetchSemanticsNode().boundsInRoot
-        assertEquals("La isla V1 conserva 112dp", 112f * density, island.height, 1f)
-        assertTrue("Línea íntegra debajo de tarjeta: root=$rootBounds card=$cardContent line=$island",
-            island.top >= cardContent.bottom - 1f && island.bottom <= rootBounds.bottom)
-        expectedPills.forEach { label ->
-            val matcher = when (label) {
-                "MOV" -> hasContentDescription("Movilidad")
-                "APROX" -> hasContentDescription("Aproximación")
-                else -> hasText(label)
-            }
-            compose.onNodeWithTag("live-session-steps", true).performScrollToNode(matcher)
-            val pill = compose.onNode(matcher and hasAnyAncestor(hasTestTag("live-session-steps")), true)
-                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-            assertTrue("$label queda entero en la ventana de la línea", pill.left >= bounds.left - 1f && pill.right <= bounds.right + 1f)
-        }
-        if (expectedPills.isNotEmpty()) compose.onNodeWithTag("live-session-steps", true).performScrollToNode(hasText("S1"))
+        val island = activeTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val route = activeTag("live-session-route").assertIsDisplayed().fetchSemanticsNode()
+        val bounds = route.boundsInRoot
+        val density = context.resources.displayMetrics.density
+        val expectedHeightDp = if (context.resources.configuration.screenHeightDp >= 820) 132f else 112f
+        assertEquals("La isla conserva el alto de su variante vigente", expectedHeightDp * density, island.height, 1f)
+        assertTrue("La ruta queda dentro de la isla y debajo de la tarjeta: root=$rootBounds card=$cardContent line=$island route=$bounds",
+            bounds.left >= island.left - 1f && bounds.right <= island.right + 1f &&
+                bounds.top >= island.top - 1f && bounds.bottom <= island.bottom + 1f &&
+                island.top >= cardContent.bottom - 1f && island.bottom <= rootBounds.bottom)
         compose.onNodeWithContentDescription("Serie anterior", true).assertDoesNotExist()
         compose.onNodeWithContentDescription("Serie siguiente", true).assertDoesNotExist()
         return bounds

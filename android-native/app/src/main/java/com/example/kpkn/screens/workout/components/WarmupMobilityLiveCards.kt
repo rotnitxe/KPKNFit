@@ -397,10 +397,10 @@ internal fun MobilityPhaseLiveCard(
                                     }
                                 }
                                 // `.v2-movement-caption`: el nombre y «Ver guía ›».
-                                Row(Modifier.fillMaxWidth().heightIn(min = 38.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Text(mob.name, Modifier.weight(1f), style = PrepRef02Body(11.sp), color = WizardColors.text)
                                     Row(
-                                        Modifier.heightIn(min = 38.dp).clickable(role = Role.Button) {
+                                        Modifier.heightIn(min = 48.dp).clickable(role = Role.Button) {
                                             moveRunning = false
                                             selectedKey = item.stepKey
                                             guideKey = item.stepKey
@@ -422,7 +422,7 @@ internal fun MobilityPhaseLiveCard(
                                 }
                                 zones.forEach { zone ->
                                     Row(
-                                        Modifier.fillMaxWidth().heightIn(min = 44.dp).prepRef02Line().clickable(role = Role.Button) { zoneSheet = zone }
+                                        Modifier.fillMaxWidth().heightIn(min = 48.dp).prepRef02Line().clickable(role = Role.Button) { zoneSheet = zone }
                                             .testTag("mob-joint-$zone"),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
@@ -867,10 +867,10 @@ internal fun WarmupPhaseLiveCard(
                         }
                     }
                     // `.v2-warm-footer`: «+ Aproximación» y, con más de tres, la paginación.
-                    Row(Modifier.fillMaxWidth().heightIn(min = 36.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (onAddSet != null) {
                             Row(
-                                Modifier.heightIn(min = 36.dp).clickable(role = Role.Button, onClick = onAddSet)
+                                Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onAddSet)
                                     .semantics { contentDescription = "Añadir aproximación" }.testTag("warmup-add"),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -882,7 +882,7 @@ internal fun WarmupPhaseLiveCard(
                         Spacer(Modifier.weight(1f))
                         if (pages > 1) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Box(Modifier.size(36.dp).clickable(enabled = safePage > 0, role = Role.Button) { page = safePage - 1 }
+                                Box(Modifier.size(48.dp).clickable(enabled = safePage > 0, role = Role.Button) { page = safePage - 1 }
                                     .semantics { contentDescription = "Página anterior" }, contentAlignment = Alignment.Center) {
                                     Icon(KpknLineIcons.ChevronLeft, null, Modifier.size(13.dp), tint = PrepRef02Muted.copy(alpha = if (safePage > 0) 1f else .35f))
                                 }
@@ -893,7 +893,7 @@ internal fun WarmupPhaseLiveCard(
                                     },
                                     style = PrepRef02Body(10.sp), color = PrepRef02Muted,
                                 )
-                                Box(Modifier.size(36.dp).clickable(enabled = safePage < pages - 1, role = Role.Button) { page = safePage + 1 }
+                                Box(Modifier.size(48.dp).clickable(enabled = safePage < pages - 1, role = Role.Button) { page = safePage + 1 }
                                     .semantics { contentDescription = "Página siguiente" }, contentAlignment = Alignment.Center) {
                                     Icon(KpknLineIcons.ChevronRight, null, Modifier.size(13.dp),
                                         tint = PrepRef02Muted.copy(alpha = if (safePage < pages - 1) 1f else .35f))
@@ -1474,14 +1474,14 @@ private fun PrepRef02Title(text: String, compact: Boolean) {
     )
 }
 
-/** `.v2-tech-tabs`: pestañas de 36 (32 en compacto), la elegida en tinta. */
+/** `.v2-tech-tabs`: pestañas táctiles de 48 dp, la elegida en tinta. */
 @Composable
 private fun PrepRef02Tabs(options: List<Pair<Int, String>>, selected: Int, onSelect: (Int) -> Unit, compact: Boolean, tagPrefix: String) {
-    Row(Modifier.fillMaxWidth().heightIn(min = if (compact) 32.dp else 36.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         options.forEach { (value, label) ->
             val on = value == selected
             Box(
-                Modifier.weight(1f).heightIn(min = if (compact) 32.dp else 36.dp).clip(RoundedCornerShape(12.dp))
+                Modifier.weight(1f).heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp))
                     .background(if (on) WizardColors.text else Color(0x05FFFFFF))
                     .clickable(role = Role.Tab) { onSelect(value) }
                     .semantics { this.selected = on }
@@ -1499,9 +1499,9 @@ private fun PrepRef02Tabs(options: List<Pair<Int, String>>, selected: Int, onSel
 /** `.v2-movement-row`: el círculo de hecho con el nombre (marca el movimiento) y la información a la derecha. */
 @Composable
 private fun PrepRef02MovementRow(name: String, done: Boolean, onToggle: (Boolean) -> Unit, onInfo: () -> Unit, tag: String) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).prepRef02Line(), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).prepRef02Line(), verticalAlignment = Alignment.CenterVertically) {
         Row(
-            Modifier.weight(1f).heightIn(min = 44.dp)
+            Modifier.weight(1f).heightIn(min = 48.dp)
                 .toggleable(value = done, role = Role.Checkbox, onValueChange = onToggle)
                 .testTag(tag),
             verticalAlignment = Alignment.CenterVertically,
@@ -1515,7 +1515,7 @@ private fun PrepRef02MovementRow(name: String, done: Boolean, onToggle: (Boolean
             Text(name, style = PrepRef02Body(12.sp), color = if (done) PrepRef02Muted else WizardColors.text)
         }
         Box(
-            Modifier.size(width = 36.dp, height = 40.dp).clickable(role = Role.Button, onClick = onInfo)
+            Modifier.size(48.dp).clickable(role = Role.Button, onClick = onInfo)
                 .semantics { contentDescription = "Detalle de $name" },
             contentAlignment = Alignment.Center,
         ) { Icon(KpknLineIcons.Info, null, Modifier.size(15.dp), tint = PrepRef02Muted) }

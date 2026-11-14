@@ -76,11 +76,18 @@ internal fun RecordedSessionFinishSheet(
     durationSeconds: Int = durationMinutes * 60,
     /** «No se pudo guardar la sesión…» en rojo suave sobre el botón; la hoja se queda y el botón vuelve a estar activo. */
     errorMessage: String? = null,
+    /** Open the existing story preview when this sheet was requested from the live header/menu. */
+    openStoryOnStart: Boolean = false,
+    /** Await the note draft write when the user leaves the notes panel or finish sheet. */
+    onNotesCommitted: (String) -> Unit = onNotes,
 ) {
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var effort by rememberSaveable { mutableStateOf<Double?>(null) }
     var shareAfterSave by rememberSaveable { mutableStateOf(false) }
     var showStory by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(openStoryOnStart) {
+        if (openStoryOnStart) showStory = true
+    }
     var panelOpen by rememberSaveable { mutableStateOf(false) }
     var panelKind by rememberSaveable { mutableStateOf(FinishPanelKind.NOTES) }
     var showEmptyDiscardConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -144,12 +151,20 @@ internal fun RecordedSessionFinishSheet(
         onPrepareStory = { showStory = true },
         onOpenNotes = { panelKind = FinishPanelKind.NOTES; panelOpen = true },
         onOpenRate = { panelKind = FinishPanelKind.EFFORT; panelOpen = true },
-        onClosePanel = { panelOpen = false }, onPhotos = onAlbum,
+        onClosePanel = {
+            if (panelKind == FinishPanelKind.NOTES) onNotesCommitted(notes)
+            panelOpen = false
+        }, onPhotos = onAlbum,
         onSave = {
             if (shareAfterSave) onShareAfterSave(story, storyOptions) else onCancelShareAfterSave()
             onConfirm(notes, effort)
         },
-        onBack = { if (!saving) onDismiss() },
+        onBack = {
+            if (!saving) {
+                onNotesCommitted(notes)
+                onDismiss()
+            }
+        },
         onDiscard = { if (!saving && model.empty) showEmptyDiscardConfirmation = true },
         onNotes = { notes = it; onNotes(it) }, onEffort = { effort = it },
         onAddTask = onAddTask, onToggleTask = onToggleTask, onRemoveTask = onRemoveTask,
@@ -157,7 +172,12 @@ internal fun RecordedSessionFinishSheet(
 
     // La hoja del lienzo: 94 % del alto (a lo que mida el contenido si no hay series), fondo #1B1B1D, radio 28 y asa de 40 × 4 a 8 dp del borde.
     ModalBottomSheet(
-        onDismissRequest = { if (showStory) showStory = false else if (!saving) onDismiss() },
+        onDismissRequest = {
+            if (showStory) showStory = false else if (!saving) {
+                onNotesCommitted(notes)
+                onDismiss()
+            }
+        },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = Color(0xFF1B1B1D),
         scrimColor = Color(0xA8000000),

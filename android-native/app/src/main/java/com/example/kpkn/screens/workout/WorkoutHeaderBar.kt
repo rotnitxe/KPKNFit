@@ -628,7 +628,7 @@ internal fun WorkoutExerciseContextBlock(
             // Micrófono sin relleno; activo, con el acento tenue del prototipo (.mic-on).
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(if (voiceSessionEnabled) HeaderMicOnTint else Color.Transparent)
                     .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = toggle)

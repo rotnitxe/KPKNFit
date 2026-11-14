@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
@@ -28,6 +29,7 @@ import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 internal enum class LiveSessionDestination(val title: String) {
     MENU("Sesión"), VIEW("Vista de registro"), VOICE("Conversación de voz"), ROUTE("Ruta de la sesión"), MILESTONES("Hitos"), PHOTOS("Fotos y vídeos"),
@@ -129,6 +131,7 @@ internal fun LiveSessionSheetsHost(
     onUseRmWeight: ((Double) -> Unit)? = null,
 ) {
     val bodyStates = rememberSaveableStateHolder()
+    val storyLaunchScope = rememberCoroutineScope()
     if (destination == null) return
     // Hojas del prototipo 02: menú «Tu sesión» en filas, vista de registro y el resto con la misma hoja (título en Syne, ✕ y «Listo»).
     val title = liveSessionSheetTitle(destination)
@@ -152,6 +155,13 @@ internal fun LiveSessionSheetsHost(
                     }
                     fun go(next: LiveSessionDestination) = onDestination(next)
                     fun run(action: () -> Unit) { onDestination(null); action() }
+                    fun runAfterSheetCloses(action: () -> Unit) {
+                        onDestination(null)
+                        storyLaunchScope.launch {
+                            withFrameNanos { }
+                            action()
+                        }
+                    }
                     LiveSheetSectionLabel("Sesión", Modifier.padding(top = 0.dp))
                     LiveSheetMenuRow("Vista de registro", { go(LiveSessionDestination.VIEW) }, icon = KpknLineIcons.Layers, small = currentView.title,
                         modifier = Modifier.testTag("live-session-menu-view"))
@@ -175,7 +185,7 @@ internal fun LiveSessionSheetsHost(
                         modifier = Modifier.testTag("live-session-menu-milestones"))
                     LiveSheetMenuRow("Calculadora RM", { go(LiveSessionDestination.RM) }, icon = KpknLineIcons.Target,
                         modifier = Modifier.testTag("live-session-menu-rm"))
-                    LiveSheetMenuRow("Historia de la sesión", { run(onOpenStory) }, icon = KpknLineIcons.Star,
+                    LiveSheetMenuRow("Historia de la sesión", { runAfterSheetCloses(onOpenStory) }, icon = KpknLineIcons.Star,
                         modifier = Modifier.testTag("workout-story-header"))
                     LiveSheetMenuRow("Ayuda y explicaciones", { go(LiveSessionDestination.ASSISTANCE) }, icon = KpknLineIcons.Info,
                         modifier = Modifier.testTag("live-session-menu-assistance"))
