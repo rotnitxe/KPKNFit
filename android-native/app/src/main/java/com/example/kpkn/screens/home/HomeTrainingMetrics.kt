@@ -146,7 +146,7 @@ object HomeTrainingMetricsBuilder {
         inWeek.forEach { log ->
             series += com.example.kpkn.domain.training.insights.RecordedSetAccounting.count(log.completedExercises)
             tonnage += com.example.kpkn.screens.workout.sessionTonnage(log.completedExercises)
-            val sessionRpe = RpeConversion.sessionRpe(log.sessionEffortRpe, log.completedExercises)
+            val sessionRpe = RpeConversion.recordedEffort(log.completedExercises).value
             if (sessionRpe != null) effort += sessionRpe * (log.actualDurationSeconds?.div(60.0) ?: log.durationMinutes.toDouble())
         }
         val muscleSets = MuscleVolumeAccounting.weeklySets(logs, weekStart)

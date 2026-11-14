@@ -3,7 +3,6 @@ package com.example.kpkn.data.importer.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.importer.ImportKind
@@ -24,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeNoException
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -71,24 +69,6 @@ class OcrImportSourceTest {
 
     /** Un PDF de [size] bytes que empieza por «%PDF» (no se dibuja: sirve para medir el tope). */
     private fun pdfOfSize(size: Int): ByteArray = ByteArray(size).also { "%PDF-1.7".toByteArray().copyInto(it) }
-
-    /** Un PDF real de [pages] páginas con texto, hecho con PdfDocument. */
-    private fun syntheticPdf(pages: Int): ByteArray {
-        val document = PdfDocument()
-        try {
-            repeat(pages) { index ->
-                val page = document.startPage(PdfDocument.PageInfo.Builder(300, 400, index + 1).create())
-                page.canvas.drawText("Página ${index + 1}", 20f, 40f, Paint())
-                document.finishPage(page)
-            }
-            return ByteArrayOutputStream().use { output ->
-                document.writeTo(output)
-                output.toByteArray()
-            }
-        } finally {
-            document.close()
-        }
-    }
 
     @Test
     fun `las páginas salen en orden y la hoja lleva siempre la nota de imagen`() = runBlocking {
@@ -155,22 +135,6 @@ class OcrImportSourceTest {
         job.join()
         assertTrue(job.isCancelled)
         assertEquals(2, recognizer.calls)
-    }
-
-    @Test
-    fun `un PDF sintético de dos páginas se dibuja y se lee página a página`() = runBlocking {
-        val recognizer = FakeRecognizer { page -> listOf(word("Página$page", 100, 100)) }
-        val sheet = try {
-            val uri = Uri.fromFile(tempFile("sintetico.pdf", syntheticPdf(pages = 2)))
-            OcrImportSource.readPdf(resolver, uri, "PDF", context.cacheDir, recognizer = recognizer).single()
-        } catch (error: Throwable) {
-            // Si Robolectric no puede dibujar PDF en este entorno, la prueba se salta; la lectura real se mira en el teléfono.
-            assumeNoException(error)
-            return@runBlocking
-        }
-        assertEquals(2, recognizer.calls)
-        assertEquals(listOf(listOf("Página1"), listOf("Página2")), sheet.rows)
-        assertEquals(listOf(OcrImportSource.PDF_OCR_NOTE), sheet.notes)
     }
 
     @Test

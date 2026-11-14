@@ -84,6 +84,35 @@ class ExerciseProgressTest {
         assertEquals(30.0,result.points.last().value,0.0);assertTrue(result.points.last().isPr)
         assertFalse(result.points.last().higherIsBetter)
     }
+    @Test fun bestSetAndMaximumWeightKeepSeparateLoadTrajectoriesForEachRepCount() {
+        val logs = listOf(
+            log("five-a", "2026-10-01", listOf(set(40.0, 5, LoadModeV2.LASTRE))),
+            log("five-b", "2026-10-02", listOf(set(45.0, 5, LoadModeV2.LASTRE))),
+            log("three", "2026-10-03", listOf(set(55.0, 3, LoadModeV2.LASTRE))),
+        )
+        val maxWeight = report(logs, ExerciseProgressMetric.MAX_WEIGHT)
+        val bestSet = report(logs, ExerciseProgressMetric.BEST_SET)
+
+        assertEquals(3, maxWeight.points.size)
+        assertTrue(maxWeight.points.last().breaksBefore)
+        assertEquals(2, maxWeight.points.map { it.lineage }.distinct().size)
+        assertEquals(2, bestSet.points.map { it.lineage }.distinct().size)
+        assertTrue(bestSet.points.last().breaksBefore)
+
+        val assisted = report(
+            listOf(
+                log("assist-five-a", "2026-10-01", listOf(set(20.0, 5, LoadModeV2.ASSISTED))),
+                log("assist-five-b", "2026-10-02", listOf(set(15.0, 5, LoadModeV2.ASSISTED))),
+                log("assist-two", "2026-10-03", listOf(set(10.0, 2, LoadModeV2.ASSISTED))),
+            ),
+            ExerciseProgressMetric.MAX_WEIGHT,
+        )
+        assertEquals(3, assisted.points.size)
+        assertEquals(2, assisted.points.map { it.lineage }.distinct().size)
+        assertTrue(assisted.points[1].isPr)
+        assertFalse(assisted.points[1].higherIsBetter)
+        assertTrue(assisted.points.last().breaksBefore)
+    }
     @Test fun recordsDeRepeticionesConservanCadaCargaDeLaMismaSesion() {
         val result=report(listOf(log("a","2026-10-01",listOf(set(50.0,12),set(100.0,5)))),ExerciseProgressMetric.MAX_REPS)
         assertEquals(2,result.points.size)

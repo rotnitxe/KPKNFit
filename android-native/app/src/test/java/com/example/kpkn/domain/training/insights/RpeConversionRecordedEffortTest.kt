@@ -20,6 +20,10 @@ class RpeConversionRecordedEffortTest {
         side: String? = null,
         warmup: Boolean = false,
         reachedFailure: Boolean = false,
+        isFailure: Boolean = false,
+        isFailedSet: Boolean = false,
+        failureReason: String? = null,
+        executionError: Boolean = false,
     ) = CompletedSet(
         id = id,
         weight = 100.0,
@@ -27,6 +31,9 @@ class RpeConversionRecordedEffortTest {
         rpe = rpe,
         rir = rir,
         isWarmup = warmup,
+        isFailure = isFailure,
+        isFailedSet = isFailedSet,
+        failureReason = failureReason,
         side = side,
         actualIntensityMode = mode,
         actualIntensityValue = value,
@@ -37,13 +44,15 @@ class RpeConversionRecordedEffortTest {
             actualIntensityMode = mode,
             actualIntensityValue = value,
             reachedFailure = reachedFailure,
+            executionError = executionError,
         ),
     )
 
-    private fun exercise(vararg sets: CompletedSet) = CompletedExercise(
+    private fun exercise(vararg sets: CompletedSet, occurrenceId: String? = null) = CompletedExercise(
         exerciseId = "exercise",
         exerciseName = "Ejercicio",
         sets = sets.toList(),
+        occurrenceId = occurrenceId,
     )
 
     @Test
@@ -74,7 +83,65 @@ class RpeConversionRecordedEffortTest {
             listOf(exercise(set("b", 0))),
         )
         assertNull(prescribed.value)
-        assertEquals("Sin intensidad registrada", prescribed.coverageLabel)
+        assertEquals("Sin intensidad registrada · 0 de 1 series", prescribed.coverageLabel)
+    }
+
+    @Test
+    fun reachedFailureLegacyCountsAsTenButFailedExecutionsAreExcluded() {
+        val result = RpeConversion.recordedEffort(
+            listOf(
+                exercise(
+                    set("execution-flag", 0, rpe = 9.0, mode = IntensityMode.RPE, value = 9.0, isFailedSet = true),
+                    set("execution-error", 1, rpe = 8.0, mode = IntensityMode.RPE, value = 8.0, failureReason = "execution_error"),
+                    set("legacy-failure", 2, isFailure = true),
+                    set("missing", 3),
+                ),
+            ),
+        )
+
+        assertEquals(10.0, result.value ?: -1.0, 0.0)
+        assertEquals(1, result.coveredSets)
+        assertEquals(2, result.totalSets)
+        assertEquals("10/10 · 1 de 2 series", result.coverageLabel)
+    }
+
+    @Test
+    fun payloadExecutionErrorsAreExcludedFromCoverage() {
+        val result = RpeConversion.recordedEffort(
+            listOf(
+                exercise(
+                    set("payload-error", 0, rpe = 8.0, mode = IntensityMode.RPE, value = 8.0, executionError = true),
+                    set("missing", 1),
+                ),
+            ),
+        )
+
+        assertNull(result.value)
+        assertEquals(0, result.coveredSets)
+        assertEquals(1, result.totalSets)
+        assertEquals("Sin intensidad registrada · 0 de 1 series", result.coverageLabel)
+    }
+
+    @Test
+    fun repeatedExerciseOccurrencesKeepSeparateLogicalSets() {
+        val result = RpeConversion.recordedEffort(
+            listOf(
+                exercise(set("a", 0, rpe = 8.0, mode = IntensityMode.RPE, value = 8.0), occurrenceId = "slot-a"),
+                exercise(set("b", 0, rpe = 10.0, mode = IntensityMode.RPE, value = 10.0), occurrenceId = "slot-b"),
+            ),
+        )
+
+        assertEquals(9.0, result.value ?: -1.0, 0.0)
+        assertEquals(2, result.coveredSets)
+        assertEquals(2, result.totalSets)
+    }
+
+    @Test
+    fun zeroCoverageStillShowsTheLogicalSetDenominator() {
+        val result = RpeConversion.recordedEffort(
+            listOf(exercise(set("a", 0), set("b", 1), set("c", 2))),
+        )
+        assertEquals("Sin intensidad registrada · 0 de 3 series", result.coverageLabel)
     }
 
     @Test

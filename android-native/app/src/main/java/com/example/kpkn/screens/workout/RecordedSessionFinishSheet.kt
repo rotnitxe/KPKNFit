@@ -15,6 +15,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -84,6 +85,7 @@ internal fun RecordedSessionFinishSheet(
     var panelKind by rememberSaveable { mutableStateOf(FinishPanelKind.NOTES) }
     var showEmptyDiscardConfirmation by rememberSaveable { mutableStateOf(false) }
     var storyOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
+    val finishScrollState = rememberScrollState()
     // El mensaje de error se queda mientras la hoja siga abierta (el aviso del controlador se consume al mostrarse).
     var shownError by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(errorMessage) { if (errorMessage != null) shownError = errorMessage }
@@ -95,10 +97,10 @@ internal fun RecordedSessionFinishSheet(
     }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
-    val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts, finishRecords) {
+    val story = remember(name, completedExercises, presentation, durationMinutes, recordedEffort, lifts, finishRecords) {
         WorkoutStoryData(
             name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
-            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = sessionRpe ?: recordedEffort.value,
+            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = recordedEffort.value,
             finishRecords = finishRecords,
         )
     }
@@ -175,7 +177,7 @@ internal fun RecordedSessionFinishSheet(
                     embedded = true,
                 )
             } else {
-                FinishSheetContent(state, actions)
+                FinishSheetContent(state, actions, scrollState = finishScrollState)
                 Box(Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF)))
             }
         }

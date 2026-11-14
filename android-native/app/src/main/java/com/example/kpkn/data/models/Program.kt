@@ -566,18 +566,16 @@ val Program.isSimpleCalendarizedProgram: Boolean
  * - [ProgramEndMode.REPEATING] always repeats.
  * - Legacy/unresolved (`null`) ends ONLY on an explicit terminal signal:
  *   competition calendarization, a user-chosen manual end date outside temporary
- *   cyclic break projections, or a non-native `FINITE_CYCLE` recipe (`!repeats`).
- *   Duration, start date, projected break dates and legacy `LINEAR` never end a plan.
+ *   cyclic break projections, or an explicit finite recipe (`!repeats`).
+ *   A projected schedule end, duration, start date and legacy `LINEAR` never end a plan.
  */
 val Program.hasExplicitEnd: Boolean
     get() = when (programEndMode) {
         ProgramEndMode.REPEATING -> false
         ProgramEndMode.HAS_END -> true
         null -> {
-            val manualChosenEnd = !isSimpleCalendarizedProgram &&
-                pausedCyclicSnapshot == null &&
-                (!calendarization?.manualEndDate.isNullOrBlank() ||
-                    !schedulePlan?.targetEndDate.isNullOrBlank())
+            val manualChosenEnd = !isSimpleCalendarizedProgram && pausedCyclicSnapshot == null &&
+                !calendarization?.manualEndDate.isNullOrBlank()
             val catalogFiniteRecipe = sourceRecipe != null &&
                 !sourceRecipe.repeats &&
                 sourceRecipe.nativeProgression == null
@@ -585,6 +583,14 @@ val Program.hasExplicitEnd: Boolean
                 manualChosenEnd ||
                 catalogFiniteRecipe
         }
+    }
+
+/** Resolves legacy recurrence once at the boundary where a persisted value is needed. */
+fun Program.resolveProgramEndMode(catalogIsFinite: Boolean = false): ProgramEndMode =
+    programEndMode ?: if (catalogIsFinite || hasExplicitEnd) {
+        ProgramEndMode.HAS_END
+    } else {
+        ProgramEndMode.REPEATING
     }
 
 /**

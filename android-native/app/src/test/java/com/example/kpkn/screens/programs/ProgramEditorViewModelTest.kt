@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.OptionalSessionConfirmation
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ProgramEndMode
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramSchedulePlan
 import com.example.kpkn.data.models.ProgramStructure
@@ -306,6 +307,58 @@ class ProgramEditorViewModelTest {
         assertEquals("nueva", updated.description)
         assertEquals("gradient://lagoon", updated.coverImage)
         assertNull(repository().activeProgramState.value)
+    }
+
+    @Test
+    fun legacy_editor_preserves_manual_end_and_ignores_projected_target_end() {
+        val chosenEnd = buildNewProgram(id = "legacy-chosen-end", name = "Termina")
+            .copy(
+                programEndMode = null,
+                calendarization = ProgramCalendarization(
+                    mode = ProgramCalendarizationMode.ADVANCED_COMPETITION,
+                    manualEndDate = "2026-12-31",
+                ),
+                schedulePlan = ProgramSchedulePlan(
+                    anchorDate = "2026-10-01",
+                    targetEndDate = "2026-12-31",
+                    mode = ScheduleMode.DATED,
+                ),
+            )
+        val projectedEnd = buildNewProgram(id = "legacy-projected-end", name = "Proyección")
+            .copy(
+                programEndMode = null,
+                calendarization = ProgramCalendarization(
+                    mode = ProgramCalendarizationMode.ADVANCED_COMPETITION,
+                    manualEndDate = null,
+                ),
+                schedulePlan = ProgramSchedulePlan(
+                    anchorDate = "2026-10-01",
+                    targetEndDate = "2026-12-31",
+                    mode = ScheduleMode.DATED,
+                ),
+            )
+        runBlocking {
+            repository().addProgramNow(chosenEnd)
+            repository().addProgramNow(projectedEnd)
+        }
+
+        val finiteEditor = newViewModel().also { it.initialize(chosenEnd.id) }
+        waitUntilLoaded(finiteEditor)
+        assertEquals(ProgramEndMode.HAS_END, finiteEditor.uiState.value.programEndMode)
+        finiteEditor.setName("Termina editado")
+        finiteEditor.save()
+        runUntilIdle(finiteEditor)
+        assertEquals(ProgramEndMode.HAS_END, repository().getProgramById(chosenEnd.id)?.programEndMode)
+        assertEquals("2026-12-31", repository().getProgramById(chosenEnd.id)?.calendarization?.manualEndDate)
+
+        val repeatingEditor = newViewModel().also { it.initialize(projectedEnd.id) }
+        waitUntilLoaded(repeatingEditor)
+        assertEquals(ProgramEndMode.REPEATING, repeatingEditor.uiState.value.programEndMode)
+        repeatingEditor.setName("Proyección editada")
+        repeatingEditor.save()
+        runUntilIdle(repeatingEditor)
+        assertEquals(ProgramEndMode.REPEATING, repository().getProgramById(projectedEnd.id)?.programEndMode)
+        assertNull(repository().getProgramById(projectedEnd.id)?.calendarization?.manualEndDate)
     }
 
     @Test

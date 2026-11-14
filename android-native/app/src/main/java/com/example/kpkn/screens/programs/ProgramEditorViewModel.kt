@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramEndMode
+import com.example.kpkn.data.models.resolveProgramEndMode
 import com.example.kpkn.data.repository.ProgramRepository
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -37,7 +39,7 @@ data class ProgramEditorUiState(
     val name: String = "",
     val description: String = "",
     val mode: ProgramMode = ProgramMode.HYPERTROPHY,
-    val programEndMode: com.example.kpkn.data.models.ProgramEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
+    val programEndMode: ProgramEndMode = ProgramEndMode.REPEATING,
     val coverImage: String = "gradient://ember",
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
@@ -99,7 +101,7 @@ class ProgramEditorViewModel(
                         name = "",
                         description = "",
                         mode = ProgramMode.HYPERTROPHY,
-                        programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
+                        programEndMode = ProgramEndMode.REPEATING,
                         coverImage = "gradient://ember",
                     )
                 }
@@ -117,7 +119,9 @@ class ProgramEditorViewModel(
                         name = existing.name,
                         description = existing.description.orEmpty(),
                         mode = existing.mode,
-                        programEndMode = existing.programEndMode ?: com.example.kpkn.data.models.ProgramEndMode.REPEATING,
+                        // Legacy records stay unresolved until their durable terminal signals
+                        // are checked; merely opening/saving metadata must not erase them.
+                        programEndMode = existing.resolveProgramEndMode(),
                         coverImage = existing.coverImage ?: "gradient://ember",
                     )
                 }
@@ -128,7 +132,7 @@ class ProgramEditorViewModel(
     fun setName(value: String) = mutate { it.copy(name = value) }
     fun setDescription(value: String) = mutate { it.copy(description = value) }
     fun setMode(mode: ProgramMode) = mutate { it.copy(mode = mode) }
-    fun setProgramEndMode(mode: com.example.kpkn.data.models.ProgramEndMode) = mutate { it.copy(programEndMode = mode) }
+    fun setProgramEndMode(mode: ProgramEndMode) = mutate { it.copy(programEndMode = mode) }
     fun setCoverImage(cover: String) = mutate { it.copy(coverImage = cover) }
 
     /**

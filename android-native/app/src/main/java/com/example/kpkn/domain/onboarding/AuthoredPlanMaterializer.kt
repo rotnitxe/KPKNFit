@@ -19,6 +19,7 @@ import com.example.kpkn.domain.training.PlanAdaptationResult
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.PlanTargetProfile
 import com.example.kpkn.domain.training.ProgramRecipeValidator
+import com.example.kpkn.data.models.resolveProgramEndMode
 import com.example.kpkn.domain.training.RequirementEvidence
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.UuidIdProvider
@@ -99,12 +100,9 @@ object AuthoredPlanMaterializer {
             // Como los nativos: el id del plan publicado; la receta efectiva
             // (derivada si hubo adaptación) vive en `sourceRecipe`.
             structureTemplateId = entry.id,
-            programEndMode = request.baseProgram.programEndMode
-                ?: if (entry.duration == com.example.kpkn.data.programs.CatalogDuration.FINITE_CYCLE) {
-                    com.example.kpkn.data.models.ProgramEndMode.HAS_END
-                } else {
-                    com.example.kpkn.data.models.ProgramEndMode.REPEATING
-                },
+            programEndMode = request.baseProgram.resolveProgramEndMode(
+                catalogIsFinite = entry.duration == com.example.kpkn.data.programs.CatalogDuration.FINITE_CYCLE,
+            ),
         )
         return scheduled(prepared, request.expectedDaysPerWeek)
     }

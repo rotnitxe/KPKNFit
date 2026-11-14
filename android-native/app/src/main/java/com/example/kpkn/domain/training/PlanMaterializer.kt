@@ -982,6 +982,7 @@ object PlanMaterializer {
             origin = SessionOrigin.USER_DRAFT,
             requirement = SessionRequirement.REQUIRED,
             cardioFirst = cardioFirst,
+            logicalLineageId = dayId?.let { "recipe:${scope.recipeId}@${scope.contentVersion}/day:$it" },
         )
         // Aproximación y movilidad obligatorias (Entreno v2): con la política automática cada sesión pasa por el
         // planificador, que completa lo que la receta de autor no declaró (nunca lo reemplaza).
@@ -1261,6 +1262,7 @@ object PlanMaterializer {
                 tm = baseLoadKgFor(set),
                 idProvider = idProvider,
                 stableSetId = stableExerciseId?.let { "$it#set:$index" },
+                plannedSlotId = recipeDayId?.takeIf { it.isNotBlank() }?.let { "$it|${slot.id}|set:$index" },
                 progression = recipe.progression,
                 oneRmKg = weeklyKgOneRmKg,
             )
@@ -1456,6 +1458,7 @@ object PlanMaterializer {
         tm: Double?,
         idProvider: IdProvider,
         stableSetId: String? = null,
+        plannedSlotId: String? = null,
         progression: ProgressionRule = ProgressionRule.None,
         oneRmKg: Double? = null,
     ): ExerciseSet {
@@ -1494,6 +1497,7 @@ object PlanMaterializer {
         }
         return ExerciseSet(
             id = stableSetId ?: idProvider.newId(),
+            plannedSlotId = plannedSlotId,
             targetReps = set.reps,
             targetRepsRange = range,
             targetRPE = set.rpe,

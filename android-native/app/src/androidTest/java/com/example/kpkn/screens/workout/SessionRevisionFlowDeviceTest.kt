@@ -736,7 +736,7 @@ class SessionRevisionFlowDeviceTest {
     }
 
     private fun recordThroughQuickForm(vm: WorkoutViewModel, expectedCompleted: Int = 0) {
-        compose.runOnUiThread { vm.previewUltraFast() }
+        compose.runOnUiThread { vm.openQuickRecording() }
         waitForTag("ultra-record-submit")
         for (index in 0 until 4) compose.onNodeWithTag("ultra-record-row-$index", true).assertExists()
         assertEquals(setIds, vm.uiState.value.session!!.allExercises().single().sets.map { it.id })
@@ -820,12 +820,21 @@ class SessionRevisionFlowDeviceTest {
     private fun assertReferenceFrame(frame: Rect) {
         val metrics = context.resources.displayMetrics
         val availableDp = context.resources.configuration.screenWidthDp
-        val expectedWidth = (availableDp - 48).coerceAtMost(358) * metrics.density
-        assertEquals("24dp gutters and original max width", expectedWidth, frame.width, 2f)
-        assertEquals("Proporción V1 de 312 × 425 dp", 425f / 312f, frame.height / frame.width, .002f)
+        val screenHeightDp = context.resources.configuration.screenHeightDp
+        val expectedWidthDp = (availableDp - 48).coerceIn(240, 364)
+        val expectedHeightDp = when {
+            availableDp <= 380 -> if (screenHeightDp >= LiveCardTallScreenHeightDp) 430 else 394
+            availableDp <= 405 -> 470
+            else -> 488
+        }
+        val expectedWidth = expectedWidthDp * metrics.density
+        val expectedHeight = expectedHeightDp * metrics.density
+        assertEquals("Ancho del marco aprobado para el viewport", expectedWidth, frame.width, 2f)
+        assertEquals("Alto del marco aprobado para el viewport", expectedHeight, frame.height, 2f)
+        assertEquals("Proporción del marco aprobado para el viewport", expectedHeight / expectedWidth, frame.height / frame.width, .002f)
         if (availableDp == 360) {
             assertEquals("Ancho V1 exacto en 360dp", 312f * metrics.density, frame.width, 2f)
-            assertEquals("Alto V1 exacto en 360dp", 425f * metrics.density, frame.height, 2f)
+            assertEquals("Alto V1 exacto en 360dp", expectedHeightDp * metrics.density, frame.height, 2f)
         }
     }
 

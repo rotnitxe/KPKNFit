@@ -21,7 +21,123 @@ data class PendingReplacementPersistencePrompt(
     val fromCatalogRevision: String? = null,
     val fromCatalogDefinitionId: String? = null,
     val fromCatalogConfigurationId: String? = null,
+    val sourceTarget: LiveExerciseSlotIdentity? = null,
+    val sourceLogicalLineageId: String? = null,
+    val activeMode: WeekVariant = WeekVariant.A,
     val operationId: String = UUID.randomUUID().toString(),
+)
+
+/** Identity of one exercise occurrence; recipe day/slot disambiguates repeated canonical exercises. */
+data class LiveExerciseSlotIdentity(
+    val exerciseId: String,
+    val occurrenceId: String? = null,
+    val recipeDayId: String? = null,
+    val recipeSlotId: String? = null,
+) {
+    val hasStableRecipeSlot: Boolean
+        get() = !recipeDayId.isNullOrBlank() && !recipeSlotId.isNullOrBlank()
+
+    fun matches(candidate: Exercise): Boolean = when {
+        hasStableRecipeSlot -> candidate.recipeDayId == recipeDayId && candidate.recipeSlotId == recipeSlotId
+        !occurrenceId.isNullOrBlank() -> candidate.occurrenceId == occurrenceId
+        else -> candidate.id == exerciseId
+    }
+
+    companion object {
+        fun from(exercise: Exercise) = LiveExerciseSlotIdentity(
+            exerciseId = exercise.id,
+            occurrenceId = exercise.occurrenceId,
+            recipeDayId = exercise.recipeDayId,
+            recipeSlotId = exercise.recipeSlotId,
+        )
+    }
+}
+
+/** Explicit projection of fields that define a planned set, excluding execution state and recorded feedback. */
+data class SetPrescriptionSnapshot(
+    val targetReps: Int?,
+    val targetRepsRange: RepRange?,
+    val targetDuration: Int?,
+    val targetRPE: Double?,
+    val targetRIR: Int?,
+    val intensityMode: IntensityMode?,
+    val targetPercentageRM: Double?,
+    val weight: Double?,
+    val advancedTechnique: String?,
+    val purpose: SetPurpose,
+    val amrapMinimumReps: Int?,
+    val calibrationScope: CalibrationScope?,
+    val isDropSet: Boolean,
+    val isRestPause: Boolean,
+    val dropSets: List<DropSetData>,
+    val restPauses: List<RestPauseData>,
+    val performanceMode: PerformanceMode?,
+    val loadModeV2: LoadModeV2?,
+    val unitModeV2: UnitModeV2?,
+    val plannedTargetV2: Double?,
+    val timeProgressionStrategyV3: TimeProgressionStrategyV3,
+    val isTopSet: Boolean,
+    val loadBasis: com.example.kpkn.data.protocols.LoadBasis?,
+    val loadQuantityConvention: LoadQuantityConvention,
+    val leftTarget: UnilateralTarget?,
+    val rightTarget: UnilateralTarget?,
+    val manualLoadRequiredSides: Set<String>,
+    val restAfterSeconds: Int?,
+    val plannedIntensityTechniques: List<PlannedTechnique>,
+) {
+    companion object {
+        fun from(set: ExerciseSet) = SetPrescriptionSnapshot(
+            targetReps = set.targetReps,
+            targetRepsRange = set.targetRepsRange,
+            targetDuration = set.targetDuration,
+            targetRPE = set.targetRPE,
+            targetRIR = set.targetRIR,
+            intensityMode = set.intensityMode,
+            targetPercentageRM = set.targetPercentageRM,
+            weight = set.weight,
+            advancedTechnique = set.advancedTechnique,
+            purpose = set.purpose,
+            amrapMinimumReps = set.amrapMinimumReps,
+            calibrationScope = set.calibrationScope,
+            isDropSet = set.isDropSet,
+            isRestPause = set.isRestPause,
+            dropSets = set.dropSets,
+            restPauses = set.restPauses,
+            performanceMode = set.performanceMode,
+            loadModeV2 = set.loadModeV2,
+            unitModeV2 = set.unitModeV2,
+            plannedTargetV2 = set.plannedTargetV2,
+            timeProgressionStrategyV3 = set.timeProgressionStrategyV3,
+            isTopSet = set.isTopSet,
+            loadBasis = set.loadBasis,
+            loadQuantityConvention = set.loadQuantityConvention,
+            leftTarget = set.leftTarget,
+            rightTarget = set.rightTarget,
+            manualLoadRequiredSides = set.manualLoadRequiredSides,
+            restAfterSeconds = set.restAfterSeconds,
+            plannedIntensityTechniques = set.plannedIntensityTechniques,
+        )
+    }
+}
+
+data class PrescriptionSetDelta(
+    val setOrdinal: Int,
+    val targetSetId: String,
+    val before: SetPrescriptionSnapshot,
+    val after: SetPrescriptionSnapshot,
+    val targetPlannedSlotId: String? = null,
+)
+
+data class PrescriptionSetAddition(
+    val setOrdinal: Int,
+    val sourceSetId: String,
+    val plannedSlotId: String?,
+    val prescription: SetPrescriptionSnapshot,
+)
+
+data class PrescriptionSetRemoval(
+    val sourceSetId: String,
+    val plannedSlotId: String?,
 )
 
 sealed class PendingStructuralChange(open val operationId: String) {
@@ -30,6 +146,7 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val exerciseName: String,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
+        val targetExercise: LiveExerciseSlotIdentity? = null,
         val newSetId: String = UUID.randomUUID().toString(),
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
@@ -39,6 +156,7 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val newExerciseName: String,
         val afterExerciseSlot: Int? = null,
         val afterExerciseCanonicalKey: String? = null,
+        val afterExerciseTarget: LiveExerciseSlotIdentity? = null,
         val newExerciseTemplate: Exercise? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
@@ -47,6 +165,7 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val newExerciseIds: List<String>,
         val newExerciseNames: List<String>,
         val newExerciseTemplates: List<Exercise> = emptyList(),
+        val afterExerciseTarget: LiveExerciseSlotIdentity? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     /** One logical persistence payload for a catalog-created live superserie. */
@@ -59,6 +178,8 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val group: SupersetGroup,
         /** Variant in which the live mutation was created (A/B/C). */
         val activeMode: WeekVariant = WeekVariant.A,
+        val exerciseTargets: Map<String, LiveExerciseSlotIdentity> = emptyMap(),
+        val afterExerciseTarget: LiveExerciseSlotIdentity? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class ReorderExercises(
@@ -67,14 +188,17 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val isGlobal: Boolean,
         val orderedExerciseCanonicalKeys: List<String> = emptyList(),
         val orderedExercisePartKeys: List<String?> = emptyList(),
+        val orderedExerciseTargets: List<LiveExerciseSlotIdentity> = emptyList(),
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class RemoveSet(
         val exerciseId: String,
         val exerciseName: String,
         val setIndex: Int,
+        val targetSetId: String? = null,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
+        val targetExercise: LiveExerciseSlotIdentity? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class RemoveExercise(
@@ -82,16 +206,19 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val exerciseName: String,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
+        val targetExercise: LiveExerciseSlotIdentity? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class RemoveExercises(
         val exerciseIds: List<String>,
         val exerciseNames: List<String>,
+        val targetExercises: List<LiveExerciseSlotIdentity> = emptyList(),
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class DissolveSuperset(
         val groupId: String,
         val exerciseNames: List<String>,
+        val targetExercises: List<LiveExerciseSlotIdentity> = emptyList(),
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class SetExerciseRom(
@@ -101,6 +228,17 @@ sealed class PendingStructuralChange(open val operationId: String) {
     ) : PendingStructuralChange(operationId)
     data class SetSessionTargetDuration(
         val targetDurationMinutes: Int?,
+        override val operationId: String = UUID.randomUUID().toString(),
+    ) : PendingStructuralChange(operationId)
+    data class UpdateExercisePrescription(
+        val exerciseId: String,
+        val exerciseName: String,
+        val targetExercise: LiveExerciseSlotIdentity,
+        val setDeltas: List<PrescriptionSetDelta>,
+        val activeMode: WeekVariant,
+        val sourceLogicalLineageId: String?,
+        val setAdditions: List<PrescriptionSetAddition> = emptyList(),
+        val setRemovals: List<PrescriptionSetRemoval> = emptyList(),
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
 }

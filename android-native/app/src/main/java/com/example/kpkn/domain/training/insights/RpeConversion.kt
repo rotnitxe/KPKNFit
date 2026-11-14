@@ -18,8 +18,11 @@ object RpeConversion {
         val totalSets: Int,
     ) {
         val coverageLabel: String
-            get() = value?.let { "${formatRpe(it)}/10 · $coveredSets de $totalSets series" }
-                ?: "Sin intensidad registrada"
+            get() = when {
+                totalSets == 0 -> "Sin series de trabajo"
+                value != null -> "${formatRpe(value)}/10 · $coveredSets de $totalSets series"
+                else -> "Sin intensidad registrada · 0 de $totalSets series"
+            }
     }
 
     fun fromRir(rir: Int): Double = (10 - rir).coerceIn(0, 10).toDouble()
@@ -43,9 +46,10 @@ object RpeConversion {
      */
     fun recordedEffort(exercises: List<CompletedExercise>): RecordedSessionEffort {
         val logicalSets = linkedMapOf<String, MutableList<Double?>>()
-        exercises.filter { it.cardioDetails == null }.forEach { exercise ->
-            exercise.sets.filter { !it.skipped && !it.isWarmup }.forEachIndexed { index, set ->
-                val key = "${exercise.exerciseId}:${set.setIndex ?: index}"
+        exercises.filter { it.cardioDetails == null }.forEachIndexed { exerciseIndex, exercise ->
+            exercise.sets.filterNot(::isNonWorkingExecution).forEachIndexed { index, set ->
+                val occurrence = exercise.occurrenceId?.takeIf { it.isNotBlank() } ?: "${exercise.exerciseId}@$exerciseIndex"
+                val key = "$occurrence:${set.setIndex ?: index}"
                 logicalSets.getOrPut(key) { mutableListOf() }.add(recordedSetEffort(set))
             }
         }
@@ -65,7 +69,7 @@ object RpeConversion {
         val mode = set.actualIntensityMode ?: payload?.actualIntensityMode
         val value = set.actualIntensityValue ?: payload?.actualIntensityValue
         if (mode == IntensityMode.FAILURE) return 10.0
-        if (payload?.reachedFailure == true || set.homologatedResultV3?.reachedFailure == true ||
+        if (set.isFailure || payload?.reachedFailure == true || set.homologatedResultV3?.reachedFailure == true ||
             set.setOutcomeV2?.reachedFailure == true
         ) {
             return 10.0
@@ -75,8 +79,15 @@ object RpeConversion {
         return setRpe(set.rpe, set.rir)
     }
 
+    private fun isNonWorkingExecution(set: CompletedSet): Boolean {
+        val payload = set.recordedPayloadV3
+        return set.skipped || set.isWarmup || set.isFailedSet || set.failureReason == "execution_error" ||
+            payload?.skipped == true || payload?.failedSet == true || payload?.executionError == true ||
+            set.homologatedResultV3?.failedSet == true || set.setOutcomeV2?.failedSet == true
+    }
+
     private fun formatRpe(value: Double): String =
-        String.format(Locale.US, "%.1f", value).replace('.', ',')
+        String.format(Locale.US, "%.1f", value).removeSuffix(".0").replace('.', ',')
 
     /** Igual que [sessionRpe] pero a partir de las series ya filtradas por la pantalla. */
     fun averageSetRpe(sets: List<CompletedSet>): Double? = sets

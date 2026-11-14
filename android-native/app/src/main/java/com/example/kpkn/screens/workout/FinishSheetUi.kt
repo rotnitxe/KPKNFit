@@ -242,13 +242,18 @@ internal class FinishSheetActions(
 
 /** El contenido de la hoja (sin la ventana): arte del encabezado, módulos, acciones y el panel de anotaciones. */
 @Composable
-internal fun FinishSheetContent(state: FinishSheetState, actions: FinishSheetActions, modifier: Modifier = Modifier) {
+internal fun FinishSheetContent(
+    state: FinishSheetState,
+    actions: FinishSheetActions,
+    modifier: Modifier = Modifier,
+    scrollState: androidx.compose.foundation.ScrollState = rememberScrollState(),
+) {
     val m = state.model
     val d = state.dims
     Box(modifier.fillMaxWidth().clipToBounds().testTag("finish-sheet")) {
         // `.lx-art`: 200 dp de líneas detrás de todo, pegadas arriba (posición absoluta en el lienzo: no empuja nada).
         RidgeArt(state.ridges, state.ridgeRecordIndex, Modifier.fillMaxWidth().height(200.dp).align(Alignment.TopStart))
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+        Column(Modifier.fillMaxWidth().verticalScroll(scrollState)) {
             Box {
                 Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = d.headerTop.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -381,7 +386,7 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             val effort = m.recordedEffort.value
-            val effortSub = if (effort != null) "${m.recordedEffort.coveredSets} de ${m.recordedEffort.totalSets} series" else "Sin intensidad registrada"
+            val effortSub = m.recordedEffort.coverageLabel
             val i0 = 0.55f
             val durationSeconds = m.durationSeconds
             val durationValue = if (durationSeconds in 1..59) durationSeconds.toString() else m.minutes.toString()
@@ -627,54 +632,56 @@ private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("SEMANA ANTERIOR", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
-        rows.forEach { lift ->
-            val best = lift.best
-            val mode = best?.let { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(it) }
-            val loadComparable = mode == null || mode == com.example.kpkn.data.models.LoadModeV2.LOAD
-            val todayValue = if (loadComparable && best != null && com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(best)) {
-                com.example.kpkn.domain.performance.StrengthModel.estimate1RM(best).takeIf { it > 0.0 }
-            } else {
-                null
-            }
-            val todayLabel = if (todayValue == null) {
-                best?.let { set ->
-                    if ((set.distanceKm ?: 0.0) > 0.0 || ((set.timeSeconds ?: 0) > 0 && set.reps == 0)) finishSetLabel(set)
-                    else com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(set)
-                }
-            } else {
-                null
-            }
-            val weekDelta = if (todayValue != null && lift.previousWeek != null && lift.previousWeek.estimated1Rm > 0.0) {
-                todayValue - lift.previousWeek.estimated1Rm
-            } else null
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(lift.name, Modifier.weight(1f), style = Lx.inter(12.5.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (weekDelta != null && kotlin.math.abs(weekDelta) >= 0.01) {
-                    Icon(
-                        imageVector = if (weekDelta > 0) KpknLineIcons.TrendUp else KpknLineIcons.TrendDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(13.dp),
-                        tint = if (weekDelta > 0) Lx.Done else Lx.Muted,
-                    )
-                }
+        Text("COMPARACIÓN SEMANAL", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+        rows.forEachIndexed { index, lift ->
+            val metric = finishWeeklyMetric(lift)
+            Column(
+                Modifier.fillMaxWidth().testTag("finish-week-chart-row-$index"),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
                 Text(
-                    when {
-                        todayValue != null && lift.previousWeek != null ->
-                            "hoy ${finishGrouped(todayValue, 1)} kg · sem. ant. ${finishGrouped(lift.previousWeek.estimated1Rm, 1)} kg"
-                        todayValue != null -> "hoy ${finishGrouped(todayValue, 1)} kg · sin dato comparable la semana anterior"
-                        todayLabel != null && lift.previousWeek?.displayLabel != null ->
-                            "hoy $todayLabel · sem. ant. ${lift.previousWeek.displayLabel}"
-                        todayLabel != null -> "hoy $todayLabel · sin dato comparable la semana anterior"
-                        else -> "sin dato comparable la semana anterior"
-                    },
-                    style = Lx.num(11.5.sp, weight = FontWeight.Medium),
-                    color = if ((weekDelta ?: 0.0) > 0.01) Lx.Done else Lx.Faint,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    if (metric == null) lift.name else "${lift.name} · ${metric.unitLabel}",
+                    style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                if (metric == null) {
+                    Text("Sin métrica comparable para esta modalidad", style = Lx.inter(11.5.sp), color = Lx.Faint)
+                } else {
+                    val previous = metric.previousValue
+                    val maxValue = maxOf(metric.currentValue, previous ?: 0.0).coerceAtLeast(0.01)
+                    val currentImproved = previous?.let {
+                        if (metric.lowerIsBetter) metric.currentValue < it else metric.currentValue > it
+                    } == true
+                    Text(
+                        "hoy ${metric.display(metric.currentValue)} · sem. ant. ${previous?.let(metric::display) ?: "sin dato comparable"}",
+                        style = Lx.num(11.5.sp, weight = FontWeight.Medium),
+                        color = if (currentImproved) Lx.Done else Lx.Faint,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                    FinishWeeklyBar("Hoy", metric.currentValue, maxValue, metric.display(metric.currentValue), if (currentImproved) Lx.Done else Lx.Ink)
+                    if (previous != null) {
+                        FinishWeeklyBar("Sem. ant.", previous, maxValue, metric.display(previous), Lx.Muted)
+                    } else {
+                        Text("Sin dato comparable la semana anterior", style = Lx.inter(10.5.sp), color = Lx.Faint)
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun FinishWeeklyBar(label: String, value: Double, maxValue: Double, valueLabel: String, color: Color) {
+    val fraction = (value / maxValue).toFloat().coerceIn(0.025f, 1f)
+    Row(
+        Modifier.fillMaxWidth().semantics { contentDescription = "$label: $valueLabel" },
+        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, Modifier.width(62.dp), style = Lx.inter(10.5.sp), color = Lx.Faint, maxLines = 1)
+        Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x12FFFFFF))) {
+            Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(color, RoundedCornerShape(3.dp)))
+        }
+        Text(valueLabel, Modifier.width(112.dp), style = Lx.num(10.5.sp), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

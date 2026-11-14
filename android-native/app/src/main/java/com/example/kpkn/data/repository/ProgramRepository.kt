@@ -771,6 +771,107 @@ class ProgramRepository private constructor(
         }
     }
 
+    /**
+     * Atomically commits one live edit that changes the source occurrence and its verified future
+     * lineage. The transform receives the latest program under the same RMW lane as version history.
+     * A single version snapshot is stored for the edited source/variant; future occurrences remain
+     * ordinary program JSON and share this operation's durable write.
+     */
+    suspend fun commitLiveProgramLineageEditNow(
+        programId: String,
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        sessionId: String,
+        variant: WeekVariant,
+        operationId: String,
+        reason: String,
+        origin: String = "Entreno en vivo",
+        transform: (Program) -> Program?,
+    ): LiveProgramEditCommit? = withContext(Dispatchers.IO) {
+        require(operationId.isNotBlank()) { "A live edit needs a stable operation ID." }
+        programRmwMutex.withLock edit@{
+            val dao = db.programVersionDao()
+            val repeated = dao.getByOperation(programId, operationId)
+            if (repeated != null) {
+                val program = getProgramById(programId) ?: return@edit null
+                val session = findStoredSession(program, weekId, macroIndex, mesoIndex, sessionId)
+                    ?.variantSession(variant)
+                    ?: runCatching { dbJson.decodeFromString<Session>(repeated.snapshotJson) }.getOrNull()
+                    ?: return@edit null
+                val versions = dao.getForProgram(programId).filter {
+                    it.sessionId == sessionId && it.variantId == variant.name
+                }
+                return@edit LiveProgramEditCommit(program, session, variant, versions).also {
+                    _liveProgramEditCommits.tryEmit(it)
+                }
+            }
+
+            val currentProgram = getProgramById(programId) ?: return@edit null
+            val currentSession = findStoredSession(currentProgram, weekId, macroIndex, mesoIndex, sessionId)
+                ?: return@edit null
+            val previousVariant = currentSession.variantSession(variant) ?: return@edit null
+            val candidate = transform(currentProgram) ?: return@edit null
+            if (candidate.id != programId) return@edit null
+            val candidateSession = findStoredSession(candidate, weekId, macroIndex, mesoIndex, sessionId)
+                ?: return@edit null
+            if (candidateSession.id != currentSession.id) return@edit null
+            val candidateVariant = candidateSession.variantSession(variant) ?: return@edit null
+            if (candidateVariant == previousVariant) return@edit null
+
+            val normalized = normalizeProgramWithCompetitions(candidate)
+            val persistedSession = findStoredSession(normalized, weekId, macroIndex, mesoIndex, sessionId)
+                ?.variantSession(variant) ?: return@edit null
+            val savedAtMs = System.currentTimeMillis()
+            val previousVersions = dao.getForProgram(programId).filter {
+                it.sessionId == sessionId && it.variantId == variant.name
+            }
+            val initial = if (previousVersions.none { it.isInitial }) {
+                ProgramVersionEntity(
+                    id = UUID.randomUUID().toString(),
+                    programId = programId,
+                    sessionId = sessionId,
+                    variantId = variant.name,
+                    operationId = "initial:$sessionId:${variant.name}",
+                    savedAtEpochMs = savedAtMs,
+                    origin = origin,
+                    reason = "Estado anterior al primer guardado en vivo",
+                    isInitial = true,
+                    snapshotJson = dbJson.encodeToString(previousVariant),
+                )
+            } else null
+            val versionRecord = ProgramVersionEntity(
+                id = UUID.randomUUID().toString(),
+                programId = programId,
+                sessionId = sessionId,
+                variantId = variant.name,
+                operationId = operationId,
+                savedAtEpochMs = savedAtMs,
+                origin = origin,
+                reason = reason.ifBlank { "Cambio permanente en vivo" },
+                snapshotJson = dbJson.encodeToString(persistedSession),
+            )
+            val writeVersion = synchronized(programMutationLock) { reserveProgramWrite(programId) }
+            val committed = commitProgramDurableForCaller(
+                program = normalized,
+                version = writeVersion,
+                repairActiveState = true,
+                guardInTransaction = { dao.getByOperation(programId, operationId) == null },
+                atomicWrite = {
+                    if (initial != null) dao.upsert(initial)
+                    dao.upsert(versionRecord)
+                },
+            )
+            if (!committed) throw ProgramWriteConflictException(programId)
+            val versions = dao.getForProgram(programId).filter {
+                it.sessionId == sessionId && it.variantId == variant.name
+            }
+            LiveProgramEditCommit(normalized, persistedSession, variant, versions).also {
+                _liveProgramEditCommits.tryEmit(it)
+            }
+        }
+    }
+
     suspend fun getLiveSessionVersions(programId: String, sessionId: String): List<ProgramVersionEntity> =
         withContext(Dispatchers.IO) {
             db.programVersionDao().getForProgram(programId)

@@ -761,7 +761,7 @@ internal fun WorkoutStructureSheetsHost(
         availableTags = viewModel::tagsForExercise,
         onSaveTag = viewModel::upsertWorkoutTag,
         onSaveDefinition = { exerciseId, draft ->
-            viewModel.updateExerciseDefinition(exerciseId) { current -> draft.copy(id = current.id) }
+            viewModel.saveExerciseDefinitionFromEditSheet(exerciseId, draft)
         },
     )
 
@@ -1033,18 +1033,24 @@ internal fun WorkoutStructureSheetsHost(
         }
     }
 
-    uiState.pendingReplacementPersistencePrompt?.let {
+    uiState.pendingReplacementPersistencePrompt?.let { prompt ->
         val options = viewModel.replacementScopeOptions()
         // Refinamiento 02: el alcance del cambio se elige en filas de la hoja del prototipo, no en un diálogo de píldoras.
         com.example.kpkn.screens.workout.components.LiveSheet(title = "Guardar el reemplazo",
             onDismiss = { viewModel.dismissPendingReplacementPersistencePrompt() }, tag = "live-replace-scope", footer = null) { close ->
-            com.example.kpkn.screens.workout.components.LiveSheetSubtitle("¿Hasta dónde llega este cambio? Lo ya registrado se conserva.")
+            com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
+                if (prompt.sourceLogicalLineageId == null) {
+                    "Este ejercicio no tiene un linaje verificable. Guardar en el programa solo cambiará la sesión de origen. Lo ya registrado se conserva."
+                } else {
+                    "Guardar en el programa actualiza esta sesión y sus futuras ocurrencias del mismo origen y variante. Lo ya registrado se conserva."
+                }
+            )
             options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
                 com.example.kpkn.screens.workout.components.LiveSheetMenuRow(
                     when (scope) {
                         ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo hoy"
                         ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en el programa"
-                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en sesiones del bloque"
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en el programa"
                         ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                     },
                     { viewModel.commitPendingReplacementPersistence(scope) },
@@ -1080,6 +1086,7 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.DissolveSuperset -> "Disolver superserie"
             is PendingStructuralChange.SetExerciseRom -> "Guardar registro de ROM"
             is PendingStructuralChange.SetSessionTargetDuration -> "Guardar duración objetivo"
+            is PendingStructuralChange.UpdateExercisePrescription -> "Editar prescripción"
         }
         val question = when (change) {
                             is PendingStructuralChange.AddSet -> {
@@ -1115,6 +1122,13 @@ internal fun WorkoutStructureSheetsHost(
                             is PendingStructuralChange.SetSessionTargetDuration -> {
                                 "Se actualizó la duración objetivo. ¿Cómo quieres guardar este cambio?"
                             }
+                            is PendingStructuralChange.UpdateExercisePrescription -> {
+                                if (change.sourceLogicalLineageId == null) {
+                                    "Se actualizó la prescripción de «${change.exerciseName}». Esta sesión no tiene un linaje verificable; al guardar en el programa solo se cambiará la sesión de origen."
+                                } else {
+                                    "Se actualizó la prescripción de «${change.exerciseName}». ¿Quieres aplicar este cambio a las futuras ocurrencias del mismo origen y variante?"
+                                }
+                            }
                         }
         com.example.kpkn.screens.workout.components.LiveSheet(title = title,
             onDismiss = { viewModel.clearPendingStructuralPersistence() }, tag = "live-structure-scope", footer = null) { close ->
@@ -1124,7 +1138,7 @@ internal fun WorkoutStructureSheetsHost(
                     when (scope) {
                         ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo hoy"
                         ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en el programa"
-                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en sesiones del bloque"
+                        ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Guardar en el programa"
                         ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                     },
                     { viewModel.commitStructuralPersistence(scope) },

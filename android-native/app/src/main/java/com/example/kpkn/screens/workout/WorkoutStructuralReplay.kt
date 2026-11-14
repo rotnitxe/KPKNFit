@@ -60,6 +60,8 @@ internal fun captureReplacementPromptIdentity(
     replacement: com.example.kpkn.data.models.ExerciseMuscleInfo,
     sourceExercise: Exercise,
     sourceExerciseSlot: Int?,
+    sourceLogicalLineageId: String?,
+    activeMode: com.example.kpkn.data.models.WeekVariant,
 ): PendingReplacementPersistencePrompt = PendingReplacementPersistencePrompt(
     exerciseId = exerciseId,
     replacement = replacement,
@@ -68,4 +70,7 @@ internal fun captureReplacementPromptIdentity(
     fromCatalogRevision = sourceExercise.catalogRevision,
     fromCatalogDefinitionId = sourceExercise.catalogDefinitionId,
     fromCatalogConfigurationId = sourceExercise.catalogConfigurationId,
+    sourceTarget = LiveExerciseSlotIdentity.from(sourceExercise),
+    sourceLogicalLineageId = sourceLogicalLineageId,
+    activeMode = activeMode,
 )

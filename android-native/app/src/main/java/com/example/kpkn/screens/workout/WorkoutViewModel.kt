@@ -3181,6 +3181,17 @@ class WorkoutViewModel(
     private fun withModeSession(base: Session, mode: WeekVariant, update: (Session) -> Session): Session =
         WorkoutStructuralEditor.withModeSession(base, mode, update)
 
+    private fun exerciseTarget(base: Session, mode: WeekVariant, exerciseId: String): LiveExerciseSlotIdentity? =
+        sessionForActiveMode(base, mode).allExercises().firstOrNull { it.id == exerciseId }
+            ?.let(LiveExerciseSlotIdentity::from)
+
+    private fun liveSessionLineage(base: Session): String? {
+        base.logicalLineageId?.let { return it }
+        val dayId = base.allExercises().firstNotNullOfOrNull { it.recipeDayId } ?: return null
+        val recipe = repository.getProgramById(programId)?.sourceRecipe ?: return null
+        return "recipe:${recipe.id}@${recipe.contentVersion}/day:$dayId"
+    }
+
     private fun Session.replaceExerciseById(exerciseId: String, update: (Exercise) -> Exercise): Session =
         WorkoutStructuralEditor.replaceExerciseById(this, exerciseId, update)
 
@@ -3444,6 +3455,7 @@ class WorkoutViewModel(
                     ),
                     group = createdGroup,
                     activeMode = state.activeMode,
+                    exerciseTargets = targetIds.mapNotNull { id -> exerciseTarget(base, state.activeMode, id)?.let { id to it } }.toMap(),
                 ),
             )
         }
@@ -3459,6 +3471,7 @@ class WorkoutViewModel(
             showWorkoutToast("Máximo 4 ejercicios por superserie")
             return
         }
+        val undoSnapshot = captureGodModeUndoSnapshot("Añadir a superserie")
         var newExerciseId: String? = null
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             val group = modeSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return@withModeSession modeSession
@@ -3469,6 +3482,9 @@ class WorkoutViewModel(
             newExerciseId = generatedId
             val newExercise = template.copy(
                 id = generatedId,
+                occurrenceId = null,
+                recipeDayId = null,
+                recipeSlotId = null,
                 sets = template.sets.ifEmpty { listOf(ExerciseSet(id = UUID.randomUUID().toString())) }
                     .map { it.copy(id = UUID.randomUUID().toString()) },
                 warmupSets = emptyList(),
@@ -3480,7 +3496,7 @@ class WorkoutViewModel(
             ).replacedWithCatalogExercise(
                 info = catalogExercise,
                 selectedAspects = CatalogSelectionDraftBridge.consume(catalogExercise.id)?.selectedAspects,
-            )
+            ).copy(occurrenceId = null, recipeDayId = null, recipeSlotId = null)
 
             val memberIds = members.map { it.id }
             val inserted = insertExerciseAfterSupersetMembers(modeSession, memberIds, newExercise)
@@ -3496,7 +3512,33 @@ class WorkoutViewModel(
             )
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = newExerciseId)
+        val activeUpdated = sessionForActiveMode(updatedSession, state.activeMode)
+        val updatedGroup = activeUpdated.allSupersetGroups().firstOrNull { it.id == groupId } ?: return
+        val memberIds = updatedGroup.exerciseOrder
+        val memberExercises = activeUpdated.allExercises().filter { it.id in memberIds }
+        applySessionMutation(updatedSession, preferredExerciseId = newExerciseId, persistToProgram = false)
+        updateUiState { current ->
+            current.copy(
+                godModeUndoStack = current.godModeUndoStack + undoSnapshot,
+                pendingStructuralPersistence = PendingStructuralChange.AddSuperset(
+                    groupId = groupId,
+                    afterExerciseId = memberIds.firstOrNull(),
+                    newExerciseIds = memberIds,
+                    newExerciseNames = memberExercises.map { it.name },
+                    supersetConfig = CatalogSupersetConfig(
+                        rounds = updatedGroup.rounds ?: 1,
+                        restBetweenExercisesSeconds = updatedGroup.restBetweenExercises,
+                        restAfterSupersetSeconds = updatedGroup.restAfterSuperset,
+                    ),
+                    group = updatedGroup,
+                    activeMode = state.activeMode,
+                    exerciseTargets = memberExercises
+                        .filter { it.id != newExerciseId }
+                        .associate { it.id to LiveExerciseSlotIdentity.from(it) },
+                    afterExerciseTarget = memberIds.firstOrNull()?.let { exerciseTarget(base, state.activeMode, it) },
+                ),
+            )
+        }
     }
 
     fun addExercisesAsLiveSuperset(
@@ -3591,6 +3633,7 @@ class WorkoutViewModel(
                     supersetConfig = effectiveConfig,
                     group = createdGroup,
                     activeMode = state.activeMode,
+                    afterExerciseTarget = targetExerciseId?.let { exerciseTarget(base, state.activeMode, it) },
                 )
             )
         }
@@ -3625,6 +3668,9 @@ class WorkoutViewModel(
                 pendingStructuralPersistence = PendingStructuralChange.DissolveSuperset(
                     groupId = groupId,
                     exerciseNames = memberNames,
+                    targetExercises = sessionForActiveMode(base, state.activeMode).allExercises()
+                        .filter { it.supersetGroupRefOrLegacyId() == groupId }
+                        .map(LiveExerciseSlotIdentity::from),
                 ),
             )
         }
@@ -3788,6 +3834,7 @@ class WorkoutViewModel(
                     isGlobal = isGlobal,
                     orderedExerciseCanonicalKeys = orderedCanonicalKeys,
                     orderedExercisePartKeys = orderedPartKeys,
+                    orderedExerciseTargets = ids.mapNotNull { id -> exerciseTarget(base, state.activeMode, id) },
                 ),
             ) },
         )
@@ -3795,6 +3842,17 @@ class WorkoutViewModel(
 
     fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = false, transform: (Exercise) -> Exercise) {
         updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
+    }
+
+    /** Confirmation boundary for the editable prescription sheet; setup/recording paths stay session-only. */
+    fun saveExerciseDefinitionFromEditSheet(exerciseId: String, draft: Exercise) {
+        updateExerciseDefinitionConfirmed(
+            exerciseId = exerciseId,
+            persistToProgram = false,
+            transform = { current -> draft.copy(id = current.id) },
+            persistReferences = true,
+            promptForPrescription = true,
+        )
     }
 
     /**
@@ -3813,7 +3871,7 @@ class WorkoutViewModel(
     }
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
-        transform: (Exercise) -> Exercise, persistReferences: Boolean) {
+        transform: (Exercise) -> Exercise, persistReferences: Boolean, promptForPrescription: Boolean = false) {
         if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
@@ -3827,7 +3885,9 @@ class WorkoutViewModel(
             showWorkoutToast("Completa u omite el lado pendiente antes de cambiar la lateralidad.")
             return
         }
-        val pendingOnly = if (changesLaterality) proposed.copy(sets = pendingReplacementSets(previous, proposed, state.completedSets, state.omittedSetKeys)) else proposed
+        val pendingOnlyDraft = if (changesLaterality) proposed.copy(sets = pendingReplacementSets(previous, proposed, state.completedSets, state.omittedSetKeys)) else proposed
+        val previousSetIds = previous.sets.mapTo(mutableSetOf()) { it.id }
+        val pendingOnly = assignStablePrescriptionSlots(previous, pendingOnlyDraft)
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             modeSession.replaceExerciseById(exerciseId) { pendingOnly }
         }
@@ -3844,7 +3904,13 @@ class WorkoutViewModel(
                     }
                     if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         if (_uiState.value.startTimeMs == state.startTimeMs && _uiState.value.session == base)
-                            updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, { next }, persistReferences = false)
+                            updateExerciseDefinitionConfirmed(
+                                exerciseId,
+                                persistToProgram,
+                                { next },
+                                persistReferences = false,
+                                promptForPrescription = promptForPrescription,
+                            )
                         else showWorkoutToast("Referencia guardada en el programa; la sesión cambió durante el guardado.")
                     } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
                 } catch (failure: Exception) {
@@ -3855,6 +3921,54 @@ class WorkoutViewModel(
             return
         }
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
+        if (promptForPrescription && programId.isNotBlank() && repository.getProgramById(programId) != null) {
+            val previousById = previous.sets.withIndex().associateBy { it.value.id }
+            val pendingIds = pendingOnly.sets.mapTo(mutableSetOf()) { it.id }
+            val deltas = pendingOnly.sets.mapIndexedNotNull { afterIndex, after ->
+                val (beforeIndex, before) = previousById[after.id] ?: return@mapIndexedNotNull null
+                val beforePrescription = SetPrescriptionSnapshot.from(before)
+                val afterPrescription = SetPrescriptionSnapshot.from(after)
+                PrescriptionSetDelta(
+                    setOrdinal = beforeIndex,
+                    targetSetId = before.id,
+                    before = beforePrescription,
+                    after = afterPrescription,
+                    targetPlannedSlotId = before.plannedSlotId ?: after.plannedSlotId,
+                )
+                    .takeIf { beforePrescription != afterPrescription }
+            }
+            val additions = pendingOnly.sets.mapIndexedNotNull { index, after ->
+                if (after.id in previousSetIds) return@mapIndexedNotNull null
+                PrescriptionSetAddition(
+                    setOrdinal = index,
+                    sourceSetId = after.id,
+                    plannedSlotId = after.plannedSlotId,
+                    prescription = SetPrescriptionSnapshot.from(after),
+                )
+            }
+            val removals = previous.sets.mapNotNull { before ->
+                if (before.id in pendingIds) null else PrescriptionSetRemoval(
+                    sourceSetId = before.id,
+                    plannedSlotId = before.plannedSlotId,
+                )
+            }
+            if (deltas.isNotEmpty() || additions.isNotEmpty() || removals.isNotEmpty()) {
+                updateUiState { current ->
+                    current.copy(
+                        pendingStructuralPersistence = PendingStructuralChange.UpdateExercisePrescription(
+                            exerciseId = exerciseId,
+                            exerciseName = displayWorkoutExerciseName(previous),
+                            targetExercise = LiveExerciseSlotIdentity.from(previous),
+                            setDeltas = deltas,
+                            activeMode = state.activeMode,
+                            sourceLogicalLineageId = liveSessionLineage(base),
+                            setAdditions = additions,
+                            setRemovals = removals,
+                        ),
+                    )
+                }
+            }
+        }
 
     }
 
@@ -3942,8 +4056,10 @@ class WorkoutViewModel(
                     exerciseId = exerciseId,
                     exerciseName = displayWorkoutExerciseName(exercise),
                     setIndex = setIndex,
+                    targetSetId = exercise.sets.getOrNull(setIndex)?.id,
                     exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { ex -> ex.id == exerciseId }.takeIf { idx -> idx >= 0 },
                     exerciseCanonicalKey = exercise.resolvedCanonicalExerciseId(),
+                    targetExercise = exerciseTarget(base, state.activeMode, exerciseId),
                 ),
             )
         }
@@ -3976,6 +4092,7 @@ class WorkoutViewModel(
                     exerciseName = displayWorkoutExerciseName(exercise),
                     exerciseSlot = idx.takeIf { it >= 0 },
                     exerciseCanonicalKey = exercise.resolvedCanonicalExerciseId(),
+                    targetExercise = exerciseTarget(base, state.activeMode, exerciseId),
                 ),
             )
         }
@@ -4003,6 +4120,7 @@ class WorkoutViewModel(
                 pendingStructuralPersistence = PendingStructuralChange.RemoveExercises(
                     exerciseIds = ids,
                     exerciseNames = names,
+                    targetExercises = ids.mapNotNull { id -> exerciseTarget(base, state.activeMode, id) },
                 ),
             )
         }
@@ -4214,6 +4332,7 @@ class WorkoutViewModel(
                 exerciseName = exerciseName,
                 exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { it.id == currentExerciseId }.takeIf { it >= 0 },
                 exerciseCanonicalKey = visibleExercises(_uiState.value).firstOrNull { it.id == currentExerciseId }?.resolvedCanonicalExerciseId(),
+                targetExercise = LiveExerciseSlotIdentity.from(target),
                 newSetId = newSetId,
             )
         )}
@@ -4236,6 +4355,9 @@ class WorkoutViewModel(
                 ?: return@withModeSession modeSession
             val newExercise = structuralPersistence.buildReplacementExercise(template.copy(id = newId), info).copy(
                 id = newId,
+                occurrenceId = null,
+                recipeDayId = null,
+                recipeSlotId = null,
                 sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
             )
             newExerciseTemplate = newExercise
@@ -4252,6 +4374,7 @@ class WorkoutViewModel(
                 newExerciseName = newExerciseName,
                 afterExerciseSlot = afterExerciseSlot,
                 afterExerciseCanonicalKey = afterExerciseCanonicalKey,
+                afterExerciseTarget = exerciseTarget(base, state.activeMode, exerciseId),
                 newExerciseTemplate = newExerciseTemplate,
             ),
         )}
@@ -4285,6 +4408,9 @@ class WorkoutViewModel(
                     ?: Exercise(id = newId, name = info.name, exerciseDbId = info.id)
                 val newExercise = structuralPersistence.buildReplacementExercise(template.copy(id = newId), info).copy(
                     id = newId,
+                    occurrenceId = null,
+                    recipeDayId = null,
+                    recipeSlotId = null,
                     sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
                 )
                 inserted = newExercise
@@ -4304,6 +4430,7 @@ class WorkoutViewModel(
                     newExerciseIds = allNewIds,
                     newExerciseNames = allNewNames,
                     newExerciseTemplates = allNewTemplates,
+                    afterExerciseTarget = exerciseTarget(base, state.activeMode, exerciseId),
                 )
             )
         }

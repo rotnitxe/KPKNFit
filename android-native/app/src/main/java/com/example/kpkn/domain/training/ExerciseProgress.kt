@@ -89,6 +89,13 @@ object ExerciseProgress {
     }
     private fun displayNumber(value: Double): String = java.math.BigDecimal.valueOf(value)
         .setScale(1, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString().replace('.', ',')
+    private fun trajectoryLineage(row: Row, metric: ExerciseProgressMetric): String = row.lineage + when {
+        metric in setOf(ExerciseProgressMetric.BEST_SET, ExerciseProgressMetric.MAX_WEIGHT) &&
+            row.mode != LoadModeV2.BODYWEIGHT -> "|reps@${row.reps}"
+        metric == ExerciseProgressMetric.MAX_REPS && row.mode != LoadModeV2.BODYWEIGHT ->
+            "|reps@${row.load?.toString() ?: "sin-detalle"}"
+        else -> ""
+    }
     private fun point(log: WorkoutLog, date: LocalDate, rows: List<Row>, metric: ExerciseProgressMetric): ExerciseProgressPoint? {
         val usable = rows.filter { metric in available(it) }; if (usable.isEmpty()) return null
         val first = usable.first(); val descending = !(metric in setOf(ExerciseProgressMetric.MAX_WEIGHT, ExerciseProgressMetric.BEST_SET) && first.mode == LoadModeV2.ASSISTED)
@@ -122,11 +129,7 @@ object ExerciseProgress {
                 else -> "${displayNumber(bestLoad)} $loadLabel × ${best.reps} reps"
             }
         }
-        val trajectory = best.lineage + when {
-            metric == ExerciseProgressMetric.MAX_REPS && best.mode != LoadModeV2.BODYWEIGHT -> "|reps@${bestLoad?.toString() ?: "sin-detalle"}"
-            metric == ExerciseProgressMetric.BEST_SET && best.mode == LoadModeV2.ASSISTED -> "|assisted@${best.reps}"
-            else -> ""
-        }
+        val trajectory = trajectoryLineage(best, metric)
         return ExerciseProgressPoint(log.id, date, log.sessionName, trajectory, best.context, best.mode, best.unit, value, descending, best.set, usable.size, detail)
     }
     fun build(logs: List<WorkoutLog>, exerciseId: String?, metric: ExerciseProgressMetric = ExerciseProgressMetric.E1RM,
@@ -162,11 +165,9 @@ object ExerciseProgress {
             ?: preferredOrder.firstOrNull { it in available }
             ?: metric
         fun history(m: ExerciseProgressMetric): List<ExerciseProgressPoint> {
-            val raw = sessions.flatMap { (log,date,rows) -> rows.groupBy { it.lineage + when {
-                m == ExerciseProgressMetric.MAX_REPS && it.mode != LoadModeV2.BODYWEIGHT -> "|reps@${it.load}"
-                m == ExerciseProgressMetric.BEST_SET && it.mode == LoadModeV2.ASSISTED -> "|assisted@${it.reps}"
-                else -> ""
-            } }.values.mapNotNull { point(log,date,it,m) } }
+            val raw = sessions.flatMap { (log,date,rows) ->
+                rows.groupBy { trajectoryLineage(it, m) }.values.mapNotNull { point(log,date,it,m) }
+            }
             val best = mutableMapOf<String,Double>(); var prior: String? = null
             return raw.map { point ->
                 val key = point.lineage

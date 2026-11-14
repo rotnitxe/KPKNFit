@@ -4,11 +4,15 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.ProgramEndMode
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.hasExplicitEnd
+import com.example.kpkn.data.models.resolveProgramEndMode
 import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -16,7 +20,9 @@ import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.startFreshSimpleCycle
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -63,6 +69,51 @@ class ProgramMigrationEngineTest {
             ),
         ),
     )
+
+    @Test
+    fun `projected schedule end stays separate from a legacy manual terminal date`() {
+        val legacy = cyclicBase().copy(
+            structure = ProgramStructure.COMPLEX,
+            programEndMode = null,
+            timelineStartDate = "2026-06-01",
+            calendarization = ProgramCalendarization(
+                mode = ProgramCalendarizationMode.ADVANCED_COMPETITION,
+                manualEndDate = null,
+            ),
+            schedulePlan = com.example.kpkn.data.models.ProgramSchedulePlan(
+                anchorDate = "2026-06-01",
+                targetEndDate = "2026-06-28",
+                mode = ScheduleMode.DATED,
+            ),
+        )
+
+        assertFalse(legacy.hasExplicitEnd)
+        val migrated = ProgramMigrationEngine.migrateIfNeeded(
+            legacy,
+            FixedClock(LocalDate.of(2026, 6, 10)),
+        ).program
+
+        assertEquals("2026-06-28", migrated.schedulePlan?.targetEndDate)
+        assertNull(migrated.calendarization?.manualEndDate)
+        assertFalse(migrated.hasExplicitEnd)
+    }
+
+    @Test
+    fun `legacy calendarized break projection without snapshot stays repeating`() {
+        val legacy = cyclicBase().copy(
+            programEndMode = null,
+            simpleProgramKind = SimpleProgramKind.CALENDARIZED,
+            pausedCyclicSnapshot = null,
+            timelineStartDate = "2026-06-01",
+            calendarization = ProgramCalendarization(
+                mode = ProgramCalendarizationMode.SIMPLE_DATED,
+                manualEndDate = "2026-06-28",
+            ),
+        )
+
+        assertFalse(legacy.hasExplicitEnd)
+        assertEquals(ProgramEndMode.REPEATING, legacy.resolveProgramEndMode())
+    }
 
     @Test
     fun `active calendarized program survives migrateIfNeeded reload`() {

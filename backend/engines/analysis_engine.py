@@ -269,7 +269,15 @@ def calculate_weekly_tonnage_comparison(
         if ld > today:
             continue
         lid = _get_week_id(ld, settings.startWeekOn)
-        vol = sum(_completed_set_external_tonnage(s) for ex in log.completedExercises for s in ex.sets)
+        if log.completedExercises:
+            # Recompute whenever set-level evidence exists; never mix this with
+            # the stored aggregate, which may include synthetic body mass.
+            vol = sum(_completed_set_external_tonnage(s) for ex in log.completedExercises for s in ex.sets)
+        else:
+            # Legacy logs may predate per-set details. Match Android/iOS by
+            # preserving their aggregate only when the log has no exercises.
+            raw_log = log.model_dump()
+            vol = _finite_non_negative(raw_log.get("totalVolume")) or 0.0
         if lid == cw_id:
             current += vol
         elif lid == pw_id:

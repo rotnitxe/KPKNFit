@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.WeekVariant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -30,11 +31,15 @@ class ReplacementPromptIdentityTest {
             replacement = replacement,
             sourceExercise = source,
             sourceExerciseSlot = 2,
+            sourceLogicalLineageId = null,
+            activeMode = WeekVariant.A,
         )
         assertEquals("rev-old", prompt.fromCatalogRevision)
         assertEquals("def-old", prompt.fromCatalogDefinitionId)
         assertEquals("cfg-old", prompt.fromCatalogConfigurationId)
         assertEquals(2, prompt.sourceExerciseSlot)
+        assertEquals(LiveExerciseSlotIdentity.from(source), prompt.sourceTarget)
+        assertEquals(WeekVariant.A, prompt.activeMode)
         assertNotEquals(replacement.catalogRevision, prompt.fromCatalogRevision)
         assertEquals("Press mancuernas", prompt.replacement.name)
     }

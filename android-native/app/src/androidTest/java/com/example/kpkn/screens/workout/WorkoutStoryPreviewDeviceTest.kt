@@ -45,16 +45,16 @@ class WorkoutStoryPreviewDeviceTest {
         val started=ConcurrentHashMap.newKeySet<WorkoutStoryOptions>()
         var selected by mutableStateOf(initial)
         // Simula una decodificación nativa que no coopera con cancelación hasta devolver el bitmap.
-        val renderer:suspend (Context,WorkoutStoryData,WorkoutStoryOptions)->Bitmap={_,_,options ->
-            if(options.template!=WorkoutStoryTemplate.GENERAL) Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)}
-            else withContext(NonCancellable) { started.add(options);requests.getValue(options).await() }
+        val renderer: suspend (Context,WorkoutStoryData,WorkoutStoryOptions) -> List<Bitmap> = { _,_,options ->
+            if(options.template!=WorkoutStoryTemplate.GENERAL) listOf(Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)})
+            else withContext(NonCancellable) { started.add(options);listOf(requests.getValue(options).await()) }
         }
         val data=WorkoutStoryData("Fixture",FinishPresentationContext(),40,400.0,4,2.0,"Alta",emptyList())
         fun image(color:Int)=Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply { eraseColor(color) }
         rule.setContent {
             CompositionLocalProvider(LocalWizardReducedMotion provides true) {
                 KPKNTheme {
-                    WorkoutStorySheet(data,HazeState(),selected,{selected=it},false,{}, {},renderStory=renderer)
+                    WorkoutStorySheet(data,HazeState(),selected,{selected=it},false,{}, {},renderStoryPages=renderer)
                 }
             }
         }
@@ -97,11 +97,11 @@ class WorkoutStoryPreviewDeviceTest {
         var density=1f
         val lift=buildFinishLiftProgress(listOf(CompletedExercise("fixture","Sentadilla de prueba",sets=listOf(CompletedSet("set",weight=80.0,reps=6,rir=2)))),emptyList())
         val data=WorkoutStoryData("Fixture",FinishPresentationContext(photos=listOf(StoryPhoto(file.absolutePath))),40,480.0,1,2.0,"Alta",lift)
-        val renderer:suspend (Context,WorkoutStoryData,WorkoutStoryOptions)->Bitmap={_,_,_->Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)}}
+        val renderer: suspend (Context,WorkoutStoryData,WorkoutStoryOptions) -> List<Bitmap> = { _,_,_ -> listOf(Bitmap.createBitmap(9,16,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.DKGRAY)}) }
         try {
             rule.setContent {
                 density=LocalDensity.current.density
-                CompositionLocalProvider(LocalWizardReducedMotion provides true){KPKNTheme{WorkoutStorySheet(data,HazeState(),selected,{selected=it},false,{}, {},renderStory=renderer)}}
+                CompositionLocalProvider(LocalWizardReducedMotion provides true){KPKNTheme{WorkoutStorySheet(data,HazeState(),selected,{selected=it},false,{}, {},renderStoryPages=renderer)}}
             }
             fun check(template:String,offered:Set<String>){
                 rule.onNodeWithText(template).performClick()

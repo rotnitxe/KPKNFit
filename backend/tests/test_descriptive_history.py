@@ -28,6 +28,26 @@ def test_conflicting_source_identity_is_excluded_instead_of_first_wins():
     assert calculate_weekly_tonnage_comparison([a,b],Settings(),now) == {'current':0,'previous':0}
 
 
+def test_legacy_aggregate_is_used_only_when_a_log_has_no_exercises():
+    now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
+    legacy_without_sets = WorkoutLog(
+        id='legacy-empty', date='2026-10-22T10:00:00Z', totalVolume=120,
+    )
+    detailed_log_with_stale_aggregate = WorkoutLog(
+        id='detailed', date='2026-10-22T11:00:00Z', totalVolume=999,
+        completedExercises=[{
+            'exerciseId': 'bench',
+            'sets': [{'weight': 10, 'reps': 5, 'loadMode': 'LOAD'}],
+        }],
+    )
+
+    result = calculate_weekly_tonnage_comparison(
+        [legacy_without_sets, detailed_log_with_stale_aggregate], Settings(), now,
+    )
+
+    assert result == {'current': 170, 'previous': 0}
+
+
 def test_tonnage_respects_load_modes_and_excludes_synthetic_body_mass():
     now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
     bw_with_synthetic = WorkoutLog(

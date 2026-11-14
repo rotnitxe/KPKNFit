@@ -55,6 +55,9 @@ class FinishWeeklyComparisonTest {
         assertNotNull(result.previousWeek)
         assertEquals(95.0, result.previousWeek?.weight ?: -1.0, 0.0)
         assertEquals(5, result.previousWeek?.reps)
+        val chart = finishWeeklyMetric(result)
+        assertEquals(FinishWeeklyMetricKind.ESTIMATED_ONE_RM, chart?.kind)
+        assertEquals(result.previousWeek?.estimated1Rm ?: -1.0, chart?.previousValue ?: -2.0, 0.0)
     }
 
     @Test
@@ -167,6 +170,11 @@ class FinishWeeklyComparisonTest {
         val lift = buildFinishLiftProgress(listOf(todayEx), listOf(prevLog), today).single()
         assertNull(lift.deltaKg)
         assertEquals(20.0, lift.previousWeek?.weight ?: -1.0, 0.0)
+        val chart = finishWeeklyMetric(lift)
+        assertEquals(FinishWeeklyMetricKind.ASSISTANCE, chart?.kind)
+        assertEquals(15.0, chart?.currentValue ?: -1.0, 0.0)
+        assertEquals(20.0, chart?.previousValue ?: -1.0, 0.0)
+        assertEquals(true, chart?.lowerIsBetter)
     }
 
     @Test
@@ -201,6 +209,65 @@ class FinishWeeklyComparisonTest {
             sets = listOf(CompletedSet("p", timeSeconds = 1200)))
         val log = WorkoutLog("old", "p", "s", "Cardio", "2026-11-04T10:00:00.000Z", 40, completedExercises = listOf(prior))
         assertNull(buildFinishLiftProgress(listOf(current), listOf(log), today).single().previousWeek)
+    }
+
+    @Test
+    fun distanceChartUsesKilometersForBothWeeks() {
+        val today = LocalDate.of(2026, 11, 9)
+        fun cardio(id: String, distanceKm: Double) = CompletedExercise(
+            exerciseId = "run",
+            exerciseName = "Cinta",
+            cardioDetails = com.example.kpkn.data.models.CardioDetails(type = com.example.kpkn.data.models.CardioType.TREADMILL),
+            sets = listOf(CompletedSet(id, distanceKm = distanceKm)),
+        )
+        val previous = WorkoutLog(
+            "old", "p", "s", "Cardio", "2026-11-04T10:00:00.000Z", 40,
+            completedExercises = listOf(cardio("prior", 4.2)),
+        )
+        val lift = buildFinishLiftProgress(listOf(cardio("today", 5.0)), listOf(previous), today).single()
+        val chart = finishWeeklyMetric(lift)
+        assertEquals(FinishWeeklyMetricKind.DISTANCE_KM, chart?.kind)
+        assertEquals(5.0, chart?.currentValue ?: -1.0, 0.0)
+        assertEquals(4.2, chart?.previousValue ?: -1.0, 1e-9)
+    }
+
+    @Test
+    fun timeMetricDrivesBothCardioComparisonAndLabelsWithExactSeconds() {
+        val today = LocalDate.of(2026, 11, 9)
+        fun timedSet(id: String, distance: Double, seconds: Int) = CompletedSet(
+            id = id,
+            reps = 0,
+            distanceKm = distance,
+            timeSeconds = seconds,
+            recordedPayloadV3 = RecordedSetPayload(
+                exerciseId = "run",
+                unitMode = UnitModeV2.TIME,
+                durationSeconds = seconds,
+                actualValue = seconds.toDouble(),
+            ),
+        )
+        fun cardio(vararg sets: CompletedSet) = CompletedExercise(
+            exerciseId = "run",
+            exerciseName = "Cinta",
+            cardioDetails = com.example.kpkn.data.models.CardioDetails(
+                type = com.example.kpkn.data.models.CardioType.TREADMILL,
+            ),
+            sets = sets.toList(),
+        )
+        val current = cardio(timedSet("short", 4.0, 90), timedSet("today", 2.0, 125))
+        val previous = WorkoutLog(
+            "old", "p", "s", "Cardio", "2026-11-04T10:00:00.000Z", 40,
+            completedExercises = listOf(cardio(timedSet("prior", 8.0, 95))),
+        )
+
+        val result = buildFinishLiftProgress(listOf(current), listOf(previous), today).single()
+
+        assertEquals("2 min 5 s", finishSetLabel(result.best))
+        assertEquals("1 min 35 s", result.previousWeek?.displayLabel)
+        val chart = finishWeeklyMetric(result)
+        assertEquals(FinishWeeklyMetricKind.TIME_SECONDS, chart?.kind)
+        assertEquals(125.0, chart?.currentValue ?: -1.0, 0.0)
+        assertEquals(95.0, chart?.previousValue ?: -1.0, 0.0)
     }
 
     @Test

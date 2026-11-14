@@ -47,6 +47,27 @@ class ProgramTemplateEngineTest {
     }
 
     @Test
+    fun `multiweek complex shape without finite policy still repeats`() {
+        val template = com.example.kpkn.data.programs.ProgramTemplateOption(
+            id = "complex-four-week-cycle",
+            name = "Ciclo complejo",
+            description = "Cuatro semanas repetibles",
+            emoji = "📈",
+            type = ProgramStructure.COMPLEX,
+            weeks = 4,
+            blockNames = listOf("Acumulación"),
+            blockWeekCounts = listOf(4),
+        )
+        val result = ProgramTemplateEngine.applyTemplate(
+            Program(id = "complex-cycle", name = "Programa", structure = ProgramStructure.SIMPLE),
+            template,
+            applySplitPrefill = false,
+        )
+
+        assertEquals(com.example.kpkn.data.models.ProgramEndMode.REPEATING, result.program.programEndMode)
+    }
+
+    @Test
     fun applyTemplate_forceCopy_without_sessions_never_touches_the_original() {
         val original = Program(id = "empty-original", name = "Vacío", structure = ProgramStructure.SIMPLE)
         val result = ProgramTemplateEngine.applyTemplate(

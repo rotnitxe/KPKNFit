@@ -45,7 +45,8 @@ class RedesignTrainingMetricsTest {
     }
 
     @Test fun effortUsesOriginalSecondsWhenAvailable() {
-        val recorded = log(today, emptyList(), 8.0).copy(actualDurationSeconds = 90)
+        val set = CompletedSet("effort", reps = 5, actualIntensityMode = IntensityMode.RPE, actualIntensityValue = 8.0)
+        val recorded = log(today, listOf(set), 4.0).copy(actualDurationSeconds = 90)
         val week = HomeTrainingMetricsBuilder.build(listOf(recorded), emptyList(), emptyList(), today, now).weeks.last()
         assertEquals(12.0, week.effort, 0.0)
     }

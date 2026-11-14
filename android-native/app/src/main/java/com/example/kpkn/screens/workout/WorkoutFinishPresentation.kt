@@ -100,10 +100,102 @@ private fun finishUnit(set: CompletedSet): com.example.kpkn.data.models.UnitMode
         ?: set.homologatedResultV3?.unitMode
         ?: set.setOutcomeV2?.unitMode
         ?: when {
-            set.distanceKm != null -> com.example.kpkn.data.models.UnitModeV2.DISTANCE
-            set.timeSeconds != null && set.reps <= 0 -> com.example.kpkn.data.models.UnitModeV2.TIME
+            (set.distanceKm ?: 0.0) > 0.0 -> com.example.kpkn.data.models.UnitModeV2.DISTANCE
+            (set.timeSeconds ?: 0) > 0 && set.reps <= 0 -> com.example.kpkn.data.models.UnitModeV2.TIME
             else -> com.example.kpkn.data.models.UnitModeV2.REPS
         }
+
+internal enum class FinishWeeklyMetricKind {
+    ESTIMATED_ONE_RM,
+    ADDED_LOAD,
+    ASSISTANCE,
+    BODYWEIGHT_REPS,
+    DISTANCE_KM,
+    TIME_SECONDS,
+}
+
+/** Numeric values and units used for both sides of the finish-sheet weekly chart. */
+internal data class FinishWeeklyMetric(
+    val kind: FinishWeeklyMetricKind,
+    val currentValue: Double,
+    val previousValue: Double?,
+) {
+    val lowerIsBetter: Boolean get() = kind == FinishWeeklyMetricKind.ASSISTANCE
+    val unitLabel: String get() = when (kind) {
+        FinishWeeklyMetricKind.ESTIMATED_ONE_RM -> "kg e1RM"
+        FinishWeeklyMetricKind.ADDED_LOAD -> "kg agregado"
+        FinishWeeklyMetricKind.ASSISTANCE -> "kg asistencia"
+        FinishWeeklyMetricKind.BODYWEIGHT_REPS -> "reps"
+        FinishWeeklyMetricKind.DISTANCE_KM -> "km"
+        FinishWeeklyMetricKind.TIME_SECONDS -> "tiempo"
+    }
+
+    fun display(value: Double): String = when (kind) {
+        FinishWeeklyMetricKind.ESTIMATED_ONE_RM -> "${finishNumber(value)} kg e1RM"
+        FinishWeeklyMetricKind.ADDED_LOAD -> "${finishNumber(value)} kg agregado"
+        FinishWeeklyMetricKind.ASSISTANCE -> "${finishNumber(value)} kg asistencia"
+        FinishWeeklyMetricKind.BODYWEIGHT_REPS -> "${value.toInt()} reps"
+        FinishWeeklyMetricKind.DISTANCE_KM -> "${finishNumber(value, 2)} km"
+        FinishWeeklyMetricKind.TIME_SECONDS -> finishDurationLabel(value.toInt())
+    }
+}
+
+/**
+ * Resolves the chart metric using the same mode, unit and candidate-selection result as the comparison model.
+ * In particular, assisted work is displayed as assistance kg (lower is better), and LASTRE only compares matching reps.
+ */
+internal fun finishWeeklyMetric(lift: FinishLiftProgress): FinishWeeklyMetric? {
+    val best = lift.best ?: return null
+    val previous = lift.previousWeek
+    val selectedUnit = finishUnit(best)
+    if (selectedUnit == com.example.kpkn.data.models.UnitModeV2.DISTANCE) {
+        val current = (best.distanceKm ?: 0.0).takeIf { it > 0.0 } ?: return null
+        return FinishWeeklyMetric(
+            FinishWeeklyMetricKind.DISTANCE_KM,
+            current,
+            previous?.comparableScore?.div(1000.0)?.takeIf { it > 0.0 },
+        )
+    }
+    if (selectedUnit == com.example.kpkn.data.models.UnitModeV2.TIME) {
+        val current = (best.timeSeconds ?: 0).toDouble().takeIf { it > 0.0 } ?: return null
+        return FinishWeeklyMetric(
+            FinishWeeklyMetricKind.TIME_SECONDS,
+            current,
+            previous?.comparableScore?.takeIf { it > 0.0 },
+        )
+    }
+
+    return when (com.example.kpkn.domain.workout.CompletedSetLoadSemantics.mode(best)) {
+        com.example.kpkn.data.models.LoadModeV2.LASTRE -> {
+            val current = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.externalLoadKg(best) ?: return null
+            FinishWeeklyMetric(FinishWeeklyMetricKind.ADDED_LOAD, current, previous?.weight?.takeIf { it >= 0.0 })
+        }
+        com.example.kpkn.data.models.LoadModeV2.ASSISTED -> {
+            val current = com.example.kpkn.domain.workout.CompletedSetLoadSemantics.assistanceKg(best) ?: return null
+            FinishWeeklyMetric(FinishWeeklyMetricKind.ASSISTANCE, current, previous?.weight?.takeIf { it >= 0.0 })
+        }
+        com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT ->
+            FinishWeeklyMetric(FinishWeeklyMetricKind.BODYWEIGHT_REPS, best.reps.toDouble(), previous?.comparableScore?.takeIf { it > 0.0 })
+        com.example.kpkn.data.models.LoadModeV2.LOAD,
+        null,
+        -> {
+            if (!com.example.kpkn.domain.workout.CompletedSetLoadSemantics.supportsEstimatedOneRm(best)) return null
+            val current = StrengthModel.estimate1RM(best).takeIf { it > 0.0 } ?: return null
+            FinishWeeklyMetric(FinishWeeklyMetricKind.ESTIMATED_ONE_RM, current, previous?.estimated1Rm?.takeIf { it > 0.0 })
+        }
+    }
+}
+
+private fun finishDurationLabel(seconds: Int): String {
+    val safeSeconds = seconds.coerceAtLeast(0)
+    val minutes = safeSeconds / 60
+    val remainder = safeSeconds % 60
+    return when {
+        minutes == 0 -> "$safeSeconds s"
+        remainder == 0 -> "$minutes min"
+        else -> "$minutes min $remainder s"
+    }
+}
 
 private fun finishContextKey(set: CompletedSet): List<String> = listOf(
     set.contextKey.orEmpty(),
@@ -124,10 +216,20 @@ private fun finishComparableEstimate(set: CompletedSet): Double? =
 private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? {
     val sets = exercise.sets.filter { !it.skipped && !it.isWarmup && !it.isFailedSet }
     if (exercise.cardioDetails != null) {
-        return sets.maxWithOrNull(
-            compareBy<CompletedSet> { it.distanceKm ?: 0.0 }
-                .thenBy { it.timeSeconds ?: 0 }
-        )
+        val metric = sets.lastOrNull {
+            finishUnit(it) == com.example.kpkn.data.models.UnitModeV2.DISTANCE ||
+                finishUnit(it) == com.example.kpkn.data.models.UnitModeV2.TIME
+        }?.let(::finishUnit) ?: return sets.lastOrNull()
+        val comparable = sets.filter { finishUnit(it) == metric }
+        return when (metric) {
+            com.example.kpkn.data.models.UnitModeV2.DISTANCE -> comparable
+                .filter { (it.distanceKm ?: 0.0) > 0.0 }
+                .maxByOrNull { it.distanceKm ?: 0.0 }
+            com.example.kpkn.data.models.UnitModeV2.TIME -> comparable
+                .filter { (it.timeSeconds ?: 0) > 0 }
+                .maxByOrNull { it.timeSeconds ?: 0 }
+            else -> comparable.lastOrNull()
+        }
     }
     return sets.filter { it.reps > 0 || (it.timeSeconds ?: 0) > 0 || (it.distanceKm ?: 0.0) > 0.0 }
         .maxWithOrNull(
@@ -233,8 +335,7 @@ internal fun buildFinishLiftProgress(
                 else -> estimate
             }
             val label = if (isCardio) {
-                if ((best.distanceKm ?: 0.0) > 0.0) "${finishNumber(best.distanceKm ?: 0.0)} km"
-                else "${(best.timeSeconds ?: 0) / 60} min"
+                finishSetLabel(best, currentUnit)
             } else {
                 com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(best)
             }
@@ -294,10 +395,15 @@ internal fun finishAverageRir(completed: List<CompletedExercise>): Double? = com
 /** «8.420», «7,5»: punto de millar y coma decimal (antes devolvía «8 420», con espacio). */
 internal fun finishNumber(value: Double, decimals: Int = 1): String = finishGrouped(value, decimals)
 
-internal fun finishSetLabel(set: CompletedSet?): String = when {
+internal fun finishSetLabel(
+    set: CompletedSet?,
+    selectedUnit: com.example.kpkn.data.models.UnitModeV2? = set?.let(::finishUnit),
+): String = when {
     set == null -> "Sin serie comparable"
-    (set.distanceKm ?: 0.0) > 0.0 -> "${finishNumber(set.distanceKm ?: 0.0)} km"
-    (set.timeSeconds ?: 0) > 0 && set.reps == 0 -> "${(set.timeSeconds ?: 0) / 60} min"
+    selectedUnit == com.example.kpkn.data.models.UnitModeV2.DISTANCE && (set.distanceKm ?: 0.0) > 0.0 ->
+        "${finishNumber(set.distanceKm ?: 0.0)} km"
+    selectedUnit == com.example.kpkn.data.models.UnitModeV2.TIME && (set.timeSeconds ?: 0) > 0 ->
+        finishDurationLabel(set.timeSeconds ?: 0)
     else -> com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(set)
 }
 

@@ -198,25 +198,28 @@ object ProgramMigrationEngine {
     }
 
     /**
-     * Makes schedulePlan authoritative while keeping legacy JSON fields readable.
-     * If both fields exist and disagree, the explicit plan wins and the legacy
-     * mirror is rewritten to the same anchor so a future load cannot diverge.
+     * Makes schedulePlan authoritative for scheduling while keeping legacy JSON
+     * fields readable. A projected target end remains a scheduling projection;
+     * it is never copied into the legacy user-selected manual end field.
      */
     private fun reconcileSchedulePlan(program: Program): Program {
         val legacyAnchor = program.timelineStartDate?.trim()?.takeIf { it.isNotBlank() }
         val existing = program.schedulePlan
         val base = existing ?: buildSchedulePlanFromLegacy(program)
         val anchor = base.anchorDate?.trim()?.takeIf { it.isNotBlank() } ?: legacyAnchor
-        val targetEnd = base.targetEndDate?.trim()?.takeIf { it.isNotBlank() }
+        val scheduleTargetEnd = base.targetEndDate?.trim()?.takeIf { it.isNotBlank() }
             ?: program.calendarization?.manualEndDate?.trim()?.takeIf { it.isNotBlank() }
         val normalizedPlan = base.copy(
             anchorDate = anchor,
             weekStartDay = base.weekStartDay ?: program.startDay,
-            targetEndDate = targetEnd,
+            targetEndDate = scheduleTargetEnd,
             mode = if (anchor == null) ScheduleMode.FLOATING else ScheduleMode.DATED,
         )
         val normalizedCalendarization = program.calendarization?.let { calendar ->
-            if (calendar.manualEndDate == targetEnd) calendar else calendar.copy(manualEndDate = targetEnd)
+            // The schedule plan also stores a projected end. Only the legacy
+            // calendarization field is an explicit user-selected terminal date.
+            val manualEnd = calendar.manualEndDate?.trim()?.takeIf { it.isNotBlank() }
+            if (calendar.manualEndDate == manualEnd) calendar else calendar.copy(manualEndDate = manualEnd)
         }
         return program.copy(
             timelineStartDate = anchor,

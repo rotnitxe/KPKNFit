@@ -60,9 +60,12 @@ class NativeProfileRecipeAndFitterTest {
 
     private val catalog get() = CatalogCompositionTestSupport.catalog
     private val metadata get() = CatalogCompositionTestSupport.metadata
-    private fun personalizer() = SimpleCyclePersonalizer(
-        InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } },
-    )
+    private val cachedPersonalizer by lazy(LazyThreadSafetyMode.NONE) {
+        SimpleCyclePersonalizer(
+            InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } },
+        )
+    }
+    private fun personalizer() = cachedPersonalizer
 
     private fun generate(
         entryId: String,

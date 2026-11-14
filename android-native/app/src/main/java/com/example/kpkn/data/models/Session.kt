@@ -70,6 +70,8 @@ data class Session(
     val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),
     /** External classes/field sessions are recorded into the same history, without a fake in-app live timer. */
     val captureMode: SessionCaptureMode = SessionCaptureMode.IN_APP,
+    /** Stable logical source shared by recipe-generated occurrences; absent on legacy/unverified sessions. */
+    val logicalLineageId: String? = null,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -715,6 +717,8 @@ data class ExerciseSet(
     val loadQuantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
     /** Sides whose next load must be chosen manually after an accepted stock-unknown proposal. */
     val manualLoadRequiredSides: Set<String> = emptySet(),
+    /** Stable prescription slot within a recipe exercise; null for legacy/ad-hoc sets without a verified slot. */
+    val plannedSlotId: String? = null,
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }

@@ -216,8 +216,8 @@ object ProgramCalendarEngine {
         }
 
         val projectedEnd = weeks.lastOrNull()?.endDate
-        val manualEnd = parseIsoDate(calendar.manualEndDate) ?: parseIsoDate(plan.targetEndDate)
-        val status = endDateStatus(manualEnd, projectedEnd, calendar.manualEndDate ?: plan.targetEndDate)
+        val manualEnd = parseIsoDate(calendar.manualEndDate)
+        val status = endDateStatus(manualEnd, projectedEnd, calendar.manualEndDate)
         return ProgramCalendarProjection(
             enabled = true,
             mode = calendar.mode,
