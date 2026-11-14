@@ -1,8 +1,12 @@
 package com.example.kpkn.screens.programdetail.components.editor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.kpkn.data.models.DurationType
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.LoopType
@@ -10,28 +14,15 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.LoopProjection
+import com.example.kpkn.domain.training.LoopPresetEngine
+import com.example.kpkn.domain.training.LoopPresetPreview
+import com.example.kpkn.screens.programdetail.design.structure.LoopPresetPreviewSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleAction
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleDraft
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleLoop
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCycleWeek
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesModel
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesSheet
-
-/** Qué ciclos añade cada plantilla de ciclos. Los textos de la plantilla viven en el diseño; aquí, solo su lógica (la de siempre). */
-private data class CycleTemplateEntry(val title: String, val type: LoopType, val cadence: Int)
-
-private val CYCLE_TEMPLATE_ENTRIES: Map<String, List<CycleTemplateEntry>> = mapOf(
-    "deload-4" to listOf(CycleTemplateEntry("Descarga", LoopType.DELOAD, 4)),
-    "1rm-8" to listOf(CycleTemplateEntry("Test 1RM", LoopType.ONE_RM_TEST, 8)),
-    "deload-1rm" to listOf(
-        CycleTemplateEntry("Descarga", LoopType.DELOAD, 4),
-        CycleTemplateEntry("Test 1RM", LoopType.ONE_RM_TEST, 8),
-    ),
-    "competition-12" to listOf(
-        CycleTemplateEntry("Descarga", LoopType.DELOAD, 4),
-        CycleTemplateEntry("Competición", LoopType.COMPETITION, 12),
-    ),
-)
 
 /** Una semana de ciclo con las piezas que necesita la hoja y el motor para posponerla o cancelarla. */
 private data class LoopActionOccurrence(
@@ -55,10 +46,12 @@ private data class LoopActionOccurrence(
 @Composable
 internal fun CyclesSection(
     program: Program,
+    equipmentInventory: EquipmentInventory = EquipmentInventory(),
     onUpdateProgram: (Program) -> Unit,
     onFocusWeek: (blockId: String, weekId: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var presetPreview by remember(program.id) { mutableStateOf<LoopPresetPreview?>(null) }
     val currentCycle = LoopEngine.getCurrentCycle(program)
     val legacyEvents = remember(program) { program.events.filter { it.repeatEveryXCycles != null } }
     val hasLegacy = legacyEvents.isNotEmpty() && program.loops.isEmpty()
@@ -103,6 +96,7 @@ internal fun CyclesSection(
             collisionLines = loopCollisions.entries.sortedBy { it.key }.take(4).map { (cycle, items) ->
                 "C$cycle: ${items.joinToString(" + ") { it.loop.title.ifBlank { LoopEngine.getLoopTypeLabel(it.loop.type) } }}"
             },
+            canAddLoops = canAddLoops(program),
         )
     }
 
@@ -111,12 +105,31 @@ internal fun CyclesSection(
         onDismiss = onDismiss,
         onSaveLoop = { draft: ProgramCycleDraft -> onUpdateProgram(saveCycleDraft(program, draft)) },
         onLoopAction = { loopId: String, action: ProgramCycleAction -> onUpdateProgram(applyCycleAction(program, loopId, action)) },
-        onAddTemplate = { templateId: String -> addCycleTemplate(program, templateId, onUpdateProgram) },
+        onAddTemplate = { templateId: String ->
+            if (canAddLoops(program)) presetPreview = LoopPresetEngine.preview(program, templateId, equipmentInventory)
+        },
         onMigrateLegacy = { onUpdateProgram(LoopEngine.migrateEventsToLoops(program)) },
         onPostponeWeek = { occurrenceId: String -> onUpdateProgram(LoopEngine.postponeOccurrence(program, occurrenceId)) },
         onCancelWeek = { occurrenceId: String -> onUpdateProgram(LoopEngine.cancelOccurrence(program, occurrenceId)) },
         onViewWeek = onFocusWeek,
     )
+    presetPreview?.let { preview ->
+        LoopPresetPreviewSheet(
+            preview = preview,
+            onDismiss = { presetPreview = null },
+            onConfirm = { movementIds, attemptKg ->
+                val latestProgram = program
+                val preparedLoops = runCatching {
+                    LoopPresetEngine.materialize(latestProgram, preview.presetId, movementIds, attemptKg, equipmentInventory)
+                }.getOrNull()
+                if (preparedLoops != null) {
+                    val updated = preparedLoops.fold(latestProgram) { current, loop -> LoopEngine.upsertLoop(current, loop) }
+                    onUpdateProgram(updated)
+                    presetPreview = null
+                }
+            },
+        )
+    }
 }
 
 /** Los ciclos de [program] como los pinta el editor: nombre, tipo, cadencia y si están cancelados. */
@@ -135,6 +148,9 @@ internal fun programCycleLoops(program: Program): List<ProgramCycleLoop> {
 
 /** Guarda lo que devuelve el editor de un ciclo: lo crea si es nuevo o le cambia nombre, tipo y cadencia. Pura. */
 internal fun saveCycleDraft(program: Program, draft: ProgramCycleDraft): Program {
+    if (draft.loopId == null && !canAddLoops(program)) return program
+    if (draft.type == LoopType.COMPETITION) return program
+    if (program.loops.any { it.id != draft.loopId && it.repeatEveryXLoops.coerceAtLeast(1) == draft.cadence.coerceAtLeast(1) }) return program
     val base = draft.loopId?.let { id -> program.loops.firstOrNull { it.id == id } }
         ?: Loop(
             id = "loop_${System.nanoTime()}",
@@ -147,31 +163,17 @@ internal fun saveCycleDraft(program: Program, draft: ProgramCycleDraft): Program
     return LoopEngine.upsertLoop(program, loop)
 }
 
+/** La misma regla que muestra «Añadir loop»: solo en una repetición simple entrenable y sin competición planificada. */
+internal fun canAddLoops(program: Program): Boolean {
+    return LoopEngine.canAddNewLoop(program)
+}
+
 /** Aplica una acción del editor de un ciclo con la función del motor de siempre. Pura. */
 internal fun applyCycleAction(program: Program, loopId: String, action: ProgramCycleAction): Program = when (action) {
     ProgramCycleAction.POSTPONE_NEXT -> LoopEngine.postponeNextOccurrence(program, loopId)
     ProgramCycleAction.CANCEL -> LoopEngine.cancelLoop(program, loopId)
     ProgramCycleAction.REACTIVATE -> LoopEngine.reactivateLoop(program, loopId)
     ProgramCycleAction.DELETE -> LoopEngine.deleteLoop(program, loopId)
-}
-
-/** Añade los ciclos de una plantilla. Un ciclo cuya cadencia ya usa otro se omite, como siempre. */
-private fun addCycleTemplate(program: Program, templateId: String, onUpdateProgram: (Program) -> Unit) {
-    val entries = CYCLE_TEMPLATE_ENTRIES[templateId] ?: return
-    val usedCadences = program.loops.map { it.repeatEveryXLoops.coerceAtLeast(1) }.toSet()
-    val newLoops = entries.mapIndexedNotNull { index, entry ->
-        val cadence = entry.cadence.coerceAtLeast(1)
-        if (cadence in usedCadences) return@mapIndexedNotNull null
-        Loop(
-            id = "loop_${System.nanoTime()}_$index",
-            title = entry.title,
-            type = entry.type,
-            repeatEveryXLoops = cadence,
-            durationType = DurationType.WEEK,
-        )
-    }
-    val updated = newLoops.fold(program) { current, loop -> LoopEngine.upsertLoop(current, loop) }
-    onUpdateProgram(updated)
 }
 
 /**

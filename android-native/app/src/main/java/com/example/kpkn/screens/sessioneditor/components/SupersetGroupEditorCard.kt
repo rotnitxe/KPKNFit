@@ -66,6 +66,7 @@ import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.restoreExerciseSetAtRound
@@ -117,6 +118,8 @@ internal fun SupersetGroupEditorCard(
     onMoveSet: (String, String, Int) -> Unit = { _, _, _ -> },
     onRemoveRound: (Int) -> Unit = {},
     relationshipAnchorName: (Exercise) -> String? = { null },
+    availableTagsForExercise: (Exercise) -> List<WorkoutTag> = { emptyList() },
+    onSaveWorkoutTag: (WorkoutTag) -> Unit = {},
     onOpenRelationshipPicker: (String) -> Unit = {},
     onClearRelationship: (String) -> Unit = {},
     onRemoveFromSuperset: (String, String) -> Unit,
@@ -371,6 +374,8 @@ internal fun SupersetGroupEditorCard(
                             exercise = selected,
                             accentColor = accentColor,
                             relationshipAnchorName = relationshipAnchorName(selected),
+                            availableTags = availableTagsForExercise(selected),
+                            onSaveTag = onSaveWorkoutTag,
                             onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
                             onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
                             onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },

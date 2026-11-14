@@ -72,20 +72,17 @@ class ProgramHeaderModelTest {
     }
 
     @Test
-    fun progressSaysTheWeekAndThePhaseOrTheRepeatingCycle() {
+    fun progressShowsMultipleRealWeeksAndOmitsSingleWeekNumbering() {
         assertEquals(
             "Semana 3 de 12 · Acumulación",
-            programProgressLabel(weekIndex = 3, weekCount = 12, phase = "Fase de acumulación", repeatingWeek = false, cycle = null),
+            programProgressLabel(weekIndex = 3, weekCount = 12, phase = "Fase de acumulación", repeatingWeek = false),
         )
-        assertEquals(
-            "Semana 5",
-            programProgressLabel(weekIndex = 1, weekCount = 1, phase = null, repeatingWeek = true, cycle = 5),
-        )
+        assertNull(programProgressLabel(weekIndex = 1, weekCount = 1, phase = null, repeatingWeek = true))
         assertEquals(
             "Semana 2 de 8",
-            programProgressLabel(weekIndex = 2, weekCount = 8, phase = "Fase personalizada", repeatingWeek = false, cycle = null),
+            programProgressLabel(weekIndex = 2, weekCount = 8, phase = "Fase personalizada", repeatingWeek = false),
         )
-        assertNull(programProgressLabel(weekIndex = null, weekCount = null, phase = null, repeatingWeek = false, cycle = null))
+        assertNull(programProgressLabel(weekIndex = null, weekCount = null, phase = null, repeatingWeek = false))
     }
 
     @Test

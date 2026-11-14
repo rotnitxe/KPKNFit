@@ -244,7 +244,7 @@ class ProgramStructureBlocksRenderSheetTest {
                 subtitle = null,
                 suggestedName = "Bloque 5",
                 preview = null,
-                onSave = { _, _, _, _ -> },
+                onSave = { _, _, _, _, _, _ -> },
                 onDismiss = noop,
             )
             "blockEdit" -> ProgramBlockSheet(
@@ -252,7 +252,7 @@ class ProgramStructureBlocksRenderSheetTest {
                 subtitle = "Semanas 4 y 5 · 29 oct – 9 nov",
                 suggestedName = "",
                 preview = "Carga +2,5 kg cada semana hasta la cuarta.",
-                onSave = { _, _, _, _ -> },
+                onSave = { _, _, _, _, _, _ -> },
                 onDismiss = noop,
                 onDelete = noop,
             )

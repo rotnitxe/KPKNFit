@@ -120,9 +120,8 @@ internal fun programProgressLabel(
     weekCount: Int?,
     phase: String?,
     repeatingWeek: Boolean,
-    cycle: Int?,
 ): String? {
-    if (repeatingWeek) return cycle?.let { "Semana $it" }
+    if (repeatingWeek || (weekCount != null && weekCount <= 1)) return null
     if (weekIndex == null || weekCount == null) return null
     val week = "Semana $weekIndex de $weekCount"
     return shortPhaseOf(phase)?.let { "$week · $it" } ?: week

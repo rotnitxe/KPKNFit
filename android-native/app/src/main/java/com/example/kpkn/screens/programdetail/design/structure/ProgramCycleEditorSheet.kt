@@ -37,13 +37,13 @@ internal fun ProgramCycleEditorSheet(
     onAction: (ProgramCycleAction) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val types = LoopType.entries
+    val types = LoopType.entries.filterNot { it == LoopType.COMPETITION }
     var title by remember(loop?.id) { mutableStateOf(loop?.title.orEmpty()) }
     var type by remember(loop?.id) { mutableStateOf(loop?.type ?: LoopType.CUSTOM) }
     var cadenceText by remember(loop?.id) { mutableStateOf((loop?.cadence ?: DEFAULT_CADENCE).toString()) }
     val cadence = cadenceText.toIntOrNull()?.coerceAtLeast(1) ?: 0
     val conflict = cycleCadenceConflict(existing, loop?.id, cadence)
-    val canSave = title.isNotBlank() && cadence > 0 && conflict == null
+    val canSave = title.isNotBlank() && cadence > 0 && conflict == null && type != LoopType.COMPETITION
 
     KpknSheet(onDismissRequest = onDismiss) {
         Column(

@@ -28,11 +28,11 @@ import java.time.LocalDate
 
 /** Texto de hoy para un programa simple que aún no está calendarizado (≤ 160 caracteres, sin anglicismos). */
 private const val SIN_CALENDARIZAR_TEXTO =
-    "Úsalo si tus días libres cambian cada semana. Calendarizar fija fechas reales a tu ciclo; la pausa añade semanas vacías y deja el ciclo guardado intacto."
+    "Úsalo si tus días libres cambian cada semana. Calendarizar fija fechas reales a tu rutina; la pausa añade semanas vacías y guarda la rutina repetitiva."
 
 /** Texto de hoy para un ciclo ya calendarizado (≤ 160 caracteres). */
 private const val CALENDARIZADO_TEXTO =
-    "Tu ciclo quedó anclado a fechas reales. Los ciclos repetidos quedan en pausa hasta que recuperes el ciclo guardado."
+    "Tu rutina quedó anclada a fechas reales. Las reglas de repetición quedan en pausa hasta que recuperes la rutina guardada."
 
 /** Filas de fecha de la hoja. Solo una puede estar desplegada a la vez. */
 private const val ROW_START = "inicio"
@@ -80,7 +80,7 @@ internal fun ProgramSimpleCalendarSheet(
                 .padding(StructureSheetPadding),
         ) {
             if (isCalendarized) {
-                StructureSheetHeader(title = "Ciclo calendarizado", subtitle = CALENDARIZADO_TEXTO)
+                StructureSheetHeader(title = "Rutina calendarizada", subtitle = CALENDARIZADO_TEXTO)
                 StructurePrimaryPill(
                     text = "Recuperar el ciclo guardado",
                     onClick = onRecoverCycle,
@@ -93,7 +93,7 @@ internal fun ProgramSimpleCalendarSheet(
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             } else {
-                StructureSheetHeader(title = "Calendarizar el ciclo", subtitle = SIN_CALENDARIZAR_TEXTO)
+                StructureSheetHeader(title = "Calendarizar rutina", subtitle = SIN_CALENDARIZAR_TEXTO)
                 ProgramDateRow(
                     label = "Empieza",
                     selected = start,
@@ -138,7 +138,7 @@ internal fun ProgramSimpleCalendarSheet(
                     },
                 )
                 StructurePrimaryPill(
-                    text = "Calendarizar ciclo actual",
+                    text = "Calendarizar rutina",
                     onClick = onCalendarizeCycle,
                     enabled = start != null && trainingDays.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth().padding(top = 18.dp),

@@ -117,6 +117,34 @@ fun PlanCarousel(
     PlanCarousel(cards, selectedId, onSelect, onOpen, wizardReducedMotion(), modifier, initialId)
 }
 
+/** Una portada fija de programa, sin pager ni controles de navegación entre alternativas. */
+@Composable
+internal fun PlanSingleCard(
+    card: PlanCardModel,
+    selectedId: String?,
+    onSelect: (String) -> Unit,
+    onOpen: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val cardW = carouselCardWidthDp(maxWidth.value, LocalDensity.current.fontScale).dp
+        val isSelected = card.id == selectedId
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            PlanCardFace(
+                card = card,
+                isSelected = isSelected,
+                animate = !wizardReducedMotion(),
+                reduced = wizardReducedMotion(),
+                parallax = { 0f },
+                onClick = { onOpen(card.id) },
+                modifier = Modifier.size(cardW, cardW * (4f / 3f)),
+            )
+            Spacer(Modifier.height(12.dp))
+            PlanCardInfo(card, isSelected, onOpen, onSelect)
+        }
+    }
+}
+
 /** El carrusel con el «reducir movimiento» decidido por quien llama (pruebas y vista previa de depuración). */
 @Composable
 internal fun PlanCarousel(

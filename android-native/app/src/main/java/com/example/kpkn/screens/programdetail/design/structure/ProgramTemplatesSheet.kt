@@ -166,6 +166,7 @@ internal fun ProgramTemplatesSheet(
     }
 
     val hazeState = remember { HazeState() }
+    val catalogScrollState = rememberScrollState()
 
     var selectedEntry by remember { mutableStateOf<CatalogEntry?>(null) }
     var seg by rememberSaveable { mutableStateOf("todo") }
@@ -199,7 +200,7 @@ internal fun ProgramTemplatesSheet(
                 toastUndoSnapshot = null
             }
         }
-        if (confirmed.template != null) onPickTemplate(confirmed.id, replacing, result) else onPickMethod(confirmed.id, replacing, result)
+        if (isTemplateCatalogEntry(confirmed)) onPickTemplate(confirmed.id, replacing, result) else onPickMethod(confirmed.id, replacing, result)
     }
 
     // Sincroniza replace con el llamador
@@ -207,18 +208,11 @@ internal fun ProgramTemplatesSheet(
         onReplaceChange(applyMode == "replace")
     }
 
-    // Sheet container (.ct-sheet: ct-S08, ct-A02)
-    val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-
-    KpknSheet(onDismissRequest = { if (!applying) onDismiss() }) {
+    KpknSheet(onDismissRequest = { if (!applying) onDismiss() }, maxHeightFraction = 0.94f, showDragHandle = true) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(760.dp)
-                .background(CtBg, sheetShape)
-                /* ct-S08: .ct-sheet -> preset hoja */
-                .kpknShadow(KpknShadow.Hoja, sheetShape)
-                .clip(sheetShape)
+                .fillMaxSize()
         ) {
             // Animación de entrada de contenido nav (.ct-sheet.ct-nav: ct-A01)
             AnimatedContent(
@@ -238,18 +232,19 @@ internal fun ProgramTemplatesSheet(
                 if (entry == null) {
                     CatalogHome(
                         entries = entries,
+                        scrollState = catalogScrollState,
                         seg = seg,
                         onSegChange = { seg = it; openTray = null },
                         query = query,
                         onQueryChange = { query = it },
                         filterLevel = filterLevel,
-                        onFilterLevelChange = { filterLevel = it; openTray = null },
+                        onFilterLevelChange = { filterLevel = it },
                         filterDays = filterDays,
-                        onFilterDaysChange = { filterDays = it; openTray = null },
+                        onFilterDaysChange = { filterDays = it },
                         filterDuration = filterDuration,
-                        onFilterDurationChange = { filterDuration = it; openTray = null },
+                        onFilterDurationChange = { filterDuration = it },
                         filterObjective = filterObjective,
-                        onFilterObjectiveChange = { filterObjective = it; openTray = null },
+                        onFilterObjectiveChange = { filterObjective = it },
                         openTray = openTray,
                         onToggleTray = { openTray = if (openTray == it) null else it },
                         onClearFilters = {
@@ -282,15 +277,6 @@ internal fun ProgramTemplatesSheet(
                     )
                 }
             }
-
-            // Grab handle (.ct-grab)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 9.dp)
-                    .size(width = 40.dp, height = 4.dp)
-                    .background(Color(0x66FFFFFF), CircleShape)
-            )
 
             // Confirm Dialog (.ct-dlg: ct-S03). La entrada se captura para no depender de una selección viva.
             val pendingConfirm = selectedEntry
@@ -343,6 +329,9 @@ internal fun ProgramTemplatesSheet(
 internal data class CatalogPhase(val label: String, val weeks: String)
 
 internal fun catalogRecipe(entry: CatalogEntry) = entry.recipe ?: entry.template?.recipe
+
+internal fun isTemplateCatalogEntry(entry: CatalogEntry): Boolean =
+    entry.template != null || entry.kind == PlanKind.ESTRUCTURA
 
 internal fun catalogWeeks(entry: CatalogEntry): Int? =
     catalogRecipe(entry)?.weeks?.size ?: entry.durationWeeks
@@ -406,6 +395,7 @@ internal fun catalogEquipmentLabels(entry: CatalogEntry): List<String> = entry.r
 @Composable
 private fun CatalogHome(
     entries: List<CatalogEntry>,
+    scrollState: androidx.compose.foundation.ScrollState,
     seg: String,
     onSegChange: (String) -> Unit,
     query: String,
@@ -425,13 +415,8 @@ private fun CatalogHome(
     onClose: () -> Unit,
     hazeState: HazeState
 ) {
-    val filtered = remember(entries, seg, query, filterLevel, filterDays, filterDuration, filterObjective) {
+    val matchingFacets = remember(entries, query, filterLevel, filterDays, filterDuration, filterObjective) {
         entries.filter { e ->
-            val matchSeg = when (seg) {
-                "plantillas" -> e.template != null || e.kind == PlanKind.ESTRUCTURA
-                "metodos" -> e.template == null && e.kind != PlanKind.ESTRUCTURA
-                else -> true
-            }
             val matchLevel = filterLevel == null || when (filterLevel) {
                 "B" -> e.levels.contains(CatalogLevel.BEGINNER)
                 "I" -> e.levels.contains(CatalogLevel.INTERMEDIATE)
@@ -439,11 +424,12 @@ private fun CatalogHome(
                 else -> true
             }
             val matchDays = filterDays == null || (filterDays in e.supportedFrequencies)
+            val actualWeeks = catalogWeeks(e)
             val matchDur = filterDuration == null || when (filterDuration) {
                 "r" -> e.duration == CatalogDuration.REPEATING_WEEK || e.duration == CatalogDuration.REPEATING_CYCLE
-                "c" -> (e.durationWeeks ?: 1) <= 8
-                "m" -> (e.durationWeeks ?: 1) in 9..12
-                "l" -> (e.durationWeeks ?: 1) >= 13
+                "c" -> actualWeeks?.let { it <= 8 } == true
+                "m" -> actualWeeks?.let { it in 9..12 } == true
+                "l" -> actualWeeks?.let { it >= 13 } == true
                 else -> true
             }
             val matchObj = filterObjective == null || when (filterObjective) {
@@ -457,11 +443,21 @@ private fun CatalogHome(
                     e.summary.lowercase().contains(q) ||
                     (e.sourceAuthor?.lowercase()?.contains(q) == true)
 
-            matchSeg && matchLevel && matchDays && matchDur && matchObj && matchQ
+            matchLevel && matchDays && matchDur && matchObj && matchQ
+        }
+    }
+    val filtered = remember(matchingFacets, seg) {
+        matchingFacets.filter { entry ->
+            when (seg) {
+                "plantillas" -> isTemplateCatalogEntry(entry)
+                "metodos" -> !isTemplateCatalogEntry(entry)
+                else -> true
+            }
         }
     }
 
     val isFiltering = query.isNotBlank() || filterLevel != null || filterDays != null || filterDuration != null || filterObjective != null
+    val showResultList = isFiltering || seg != "todo"
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Cabecera fija (.ct-head)
@@ -469,7 +465,7 @@ private fun CatalogHome(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(CtBg)
-                .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 12.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -485,7 +481,7 @@ private fun CatalogHome(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Aplicar plantilla o método",
-                        style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
+                        style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 23.sp),
                         color = CtInk
                     )
                 }
@@ -505,8 +501,8 @@ private fun CatalogHome(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 14.dp)
-                    .height(48.dp)
+                    .padding(top = 10.dp)
+                    .height(44.dp)
                     .background(Color(0xFF0F0F10), RoundedCornerShape(24.dp))
                     .border(1.dp, Color(0x24FFFFFF), RoundedCornerShape(24.dp))
                     .padding(horizontal = 14.dp),
@@ -556,11 +552,11 @@ private fun CatalogHome(
                 val segs = listOf("todo" to "Todo", "plantillas" to "Plantillas", "metodos" to "Métodos")
                 segs.forEach { (key, label) ->
                     val isSel = seg == key
-                    val count = remember(entries, key) {
-                        entries.count { e ->
+                    val count = remember(matchingFacets, key) {
+                        matchingFacets.count { entry ->
                             when (key) {
-                                "plantillas" -> e.template != null || e.kind == PlanKind.ESTRUCTURA
-                                "metodos" -> e.template == null && e.kind != PlanKind.ESTRUCTURA
+                                "plantillas" -> isTemplateCatalogEntry(entry)
+                                "metodos" -> !isTemplateCatalogEntry(entry)
                                 else -> true
                             }
                         }
@@ -589,55 +585,21 @@ private fun CatalogHome(
                 }
             }
 
-            // Fila de filtros chips (.ct-fr)
+            // Acceso compacto a todos los filtros.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .heightIn(min = 40.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Filtro Nivel (.ct-fc: ct-S04)
+                val activeFilterCount = listOf(filterLevel, filterDays, filterDuration, filterObjective).count { it != null }
                 CatalogFilterChip(
-                    label = if (filterLevel != null) when (filterLevel) {
-                        "B" -> "Principiante"
-                        "I" -> "Intermedio"
-                        else -> "Avanzado"
-                    } else "Nivel",
-                    isActive = filterLevel != null,
-                    isOpen = openTray == "lv",
-                    onClick = { onToggleTray("lv") }
-                )
-                // Filtro Días
-                CatalogFilterChip(
-                    label = if (filterDays != null) "$filterDays días" else "Días",
-                    isActive = filterDays != null,
-                    isOpen = openTray == "d",
-                    onClick = { onToggleTray("d") }
-                )
-                // Filtro Duración
-                CatalogFilterChip(
-                    label = if (filterDuration != null) when (filterDuration) {
-                        "r" -> "Ciclo"
-                        "c" -> "Corto"
-                        "m" -> "Medio"
-                        else -> "Largo"
-                    } else "Duración",
-                    isActive = filterDuration != null,
-                    isOpen = openTray == "u",
-                    onClick = { onToggleTray("u") }
-                )
-                // Filtro Objetivo
-                CatalogFilterChip(
-                    label = if (filterObjective != null) when (filterObjective) {
-                        "f" -> "Fuerza"
-                        "m" -> "Músculo"
-                        else -> "Fuerza y músculo"
-                    } else "Objetivo",
-                    isActive = filterObjective != null,
-                    isOpen = openTray == "o",
-                    onClick = { onToggleTray("o") }
+                    label = if (activeFilterCount == 0) "Filtros" else "Filtros · $activeFilterCount",
+                    isActive = activeFilterCount > 0,
+                    isOpen = openTray != null,
+                    onClick = { onToggleTray("all") },
                 )
 
                 if (isFiltering) {
@@ -660,7 +622,6 @@ private fun CatalogHome(
             // Bandeja de opciones expandida (.ct-tray)
             if (openTray != null) {
                 CatalogOptionsTray(
-                    tray = openTray,
                     filterLevel = filterLevel,
                     onSelectLevel = onFilterLevelChange,
                     filterDays = filterDays,
@@ -676,11 +637,12 @@ private fun CatalogHome(
         // Cuerpo con scroll (.ct-body)
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            if (!isFiltering) {
+            if (!showResultList) {
                 // Sección Destacados (.ct-sec)
                 Text(
                     text = "DESTACADOS",
@@ -710,7 +672,7 @@ private fun CatalogHome(
                 }
 
                 // Sección Plantillas completas
-                val templatesList = remember(entries) { entries.filter { it.template != null || it.kind == PlanKind.ESTRUCTURA } }
+                val templatesList = remember(matchingFacets) { matchingFacets.filter(::isTemplateCatalogEntry) }
                 if (templatesList.isNotEmpty()) {
                     Row(
                         modifier = Modifier
@@ -732,7 +694,7 @@ private fun CatalogHome(
                 }
 
                 // Sección Métodos de progresión
-                val methodsList = remember(entries) { entries.filter { it.template == null && it.kind != PlanKind.ESTRUCTURA } }
+                val methodsList = remember(matchingFacets) { matchingFacets.filter { !isTemplateCatalogEntry(it) } }
                 if (methodsList.isNotEmpty()) {
                     Row(
                         modifier = Modifier
@@ -826,7 +788,6 @@ private fun CatalogFilterChip(
 /** Bandeja de opciones de filtro (.ct-tray, .ct-oc) */
 @Composable
 private fun CatalogOptionsTray(
-    tray: String,
     filterLevel: String?,
     onSelectLevel: (String?) -> Unit,
     filterDays: Int?,
@@ -836,37 +797,38 @@ private fun CatalogOptionsTray(
     filterObjective: String?,
     onSelectObjective: (String?) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 10.dp)
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        when (tray) {
-            "lv" -> {
-                listOf("B" to "Principiante", "I" to "Intermedio", "A" to "Avanzado").forEach { (key, name) ->
-                    val sel = filterLevel == key
-                    TrayOptionChip(label = name, selected = sel, onClick = { onSelectLevel(if (sel) null else key) })
-                }
-            }
-            "d" -> {
-                (1..6).forEach { d ->
-                    val sel = filterDays == d
-                    TrayOptionChip(label = "$d ${if (d == 1) "día" else "días"}", selected = sel, onClick = { onSelectDays(if (sel) null else d) })
-                }
-            }
-            "u" -> {
-                listOf("r" to "Ciclo recurrente", "c" to "Corto (≤8 sem)", "m" to "Medio (9-12 sem)", "l" to "Largo (13+ sem)").forEach { (key, name) ->
-                    val sel = filterDuration == key
-                    TrayOptionChip(label = name, selected = sel, onClick = { onSelectDuration(if (sel) null else key) })
-                }
-            }
-            "o" -> {
-                listOf("f" to "Fuerza", "m" to "Músculo", "fm" to "Fuerza y músculo").forEach { (key, name) ->
-                    val sel = filterObjective == key
-                    TrayOptionChip(label = name, selected = sel, onClick = { onSelectObjective(if (sel) null else key) })
-                }
+        CatalogFilterOptionRow("Nivel", modifier = Modifier, options = listOf("B" to "Principiante", "I" to "Intermedio", "A" to "Avanzado"), selectedKey = filterLevel, onSelect = onSelectLevel)
+        CatalogFilterOptionRow("Días", modifier = Modifier, options = (1..6).map { it.toString() to "$it ${if (it == 1) "día" else "días"}" }, selectedKey = filterDays?.toString(), onSelect = { onSelectDays(it?.toIntOrNull()) })
+        CatalogFilterOptionRow("Duración", modifier = Modifier, options = listOf("r" to "Ciclo", "c" to "Corto (≤8 sem)", "m" to "Medio (9–12 sem)", "l" to "Largo (13+ sem)"), selectedKey = filterDuration, onSelect = onSelectDuration)
+        CatalogFilterOptionRow("Objetivo", modifier = Modifier, options = listOf("f" to "Fuerza", "m" to "Músculo", "fm" to "Fuerza y músculo"), selectedKey = filterObjective, onSelect = onSelectObjective)
+    }
+}
+
+@Composable
+private fun CatalogFilterOptionRow(
+    label: String,
+    modifier: Modifier,
+    options: List<Pair<String, String>>,
+    selectedKey: String?,
+    onSelect: (String?) -> Unit,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(label, modifier = Modifier.width(62.dp), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp), color = CtFaint)
+        Row(
+            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            options.forEach { (key, optionLabel) ->
+                val selected = selectedKey == key
+                TrayOptionChip(label = optionLabel, selected = selected) { onSelect(if (selected) null else key) }
             }
         }
     }

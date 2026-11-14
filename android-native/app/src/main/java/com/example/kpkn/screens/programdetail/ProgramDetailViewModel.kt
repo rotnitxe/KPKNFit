@@ -20,6 +20,7 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.OptionalSessionConfirmation
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramExecutionTarget
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
@@ -356,14 +357,50 @@ class ProgramDetailViewModel(
     private val _exerciseSwapBusy = MutableStateFlow(false)
     val exerciseSwapBusy = _exerciseSwapBusy.asStateFlow()
 
+    /** Returns an occurrence key only for an uncompleted session in the active week. */
+    fun executionReplacementTarget(sessionId: String, week: WeekWithMeta?): ProgramExecutionTarget? {
+        val current = program.value ?: return null
+        val weekId = week?.id?.takeIf(String::isNotBlank) ?: return null
+        val active = repository.activeProgramState.value?.takeIf {
+            it.programId == programId && it.status == ProgramStatus.ACTIVE
+        }
+        val run = current.runState
+        if (run?.status == ProgramRunStatus.COMPLETED) return null
+        val runId = run?.runId?.takeIf(String::isNotBlank) ?: active?.programRunId?.takeIf(String::isNotBlank) ?: return null
+        val cycle = run?.cycleNumber?.takeIf { it > 0 } ?: active?.currentCycleNumber?.takeIf { it > 0 } ?: return null
+        val activeWeek = active?.currentWeekId?.takeIf(String::isNotBlank) ?: run?.weekId?.takeIf(String::isNotBlank) ?: return null
+        val activeTemplateId = ProgramProgressEngine.templateWeekIdFromInstance(activeWeek) ?: activeWeek
+        if (activeTemplateId != weekId) return null
+        val instanceId = listOfNotNull(active?.currentWeekInstanceId, run?.weekInstanceId)
+            .firstOrNull { candidate -> ProgramProgressEngine.templateWeekIdFromInstance(candidate) == weekId }
+            ?: ProgramProgressEngine.instanceIdFor(cycle, weekId)
+        if (run?.completedSessionIds?.contains(sessionId) == true) return null
+        if (ProgramProgressEngine.logsForInstance(repository.history.value, programId, instanceId, cycle, runId)
+                .any { it.sessionId == sessionId }) return null
+        fun nested(session: Session): List<Session> = listOf(session) +
+            listOfNotNull(session.sessionB, session.sessionC, session.sessionD).flatMap(::nested)
+        val session = week.sessions.flatMap(::nested).singleOrNull { it.id == sessionId } ?: return null
+        val scheduledDate = session.dayOfWeek?.let(week.trainingDayDates::get)
+        return ProgramExecutionTarget(
+            programRunId = runId,
+            cycleNumber = cycle,
+            weekTemplateId = weekId,
+            weekInstanceId = instanceId,
+            sessionId = sessionId,
+            variant = week.variant,
+            scheduledDate = scheduledDate,
+        )
+    }
+
     fun openExerciseSwap(sessionId: String,exerciseId: String,
+                         executionTarget: ProgramExecutionTarget? = null,
                          catalogLoader: suspend () -> com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2) {
         if (_exerciseSwapBusy.value) return
         viewModelScope.launch {
             _exerciseSwapBusy.value = true
             try {
                 val request = withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    repository.exerciseSwapRequest(programId,sessionId,exerciseId,catalogLoader())
+                    repository.exerciseSwapRequest(programId,sessionId,exerciseId,catalogLoader(),executionTarget)
                 }
                 _exerciseSwapRequest.value = request
                 _exerciseSwapPreview.value = null
@@ -1011,6 +1048,34 @@ class ProgramDetailViewModel(
     fun updateProgram(updated: Program) {
         programRevision++
         repository.updateProgram(updated)
+    }
+
+    /** Guarda la versión previa y aplica la conversión solo si la rutina no cambió mientras se editaba el bloque. */
+    fun convertSimpleProgramToAdvanced(expected: Program, updated: Program) {
+        viewModelScope.launch {
+            val current = repository.getProgramById(programId)
+            if (current == null || current != expected || current.structure != ProgramStructure.SIMPLE) {
+                _uiState.update { it.copy(snackbarMessage = "La rutina cambió. Vuelve a abrir la conversión para revisar su estructura.") }
+                return@launch
+            }
+            try {
+                pushProgramSnapshot(current, "Antes de pasar la rutina a bloques", required = true)
+                val saved = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    repository.mutateProgramNow(programId) { latest ->
+                        if (latest != expected) null else updated
+                    }
+                }
+                if (!saved) {
+                    _uiState.update { it.copy(snackbarMessage = "La rutina cambió durante la conversión. No se aplicaron los bloques.") }
+                    return@launch
+                }
+                programRevision++
+                _uiState.update { it.copy(snackbarMessage = "Rutina convertida. Puedes revisar sus bloques antes de empezar.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudo guardar una copia antes de convertir la rutina.") }
+            }
+        }
     }
 
     /** Guarda la nota original de la hoja histórica tras su callback legacy, sobre el último estado. */
@@ -2056,6 +2121,8 @@ class ProgramDetailViewModel(
      */
     private fun currentEquipmentInventory(): EquipmentInventory =
         repository.settings.value.resolvedEquipmentInventory()
+
+    fun equipmentInventorySnapshot(): EquipmentInventory = currentEquipmentInventory()
 
     private fun resolvePendingDeload(accept: Boolean) {
         val current = program.value ?: return

@@ -165,6 +165,8 @@ data class Program(
     /** Saltos declarados por ejecución/ciclo/semana/sesión; nunca entrenamientos ficticios. */
     val skippedSessionKeys: List<String> = emptyList(),
     val pendingMissedSessions: com.example.kpkn.domain.training.schedule.MissedSessionsRequest? = null,
+    /** Reemplazos que afectan a una sola ocurrencia, sin reescribir la sesión reutilizable. */
+    val pendingExecutionReplacements: List<ProgramExecutionReplacement> = emptyList(),
     /**
      * Instantánea del último cambio de reparto, para «Deshacer» (`SplitMigrationPlanner`). null = nada que deshacer.
      * Campo con valor por defecto en el JSON del programa (`ignoreUnknownKeys`): sin migración de Room.
@@ -183,6 +185,29 @@ data class ProgramDecision(
     val detail: String = "",
     val weekId: String? = null,
     val blockId: String? = null,
+)
+
+/** Identidad inmutable de una ejecución concreta de una sesión del programa. */
+@Serializable
+data class ProgramExecutionTarget(
+    val programRunId: String,
+    val cycleNumber: Int,
+    val weekTemplateId: String,
+    val weekInstanceId: String,
+    val sessionId: String,
+    val variant: WeekVariant? = null,
+    val scheduledDate: String? = null,
+)
+
+/** Sustitución pendiente: se aplica solo a [target] y se retira al guardar su ejecución. */
+@Serializable
+data class ProgramExecutionReplacement(
+    val id: String,
+    val target: ProgramExecutionTarget,
+    val exerciseId: String,
+    val sourceConfigurationId: String,
+    val replacement: Exercise,
+    val createdAtMs: Long,
 )
 
 /**
@@ -902,6 +927,7 @@ fun Program.calendarizeSimpleCycle(
         .flatMap { it.blocks }
         .flatMap { it.mesocycles }
         .flatMap { it.weeks }
+        .filterNot { it.isLoopWeek }
     if (weeks.isEmpty()) {
         return startSimpleCalendarizedBreak(startDate, null, startDayOfWeek, safeDays, idProvider)
     }
@@ -914,7 +940,9 @@ fun Program.calendarizeSimpleCycle(
                 block.copy(
                     mesocycles = block.mesocycles.map { meso ->
                         meso.copy(
-                            weeks = meso.weeks.map { week ->
+                            // The active calendar contains only dated base weeks. Loop rules and their
+                            // editable weeks remain untouched in pausedCyclicSnapshot for restoration.
+                            weeks = meso.weeks.filterNot { it.isLoopWeek }.map { week ->
                                 val weekStart = cursor
                                 val weekEnd = weekStart.plusDays(6)
                                 val trainingDayDates = safeDays.associateWith { day ->
@@ -926,8 +954,6 @@ fun Program.calendarizeSimpleCycle(
                                     startDate = weekStart.toString(),
                                     endDate = weekEnd.toString(),
                                     trainingDayDates = trainingDayDates,
-                                    isLoopWeek = false,
-                                    loopId = null,
                                 )
                             },
                         )

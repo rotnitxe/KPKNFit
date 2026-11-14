@@ -589,7 +589,7 @@ internal fun programRibbonOf(program: Program, currentWeekIndex: Int?): List<Pro
         val phase = programPhaseOf(goal = block.goal, hasCompetitionWeek = weeks.any { it.keyDateType == KeyDateType.COMPETITION })
         weeks.map { week -> week.id to phase }
     }.toMap()
-    return ProgramDetailHelpers.getAllWeeks(roadmap, program).mapIndexed { index, week ->
+    return ProgramDetailHelpers.getAllWeeks(roadmap, program).filterNot { it.isLoopWeek }.mapIndexed { index, week ->
         ProgramRibbonWeek(
             color = programPhaseColor(phaseByWeek[week.id]),
             done = currentWeekIndex != null && index < currentWeekIndex,
@@ -622,18 +622,14 @@ internal fun summarizeActiveProgram(
         emptyList()
     }
     val line = HomeWeekResolver.programLine(program, sessions, today)
-    val weekCount = ProgramHierarchyIndex(program).orderedWeeks().size
-    val repeatingWeek = program.isSimpleProgram && weekCount <= 1
+    val baseWeekCount = ProgramHierarchyIndex(program).orderedWeeks().count { !it.week.isLoopWeek }
+    val repeatingWeek = program.isSimpleProgram &&
+        program.simpleProgramKind == com.example.kpkn.data.models.SimpleProgramKind.CYCLIC &&
+        baseWeekCount == 1
     return ActiveProgramSummary(
         programId = program.id,
         todaySessionName = HomeSessionResolver.selectPrimarySession(sessions)?.takeIf { !it.isCompleted }?.session?.name,
-        progressLabel = programProgressLabel(
-            weekIndex = line?.weekIndex,
-            weekCount = line?.weekCount,
-            phase = line?.phase,
-            repeatingWeek = repeatingWeek,
-            cycle = program.runState?.cycleNumber,
-        ),
-        ribbon = if (weekCount > 1) programRibbonOf(program, line?.weekIndex?.minus(1)) else emptyList(),
+        progressLabel = line?.weekLabel,
+        ribbon = if (baseWeekCount > 1) programRibbonOf(program, line?.weekIndex?.minus(1)) else emptyList(),
     )
 }

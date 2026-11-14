@@ -115,9 +115,8 @@ object HomeWeekResolver {
     }
 
     /**
-     * Línea del programa activo. «Semana N de M» sale de la posición, entre todas las semanas del programa, de la semana de la
-     * primera sesión; con un ciclo simple de una sola semana, «Semana N» con el número de ciclo. La fase sale del objetivo del
-     * bloque de esa semana. Sin sesiones solo queda el nombre. [program] nulo = sin programa activo, y devuelve null.
+     * Línea del programa activo. La cuenta de progreso excluye semanas especiales materializadas para loops. Las semanas especiales
+     * conservan su nombre; una rutina cíclica de una semana base se presenta como «Rutina semanal».
      * [today] no cambia la línea; va en la firma por el contrato de la cabecera.
      */
     fun programLine(
@@ -129,13 +128,24 @@ object HomeWeekResolver {
         val weekId = sessions.firstOrNull()?.location?.weekId
         val weeks = program.allWeekLocations()
         val position = weekId?.let { id -> weeks.indexOfFirst { it.week.id == id } }?.takeIf { it >= 0 }
-        val index = position?.plus(1)
-        val count = if (index != null) weeks.size else null
+        val currentWeek = position?.let { weeks.getOrNull(it)?.week }
+        val baseWeeks = weeks.filterNot { it.week.isLoopWeek }
+        val basePosition = currentWeek?.takeUnless { it.isLoopWeek }?.let { week -> baseWeeks.indexOfFirst { it.week.id == week.id } }
+            ?.takeIf { it >= 0 }
+        val baseIndex = basePosition?.plus(1)
+        val baseCount = baseWeeks.size
+        val repeatingSingleWeek = program.isSimpleProgram &&
+            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
+            baseCount == 1
+        val isSpecialWeek = currentWeek?.let {
+            it.isLoopWeek || it.executionKind != com.example.kpkn.data.models.WeekExecutionKind.TRAINING
+        } == true
         val weekLabel = when {
-            index == null || count == null -> null
-            count == 1 && program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC ->
-                program.runState?.cycleNumber?.let { "Semana $it" }
-            else -> "Semana $index de $count"
+            currentWeek == null -> null
+            isSpecialWeek -> currentWeek.name
+            repeatingSingleWeek -> "Rutina semanal"
+            baseIndex != null -> "Semana $baseIndex de $baseCount"
+            else -> null
         }
         val phase = weekId
             ?.let { ProgramHierarchyIndex(program).locateWeek(it)?.block?.goal }
@@ -143,8 +153,8 @@ object HomeWeekResolver {
         return HomeProgramLine(
             name = program.name,
             weekLabel = weekLabel,
-            weekIndex = index,
-            weekCount = count,
+            weekIndex = baseIndex,
+            weekCount = baseCount.takeIf { baseIndex != null },
             phase = phase,
         )
     }

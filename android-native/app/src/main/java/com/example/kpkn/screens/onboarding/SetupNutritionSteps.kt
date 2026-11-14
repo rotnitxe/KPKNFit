@@ -30,7 +30,6 @@ import com.example.kpkn.domain.nutrition.PlanTuningContext
 import com.example.kpkn.domain.nutrition.PlanValues
 import com.example.kpkn.domain.nutrition.PlanWarning
 import com.example.kpkn.domain.nutrition.WizardPacePreset
-import com.example.kpkn.domain.nutrition.automaticPlanValues
 import com.example.kpkn.domain.nutrition.goalDateSpanText
 import com.example.kpkn.domain.nutrition.goalWeeklyChangeKg
 import com.example.kpkn.domain.nutrition.goalWeeksRange
@@ -732,20 +731,25 @@ private fun NutritionPlanEditor(
         }
     }
 
-    val write: (PlanTuning) -> Unit = remember(vm, mode) {
-        { tuning ->
-            val clear = mode == NutritionConfigurationMode.AUTOMATIC &&
-                tuning.values == automaticPlanValues(tuning.context)
-            vm.updateStep(step) { draft -> draft.withNutritionDraft { it.withPlanValues(tuning.values, clear) } }
-        }
-    }
-
-    // El motor no lee el ritmo del paso anterior: si difiere del que aplica por sí solo, se siembra al abrir
-    // para que lo que se ve y lo que se activa sean lo mismo.
-    val seed = remember(committed, nutrition) { nutritionPresetSeed(nutrition, committed) }
-    LaunchedEffect(active, seed) {
-        if (active && seed != null) {
-            vm.updateStep(step) { draft -> draft.withNutritionDraft { it.withPlanValues(seed, clearManual = false) } }
+    var lastEditWasPace by remember { mutableStateOf(false) }
+    val write: (PlanTuning, paceOnly: Boolean) -> Unit = remember(vm, mode) {
+        { tuning, paceOnly ->
+            vm.updateStep(step) { draft ->
+                draft.withNutritionDraft { current ->
+                    if (paceOnly && mode == NutritionConfigurationMode.AUTOMATIC) {
+                        current.copy(
+                            paceRateOverrideFractionPerWeek = tuning.weeklyPercentBodyWeight?.div(100.0)?.let { kotlin.math.abs(it) },
+                            manualCalorieTargetText = "",
+                            manualProteinText = "",
+                            manualCarbsText = "",
+                            manualFatText = "",
+                        )
+                    } else {
+                        val clear = mode == NutritionConfigurationMode.AUTOMATIC && tuning.values == tuning.baseline
+                        current.withPlanValues(tuning.values, clear)
+                    }
+                }
+            }
         }
     }
 
@@ -757,13 +761,43 @@ private fun NutritionPlanEditor(
 
     val callbacks = remember(session, write) {
         WizardNutritionPlanCallbacks(
-            onProtein = { grams -> selectedDay = null; session.edit { it.withProtein(grams) } },
-            onCarbs = { grams -> selectedDay = null; session.edit { it.withCarbs(grams) } },
-            onFat = { grams -> selectedDay = null; session.edit { it.withFat(grams) } },
-            onPaceRate = { rate -> selectedDay = null; session.edit { it.withPaceRate(rate) } },
-            onPacePreset = { preset -> selectedDay = null; session.commitNow { it.withPreset(preset) }?.let(write) },
-            onChangeFinished = { session.finishDrag()?.let(write) },
-            onReset = { selectedDay = null; session.commitNow { it.reset() }?.let(write) },
+            onProtein = { grams -> lastEditWasPace = false; selectedDay = null; session.edit { it.withProtein(grams) } },
+            onCarbs = { grams -> lastEditWasPace = false; selectedDay = null; session.edit { it.withCarbs(grams) } },
+            onFat = { grams -> lastEditWasPace = false; selectedDay = null; session.edit { it.withFat(grams) } },
+            onPaceRate = { rate -> lastEditWasPace = true; selectedDay = null; session.edit { it.withPaceRate(rate) } },
+            onPacePreset = { preset ->
+                lastEditWasPace = true
+                selectedDay = null
+                vm.updateStep(step) { draft ->
+                    draft.withNutritionDraft {
+                        it.copy(
+                            pacePreset = preset,
+                            paceRateOverrideFractionPerWeek = null,
+                            manualCalorieTargetText = "",
+                            manualProteinText = "",
+                            manualCarbsText = "",
+                            manualFatText = "",
+                        )
+                    }
+                }
+            },
+            onChangeFinished = { session.finishDrag()?.let { write(it, lastEditWasPace) } },
+            onReset = {
+                lastEditWasPace = true
+                selectedDay = null
+                session.commitNow { it.reset() }
+                vm.updateStep(step) { draft ->
+                    draft.withNutritionDraft {
+                        it.copy(
+                            paceRateOverrideFractionPerWeek = null,
+                            manualCalorieTargetText = "",
+                            manualProteinText = "",
+                            manualCarbsText = "",
+                            manualFatText = "",
+                        )
+                    }
+                }
+            },
             onSelectDay = { index -> selectedDay = index },
         )
     }
@@ -847,8 +881,8 @@ internal fun nutritionPlanTuningOf(state: SetupWizardState, arrival: PlanValues?
 }
 
 /**
- * Valores con los que sembrar el borrador al abrir el resultado: solo en automático, sin ediciones y cuando
- * el ritmo elegido en el paso anterior no es el que el motor aplica por sí solo.
+ * Proyección anterior conservada para contratos existentes. La pantalla ya no la aplica: el ritmo entra al motor antes de preparar
+ * calorías, macros y reparto semanal.
  */
 internal fun nutritionPresetSeed(nutrition: NutritionWizardDraft?, committed: PlanTuning): PlanValues? {
     if (nutrition == null || nutrition.configurationMode != NutritionConfigurationMode.AUTOMATIC) return null

@@ -86,7 +86,7 @@ class ProgramTemporalPolicyTest {
     }
 
     @Test
-    fun `calendarizeSimpleCycle demotes loop weeks so they are not orphaned`() {
+    fun `calendarizeSimpleCycle dates only base weeks and keeps loop weeks in its paused snapshot`() {
         val cyclic = cyclicProgram()
         val calendarized = cyclic.calendarizeSimpleCycle(
             startDate = LocalDate.of(2026, 8, 3),
@@ -99,6 +99,13 @@ class ProgramTemporalPolicyTest {
             .flatMap { it.weeks }
         assertTrue(weeks.none { it.isLoopWeek })
         assertTrue(weeks.all { !it.startDate.isNullOrBlank() })
+        assertTrue(calendarized.pausedCyclicSnapshot?.loops?.any { it.id == "deload" } == true)
+        assertTrue(calendarized.pausedCyclicSnapshot?.macrocycles.orEmpty()
+            .flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.any { it.isLoopWeek })
+        val restored = calendarized.restorePausedCyclicProgram()
+        assertEquals(listOf("deload"), restored.loops.map { it.id })
+        assertTrue(restored.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
+            .flatMap { it.weeks }.any { it.isLoopWeek && it.loopId == "deload" })
         assertTrue(
             LoopEngine.validate(calendarized).none { it.type == LoopIssueType.ORPHAN_MATERIALIZED_WEEK },
         )

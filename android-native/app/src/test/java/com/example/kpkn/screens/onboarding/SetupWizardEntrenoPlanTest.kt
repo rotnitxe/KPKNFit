@@ -90,10 +90,10 @@ import kotlin.time.Duration.Companion.minutes
  * rutinas, planificador, evaluador y redistribuidor reales), persistencia y coordinador de altas reales sobre Room en
  * memoria. Solo el entorno de lectura (Ajustes) es fijo.
  *
- * Cubre: objetivo general → sus tres formas «a medida» → elegir la simple → semana armada (adaptar a un reparto y mover una
- * sesión) → activar, con el programa activado IGUAL al previsualizado y todo lo declarado persistido; disciplina con
- * autores (el «a medida» al frente); disciplina sin autores (una «versión inicial»); cambiar días o material (vuelve a
- * barrer y deja PLAN por revisar); «Otra versión»; «lo haré más adelante»; y el fallo del motor con «Reintentar».
+ * Cubre: objetivo general → una forma recomendada según experiencia (con simple para quien empieza) → semana armada (adaptar
+ * a un reparto y mover una sesión) → activar, con el programa activado IGUAL al previsualizado y todo lo declarado persistido;
+ * disciplinas con autores, el catálogo especial sin autores, cambios que dejan la semana por revisar, «lo haré más adelante»
+ * y el fallo del motor con «Reintentar».
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -172,7 +172,7 @@ class SetupWizardEntrenoPlanTest {
     // ─── Objetivo general: revelado, semana armada y activación ─────────────────────────────────
 
     @Test
-    fun aGeneralGoalRevealsItsThreeTailoredFormsAndTheSimpleWeekIsArrangedAndActivatedAsPreviewed() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun aGeneralGoalOffersTheExperienceMatchedFormAndItsWeekIsActivatedAsPreviewed() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
@@ -187,16 +187,16 @@ class SetupWizardEntrenoPlanTest {
         )
         walkUntil(vm, SetupStepId.PLAN, answers)
 
-        // Barrido: el general recibe sus tres formas a medida (simple, en bloques y periodizada), con su revelado. Esta prueba
-        // elige la simple, que es la que siguen la semana y la activación.
+        // Un perfil general recibe una sola forma viable, elegida según su experiencia. El arnés responde «intermedio»,
+        // por lo que la recomendación es en bloques; principiantes reciben la forma simple.
         val swept = await(vm, "programas a medida listos") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        val generatedId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE)
-        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), swept.availablePlanCandidates.map { it.id })
-        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), swept.planReveals.map { it.planId })
+        val generatedId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE, ProgramVariant.BLOCKS)
+        assertEquals(listOf(generatedId), swept.availablePlanCandidates.map { it.id })
+        assertEquals(listOf(generatedId), swept.planReveals.map { it.planId })
         val reveal = swept.planReveals.first()
         assertEquals(generatedId, reveal.planId)
         assertTrue(reveal.generated)
-        assertEquals("1 SEMANA · SE REPITE", reveal.kicker)
+        assertTrue("la recomendación en bloques enseña su duración: ${reveal.kicker}", "SEMANAS" in reveal.kicker)
         // La semana empieza en el día con más energía (jueves): el revelado ordena sus días desde ahí.
         assertEquals("la semana del revelado son los días elegidos, desde el día con más energía", listOf(4, 5, 1, 2), reveal.week.map { it.day })
         assertEquals("la principal cae el día con más energía", listOf(4), reveal.week.filter { it.isMain }.map { it.day })
@@ -442,7 +442,7 @@ class SetupWizardEntrenoPlanTest {
         val profile = TrainingGoalProfile.FUNCTIONAL_HEALTH
         vm.update { it.withInputs(profile, setOf(TrainingPlace.HOME), days = setOf(1, 3, 5), minutes = 45) }
         await(vm, "programa funcional") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        val id = GeneratedPlans.entryIdFor(profile)
+        val id = GeneratedPlans.entryIdFor(profile, ProgramVariant.BLOCKS)
         vm.selectPlan(id)
         await(vm, "programa elegido y preparado") { idle(it) && it.programPreview != null }
         // PLAN confirmado: a partir de aquí un cambio de respuestas lo deja por revisar.
@@ -476,26 +476,21 @@ class SetupWizardEntrenoPlanTest {
     }
 
     @Test
-    fun anotherVersionRegeneratesTheTailoredProgramAndKeepsItChosen() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun generalProgramOfferHasOneExperienceMatchedFormWithSimpleForBeginners() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading }
         val profile = TrainingGoalProfile.STRENGTH_MUSCLE
         vm.update { it.withInputs(profile, setOf(TrainingPlace.GYM), days = setOf(1, 3, 5), minutes = 60) }
-        await(vm, "programa a medida") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        val id = GeneratedPlans.entryIdFor(profile)
-        vm.selectPlan(id)
-        val first = await(vm, "primera versión") { idle(it) && it.programPreview != null }
-        val firstExercises = sessionsOf(first.programPreview!!).flatMap { session -> session.allExercises().map { it.catalogConfigurationId } }
+        val intermediate = await(vm, "forma recomendada para experiencia intermedia") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val blockId = GeneratedPlans.entryIdFor(profile, ProgramVariant.BLOCKS)
+        assertEquals(listOf(blockId), intermediate.availablePlanCandidates.map { it.id })
 
-        vm.anotherPlanVersion()
-        val second = await(vm, "otra versión") {
-            idle(it) && it.draft.planVariantSeed == 1 && it.planSweep == SetupPlanSweep.READY && it.programPreview != null
-        }
-        assertEquals("sigue elegido", id, second.draft.selectedCatalogId)
-        val secondExercises = sessionsOf(second.programPreview!!).flatMap { session -> session.allExercises().map { it.catalogConfigurationId } }
-        assertNotEquals("otra elección entre ejercicios equivalentes", firstExercises, secondExercises)
-        assertTrue("la semana armada empieza de cero", second.draft.weekLayoutOverrides.isEmpty() && second.draft.adaptedSplitId == null)
+        vm.update { it.copy(experience = SetupExperience.NEW) }
+        val beginner = await(vm, "forma simple para principiantes") { idle(it) && it.planSweep == SetupPlanSweep.READY }
+        val simpleId = GeneratedPlans.entryIdFor(profile, ProgramVariant.SIMPLE)
+        assertEquals(listOf(simpleId), beginner.availablePlanCandidates.map { it.id })
+        assertEquals(listOf(simpleId), beginner.planReveals.map { it.planId })
     }
 
     @Test
@@ -521,23 +516,16 @@ class SetupWizardEntrenoPlanTest {
     }
 
     @Test
-    fun anAdvancedDraftThatLeavesItsProgramForLaterActivatesWithoutAProgramAndKeepsItsAnswers() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun aDraftCanDeferItsProgramBeforeTrainingQuestionsAndActivateWithoutOne() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading }
         val answers = Answers(TrainingGoalProfile.STRENGTH_MUSCLE, setOf(TrainingPlace.GYM), days = setOf(1, 3, 5), freshDay = 1, minutes = 60)
-        // «Tengo experiencia»: la ruta pasa por PROGRAM_SOURCE; hasta ahí, las mismas respuestas que el resto de pruebas.
-        var guard = 0
-        while (vm.state.value.currentStep != SetupStepId.PROGRAM_SOURCE) {
-            check(guard++ < 60) { "el recorrido no llega a PROGRAM_SOURCE (cursor ${vm.state.value.currentStep})" }
-            val step = vm.state.value.currentStep
-            if (step == SetupStepId.EXPERIENCE) vm.setStepChoice(step, "advanced") else answer(vm, step, answers)
-            await(vm, "reposo tras responder $step") { rest(it) }
-            confirm(vm, step, checkNotNull(SetupStepGraph.next(step, vm.state.value.draft.stepContext())))
-        }
+        // La ruta se elige después de los datos básicos y antes de preguntar experiencia, material o perfil de entrenamiento.
+        walkUntil(vm, SetupStepId.PROGRAM_SOURCE, answers)
         vm.setProgramSource(ProgramSource.LATER)
         await(vm, "elección guardada") { rest(it) && it.draft.programSource == ProgramSource.LATER }
-        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.MILESTONE_TRAINING)
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.REVIEW_ACTIVATE)
         val deferred = await(vm, "bloque aplazado") { idle(it) && it.draft.programRoute == SetupProgramRoute.LATER }
         assertNull("sin programa que previsualizar", deferred.programPreview)
         assertNull("sin programa no hay semana", deferred.weekLayout)
@@ -546,7 +534,7 @@ class SetupWizardEntrenoPlanTest {
         assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
         assertEquals(WizChatMachineState.Committed, vm.state.value.machineState)
         assertNull("sin programa no se guarda ningún programa", room { db.programDao().getById(vm.state.value.draft.commitId) })
-        assertEquals(SetupExperience.ADVANCED, vm.state.value.draft.experience)
+        assertNull("no se preguntó experiencia al aplazar el programa", vm.state.value.draft.experience)
         assertEquals(ProgramSource.LATER, vm.state.value.draft.programSource)
     }
 
@@ -578,7 +566,10 @@ class SetupWizardEntrenoPlanTest {
         failing.set(false)
         vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
         val recovered = await(vm, "barrido tras reintentar") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_MUSCLE), recovered.availablePlanCandidates.map { it.id })
+        assertEquals(
+            listOf(GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_MUSCLE, ProgramVariant.BLOCKS)),
+            recovered.availablePlanCandidates.map { it.id },
+        )
         assertNull(recovered.errors["candidates"])
     }
 
@@ -599,7 +590,7 @@ class SetupWizardEntrenoPlanTest {
         await(vm, "wizard cargado") { !it.isLoading && it.currentStep == SetupStepId.NAME }
         walkUntil(vm, SetupStepId.PLAN, answers)
         await(vm, "programa a medida listo") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        val generatedId = GeneratedPlans.entryIdFor(answers.profile)
+        val generatedId = GeneratedPlans.entryIdFor(answers.profile, ProgramVariant.BLOCKS)
         confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT) { vm.selectPlan(generatedId) }
         return await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }
     }
@@ -697,7 +688,10 @@ class SetupWizardEntrenoPlanTest {
                 idle(it) && it.planSweep == SetupPlanSweep.READY && it.droppedSelection != null
             }
             val tailoredId = GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_CARDIO)
-            assertEquals(threeFormsOf(TrainingGoalProfile.STRENGTH_CARDIO), state.availablePlanCandidates.map { it.id })
+            assertEquals(
+                listOf(GeneratedPlans.entryIdFor(TrainingGoalProfile.STRENGTH_CARDIO, ProgramVariant.BLOCKS)),
+                state.availablePlanCandidates.map { it.id },
+            )
             val dropped = checkNotNull(state.droppedSelection)
             assertEquals(ATHLETE_OWN, dropped.planId)
             assertEquals(tailoredId, dropped.tailoredId)
@@ -818,9 +812,6 @@ class SetupWizardEntrenoPlanTest {
             vm.toggleMuscle(MuscleSymbol.CHEST)
             assertWeekPending("prioridades (solo reordenan, pero cambian el programa «a medida»)") { MuscleSymbol.CHEST in it.draft.priorityMuscleSymbols() }
 
-            decideAndConfirmTheWeek()
-            vm.anotherPlanVersion()
-            assertWeekPending("otra versión") { it.draft.planVariantSeed == 1 }
         }
 
     // ═════════════════════════════════════════════════════════════════════════════════════════
@@ -862,6 +853,7 @@ class SetupWizardEntrenoPlanTest {
             SetupStepId.EQUATION_SEX -> vm.setStepChoice(SetupStepId.EQUATION_SEX, "male")
             SetupStepId.BODY_FAT -> vm.updateStep(SetupStepId.BODY_FAT) { it.withBodyFatRulerValue(18) }
             SetupStepId.EXPERIENCE -> vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
+            SetupStepId.PROGRAM_SOURCE -> vm.setProgramSource(ProgramSource.RECOMMEND)
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(answers.places) }
             SetupStepId.GOAL -> vm.setGoalProfile(answers.profile)
             SetupStepId.COMPETITION -> vm.setCompetition(CompetitionAnswer.NO)
@@ -892,6 +884,7 @@ class SetupWizardEntrenoPlanTest {
         val goal = GoalProfileMapping.setupGoalOf(profile)
         return copy(
             includeTraining = true,
+            programSource = ProgramSource.RECOMMEND,
             programRoute = SetupProgramRoute.CUSTOMIZABLE,
             trainingPath = SetupTrainingPath.PERSONALIZE,
             experience = SetupExperience.INTERMEDIATE,

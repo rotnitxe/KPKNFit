@@ -28,11 +28,11 @@ import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.effectiveWeekStart
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
-import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCarousel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCopy
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingVariant
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanSingleCard
 
 /**
  * PLAN · «Tu programa a medida» (perfil general) / «Elige tu programa» (disciplina): el revelado del programa.
@@ -133,15 +133,13 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                 else -> {
                     if (offer.tailored.isNotEmpty()) {
                         GeneralReveal(
-                            reveals = offer.tailored,
+                            reveal = offer.tailored.first(),
                             recommendedId = recommendedId,
                             selectedId = selectedId,
                             onChoose = { id -> vm.selectPlan(id) },
                             onOpen = { id -> detailId = id },
-                            onAnotherVersion = { vm.anotherPlanVersion() },
                         )
                     }
-                    CatalogOnlySection(offer,selectedId,vm::selectPlan,{ detailId = it },vm::toggleCatalogExpanded)
                 }
             }
             state.previewError?.let { error ->
@@ -198,36 +196,28 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
 }
 
 /**
- * El revelado del programa «a medida» de un perfil general: «Tu programa está listo», su portada (el carrusel de una
- * sola tarjeta trae el blurb, «Ver detalles» y «Elegir»), las razones del generador, «Otra versión» y la frase fija.
+ * El revelado del programa «a medida» de un perfil general: una tarjeta fija, razones del generador y edición libre.
  * Sin cajas: texto y acciones sobre la página.
  */
 @Composable
 private fun GeneralReveal(
-    reveals: List<SetupPlanReveal>,
+    reveal: SetupPlanReveal,
     recommendedId: String?,
     selectedId: String?,
     onChoose: (String) -> Unit,
     onOpen: (String) -> Unit,
-    onAnotherVersion: () -> Unit,
 ) {
-    // Las tres formas del programa a medida (simple, en bloques y periodizada). Las razones son las del generador, las mismas
-    // para las tres: salen de la recomendada.
-    val offered = orderedOfferOf(reveals)
-    val reasons = offered.firstOrNull { it.planId == recommendedId }?.reasons ?: offered.firstOrNull()?.reasons.orEmpty()
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "Tu programa", style = WizardTypography.controlLabel, color = WizardColors.text)
-        PlanCarousel(
-            cards = cardModelsOf(offered, recommendedId),
+        PlanSingleCard(
+            card = cardModelsOf(listOf(reveal), recommendedId).single(),
             selectedId = selectedId,
             onSelect = onChoose,
             onOpen = onOpen,
-            initialId = recommendedId,
         )
-        reasons.take(MAX_REASONS).forEach { reason ->
+        reveal.reasons.take(MAX_REASONS).forEach { reason ->
             Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
         }
-        EntrenoTextAction(label = ANOTHER_VERSION_LABEL, onClick = onAnotherVersion, modifier = Modifier.testTag("setup-plan-another-version"))
         Text(text = PlanCopy.EDIT_FREELY, style = WizardTypography.note, color = WizardColors.textMuted)
     }
 }
@@ -267,7 +257,6 @@ private fun LegacyPlanFallback(fromScratch: Boolean, vm: SetupWizardViewModel) {
 private const val MAX_REASONS = 5
 
 /** Textos del revelado (COPY.md, «Revelado del programa»; el aplazado conserva el del resumen de revisión). */
-private const val ANOTHER_VERSION_LABEL = "Otra versión"
 private const val DEFER_LABEL = "Lo haré más adelante"
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"

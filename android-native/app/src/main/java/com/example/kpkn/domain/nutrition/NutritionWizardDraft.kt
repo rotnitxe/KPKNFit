@@ -48,6 +48,8 @@ data class NutritionWizardDraft(
     val targetBodyFatText: String = "",
     val targetMuscleText: String = "",
     val pacePreset: WizardPacePreset = WizardPacePreset.MEDIUM,
+    /** Ritmo personalizado elegido en el deslizador, como fracción del peso/semana; null usa [pacePreset]. */
+    val paceRateOverrideFractionPerWeek: Double? = null,
     val knowsBodyFat: Boolean = false,
     val showAdvancedMacros: Boolean = false,
     /**

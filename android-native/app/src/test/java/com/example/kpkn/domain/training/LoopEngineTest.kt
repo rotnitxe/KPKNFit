@@ -1,11 +1,15 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Loop
 import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
@@ -54,6 +58,7 @@ class LoopEngineTest {
         assertTrue(weeks[1].isLoopWeek)
         assertEquals("loop1", weeks[1].loopId)
         assertEquals("Loop Descarga · cada 4 ciclos", weeks[1].description)
+        assertTrue("No synthetic empty session is added", weeks[1].sessions.isEmpty())
     }
 
     @Test
@@ -101,5 +106,33 @@ class LoopEngineTest {
 
         assertEquals(7, next.daysUntil)
         assertEquals(1, next.weekInCycle)
+    }
+
+    @Test
+    fun canAddNewLoop_requires_one_trainable_simple_cycle_without_competition() {
+        val trainingSession = Session(
+            id = "base-session",
+            name = "Base",
+            exercises = listOf(
+                Exercise("squat", "Sentadilla", sets = listOf(ExerciseSet("set", targetReps = 5))),
+            ),
+        )
+        val eligible = simpleProgram().copy(
+            macrocycles = simpleProgram().macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+                block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = listOf(
+                    ProgramWeek("w1", "Semana 1", sessions = listOf(trainingSession)),
+                )) })
+            }) },
+        )
+
+        assertTrue(LoopEngine.canAddNewLoop(eligible))
+        assertFalse(LoopEngine.canAddNewLoop(eligible.copy(simpleProgramKind = SimpleProgramKind.CALENDARIZED)))
+        assertFalse(LoopEngine.canAddNewLoop(eligible.copy(keyDates = listOf(
+            ProgramKeyDate(id = "meet", title = "Competencia", type = KeyDateType.COMPETITION, startDate = "2026-12-01"),
+        ))))
+        assertFalse(LoopEngine.canAddNewLoop(eligible.copy(loops = listOf(
+            Loop("competition", "Competición", type = LoopType.COMPETITION),
+        ))))
+        assertFalse(LoopEngine.canAddNewLoop(simpleProgram()))
     }
 }

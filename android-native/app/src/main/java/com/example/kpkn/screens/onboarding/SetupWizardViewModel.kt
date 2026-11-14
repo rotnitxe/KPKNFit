@@ -68,6 +68,7 @@ import com.example.kpkn.domain.training.generator.RoutineGenerationException
 import com.example.kpkn.domain.training.generator.RoutineGenerator
 import com.example.kpkn.domain.training.generator.RoutineMode
 import com.example.kpkn.domain.training.periodization.ProgramVariant
+import com.example.kpkn.screens.onboarding.entreno.recommendedVariantOf
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.split.CatalogExerciseTraitResolver
 import com.example.kpkn.domain.training.split.ExerciseTraitResolver
@@ -3294,9 +3295,19 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val request = if (mode != null && catalog != null) draft.routineRequest(mode, catalog) else null
         val ready = linkedMapOf<String, PlanCandidateEvaluation.Ready>()
         val notes = linkedMapOf<String, List<String>>()
-        for (variant in variants) {
+        val generalProfile = GeneratedPlans.sourcesFor(draft.goalProfile) == PlanCandidateSources.GENERATED
+        val candidates = if (generalProfile) {
+            val preferred = recommendedVariantOf(draft.experience)
+            val prioritized = listOf(preferred, ProgramVariant.SIMPLE).distinct()
+                .mapNotNull { wanted -> variants.firstOrNull { GeneratedPlans.variantOf(it.id) == wanted } }
+            prioritized.ifEmpty { variants.take(1) }
+        } else {
+            variants
+        }
+        for (variant in candidates) {
             if (variant.id == base.id) {
                 ready[variant.id] = evaluation
+                if (generalProfile) break
                 continue
             }
             val built = if (routine != null && request != null) {
@@ -3312,10 +3323,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
             ready[variant.id] = evaluation.copy(planId = variant.id, preparedPlan = built.program)
             notes[variant.id] = built.notes
+            if (generalProfile) break
         }
         return CandidateScan(
-            published = variants,
-            viable = variants.filter { it.id in ready },
+            published = candidates,
+            viable = candidates.filter { it.id in ready },
             rejections = emptyList(),
             ready = ready,
             notes = notes,

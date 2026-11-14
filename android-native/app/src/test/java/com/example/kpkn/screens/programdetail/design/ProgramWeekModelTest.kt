@@ -2,8 +2,6 @@ package com.example.kpkn.screens.programdetail.design
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.Loop
-import com.example.kpkn.data.models.LoopType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import org.junit.Assert.assertEquals
@@ -50,15 +48,19 @@ class ProgramWeekModelTest {
     }
 
     @Test
-    fun weekNavigatorTitle_rutina_usa_el_numero_de_ciclo() {
-        assertEquals("Semana 7", weekNavigatorTitle(isRoutine = true, weekIndex = 0, cycleNumber = 7))
-        assertEquals("Semana 1", weekNavigatorTitle(isRoutine = true, weekIndex = 0, cycleNumber = null))
-        assertEquals("Semana 1", weekNavigatorTitle(isRoutine = true, weekIndex = 0, cycleNumber = 0))
+    fun weekNavigatorTitle_rutina_semanal_no_numera_su_base() {
+        assertEquals("Rutina semanal", weekNavigatorTitle(isRoutine = true, weekIndex = 0))
     }
 
     @Test
     fun weekNavigatorTitle_programa_cuenta_desde_uno() {
-        assertEquals("Semana 4", weekNavigatorTitle(isRoutine = false, weekIndex = 3, cycleNumber = 2))
+        assertEquals("Semana 4", weekNavigatorTitle(isRoutine = false, weekIndex = 3))
+    }
+
+    @Test
+    fun weekNavigatorTitle_semana_unica_fechada_y_semana_especial() {
+        assertEquals("Semana de entrenamiento", weekNavigatorTitle(isRoutine = false, weekIndex = 0, isSingleDatedWeek = true))
+        assertEquals("Descarga", weekNavigatorTitle(isRoutine = false, weekIndex = 3, specialWeekName = "Descarga"))
     }
 
     @Test
@@ -121,24 +123,4 @@ class ProgramWeekModelTest {
         assertEquals("≈ 4 h", weekTotalLabel(240))
     }
 
-    @Test
-    fun routineMiniRibbon_doce_semanas_con_la_descarga_en_su_color() {
-        val ribbon = routineMiniRibbon(cycle = 7, loops = listOf(Loop(id = "d", title = "Descarga", type = LoopType.DELOAD, repeatEveryXLoops = 4)))
-        assertEquals(12, ribbon.size)
-        assertEquals((1..6).map { true } + (7..12).map { false }, ribbon.map { it.done })
-        assertEquals(listOf(7), ribbon.mapIndexedNotNull { index, week -> if (week.selected) index + 1 else null })
-        // La descarga cada 4: las semanas 4, 8 y 12 van en verde; el resto, en tinta.
-        val deload = ProgramPhase.DELOAD.color
-        assertEquals(listOf(4, 8, 12), ribbon.mapIndexedNotNull { index, week -> if (week.color == deload) index + 1 else null })
-    }
-
-    @Test
-    fun routineMiniRibbon_salta_al_tramo_del_ciclo() {
-        val ribbon = routineMiniRibbon(cycle = 14, loops = emptyList())
-        // El ciclo 14 cae en el tramo 13–24: es el segundo segmento, con el 13 hecho.
-        assertEquals(listOf(true) + List(11) { false }, ribbon.map { it.done })
-        assertEquals(1, ribbon.indexOfFirst { it.selected })
-        // Sin ciclo todavía, la semana 1.
-        assertEquals(0, routineMiniRibbon(cycle = null, loops = emptyList()).indexOfFirst { it.selected })
-    }
 }

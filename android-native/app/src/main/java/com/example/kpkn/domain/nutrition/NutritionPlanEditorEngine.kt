@@ -283,6 +283,7 @@ fun preparationInputOf(
     draft: NutritionPlanEditorDraft,
     planId: String,
     existingPlan: NutritionPlan?,
+    explicitRatePercentBodyWeightPerWeek: Double? = null,
     now: Instant = Instant.now(),
 ): NutritionPlanPreparationInput {
     val base = reviewedBaseOf(draft, recommendation = null)
@@ -307,6 +308,7 @@ fun preparationInputOf(
         manualProteinG = manual?.proteinG?.toDouble(),
         manualCarbsG = manual?.carbsG?.toDouble(),
         manualFatG = manual?.fatG?.toDouble(),
+        explicitRatePercentBodyWeightPerWeek = explicitRatePercentBodyWeightPerWeek,
         configurationMode = configurationModeOf(draft),
         now = now,
     )

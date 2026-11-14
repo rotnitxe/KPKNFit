@@ -139,21 +139,22 @@ class SetupStepGraphTest {
     }
 
     @Test
-    fun programSourceOnlyAppearsForAdvancedExperienceRightAfterTheCalibration() {
-        val advanced = fullContext.copy(asksProgramSource = true)
-        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.next(SetupStepId.VOLUME_MOBILITY, advanced))
-        assertEquals(SetupStepId.PRIORITIES, SetupStepGraph.next(SetupStepId.PROGRAM_SOURCE, advanced))
-        // Intermedio y principiantes (asksProgramSource = false) no lo ven nunca.
+    fun programSourceAppearsBeforeRecommendationQuestionsWhenRequested() {
+        val requested = fullContext.copy(asksProgramSource = true)
+        val route = SetupStepGraph.stepIds(requested)
+        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.next(SetupStepId.MILESTONE_BASICS, requested))
+        assertEquals(SetupStepId.EXPERIENCE, SetupStepGraph.next(SetupStepId.PROGRAM_SOURCE, requested))
+        assertTrue(route.indexOf(SetupStepId.PROGRAM_SOURCE) < route.indexOf(SetupStepId.EXPERIENCE))
+        // Los flujos que no muestran la pregunta conservan su ruta actual.
         assertFalse(SetupStepId.PROGRAM_SOURCE in SetupStepGraph.stepIds(fullContext))
         assertFalse(SetupStepId.PROGRAM_IMPORT in SetupStepGraph.stepIds(fullContext))
     }
 
     @Test
     fun recommendedOrUnansweredProgramKeepsTheUsualRouteWithTheSourceInserted() {
-        // Un borrador avanzado viejo (sin programSource) y uno que elige «recomendar» siguen en la ruta de siempre.
-        val usual = SetupStepGraph.stepIds(fullContext)
-        val expected = usual.toMutableList().apply {
-            add(indexOf(SetupStepId.VOLUME_MOBILITY) + 1, SetupStepId.PROGRAM_SOURCE)
+        // Un borrador nuevo sin respuesta y uno que elige preparar programa recorren la misma ruta.
+        val expected = SetupStepGraph.stepIds(fullContext).toMutableList().apply {
+            add(indexOf(SetupStepId.MILESTONE_BASICS) + 1, SetupStepId.PROGRAM_SOURCE)
         }
         assertEquals(expected, SetupStepGraph.stepIds(fullContext.copy(asksProgramSource = true)))
         assertEquals(
@@ -166,16 +167,16 @@ class SetupStepGraphTest {
     fun laterProgramEndsTheTrainingBlockRightAfterTheSource() {
         val later = fullContext.copy(asksProgramSource = true, programSource = ProgramSource.LATER, hasWeekLayout = false)
         val route = SetupStepGraph.stepIds(later)
-        val from = route.indexOf(SetupStepId.VOLUME_MOBILITY)
         assertEquals(
-            listOf(SetupStepId.VOLUME_MOBILITY, SetupStepId.PROGRAM_SOURCE, SetupStepId.MILESTONE_TRAINING),
-            route.subList(from, from + 3),
+            listOf(SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE, SetupStepId.NUTRITION_START),
+            route.subList(route.indexOf(SetupStepId.MILESTONE_BASICS), route.indexOf(SetupStepId.MILESTONE_BASICS) + 3),
         )
-        for (step in listOf(SetupStepId.CAPABILITIES, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT)) {
+        for (step in listOf(SetupStepId.EXPERIENCE, SetupStepId.CAPABILITIES, SetupStepId.PRIORITIES,
+            SetupStepId.TRAINING_MAX, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)) {
             assertFalse("$step no entra con «lo armaré yo»", step in route)
         }
-        assertEquals(SetupStepId.NUTRITION_START, SetupStepGraph.next(SetupStepId.MILESTONE_TRAINING, later))
-        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.previous(SetupStepId.MILESTONE_TRAINING, later))
+        assertEquals(SetupStepId.NUTRITION_START, SetupStepGraph.next(SetupStepId.PROGRAM_SOURCE, later))
+        assertEquals(SetupStepId.PROGRAM_SOURCE, SetupStepGraph.previous(SetupStepId.NUTRITION_START, later))
     }
 
     @Test
@@ -186,10 +187,10 @@ class SetupStepGraphTest {
             programImportEnabled = true,
         )
         val route = SetupStepGraph.stepIds(imported)
-        val from = route.indexOf(SetupStepId.VOLUME_MOBILITY)
+        val from = route.indexOf(SetupStepId.MILESTONE_BASICS)
         assertEquals(
             listOf(
-                SetupStepId.VOLUME_MOBILITY, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT,
+                SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE, SetupStepId.PROGRAM_IMPORT,
                 SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING,
             ),
             route.subList(from, from + 5),

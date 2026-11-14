@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.templates.SessionTemplateEngine
 
 data class LoopProjection(
     val loop: Loop,
@@ -32,6 +33,21 @@ data class LoopIssue(
 
 object LoopEngine {
 
+    /** Eligibility for creating a loop: one trainable simple cycle, with no planned competition. */
+    fun canAddNewLoop(program: Program): Boolean {
+        if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC) return false
+        if (program.macrocycles.size != 1) return false
+        val block = program.macrocycles.singleOrNull()?.blocks?.singleOrNull() ?: return false
+        val meso = block.mesocycles.singleOrNull() ?: return false
+        val hasBaseTrainingWeek = meso.weeks.any { week ->
+            !week.isLoopWeek && week.executionKind != WeekExecutionKind.REST &&
+                week.sessions.any(SessionTemplateEngine::sessionHasExecutableContent)
+        }
+        val plannedCompetition = program.keyDates.any { it.type == KeyDateType.COMPETITION } ||
+            program.loops.any { it.type == LoopType.COMPETITION }
+        return hasBaseTrainingWeek && !plannedCompetition
+    }
+
     fun materializeLoopWeeks(program: Program): Program {
         if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC || program.loops.isEmpty()) return program
         val firstMacro = program.macrocycles.firstOrNull() ?: return program
@@ -49,16 +65,7 @@ object LoopEngine {
                 id = existing?.id ?: "loop_week_${loop.id}",
                 name = loop.title.ifBlank { getLoopTypeLabel(loop.type) },
                 description = "Loop ${getLoopTypeLabel(loop.type)} · cada ${loop.repeatEveryXLoops.coerceAtLeast(1)} ciclos",
-                sessions = (existing?.sessions ?: loop.sessions).ifEmpty {
-                    listOf(
-                        Session(
-                            id = "loop_session_${loop.id}",
-                            name = loop.title.ifBlank { getLoopTypeLabel(loop.type) },
-                            dayOfWeek = loop.dayOfWeek?.coerceIn(1, 7) ?: 1,
-                            isMainSession = true,
-                        ),
-                    )
-                },
+                sessions = existing?.sessions ?: loop.sessions,
                 isLoopWeek = true,
                 loopId = loop.id,
             )

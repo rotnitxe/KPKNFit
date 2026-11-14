@@ -23,6 +23,8 @@ import com.example.kpkn.domain.nutrition.WEEKLY_FORECAST_KEY
 import com.example.kpkn.domain.nutrition.WeeklyForecastDay
 import com.example.kpkn.domain.nutrition.WeeklyForecastDocument
 import com.example.kpkn.domain.nutrition.calorieBoundsFor
+import com.example.kpkn.domain.nutrition.paceRateFor
+import com.example.kpkn.domain.nutrition.realRateFor
 import com.example.kpkn.domain.nutrition.effectiveOptionalConfirmations
 import com.example.kpkn.domain.nutrition.decodeWeeklyForecast
 import com.example.kpkn.domain.nutrition.decodeWeeklyForecastDocument
@@ -38,6 +40,7 @@ import com.example.kpkn.domain.nutrition.editorDraftOf as wizardDraftToEditorDra
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 /**
  * Preparación del plan nutricional durante el ALTA (onboarding), reutilizando
@@ -115,11 +118,11 @@ object SetupNutritionPreparation {
                 ),
             ),
         )
-        val prepared = NutritionPlanPreparation.prepare(
-            preparationInputOf(
+        val inputForPreparation = preparationInputOf(
                 editor,
                 planId = planId,
                 existingPlan = input.existingPlan,
+                explicitRatePercentBodyWeightPerWeek = selectedPaceRate(effectiveDraft),
                 now = input.now,
             ).copy(
                 // Composición actual como startValue, NUNCA como meta: la meta
@@ -127,8 +130,16 @@ object SetupNutritionPreparation {
                 // `resolvedTargetSiOf` dentro de `preparationInputOf`).
                 currentBodyFatPercent = parseLocalizedNumber(input.draft.bodyFatText),
                 currentMusclePercent = parseLocalizedNumber(input.draft.muscleText),
-            ),
+            )
+        val firstPreparation = NutritionPlanPreparation.prepare(inputForPreparation)
+        val boundedPace = boundedPaceRate(
+            requested = inputForPreparation.explicitRatePercentBodyWeightPerWeek,
+            direction = direction,
+            recommendation = firstPreparation.recommendation,
         )
+        val prepared = if (boundedPace != inputForPreparation.explicitRatePercentBodyWeightPerWeek) {
+            NutritionPlanPreparation.prepare(inputForPreparation.copy(explicitRatePercentBodyWeightPerWeek = boundedPace))
+        } else firstPreparation
         val plan = prepared.plan
             ?: return SetupNutritionPreparationResult(
                 plan = null,
@@ -246,6 +257,29 @@ object SetupNutritionPreparation {
      */
     private fun stablePreviewPlanId(draft: NutritionWizardDraft): String =
         UUID.nameUUIDFromBytes("kpkn-setup-plan|$draft".toByteArray(Charsets.UTF_8)).toString()
+
+    private fun selectedPaceRate(draft: NutritionWizardDraft): Double? = when (draft.configurationMode) {
+        com.example.kpkn.domain.nutrition.NutritionConfigurationMode.AUTOMATIC ->
+            draft.paceRateOverrideFractionPerWeek?.let { kotlin.math.abs(it) }
+                ?: draft.direction?.let { paceRateFor(it, draft.pacePreset) }
+        else -> null
+    }
+
+    /** Respeta los límites calóricos del ajuste posterior antes de volver a preparar macros y reparto. */
+    private fun boundedPaceRate(
+        requested: Double?,
+        direction: com.example.kpkn.data.models.PlanDirection?,
+        recommendation: NutritionPlanRecommendation?,
+    ): Double? {
+        if (requested == null || direction == null || recommendation?.eerKcal == null) return requested
+        val eer = recommendation.eerKcal
+        val weight = recommendation.snapshot.inputs["weightKg"]?.toDoubleOrNull() ?: return requested
+        val bounds = calorieBoundsFor(direction, eer) ?: return requested
+        val delta = weight * requested * 7_700.0 / 7.0
+        val raw = if (direction == com.example.kpkn.data.models.PlanDirection.DEFICIT) eer - delta else eer + delta
+        val target = raw.roundToInt().coerceIn(bounds.first, bounds.last)
+        return realRateFor(target, eer, weight)?.let { kotlin.math.abs(it) } ?: requested
+    }
 }
 
 /** Entrada de la preparación nutricional del alta. */

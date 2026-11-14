@@ -343,14 +343,13 @@ private fun SetupWizardDraft.projectChoice(
         }
     }
 
-    // Dejar de ser avanzado retira la elección del programa (y deshace «lo armaré yo»): ya no aplica a esa experiencia.
     SetupStepId.EXPERIENCE -> copy(experience = when (value) {
         "new" -> SetupExperience.NEW
         "returning" -> SetupExperience.RETURNING
         "intermediate" -> SetupExperience.INTERMEDIATE
         "advanced" -> SetupExperience.ADVANCED
         else -> null
-    }).let { updated -> if (updated.experience == SetupExperience.ADVANCED) updated else updated.withProgramSource(null) }
+    })
 
     // Sin opción «después»/manual: ambas rutas implican entrenamiento activo.
     SetupStepId.ROUTE -> if (value == "recommended" || value == "protocol") copy(
@@ -415,21 +414,37 @@ private fun SetupWizardDraft.projectChoice(
     }
 
     SetupStepId.NUTRITION_DIRECTION -> withNutrition {
-        it.copy(direction = when (value) {
+        val next = when (value) {
             "deficit" -> PlanDirection.DEFICIT
             "maintenance" -> PlanDirection.MAINTENANCE
             "surplus" -> PlanDirection.SURPLUS
             else -> it.direction
-        })
+        }
+        if (next == it.direction) it else it.copy(
+            direction = next,
+            paceRateOverrideFractionPerWeek = null,
+            manualCalorieTargetText = "",
+            manualProteinText = "",
+            manualCarbsText = "",
+            manualFatText = "",
+        )
     }
 
     SetupStepId.NUTRITION_RHYTHM -> withNutrition {
-        it.copy(pacePreset = when (value) {
+        val next = when (value) {
             "slow" -> WizardPacePreset.SLOW
             "fast" -> WizardPacePreset.FAST
             "medium" -> WizardPacePreset.MEDIUM
             else -> it.pacePreset
-        })
+        }
+        if (next == it.pacePreset) it else it.copy(
+            pacePreset = next,
+            paceRateOverrideFractionPerWeek = null,
+            manualCalorieTargetText = "",
+            manualProteinText = "",
+            manualCarbsText = "",
+            manualFatText = "",
+        )
     }
 
     SetupStepId.NUTRITION_ACTIVITY -> withNutrition {
@@ -947,8 +962,8 @@ fun SetupWizardDraft.withArmStyle(style: ArmStyle?): SetupWizardDraft = copy(arm
 
 /**
  * Cómo se tiene el programa (paso PROGRAM_SOURCE). Salir de «lo armaré yo» deshace el aplazamiento: el programa vuelve a la
- * ruta con las respuestas intactas. Solo cambia la elección, nunca las demás respuestas. Con `null` (la experiencia ya no es
- * «Tengo experiencia») se retira la elección y el mismo deshacer se aplica.
+ * ruta con las respuestas intactas. Solo cambia la elección, nunca las demás respuestas. La fuente del programa se pregunta
+ * antes que la experiencia, así que esa elección no depende del nivel de experiencia.
  */
 fun SetupWizardDraft.withProgramSource(source: ProgramSource?): SetupWizardDraft = copy(
     programSource = source,

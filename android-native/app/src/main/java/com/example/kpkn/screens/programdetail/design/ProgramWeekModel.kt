@@ -49,31 +49,6 @@ internal fun weekTotalLabel(minutes: Int): String {
     return if (rest == 0) "≈ ${minutes / 60} h" else "≈ ${minutes / 60} h ${rest.toString().padStart(2, '0')}"
 }
 
-/** Cuántas semanas enseña la mini-cinta de una rutina (s-simple). */
-internal const val ROUTINE_RIBBON_WEEKS = 12
-
-/**
- * La mini-cinta de una rutina (s-simple): las 12 semanas del tramo en el que cae [cycle] (1–12, 13–24…), las anteriores a [cycle] hechas y
- * [cycle] elegida. Las semanas especiales de sus ciclos ([loops]: una cada `repeatEveryXLoops`) van en el color de su fase (la descarga en
- * verde, el test de 1RM en el de realización, la competición en el suyo); el resto, en tinta. Sin texto.
- */
-internal fun routineMiniRibbon(cycle: Int?, loops: List<com.example.kpkn.data.models.Loop>): List<ProgramMiniRibWeek> {
-    val current = cycle?.takeIf { it > 0 } ?: 1
-    val first = (current - 1) / ROUTINE_RIBBON_WEEKS * ROUTINE_RIBBON_WEEKS + 1
-    return (first until first + ROUTINE_RIBBON_WEEKS).map { week ->
-        val special = loops.firstOrNull { loop ->
-            loop.type != com.example.kpkn.data.models.LoopType.CUSTOM && loop.repeatEveryXLoops > 1 && week % loop.repeatEveryXLoops == 0
-        }
-        val color = when (special?.type) {
-            com.example.kpkn.data.models.LoopType.DELOAD -> ProgramPhase.DELOAD.color
-            com.example.kpkn.data.models.LoopType.ONE_RM_TEST -> ProgramPhase.REALIZATION.color
-            com.example.kpkn.data.models.LoopType.COMPETITION -> ProgramPhase.COMPETITION.color
-            else -> com.example.kpkn.screens.onboarding.design.WizardColors.text
-        }
-        ProgramMiniRibWeek(color = color, done = week < current, selected = week == current)
-    }
-}
-
 /** Las series de trabajo de una sesión: las de todos sus ejercicios. */
 private fun seriesOf(session: Session): Int = session.allExercises().sumOf { it.sets.size }
 
@@ -96,16 +71,18 @@ internal fun weekDateRange(dates: Collection<LocalDate>): String? {
     }
 }
 
-/**
- * El título del navegador: «Semana 4» según su posición en la lista. En una rutina (un programa simple de una sola semana que se repite),
- * el número del ciclo, y «Semana 1» si todavía no hay ciclo.
- */
-internal fun weekNavigatorTitle(isRoutine: Boolean, weekIndex: Int, cycleNumber: Int?): String =
-    if (isRoutine) {
-        "Semana ${cycleNumber?.takeIf { it > 0 } ?: 1}"
-    } else {
-        "Semana ${weekIndex + 1}"
-    }
+/** Título de agenda: las rutinas cíclicas no numeran su semana base y una semana especial conserva su nombre. */
+internal fun weekNavigatorTitle(
+    isRoutine: Boolean,
+    weekIndex: Int,
+    isSingleDatedWeek: Boolean = false,
+    specialWeekName: String? = null,
+): String = when {
+    !specialWeekName.isNullOrBlank() -> specialWeekName
+    isRoutine -> "Rutina semanal"
+    isSingleDatedWeek -> "Semana de entrenamiento"
+    else -> "Semana ${weekIndex + 1}"
+}
 
 /**
  * La línea bajo el título del navegador: la fase y el rango de fechas, unidos con « · ». Null si no hay ninguno de los dos.

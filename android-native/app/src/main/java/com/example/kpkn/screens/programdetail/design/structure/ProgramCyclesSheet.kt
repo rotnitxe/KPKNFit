@@ -92,26 +92,28 @@ internal fun ProgramCyclesContent(
             .verticalScroll(rememberScrollState())
             .padding(StructureSheetPadding),
     ) {
-        StructureSheetHeader(title = "Ciclos", subtitle = cycleSummaryLine(activeCount, model.currentCycle))
+        StructureSheetHeader(title = "Loops", subtitle = cycleSummaryLine(activeCount, model.currentCycle))
         if (model.legacyEventCount > 0) {
             ProgramCycleLegacyNotice(count = model.legacyEventCount, onMigrate = onMigrateLegacy, modifier = Modifier.padding(bottom = 12.dp))
         }
         if (model.collisionLines.isNotEmpty()) {
             ProgramCycleCollisionNotice(lines = model.collisionLines, modifier = Modifier.padding(bottom = 12.dp))
         }
-        StructureSheetGroup(text = "Tus ciclos")
+        StructureSheetGroup(text = "Tus loops")
         model.loops.forEachIndexed { index, loop ->
             ProgramCycleRow(loop = loop, divider = index > 0, onClick = { editing = ProgramCycleEditing(loop) })
         }
-        StructureMenuRow(
-            icon = KpknLineIcons.Plus,
-            title = "Nuevo ciclo",
-            detail = if (model.loops.isEmpty()) "Aún no tienes ciclos. Añade uno o empieza con una plantilla." else null,
-            divider = model.loops.isNotEmpty(),
-            onClick = { editing = ProgramCycleEditing(null) },
-        )
+        if (model.canAddLoops) {
+            StructureMenuRow(
+                icon = KpknLineIcons.Plus,
+                title = "Nuevo loop",
+                detail = if (model.loops.isEmpty()) "Aún no tienes loops. Añade uno o elige una plantilla." else null,
+                divider = model.loops.isNotEmpty(),
+                onClick = { editing = ProgramCycleEditing(null) },
+            )
+        }
         if (model.weeks.isNotEmpty()) {
-            StructureSheetGroup(text = "Semanas de ciclo")
+            StructureSheetGroup(text = "Semanas de loop")
             model.weeks.forEachIndexed { index, week ->
                 ProgramCycleWeekRow(
                     week = week,
@@ -122,8 +124,21 @@ internal fun ProgramCyclesContent(
                 )
             }
         }
-        StructureSheetGroup(text = "Plantillas de ciclo")
-        ProgramCycleTemplatesModule(templates = programCycleTemplates, onAdd = onAddTemplate, modifier = Modifier.padding(top = 4.dp))
+        if (model.canAddLoops) {
+            StructureSheetGroup(text = "Loops listos")
+            ProgramCycleTemplatesModule(
+                templates = programCycleTemplates,
+                onAdd = { templateId ->
+                    if (templateId == "custom") editing = ProgramCycleEditing(null) else onAddTemplate(templateId)
+                },
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        } else {
+            StructureCaption(
+                text = "Para añadir loops, usa una rutina repetitiva con una semana base y sin una competición planificada.",
+                modifier = Modifier.padding(top = 10.dp),
+            )
+        }
         StructureAction(
             text = "Para qué sirven los ciclos",
             onClick = { showInfo = true },

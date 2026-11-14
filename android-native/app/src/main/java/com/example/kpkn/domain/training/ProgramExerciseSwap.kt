@@ -7,7 +7,7 @@ import com.example.kpkn.domain.training.generator.GeneratorCatalog
 import com.example.kpkn.domain.training.generator.Prescriber
 import com.example.kpkn.domain.training.quality.SessionSlopRules
 
-enum class SwapScope { THIS_SESSION, REST_OF_BLOCK, WHOLE_PROGRAM }
+enum class SwapScope { THIS_EXECUTION, THIS_SESSION, REST_OF_BLOCK, WHOLE_PROGRAM }
 
 /**
  * Cambio manual explícito; las referencias de carga siguen perteneciendo a su configuración original.
@@ -24,6 +24,9 @@ fun applyExerciseSwap(
     executedSessionIds: Set<String> = emptySet(),
     nowMs: Long = 0L,
 ): Program {
+    // One-execution substitutions are persisted and resolved by
+    // ProgramExecutionReplacementEngine; never write them into a template here.
+    if (scope == SwapScope.THIS_EXECUTION) return program
     val hierarchy = ProgramHierarchyIndex(program)
     if (hierarchy.duplicateIds.isNotEmpty()) return program
     val locations = hierarchy.orderedWeeks()
@@ -55,8 +58,13 @@ fun applyExerciseSwap(
             )
     }
 
-    fun replace(exercise: Exercise): Exercise {
-        if (exercise.catalogConfigurationId != sourceConfiguration) return exercise
+    fun replace(exercise: Exercise, selectedSession: Boolean): Exercise {
+        val selectedLineage = if (scope == SwapScope.THIS_SESSION) {
+            selectedSession && exercise.id == exerciseId
+        } else {
+            exercise.catalogConfigurationId == sourceConfiguration
+        }
+        if (!selectedLineage) return exercise
         changedExercises++
         // F-22 (decisión 2): un cambio EQUIVALENTE entre variantes de la tabla lleva kilos estimados desde la marca del original
         // (o desde la del básico del que ya venía estimada); siempre marcados «estimada», nunca como marca declarada.
@@ -90,9 +98,10 @@ fun applyExerciseSwap(
             skippedSessions++
             changeOwn = false
         }
+        val selectedSession = session.id == sessionId
         return session.copy(
-            exercises = if (changeOwn) session.exercises.map(::replace) else session.exercises,
-            parts = if (changeOwn) session.parts.map { it.copy(exercises = it.exercises.map(::replace)) } else session.parts,
+            exercises = if (changeOwn) session.exercises.map { replace(it, selectedSession) } else session.exercises,
+            parts = if (changeOwn) session.parts.map { it.copy(exercises = it.exercises.map { exercise -> replace(exercise, selectedSession) }) } else session.parts,
             sessionB = session.sessionB?.let(::change),sessionC = session.sessionC?.let(::change),sessionD = session.sessionD?.let(::change))
     }
     val result = program.copy(macrocycles = program.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->

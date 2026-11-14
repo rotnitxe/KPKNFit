@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -59,6 +60,8 @@ import com.example.kpkn.screens.programdetail.design.ProgramItemMenu
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBaseWeekModule
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockList
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockSheet
+import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockWeekSource
+import com.example.kpkn.screens.programdetail.design.structure.newProgramBlock
 import com.example.kpkn.screens.programdetail.design.structure.ProgramBlockUi
 import com.example.kpkn.screens.programdetail.design.structure.ProgramCalendarSheet
 import com.example.kpkn.screens.programdetail.design.structure.ProgramConvertBlocksDialog
@@ -104,7 +107,9 @@ private const val ENTRANCE = "programdetail.estructura"
 @Composable
 fun MacrocycleEditorLegacy(
     program: Program,
+    equipmentInventory: EquipmentInventory = EquipmentInventory(),
     onUpdateProgram: (Program) -> Unit,
+    onConvertToAdvanced: (Program) -> Unit = onUpdateProgram,
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
@@ -341,7 +346,6 @@ fun MacrocycleEditorLegacy(
                 onAddCycle = { setLoopsSheetOpen(true) },
                 block = blockUis.firstOrNull(),
                 onEditMeso = { mesoIndex -> blockUis.firstOrNull()?.let { editMeso(it, mesoIndex) } },
-                onAddMeso = { blockUis.firstOrNull()?.let { addMesoTo(it) } },
                 onAddWeek = onAddSimpleWeek,
                 onCalendarize = { onShowSimpleCalendarizationSheetChange(true) },
                 onConvert = { pendingSimpleToAdvanced = true },
@@ -383,7 +387,7 @@ fun MacrocycleEditorLegacy(
             if (page == StructurePage.BLOCKS) {
                 StructureSecondarySmallPill(
                     text = "Añadir bloque",
-                    onClick = { blockSheet = BlockSheetTarget.Add },
+                    onClick = { blockSheet = BlockSheetTarget.Add() },
                     icon = KpknLineIcons.Plus,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -392,7 +396,7 @@ fun MacrocycleEditorLegacy(
                     label = null,
                     items = listOf(
                         ProgramFromProgramItem(
-                            title = "Pasar a programa por bloques",
+                            title = "Pasar a programa por bloques/mesociclos",
                             detail = null,
                             icon = KpknLineIcons.Training,
                             tag = "estructura_convertir",
@@ -413,6 +417,19 @@ fun MacrocycleEditorLegacy(
         }
         val editingUi = editing?.let { blockUis.blockAt(it.id) }
         if (target is BlockSheetTarget.Add || editing != null) {
+            val addTarget = target as? BlockSheetTarget.Add
+            val sourceMacrocycles = if (program.simpleProgramKind == SimpleProgramKind.CALENDARIZED && program.pausedCyclicSnapshot != null) {
+                program.pausedCyclicSnapshot.macrocycles
+            } else {
+                program.macrocycles
+            }
+            val weekSources = sourceMacrocycles.flatMap { macro -> macro.blocks }.flatMap { block ->
+                block.mesocycles.flatMap { meso -> meso.weeks }.filter { week ->
+                    !week.isLoopWeek && week.sessions.any { session ->
+                        com.example.kpkn.domain.templates.SessionTemplateEngine.sessionHasExecutableContent(session)
+                    }
+                }.map { week -> ProgramBlockWeekSource(week.id, "${block.name} · ${week.name}", week) }
+            }.distinctBy { it.id }
             ProgramBlockSheet(
                 block = editing,
                 subtitle = editingUi?.let { ui ->
@@ -420,12 +437,19 @@ fun MacrocycleEditorLegacy(
                 },
                 suggestedName = "Bloque ${blockUis.size + 1}",
                 preview = editing?.let { blockProgressionPreview(it.id) },
-                onSave = { name, description, goal, scheme ->
+                weekSources = if (addTarget != null) weekSources else emptyList(),
+                onSave = { name, description, goal, scheme, weekCount, sourceWeekId ->
                     when (target) {
                         is BlockSheetTarget.Add -> {
                             val base = program.ensureMacrocycle()
-                            val updated = base.addBlockToMacro(base.macrocycles.lastIndex, name, description, goal, scheme)
-                            onUpdateProgram(updated.alignTemporalMetadata())
+                            val source = weekSources.firstOrNull { it.id == sourceWeekId }?.week
+                            val block = newProgramBlock(name, description, goal, scheme, weekCount, source)
+                            val updated = base.addBlockToMacro(base.macrocycles.lastIndex, block)
+                            if (target.convertingFromRoutine) {
+                                onConvertToAdvanced(updated.convertSimpleCalendarizedToAdvanced().alignTemporalMetadata())
+                            } else {
+                                onUpdateProgram(updated.alignTemporalMetadata())
+                            }
                         }
                         is BlockSheetTarget.Edit -> onUpdateBlock(target.blockId, name, description, goal, scheme)
                     }
@@ -647,13 +671,8 @@ fun MacrocycleEditorLegacy(
     if (pendingSimpleToAdvanced) {
         ProgramConvertBlocksDialog(
             onConfirm = {
-                val updated = program
-                    .ensureMacrocycle()
-                    .addBlockToMacro(0, "Bloque 2")
-                    .convertSimpleCalendarizedToAdvanced()
-                    .alignTemporalMetadata()
-                onUpdateProgram(updated)
                 pendingSimpleToAdvanced = false
+                blockSheet = BlockSheetTarget.Add(convertingFromRoutine = true)
             },
             onDismiss = { pendingSimpleToAdvanced = false },
         )
@@ -719,6 +738,7 @@ fun MacrocycleEditorLegacy(
     if (page == StructurePage.ROUTINE && showLoopsSheet) {
         CyclesSection(
             program = program,
+            equipmentInventory = equipmentInventory,
             onUpdateProgram = onUpdateProgram,
             onFocusWeek = { blockId, weekId ->
                 setLoopsSheetOpen(false)
@@ -752,7 +772,7 @@ fun MacrocycleEditorLegacy(
 
 /**
  * e-cycles, la Estructura de una rutina: «Semana base» (sus sesiones, su duración y sus días), el aviso de la estructura si lo hay, el
- * grupo «Ciclos» con «Añadir ciclo», el módulo del pie con los mesociclos, añadir una semana al ciclo, calendarizar y «Pasar a programa por
+ * grupo «Ciclos» con «Añadir ciclo», el módulo del pie con los mesociclos existentes, añadir una semana al ciclo, calendarizar y «Pasar a programa por
  * bloques», y «Del programa».
  */
 @Composable
@@ -766,7 +786,6 @@ private fun RoutinePage(
     onAddCycle: () -> Unit,
     block: ProgramBlockUi?,
     onEditMeso: (mesoIndex: Int) -> Unit,
-    onAddMeso: () -> Unit,
     onAddWeek: () -> Unit,
     onCalendarize: () -> Unit,
     onConvert: () -> Unit,
@@ -780,6 +799,7 @@ private fun RoutinePage(
         baseWeekHeadline(sessions.size, sessions.sumOf { SessionDurationEstimator.estimate(it).totalMinutes })
     }
     val cycleRows = remember(program) { programCycleRows(program) }
+    val canAddLoop = remember(program) { com.example.kpkn.screens.programdetail.components.editor.canAddLoops(program) }
 
     ProgramBaseWeekModule(
         headline = headline,
@@ -792,7 +812,7 @@ private fun RoutinePage(
         ProgramStructureNotice(messages = temporalIssues, modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 1))
     }
     ProgramFromProgramModule(
-        label = "Ciclos",
+        label = "Loops",
         items = cycleRows.map { row ->
             ProgramFromProgramItem(
                 title = row.title,
@@ -801,12 +821,14 @@ private fun RoutinePage(
                 tag = "estructura_ciclo_${row.loopId}",
                 onClick = { onEditCycle(row.loopId) },
             )
-        } + ProgramFromProgramItem(
-            title = "Añadir ciclo",
-            detail = null,
-            icon = KpknLineIcons.Plus,
-            tag = "estructura_ciclos",
-            onClick = onAddCycle,
+        } + listOfNotNull(
+            if (canAddLoop) ProgramFromProgramItem(
+                title = "Añadir loop",
+                detail = null,
+                icon = KpknLineIcons.Plus,
+                tag = "estructura_loops",
+                onClick = onAddCycle,
+            ) else null,
         ),
         modifier = Modifier.padding(bottom = 12.dp),
     )
@@ -827,18 +849,17 @@ private fun RoutinePage(
                     )
                 }
             }
-            add(ProgramFromProgramItem("Añadir mesociclo", null, KpknLineIcons.Layers, "estructura_meso_nuevo", onAddMeso))
             add(ProgramFromProgramItem("Añadir una semana al ciclo", null, KpknLineIcons.Plus, "estructura_semana_nueva", onAddWeek))
             add(
                 ProgramFromProgramItem(
-                    "Calendarizar el ciclo",
+                    "Calendarizar rutina",
                     "Fechas reales o una pausa",
                     KpknLineIcons.Calendar,
                     "estructura_calendarizar",
                     onCalendarize,
                 ),
             )
-            add(ProgramFromProgramItem("Pasar a programa por bloques", null, KpknLineIcons.Training, "estructura_convertir", onConvert))
+            add(ProgramFromProgramItem("Pasar a programa por bloques/mesociclos", null, KpknLineIcons.Training, "estructura_convertir", onConvert))
         },
     )
     ProgramFromProgramModule(items = fromProgram)
@@ -853,7 +874,7 @@ private fun blockDatesLabel(projection: ProgramCalendarProjection, blockId: Stri
 
 /** Lo que se edita en la hoja de bloque: un bloque nuevo, o uno existente por su id. */
 private sealed class BlockSheetTarget {
-    object Add : BlockSheetTarget()
+    data class Add(val convertingFromRoutine: Boolean = false) : BlockSheetTarget()
     data class Edit(val blockId: String) : BlockSheetTarget()
 }
 
@@ -965,15 +986,12 @@ private fun defaultMesocycle(
 
 private fun Program.addBlockToMacro(
     macroIndex: Int,
-    blockName: String,
-    description: String? = null,
-    goal: BlockGoal? = null,
-    progressionScheme: BlockProgressionScheme? = null,
+    block: Block,
 ): Program {
     return copy(
         macrocycles = macrocycles.mapIndexed { index, macro ->
             if (index != macroIndex) macro
-            else macro.copy(blocks = macro.blocks + defaultBlock(blockName, description, goal, progressionScheme))
+            else macro.copy(blocks = macro.blocks + block)
         },
     )
 }

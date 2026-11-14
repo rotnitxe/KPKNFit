@@ -19,6 +19,7 @@ import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.ProgramExecutionReplacementEngine
 import com.example.kpkn.domain.relator.RelatorProgressionContext
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
@@ -154,11 +155,24 @@ class WorkoutSessionHydrator(
             active = active,
         )
 
-        val restoredSession = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, resumedState?.session ?: session)
+        val restoredMode = resumedState?.activeMode ?: WeekVariant.A
+        val executionSession = if (resumedState == null) {
+            ProgramExecutionReplacementEngine.applyPending(
+                program = program,
+                session = session,
+                programRunId = program.runState?.runId ?: active?.programRunId,
+                cycleNumber = program.runState?.cycleNumber ?: active?.currentCycleNumber,
+                weekTemplateId = ProgramProgressEngine.templateWeekIdFromInstance(foundWeekId) ?: foundWeekId,
+                weekInstanceId = resolvedWeekId,
+                variant = restoredMode,
+            ).session
+        } else {
+            session
+        }
+        val restoredSession = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, resumedState?.session ?: executionSession)
             .normalizeMobilityCompatibility()
             .let(ports::normalizeSupersetsForWorkout)
             .let(ports::sanitizeSessionLoadModes)
-        val restoredMode = resumedState?.activeMode ?: WeekVariant.A
         val restoredCompletedSets = resumedState?.completedSets ?: emptyMap()
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
         val restoredOmittedSetKeys = resumedState?.omittedSetKeys ?: emptySet()

@@ -250,6 +250,38 @@ final class KPKNFitTests: XCTestCase {
         XCTAssertEqual(override["createdAtMs"], .integer(5678))
     }
 
+    func testProgramRoundTripPreservesAndroidExecutionReplacementOverlay() throws {
+        let raw = #"""
+        {
+          "id": "program-1",
+          "name": "Rutina",
+          "pendingExecutionReplacements": [{
+            "id": "replacement-1",
+            "target": {
+              "programRunId": "run-1",
+              "cycleNumber": 2,
+              "weekTemplateId": "week-1",
+              "weekInstanceId": "inst_c2_week-1",
+              "sessionId": "session-1",
+              "variant": "A",
+              "scheduledDate": "2026-11-16"
+            },
+            "exerciseId": "ex-1",
+            "sourceConfigurationId": "bench_press__barbell",
+            "replacement": {"id": "ex-1", "name": "Press banca con pausa", "catalogConfigurationId": "bench_press__paused_barbell", "sets": []},
+            "createdAtMs": 1234
+          }]
+        }
+        """#
+        let decoder = JSONDecoder()
+        let program = try decoder.decode(Program.self, from: Data(raw.utf8))
+        let overlay = try XCTUnwrap(program.opaqueFields["pendingExecutionReplacements"])
+        let encoded = try JSONEncoder().encode(program)
+        let roundTripped = try decoder.decode(Program.self, from: encoded)
+
+        XCTAssertEqual(roundTripped.opaqueFields["pendingExecutionReplacements"], overlay)
+    }
+
     private func programSessionField(_ key: String, in session: Session) -> JSONValue? {
         session.opaqueFields[key]
     }

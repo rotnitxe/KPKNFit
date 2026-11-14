@@ -53,6 +53,7 @@ internal data class ProgramCyclesModel(
     val weeks: List<ProgramCycleWeek>,
     val legacyEventCount: Int,
     val collisionLines: List<String>,
+    val canAddLoops: Boolean = true,
 )
 
 /** Lo que la hoja pide sobre un ciclo ya existente. [DELETE] se confirma antes de aplicarse. */
@@ -109,28 +110,28 @@ internal fun cycleConflictLine(conflict: ProgramCycleLoop, cadence: Int): String
 /** Las cuatro plantillas de ciclos con su icono. Qué ciclos crean vive en `CyclesSection`, que es quien los añade al programa. */
 internal val programCycleTemplates: List<ProgramCycleTemplate> = listOf(
     ProgramCycleTemplate(
+        id = "custom",
+        name = "Personalizado",
+        description = "Define el nombre, el tipo y la cadencia.",
+        icon = KpknLineIcons.Edit,
+    ),
+    ProgramCycleTemplate(
         id = "deload-4",
-        name = "Descarga cada 4",
-        description = "Semana de descarga automática cada 4 ciclos.",
+        name = "Descarga",
+        description = "Prepara una semana con menos volumen y esfuerzo.",
         icon = KpknLineIcons.Moon,
     ),
     ProgramCycleTemplate(
         id = "1rm-8",
-        name = "Test 1RM cada 8",
-        description = "Semana de pruebas de fuerza cada 8 ciclos.",
+        name = "Test 1RM",
+        description = "Elige los movimientos que vas a probar.",
         icon = KpknLineIcons.Flag,
     ),
     ProgramCycleTemplate(
         id = "deload-1rm",
         name = "Descarga + Test 1RM",
-        description = "Descarga cada 4 y Test 1RM cada 8 ciclos.",
+        description = "Descarga cada 4 ciclos y test cada 8.",
         icon = KpknLineIcons.Repeat,
-    ),
-    ProgramCycleTemplate(
-        id = "competition-12",
-        name = "Competición cada 12",
-        description = "Competición cada 12 ciclos con descarga cada 4.",
-        icon = KpknLineIcons.Calendar,
     ),
 )
 

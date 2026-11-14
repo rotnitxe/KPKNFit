@@ -13,6 +13,7 @@ import com.example.kpkn.domain.training.ProgramMigrationEngine
 import com.example.kpkn.domain.training.ProgramPersistNormalizer
 import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.ProgramHierarchyIndex
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.coerceNativeWeekInstanceId
@@ -1474,7 +1475,9 @@ class ProgramRepository private constructor(
                 val progressedProgram = progress?.program
                     ?.takeIf { it != program }
                     ?.let { ProgramCalendarEngine.materializeWeekDates(it).normalizedIdentityFields() }
-                val progressionBase = progressedProgram ?: program
+                val progressionBase = (progressedProgram ?: program)?.let {
+                    com.example.kpkn.domain.training.ProgramExecutionReplacementEngine.consumeCompleted(it, enriched)
+                }
                 val nativeProgressedProgram = if (
                     progressionBase != null &&
                     enriched.calendarBreakId.isNullOrBlank() &&
@@ -1913,19 +1916,29 @@ class ProgramRepository private constructor(
         val sessionId: String,
         val exerciseId: String,
         val sourceName: String,
+        val sourceConfigurationId: String,
         val options: List<com.example.kpkn.domain.training.SwapOption>,
         val requiresEquipmentConfirmation: Boolean,
         val catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2,
+        val executionTarget: com.example.kpkn.data.models.ProgramExecutionTarget? = null,
     )
-    data class ExerciseSwapPreview(val original: Program,val result: Program,val settings: Settings,val evidence: ExecutedTrainingEvidence)
+    data class ExerciseSwapPreview(
+        val original: Program,
+        val result: Program,
+        val settings: Settings,
+        val evidence: ExecutedTrainingEvidence,
+        val executionReplacement: com.example.kpkn.data.models.ProgramExecutionReplacement? = null,
+    )
 
     fun exerciseSwapRequest(programId: String,sessionId: String,exerciseId: String,
-                            catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2): ExerciseSwapRequest? {
+                            catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2,
+                            executionTarget: com.example.kpkn.data.models.ProgramExecutionTarget? = null): ExerciseSwapRequest? {
         val program = getProgramById(programId) ?: return null
         fun nested(s: Session): List<Session> = listOf(s) + listOfNotNull(s.sessionB,s.sessionC,s.sessionD).flatMap(::nested)
         val sessions = com.example.kpkn.domain.training.ProgramHierarchyIndex(program).orderedWeeks().flatMap { it.week.sessions }.flatMap(::nested)
         val session = sessions.filter { it.id == sessionId }.singleOrNull() ?: return null
         val exercise = session.allExercises().filter { it.id == exerciseId }.singleOrNull() ?: return null
+        val sourceConfigurationId = exercise.catalogConfigurationId?.takeIf(String::isNotBlank) ?: return null
         val settings = _settings.value
         // La declaración global no acredita el equipo de otro lugar nombrado sin una vinculación guardada.
         val availability = settings.equipmentAvailability?.takeIf { session.placeId.isNullOrBlank() }
@@ -1936,22 +1949,102 @@ class ProgramRepository private constructor(
         val others = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() - setOfNotNull(exercise.catalogConfigurationId)
         val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided,excludedConfigurationIds = others)
             else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided,excludedConfigurationIds = others)
-        return ExerciseSwapRequest(program,settings,sessionId,exerciseId,exercise.name,options,availability == null,catalog)
+        val validExecutionTarget = executionTarget?.takeIf { target ->
+            target.sessionId == sessionId && executionTargetIsCurrent(program, target) &&
+                _history.value.none { log ->
+                    log.programId == program.id && log.programRunId == target.programRunId &&
+                        log.cycleNumber == target.cycleNumber && log.weekInstanceId == target.weekInstanceId &&
+                        log.sessionId == sessionId
+                }
+        }
+        return ExerciseSwapRequest(program,settings,sessionId,exerciseId,exercise.name,sourceConfigurationId,options,availability == null,catalog,validExecutionTarget)
     }
 
     fun previewExerciseSwap(request: ExerciseSwapRequest,targetConfigurationId: String,scope: com.example.kpkn.domain.training.SwapScope,
                             equipmentConfirmed: Boolean): ExerciseSwapPreview? {
         val current = getProgramById(request.program.id) ?: return null
         if (current != request.program || _settings.value != request.settings || request.requiresEquipmentConfirmation && !equipmentConfirmed) return null
-        val refreshed = exerciseSwapRequest(current.id,request.sessionId,request.exerciseId,request.catalog) ?: return null
+        val refreshed = exerciseSwapRequest(current.id,request.sessionId,request.exerciseId,request.catalog,request.executionTarget) ?: return null
         val target = refreshed.options.firstOrNull { it.configId == targetConfigurationId } ?: return null
         val evidence = executedTrainingEvidence(current)
+        if (scope == com.example.kpkn.domain.training.SwapScope.THIS_EXECUTION) {
+            val executionTarget = request.executionTarget ?: return null
+            val changed = com.example.kpkn.domain.training.applyExerciseSwap(
+                current, request.sessionId, request.exerciseId, target,
+                com.example.kpkn.domain.training.SwapScope.THIS_SESSION, request.catalog,
+                emptySet(), System.currentTimeMillis(),
+            )
+            if (changed == current) return null
+            fun nested(session: Session): List<Session> = listOf(session) +
+                listOfNotNull(session.sessionB, session.sessionC, session.sessionD).flatMap(::nested)
+            val replacement = com.example.kpkn.domain.training.ProgramHierarchyIndex(changed).orderedWeeks()
+                .flatMap { it.week.sessions }.flatMap(::nested)
+                .singleOrNull { it.id == request.sessionId }
+                ?.allExercises()?.singleOrNull { it.id == request.exerciseId }
+                ?.takeIf { it.catalogConfigurationId == target.configId } ?: return null
+            val overlay = com.example.kpkn.data.models.ProgramExecutionReplacement(
+                id = java.util.UUID.randomUUID().toString(),
+                target = executionTarget,
+                exerciseId = request.exerciseId,
+                sourceConfigurationId = request.sourceConfigurationId,
+                replacement = replacement,
+                createdAtMs = System.currentTimeMillis(),
+            )
+            val retained = current.pendingExecutionReplacements.filterNot { existing ->
+                com.example.kpkn.domain.training.ProgramExecutionReplacementEngine.sameOccurrence(existing.target, executionTarget) &&
+                    existing.exerciseId == request.exerciseId
+            }
+            val result = current.copy(
+                pendingExecutionReplacements = retained + overlay,
+                programDecisions = current.programDecisions + com.example.kpkn.data.models.ProgramDecision(
+                    id = "execution-swap:${overlay.id}", atMs = overlay.createdAtMs, source = "MANUAL",
+                    title = "Ejercicio cambiado para esta ejecución",
+                    detail = "${request.sourceName} → ${replacement.name} solo en esta sesión de este ciclo.",
+                    weekId = executionTarget.weekTemplateId,
+                ),
+            )
+            return ExerciseSwapPreview(current, result, request.settings, evidence, overlay)
+        }
+        val executedSessionIds = if (scope == com.example.kpkn.domain.training.SwapScope.THIS_SESSION) emptySet() else evidence.sessionIds
         var result = com.example.kpkn.domain.training.applyExerciseSwap(current,request.sessionId,request.exerciseId,target,scope,
-            request.catalog,evidence.sessionIds,System.currentTimeMillis())
+            request.catalog,executedSessionIds,System.currentTimeMillis())
         if (result == current) return null
         if (request.requiresEquipmentConfirmation) result = result.copy(programDecisions = result.programDecisions.dropLast(1) +
             result.programDecisions.last().let { it.copy(detail = it.detail + " Material confirmado para esta sustitución.") })
         return ExerciseSwapPreview(current,result,request.settings,evidence)
+    }
+
+    private fun executionTargetIsCurrent(
+        program: Program,
+        target: com.example.kpkn.data.models.ProgramExecutionTarget,
+    ): Boolean {
+        val run = program.runState
+        val active = _activeProgramState.value?.takeIf { it.programId == program.id && it.status == ProgramStatus.ACTIVE }
+        val runId = run?.runId ?: active?.programRunId
+        val cycle = run?.cycleNumber ?: active?.currentCycleNumber ?: 1
+        if (runId != target.programRunId || cycle != target.cycleNumber || run?.status == ProgramRunStatus.COMPLETED) return false
+        val activeInstance = active?.currentWeekInstanceId?.takeIf { instance ->
+            ProgramProgressEngine.templateWeekIdFromInstance(instance) == target.weekTemplateId
+        }
+        val runInstance = run?.weekInstanceId?.takeIf { instance ->
+            ProgramProgressEngine.templateWeekIdFromInstance(instance) == target.weekTemplateId
+        }
+        val currentWeek = active?.currentWeekId?.takeIf(String::isNotBlank) ?: run?.weekId?.takeIf(String::isNotBlank)
+        val currentTemplate = currentWeek?.let(ProgramProgressEngine::templateWeekIdFromInstance)
+        val instanceId = activeInstance ?: runInstance ?:
+            if (currentTemplate == target.weekTemplateId) ProgramProgressEngine.instanceIdFor(cycle, target.weekTemplateId) else null
+        if (currentTemplate != target.weekTemplateId || instanceId != target.weekInstanceId) return false
+        val sessionExists = ProgramHierarchyIndex(program).orderedWeeks()
+            .firstOrNull { it.week.id == target.weekTemplateId }
+            ?.week?.sessions?.any { root ->
+                fun contains(session: Session): Boolean = session.id == target.sessionId ||
+                    listOfNotNull(session.sessionB, session.sessionC, session.sessionD).any(::contains)
+                contains(root)
+            } == true
+        if (!sessionExists) return false
+        return run?.completedSessionIds?.contains(target.sessionId) != true &&
+            ProgramProgressEngine.logsForInstance(_history.value, program.id, target.weekInstanceId, cycle, runId)
+                .none { it.sessionId == target.sessionId }
     }
 
     suspend fun submitExerciseSwap(programId: String,preview: ExerciseSwapPreview): Boolean = withContext(Dispatchers.IO) {

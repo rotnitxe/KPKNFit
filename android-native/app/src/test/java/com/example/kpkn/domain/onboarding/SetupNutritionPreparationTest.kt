@@ -64,6 +64,28 @@ class SetupNutritionPreparationTest {
         assertNull(SetupNutritionPreparation.suggestedDirection(manualDraft().copy(direction = null),null))
     }
 
+    @Test
+    fun automatic_custom_pace_uses_positive_magnitude_for_a_deficit() {
+        val draft = NutritionWizardDraft(
+            direction = PlanDirection.DEFICIT,
+            goalMetric = GoalMetric.WEIGHT,
+            ageText = "30",
+            heightText = "180",
+            weightText = "80",
+            configurationMode = NutritionConfigurationMode.AUTOMATIC,
+            equationSex = EerSex.MALE,
+            paceRateOverrideFractionPerWeek = 0.002,
+        )
+
+        val result = prepare(draft)
+        val plan = assertNotNullAndGet(result.plan)
+        val eer = assertNotNullAndGet(result.recommendation).eerKcal!!
+        val actualRate = com.example.kpkn.domain.nutrition.realRateFor(plan.calorieTarget, eer, 80.0)!!
+
+        assertTrue("Un déficit debe producir un ritmo negativo", actualRate < 0.0)
+        assertEquals(-0.002, actualRate, 0.00003)
+    }
+
     private val monday: LocalDate = LocalDate.of(2026, 9, 21)
     private val week: List<LocalDate> = (0L until 7L).map { monday.plusDays(it) }
     private val settings = Settings()

@@ -372,8 +372,10 @@ fun ProgramDetailScreen(
     val slidePx = with(density) { 12.dp.roundToPx() }
 
     val status = programHeaderStatusOf(isActive = isActive, isPaused = isPaused)
-    val weekCount = remember(p) { p.allWeekLocations().size }
-    val repeatingWeek = p.isSimpleProgram && weekCount <= 1
+    val weekCount = remember(p) { p.allWeekLocations().count { !it.week.isLoopWeek } }
+    val repeatingWeek = p.isSimpleProgram &&
+        p.simpleProgramKind == com.example.kpkn.data.models.SimpleProgramKind.CYCLIC &&
+        weekCount == 1
     val isCompletedRecurring = !isActive && p.runState?.status == com.example.kpkn.data.models.ProgramRunStatus.COMPLETED &&
         p.repeatsIndefinitely
     val primaryAction = programHeaderPrimaryOf(
@@ -401,12 +403,13 @@ fun ProgramDetailScreen(
             weeks.map { week -> week.id to (phase to blockIndex) }
         }.toMap()
     }
+    val baseProgramWeeks = remember(allProgramWeeks) { allProgramWeeks.filterNot { it.isLoopWeek } }
     val currentWeekIndex = programLine?.weekIndex?.minus(1)
-    val currentBlockIndex = currentWeekIndex?.let { allProgramWeeks.getOrNull(it)?.id }?.let { weekBlock[it]?.second }
-    val ribbon = if (repeatingWeek) {
+    val currentBlockIndex = currentWeekIndex?.let { baseProgramWeeks.getOrNull(it)?.id }?.let { weekBlock[it]?.second }
+    val ribbon = if (weekCount <= 1) {
         emptyList<ProgramRibbonWeek>()
     } else {
-        allProgramWeeks.mapIndexed { index, week ->
+        baseProgramWeeks.mapIndexed { index, week ->
             ProgramRibbonWeek(
                 color = programPhaseColor(weekBlock[week.id]?.first),
                 done = currentWeekIndex != null && index < currentWeekIndex,
@@ -595,13 +598,7 @@ fun ProgramDetailScreen(
         identity = identity,
         photoUrl = p.coverImage.takeIf { coverKind == HeroCoverKind.REMOTE },
         bundled = bundledCover.takeIf { coverKind == HeroCoverKind.BUNDLED },
-        progressLabel = programProgressLabel(
-            weekIndex = programLine?.weekIndex,
-            weekCount = programLine?.weekCount,
-            phase = programLine?.phase,
-            repeatingWeek = repeatingWeek,
-            cycle = p.runState?.cycleNumber,
-        ),
+        progressLabel = programLine?.weekLabel,
         primary = primaryAction,
         nextSession = nextSession,
         ribbon = ribbon,
@@ -809,7 +806,14 @@ fun ProgramDetailScreen(
         com.example.kpkn.screens.programdetail.design.ProgramSwapSheet(request.sourceName,request.options,
             request.requiresEquipmentConfirmation,exerciseSwapPreview?.result?.programDecisions?.lastOrNull()?.detail,
             exerciseSwapBusy,viewModel::previewExerciseSwap,viewModel::confirmExerciseSwap,
-            viewModel::clearExerciseSwapPreview,viewModel::closeExerciseSwap)
+            viewModel::clearExerciseSwapPreview,viewModel::closeExerciseSwap,
+            availableScopes = if (request.executionTarget != null) {
+                com.example.kpkn.screens.programdetail.design.swapScopeOptions
+            } else {
+                com.example.kpkn.screens.programdetail.design.swapScopeOptions.filterNot {
+                    it.first == com.example.kpkn.domain.training.SwapScope.THIS_EXECUTION
+                }
+            })
     }
     planningCompetition?.let { state ->
         com.example.kpkn.screens.programdetail.design.CompetitionPlanSheet(state,competitionBusy,
@@ -1335,8 +1339,15 @@ private fun TrainingPanel(
     }
 
     // Navegador de la semana: la lista en la que se navega (en un programa simple, las suyas; en el resto, todas) y la posición de la elegida.
-    val isRoutine = program.isSimpleProgram && currentWeeks.size <= 1
-    val navWeeks = if (program.isSimpleProgram) currentWeeks else allProgramWeeks
+    val baseWeeks = if (program.isSimpleProgram) currentWeeks.filterNot { it.isLoopWeek } else allProgramWeeks.filterNot { it.isLoopWeek }
+    val isRoutine = program.isSimpleProgram &&
+        program.simpleProgramKind == com.example.kpkn.data.models.SimpleProgramKind.CYCLIC &&
+        baseWeeks.size == 1
+    val navWeeks = when {
+        isRoutine -> baseWeeks
+        program.isSimpleProgram -> currentWeeks
+        else -> allProgramWeeks
+    }
     val navIndex = selectedWeekMeta?.let { week -> navWeeks.indexOfFirst { it.id == week.id } } ?: -1
     // La rutina navega igual que un programa por bloques (s-simple): las flechas van a la semana de antes o de después si la hay.
     val prevNavWeek = if (navIndex > 0) navWeeks[navIndex - 1] else null
@@ -1425,9 +1436,17 @@ private fun TrainingPanel(
                     } else {
                         weekPhase?.label ?: week.mesoGoal.takeIf { it != com.example.kpkn.data.models.MesocycleGoal.CUSTOM }?.label
                     }
+                    val isSpecialWeek = week.isLoopWeek || week.executionKind != com.example.kpkn.data.models.WeekExecutionKind.TRAINING
+                    val weekDateRangeLabel = weekDateRange(weekDates) ?: week.dateRangeLabel
+                    val isSingleDatedWeek = !isRoutine && navWeeks.count { !it.isLoopWeek } == 1 && !weekDateRangeLabel.isNullOrBlank()
                     ProgramWeekHeader(
-                        title = weekNavigatorTitle(isRoutine = isRoutine, weekIndex = navIndex, cycleNumber = program.runState?.cycleNumber),
-                        subtitle = weekNavigatorSubtitle(phaseLabel = phaseLabel, dateRange = weekDateRange(weekDates)),
+                        title = weekNavigatorTitle(
+                            isRoutine = isRoutine && !isSpecialWeek,
+                            weekIndex = navIndex,
+                            isSingleDatedWeek = isSingleDatedWeek,
+                            specialWeekName = week.name.takeIf { isSpecialWeek },
+                        ),
+                        subtitle = weekNavigatorSubtitle(phaseLabel = phaseLabel, dateRange = weekDateRangeLabel),
                         phaseColor = if (program.isSimpleProgram) null else programPhaseColor(weekPhase),
                         // Una semana vacía va sin cifras (s-empty).
                         stats = weekStats.takeUnless { emptyWeek },
@@ -1435,13 +1454,9 @@ private fun TrainingPanel(
                         canNext = nextNavWeek != null,
                         onPrev = { prevNavWeek?.let { navigateToWeek(it.id) } },
                         onNext = { nextNavWeek?.let { navigateToWeek(it.id) } },
-                        onOpenWeeks = { showWeeksSheet = true },
+                        onOpenWeeks = if (isRoutine || navWeeks.count { !it.isLoopWeek } <= 1) null else ({ showWeeksSheet = true }),
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        miniRibbon = if (isRoutine) {
-                            com.example.kpkn.screens.programdetail.design.routineMiniRibbon(program.runState?.cycleNumber, program.loops)
-                        } else {
-                            emptyList()
-                        },
+                        showNavigation = !isRoutine && navWeeks.count { !it.isLoopWeek } > 1,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -1506,7 +1521,10 @@ private fun TrainingPanel(
                         sessions = displayedSessions,
                         onEditSession = onEditSession,
                         onSwapExercise = { sessionId,exerciseId ->
-                            viewModel.openExerciseSwap(sessionId,exerciseId) {
+                            viewModel.openExerciseSwap(
+                                sessionId, exerciseId,
+                                viewModel.executionReplacementTarget(sessionId, selectedWeekMeta),
+                            ) {
                                 com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(swapContext).catalog
                             }
                         },
@@ -1567,7 +1585,9 @@ private fun TrainingPanel(
             StructureSubTab.MACROCICLO -> {
                 MacrocycleEditor(
                 program = program,
+                equipmentInventory = viewModel.equipmentInventorySnapshot(),
                 onUpdateProgram = { viewModel.updateProgram(it) },
+                onConvertToAdvanced = { before, updated -> viewModel.convertSimpleProgramToAdvanced(before, updated) },
                 onFocusWeek = ::focusWeek,
                 // Pulsación larga de una semana: el mismo menú que en la Semana (copiar, pegar, editar y borrar).
                 onWeekLongPress = { weekId, anchor -> weekMenu = weekId to anchor },
@@ -1798,7 +1818,10 @@ private fun TrainingPanel(
                             onSwap = detail.swapTarget?.let { target ->
                                 {
                                     openLiftKey = null
-                                    viewModel.openExerciseSwap(target.sessionId, target.exerciseId) {
+                                    viewModel.openExerciseSwap(
+                                        target.sessionId, target.exerciseId,
+                                        viewModel.executionReplacementTarget(target.sessionId, selectedWeekMeta),
+                                    ) {
                                         com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(progressContext).catalog
                                     }
                                 }

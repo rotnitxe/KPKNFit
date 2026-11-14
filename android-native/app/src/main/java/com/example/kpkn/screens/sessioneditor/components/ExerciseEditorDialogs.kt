@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
+import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.missingPercentReferences
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
@@ -136,9 +137,22 @@ internal fun ExerciseSmartLoadDialog(
     var newTagName by rememberSaveable(exercise.id) { mutableStateOf("") }
     var renameTagId by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
     var renameTagValue by rememberSaveable(exercise.id) { mutableStateOf("") }
+    var showTagSelector by rememberSaveable(exercise.id) { mutableStateOf(false) }
     val selectedTag = availableTags.firstOrNull { it.id == exercise.workoutTagId }
     val effortMode = runCatching { PrEffortMode.valueOf(prEffortMode) }.getOrNull()
     val effortValue = prEffortInput.safeDoubleOrNull()?.takeIf { it.isFinite() }
+    val smartReference = resolveSmartLoadReference(exercise)
+    val smartReferenceLabel = when (smartReference?.source) {
+        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.ONE_RM -> "1RM"
+        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.EXPLICIT_TRAINING_MAX -> "TM explícito"
+        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.RECIPE_TRAINING_MAX -> "TM según receta"
+        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.DEFAULT_TRAINING_MAX -> "TM calculado al 90%"
+        null -> "Referencia pendiente"
+    }
+    val availableSuggestedKg = exercise.sets.firstNotNullOfOrNull { set ->
+        calculateSuggestedLoad(exercise, set)?.takeIf { it.isFinite() && it >= 0.0 }
+    }
+    val missing = missingPercentReferences(exercise, resolved1RM)
 
     fun updatePr(
         weightText: String = prWeightInput,
@@ -180,100 +194,35 @@ internal fun ExerciseSmartLoadDialog(
 EditorDialogImeArea {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
-    title = { Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text) },
+    title = {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text)
+                Text(exercise.name, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
+            }
+            KpknAlertConfirmButton(text = "Listo", onClick = onDismiss)
+        }
+    },
     text = {
         Column(
             modifier = Modifier
-                .heightIn(max = 360.dp)
+                .heightIn(max = 300.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Elige la base de las cargas sugeridas. La fuente del 1RM se configura por separado.",
+                buildString {
+                    append("Base efectiva: ")
+                    append(smartReferenceLabel)
+                    smartReference?.let { append(" · ${formatDecimalComma(it.kilograms)} kg") }
+                    append(" · ")
+                    append(availableSuggestedKg?.let { "carga disponible: ${formatDecimalComma(it)} kg" } ?: "carga pendiente")
+                },
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
-            Text("Etiqueta de referencia", style = KpknType.bodyStrong, color = WizardColors.text)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip(
-                    text = "Sin etiqueta",
-                    selected = exercise.workoutTagId == null,
-                    onClick = { onUpdateExercise { it.copy(workoutTagId = null) } },
-                )
-                availableTags.forEach { tag ->
-                    KpknChip(
-                        text = tag.name,
-                        selected = tag.id == exercise.workoutTagId,
-                        onClick = { onUpdateExercise { it.copy(workoutTagId = tag.id) } },
-                    )
-                }
-            }
-            if (selectedTag != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KpknTextAction(
-                        text = if (renameTagId == selectedTag.id) "Cancelar nombre" else "Renombrar ${selectedTag.name}",
-                        onClick = {
-                            if (renameTagId == selectedTag.id) renameTagId = null else {
-                                renameTagId = selectedTag.id
-                                renameTagValue = selectedTag.name
-                            }
-                        },
-                    )
-                }
-                if (renameTagId == selectedTag.id) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        KpknTextField(
-                            value = renameTagValue,
-                            onValueChange = { renameTagValue = it },
-                            label = "Nombre de etiqueta",
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                        )
-                        KpknTextAction(
-                            text = "Guardar",
-                            onClick = {
-                                val name = renameTagValue.trim()
-                                if (name.isNotEmpty()) {
-                                    val renamed = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(selectedTag.copy(name = name))
-                                    onSaveTag(renamed)
-                                }
-                                renameTagId = null
-                            },
-                        )
-                    }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                KpknTextField(
-                    value = newTagName,
-                    onValueChange = { newTagName = it },
-                    label = "Nueva etiqueta",
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                )
-                KpknTextAction(
-                    text = "Crear",
-                    onClick = {
-                        val name = newTagName.trim()
-                        if (name.isNotEmpty()) {
-                            val now = java.time.Instant.now().toString()
-                            val tag = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(
-                                WorkoutTag(
-                                    id = java.util.UUID.randomUUID().toString(),
-                                    name = name,
-                                    exerciseKey = exercise.resolvedCanonicalExerciseId(),
-                                    createdAtIso = now,
-                                    lastUsedAtIso = now,
-                                ),
-                            )
-                            onSaveTag(tag)
-                            onUpdateExercise { it.copy(workoutTagId = tag.id) }
-                            newTagName = ""
-                        }
-                    },
-                )
-            }
-            Text("Base de carga inteligente", style = KpknType.bodyStrong, color = WizardColors.text)
+
+            Text("Base para sugerencias", style = KpknType.bodyStrong, color = WizardColors.text)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 KpknChip(
                     text = "1RM",
@@ -286,20 +235,11 @@ EditorSheetDialog(
                     onClick = { onUpdateExercise { it.copy(smartLoadBasis = SmartLoadBasis.TRAINING_MAX) } },
                 )
             }
-            val smartReference = resolveSmartLoadReference(exercise)
-            val smartReferenceLabel = when (smartReference?.source) {
-                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.ONE_RM -> "1RM"
-                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.EXPLICIT_TRAINING_MAX -> "TM explícito"
-                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.RECIPE_TRAINING_MAX -> "TM según receta"
-                com.example.kpkn.domain.calculations.SmartLoadReferenceSource.DEFAULT_TRAINING_MAX -> "TM calculado al 90%"
-                null -> "Referencia pendiente"
+            if (smartReference == null) {
+                Text("Falta una referencia para calcular la sugerencia.", style = KpknType.caption, color = WizardColors.danger)
             }
-            Text(
-                smartReference?.let { "Base usada: $smartReferenceLabel · ${formatDecimalComma(it.kilograms)} kg" }
-                    ?: "Base usada: $smartReferenceLabel. Agrega un 1RM o PR para calcularla.",
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-            )
+
+            Text("Referencia de 1RM", style = KpknType.bodyStrong, color = WizardColors.text)
             val hasExplicitTmSets = exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
             if (exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX || hasExplicitTmSets) {
                 EditorKpknField(
@@ -311,6 +251,9 @@ EditorSheetDialog(
                     trainingMaxInput = input
                     val parsed = input.safeDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
                     onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
+                }
+                if (missing.trainingMax) {
+                    Text("Falta el TM para las series en %TM. Esta referencia no se sustituye con el 1RM.", style = KpknType.caption, color = WizardColors.danger)
                 }
             }
             if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
@@ -329,8 +272,31 @@ EditorSheetDialog(
                         val parsed = it.safeDoubleOrNull()?.takeIf { value -> value > 0 }
                         onUpdateExercise { current -> current.copy(reference1RM = parsed) }
                     }
+                    if (missing.oneRm) {
+                        Text("Falta el 1RM para las series en %1RM. Agrega un 1RM o un PR.", style = KpknType.caption, color = WizardColors.danger)
+                    }
                 } else {
-                    Text("Esfuerzo del PR", style = KpknType.bodyStrong, color = WizardColors.text)
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        EditorKpknField(
+                            label = "PR kg",
+                            value = prWeightInput,
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPrWeightInputChange(it)
+                            updatePr(weightText = it)
+                        }
+                        EditorKpknField(
+                            label = "PR reps",
+                            value = prRepsInput,
+                            keyboardType = KeyboardType.Number,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            onPrRepsInputChange(it)
+                            updatePr(repsText = it)
+                        }
+                    }
+                    Text("Esfuerzo opcional del PR", style = KpknType.bodyStrong, color = WizardColors.text)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("UNKNOWN" to "Sin dato", "RPE" to "RPE", "RIR" to "RIR", "FAILURE" to "Fallo").forEach { (id, label) ->
                             KpknChip(
@@ -358,26 +324,6 @@ EditorSheetDialog(
                             updatePr()
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        EditorKpknField(
-                            label = "PR kg",
-                            value = prWeightInput,
-                            keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            onPrWeightInputChange(it)
-                            updatePr(weightText = it)
-                        }
-                        EditorKpknField(
-                            label = "PR reps",
-                            value = prRepsInput,
-                            keyboardType = KeyboardType.Number,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            onPrRepsInputChange(it)
-                            updatePr(repsText = it)
-                        }
-                    }
                     (prWeightInput.safeDoubleOrNull()?.let { weight ->
                         prRepsInput.safeIntOrNull()?.takeIf { it > 0 }?.let { reps ->
                             StrengthModel.estimate1RM(
@@ -393,6 +339,9 @@ EditorSheetDialog(
                             style = KpknType.bodyStrong,
                             color = WizardColors.text,
                         )
+                    }
+                    if (missing.oneRm) {
+                        Text("Falta el 1RM para las series en %1RM. Agrega un PR válido.", style = KpknType.caption, color = WizardColors.danger)
                     }
                 }
             } else if (exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE || exercise.trainingMode == TrainingMode.CUSTOM) {
@@ -429,27 +378,94 @@ EditorSheetDialog(
                     }
                 }
             }
-            // Cada base avisa de SU falta: un TM no sustituye a un 1RM ni al revés.
-            val missing = missingPercentReferences(exercise, resolved1RM)
-            if (missing.trainingMax) {
+
+            Text("Etiqueta del historial", style = KpknType.bodyStrong, color = WizardColors.text)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
-                    style = KpknType.caption,
-                    color = WizardColors.danger,
+                    selectedTag?.name ?: if (exercise.workoutTagId == null) "Sin etiqueta" else "Etiqueta seleccionada",
+                    modifier = Modifier.weight(1f),
+                    style = KpknType.body,
+                    color = WizardColors.text,
+                    maxLines = 1,
                 )
+                KpknTextAction(text = if (showTagSelector) "Ocultar" else "Elegir", onClick = { showTagSelector = !showTagSelector })
             }
-            if (missing.oneRm) {
-                Text(
-                    "Falta referencia para %RM. Agrega RM directo o PR para autocompletar cargas.",
-                    style = KpknType.caption,
-                    color = WizardColors.danger,
-                )
+            if (showTagSelector) {
+                Column(
+                    modifier = Modifier.heightIn(max = 128.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    KpknTextAction(
+                        text = "Sin etiqueta",
+                        onClick = { onUpdateExercise { it.copy(workoutTagId = null) } },
+                    )
+                    availableTags.forEach { tag ->
+                        KpknTextAction(
+                            text = if (tag.id == exercise.workoutTagId) "✓ ${tag.name}" else tag.name,
+                            onClick = { onUpdateExercise { it.copy(workoutTagId = tag.id) } },
+                        )
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    KpknTextField(
+                        value = newTagName,
+                        onValueChange = { newTagName = it },
+                        label = "Crear etiqueta",
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                    )
+                    KpknTextAction(
+                        text = "Crear",
+                        onClick = {
+                            val name = newTagName.trim()
+                            if (name.isNotEmpty()) {
+                                val now = java.time.Instant.now().toString()
+                                val tag = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(
+                                    WorkoutTag(
+                                        id = java.util.UUID.randomUUID().toString(),
+                                        name = name,
+                                        exerciseKey = exercise.resolvedCanonicalExerciseId(),
+                                        createdAtIso = now,
+                                        lastUsedAtIso = now,
+                                    ),
+                                )
+                                onSaveTag(tag)
+                                onUpdateExercise { it.copy(workoutTagId = tag.id) }
+                                newTagName = ""
+                            }
+                        },
+                    )
+                }
+                selectedTag?.let { tag ->
+                    if (renameTagId != tag.id) {
+                        KpknTextAction(
+                            text = "Renombrar ${tag.name}",
+                            onClick = { renameTagId = tag.id; renameTagValue = tag.name },
+                        )
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            EditorKpknField(
+                                label = "Nuevo nombre",
+                                value = renameTagValue,
+                                modifier = Modifier.weight(1f),
+                            ) { renameTagValue = it }
+                            KpknTextAction(
+                                text = "Guardar",
+                                onClick = {
+                                    val name = renameTagValue.trim()
+                                    if (name.isNotEmpty()) {
+                                        onSaveTag(com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(tag.copy(name = name)))
+                                    }
+                                    renameTagId = null
+                                },
+                            )
+                        }
+                    }
+                }
             }
         }
     },
-    confirmButton = {
-        KpknAlertConfirmButton(text = "Listo", onClick = { onDismiss() })
-    },
+    confirmButton = {},
 )
 }
 }

@@ -97,6 +97,8 @@ internal fun SupersetExerciseConfigOverlay(
     exercise: Exercise,
     accentColor: Color,
     relationshipAnchorName: String?,
+    availableTags: List<WorkoutTag> = emptyList(),
+    onSaveTag: (WorkoutTag) -> Unit = {},
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onOpenRelationshipPicker: () -> Unit,
@@ -109,6 +111,10 @@ internal fun SupersetExerciseConfigOverlay(
     val local = rememberExerciseEditorLocalState(exercise)
     var showCustomUnitModal by local.showCustomUnitModal
     var customUnitInput by local.customUnitInput
+    var rmInputMode by local.rmInputMode
+    var directRmInput by local.directRmInput
+    var prWeightInput by local.prWeightInput
+    var prRepsInput by local.prRepsInput
     val sharedIntensity = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
 
     Column(
@@ -219,7 +225,24 @@ internal fun SupersetExerciseConfigOverlay(
     }
 
     if (showSmartLoadSheet) {
-        SupersetSmartLoadDialog(exercise, onUpdateExercise, onDismiss = { showSmartLoadSheet = false })
+        ExerciseSmartLoadDialog(
+            exercise = exercise,
+            rmInputMode = rmInputMode,
+            onRmInputModeChange = { rmInputMode = it },
+            directRmInput = directRmInput,
+            onDirectRmInputChange = { directRmInput = it },
+            prWeightInput = prWeightInput,
+            onPrWeightInputChange = { prWeightInput = it },
+            prRepsInput = prRepsInput,
+            onPrRepsInputChange = { prRepsInput = it },
+            customUnitInput = customUnitInput,
+            localPrEstimatedRm = exercise.prFor1RM?.let { StrengthModel.estimate1RM(it.weight, it.reps) },
+            resolved1RM = resolveReferenceCapacity(exercise),
+            onUpdateExercise = onUpdateExercise,
+            availableTags = availableTags,
+            onSaveTag = onSaveTag,
+            onDismiss = { showSmartLoadSheet = false },
+        )
     }
 
     if (showGoalSheet) {
@@ -234,112 +257,6 @@ internal fun SupersetExerciseConfigOverlay(
             onDismiss = { showCustomUnitModal = false },
         )
     }
-}
-
-@Composable
-internal fun SupersetSmartLoadDialog(
-    exercise: Exercise,
-    onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
-    // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
-    var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
-    var trainingMaxInput by rememberEditableNumber(exercise.id, exercise.referenceTrainingMax)
-    var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
-    var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                KpknSegmentedControl(
-                    options = listOf("RM directo", "Desde PR"),
-                    selectedIndex = if (rmInputMode == "pr") 1 else 0,
-                    onSelect = { index -> rmInputMode = if (index == 1) "pr" else "direct" },
-                )
-                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
-                    // Las series en %TM leen el TM, no el 1RM: tiene su propio campo.
-                    KpknTextField(
-                        value = trainingMaxInput,
-                        onValueChange = { input ->
-                            trainingMaxInput = input
-                            onUpdateExercise { it.copy(referenceTrainingMax = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
-                        },
-                        label = "Training max (TM)",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    )
-                }
-                if (rmInputMode == "direct") {
-                    KpknTextField(
-                        value = directRmInput,
-                        onValueChange = { input ->
-                            directRmInput = input
-                            onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
-                        },
-                        label = "1RM referencial",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    )
-                } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        KpknTextField(
-                            value = prWeightInput,
-                            onValueChange = { input ->
-                                prWeightInput = input
-                                val weight = input.safeDoubleOrNull()
-                                val reps = prRepsInput.safeIntOrNull()
-                                onUpdateExercise { current ->
-                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
-                                    } else {
-                                        current.copy(prFor1RM = null)
-                                    }
-                                }
-                            },
-                            label = "PR kg",
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknTextField(
-                            value = prRepsInput,
-                            onValueChange = { input ->
-                                prRepsInput = input
-                                val weight = prWeightInput.safeDoubleOrNull()
-                                val reps = input.safeIntOrNull()
-                                onUpdateExercise { current ->
-                                    if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
-                                    } else {
-                                        current.copy(prFor1RM = null)
-                                    }
-                                }
-                            },
-                            label = "PR reps",
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-                val resolved1RM = resolveReferenceCapacity(exercise)
-                val missing = com.example.kpkn.domain.calculations.missingPercentReferences(exercise, resolved1RM)
-                if (missing.trainingMax) {
-                    Text(
-                        "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
-                        style = KpknType.caption,
-                        color = WizardColors.danger,
-                    )
-                }
-                if (missing.oneRm) {
-                    Text(
-                        "Falta referencia para %RM. Agrega RM o PR.",
-                        style = KpknType.caption,
-                        color = WizardColors.danger,
-                    )
-                }
-            }
-        },
-        confirmButton = { KpknPrimaryPill(text = "Listo", onClick = onDismiss) },
-    )
 }
 
 @Composable

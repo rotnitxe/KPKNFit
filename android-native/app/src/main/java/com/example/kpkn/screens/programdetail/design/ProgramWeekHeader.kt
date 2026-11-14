@@ -37,14 +37,9 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 
-/** Un segmento de la mini-cinta de una rutina (s-simple): su color, si ya pasó y si es la semana que se ve. */
-internal data class ProgramMiniRibWeek(val color: Color, val done: Boolean, val selected: Boolean)
-
 /**
- * Navegador de la semana (lienzo v6, `weekHead`): un módulo con ‹ y › a los lados y, en el centro, el título («Semana 4») con el punto de la
- * fase, la fase y el rango de fechas debajo. Tocar el centro abre la hoja «Semanas» ([onOpenWeeks]). En una rutina, [miniRibbon] pinta la
- * mini-cinta de sus 12 semanas bajo el título (s-simple). Con [stats], la fila de tres cifras: sesiones, series y tiempo; una semana vacía
- * va sin ella (s-empty). Sin estado: la pantalla decide la semana, las flechas y la hoja.
+ * Cabecera de semana: conserva navegación solo cuando hay varias semanas reales. La rutina semanal repetitiva se presenta sin contador,
+ * selector ni flechas, y mantiene sus cifras de sesiones, series y tiempo.
  */
 @Composable
 internal fun ProgramWeekHeader(
@@ -56,9 +51,9 @@ internal fun ProgramWeekHeader(
     canNext: Boolean,
     onPrev: () -> Unit,
     onNext: () -> Unit,
-    onOpenWeeks: () -> Unit,
+    onOpenWeeks: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    miniRibbon: List<ProgramMiniRibWeek> = emptyList(),
+    showNavigation: Boolean = true,
 ) {
     val titleInteraction = remember { MutableInteractionSource() }
     Column(
@@ -74,22 +69,28 @@ internal fun ProgramWeekHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            ProgramRoundButton(
-                icon = KpknLineIcons.ChevronLeft,
-                contentDescription = "Semana anterior",
-                onClick = onPrev,
-                enabled = canPrev,
-            )
+            if (showNavigation) {
+                ProgramRoundButton(
+                    icon = KpknLineIcons.ChevronLeft,
+                    contentDescription = "Semana anterior",
+                    onClick = onPrev,
+                    enabled = canPrev,
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .testTag("week-title")
-                    .clickable(
-                        interactionSource = titleInteraction,
-                        indication = null,
-                        role = Role.Button,
-                        onClickLabel = "Ver todas las semanas",
-                        onClick = onOpenWeeks,
+                    .then(
+                        onOpenWeeks?.let { open ->
+                            Modifier.clickable(
+                                interactionSource = titleInteraction,
+                                indication = null,
+                                role = Role.Button,
+                                onClickLabel = "Ver todas las semanas",
+                                onClick = open,
+                            )
+                        } ?: Modifier,
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -119,15 +120,14 @@ internal fun ProgramWeekHeader(
                     }
                 }
             }
-            ProgramRoundButton(
-                icon = KpknLineIcons.ChevronRight,
-                contentDescription = "Semana siguiente",
-                onClick = onNext,
-                enabled = canNext,
-            )
-        }
-        if (miniRibbon.isNotEmpty()) {
-            ProgramMiniRibbon(weeks = miniRibbon, modifier = Modifier.padding(start = 2.dp, top = 12.dp, end = 2.dp))
+            if (showNavigation) {
+                ProgramRoundButton(
+                    icon = KpknLineIcons.ChevronRight,
+                    contentDescription = "Semana siguiente",
+                    onClick = onNext,
+                    enabled = canNext,
+                )
+            }
         }
         if (stats != null) {
             Spacer(Modifier.height(14.dp))
@@ -137,38 +137,6 @@ internal fun ProgramWeekHeader(
                 ProgramWeekStatCell(value = stats.setsLabel, label = "series", modifier = Modifier.weight(1f))
                 ProgramWeekStatCell(value = stats.minutesLabel, label = "en total", modifier = Modifier.weight(1f))
             }
-        }
-    }
-}
-
-/**
- * La mini-cinta de una rutina (`.mini-rib`): un segmento de 4 dp por semana con 2 dp de hueco; las pasadas al 70 %, las futuras al 25 % y la
- * que se ve, entera y con un filete de tinta de 2 dp separado 1 dp.
- */
-@Composable
-private fun ProgramMiniRibbon(weeks: List<ProgramMiniRibWeek>, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(2.dp)
-    Row(modifier = modifier.fillMaxWidth().height(10.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-        weeks.forEach { week ->
-            val alpha = when {
-                week.selected -> 1f
-                week.done -> 0.7f
-                else -> 0.25f
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .then(
-                        if (week.selected) {
-                            Modifier.border(2.dp, WizardColors.text, RoundedCornerShape(5.dp)).padding(3.dp)
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .height(4.dp)
-                    .clip(shape)
-                    .background(week.color.copy(alpha = alpha), shape),
-            )
         }
     }
 }

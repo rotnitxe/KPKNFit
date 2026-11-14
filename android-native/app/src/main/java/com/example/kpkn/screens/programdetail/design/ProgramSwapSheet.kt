@@ -34,7 +34,8 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 
 /** Los alcances de «Dónde se cambia», en el orden y con el texto del segmentado de m-swap. */
 internal val swapScopeOptions: List<Pair<SwapScope, String>> = listOf(
-    SwapScope.THIS_SESSION to "Esta sesión",
+    SwapScope.THIS_EXECUTION to "Solo esta ejecución",
+    SwapScope.THIS_SESSION to "Esta sesión y futuras veces",
     SwapScope.REST_OF_BLOCK to "Resto del bloque",
     SwapScope.WHOLE_PROGRAM to "Todo",
 )
@@ -61,10 +62,11 @@ internal fun ProgramSwapSheet(
     onConfirm: () -> Unit,
     onEdit: () -> Unit,
     onDismiss: () -> Unit,
+    availableScopes: List<Pair<SwapScope, String>> = swapScopeOptions,
 ) {
-    var selected by remember(sourceName, options) { mutableStateOf<String?>(null) }
-    var scope by remember(sourceName, options) { mutableStateOf(SwapScope.THIS_SESSION) }
-    var equipmentConfirmed by remember(sourceName, options) { mutableStateOf(false) }
+    var selected by remember(sourceName, options, availableScopes) { mutableStateOf<String?>(null) }
+    var scope by remember(sourceName, options, availableScopes) { mutableStateOf(SwapScope.THIS_SESSION) }
+    var equipmentConfirmed by remember(sourceName, options, availableScopes) { mutableStateOf(false) }
     ProgramLienzoSheet(onDismiss = onDismiss, dismissible = !busy) {
         if (previewDetail != null) {
             LienzoSheetTitle(title = sourceName, eyebrow = "Cambiar ejercicio", sub = previewDetail)
@@ -100,9 +102,9 @@ internal fun ProgramSwapSheet(
         }
         LienzoGroup("Dónde se cambia")
         LienzoSegmented(
-            options = swapScopeOptions.map { it.second },
-            selectedIndex = swapScopeOptions.indexOfFirst { it.first == scope }.coerceAtLeast(0),
-            onSelect = { scope = swapScopeOptions[it].first },
+            options = availableScopes.map { it.second },
+            selectedIndex = availableScopes.indexOfFirst { it.first == scope }.coerceAtLeast(0),
+            onSelect = { scope = availableScopes[it].first },
             modifier = Modifier.fillMaxWidth(),
             enabled = !busy,
         )

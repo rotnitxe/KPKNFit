@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.programs.ProgramTemplateOption
@@ -19,7 +20,9 @@ import com.example.kpkn.domain.training.ProgramSnapshot
 @Composable
 fun MacrocycleEditor(
     program: Program,
+    equipmentInventory: EquipmentInventory = EquipmentInventory(),
     onUpdateProgram: (Program) -> Unit,
+    onConvertToAdvanced: (Program, Program) -> Unit = { _, updated -> onUpdateProgram(updated) },
     onAddProgramCopy: (Program) -> Unit = {},
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
@@ -62,7 +65,9 @@ fun MacrocycleEditor(
 ) {
     MacrocycleEditorLegacy(
         program = program,
+        equipmentInventory = equipmentInventory,
         onUpdateProgram = onUpdateProgram,
+        onConvertToAdvanced = { updated -> onConvertToAdvanced(program, updated) },
         onAddProgramCopy = onAddProgramCopy,
         onCompetitionKeyDateSaved = onCompetitionKeyDateSaved,
         onFocusWeek = onFocusWeek,

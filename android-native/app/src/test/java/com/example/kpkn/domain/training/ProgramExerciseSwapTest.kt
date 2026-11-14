@@ -58,6 +58,23 @@ class ProgramExerciseSwapTest {
         assertNotNull(exercise.performanceProfileId)
         assertEquals(weeks(p).drop(1),weeks(result).drop(1))
     }
+    @Test fun permanent_this_session_swap_changes_only_the_selected_exercise_lineage() {
+        val base = program()
+        val p = base.copy(macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
+                if (week.id != "w1") week else week.copy(sessions = week.sessions.map { session ->
+                    if (session.id != "s1") session else session.copy(exercises = session.exercises +
+                        session.exercises.single().copy(id = "e1-duplicate"))
+                })
+            }) })
+        }) })
+
+        val result = apply(p, SwapScope.THIS_SESSION)
+        val firstSession = weeks(result).first().sessions.single()
+        assertEquals(CatalogIds.BP_PAUSE, firstSession.allExercises().single { it.id == "e1" }.catalogConfigurationId)
+        assertEquals(CatalogIds.BP, firstSession.allExercises().single { it.id == "e1-duplicate" }.catalogConfigurationId)
+        assertEquals(weeks(p).drop(1), weeks(result).drop(1))
+    }
     @Test fun a_swap_without_an_estimable_pair_or_without_equivalence_keeps_the_old_no_kilos_behaviour() {
         val p = program()
         val samePattern = applyExerciseSwap(p,"s1","e1",target.copy(kind = SwapKind.SAME_PATTERN),SwapScope.THIS_SESSION,CatalogCompositionTestSupport.catalog)

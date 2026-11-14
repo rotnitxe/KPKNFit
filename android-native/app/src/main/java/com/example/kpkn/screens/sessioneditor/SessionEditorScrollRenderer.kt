@@ -913,6 +913,8 @@ private fun LooseSupersetItem(
         relationshipAnchorName = { member ->
             resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
+        availableTagsForExercise = viewModel::workoutTagsForExercise,
+        onSaveWorkoutTag = viewModel::saveWorkoutTag,
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
@@ -1080,6 +1082,8 @@ private fun PartSupersetItem(
         relationshipAnchorName = { member ->
             resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
+        availableTagsForExercise = viewModel::workoutTagsForExercise,
+        onSaveWorkoutTag = viewModel::saveWorkoutTag,
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },

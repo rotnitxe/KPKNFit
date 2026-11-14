@@ -92,12 +92,13 @@ class HomeWeekResolverTest {
     }
 
     @Test
-    fun `un ciclo simple de una semana muestra Semana N con el número de ciclo`() {
+    fun `una rutina cíclica con una semana base no se numera`() {
         val cyclic = HomeSamples.simpleCyclicProgram()
         val line = HomeWeekResolver.programLine(cyclic, HomeSamples.simpleCyclicItems(cyclic), today)
 
-        assertEquals("Semana 5", line?.weekLabel)
+        assertEquals("Rutina semanal", line?.weekLabel)
         assertEquals(1, line?.weekCount)
+        assertEquals(1, line?.weekIndex)
         assertNull(line?.phase)
     }
 

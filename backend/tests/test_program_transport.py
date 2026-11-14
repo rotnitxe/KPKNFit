@@ -172,3 +172,37 @@ def test_analytics_count_materialized_sessions_once_not_recipe_snapshots() -> No
     assert len(weeks[0].sessions) == 1
     assert len(result) == 1
     assert result[0]["totalSets"] == 1
+
+
+def test_program_transport_preserves_one_execution_replacement_overlay() -> None:
+    payload = transport_fixture()
+    payload["pendingExecutionReplacements"] = [
+        {
+            "id": "replacement-1",
+            "target": {
+                "programRunId": "run-1",
+                "cycleNumber": 2,
+                "weekTemplateId": "week-1",
+                "weekInstanceId": "inst_c2_week-1",
+                "sessionId": "session-1",
+                "variant": "A",
+                "scheduledDate": "2026-11-16",
+            },
+            "exerciseId": "ex-1",
+            "sourceConfigurationId": "bench_press__barbell",
+            "replacement": {
+                "id": "ex-1",
+                "name": "Press banca con pausa",
+                "catalogConfigurationId": "bench_press__paused_barbell",
+                "sets": [{"id": "set-1", "targetReps": 5, "weight": None}],
+            },
+            "createdAtMs": 1234,
+        }
+    ]
+
+    encoded = Program.model_validate(payload).model_dump(mode="json")
+    replacement = encoded["pendingExecutionReplacements"][0]
+    assert replacement["target"]["programRunId"] == "run-1"
+    assert replacement["target"]["weekInstanceId"] == "inst_c2_week-1"
+    assert replacement["exerciseId"] == "ex-1"
+    assert replacement["replacement"]["catalogConfigurationId"] == "bench_press__paused_barbell"

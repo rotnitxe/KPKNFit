@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
@@ -44,6 +45,7 @@ data class WeekWithMeta(
     val variant: WeekVariant? = null,
     val isLoopWeek: Boolean = false,
     val loopId: String? = null,
+    val executionKind: WeekExecutionKind = WeekExecutionKind.TRAINING,
     val dateRangeLabel: String? = null,
     val keyDateLabel: String? = null,
     val keyDateType: KeyDateType? = null,
@@ -151,6 +153,7 @@ object ProgramDetailHelpers {
                         variant = week.variant,
                         isLoopWeek = week.isLoopWeek,
                         loopId = week.loopId,
+                        executionKind = week.executionKind,
                         dateRangeLabel = weekDateMeta[week.id]?.dateRangeLabel,
                         keyDateLabel = weekDateMeta[week.id]?.keyDateLabel,
                         keyDateType = weekDateMeta[week.id]?.keyDateType,
