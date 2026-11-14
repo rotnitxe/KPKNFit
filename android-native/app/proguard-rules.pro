@@ -56,6 +56,13 @@
 -keep class androidx.compose.material.icons.** { *; }
 -keep class androidx.navigation.** { *; }
 
+# ART 36 rejects R8's optimized form of this very large Compose method with
+# VerifyError (copy-cat1 register type mismatch) when a live workout is opened.
+# Preserve this composer until it is decomposed into smaller composables.
+-keep class com.example.kpkn.screens.workout.components.SetExecutionCardKt {
+    *** SetInputCardV2*(...);
+}
+
 # ── ML Kit (OCR del importador) ──────────────────────────────────────────────
 # ML Kit pose ya solo va en depuración: aquí no queda su regla.
 -keep class com.google.mlkit.vision.common.** { *; }
