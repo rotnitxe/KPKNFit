@@ -16,12 +16,15 @@ import java.util.Locale
  * Corredor de predicciones del examen de nutricion (docs/nutrition-v2/EXAMEN.md, secciones 2 y 6) para el sistema actual (master).
  *
  * Lee casos JSONL, ejecuta la cadena real de la app con el catalogo real de assets ([MasterExamPipeline]) y escribe un
- * JSONL de predicciones. Entradas (propiedad de sistema o variable de entorno):
- *  - `kpkn.exam.cases` / `KPKN_EXAM_CASES`   (por defecto `C:/kw/nutri-examen/cases/all.jsonl`)
+ * JSONL de predicciones. El fixture pequeño corre en la suite normal; procesar el corpus local es opt-in. Entradas
+ * (propiedad de sistema o variable de entorno):
+ *  - `kpkn.exam.cases` / `KPKN_EXAM_CASES`   (sin valor, solo fixture; configura una ruta para correr el corpus completo)
  *  - `kpkn.exam.out` / `KPKN_EXAM_OUT`       (por defecto `C:/kw/nutri-examen/predictions`)
  *  - `kpkn.exam.system` / `KPKN_EXAM_SYSTEM` (por defecto `master`); el archivo es `<sistema>-<yyyyMMdd-HHmm>.jsonl`.
  *
- * Run: `./gradlew :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.nutrition.exam.NutritionExamPredictionRunnerTest"`
+ * Run fixture: `./gradlew :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.nutrition.exam.NutritionExamPredictionRunnerTest.fixture*"`
+ * Corpus completo: configura `KPKN_EXAM_CASES` explícitamente antes de correr la clase; usa `KPKN_EXAM_OUT` para
+ * elegir dónde escribir las predicciones.
  */
 class NutritionExamPredictionRunnerTest {
 
@@ -93,7 +96,8 @@ class NutritionExamPredictionRunnerTest {
 
     @Test
     fun `exam run writes all predictions`() = runBlocking {
-        val casesPath = setting("kpkn.exam.cases", "KPKN_EXAM_CASES", "C:/kw/nutri-examen/cases/all.jsonl")
+        val casesPath = setting("kpkn.exam.cases", "KPKN_EXAM_CASES", "")
+        Assume.assumeTrue("sin KPKN_EXAM_CASES solo corre el test del fixture", casesPath.isNotBlank())
         val casesFile = File(casesPath)
         Assume.assumeTrue("no existe el archivo de casos $casesPath", casesFile.exists())
         val outDir = File(setting("kpkn.exam.out", "KPKN_EXAM_OUT", "C:/kw/nutri-examen/predictions"))
