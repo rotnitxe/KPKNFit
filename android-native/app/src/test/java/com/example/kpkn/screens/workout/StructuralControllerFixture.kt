@@ -37,6 +37,7 @@ internal class StructuralControllerFixture private constructor(
     /** El estado vivo de la pantalla: lo lee y lo escribe el controlador. */
     var state: WorkoutUiState = initialState
     val rejectedMessages = mutableListOf<String>()
+    val scopeNotices = mutableListOf<String>()
     var invalidatedLiveTimestampMs: Long? = null
 
     val controller: WorkoutStructuralPersistenceController
@@ -89,6 +90,9 @@ internal class StructuralControllerFixture private constructor(
             ports = object : WorkoutStructuralPersistenceController.Ports {
                 override fun onMutationRejected(message: String) {
                     rejectedMessages += message
+                }
+                override fun onScopeNotice(message: String) {
+                    scopeNotices += message
                 }
                 override fun visibleExercises(state: WorkoutUiState): List<Exercise> =
                     sessionForActiveMode(state.session!!, state.activeMode).allExercises()

@@ -583,6 +583,7 @@ class WorkoutViewModel(
         ports = object : WorkoutStructuralPersistenceController.Ports {
             override fun canMutateWorkout() = canMutateLivePlan()
             override fun onMutationRejected(message: String) = showWorkoutToast(message)
+            override fun onScopeNotice(message: String) = showWorkoutToast(message)
             override fun commitStructuralState(base: WorkoutUiState, candidate: WorkoutUiState): Boolean {
                 commitLiveMutation(base, candidate) { refreshLoadSuggestions(_uiState.value) }
                 return true
@@ -4057,6 +4058,7 @@ class WorkoutViewModel(
                     exerciseName = displayWorkoutExerciseName(exercise),
                     setIndex = setIndex,
                     targetSetId = exercise.sets.getOrNull(setIndex)?.id,
+                    plannedSlotId = exercise.sets.getOrNull(setIndex)?.plannedSlotId,
                     exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { ex -> ex.id == exerciseId }.takeIf { idx -> idx >= 0 },
                     exerciseCanonicalKey = exercise.resolvedCanonicalExerciseId(),
                     targetExercise = exerciseTarget(base, state.activeMode, exerciseId),
@@ -4317,13 +4319,19 @@ class WorkoutViewModel(
         val currentExerciseId = target.id
         val exerciseName = displayWorkoutExerciseName(target)
         val newSetId = UUID.randomUUID().toString()
+        val newPlannedSlotId = "live-set:$newSetId"
         // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
         pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
         updateExerciseDefinition(currentExerciseId, persistToProgram = false) { exercise ->
             // La serie nueva sale como la última, con el tipo de carga que esa serie enseña ahora (el recuerdo de la sesión o su plan).
             val effectiveMode = effectiveLoadModeForExercise(exercise, exercise.sets.lastIndex)
-            exercise.copy(sets = exercise.sets + plannedSetAfterLast(exercise, loadMode = effectiveMode, id = newSetId))
+            exercise.copy(sets = exercise.sets + plannedSetAfterLast(
+                exercise,
+                loadMode = effectiveMode,
+                id = newSetId,
+                plannedSlotId = newPlannedSlotId,
+            ))
         }
         // Show persistence prompt
         updateUiState { it.copy(
@@ -4334,6 +4342,7 @@ class WorkoutViewModel(
                 exerciseCanonicalKey = visibleExercises(_uiState.value).firstOrNull { it.id == currentExerciseId }?.resolvedCanonicalExerciseId(),
                 targetExercise = LiveExerciseSlotIdentity.from(target),
                 newSetId = newSetId,
+                plannedSlotId = newPlannedSlotId,
             )
         )}
         offerLiveVolumeAdvanceAfterSet()

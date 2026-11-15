@@ -16,10 +16,12 @@ internal fun plannedSetAfterLast(
     exercise: Exercise,
     loadMode: LoadModeV2? = null,
     id: String = UUID.randomUUID().toString(),
+    plannedSlotId: String? = null,
 ): ExerciseSet {
     val lastSet = exercise.sets.lastOrNull()
     return ExerciseSet(
         id = id,
+        plannedSlotId = plannedSlotId,
         targetReps = lastSet?.targetReps,
         targetRepsRange = lastSet?.targetRepsRange,
         targetDuration = lastSet?.targetDuration,

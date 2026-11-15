@@ -148,6 +148,8 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val exerciseCanonicalKey: String? = null,
         val targetExercise: LiveExerciseSlotIdentity? = null,
         val newSetId: String = UUID.randomUUID().toString(),
+        /** Stable planned slot shared by the source and future occurrences. */
+        val plannedSlotId: String? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class AddExercise(
@@ -196,6 +198,8 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val exerciseName: String,
         val setIndex: Int,
         val targetSetId: String? = null,
+        /** Future occurrences are mapped by this stable slot, never by [setIndex]. */
+        val plannedSlotId: String? = null,
         val exerciseSlot: Int? = null,
         val exerciseCanonicalKey: String? = null,
         val targetExercise: LiveExerciseSlotIdentity? = null,

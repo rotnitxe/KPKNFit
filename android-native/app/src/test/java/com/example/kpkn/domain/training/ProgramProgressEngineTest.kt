@@ -496,6 +496,95 @@ class ProgramProgressEngineTest {
     }
 
     @Test
+    fun `legacy native complex manual end completes while projected end date still repeats`() {
+        val recipe = PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }.recipe!!
+        val materialized = PlanMaterializer.materialize(
+            Program(id = "legacy-finite-native", name = "5/3/1"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val weeks = materialized.macrocycles.first().blocks.single().mesocycles.single().weeks
+        val terminalWeek = weeks.last()
+        val runId = "run_legacy_native"
+        fun atFinalWeek(program: Program, id: String) = program.copy(
+            runState = com.example.kpkn.data.models.ProgramRunState(
+                runId = id,
+                cycleNumber = 1,
+                weekId = terminalWeek.id,
+                weekInstanceId = ProgramProgressEngine.instanceIdFor(1, terminalWeek.id),
+            ),
+        )
+        fun completedWeekLogs(program: Program, id: String) = weeks.flatMap { week ->
+            week.sessions.map { session ->
+                WorkoutLog(
+                    id = "${id}_${session.id}",
+                    programId = program.id,
+                    programRunId = id,
+                    sessionId = session.id,
+                    sessionName = session.name,
+                    date = "2026-01-01T10:00:00.000Z",
+                    durationMinutes = 45,
+                    weekId = week.id,
+                    cycleNumber = 1,
+                    weekInstanceId = ProgramProgressEngine.instanceIdFor(1, week.id),
+                )
+            }
+        }
+
+        val manuallyFinite = atFinalWeek(
+            materialized.copy(
+                programEndMode = null,
+                calendarization = com.example.kpkn.data.models.ProgramCalendarization(
+                    mode = com.example.kpkn.data.models.ProgramCalendarizationMode.SIMPLE_DATED,
+                    manualEndDate = "2026-12-31",
+                    activatedByCompetition = false,
+                ),
+                schedulePlan = null,
+            ),
+            runId,
+        )
+        val finiteResult = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = manuallyFinite,
+            activeState = com.example.kpkn.data.models.ActiveProgramState(
+                programId = manuallyFinite.id,
+                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+            ),
+            completedSession = terminalWeek.sessions.last(),
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(1, terminalWeek.id),
+            logs = completedWeekLogs(manuallyFinite, runId),
+            compositionMetadata = CatalogCompositionTestSupport.metadata,
+        )
+        assertEquals(com.example.kpkn.data.models.ProgramRunStatus.COMPLETED, finiteResult.program.runState?.status)
+        assertEquals("A manual terminal date closes cycle 1 instead of wrapping to cycle 2", 1, finiteResult.program.runState?.cycleNumber)
+        assertEquals(com.example.kpkn.data.models.ProgramStatus.COMPLETED, finiteResult.activeState?.status)
+
+        val projectedOnlyId = "run_projected_native"
+        val projectedOnly = atFinalWeek(
+            materialized.copy(
+                programEndMode = null,
+                calendarization = null,
+                schedulePlan = com.example.kpkn.data.models.ProgramSchedulePlan(targetEndDate = "2026-12-31"),
+            ),
+            projectedOnlyId,
+        )
+        val projectedResult = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = projectedOnly,
+            activeState = com.example.kpkn.data.models.ActiveProgramState(
+                programId = projectedOnly.id,
+                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+            ),
+            completedSession = terminalWeek.sessions.last(),
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(1, terminalWeek.id),
+            logs = completedWeekLogs(projectedOnly, projectedOnlyId),
+            compositionMetadata = CatalogCompositionTestSupport.metadata,
+        )
+        assertEquals(com.example.kpkn.data.models.ProgramRunStatus.ACTIVE, projectedResult.program.runState?.status)
+        assertEquals("A projected end date alone keeps the native cycle repeating", 2, projectedResult.program.runState?.cycleNumber)
+    }
+
+    @Test
     fun `one-week and two-week repeating simple programs advance across two cycle closes keeping logs isolated`() {
         val oneWeek = Program(
             id = "one_week",

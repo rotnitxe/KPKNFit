@@ -394,7 +394,7 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
             Tile(Modifier.weight(1f), m.durationFraction, durationValue, "Duración", durationUnit, d, i0 + 0.07f, false, null)
             Tile(Modifier.weight(1f), m.setsFraction, "${m.sets}", "Series", "de ${m.plannedSets}", d, i0 + 0.14f, false, null)
             Tile(Modifier.weight(1f), if (effort != null) (effort / 10.0).toFloat() else 0f, effort?.let { finishGrouped(it, 1) } ?: "—", "Esfuerzo",
-                effortSub, d, i0 + 0.21f, false, actions.onOpenRate)
+                effortSub, d, i0 + 0.21f, false, null)
             Tile(Modifier.weight(1f), if (m.records > 0) 1f else 0f, "${m.records}", "Récords", if (m.records > 0) "e1RM" else "esta vez no", d, i0 + 0.28f, m.records > 0, null)
         }
     }

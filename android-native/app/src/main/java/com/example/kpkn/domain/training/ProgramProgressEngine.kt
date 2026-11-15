@@ -980,10 +980,7 @@ object ProgramProgressEngine {
             )
         }
 
-        if (program.requiresNativeWeekInstances() &&
-            program.programEndMode != com.example.kpkn.data.models.ProgramEndMode.HAS_END &&
-            program.calendarization?.activatedByCompetition != true
-        ) {
+        if (program.requiresNativeWeekInstances() && program.repeatsIndefinitely) {
             val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
             val progressed = ProgramAutoregulationEngine.expirePending(
                 program,
