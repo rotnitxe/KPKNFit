@@ -24,8 +24,10 @@
 - Log del primer intento paralelo fallido por `Java heap space`: [assemble-base-debug-release-2ad50d96f-20261115.log](assemble-base-debug-release-2ad50d96f-20261115.log), SHA-256 `8734ECE3BBB64AF108120ACE55B444458017A130DFF99B44B6635E2BDA0C1CB4`. El daemon propio que quedó reteniendo el lock se identificó y cerró por PID; no se terminaron otros procesos Java.
 - Mapping R8, sin duplicarlo: `android-native/app/build/outputs/mapping/baseRelease/mapping.txt`, `526045845` bytes, SHA-256 `1EB93D19BA800476754543BDF4DFF74AF827723D75A5BD12A67941E75293A4B9`.
 
-## Límite de instalación
+## Instalación en AVD
 
-- El APK final no se instaló en el AVD. El proceso del AVD seguía activo, pero el serial autorizado `emulator-5580` no apareció ni en el ADB aislado `15045` recién reiniciado ni en el servidor ya activo `5037`. No se ejecutaron comandos de paquete/datos ni se borró o reinició el AVD.
-- Las pruebas instrumentadas seleccionadas corrieron en `com.example.kpkn.dbg`; no se atribuyen al `baseRelease`. Detalle y límites en [avd-validation-receipt.md](avd-validation-receipt.md).
+- El APK final se instaló con `adb install -r --no-streaming` en `emulator-5580` tras verificar que el APK anterior tenía el mismo certificado release y que ambos usan Room 38. `-r` conserva los datos; no se ejecutó `pm clear`.
+- El SHA-256 instalado remoto coincide exactamente con el APK canónico; `versionCode 55`, `KPKN Pre Release 21`. `MainActivity` quedó reanudada en smoke launch.
+- La recuperación ADB y los dos intentos fallidos anteriores están descritos en [avd-validation-receipt.md](avd-validation-receipt.md). No se tocó el Z Flip.
+- Las suites instrumentadas seleccionadas corrieron en `com.example.kpkn.dbg`; no se atribuyen al `baseRelease`.
 - Suite JVM Base completa y aceptación integral de 13 recorridos: siguen abiertas; estados por requisito en [acceptance-matrix.md](acceptance-matrix.md).

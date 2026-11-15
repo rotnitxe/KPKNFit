@@ -4,10 +4,13 @@ Destino de las pruebas instrumentadas: `emulator-5580` (`Pixel_9_Pro_XL`), paque
 
 ## APK de release final
 
-- El APK final de `2ad50d96f` se compiló y firmó, pero **no se instaló en el AVD**. El candidato `com.example.kpkn`, `versionCode 55`, SHA-256 `0DFA793AAB19D43B632B3BBB6C78A2DF104FACFD7737EF73643D737B8B83EDB8` está en `releases/app-baseRelease-2ad50d96f.apk`.
-- Al intentar consultar el dispositivo, el servidor aislado ADB `15045` no respondió; se reinició únicamente ese servidor y luego no encontró `emulator-5580`. El servidor ya activo `5037`, consultado con `-s emulator-5580`, tampoco encontró el serial. No se ejecutó `pm`, `shell`, `install`, `clear` ni otra operación de paquete/datos después del fallo de conexión.
-- El proceso del AVD `Pixel_9_Pro_XL` permaneció activo. No se reinició el AVD y no se borraron datos. La instalación anterior de `com.example.kpkn` que registró el recibo del commit `41edea0eb` es solo evidencia histórica; su hash no se atribuye al APK final nuevo.
-- Las 121 pruebas AVD seleccionadas se ejecutaron en el paquete de pruebas `com.example.kpkn.dbg` con serial `emulator-5580`; no equivalen a instalar/verificar el `baseRelease` final.
+- APK final de `2ad50d96f`: `com.example.kpkn`, `versionCode 55`, SHA-256 `0DFA793AAB19D43B632B3BBB6C78A2DF104FACFD7737EF73643D737B8B83EDB8`, en `releases/app-baseRelease-2ad50d96f.apk`.
+- Antes de actualizar, el APK instalado daba el SHA histórico `A897E5C3C6EBB0059C6E71C16C6A68310877CFCE555E97463F103800B2DFDEB4`, correspondiente al certificado release esperado. Candidato e instalado usan certificado SHA-256 `9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1`; ambos declaran Room 38. La actualización se hizo con `adb install -r --no-streaming`, sin borrar datos.
+- Hash remoto posterior a la instalación, calculado sobre `pm path` → `base.apk`: `0dfa793aab19d43b632b3bbb6c78a2df104facfd7737ef73643d737b8b83edb8`; coincide con el artefacto local. `dumpsys package` confirma versión 55 / `KPKN Pre Release 21` y `lastUpdateTime=2026-11-15 13:38:58`.
+- Smoke launch: `com.example.kpkn/.MainActivity` quedó como `topResumedActivity` en `emulator-5580`.
+- Recuperación observada: el servidor ADB aislado `15045` quedó sin respuesta; se reinició únicamente ese servidor. `emulator-5580` se encontró en el ADB existente `5045` y todos los comandos posteriores llevaron `-s emulator-5580`. El primer `install -r` con streaming falló al cargar el APK temporal. El primer `--no-streaming` encontró Package Manager ausente; `/data` tenía 10–11 GB libres, así que no fue falta de espacio. Se hizo un reboot normal del AVD sin `-wipe-data`; después `sys.boot_completed=1`, Package Manager volvió a responder y el segundo `--no-streaming` terminó en `Success`.
+- Ningún comando se dirigió a otro serial. No se ejecutó `pm clear`, no se inspeccionó ni exportó la base de datos y no se borraron datos. El reboot conservó el paquete anterior hasta completar la actualización.
+- Las 121 pruebas AVD seleccionadas se ejecutaron en el paquete de pruebas `com.example.kpkn.dbg`; el smoke launch del release es evidencia aparte, no sustituye los recorridos de aceptación completos.
 
 ## Suites aprobadas
 

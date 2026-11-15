@@ -14,7 +14,7 @@
 - `acceptance-matrix.md` contiene las 13 filas y las regresiones adicionales: requisito 3 aprobado; otros 12 parciales. No presentar 121 pruebas de componentes como 121 recorridos de producto.
 - Suites JVM dirigidas: 264 tests aprobados en 32 suites únicas; cierre adicional `EntrenoPlanStepTest` 20/20 y `ProgramStructureSheetsTest` 8/8. Suite Base completa: timeout histórico de 45 minutos, no aprobada.
 - AVD: 121/121 en 30 suites seleccionadas, fijadas al serial autorizado `emulator-5580` y al paquete de pruebas `com.example.kpkn.dbg`. Los logs y la reconciliación están en [avd-validation-receipt.md](avd-validation-receipt.md).
-- El APK Release final no se instaló ni verificó por hash en AVD: los servidores ADB accesibles no encontraron `emulator-5580`. El AVD no se reinició; no se ejecutó `install`, `clear` ni operación sobre su base de datos. Z Flip físico no se usó.
+- El APK Release final está instalado con `-r` en `emulator-5580`; su SHA remoto coincide con el artefacto y `MainActivity` quedó reanudada. Se hizo un reboot normal del AVD para recuperar Package Manager, sin `-wipe-data`; no se ejecutó `pm clear` ni se inspeccionó la base de datos. Z Flip físico no se usó.
 
 ## Cambios finales del commit fuente
 

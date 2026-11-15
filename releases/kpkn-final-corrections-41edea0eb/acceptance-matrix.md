@@ -34,5 +34,5 @@ Alcance Android; iOS excluido por instrucción del usuario. APK y build: [recibo
 - Repetición tras los últimos cambios: `EntrenoPlanStepTest` **20/20** y `ProgramStructureSheetsTest` **8/8**; AVD `ProgramCyclesSheetDeviceTest` **1/1**. Son resultados de cierre adicionales; no se suman al total único anterior sin deduplicar suites.
 - AVD: **121/121** en 30 suites seleccionadas/complementarias (lote principal 56/56; complemento vigente 65/65 en 17 suites). No equivale a completar las 13 rutas de aceptación.
 - Commit fuente de la entrega: `2ad50d96fdfb28cb828281a89d104e881435edaa`. La confirmación final indica el SHA de `master` remoto que contiene este commit y los recibos.
-- El APK `baseRelease` nuevo no se instaló en el AVD: el serial autorizado no apareció en los servidores ADB accesibles. No se afirma que el hash instalado coincida con el nuevo APK.
+- El APK `baseRelease` nuevo se instaló con `-r` en `emulator-5580`; el hash remoto coincide con el canónico y `MainActivity` quedó reanudada. Esto no cierra por sí solo los 12 recorridos parciales.
 - Z Flip físico y copia real Room37: **no ejecutados**. No se tocó teléfono.
