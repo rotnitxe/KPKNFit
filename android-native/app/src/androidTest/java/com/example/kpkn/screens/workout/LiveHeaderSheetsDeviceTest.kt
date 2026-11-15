@@ -13,6 +13,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.core.view.ViewCompat
@@ -20,6 +24,9 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.sessionassistant.*
 import com.example.kpkn.screens.workout.components.*
+import com.example.kpkn.ui.components.KpknOverlayHostContent
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.testutil.configureLiveSheetTestWindow
 import com.example.kpkn.testutil.verifiedVoiceModesForUiFixture
@@ -42,8 +49,20 @@ class LiveHeaderSheetsDeviceTest {
     @After fun restoreVoiceVerification() { voiceFixture?.close() }
     private val subTag = WorkoutSubTag("seat", "Asiento 3", SubTagCategory.SETUP)
     private val tag = WorkoutTag("uuid-machine", "Máquina A", "exercise", subTags = listOf(subTag))
-    private fun content(body: @Composable () -> Unit) {
-        rule.setContent { KPKNTheme { MaterialTheme { Box(Modifier.fillMaxSize()) { body() } } } }
+    private fun content(pauseLifecycle: Boolean = false, body: @Composable () -> Unit) {
+        rule.setContent { KPKNTheme { MaterialTheme {
+            val overlayHost = rememberKpknOverlayHostController()
+            CompositionLocalProvider(LocalKpknOverlayHost provides overlayHost) {
+                if (pauseLifecycle) {
+                    val owner = remember { PausedClockLifecycleOwner() }
+                    CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                        Box(Modifier.fillMaxSize()) { body(); KpknOverlayHostContent(overlayHost) }
+                    }
+                } else {
+                    Box(Modifier.fillMaxSize()) { body(); KpknOverlayHostContent(overlayHost) }
+                }
+            }
+        } } }
     }
     private fun tap(text: String) {
         val node = rule.onNodeWithText(text, useUnmergedTree = true)
@@ -56,14 +75,21 @@ class LiveHeaderSheetsDeviceTest {
         var managed: String? = null
         var sub: String? = null
         var opened = 0
+        var managing by mutableStateOf(false)
         content {
-            WorkoutTagListOverlay(listOf(WorkoutTagListRow(tag, tag.name, "Última: 80 kg", true)),
-                onSelectTag = { selected = it }, onCreateTag = {}, onDismiss = {}, onOpened = { opened++ },
-                onManageTag = { managed = it }, onToggleSubTag = { sub = it })
+            if (!managing) {
+                WorkoutTagListOverlay(listOf(WorkoutTagListRow(tag, tag.name, "Última: 80 kg", true)),
+                    onSelectTag = { selected = it }, onCreateTag = {}, onDismiss = {}, onOpened = { opened++ },
+                    onManageTag = { managed = it; managing = true })
+            } else {
+                WorkoutTagManagerModal(tag, "exercise", { RenameTagResult.Success }, {}, {}, { _, _ -> }, {},
+                    { sub = it }, emptyList(), {}, onSaveSetup = {})
+            }
         }
         rule.onNodeWithText(tag.name).performClick()
-        rule.onNodeWithText(tag.name).performTouchInput { longClick() }
-        rule.onNodeWithText(subTag.name).performClick()
+        rule.onNodeWithContentDescription("Editar etiqueta ${tag.name}").performClick()
+        tap("Subetiquetas · 1")
+        rule.onNodeWithText("${subTag.name} · Setup").performClick()
         rule.runOnIdle { assertEquals(tag.id, selected); assertEquals(tag.id, managed); assertEquals(subTag.id, sub); assertEquals(1, opened) }
         rule.onAllNodesWithText("Esta serie").assertCountEquals(0)
         rule.onAllNodesWithText("Color").assertCountEquals(0)
@@ -77,8 +103,8 @@ class LiveHeaderSheetsDeviceTest {
         rule.onNodeWithText("Listo").performClick()
         rule.waitUntil(2_000) { !open }
         rule.runOnIdle { open = true }
-        rule.onNodeWithText("Etiquetas").assertExists()
-        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.onNodeWithText("Etiquetas del ejercicio", useUnmergedTree = true).assertExists()
+        androidx.test.espresso.Espresso.pressBack()
         rule.waitUntil(2_000) { !open }
         rule.runOnIdle { assertEquals(0, selected) }
     }
@@ -90,13 +116,13 @@ class LiveHeaderSheetsDeviceTest {
             WorkoutTagListOverlay(emptyList(), {}, {}, {}, hasSeenEducation = false,
                 onCreateInline = { name, input -> createdName = name; setup = input; CreateTagResult.Duplicate(name) })
         }
-        rule.onNodeWithContentDescription("Nombre de la etiqueta nueva").performTextReplacement("Máquina A")
-        tap("Set-up opcional · Mostrar")
-        rule.onNodeWithContentDescription("Máquina o marca", useUnmergedTree = true).performScrollTo().performTextReplacement("Rack 2")
-        rule.onNodeWithContentDescription("Carga base (kg)", useUnmergedTree = true).performScrollTo().performTextReplacement("20,5")
-        rule.onNodeWithContentDescription("Notas de set-up", useUnmergedTree = true).performScrollTo().performTextReplacement("Pin 3")
-        tap("Crear")
-        rule.onNodeWithText("Ya existe una etiqueta con el nombre «Máquina A».").assertExists()
+        tap("Nueva etiqueta")
+        rule.onNodeWithTag("live-tag-new-name", useUnmergedTree = true).performTextReplacement("Máquina A")
+        rule.onNodeWithTag("live-tag-brand", useUnmergedTree = true).performScrollTo().performTextReplacement("Rack 2")
+        rule.onNodeWithTag("live-tag-base", useUnmergedTree = true).performScrollTo().performTextReplacement("20,5")
+        rule.onNodeWithTag("live-tag-notes", useUnmergedTree = true).performScrollTo().performTextReplacement("Pin 3")
+        tap("Guardar etiqueta")
+        rule.onNodeWithText("Ya existe una etiqueta con ese nombre.").assertExists()
         rule.runOnIdle { assertEquals("Máquina A", createdName); assertEquals(TagSetupInput("Rack 2", 20.5, "Pin 3"), setup) }
     }
 
@@ -176,45 +202,85 @@ class LiveHeaderSheetsDeviceTest {
 
     @Test fun timePresetsDeltasAndTemporaryCommitUseRealGoalCallback() {
         var goal: Pair<Int, Boolean>? = null
-        content {
+        content(pauseLifecycle = true) {
             WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {},
                 onSetAbsoluteTimeLimit = { value, permanent -> goal = value to permanent }, currentTargetMinutes = 60,
                 sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
         }
         listOf("30 min", "45 min", "60 min", "90 min").forEach { tap(it) }
         tap("−5 min"); tap("+5 min"); tap("+15 min")
-        tap("Solo esta vez")
+        tap("Solo hoy")
         rule.runOnIdle { assertEquals(105 to false, goal) }
     }
 
     @Test fun programmedTimeClearRequiresThePermanentConfirmationAndAlertsKeepTheirModes() {
         var cleared: Boolean? = null
         val alerts = mutableListOf<PacingAlertMode>()
-        content {
+        content(pauseLifecycle = true) {
             WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {}, onClearTimeLimit = { cleared = it },
                 onPacingAlertModeChange = { alerts += it }, currentTargetMinutes = 60,
                 sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
         }
         listOf("Nada", "15 y 5 min", "Ritmo", "Por ejercicio").forEach { tap(it) }
-        tap("Quitar")
+        tap("Quitar objetivo")
         rule.runOnIdle { assertNull(cleared) }
-        tap("Permanente")
+        tap("Guardar en el programa")
         rule.runOnIdle { assertEquals(true, cleared); assertEquals(listOf(PacingAlertMode.OFF, PacingAlertMode.FINAL, PacingAlertMode.SOFT, PacingAlertMode.STRICT), alerts) }
     }
 
     @Test fun assigningCustomTimeKeepsTheNativePickerAndPermanentCommit() {
         var goal: Pair<Int, Boolean>? = null
-        content {
+        content(pauseLifecycle = true) {
             WorkoutChronometer(System.currentTimeMillis() - 600_000, false, 3_000, {},
                 onSetAbsoluteTimeLimit = { value, permanent -> goal = value to permanent }, currentTargetMinutes = 60,
                 sessionHasProgrammedTime = true, openSessionTimeRequest = 1)
         }
         tap("45 min")
-        tap("Asignar tiempo")
+        tap("Otro…")
         rule.onNodeWithText("Duración de sesión").assertExists()
         rule.onNodeWithText("Aceptar").performClick()
-        tap("Permanente")
+        tap("Guardar en el programa")
         rule.runOnIdle { assertEquals(45 to true, goal) }
+    }
+
+    @Test fun liveSetConfigAppliesEditedPrescriptionToPendingSetsWithoutChangingRecordedWork() {
+        val exercise = Exercise(
+            id = "live-config-press",
+            name = "Press banca",
+            restTime = 90,
+            sets = listOf(
+                ExerciseSet(id = "set-1", targetReps = 8, targetRIR = 2, completedReps = 6, weight = 40.0),
+                ExerciseSet(id = "set-2", targetReps = 8, targetRIR = 2, weight = 40.0),
+            ),
+        )
+        var saved: Map<Int, ExerciseSet>? = null
+        var dismissed = false
+        content {
+            LiveSetConfigSheet(
+                exercise = exercise,
+                setIndex = 0,
+                pendingIndices = setOf(0, 1),
+                onSave = { saved = it },
+                onOpenTechnique = {},
+                onOpenAllSeries = {},
+                onDismiss = { dismissed = true },
+            )
+        }
+
+        rule.onNodeWithTag("live-set-config-max", useUnmergedTree = true)
+            .performScrollTo().performTextReplacement("10")
+        tap("Pendientes del ejercicio")
+        tap("Guardar objetivos")
+
+        rule.runOnIdle {
+            assertTrue("la hoja termina al guardar", dismissed)
+            assertEquals(setOf(0, 1), saved?.keys)
+            assertEquals("set-1", saved?.get(0)?.id)
+            assertEquals("set-2", saved?.get(1)?.id)
+            assertEquals(10, saved?.get(0)?.targetReps)
+            assertEquals(10, saved?.get(1)?.targetReps)
+            assertEquals("el trabajo ya registrado no cambia al editar objetivos", 6, saved?.get(0)?.completedReps)
+        }
     }
 
     @Test fun ultraFastCountLimitsAndRecalculatedProtectionRemainReversible() {
@@ -295,8 +361,8 @@ class LiveHeaderSheetsDeviceTest {
             "imeVisible=${ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime())}; " +
                 "softInputMode=${rule.activity.window.attributes.softInputMode}; decorHeight=${view.height}; visibleFrame=$visible"
         }
-        File(directory, "$phase.txt").writeText("$window\nMERGED\n" + rule.onRoot().printToString() +
-            "\nUNMERGED\n" + rule.onRoot(useUnmergedTree = true).printToString())
+        File(directory, "$phase.txt").writeText("$window\nMERGED\n" + rule.onAllNodes(isRoot()).printToString() +
+            "\nUNMERGED\n" + rule.onAllNodes(isRoot(), useUnmergedTree = true).printToString())
         val screenshot = instrumentation.uiAutomation.takeScreenshot()
             ?: rule.onRoot(useUnmergedTree = true).captureToImage().asAndroidBitmap()
         File(directory, "$phase.png").outputStream().use { output ->
@@ -304,4 +370,8 @@ class LiveHeaderSheetsDeviceTest {
         }
     }
 
+}
+
+private class PausedClockLifecycleOwner : LifecycleOwner {
+    override val lifecycle: Lifecycle = LifecycleRegistry(this).apply { currentState = Lifecycle.State.STARTED }
 }

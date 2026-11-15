@@ -2650,9 +2650,10 @@ internal fun WorkoutV2Body(
                 setIndex = target.fromSetIdx,
                 pendingIndices = pending,
                 onSave = { updated ->
-                    viewModel.updateExerciseDefinition(ex.id) { current ->
-                        current.copy(sets = current.sets.mapIndexed { index, set -> updated[index] ?: set })
-                    }
+                    val editedSetsById = updated.mapNotNull { (index, edited) ->
+                        ex.sets.getOrNull(index)?.let { original -> original.id to edited }
+                    }.toMap()
+                    viewModel.saveExercisePrescriptionFromLiveConfig(ex.id, editedSetsById)
                 },
                 onOpenTechnique = {
                     setConfigTarget = null

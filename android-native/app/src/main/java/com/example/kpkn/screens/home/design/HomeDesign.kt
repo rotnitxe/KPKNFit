@@ -109,9 +109,9 @@ fun HomeSectionLabel(
 
 /** Acción de texto de una etiqueta de sección («Ver todos»): en tinta y de 48 dp de alto como mínimo. */
 @Composable
-fun HomeSectionAction(text: String, onClick: () -> Unit) {
+fun HomeSectionAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .defaultMinSize(minHeight = WizardSpacing.touchTarget)
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.BottomEnd,

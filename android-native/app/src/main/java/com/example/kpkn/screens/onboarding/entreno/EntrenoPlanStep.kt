@@ -32,7 +32,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCopy
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingVariant
-import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanSingleCard
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCarousel
 
 /**
  * PLAN · «Tu programa a medida» (perfil general) / «Elige tu programa» (disciplina): el revelado del programa.
@@ -133,13 +133,21 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                 else -> {
                     if (offer.tailored.isNotEmpty()) {
                         GeneralReveal(
-                            reveal = offer.tailored.first(),
+                            reveals = offer.tailored,
                             recommendedId = recommendedId,
                             selectedId = selectedId,
                             onChoose = { id -> vm.selectPlan(id) },
                             onOpen = { id -> detailId = id },
+                            onAnotherVersion = vm::anotherPlanVersion,
                         )
                     }
+                    CatalogOnlySection(
+                        offer = offer,
+                        selectedId = selectedId,
+                        onSelect = vm::selectPlan,
+                        onOpen = { detailId = it },
+                        onExpandCatalog = vm::toggleCatalogExpanded,
+                    )
                 }
             }
             state.previewError?.let { error ->
@@ -196,28 +204,38 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
 }
 
 /**
- * El revelado del programa «a medida» de un perfil general: una tarjeta fija, razones del generador y edición libre.
+ * El revelado del programa «a medida» de un perfil general: carrusel de alternativas, razones de la recomendada y edición libre.
  * Sin cajas: texto y acciones sobre la página.
  */
 @Composable
 private fun GeneralReveal(
-    reveal: SetupPlanReveal,
+    reveals: List<SetupPlanReveal>,
     recommendedId: String?,
     selectedId: String?,
     onChoose: (String) -> Unit,
     onOpen: (String) -> Unit,
+    onAnotherVersion: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "Tu programa", style = WizardTypography.controlLabel, color = WizardColors.text)
-        PlanSingleCard(
-            card = cardModelsOf(listOf(reveal), recommendedId).single(),
+        PlanCarousel(
+            cards = cardModelsOf(reveals, recommendedId),
             selectedId = selectedId,
             onSelect = onChoose,
             onOpen = onOpen,
+            initialId = recommendedId,
         )
-        reveal.reasons.take(MAX_REASONS).forEach { reason ->
+        val explainedReveal = reveals.firstOrNull { it.planId == selectedId }
+            ?: reveals.firstOrNull { it.planId == recommendedId }
+            ?: reveals.first()
+        explainedReveal.reasons.take(MAX_REASONS).forEach { reason ->
             Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
         }
+        EntrenoTextAction(
+            label = ANOTHER_VERSION_LABEL,
+            onClick = onAnotherVersion,
+            modifier = Modifier.testTag(ANOTHER_VERSION_TAG),
+        )
         Text(text = PlanCopy.EDIT_FREELY, style = WizardTypography.note, color = WizardColors.textMuted)
     }
 }
@@ -260,6 +278,7 @@ private const val MAX_REASONS = 5
 private const val DEFER_LABEL = "Lo haré más adelante"
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"
+private const val ANOTHER_VERSION_LABEL = "Otra versión"
 
 /** Textos del borrador antiguo sin objetivo o por la ruta «desde cero» (COPY.md, «Borradores antiguos»). */
 private const val LEGACY_FROM_SCRATCH_MESSAGE =
@@ -276,3 +295,4 @@ internal const val LEGACY_PLAN_TAG = "setup-plan-legacy"
 
 /** Marca de «Ver más programas (N)» en una disciplina con más de [PLAN_OFFER_LIMIT] programas. */
 internal const val MORE_PROGRAMS_TAG = "setup-plan-more"
+internal const val ANOTHER_VERSION_TAG = "setup-plan-another-version"

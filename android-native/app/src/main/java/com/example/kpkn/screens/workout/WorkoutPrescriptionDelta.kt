@@ -65,15 +65,9 @@ private fun patchDouble(current: Double?, before: Double?, after: Double?, sourc
     else -> FieldPatch(true, current + (after - before))
 }
 
-/** Applies only changed prescription fields. Source conflicts reject; later occurrences receive numeric deltas. */
+/** Applies only changed prescription fields. Conflicts in edited source fields reject; future occurrences receive numeric deltas. */
 internal fun PrescriptionSetDelta.applyTo(current: ExerciseSet, source: Boolean): ExerciseSet? {
     val existing = SetPrescriptionSnapshot.from(current)
-    if (source) {
-        if (existing == before) return after.applyTo(current)
-        if (existing == after) return current
-        return null
-    }
-
     val reps = patchInt(existing.targetReps, before.targetReps, after.targetReps, source)
     val duration = patchInt(existing.targetDuration, before.targetDuration, after.targetDuration, source)
     val rpe = patchDouble(existing.targetRPE, before.targetRPE, after.targetRPE, source)

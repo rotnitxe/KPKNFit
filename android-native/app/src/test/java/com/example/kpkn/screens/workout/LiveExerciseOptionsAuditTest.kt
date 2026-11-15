@@ -154,6 +154,40 @@ class LiveExerciseOptionsAuditTest {
         assertEquals(3, fixture!!.storedOngoing().session.allExercises().first { it.id == "a" }.sets.size)
     }
 
+    @Test
+    fun liveSetConfigOffersScopeAndCanPersistTheEditedPrescription() = runBlocking {
+        val vm = openFourInACyclicProgram()
+        val original = vm.exercise("a").sets.first()
+        val programSource = fixture!!.programSession()!!.allExercises().first { it.id == "a" }.sets.first()
+        assertEquals(programSource.targetReps, original.targetReps)
+        assertEquals(programSource.weight!!, original.weight!!, 0.0)
+        assertEquals(null, programSource.loadModeV2)
+        assertNotNull("la sesión viva normaliza el modo de carga legacy", original.loadModeV2)
+        val edited = original.copy(targetReps = 10, weight = 52.5)
+
+        // Same contract used by «Configurar serie»: selected sets are identified by their stable IDs.
+        vm.saveExercisePrescriptionFromLiveConfig("a", mapOf(original.id to edited))
+        vm.awaitPendingLiveMutation()
+
+        val pending = vm.uiState.value.pendingStructuralPersistence
+        assertTrue(pending is PendingStructuralChange.UpdateExercisePrescription)
+        val prescriptionChange = pending as PendingStructuralChange.UpdateExercisePrescription
+        assertEquals(listOf(original.id), prescriptionChange.setDeltas.map { it.targetSetId })
+        assertEquals(10, vm.exercise("a").sets.first { it.id == original.id }.targetReps)
+        assertEquals(8, fixture!!.programSession()!!.allExercises().first { it.id == "a" }.sets.first().targetReps)
+
+        vm.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+        vm.awaitPendingStructuralPersistence()
+
+        assertEquals(
+            "el cambio debe guardarse sin dejar el aviso pendiente; notice=${vm.uiState.value.workoutToastNotice}",
+            null,
+            vm.uiState.value.pendingStructuralPersistence,
+        )
+        assertEquals(10, fixture!!.programSession()!!.allExercises().first { it.id == "a" }.sets.first().targetReps)
+        assertEquals(52.5, fixture!!.programSession()!!.allExercises().first { it.id == "a" }.sets.first().weight!!, 0.0)
+    }
+
     // ── Agregar otro ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 
     @Test

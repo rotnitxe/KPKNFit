@@ -3845,7 +3845,7 @@ class WorkoutViewModel(
         updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
     }
 
-    /** Confirmation boundary for the editable prescription sheet; setup/recording paths stay session-only. */
+    /** Confirmation boundary for the editable exercise sheet; setup/recording paths stay session-only. */
     fun saveExerciseDefinitionFromEditSheet(exerciseId: String, draft: Exercise) {
         updateExerciseDefinitionConfirmed(
             exerciseId = exerciseId,
@@ -3853,6 +3853,32 @@ class WorkoutViewModel(
             transform = { current -> draft.copy(id = current.id) },
             persistReferences = true,
             promptForPrescription = true,
+        )
+    }
+
+    /**
+     * Saves planned-set edits from the live «Configurar serie» sheet. Apply only the prescription
+     * fields to the latest live exercise by stable set ID, then offer the same persistence scope as
+     * the full exercise editor. Recorded execution state and unrelated live edits remain intact.
+     */
+    fun saveExercisePrescriptionFromLiveConfig(exerciseId: String, editedSetsById: Map<String, ExerciseSet>) {
+        if (editedSetsById.isEmpty()) return
+        updateExerciseDefinitionConfirmed(
+            exerciseId = exerciseId,
+            persistToProgram = false,
+            transform = { current ->
+                current.copy(
+                    sets = current.sets.map { currentSet ->
+                        editedSetsById[currentSet.id]?.let { edited ->
+                            val normalized = WorkoutEditingRules.normalizeLiveEditedSet(current.trainingMode, edited)
+                            SetPrescriptionSnapshot.from(normalized).applyTo(currentSet)
+                        } ?: currentSet
+                    },
+                )
+            },
+            persistReferences = false,
+            promptForPrescription = true,
+            normalizeLiveEdit = false,
         )
     }
 
@@ -3872,12 +3898,16 @@ class WorkoutViewModel(
     }
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
-        transform: (Exercise) -> Exercise, persistReferences: Boolean, promptForPrescription: Boolean = false) {
+        transform: (Exercise) -> Exercise, persistReferences: Boolean, promptForPrescription: Boolean = false,
+        normalizeLiveEdit: Boolean = true) {
         if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val previous = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
-        val proposed = previous?.let { WorkoutEditingRules.normalizeLiveEditedExercise(transform(it)) } ?: return
+        val proposed = previous?.let { current ->
+            val transformed = transform(current)
+            if (normalizeLiveEdit) WorkoutEditingRules.normalizeLiveEditedExercise(transformed) else transformed
+        } ?: return
         val changesLaterality = proposed.isEffectivelyUnilateral() != previous.isEffectivelyUnilateral()
         if (changesLaterality && previous.sets.indices.any { index ->
             val keys = previous.completionKeysForSet(index)

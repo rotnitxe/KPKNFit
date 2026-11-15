@@ -55,7 +55,7 @@ internal fun LoopPresetPreviewSheet(
         ) {
             StructureSheetHeader(title = presetTitle(preview.presetId), subtitle = preview.sourceWeekName?.let { "Desde la última semana entrenable · $it" })
             if (preview.sourceWeekId == null) {
-                StructureCaption(text = "No hay una semana base con sesiones entrenables para preparar este loop.", color = WizardColors.danger)
+                StructureCaption(text = "No hay una semana base con sesiones entrenables para preparar este ciclo.", color = WizardColors.danger)
             }
             if (includesDeload) {
                 StructureSheetGroup(text = "Vista previa de la descarga · cada 4 ciclos")
@@ -108,7 +108,7 @@ internal fun LoopPresetPreviewSheet(
             preview.collisionNotes.forEach { note -> StructureCaption(text = note) }
             preview.cadenceConflicts.forEach { message -> StructureCaption(text = message, color = WizardColors.danger) }
             StructurePrimaryPill(
-                text = "Guardar loop listo",
+                text = "Guardar ciclo listo",
                 onClick = { onConfirm(selected, parsedAttempts) },
                 enabled = canSave,
                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
@@ -135,7 +135,7 @@ private fun presetTitle(id: String): String = when (id) {
     "deload-4" -> "Descarga"
     "1rm-8" -> "Test 1RM"
     "deload-1rm" -> "Descarga + Test 1RM"
-    else -> "Preparar loop"
+    else -> "Preparar ciclo"
 }
 
 private fun dayName(day: Int): String = when (day) {

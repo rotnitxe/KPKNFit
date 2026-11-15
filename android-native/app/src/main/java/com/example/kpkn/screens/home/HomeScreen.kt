@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -138,6 +139,8 @@ typealias HomeGlassOverlayChange = (
     overlay: HomeGlassOverlay?,
     expectedCurrent: HomeGlassOverlay?,
 ) -> Unit
+
+internal const val HOME_SCREEN_SCROLL_TAG = "home-screen-scroll"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -613,7 +616,7 @@ private fun HomeWithProgram(
     }
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().testTag(HOME_SCREEN_SCROLL_TAG),
         // Sin `spacedBy`: cada ítem pone su aire arriba con `homeGapAbove` (regla única de la página, I12).
         verticalArrangement = Arrangement.Top,
         // La cabecera de la página lleva su propia barra de estado: la lista arranca en el borde superior.

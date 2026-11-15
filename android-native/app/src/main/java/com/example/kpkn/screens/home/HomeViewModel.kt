@@ -57,7 +57,11 @@ import java.util.Calendar
 /**
  * HomeViewModel — State management for Home Screen.
  */
-    class HomeViewModel(appContext: Context? = null) : ViewModel() {
+    class HomeViewModel(
+        appContext: Context? = null,
+        private val trainingObservationRepository: (Context) -> TrainingObservationRepository =
+            { context -> TrainingObservationRepository.getInstance(context) },
+    ) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
@@ -118,7 +122,7 @@ import java.util.Calendar
         loadFeedbacksJob?.cancel()
         loadFeedbacksJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                _feedbacks.value = TrainingObservationRepository.getInstance(context).getPostSessionFeedbacks()
+                _feedbacks.value = trainingObservationRepository(context).getPostSessionFeedbacks()
             } catch (_: Exception) {
                 // Keep previous feedbacks; avoid silent wipe on transient IO errors
             }
@@ -129,7 +133,7 @@ import java.util.Calendar
         loadWellbeingJob?.cancel()
         loadWellbeingJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                _wellbeing.value = TrainingObservationRepository.getInstance(context).getWellbeingLogs()
+                _wellbeing.value = trainingObservationRepository(context).getWellbeingLogs()
             } catch (_: Exception) {
                 // Keep the previous state of arrival.
             }

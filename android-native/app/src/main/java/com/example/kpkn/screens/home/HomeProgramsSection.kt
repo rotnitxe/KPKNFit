@@ -60,6 +60,7 @@ import com.example.kpkn.ui.components.rememberProgramCover
 
 /** Etiqueta de pruebas de la fila horizontal de programas del Home (sin efecto visual). */
 const val HOME_PROGRAMS_ROW_TAG = "home-programs-row"
+const val HOME_PROGRAMS_SEE_ALL_TAG = "home-programs-see-all"
 
 /**
  * Etiqueta de pruebas del póster de UN programa del Home (sin efecto visual).
@@ -96,7 +97,13 @@ fun HomeProgramsSection(
         if (onSeeAll != null) {
             HomeSectionLabel(
                 text = "TUS PROGRAMAS",
-                action = { HomeSectionAction(text = "Ver todos", onClick = onSeeAll) },
+                action = {
+                    HomeSectionAction(
+                        text = "Ver todos",
+                        onClick = onSeeAll,
+                        modifier = Modifier.testTag(HOME_PROGRAMS_SEE_ALL_TAG),
+                    )
+                },
             )
         } else {
             HomeSectionLabel(text = "TUS PROGRAMAS")

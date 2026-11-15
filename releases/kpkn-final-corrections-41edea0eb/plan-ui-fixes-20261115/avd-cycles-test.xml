@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="5.945" timestamp="2026-11-15T11:25:54" hostname="localhost">
+  <testsuite name="com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesSheetDeviceTest" tests="1" failures="0" errors="0" skipped="0" time="4.296" timestamp="2026-11-15T11:25:54" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_9_Pro_XL(AVD) - 16" />
+      <property name="flavor" value="base" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="cycleSheetUsesSpanishCycleLabels" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramCyclesSheetDeviceTest" time="4.296" />
+  </testsuite>
+</testsuites>
