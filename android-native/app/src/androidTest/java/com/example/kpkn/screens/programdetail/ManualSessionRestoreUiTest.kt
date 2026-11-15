@@ -1,13 +1,17 @@
 package com.example.kpkn.screens.programdetail
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -128,9 +132,12 @@ class ManualSessionRestoreUiTest {
                     onUpdateStartDay = { _, _, _ -> },
                     onRestoreManualSessionFromPlan = { restored = it },
                     restoreBlockedSessionIds = blocked,
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
                 )
             }
         }
+        composeRule.onNodeWithText("Sesión editada").performScrollTo().performClick()
+        composeRule.onNodeWithText("Sesión ya entrenada").performScrollTo().performClick()
     }
 
     private fun restoreButtons() = composeRule.onAllNodesWithText(RESTORE_BUTTON).fetchSemanticsNodes().size
@@ -140,7 +147,7 @@ class ManualSessionRestoreUiTest {
     fun badgeAndRestoreButtonShowForEveryCustomizedSessionWithSourceRecipe() {
         setDayView(program(withSourceRecipe = true))
 
-        composeRule.onAllNodesWithText(BADGE)[0].assertIsDisplayed()
+        composeRule.onAllNodesWithText(BADGE)[0].performScrollTo().assertIsDisplayed()
         assertEquals("un badge por sesión marcada", 2, badges())
         assertEquals("un botón por sesión marcada", 2, restoreButtons())
     }
@@ -166,10 +173,10 @@ class ManualSessionRestoreUiTest {
     fun confirmingTheDialogReportsTheExactSessionId() {
         setDayView(program(withSourceRecipe = true), blocked = setOf(TRAINED))
 
-        composeRule.onNodeWithText(RESTORE_BUTTON).performClick()
-        composeRule.onNodeWithText("Restaurar sesión").assertIsDisplayed()
+        composeRule.onNodeWithText(RESTORE_BUTTON).performScrollTo().performClick()
+        composeRule.onNodeWithText("Restaurar desde el plan").assertIsDisplayed()
         assertNull("abrir el diálogo no restaura nada", restored)
-        composeRule.onNodeWithText("Restaurar desde el plan").performClick()
+        composeRule.onNodeWithText("Restaurar").performClick()
 
         assertEquals(EDITED, restored)
     }
@@ -178,7 +185,7 @@ class ManualSessionRestoreUiTest {
     fun cancellingTheDialogDoesNotRestore() {
         setDayView(program(withSourceRecipe = true), blocked = setOf(TRAINED))
 
-        composeRule.onNodeWithText(RESTORE_BUTTON).performClick()
+        composeRule.onNodeWithText(RESTORE_BUTTON).performScrollTo().performClick()
         composeRule.onNodeWithText("Cancelar").performClick()
 
         assertNull(restored)
