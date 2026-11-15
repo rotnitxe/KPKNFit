@@ -1,4 +1,4 @@
-# Matriz de aceptación — Android `41edea0eb`
+# Matriz de aceptación — Android `2ad50d96f`
 
 Alcance Android; iOS excluido por instrucción del usuario. APK y build: [recibo de release](release-build-receipt.md). Evidencia AVD: [recibo AVD](avd-validation-receipt.md). Los estados reflejan el criterio estricto del plan: falta cerrar varios recorridos completos en la app real aunque sus motores y componentes tengan pruebas dirigidas.
 
@@ -29,9 +29,10 @@ Alcance Android; iOS excluido por instrucción del usuario. APK y build: [recibo
 
 ## Gates generales
 
-- Build `baseDebug` + `baseRelease`: **aprobado**; firma y SHA en el recibo.
+- Build `baseDebug` + `baseRelease` del commit fuente `2ad50d96f`: **aprobado** con el wrapper bloqueado y `--max-workers=1`; APK, certificado, hashes y log reproducible en el recibo de release.
 - Suites JVM dirigidas: **264 tests aprobados** en 32 suites únicas, incluida la persistencia Robolectric del importador (19/19). La suite Base completa se había detenido por timeout después de 45 min; no está aprobada.
 - Repetición tras los últimos cambios: `EntrenoPlanStepTest` **20/20** y `ProgramStructureSheetsTest` **8/8**; AVD `ProgramCyclesSheetDeviceTest` **1/1**. Son resultados de cierre adicionales; no se suman al total único anterior sin deduplicar suites.
 - AVD: **121/121** en 30 suites seleccionadas/complementarias (lote principal 56/56; complemento vigente 65/65 en 17 suites). No equivale a completar las 13 rutas de aceptación.
-- `origin/master`: **publicado y verificado** en `41edea0ebd0c076cfa488c3deb22106b28a93636`.
+- Commit fuente de la entrega: `2ad50d96fdfb28cb828281a89d104e881435edaa`. La confirmación final indica el SHA de `master` remoto que contiene este commit y los recibos.
+- El APK `baseRelease` nuevo no se instaló en el AVD: el serial autorizado no apareció en los servidores ADB accesibles. No se afirma que el hash instalado coincida con el nuevo APK.
 - Z Flip físico y copia real Room37: **no ejecutados**. No se tocó teléfono.

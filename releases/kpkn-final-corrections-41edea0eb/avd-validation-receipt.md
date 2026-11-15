@@ -1,6 +1,13 @@
 # Recibo de validación AVD
 
-Destino único: `emulator-5580` (`Pixel_9_Pro_XL`), paquete release `com.example.kpkn`, `versionCode 55`. El hash del APK instalado y del candidato final coincidió. Usuario AVD `0`; fuente del sistema `1.3`. No se inspeccionó ni exportó la base de datos del usuario.
+Destino de las pruebas instrumentadas: `emulator-5580` (`Pixel_9_Pro_XL`), paquete de prueba `com.example.kpkn.dbg`; usuario AVD `0`, fuente del sistema `1.3`. No se inspeccionó ni exportó la base de datos del usuario.
+
+## APK de release final
+
+- El APK final de `2ad50d96f` se compiló y firmó, pero **no se instaló en el AVD**. El candidato `com.example.kpkn`, `versionCode 55`, SHA-256 `0DFA793AAB19D43B632B3BBB6C78A2DF104FACFD7737EF73643D737B8B83EDB8` está en `releases/app-baseRelease-2ad50d96f.apk`.
+- Al intentar consultar el dispositivo, el servidor aislado ADB `15045` no respondió; se reinició únicamente ese servidor y luego no encontró `emulator-5580`. El servidor ya activo `5037`, consultado con `-s emulator-5580`, tampoco encontró el serial. No se ejecutó `pm`, `shell`, `install`, `clear` ni otra operación de paquete/datos después del fallo de conexión.
+- El proceso del AVD `Pixel_9_Pro_XL` permaneció activo. No se reinició el AVD y no se borraron datos. La instalación anterior de `com.example.kpkn` que registró el recibo del commit `41edea0eb` es solo evidencia histórica; su hash no se atribuye al APK final nuevo.
+- Las 121 pruebas AVD seleccionadas se ejecutaron en el paquete de pruebas `com.example.kpkn.dbg` con serial `emulator-5580`; no equivalen a instalar/verificar el `baseRelease` final.
 
 ## Suites aprobadas
 
