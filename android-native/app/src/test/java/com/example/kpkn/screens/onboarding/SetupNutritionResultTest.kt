@@ -206,10 +206,10 @@ class SetupNutritionResultTest {
     // ─── Preset del paso anterior ────────────────────────────────────────────
 
     @Test
-    fun `el motor no lee el preset y el plan automatico es el del ritmo medio`() {
+    fun `el plan automatico respeta el ritmo elegido`() {
         val medium = requireNotNull(prepare(automaticDraft(preset = WizardPacePreset.MEDIUM)).plan)
         val fast = requireNotNull(prepare(automaticDraft(preset = WizardPacePreset.FAST)).plan)
-        assertEquals(medium.calorieTarget, fast.calorieTarget)
+        assertTrue("el ritmo rápido aplica un déficit mayor", fast.calorieTarget < medium.calorieTarget)
     }
 
     @Test

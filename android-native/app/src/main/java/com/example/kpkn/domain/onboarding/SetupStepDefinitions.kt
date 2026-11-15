@@ -507,11 +507,11 @@ object SetupStepDefinitions {
             legacyQuestion = WizChatQuestionId.T_VOLUME_MOBILITY,
             legacyValueMap = mapOf("Limitada" to "1", "Suficiente" to "2", "Amplia" to "3"),
         ),
-        // Al inicio del bloque Entreno, antes de experiencia/material: la decisión manual salta la ruta de recomendación.
+        // Experiencia avanzada: cómo se tiene el programa, justo después de la calibración. «Lo armaré yo» cierra el bloque.
         SetupStepDefinition(
             id = SetupStepId.PROGRAM_SOURCE, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "Ahora vamos a proponerte un programa",
-            subtitle = "Puedes preparar una propuesta, dejarlo para más adelante o importar tu programa.",
+            title = "¿Cómo quieres tu programa?",
+            subtitle = "Con tu experiencia puedes elegir: te recomendamos uno, lo armas tú o traes el tuyo.",
             control = SetupControlKind.PROGRAM_SOURCE,
             options = ProgramSource.entries.map { source -> SetupOptionDefinition(source.name, source.label) },
         ),

@@ -600,7 +600,7 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     asksAvoid = goalProfile == TrainingGoalProfile.BODYBUILDING,
     asksCardioBase = requiresCardio,
     asksArmStyle = goalProfile == TrainingGoalProfile.ARMWRESTLING,
-    asksProgramSource = includeTraining && !newProgramInstance,
+    asksProgramSource = experience == SetupExperience.ADVANCED,
     programSource = programSource,
     asksCompetition = asksCompetition(),
     newProgramInstance = newProgramInstance,

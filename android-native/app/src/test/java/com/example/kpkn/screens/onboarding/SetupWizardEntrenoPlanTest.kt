@@ -516,16 +516,23 @@ class SetupWizardEntrenoPlanTest {
     }
 
     @Test
-    fun aDraftCanDeferItsProgramBeforeTrainingQuestionsAndActivateWithoutOne() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+    fun anAdvancedDraftThatLeavesItsProgramForLaterActivatesWithoutAProgramAndKeepsItsAnswers() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
         val vm = newVm()
         vm.initialize(SetupWizardMode.TRAINING_ONLY)
         await(vm, "wizard cargado") { !it.isLoading }
         val answers = Answers(TrainingGoalProfile.STRENGTH_MUSCLE, setOf(TrainingPlace.GYM), days = setOf(1, 3, 5), freshDay = 1, minutes = 60)
-        // La ruta se elige después de los datos básicos y antes de preguntar experiencia, material o perfil de entrenamiento.
-        walkUntil(vm, SetupStepId.PROGRAM_SOURCE, answers)
+        // «Tengo experiencia»: la ruta pasa por PROGRAM_SOURCE; hasta ahí, las mismas respuestas que el resto de pruebas.
+        var guard = 0
+        while (vm.state.value.currentStep != SetupStepId.PROGRAM_SOURCE) {
+            check(guard++ < 60) { "el recorrido no llega a PROGRAM_SOURCE (cursor ${vm.state.value.currentStep})" }
+            val step = vm.state.value.currentStep
+            if (step == SetupStepId.EXPERIENCE) vm.setStepChoice(step, "advanced") else answer(vm, step, answers)
+            await(vm, "reposo tras responder $step") { rest(it) }
+            confirm(vm, step, checkNotNull(SetupStepGraph.next(step, vm.state.value.draft.stepContext())))
+        }
         vm.setProgramSource(ProgramSource.LATER)
         await(vm, "elección guardada") { rest(it) && it.draft.programSource == ProgramSource.LATER }
-        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.REVIEW_ACTIVATE)
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.MILESTONE_TRAINING)
         val deferred = await(vm, "bloque aplazado") { idle(it) && it.draft.programRoute == SetupProgramRoute.LATER }
         assertNull("sin programa que previsualizar", deferred.programPreview)
         assertNull("sin programa no hay semana", deferred.weekLayout)
@@ -534,7 +541,7 @@ class SetupWizardEntrenoPlanTest {
         assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
         assertEquals(WizChatMachineState.Committed, vm.state.value.machineState)
         assertNull("sin programa no se guarda ningún programa", room { db.programDao().getById(vm.state.value.draft.commitId) })
-        assertNull("no se preguntó experiencia al aplazar el programa", vm.state.value.draft.experience)
+        assertEquals(SetupExperience.ADVANCED, vm.state.value.draft.experience)
         assertEquals(ProgramSource.LATER, vm.state.value.draft.programSource)
     }
 
@@ -884,7 +891,6 @@ class SetupWizardEntrenoPlanTest {
         val goal = GoalProfileMapping.setupGoalOf(profile)
         return copy(
             includeTraining = true,
-            programSource = ProgramSource.RECOMMEND,
             programRoute = SetupProgramRoute.CUSTOMIZABLE,
             trainingPath = SetupTrainingPath.PERSONALIZE,
             experience = SetupExperience.INTERMEDIATE,

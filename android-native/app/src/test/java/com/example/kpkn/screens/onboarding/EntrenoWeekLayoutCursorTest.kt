@@ -25,6 +25,7 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.domain.training.periodization.ProgramVariant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -162,7 +163,11 @@ class EntrenoWeekLayoutCursorTest {
             val reopened = await(vm, "borrador reabierto") { idle(it) && it.weekLayout != null }
             assertStaysOnTheWeek("al reabrir el borrador adaptado", reopened)
             assertEquals("el reparto adaptado se conserva", again.draft.adaptedSplitId, reopened.draft.adaptedSplitId)
-            assertEquals("el programa elegido se conserva", GeneratedPlans.entryIdFor(profile), reopened.draft.selectedCatalogId)
+            assertEquals(
+                "el programa elegido se conserva",
+                GeneratedPlans.entryIdFor(profile, ProgramVariant.BLOCKS),
+                reopened.draft.selectedCatalogId,
+            )
         } finally {
             viewModelStore.clear()
             db.close()
@@ -249,7 +254,7 @@ class EntrenoWeekLayoutCursorTest {
             confirm(vm, step, next)
         }
         await(vm, "programa a medida listo") { idle(it) && it.planSweep == SetupPlanSweep.READY }
-        vm.selectPlan(GeneratedPlans.entryIdFor(profile))
+        vm.selectPlan(GeneratedPlans.entryIdFor(profile, ProgramVariant.BLOCKS))
         await(vm, "programa elegido y preparado") { idle(it) && it.programPreview != null && it.draft.selectedCatalogId != null }
         confirm(vm, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT)
         return await(vm, "semana armada") { idle(it) && it.programPreview != null && it.weekLayout != null }

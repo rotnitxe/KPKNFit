@@ -10,6 +10,7 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
@@ -46,6 +47,7 @@ import com.example.kpkn.screens.onboarding.withStepChoice
 import com.example.kpkn.screens.onboarding.withStepChoices
 import com.example.kpkn.screens.onboarding.withStepNumber
 import com.example.kpkn.screens.onboarding.withStepText
+import com.example.kpkn.screens.onboarding.withProgramSource
 import com.example.kpkn.screens.onboarding.withWeekStart
 import com.example.kpkn.screens.onboarding.withWeekdays
 import java.time.LocalDate
@@ -283,6 +285,7 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.EQUATION_SEX -> withStepChoice(step, "female")
     SetupStepId.BODY_FAT -> withStepChoice(step, "VISUAL_ESTIMATE").withStepNumber(step, 24.0)
     SetupStepId.EXPERIENCE -> withStepChoice(step, persona.experience)
+    SetupStepId.PROGRAM_SOURCE -> withProgramSource(ProgramSource.RECOMMEND)
     SetupStepId.EQUIPMENT -> withPlaces(persona.places)
     // Una casa sin material se lee como «solo peso corporal» (exclusivo): se suelta antes de sumar implementos.
     SetupStepId.AVAILABILITY -> withMaterial(

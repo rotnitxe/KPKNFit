@@ -165,13 +165,13 @@ enum class ArmStyle(val label: String) {
 }
 
 /**
- * Decisión inicial del programa durante el alta: preparar una propuesta, dejarlo para más adelante o importar el tuyo.
- * El texto es el de su símbolo.
+ * Cómo se tiene el programa («¿Cómo quieres tu programa?», solo con experiencia «Tengo experiencia»): que KPKN recomiende uno,
+ * armarlo más adelante o importar el tuyo. El texto es el de su símbolo.
  */
 @Serializable
 enum class ProgramSource(val label: String) {
-    RECOMMEND("Preparar mi programa"),
-    LATER("Lo armaré más adelante"),
+    RECOMMEND("Que KPKN me recomiende uno"),
+    LATER("Lo armaré yo más adelante"),
     IMPORT("Importar mi programa"),
 }
 
