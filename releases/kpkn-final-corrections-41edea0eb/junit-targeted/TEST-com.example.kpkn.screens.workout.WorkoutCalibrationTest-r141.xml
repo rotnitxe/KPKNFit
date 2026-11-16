@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutCalibrationTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:51.372Z" hostname="VF" time="0.053">
+  <properties/>
+  <testcase name="futureScopeAcceptsOnlyTheReferenceAndTodayStaysUntouched" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.026"/>
+  <testcase name="weightedBodyweightHistoryUsesAddedKgAndNeverFallsBackToNormalizedBodyMass" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="nextSessionConsumesAcceptedCapacityAndRejectsDifferentContextAndExpiredReferences" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="applyProtectsCompletedManualAndOtherExercises" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="undoRestoresOnlyPendingLoadsAndNeverCompletedActualLoads" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="aDeclaredBaseReferenceIsNeverRelabeledForAnotherLiveEquipmentTag" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.002"/>
+  <testcase name="removingTheSourceRevokesTheAcceptedDecisionAndRestoresItsPendingBase" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.003"/>
+  <testcase name="aDeclaredBaseReferenceRemainsAvailableThroughTheStableDefaultTag" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="managedTmAlwaysKeepsItsAuthoredPrescription" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="summaryHasOneCurrentResolutionPerCalibration" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="anEditedPrescriptionOrContextIsNeverOverwritten" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="noEligibleDecisionCanBeAppliedAndSummaryExplainsItsReason" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="anAmrapResultCanBeEditedWhileItsRestRemainsMinimized" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="editedSourceSupersedesAndRebuildsFromTheOriginalBase" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="unilateralTargetsUseTheirOwnBaseRangeAndReserveAndNeverAdjustTheOtherSide" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.004"/>
+  <testcase name="machineIncrementIsResolvedOnlyFromItsExactConfiguration" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.002"/>
+  <testcase name="editingThePendingPrescriptionMakesTheProposalIncompatible" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <testcase name="keepPinsTheOriginalPlanAndCannotBecomeAppliedLater" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="suggestionOnlyLoadsKeepTheirSavedBaseAcrossApplyEditAndFutureScope" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.003"/>
+  <testcase name="autoFilledDraftDoesNotBecomeAManualPinWhenEffortIsEdited" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.002"/>
+  <testcase name="absoluteAssignmentIsIdempotentEvenWhenRetried" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="historyUsesTheCommonCapacityEwmaAndOnlyTheExactRecordedContext" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.0"/>
+  <testcase name="manualDraftCreatedAfterTheProposalWinsAtAcceptanceTime" classname="com.example.kpkn.screens.workout.WorkoutCalibrationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

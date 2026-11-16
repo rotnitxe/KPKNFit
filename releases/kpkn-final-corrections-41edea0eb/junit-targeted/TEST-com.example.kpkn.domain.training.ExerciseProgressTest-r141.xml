@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ExerciseProgressTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:35.398Z" hostname="VF" time="0.062">
+  <properties/>
+  <testcase name="mismaConfiguracionConOtroContextoCortaLaLinea" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.043"/>
+  <testcase name="pesoCorporalLastreYCargaTienenTrayectoriasSeparadas" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="asistenciaMenorEsMejorYNuncaSeRotulaComoE1rm" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="lastreVolumeCountsDropsAndRestPausesAndBodyweightExcludesVolume" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.004"/>
+  <testcase name="prNoDuplicaEmpatesYRecuperaMarcaTrasUnaBajada" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="recordsDeRepeticionesConservanCadaCargaDeLaMismaSesion" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.0"/>
+  <testcase name="configuracionesDelMismoMovimientoNoSeMezclan" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="bestSetAndMaximumWeightKeepSeparateLoadTrajectoriesForEachRepCount" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.002"/>
+  <testcase name="legacyLastreWithoutDetailOmitsWeightMetricsAndKeepsRepsAndSetsWithModalityLabel" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="e1rmCoincideConModeloUnicoConYSinReserva" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.0"/>
+  <testcase name="intervalosCalendarioYPrPrevioAlIntervaloSeRespetan" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.004"/>
+  <testcase name="medianocheUsaZonaExplicitaYNoCuentaElFuturo" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="explicacionUsaComaDecimalYExponeLaReservaSinIdsInternos" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.0"/>
+  <testcase name="registrosDeTiempoYDistanciaSeConservanConSusUnidades" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.0"/>
+  <testcase name="calentamientosSaltadasFallidasYRepsInvalidasNoCuentan" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.001"/>
+  <testcase name="mejorSerieAsistidaMuestraCargaRealYRespetaLasReps" classname="com.example.kpkn.domain.training.ExerciseProgressTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

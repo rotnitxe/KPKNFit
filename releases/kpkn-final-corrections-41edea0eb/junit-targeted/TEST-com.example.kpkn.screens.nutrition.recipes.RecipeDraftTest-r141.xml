@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.nutrition.recipes.RecipeDraftTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:36.210Z" hostname="VF" time="0.02">
+  <properties/>
+  <testcase name="editar una receta carga todos sus ingredientes y notas sin resolverlos otra vez" classname="com.example.kpkn.screens.nutrition.recipes.RecipeDraftTest" time="0.02"/>
+  <testcase name="el formulario admite coma decimal y escala desde la instantanea original" classname="com.example.kpkn.screens.nutrition.recipes.RecipeDraftTest" time="0.0"/>
+  <testcase name="un texto invalido no conserva silenciosamente la cantidad anterior" classname="com.example.kpkn.screens.nutrition.recipes.RecipeDraftTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

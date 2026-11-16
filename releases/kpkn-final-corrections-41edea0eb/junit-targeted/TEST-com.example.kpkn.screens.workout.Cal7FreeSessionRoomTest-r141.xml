@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.Cal7FreeSessionRoomTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:47.685Z" hostname="VF" time="1.741">
+  <properties/>
+  <testcase name="cancelThroughTheViewModelRemovesTheAppliedDecisionAndLeavesNoNextSessionReference" classname="com.example.kpkn.screens.workout.Cal7FreeSessionRoomTest" time="0.949"/>
+  <testcase name="registerApplyRevertFinishAndTheNextExecutionConsumesOnlyTheAcceptedReference" classname="com.example.kpkn.screens.workout.Cal7FreeSessionRoomTest" time="0.477"/>
+  <testcase name="ringsCountTheRecordedWorkEquallyForNormalAndCalibratorPurposes" classname="com.example.kpkn.screens.workout.Cal7FreeSessionRoomTest" time="0.315"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

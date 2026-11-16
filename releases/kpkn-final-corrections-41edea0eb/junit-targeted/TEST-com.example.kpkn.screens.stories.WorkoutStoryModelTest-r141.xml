@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.stories.WorkoutStoryModelTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:47.622Z" hostname="VF" time="0.026">
+  <properties/>
+  <testcase name="laDuracionSoloAparecePidiendoLaOpcion" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.013"/>
+  <testcase name="laGraficaTomaComoMaximoLasOchoUltimasSesiones" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.002"/>
+  <testcase name="listaLargaDeEjerciciosGeneraTarjetasDeContinuacion916" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="modalidadSinCargaExternaNoMuestraCeroKgNiE1rmEnHistoria" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="elEjercicioEsElPedidoOElDeMayorGanancia" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="elSrpeSoloAparecePidiendoLaOpcionYTeniendoDato" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="laFechaVaEnMayusculasYLlevaLaSemanaSiLaHay" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="lasGananciasSonLasDosMayoresYLosEnterosNoLLevanCeroDecimal" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="listaDeEjerciciosUsaDuracionEnCardioSingularYSoporteRpeFalloEnEsfuerzo" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="sinEjerciciosLosCamposDelEjercicioQuedanVacios" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="elTituloEsElNombreDeLaSesionYLaMetaEsElPrograma" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="paginacionConservaTodosLosEjerciciosParaUnoSeisSieteYQuinceConTituloLargo" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="mejorasDesactivadasOcultanElDeltaSinOcultarElValorActualDelEjercicio" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="laHistoriaUsaLaMismaLecturaDeMarcaQueElResumen" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.003"/>
+  <testcase name="laMejorSerieYSuEsfuerzoSaleDeLaMejorSerieDelEjercicio" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="sinDosSesionesNoHayGananciaDelEjercicio" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="listaCortaDeEjerciciosGeneraUnaSolaPagina" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="elVolumenTraeSeparadorDeMilesYElSrpeDeclaradoSustituyeAlRirMedio" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="lasMarcasNuevasYLaFotoSalenDelContexto" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <testcase name="referenciaInicialNoSeCuentaComoMarcaNueva" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.0"/>
+  <testcase name="laListaDeEjerciciosEsOpcionalYRespetaElOrdenDeEjecucion" classname="com.example.kpkn.screens.stories.WorkoutStoryModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

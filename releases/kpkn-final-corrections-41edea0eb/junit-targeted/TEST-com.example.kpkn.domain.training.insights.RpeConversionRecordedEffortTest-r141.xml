@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:36.205Z" hostname="VF" time="0.001">
+  <properties/>
+  <testcase name="derivesAverageFromRpeAndRirWithCoverage" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.001"/>
+  <testcase name="repeatedExerciseOccurrencesKeepSeparateLogicalSets" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <testcase name="reachedFailureLegacyCountsAsTenButFailedExecutionsAreExcluded" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <testcase name="payloadExecutionErrorsAreExcludedFromCoverage" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <testcase name="zeroCoverageStillShowsTheLogicalSetDenominator" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <testcase name="explicitFailureIsTenButPrescribedFailureWithoutIntensityIsNotAValue" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <testcase name="averagesSidesBeforeLogicalSetsAndExcludesWarmups" classname="com.example.kpkn.domain.training.insights.RpeConversionRecordedEffortTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

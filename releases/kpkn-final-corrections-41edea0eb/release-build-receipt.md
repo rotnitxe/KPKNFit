@@ -31,3 +31,31 @@
 - La recuperación ADB y los dos intentos fallidos anteriores están descritos en [avd-validation-receipt.md](avd-validation-receipt.md). No se tocó el Z Flip.
 - Las suites instrumentadas seleccionadas corrieron en `com.example.kpkn.dbg`; no se atribuyen al `baseRelease`.
 - Suite JVM Base completa y aceptación integral de 13 recorridos: siguen abiertas; estados por requisito en [acceptance-matrix.md](acceptance-matrix.md).
+
+## Vigencia tras la continuación — 2026-11-16 (candidato anterior superado)
+
+La entrega anterior `2ad50d96f` (`app-baseRelease-2ad50d96f.apk`) quedó superada por el commit final de código y su nuevo APK release firmado descritos a continuación.
+
+## Entrega final vigente — `6bf2f5792`
+
+- Commit final de código compilado en `master`: `6bf2f5792a72147850e919e7606c0be0bd94067e` (`fix: complete Android remediation delivery and acceptance suite`).
+- Alcance de esta entrega: Android (`baseRelease` firmado). iOS queda excluido por instrucción del usuario.
+- Esquema Room de fuente: v38 (`KpknDatabase.kt` declara `version = 38` y migración `37 → 38`), compatibilidad verificada en `Room37To38UpgradeDeviceTest` (`1/1`) y `RecurrenceNutrition37RecipeDeviceTest` (`3/3`).
+
+### APK `baseRelease` final
+
+- Archivo canónico: [app-baseRelease-6bf2f5792.apk](../app-baseRelease-6bf2f5792.apk) (mismo binario que `android-native/app/build/outputs/apk/base/release/app-base-release.apk`).
+- SHA-256 (idéntico en origen, copia canónica y `base.apk` instalado en `emulator-5580`): `F10DDA01AA833D83C465236DB3F7B825B35B37520ED33D7B25CD32331BBFBD8F`.
+- Tamaño: `286087403` bytes.
+- Paquete y versión (`aapt2 dump badging` / `dumpsys package`): `com.example.kpkn`, `versionCode 55`, `KPKN Pre Release 21` (`minSdk 24`, `targetSdk 35`, `compileSdkVersion 36`).
+- `apksigner verify --verbose --print-certs`: `Verifies`; esquemas v2 y v3 válidos; certificado SHA-256 `9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1` (`CN=KPKN Fit, OU=Mobile, O=KPKN`).
+- Build con candado compartido (`run-gradle-locked.ps1`): `:app:assembleBaseRelease --max-workers=1`, **BUILD SUCCESSFUL** en `14m 16s` (`54` tareas: `10` ejecutadas, `44` up-to-date). Log: [assemble-baseRelease-6bf2f5792.log](gradle-logs/assemble-baseRelease-6bf2f5792.log), SHA-256 `563835F1F557086DECB10C47992FA0C8D3A2BCE0F828AEC16C4F16B8482F881A`.
+- Mapping R8: `android-native/app/build/outputs/mapping/baseRelease/mapping.txt`, `526583695` bytes, SHA-256 `3B9EFA2888AA6CBE3FCBDA9D899B3E176E0879D1A674B8EE654C8532A60D4949`.
+
+### Smoke launch e instalación en AVD
+
+- Destino único autorizado: `emulator-5580` (`-P 5045 -s emulator-5580`). Antes de actualizar, la instalación previa `com.example.kpkn` (`0DFA793A…`) compartió exactamente el mismo certificado SHA-256 `9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1`.
+- Actualización conservando datos mediante `adb -P 5045 -s emulator-5580 install -r --no-streaming releases/app-baseRelease-6bf2f5792.apk` → `Success`; sin `pm clear`, sin tocar Z Flip físico ni la app personal.
+- Verificación remota tras instalar (`pm path com.example.kpkn` → `sha256sum`): `F10DDA01AA833D83C465236DB3F7B825B35B37520ED33D7B25CD32331BBFBD8F` (`SHA_MATCH=True`).
+- Arranque en frío tras `am force-stop`: `am start -W -n com.example.kpkn/.MainActivity` → `Status: ok`, `LaunchState: COLD`, `TotalTime: 1724 ms`, `PID: 6966`, `topResumedActivity`: `com.example.kpkn/.MainActivity`, `CRASH_LINES=0` en logcat. Recibo: [avd-release-smoke-6bf2f5792.log](avd-release-smoke-6bf2f5792.log).
+- `baseDebug` empleado durante las corridas instrumentadas `r135`–`r141` (`com.example.kpkn.dbg`, v55): SHA-256 `8B70B6387682D5247F45C3FFBBA45F121698D34B35F764029BAFBC7C448D7DDD` (no es artefacto de entrega).

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:51.461Z" hostname="VF" time="0.972">
+  <properties/>
+  <testcase name="prescriptionReplayRejectsAmbiguousFutureSetInsteadOfUsingOrdinal" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.107"/>
+  <testcase name="prescriptionAdditionUsesStablePredecessorWhenSoloTodayChangedTheLiveOrder" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.081"/>
+  <testcase name="legacyPermanentEditWithoutLineageIsSourceOnlyAndExplainsItsScope" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.079"/>
+  <testcase name="addSupersetOfExistingIds_writesGroupAndDoesNotNoOp" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.031"/>
+  <testcase name="replacementWithUnmappedFutureOccurrenceRejectsWholeWrite" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.092"/>
+  <testcase name="addSetUsesStablePredecessorWhenFutureOccurrenceHasDifferentSetOrder" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.068"/>
+  <testcase name="duplicateSessionIdWithinActiveWeekFailsClosedWithoutChangingAnyOccurrence" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.06"/>
+  <testcase name="failedProgramWrite_preservesPendingStructuralAndPromptForRetry" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.077"/>
+  <testcase name="duplicateSessionIdUsesTheActiveWeekOccurrenceForPermanentEdit" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.066"/>
+  <testcase name="complexBlock_editUsesFutureLineageVariantAndRecipeSlotNotSimilarSessions" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.085"/>
+  <testcase name="missingFutureSetSlotRejectsWholeBlockWriteWithoutPartialSourceChange" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.062"/>
+  <testcase name="simpleDatedAndVariantBSession_persistsStructuralAndReplacementChanges" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.075"/>
+  <testcase name="prescriptionEditReplaysSetRestAndTechniqueByStableSlotAcrossBlocks" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.068"/>
+  <testcase name="dissolveReplay_doesNotCopyLiveWeights" classname="com.example.kpkn.screens.workout.WorkoutStructuralPersistenceReplayTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

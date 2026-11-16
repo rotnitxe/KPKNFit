@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:39.563Z" hostname="VF" time="1.185">
+  <properties/>
+  <testcase name="confirmar_restaurar_llama_con_el_id_de_la_copia" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.25"/>
+  <testcase name="el_historial_ensena_las_diez_copias_mas_recientes_primero" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.065"/>
+  <testcase name="la_hoja_de_historial_compone_con_sus_copias" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.339"/>
+  <testcase name="en_la_biblioteca_tocar_una_plantilla_o_un_metodo_lo_elige" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.203"/>
+  <testcase name="guardar_una_copia_llama_a_su_accion" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.067"/>
+  <testcase name="restaurar_de_una_copia_pide_confirmacion_y_todavia_no_restaura" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.06"/>
+  <testcase name="en_la_biblioteca_el_interruptor_cambia_sustituir" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.071"/>
+  <testcase name="la_hoja_de_ciclos_compone_con_sus_datos" classname="com.example.kpkn.screens.programdetail.design.structure.ProgramStructureSheetsTest" time="0.13"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

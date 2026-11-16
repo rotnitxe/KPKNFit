@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.workout.FinishRecordsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:49.429Z" hostname="VF" time="0.006">
+  <properties/>
+  <testcase name="assistanceImprovementMeansLessAssistanceAtTheSameRepetitions" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.005"/>
+  <testcase name="bestPriorRecordIsUsedInsteadOfTheMostRecentSession" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.0"/>
+  <testcase name="lastreShowsCurrentPriorAndPositiveDifferenceAtEqualRepetitions" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.0"/>
+  <testcase name="correctedSetBelowThePriorBestRemovesTheRecord" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.0"/>
+  <testcase name="bodyweightRecordsUseRepsAndNeverCreateAnE1rmFromBodyMass" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.0"/>
+  <testcase name="differentConfigurationBecomesItsOwnInitialReference" classname="com.example.kpkn.screens.workout.FinishRecordsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

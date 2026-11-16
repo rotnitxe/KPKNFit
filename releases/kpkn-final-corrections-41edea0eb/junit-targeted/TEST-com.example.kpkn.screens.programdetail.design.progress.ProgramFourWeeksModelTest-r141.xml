@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:39.442Z" hostname="VF" time="0.11">
+  <properties/>
+  <testcase name="sinDatosSoloLaSemanaDeHoy" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.046"/>
+  <testcase name="cuentaSesionesHechasYSaltadasDeLasCuatroSemanas" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.029"/>
+  <testcase name="rirFrenteAlPlan" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.0"/>
+  <testcase name="fraseSoloConEstancado" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.001"/>
+  <testcase name="rutinaPorSemanaDeCalendario" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.004"/>
+  <testcase name="cifrasYSemanaASemana" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.002"/>
+  <testcase name="recordSoloCargaExternaUsaSemanticaDeCargaYNuncaPesoCorporalOIrrecuperable" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.005"/>
+  <testcase name="eyebrowYRangoConLaSemanaEnCurso" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.002"/>
+  <testcase name="loQueVieneConFaseYPropuesta" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.003"/>
+  <testcase name="calendarioMarcaHechasSaltadasYHoy" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.003"/>
+  <testcase name="molestiasConSuSemana" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.002"/>
+  <testcase name="rangoQueCruzaDeMes" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.003"/>
+  <testcase name="recordDeLaVentanaFrenteAlHistorial" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.001"/>
+  <testcase name="fraseConLoQueSubeYLoQueBaja" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.001"/>
+  <testcase name="estadoPorMusculo" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.004"/>
+  <testcase name="conMenosSemanasCuentaLasQueHay" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.003"/>
+  <testcase name="lineaDeLaEntrada" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.0"/>
+  <testcase name="cambioDeFuerza" classname="com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

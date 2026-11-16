@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.ProgramProgressEngineTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-16T22:53:35.465Z" hostname="VF" time="0.64">
+  <properties/>
+  <testcase name="explicit finite preparation and catalog FINITE_CYCLE end instead of repeating" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.23"/>
+  <testcase name="final 1RM gate repeats or finishes depending on program end policy" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.276"/>
+  <testcase name="two-block repeating complex program completes both blocks across two cycle closes" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.017"/>
+  <testcase name="calendarized simple program does not advance paused cyclic cursor" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.003"/>
+  <testcase name="completing cycle uses cycle scoped logs only" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="legacy native complex manual end completes while projected end date still repeats" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.058"/>
+  <testcase name="simple program with explicit HAS_END completes instead of wrapping" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="legacy linear simple program without explicit end repeats instead of completing" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="one-week and two-week repeating simple programs advance across two cycle closes keeping logs isolated" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.002"/>
+  <testcase name="imported program defaults to REPEATING and survives two cycle closes" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.017"/>
+  <testcase name="advanceAfterSessionComplete completes cycle after last week" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.001"/>
+  <testcase name="completing future week out of order does not move canonical cursor" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="all required sessions must be logged and blank training weeks never auto-complete" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <testcase name="closing the last week through advanceAfterSessionComplete raises the author TM with the inventory step" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.025"/>
+  <testcase name="loop competition template cadence twelve projects at cycle twelve" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.005"/>
+  <testcase name="calendarized break logs do not complete restored cyclic week instances" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.003"/>
+  <testcase name="advanceAfterSessionComplete resolves template week id from workout log" classname="com.example.kpkn.domain.training.ProgramProgressEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+AVD_STATE=device
+PRE_INSTALL_SHA=0DFA793AAB19D43B632B3BBB6C78A2DF104FACFD7737EF73643D737B8B83EDB8
+PRE_SIG=Signatures: [9E:8B:B5:74:15:E4:09:A1:F1:07:E7:0C:62:B8:5A:A6:5C:E7:35:76:E6:19:64:70:80:82:31:F2:56:46:4B:C1] | Signing KeySets: 105 | apkSigningVersion=3
+INSTALL=releases\app-baseRelease-6bf2f5792.apk: 1 file pushed, 0 skipped. 105.8 MB/s (286087403 bytes in 2.580s) | Performing Push Install | Success
+POST_INSTALL_SHA=F10DDA01AA833D83C465236DB3F7B825B35B37520ED33D7B25CD32331BBFBD8F
+LOCAL_CANONICAL_SHA=F10DDA01AA833D83C465236DB3F7B825B35B37520ED33D7B25CD32331BBFBD8F
+SHA_MATCH=True
+PKG_META=versionCode=55 minSdk=24 targetSdk=35 | versionName=KPKN Pre Release 21 | lastUpdateTime=2026-11-16 23:09:51
+AM_START=Starting: Intent { cmp=com.example.kpkn/.MainActivity } | Status: ok | LaunchState: COLD | Activity: com.example.kpkn/.MainActivity | TotalTime: 1724 | WaitTime: 1731 | Complete
+PID=6966
+RESUMED=topResumedActivity=ActivityRecord{138603083 u0 com.example.kpkn/.MainActivity t1067} | ResumedActivity: ActivityRecord{138603083 u0 com.example.kpkn/.MainActivity t1067}
+CRASH_LINES=0
