@@ -3975,6 +3975,8 @@ class WorkoutViewModel(
                     sourceSetId = after.id,
                     plannedSlotId = after.plannedSlotId,
                     prescription = SetPrescriptionSnapshot.from(after),
+                    afterPlannedSlotId = pendingOnly.sets.getOrNull(index - 1)?.plannedSlotId,
+                    insertAtStart = index == 0,
                 )
             }
             val removals = previous.sets.mapNotNull { before ->
@@ -4350,6 +4352,8 @@ class WorkoutViewModel(
         val exerciseName = displayWorkoutExerciseName(target)
         val newSetId = UUID.randomUUID().toString()
         val newPlannedSlotId = "live-set:$newSetId"
+        val sourceSetOrdinal = target.sets.size
+        val afterPlannedSlotId = target.sets.lastOrNull()?.plannedSlotId
         // El «Deshacer» se guarda antes del cambio: la serie nueva siempre se añade (el ejercicio existe y a la vista).
         pushGodModeUndo("Añadir serie")
         // Add the set to the live session immediately
@@ -4373,6 +4377,8 @@ class WorkoutViewModel(
                 targetExercise = LiveExerciseSlotIdentity.from(target),
                 newSetId = newSetId,
                 plannedSlotId = newPlannedSlotId,
+                sourceSetOrdinal = sourceSetOrdinal,
+                afterPlannedSlotId = afterPlannedSlotId,
             )
         )}
         offerLiveVolumeAdvanceAfterSet()

@@ -209,6 +209,19 @@ class WorkoutReplacementRulesTest {
     }
 
     @Test
+    fun elReemplazoConservaLaIdentidadEstableDeCadaSeriePlanificada() {
+        val source = exerciseA().copy(
+            sets = exerciseA().sets.mapIndexed { index, set ->
+                set.copy(plannedSlotId = "day|slot-r1|set:$index")
+            },
+        )
+
+        val replaced = replacementExerciseFor(source, infoB)
+
+        assertEquals(source.sets.map { it.plannedSlotId }, replaced.sets.map { it.plannedSlotId })
+    }
+
+    @Test
     fun laConfiguracionDelEjercicioQueSeVaNoPasaAlNuevo() {
         val b = replacementExerciseFor(exerciseA(), infoB)
 

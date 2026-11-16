@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
@@ -17,6 +18,7 @@ import com.example.kpkn.domain.training.progress.LiftTrendStatus
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -407,5 +409,90 @@ class ProgramFourWeeksModelTest {
     fun rangoQueCruzaDeMes() {
         assertEquals("28 sept – 22 oct", fourWeeksRangeOf(LocalDate.of(2026, 9, 28), LocalDate.of(2026, 10, 22), null))
         assertEquals("Prueba · semana 3", fourWeeksEyebrowOf("Prueba", 3, 3))
+    }
+
+    @Test
+    fun recordSoloCargaExternaUsaSemanticaDeCargaYNuncaPesoCorporalOIrrecuperable() {
+        val bwHistory = listOf(
+            WorkoutLog(
+                "h1", program.id, "w1-a", "A", "2026-10-05", 30, weekId = "w2",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "wheel", "Rueda abdominal",
+                        sets = listOf(CompletedSet("b1", weight = 106.0, reps = 5, loadMode = LoadModeV2.BODYWEIGHT)),
+                    ),
+                ),
+            ),
+            WorkoutLog(
+                "h2", program.id, "w4-a", "A", "2026-10-26", 30, weekId = "w4",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "wheel", "Rueda abdominal",
+                        sets = listOf(CompletedSet("b2", weight = 106.0, reps = 8, loadMode = LoadModeV2.BODYWEIGHT)),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(buildProgramFourWeeks(program, bwHistory, currentWeekId = "w4", today = today, zone = utc).records.isEmpty())
+
+        val lastreHistory = listOf(
+            WorkoutLog(
+                "l1", program.id, "w1-a", "A", "2026-10-05", 30, weekId = "w2",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "dip", "Fondos lastrados",
+                        sets = listOf(CompletedSet("ls1", weight = 141.0, reps = 5, loadMode = LoadModeV2.LASTRE, originalLoad = 35.0)),
+                    ),
+                ),
+            ),
+            WorkoutLog(
+                "l2", program.id, "w4-a", "A", "2026-10-26", 30, weekId = "w4",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "dip", "Fondos lastrados",
+                        sets = listOf(CompletedSet("ls2", weight = 146.0, reps = 5, loadMode = LoadModeV2.LASTRE, originalLoad = 40.0)),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(buildProgramFourWeeks(program, lastreHistory, currentWeekId = "w4", today = today, zone = utc).records.isEmpty())
+
+        val payloadLoadHistory = listOf(
+            WorkoutLog(
+                "p1", program.id, "w1-a", "A", "2026-09-28", 30, weekId = "w1",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "bench", "Press banca",
+                        sets = listOf(CompletedSet("s1", weight = 90.0, reps = 5, loadMode = LoadModeV2.LOAD)),
+                    ),
+                ),
+            ),
+            WorkoutLog(
+                "p2", program.id, "w4-a", "A", "2026-10-19", 30, weekId = "w4",
+                completedExercises = listOf(
+                    CompletedExercise(
+                        "bench", "Press banca",
+                        sets = listOf(
+                            CompletedSet(
+                                "s2",
+                                weight = 80.0,
+                                reps = 5,
+                                loadMode = LoadModeV2.LOAD,
+                                recordedPayloadV3 = com.example.kpkn.data.models.RecordedSetPayload(
+                                    actualValue = 102.5,
+                                    exerciseId = "bench",
+                                    loadInputMode = LoadModeV2.LOAD,
+                                    externalLoad = 102.5,
+                                    completedReps = 5,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val record = buildProgramFourWeeks(program, payloadLoadHistory, currentWeekId = "w4", today = today, zone = utc).records.single()
+        assertTrue(record.detail.contains("102,5 kg × 5"))
+        assertFalse(record.detail.contains("80 kg"))
     }
 }

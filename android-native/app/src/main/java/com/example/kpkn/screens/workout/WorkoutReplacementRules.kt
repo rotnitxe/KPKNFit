@@ -84,6 +84,7 @@ internal fun replacementPlanSummary(exercise: Exercise): String? =
 /** La serie tal como la define el hueco: sin cargas, modo de carga, técnicas ni referencias; solo lo que el producto deja pasar. */
 internal fun ExerciseSet.slotPlan(): ExerciseSet = ExerciseSet(
     id = id,
+    plannedSlotId = plannedSlotId,
     isEmptySlot = isEmptySlot,
     targetReps = targetReps,
     targetRepsRange = targetRepsRange,

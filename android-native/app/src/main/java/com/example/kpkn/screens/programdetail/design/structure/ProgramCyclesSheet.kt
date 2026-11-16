@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -49,17 +51,74 @@ internal fun ProgramCyclesSheet(
     onCancelWeek: (occurrenceId: String) -> Unit,
     onViewWeek: (blockId: String, weekId: String) -> Unit,
 ) {
-    KpknSheet(onDismissRequest = onDismiss) {
-        ProgramCyclesContent(
-            model = model,
-            onSaveLoop = onSaveLoop,
-            onLoopAction = onLoopAction,
-            onAddTemplate = onAddTemplate,
-            onMigrateLegacy = onMigrateLegacy,
-            onPostponeWeek = onPostponeWeek,
-            onCancelWeek = onCancelWeek,
-            onViewWeek = onViewWeek,
-        )
+    var showInfo by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<ProgramCycleEditing?>(null) }
+    var pendingDelete by remember { mutableStateOf<ProgramCycleLoop?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        KpknSheet(onDismissRequest = onDismiss) {
+            ProgramCyclesContent(
+                model = model,
+                onSaveLoop = onSaveLoop,
+                onLoopAction = onLoopAction,
+                onAddTemplate = onAddTemplate,
+                onMigrateLegacy = onMigrateLegacy,
+                onPostponeWeek = onPostponeWeek,
+                onCancelWeek = onCancelWeek,
+                onViewWeek = onViewWeek,
+                onOpenEditor = { editing = ProgramCycleEditing(it) },
+                onShowInfo = { showInfo = true },
+            )
+        }
+
+        editing?.let { target ->
+            ProgramCycleEditorSheet(
+                loop = target.loop,
+                existing = model.loops,
+                onSave = { draft ->
+                    onSaveLoop(draft)
+                    editing = null
+                },
+                onAction = { action ->
+                    val loop = target.loop
+                    if (loop != null) {
+                        if (action == ProgramCycleAction.DELETE) {
+                            pendingDelete = loop
+                        } else {
+                            onLoopAction(loop.id, action)
+                            editing = null
+                        }
+                    }
+                },
+                onDismiss = { editing = null },
+            )
+        }
+
+        if (showInfo) {
+            KpknAlertDialog(
+                onDismissRequest = { showInfo = false },
+                title = { Text(text = "Para qué sirven los ciclos", style = KpknType.title, color = WizardColors.text) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CYCLE_INFO_LINES.forEach { line ->
+                            Text(text = line, style = KpknType.body, color = WizardColors.textMuted)
+                        }
+                    }
+                },
+                confirmButton = { KpknPrimaryPill(text = "Entendido", onClick = { showInfo = false }) },
+            )
+        }
+
+        pendingDelete?.let { loop ->
+            ProgramCycleDeleteDialog(
+                onConfirm = {
+                    onLoopAction(loop.id, ProgramCycleAction.DELETE)
+                    pendingDelete = null
+                    editing = null
+                },
+                onDismiss = { pendingDelete = null },
+            )
+        }
     }
 }
 
@@ -80,11 +139,15 @@ internal fun ProgramCyclesContent(
     onCancelWeek: (occurrenceId: String) -> Unit,
     onViewWeek: (blockId: String, weekId: String) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenEditor: ((ProgramCycleLoop?) -> Unit)? = null,
+    onShowInfo: (() -> Unit)? = null,
 ) {
-    var showInfo by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<ProgramCycleEditing?>(null) }
-    var pendingDelete by remember { mutableStateOf<ProgramCycleLoop?>(null) }
+    var localShowInfo by remember { mutableStateOf(false) }
+    var localEditing by remember { mutableStateOf<ProgramCycleEditing?>(null) }
+    var localPendingDelete by remember { mutableStateOf<ProgramCycleLoop?>(null) }
     val activeCount = model.loops.count { !it.cancelled }
+    val openEditor = onOpenEditor ?: { localEditing = ProgramCycleEditing(it) }
+    val openInfo = onShowInfo ?: { localShowInfo = true }
 
     Column(
         modifier = modifier
@@ -101,7 +164,7 @@ internal fun ProgramCyclesContent(
         }
         StructureSheetGroup(text = "Tus ciclos")
         model.loops.forEachIndexed { index, loop ->
-            ProgramCycleRow(loop = loop, divider = index > 0, onClick = { editing = ProgramCycleEditing(loop) })
+            ProgramCycleRow(loop = loop, divider = index > 0, onClick = { openEditor(loop) })
         }
         if (model.canAddLoops) {
             StructureMenuRow(
@@ -109,7 +172,7 @@ internal fun ProgramCyclesContent(
                 title = "Nuevo ciclo",
                 detail = if (model.loops.isEmpty()) "Aún no tienes ciclos. Añade uno o elige una plantilla." else null,
                 divider = model.loops.isNotEmpty(),
-                onClick = { editing = ProgramCycleEditing(null) },
+                onClick = { openEditor(null) },
             )
         }
         if (model.weeks.isNotEmpty()) {
@@ -129,7 +192,7 @@ internal fun ProgramCyclesContent(
             ProgramCycleTemplatesModule(
                 templates = programCycleTemplates,
                 onAdd = { templateId ->
-                    if (templateId == "custom") editing = ProgramCycleEditing(null) else onAddTemplate(templateId)
+                    if (templateId == "custom") openEditor(null) else onAddTemplate(templateId)
                 },
                 modifier = Modifier.padding(top = 4.dp),
             )
@@ -141,39 +204,39 @@ internal fun ProgramCyclesContent(
         }
         StructureAction(
             text = "Para qué sirven los ciclos",
-            onClick = { showInfo = true },
+            onClick = openInfo,
             leadingIcon = KpknLineIcons.Info,
             faint = true,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
     }
 
-    editing?.let { target ->
+    localEditing?.let { target ->
         ProgramCycleEditorSheet(
             loop = target.loop,
             existing = model.loops,
             onSave = { draft ->
                 onSaveLoop(draft)
-                editing = null
+                localEditing = null
             },
             onAction = { action ->
                 val loop = target.loop
                 if (loop != null) {
                     if (action == ProgramCycleAction.DELETE) {
-                        pendingDelete = loop
+                        localPendingDelete = loop
                     } else {
                         onLoopAction(loop.id, action)
-                        editing = null
+                        localEditing = null
                     }
                 }
             },
-            onDismiss = { editing = null },
+            onDismiss = { localEditing = null },
         )
     }
 
-    if (showInfo) {
+    if (localShowInfo) {
         KpknAlertDialog(
-            onDismissRequest = { showInfo = false },
+            onDismissRequest = { localShowInfo = false },
             title = { Text(text = "Para qué sirven los ciclos", style = KpknType.title, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -182,18 +245,18 @@ internal fun ProgramCyclesContent(
                     }
                 }
             },
-            confirmButton = { KpknPrimaryPill(text = "Entendido", onClick = { showInfo = false }) },
+            confirmButton = { KpknPrimaryPill(text = "Entendido", onClick = { localShowInfo = false }) },
         )
     }
 
-    pendingDelete?.let { loop ->
+    localPendingDelete?.let { loop ->
         ProgramCycleDeleteDialog(
             onConfirm = {
                 onLoopAction(loop.id, ProgramCycleAction.DELETE)
-                pendingDelete = null
-                editing = null
+                localPendingDelete = null
+                localEditing = null
             },
-            onDismiss = { pendingDelete = null },
+            onDismiss = { localPendingDelete = null },
         )
     }
 }

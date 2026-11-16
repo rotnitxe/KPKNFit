@@ -182,6 +182,40 @@ class ProgramCoverPersistenceAndSobreTest {
     }
 
     @Test
+    fun falloDeCopiaConMismoMilisegundoNoSobrescribeNiBorraLaPortadaAnterior() = runBlocking {
+        val dir = tempDir()
+        val coversDir = File(dir, "program_covers").apply { mkdirs() }
+        val previousCover = File(coversDir, "cover_prog-12_777.jpg")
+        val previousBytes = byteArrayOf(4, 5, 6, 7)
+        previousCover.writeBytes(previousBytes)
+        try {
+            val brokenStream = object : InputStream() {
+                private var reads = 0
+                override fun read(): Int {
+                    if (reads++ >= 2) throw IOException("stream interrupted")
+                    return 42
+                }
+            }
+            val outcome = resolvePickedProgramCover(
+                programId = "prog-12",
+                uri = Uri.parse("content://media/replacement/777"),
+                filesDir = dir,
+                takePersistableReadPermission = { throw SecurityException("no persistable grant") },
+                openInputStream = { brokenStream },
+                nowMs = { 777L },
+                dispatcher = Dispatchers.Unconfined,
+            )
+
+            assertTrue(outcome is ProgramCoverPickOutcome.Failure)
+            assertTrue("La portada confirmada sigue existiendo", previousCover.isFile)
+            assertTrue("La portada anterior conserva exactamente sus bytes", previousCover.readBytes().contentEquals(previousBytes))
+            assertEquals(listOf(previousCover.name), coversDir.listFiles().orEmpty().map { it.name })
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
+    @Test
     fun cancelacionDuranteCopiaNoDejaPortadaParcial() = runBlocking {
         val dir = tempDir()
         try {

@@ -58,7 +58,8 @@ class WorkoutV2UiTest {
 
         composeRule.onNodeWithText("Avanzado").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Drop-set").performClick()
+        // La pestaña compacta actual dice «Drop» y tiene una identidad estable por tag.
+        composeRule.onNodeWithTag("technique-tab-1").performClick()
         composeRule.onNodeWithText("CADENA DE LA SERIE").assertExists()
         composeRule.onNodeWithText("Rest-pause").assertExists()
         composeRule.onNodeWithText("Error de ejecución").assertExists()
@@ -103,16 +104,20 @@ class WorkoutV2UiTest {
             }
         }
 
-        composeRule.onNodeWithText("CRONÓMETRO DE LA SERIE").assertIsDisplayed()
-        composeRule.onNodeWithText("Objetivo 0:45").assertIsDisplayed()
-        composeRule.onNodeWithTag("live-quantity-input").assertTextEquals("0:00")
-        composeRule.onNodeWithContentDescription("Iniciar").performClick()
-        composeRule.onNodeWithContentDescription("Detener").assertIsDisplayed()
-        composeRule.onNodeWithTag("live-quantity-input").assertIsNotEnabled()
+        composeRule.onNodeWithText("TIEMPO").assertExists()
+        composeRule.onNodeWithTag("live-card-set-clock").assertExists()
+        composeRule.onNodeWithTag("live-card-quantity-input").assertExists()
+        composeRule.onNodeWithText("45").assertExists()
+        composeRule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").performClick()
+        composeRule.onNodeWithContentDescription("Pausar el cronómetro de la serie").assertExists()
+        composeRule.onNodeWithContentDescription("Cantidad registrada").assertIsNotEnabled()
         composeRule.runOnIdle { clockMillis += 10_000 }
-        composeRule.onNodeWithContentDescription("Detener").performClick()
-        composeRule.onNodeWithTag("live-quantity-input").assertIsEnabled().assertTextEquals("0:10")
-        composeRule.onNodeWithContentDescription("Iniciar").assertIsDisplayed()
+        composeRule.waitUntil(5_000L) {
+            runCatching { composeRule.onNodeWithText("0:35").fetchSemanticsNode() }.isSuccess
+        }
+        composeRule.onNodeWithContentDescription("Pausar el cronómetro de la serie").performClick()
+        composeRule.onNodeWithContentDescription("Cantidad registrada").assertIsEnabled().assertTextEquals("10")
+        composeRule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").assertExists()
     }
 
     @Test
@@ -154,10 +159,10 @@ class WorkoutV2UiTest {
 
         composeRule.onNodeWithText("Avanzado").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Drop-set").performClick()
+        composeRule.onNodeWithTag("technique-tab-1").performClick()
         // Choosing Drop-set in the segmented control opens the chain of the set (Principal → Drop 1) with its «+» to add drops.
         composeRule.onNodeWithText("CADENA DE LA SERIE").assertExists()
-        composeRule.onNodeWithContentDescription("Añadir drop").assertExists()
+        composeRule.onNodeWithText("Añadir tramo").assertExists()
     }
 
     @Test
@@ -181,7 +186,7 @@ class WorkoutV2UiTest {
             }
         }
 
-        composeRule.onNodeWithText("Sentadilla frontal").performTouchInput { longClick() }
+        composeRule.onNodeWithTag("live-session-route").performTouchInput { longClick() }
         composeRule.onNodeWithText("context-opened").assertExists()
     }
 

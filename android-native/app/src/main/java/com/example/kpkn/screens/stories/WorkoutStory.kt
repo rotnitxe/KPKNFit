@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.workout.FinishLiftProgress
 import com.example.kpkn.screens.workout.WorkoutStoryData
 import com.example.kpkn.screens.workout.WorkoutStoryOptions
 import com.example.kpkn.screens.workout.WorkoutStoryTemplate
@@ -78,6 +80,42 @@ internal data class WorkoutStory(
     val exerciseEyebrow: String = "E1RM",
     val exerciseUnit: String? = "kg",
 )
+
+private fun formatStoryDurationShort(seconds: Int): String {
+    val safe = seconds.coerceAtLeast(0)
+    val minutes = safe / 60
+    val rem = safe % 60
+    return when {
+        minutes <= 0 -> "$safe s"
+        rem == 0 -> "$minutes min"
+        else -> "$minutes min $rem s"
+    }
+}
+
+private fun formatStoryExerciseLineDetail(lift: FinishLiftProgress): String {
+    val best = lift.best
+    val time = best?.timeSeconds?.takeIf { it > 0 }
+    val distKm = best?.distanceKm?.takeIf { it > 0.0 }
+    if (best != null && best.reps <= 0 && (time != null || distKm != null)) {
+        val distLabel = distKm?.let { km ->
+            if (km >= 1.0) "${workoutKgText(km)} km" else "${workoutThousands(km * 1000.0)} m"
+        }
+        val durLabel = time?.let(::formatStoryDurationShort)
+        val metric = listOfNotNull(distLabel, durLabel).joinToString(" · ")
+        return if (lift.setCount > 1) "${lift.setCount} series · $metric" else metric
+    }
+    val count = lift.setCount.coerceAtLeast(1)
+    return if (count == 1) "1 serie" else "$count series"
+}
+
+private fun formatStoryBestEffort(set: CompletedSet): String? = when {
+    set.isFailure -> "Al fallo"
+    set.actualIntensityMode == IntensityMode.RIR -> (set.actualIntensityValue?.toInt() ?: set.rir)?.let { "RIR $it" }
+    set.actualIntensityMode == IntensityMode.RPE -> (set.actualIntensityValue ?: set.rpe)?.let { "RPE ${workoutKgText(it)}" }
+    set.rir != null -> "RIR ${set.rir}"
+    set.rpe != null -> "RPE ${workoutKgText(set.rpe)}"
+    else -> null
+}
 
 private fun formatStoryBestSet(set: CompletedSet): String {
     val time = set.timeSeconds?.takeIf { it > 0 }
@@ -140,7 +178,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val history = lift?.history.orEmpty()
     val best = lift?.best
     val exerciseLines = if (options.exerciseList) {
-        val visible = data.lifts.take(8).map { WorkoutExerciseLine(it.name, "${it.setCount} series") }
+        val visible = data.lifts.take(8).map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) }
         if (data.lifts.size > 8) visible + WorkoutExerciseLine("…", "${data.lifts.size - 8} más") else visible
     } else {
         emptyList()
@@ -234,7 +272,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         exerciseSessions = history.size,
         exercisePoints = exercisePoints,
         bestSet = best?.let(::formatStoryBestSet),
-        bestEffort = best?.rir?.let { "RIR $it" },
+        bestEffort = best?.let(::formatStoryBestEffort),
         photoPath = presentation.photos.firstOrNull()?.path,
         exerciseLines = exerciseLines,
         exerciseEyebrow = exerciseEyebrow,
@@ -248,18 +286,29 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
  */
 internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStoryOptions): List<WorkoutStory> {
     val single = workoutStoryFrom(data, options)
-    if (options.template != WorkoutStoryTemplate.GENERAL || !options.exerciseList || data.lifts.size <= 6) {
+    if (options.template != WorkoutStoryTemplate.GENERAL || !options.exerciseList || data.lifts.isEmpty()) {
         return listOf(single)
     }
+    val estimatedTitleLines = when {
+        data.sessionName.length >= 30 -> 3
+        data.sessionName.length >= 16 -> 2
+        else -> 1
+    }
+    val extraHeaderPenalty = (estimatedTitleLines - 1).coerceAtLeast(0)
+    val firstPageCap = (6 - single.recordHighlights.size - extraHeaderPenalty).coerceIn(2, 6)
+    val continuationCap = (8 - extraHeaderPenalty).coerceIn(5, 8)
+    if (data.lifts.size <= firstPageCap) {
+        return listOf(single.copy(exerciseLines = data.lifts.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) }))
+    }
     val allLifts = data.lifts
-    val page1Lifts = allLifts.take(6)
-    val remaining = allLifts.drop(6)
-    val chunks = remaining.chunked(8)
+    val page1Lifts = allLifts.take(firstPageCap)
+    val remaining = allLifts.drop(firstPageCap)
+    val chunks = remaining.chunked(continuationCap)
     val totalPages = 1 + chunks.size
     val programName = data.presentation.program?.name
 
     val page1 = single.copy(
-        exerciseLines = page1Lifts.map { WorkoutExerciseLine(it.name, "${it.setCount} series") },
+        exerciseLines = page1Lifts.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) },
         meta = listOfNotNull(programName, "1/$totalPages").joinToString(" · "),
     )
     val continuationPages = chunks.mapIndexed { idx, chunk ->
@@ -272,7 +321,7 @@ internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStory
             gains = emptyList(),
             records = 0,
             recordHighlights = emptyList(),
-            exerciseLines = chunk.map { WorkoutExerciseLine(it.name, "${it.setCount} series") },
+            exerciseLines = chunk.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) },
         )
     }
     return listOf(page1) + continuationPages
@@ -571,10 +620,14 @@ private fun DrawScope.drawWorkoutRule(top: Float, alpha: Float) {
     drawRect(Color.White, topLeft = Offset(StoryCanvas.LEFT, top), size = Size(StoryCanvas.COLUMN_WIDTH, WORKOUT_RULE), alpha = alpha)
 }
 
-/** Alto de una pila de filas de texto [heights]: cada fila con su regla y su relleno, y [WORKOUT_ROW_GAP] entre filas. */
-private fun workoutStackHeight(heights: List<Float>): Float =
-    heights.fold(0f) { acc, height -> acc + WORKOUT_RULE + WORKOUT_ROW_PAD + height } +
-        WORKOUT_ROW_GAP * (heights.size - 1).coerceAtLeast(0)
+/** Alto de una pila de filas de texto [heights]: cada fila con su regla y su relleno, y [rowGap] entre filas. */
+private fun workoutStackHeight(
+    heights: List<Float>,
+    rowPad: Float = WORKOUT_ROW_PAD,
+    rowGap: Float = WORKOUT_ROW_GAP,
+): Float =
+    heights.fold(0f) { acc, height -> acc + WORKOUT_RULE + rowPad + height } +
+        rowGap * (heights.size - 1).coerceAtLeast(0)
 
 /** Una cifra de la rejilla ya medida: [value] con su [unit] (si hay) y la [label] en mayúsculas debajo. */
 private class WorkoutStatCell(val value: TextLayoutResult, val unit: TextLayoutResult?, val label: TextLayoutResult) {
@@ -644,18 +697,23 @@ private fun TextMeasurer.workoutRow(label: String, value: String): WorkoutRow {
 }
 
 /** Filas de texto: regla al 8 %, nombre a la izquierda y valor a la derecha, centrados en vertical. */
-private fun DrawScope.drawWorkoutRows(rows: List<WorkoutRow>, top: Float) {
+private fun DrawScope.drawWorkoutRows(
+    rows: List<WorkoutRow>,
+    top: Float,
+    rowPad: Float = WORKOUT_ROW_PAD,
+    rowGap: Float = WORKOUT_ROW_GAP,
+) {
     var y = top
     for (row in rows) {
         drawWorkoutRule(y, alpha = 0.08f)
-        val middle = y + WORKOUT_RULE + WORKOUT_ROW_PAD + row.height / 2f
+        val middle = y + WORKOUT_RULE + rowPad + row.height / 2f
         drawText(row.name, color = StoryCanvas.Muted, topLeft = Offset(StoryCanvas.LEFT, middle - row.name.size.height / 2f))
         drawText(
             row.value,
             color = StoryCanvas.Ink,
             topLeft = Offset(StoryCanvas.RIGHT - row.value.size.width, middle - row.value.size.height / 2f),
         )
-        y += WORKOUT_RULE + WORKOUT_ROW_PAD + row.height + WORKOUT_ROW_GAP
+        y += WORKOUT_RULE + rowPad + row.height + rowGap
     }
 }
 
@@ -841,6 +899,8 @@ private fun DrawScope.drawWorkoutChart(points: List<Double>, top: Float, bottom:
 
 // ------------------------------------------------------------------------------------------------------- plantillas
 
+private const val WORKOUT_SAFE_TOP = 108f
+
 /** General: portada de ondas, fecha, título con el programa, rejilla de cifras, ganancias, marcas nuevas y pie. */
 private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeasurer, progress: Float) {
     drawStoryBackdrop(
@@ -854,14 +914,28 @@ private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeas
         story.exerciseLines.map { measurer.workoutRow(it.name, it.detail) }
     val badge = story.records.takeIf { it > 0 }?.let { WorkoutBadge(measurer.storyText(workoutRecordsText(it), WorkoutType.badge)) }
     val gridHeight = workoutGridHeight(cells)
-    val rowsHeight = if (rows.isEmpty()) 0f else WORKOUT_GRID_GAP + workoutStackHeight(rows.map { it.height })
-    val badgeHeight = badge?.let { WORKOUT_BADGE_GAP + it.height } ?: 0f
     val header = measurer.workoutHeader(story.dateLine, story.title, story.meta)
     val footTop = drawStoryFoot(measurer, WORKOUT_FOOT)
+    val headerHeight = header.eyebrow.size.height + WORKOUT_EYEBROW_NAME_GAP +
+        header.name.lineCount * WORKOUT_NAME_SIZE +
+        (header.meta?.let { WORKOUT_NAME_META_GAP + it.size.height } ?: 0f) +
+        WORKOUT_META_GAP
+    val rowsTopGap = if (cells.isNotEmpty() && rows.isNotEmpty()) WORKOUT_GRID_GAP else 0f
+    val badgeHeight = badge?.let { WORKOUT_BADGE_GAP + it.height } ?: 0f
+    val maxBodyHeight = (footTop - WORKOUT_FOOT_GAP - WORKOUT_SAFE_TOP - headerHeight).coerceAtLeast(200f)
+    var rowPad = WORKOUT_ROW_PAD
+    var rowGap = WORKOUT_ROW_GAP
+    val rowHeights = rows.map { it.height }
+    var rowsHeight = if (rows.isEmpty()) 0f else rowsTopGap + workoutStackHeight(rowHeights, rowPad, rowGap)
+    if (gridHeight + rowsHeight + badgeHeight > maxBodyHeight && rows.isNotEmpty()) {
+        rowPad = 12f
+        rowGap = 12f
+        rowsHeight = rowsTopGap + workoutStackHeight(rowHeights, rowPad, rowGap)
+    }
     val contentTop = footTop - WORKOUT_FOOT_GAP - (gridHeight + rowsHeight + badgeHeight)
     drawWorkoutHeader(header, contentTop)
-    drawWorkoutGrid(cells, contentTop)
-    drawWorkoutRows(rows, contentTop + gridHeight + WORKOUT_GRID_GAP)
+    if (cells.isNotEmpty()) drawWorkoutGrid(cells, contentTop)
+    if (rows.isNotEmpty()) drawWorkoutRows(rows, contentTop + gridHeight + rowsTopGap, rowPad = rowPad, rowGap = rowGap)
     badge?.let { drawWorkoutBadge(it, contentTop + gridHeight + rowsHeight + WORKOUT_BADGE_GAP) }
 }
 

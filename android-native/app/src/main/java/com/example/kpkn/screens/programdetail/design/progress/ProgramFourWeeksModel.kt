@@ -23,6 +23,7 @@ import com.example.kpkn.domain.training.VolumeCountingMode
 import com.example.kpkn.domain.training.progress.LiftTrendEngine
 import com.example.kpkn.domain.training.progress.LiftTrendStatus
 import com.example.kpkn.domain.training.progress.WeeklyWorkEngine
+import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.programdetail.components.mergePersonalizedTargets
 import com.example.kpkn.screens.programdetail.components.volumeMuscleRows
@@ -543,12 +544,25 @@ internal fun fourWeeksRecordsOf(
         val bestSet = lastRecordOf(logs, choice.id, ExerciseProgressMetric.BEST_SET, start, today, zone)
         val e1rm = lastRecordOf(logs, choice.id, ExerciseProgressMetric.E1RM, start, today, zone)
         when {
-            bestSet != null && (e1rm == null || !e1rm.date.isAfter(bestSet.date)) -> FourWeeksRecord(
-                exercise = choice.name,
-                detail = "${kgText(bestSet.bestSet.weight)} kg × ${bestSet.bestSet.reps} · ${fourWeeksDayLabel(bestSet.date, today)}",
-                kind = "Mejor serie",
-                date = bestSet.date,
-            )
+            bestSet != null && (e1rm == null || !e1rm.date.isAfter(bestSet.date)) -> {
+                val bestSetSample = bestSet.bestSet
+                val mode = CompletedSetLoadSemantics.mode(bestSetSample)
+                val externalKg = CompletedSetLoadSemantics.externalLoadKg(bestSetSample)
+                val bestLoadLabel = if ((mode == null || mode == LoadModeV2.LOAD) &&
+                    externalKg != null &&
+                    (bestSetSample.timeSeconds ?: 0) <= 0
+                ) {
+                    "${kgText(externalKg)} kg × ${bestSetSample.reps}"
+                } else {
+                    CompletedSetLoadSemantics.displaySet(bestSetSample)
+                }
+                FourWeeksRecord(
+                    exercise = choice.name,
+                    detail = "$bestLoadLabel · ${fourWeeksDayLabel(bestSet.date, today)}",
+                    kind = "Mejor serie",
+                    date = bestSet.date,
+                )
+            }
             e1rm != null -> FourWeeksRecord(
                 exercise = choice.name,
                 detail = "e1RM ${kgText(Math.round(e1rm.value * 2.0) / 2.0)} kg · ${fourWeeksDayLabel(e1rm.date, today)}",

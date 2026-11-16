@@ -70,6 +70,102 @@ class WorkoutStructuralPersistenceReplayTest {
     }
 
     @Test
+    fun addSetUsesStablePredecessorWhenFutureOccurrenceHasDifferentSetOrder() {
+        val lineage = "recipe:bench@1/day:push"
+        val sourceExercise = Exercise(
+            id = "source-bench",
+            name = "Press banca",
+            recipeDayId = "push",
+            recipeSlotId = "bench",
+            sets = listOf(
+                ExerciseSet(id = "source-first", targetReps = 8, plannedSlotId = "bench:set:1"),
+                ExerciseSet(id = "source-second", targetReps = 10, plannedSlotId = "bench:set:2"),
+            ),
+        )
+        fun occurrence(id: String, sets: List<ExerciseSet>) = Session(
+            id = id,
+            name = "Empuje",
+            dayOfWeek = 1,
+            exercises = listOf(sourceExercise.copy(id = "$id-bench", sets = sets)),
+            logicalLineageId = lineage,
+        )
+        val past = occurrence("past", sourceExercise.sets.mapIndexed { index, set -> set.copy(id = "past-$index") })
+        val source = occurrence("source", sourceExercise.sets)
+        val future = occurrence(
+            "future",
+            listOf(
+                sourceExercise.sets[1].copy(id = "future-second"),
+                sourceExercise.sets[0].copy(id = "future-first"),
+            ),
+        )
+        val variantB = occurrence("future-b", sourceExercise.sets).copy(id = "future-b", sessionB = null)
+        val program = Program(
+            id = "prog-addset-anchor",
+            name = "Press",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Bloque",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso",
+                                    name = "Meso",
+                                    weeks = listOf(
+                                        ProgramWeek(id = "w1", name = "Semana 1", variant = WeekVariant.A, sessions = listOf(past)),
+                                        ProgramWeek(id = "w2", name = "Semana 2", variant = WeekVariant.A, sessions = listOf(source)),
+                                        ProgramWeek(id = "w3", name = "Semana 3", variant = WeekVariant.A, sessions = listOf(future)),
+                                        ProgramWeek(id = "w3-b", name = "Semana 3 B", variant = WeekVariant.B, sessions = listOf(variantB)),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val change = PendingStructuralChange.AddSet(
+            exerciseId = sourceExercise.id,
+            exerciseName = sourceExercise.name,
+            targetExercise = LiveExerciseSlotIdentity.from(sourceExercise),
+            newSetId = "source-added",
+            plannedSlotId = "live-set:source-added",
+            sourceSetOrdinal = 2,
+            afterPlannedSlotId = "bench:set:2",
+        )
+        val fx = StructuralControllerFixture.open(
+            WorkoutUiState(
+                session = source,
+                programId = program.id,
+                weekId = "w2",
+                activeMode = WeekVariant.A,
+                pendingStructuralPersistence = change,
+            ),
+            programId = program.id,
+        )
+        try {
+            runBlocking { fx.repository.addProgramNow(program).getOrThrow() }
+            runBlocking { fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.BLOCK_MATCHING) }
+            runBlocking { fx.controller.awaitPendingPersistence() }
+
+            val weeks = fx.repository.getProgramById(program.id)!!.macrocycles.single().blocks.single()
+                .mesocycles.single().weeks
+            fun slots(weekIndex: Int) = weeks[weekIndex].sessions.single().exercises.single().sets.map { it.plannedSlotId }
+            assertEquals(listOf("bench:set:1", "bench:set:2", "live-set:source-added"), slots(1))
+            assertEquals(listOf("bench:set:2", "live-set:source-added", "bench:set:1"), slots(2))
+            assertEquals(listOf("bench:set:1", "bench:set:2"), slots(0))
+            assertEquals(listOf("bench:set:1", "bench:set:2"), slots(3))
+            assertNull(fx.state.pendingStructuralPersistence)
+        } finally {
+            StructuralControllerFixture.close()
+        }
+    }
+
+    @Test
     fun dissolveReplay_doesNotCopyLiveWeights() {
         val livePress = Exercise(
             id = "press",
@@ -468,6 +564,24 @@ class WorkoutStructuralPersistenceReplayTest {
 
             assertNotNull("La confirmación pendiente se conserva para reintentar", fx.state.pendingStructuralPersistence)
             assertTrue("Se notifica el rechazo", fx.rejectedMessages.isNotEmpty())
+
+            val failedChange = requireNotNull(fx.state.pendingStructuralPersistence)
+            assertTrue("La fixture debe restaurar la ocurrencia antes de reintentar", runBlocking {
+                fx.repository.mutateProgramNow(program.id) { program }
+            })
+            runBlocking {
+                fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.PERMANENT)
+                fx.controller.awaitPendingPersistence()
+            }
+
+            assertNull("El reintento exitoso debe retirar la confirmación pendiente", fx.state.pendingStructuralPersistence)
+            val updated = requireNotNull(fx.repository.getProgramById(program.id))
+            val updatedSession = updated.macrocycles.single().blocks.single().mesocycles.single()
+                .weeks.single().sessions.single()
+            assertEquals(1, updatedSession.exercises.single { it.id == "ex-1" }.sets.size)
+            val versions = runBlocking { fx.repository.getLiveSessionVersions(program.id, session.id) }
+            assertEquals("El reintento debe crear una sola versión durable", 2, versions.size)
+            assertTrue("El reintento debe conservar el mismo ID de operación", versions.any { it.operationId == failedChange.operationId })
         } finally {
             StructuralControllerFixture.close()
         }
@@ -1122,6 +1236,116 @@ class WorkoutStructuralPersistenceReplayTest {
             assertEquals(8, weeks.last().sessions.single().exercises.single().sets.single().targetReps)
             assertNotNull("Ambiguous legacy slot keeps the mutation pending", fx.state.pendingStructuralPersistence)
             assertTrue(fx.rejectedMessages.isNotEmpty())
+        } finally {
+            StructuralControllerFixture.close()
+        }
+    }
+
+    @Test
+    fun prescriptionAdditionUsesStablePredecessorWhenSoloTodayChangedTheLiveOrder() {
+        val lineage = "lineage-live-add-after-local-edit"
+        val daySlot = "push|press"
+        val slot0 = "$daySlot|set:0"
+        val slot1 = "$daySlot|set:1"
+        val slot2 = "$daySlot|set:2"
+        val first = ExerciseSet(id = "source-set-0", targetReps = 8, plannedSlotId = slot0)
+        val second = ExerciseSet(id = "source-set-1", targetReps = 10, plannedSlotId = slot1)
+        val futureSecond = second.copy(id = "future-set-1")
+        val futureFirst = first.copy(id = "future-set-0")
+        val added = ExerciseSet(id = "live-added-set", targetReps = 10, plannedSlotId = slot2)
+
+        fun exercise(id: String, sets: List<ExerciseSet>) = Exercise(
+            id = id,
+            name = "Press banca",
+            exerciseDbId = "bench_press__barbell",
+            recipeDayId = "push",
+            recipeSlotId = "press",
+            sets = sets,
+        )
+        fun session(id: String, exercise: Exercise) = Session(
+            id = id,
+            name = "Empuje",
+            exercises = listOf(exercise),
+            logicalLineageId = lineage,
+        )
+
+        val sourceExercise = exercise("source-exercise", listOf(first, second))
+        val source = session("source-session", sourceExercise)
+        val future = session("future-session", exercise("future-exercise", listOf(futureSecond, futureFirst)))
+        // The in-progress session has a deliberate Solo hoy removal of slot0; the stored plan still has both slots.
+        val liveExercise = exercise("source-exercise", listOf(second, added))
+        val liveSession = source.copy(exercises = listOf(liveExercise))
+        val change = PendingStructuralChange.UpdateExercisePrescription(
+            exerciseId = liveExercise.id,
+            exerciseName = liveExercise.name,
+            targetExercise = LiveExerciseSlotIdentity.from(liveExercise),
+            setDeltas = emptyList(),
+            setAdditions = listOf(
+                PrescriptionSetAddition(
+                    setOrdinal = 1,
+                    sourceSetId = added.id,
+                    plannedSlotId = slot2,
+                    prescription = SetPrescriptionSnapshot.from(added),
+                    afterPlannedSlotId = slot1,
+                ),
+            ),
+            activeMode = WeekVariant.A,
+            sourceLogicalLineageId = lineage,
+        )
+        val program = Program(
+            id = "prog-live-add-after-local-edit",
+            name = "Empuje",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block-1",
+                            name = "Bloque 1",
+                            mesocycles = listOf(Mesocycle(
+                                id = "meso-1",
+                                name = "Meso 1",
+                                weeks = listOf(ProgramWeek("w1", "Semana 1", sessions = listOf(source))),
+                            )),
+                        ),
+                        Block(
+                            id = "block-2",
+                            name = "Bloque 2",
+                            mesocycles = listOf(Mesocycle(
+                                id = "meso-2",
+                                name = "Meso 2",
+                                weeks = listOf(ProgramWeek("w2", "Semana 2", sessions = listOf(future))),
+                            )),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val fx = StructuralControllerFixture.open(
+            WorkoutUiState(
+                session = liveSession,
+                programId = program.id,
+                weekId = "w1",
+                activeMode = WeekVariant.A,
+                plannedSessionBaseline = source,
+                pendingStructuralPersistence = change,
+            ),
+            programId = program.id,
+        )
+        try {
+            runBlocking { fx.repository.addProgramNow(program).getOrThrow() }
+            runBlocking { fx.controller.commitStructuralPersistence(ReplacementPersistenceScopeV2.BLOCK_MATCHING) }
+            runBlocking { fx.controller.awaitPendingPersistence() }
+
+            val persisted = fx.repository.getProgramById(program.id)!!
+            val sessions = persisted.macrocycles.single().blocks.flatMap { it.mesocycles }
+                .flatMap { it.weeks }.flatMap { it.sessions }.associateBy { it.id }
+            assertEquals(listOf(slot0, slot1, slot2), sessions.getValue(source.id).exercises.single().sets.map { it.plannedSlotId })
+            assertEquals(listOf(slot1, slot2, slot0), sessions.getValue(future.id).exercises.single().sets.map { it.plannedSlotId })
+            assertNull(fx.state.pendingStructuralPersistence)
+            assertTrue(fx.rejectedMessages.isEmpty())
         } finally {
             StructuralControllerFixture.close()
         }

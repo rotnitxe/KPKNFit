@@ -133,6 +133,8 @@ internal fun customExerciseReferenceCover(preview: SmartCreatePreview?,
     referenceImplementId = current.reference?.equipment?.let(SmartExerciseCreator::implementoIdFromLabel), catalogImageAvailable = imageAvailable) }
 
 /** Cuerpo sin repositorios ni lanzadores; las pruebas usan los mismos controles y callbacks de producción. */
+private enum class CustomOptionKind { MATERIAL, STATION, LATERALITY }
+
 @Composable
 internal fun CustomExerciseEditorContent(
     state: CustomExerciseEditorState, editing: Boolean,
@@ -143,11 +145,13 @@ internal fun CustomExerciseEditorContent(
     referenceCover: ExerciseCover? = customExerciseReferenceCover(state.preview),
 ) {
     var manual by rememberSaveable { mutableStateOf(false) }
+    var activeOption by rememberSaveable { mutableStateOf<CustomOptionKind?>(null) }
     val scrollState = rememberScrollState()
     val preview = state.preview
     val info = preview?.exercise
 
-    Column(Modifier.fillMaxSize().background(KpknSurface.canvas).imePadding().statusBarsPadding().navigationBarsPadding().testTag("custom-exercise-editor")) {
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().background(KpknSurface.canvas).imePadding().statusBarsPadding().navigationBarsPadding().testTag("custom-exercise-editor")) {
         KpknTopRow(onBack = onCancel)
         Text(if (editing) "Editar ejercicio" else "Crear ejercicio", style = KpknType.title, color = WizardColors.text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
@@ -183,13 +187,10 @@ internal fun CustomExerciseEditorContent(
                     modifier = Modifier.testTag("custom-reference-reason"))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CustomOptionField("Material", state.implement, SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
-                    { value -> onEdit { it.copy(implement = value) } }, Modifier.weight(1f))
-                CustomOptionField("Estación", state.station, SmartExerciseCreator.ESTACION_IDS, SmartExerciseCreator::estacionLabel,
-                    { value -> onEdit { it.copy(station = value) } }, Modifier.weight(1f))
+                CustomOptionField("Material", state.implement, SmartExerciseCreator::implementoLabel, { activeOption = CustomOptionKind.MATERIAL }, Modifier.weight(1f))
+                CustomOptionField("Estación", state.station, SmartExerciseCreator::estacionLabel, { activeOption = CustomOptionKind.STATION }, Modifier.weight(1f))
             }
-            CustomOptionField("Lateralidad", state.laterality, SmartExerciseCreator.LATERALIDAD_IDS, SmartExerciseCreator::lateralidadLabel,
-                { value -> onEdit { it.copy(laterality = value) } }, Modifier.fillMaxWidth())
+            CustomOptionField("Lateralidad", state.laterality, SmartExerciseCreator::lateralidadLabel, { activeOption = CustomOptionKind.LATERALITY }, Modifier.fillMaxWidth())
             if (!editing && !state.hasExplicitTechnicalAxes()) {
                 Text("Para añadirlo, elige material, estación y lateralidad. La sugerencia del nombre no cuenta como selección.",
                     style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("custom-exercise-axes-required"))
@@ -238,24 +239,61 @@ internal fun CustomExerciseEditorContent(
                 onClick = onSave, enabled = state.reviewed && state.isPreviewCurrent && !state.saving && (editing || state.hasExplicitTechnicalAxes()),
                 modifier = Modifier.weight(1f).testTag("custom-exercise-save"))
         }
+        }
+        activeOption?.let { picker ->
+            val title: String
+            val currentValue: String?
+            val options: List<String>
+            val label: (String) -> String
+            val onSelect: (String) -> Unit
+            when (picker) {
+                CustomOptionKind.MATERIAL -> {
+                    title = "Material"
+                    currentValue = state.implement
+                    options = SmartExerciseCreator.IMPLEMENTO_IDS
+                    label = SmartExerciseCreator::implementoLabel
+                    onSelect = { value -> onEdit { it.copy(implement = value) } }
+                }
+                CustomOptionKind.STATION -> {
+                    title = "Estación"
+                    currentValue = state.station
+                    options = SmartExerciseCreator.ESTACION_IDS
+                    label = SmartExerciseCreator::estacionLabel
+                    onSelect = { value -> onEdit { it.copy(station = value) } }
+                }
+                CustomOptionKind.LATERALITY -> {
+                    title = "Lateralidad"
+                    currentValue = state.laterality
+                    options = SmartExerciseCreator.LATERALIDAD_IDS
+                    label = SmartExerciseCreator::lateralidadLabel
+                    onSelect = { value -> onEdit { it.copy(laterality = value) } }
+                }
+            }
+            KpknSheet(onDismissRequest = { activeOption = null }) {
+                Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
+                    Text(title, style = KpknType.title, color = WizardColors.text)
+                    options.forEach { option ->
+                        KpknRadioRow(selected = currentValue == option, title = label(option), onClick = { onSelect(option); activeOption = null })
+                    }
+                    KpknTextAction("Cancelar", onClick = { activeOption = null })
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun CustomOptionField(title: String, value: String?, options: List<String>, label: (String) -> String,
-    onSelect: (String) -> Unit, modifier: Modifier) {
-    var open by rememberSaveable { mutableStateOf(false) }
+private fun CustomOptionField(
+    title: String,
+    value: String?,
+    label: (String) -> String,
+    onOpen: () -> Unit,
+    modifier: Modifier,
+) {
     Column(modifier.heightIn(min = 64.dp).clip(KpknShape.module).background(KpknSurface.inset)
-        .clickable(role = Role.Button) { open = true }.padding(12.dp).testTag("custom-option-$title")) {
+        .clickable(role = Role.Button, onClick = onOpen).padding(12.dp).testTag("custom-option-$title")) {
         Text(title, style = KpknType.caption, color = WizardColors.textMuted)
         Text(value?.let(label) ?: "Por confirmar", style = KpknType.bodyStrong, color = WizardColors.text)
-    }
-    if (open) KpknSheet(onDismissRequest = { open = false }) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
-            Text(title, style = KpknType.title, color = WizardColors.text)
-            options.forEach { option -> KpknRadioRow(selected = value == option, title = label(option), onClick = { onSelect(option); open = false }) }
-            KpknTextAction("Cancelar", onClick = { open = false })
-        }
     }
 }
 

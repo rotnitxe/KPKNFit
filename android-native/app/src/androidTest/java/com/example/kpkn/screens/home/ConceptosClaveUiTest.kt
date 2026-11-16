@@ -28,7 +28,9 @@ class ConceptosClaveUiTest {
         val first = searchConceptosClave("").first()
         composeRule.setContent { MaterialTheme { ConceptosClaveScreen(onBack = {}) } }
 
-        composeRule.onNodeWithText("Buscar conceptos").assertExists()
+        // La búsqueda empieza plegada; abrirla antes de escribir replica el control visible.
+        composeRule.onNodeWithTag("concept_search_toggle").performClick()
+        composeRule.onNodeWithTag("concept_search_field").assertExists()
         // La portada es perezosa (áreas + índice A-Z): la fila se alcanza con el buscador.
         composeRule.onNodeWithTag("concept_search_field").performTextInput(first.name)
         composeRule.onNodeWithTag("concept_row_${first.id}").performClick()

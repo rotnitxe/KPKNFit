@@ -155,7 +155,23 @@ class Cal7FreeSessionRoomTest {
         val recordedBefore = vm.uiState.value.completedSets
         resolve(vm, first.id, CalibrationStatus.APPLIED)
         var exercise = vm.uiState.value.session!!.exercises.first()
-        assertEquals(62.5, vm.getWeightSuggestionWithAutoRegulation(exercise, 2)!!.suggestedWeight, 0.0)
+        val appliedDecision = vm.uiState.value.calibrationDecisions.last()
+        val appliedSuggestion = vm.getWeightSuggestionWithAutoRegulation(exercise, 2)!!
+        val recordedSource = vm.uiState.value.completedSets.values.single { it.id == first.id }
+        val runtimeContext = calibrationContextForSet(vm.uiState.value, exercise, 0, recordedSource.side, recordedSource)
+        val declaredContext = calibrationContextForSet(WorkoutUiState(), exercise, 0, null)
+        assertEquals(
+            "source=${appliedDecision.decision.referenceSource}, capacity=${appliedDecision.decision.capacityKg}, " +
+                "reference=${appliedDecision.decision.referenceKg}, factor=${appliedDecision.decision.factor}, " +
+                "affected=${appliedDecision.decision.affectedSets}, applied=${appliedDecision.appliedSetIds}, " +
+                "context=$runtimeContext declaredContext=$declaredContext, sourceTag=${recordedSource.tagId}, " +
+                "exerciseTags=${vm.uiState.value.exerciseTags[exercise.id]}, activeTags=${vm.uiState.value.activeTagsByExercise[exercise.id]}, " +
+                "exerciseReference=${exercise.reference1RM}, plannedWeight=${exercise.sets[2].weight}, " +
+                "suggestion=$appliedSuggestion",
+            62.5,
+            appliedSuggestion.suggestedWeight,
+            0.0,
+        )
         val reopened = fixture.recreate(vm)
         resolve(reopened, first.id, CalibrationStatus.REVERTED)
         exercise = reopened.uiState.value.session!!.exercises.first()

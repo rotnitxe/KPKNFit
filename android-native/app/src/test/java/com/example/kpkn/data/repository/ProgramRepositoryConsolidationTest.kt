@@ -971,4 +971,169 @@ class ProgramRepositoryConsolidationTest {
         assertEquals(ProgramStatus.ACTIVE, repository.activeProgramState.value?.status)
         assertEquals(1, repository.getLogsForProgram(completedRecurring.id).size)
     }
+
+    @Test
+    fun terminalOneRmRoomReopen() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+
+        suspend fun verifyCase(
+            id: String,
+            endMode: ProgramEndMode,
+            expectedRunStatus: com.example.kpkn.data.models.ProgramRunStatus,
+            expectedProgramStatus: ProgramStatus,
+            expectedCycle: Int,
+            resolution: com.example.kpkn.data.models.OneRmResolution = com.example.kpkn.data.models.OneRmResolution(
+                status = com.example.kpkn.data.models.OneRmResolutionStatus.SKIPPED,
+                note = "QA: decisión terminal explícita",
+            ),
+        ) {
+            // Keep the Robolectric path short: its sandbox directory includes the test name.
+            val dbName = "t.db"
+            context.deleteDatabase(dbName)
+            try {
+                var repository = ProgramRepository.initForTestsWithDatabaseFile(context, dbName)
+                withTimeout(10_000) { repository.isReady.first { it } }
+                val fixture = nativeFixture(id, native = false, endMode = endMode)
+                val finalWeek = fixture.week2
+                val pending = fixture.program.copy(
+                    runState = fixture.program.runState!!.copy(
+                        weekId = finalWeek.id,
+                        weekInstanceId = finalWeek.id,
+                        pendingAction = com.example.kpkn.data.models.PendingProgramAction(
+                            type = com.example.kpkn.data.models.PendingProgramActionType.CONFIRM_1RM_TEST,
+                            message = "Registrar test terminal",
+                        ),
+                    ),
+                )
+                val addResult = repository.addProgramNow(pending)
+                assertTrue(
+                    "No se pudo sembrar la fixture terminal: ${addResult.exceptionOrNull()?.stackTraceToString() ?: "conflicto de escritura"}",
+                    addResult.isSuccess,
+                )
+                repository.updateActiveProgramState(
+                    activeStateOf(fixture, native = false).copy(
+                        currentWeekId = finalWeek.id,
+                        currentWeekInstanceId = finalWeek.id,
+                    ),
+                )
+                val historyLog = logOf("$id-history", fixture, finalWeek.sessions.single(), finalWeek)
+                repository.addWorkoutLog(historyLog)
+                withTimeout(10_000) { repository.history.first { logs -> logs.any { it.id == historyLog.id } } }
+
+                var nextActiveState: ActiveProgramState? = null
+                assertTrue(
+                    repository.mutateProgramNow(pending.id) { current ->
+                        val result = ProgramProgressEngine.resolvePendingOneRmTest(
+                            program = current,
+                            activeState = repository.activeProgramState.value?.takeIf { it.programId == current.id },
+                            resolution = resolution,
+                            logs = repository.getLogsForProgram(current.id),
+                            nowMs = 100L,
+                        )
+                        nextActiveState = result.activeState
+                        result.program
+                    },
+                )
+                nextActiveState?.let(repository::updateActiveProgramState)
+                repository.flushPendingWrites()
+                val beforeReopen = requireNotNull(repository.getProgramById(pending.id))
+                assertEquals(expectedRunStatus, beforeReopen.runState?.status)
+                assertEquals(expectedCycle, beforeReopen.runState?.cycleNumber)
+                assertEquals(fixture.runId, beforeReopen.runState?.runId)
+                assertEquals(
+                    resolution.status,
+                    beforeReopen.runState?.oneRmResolution?.status,
+                )
+                assertEquals(resolution.squat1RM, beforeReopen.runState?.oneRmResolution?.squat1RM)
+                assertEquals(resolution.bench1RM, beforeReopen.runState?.oneRmResolution?.bench1RM)
+                assertEquals(resolution.deadlift1RM, beforeReopen.runState?.oneRmResolution?.deadlift1RM)
+                assertEquals(1, repository.getLogsForProgram(pending.id).count { it.id == historyLog.id })
+
+                ProgramRepository.closeInstance()
+                KpknDatabase.closeInstance()
+                repository = ProgramRepository.initForTestsWithDatabaseFile(context, dbName)
+                withTimeout(10_000) { repository.isReady.first { it } }
+
+                val reopened = requireNotNull(repository.getProgramById(pending.id))
+                assertEquals(expectedRunStatus, reopened.runState?.status)
+                assertEquals(expectedCycle, reopened.runState?.cycleNumber)
+                assertEquals(fixture.runId, reopened.runState?.runId)
+                assertEquals(expectedProgramStatus, repository.activeProgramState.value?.status)
+                assertEquals(pending.id, repository.activeProgramState.value?.programId)
+                assertEquals(
+                    resolution.status,
+                    reopened.runState?.oneRmResolution?.status,
+                )
+                assertEquals(resolution.status, reopened.runState?.oneRmAuditTrail?.lastOrNull()?.status)
+                assertEquals(1, repository.getLogsForProgram(pending.id).count { it.id == historyLog.id })
+                if (resolution.status == com.example.kpkn.data.models.OneRmResolutionStatus.RECORDED) {
+                    assertEquals(resolution.squat1RM, reopened.powerliftingProfile?.squat1RM)
+                    assertEquals(resolution.bench1RM, reopened.powerliftingProfile?.bench1RM)
+                    assertEquals(resolution.deadlift1RM, reopened.powerliftingProfile?.deadlift1RM)
+                    assertEquals(resolution.squat1RM, reopened.goals?.squat1RM)
+                    assertEquals(resolution.bench1RM, reopened.goals?.bench1RM)
+                    assertEquals(resolution.deadlift1RM, reopened.goals?.deadlift1RM)
+                }
+
+                val duplicateClose = repository.mutateProgramNow(pending.id) { current ->
+                    if (current.runState?.pendingAction?.type != com.example.kpkn.data.models.PendingProgramActionType.CONFIRM_1RM_TEST) {
+                        null
+                    } else {
+                        ProgramProgressEngine.resolvePendingOneRmTest(
+                            current,
+                            repository.activeProgramState.value,
+                            com.example.kpkn.data.models.OneRmResolution(
+                                status = com.example.kpkn.data.models.OneRmResolutionStatus.SKIPPED,
+                            ),
+                        ).program
+                    }
+                }
+                assertTrue("un test terminal ya resuelto no debe volver a avanzar", !duplicateClose)
+                assertEquals(expectedCycle, repository.getProgramById(pending.id)?.runState?.cycleNumber)
+                assertEquals(1, repository.getLogsForProgram(pending.id).count { it.id == historyLog.id })
+            } finally {
+                ProgramRepository.closeInstance()
+                KpknDatabase.closeInstance()
+                context.deleteDatabase(dbName)
+            }
+        }
+
+        verifyCase(
+            id = "terminal-one-rm-repeating",
+            endMode = ProgramEndMode.REPEATING,
+            expectedRunStatus = com.example.kpkn.data.models.ProgramRunStatus.ACTIVE,
+            expectedProgramStatus = ProgramStatus.ACTIVE,
+            expectedCycle = 2,
+        )
+        verifyCase(
+            id = "terminal-one-rm-finite",
+            endMode = ProgramEndMode.HAS_END,
+            expectedRunStatus = com.example.kpkn.data.models.ProgramRunStatus.COMPLETED,
+            expectedProgramStatus = ProgramStatus.COMPLETED,
+            expectedCycle = 1,
+        )
+        val recorded = com.example.kpkn.data.models.OneRmResolution(
+            status = com.example.kpkn.data.models.OneRmResolutionStatus.RECORDED,
+            squat1RM = 200.0,
+            bench1RM = 120.0,
+            deadlift1RM = 220.0,
+            note = "QA: medición terminal registrada",
+        )
+        verifyCase(
+            id = "terminal-one-rm-recorded-repeating",
+            endMode = ProgramEndMode.REPEATING,
+            expectedRunStatus = com.example.kpkn.data.models.ProgramRunStatus.ACTIVE,
+            expectedProgramStatus = ProgramStatus.ACTIVE,
+            expectedCycle = 2,
+            resolution = recorded,
+        )
+        verifyCase(
+            id = "terminal-one-rm-recorded-finite",
+            endMode = ProgramEndMode.HAS_END,
+            expectedRunStatus = com.example.kpkn.data.models.ProgramRunStatus.COMPLETED,
+            expectedProgramStatus = ProgramStatus.COMPLETED,
+            expectedCycle = 1,
+            resolution = recorded,
+        )
+    }
 }

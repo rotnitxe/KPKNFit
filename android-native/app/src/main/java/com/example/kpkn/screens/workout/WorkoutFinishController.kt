@@ -227,13 +227,13 @@ class WorkoutFinishController(
                 val finishOperationId = closingFeedback.finishOperationId
                     ?: finishSnapshot?.finishOperationId
                     ?: "finish-$logId"
-                val actualDate = runCatching {
-                    com.example.kpkn.domain.time.ActivityLocalDate.formatIsoDate(
-                        com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIso(completionInstantIso),
-                    )
-                }.getOrNull()?.takeIf { it.length == 10 }
-                    ?: completionInstantIso.take(10).takeIf { it.length == 10 }
-                    ?: LocalDate.now().toString()
+                val completionLocalDate = runCatching {
+                    com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIso(completionInstantIso)
+                }.getOrElse {
+                    runCatching { LocalDate.parse(completionInstantIso.take(10)) }.getOrDefault(LocalDate.now())
+                }
+                val sessionLocalDate = finishSessionLocalDate(state.startTimeMs, fallback = completionLocalDate)
+                val actualDate = com.example.kpkn.domain.time.ActivityLocalDate.formatIsoDate(sessionLocalDate)
                 val scheduledDate = scheduledDateForSession(state.weekId, session)
                 val scheduleDeltaDays = scheduledDate
                     ?.let { runCatching { ChronoUnit.DAYS.between(LocalDate.parse(it), LocalDate.parse(actualDate)).toInt() }.getOrNull() }

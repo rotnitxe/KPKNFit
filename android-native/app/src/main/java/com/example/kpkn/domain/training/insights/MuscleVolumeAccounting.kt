@@ -60,7 +60,9 @@ object MuscleVolumeAccounting {
     }
 
     fun recordedDate(log: WorkoutLog): LocalDate? =
-        com.example.kpkn.domain.time.TrainingDates.logDateMs(log).takeIf { it > 0L }
+        log.actualDate?.takeIf { it.isNotBlank() }?.let {
+            com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIsoOrDatePrefixOrNull(it)
+        } ?: com.example.kpkn.domain.time.TrainingDates.logDateMs(log).takeIf { it > 0L }
             ?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
 
     fun weekStartOf(date: LocalDate): LocalDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))

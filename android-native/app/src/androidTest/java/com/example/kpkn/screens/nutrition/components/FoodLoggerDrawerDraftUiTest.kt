@@ -109,6 +109,18 @@ class FoodLoggerDrawerDraftUiTest {
     /** The description box, told apart from the correction field a card may show by the text it holds. */
     private fun descriptionField(text: String): SemanticsMatcher = hasSetTextAction() and hasText(text)
 
+    /** Once analysis finishes, the description is a compact button that returns to editing. */
+    private fun descriptionCard(text: String): SemanticsMatcher = SemanticsMatcher.expectValue(
+        SemanticsProperties.ContentDescription,
+        listOf("Editar lo que comiste: $text"),
+    )
+
+    private fun openDescriptionForEditing(text: String) {
+        val card = descriptionCard(text)
+        scrollListTo(card)
+        composeRule.onNode(card).performSemanticsAction(SemanticsActions.OnClick) { it() }
+    }
+
     private fun loggerViewModel(): FoodLoggerViewModel =
         ViewModelProvider(composeRule.activity).get(FOOD_LOGGER_VIEW_MODEL_KEY, FoodLoggerViewModel::class.java)
 
@@ -165,20 +177,21 @@ class FoodLoggerDrawerDraftUiTest {
 
         composeRule.onNode(hasSetTextAction()).performTextInput("arroz con pollo")
         composeRule.mainClock.autoAdvance = false
-        tap("Interpretar comida")
+        tap("Analizar")
         awaitAnalysisDone()
 
-        scrollListTo(hasText("Resumen de la comida"))
-        composeRule.onNodeWithText("Resumen de la comida").assertIsDisplayed()
+        scrollListTo(hasText("Proteína"))
+        composeRule.onNodeWithText("Proteína").assertIsDisplayed()
         tap("Cena")
         assertEquals(MealType.DINNER, loggerViewModel().draft.mealType)
 
         restorationTester.emulateSavedInstanceStateRestore()
 
+        openDescriptionForEditing("arroz con pollo")
         scrollListTo(descriptionField("arroz con pollo"))
         composeRule.onNode(descriptionField("arroz con pollo")).assertTextEquals("arroz con pollo")
-        scrollListTo(hasText("Resumen de la comida"))
-        composeRule.onNodeWithText("Resumen de la comida").assertIsDisplayed()
+        scrollListTo(hasText("Proteína"))
+        composeRule.onNodeWithText("Proteína").assertIsDisplayed()
         scrollListTo(hasText("Cena"))
         composeRule.onNodeWithText("Cena").assertIsDisplayed()
         val draft = loggerViewModel().draft
@@ -194,6 +207,7 @@ class FoodLoggerDrawerDraftUiTest {
         restorationTester.setContent { LoggerUnderTest(initialDescription = "pan con palta") }
         awaitAnalysisDone()
 
+        openDescriptionForEditing("pan con palta")
         scrollListTo(descriptionField("pan con palta"))
         composeRule.onNode(descriptionField("pan con palta")).performTextReplacement("pan con palta y un cafe")
         assertEquals("pan con palta y un cafe", loggerViewModel().draft.description)
@@ -201,6 +215,7 @@ class FoodLoggerDrawerDraftUiTest {
         restorationTester.emulateSavedInstanceStateRestore()
 
         // The host passes the same shared text again to the new composition: it must not replace what was typed.
+        openDescriptionForEditing("pan con palta y un cafe")
         scrollListTo(descriptionField("pan con palta y un cafe"))
         composeRule.onNode(descriptionField("pan con palta y un cafe")).assertTextEquals("pan con palta y un cafe")
         assertEquals("pan con palta y un cafe", loggerViewModel().draft.description)

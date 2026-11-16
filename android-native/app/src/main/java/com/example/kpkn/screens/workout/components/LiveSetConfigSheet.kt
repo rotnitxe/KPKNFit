@@ -69,11 +69,13 @@ internal fun applyLiveSetConfig(draft: LiveSetConfigDraft, set: ExerciseSet, res
     val min = num(draft.min)?.toInt()
     val max = num(draft.max)?.toInt()
     val effort = num(draft.effort)
-    val rest = num(draft.rest)?.toInt()
+    // Rest is optional at both exercise and set level. A blank field means inherit the exercise
+    // fallback (which can also be absent), so it must not block an unrelated prescription edit.
+    val rest = num(draft.rest)?.toInt() ?: restFallback
     val reference = if (draft.reference.isBlank()) null else num(draft.reference)
     if (min == null || max == null || min < 0 || max < min) return null
     if (effort == null || effort < 0 || (draft.intensity == IntensityMode.RPE && effort > 10)) return null
-    if (rest == null || rest < 0) return null
+    if (draft.rest.isNotBlank() && (rest == null || rest < 0)) return null
     if (draft.reference.isNotBlank() && (reference == null || reference < 0)) return null
     val percentRm = num(draft.percentRm)
     // RM / TM pide su porcentaje: sin él la serie no tendría de dónde sacar la carga.

@@ -215,4 +215,26 @@ class WorkoutCalibrationTest {
         assertNull(record.decision.referenceKg)
         assertEquals(CalibrationDecisionType.FIRST_REFERENCE, record.decision.type)
     }
+
+    @Test fun aDeclaredBaseReferenceRemainsAvailableThroughTheStableDefaultTag() {
+        val f = cal3Fixture()
+        val defaultTag = WorkoutTag(
+            id = "default-squat-tag",
+            name = "Default",
+            exerciseKey = "cal3-squat",
+            ownsUntaggedHistory = true,
+            isDefault = true,
+        )
+        val tagged = f.state.copy(
+            exerciseTags = mapOf(f.exercise.id to defaultTag.name),
+            activeTagsByExercise = mapOf(f.exercise.id to listOf(defaultTag.id)),
+            userCreatedTags = mapOf(defaultTag.exerciseKey to listOf(defaultTag)),
+        )
+        val completed = f.completed.copy(tagId = defaultTag.id)
+
+        val record = buildRecordedCalibration(tagged, f.exercise, 0, completed, emptyList(), emptyList(), now)
+
+        assertEquals(CalibrationReferenceSource.DECLARED_1RM, record.decision.referenceSource)
+        assertEquals(88.0, record.decision.referenceKg!!, 0.0)
+    }
 }

@@ -64,7 +64,7 @@ class WorkoutRestFeedbackDeviceTest {
         rule.onNodeWithContentDescription("Calidad técnica")
             .performSemanticsAction(SemanticsActions.SetProgress) { it(5f) }
         rule.onAllNodesWithText("Qué tan intenso fue", substring = true).assertCountEquals(0)
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Guardar feedback").performClick()
         rule.runOnIdle {
             assertEquals(5, saved.single().technicalQuality)
             assertEquals(listOf("none"), saved.single().discomfortIds)
@@ -117,9 +117,11 @@ class WorkoutRestFeedbackDeviceTest {
             .performSemanticsAction(SemanticsActions.SetProgress) { it(4f) }
         rule.onNodeWithContentDescription("Expandir descanso").performClick()
         rule.onNodeWithTag("rest-feedback-quality-sq").assertTextEquals("4/10")
-        rule.onNodeWithText("Rodilla anterior").performClick()
+        rule.onNodeWithTag("rest-feedback-discomforts").performClick()
+        rule.onNodeWithText("Rodilla anterior", substring = true).performClick()
         rule.onNodeWithText("Reportar molestia").performClick()
-        rule.onNodeWithText("Guardar").performClick()
+        rule.onNodeWithText("Listo").performClick()
+        rule.onNodeWithText("Guardar feedback").performClick()
         rule.runOnIdle {
             assertEquals(4, saved.single().technicalQuality)
             assertEquals(listOf("knee_patellar"), saved.single().discomfortIds)

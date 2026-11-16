@@ -357,7 +357,9 @@ internal fun buildFinishLiftProgress(
         val previousStart = monday.minusWeeks(1)
         val previousEnd = monday.minusDays(1)
         val previousWeekCandidates = sorted.filter { log ->
-            val date = runCatching {
+            val date = log.actualDate?.takeIf { it.isNotBlank() }?.let {
+                com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIsoOrDatePrefixOrNull(it)
+            } ?: runCatching {
                 java.time.Instant.ofEpochMilli(com.example.kpkn.domain.time.TrainingDates.logDateMs(log))
                     .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
             }.getOrNull()

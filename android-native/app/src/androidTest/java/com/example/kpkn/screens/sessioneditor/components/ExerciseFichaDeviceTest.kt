@@ -53,7 +53,8 @@ class ExerciseFichaDeviceTest {
         show(model(ExerciseFichaContext.SESSION))
         rule.onNodeWithTag("exercise-ficha-select").assertDoesNotExist()
         rule.onNodeWithText("Tu historial").assertDoesNotExist()
-        rule.onNodeWithText("Cómo se hace").assertDoesNotExist()
+        rule.onNodeWithText("Preparación").assertDoesNotExist()
+        rule.onNodeWithText("Ejecución").assertDoesNotExist()
         rule.onNodeWithText("Articulaciones").assertDoesNotExist()
     }
     @Test fun wizardConservaSuContextoYSinPie() {
@@ -72,10 +73,11 @@ class ExerciseFichaDeviceTest {
         show(model(ExerciseFichaContext.SESSION).copy(
             description = "Descripción editorial", setupCues = listOf("Ajusta el banco"), executionCues = listOf("Empuja de forma estable"),
         ))
-        val how = rule.onNodeWithText("Cómo se hace").fetchSemanticsNode().boundsInRoot.top
+        val preparation = rule.onNodeWithText("Preparación").fetchSemanticsNode().boundsInRoot.top
         val setup = rule.onNodeWithText("Ajusta el banco").fetchSemanticsNode().boundsInRoot.top
+        val executionHeading = rule.onNodeWithText("Ejecución").fetchSemanticsNode().boundsInRoot.top
         val execution = rule.onNodeWithText("Empuja de forma estable").fetchSemanticsNode().boundsInRoot.top
-        assertTrue(how < setup && setup < execution)
+        assertTrue(preparation < setup && setup < executionHeading && executionHeading < execution)
     }
 
     @Test fun elDesplazamientoDifuminaOscureceYAgrandaSinBucle() {

@@ -104,6 +104,7 @@ internal fun WorkoutStorySheet(
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) }
+    var showMultiShareDialog by remember { mutableStateOf(false) }
     val templates=remember(data.presentation.photos){WorkoutStoryTemplate.entries.filter{it!=WorkoutStoryTemplate.PHOTOS||data.presentation.photos.isNotEmpty()}}
     val safeOptions=options.copy(template=options.template.takeIf{it in templates}?:WorkoutStoryTemplate.GENERAL)
     val request=StoryPreviewRequest(data,safeOptions)
@@ -243,9 +244,15 @@ internal fun WorkoutStorySheet(
                     Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Download,null,Modifier.size(22.dp),tint=FinishCream)
                 }
                 Row(Modifier.weight(1f).height(52.dp).graphicsLayer { alpha = if (enabled) 1f else 0.38f }.clip(RoundedCornerShape(50)).background(FinishCream)
-                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){bitmaps.takeIf{!busy&&!rendering&&it.isNotEmpty()}?.let{list->busy=true;scope.launch{
-                        try{WorkoutShareService.shareBitmaps(context,list)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
-                    }}}.padding(horizontal = 12.dp).testTag("story-share"),
+                    .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button){bitmaps.takeIf{!busy&&!rendering&&it.isNotEmpty()}?.let{list->
+                        if (list.size == 1) {
+                            busy=true;scope.launch{
+                                try{WorkoutShareService.shareBitmap(context,list.first())}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
+                            }
+                        } else {
+                            showMultiShareDialog = true
+                        }
+                    }}.padding(horizontal = 12.dp).testTag("story-share"),
                     horizontalArrangement=Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically){
                     Icon(com.example.kpkn.screens.workout.components.FreeClockIcons.Share,null,Modifier.size(17.dp),tint=Color(0xFF111111))
                     Text("Compartir en historias",style=com.example.kpkn.screens.workout.components.Lx.inter(15.sp, FontWeight.SemiBold, line = 16.5.sp),color=Color(0xFF111111),textAlign=TextAlign.Center)
@@ -256,6 +263,47 @@ internal fun WorkoutStorySheet(
     if(embedded)content()else KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest={if(!busy)onDismiss()},stableHeightFraction=.95f,maxHeightFraction=.95f,hazeState=hazeState){content()}
     if(expanded&&image!=null)Dialog(onDismissRequest={expanded=false},properties=DialogProperties(usePlatformDefaultWidth=false)){
         Box(Modifier.fillMaxSize().background(Color.Black).clickable{expanded=false},contentAlignment=Alignment.Center){Image(image.asImageBitmap(),"Historia ${safeOptions.template.label}",Modifier.fillMaxSize().padding(16.dp),contentScale=ContentScale.Fit)}
+    }
+    if(showMultiShareDialog&&bitmaps.size>1){
+        AlertDialog(
+            onDismissRequest={if(!busy)showMultiShareDialog=false},
+            title={Text("Historia en ${bitmaps.size} páginas")},
+            text={
+                Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
+                    Text("Algunos destinos como Historias de Instagram aceptan una sola imagen por envío. Elige cómo compartir o guarda todas las continuaciones:")
+                    Button(
+                        enabled=!busy,
+                        onClick={
+                            showMultiShareDialog=false;busy=true;scope.launch{
+                                try{
+                                    val opened=WorkoutShareService.shareMultipleBitmaps(context,bitmaps)
+                                    if(!opened)message="Ninguna app admite compartir ${bitmaps.size} páginas juntas. Puedes guardar todas en galería o compartir una página."
+                                }catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
+                            }
+                        },
+                        modifier=Modifier.fillMaxWidth().testTag("story-share-all"),
+                    ){Text("Compartir todas las páginas (${bitmaps.size})")}
+                    OutlinedButton(
+                        enabled=!busy,
+                        onClick={
+                            showMultiShareDialog=false;busy=true;scope.launch{
+                                try{WorkoutShareService.shareBitmap(context,bitmaps[safePageIndex])}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
+                            }
+                        },
+                        modifier=Modifier.fillMaxWidth().testTag("story-share-current"),
+                    ){Text("Compartir solo página ${safePageIndex+1} en Historias")}
+                    OutlinedButton(
+                        enabled=!busy,
+                        onClick={
+                            showMultiShareDialog=false
+                            if(Build.VERSION.SDK_INT<=28&&ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)permission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)else save()
+                        },
+                        modifier=Modifier.fillMaxWidth().testTag("story-share-save-all"),
+                    ){Text("Guardar las ${bitmaps.size} páginas")}
+                }
+            },
+            confirmButton={TextButton(enabled=!busy,onClick={showMultiShareDialog=false}){Text("Cancelar")}},
+        )
     }
 }
 

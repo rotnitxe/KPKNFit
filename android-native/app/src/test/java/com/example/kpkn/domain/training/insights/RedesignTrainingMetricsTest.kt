@@ -128,4 +128,25 @@ class RedesignTrainingMetricsTest {
         assertEquals(20.0, plank.deltaKg!!, 0.001)
     }
 
+    @Test fun actualDateOverridesPostMidnightInstantInWeeklyMuscleVolume() {
+        val monday = LocalDate.of(2026, 10, 26)
+        val sunday = monday.minusDays(1)
+        val postMidnightLog = log(
+            day = monday,
+            sets = listOf(CompletedSet("s", weight = 80.0, reps = 5)),
+        ).copy(
+            date = "${monday}T00:10:00Z",
+            actualDate = sunday.toString(),
+        )
+        val metrics = HomeTrainingMetricsBuilder.build(
+            listOf(postMidnightLog),
+            emptyList(),
+            emptyList(),
+            monday,
+            monday.atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        )
+        assertEquals(0.0, metrics.weeks.last().series, 0.0)
+        assertEquals(1.0, metrics.weeks[2].series, 0.0)
+    }
+
 }

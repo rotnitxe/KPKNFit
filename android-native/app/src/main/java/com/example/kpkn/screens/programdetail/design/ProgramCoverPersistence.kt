@@ -63,10 +63,19 @@ internal suspend fun resolvePickedProgramCover(
         return@withContext ProgramCoverPickOutcome.Failure("No se pudo preparar la carpeta privada para la portada.")
     }
     val sanitizedId = programId.replace(Regex("[^A-Za-z0-9_-]"), "_").ifBlank { "program" }
-    val target = File(coversDir, "cover_${sanitizedId}_${nowMs()}.jpg")
+    val target = try {
+        File.createTempFile("cover_${sanitizedId}_${nowMs()}_", ".jpg", coversDir)
+    } catch (t: CancellationException) {
+        throw t
+    } catch (_: Throwable) {
+        return@withContext ProgramCoverPickOutcome.Failure("No se pudo preparar la copia privada de la portada.")
+    }
     try {
         val stream = openInputStream(uri)
-            ?: return@withContext ProgramCoverPickOutcome.Failure("No se pudo abrir la imagen seleccionada.")
+            ?: run {
+                target.delete()
+                return@withContext ProgramCoverPickOutcome.Failure("No se pudo abrir la imagen seleccionada.")
+            }
         stream.use { input ->
             target.outputStream().use { output -> input.copyTo(output) }
         }

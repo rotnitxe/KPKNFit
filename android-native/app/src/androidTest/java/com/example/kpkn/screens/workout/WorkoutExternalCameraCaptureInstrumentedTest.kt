@@ -196,7 +196,7 @@ class WorkoutExternalCameraCaptureInstrumentedTest {
         }
         assertNull(withTimeout(5_000L) { work.await() })
         withTimeout(5_000L) {
-            while (controller.captureError.value != "No se pudo abrir la cámara. Podés reintentar.") {
+            while (controller.captureError.value != "No se pudo abrir la cámara. Puedes reintentar.") {
                 kotlinx.coroutines.delay(20L)
             }
         }

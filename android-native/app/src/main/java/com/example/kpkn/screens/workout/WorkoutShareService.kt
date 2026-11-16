@@ -29,7 +29,23 @@ object WorkoutShareService {
         shareScope.launch {
             runCatching {
                 val bitmaps = renderWorkoutStoryPages(context.applicationContext, data, options)
-                try { shareBitmaps(context, bitmaps) } finally { bitmaps.forEach { it.recycle() } }
+                try {
+                    if (bitmaps.size <= 1) {
+                        bitmaps.firstOrNull()?.let { shareBitmap(context, it) }
+                    } else if (!shareMultipleBitmaps(context, bitmaps)) {
+                        // El destino/dispositivo no acepta múltiples imágenes a la vez: guardar todas para no descartar continuaciones.
+                        bitmaps.forEach { saveImage(context, it) }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "Ninguna app admite varias imágenes juntas; se guardaron las ${bitmaps.size} páginas en Imágenes/KPKN.",
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
+                    }
+                } finally {
+                    bitmaps.forEach { it.recycle() }
+                }
             }.onFailure { Toast.makeText(context, "No se pudo abrir la pantalla para compartir.", Toast.LENGTH_SHORT).show() }
         }
     }
@@ -62,17 +78,25 @@ object WorkoutShareService {
             shareBitmap(context, bitmaps.first())
             return
         }
-        val uris = withContext(Dispatchers.IO) {
-            val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
-            val result = ArrayList<Uri>(bitmaps.size)
-            bitmaps.forEachIndexed { index, bitmap ->
-                val file = File.createTempFile("workout-story-${index + 1}-", ".png", dir)
-                FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
-                result += FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            }
-            result
+        check(shareMultipleBitmaps(context, bitmaps)) {
+            "Ninguna app admite compartir varias imágenes a la vez."
         }
-        withContext(Dispatchers.Main) {
+    }
+
+    internal suspend fun shareMultipleBitmaps(context: Context, bitmaps: List<Bitmap>): Boolean {
+        if (bitmaps.isEmpty()) return false
+        if (bitmaps.size == 1) {
+            shareBitmap(context, bitmaps.first())
+            return true
+        }
+        val uris = withContext(Dispatchers.IO) {
+            ArrayList<Uri>(bitmaps.size).apply {
+                bitmaps.forEachIndexed { index, bitmap ->
+                    add(writeBitmapShareUri(context, "workout-story-${index + 1}-", bitmap))
+                }
+            }
+        }
+        return withContext(Dispatchers.Main) {
             val clip = ClipData.newRawUri("workout_story", uris.first()).apply {
                 uris.drop(1).forEach { addItem(ClipData.Item(it)) }
             }
@@ -81,24 +105,30 @@ object WorkoutShareService {
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
                 clipData = clip
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
+            if (send.resolveActivity(context.packageManager) == null) return@withContext false
+            if (context !is Activity) send.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             val chooser = Intent.createChooser(send, "Compartir entrenamiento").apply {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(chooser)
+            true
         }
     }
 
     internal suspend fun shareBitmap(context: Context, bitmap: Bitmap) {
         val uri = withContext(Dispatchers.IO) {
-            val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
-            val file = File.createTempFile("workout-story-", ".png", dir)
-            FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
-            FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
+            writeBitmapShareUri(context, "workout-story-", bitmap)
         }
-        withContext(Dispatchers.Main) { launchShareIntents(context,uri) }
+        withContext(Dispatchers.Main) { launchShareIntents(context, uri) }
+    }
+
+    private fun writeBitmapShareUri(context: Context, prefix: String, bitmap: Bitmap): Uri {
+        val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+        val file = File.createTempFile(prefix, ".png", dir)
+        FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
 
     /** Shares only the selected local photo through Android's chooser, without story/Instagram routing. */

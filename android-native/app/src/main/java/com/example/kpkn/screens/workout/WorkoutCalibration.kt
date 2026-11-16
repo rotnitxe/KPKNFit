@@ -143,6 +143,39 @@ internal fun calibrationHistoryReference(history: List<WorkoutLog>, context: Cal
     return ewma?.let { HistoricalCalibrationReference(context, it) }
 }
 
+/**
+ * A declared exercise reference is unscoped, so it belongs to the base context.
+ * The live session assigns a stable Default tag to otherwise untagged exercises;
+ * that bookkeeping token must not hide the declaration. A real selected tag,
+ * brand, setup, side, load mode, or technique context still has to match exactly.
+ */
+internal fun declaredReferenceMatchesBaseContext(
+    state: WorkoutUiState,
+    exercise: Exercise,
+    actual: CalibrationContext,
+    declared: CalibrationContext,
+): Boolean {
+    if (actual == declared) return true
+    val actualParts = actual.equipmentKey.split('|')
+    val declaredParts = declared.equipmentKey.split('|')
+    if (actualParts.size != 6 || declaredParts.size != 6) return false
+
+    val defaultTagTokens = state.userCreatedTags.values.asSequence()
+        .flatten()
+        .filter { tag ->
+            tag.exerciseKey == exercise.resolvedCanonicalExerciseId() &&
+                (tag.isDefault || (tag.ownsUntaggedHistory && WorkoutTagResolver.isDefaultName(tag.name)))
+        }
+        .flatMap { tag -> sequenceOf(tag.id, tag.name) }
+        .filter { it.isNotBlank() }
+        .toSet()
+    val contextTag = actualParts[2]
+    if (contextTag !in defaultTagTokens || contextTag == "na") return false
+
+    val normalizedParts = actualParts.toMutableList().apply { this[2] = "na" }
+    return actual.copy(equipmentKey = normalizedParts.joinToString("|")) == declared
+}
+
 internal fun buildRecordedCalibration(
     state: WorkoutUiState, exercise: Exercise, index: Int, completed: CompletedSet,
     history: List<WorkoutLog>, accepted: List<AcceptedCalibrationReference>, now: Long,
@@ -157,7 +190,7 @@ internal fun buildRecordedCalibration(
     // The unscoped declared fields belong to the planned base context. A live tag/brand/side
     // change cannot relabel them as a declaration for that new context.
     val declaredContext = calibrationContextForSet(WorkoutUiState(), exercise, index, null)
-    val declarationMatches = context == declaredContext
+    val declarationMatches = declaredReferenceMatchesBaseContext(state, exercise, context, declaredContext)
     val references = CalibrationReferenceCandidates(accepted,
         calibrationHistoryReference(history, context),
         exercise.reference1RM?.takeIf { declarationMatches }?.let { DeclaredCalibrationOneRm(context, it) },

@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.stories
 
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecordedSetPayload
@@ -348,5 +349,73 @@ class WorkoutStoryModelTest {
         assertEquals("LASTRE", lastreStory.exerciseEyebrow)
         assertEquals("Peso corporal + lastre · Carga sin detalle × 5", lastreStory.bestSet)
         assertNull(lastreStory.exerciseE1rm)
+    }
+
+    @Test
+    fun listaDeEjerciciosUsaDuracionEnCardioSingularYSoporteRpeFalloEnEsfuerzo() {
+        val cardioSet = CompletedSet(
+            id = "c1",
+            reps = 0,
+            timeSeconds = 1200,
+            distanceKm = 2.5,
+            recordedPayloadV3 = RecordedSetPayload(actualValue = 2500.0, exerciseId = "run", unitMode = UnitModeV2.DISTANCE),
+        )
+        val cardioLift = FinishLiftProgress("run", "Cinta continua", cardioSet, 1, null, emptyList())
+        val rpeSet = CompletedSet(
+            id = "rpe1",
+            weight = 100.0,
+            reps = 5,
+            actualIntensityMode = IntensityMode.RPE,
+            actualIntensityValue = 8.5,
+        )
+        val singleSetLift = FinishLiftProgress("bp", "Press banca", rpeSet, 1, null, emptyList())
+        val failureSet = CompletedSet(id = "f1", weight = 80.0, reps = 6, isFailure = true)
+        val failLift = FinishLiftProgress("row", "Remo", failureSet, 3, null, emptyList())
+
+        val story = workoutStoryFrom(
+            datos(lifts = listOf(cardioLift, singleSetLift, failLift)),
+            WorkoutStoryOptions(exerciseList = true, exerciseId = "bp"),
+        )
+        assertEquals(
+            listOf(
+                "Cinta continua" to "2,5 km · 20 min",
+                "Press banca" to "1 serie",
+                "Remo" to "3 series",
+            ),
+            story.exerciseLines.map { it.name to it.detail },
+        )
+        assertEquals("RPE 8,5", story.bestEffort)
+        assertEquals("Al fallo", workoutStoryFrom(datos(lifts = listOf(failLift)), WorkoutStoryOptions(exerciseId = "row")).bestEffort)
+    }
+
+    @Test
+    fun paginacionConservaTodosLosEjerciciosParaUnoSeisSieteYQuinceConTituloLargo() {
+        val quince = (1..15).map { ejercicio("e$it", "Ejercicio número $it", 60.0, null) }
+        val longTitle = "Sesión de hipertrofia tren superior pesado"
+
+        val one = workoutStoryPagesFrom(datos(lifts = quince.take(1)), WorkoutStoryOptions(exerciseList = true))
+        val six = workoutStoryPagesFrom(datos(lifts = quince.take(6)), WorkoutStoryOptions(exerciseList = true))
+        val seven = workoutStoryPagesFrom(datos(lifts = quince.take(7)), WorkoutStoryOptions(exerciseList = true))
+        val fifteenLong = workoutStoryPagesFrom(
+            WorkoutStoryData(
+                sessionName = longTitle,
+                presentation = FinishPresentationContext(today = miercoles),
+                durationMinutes = 60,
+                volume = 5000.0,
+                sets = 45,
+                averageRir = 1.5,
+                intensity = "Alta",
+                lifts = quince,
+                sessionRpe = 8.0,
+            ),
+            WorkoutStoryOptions(exerciseList = true),
+        )
+
+        assertEquals(1, one.size)
+        assertEquals(1, six.size)
+        assertEquals(2, seven.size)
+        assertEquals(7, seven.flatMap { it.exerciseLines }.size)
+        assertEquals(quince.map { it.name }, fifteenLong.flatMap { page -> page.exerciseLines.map { it.name } })
+        assertTrue(fifteenLong.size >= 3)
     }
 }

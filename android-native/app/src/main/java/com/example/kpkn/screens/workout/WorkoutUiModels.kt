@@ -133,6 +133,9 @@ data class PrescriptionSetAddition(
     val sourceSetId: String,
     val plannedSlotId: String?,
     val prescription: SetPrescriptionSnapshot,
+    /** Stable predecessor in the edited live order; future occurrences may have a different set order. */
+    val afterPlannedSlotId: String? = null,
+    val insertAtStart: Boolean = false,
 )
 
 data class PrescriptionSetRemoval(
@@ -150,6 +153,9 @@ sealed class PendingStructuralChange(open val operationId: String) {
         val newSetId: String = UUID.randomUUID().toString(),
         /** Stable planned slot shared by the source and future occurrences. */
         val plannedSlotId: String? = null,
+        /** Position and stable predecessor in the edited source order; futures can order slots differently. */
+        val sourceSetOrdinal: Int? = null,
+        val afterPlannedSlotId: String? = null,
         override val operationId: String = UUID.randomUUID().toString(),
     ) : PendingStructuralChange(operationId)
     data class AddExercise(

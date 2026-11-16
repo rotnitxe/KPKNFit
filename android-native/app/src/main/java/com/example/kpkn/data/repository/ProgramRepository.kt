@@ -2600,6 +2600,9 @@ class ProgramRepository private constructor(
                     db.workoutLogDao().insert(log.toEntity())
                 }
             }
+            PersistenceWriteCoordinator.mutex.withLock {
+                db.settingsDao().upsert(_settings.value.toEntity())
+            }
         }
     }
 

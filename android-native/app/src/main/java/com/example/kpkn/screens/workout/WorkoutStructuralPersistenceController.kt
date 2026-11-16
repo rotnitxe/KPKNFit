@@ -347,11 +347,35 @@ class WorkoutStructuralPersistenceController(
                     return@withModeSession modeSession
                 }
                 modeSession.replaceExerciseById(targetExercise.id) { exercise ->
-                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = exercise.sets + plannedSetAfterLast(
-                        exercise,
-                        id = change.newSetId,
-                        plannedSlotId = change.plannedSlotId,
-                    )))
+                    val sets = exercise.sets.toMutableList()
+                    val insertionIndex = if (isSourceOccurrence) {
+                        sets.size
+                    } else when {
+                        !change.afterPlannedSlotId.isNullOrBlank() -> {
+                            val anchors = sets.mapIndexedNotNull { index, set ->
+                                index.takeIf { set.plannedSlotId == change.afterPlannedSlotId }
+                            }
+                            anchors.singleOrNull()?.plus(1) ?: run {
+                                onMappingFailure()
+                                return@replaceExerciseById exercise
+                            }
+                        }
+                        change.sourceSetOrdinal == 0 -> 0
+                        change.sourceSetOrdinal == null || change.sourceSetOrdinal == sets.size -> sets.size
+                        else -> {
+                            onMappingFailure()
+                            return@replaceExerciseById exercise
+                        }
+                    }
+                    sets.add(
+                        insertionIndex,
+                        plannedSetAfterLast(
+                            exercise,
+                            id = change.newSetId,
+                            plannedSlotId = change.plannedSlotId,
+                        ),
+                    )
+                    WorkoutEditingRules.normalizeLiveEditedExercise(exercise.copy(sets = sets))
                 }
             }
             is PendingStructuralChange.AddExercise -> {
@@ -594,17 +618,37 @@ class WorkoutStructuralPersistenceController(
                         onMappingFailure()
                         return@withModeSession modeSession
                     }
-                    if ((!isSourceOccurrence && addition.plannedSlotId.isNullOrBlank()) ||
-                        addition.setOrdinal !in 0..sets.size ||
-                        (!isSourceOccurrence && addition.setOrdinal != sets.size)
-                    ) {
+                    if (!isSourceOccurrence && addition.plannedSlotId.isNullOrBlank()) {
+                        onMappingFailure()
+                        return@withModeSession modeSession
+                    }
+                    val insertionIndex = when {
+                        !addition.afterPlannedSlotId.isNullOrBlank() -> {
+                            val anchors = sets.mapIndexedNotNull { index, set ->
+                                index.takeIf { set.plannedSlotId == addition.afterPlannedSlotId }
+                            }
+                            val anchorIndex = anchors.singleOrNull() ?: run {
+                                onMappingFailure()
+                                return@withModeSession modeSession
+                            }
+                            anchorIndex + 1
+                        }
+                        addition.insertAtStart -> 0
+                        addition.setOrdinal in 0..sets.size && (isSourceOccurrence || addition.setOrdinal == sets.size) ->
+                            addition.setOrdinal
+                        else -> {
+                            onMappingFailure()
+                            return@withModeSession modeSession
+                        }
+                    }
+                    if (insertionIndex !in 0..sets.size) {
                         onMappingFailure()
                         return@withModeSession modeSession
                     }
                     val added = addition.prescription.applyTo(
                         ExerciseSet(id = addition.sourceSetId, plannedSlotId = addition.plannedSlotId),
                     )
-                    sets.add(addition.setOrdinal, added)
+                    sets.add(insertionIndex, added)
                 }
                 modeSession.replaceExerciseById(targetExercise.id) { it.copy(sets = sets) }
             }
