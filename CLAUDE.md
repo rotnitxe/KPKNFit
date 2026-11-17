@@ -2,6 +2,8 @@
 
 This file serves as a reference for AI coding agents working on the KPKN Fit native Kotlin project.
 
+> **Storage & Git Discipline (`AGENTS.md`):** Work on `master` (remove any temporary worktree immediately after merging), never store `avd-home` snapshots or alternate `build/` dirs inside the repo, keep only the latest canonical release APK in `releases/`, and clean temporary QA screenshots/logs/artifacts before finishing.
+
 ---
 
 ## 🛠️ Build & Test Commands

@@ -8,6 +8,13 @@
 - Todo acceso mediante `phone_run` y `phone.lock`, con un único agente dueño y las guardas intactas. Identificar primero variantes antiguas y preservar cualquier dato del usuario antes de una limpieza.
 - No contactar otros chats sin autorización humana específica para la tarea actual. La autorización de coordinación de una entrega anterior no se extiende a trabajos posteriores.
 
+## Storage Hygiene & Git Discipline (mandatory)
+
+- **Branch única en `master`**: trabaja directamente sobre `master` salvo orden explícita. Si por excepción creas un worktree temporal, intégralo en `master` y elimínalo de inmediato (`git worktree remove`) al cerrar la tarea; nunca dejes worktrees huérfanos en `.worktrees/` o `.claude/worktrees/`.
+- **Prohibido almacenar AVDs o builds alternos dentro del repo**: nunca crees copias de `avd-home`, `avd-home-full`, carpetas `android-native/app/build/importador-*`, `.qa-temp-*` ni clones de build (`.qa-post-rings/`) dentro del repositorio. Usa el `ANDROID_AVD_HOME` del sistema (o `$env:TEMP` si requieres un temporal desechable, borrándolo en `finally`).
+- **Cero acumulación de artefactos QA y APKs**: conserva en `releases/` únicamente el último APK canónico `baseRelease`; elimina APKs antiguos, carpetas de evidencia intermedias, capturas/vídeos masivos de QA (`artifacts/`, `output/`, `android-native/output/`, raíces `*.png`/`*.xml`/`*.log`) y archivos de generación de imágenes (`*_candidate.*`, `*_review.*`) antes de dar por terminada una entrega.
+- **No infles `.git/`**: no comitees binarios, APKs, zips ni capturas de prueba; respeta `.gitignore` y evita dejar snapshots o refs temporales innecesarios.
+
 KPKN Fit is a local-first native Android application with an iOS parity port and an optional FastAPI analysis backend. The primary product is `android-native/`.
 
 ## Validation

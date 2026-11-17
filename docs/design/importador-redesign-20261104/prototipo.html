@@ -1,0 +1,2089 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>KPKN · Rediseño del importador de programas</title>
+<style>
+@font-face{font-family:Syne;src:url('../../../android-native/app/src/main/res/font/syne_regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:Syne;src:url('../../../android-native/app/src/main/res/font/syne_bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:Syne;src:url('../../../android-native/app/src/main/res/font/syne_extrabold.ttf') format('truetype');font-weight:800;font-display:swap}
+@font-face{font-family:Inter;src:url('../../../android-native/app/src/main/res/font/wizard_body_regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:Inter;src:url('../../../android-native/app/src/main/res/font/wizard_body_medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:Inter;src:url('../../../android-native/app/src/main/res/font/wizard_body_semibold.ttf') format('truetype');font-weight:600;font-display:swap}
+:root{
+  --ink:#F2EEE6;--muted:#C4BFB6;--faint:#8E8980;--dim:#5F5C57;
+  --canvas:#000;--module:#111;--pressed:#161616;--inset:#1A1A1A;--line:rgba(255,255,255,.07);--div:rgba(255,255,255,.06);
+  --glass:rgba(10,10,10,.55);
+  --muscle:#F49A6E;--energy:#F7CF73;--spine:#8FB2FF;--mind:#C9B8FF;--ok:#43D18C;--danger:#FF9B92;--info:#74B5FF;
+  --protein:#EF5350;--carbs:#7E57C2;--fat:#26A69A;--kcal:#42A5F5;
+  --lab:#080808;--labline:rgba(255,255,255,.09);
+  --ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.3,1.2,.5,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--lab);color:var(--ink);font-family:Inter,Arial,sans-serif;font-synthesis:none}
+body{background:
+  radial-gradient(60% 35% at 18% -8%,rgba(244,154,110,.07),transparent 70%),
+  radial-gradient(45% 30% at 88% 4%,rgba(143,178,255,.055),transparent 70%),
+  var(--lab)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--muscle);outline-offset:3px}
+button:active:not(:disabled){transform:scale(.975)}
+button:disabled{cursor:not-allowed}
+svg{display:block;flex-shrink:0}
+::selection{background:rgba(244,154,110,.3)}
+.tnum{font-variant-numeric:lining-nums tabular-nums}
+.muted{color:var(--muted)}.faint{color:var(--faint)}.ink{color:var(--ink)}
+.hidden{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ═══════════════════ laboratorio ═══════════════════ */
+.lab-head{max-width:1420px;margin:auto;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--labline);gap:24px}
+.wordmark{font:800 27px/1 Syne;letter-spacing:-1.4px}
+.wordmark span{font:500 10px Inter;letter-spacing:2.1px;color:var(--faint);margin-left:10px;vertical-align:middle}
+.edition{font-size:10px;letter-spacing:1.7px;line-height:1.6;font-weight:600;color:var(--faint);text-align:right;text-transform:uppercase}
+.lab-intro{max-width:1420px;margin:auto;padding:34px 28px 22px}
+.lab-intro .eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--muscle)}
+.lab-intro h1{font:700 clamp(30px,3.2vw,44px)/1.04 Syne;letter-spacing:-1.4px;margin:10px 0 12px;max-width:980px;text-wrap:balance}
+.lab-intro p{max-width:740px;margin:0;color:var(--muted);font-size:14.5px;line-height:1.55}
+.lab-intro .basis{margin-top:10px;font-size:11px;letter-spacing:.3px;color:var(--faint)}
+.lab-controls{max-width:1420px;margin:auto;padding:0 28px 22px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:3px;background:#0d0d0d;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:4px;flex-wrap:wrap}
+.tabs button{height:38px;padding:0 16px;border-radius:20px;color:var(--muted);font:600 13px Inter;transition:background .18s,color .18s}
+.tabs button[aria-selected="true"]{background:#272727;color:var(--ink)}
+.selectors{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.selectors label{display:flex;flex-direction:column;gap:5px;font-size:9.5px;letter-spacing:1.4px;font-weight:600;color:var(--faint);text-transform:uppercase}
+.selectors select{height:38px;border-radius:12px;background:#0d0d0d;border:1px solid rgba(255,255,255,.13);padding:0 11px;font-size:12.5px;color:var(--ink);min-width:150px}
+main{max-width:1420px;margin:auto;padding:0 28px 70px}
+.stage{display:grid;grid-template-columns:214px var(--pw,360px) minmax(0,1fr);gap:32px;align-items:start;justify-content:start}
+@media(max-width:1180px){.stage{grid-template-columns:190px var(--pw,360px) minmax(0,1fr);gap:26px}}
+@media(max-width:980px){.stage{grid-template-columns:1fr;justify-items:center}.nav,.notes{width:100%;max-width:680px}}
+
+/* navegación del laboratorio */
+.nav{padding-top:6px;position:sticky;top:18px}
+.nav-group{font-size:9.5px;letter-spacing:1.6px;font-weight:600;color:var(--faint);margin:20px 0 7px;text-transform:uppercase}
+.nav-group:first-child{margin-top:0}
+.nav button{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;padding:9px 10px;border-radius:13px;color:var(--muted);font-size:12.6px;line-height:1.25;transition:background .16s,color .16s}
+.nav button:hover{background:rgba(255,255,255,.045);color:var(--ink)}
+.nav button.on{background:#1b1b1b;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.nav b{font:600 10px Inter;color:var(--faint);letter-spacing:.5px}
+.nav button.on b{color:var(--muscle)}
+.nav em{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.6px;padding:2px 5px;border-radius:5px;background:rgba(255,255,255,.06);color:var(--faint)}
+.nav em.new{background:rgba(244,154,110,.14);color:var(--muscle)}
+.nav em.state{background:rgba(255,155,146,.12);color:var(--danger)}
+.nav em.keep{background:rgba(67,209,140,.12);color:var(--ok)}
+
+/* notas */
+.notes{padding-top:6px;max-width:600px;min-width:0}
+.notes .kicker{font-size:9.5px;letter-spacing:1.7px;font-weight:600;color:var(--muscle);text-transform:uppercase}
+.notes h2{font:700 26px/1.08 Syne;letter-spacing:-.7px;margin:8px 0 12px;text-wrap:balance}
+.notes .lead{font-size:13.5px;line-height:1.62;color:var(--muted);margin:0 0 14px}
+.notes h3{font-size:9.5px;letter-spacing:1.6px;color:var(--faint);font-weight:600;margin:20px 0 7px;text-transform:uppercase}
+.notes ul{margin:0;padding-left:16px;color:var(--muted);font-size:12.6px;line-height:1.55}
+.notes li{margin-bottom:6px}
+.notes b{color:var(--ink);font-weight:600}
+.notes .impl{font-size:12.4px;line-height:1.55;color:var(--muted);background:#0d0d0d;border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;margin-top:8px}
+.notes .impl strong{color:var(--ink);font-weight:600}
+.notes code,.dtable code,.doc code{font:500 10.5px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink);background:#ffffff0d;border:1px solid rgba(255,255,255,.06);padding:1px 4px;border-radius:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.tag{font-size:8.5px;letter-spacing:.9px;font-weight:700;padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.06);color:var(--muted);text-transform:uppercase}
+.tag.new{background:rgba(244,154,110,.14);color:var(--muscle)}
+.tag.change{background:rgba(143,178,255,.12);color:var(--spine)}
+.tag.state{background:rgba(255,155,146,.11);color:var(--danger)}
+.tag.keep{background:rgba(67,209,140,.1);color:var(--ok)}
+.notes .quote{font-size:12px;color:var(--faint);border-left:2px solid rgba(244,154,110,.4);padding-left:10px;margin:12px 0 0;line-height:1.55}
+
+/* ═══════════════════ teléfono ═══════════════════ */
+.phone-wrap{width:var(--pw,360px);position:sticky;top:18px}
+.phone{width:var(--pw,360px);height:var(--ph,880px);border-radius:38px;background:#000;border:1px solid rgba(255,255,255,.16);box-shadow:0 34px 90px rgba(0,0,0,.72),0 0 0 9px #050505,0 0 0 10px rgba(255,255,255,.045);overflow:hidden;position:relative;isolation:isolate}
+.phone:after{content:"";position:absolute;inset:0;border-radius:37px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);z-index:999}
+.statusbar{position:absolute;top:0;left:0;right:0;height:30px;padding:8px 24px 0;display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:600;letter-spacing:.2px;z-index:120;pointer-events:none;color:var(--ink)}
+.statusbar .sys{display:flex;gap:5px;align-items:center;font-size:10px}
+.statusbar .sys i{display:block;width:15px;height:8px;border:1px solid rgba(255,255,255,.55);border-radius:2px;position:relative}
+.statusbar .sys i:after{content:"";position:absolute;inset:1px 4px 1px 1px;background:var(--ink);border-radius:1px}
+.screen{position:absolute;inset:0}
+.homebar{position:absolute;bottom:7px;left:50%;width:112px;height:4px;border-radius:2px;background:rgba(255,255,255,.42);transform:translateX(-50%);z-index:130;pointer-events:none}
+.page{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;overflow:hidden;animation:pageIn .28s var(--ease)}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:44px 16px 128px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.page.has-chrome .scroll{padding-top:104px}
+.page.has-dock .scroll{padding-bottom:136px}
+.page.tight .scroll{padding-top:40px}
+.veil{position:absolute;top:0;left:0;right:0;height:84px;background:linear-gradient(#000 18%,rgba(0,0,0,.72) 52%,transparent);z-index:40;pointer-events:none}
+
+/* chrome flotante */
+.chrome{position:absolute;top:36px;left:12px;right:12px;height:56px;z-index:70;border-radius:30px;display:flex;align-items:center;gap:4px;padding:4px}
+.glass{background:#1b1b1d99;backdrop-filter:blur(24px) saturate(1.7);-webkit-backdrop-filter:blur(24px) saturate(1.7);border:1px solid #ffffff22;box-shadow:0 10px 30px #000a,inset 0 1px #ffffff18}
+.icon-btn{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0;background:rgba(255,255,255,.055);position:relative}
+.icon-btn.plain{background:none;color:var(--muted)}
+.chrome-t{flex:1;min-width:0;padding:0 2px}
+.chrome-t strong{display:block;font:600 14.5px/1.15 Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chrome-t span{display:block;font:400 11.5px/1.2 Inter;color:var(--faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chrome-a{min-height:40px;padding:0 12px;border-radius:20px;display:inline-flex;align-items:center;font:600 12px Inter;color:var(--ink);white-space:nowrap;flex-shrink:0}
+.chrome-a.ghost{width:44px;padding:0;opacity:0;pointer-events:none}
+.chrome-a.warn{color:var(--energy)}
+
+/* tipografía */
+.eyebrow{font:600 10.5px/1.5 Inter;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.eyebrow.warm{color:var(--muscle)}.eyebrow.energy{color:var(--energy)}.eyebrow.ok{color:var(--ok)}
+.display{font:700 29px/1.05 Syne;letter-spacing:-1.1px;margin:8px 0 10px;text-wrap:balance}
+.h1{font:700 26px/1.08 Syne;letter-spacing:-.8px;margin:6px 0 8px;text-wrap:balance}
+.h2{font:700 19px/1.15 Syne;letter-spacing:-.4px;margin:0 0 4px}
+.body{font-size:13px;line-height:1.55;color:var(--muted);margin:0}
+.cap{font-size:12px;line-height:1.45;color:var(--faint);margin:0}
+.metric{font:800 30px/1 Syne;letter-spacing:-1px;font-variant-numeric:lining-nums tabular-nums}
+.metric small{font:600 11px Inter;color:var(--muted);margin-left:3px;letter-spacing:0}
+.num{font:600 13px/1.35 Inter;font-variant-numeric:lining-nums tabular-nums;letter-spacing:0}
+.divider{height:1px;background:var(--div);margin:12px 0}
+
+/* módulos y filas */
+.mod{background:var(--module);border:1px solid var(--line);border-radius:24px;padding:16px 18px 18px;margin-bottom:12px}
+.mod.tight{padding:12px 16px}
+.mod.flush{padding:0;overflow:hidden}
+.mod.tint-warm{background:linear-gradient(155deg,rgba(244,154,110,.10),rgba(17,17,17,.96) 62%);border-color:rgba(244,154,110,.22)}
+.mod.tint-energy{background:linear-gradient(155deg,rgba(247,207,115,.09),rgba(17,17,17,.96) 64%);border-color:rgba(247,207,115,.22)}
+.mod.tint-danger{background:linear-gradient(155deg,rgba(255,155,146,.09),rgba(17,17,17,.96) 64%);border-color:rgba(255,155,146,.22)}
+.mod-h{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
+.act{display:inline-flex;align-items:center;gap:3px;font:600 12px/1 Inter;color:var(--ink);min-height:34px;white-space:nowrap}
+.act.muted{color:var(--muted)}.act.warm{color:var(--muscle)}.act.danger{color:var(--danger)}
+.row{display:flex;align-items:center;gap:11px;min-height:48px}
+.grow{flex:1;min-width:0}
+.trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* píldoras y chips */
+.pill{height:52px;border-radius:26px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 20px;font:600 14.5px Inter;white-space:nowrap;transition:transform .15s var(--spring),background .18s}
+.pill.primary{background:linear-gradient(180deg,#F4F0E9,#D6D0C6);color:#0B0B0B;box-shadow:0 1px 0 rgba(255,255,255,.35) inset}
+.pill.secondary{background:#ffffff0f;border:1px solid #ffffff1f;color:var(--ink)}
+.pill.ghost{color:var(--muted)}
+.pill.sm{height:40px;font-size:12.5px;padding:0 15px;border-radius:20px}
+.pill.danger{background:#ff9b9214;color:var(--danger);border:1px solid #ff9b9233}
+.pill[disabled]{background:#2E2E2E;color:#7A7A7A;box-shadow:none;transform:none}
+.chip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:14px;background:var(--inset);border:1px solid rgba(255,255,255,.055);font:500 11px Inter;color:var(--muted);white-space:nowrap}
+.chip.on{background:var(--ink);color:#111;border-color:transparent}
+.chip.ok{background:rgba(67,209,140,.11);border-color:rgba(67,209,140,.2);color:var(--ok)}
+.chip.warn{background:rgba(247,207,115,.09);border-color:rgba(247,207,115,.2);color:var(--energy)}
+.chip.danger{background:rgba(255,155,146,.09);border-color:rgba(255,155,146,.2);color:var(--danger)}
+.chip.warm{background:rgba(244,154,110,.10);border-color:rgba(244,154,110,.2);color:var(--muscle)}
+.chip.pro{background:rgba(201,184,255,.10);border-color:rgba(201,184,255,.2);color:var(--mind)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--energy)}.dot.danger{background:var(--danger)}.dot.muscle{background:var(--muscle)}
+
+/* segmentado */
+.seg{display:flex;gap:2px;padding:4px;border-radius:24px;background:#0c0c0c;border:1px solid rgba(255,255,255,.075)}
+.seg button{flex:1;min-width:0;height:36px;border-radius:18px;font:600 11.5px Inter;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 7px;transition:background .18s,color .18s}
+.seg button.on{background:#272727;color:var(--ink)}
+.seg .n{font-weight:600;color:var(--faint);margin-left:4px}
+.seg button.on .n{color:var(--muscle)}
+
+/* pasos */
+.stepbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 14px}
+.stepbar .lab{font:600 10px Inter;letter-spacing:1.5px;color:var(--faint);text-transform:uppercase;white-space:nowrap}
+.steps{display:flex;gap:4px;flex:1;max-width:138px}
+.steps i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.1);display:block;overflow:hidden}
+.steps i.done{background:rgba(244,154,110,.62)}
+.steps i.now{background:var(--ink)}
+.stepbar .count{font:600 10.5px Inter;color:var(--muted);white-space:nowrap}
+
+/* field */
+.field-label{font:600 10px Inter;letter-spacing:1.4px;color:var(--faint);text-transform:uppercase;display:block;margin:0 2px 7px}
+.title-input{width:100%;height:52px;background:#0d0d0d;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:0 14px;font:600 16px Inter;color:var(--ink)}
+.title-input:focus{border-color:rgba(244,154,110,.55);outline:none}
+.search{width:100%;height:46px;border-radius:16px;background:#0b0b0b;border:1px solid rgba(255,255,255,.12);padding:0 14px 0 42px;font-size:13px;color:var(--ink)}
+.search::placeholder{color:var(--dim)}
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.textarea{width:100%;min-height:170px;resize:vertical;background:#0b0b0b;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:13px 14px;font:400 12.5px/1.65 Inter;color:var(--ink)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kpi{background:var(--inset);border-radius:18px;padding:11px 13px;min-width:0}
+.kpi small{display:block;font:600 10px Inter;letter-spacing:1.2px;color:var(--faint);text-transform:uppercase}
+.kpi b{display:block;font:800 24px/1 Syne;letter-spacing:-.8px;margin-top:7px;font-variant-numeric:tabular-nums}
+.kpi span{display:block;font-size:10.5px;color:var(--faint);margin-top:4px;line-height:1.3}
+
+/* prueba / entrada */
+.entry-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 20px}
+.proof{display:flex;align-items:center;gap:12px;margin:14px 0 18px;padding:13px 14px;border-radius:20px;background:linear-gradient(120deg,rgba(244,154,110,.09),rgba(17,17,17,.55) 55%,rgba(17,17,17,.2));border:1px solid rgba(244,154,110,.16);position:relative;overflow:hidden}
+.proof:after{content:"";position:absolute;top:0;bottom:0;left:-60px;width:42px;background:linear-gradient(90deg,transparent,rgba(244,154,110,.12),transparent);animation:sweep 4.2s ease-in-out infinite}
+@keyframes sweep{0%,55%{left:-60px}100%{left:105%}}
+.proof-doc{width:36px;height:44px;border-radius:9px;background:#171717;border:1px solid rgba(255,255,255,.13);display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;color:var(--muscle);flex-shrink:0;position:relative}
+.proof-doc i{display:block;width:16px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.18)}
+.proof-doc svg{width:15px;height:15px;margin-bottom:2px}
+.proof-arrow{color:var(--dim);flex-shrink:0}
+.proof-grid{display:flex;gap:5px;flex-wrap:wrap;min-width:0}
+.proof-chip{display:inline-flex;align-items:baseline;gap:4px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:5px 8px;font:600 10.5px Inter;color:var(--muted);white-space:nowrap}
+.proof-chip b{font:800 14px Syne;color:var(--ink);letter-spacing:-.4px}
+
+.source-main{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px;border-radius:22px;background:linear-gradient(145deg,rgba(244,154,110,.13),rgba(18,18,18,.9) 62%);border:1px solid rgba(244,154,110,.24);margin-bottom:9px;position:relative;overflow:hidden}
+.source-main:after{content:"";position:absolute;right:-30px;top:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(244,154,110,.14),transparent 70%);pointer-events:none}
+.source-ico{width:46px;height:46px;border-radius:50%;background:rgba(244,154,110,.12);border:1px solid rgba(244,154,110,.2);display:flex;align-items:center;justify-content:center;color:var(--muscle);flex-shrink:0}
+.source-main strong{display:block;font:700 17px/1.15 Syne;letter-spacing:-.3px}
+.source-main span{display:block;font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.35}
+.source-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.source-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:14px;border-radius:20px;background:var(--module);border:1px solid var(--line);min-height:116px}
+.source-card .source-ico{width:38px;height:38px;background:var(--inset);border-color:rgba(255,255,255,.06);color:var(--muted)}
+.source-card strong{display:block;font:600 13.5px Inter;margin-top:auto}
+.source-card span{display:block;font-size:11px;line-height:1.35;color:var(--faint)}
+.source-card.energy .source-ico{color:var(--energy);background:rgba(247,207,115,.08);border-color:rgba(247,207,115,.14)}
+.source-card.spine .source-ico{color:var(--spine);background:rgba(143,178,255,.08);border-color:rgba(143,178,255,.14)}
+
+/* reanudar */
+.resume{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:20px;background:linear-gradient(145deg,rgba(247,207,115,.08),rgba(17,17,17,.9) 68%);border:1px solid rgba(247,207,115,.18);margin-bottom:18px}
+.resume .ic{width:36px;height:36px;border-radius:50%;background:rgba(247,207,115,.1);display:flex;align-items:center;justify-content:center;color:var(--energy);flex-shrink:0}
+.resume strong{display:block;font-size:12.5px;font-weight:600}
+.resume span{display:block;font-size:11px;color:var(--faint);margin-top:2px}
+.resume .act{color:var(--energy)}
+
+/* estructura */
+.wrow{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:11px 0;border-top:1px solid var(--div)}
+.wrow:first-child{border-top:0}
+.wrow strong{font-size:12.5px;font-weight:600;display:block}
+.wrow span{font-size:10.5px;color:var(--faint);margin-top:2px;display:block}
+.wdots{grid-column:1/-1;display:flex;gap:3px;margin-top:4px}
+.wdots i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.07);display:block}
+.wdots i.on{background:rgba(244,154,110,.55)}
+.wdots i.rest{background:rgba(255,255,255,.035)}
+
+/* ejercicios */
+.autobanner{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:18px;background:rgba(67,209,140,.055);border:1px solid rgba(67,209,140,.16);margin:12px 0}
+.autobanner .ic{width:30px;height:30px;border-radius:50%;background:rgba(67,209,140,.13);color:var(--ok);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.autobanner strong{display:block;font-size:12px;font-weight:600}
+.autobanner span{display:block;font-size:11px;color:var(--faint);margin-top:2px;line-height:1.35}
+.group-h{display:flex;align-items:center;justify-content:space-between;margin:20px 3px 6px}
+.group-h .eyebrow{color:var(--faint)}
+.group-h span{font:500 10.5px Inter;color:var(--dim)}
+.exrow{display:grid;grid-template-columns:30px 1fr 20px;gap:10px;align-items:center;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--div);min-height:54px}
+.exrow:first-of-type{border-top:0}
+.exrow.open{border-bottom:0}
+.exico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.exico.ok{background:rgba(67,209,140,.1);color:var(--ok)}
+.exico.warn{background:rgba(247,207,115,.12);color:var(--energy)}
+.exmain{min-width:0}
+.exmain strong{display:block;font:600 13.5px/1.25 Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exmain span{display:block;font-size:11px;color:var(--faint);margin-top:3px;line-height:1.35}
+.exmain em{font-style:normal;color:var(--energy);font-weight:500}
+.exside{display:flex;align-items:center;gap:4px;color:var(--faint);font-size:10.5px;font-weight:600;white-space:nowrap}
+.exside .chev{color:var(--dim)}
+.resolve{padding:0 0 13px 40px;margin-top:-2px}
+.resolve .quote{font-size:11px;color:var(--faint);line-height:1.45;padding-left:9px;border-left:2px solid rgba(247,207,115,.4);margin-bottom:7px}
+.resolve .quote b{color:var(--ink);font-weight:600}
+.resolve .cap{margin-bottom:10px}
+.cand{display:grid;grid-template-columns:18px 1fr auto;gap:9px;align-items:center;width:100%;text-align:left;padding:9px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);margin-bottom:6px;transition:border-color .18s,background .18s}
+.cand:hover{border-color:rgba(244,154,110,.35);background:rgba(244,154,110,.05)}
+.cand-radio{width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(255,255,255,.24);display:block}
+.cand-main strong{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+.cand-main span{display:block;font-size:11px;color:var(--faint);margin-top:2px}
+.cand-conf{text-align:right;min-width:44px}
+.cand-conf i{display:block;height:3px;border-radius:2px;background:rgba(255,255,255,.08);position:relative;margin-bottom:4px;overflow:hidden}
+.cand-conf i:after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w,60%);border-radius:2px;background:var(--energy)}
+.cand-conf b{font:600 10px Inter;color:var(--muted);font-variant-numeric:tabular-nums}
+.resolve-acts{display:flex;gap:8px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.occur{font-size:10.5px;color:var(--faint);line-height:1.45;margin-top:10px;padding-top:9px;border-top:1px solid var(--div)}
+.occur button{font-size:10.5px;font-weight:600;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.resolved-note{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:10px;background:rgba(67,209,140,.06);font-size:10.5px;color:var(--muted);margin-top:2px}
+.resolved-note svg{color:var(--ok)}
+
+/* días */
+.weektabs{display:flex;align-items:center;gap:5px;margin:12px 0 9px;flex-wrap:wrap}
+.weektabs .chip{height:30px;padding:0 11px;font-size:11px}
+.weektabs .act{margin-left:auto;font-size:10.5px;color:var(--faint)}
+.weekstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.wcell{display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 0;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid transparent;min-width:0}
+.wcell small{font-size:10px;letter-spacing:.6px;color:var(--faint);font-weight:600;text-transform:uppercase}
+.wcell b{font:700 13px Syne;color:var(--muted);font-variant-numeric:tabular-nums}
+.wcell i{width:4px;height:4px;border-radius:2px;background:rgba(255,255,255,.16);display:block}
+.wcell.on{border-color:rgba(244,154,110,.2);background:rgba(244,154,110,.06)}
+.wcell.on b{color:var(--ink)}.wcell.on i{background:var(--muscle)}
+.wcell.today{background:var(--ink)}
+.wcell.today small,.wcell.today b{color:#111}.wcell.today i{background:#111}
+.weekmeta{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--faint);margin-top:9px;line-height:1.35}
+.weekmeta b{color:var(--muted);font-weight:600}
+.movetip{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:14px;background:rgba(244,154,110,.09);border:1px solid rgba(244,154,110,.2);font-size:11px;color:var(--muscle);margin:10px 0 2px}
+.movetip button{margin-left:auto;color:var(--muted);font-size:10.5px;font-weight:600;white-space:nowrap}
+.day-row{display:grid;grid-template-columns:34px 1fr;gap:9px;padding:9px 0;border-top:1px solid var(--div);position:relative}
+.day-row:first-of-type{border-top:0}
+.day-list{padding:2px 0 0}
+.day-tag{display:flex;flex-direction:column;align-items:center;padding-top:7px;gap:4px}
+.day-tag b{font:600 10.5px/1 Inter;letter-spacing:.1px;color:var(--muted);min-width:36px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.035);font-variant-numeric:tabular-nums lining-nums;transition:background .18s,color .18s}
+.day-tag i{width:4px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);display:block}
+.day-row.has .day-tag b{background:rgba(244,154,110,.1);color:var(--muscle)}
+.day-row.has .day-tag i{background:var(--muscle)}
+.day-row.target{background:linear-gradient(90deg,rgba(244,154,110,.05),transparent);border-radius:14px;padding-left:5px;margin-left:-5px}
+.day-row.target .day-tag b{background:var(--muscle);color:#111}
+.day-row.target .day-tag i{background:var(--muscle)}
+.day-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.session-card{display:flex;align-items:center;gap:8px;text-align:left;width:100%;padding:10px 11px;border-radius:16px;background:#161616;border:1px solid rgba(255,255,255,.075);min-height:58px;position:relative;transition:border-color .18s,background .18s}
+.session-card:hover{border-color:rgba(255,255,255,.16);background:#181818}
+.session-card.selected{border-color:rgba(244,154,110,.65);background:linear-gradient(140deg,rgba(244,154,110,.1),#161616 65%);box-shadow:0 0 0 1px rgba(244,154,110,.25)}
+.grip{width:24px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--dim);flex-shrink:0}
+.sc-main{flex:1;min-width:0}
+.sc-main strong{display:block;font:700 14.5px/1.15 Syne;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-main span{display:block;font-size:11px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-more{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--faint);flex-shrink:0}
+.day-warn{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--energy);padding-left:4px}
+.rest-line{display:flex;align-items:center;gap:7px;min-height:44px;color:var(--dim);font-size:12px;padding:0 3px}
+.rest-line small{font-size:10.5px;color:var(--dim);margin-left:auto}
+.rest-line svg{color:#4a4843}
+.day-row.target .rest-line{color:var(--muscle)}
+.day-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:11px;border-top:1px solid var(--div);font-size:10.5px;color:var(--faint)}
+.day-foot b{color:var(--muted);font-weight:600}
+
+/* paso de sesiones · el editor real se abre aparte */
+.stepper{display:flex;align-items:center;gap:5px}
+.stepper button{width:38px;height:38px;border-radius:50%;background:var(--inset);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.stepper button:active{background:#222}
+.sess-row{display:grid;grid-template-columns:34px 1fr auto 16px;gap:10px;align-items:center;width:100%;text-align:left;padding:12px 0;border-top:1px solid var(--div);min-height:64px}
+.sess-row:first-of-type{border-top:0}
+.sico{width:34px;height:34px;border-radius:50%;background:rgba(244,154,110,.1);color:var(--muscle);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sess-row .grow strong{display:block;font:600 13.5px/1.25 Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-row .grow span{display:block;font-size:11px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-row > svg{color:var(--dim)}
+.sess-row .chip{margin:0}
+
+/* sesión */
+.session-hero{border-radius:24px;padding:18px;background:
+  radial-gradient(130% 100% at 82% -10%,rgba(244,154,110,.23),transparent 62%),
+  linear-gradient(150deg,#1b1511,#0d0d0d 62%);
+  border:1px solid rgba(244,154,110,.16);position:relative;overflow:hidden;margin-bottom:10px}
+.session-hero:after{content:"";position:absolute;right:-20px;bottom:-46px;width:160px;height:160px;border-radius:50%;border:1px solid rgba(244,154,110,.14);box-shadow:0 0 0 22px rgba(244,154,110,.035),0 0 0 44px rgba(244,154,110,.022);pointer-events:none}
+.session-hero .h1{font-size:33px;margin:4px 0 4px}
+.session-hero .sub{font-size:12px;color:var(--muted)}
+.hero-stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.hero-stats span{font:500 10px Inter;color:var(--muted);background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:5px 8px}
+.origin{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px 12px;font-size:10.5px;color:var(--faint)}
+.origin b{color:var(--muted);font-weight:500}
+.ex-card{border-radius:20px;background:var(--module);border:1px solid var(--line);padding:13px 14px;margin-bottom:8px}
+.ex-card-h{display:flex;align-items:flex-start;gap:8px}
+.ex-card-h .grow strong{display:block;font:600 13.5px/1.25 Inter}
+.ex-card-h .grow span{display:block;font-size:11px;color:var(--faint);margin-top:2px}
+.setgrid{display:grid;grid-template-columns:26px 1fr 1fr 1fr;gap:5px;margin-top:11px;align-items:center}
+.setgrid .th{font:600 10px Inter;letter-spacing:.8px;color:var(--dim);text-transform:uppercase;padding-bottom:2px}
+.setgrid .cell{height:32px;border-radius:9px;background:#0c0c0c;border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font:600 12px Inter;font-variant-numeric:tabular-nums}
+.setgrid .cell.n{background:transparent;border:none;color:var(--faint);font-size:11px;justify-content:flex-start;padding-left:3px}
+.setgrid .cell.hot{border-color:rgba(244,154,110,.3);background:rgba(244,154,110,.06);color:var(--ink)}
+.setgrid .cell b{font-weight:600}
+.setgrid .cell small{font-size:9.5px;color:var(--faint);margin-left:2px}
+.ex-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:10px;color:var(--faint)}
+.ex-card-foot .rest{display:inline-flex;align-items:center;gap:4px}
+.ex-card-foot button{font-size:10px;font-weight:600;color:var(--muted)}
+.addline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:42px;border-radius:14px;border:1px dashed rgba(255,255,255,.16);color:var(--faint);font:600 11px Inter;margin-top:2px}
+.session-note{font-size:10.5px;color:var(--dim);line-height:1.5;margin:14px 4px 0;text-align:center}
+
+/* revisión */
+.passport{border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:#111;margin-bottom:12px}
+.passport .art{height:124px;background:
+  radial-gradient(120% 95% at 78% 0%,rgba(244,154,110,.34),transparent 58%),
+  radial-gradient(90% 80% at 12% 100%,rgba(143,178,255,.12),transparent 60%),
+  linear-gradient(145deg,#2a201a,#101010 68%);position:relative;padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between}
+.passport .art:after{content:"";position:absolute;right:-30px;top:-52px;width:180px;height:180px;border-radius:50%;border:1px solid rgba(244,154,110,.18);box-shadow:0 0 0 26px rgba(244,154,110,.04),0 0 0 52px rgba(244,154,110,.025)}
+.passport .art .eyebrow{font-size:10px;color:rgba(242,238,230,.62)}
+.passport .art h2{font:800 25px/1.03 Syne;letter-spacing:-.8px;margin:0;max-width:260px;text-wrap:balance}
+.passport .art .chips{display:flex;gap:5px;flex-wrap:wrap;position:relative;z-index:1}
+.passport .art .chip{background:rgba(0,0,0,.38);border-color:rgba(255,255,255,.12);color:var(--ink);height:24px;font-size:10.5px}
+.passport .bottom{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid var(--div);font-size:11px;color:var(--faint)}
+.check-row{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--div)}
+.check-row:first-of-type{border-top:0}
+.check-row .ic{width:26px;height:26px;border-radius:50%;background:rgba(67,209,140,.1);color:var(--ok);display:flex;align-items:center;justify-content:center}
+.check-row .ic.warn{background:rgba(247,207,115,.12);color:var(--energy)}
+.check-row .ic.info{background:rgba(116,181,255,.12);color:var(--info)}
+.check-row strong{display:block;font-size:12.5px;font-weight:600}
+.check-row span{display:block;font-size:11px;color:var(--faint);margin-top:2px;line-height:1.35}
+.check-row .act{font-size:11px;color:var(--faint)}
+.bars{display:flex;align-items:flex-end;gap:12px;height:96px;margin:14px 2px 0;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.bars .b b{font:700 11px Syne;color:var(--muscle);font-variant-numeric:tabular-nums}
+.bars .b i{width:100%;max-width:54px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,rgba(244,154,110,.85),rgba(244,154,110,.32));display:block;min-height:8px}
+.bars .b span{font-size:9px;color:var(--faint)}
+.musclebar{display:flex;height:9px;border-radius:5px;overflow:hidden;gap:2px;margin-top:12px}
+.musclebar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:10px;font-size:10px;color:var(--faint)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:7px;height:7px;border-radius:2px;display:block}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--div)}
+.switch-row:first-of-type{border-top:0}
+.switch-row strong{display:block;font-size:12.5px;font-weight:600}
+.switch-row span{display:block;font-size:11px;color:var(--faint);margin-top:2px;line-height:1.4}
+.switch{width:44px;height:26px;border-radius:13px;background:#2b2b2b;position:relative;transition:background .2s;flex-shrink:0}
+.switch:before{content:"";position:absolute;inset:-9px -2px;border-radius:18px}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#8e8980;transition:transform .2s,background .2s}
+.switch.on{background:var(--muscle)}
+.switch.on:after{transform:translateX(18px);background:#111}
+
+/* éxito */
+.success-page{position:absolute;inset:0;background:
+  radial-gradient(55% 38% at 50% 34%,rgba(244,154,110,.16),transparent 68%),
+  radial-gradient(40% 30% at 70% 70%,rgba(143,178,255,.06),transparent 70%),
+  #000;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;animation:pageIn .3s var(--ease)}
+.success-page::-webkit-scrollbar{display:none}
+.success-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:46px 24px 0;text-align:center;position:relative;z-index:2}
+.mark{width:184px;height:184px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.mark .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(244,154,110,.4);animation:ringOut 2.2s var(--ease) infinite}
+.mark .ring.r2{inset:20px;border-color:rgba(244,154,110,.24);animation-delay:.28s}
+.mark .ring.r3{inset:40px;border-color:rgba(242,238,230,.12);animation-delay:.56s}
+@keyframes ringOut{0%{transform:scale(.78);opacity:0}28%{opacity:.9}100%{transform:scale(1.16);opacity:0}}
+.mark .core{width:86px;height:86px;border-radius:50%;background:linear-gradient(160deg,rgba(244,154,110,.2),rgba(17,17,17,.9));border:1px solid rgba(244,154,110,.4);display:flex;align-items:center;justify-content:center;position:relative;z-index:2;box-shadow:0 0 60px rgba(244,154,110,.22)}
+.mark .core svg{width:38px;height:38px;color:var(--muscle);stroke-dasharray:60;stroke-dashoffset:60;animation:draw .7s .35s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.confetti{position:absolute;inset:0;pointer-events:none;z-index:1}
+.confetti i{position:absolute;left:50%;top:37%;width:5px;height:5px;border-radius:2px;background:var(--c);opacity:0;animation:burst 1.5s var(--ease) forwards;animation-delay:var(--d)}
+@keyframes burst{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0)}18%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.9) rotate(var(--r))}}
+.success-top .eyebrow{color:var(--muscle);letter-spacing:2px;font-size:9.5px}
+.success-title{font:800 38px/1 Syne;letter-spacing:-1.6px;margin:9px 0 8px}
+.success-name{font:700 19px/1.2 Syne;letter-spacing:-.4px;color:var(--ink);margin:0 0 6px;text-wrap:balance}
+.success-meta{font-size:12px;color:var(--muted);margin:0}
+.success-card{margin:16px 16px 0;border-radius:22px;background:rgba(17,17,17,.9);border:1px solid rgba(255,255,255,.1);padding:13px 15px;position:relative;z-index:2;animation:rise .6s .45s var(--ease) both}
+.success-card .row{min-height:36px}
+.success-card strong{font-size:12px;font-weight:600}
+.success-card span{font-size:10.5px;color:var(--faint);display:block;margin-top:2px}
+.success-foot{margin-top:auto;padding:16px 16px 24px;position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;animation:rise .6s .6s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.success-foot .cap{text-align:center;margin-top:2px}
+
+/* estados vacío / error */
+.state-visual{width:76px;height:76px;border-radius:26px;background:linear-gradient(150deg,rgba(247,207,115,.12),rgba(17,17,17,.9));border:1px solid rgba(247,207,115,.22);display:flex;align-items:center;justify-content:center;color:var(--energy);margin:12px auto 16px;position:relative}
+.state-visual:after{content:"";position:absolute;inset:-8px;border-radius:32px;border:1px dashed rgba(247,207,115,.16)}
+.state-visual.danger{background:linear-gradient(150deg,rgba(255,155,146,.12),rgba(17,17,17,.9));border-color:rgba(255,155,146,.22);color:var(--danger)}
+.state-visual.danger:after{border-color:rgba(255,155,146,.14)}
+.state-title{font:700 25px/1.1 Syne;letter-spacing:-.7px;text-align:center;margin:0 auto 8px;max-width:310px;text-wrap:balance}
+.state-body{font-size:12.5px;line-height:1.55;color:var(--muted);text-align:center;max-width:300px;margin:0 auto 16px}
+.diag{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-top:1px solid var(--div);font-size:11.5px}
+.diag:first-of-type{border-top:0}
+.diag strong{font-weight:500;color:var(--muted)}
+.diag b{font:600 11.5px Inter;color:var(--ink);font-variant-numeric:tabular-nums}
+.diag span{grid-column:1/-1;font-size:10.5px;color:var(--dim)}
+.extract{font:400 10.5px/1.65 Inter;color:var(--muted);background:#0a0a0a;border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:11px 12px;white-space:pre-wrap;margin-top:8px;max-height:150px;overflow:auto}
+.extract .ln{color:var(--dim);display:inline-block;width:17px;font-variant-numeric:tabular-nums}
+.state-acts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+
+/* dock */
+.dock-wrap{position:absolute;left:0;right:0;bottom:0;z-index:64;padding:0 12px 22px;pointer-events:none}
+.dock-note{text-align:center;font-size:10.5px;color:var(--faint);padding:7px 0 7px;background:linear-gradient(transparent,rgba(0,0,0,.78) 45%);pointer-events:none}
+.dock{display:flex;gap:6px;padding:8px;border-radius:32px;pointer-events:auto}
+.dock .pill{flex:1;min-width:0;height:48px;font-size:14px;padding:0 12px}
+.dock .pill.secondary{flex:0 1 auto;padding:0 16px;font-size:12px}
+.dock .pill.primary{flex:1}
+.dock .pill svg{width:18px;height:18px}
+
+/* toast */
+.toast{position:absolute;left:50%;bottom:104px;transform:translateX(-50%) translateY(8px);display:flex;align-items:center;gap:10px;background:rgba(28,28,28,.96);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px 13px;font-size:11px;color:var(--ink);z-index:150;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:normal;max-width:330px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast-act{font:600 11px Inter;color:var(--muscle);white-space:nowrap;padding:2px 0}
+
+/* lectura */
+.reading{position:absolute;inset:0;display:flex;flex-direction:column;background:
+  radial-gradient(60% 42% at 50% 27%,rgba(244,154,110,.14),transparent 68%),
+  radial-gradient(40% 30% at 80% 80%,rgba(143,178,255,.045),transparent 70%),
+  #000;overflow:hidden}
+.read-top{display:flex;align-items:center;justify-content:space-between;padding:47px 20px 0;position:relative;z-index:3}
+.read-top .cancel{font:600 11.5px Inter;color:var(--muted);min-height:40px;display:flex;align-items:center}
+.read-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:4px 22px 18px;position:relative;z-index:2;overflow-y:auto;scrollbar-width:none}
+.read-body::-webkit-scrollbar{display:none}
+.read-visual{width:206px;height:206px;position:relative;margin:10px 0 4px;display:flex;align-items:center;justify-content:center}
+.read-visual .ring{position:absolute;border-radius:50%;border:1px solid rgba(244,154,110,.22)}
+.read-visual .r1{inset:0;border-style:dashed;animation:spin 22s linear infinite}
+.read-visual .r2{inset:22px;border-color:rgba(244,154,110,.13);animation:spin 16s linear infinite reverse}
+.read-visual .r3{inset:44px;border-color:rgba(255,255,255,.07)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.read-doc{width:78px;height:100px;border-radius:16px;background:linear-gradient(160deg,#1c1a18,#0d0d0d);border:1px solid rgba(255,255,255,.16);position:relative;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.read-doc .ln{height:3px;border-radius:2px;background:rgba(255,255,255,.12);margin:9px 12px 0;display:block}
+.read-doc .ln:first-child{margin-top:16px;width:24px;background:rgba(244,154,110,.55)}
+.read-doc .ln:nth-child(3){width:36px}
+.read-doc .ln:nth-child(4){width:28px}
+.read-doc .ln:nth-child(5){width:42px}
+.read-doc .scan{position:absolute;left:7px;right:7px;height:1px;background:linear-gradient(90deg,transparent,var(--muscle),transparent);box-shadow:0 0 14px rgba(244,154,110,.85);animation:scan 2.4s ease-in-out infinite}
+@keyframes scan{0%,100%{top:14px;opacity:.4}50%{top:84px;opacity:1}}
+.read-orbit{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--muscle);box-shadow:0 0 10px var(--muscle)}
+.read-orbit.a{top:14px;right:36px;animation:float 3.4s ease-in-out infinite}
+.read-orbit.b{bottom:26px;left:26px;width:3px;height:3px;background:var(--spine);box-shadow:0 0 10px var(--spine);animation:float 4.2s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-9px);opacity:1}}
+.read-title{font:700 25px/1.1 Syne;letter-spacing:-.7px;margin:4px 0 6px;text-align:center}
+.read-stage{font-size:12px;color:var(--muted);height:18px;text-align:center}
+.read-progress{width:100%;margin-top:18px}
+.read-progress .track{height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+.read-progress .fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--muscle),#ffc39d);width:0;transition:width .25s linear}
+.read-progress .meta{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:6px;letter-spacing:.4px}
+.read-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;margin-top:16px}
+.read-count{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);border-radius:14px;padding:9px 10px;opacity:.35;transition:opacity .3s,border-color .3s}
+.read-count.on{opacity:1;border-color:rgba(244,154,110,.18)}
+.read-count b{display:block;font:800 19px/1 Syne;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.read-count span{display:block;font-size:10px;color:var(--faint);margin-top:4px;letter-spacing:.3px}
+.read-count.on b{color:var(--ink)}
+.read-stages{width:100%;margin-top:16px;display:flex;flex-direction:column;gap:0}
+.rstage{display:flex;align-items:center;gap:9px;padding:7px 0;opacity:.3;transition:opacity .25s}
+.rstage.done,.rstage.now{opacity:1}
+.rstage .dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:transparent}
+.rstage.done .dot{background:rgba(67,209,140,.15);color:var(--ok)}
+.rstage.now .dot{background:rgba(244,154,110,.14);border:1px solid rgba(244,154,110,.45);position:relative}
+.rstage.now .dot:after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--muscle);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+.rstage .tx{flex:1;min-width:0}
+.rstage strong{display:block;font-size:10.5px;font-weight:600;color:var(--muted)}
+.rstage.done strong,.rstage.now strong{color:var(--ink)}
+.rstage span{display:block;font-size:10px;color:var(--dim);margin-top:1px}
+.read-foot{font-size:10px;color:var(--dim);text-align:center;line-height:1.4;padding:0 20px 8px;position:relative;z-index:2}
+
+/* hojas */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.68);z-index:90;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:91;border-radius:28px 28px 0 0;padding:10px 20px 34px;max-height:88%;overflow-y:auto;scrollbar-width:none;background:#1b1b1d;border-top:1px solid rgba(255,255,255,.1);box-shadow:0 -14px 44px #000c,inset 0 1px #ffffff10;animation:sheetIn .34s cubic-bezier(.22,1,.36,1)}
+.sheet::-webkit-scrollbar{display:none}
+@keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
+.grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.33);margin:0 auto 13px}
+.sheet h3{font:700 21px/1.12 Syne;letter-spacing:-.5px;margin:0 0 4px}
+.sheet .sub{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0 0 12px}
+.sheet .divider{margin:12px 0}
+.sheet .mi{display:flex;align-items:center;gap:11px;width:100%;text-align:left;min-height:48px;padding:7px 0;border-top:1px solid var(--div)}
+.sheet .mi:first-of-type{border-top:0}
+.sheet .mi .mic{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.055);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
+.sheet .mi .tx{flex:1;min-width:0}
+.sheet .mi strong{display:block;font-size:12.5px;font-weight:600}
+.sheet .mi span{display:block;font-size:11px;color:var(--faint);margin-top:2px;line-height:1.35}
+.sheet .mi.danger strong,.sheet .mi.danger .mic{color:var(--danger)}
+.sheet .sheet-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.sheet .sheet-actions .pill{width:100%}
+.sheet .field-label{margin-top:2px}
+.draft-card{display:flex;gap:11px;align-items:center;padding:12px;border-radius:17px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);margin:4px 0 12px}
+.draft-card .cover{width:48px;height:60px;border-radius:11px;background:
+  radial-gradient(100% 80% at 70% 10%,rgba(244,154,110,.5),transparent 60%),
+  linear-gradient(150deg,#2a201a,#121212);border:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.draft-card strong{display:block;font:700 14px/1.2 Syne}
+.draft-card span{display:block;font-size:11px;color:var(--faint);margin-top:4px;line-height:1.4}
+.sheet-week{padding:10px 0;border-top:1px solid var(--div)}
+.sheet-week:first-of-type{border-top:0}
+.sheet-week-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sheet-week-h strong{font-size:12.5px;font-weight:600}
+.sheet-week-h span{font-size:10.5px;color:var(--faint)}
+.sheet-week .dayline{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0 6px 10px;font-size:10.5px;color:var(--muted)}
+.sheet-week .dayline b{font-weight:500}
+.sheet-week .dayline span{color:var(--dim);font-size:10.5px}
+.pro-list{display:flex;flex-direction:column;gap:8px;margin:8px 0 14px}
+.pro-item{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;color:var(--muted);line-height:1.45}
+.pro-item svg{color:var(--mind);flex-shrink:0;margin-top:1px}
+
+/* mapa */
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(218px,1fr));gap:26px 20px;padding-top:6px}
+.mini{min-width:0;margin:0}
+.mini-frame{width:182px;height:445px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.13);position:relative;background:#000;box-shadow:0 14px 40px rgba(0,0,0,.5);cursor:pointer;transition:border-color .18s,transform .18s}
+.mini-frame:hover{border-color:rgba(244,154,110,.45);transform:translateY(-2px)}
+.mini-inner{width:360px;height:880px;transform:scale(.5056);transform-origin:top left;position:relative;pointer-events:none}
+.mini figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:9px;padding:0 2px}
+.mini figcaption span{font-size:11.5px;color:var(--muted)}
+.mini figcaption b{font:600 9px Inter;color:var(--faint);letter-spacing:1px}
+.mini figcaption em{font-style:normal;font-size:8px;letter-spacing:.7px;color:var(--muscle);font-weight:700}
+.mini-status{position:absolute;top:0;left:0;right:0;height:30px;display:flex;align-items:center;justify-content:space-between;padding:8px 24px 0;font:600 11.5px Inter;color:var(--ink);z-index:200;pointer-events:none}
+.map-head{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:2px 0 6px}
+.map-head h2{font:700 26px/1.1 Syne;letter-spacing:-.6px;margin:0}
+.map-head p{margin:0;font-size:12px;color:var(--faint);text-align:right;max-width:330px;line-height:1.5}
+html.solo body{background:#000}
+html.solo .lab-head,html.solo .lab-intro,html.solo .lab-controls,html.solo .nav,html.solo .notes{display:none!important}
+html.solo main{max-width:none;padding:0;margin:0}
+html.solo .stage{display:flex;justify-content:center;padding:20px;margin:0;max-width:none}
+html.solo .phone-wrap{position:static;margin:0}
+html.solo .phone{box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+html.solo #view-mapa,html.solo #view-decisiones{display:none!important}
+
+/* documento de decisiones */
+[hidden]{display:none!important}
+.doc{max-width:1040px;padding-top:4px}
+.doc code{font:500 10.5px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink);background:#ffffff0d;border:1px solid rgba(255,255,255,.06);padding:1px 4px;border-radius:4px}
+.doc .eyebrow{color:var(--muscle)}
+.doc h1{font:700 36px/1.06 Syne;letter-spacing:-1.2px;margin:8px 0 12px;max-width:820px;text-wrap:balance}
+.doc h2{font:700 24px/1.12 Syne;letter-spacing:-.6px;margin:36px 0 10px;text-wrap:balance}
+.doc h3{font:700 16px/1.25 Syne;margin:0 0 6px}
+.doc p{color:var(--muted);font-size:13.5px;line-height:1.62;margin:0 0 12px;max-width:78ch}
+.doc b{color:var(--ink);font-weight:600}
+.doc ul{margin:0 0 14px;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.6}
+.doc li{margin-bottom:5px}
+.flowline{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;margin:16px 0 8px}
+.flowline div{background:#0e0e0e;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:9px 8px;min-width:0;position:relative}
+.flowline div.on{border-color:rgba(244,154,110,.4);background:rgba(244,154,110,.06)}
+.flowline b{display:block;font:700 10px Syne;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flowline span{display:block;font-size:8.5px;color:var(--faint);margin-top:3px;line-height:1.3}
+.flowline i{position:absolute;right:-5px;top:50%;width:5px;height:1px;background:rgba(255,255,255,.2);display:block}
+.flowline div:last-child i{display:none}
+.dtable-wrap{overflow-x:auto;margin:12px 0 10px;border:1px solid rgba(255,255,255,.1);border-radius:16px}
+.dtable{border-collapse:collapse;width:100%;min-width:760px;font-size:12px}
+.dtable th{text-align:left;font:600 9px Inter;letter-spacing:1.2px;color:var(--faint);padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.1);text-transform:uppercase;background:#0d0d0d;white-space:nowrap}
+.dtable td{padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.055);vertical-align:top;color:var(--muted);line-height:1.5}
+.dtable td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+.dtable td b{color:var(--ink);font-weight:600}
+.dtable tr:last-child td{border-bottom:0}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.doc-card{background:#0d0d0d;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px 17px}
+.doc-card p{margin-bottom:0;font-size:12.5px}
+.doc-card.warm{border-color:rgba(244,154,110,.2);background:rgba(244,154,110,.04)}
+.doc-card.keep{border-color:rgba(67,209,140,.16);background:rgba(67,209,140,.03)}
+.doc-card.out{border-color:rgba(255,155,146,.16);background:rgba(255,155,146,.03)}
+.doc .verdict{font-size:11px;letter-spacing:1.2px;font-weight:600;color:var(--muscle);text-transform:uppercase;margin:0 0 6px}
+@media(max-width:760px){.doc-grid{grid-template-columns:1fr}.flowline{grid-template-columns:repeat(4,1fr)}.flowline i{display:none}}
+/* pulido v1: tacto 44–48, cifras tabulares y texto al 130 % */
+.act,.chip,.presets button,.sc-more,.grip{position:relative}
+.act:after,.chip:after,.presets button:after,.sc-more:after,.grip:after{content:"";position:absolute;inset:-8px -2px;border-radius:inherit}
+.seg button{height:40px}
+.pill,.dock .pill,.chip,.num,.setgrid .cell,.cand-conf b,.weekmeta,.read-count b,.kpi b{font-variant-numeric:lining-nums tabular-nums}
+.page.fs130 .display{font-size:34px;line-height:1.04}
+.page.fs130 .h1{font-size:29px}
+.page.fs130 .h2{font-size:21px}
+.page.fs130 .body{font-size:14.5px}
+.page.fs130 .cap{font-size:13px}
+.page.fs130 .eyebrow{font-size:11.5px}
+.page.fs130 .chrome-t strong{font-size:16px}
+.page.fs130 .chrome-t span{font-size:12.5px}
+.page.fs130 .exmain strong{font-size:15px}
+.page.fs130 .exmain span{font-size:12.2px}
+.page.fs130 .exrow{min-height:60px}
+.page.fs130 .sc-main strong{font-size:16px}
+.page.fs130 .sc-main span{font-size:11.6px}
+.page.fs130 .session-card{min-height:66px}
+.page.fs130 .chip{font-size:12px}
+.page.fs130 .pill{font-size:15.5px}
+.page.fs130 .seg button{font-size:12.5px}
+.page.fs130 .kpi b{font-size:27px}
+.page.fs130 .kpi small,.page.fs130 .kpi span{font-size:11px}
+.page.fs130 .setgrid .cell{font-size:13px}
+.page.fs130 .source-card{min-height:128px}
+.page.fs130 .sheet{max-height:92%}
+.page.fs130 .sheet .sub,.page.fs130 .mi span{font-size:12.5px}
+.page.fs130 .mi strong{font-size:14px}
+.page.fs130 .sheet h3{font-size:23px}
+.page.fs130 .state-title{font-size:28px}
+.page.fs130 .state-body{font-size:14px}
+.page.fs130 .passport .art{height:154px}
+.page.fs130 .passport .art h2{font-size:28px}
+.page.fs130 .session-hero .h1{font-size:37px}
+.page.fs130 .read-title{font-size:29px}
+.page.fs130 .read-stage{font-size:13.5px}
+.page.fs130 .read-count b{font-size:22px}
+.page.fs130 .success-title{font-size:42px}
+.page.fs130 .success-name{font-size:22px}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+body.reduced *,body.reduced *:before,body.reduced *:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+</style>
+</head>
+<body>
+<header class="lab-head">
+  <div class="wordmark">KPKN<span>LAB · 04 NOV 2026</span></div>
+  <div class="edition">Rediseño del importador<br>Prototipo interactivo · v1</div>
+</header>
+<section class="lab-intro">
+  <div class="eyebrow">PROGRAMAS · IMPORTACIÓN</div>
+  <h1>Importar deja de ser un formulario.<br>Ahora es un recorrido.</h1>
+  <p>Doce pantallas y siete hojas para leer, entender, decidir y confirmar un programa. El prototipo conserva el catálogo compartido, el editor de sesiones real y el borrador durable; cambia la forma en que se explican.</p>
+  <p class="basis">Lenguaje Pulido v1 · 360 × 880 por defecto · superficies planas · vidrio solo en islas flotantes · texto al 130 %.</p>
+</section>
+<div class="lab-controls">
+  <div class="tabs" id="views" role="tablist" aria-label="Vistas del laboratorio">
+    <button data-view="recorrido" aria-selected="true">Recorrido</button>
+    <button data-view="mapa" aria-selected="false">Mapa de pantallas</button>
+    <button data-view="decisiones" aria-selected="false">Decisiones</button>
+  </div>
+  <div class="selectors">
+    <label>Entrada
+      <select id="entrySelect">
+        <option value="programas">Programas → Nuevo → Importar</option>
+        <option value="alta">Alta · paso Entreno</option>
+      </select>
+    </label>
+    <label>Pantalla
+      <select id="sizeSelect">
+        <option value="360x740">360 × 740</option>
+        <option value="360x880" selected>360 × 880 (Flip5)</option>
+        <option value="393x852">393 × 852</option>
+        <option value="412x915">412 × 915</option>
+      </select>
+    </label>
+    <label>Texto
+      <select id="fsSelect">
+        <option value="1">100 %</option>
+        <option value="1.3">130 %</option>
+      </select>
+    </label>
+    <label>Movimiento
+      <select id="motionSelect">
+        <option value="normal">Normal</option>
+        <option value="reduced">Reducido</option>
+      </select>
+    </label>
+  </div>
+</div>
+<main>
+  <section id="view-recorrido" class="stage">
+    <nav class="nav" id="nav" aria-label="Pantallas del prototipo"></nav>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span class="sys">▲ ▮ <i></i></span></div>
+        <div class="screen" id="screen"></div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+    <aside class="notes" id="notes"></aside>
+  </section>
+  <section id="view-mapa" class="map" hidden></section>
+  <section id="view-decisiones" class="doc" hidden></section>
+</main>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   KPKN · Importador de programas · prototipo interactivo
+   Lenguaje visual: Pulido v1 (360×880, superficies planas, vidrio
+   solo en islas flotantes, Inter tabular para cifras de lista).
+   ══════════════════════════════════════════════════════════════════ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const noteText=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>');
+
+const ICONS={
+  back:'<path d="M15 18l-6-6 6-6"/>',
+  chevron:'<path d="m9 18 6-6-6-6"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  more:'<circle cx="5" cy="12" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="19" cy="12" r="1.1"/>',
+  check:'<path d="m5 12 4.5 4.5L19 7"/>',
+  close:'<path d="M18 6 6 18M6 6l12 12"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  text:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  camera:'<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  warning:'<path d="M12 4 3 20h18L12 4z"/><path d="M12 9v5"/><circle cx="12" cy="17.6" r=".9" fill="currentColor" stroke="none"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 8h.01"/>',
+  spark:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>',
+  pro:'<path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4z"/><path d="m9 12 2 2 4-5"/>',
+  play:'<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  minus:'<path d="M5 12h14"/>',
+  grip:'<circle cx="9" cy="7" r="1.1"/><circle cx="15" cy="7" r="1.1"/><circle cx="9" cy="12" r="1.1"/><circle cx="15" cy="12" r="1.1"/><circle cx="9" cy="17" r="1.1"/><circle cx="15" cy="17" r="1.1"/>',
+  trash:'<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  moon:'<path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.4 5.7"/><path d="M20 4v7h-7"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m14 6 4 4"/>',
+  lock:'<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2V5z"/><path d="M4 17h15"/>',
+  arrowRight:'<path d="M4 12h16M14 6l6 6-6 6"/>',
+  dumbbell:'<path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/>',
+  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 15-5-5L5 20"/>',
+  eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  filter:'<path d="M3 5h18M6 12h12M10 19h4"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>'
+};
+function ic(name,size=20,cls=''){
+  return `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]||''}</svg>`;
+}
+
+const DAYS=[{s:'Lun',n:'Lunes'},{s:'Mar',n:'Martes'},{s:'Mié',n:'Miércoles'},{s:'Jue',n:'Jueves'},{s:'Vie',n:'Viernes'},{s:'Sáb',n:'Sábado'},{s:'Dom',n:'Domingo'}];
+const SESSIONS=[
+  {id:'s1',name:'Empuje',focus:'Pecho y hombro',ex:6,min:68,vol:8.4},
+  {id:'s2',name:'Tirón',focus:'Espalda y bíceps',ex:5,min:62,vol:7.1},
+  {id:'s3',name:'Pierna',focus:'Cuádriceps y glúteo',ex:6,min:74,vol:11.2},
+  {id:'s4',name:'Superior',focus:'Fuerza y brazos',ex:5,min:52,vol:5.6}
+];
+const EX=[
+  {id:'e1',gid:1,group:'Día 1 · Empuje',raw:'Press de banca',name:'Press de banca con barra',pres:'4 × 6–8 · 100 kg · RPE 8',conf:96,state:'ok'},
+  {id:'e2',gid:1,group:'Día 1 · Empuje',raw:'Press inclinado',name:'Press inclinado con mancuernas',pres:'3 × 8–10 · 32 kg · RPE 8',conf:91,state:'ok',warn:'Carga leída parcialmente'},
+  {id:'e3',gid:1,group:'Día 1 · Empuje',raw:'Aperturas',name:'Aperturas en polea',pres:'3 × 12–15 · 15 kg · RPE 9',conf:88,state:'ok'},
+  {id:'e4',gid:1,group:'Día 1 · Empuje',raw:'Elevaciones laterales',name:'Elevaciones laterales con mancuernas',pres:'4 × 12–15 · 10 kg · RPE 9',conf:84,state:'ok'},
+  {id:'e5',gid:1,group:'Día 1 · Empuje',raw:'Press militar',name:'Press militar sentado con barra',pres:'3 × 6–8 · 60 kg · RPE 8',conf:86,state:'ok'},
+  {id:'e6',gid:1,group:'Día 1 · Empuje',raw:'Fondos',name:'Fondos en paralelas',pres:'3 × 8–10 · peso corporal · RPE 9',conf:93,state:'ok'},
+  {id:'e7',gid:3,group:'Día 3 · Pierna',raw:'Sentadilla con barra',name:null,pres:'4 × 6 · 120 kg',conf:72,state:'pending',occurrences:3},
+  {id:'e8',gid:2,group:'Día 2 · Tirón',raw:'Remo',name:null,pres:'3 × 8–10 · 60 kg',conf:61,state:'pending',occurrences:1},
+  {id:'e9',gid:3,group:'Día 3 · Pierna',raw:'Peso muerto rumano',name:'Peso muerto rumano con barra',pres:'3 × 8 · 100 kg · RPE 8',conf:94,state:'ok',warn:'Nota del documento'},
+  {id:'e10',gid:2,group:'Día 2 · Tirón',raw:'Curl con barra',name:'Curl de bíceps con barra',pres:'3 × 10 · 30 kg · RPE 9',conf:90,state:'ok'},
+  {id:'e11',gid:2,group:'Día 2 · Tirón',raw:'Jalón al pecho',name:'Jalón al pecho en polea',pres:'3 × 10–12 · 45 kg · RPE 8',conf:88,state:'ok'},
+  {id:'e12',gid:2,group:'Día 2 · Tirón',raw:'Remo en polea baja',name:'Remo en polea baja',pres:'3 × 10–12 · 50 kg · RPE 8',conf:85,state:'ok'},
+  {id:'e13',gid:3,group:'Día 3 · Pierna',raw:'Prensa',name:'Prensa de piernas',pres:'3 × 10–12 · 180 kg · RPE 8',conf:87,state:'ok'},
+  {id:'e14',gid:3,group:'Día 3 · Pierna',raw:'Extensión de cuádriceps',name:'Extensión de cuádriceps en máquina',pres:'3 × 12–15 · 40 kg · RPE 9',conf:89,state:'ok',warn:'Carga leída parcialmente'},
+  {id:'e15',gid:3,group:'Día 3 · Pierna',raw:'Curl femoral',name:'Curl femoral tumbado',pres:'3 × 10–12 · 35 kg · RPE 9',conf:86,state:'ok'},
+  {id:'e16',gid:3,group:'Día 3 · Pierna',raw:'Gemelos',name:'Elevación de gemelos de pie',pres:'4 × 12–15 · 60 kg · RPE 9',conf:90,state:'ok'},
+  {id:'e17',gid:4,group:'Día 4 · Superior',raw:'Press militar',name:'Press militar sentado con barra',pres:'3 × 6–8 · 60 kg · RPE 8',conf:86,state:'ok'},
+  {id:'e18',gid:4,group:'Día 4 · Superior',raw:'Dominadas',name:'Dominadas pronas',pres:'3 × 6–8 · peso corporal · RPE 9',conf:91,state:'ok'},
+  {id:'e19',gid:4,group:'Día 4 · Superior',raw:'Remo con mancuerna',name:'Remo con mancuerna a una mano',pres:'3 × 8–10 · 32 kg · RPE 8',conf:84,state:'ok',warn:'Columna ignorada en el documento'},
+  {id:'e20',gid:4,group:'Día 4 · Superior',raw:'Curl de bíceps',name:'Curl de bíceps con barra',pres:'3 × 10 · 30 kg · RPE 9',conf:90,state:'ok'},
+  {id:'e21',gid:4,group:'Día 4 · Superior',raw:'Extensión de tríceps',name:'Extensión de tríceps en polea',pres:'3 × 12–15 · 25 kg · RPE 9',conf:88,state:'ok'},
+  {id:'e22',gid:2,group:'Día 2 · Tirón',raw:'Face pull',name:'Face pull en polea alta',pres:'3 × 12–15 · 20 kg · RPE 9',conf:82,state:'ok'}
+];
+const CANDS={
+  e7:[
+    {name:'Sentadilla trasera alta con barra',meta:'Barra · Cuádriceps',conf:94},
+    {name:'Sentadilla frontal con barra',meta:'Barra · Cuádriceps',conf:81},
+    {name:'Sentadilla búlgara con mancuernas',meta:'Mancuerna · Glúteo',conf:62}
+  ],
+  e8:[
+    {name:'Remo con barra',meta:'Barra · Espalda',conf:92},
+    {name:'Remo con mancuerna',meta:'Mancuerna · Espalda',conf:84},
+    {name:'Remo en máquina',meta:'Máquina · Espalda',conf:71}
+  ]
+};
+const CATALOG_RESULTS=[
+  {name:'Sentadilla trasera alta con barra',meta:'Barra · Cuádriceps',conf:94,eq:'Barra'},
+  {name:'Sentadilla frontal con barra',meta:'Barra · Cuádriceps',conf:81,eq:'Barra'},
+  {name:'Sentadilla búlgara con mancuernas',meta:'Mancuerna · Glúteo',conf:62,eq:'Mancuerna'},
+  {name:'Sentadilla goblet con mancuerna',meta:'Mancuerna · Cuádriceps',conf:58,eq:'Mancuerna'},
+  {name:'Prensa de piernas',meta:'Máquina · Cuádriceps',conf:41,eq:'Máquina'},
+  {name:'Remo con barra',meta:'Barra · Espalda',conf:92,eq:'Barra'},
+  {name:'Remo con mancuerna',meta:'Mancuerna · Espalda',conf:84,eq:'Mancuerna'},
+  {name:'Remo en máquina',meta:'Máquina · Espalda',conf:71,eq:'Máquina'},
+  {name:'Remo Pendlay',meta:'Barra · Espalda',conf:66,eq:'Barra'},
+  {name:'Jalón al pecho',meta:'Máquina · Espalda',conf:38,eq:'Máquina'}
+];
+const SESSION_CARDS_BY_ID={
+  s1:[
+    {name:'Press de banca con barra',meta:'Barra · Pecho',sets:4,reps:'6–8',kg:'100',rir:'2',rest:'180 s',conf:96},
+    {name:'Press inclinado con mancuernas',meta:'Mancuerna · Pecho',sets:3,reps:'8–10',kg:'32',rir:'2',rest:'120 s',conf:91},
+    {name:'Aperturas en polea',meta:'Polea · Pecho',sets:3,reps:'12–15',kg:'15',rir:'1',rest:'75 s',conf:88},
+    {name:'Elevaciones laterales con mancuernas',meta:'Mancuerna · Hombro',sets:4,reps:'12–15',kg:'10',rir:'1',rest:'60 s',conf:84},
+    {name:'Press militar sentado con barra',meta:'Barra · Hombro',sets:3,reps:'6–8',kg:'60',rir:'2',rest:'120 s',conf:86},
+    {name:'Fondos en paralelas',meta:'Peso corporal · Pecho',sets:3,reps:'8–10',kg:'—',rir:'1',rest:'90 s',conf:93}
+  ],
+  s2:[
+    {name:'Remo con barra',meta:'Barra · Espalda',sets:4,reps:'8–10',kg:'60',rir:'2',rest:'120 s',conf:92},
+    {name:'Jalón al pecho',meta:'Polea · Espalda',sets:3,reps:'10–12',kg:'45',rir:'2',rest:'90 s',conf:88},
+    {name:'Curl de bíceps con barra',meta:'Barra · Bíceps',sets:3,reps:'10',kg:'30',rir:'1',rest:'60 s',conf:90}
+  ],
+  s3:[
+    {name:'Sentadilla trasera alta con barra',meta:'Barra · Cuádriceps',sets:4,reps:'6',kg:'120',rir:'2',rest:'180 s',conf:94},
+    {name:'Peso muerto rumano con barra',meta:'Barra · Isquios',sets:3,reps:'8',kg:'100',rir:'2',rest:'150 s',conf:94},
+    {name:'Prensa de piernas',meta:'Máquina · Cuádriceps',sets:3,reps:'10–12',kg:'180',rir:'2',rest:'120 s',conf:87}
+  ],
+  s4:[
+    {name:'Press militar sentado con barra',meta:'Barra · Hombro',sets:3,reps:'6–8',kg:'60',rir:'2',rest:'120 s',conf:86},
+    {name:'Dominadas',meta:'Peso corporal · Espalda',sets:3,reps:'6–8',kg:'—',rir:'1',rest:'120 s',conf:91},
+    {name:'Curl de bíceps con barra',meta:'Barra · Bíceps',sets:3,reps:'10',kg:'30',rir:'1',rest:'60 s',conf:90}
+  ]
+};
+const BASE_ASSIGN={0:['s1'],1:['s2'],3:['s3'],4:['s4']};
+const cloneAssign=()=>JSON.parse(JSON.stringify(BASE_ASSIGN));
+
+const S={
+  page:'entrada', view:'recorrido', entry:'programas', size:[360,880], fs:1, motion:'normal',
+  sheet:null, filter:'pending', expanded:'e7',
+  week:1, selectedSession:null,
+  assign:{1:cloneAssign(),2:cloneAssign(),3:cloneAssign()},
+  reviewedSessions:new Set(),
+  title:'Bloque de fuerza · Julio', pasteText:'Día 1 — Pierna\nSentadilla 4×6 @120 kg\nPrensa 3×10\nPeso muerto rumano 3×8 @100 kg',
+  extractText:'', sessionNote:'', staticMode:false, showExtract:false, errorMode:'archivo',
+  hasDraft:true, activate:false, saved:false, warningsReviewed:false,
+  sessionId:'s1', weights:{s1:100,s2:60,s3:120,s4:60}, weekWeights:{},
+  catalogFor:'e7', catQuery:'', catFilter:'Todo',
+  readBack:'entrada', reading:false, progress:0, readStage:0,
+  rdTimer:null, rdTimeout:null, toastTimer:null
+};
+
+const pageStatus=()=>EX.filter(e=>e.state==='pending').length;
+const pageRecognized=()=>64+(2-pageStatus());
+const pageSessions=w=>Object.values(S.assign[w]).reduce((n,a)=>n+a.length,0);
+const pageRestDays=w=>DAYS.filter((_,i)=>!(S.assign[w][i]||[]).length).length;
+const pageMinutes=w=>Object.values(S.assign[w]).flat().reduce((n,id)=>n+(SESSIONS.find(x=>x.id===id)?.min||0),0);
+const pageVolume=w=>Object.values(S.assign[w]).flat().reduce((n,id)=>n+(SESSIONS.find(x=>x.id===id)?.vol||0),0);
+const fmtMin=m=>`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`;
+const weekDiff=w=>w!==1&&JSON.stringify(S.assign[w])!==JSON.stringify(S.assign[1]);
+const currentSession=()=>SESSIONS.find(x=>x.id===S.sessionId)||SESSIONS[0];
+const dayOfSession=(id,w=1)=>{const d=Object.keys(S.assign[w]).find(i=>S.assign[w][i].includes(id));return d===undefined?0:+d};
+const weekFactor=w=>[1,1.025,1.05][w-1]||1;
+const weightFor=(sid,w=S.week)=>S.weekWeights[`${w}-${sid}`]??Math.round(S.weights[sid]*weekFactor(w)*2)/2;
+const formatKg=v=>Number.isInteger(v)?String(v):v.toFixed(1).replace('.',',');
+
+function icon(name,size=20,cls=''){return ic(name,size,cls)}
+function chromeBar({title,sub='',back='entrada',action='',fn='',warn=false}){
+  return `<div class="chrome glass">
+    <button class="icon-btn" onclick="go('${back}')" aria-label="Atrás">${ic('back',20)}</button>
+    <div class="chrome-t"><strong>${title}</strong>${sub?`<span>${sub}</span>`:''}</div>
+    ${action?`<button class="chrome-a ${warn?'warn':''}" onclick="${fn}">${action}</button>`:`<span class="chrome-a ghost"></span>`}
+  </div>`;
+}
+function stepBar(n,right=''){
+  return `<div class="stepbar"><span class="lab">Paso ${n} de 4</span><div class="steps">${[1,2,3,4].map(i=>`<i class="${i<n?'done':i===n?'now':''}"></i>`).join('')}</div>${right?`<span class="count">${right}</span>`:''}</div>`;
+}
+function dockBar({note='',primary,primaryFn,secondary='',secondaryFn='',disabled=false}){
+  return `<div class="dock-wrap">${note?`<div class="dock-note">${note}</div>`:''}<div class="dock glass">
+    ${secondary?`<button class="pill secondary" onclick="${secondaryFn}">${secondary}</button>`:''}
+    <button class="pill primary" ${disabled?'disabled':''} onclick="${primaryFn}">${primary}${ic('arrowRight',17)}</button>
+  </div></div>`;
+}
+function page({body,chrome='',dock='',cls='',tight=false}){
+  return `<div class="page ${chrome?'has-chrome':''} ${dock?'has-dock':''} ${tight?'tight':''} ${S.fs===1.3?'fs130':''} ${cls}">${chrome}<div class="scroll">${body}</div>${dock}${S.sheet?sheetHTML():''}</div>`;
+}
+function sheetHTML(){
+  const fn={reanudar:sheetReanudar,catalogo:sheetCatalogo,estructura:sheetEstructura,pro:sheetPro,sesion_menu:sheetSesionMenu,texto:sheetTexto,avisos:sheetAvisos}[S.sheet];
+  return fn?`<div class="scrim" onclick="closeSheet()"></div>${fn()}`:'';
+}
+function pageHTML(id,staticMode=false){
+  const map={entrada:pageEntrada,pegar:pagePegar,leyendo:pageLeyendo,resumen:pageResumen,ejercicios:pageEjercicios,dias:pageDias,sesiones:pageSesiones,sesion:pageSesion,revision:pageRevision,exito:pageExito,vacio:pageVacio,error:pageError};
+  const fn=map[id];return fn?fn(staticMode):'';
+}
+
+/* ─────────────────────────── 01 · ENTRADA ─────────────────────────── */
+function pageEntrada(){
+  const draft=S.hasDraft?`<button class="resume" onclick="openSheet('reanudar')">
+    <span class="ic">${ic('book',18)}</span>
+    <span class="grow"><strong>Bloque de fuerza · Julio</strong><span>62 de 66 decididos · hace 2 h</span></span>
+    <span class="act">Reanudar ${ic('chevron',13)}</span>
+  </button>`:'';
+  return page({body:`
+    <div class="entry-top">
+      <button class="icon-btn plain" onclick="toast('Volver a Programas')" aria-label="Volver a Programas">${ic('back',20)}</button>
+      <button class="icon-btn plain" onclick="toast('Ayuda de importación')" aria-label="Ayuda">${ic('info',20)}</button>
+    </div>
+    <div class="eyebrow">${S.entry==='alta'?'Alta · Entreno':'Programas · Nuevo programa'}</div>
+    <h1 class="display">Tu plan, tal como lo escribiste.</h1>
+    <p class="body">KPKN lo lee, ordena las sesiones y te deja revisar cada ejercicio antes de guardarlo.</p>
+    <div class="proof">
+      <div class="proof-doc">${ic('file',15)}<i></i><i></i><i></i></div>
+      <div class="proof-arrow">${ic('chevron',14)}</div>
+      <div class="proof-grid"><span class="proof-chip"><b>3</b> semanas</span><span class="proof-chip"><b>12</b> sesiones</span><span class="proof-chip"><b>66</b> ejercicios</span></div>
+    </div>
+    ${draft}
+    <div class="eyebrow" style="margin:0 2px 9px">Elige una fuente</div>
+    <button class="source-main" onclick="startSource('archivo')">
+      <span class="source-ico">${ic('file',22)}</span>
+      <span class="grow"><strong>Archivo</strong><span>Excel, CSV, Word, PDF o texto</span></span>
+      ${ic('chevron',18)}
+    </button>
+    <div class="source-grid">
+      <button class="source-card energy" onclick="go('pegar')">
+        <span class="source-ico">${ic('text',18)}</span>
+        <strong>Pegar texto</strong>
+        <span>Día 1 — Pierna<br>Sentadilla 4×6 @120 kg</span>
+      </button>
+      <button class="source-card spine" onclick="startSource('foto')">
+        <span class="source-ico">${ic('camera',18)}</span>
+        <strong>Foto</strong>
+        <span>Haz una foto o elige una de la galería</span>
+      </button>
+    </div>
+    <button class="act muted" style="margin-top:14px" onclick="toast('Empezar de cero')">Empezar de cero ${ic('chevron',13)}</button>
+    <div class="divider" style="margin:20px 0 14px"></div>
+    <p class="cap" style="text-align:center">Nada se guarda hasta que confirmes. <button class="act" style="display:inline-flex;font-size:12px;min-height:0;vertical-align:baseline" onclick="openSheet('pro')">Límites del plan</button></p>
+  `});
+}
+
+/* ─────────────────────────── 02 · PEGAR ─────────────────────────── */
+function pagePegar(){
+  return page({
+    chrome:chromeBar({title:'Pegar texto',sub:'Se analiza en tu teléfono',back:'entrada'}),
+    body:`
+      <h1 class="h1">Pega tu rutina.</h1>
+      <p class="body">Acepta días, ejercicios, series, repeticiones, cargas y descansos. No hace falta un formato exacto.</p>
+      <div style="margin-top:14px">
+        <label class="field-label" for="paste">Texto del programa</label>
+        <textarea class="textarea" id="paste" placeholder="Día 1 — Pierna&#10;Sentadilla 4×6 @120 kg&#10;Prensa 3×10" oninput="S.pasteText=this.value;updatePasteCount()">${esc(S.pasteText)}</textarea>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <span class="cap" id="pasteCount">${S.pasteText.trim().split(/\n/).filter(Boolean).length} líneas</span>
+        <button class="act" onclick="useExample()">Usar un ejemplo</button>
+      </div>
+      <button class="pill primary" style="width:100%;margin-top:14px" onclick="readPasted()">Leer el texto ${ic('arrowRight',17)}</button>
+      <div class="mod" style="margin-top:18px">
+        <div class="mod-h"><span class="eyebrow">Qué reconoce</span><span class="chip ok">Local</span></div>
+        <div class="divider"></div>
+        <p class="cap">Días, ejercicios, series × repeticiones, kg/lb, %1RM, RPE, RIR, descansos y notas. Lo que no entienda quedará como aviso, no se inventará.</p>
+      </div>
+    `
+  });
+}
+
+/* ─────────────────────────── 03 · LECTURA ─────────────────────────── */
+const R_STAGES=[
+  {t:'Documento',s:'3 hojas · 48 filas'},
+  {t:'Estructura',s:'3 semanas · 12 sesiones'},
+  {t:'Ejercicios',s:'66 ejercicios'},
+  {t:'Catálogo',s:'64 coincidencias'},
+  {t:'Días',s:'4 días propuestos'}
+];
+const R_TEXT=['Leyendo el documento…','Entendiendo la estructura…','Reconociendo ejercicios…','Buscando coincidencias…','Proponiendo los días…','Listo. Abriendo el resumen…'];
+function pageLeyendo(staticMode=false){
+  const st=staticMode||S.staticMode;
+  const p=st?1:(S.progress||0);
+  const stage=st?5:(S.readStage||0);
+  const done=i=>st||i<stage;
+  const now=i=>!st&&i===stage;
+  return `<div class="page tight ${S.fs===1.3?'fs130':''}"><div class="reading">
+    <div class="read-top">
+      <button class="icon-btn plain" onclick="cancelReading()" aria-label="Cancelar">${ic('close',20)}</button>
+      <span class="eyebrow">Importando</span>
+      <button class="cancel" onclick="cancelReading()">Cancelar</button>
+    </div>
+    <div class="read-body">
+      <div class="read-visual">
+        <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+        <span class="read-orbit a"></span><span class="read-orbit b"></span>
+        <div class="read-doc"><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><span class="scan"></span></div>
+      </div>
+      <h1 class="read-title" id="rdTitle">${stage>=5?'Listo. Vamos a revisarlo.':'Leyendo tu programa'}</h1>
+      <div class="read-stage" id="rdStage">${R_TEXT[Math.min(stage,5)]}</div>
+      <div class="read-progress">
+        <div class="track"><div class="fill" id="rdFill" style="width:${(p*100).toFixed(0)}%"></div></div>
+        <div class="meta"><span>Análisis local · sin subir el documento</span><span id="rdPct">${Math.round(p*100)} %</span></div>
+      </div>
+      <div class="read-counts">
+        <div class="read-count ${stage>=1?'on':''}" data-count="0"><b>3</b><span>Semanas</span></div>
+        <div class="read-count ${stage>=1?'on':''}" data-count="1"><b>12</b><span>Sesiones</span></div>
+        <div class="read-count ${stage>=2?'on':''}" data-count="2"><b>66</b><span>Ejercicios</span></div>
+      </div>
+      <div class="read-stages">
+        ${R_STAGES.map((r,i)=>`<div class="rstage ${done(i)?'done':''} ${now(i)?'now':''}" data-stage="${i}">
+          <span class="dot">${done(i)?ic('check',9):''}</span>
+          <span class="tx"><strong>${r.t}</strong><span>${r.s}</span></span>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="read-foot">El análisis ocurre en tu teléfono. Nada se envía.</div>
+  </div></div>`;
+}
+
+/* ─────────────────────────── 04 · RESUMEN ─────────────────────────── */
+function weekPlanLabel(w){
+  return Object.keys(S.assign[w]).sort((a,b)=>+a-+b).map(d=>{
+    const ids=S.assign[w][d];
+    const s=SESSIONS.find(x=>x.id===ids[0]);
+    return `${DAYS[+d].s} ${s?s.name:'—'}${ids.length>1?` +${ids.length-1}`:''}`;
+  }).join(' · ');
+}
+function pageResumen(){
+  const pending=pageStatus();
+  const pendingNames=EX.filter(e=>e.state==='pending').map(e=>`«${e.raw}»`).join(' y ');
+  return page({
+    chrome:chromeBar({title:'Resumen',sub:'3 semanas · 12 sesiones',back:'entrada',action:'⋯',fn:"openSheet('estructura')"}),
+    dock:dockBar({secondary:'Cambiar archivo',secondaryFn:"go('entrada')",primary:'Revisar coincidencias',primaryFn:"go('ejercicios')",note:pending?`${pending} decisiones pendientes`:'Todo listo para revisar'}),
+    body:`
+      <div class="stepbar"><span class="lab">Lo que hemos leído</span><span class="count"><span class="dot ok" style="margin-right:4px"></span> Borrador guardado</span></div>
+      <label class="field-label" for="title">Título del programa</label>
+      <input class="title-input" id="title" value="${esc(S.title)}" oninput="S.title=this.value">
+      <p class="cap" style="margin:7px 2px 0">Puedes cambiarlo ahora o desde Programas.</p>
+      <div class="mod" style="margin-top:16px">
+        <div class="kpis">
+          <div class="kpi"><small>Semanas</small><b>3</b><span>de entrenamiento</span></div>
+          <div class="kpi"><small>Sesiones</small><b>12</b><span>4 por semana</span></div>
+          <div class="kpi"><small>Ejercicios</small><b>66</b><span>en las 3 semanas</span></div>
+          <div class="kpi"><small>Por decidir</small><b style="color:${pending?'var(--energy)':'var(--ok)'}">${pending}</b><span>${pending?'necesitan tu elección':'todo resuelto'}</span></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Estructura</span><button class="act" onclick="openSheet('estructura')">Editar ${ic('chevron',13)}</button></div>
+        <div class="divider" style="margin:10px 0 2px"></div>
+        ${[1,2,3].map(w=>`<div class="wrow">
+          <div><strong>Semana ${w}</strong><span>${weekPlanLabel(w)}</span></div>
+          <span class="chip">${pageSessions(w)} sesiones</span>
+          <div class="wdots">${DAYS.map((_,i)=>`<i class="${(S.assign[w][i]||[]).length?'on':''}"></i>`).join('')}</div>
+        </div>`).join('')}
+      </div>
+      ${pending?`<div class="mod tint-energy">
+        <div class="mod-h"><span class="eyebrow energy">Por decidir</span><span class="chip warn">${pending}</span></div>
+        <p class="h2" style="margin-top:11px">${pending===1?'Un nombre puede ser varias variantes.':'Dos nombres pueden ser varias variantes.'}</p>
+        <p class="cap" style="margin-top:5px">${pendingNames} ${pending===1?'necesita':'necesitan'} una elección. Conservamos el texto original.</p>
+        <button class="pill secondary sm" style="width:100%;margin-top:12px" onclick="go('ejercicios')">Revisar ${pending===1?'el ejercicio':'los 2'} ${ic('chevron',13)}</button>
+      </div>`:`<div class="mod" style="border-color:rgba(67,209,140,.18)">
+        <div class="mod-h"><span class="eyebrow ok">Decisiones</span><span class="chip ok">0</span></div>
+        <p class="h2" style="margin-top:11px">Todo decidido.</p>
+        <p class="cap" style="margin-top:5px">Los 66 ejercicios apuntan al catálogo. Puedes cambiarlos cuando quieras.</p>
+        <button class="pill secondary sm" style="width:100%;margin-top:12px" onclick="go('ejercicios')">Ver la revisión ${ic('chevron',13)}</button>
+      </div>`}
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Avisos del documento</span><button class="act" onclick="openSheet('avisos')">Ver los 4 ${ic('chevron',13)}</button></div>
+        <div class="divider" style="margin:10px 0"></div>
+        <button class="row" style="width:100%;text-align:left" onclick="openSheet('avisos')">
+          <span class="exico warn">${ic('warning',14)}</span>
+          <span class="grow"><strong style="font-size:12.5px;display:block">4 avisos del documento</strong><span class="cap">2 cargas no legibles, 1 nota y 1 columna ignorada.</span></span>
+          <span class="chip ${S.warningsReviewed?'ok':'warn'}">${S.warningsReviewed?'Revisados':'Sin revisar'}</span>
+        </button>
+      </div>
+      <div class="mod tight">
+        <div class="row">
+          <span class="chip pro">${ic('pro',12)} KPKN Pro</span>
+          <span class="grow"><strong style="display:block;font-size:12px">3 semanas y 12 sesiones</strong><span class="cap">Incluido en tu plan.</span></span>
+          <button class="act" onclick="openSheet('pro')">¿Por qué?</button>
+        </div>
+      </div>
+    `
+  });
+}
+
+/* ─────────────────────────── 05 · EJERCICIOS ─────────────────────────── */
+function filteredEx(){
+  if(S.filter==='pending')return EX.filter(e=>e.state==='pending');
+  if(S.filter==='warn')return EX.filter(e=>e.warn);
+  return EX;
+}
+function exRow(e){
+  const pending=e.state==='pending';
+  const open=S.expanded===e.id;
+  const title=pending?e.raw:e.name;
+  const meta=`${e.pres}${pending?' · <em>sin decidir</em>':` · ${e.conf} %`}${e.warn&&!pending?' · <em>aviso</em>':''}`;
+  return `<button class="exrow ${open?'open':''}" onclick="expandEx('${e.id}')">
+    <span class="exico ${pending?'warn':'ok'}">${ic(pending?'warning':'check',14)}</span>
+    <span class="exmain"><strong>${esc(title)}</strong><span>${meta}</span></span>
+    <span class="exside">${pending?'Revisar':''}${ic('down',13,'chev')}</span>
+  </button>${open?resolvePanel(e):''}`;
+}
+function candRow(e,c,i){
+  return `<button class="cand" onclick="resolveEx('${e.id}',${i})">
+    <span class="cand-radio"></span>
+    <span class="cand-main"><strong>${c.name}</strong><span>${c.meta}</span></span>
+    <span class="cand-conf"><i style="--w:${c.conf}%"></i><b>${c.conf} %</b></span>
+  </button>`;
+}
+function resolvePanel(e){
+  if(e.state==='pending'){
+    const caps={e7:'Es un nombre genérico. Elige la variante que vas a entrenar.',e8:'«Remo» puede ser con barra, mancuerna o máquina. Elige la que usarás.'};
+    return `<div class="resolve">
+      <div class="quote">Tu documento dice <b>«${e.raw}»</b>.</div>
+      <p class="cap">${caps[e.id]||'Elige la variante que vas a entrenar.'}</p>
+      ${CANDS[e.id].map((c,i)=>candRow(e,c,i)).join('')}
+      <div class="resolve-acts">
+        <button class="pill secondary sm" onclick="openCatalog('${e.id}')">Buscar en el catálogo</button>
+        <button class="act muted" onclick="toast('Abriendo el creador del catálogo')">Crear</button>
+      </div>
+      <div class="occur">Aparece ${e.occurrences} ${e.occurrences===1?'vez':'veces'} en el programa. Se aplicará a ${e.occurrences===1?'esa aparición':'las '+e.occurrences}. <button onclick="toast('Decisión por separado')">Decidir por separado</button></div>
+    </div>`;
+  }
+  return `<div class="resolve">
+    <div class="resolved-note">${ic('check',13)} Coincide con <b>${e.name}</b>.</div>
+    <div class="quote" style="margin-top:8px">Tu documento dice «${e.raw}».</div>
+    ${e.warn?`<div class="occur" style="margin-top:8px">${e.warn}. <button onclick="openSheet('avisos')">Ver aviso</button></div>`:''}
+    <div class="resolve-acts"><button class="pill secondary sm" onclick="openCatalog('${e.id}')">Cambiar</button><button class="act muted" onclick="toast('Ver origen')">Ver origen</button></div>
+  </div>`;
+}
+function pageEjercicios(){
+  const pending=pageStatus();
+  const list=filteredEx();
+  const groups=[1,2,3,4].map(gid=>({gid,rows:list.filter(e=>e.gid===gid)})).filter(g=>g.rows.length);
+  return page({
+    chrome:chromeBar({title:'Coincidencias',sub:'Conservamos el texto original',back:'resumen',action:'Guardar y salir',fn:"toast('Borrador guardado. Puedes salir cuando quieras.')"}),
+    dock:dockBar({
+      primary:'Continuar a distribución',primaryFn:"go('dias')",disabled:pending>0,
+      note:pending?`Te faltan ${pending} por decidir.`:'Todo decidido. Puedes continuar.'
+    }),
+    body:`
+      ${stepBar(1,`${pageRecognized()} de 66`)}
+      <h1 class="h1">Confirma las coincidencias.</h1>
+      <p class="body">${pending?`${pageRecognized()} ya apuntan a una variante del catálogo. Revisa ${pending===1?'el dudoso':'los '+pending+' dudosos'} o abre «Todas» para comprobarlos.`:'Los 66 apuntan a una variante del catálogo. Puedes cambiarlos cuando quieras.'}</p>
+      <div class="seg" style="margin-top:14px">
+        <button class="${S.filter==='pending'?'on':''}" onclick="setFilter('pending')">Pendientes <span class="n">${pending}</span></button>
+        <button class="${S.filter==='all'?'on':''}" onclick="setFilter('all')">Todas <span class="n">66</span></button>
+        <button class="${S.filter==='warn'?'on':''}" onclick="setFilter('warn')">Avisos <span class="n">4</span></button>
+      </div>
+      ${S.filter!=='warn'?`<div class="autobanner">
+        <span class="ic">${ic('check',15)}</span>
+        <span class="grow"><strong>${pageRecognized()} coincidencias altas</strong><span>Apuntan a una variante del catálogo. Puedes cambiarlas cuando quieras.</span></span>
+        <button class="act" onclick="setFilter('all')">Ver</button>
+      </div>`:''}
+      ${groups.length?groups.map(g=>`
+        <div class="group-h"><span class="eyebrow">${EX.find(e=>e.gid===g.gid).group}</span><span>${S.filter==='pending'?g.rows.length+' por decidir':S.filter==='warn'?g.rows.length+' con aviso':EX.filter(e=>e.gid===g.gid).length+' ejercicios'}</span></div>
+        <div class="mod flush" style="padding:0 16px">${g.rows.map(exRow).join('')}</div>
+      `).join(''):`
+        <div class="mod" style="margin-top:16px;text-align:center;padding:26px 20px">
+          <span class="exico ok" style="width:40px;height:40px;margin:0 auto 10px">${ic('check',20)}</span>
+          <p class="h2">${S.filter==='warn'?'Sin avisos pendientes.':'Nada pendiente.'}</p>
+          <p class="cap" style="margin-top:5px">${S.filter==='warn'?'Los 4 avisos están revisados.':'Los 66 ejercicios apuntan al catálogo.'}</p>
+          <button class="pill secondary sm" style="width:100%;margin-top:14px" onclick="setFilter('all')">Ver los 66</button>
+        </div>`}
+      <div class="row" style="justify-content:space-between;margin-top:14px">
+        <button class="act muted" onclick="toast('Abriendo el catálogo')">${ic('plus',14)} Añadir ejercicio</button>
+        <button class="act muted" onclick="${S.filter==='all'?"toast('Mostrando 22 de 66')":"setFilter('all')"}">${S.filter==='all'?'Ver los 44 restantes':'Ver los 66'} ${ic('chevron',12)}</button>
+      </div>
+    `
+  });
+}
+
+/* ─────────────────────────── 06 · DÍAS ─────────────────────────── */
+function sessionCard(id,dayIndex){
+  const s=SESSIONS.find(x=>x.id===id);
+  const sel=S.selectedSession===id;
+  return `<div class="session-card ${sel?'selected':''}" onclick="event.stopPropagation();${S.selectedSession?`moveTo(${dayIndex})`:`openSession('${id}',${S.week})`}">
+    <button class="grip" onclick="event.stopPropagation();selectSession('${id}')" aria-label="Mover ${s.name}">${ic('grip',16)}</button>
+    <span class="sc-main"><strong>${s.name}</strong><span>${s.ex} ejercicios · ${s.min} min · ${String(s.vol).replace('.',',')} t</span></span>
+    <button class="sc-more" onclick="event.stopPropagation();openSessionMenu('${id}')" aria-label="Más opciones de ${s.name}">${ic('more',18)}</button>
+  </div>`;
+}
+function dayRow(d,i){
+  const ids=S.assign[S.week][i]||[];
+  const mins=ids.reduce((n,id)=>n+(SESSIONS.find(x=>x.id===id)?.min||0),0);
+  return `<div class="day-row ${ids.length?'has':''} ${S.selectedSession?'target':''}" onclick="moveTo(${i})">
+    <div class="day-tag"><b>${d.s}</b><i></i></div>
+    <div class="day-body">
+      ${ids.length?ids.map(id=>sessionCard(id,i)).join(''):`<div class="rest-line">${ic('moon',15)}<span>Descanso</span><small>Sin sesión</small></div>`}
+      ${ids.length>1?`<div class="day-warn">${ic('warning',12)} ${ids.length} sesiones · ${fmtMin(mins)}</div>`:''}
+    </div>
+  </div>`;
+}
+function pageDias(){
+  const w=S.week;
+  const sessions=pageSessions(w),rest=pageRestDays(w),mins=pageMinutes(w);
+  const weekButtons=[1,2,3].map(n=>`<button class="chip ${w===n?'on':''}" onclick="setWeek(${n})">Semana ${n}</button>`).join('');
+  return page({
+    chrome:chromeBar({title:'Distribución',sub:`${pageSessions(S.week)} sesiones · ${pageRestDays(S.week)} descansos`,back:'ejercicios',action:'⋯',fn:"openSheet('estructura')"}),
+    dock:dockBar({secondary:'Estructura',secondaryFn:"openSheet('estructura')",primary:'Continuar a sesiones',primaryFn:"go('sesiones')",note:`${sessions} sesiones · ${rest} descansos`}),
+    body:`
+      ${stepBar(2,`${sessions} sesiones · ${rest} descansos`)}
+      <h1 class="h1">Confirma la distribución.</h1>
+      <p class="body">Así vienen las sesiones en tu documento. Cambia el día solo si algo no coincide.</p>
+      <div class="weektabs">${weekButtons}<button class="act" onclick="applyAllWeeks()">Aplicar a todas</button></div>
+      ${weekDiff(w)?`<div class="row" style="margin:0 2px 4px"><span class="chip warn">Solo esta semana</span><button class="act muted" onclick="applyAllWeeks()">Igualar a la semana 1</button></div>`:''}
+      <div class="mod" style="margin-top:10px">
+        <div class="weekstrip">${DAYS.map((d,i)=>{const ids=S.assign[w][i]||[];return `<div class="wcell ${ids.length?'on':''}"><small>${d.s}</small><b>${ids.length||'—'}</b><i></i></div>`}).join('')}</div>
+        <div class="weekmeta"><span><b>${sessions} sesiones</b> · ${rest} descansos</span><span><b>${fmtMin(mins)}</b> estimado</span></div>
+        <div class="weekmeta" style="margin-top:5px"><span>Sugerencia: Lun, Mar, Jue y Vie</span><button class="act" onclick="suggestDays()">Sugerir reparto</button></div>
+      </div>
+      ${S.selectedSession?`<div class="movetip">${ic('grip',14)} «${SESSIONS.find(s=>s.id===S.selectedSession).name}» seleccionada. Toca un día para moverla. <button onclick="clearSelection()">Cancelar</button></div>`:''}
+      <div class="day-list">${DAYS.map((d,i)=>dayRow(d,i)).join('')}</div>
+      <div class="day-foot"><span>${sessions} sesiones · ${rest} descansos · ${fmtMin(mins)}</span><b>${pageVolume(w).toFixed(1).replace('.',',')} t estimadas</b></div>
+    `
+  });
+}
+
+/* ─────────────────────────── 07 · SESIONES ─────────────────────────── */
+function pageSesiones(){
+  const reviewed=S.reviewedSessions;
+  const all=[];[1,2,3].forEach(w=>SESSIONS.forEach(s=>all.push({w,s})));
+  const next=all.find(x=>!reviewed.has(`${x.w}-${x.s.id}`));
+  const primary=next?'Abrir la siguiente':'Continuar a revisión';
+  const primaryFn=next?`openSession('${next.s.id}',${next.w})`:"go('revision')";
+  const note=next?`Siguiente: Semana ${next.w} · ${DAYS[dayOfSession(next.s.id,next.w)].s} · ${next.s.name}`:'12 de 12 revisadas';
+  const group=w=>`<div class="group-h"><span class="eyebrow">Semana ${w}</span><span>4 sesiones</span></div><div class="mod flush" style="padding:0 16px">${SESSIONS.map(s=>{
+    const d=dayOfSession(s.id,w);
+    const key=`${w}-${s.id}`;
+    const done=reviewed.has(key);
+    const isNext=!!next&&next.w===w&&next.s.id===s.id;
+    return `<button class="sess-row" onclick="openSession('${s.id}',${w})">
+      <span class="sico">${ic('dumbbell',17)}</span>
+      <span class="grow"><strong>Día ${d+1} · ${s.name}</strong><span>${s.ex} ejercicios · ${s.min} min · ${String(s.vol).replace('.',',')} t</span></span>
+      <span class="chip ${done?'ok':isNext?'warm':''}">${done?'Revisada':isNext?'Siguiente':'Abrir'}</span>
+      ${ic('chevron',15)}
+    </button>`;
+  }).join('')}</div>`;
+  return page({
+    chrome:chromeBar({title:'Sesiones',sub:`${reviewed.size} de 12 revisadas`,back:'dias',action:'?',fn:"toast('El editor de sesión es el mismo que en el resto de KPKN.')"}),
+    dock:dockBar({secondary:'Ir a revisión',secondaryFn:"go('revision')",primary,primaryFn,note}),
+    body:`
+      ${stepBar(3,`${reviewed.size} de 12 revisadas`)}
+      <h1 class="h1">Ajusta cada sesión en su editor.</h1>
+      <p class="body">La importación creó 12 sesiones (4 por semana). Abre el editor de KPKN para cambiar series, repeticiones, RIR, descanso o notas. No hay un editor nuevo para la importación.</p>
+      ${[1,2,3].map(group).join('')}
+      <div class="mod" style="margin-top:12px">
+        <div class="mod-h"><span class="eyebrow">Dentro del editor</span><span class="chip ok">Mismo editor</span></div>
+        <div class="divider" style="margin:8px 0"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="chip">Series y reps</span><span class="chip">Carga</span><span class="chip">RIR / RPE</span><span class="chip">Descanso</span><span class="chip">Notas</span><span class="chip">Orden</span>
+        </div>
+        <p class="cap" style="margin-top:10px">Cada cambio se guarda en el borrador. El programa no se publica hasta la revisión final.</p>
+      </div>
+      <p class="cap" style="text-align:center;margin-top:14px">Puedes abrirlas en orden o ir directo a la revisión. El editor seguirá disponible desde el programa.</p>
+    `
+  });
+}
+
+/* ─────────────────────────── 08 · SESIÓN · EDITOR ─────────────────────────── */
+function setRows(card,idx,sid){
+  const rows=[];
+  for(let i=1;i<=card.sets;i++){
+    const kg=idx===0?formatKg(weightFor(sid)):card.kg;
+    rows.push(`<span class="cell n">${i}</span><span class="cell">${card.reps}</span><span class="cell ${i===1?'hot':''}">${kg}</span><span class="cell">${card.rir}</span>`);
+  }
+  return rows.join('');
+}
+function exerciseCard(card,idx,sid){
+  return `<div class="ex-card">
+    <div class="ex-card-h">
+      <div class="grow"><strong>${card.name}</strong><span>${card.meta} · ${card.sets} series · ${card.rest}</span></div>
+      <span class="chip ok">${card.conf} %</span>
+    </div>
+    <div class="setgrid">
+      <span class="th">Serie</span><span class="th">Reps</span><span class="th">Kg</span><span class="th">RIR</span>
+      ${setRows(card,idx,sid)}
+    </div>
+    ${idx===0?`<div class="row" style="justify-content:space-between;margin-top:9px">
+      <span class="cap">Carga de trabajo</span>
+      <div class="stepper"><button onclick="adjustWeight(-2.5)" aria-label="Bajar carga">${ic('minus',14)}</button><b class="num" style="min-width:64px;text-align:center">${formatKg(weightFor(sid))} kg</b><button onclick="adjustWeight(2.5)" aria-label="Subir carga">${ic('plus',14)}</button></div>
+    </div>`:''}
+    <div class="ex-card-foot"><span class="rest">${ic('clock',12)} ${card.rest}</span><button onclick="toast('Editar series de ${card.name.replace(/'/g,'')}')">Editar series</button></div>
+  </div>`;
+}
+function pageSesion(){
+  const s=currentSession();
+  const d=dayOfSession(s.id,S.week);
+  const cards=SESSION_CARDS_BY_ID[s.id]||SESSION_CARDS_BY_ID.s1;
+  const sets=cards.reduce((n,c)=>n+c.sets,0);
+  return page({
+    chrome:chromeBar({title:'Editor de sesión',sub:`Semana ${S.week} · Día ${d+1} · ${s.name}`,back:'sesiones'}),
+    dock:dockBar({primary:'Guardar sesión',primaryFn:"saveSession()",note:'Los cambios se guardan en el borrador'}),
+    body:`
+      <div class="session-hero">
+        <div class="eyebrow">Semana ${S.week} · Día ${d+1}</div>
+        <h1 class="h1">${s.name}</h1>
+        <p class="body" style="font-size:12px">${s.focus}</p>
+        <div class="hero-stats"><span>Editor KPKN</span><span>${s.ex} ejercicios</span><span>${sets} series</span><span>${String(s.vol).replace('.',',')} t</span><span>${s.min} min</span></div>
+      </div>
+      <div class="origin"><span>Del documento: <b>«Día ${d+1} — ${s.name}»</b></span><button class="act" onclick="toast('Ver la fila de origen')">Ver origen</button></div>
+      ${cards.slice(0,3).map((c,i)=>exerciseCard(c,i,s.id)).join('')}
+      ${cards.length>3?`<button class="addline" onclick="toast('Mostrando los 3 primeros de ${cards.length}')">Ver los ${cards.length-3} restantes ${ic('chevron',12)}</button>`:''}
+      <button class="addline" onclick="toast('Añadir ejercicio desde el catálogo')">${ic('plus',14)} Añadir ejercicio</button>
+      <button class="addline" style="margin-top:7px" onclick="toast('Añadir serie')">${ic('plus',14)} Añadir serie al último ejercicio</button>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Notas de la sesión</span><span class="chip">Opcional</span></div>
+        <div class="divider" style="margin:8px 0"></div>
+        <textarea class="textarea" style="min-height:68px" placeholder="Técnica, sensaciones, cambios…" oninput="S.sessionNote=this.value">${esc(S.sessionNote||'')}</textarea>
+      </div>
+      <p class="session-note">Series, repeticiones, carga, RIR y descanso se ajustan por ejercicio. Este es el mismo editor que usarás en cualquier sesión.</p>
+    `
+  });
+}
+
+/* ─────────────────────────── 09 · REVISIÓN ─────────────────────────── */
+function pageRevision(){
+  const pending=pageStatus();
+  const warningsOk=S.warningsReviewed;
+  const trainingDays=Object.keys(S.assign[1]).sort((a,b)=>+a-+b).map(d=>DAYS[+d].s).join(', ');
+  const dayCount=Object.keys(S.assign[1]).length;
+  const daysOk=dayCount>0;
+  const reviewed=S.reviewedSessions.size;
+  const ready=pending===0&&warningsOk&&daysOk;
+  const blockers=3-(pending>0?1:0)-(warningsOk?0:1)-(daysOk?0:1);
+  const alta=S.entry==='alta';
+  const stepRight=ready?'Todo listo':pending>0?`${pending} pendientes`:!daysOk?'Elige un día':'Avisos por revisar';
+  return page({
+    chrome:chromeBar({title:'Revisión',sub:alta?'Alta · Entreno':'Programa · Borrador',back:'sesiones',action:'?',fn:"toast('Nada se guarda hasta que confirmes.')"}),
+    dock:dockBar({primary:alta?'Continuar':'Guardar programa',primaryFn:alta?"continuarAlta()":"saveProgram()",disabled:!ready,note:ready?'Se guardará como borrador. No se activa.':pending>0?`Faltan ${pending} por decidir.`:!daysOk?'Elige al menos un día.':'Revisa los 4 avisos.'}),
+    body:`
+      ${stepBar(4,stepRight)}
+      <h1 class="h1">${ready?'Todo listo.':'Casi listo.'}</h1>
+      <p class="body">${ready?'Revisa la última vez. Todavía no se ha guardado nada.':'Resuelve lo que falta antes de guardar.'}</p>
+      <div class="passport" style="margin-top:16px">
+        <div class="art">
+          <div class="eyebrow">Listo para guardar</div>
+          <h2>${esc(S.title)}</h2>
+          <div class="chips"><span class="chip">3 semanas</span><span class="chip">12 sesiones</span><span class="chip">66 ejercicios</span></div>
+        </div>
+        <div class="bottom"><span>${alta?'Se guardará al terminar el alta':'Borrador · no se activa'}</span><span class="chip pro">${ic('pro',11)} KPKN Pro</span></div>
+      </div>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Checklist</span><span class="chip ${ready?'ok':'warn'}">${blockers} de 3</span></div>
+        <div class="divider" style="margin:8px 0 0"></div>
+        <div class="check-row"><span class="ic ${pending?'warn':''}">${ic(pending?'warning':'check',14)}</span><span><strong>${pending?`${66-pending} de 66 decididos`:'66 ejercicios decididos'}</strong><span>${pending?'Faltan '+pending+' por elegir.':'64 automáticos y 2 elegidos por ti.'}</span></span><button class="act" onclick="go('ejercicios')">${pending?'Revisar':'Cambiar'}</button></div>
+        <div class="check-row"><span class="ic ${daysOk?'':'warn'}">${ic(daysOk?'check':'warning',14)}</span><span><strong>${dayCount} días de entrenamiento</strong><span>${daysOk?trainingDays+'.':'Elige al menos un día.'}</span></span><button class="act" onclick="go('dias')">Cambiar</button></div>
+        <div class="check-row"><span class="ic ${reviewed===12?'':'info'}">${ic(reviewed===12?'check':'info',14)}</span><span><strong>${reviewed} de 12 sesiones revisadas</strong><span>Puedes ajustarlas ahora o después de guardar.</span></span><button class="act" onclick="go('sesiones')">${reviewed?'Abrir':'Revisar'}</button></div>
+        <div class="check-row"><span class="ic ${warningsOk?'':'warn'}">${ic(warningsOk?'check':'warning',14)}</span><span><strong>${warningsOk?'4 avisos revisados':'4 avisos sin revisar'}</strong><span>${warningsOk?'Ninguno bloquea el programa.':'Ábrelos, corrígelos o ignóralos para guardar.'}</span></span><button class="act" onclick="openSheet('avisos')">${warningsOk?'Ver':'Revisar'}</button></div>
+      </div>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Volumen estimado por semana</span><span class="chip">t</span></div>
+        <div class="bars">
+          <div class="b"><b>32,3</b><i style="height:78%"></i><span>Sem 1</span></div>
+          <div class="b"><b>33,9</b><i style="height:84%"></i><span>Sem 2</span></div>
+          <div class="b"><b>35,6</b><i style="height:92%"></i><span>Sem 3</span></div>
+        </div>
+        <p class="cap" style="margin-top:8px">Estimado con series × repeticiones × carga. No incluye peso corporal.</p>
+      </div>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Series por grupo</span><span class="cap">semana tipo</span></div>
+        <div class="musclebar"><i style="width:29%;background:var(--muscle)"></i><i style="width:24%;background:var(--spine)"></i><i style="width:29%;background:var(--ok)"></i><i style="width:10%;background:var(--energy)"></i><i style="width:8%;background:var(--mind)"></i></div>
+        <div class="legend"><span><i style="background:var(--muscle)"></i>Pecho 14</span><span><i style="background:var(--spine)"></i>Espalda 12</span><span><i style="background:var(--ok)"></i>Pierna 14</span><span><i style="background:var(--energy)"></i>Hombro 5</span><span><i style="background:var(--mind)"></i>Brazos 4</span></div>
+      </div>
+      <div class="mod">
+        <div class="switch-row"><div><strong>Activar al guardar</strong><span>Se guardará como borrador. Podrás activarlo desde Programas.</span></div><button class="switch ${S.activate?'on':''}" onclick="toggleActivate()" aria-label="Activar al guardar"></button></div>
+      </div>
+    `
+  });
+}
+
+/* ─────────────────────────── 10 · ÉXITO ─────────────────────────── */
+function particles(){
+  const colors=['--muscle','--energy','--spine','--mind','--ok'];
+  return Array.from({length:14},(_,i)=>{
+    const a=(i/14)*Math.PI*2;const dist=112+(i%4)*18;
+    return `<i style="--x:${(Math.cos(a)*dist).toFixed(1)}px;--y:${(Math.sin(a)*dist).toFixed(1)}px;--r:${(i*47)%360}deg;--d:${(i%5)*.04}s;--c:var(${colors[i%5]})"></i>`;
+  }).join('');
+}
+function pageExito(){
+  const alta=S.entry==='alta';
+  const d=dayOfSession('s1',1);
+  return `<div class="page ${S.fs===1.3?'fs130':''}"><div class="success-page">
+    <div class="confetti">${particles()}</div>
+    <div class="success-top">
+      <div class="mark"><span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span><div class="core">${ic('check',38)}</div></div>
+      <div class="eyebrow">${alta?'Programa listo':'Guardado'}</div>
+      <h1 class="success-title" style="${alta?'font-size:34px':''}">${alta?'Listo para continuar.':'Ya es tuyo.'}</h1>
+      <p class="success-name">${esc(S.title)}</p>
+      <p class="success-meta">3 semanas · 12 sesiones · 66 ejercicios</p>
+    </div>
+    <div class="success-card">
+      <div class="row"><span class="grow"><strong>${alta?'Se guardará al terminar el alta':'Borrador · no activado'}</strong><span>${alta?'Podrás revisarlo antes de terminar.':'Podrás activarlo desde Programas.'}</span></span><span class="chip ${alta?'ok':'warn'}">${alta?'Listo':'Borrador'}</span></div>
+      <div class="divider" style="margin:8px 0"></div>
+      <div class="row"><span class="grow"><strong>Primera sesión</strong><span>Empuje · ${DAYS[d].n.toLowerCase()} · 68 min</span></span><span class="chip warm">${DAYS[d].s}</span></div>
+    </div>
+    <div class="success-foot">
+      <button class="pill primary" onclick="${alta?'continuarAlta()':'toast(\'Abriendo la primera sesión\')'}">${alta?'Continuar al resumen':'Empezar la primera sesión'} ${ic('arrowRight',17)}</button>
+      <button class="pill secondary" onclick="toast('Abriendo el programa')">Ver programa</button>
+      <p class="cap">${alta?'El alta continúa con el resumen del entrenamiento.':'Guardado como borrador. Podrás activarlo cuando quieras.'}</p>
+    </div>
+  </div></div>`;
+}
+
+/* ─────────────────────────── 11 · VACÍO ─────────────────────────── */
+function extractLines(){
+  return ['Día 1 — Pierna','Sentadilla 4x6 120','Prensa 3x10','Peso muerto rumano 3x8 100','Día 2 — Tirón','Remo 3x8 60','Jalón 3x10'];
+}
+function pageVacio(){
+  return page({
+    chrome:chromeBar({title:'Importar',sub:'Texto leído · sin ejercicios',back:'entrada',action:'?',fn:"toast('Ayuda de importación')"}),
+    body:`
+      <div class="state-visual">${ic('search',30)}</div>
+      <h1 class="state-title">Leímos el archivo, pero no encontramos ejercicios.</h1>
+      <p class="state-body">Puede que el documento use una tabla de imágenes o que los nombres estén en una columna que no reconocemos. Revisa el texto extraído o prueba otra fuente.</p>
+      <div class="mod">
+        <div class="mod-h"><span class="eyebrow">Lo que hemos leído</span><span class="chip warn">0 ejercicios</span></div>
+        <div class="divider" style="margin:8px 0 0"></div>
+        <div class="diag"><strong>Hojas</strong><b>2</b><span>Archivo leído correctamente</span></div>
+        <div class="diag"><strong>Filas con texto</strong><b>48</b><span>Ninguna se interpretó como ejercicio</span></div>
+        <div class="diag"><strong>Ejercicios reconocidos</strong><b>0</b><span>Sin coincidencias en el catálogo</span></div>
+        <div class="diag"><strong>Avisos</strong><b>0</b><span>No se inventaron datos</span></div>
+        <button class="act" style="margin-top:8px" onclick="toggleExtract()">${S.showExtract?'Ocultar':'Ver'} el texto extraído ${ic('down',13)}</button>
+        ${S.showExtract?`<div class="extract">${extractLines().map((l,i)=>`<span class="ln">${i+1}</span>${esc(l)}<br>`).join('')}</div>`:''}
+      </div>
+      <div class="state-acts">
+        <button class="pill primary" onclick="openSheet('texto')">Revisar el texto ${ic('arrowRight',17)}</button>
+        <button class="pill secondary" onclick="go('entrada')">Elegir otro archivo</button>
+        <button class="act muted" style="justify-content:center" onclick="go('entrada')">Empezar de cero</button>
+      </div>
+      <p class="cap" style="text-align:center;margin-top:14px">Si es una foto, prueba a hacerla con más luz y sin sombras sobre el papel.</p>
+    `
+  });
+}
+
+/* ─────────────────────────── 12 · ERROR ─────────────────────────── */
+function pageError(){
+  const archivo=S.errorMode==='archivo';
+  return page({
+    chrome:chromeBar({title:'Importar',sub:archivo?'No pudimos leer el archivo':'Catálogo no disponible',back:'entrada',action:'?',fn:"toast('Ayuda de importación')"}),
+    body:`
+      <div class="seg" style="margin-bottom:16px">
+        <button class="${archivo?'on':''}" onclick="setErrorMode('archivo')">Archivo</button>
+        <button class="${!archivo?'on':''}" onclick="setErrorMode('catalogo')">Catálogo</button>
+      </div>
+      ${archivo?`
+        <div class="state-visual danger">${ic('file',30)}</div>
+        <h1 class="state-title">No pudimos leer el archivo.</h1>
+        <p class="state-body">El PDF está protegido con contraseña. Quita la protección o expórtalo de nuevo como PDF sin contraseña.</p>
+        <div class="mod tint-danger">
+          <div class="mod-h"><span class="eyebrow" style="color:var(--danger)">Motivo</span><span class="chip danger">PDF_ENCRYPTED</span></div>
+          <p class="cap" style="margin-top:8px">La lectura se detuvo antes de analizar el contenido. No se ha modificado ningún borrador.</p>
+        </div>
+        <div class="mod">
+          <div class="mod-h"><span class="eyebrow">Detalles</span><button class="act" onclick="toast('Detalles copiados')">Copiar</button></div>
+          <div class="divider" style="margin:8px 0 0"></div>
+          <div class="diag"><strong>Archivo</strong><b>archivo.pdf</b><span>PDF · 1,8 MB · 12 páginas</span></div>
+          <div class="diag"><strong>Etapa</strong><b>Lectura del documento</b><span>Antes de interpretar ejercicios</span></div>
+          <div class="diag"><strong>Borrador</strong><b>Intacto</b><span>No se ha sobrescrito nada</span></div>
+        </div>
+        <div class="state-acts">
+          <button class="pill primary" onclick="go('entrada')">Elegir otro archivo ${ic('arrowRight',17)}</button>
+          <button class="pill secondary" onclick="go('pegar')">Pegar el texto</button>
+          <button class="act muted" style="justify-content:center" onclick="go('leyendo')">Reintentar</button>
+        </div>
+      `:`
+        <div class="state-visual">${ic('refresh',30)}</div>
+        <h1 class="state-title">No pudimos cargar el catálogo.</h1>
+        <p class="state-body">El programa está leído, pero no podemos comprobar los ejercicios. Tu borrador sigue intacto y puedes seguir revisando.</p>
+        <div class="mod">
+          <div class="mod-h"><span class="eyebrow">Estado de la lectura</span><span class="chip ok">Programa leído</span></div>
+          <div class="divider" style="margin:8px 0 0"></div>
+          <div class="diag"><strong>Ejercicios leídos</strong><b>66</b><span>Estructura y prescripciones completas</span></div>
+          <div class="diag"><strong>Ya resueltos</strong><b>64</b><span>Coincidencias guardadas en el borrador</span></div>
+          <div class="diag"><strong>Sin comprobar</strong><b>2</b><span>«Sentadilla con barra» y «Remo»</span></div>
+        </div>
+        <div class="state-acts">
+          <button class="pill primary" onclick="go('leyendo')">Reintentar ${ic('refresh',17)}</button>
+          <button class="pill secondary" onclick="go('ejercicios')">Volver a la revisión</button>
+          <p class="cap" style="text-align:center;margin-top:8px">Guardar seguirá bloqueado hasta que el catálogo esté disponible.</p>
+        </div>
+      `}
+    `
+  });
+}
+/* ─────────────────────────── HOJAS ─────────────────────────── */
+function sheetReanudar(){
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>Tienes un borrador.</h3>
+    <p class="sub">Se guardó automáticamente. Puedes continuar donde lo dejaste.</p>
+    <div class="draft-card"><div class="cover"></div><div class="grow"><strong>${esc(S.title)}</strong><span>3 semanas · 12 sesiones</span><span>${pageRecognized()} de 66 ejercicios decididos</span><span>Hace 2 horas</span></div></div>
+    <div class="sheet-actions">
+      <button class="pill primary" onclick="resumeDraft()">Reanudar</button>
+      <button class="pill secondary" onclick="restartDraft()">Empezar de nuevo</button>
+      <button class="act danger" style="justify-content:center" onclick="discardDraft()">Descartar borrador</button>
+    </div>
+  </div>`;
+}
+function catResultsHTML(){
+  const q=S.catQuery.trim().toLowerCase();
+  const rows=CATALOG_RESULTS.filter(r=>(S.catFilter==='Todo'||r.eq===S.catFilter)&&(!q||r.name.toLowerCase().includes(q)||r.meta.toLowerCase().includes(q)));
+  if(!rows.length)return `<div style="padding:18px 0;text-align:center"><p class="cap">No encontramos coincidencias.</p><button class="pill secondary sm" style="margin-top:10px" onclick="toast('Abriendo el creador del catálogo')">Crear en el catálogo</button></div>`;
+  return rows.slice(0,6).map(r=>`<button class="mi" onclick="resolveFromCatalog('${r.name}',${r.conf})">
+    <span class="mic">${ic('dumbbell',16)}</span>
+    <span class="tx"><strong>${r.name}</strong><span>${r.meta} · ${r.conf} % de coincidencia</span></span>
+    ${ic('chevron',15)}
+  </button>`).join('');
+}
+function sheetCatalogo(){
+  const e=EX.find(x=>x.id===S.catalogFor)||EX.find(x=>x.state==='pending')||EX[0];
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>Elegir ejercicio</h3>
+    <p class="sub">«${e.raw}» · busca en el catálogo compartido</p>
+    <div class="search-wrap">${ic('search',18)}<input class="search" id="catSearch" placeholder="Nombre, material o músculo" value="${esc(S.catQuery)}" oninput="setCatQuery(this.value)"></div>
+    <div class="presets" id="catFilters" style="margin:10px 0 4px">${['Todo','Barra','Mancuerna','Máquina'].map(f=>`<button class="${S.catFilter===f?'on':''}" data-f="${f}" onclick="setCatFilter('${f}')">${f}</button>`).join('')}</div>
+    <div id="catResults">${catResultsHTML()}</div>
+    <div class="sheet-actions">
+      <button class="pill secondary" onclick="toast('Abriendo el creador del catálogo')">Crear «${e.raw}» en el catálogo</button>
+      <button class="pill ghost" onclick="closeSheet()">Cancelar</button>
+    </div>
+  </div>`;
+}
+function sheetEstructura(){
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>Estructura del programa</h3>
+    <p class="sub">3 semanas · 12 sesiones. Los cambios se guardan en el borrador.</p>
+    ${[1,2,3].map(w=>`<div class="sheet-week">
+      <div class="sheet-week-h"><div><strong>Semana ${w}</strong><span>${pageSessions(w)} sesiones</span></div><button class="act" onclick="toast('Duplicar semana ${w}')">Duplicar</button></div>
+      ${DAYS.map((d,i)=>{const ids=S.assign[w][i]||[];return ids.length?`<div class="dayline"><b>${d.s} · ${ids.map(id=>SESSIONS.find(s=>s.id===id).name).join(' + ')}</b><span>${ids.length} sesión${ids.length>1?'es':''}</span></div>`:''}).join('')}
+      <button class="act muted" style="padding-left:10px" onclick="toast('Añadir día a la semana ${w}')">${ic('plus',12)} Añadir día</button>
+    </div>`).join('')}
+    <div class="sheet-actions">
+      <button class="pill secondary" onclick="toast('Añadir semana')">${ic('plus',15)} Añadir semana</button>
+      <button class="pill ghost" onclick="closeSheet()">Cerrar</button>
+    </div>
+  </div>`;
+}
+function sheetPro(){
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <span class="chip pro" style="margin-bottom:10px">${ic('pro',12)} KPKN Pro</span>
+    <h3>Este programa es de KPKN Pro.</h3>
+    <p class="sub">3 semanas y 12 sesiones superan el plan Free, que permite 1 semana y hasta 5 sesiones.</p>
+    <div class="pro-list">
+      <div class="pro-item">${ic('check',14)} Varias semanas con progresión y estructura propia.</div>
+      <div class="pro-item">${ic('check',14)} Más de 5 sesiones por semana y biblioteca completa.</div>
+      <div class="pro-item">${ic('check',14)} Historial, análisis y edición avanzada del programa.</div>
+    </div>
+    <div class="sheet-actions">
+      <button class="pill primary" onclick="toast('Abriendo KPKN Pro')">Ver KPKN Pro</button>
+      <button class="pill secondary" onclick="closeSheet();toast('Demo: se conservaría solo la semana 1.')">Seguir con 1 semana</button>
+      <button class="pill ghost" onclick="closeSheet()">Ahora no</button>
+    </div>
+  </div>`;
+}
+function sheetSesionMenu(){
+  const s=currentSession();
+  const d=dayOfSession(s.id,1);
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>${s.name}</h3>
+    <p class="sub">Día ${d+1} · Semana ${S.week} · ${s.ex} ejercicios · ${s.min} min</p>
+    <button class="mi" onclick="go('sesion')"><span class="mic">${ic('edit',16)}</span><span class="tx"><strong>Editar sesión</strong><span>Series, cargas, descanso y notas</span></span>${ic('chevron',15)}</button>
+    <button class="mi" onclick="moveFromMenu()"><span class="mic">${ic('calendar',16)}</span><span class="tx"><strong>Mover a otro día</strong><span>Selecciona la sesión y toca el destino</span></span>${ic('chevron',15)}</button>
+    <button class="mi" onclick="toast('Sesión duplicada en el borrador')"><span class="mic">${ic('copy',16)}</span><span class="tx"><strong>Duplicar sesión</strong><span>Se añade justo después en el mismo día</span></span>${ic('chevron',15)}</button>
+    <button class="mi danger" onclick="toast('Sesión quitada del día')"><span class="mic">${ic('trash',16)}</span><span class="tx"><strong>Quitar del día</strong><span>El ejercicio no se borra del programa</span></span>${ic('chevron',15)}</button>
+    <div class="sheet-actions"><button class="pill ghost" onclick="closeSheet()">Cancelar</button></div>
+  </div>`;
+}
+function sheetAvisos(){
+  const rows=[
+    {t:'Carga no legible',s:'Press inclinado · Semana 1 · Día 1',a:'Corregir'},
+    {t:'Nota del documento',s:'«Subir 2,5 kg cada semana»',a:'Ver'},
+    {t:'Columna ignorada',s:'La columna «%» no se usó para calcular cargas.',a:'Ver'},
+    {t:'Carga parcial',s:'Extensión de cuádriceps · 40 kg',a:'Corregir'}
+  ];
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>Avisos del documento</h3>
+    <p class="sub">4 avisos · ninguno bloquea el programa. Conservamos el texto original de cada fila.</p>
+    ${rows.map(r=>`<div class="mi"><span class="mic">${ic('warning',15)}</span><span class="tx"><strong>${r.t}</strong><span>${r.s}</span></span><button class="act" onclick="toast('${r.a} el aviso')">${r.a}</button></div>`).join('')}
+    <div class="sheet-actions">
+      <button class="pill secondary" onclick="reviewWarnings()">Ignorar todos y marcar revisados</button>
+      <button class="pill ghost" onclick="closeSheet()">Cerrar</button>
+    </div>
+  </div>`;
+}
+function sheetTexto(){
+  return `<div class="sheet" onclick="event.stopPropagation()">
+    <div class="grab"></div>
+    <h3>Revisa el texto extraído.</h3>
+    <p class="sub">Corrige lo que no se leyó bien. Volveremos a analizarlo sin empezar de cero.</p>
+    <textarea class="textarea" id="extractEdit" oninput="S.extractText=this.value">${esc(S.extractText||extractLines().join('\n'))}</textarea>
+    <div class="sheet-actions">
+      <button class="pill primary" onclick="reanalyzeText()">Volver a analizar ${ic('arrowRight',16)}</button>
+      <button class="pill ghost" onclick="closeSheet()">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+/* ─────────────────────────── NOTAS ─────────────────────────── */
+const TAG={new:'Nuevo',change:'Rediseño',keep:'Se conserva',state:'Estado',out:'Se retira',ask:'Decisión'};
+const NOTES={
+  entrada:{kicker:'Pantalla 01 · Entrada',title:'Una portada, no una hoja de opciones.',lead:'La entrada deja de ser una hoja inferior con tres filas. Explica qué va a pasar, muestra el resultado que puede lograr y deja la fuente principal a la vista.',tags:['new','keep'],before:'Hoy: una hoja «Importar» sobre Programas con tres filas; el borrador y el límite Pro no se ven hasta más tarde.',changes:['Archivo es la tarjeta principal; texto y foto son secundarias y tienen ejemplos reales.','El borrador recuperable tiene su propio espacio, con progreso y acción de reanudar.','El límite Free se anuncia antes de leer, no al intentar guardar.'],interactions:['Archivo lanza la lectura animada; Texto abre la pantalla de pegado; Foto simula una imagen lista.','Reanudar abre la hoja de borrador; Límites abre la hoja Pro.'],impl:'Sustituye `ImportSourceSheet` y la primera mitad de `ImportProgramScreen`. Reutiliza `ImportHandoff`, `rememberImportFilePicker` y `SetupFormTextField`.',quote:'La primera pantalla debe responder «¿qué voy a conseguir?», no solo «¿qué archivo elijo?».'},
+  pegar:{kicker:'Pantalla 02 · Pegar texto',title:'El texto pegado también se revisa.',lead:'Una pantalla propia para pegar, con contador de líneas, ejemplo y una explicación honesta de lo que se reconocerá.',tags:['keep','change'],before:'Hoy: un campo de seis líneas y un botón «Leer el texto», sin contar líneas ni explicar el formato.',changes:['Contador de líneas y ejemplo rellenable.','Se explica qué se reconoce y qué quedará como aviso.','El botón principal vive al final del campo, no escondido en una isla.'],interactions:['Usar un ejemplo rellena el campo; Leer lanza la lectura; si está vacío, avisa.'],impl:'Reutiliza `ImportPasteField` y `ImportProgramViewModel.importFromText`; añadir contador y estado vacío.'},
+  leyendo:{kicker:'Pantalla 03 · Lectura',title:'La espera se convierte en evidencia.',lead:'Una lectura de unos seis segundos con progreso real por etapa, contadores que aparecen a medida que el parser entrega datos y una salida limpia.',tags:['new'],before:'Hoy: arte estático, un texto «Leyendo el programa…» y ningún progreso determinado.',changes:['Cinco etapas visibles: documento, estructura, ejercicios, catálogo y días.','Contadores de semanas, sesiones y ejercicios que se encienden al confirmarse.','Cancelación inmediata y explícita; el análisis se presenta como local.'],interactions:['Se reproduce al entrar; Cancelar vuelve a la fuente; Repetir animación está en las notas.'],impl:'El ViewModel ya expone `busy` y `progress`; mapear lectura, parseo y matching a cinco etapas y publicar recuentos parciales. OCR por página puede alimentar «Documento».',quote:'Si la app tarda, que se vea qué está haciendo; si falla, que se sepa en qué etapa.'},
+  resumen:{kicker:'Pantalla 04 · Resumen',title:'Primero el mapa; después el detalle.',lead:'Un resumen que dice qué se ha entendido antes de pedir una sola decisión. Aquí se ven estructura, pendientes, avisos y límite Pro.',tags:['new','change'],before:'Hoy: tras leer se cae directamente en un scroll infinito de semanas, ejercicios, avisos y días.',changes:['Título editable y cuatro cifras de control.','Estructura por semanas con sus días y sesiones, no una lista de ejercicios.','Pendientes, avisos y Pro agrupados por consecuencia.'],interactions:['El título se edita en línea; Estructura abre su hoja; Revisar lleva a las decisiones.'],impl:'Nuevo `ImportSummaryStep` sobre `ImportedProgramDraft`. Usa `ImportDraftValidation` y `ProgramAccessPolicy`; no reconstruye el parser.'},
+  ejercicios:{kicker:'Pantalla 05 · Coincidencias',title:'Decisiones concentradas, no repartidas.',lead:'La revisión prioriza las coincidencias dudosas. Las automáticas quedan resumidas y consultables; el texto original nunca se pierde.',tags:['change','keep'],before:'Hoy: cada fila muestra «Reconocido / Propio / Elegir», pero la confianza no se ve y las decisiones se reparten por todo el scroll.',changes:['64 ejercicios ya apuntan al catálogo; el foco está en los 2 dudosos.','Panel de alternativas con material, variante y confianza numérica.','Decisión por aparición y acceso al catálogo compartido y al creador.'],interactions:['Toca una fila pendiente; elige una variante o busca en el catálogo. El contador y el CTA se actualizan al instante.','Deshacer revierte la última decisión desde el aviso.'],impl:'Reutiliza `ExerciseNameMatcher`, `ImportExerciseAliases`, `ImportSharedCatalog` y `ImportEdits.DecideOccurrence`. `ExerciseNameCandidate.confidence` ya existe; hoy no se muestra.',quote:'La persona no tiene que revisar 66 ejercicios: solo los que el sistema no puede resolver con seguridad.'},
+  dias:{kicker:'Pantalla 06 · Distribución',title:'La distribución del documento, hecha semana.',lead:'El asistente muestra cómo vienen las sesiones en tu documento y permite corregir el día sin perder la estructura.',tags:['new','change'],before:'Hoy: siete círculos sin sesiones visibles; el reparto automático no se puede comparar con el documento.',changes:['La distribución importada es el punto de partida; mover es una corrección, no una tarea obligatoria.','Vista semanal con sesiones, descansos, duración y volumen.','Reparto por semana con «Aplicar a todas» y aviso de «Solo esta semana».','Selección de sesión + día para mover, sin arrastre obligatorio.','Aviso cuando un día acumula dos sesiones.'],interactions:['Toca el asa de una sesión y luego un día; Sugerir reparto restaura Lun/Mar/Jue/Vie; las pestañas 1–3 cambian la semana.','Deshacer revierte el último movimiento y el reparto sugerido.'],impl:'Sustituye `ImportWeekdaysSection`. Requiere que el builder acepte un mapa sesión→día por semana; hoy `assignWeekdays` solo recibe un `Set<Int>`.',quote:'El documento manda; el asistente solo te deja corregirlo con la semana a la vista.'},
+  sesiones:{kicker:'Pantalla 07 · Sesiones',title:'El asistente termina donde empieza el editor.',lead:'La importación no crea controles paralelos. Este paso lista las 12 sesiones (4 por semana) y abre el editor real de KPKN, donde se ajustan series, reps, RIR, descanso y notas.',tags:['new','keep'],before:'Hoy: el editor real existe, pero el flujo no lo presenta como el lugar natural para ajustar la importación.',changes:['Paso dedicado que lista las 12 sesiones y su estado.','Abrir el editor compartido; Guardar sesión vuelve al asistente y marca Revisada.','No hay pantalla de descanso global ni editor de importación.'],interactions:['Toca una sesión para abrir el editor; Guardar sesión actualiza 0/12, 1/12…','Puedes abrirlas en orden o ir directo a la revisión; el editor queda disponible desde el programa.'],impl:'Reutiliza `ImportSessionEditorPortal` + `SessionEditorScreen`. El paso solo necesita la lista de sesiones del `Program` canónico; no añadir UI de descanso.',quote:'El asistente guía; el editor hace el trabajo.'},
+  sesion:{kicker:'Pantalla 08 · Editor de sesión',title:'El editor de siempre, no uno de importación.',lead:'Series, repeticiones, carga, RIR, descanso y notas se editan aquí, con las mismas capacidades que cualquier sesión de KPKN. El editor abre la sesión de la semana seleccionada.',tags:['keep'],before:'Hoy: `SessionEditorScreen` ya existe y se abre mediante portal; el editor reducido del importador quedó como fallback.',changes:['Se abre desde el paso Sesiones.','No hay campos de importación ni un formulario paralelo.','Guardar marca la sesión como revisada y vuelve al asistente.'],interactions:['El stepper cambia la carga de la semana; Guardar sesión vuelve a Sesiones con la marca Revisada.'],impl:'Conserva `ImportSessionEditorPortal` + `SessionEditorScreen`. Cualquier diferencia entre esta representación y el editor real es un riesgo de paridad.',quote:'Las decisiones de entrenamiento pertenecen al editor; el importador solo las pone delante.'},
+  revision:{kicker:'Pantalla 09 · Revisión',title:'Cerrar con números, no con una frase.',lead:'La última pantalla enseña lo que se va a guardar: semanas, sesiones, volumen estimado, reparto muscular y los checks que bloqueaban el guardado.',tags:['change'],before:'Hoy: «Listo: 3 semanas · 12 días · 86 ejercicios» y una isla con Guardar, sin desglose ni estado de activación.',changes:['Pasaporte del programa con sus cifras.','Checklist accionable de los tres bloqueos: ejercicios, días y avisos.','El paso Sesiones es opcional y no bloquea guardar.','Volumen estimado por semana y series por grupo.','Guardar como borrador explícito; activar es una decisión aparte.'],interactions:['El switch «Activar al guardar» está apagado; Guardar lanza la celebración y deja el programa en Borrador.'],impl:'Sustituye la isla G3 y `ProgramReadyOverlay`. El guardado ya existe (`save(level)`); separar guardar de activar si se mantiene el switch.'},
+  exito:{kicker:'Pantalla 10 · Éxito',title:'El final también es marca.',lead:'Una confirmación con el peso visual de KPKN: anillos, check trazado y el programa como objeto. Sin confeti genérico ni una hoja de sistema.',tags:['change','new'],before:'Hoy: se reutiliza `ProgramReadyOverlay` («Listo para empezar») sin una transición propia del importador.',changes:['Celebración breve con el acento músculo.','Pasaporte del programa y primera sesión.','Estado Borrador honesto y dos acciones claras.'],interactions:['Las acciones muestran la navegación; Repetir animación no está en la app, solo en las notas.'],impl:'Reutiliza `ProgramReadyOverlay` como contrato de datos y sustituye su presentación. Con movimiento reducido se queda el estado final, sin anillos.'},
+  vacio:{kicker:'Pantalla 11 · Sin ejercicios',title:'Cero resultados no es un callejón.',lead:'Distingue leer bien un documento sin ejercicios de fallar al leerlo. Enseña lo que sí se encontró y ofrece corregir el texto extraído.',tags:['new'],before:'Hoy: `NOTHING_FOUND` se resume en un aviso y se ofrece empezar de nuevo; el texto leído no se puede corregir.',changes:['Diagnóstico honesto: hojas, filas, ejercicios y avisos.','Texto extraído visible y editable.','Recuperación por texto, por otro archivo o desde cero.'],interactions:['Ver el texto extraído lo despliega; Revisar el texto abre la hoja de corrección; Volver a analizar reintenta.'],impl:'`NOTHING_FOUND` ya existe. Añadir revisión del texto y conservar el borrador anterior; nunca publicar un programa vacío.'},
+  error:{kicker:'Pantalla 12 · Error',title:'El error dice qué pasó y qué hacer.',lead:'Dos familias: archivo ilegible y catálogo no disponible. Cada una conserva el borrador y ofrece una salida concreta.',tags:['new','state'],before:'Hoy: una única cadena de error («No pudimos leer el programa») sin etapa, causa ni salida específica.',changes:['Motivo específico, etapa y detalles técnicos.','Reintento, cambio de archivo y pegado de texto.','Catálogo no disponible como estado recuperable, no como fallo total.'],interactions:['Alterna Archivo/Catálogo; Reintentar vuelve a la lectura; Volver a la revisión conserva el borrador.'],impl:'Separar excepciones de lectura, parser y catálogo. El ViewModel ya preserva el borrador; la UI debe nombrar la etapa.'},
+  reanudar:{kicker:'Hoja · Reanudar',title:'Recuperar sin sorpresas.',lead:'El borrador durable se presenta como un objeto con estado, no como una restauración silenciosa.',tags:['new'],before:'Hoy: el borrador se reabre solo, sin explicar qué contiene ni ofrecer descartarlo.',changes:['Título, semanas, sesiones y progreso de decisiones.','Reanudar, empezar de nuevo o descartar.'],interactions:['Reanudar abre la revisión; Empezar de nuevo elimina el borrador y vuelve a la entrada.'],impl:'Conecta con `ImportedEditorDraftSession` / `ImportedEditorDraftPersistence`. La hoja debe leer la revisión durable, no un estado en memoria.'},
+  catalogo:{kicker:'Hoja · Catálogo',title:'El catálogo de siempre, en contexto.',lead:'Buscar una variante no abre un catálogo paralelo: usa el compartido, con su búsqueda, filtros y ficha.',tags:['keep'],before:'Hoy: `ImportSharedCatalog` ya abre `ExerciseCatalogScreen` en modo selección única.',changes:['El nombre original queda como consulta inicial.','Resultados con material y confianza.','Crear en el catálogo solo si no hay una opción adecuada.'],interactions:['La búsqueda filtra sin perder el foco; elegir un resultado resuelve la aparición y cierra la hoja.'],impl:'Reutiliza `ImportSharedCatalog` y el creador del catálogo. No introducir identidades privadas del importador.'},
+  estructura:{kicker:'Hoja · Estructura',title:'La estructura también se revisa.',lead:'Semanas y días se gestionan en una hoja, sin mezclarse con la revisión de ejercicios.',tags:['keep'],before:'Hoy: menús «⋯» por semana y por día repartidos en el scroll.',changes:['Tres semanas con sus días y sesiones.','Duplicar, añadir día, añadir semana.','Cierre que vuelve al resumen o a días.'],interactions:['Las acciones de estructura muestran su efecto en el borrador; el prototipo no reescribe el modelo.'],impl:'Reutiliza `ImportDayMenu` / `ImportWeekMenu` y `ImportEdits` (`DuplicateWeek`, `AddDay`, `RemoveWeek`).'},
+  pro:{kicker:'Hoja · KPKN Pro',title:'El límite se explica antes de bloquear.',lead:'El plan Free permite una semana y hasta cinco sesiones. La hoja lo dice con el programa concreto delante.',tags:['new'],before:'Hoy: el límite aparece como aviso al guardar, después de todo el trabajo.',changes:['Contexto: 3 semanas y 12 sesiones.','Beneficios concretos, sin precios inventados.','Salida «Seguir con 1 semana» explícita.'],interactions:['Ver KPKN Pro abre la tienda; Seguir con 1 semana explica el recorte en una demo.'],impl:'Conectar con `ProgramAccessPolicy` y el paywall existente. El recorte real debe confirmarse antes de descartar semanas.'},
+  sesion_menu:{kicker:'Hoja · Menú de sesión',title:'Las acciones de la sesión, sin esconderlas.',lead:'Editar, mover, duplicar o quitar la sesión de un día dejan de depender de un menú «⋯» diminuto dentro del scroll.',tags:['new'],before:'Hoy: las acciones de día y semana viven en menús contextuales de la vista previa.',changes:['Cuatro acciones con consecuencia explicada.','Mover reutiliza la selección del calendario.','Quitar no borra el ejercicio del programa.'],interactions:['Mover cierra la hoja y deja la sesión seleccionada; tocar un día la coloca.'],impl:'Reutiliza `ImportEdits.Move`, `Duplicate`, `Remove` y el estado de selección del planificador.'},
+  avisos:{kicker:'Hoja · Avisos',title:'Los avisos también se revisan.',lead:'Las filas que el documento no permitió leer con seguridad se agrupan, se explican y se pueden corregir o ignorar sin mezclarlas con los ejercicios.',tags:['new','state'],before:'Hoy: los avisos se pliegan dentro de la vista previa y compiten con las filas de ejercicios.',changes:['Cuatro avisos con ubicación y texto original.','Corregir, ver o ignorar en el contexto de la fila.','Ignorar todos con confirmación.'],interactions:['Cada aviso ofrece su acción; Ignorar todos marca los 4 como revisados y desbloquea Guardar.'],impl:'Reutiliza `ImportWarningsPanel`, `ImportWarning` e `ImportEdits.IgnoreWarning/IgnoreAllWarnings`.'},
+  texto:{kicker:'Hoja · Texto extraído',title:'Corregir la lectura sin empezar de cero.',lead:'Cuando el parser no entiende el documento, el texto extraído es la mejor evidencia. Se puede corregir y volver a analizar.',tags:['new'],before:'Hoy: el texto extraído no se muestra ni se puede editar desde el resultado vacío.',changes:['Editor del texto leído.','Reintento sin perder el borrador.','Salida a otro archivo o al inicio.'],interactions:['Volver a analizar relanza la lectura animada con el texto corregido.'],impl:'Exponer el texto extraído del lector/OCR y permitir reparsear con `ProgramImportParser.parseText`. No guardar el texto privado más allá del borrador.'}
+};
+
+/* ─────────────────────────── NAVEGACIÓN ─────────────────────────── */
+const PAGES=[
+  {id:'entrada',num:'01',label:'Entrada',group:'Entrada',tag:'new'},
+  {id:'pegar',num:'02',label:'Pegar texto',group:'Entrada',tag:'keep'},
+  {id:'leyendo',num:'03',label:'Lectura animada',group:'Entrada',tag:'new'},
+  {id:'resumen',num:'04',label:'Resumen',group:'Entrada',tag:'new'},
+  {id:'ejercicios',num:'05',label:'Coincidencias',group:'Decidir',tag:'change'},
+  {id:'dias',num:'06',label:'Distribución',group:'Decidir',tag:'change'},
+  {id:'sesiones',num:'07',label:'Sesiones',group:'Decidir',tag:'new'},
+  {id:'sesion',num:'08',label:'Editor de sesión',group:'Decidir',tag:'keep'},
+  {id:'revision',num:'09',label:'Revisión',group:'Cerrar',tag:'change'},
+  {id:'exito',num:'10',label:'Éxito',group:'Cerrar',tag:'change'},
+  {id:'vacio',num:'11',label:'Sin ejercicios',group:'Estados',tag:'state'},
+  {id:'error',num:'12',label:'Error',group:'Estados',tag:'state'}
+];
+const SHEETS=[
+  {id:'reanudar',label:'Reanudar borrador',page:'entrada',tag:'new'},
+  {id:'catalogo',label:'Elegir ejercicio',page:'ejercicios',tag:'keep'},
+  {id:'estructura',label:'Estructura',page:'resumen',tag:'keep'},
+  {id:'pro',label:'KPKN Pro',page:'resumen',tag:'new'},
+  {id:'sesion_menu',label:'Menú de sesión',page:'dias',tag:'new'},
+  {id:'avisos',label:'Avisos',page:'ejercicios',tag:'state'},
+  {id:'texto',label:'Texto extraído',page:'vacio',tag:'new'}
+];
+function renderNav(){
+  const groups=['Entrada','Decidir','Cerrar','Estados'];
+  const pageBtn=p=>{
+    const active=S.sheet?false:S.page===p.id;
+    return `<button class="${active?'on':''}" onclick="openNav('${p.id}')"><b>${p.num}</b><span>${p.label}</span><em class="${p.tag}">${TAG[p.tag]||''}</em></button>`;
+  };
+  const sheetBtn=s=>{
+    const active=S.sheet===s.id;
+    return `<button class="${active?'on':''}" onclick="openNav('${s.id}')"><b>↳</b><span>${s.label}</span><em class="${s.tag}">${TAG[s.tag]||''}</em></button>`;
+  };
+  $('#nav').innerHTML=groups.map(g=>`<div class="nav-group">${g}</div>${PAGES.filter(p=>p.group===g).map(pageBtn).join('')}`).join('')+`<div class="nav-group">Hojas</div>${SHEETS.map(sheetBtn).join('')}`;
+}
+function renderNotes(){
+  const n=NOTES[S.sheet||S.page]||NOTES[S.page];
+  if(!n)return;
+  $('#notes').innerHTML=`
+    <div class="kicker">${esc(n.kicker)}</div>
+    <h2>${esc(n.title)}</h2>
+    <div class="tags">${n.tags.map(t=>`<span class="tag ${t}">${TAG[t]||t}</span>`).join('')}</div>
+    <p class="lead">${noteText(n.lead)}</p>
+    ${n.before?`<p class="quote"><b>Hoy.</b> ${noteText(n.before.replace(/^Hoy: /,''))}</p>`:''}
+    <h3>Qué cambia</h3>
+    <ul>${n.changes.map(x=>`<li>${noteText(x)}</li>`).join('')}</ul>
+    <h3>En el prototipo</h3>
+    <ul>${n.interactions.map(x=>`<li>${noteText(x)}</li>`).join('')}</ul>
+    <div class="impl"><strong>Implementación.</strong> ${noteText(n.impl)}</div>
+    ${S.page==='leyendo'?`<div style="margin-top:14px"><button class="pill secondary sm" onclick="replayReading()">Repetir animación</button></div>`:''}
+  `;
+}
+function renderMap(){
+  const items=[...PAGES.map(p=>({id:p.id,label:p.label,num:p.num,tag:p.tag,page:p.id,sheet:null})),...SHEETS.map(s=>({id:s.id,label:s.label,num:'H',tag:s.tag,page:s.page,sheet:s.id}))];
+  const prevPage=S.page,prevSheet=S.sheet;
+  const html=items.map(it=>{
+    S.page=it.page;S.sheet=it.sheet;
+    const body=pageHTML(it.page,true);
+    return `<figure class="mini" onclick="openFromMap('${it.id}')"><div class="mini-frame"><div class="mini-inner">${body}</div><div class="mini-status"><span>9:41</span><span>▲ ▮</span></div></div><figcaption><span>${it.num} · ${it.label}</span><em>${TAG[it.tag]||''}</em></figcaption></figure>`;
+  }).join('');
+  S.page=prevPage;S.sheet=prevSheet;
+  $('#view-mapa').innerHTML=`<div class="map-head"><h2>Doce pantallas, siete hojas.</h2><p>Toca una miniatura para abrirla en el recorrido. El marco es 360 × 880; el texto y las hojas están a escala.</p></div>${html}`;
+}
+
+/* ─────────────────────────── DOCUMENTO ─────────────────────────── */
+function renderDoc(){
+  const rows=PAGES.map(p=>{
+    const n=NOTES[p.id];
+    return `<tr><td>${p.num} · ${p.label}</td><td>${noteText(n.before.replace(/^Hoy: /,''))}</td><td>${noteText(n.lead)}</td><td><code>${esc(n.impl.split('.')[0].replace(/`/g,''))}</code></td></tr>`;
+  }).join('');
+  const srows=SHEETS.map(s=>`<tr><td>Hoja · ${s.label}</td><td>${noteText(NOTES[s.id].before.replace(/^Hoy: /,''))}</td><td>${noteText(NOTES[s.id].lead)}</td><td><code>${esc(NOTES[s.id].impl.split('.')[0].replace(/`/g,''))}</code></td></tr>`).join('');
+  $('#view-decisiones').innerHTML=`
+    <div class="eyebrow">Decisiones · 04 nov 2026</div>
+    <h1>El importador no necesitaba más controles. Necesitaba un recorrido.</h1>
+    <p>La pantalla actual resuelve lectura, interpretación, estructura, días, avisos y guardado en un solo scroll. La persona no sabe cuánto falta, no ve la confianza de las coincidencias y no puede comparar la semana completa. La propuesta separa el trabajo en doce pantallas y siete hojas, con una regla: cada decisión aparece donde se puede tomar.</p>
+    <div class="flowline">
+      <div class="on"><b>Entrada</b><span>fuente + borrador</span><i></i></div>
+      <div><b>Lectura</b><span>5 etapas</span><i></i></div>
+      <div><b>Resumen</b><span>mapa</span><i></i></div>
+      <div><b>Ejercicios</b><span>confianza</span><i></i></div>
+      <div><b>Días</b><span>semana</span><i></i></div>
+      <div><b>Sesiones</b><span>editor real</span><i></i></div>
+      <div><b>Revisión</b><span>checks</span><i></i></div>
+      <div><b>Éxito</b><span>pasaporte</span><i></i></div>
+    </div>
+    <p class="faint" style="font-size:11px;margin-top:4px">Ramas laterales: sin ejercicios (texto editable), archivo ilegible, catálogo no disponible, borrador recuperable y límite Pro.</p>
+    <h2>Lo que falla hoy</h2>
+    <div class="doc-grid">
+      <div class="doc-card out">
+        <div class="verdict">Salida</div>
+        <h3>Un scroll que lo mezcla todo</h3>
+        <ul>
+          <li>La lectura no tiene progreso ni evidencia por etapa.</li>
+          <li>Las coincidencias dudosas se reparten entre 66 filas.</li>
+          <li>Los días se eligen con siete toggles sin ver las sesiones.</li>
+          <li>El flujo no guía a revisar cada sesión en el editor real; hay que descubrirlo.</li>
+          <li>El límite Pro aparece al final, después del trabajo.</li>
+        </ul>
+      </div>
+      <div class="doc-card warm">
+        <div class="verdict">Propuesta</div>
+        <h3>Un recorrido con memoria</h3>
+        <ul>
+          <li>Cinco etapas de lectura con contadores reales.</li>
+          <li>Cola de decisiones: solo lo dudoso, con confianza y variantes.</li>
+          <li>Calendario semanal con descansos, duración y choques.</li>
+          <li>Paso Sesiones que abre el editor real para series, RIR, reps y descanso.</li>
+          <li>Borrador durable y Pro explicado antes de revisar.</li>
+        </ul>
+      </div>
+    </div>
+    <h2>Las doce pantallas</h2>
+    <div class="dtable-wrap"><table class="dtable"><thead><tr><th>Pantalla</th><th>Hoy</th><th>Propuesta</th><th>Pieza</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h2>Las siete hojas</h2>
+    <div class="dtable-wrap"><table class="dtable"><thead><tr><th>Hoja</th><th>Hoy</th><th>Propuesta</th><th>Pieza</th></tr></thead><tbody>${srows}</tbody></table></div>
+    <h2>Qué se conserva y qué se retira</h2>
+    <div class="doc-grid">
+      <div class="doc-card keep"><div class="verdict">Se conserva</div><ul><li>El catálogo compartido y el creador de ejercicios.</li><li>El editor de sesiones real (<code>ImportSessionEditorPortal</code>).</li><li>El parser determinista, los alias y el matcher.</li><li>El borrador durable y la pila de deshacer.</li><li>Los límites Free/Pro y la procedencia del documento.</li></ul></div>
+      <div class="doc-card out"><div class="verdict">Se retira</div><ul><li>El scroll único que mezcla revisión, avisos y días.</li><li>La lectura sin progreso y el arte estático.</li><li>Los siete círculos como única asignación de días.</li><li>El formulario reducido y sus 3×10 por defecto.</li><li>La pantalla de descanso global; esas decisiones viven en el editor.</li><li>La cadena de error única y el éxito reutilizado sin transición.</li></ul></div>
+    </div>
+    <h2>Cómo se implementa</h2>
+    <div class="dtable-wrap"><table class="dtable"><thead><tr><th>Capa</th><th>Cambio</th><th>Riesgo</th></tr></thead><tbody>
+      <tr><td>Flujo</td><td>Un <code>ImportFlowScreen</code> con pasos y un estado de revisión durable; retirar el scroll único de <code>ImportProgramScreen</code>.</td><td>Medio: toca la entrada de Programas y el alta.</td></tr>
+      <tr><td>Lectura</td><td>Etapas y recuentos parciales desde lectura, parser y matcher; cancelación ya existe.</td><td>Bajo: el ViewModel ya publica <code>busy</code>/<code>progress</code>.</td></tr>
+      <tr><td>Ejercicios</td><td>Exponer <code>confidence</code> y agrupar pendientes; reutilizar <code>ExerciseNameCandidate</code> y <code>DecideOccurrence</code>.</td><td>Bajo: no cambia el matcher.</td></tr>
+      <tr><td>Días</td><td>Mapa sesión→día por semana en el borrador y en <code>ImportedProgramBuilder</code>.</td><td>Alto: hoy <code>assignWeekdays</code> recibe un <code>Set&lt;Int&gt;</code>.</td></tr>
+      <tr><td>Sesiones</td><td>Listar las sesiones y abrir <code>SessionEditorScreen</code>; guardar vuelve al asistente y marca la sesión. Sin UI nueva de descanso.</td><td>Bajo: el portal ya existe.</td></tr>
+      <tr><td>Revisión</td><td>Checklist, volumen y activación separada del guardado.</td><td>Medio: <code>save(level)</code> ya existe; separar activar es producto.</td></tr>
+      <tr><td>Estados</td><td>Vacío con texto editable; error por etapa; catálogo recuperable.</td><td>Bajo: <code>NOTHING_FOUND</code> y el borrador ya existen.</td></tr>
+    </tbody></table></div>
+    <h2>Límites del prototipo y decisiones abiertas</h2>
+    <div class="doc-grid">
+      <div class="doc-card"><div class="verdict">Límites</div><ul><li>No lee archivos, no ejecuta OCR y no guarda programas.</li><li>Los datos son sintéticos y las cifras de volumen son estimaciones.</li><li>Las acciones de estructura y algunas hojas muestran su intención con un aviso, no reescriben el borrador.</li><li>El recorte Free a una semana no se simula.</li></ul></div>
+      <div class="doc-card"><div class="verdict">Decisiones abiertas</div><ul><li>¿El reparto de días es por semana o una plantilla única?</li><li>¿El paso Sesiones bloquea el guardado o solo guía?</li><li>¿Se permite guardar borrador con ejercicios sin decidir?</li><li>¿El éxito activa el programa o solo lo guarda?</li><li>¿La entrada del alta comparte el mismo flujo con «Continuar»?</li></ul></div>
+    </div>
+    <p class="faint" style="font-size:11px;margin-top:18px">Prototipo de diseño. No sustituye la QA nativa (insets, TalkBack, 130 %, coste del desenfoque) ni la implementación en Compose.</p>
+  `;
+}
+
+/* ─────────────────────────── LÓGICA ─────────────────────────── */
+function toast(msg,undoLabel,undoFn){
+  const screen=$('#screen');if(!screen)return;
+  let t=$('.toast',screen);
+  if(!t){t=document.createElement('div');t.className='toast';screen.appendChild(t)}
+  t.innerHTML=`<span class="toast-msg">${esc(msg)}</span>${undoLabel?`<button class="toast-act">${undoLabel}</button>`:''}`;
+  if(undoLabel){const b=t.querySelector('.toast-act');if(b)b.onclick=()=>{t.classList.remove('show');if(undoFn)undoFn()}}
+  t.classList.add('show');
+  clearTimeout(S.toastTimer);
+  S.toastTimer=setTimeout(()=>t.classList.remove('show'),2300);
+}
+function clearReadingTimers(){
+  if(S.rdTimer){cancelAnimationFrame(S.rdTimer);S.rdTimer=null}
+  if(S.rdTimeout){clearTimeout(S.rdTimeout);S.rdTimeout=null}
+}
+function applySize(){
+  document.documentElement.style.setProperty('--pw',S.size[0]+'px');
+  document.documentElement.style.setProperty('--ph',S.size[1]+'px');
+}
+function render(keepScroll=false){
+  const old=$('.scroll');const top=keepScroll&&old?old.scrollTop:0;
+  $('#screen').innerHTML=pageHTML(S.page);
+  if(keepScroll){const n=$('.scroll');if(n)n.scrollTop=top}
+  if(S.page==='leyendo'&&!S.reading&&!S.staticMode)startReading();
+  renderNav();renderNotes();
+}
+function go(id){
+  if(!PAGES.some(p=>p.id===id))return;
+  if(id==='leyendo'&&S.page!=='leyendo')S.readBack=S.page;
+  if(id!=='leyendo'){clearReadingTimers();S.reading=false}
+  S.page=id;S.sheet=null;S.selectedSession=null;
+  if(id!=='leyendo'){S.progress=0;S.readStage=0}
+  render(false);
+}
+function openSheet(id){
+  S.sheet=id;
+  if(id==='catalogo'){S.catalogFor=S.catalogFor||'e7';S.expanded=S.catalogFor;S.catQuery='';S.catFilter='Todo'}
+  if(id==='sesion_menu')S.sessionId=S.sessionId||'s1';
+  render(true);
+}
+function closeSheet(){S.sheet=null;render(true)}
+function openNav(id){
+  if(PAGES.some(p=>p.id===id)){go(id);return}
+  const sh=SHEETS.find(s=>s.id===id);if(!sh)return;
+  S.page=sh.page;S.sheet=id;
+  if(id==='catalogo'){S.catalogFor='e7';S.expanded='e7';S.catQuery='';S.catFilter='Todo'}
+  if(id==='sesion_menu')S.sessionId='s1';
+  render(false);
+}
+function openFromMap(id){
+  setView('recorrido');
+  if(PAGES.some(p=>p.id===id)){go(id);return}
+  const sh=SHEETS.find(s=>s.id===id);if(!sh)return;
+  S.page=sh.page;S.sheet=id;
+  if(id==='catalogo'){S.catalogFor='e7';S.expanded='e7'}
+  if(id==='sesion_menu')S.sessionId='s1';
+  render(false);
+}
+function setView(v){
+  S.view=v;
+  $$('#views button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===v)));
+  $('#view-recorrido').hidden=v!=='recorrido';
+  $('#view-mapa').hidden=v!=='mapa';
+  $('#view-decisiones').hidden=v!=='decisiones';
+  if(v==='mapa')renderMap();
+  if(v==='decisiones')renderDoc();
+}
+function startSource(kind){
+  S.readBack=S.page;S.source=kind;
+  S.staticMode=false;
+  if(kind==='texto'&&!S.pasteText.trim()){toast('Escribe o pega el programa primero.');return}
+  if(kind==='foto')toast('Foto lista. Vamos a leerla.');
+  S.reading=false;S.progress=0;S.readStage=0;
+  go('leyendo');
+}
+function readPasted(){if(!S.pasteText.trim()){toast('Escribe o pega el programa primero.');return}startSource('texto')}
+function updatePasteCount(){
+  const el=$('#pasteCount');if(!el)return;
+  const n=S.pasteText.trim()?S.pasteText.trim().split(/\n/).filter(Boolean).length:0;
+  el.textContent=`${n} líneas`;
+}
+function replayReading(){
+  clearReadingTimers();S.reading=false;S.staticMode=false;S.progress=0;S.readStage=0;S.page='leyendo';render(false);
+}
+function useExample(){
+  S.pasteText='Día 1 — Pierna\nSentadilla 4×6 @120 kg\nPrensa 3×10\nPeso muerto rumano 3×8 @100 kg';
+  render(true);toast('Ejemplo cargado.');
+}
+function startReading(){
+  if(S.staticMode)return;
+  clearReadingTimers();
+  S.reading=true;S.progress=0;S.readStage=0;
+  const total=S.motion==='reduced'?900:5600;const t0=performance.now();
+  const tick=()=>{
+    const p=Math.min(1,(performance.now()-t0)/total);S.progress=p;
+    const stage=p<.16?0:p<.38?1:p<.62?2:p<.84?3:4;
+    if(stage!==S.readStage){S.readStage=stage;updateReadingStage(stage)}
+    const fill=$('#rdFill');if(fill)fill.style.width=(p*100).toFixed(1)+'%';
+    const pct=$('#rdPct');if(pct)pct.textContent=Math.round(p*100)+' %';
+    if(p>=1){clearReadingTimers();updateReadingStage(5);S.rdTimeout=setTimeout(()=>{S.reading=false;go('resumen')},S.motion==='reduced'?250:950);return}
+    S.rdTimer=requestAnimationFrame(tick);
+  };
+  S.rdTimer=requestAnimationFrame(tick);
+}
+function updateReadingStage(stage){
+  const title=$('#rdTitle');if(title)title.textContent=stage>=5?'Listo. Vamos a revisarlo.':'Leyendo tu programa';
+  const st=$('#rdStage');if(st)st.textContent=R_TEXT[Math.min(stage,5)];
+  $$('.rstage').forEach((el,i)=>{
+    const done=stage>=5||i<stage,now=stage<5&&i===stage;
+    el.classList.toggle('done',done);el.classList.toggle('now',now);
+    const dot=$('.dot',el);if(dot)dot.innerHTML=done?ic('check',9):'';
+  });
+  $$('.read-count').forEach((el,i)=>el.classList.toggle('on',stage>=(i===2?2:1)));
+  if(stage>=5){const f=$('#rdFill');if(f)f.style.width='100%';const p=$('#rdPct');if(p)p.textContent='100 %'}
+}
+function cancelReading(){
+  clearReadingTimers();S.reading=false;S.progress=0;S.readStage=0;
+  const back=S.readBack||'entrada';S.readBack=null;go(back);
+  toast('Importación cancelada. No se ha guardado nada.');
+}
+function setFilter(f){
+  S.filter=f;
+  if(f==='pending'&&S.expanded&&EX.find(e=>e.id===S.expanded)?.state!=='pending')S.expanded=EX.find(e=>e.state==='pending')?.id||null;
+  render(true);
+}
+function expandEx(id){S.expanded=S.expanded===id?null:id;render(true)}
+function resolveEx(id,idx){
+  const e=EX.find(x=>x.id===id);const c=CANDS[id]?.[idx];if(!e||!c)return;
+  const before={state:e.state,name:e.name,conf:e.conf,resolved:e.resolved};
+  e.state='ok';e.name=c.name;e.conf=c.conf;e.resolved=true;
+  S.expanded=null;S.sheet=null;
+  const nxt=EX.find(x=>x.state==='pending');
+  if(nxt){S.expanded=nxt.id;S.filter='pending'}else S.filter='all';
+  render(true);
+  toast(`«${e.raw}» → ${c.name}`,'Deshacer',()=>{
+    Object.assign(e,before);S.filter='pending';S.expanded=e.id;S.sheet=null;render(true);
+  });
+}
+function openCatalog(id){
+  S.catalogFor=id;S.expanded=id;S.sheet='catalogo';S.catQuery='';S.catFilter='Todo';render(true);
+}
+function setCatQuery(v){S.catQuery=v;const box=$('#catResults');if(box)box.innerHTML=catResultsHTML()}
+function setCatFilter(f){
+  S.catFilter=f;
+  $$('#catFilters button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  const box=$('#catResults');if(box)box.innerHTML=catResultsHTML();
+}
+function resolveFromCatalog(name,conf){
+  const e=EX.find(x=>x.id===S.catalogFor);if(!e)return;
+  const before={state:e.state,name:e.name,conf:e.conf,resolved:e.resolved};
+  e.state='ok';e.name=name;e.conf=conf;e.resolved=true;
+  S.sheet=null;S.expanded=null;S.filter=EX.some(x=>x.state==='pending')?'pending':'all';
+  render(true);
+  toast(`«${e.raw}» → ${name}`,'Deshacer',()=>{
+    Object.assign(e,before);S.filter='pending';S.expanded=e.id;S.sheet=null;render(true);
+  });
+}
+function setWeek(w){S.week=w;S.selectedSession=null;render(true)}
+function selectSession(id){
+  if(S.selectedSession===id){S.selectedSession=null;render(true);return}
+  S.selectedSession=id;render(true);toast('Toca un día para mover la sesión.');
+}
+function clearSelection(){S.selectedSession=null;render(true)}
+function moveTo(day){
+  if(!S.selectedSession)return;
+  const id=S.selectedSession;
+  const before={assign:JSON.parse(JSON.stringify(S.assign)),week:S.week};
+  Object.keys(S.assign[S.week]).forEach(d=>{
+    S.assign[S.week][d]=S.assign[S.week][d].filter(x=>x!==id);
+    if(!S.assign[S.week][d].length)delete S.assign[S.week][d];
+  });
+  S.assign[S.week][day]=S.assign[S.week][day]||[];
+  S.assign[S.week][day].push(id);
+  S.selectedSession=null;render(true);
+  const n=(S.assign[S.week][day]||[]).length;
+  toast(n>1?`${DAYS[day].n}: ${n} sesiones.`:`${SESSIONS.find(s=>s.id===id).name} movida a ${DAYS[day].n}.`,'Deshacer',()=>{
+    S.assign=before.assign;S.week=before.week;render(true);
+  });
+}
+function applyAllWeeks(){
+  const before=JSON.parse(JSON.stringify(S.assign));
+  const base=JSON.parse(JSON.stringify(S.assign[S.week]));
+  [1,2,3].forEach(w=>S.assign[w]=JSON.parse(JSON.stringify(base)));
+  S.selectedSession=null;render(true);
+  toast('Reparto aplicado a las 3 semanas.','Deshacer',()=>{S.assign=before;render(true)});
+}
+function suggestDays(){
+  const before=JSON.parse(JSON.stringify(S.assign[S.week]));
+  S.assign[S.week]=cloneAssign();S.selectedSession=null;render(true);
+  toast('Reparto equilibrado: 4 días, 3 descansos.','Deshacer',()=>{S.assign[S.week]=before;render(true)});
+}
+function openSession(id,week){S.week=week||S.week;S.sessionId=id;go('sesion')}
+function openSessionMenu(id){S.sessionId=id;S.sheet='sesion_menu';render(true)}
+function moveFromMenu(){const id=S.sessionId;S.sheet=null;S.page='dias';S.selectedSession=id;render(false);toast('Toca el día de destino.')}
+function adjustWeight(d){
+  const key=`${S.week}-${S.sessionId}`;
+  const cur=weightFor(S.sessionId);
+  S.weekWeights[key]=Math.max(0,Math.round((cur+d)*2)/2);
+  render(true);
+}
+function saveSession(){S.reviewedSessions.add(`${S.week}-${S.sessionId}`);go('sesiones');toast('Sesión actualizada en el borrador.')}
+function toggleActivate(){S.activate=!S.activate;render(true)}
+function saveProgram(){
+  if(pageStatus()>0){toast('Faltan ejercicios por decidir.');return}
+  if(!Object.keys(S.assign[1]).length){toast('Elige al menos un día de entrenamiento.');return}
+  if(!S.warningsReviewed){toast('Revisa los 4 avisos antes de guardar.');return}
+  S.saved=true;S.hasDraft=false;go('exito');
+}
+function continuarAlta(){toast('Continuando el alta · resumen del entrenamiento.')}
+function toggleExtract(){S.showExtract=!S.showExtract;render(true)}
+function reviewWarnings(){S.warningsReviewed=true;S.sheet=null;render(true);toast('4 avisos revisados. Guardar está disponible.')}
+function setErrorMode(m){S.errorMode=m;render(true)}
+function resumeDraft(){S.sheet=null;S.filter='pending';S.expanded='e7';S.page='ejercicios';render(false);toast('Borrador recuperado.')}
+function restartDraft(){S.hasDraft=false;S.sheet=null;go('entrada');toast('Empezamos de nuevo. El borrador anterior se descartó.')}
+function discardDraft(){S.hasDraft=false;S.sheet=null;go('entrada');toast('Borrador descartado.')}
+function reanalyzeText(){
+  S.sheet=null;S.reading=false;S.staticMode=false;S.progress=0;S.readStage=0;S.readBack='vacio';S.page='leyendo';
+  render(false);toast('Analizando el texto corregido…');
+}
+
+/* ─────────────────────────── ARRANQUE / QA ─────────────────────────── */
+function parseParams(){
+  const q=new URLSearchParams(location.search);
+  const sz=/^(\d+)x(\d+)$/.exec(q.get('size')||'');if(sz)S.size=[+sz[1],+sz[2]];
+  if(q.get('fs'))S.fs=parseFloat(q.get('fs'))>=1.2?1.3:1;
+  if(q.get('motion')==='reduced')S.motion='reduced';
+  if(q.get('static'))S.staticMode=true;
+  if(q.get('entry')==='alta')S.entry='alta';
+  if(q.get('solo'))document.documentElement.classList.add('solo');
+  const scene=q.get('scene');
+  if(scene){
+    if(PAGES.some(p=>p.id===scene))S.page=scene;
+    else{
+      const sh=SHEETS.find(s=>s.id===scene);
+      if(sh){S.page=sh.page;S.sheet=sh.id;if(sh.id==='catalogo'){S.catalogFor='e7';S.expanded='e7'}if(sh.id==='sesion_menu')S.sessionId='s1'}
+    }
+  }
+  if(q.get('list')){
+    document.body.innerHTML=`<pre style="padding:20px;color:#f2eee6;font:12px ui-monospace,monospace;white-space:pre-wrap">${JSON.stringify({pages:PAGES,sheets:SHEETS},null,2)}</pre>`;
+    return true;
+  }
+  if(q.get('check')){runCheck();return true}
+  return false;
+}
+function runCheck(){
+  S.sheet=null;
+  const host=document.createElement('div');
+  host.style.cssText='position:fixed;left:-3000px;top:0;width:360px;height:880px;visibility:hidden';
+  document.body.appendChild(host);
+  const out=[];
+  const seen=new Set();
+  [...PAGES.map(p=>p.id),...SHEETS.map(s=>s.id)].forEach(id=>{if(seen.has(id))out.push({id,ok:false,err:'id repetido'});seen.add(id)});
+  for(const id of [...PAGES.map(p=>p.id),...SHEETS.map(s=>s.id)]){
+    let html='',err='';
+    try{
+      if(PAGES.some(p=>p.id===id))html=pageHTML(id,true);
+      else{const sh=SHEETS.find(s=>s.id===id);const prev=S.sheet;S.sheet=id;html=`<div class="page">${sheetHTML()}</div>`;S.sheet=prev}
+    }catch(e){err=e.message}
+    if(!html)err=err||'vacío';
+    if(/NaN|undefined|\[object Object\]/.test(html))err=err||'contiene NaN/undefined/[object Object]';
+    if(!NOTES[id])err=err||'sin notas';
+    const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
+    if(new Set(ids).size!==ids.length)err=err||'ids duplicados';
+    host.innerHTML=`<div class="phone" style="--pw:360px;--ph:880px"><div class="screen">${html}</div></div>`;
+    const sc=$('.scroll',host);const overflow=sc?Math.max(0,sc.scrollWidth-sc.clientWidth):0;
+    if(overflow>1)err=err||`overflow ${overflow}px`;
+    out.push({id,ok:!err,err:err||undefined,len:html.length,overflow});
+  }
+  host.remove();
+  document.body.innerHTML=`<pre id="C" style="padding:20px;color:#f2eee6;font:12px ui-monospace,monospace;white-space:pre-wrap">${JSON.stringify(out,null,2)}</pre>`;
+}
+function init(){
+  if(parseParams())return;
+  applySize();
+  document.body.classList.toggle('reduced',S.motion==='reduced');
+  $('#entrySelect').value=S.entry;
+  $('#sizeSelect').value=`${S.size[0]}x${S.size[1]}`;
+  $('#fsSelect').value=String(S.fs);
+  $('#motionSelect').value=S.motion;
+  $('#views').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)setView(b.dataset.view)});
+  $('#entrySelect').addEventListener('change',e=>{S.entry=e.target.value;render()});
+  $('#sizeSelect').addEventListener('change',e=>{const [w,h]=e.target.value.split('x').map(Number);S.size=[w,h];applySize();if(S.page==='leyendo'){S.reading=false;clearReadingTimers()}render()});
+  $('#fsSelect').addEventListener('change',e=>{S.fs=parseFloat(e.target.value);if(S.page==='leyendo'){S.reading=false;clearReadingTimers()}render()});
+  $('#motionSelect').addEventListener('change',e=>{
+    S.motion=e.target.value;document.body.classList.toggle('reduced',S.motion==='reduced');
+    if(S.page==='leyendo'){S.reading=false;clearReadingTimers()}render();
+  });
+  document.addEventListener('keydown',e=>{
+    if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||''))return;
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+    const i=PAGES.findIndex(p=>p.id===S.page);if(i<0)return;
+    const next=(i+(e.key==='ArrowRight'?1:-1)+PAGES.length)%PAGES.length;
+    go(PAGES[next].id);
+  });
+  render();
+}
+init();
+</script>
+</body>
+</html>
