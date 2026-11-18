@@ -273,7 +273,14 @@ fun scaleFoodByPortion(
         sodiumMg = kotlin.math.round(sodiumBase * ratio * 10) / 10.0,
         potassiumMg = kotlin.math.round(potassiumBase * ratio * 10) / 10.0,
         waterMl = kotlin.math.round(waterBase * ratio * 10) / 10.0,
-        fatBreakdown = food.fatBreakdown,
+        fatBreakdown = food.fatBreakdown?.let { breakdown ->
+            breakdown.copy(
+                saturated = breakdown.saturated * ratio,
+                monounsaturated = breakdown.monounsaturated * ratio,
+                polyunsaturated = breakdown.polyunsaturated * ratio,
+                trans = breakdown.trans * ratio,
+            )
+        },
         micronutrients = food.micronutrients.map {
             it.copy(amount = kotlin.math.round(it.amount * ratio * 10) / 10.0)
         },

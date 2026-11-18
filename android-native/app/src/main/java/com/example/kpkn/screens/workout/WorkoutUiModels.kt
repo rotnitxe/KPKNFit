@@ -351,6 +351,7 @@ data class WorkoutUiState(
     val readinessNeuralOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,
     val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
+    val automaticReadinessPending: Boolean = false,
     val skippedExerciseIds: Set<String> = emptySet(),
     /** Session-only hidden working sets: key = "${exerciseId}_${setIdx}". */
     val omittedSetKeys: Set<String> = emptySet(),

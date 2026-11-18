@@ -41,7 +41,7 @@ class WorkoutStoryPreviewDeviceTest {
         val initial=WorkoutStoryOptions()
         val second=initial.copy(exerciseList=true)
         val latest=second.copy(duration=false)
-        val requests=listOf(initial,second,latest).associateWith { CompletableDeferred<Bitmap>() }
+        val requests=listOf(initial,second,latest).associateWith { CompletableDeferred<List<Bitmap>>() }
         val started=ConcurrentHashMap.newKeySet<WorkoutStoryOptions>()
         var selected by mutableStateOf(initial)
         // Simula una decodificación nativa que no coopera con cancelación hasta devolver el bitmap.
@@ -62,7 +62,7 @@ class WorkoutStoryPreviewDeviceTest {
         }
         try {
             rule.waitUntil(10_000) { initial in started }
-            rule.runOnIdle { requests.getValue(initial).complete(image(Color.GREEN)) }
+            rule.runOnIdle { requests.getValue(initial).complete(listOf(image(Color.GREEN))) }
             rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
             rule.onNodeWithTag("story-toggle-Ejercicios").performClick()
@@ -73,12 +73,12 @@ class WorkoutStoryPreviewDeviceTest {
             // Se permite seleccionar otra opción mientras la anterior todavía se está dibujando.
             rule.onNodeWithTag("story-toggle-Duración").performClick()
             rule.waitUntil(10_000) { latest in started }
-            rule.runOnIdle { requests.getValue(second).complete(image(Color.BLUE)) }
+            rule.runOnIdle { requests.getValue(second).complete(listOf(image(Color.BLUE))) }
             rule.waitForIdle()
             rule.onNodeWithTag("story-preview", useUnmergedTree = true).assertDoesNotExist()
             rule.onNodeWithTag("story-share").assertIsNotEnabled()
             rule.onNodeWithTag("story-save-image").assertIsNotEnabled()
-            rule.runOnIdle { requests.getValue(latest).complete(image(Color.RED)) }
+            rule.runOnIdle { requests.getValue(latest).complete(listOf(image(Color.RED))) }
             rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
             rule.onNodeWithTag("story-save-image").assertIsEnabled()
@@ -86,7 +86,7 @@ class WorkoutStoryPreviewDeviceTest {
             assertEquals("la vista previa pertenece a la última selección",Color.RED,pixels.getPixel(pixels.width/2,pixels.height/2))
         } finally {
             // No dejar decodificaciones no cancelables esperando si una aserción falla.
-            requests.values.filterNot { it.isCompleted }.forEach { it.complete(image(Color.GRAY)) }
+            requests.values.filterNot { it.isCompleted }.forEach { it.complete(listOf(image(Color.GRAY))) }
         }
     }
 

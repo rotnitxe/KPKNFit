@@ -63,6 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages
+import com.example.kpkn.ui.components.MobilityTechniqueImage
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -480,12 +482,29 @@ internal fun listClock(seconds: Int): String {
 /** Ficha de un movimiento de movilidad desde su fila: volumen, notas, articulaciones y marcar hecho o pendiente. */
 @Composable
 internal fun LiveListMovementSheet(mobility: MobilitySeries, volume: String, done: Boolean, onToggle: () -> Unit, onDismiss: () -> Unit) {
+    val movementId = ReviewedExerciseTechniqueImages.mobilityMovementId(
+        mobility.catalogConfigurationId,
+        mobility.exerciseDbId,
+        mobility.id,
+    )
     LiveSheet(title = mobility.name, onDismiss = onDismiss, tag = "live-list-movement-sheet", footer = { close ->
         LiveSheetPrimary(if (done) "Marcar pendiente" else "Marcar completado", { onToggle(); close() })
     }) {
+        if (ReviewedExerciseTechniqueImages.mobilityImage(movementId) != null) {
+            Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF0D1015))) {
+                MobilityTechniqueImage(
+                    movementId = movementId,
+                    contentDescription = "Demostración de ${mobility.name}",
+                    modifier = Modifier.fillMaxWidth().height(180.dp),
+                )
+            }
+        } else {
+            LiveSheetShortCopy("No hay una foto revisada disponible para este movimiento.")
+        }
         LiveSheetSubtitle("Explora el movimiento a tu ritmo antes de añadir carga.")
         Text(volume, style = ListBody.copy(fontSize = 14.sp), color = WizardColors.text)
         mobility.notes?.takeIf { it.isNotBlank() }?.let { LiveSheetShortCopy(it) }
+            ?: LiveSheetShortCopy("No hay instrucciones adicionales registradas.")
         if (mobility.bodyZones.isNotEmpty()) {
             LiveSheetSectionLabel("Articulaciones")
             Text(mobility.bodyZones.joinToString(" · ") { com.example.kpkn.data.models.mobilityBodyRegionLabel(it.trim()) },

@@ -3,6 +3,8 @@ package com.example.kpkn.domain.nutrition.v2
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.AnalysisSource
 import com.example.kpkn.data.models.CarbBreakdown
+import com.example.kpkn.data.models.FatBreakdown
+import com.example.kpkn.data.models.FatSubtype
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.Micronutrient
@@ -303,6 +305,23 @@ object ResolvedTagAdapterV2 {
     ): FoodItem {
         val fiber = per100g["fiber"]
         val sugars = per100g["sugars"]
+        val fatSubtypeKeys = mapOf(
+            FatSubtype.SATURATED to "sat_fat",
+            FatSubtype.MONOUNSATURATED to "mono_fat",
+            FatSubtype.POLYUNSATURATED to "poly_fat",
+            FatSubtype.TRANS to "trans_fat",
+        )
+        val knownFatSubtypes = fatSubtypeKeys.filterValues { it in per100g }.keys
+        val fatBreakdown = knownFatSubtypes.takeIf { it.isNotEmpty() }?.let {
+            FatBreakdown(
+                saturated = per100g["sat_fat"] ?: 0.0,
+                monounsaturated = per100g["mono_fat"] ?: 0.0,
+                polyunsaturated = per100g["poly_fat"] ?: 0.0,
+                trans = per100g["trans_fat"] ?: 0.0,
+                missingSubtypes = fatSubtypeKeys.filterValues { key -> key !in per100g }.keys,
+                knownSubtypes = knownFatSubtypes,
+            )
+        }
         val micronutrients = listOfNotNull(
             per100g["sodium"]?.let { Micronutrient("Sodio", it, "mg") },
             per100g["potassium"]?.let { Micronutrient("Potasio", it, "mg") },
@@ -318,6 +337,7 @@ object ResolvedTagAdapterV2 {
             protein = per100g["protein"] ?: 0.0,
             carbs = per100g["carbs"] ?: 0.0,
             fats = per100g["fat"] ?: 0.0,
+            fatBreakdown = fatBreakdown,
             carbBreakdown = if (fiber == null && sugars == null) null else CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugars ?: 0.0),
             micronutrients = micronutrients,
             source = CatalogRecordLink.V2_SOURCE,

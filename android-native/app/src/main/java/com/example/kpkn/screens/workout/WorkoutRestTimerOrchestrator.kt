@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.workout.WorkoutVoiceController
 
@@ -22,6 +23,7 @@ class WorkoutRestTimerOrchestrator(
 
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
+        fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
         fun persistOngoingState()
         fun nextSet(stopRest: Boolean)
         fun openFinishSheet()
@@ -45,8 +47,33 @@ class WorkoutRestTimerOrchestrator(
         kind: RestTimerKind = RestTimerKind.STANDARD,
     ) {
         if (seconds <= 0) return
-        resumeAdvanceOnFinish = advanceOnFinish
-        val effectiveKind = if (preserveElapsed) getState().restModalState?.kind ?: kind else kind
+        val stateAtStart = getState()
+        val restoredContinuation = stateAtStart.restModalState?.continuation
+        val recordedOrigin = stateAtStart.setJustLoggedKey?.takeIf { key ->
+            lastSet != null && stateAtStart.completedSets[key] == lastSet
+        }
+        val finalRecordedSet = recordedOrigin != null &&
+            ports.nextIncompleteStepAfter(stateAtStart, includeCurrent = true) == null
+        val continuation = if (preserveElapsed) {
+            restoredContinuation ?: when {
+                advanceOnFinish -> WorkoutRestContinuation.ADVANCE_SET
+                stateAtStart.pendingPostExerciseIdx == -2 || finalRecordedSet -> WorkoutRestContinuation.FINISH_SESSION
+                else -> WorkoutRestContinuation.KEEP_POSITION
+            }
+        } else if (advanceOnFinish) {
+            WorkoutRestContinuation.ADVANCE_SET
+        } else if (stateAtStart.pendingPostExerciseIdx == -2 || finalRecordedSet) {
+            WorkoutRestContinuation.FINISH_SESSION
+        } else {
+            WorkoutRestContinuation.KEEP_POSITION
+        }
+        resumeAdvanceOnFinish = continuation == WorkoutRestContinuation.ADVANCE_SET
+        val originStepKey = if (preserveElapsed) {
+            stateAtStart.restModalState?.originStepKey ?: stateAtStart.setJustLoggedKey ?: stateAtStart.activeStepKey
+        } else {
+            recordedOrigin ?: stateAtStart.activeStepKey
+        }
+        val effectiveKind = if (preserveElapsed) stateAtStart.restModalState?.kind ?: kind else kind
         restTimer.cancelJob()
         if (!preserveElapsed) {
             restTimer.setReferences(lastSet, advancedFeedback)
@@ -127,6 +154,8 @@ class WorkoutRestTimerOrchestrator(
                     soundReady = alertCapability.soundReady,
                     startedAtMs = startedAtMs,
                     pausedRemainingSeconds = null,
+                    originStepKey = originStepKey,
+                    continuation = continuation,
                 ) ?: WorkoutRestModalState(
                     exerciseId = if (preserveElapsed) it.restModalState?.exerciseId ?: overlayExercise?.id else overlayExercise?.id,
                     exerciseName = if (preserveElapsed) it.restModalState?.exerciseName ?: overlayName else overlayName,
@@ -141,6 +170,8 @@ class WorkoutRestTimerOrchestrator(
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
                     startedAtMs = startedAtMs,
+                    originStepKey = originStepKey,
+                    continuation = continuation,
                 ),
                 // Un descanso nuevo (también «+30 s») reemplaza la capa de «Descanso cumplido» (LV6).
                 restOverrun = null,
@@ -382,9 +413,23 @@ class WorkoutRestTimerOrchestrator(
         updateState { if (it.restOverrun != null) it.copy(restOverrun = null) else it }
         val pending = getState().pendingPostExerciseIdx
         val currentExIdx = getState().currentExerciseIdx
+        val skipExercise = getState().restModalState?.skipCurrentExerciseOnFinish == true
         restTimer.clearActiveTimerId()
         restTimer.clearReferences()
         when {
+            skipExercise -> {
+                updateState { state ->
+                    state.copy(
+                        isRestTimerRunning = false,
+                        pendingRestSuggestion = null,
+                        restModalState = null,
+                        continuityTransitionTarget = null,
+                    )
+                }
+                val exercise = ports.visibleExercises(getState()).getOrNull(currentExIdx)
+                if (exercise != null) ports.skipExercise(exercise.id) else ports.openFinishSheet()
+                ports.persistOngoingState()
+            }
             pending >= 0 -> {
                 updateState { state ->
                     state.copy(
@@ -425,6 +470,9 @@ class WorkoutRestTimerOrchestrator(
                 } else {
                     ports.openFinishSheet()
                 }
+            }
+            !skipExercise && ports.nextIncompleteStepAfter(getState(), includeCurrent = true) == null -> {
+                finishFinalSessionAfterRest(currentExIdx)
             }
             else -> {
                 updateState { state ->
@@ -492,7 +540,12 @@ class WorkoutRestTimerOrchestrator(
                     ports.openFinishSheet()
                 }
             } else {
-                val pending = getState().pendingPostExerciseIdx
+                val currentAfterRest = getState()
+                val pending = currentAfterRest.pendingPostExerciseIdx
+                if (pending == -1 && ports.nextIncompleteStepAfter(currentAfterRest, includeCurrent = true) == null) {
+                    finishFinalSessionAfterRest(currentAfterRest.currentExerciseIdx)
+                    return
+                }
                 if (pending >= 0) {
                     val currentExIdx = getState().currentExerciseIdx
                     val currentState = getState()
@@ -541,6 +594,30 @@ class WorkoutRestTimerOrchestrator(
                 }
             }
         }
+    }
+
+    /** Final wait/skip resolves the outstanding exercise feedback, then opens the final summary. */
+    private fun finishFinalSessionAfterRest(currentExerciseIdx: Int) {
+        val state = getState()
+        val currentExercise = ports.visibleExercises(state).getOrNull(currentExerciseIdx)
+        val target = currentExercise?.let { ports.buildPostExerciseFeedbackTarget(state, it) }
+        val missing = target?.let { ports.missingFeedbackExerciseIds(it, state) }.orEmpty()
+        val shouldShowFeedback = currentExercise?.isCardio != true && missing.isNotEmpty()
+        updateState {
+            it.copy(
+                isRestTimerRunning = false,
+                pendingRestSuggestion = null,
+                restModalState = null,
+                showPostExerciseSheet = shouldShowFeedback,
+                postExerciseTargetIdx = if (shouldShowFeedback) currentExerciseIdx else -1,
+                postExerciseFeedbackTarget = target.takeIf { shouldShowFeedback },
+                pendingPostExerciseIdx = -2,
+                showFinishSheet = !shouldShowFeedback,
+                continuityTransitionTarget = null,
+            )
+        }
+        ports.persistOngoingState()
+        if (!shouldShowFeedback) ports.openFinishSheet()
     }
 
     private fun suggestedWeightForVoiceAfterRest(): Double? {

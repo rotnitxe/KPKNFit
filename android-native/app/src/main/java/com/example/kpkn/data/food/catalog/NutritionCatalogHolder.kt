@@ -1,6 +1,7 @@
 package com.example.kpkn.data.food.catalog
 
 import com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogPort
+import com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogAccess
 import java.io.Closeable
 
 /**
@@ -17,6 +18,7 @@ object NutritionCatalogHolder {
     fun install(port: NutritionCatalogPort?) {
         val previous = current
         current = port
+        NutritionCatalogAccess.current = port
         if (previous != null && previous !== port) {
             runCatching { (previous as? Closeable)?.close() }
         }

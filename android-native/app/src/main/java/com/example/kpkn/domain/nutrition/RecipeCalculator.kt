@@ -26,7 +26,8 @@ object RecipeCalculator {
                 "Cada ingrediente necesita una cantidad válida mayor que cero."
             }
             require(nutrients(food).all { it.isFinite() && it >= 0.0 } &&
-                food.micronutrients.all { it.amount.isFinite() && it.amount >= 0.0 }) {
+                food.micronutrients.all { it.amount.isFinite() && it.amount >= 0.0 } &&
+                food.nutrientsPer100g.orEmpty().values.all { it.isFinite() && it >= 0.0 }) {
                 "Los nutrientes deben ser números finitos y no negativos."
             }
         }
@@ -40,9 +41,28 @@ object RecipeCalculator {
             .values.map { entries -> entries.first().copy(amount = entries.sumOf { it.amount }.also {
                 require(it.isFinite()) { "El total de la receta es demasiado grande." }
             }) }
-        val fat = foods.mapNotNull { it.fatBreakdown }.takeIf { it.isNotEmpty() }?.let { parts ->
-            FatBreakdown(parts.sumOf { it.saturated }, parts.sumOf { it.monounsaturated },
-                parts.sumOf { it.polyunsaturated }, parts.sumOf { it.trans })
+        val fatSources = listOf(
+            FatSubtype.SATURATED to NutrientKey.SAT_FAT,
+            FatSubtype.MONOUNSATURATED to NutrientKey.MONO_FAT,
+            FatSubtype.POLYUNSATURATED to NutrientKey.POLY_FAT,
+            FatSubtype.TRANS to NutrientKey.TRANS_FAT,
+        ).associate { (subtype, key) ->
+            subtype to foods.map { ingredient -> NutrientCoverage.summarize(listOf(ingredient), key) }
+        }
+        val knownFat = fatSources.filterValues { entries -> entries.any { it.totalKnown != null } }.keys
+        val missingFat = fatSources.filterValues { entries ->
+            entries.any { it.totalKnown == null || it.estimatedCount > 0 }
+        }.keys
+        val fat = knownFat.takeIf { it.isNotEmpty() }?.let {
+            fun total(subtype: FatSubtype): Double = fatSources.getValue(subtype).sumOf { it.totalKnown ?: 0.0 }
+            FatBreakdown(
+                saturated = total(FatSubtype.SATURATED),
+                monounsaturated = total(FatSubtype.MONOUNSATURATED),
+                polyunsaturated = total(FatSubtype.POLYUNSATURATED),
+                trans = total(FatSubtype.TRANS),
+                missingSubtypes = missingFat,
+                knownSubtypes = knownFat,
+            )
         }
         val batch = LoggedFood(
             foodName = "Lote", amount = 1.0, unit = "lote",
@@ -150,7 +170,11 @@ object RecipeCalculator {
         carbsMin = food.carbsMin?.times(ratio), carbsMax = food.carbsMax?.times(ratio),
         fatsMin = food.fatsMin?.times(ratio), fatsMax = food.fatsMax?.times(ratio),
         micronutrients = food.micronutrients.map { it.copy(amount = it.amount * ratio) },
-        fatBreakdown = food.fatBreakdown?.let { FatBreakdown(it.saturated * ratio, it.monounsaturated * ratio,
-            it.polyunsaturated * ratio, it.trans * ratio) },
+        fatBreakdown = food.fatBreakdown?.let { breakdown -> breakdown.copy(
+            saturated = breakdown.saturated * ratio,
+            monounsaturated = breakdown.monounsaturated * ratio,
+            polyunsaturated = breakdown.polyunsaturated * ratio,
+            trans = breakdown.trans * ratio,
+        ) },
     )
 }

@@ -35,7 +35,15 @@ data class FatBreakdown(
     val monounsaturated: Double = 0.0,
     val polyunsaturated: Double = 0.0,
     val trans: Double = 0.0,
+    /** Subtypes absent from the source remain unknown; zero is explicit only when the subtype is known. */
+    /** Missing by default so older serialized rows don't turn implicit zeroes into measured zeroes. */
+    val missingSubtypes: Set<FatSubtype> = FatSubtype.entries.toSet(),
+    /** At least one source declared a value for these subtypes; required to retain partial recipe sums. */
+    val knownSubtypes: Set<FatSubtype> = emptySet(),
 )
+
+@Serializable
+enum class FatSubtype { SATURATED, MONOUNSATURATED, POLYUNSATURATED, TRANS }
 
 @Serializable
 data class CarbBreakdown(

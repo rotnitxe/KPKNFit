@@ -72,13 +72,12 @@ internal fun LiveModeNumberField(
     placeholder: String = "0",
     sizeSp: Int = 28,
     preserveEntryWhileFocused: Boolean = false,
+    allowDecimal: Boolean = true,
 ) {
-    var focused by remember { mutableStateOf(false) }
-    var entry by remember { mutableStateOf(value) }
-    LaunchedEffect(value) { if (!focused) entry = value }
-    BasicTextField(if (focused && preserveEntryWhileFocused) entry else value, { entry = it; onChange(it) }, modifier.heightIn(min = 44.dp).testTag(tag)
-        .onFocusChanged { focused = it.isFocused; if (!focused) entry = value }.semantics { contentDescription = description },
-        enabled = enabled, singleLine = true,
+    var keyboardOpen by remember(tag) { mutableStateOf(false) }
+    BasicTextField(value, {}, modifier.heightIn(min = 44.dp).clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.Button) { keyboardOpen = true }
+        .testTag(tag).semantics { contentDescription = description },
+        enabled = enabled, readOnly = true, singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = if (time) KeyboardType.Ascii else KeyboardType.Decimal),
         textStyle = KpknType.metricM.copy(fontSize = (if (value.length > 7) 20 else sizeSp).sp, lineHeight = 40.sp,
             color = WizardColors.text, textAlign = TextAlign.Center, fontFeatureSettings = "'tnum' 1"),
@@ -87,6 +86,14 @@ internal fun LiveModeNumberField(
             if (value.isBlank()) Text(placeholder, style = KpknType.metricM.copy(fontSize = sizeSp.sp), color = WizardColors.textFaint)
             inner()
         } })
+    if (keyboardOpen) WorkoutNumericKeyboardDialog(
+        title = description,
+        initialValue = value,
+        allowDecimal = allowDecimal && !time,
+        allowColon = time,
+        onDismiss = { keyboardOpen = false },
+        onApply = onChange,
+    )
 }
 
 @Composable
@@ -125,7 +132,7 @@ internal fun LiveQuantityInput(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = { onChange((actual - 1).coerceAtLeast(0.0).toLiveNumberString()) }, enabled = enabled, modifier = Modifier.size(44.dp).semantics { contentDescription = "Restar $suffix" }, contentPadding = PaddingValues(0.dp)) { Text("−", color = WizardColors.text) }
             LiveModeNumberField(entry, { entry = it; onChange(it) }, "live-quantity-input", "Cantidad realizada ($suffix)", Modifier.weight(1f), time = isTime,
-                placeholder = if (isTime) "0:00" else "0", enabled = enabled)
+                placeholder = if (isTime) "0:00" else "0", enabled = enabled, allowDecimal = unit != UnitModeV2.REPS)
             if (unit == UnitModeV2.DISTANCE) Text(suffix, style = KpknType.caption, color = WizardColors.textMuted)
             TextButton(onClick = { onChange((actual + 1).toLiveNumberString()) }, enabled = enabled, modifier = Modifier.size(44.dp).semantics { contentDescription = "Añadir $suffix" }, contentPadding = PaddingValues(0.dp)) { Text("+", color = WizardColors.text) }
         }
@@ -241,7 +248,7 @@ internal fun LiveRmFocus(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Column(Modifier.weight(1f)) {
                 ModeLabel("REPS EST.")
-                LiveModeNumberField(values.estimatedReps?.toString().orEmpty(), { it.toIntOrNull()?.takeIf { n -> n > 0 }?.let(onEstimatedReps) }, "live-rm-reps", "Repeticiones estimadas", Modifier.fillMaxWidth(), enabled = values.oneRm != null, placeholder = "—", sizeSp = 22, preserveEntryWhileFocused = true)
+                LiveModeNumberField(values.estimatedReps?.toString().orEmpty(), { it.toIntOrNull()?.takeIf { n -> n > 0 }?.let(onEstimatedReps) }, "live-rm-reps", "Repeticiones estimadas", Modifier.fillMaxWidth(), enabled = values.oneRm != null, placeholder = "—", sizeSp = 22, preserveEntryWhileFocused = true, allowDecimal = false)
             }
             Column(Modifier.weight(1f)) {
                 ModeLabel(if (values.usesTrainingMax) "%TM" else "%RM")

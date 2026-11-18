@@ -31,11 +31,24 @@ fun LoggedFood.withCatalogNutrients(port: NutritionCatalogPort): LoggedFood {
     val record = port.record(recordId) ?: return this
     val values = port.nutrientsPer100(recordId)
     if (values.isEmpty()) return this
-    if (!(record.basisAmount > 0.0)) return this
+    if (!record.basisAmount.isFinite() || record.basisAmount <= 0.0) return this
     val factor = when (record.basisUnit) {
         "g" -> 100.0 / record.basisAmount
-        "ml" -> 100.0 / record.basisAmount / (record.densityGPerMl?.takeIf { it > 0.0 } ?: 1.0)
+        "ml" -> 100.0 / record.basisAmount / (record.densityGPerMl?.takeIf { it.isFinite() && it > 0.0 } ?: 1.0)
         else -> return this
     }
-    return withNutrientSnapshot(values.mapValues { it.value * factor }, port.generation)
+    val snapshot = withNutrientSnapshot(values.mapValues { it.value * factor }, port.generation)
+    val missingFat = buildSet {
+        if (NutrientId.SAT_FAT !in values) add(com.example.kpkn.data.models.FatSubtype.SATURATED)
+        if (NutrientId.MONO_FAT !in values) add(com.example.kpkn.data.models.FatSubtype.MONOUNSATURATED)
+        if (NutrientId.POLY_FAT !in values) add(com.example.kpkn.data.models.FatSubtype.POLYUNSATURATED)
+        if (NutrientId.TRANS_FAT !in values) add(com.example.kpkn.data.models.FatSubtype.TRANS)
+    }
+    val knownFat = buildSet {
+        if (NutrientId.SAT_FAT in values) add(com.example.kpkn.data.models.FatSubtype.SATURATED)
+        if (NutrientId.MONO_FAT in values) add(com.example.kpkn.data.models.FatSubtype.MONOUNSATURATED)
+        if (NutrientId.POLY_FAT in values) add(com.example.kpkn.data.models.FatSubtype.POLYUNSATURATED)
+        if (NutrientId.TRANS_FAT in values) add(com.example.kpkn.data.models.FatSubtype.TRANS)
+    }
+    return snapshot.copy(fatBreakdown = fatBreakdown?.copy(missingSubtypes = missingFat, knownSubtypes = knownFat))
 }

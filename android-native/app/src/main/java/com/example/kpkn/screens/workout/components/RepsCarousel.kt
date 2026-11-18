@@ -140,6 +140,7 @@ internal fun RepsCarousel(
     belowPlanColor: Color = CarouselPeach,
     hapticsEnabled: Boolean = true,
     reducedMotion: Boolean = false,
+    onCenterValueClick: (() -> Unit)? = null,
 ) {
     val last = lastValue.coerceAtLeast(1)
     val shown = if (failed) 0 else value.coerceIn(0, last)
@@ -170,6 +171,7 @@ internal fun RepsCarousel(
     var glideJob by remember { mutableStateOf<Job?>(null) }
     val latestChange by rememberUpdatedState(onValueChange)
     val latestLast by rememberUpdatedState(last)
+    val latestCenterValueClick by rememberUpdatedState(onCenterValueClick)
     val cellPx = with(density) { RepsCarouselMath.CELL_DP.dp.toPx() }
     // Último valor que este carrusel entregó (o recibió) del exterior: lo que está en pantalla y lo que sabe el resto de la tarjeta.
     var lastEmitted by remember { mutableIntStateOf(shown) }
@@ -273,7 +275,12 @@ internal fun RepsCarousel(
                 }
             }
             .pointerInput(last, cellPx) {
-                detectTapGestures(onTap = { at -> glide((pos + (at.x - size.width / 2f) / cellPx).roundToInt(), 200) })
+                detectTapGestures(onTap = { at ->
+                    val tapped = (pos + (at.x - size.width / 2f) / cellPx).roundToInt().coerceIn(0, last)
+                    if (tapped == pos.roundToInt().coerceIn(0, last) && latestCenterValueClick != null) {
+                        latestCenterValueClick?.invoke()
+                    } else glide(tapped, 200)
+                })
             }
     } else Modifier
 
@@ -413,7 +420,11 @@ internal fun RepsCarousel(
                         contentDescription = "$i repeticiones"
                         role = Role.Button
                         this.selected = i == shown
-                        if (enabled && !failed) onClick { glide(i, 200); true }
+                        if (enabled && !failed) onClick {
+                            if (i == shown && latestCenterValueClick != null) latestCenterValueClick?.invoke()
+                            else glide(i, 200)
+                            true
+                        }
                     },
             )
         }

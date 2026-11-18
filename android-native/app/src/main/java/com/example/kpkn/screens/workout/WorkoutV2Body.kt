@@ -101,6 +101,7 @@ internal fun WorkoutV2Body(
     /** «Editar» de las opciones de una serie: abre las series del ejercicio en el que se pulsó (no siempre el de turno). */
     onEditExercise: (exerciseId: String) -> Unit = {},
     onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
+    onRequestCardioStart: (CardioStartTarget) -> Unit = {},
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
     recordFabHolder: RecordFabHolder = remember { RecordFabHolder() },
     adaptActionHolder: AdaptActionHolder = remember { AdaptActionHolder() },
@@ -153,9 +154,14 @@ internal fun WorkoutV2Body(
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
+    val cardioStartCountdown by viewModel.cardioStartCountdown.collectAsStateWithLifecycle()
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
     val restShapeChoice by viewModel.restClockShapeChoice.collectAsStateWithLifecycle()
     val openMediaFaceExerciseId by viewModel.mediaCapture.requestOpenMediaFaceExerciseId.collectAsStateWithLifecycle()
+    fun cardioStartCountdownFor(exerciseId: String, setIndex: Int, setId: String?): CardioStartCountdown? =
+        cardioStartCountdown.takeIf {
+            cardioCountdownBelongsToPage(it, uiState.startTimeMs, exerciseId, setIndex, setId)
+        }
     val workingRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState != null &&
         uiState.restModalState?.kind != RestTimerKind.WARMUP
@@ -572,6 +578,10 @@ internal fun WorkoutV2Body(
                 ),
             ) {
 
+            // Give Lista and Tarjetas separate Compose identities. Each surface owns
+            // different lazy-list/pager state; reusing a remembered pager slot while
+            // the list branch is mounted can leave callbacks bound to the old page.
+            key(liveSessionView) {
             if (liveSessionView == LiveSessionView.LIST) {
                 // La Lista registra desde cada serie: el FAB del roadmap no aplica aquí.
                 SideEffect {
@@ -586,6 +596,9 @@ internal fun WorkoutV2Body(
                     accentColor = sessionAccentColor,
                     warmupWorkingWeight = warmupWorkingWeight,
                     viewModel = viewModel,
+                    onRequestCardioStart = { target ->
+                        onRequestCardioStart(target)
+                    },
                     // `.island` flota sobre la Lista (prototipo 02): la lista sube bajo la cabecera y empieza 14 por debajo de ella.
                     modifier = Modifier.fillMaxSize().extendUnderHeader(headerHeightPx),
                     topInset = with(density) { headerHeightPx.toDp() } + 14.dp,
@@ -711,6 +724,21 @@ internal fun WorkoutV2Body(
                                             details = cardioDetails,
                                             completedSet = currentCardioSetUi.completedSet,
                                             accentColor = sessionAccentColor,
+                                            countdownRemaining = cardioStartCountdownFor(currentExercise.id, currentCardioSetIndex, currentCardioSetId)?.remainingSeconds ?: 0,
+                                            countdownRequestId = cardioStartCountdownFor(currentExercise.id, currentCardioSetIndex, currentCardioSetId)?.requestId,
+                                            onRequestStart = { useGps ->
+                                                if (cardioPageActionIsCurrent()) onRequestCardioStart(
+                                                    CardioStartTarget(
+                                                        currentExercise.id,
+                                                        currentCardioSetIndex,
+                                                        currentCardioSetId,
+                                                        cardioDetails.requiresGps,
+                                                        shouldStart = true,
+                                                        useGps = useGps && cardioDetails.requiresGps,
+                                                        executionStartedAtMs = uiState.startTimeMs,
+                                                    ),
+                                                )
+                                            },
                                             executionState = overlayCardioTimerTick(
                                                 currentCardioSetUi.timerState,
                                                 tickRemaining,
@@ -2112,6 +2140,21 @@ internal fun WorkoutV2Body(
                                     details = cardioDetails,
                                     completedSet = pageCardioUiState.completedSet,
                                     accentColor = sessionAccentColor,
+                                    countdownRemaining = cardioStartCountdownFor(pageExercise.id, pageSetIndex, pageSetId)?.remainingSeconds ?: 0,
+                                    countdownRequestId = cardioStartCountdownFor(pageExercise.id, pageSetIndex, pageSetId)?.requestId,
+                                    onRequestStart = { useGps ->
+                                        if (cardioPageActionIsCurrent()) onRequestCardioStart(
+                                            CardioStartTarget(
+                                                pageExercise.id,
+                                                pageSetIndex,
+                                                pageSetId,
+                                                cardioDetails.requiresGps,
+                                                shouldStart = true,
+                                                useGps = useGps && cardioDetails.requiresGps,
+                                                executionStartedAtMs = uiState.startTimeMs,
+                                            ),
+                                        )
+                                    },
                                     executionState = overlayCardioTimerTick(
                                         pageCardioUiState.timerState,
                                         tickRemaining,
@@ -2353,6 +2396,29 @@ internal fun WorkoutV2Body(
                                         details = cardioDetails,
                                         completedSet = cardioPageUiState.completedSet,
                                         accentColor = sessionAccentColor,
+                                        countdownRemaining = cardioStartCountdownFor(
+                                            targetExercise.id,
+                                            activeSetIndex,
+                                            targetExercise.sets.getOrNull(activeSetIndex)?.id,
+                                        )?.remainingSeconds ?: 0,
+                                        countdownRequestId = cardioStartCountdownFor(
+                                            targetExercise.id,
+                                            activeSetIndex,
+                                            targetExercise.sets.getOrNull(activeSetIndex)?.id,
+                                        )?.requestId,
+                                        onRequestStart = { useGps ->
+                                            if (cardioPageActionIsCurrent()) onRequestCardioStart(
+                                                CardioStartTarget(
+                                                    targetExercise.id,
+                                                    activeSetIndex,
+                                                    targetExercise.sets.getOrNull(activeSetIndex)?.id,
+                                                    cardioDetails.requiresGps,
+                                                    shouldStart = true,
+                                                    useGps = useGps && cardioDetails.requiresGps,
+                                                    executionStartedAtMs = uiState.startTimeMs,
+                                                ),
+                                            )
+                                        },
                                         executionState = overlayCardioTimerTick(
                                             cardioPageUiState.timerState,
                                             tickRemaining,
@@ -2628,6 +2694,7 @@ internal fun WorkoutV2Body(
                 } else {
                     SideEffect { liveSetStepperHolder.snapshot = null }
                 }
+            }
             }
                     } // Column(padding horizontal) exercise stage
                     } // pager slot column

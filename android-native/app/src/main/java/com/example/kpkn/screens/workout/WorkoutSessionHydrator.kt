@@ -71,7 +71,7 @@ class WorkoutSessionHydrator(
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
         fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep?
-        fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false)
+        fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false, advanceOnFinish: Boolean = false)
         fun startSessionTimer(remainingSeconds: Int)
         fun workoutWidgetsSessionKey(): String
         fun bindActiveWorkoutHolder()
@@ -411,6 +411,7 @@ class WorkoutSessionHydrator(
                 readinessMuscularOverride = resumedState?.readinessMuscularOverride,
                 readinessSpinalOverride = resumedState?.readinessSpinalOverride,
                 readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?: emptyMap(),
+                automaticReadinessPending = resumedState?.automaticReadinessPending ?: false,
                 setDrafts = resumedState?.setDrafts ?: emptyMap(),
                 manualLoadOverrides = resumedState?.manualLoadOverrides ?: emptyMap(),
                 calibrationDecisions = resumedState?.calibrationDecisions.orEmpty(),
@@ -489,6 +490,7 @@ class WorkoutSessionHydrator(
             ports.startRestTimer(
                 seconds = restoredSeconds,
                 preserveElapsed = true,
+                advanceOnFinish = patchedRestState.continuation == WorkoutRestContinuation.ADVANCE_SET,
             )
         }
         // Starting the timer restores its default expanded state; V7 keeps the selected result visible.
@@ -551,6 +553,7 @@ class WorkoutSessionHydrator(
                     readinessMuscularOverride = resumedState?.readinessMuscularOverride,
                     readinessSpinalOverride = resumedState?.readinessSpinalOverride,
                     readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?: emptyMap(),
+                    automaticReadinessPending = true,
                     dynamicWeights = getState().loadSuggestions.mapValues { entry -> entry.value.suggestedWeight },
                     loadSuggestionReasons = getState().loadSuggestions.mapValues { entry -> entry.value.reason },
                     setDrafts = getState().setDrafts,
@@ -564,7 +567,10 @@ class WorkoutSessionHydrator(
                 )
             )
             when (startResult) {
-                StartWorkoutResult.Started -> claimOngoing(checkNotNull(repository.ongoingWorkout.value))
+                StartWorkoutResult.Started -> {
+                    updateState { it.copy(automaticReadinessPending = true) }
+                    claimOngoing(checkNotNull(repository.ongoingWorkout.value))
+                }
                 is StartWorkoutResult.Conflict -> {
                     persistBlocked = true
                     updateState { it.copy(pendingOngoingConflict = startResult.existing) }

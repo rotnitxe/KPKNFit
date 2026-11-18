@@ -125,7 +125,7 @@ class WorkoutFeedbackController(
             )
         }
         val pending = state.pendingRestSuggestion
-        if (pending != null) {
+        if (pending != null && !state.isRestTimerRunning) {
             ports.startRestTimer(
                 seconds = pending.plannedSeconds,
                 advanceOnFinish = false,

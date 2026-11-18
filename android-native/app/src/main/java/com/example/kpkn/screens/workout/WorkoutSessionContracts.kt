@@ -100,6 +100,9 @@ data class WorkoutSetDraft(
     /** Local live RM edits; absent in older serialized drafts. Never changes the exercise's TM. */
     val rmReference1RM: Double? = null,
     val rmPercent: Double? = null,
+    /** Monotonic stopwatch state for this exact set/side draft. */
+    val timedSetAccumulatedMs: Long? = null,
+    val timedSetStartedAtElapsedMs: Long? = null,
 )
 
 internal fun tagScopedWorkoutSetDraftKey(setKey: String, tagId: String?): String =
@@ -128,6 +131,16 @@ internal fun switchWorkoutSetDraftTagContext(
 }
 
 @Serializable
+enum class WorkoutRestContinuation {
+    /** The rest belongs to the current execution and ends without moving it. */
+    KEEP_POSITION,
+    /** Advance after this rest when the timer was explicitly configured to do so. */
+    ADVANCE_SET,
+    /** The session has no remaining steps; show final feedback/summary after this rest. */
+    FINISH_SESSION,
+}
+
+@Serializable
 data class WorkoutRestModalState(
     val exerciseId: String? = null,
     val exerciseName: String = "",
@@ -153,6 +166,10 @@ data class WorkoutRestModalState(
      * el descanso sigue existiendo y conserva sugerencia, forma y borrador de feedback.
      */
     val pausedRemainingSeconds: Int? = null,
+    /** Stable identity of the set or preparation step that started this rest. */
+    val originStepKey: String? = null,
+    /** Persisted so restoring a live session cannot lose the rest's continuation. */
+    val continuation: WorkoutRestContinuation = WorkoutRestContinuation.KEEP_POSITION,
 )
 
 internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null): String = when (side) {

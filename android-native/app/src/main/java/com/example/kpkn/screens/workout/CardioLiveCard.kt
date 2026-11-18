@@ -128,6 +128,9 @@ internal fun CardioLiveCard(
     modifier: Modifier = Modifier,
     executionState: CardioTimerState? = null,
     liveHeartRateBpm: Int? = null,
+    countdownRemaining: Int = 0,
+    countdownRequestId: Long? = null,
+    onRequestStart: (useGps: Boolean) -> Unit = {},
     onStartTimer: () -> Unit = {},
     onCountdownCue: (remaining: Int) -> Unit = {},
     onPauseTimer: () -> Unit = {},
@@ -157,7 +160,6 @@ internal fun CardioLiveCard(
     var rpe by remember(completedSet?.rpe) { mutableStateOf(completedSet?.rpe?.roundToInt()) }
     var page by rememberSaveable { mutableIntStateOf(0) }
     var locked by rememberSaveable { mutableStateOf(false) }
-    var countdown by remember { mutableIntStateOf(0) }
     var transitionSeen by rememberSaveable(details.type, details.intervalBlocks.size) { mutableStateOf(false) }
     var transitionOutSeen by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -263,13 +265,8 @@ internal fun CardioLiveCard(
         onRequestRecord(durationSeconds, recordedDistanceKm, hr ?: heartRateText.toIntOrNull())
         finishing = true
     }
-    LaunchedEffect(countdown) {
-        if (countdown > 0) {
-            onCountdownCue(countdown)
-            delay(900)
-            countdown--
-            if (countdown == 0) startOrResume()
-        }
+    LaunchedEffect(countdownRequestId, countdownRemaining) {
+        if (countdownRemaining in 1..3) onCountdownCue(countdownRemaining)
     }
 
     val watchAvgHr = if (measures.hrCount > 0) (measures.hrSum / measures.hrCount).toInt() else null
@@ -384,7 +381,7 @@ internal fun CardioLiveCard(
                 firstStep = steps.firstOrNull(),
                 steps = steps,
                 totalLabel = "Total ${cardioClock(plannedDurationSeconds)}" + (estimatedTotalKm(details)?.let { " · ≈ ${cardioDecimal(it)} km" } ?: ""),
-                onSwipeStart = { transitionSeen = true; countdown = 3 },
+                onSwipeStart = { transitionSeen = true; onRequestStart(gpsMode) },
                 onSeePlan = { transitionSeen = true; page = 1 },
             )
             else -> Box(Modifier.fillMaxSize()) {
@@ -438,7 +435,7 @@ internal fun CardioLiveCard(
                                 gpsState = gpsState,
                                 keepScreenOn = details.keepScreenOn,
                                 hazeState = cardioHaze,
-                                onStart = { countdown = 3 },
+                                onStart = { onRequestStart(gpsMode) },
                                 onSeePlan = { page = 1 },
                                 showBottomButton = false,
                             )
@@ -481,6 +478,16 @@ internal fun CardioLiveCard(
                         .semantics { contentDescription = "Pantalla bloqueada" }.testTag("cardio-locked"))
                 }
                 if (isGpsDeniedOrDisabled) {
+                    if (status == CardioExecutionStatus.READY) {
+                        Text(
+                            "Iniciar sin GPS",
+                            Modifier.align(Alignment.CenterHorizontally).heightIn(min = 40.dp)
+                                .clickable(role = Role.Button, onClick = { onRequestStart(false) })
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = CBody.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+                            color = WizardColors.text,
+                        )
+                    }
                     Text("Ubicación no disponible · reintentar permiso", Modifier.align(Alignment.CenterHorizontally).heightIn(min = 40.dp)
                         .clickable(role = Role.Button, onClick = onRequestGps).padding(10.dp), style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
                 }
@@ -494,7 +501,7 @@ internal fun CardioLiveCard(
                     mainLabel = if (running) "Pausa" else if (status == CardioExecutionStatus.READY) "Empezar" else "Reanudar",
                     mainIcon = if (running) KpknLineIcons.Pause else KpknLineIcons.Play,
                     mainEnabled = gpsState?.status != CardioGpsStatus.REQUESTING_PERMISSION,
-                    onMain = { if (running) pause() else if (status == CardioExecutionStatus.READY) countdown = 3 else startOrResume() },
+                    onMain = { if (running) pause() else if (status == CardioExecutionStatus.READY) onRequestStart(gpsMode) else startOrResume() },
                     onLock = { locked = true },
                     onUnlock = { locked = false },
                     onSkip = if (details.hasIntervals() && (running || paused)) onSkipBlock else null,
@@ -506,12 +513,12 @@ internal fun CardioLiveCard(
             }
         }
         val pausedNow = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED)
-        if (pausedNow && !finishing && countdown == 0) {
+        if (pausedNow && !finishing && countdownRemaining <= 0) {
             CardioPauseVeil(measures.pausedSeconds, cardioClock(stepLeft), onResume = { startOrResume() }, onFinish = { beginFinish() })
         }
-        if (countdown > 0) {
+        if (countdownRemaining > 0) {
             val first = steps.getOrNull(stepIndex)
-            CardioCountdown(countdown, listOfNotNull(first?.name, first?.seconds?.let(::cardioClock), first?.cue?.takeIf { it.isNotBlank() }).joinToString(" · "))
+            CardioCountdown(countdownRemaining, listOfNotNull(first?.name, first?.seconds?.let(::cardioClock), first?.cue?.takeIf { it.isNotBlank() }).joinToString(" · "))
         }
     }
 

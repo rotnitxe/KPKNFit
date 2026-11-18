@@ -304,6 +304,8 @@ data class OngoingWorkoutState(
     val readinessMuscularOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,
     val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
+    /** One-shot preparation sheet for a newly confirmed live execution. */
+    val automaticReadinessPending: Boolean = false,
     val restModalState: com.example.kpkn.screens.workout.WorkoutRestModalState? = null,
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),

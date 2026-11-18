@@ -91,6 +91,7 @@ class WorkoutSetRecorder(
         fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String? = null)
         suspend fun persistOngoingStateAndAwait(snapshot: WorkoutUiState, onCommitted: () -> Unit): WorkoutPersistResult
         fun nextSet(stopRest: Boolean = true)
+        fun selectWorkoutStep(stepKey: String, preserveRest: Boolean = false)
         fun nextIncompleteStepAfter(state: WorkoutUiState): WorkoutStep?
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
         fun adjustRestTimeForPace(baseSeconds: Int): Int
@@ -830,10 +831,22 @@ class WorkoutSetRecorder(
                         load = scheduledNext.nextLoad,
                     )
                 }
-                ports.nextSet(stopRest = false)
+                // Keep the live cursor on the next pending step while the
+                // authored rest runs. Calling nextSet with no remaining step
+                // opens the final summary too early, before that rest ends.
+                nextStepForRest?.let { nextStep ->
+                    val nextExerciseIdx = allExercises.indexOfFirst { it.id == nextStep.exerciseId }
+                    if (nextExerciseIdx >= 0 && nextExerciseIdx != getState().currentExerciseIdx) {
+                        // The navigator also presents any required exercise
+                        // feedback; stopRest=false keeps the upcoming rest alive.
+                        ports.nextSet(stopRest = false)
+                    } else {
+                        ports.selectWorkoutStep(nextStep.stepKey, preserveRest = true)
+                    }
+                }
             }
 
-            val baseRest = exercise.restTime?.takeIf { it > 0 } ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS
+            val baseRest = exercise.restTime?.takeIf { it >= 0 } ?: com.example.kpkn.domain.workout.RestDefaults.SECONDS
             val scheduledPhaseForRest = if (scheduledPlan != null &&
                 plannedSet?.isInlineEditorScheduledTechnique() == true &&
                 completedSet.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
@@ -915,12 +928,12 @@ class WorkoutSetRecorder(
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
                 RestTimerKind.STANDARD -> {
                     val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
+                    val currentSetRest = exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 }
                     when {
                         scheduledRestForCurrent != null -> scheduledRestForCurrent
-                        wasLastSet -> baseRest
                         nextPlannedSet?.isDropSet == true -> 0
                         nextPlannedSet?.isRestPause == true -> nextPlannedSet.restAfterSeconds?.takeIf { it >= 0 } ?: 15
-                        else -> exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 } ?: baseRest
+                        else -> currentSetRest ?: baseRest
                     }
                 }
             }
@@ -988,6 +1001,12 @@ class WorkoutSetRecorder(
                         advancedFeedback = report,
                         kind = restKind,
                     )
+                } else if (effectivePlanned <= 0 && nextStepForRest == null &&
+                    !techniqueStillOpen && !isExecutionError && !amrapActive
+                ) {
+                    // A final authored rest of 0 still needs the normal finish
+                    // transition. No timer will fire to open feedback/summary.
+                    ports.nextSet(stopRest = false)
                 }
             }
 

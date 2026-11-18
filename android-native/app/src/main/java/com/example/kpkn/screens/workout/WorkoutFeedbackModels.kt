@@ -177,6 +177,7 @@ data class ExerciseHistoryEntry(
     val latestHistoryColor: HistoryColorV2? = null,
     val latestMetricType: String? = null,
     val latestMetricValue: Double? = null,
+    val catalogConfigurationId: String? = null,
 )
 
 data class WeightSuggestion(

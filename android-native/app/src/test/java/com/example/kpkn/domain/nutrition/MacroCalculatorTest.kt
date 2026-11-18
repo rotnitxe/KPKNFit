@@ -42,6 +42,26 @@ class MacroCalculatorTest {
         assertEquals(6.8, logged.protein, 0.1)
     }
 
+    @Test
+    fun `scale food scales known fat subtypes with the requested portion`() {
+        val food = FoodItem(
+            id = "fat-subtypes",
+            name = "Alimento con desglose de grasa",
+            servingSize = 100.0,
+            unit = "g",
+            fats = 20.0,
+            fatBreakdown = FatBreakdown(saturated = 8.0, monounsaturated = 6.0, polyunsaturated = 4.0, trans = 0.5,
+                missingSubtypes = emptySet(), knownSubtypes = FatSubtype.entries.toSet()),
+        )
+
+        val logged = scaleFoodByPortion(food, amountGrams = 250.0)
+
+        assertEquals(20.0, logged.fatBreakdown!!.saturated, 0.0)
+        assertEquals(15.0, logged.fatBreakdown!!.monounsaturated, 0.0)
+        assertEquals(10.0, logged.fatBreakdown!!.polyunsaturated, 0.0)
+        assertEquals(1.25, logged.fatBreakdown!!.trans, 0.0)
+    }
+
     // ─── Daily Totals ──────────────────────────────────────────────────────
 
     @Test

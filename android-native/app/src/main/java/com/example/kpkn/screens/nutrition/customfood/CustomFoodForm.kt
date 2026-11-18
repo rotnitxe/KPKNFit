@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.nutrition.customfood
 
 import com.example.kpkn.data.models.FatBreakdown
+import com.example.kpkn.data.models.FatSubtype
 import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.Micronutrient
@@ -165,8 +166,14 @@ object CustomFoodValidator {
             isCustom = true,
             isAiInferred = false,
             fatBreakdown = when {
-                saturated != null -> (seed.fatBreakdown ?: FatBreakdown()).copy(saturated = saturated)
-                seed.fatBreakdown != null -> seed.fatBreakdown.copy(saturated = 0.0).takeIf { it.monounsaturated > 0.0 || it.polyunsaturated > 0.0 || it.trans > 0.0 }
+                saturated != null -> (seed.fatBreakdown ?: FatBreakdown()).copy(
+                    saturated = saturated,
+                    missingSubtypes = (seed.fatBreakdown?.missingSubtypes ?: FatSubtype.entries.toSet()) - FatSubtype.SATURATED,
+                )
+                seed.fatBreakdown != null -> seed.fatBreakdown.copy(
+                    saturated = 0.0,
+                    missingSubtypes = seed.fatBreakdown.missingSubtypes + FatSubtype.SATURATED,
+                ).takeIf { FatSubtype.entries.any { subtype -> subtype !in it.missingSubtypes } }
                 else -> null
             },
             carbBreakdown = if ((fiber ?: 0.0) > 0.0 || (sugar ?: 0.0) > 0.0) CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugar ?: 0.0) else null,

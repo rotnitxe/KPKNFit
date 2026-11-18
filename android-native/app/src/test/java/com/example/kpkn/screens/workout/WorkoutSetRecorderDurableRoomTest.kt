@@ -194,7 +194,8 @@ class WorkoutSetRecorderDurableRoomTest {
             arrayOf(WorkoutSetRecorder.Ports::class.java)) { _, method, args ->
             when (method.name) {
                 "visibleExercises" -> (args[0] as WorkoutUiState).session!!.exercises
-                "activeContextProfile", "inferPlannedIntensity", "computeImbalanceNotice", "nextIncompleteStepAfter" -> null
+                "activeContextProfile", "inferPlannedIntensity", "computeImbalanceNotice" -> null
+                "nextIncompleteStepAfter" -> nextIncompleteStepForTest(args[0] as WorkoutUiState)
                 "inferUnitMode" -> UnitModeV2.REPS
                 "effectiveLoadModeForExercise" -> LoadModeV2.LOAD
                 "currentBodyWeight" -> 75.0
@@ -212,6 +213,18 @@ class WorkoutSetRecorderDurableRoomTest {
                     }
                 }
                 "nextSet" -> { advances++; state = state.copy(currentSetIdx = state.currentSetIdx + 1); Unit }
+                "selectWorkoutStep" -> {
+                    val stepKey = args[0] as String
+                    val step = state.session?.let { session ->
+                        WorkoutStepRules.buildWorkingPositions(session, session.allExercises(), state.omittedSetKeys)
+                            .firstOrNull { it.stepKey == stepKey }
+                    }
+                    if (step?.setIndex != null) {
+                        advances++
+                        state = state.copy(currentSetIdx = step.setIndex, activeStepKey = stepKey)
+                    }
+                    Unit
+                }
                 "startRestTimer" -> { rests++; Unit }
                 "persistLoadModeToProfile", "registerManualLoadOverride" -> {
                     if (failAncillary) error("injected profile failure")
@@ -248,6 +261,17 @@ class WorkoutSetRecorderDurableRoomTest {
         weight = 20.0, value = value, intensity = 8.0, advanced = advanced, loadMode = LoadModeV2.LOAD,
         unitMode = unit, setIdxOverride = index,
     )
+
+    private fun nextIncompleteStepForTest(snapshot: WorkoutUiState): WorkoutStep? {
+        val session = snapshot.session ?: return null
+        return WorkoutStepRules.buildWorkingPositions(session, session.allExercises(), snapshot.omittedSetKeys)
+            .firstOrNull { step ->
+                val index = step.setIndex ?: return@firstOrNull false
+                val completed = snapshot.completedSets[workoutSetKey(step.exerciseId, index, step.side)]
+                completed == null || completed.techniqueStatus == RecordedTechniqueStatus.OPEN
+            }
+    }
+
     private suspend fun room() = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
 
     @Test fun quickSheetClosesAtRoomAcknowledgementWhileTheCommandIsStillSuspended() = runBlocking {
@@ -316,8 +340,57 @@ class WorkoutSetRecorderDurableRoomTest {
         val restored = room()
         assertEquals(2, restored.completedSets.size)
         assertEquals(2, state.completedSets.size)
-        assertEquals(2, advances)
+        // The cursor remains on S2 while its final rest is running. The rest
+        // completion, not set persistence, opens the final summary.
+        assertEquals(1, advances)
+        assertEquals(1, state.currentSetIdx)
         assertEquals(6, restored.completedSets["exercise_1"]!!.reps)
+    }
+
+    @Test fun finalSetUsesAuthoredRestAndKeepsTheCursorUntilItEnds() = runBlocking {
+        val onlyExercise = session.exercises.single().copy(
+            sets = listOf(ExerciseSet("final", targetReps = 6, restAfterSeconds = 25)),
+            restTime = 90,
+        )
+        state = state.copy(session = session.copy(exercises = listOf(onlyExercise)), currentSetIdx = 0,
+            activeStepKey = workoutSetKey(onlyExercise.id, 0))
+
+        assertTrue(record(index = 0) is RecordSetResult.Created)
+
+        assertEquals(25, state.pendingRestSuggestion?.plannedSeconds)
+        assertEquals(1, rests)
+        assertEquals(0, advances)
+        assertEquals(0, state.currentSetIdx)
+    }
+
+    @Test fun explicitZeroRestSuppressesExerciseFallback() = runBlocking {
+        val onlyExercise = session.exercises.single().copy(
+            sets = listOf(ExerciseSet("final", targetReps = 6, restAfterSeconds = 0)),
+            restTime = 90,
+        )
+        state = state.copy(session = session.copy(exercises = listOf(onlyExercise)), currentSetIdx = 0,
+            activeStepKey = workoutSetKey(onlyExercise.id, 0))
+
+        assertTrue(record(index = 0) is RecordSetResult.Created)
+
+        assertEquals(0, state.pendingRestSuggestion?.plannedSeconds)
+        assertEquals(0, rests)
+        assertEquals(1, advances)
+    }
+
+    @Test fun missingAuthoredAndExerciseRestUsesNinetySecondFallback() = runBlocking {
+        val onlyExercise = session.exercises.single().copy(
+            sets = listOf(ExerciseSet("final", targetReps = 6, restAfterSeconds = null)),
+            restTime = null,
+        )
+        state = state.copy(session = session.copy(exercises = listOf(onlyExercise)), currentSetIdx = 0,
+            activeStepKey = workoutSetKey(onlyExercise.id, 0))
+
+        assertTrue(record(index = 0) is RecordSetResult.Created)
+
+        assertEquals(90, state.pendingRestSuggestion?.plannedSeconds)
+        assertEquals(1, rests)
+        assertEquals(0, advances)
     }
 
     @Test fun ancillaryFailureAfterCommitKeepsSuccessAndStillAdvances() = runBlocking {

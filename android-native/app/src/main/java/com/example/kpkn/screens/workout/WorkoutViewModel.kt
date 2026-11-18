@@ -174,6 +174,8 @@ class WorkoutViewModel(
     private var mobilityTotalTimerJob: Job? = null
     private var cardioTimerJob: Job? = null
     private var cardioInfoTickerJob: Job? = null
+    private var cardioStartCountdownJob: Job? = null
+    private var cardioStartRequestId = 0L
     private var cardioGpsAnchorKey: String? = null
     private var cardioGpsAnchorMeters: Double = 0.0
     /** Includes the current catalog/custom overlay; aliases are not added after cutover. */
@@ -201,6 +203,8 @@ class WorkoutViewModel(
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+    private val _cardioStartCountdown = MutableStateFlow<CardioStartCountdown?>(null)
+    internal val cardioStartCountdown: StateFlow<CardioStartCountdown?> = _cardioStartCountdown.asStateFlow()
 
     private fun updateUiState(transform: (WorkoutUiState) -> WorkoutUiState) {
         _uiState.update { previous ->
@@ -473,6 +477,8 @@ class WorkoutViewModel(
             override suspend fun persistOngoingStateAndAwait(snapshot: WorkoutUiState, onCommitted: () -> Unit) =
                 persistence.persistAndAwait(snapshot, onCommitted)
             override fun nextSet(stopRest: Boolean) = this@WorkoutViewModel.nextSet(stopRest)
+            override fun selectWorkoutStep(stepKey: String, preserveRest: Boolean) =
+                stepNavigator.selectWorkoutStep(stepKey, preserveRestForNextStep = preserveRest)
             override fun nextIncompleteStepAfter(state: WorkoutUiState) = this@WorkoutViewModel.nextIncompleteStepAfter(state, includeCurrent = false)
             override fun sessionForActiveMode(base: Session, mode: WeekVariant) =
                 this@WorkoutViewModel.sessionForActiveMode(base, mode)
@@ -1048,9 +1054,13 @@ class WorkoutViewModel(
                     stepNavigator.nextIncompleteStepAfter(state, includeCurrent)
                 override fun firstIncompleteStep(state: WorkoutUiState) =
                     stepNavigator.firstIncompleteStep(state)
-                override fun startRestTimer(seconds: Int, preserveElapsed: Boolean) {
+                override fun startRestTimer(seconds: Int, preserveElapsed: Boolean, advanceOnFinish: Boolean) {
                     if (repository.ownsOngoingWorkoutWriter(ongoingWriterToken)) {
-                        this@WorkoutViewModel.startRestTimer(seconds, preserveElapsed = preserveElapsed)
+                        this@WorkoutViewModel.startRestTimer(
+                            seconds,
+                            advanceOnFinish = advanceOnFinish,
+                            preserveElapsed = preserveElapsed,
+                        )
                     }
                 }
                 override fun startSessionTimer(remainingSeconds: Int) {
@@ -1075,6 +1085,8 @@ class WorkoutViewModel(
             updateState = { transform -> updateUiState(transform) },
             ports = object : WorkoutRestTimerOrchestrator.Ports {
                 override fun visibleExercises(state: WorkoutUiState) = this@WorkoutViewModel.visibleExercises(state)
+                override fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean) =
+                    stepNavigator.nextIncompleteStepAfter(state, includeCurrent)
                 override fun persistOngoingState() = this@WorkoutViewModel.persistOngoingState()
                 override fun nextSet(stopRest: Boolean) = this@WorkoutViewModel.nextSet(stopRest)
                 override fun openFinishSheet() = this@WorkoutViewModel.openFinishSheet()
@@ -1374,6 +1386,9 @@ class WorkoutViewModel(
     internal fun onOngoingWriterSuperseded() {
         ongoingWriterReady = false
         persistence.cancelPendingWrites()
+        cardioStartCountdownJob?.cancel()
+        cardioStartCountdownJob = null
+        _cardioStartCountdown.value = null
         cardioTimerJob?.cancel()
         mobilityTotalTimerJob?.cancel()
         cardioInfoTickerJob?.cancel()
@@ -5983,12 +5998,13 @@ class WorkoutViewModel(
     }
 
     /** Read the live cursor at callback time so an offscreen pager card cannot mutate another set. */
-    fun isCurrentCardioPageAction(exerciseId: String, setIndex: Int): Boolean {
+    fun isCurrentCardioPageAction(exerciseId: String, setIndex: Int, expectedSetId: String? = null): Boolean {
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
             ?.takeIf { it.isCardio }
             ?: return false
         val setId = exercise.sets.getOrNull(setIndex)?.id
+        if (expectedSetId != null && setId != expectedSetId) return false
         return setIndex in WorkoutStepRules.cardioSetIndices(exercise) &&
             cardioTimerAllowsTarget(state.cardioTimerState, exercise.id, setIndex, setId) &&
             isCardioPageActionAllowed(
@@ -5998,6 +6014,126 @@ class WorkoutViewModel(
                 activeSetIndex = state.currentSetIdx,
                 activeStepKey = state.activeStepKey,
             )
+    }
+
+    internal fun isCurrentCardioStartTarget(target: CardioStartTarget): Boolean =
+        (target.executionStartedAtMs == 0L || _uiState.value.startTimeMs == target.executionStartedAtMs) &&
+            isCurrentCardioPageAction(target.exerciseId, target.setIndex, target.setId)
+
+    /** Selects the exact pending (or already-running) cardio block before leaving Lista. */
+    internal fun prepareCardioPageFromList(requestedExerciseId: String): CardioStartTarget? {
+        val state = _uiState.value
+        val exercises = visibleExercises(state)
+        val requested = exercises.firstOrNull { it.id == requestedExerciseId && it.isCardio } ?: return null
+        val protectedTimer = state.cardioTimerState?.takeIf(::cardioTimerProtectsSeries)
+        val protectedExercise = protectedTimer?.let { timer ->
+            exercises.firstOrNull { it.id == timer.exerciseId && it.isCardio }
+        }
+        val exercise = protectedExercise ?: requested
+        val protectedSetIndex = protectedTimer
+            ?.takeIf { protectedExercise?.id == exercise.id }
+            ?.let { timer -> timer.setId?.let { id -> exercise.sets.indexOfFirst { it.id == id } } ?: 0 }
+            ?.takeIf { it in WorkoutStepRules.cardioSetIndices(exercise) }
+        val setIndex = protectedSetIndex
+            ?: preferredPendingCardioSetIndex(exercise, state.completedSets, null)
+            ?: WorkoutStepRules.cardioSetIndices(exercise).lastOrNull()
+            ?: return null
+
+        // Selecting the canonical step first prevents an old card callback from
+        // being accepted after the view transition.
+        selectWorkoutStep(WorkoutStepRules.cardioStepKey(exercise.id, setIndex))
+
+        val selected = _uiState.value
+        if (!isCurrentCardioPageAction(exercise.id, setIndex)) return null
+        val setId = exercise.sets.getOrNull(setIndex)?.id
+        val matchingTimer = selected.cardioTimerState?.takeIf {
+            isTimerForCardioSet(it, exercise.id, setIndex, setId)
+        }
+        val completed = WorkoutStepRules.cardioCompletionKey(exercise.id, setIndex) in selected.completedSets
+        val shouldStart = !completed && !cardioTimerProtectsSeries(matchingTimer)
+        return CardioStartTarget(
+            exerciseId = exercise.id,
+            setIndex = setIndex,
+            setId = setId,
+            requiresGps = exercise.cardioDetails?.requiresGps == true,
+            shouldStart = shouldStart,
+            executionStartedAtMs = selected.startTimeMs,
+            openCardsTemporarily = true,
+        )
+    }
+
+    /** Starts a ViewModel-owned countdown for one execution and one exact cardio series. */
+    internal fun cancelCardioStartCountdown() {
+        cardioStartRequestId += 1L
+        cardioStartCountdownJob?.cancel()
+        cardioStartCountdownJob = null
+        _cardioStartCountdown.value = null
+    }
+
+    fun startCardioCountdown(
+        exerciseId: String,
+        setIndex: Int,
+        useGps: Boolean = true,
+        expectedSetId: String? = null,
+    ) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+            ?.takeIf { it.isCardio && it.id == exerciseId }
+            ?: return
+        val setId = exercise.sets.getOrNull(setIndex)?.id
+        if (!isCurrentCardioPageAction(exerciseId, setIndex, expectedSetId) ||
+            !canStartWorkoutRecording(state) || !canRunWorkoutTimers(state) ||
+            WorkoutStepRules.cardioCompletionKey(exerciseId, setIndex) in state.completedSets ||
+            cardioTimerProtectsSeries(state.cardioTimerState?.takeIf { isTimerForCardioSet(it, exerciseId, setIndex, setId) })) return
+
+        val active = _cardioStartCountdown.value
+        if (active != null && active.executionStartedAtMs == state.startTimeMs &&
+            active.exerciseId == exerciseId && active.setIndex == setIndex && active.setId == setId) return
+
+        cardioStartCountdownJob?.cancel()
+        val request = CardioStartCountdown(
+            requestId = ++cardioStartRequestId,
+            executionStartedAtMs = state.startTimeMs,
+            exerciseId = exerciseId,
+            setIndex = setIndex,
+            setId = setId,
+            remainingSeconds = 3,
+            useGps = useGps && exercise.cardioDetails?.requiresGps == true,
+        )
+        _cardioStartCountdown.value = request
+        cardioStartCountdownJob = viewModelScope.launch {
+            try {
+                for (remaining in 3 downTo 1) {
+                    if (!isCardioStartCountdownCurrent(request)) return@launch
+                    _cardioStartCountdown.value = request.copy(remainingSeconds = remaining)
+                    delay(900L)
+                }
+                if (!isCardioStartCountdownCurrent(request)) return@launch
+                val currentExercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return@launch
+                if (request.useGps && !com.example.kpkn.services.cardio.CardioGpsTracker.hasLocationPermission(appContext)) {
+                    cardioGpsPermissionDenied(exerciseId, setIndex)
+                    return@launch
+                }
+                if (request.useGps) startCardioGps(exerciseId, setIndex)
+                else startCardioTimer(exerciseId, currentExercise.cardioDetails?.effectiveDurationSeconds() ?: 1, setIndex)
+            } finally {
+                if (_cardioStartCountdown.value?.requestId == request.requestId) {
+                    _cardioStartCountdown.value = null
+                }
+            }
+        }
+    }
+
+    private fun isCardioStartCountdownCurrent(request: CardioStartCountdown): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == request.exerciseId } ?: return false
+        return state.startTimeMs == request.executionStartedAtMs &&
+            exercise.sets.getOrNull(request.setIndex)?.id == request.setId &&
+            isCurrentCardioPageAction(request.exerciseId, request.setIndex) &&
+            WorkoutStepRules.cardioCompletionKey(request.exerciseId, request.setIndex) !in state.completedSets &&
+            !cardioTimerProtectsSeries(state.cardioTimerState?.takeIf {
+                isTimerForCardioSet(it, request.exerciseId, request.setIndex, request.setId)
+            })
     }
 
     private fun canSelectWorkoutStepWithCardioTimer(state: WorkoutUiState, step: WorkoutStep): Boolean =
@@ -6929,6 +7065,12 @@ class WorkoutViewModel(
     }
 
     /** Estado de llegada del día: observación de bienestar, nunca un cambio de cargas. */
+    fun dismissAutomaticReadiness() {
+        if (!_uiState.value.automaticReadinessPending) return
+        updateUiState { it.copy(automaticReadinessPending = false) }
+        persistOngoingState()
+    }
+
     fun loadReadiness() {
         viewModelScope.launch {
             try {
@@ -8071,6 +8213,7 @@ class WorkoutViewModel(
                 date = log.date,
                 sets = relevantSets,
                 e1rm = best1rm,
+                catalogConfigurationId = ex.catalogConfigurationId,
                 tag = resolvedTag?.name ?: WorkoutTagResolver.lookupLogTagName(log, ex) ?: log.exerciseTags[ex.exerciseId],
                 notes = log.exerciseNotes[ex.exerciseId],
                 latestHistoryColor = latestV2Outcome?.historyColor,
@@ -8452,6 +8595,8 @@ class WorkoutViewModel(
     override fun onCleared() {
         val ownsExecution = repository.ownsOngoingWorkoutWriter(ongoingWriterToken)
         if (ownsExecution) stopCardioGpsIfRunning()
+        cardioStartCountdownJob?.cancel()
+        _cardioStartCountdown.value = null
         cardioTimerJob?.cancel()
         mobilityTotalTimerJob?.cancel()
         cardioInfoTickerJob?.cancel()

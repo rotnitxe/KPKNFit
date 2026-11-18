@@ -36,7 +36,9 @@ fun TechniqueRecorderScreen(
         if (!closing) {
             closing = true
             scope.launch {
-                mediaCapture?.let { stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording) }
+                mediaCapture?.let {
+                    stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording, it.isStartingVideo, it.isSavingVideo)
+                }
                 onDismiss()
             }
         }

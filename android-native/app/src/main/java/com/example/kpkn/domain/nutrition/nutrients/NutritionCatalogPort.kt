@@ -46,3 +46,9 @@ interface NutritionCatalogPort {
 
     fun recordFor(source: String, sourceRecordId: String): CatalogRecord?
 }
+
+/** Read-only current catalog reference shared with pure nutrition projections. */
+object NutritionCatalogAccess {
+    @Volatile
+    var current: NutritionCatalogPort? = null
+}

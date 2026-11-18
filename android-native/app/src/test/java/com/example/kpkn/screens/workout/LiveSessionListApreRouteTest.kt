@@ -9,11 +9,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -140,8 +142,10 @@ class LiveSessionListApreRouteTest {
         assertEquals(155.0, calibrationLoadForSet(vm.uiState.value, vm.uiState.value.session!!.exercises.first(), 3, null)!!.weight, 0.0)
         compose.onNodeWithTag("calibration-resolution").assertTextEquals("APRE · carga de S4 aplicada")
         compose.onNodeWithTag("calibration-apply").assertDoesNotExist()
-        compose.onNodeWithTag("live-list").performScrollToNode(hasText("155 kg × 10+"))
-        compose.onNodeWithText("155 kg × 10+", useUnmergedTree = true).assertIsDisplayed()
+        val set4Key = workoutSetKey("apre", 3)
+        compose.onNodeWithTag("live-list").performScrollToNode(hasTestTag("live-list-row-$set4Key"))
+        compose.onNodeWithTag("live-list-set-load-$set4Key", useUnmergedTree = true).assertTextEquals("155")
+        compose.onNodeWithTag("live-list-set-value-$set4Key", useUnmergedTree = true).assertTextEquals("10+")
 
         // Reapplying stays idempotent after the host switched views and the proposal was restored.
         selectView(vm, LiveSessionView.CARDS)
@@ -164,6 +168,29 @@ class LiveSessionListApreRouteTest {
         compose.onNodeWithTag("calibration-resolution").assertTextEquals("APRE · carga de S4 aplicada")
         compose.onNodeWithTag("calibration-apply").assertDoesNotExist()
         assertEquals(CalibrationStatus.APPLIED, f.storedOngoing().calibrationDecisions.single().status)
+    }
+
+    @Test fun repeatedListCardSwitchKeepsTheActiveExecutionMounted() = runBlocking {
+        val f = LiveSessionVmFixture(apreDurableState().session!!).prepare().also { fixture = it }
+        val vm = f.open()
+        val activeStepKey = WorkoutStepRules.workingStepKey("apre", 2, null)
+        vm.selectWorkoutStep(activeStepKey)
+        withTimeout(20_000) { vm.uiState.first { it.currentSetIdx == 2 && it.activeStepKey == activeStepKey } }
+        showHost(vm)
+
+        repeat(8) {
+            selectView(vm, LiveSessionView.LIST)
+            showHost(vm)
+            compose.onNodeWithTag("live-list").assertIsDisplayed()
+            assertEquals("apre", vm.uiState.value.session?.allExercises()?.singleOrNull()?.id)
+            assertEquals(2, vm.uiState.value.currentSetIdx)
+
+            selectView(vm, LiveSessionView.CARDS)
+            showHost(vm)
+            compose.onAllNodesWithTag("set_execution_card").assertCountEquals(4)
+            assertEquals("apre", vm.uiState.value.session?.allExercises()?.singleOrNull()?.id)
+            assertEquals(2, vm.uiState.value.currentSetIdx)
+        }
     }
 
     @Test fun listRouteSupportsApre3ProposalAndPreservesAcrossHostSwitch(): Unit = runBlocking {

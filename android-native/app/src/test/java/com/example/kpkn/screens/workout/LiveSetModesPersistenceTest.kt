@@ -43,6 +43,34 @@ class LiveSetModesPersistenceTest {
     @Test fun timePersistsRealSecondsBeyondTheGoal() = persist(TrainingMode.TIME, 65.0, 0.0)
     @Test fun distancePersistsDecimalMetersWithoutTruncation() = persist(TrainingMode.DISTANCE, 12.25, 24.0)
     @Test fun customPersistsDecimalQuantityAndItsExerciseUnit() = persist(TrainingMode.CUSTOM, 31.5, 0.0)
+
+    @Test fun timedSetClockDraftSurvivesRoomRecreationForEachSide() = runBlocking {
+        val exercise = liveModeExercise(TrainingMode.TIME)
+        val f = LiveSessionVmFixture(Session("timed-draft-session", "Tiempo", exercises = listOf(exercise))).prepare().also { fixture = it }
+        val vm = f.open()
+        val now = android.os.SystemClock.elapsedRealtime()
+        val leftStartedAt = now - 2_000L
+        val rightStartedAt = now - 5_000L
+        vm.updateSetDraft(exercise.id, 0, side = "left", draft = WorkoutSetDraft(
+            valueText = "7", timedSetAccumulatedMs = 3_000L, timedSetStartedAtElapsedMs = leftStartedAt, isDirty = true,
+        ))
+        vm.updateSetDraft(exercise.id, 0, side = "right", draft = WorkoutSetDraft(
+            valueText = "4", timedSetAccumulatedMs = 1_000L, timedSetStartedAtElapsedMs = rightStartedAt, isDirty = true,
+        ))
+        vm.flushOngoingForBackgroundAndAwait()
+
+        val reopened = f.recreate(vm)
+        val left = reopened.getSetDraft(exercise.id, 0, "left")
+        val right = reopened.getSetDraft(exercise.id, 0, "right")
+        assertEquals(leftStartedAt, left?.timedSetStartedAtElapsedMs)
+        assertEquals(3_000L, left?.timedSetAccumulatedMs)
+        assertEquals("7", left?.valueText)
+        assertEquals(rightStartedAt, right?.timedSetStartedAtElapsedMs)
+        assertEquals(1_000L, right?.timedSetAccumulatedMs)
+        assertEquals("4", right?.valueText)
+        assertNotEquals(left?.timedSetStartedAtElapsedMs, right?.timedSetStartedAtElapsedMs)
+    }
+
     @Test fun localRmReferenceAndPercentSurviveRoomAndRecreationWithoutEditingTheProgram() = runBlocking {
         val exercise = liveModeExercise(TrainingMode.RM)
         val f = LiveSessionVmFixture(Session("rm-draft-session", "RM", exercises = listOf(exercise))).prepare().also { fixture = it }

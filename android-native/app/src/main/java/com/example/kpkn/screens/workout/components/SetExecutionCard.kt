@@ -1611,9 +1611,21 @@ internal fun SetInputCardV2(
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet) {
         mutableStateOf(resolveDefaultReportedIntensityMode())
     }
-    var timerState by remember(exercise.id, setIndex, sideKey, plannedTarget) {
-        mutableStateOf(LiveSetClockState(accumulatedMs = if (isTimeMode) (parseLiveDurationSeconds(valueText) ?: 0) * 1000L else 0L))
+    var timerState by remember(
+        exercise.id, setIndex, sideKey, plannedTarget,
+        restoredDraft?.timedSetAccumulatedMs, restoredDraft?.timedSetStartedAtElapsedMs,
+    ) {
+        val now = clockNowMillis()
+        val restoredStart = restoredDraft?.timedSetStartedAtElapsedMs?.takeIf { it > 0L && it <= now }
+        mutableStateOf(
+            LiveSetClockState(
+                startedAtMs = restoredStart,
+                accumulatedMs = restoredDraft?.timedSetAccumulatedMs
+                    ?: if (isTimeMode) (parseLiveDurationSeconds(valueText) ?: 0) * 1000L else 0L,
+            ),
+        )
     }
+    var numericKeyboardTarget by remember(exercise.id, setIndex, sideKey) { mutableStateOf<String?>(null) }
     var timerNowMs by remember(exercise.id, setIndex, sideKey) { mutableLongStateOf(clockNowMillis()) }
     val timerRunning = timerState.running
     val timerElapsedSeconds = timerState.seconds(timerNowMs, plannedTarget)
@@ -1627,6 +1639,12 @@ internal fun SetInputCardV2(
         } else {
             timerState = timerState.start(now, restart = timerState.complete(now, plannedTarget))
         }
+    }
+    fun finishSetTimer() {
+        val now = clockNowMillis()
+        timerNowMs = now
+        if (timerState.running) timerState = timerState.stop(now, plannedTarget)
+        updateActiveValueText(timerState.seconds(now, plannedTarget).toString())
     }
 
     // Wiring para limpiar estado técnico al cambiar de lado (fix #1 ALTO: evita contaminación L→R)
@@ -1895,7 +1913,7 @@ internal fun SetInputCardV2(
             updateActiveValueText(timerState.seconds(timerNowMs, plannedTarget).toString())
             if (timerState.complete(timerNowMs, plannedTarget)) {
                 timerState = timerState.stop(timerNowMs, plannedTarget)
-            } else delay(100)
+            } else delay(1_000)
         }
     }
 
@@ -2028,11 +2046,10 @@ internal fun SetInputCardV2(
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
                     BasicTextField(
                         value = reportWeightText,
-                        onValueChange = { typed ->
-                            loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                            updateActiveWeightText(typed)
-                        },
-                        modifier = Modifier.width(IntrinsicSize.Max).semantics { contentDescription = "Carga en kg" },
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.width(IntrinsicSize.Max).clickable(role = Role.Button) { numericKeyboardTarget = "weight" }
+                            .semantics { contentDescription = "Editar carga en kg" },
                         singleLine = true,
                         textStyle = heroStyle.copy(color = WizardColors.text),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -2061,6 +2078,20 @@ internal fun SetInputCardV2(
                     Ref02StepButton(KpknLineIcons.Plus, "Aumentar carga", 36.dp, 36.dp) { adjust(1) }
                 }
             }
+            if (numericKeyboardTarget == "weight") WorkoutNumericKeyboardDialog(
+                title = "Carga · kg",
+                initialValue = reportWeightText,
+                allowDecimal = true,
+                contextValues = listOf("KG" to reportWeightText,
+                    (if (resolvedPlannedUnitMode == UnitModeV2.REPS) "REPS" else resolvedPlannedUnitMode.name) to reportValueText),
+                activeContextIndex = 0,
+                onDismiss = { numericKeyboardTarget = null },
+                onApply = { typed ->
+                    loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                    updateActiveWeightText(typed)
+                    numericKeyboardTarget = null
+                },
+            )
             Row(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 25.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -2546,10 +2577,7 @@ internal fun SetInputCardV2(
                                 Spacer(Modifier.weight(1f))
                                 // A la derecha de la cabecera: el reloj de la serie por tiempo o, en repeticiones, el plan frente a lo marcado
                                 // («Plan 4–6 ✓», «Plan 5 · −1», «Mínimo 8», «Serie fallida»). pulido:lv-J04
-                                if (legacyModeLayout && isTimeMode) {
-                                    Ref02SetClockButton(timerRunning, if (timerRunning && plannedTarget != null) timerRemainingSeconds else timerElapsedSeconds,
-                                        ::toggleSetTimer)
-                                } else if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
+                                if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
                                     Row(
                                         Modifier.semantics(mergeDescendants = true) {}.testTag(if (isAmrap) "amrap-purpose-badge" else "live-card-plan-label"),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -2634,6 +2662,65 @@ internal fun SetInputCardV2(
                             }
                             Spacer(modifier = Modifier.height(if (legacyModeLayout) 0.dp else if (roomyStepper) 8.dp else 6.dp))
 
+                            if (isTimeMode) {
+                                val progress = plannedTarget?.takeIf { it > 0 }
+                                    ?.let { (timerElapsedSeconds.toFloat() / it.toFloat()).coerceIn(0f, 1f) }
+                                val completedGoal = !timerRunning && progress == 1f
+                                Column(
+                                    Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("live-card-set-clock"),
+                                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                                ) {
+                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(
+                                                if (timerRunning && plannedTarget != null) "RESTAN" else "TIEMPO REGISTRADO",
+                                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp,
+                                                    fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
+                                                color = Ref02CardMuted,
+                                            )
+                                            Text(
+                                                formatTime(if (timerRunning && plannedTarget != null) timerRemainingSeconds else timerElapsedSeconds),
+                                                style = TextStyle(fontFamily = WizardFonts.display, fontSize = 30.sp,
+                                                    fontWeight = FontWeight.Bold, fontFeatureSettings = "'tnum' 1"),
+                                                color = if (timerRunning) sessionAccentColor else WizardColors.text,
+                                                modifier = Modifier.testTag("live-card-set-clock-value"),
+                                            )
+                                        }
+                                        plannedTarget?.takeIf { it > 0 }?.let { target ->
+                                            Text("Objetivo · ${formatTime(target)}", style = KpknType.caption.copy(fontSize = 11.sp),
+                                                color = Ref02CardMuted)
+                                        }
+                                    }
+                                    if (progress != null) {
+                                        Box(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF282828))) {
+                                            Box(Modifier.fillMaxWidth(progress).height(4.dp).background(sessionAccentColor))
+                                        }
+                                    }
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(
+                                            when {
+                                                timerRunning -> "Pausar"
+                                                completedGoal -> "Reiniciar"
+                                                timerElapsedSeconds > 0 -> "Reanudar"
+                                                else -> "Iniciar"
+                                            },
+                                            Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020))
+                                                .clickable(enabled = !isFailedSet, role = Role.Button, onClick = ::toggleSetTimer)
+                                                .semantics { contentDescription = if (timerRunning) "Pausar cronómetro de la serie" else "Iniciar cronómetro de la serie" }
+                                                .testTag("live-card-set-clock-toggle").padding(vertical = 10.dp),
+                                            style = KpknType.action.copy(fontSize = 13.sp), color = WizardColors.text, textAlign = TextAlign.Center,
+                                        )
+                                        if (timerRunning) Text(
+                                            "Terminar",
+                                            Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020))
+                                                .clickable(enabled = !isFailedSet, role = Role.Button, onClick = ::finishSetTimer)
+                                                .testTag("live-card-set-clock-finish").padding(vertical = 10.dp),
+                                            style = KpknType.action.copy(fontSize = 13.sp), color = WizardColors.text, textAlign = TextAlign.Center,
+                                        )
+                                    }
+                                }
+                            }
+
                             val quantityGhost = if (supportsIndependentSides) {
                                 if (selectedSide == "left") leftValueGhost else rightValueGhost
                             } else {
@@ -2651,10 +2738,21 @@ internal fun SetInputCardV2(
                                         UnitModeV2.DISTANCE -> "m"
                                         else -> exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"
                                     },
-                                    decimal = resolvedPlannedUnitMode != UnitModeV2.TIME,
+                                    decimal = resolvedPlannedUnitMode != UnitModeV2.REPS,
                                     allowColon = isTimeMode,
+                                    contextValues = listOf("KG" to reportWeightText,
+                                        (if (resolvedPlannedUnitMode == UnitModeV2.REPS) "REPS" else resolvedPlannedUnitMode.name) to reportValueText),
+                                    activeContextIndex = 1,
                                     enabled = !isFailedSet && !timerRunning,
-                                    onValueChange = { updateActiveValueText(it) },
+                                    onValueChange = {
+                                        updateActiveValueText(it)
+                                        if (isTimeMode && !timerState.running) {
+                                            parseLiveDurationSeconds(it)?.let { seconds ->
+                                                timerState = LiveSetClockState(accumulatedMs = seconds * 1_000L)
+                                                timerNowMs = clockNowMillis()
+                                            }
+                                        }
+                                    },
                                     onStep = { step ->
                                         val current = (if (isTimeMode) parseLiveDurationSeconds(reportValueText)?.toDouble() else null)
                                             ?: reportValueText.replace(',', '.').toDoubleOrNull()
@@ -2681,6 +2779,20 @@ internal fun SetInputCardV2(
                                     belowPlanColor = sessionAccentColor,
                                     hapticsEnabled = hapticFeedbackEnabled,
                                     reducedMotion = reducedMotion,
+                                    onCenterValueClick = { numericKeyboardTarget = "reps" },
+                                )
+                                if (numericKeyboardTarget == "reps") WorkoutNumericKeyboardDialog(
+                                    title = "Repeticiones",
+                                    initialValue = reportValueText,
+                                    allowDecimal = false,
+                                    contextValues = listOf("KG" to reportWeightText, "REPS" to reportValueText),
+                                    activeContextIndex = 1,
+                                    onDismiss = { numericKeyboardTarget = null },
+                                    onApply = { typed ->
+                                        updateActiveValueText(typed)
+                                        repsWheelCenterIndex.intValue = typed.toIntOrNull() ?: currentReps
+                                        numericKeyboardTarget = null
+                                    },
                                 )
                             }
                         }
@@ -2835,6 +2947,8 @@ internal fun SetInputCardV2(
                         notes = setNoteText.trim().takeIf { it.isNotEmpty() },
                         rmReference1RM = rmReference.takeIf { liveMode == LiveSetCardMode.RM },
                         rmPercent = rmPercent.takeIf { liveMode == LiveSetCardMode.RM },
+                        timedSetAccumulatedMs = timerState.accumulatedMs,
+                        timedSetStartedAtElapsedMs = timerState.startedAtMs,
                         voiceFields = base.voiceFields,
                         techniqueProgress = progress,
                         isDirty = true,
@@ -2878,6 +2992,7 @@ internal fun SetInputCardV2(
                 guidedCommitRestPauseOverride,
                 guidedProgressCoordinates,
                 isRecordSubmissionPending,
+                timerState,
             ) {
                 if (!isActivePage || isRecordSubmissionPending) return@LaunchedEffect
                 val initialLoadMode = resolveEffectiveLoadMode(
@@ -2931,6 +3046,8 @@ internal fun SetInputCardV2(
                             techniqueProgress = techniqueProgressForDraft,
                             rmReference1RM = rmReference.takeIf { liveMode == LiveSetCardMode.RM },
                             rmPercent = rmPercent.takeIf { liveMode == LiveSetCardMode.RM },
+                            timedSetAccumulatedMs = timerState.accumulatedMs,
+                            timedSetStartedAtElapsedMs = timerState.startedAtMs,
                         ),
                         if (supportsIndependentSides) selectedSide else null,
                     )
@@ -3922,20 +4039,24 @@ private fun Ref02QuantityInput(
     onValueChange: (String) -> Unit,
     onStep: (Int) -> Unit,
     allowColon: Boolean = false,
+    contextValues: List<Pair<String, String>> = emptyList(),
+    activeContextIndex: Int? = null,
 ) {
+    var keyboardOpen by remember(unit, allowColon) { mutableStateOf(false) }
     val style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp, letterSpacing = (-1.5).sp,
         fontFeatureSettings = "'tnum' 1")
     Row(Modifier.fillMaxWidth().height(49.dp).testTag("live-card-quantity-input"), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         BasicTextField(
             value = value,
-            // Se admiten el signo (la validación rechaza los negativos), la coma decimal y, en tiempo, «min:s».
-            onValueChange = { typed -> onValueChange(typed.filter { it.isDigit() || it == '-' || (decimal && (it == ',' || it == '.')) || (allowColon && it == ':') }) },
+            onValueChange = {},
             enabled = enabled,
+            readOnly = true,
             singleLine = true,
             textStyle = style.copy(color = WizardColors.text),
             keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
-            modifier = Modifier.width(130.dp).semantics { contentDescription = "Cantidad registrada" },
+            modifier = Modifier.width(130.dp).clickable(enabled = enabled, role = Role.Button) { keyboardOpen = true }
+                .semantics { contentDescription = "Cantidad registrada" },
             decorationBox = { inner ->
                 Box {
                     if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
@@ -3950,6 +4071,16 @@ private fun Ref02QuantityInput(
             Ref02StepButton(KpknLineIcons.Plus, "Aumentar cantidad", 41.dp, 40.dp, enabled) { onStep(1) }
         }
     }
+    if (keyboardOpen) WorkoutNumericKeyboardDialog(
+        title = "Cantidad registrada · $unit",
+        initialValue = value,
+        allowDecimal = decimal,
+        allowColon = allowColon,
+        contextValues = contextValues,
+        activeContextIndex = activeContextIndex,
+        onDismiss = { keyboardOpen = false },
+        onApply = onValueChange,
+    )
 }
 
 /** El reloj de la serie por tiempo en la cabecera de «TIEMPO» (`set-clock`): play/pausa y el tiempo. */

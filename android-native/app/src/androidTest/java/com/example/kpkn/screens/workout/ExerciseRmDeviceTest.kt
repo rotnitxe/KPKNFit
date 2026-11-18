@@ -19,7 +19,7 @@ class ExerciseRmDeviceTest {
         val best = CompletedSet("best", weight = 100.0, reps = 6)
         val recent = CompletedSet("recent", weight = 80.0, reps = 6)
         val reference = requireNotNull(buildExerciseRmReference(listOf(history("2026-10-01", best), history("2026-10-15", recent)), emptyList(), today))
-        assertEquals("best", reference.sourceSet.id)
+        assertEquals("best", requireNotNull(reference.sourceSet).id)
         assertEquals(116.1, reference.estimated1RM, .0001)
         assertFalse(reference.fromCurrentSession)
         assertEquals("2026-10-01", reference.sourceDate)
@@ -32,7 +32,7 @@ class ExerciseRmDeviceTest {
         assertEquals("recent", buildExerciseRmReference(entries, emptyList(), today)?.sourceSet?.id)
         val current = old.copy(id = "current")
         val reference = requireNotNull(buildExerciseRmReference(entries + history(today.toString(), recent), listOf(current), today))
-        assertEquals("current", reference.sourceSet.id)
+        assertEquals("current", requireNotNull(reference.sourceSet).id)
         assertTrue(reference.fromCurrentSession)
         assertEquals(today.toString(), reference.sourceDate)
     }

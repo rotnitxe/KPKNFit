@@ -67,6 +67,9 @@ import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,6 +105,7 @@ import com.example.kpkn.ui.design.KpknSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,9 +157,16 @@ internal const val TechniqueRecorderStageTag = "technique_recorder_stage"
 internal val TechniqueRecorderRequestKey = SemanticsPropertyKey<WorkoutMediaCaptureRequest>("TechniqueRecorderRequest")
 
 /** El plegado espera Finalize antes de devolver la cámara a la tarjeta. */
-internal suspend fun stopTechniqueRecorderBeforeExit(stop: () -> Unit, recording: StateFlow<Boolean>) {
+internal suspend fun stopTechniqueRecorderBeforeExit(
+    stop: () -> Unit,
+    recording: StateFlow<Boolean>,
+    starting: StateFlow<Boolean>? = null,
+    saving: StateFlow<Boolean>? = null,
+) {
     stop()
+    starting?.first { !it }
     recording.first { !it }
+    saving?.first { !it }
 }
 
 /** Una toma ocupa la escena desde su inicio hasta el resultado real de persistencia. */
@@ -170,6 +181,7 @@ internal class TechniqueRecorderCompletion {
     fun start(
         onResult: (TechniqueRecordingResult) -> Unit,
         onFinished: () -> Unit,
+        finishOnSaved: Boolean = true,
         capture: ((TechniqueRecordingResult) -> Unit) -> Unit,
     ) {
         if (!active || pending) return
@@ -181,7 +193,7 @@ internal class TechniqueRecorderCompletion {
                 pending = false
                 errorMessage = result.errorMessage
                 onResult(result)
-                if (result is TechniqueRecordingResult.Saved && result.warning == null) onFinished()
+                if (finishOnSaved && result is TechniqueRecordingResult.Saved && result.warning == null) onFinished()
             }
         }
         try {
@@ -215,6 +227,7 @@ internal fun TechniqueRecorderStage(
     modifier: Modifier = Modifier,
     onOpenAlbum: (() -> Unit)? = null,
     onOpenGallery: (() -> Unit)? = null,
+    onCaptureSaved: ((com.example.kpkn.data.models.WorkoutMedia) -> Unit)? = null,
 ) {
     val latestOnFinished by rememberUpdatedState(onFinished)
     val latestRequest by rememberUpdatedState(request)
@@ -285,6 +298,12 @@ internal fun TechniqueRecorderStage(
 
     val isRecordingFlow = remember(mediaCapture) { mediaCapture?.isRecording ?: MutableStateFlow(false) }
     val isRecordingState by isRecordingFlow.collectAsStateWithLifecycle()
+    val isStartingFlow = remember(mediaCapture) { mediaCapture?.isStartingVideo ?: MutableStateFlow(false) }
+    val isStartingState by isStartingFlow.collectAsStateWithLifecycle()
+    val isSavingFlow = remember(mediaCapture) { mediaCapture?.isSavingVideo ?: MutableStateFlow(false) }
+    val isSavingState by isSavingFlow.collectAsStateWithLifecycle()
+    val isPausedFlow = remember(mediaCapture) { mediaCapture?.isPaused ?: MutableStateFlow(false) }
+    val isPausedState by isPausedFlow.collectAsStateWithLifecycle()
     val recordedDurationFlow = remember(mediaCapture) { mediaCapture?.recordedDurationNanos ?: MutableStateFlow(0L) }
     val recordedDurationNanos by recordedDurationFlow.collectAsStateWithLifecycle()
     val elapsedSeconds = recordedDurationNanos / 1_000_000_000L
@@ -434,13 +453,15 @@ internal fun TechniqueRecorderStage(
     var hasAvailableCamera by remember { mutableStateOf(true) }
     var cameraBindFailed by remember { mutableStateOf(false) }
     var cameraRetryGeneration by remember { mutableIntStateOf(0) }
+    var previewStreaming by remember { mutableStateOf(false) }
 
     val isCameraUnavailable = cameraPermissionGranted && hasCheckedCameras && (!hasAvailableCamera || cameraBindFailed)
     // «No se pudo comprobar» es un error explícito y permite grabar; «comprobando» espera
     // el veredicto estable y un veredicto negativo exige corregir el encuadre.
     val framingReady = framingStatus.allowsCapture(framingVerdict)
-    val cameraReady = cameraPermissionGranted && !isCameraUnavailable && activeSession != null && mediaCapture != null
-    val canRecord = cameraReady && (!analysisEnabledForTake || (profileResolution != null && framingReady))
+    val cameraReady = cameraPermissionGranted && !isCameraUnavailable && activeSession != null && previewStreaming && mediaCapture != null
+    // The framing guide is optional and never blocks recording.
+    val canRecord = cameraReady
     val canRecordAnyway = cameraReady
     var audioPermissionGranted by remember {
         mutableStateOf(
@@ -456,6 +477,43 @@ internal fun TechniqueRecorderStage(
 
     val is60FpsGranted = activeSession?.is60FpsGranted == true
 
+    DisposableEffect(previewView, lifecycleOwner, activeSession) {
+        val view = previewView
+        if (view == null) return@DisposableEffect onDispose { previewStreaming = false }
+        val observer = Observer<PreviewView.StreamState> { state ->
+            previewStreaming = state == PreviewView.StreamState.STREAMING && activeSession != null
+            if (previewStreaming) cameraBindFailed = false
+        }
+        view.previewStreamState.observe(lifecycleOwner, observer)
+        onDispose {
+            view.previewStreamState.removeObserver(observer)
+            previewStreaming = false
+        }
+    }
+
+    LaunchedEffect(previewView, activeSession, lens, cameraRetryGeneration) {
+        if (previewView == null || activeSession == null) return@LaunchedEffect
+        previewStreaming = false
+        delay(8_000)
+        if (!previewStreaming) {
+            if (cameraRetryGeneration == 0) {
+                cameraBindFailed = false
+                hasCheckedCameras = false
+                cameraRetryGeneration = 1
+            } else {
+                cameraBindFailed = true
+            }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, mediaCapture) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) mediaCapture?.stopIfRecording()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     val originalOrientation = remember { activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
     var isStopping by remember { mutableStateOf(false) }
 
@@ -465,26 +523,20 @@ internal fun TechniqueRecorderStage(
         if (capture.isRecording.value) return TechniqueCaptureStartResult.ALREADY_RECORDING
         if (!cameraPermissionGranted || isCameraUnavailable) return TechniqueCaptureStartResult.UNAVAILABLE
         val session = activeSession ?: return TechniqueCaptureStartResult.UNAVAILABLE
-        if (analysisEnabledForTake && !ignoreFramingGate) {
-            if (profileResolution == null || framingStatus == FramingCheckStatus.CHECKING) {
-                return TechniqueCaptureStartResult.CHECKING
-            }
-            if (!framingReady) return TechniqueCaptureStartResult.NOT_READY
-        }
         val captureRequest = latestRequest.captureRequest.copy(
-            analysisRequestedForCapture = analysisEnabledForTake,
-            framingGateBypassed = ignoreFramingGate.takeIf { analysisEnabledForTake },
-            framingWarning = if (ignoreFramingGate && analysisEnabledForTake) {
-                (listOf(framingStatus.name) + framingVerdict.issues.map { it.name }).joinToString(" | ")
-            } else null,
+            analysisRequestedForCapture = false,
+            framingGateBypassed = null,
+            framingWarning = null,
         )
         completion.start(
-            onResult = {
+            onResult = { result ->
                 activity?.requestedOrientation = originalOrientation
                 framingController?.isRecording = false
                 isStopping = false
+                if (result is TechniqueRecordingResult.Saved) onCaptureSaved?.invoke(result.media)
             },
             onFinished = { latestOnFinished() },
+            finishOnSaved = onCaptureSaved == null,
             capture = { onFinalized ->
                 activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
                 framingController?.isRecording = true
@@ -590,7 +642,7 @@ internal fun TechniqueRecorderStage(
 
                 val selectedLens = cameraChoice.detected(hasBack, hasFront).lens
                 val cameraSelector = if (selectedLens == WorkoutCameraLens.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
-                val want60 = desiredWant60
+                val want60 = desiredWant60 && cameraRetryGeneration == 0
 
                 runCatching {
                     val cameraInfo = cameraProvider.getCameraInfo(cameraSelector)
@@ -666,6 +718,12 @@ internal fun TechniqueRecorderStage(
     TechniqueRecorderStageContent(
         modifier = modifier.semantics { this[TechniqueRecorderRequestKey] = request.captureRequest },
         isRecording = isRecordingState,
+        isPaused = isPausedState,
+        isStarting = isStartingState,
+        isSaving = isSavingState,
+        isStopping = isStopping,
+        onPauseResume = { if (isPausedState) mediaCapture?.resumeVideo() else mediaCapture?.pauseVideo() },
+        onStop = { stopRecording() },
         cameraChoice = cameraChoice,
         onSwitchCamera = { mediaCapture?.switchCamera() },
         elapsedSeconds = elapsedSeconds,
@@ -686,12 +744,13 @@ internal fun TechniqueRecorderStage(
         onToggleVoiceCommands = TechniqueCaptureVoiceLink::requestVoiceToggle,
         hasPermission = cameraPermissionGranted,
         hasCamera = !isCameraUnavailable && mediaCapture != null,
+        cameraStreamReady = previewStreaming,
         isPermanentlyDenied = isPermanentlyDenied,
         captureError = completion.errorMessage ?: captureError,
         canRecord = canRecord && !completion.pending,
         canRecordAnyway = canRecordAnyway && !completion.pending,
-        isProcessing = completion.pending && (!isRecordingState || isStopping),
-        onRecord = { if (isRecordingState) stopRecording() else startRecording() },
+        isProcessing = isStartingState || isSavingState || isStopping || (completion.pending && !isRecordingState),
+        onRecord = { startRecording() },
         onRecordAnyway = { latestStartRecordingAnyway.value() },
         onSwitchToPhoto = onSwitchToPhoto,
         onOpenFicha = onOpenFicha,
@@ -701,7 +760,7 @@ internal fun TechniqueRecorderStage(
             if (isPermanentlyDenied) openAppSettings(context)
             else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         },
-        onRetryCamera = { cameraBindFailed = false; hasCheckedCameras = false; cameraRetryGeneration += 1 },
+        onRetryCamera = { cameraBindFailed = false; hasCheckedCameras = false; previewStreaming = false; cameraRetryGeneration += 1 },
         preview = {
             if (mediaCapture != null && cameraPermissionGranted) {
                 AndroidView(
@@ -725,6 +784,12 @@ internal fun TechniqueRecorderStage(
 internal fun TechniqueRecorderStageContent(
     modifier: Modifier = Modifier,
     isRecording: Boolean = false,
+    isPaused: Boolean = false,
+    isStarting: Boolean = false,
+    isSaving: Boolean = false,
+    isStopping: Boolean = false,
+    onPauseResume: () -> Unit = {},
+    onStop: () -> Unit = {},
     elapsedSeconds: Long = 0L,
     is60FpsGranted: Boolean = false,
     showsPlateBadge: Boolean = false,
@@ -743,6 +808,7 @@ internal fun TechniqueRecorderStageContent(
     onToggleVoiceCommands: () -> Unit = {},
     hasPermission: Boolean = true,
     hasCamera: Boolean = true,
+    cameraStreamReady: Boolean = true,
     isPermanentlyDenied: Boolean = false,
     captureError: String? = null,
     canRecord: Boolean = true,
@@ -763,6 +829,10 @@ internal fun TechniqueRecorderStageContent(
     val available = hasPermission && hasCamera
     val framingReady = framingStatus.allowsCapture(verdict)
     val captureTitle = when {
+        available && !cameraStreamReady && !isStarting && !isSaving -> "Conectando cámara…"
+        isSaving || isStopping -> "Guardando vídeo…"
+        isStarting -> "Iniciando captura…"
+        isRecording && isPaused -> "Grabación en pausa"
         isRecording -> "Grabación en curso"
         !analysisEnabledForTake -> "Grabación libre"
         framingStatus == FramingCheckStatus.CHECKING -> "Comprobando encuadre"
@@ -770,7 +840,11 @@ internal fun TechniqueRecorderStageContent(
         else -> "Ajusta el encuadre"
     }
     val captureHint = when {
-        isRecording -> "Toca para detener"
+        available && !cameraStreamReady && !isStarting && !isSaving -> "Espera la vista previa; si tarda, podrás reintentar"
+        isSaving || isStopping -> "El vídeo se está guardando en el álbum de esta serie"
+        isStarting -> "Preparando la cámara"
+        isRecording && isPaused -> "Reanuda o detén la grabación"
+        isRecording -> "Pausa o detén la grabación"
         !analysisEnabledForTake -> "Análisis apagado para esta toma; puedes analizar el vídeo manualmente después"
         framingStatus == FramingCheckStatus.CHECKING -> "Espera el veredicto antes de grabar"
         framingStatus == FramingCheckStatus.UNAVAILABLE -> "No se pudo comprobar el encuadre; puedes grabar igualmente"
@@ -896,13 +970,17 @@ internal fun TechniqueRecorderStageContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // `.v2-record-control`: círculo crema de 49 con la cámara (o la pausa al grabar).
-                Ref02RecordControl(
-                    isRecording = isRecording, onClick = onRecord,
+                if (!isRecording && !isProcessing) Ref02RecordControl(
+                    isRecording = false, onClick = onRecord,
                     modifier = Modifier.testTag("technique_record").semantics {
                         if (isProcessing) stateDescription = "Procesando vídeo"
                     },
-                    enabled = available && !isProcessing && (isRecording || canRecord),
-                )
+                    enabled = available && canRecord,
+                ) else if (isRecording) {
+                    RecorderTextAction("Detener", onStop, modifier = Modifier.testTag("technique_record_stop"), color = WizardColors.danger)
+                } else Box(Modifier.size(49.dp), contentAlignment = Alignment.Center) {
+                    Text("…", style = KpknType.metricM, color = WizardColors.textMuted)
+                }
                 Column(Modifier.weight(1f).testTag("technique_capture_state")) {
                     Text(
                         text = captureTitle,
@@ -921,6 +999,13 @@ internal fun TechniqueRecorderStageContent(
                             text = "Grabar de todas formas",
                             onClick = onRecordAnyway,
                             modifier = Modifier.testTag("technique_record_anyway"),
+                        )
+                    }
+                    if (isRecording) {
+                        RecorderTextAction(
+                            text = if (isPaused) "Reanudar" else "Pausar",
+                            onClick = onPauseResume,
+                            modifier = Modifier.testTag("technique_record_pause_resume"),
                         )
                     }
                 }
@@ -1047,9 +1132,9 @@ private fun CaptureGuidePanel(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Análisis técnico", style = KpknType.bodyStrong, color = WizardColors.text)
+                Text("Guía de encuadre", style = KpknType.bodyStrong, color = WizardColors.text)
                 Text(
-                    text = if (analysisEnabledForTake) "Guía de encuadre y análisis automático al guardar." else "Apagado para esta toma; el vídeo queda disponible para análisis manual.",
+                    text = if (analysisEnabledForTake) "Indicaciones visuales opcionales durante la preparación." else "Desactivada; puedes analizar el vídeo después de guardarlo.",
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                 )
@@ -1059,7 +1144,7 @@ private fun CaptureGuidePanel(
                 onCheckedChange = onToggleAnalysisEnabledForTake,
                 modifier = Modifier
                     .testTag("technique_analysis_toggle")
-                    .semantics { contentDescription = "Análisis técnico de esta toma" },
+                    .semantics { contentDescription = "Guía de encuadre opcional" },
             )
         }
         if (analysisEnabledForTake) {

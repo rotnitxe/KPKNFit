@@ -82,6 +82,7 @@ internal fun LiveSessionSheetsHost(
     completedExercises: List<CompletedExercise> = emptyList(),
     omittedSetKeys: Set<String> = emptySet(),
     currentExerciseId: String? = null,
+    activeLoadMode: LoadModeV2? = null,
     /** Número de la serie en curso de la tarjeta (el chip resaltado de la «Ruta»). */
     currentSetNumber: Int? = null,
     warmupCompletedIds: Set<String> = emptySet(),
@@ -241,7 +242,15 @@ internal fun LiveSessionSheetsHost(
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }
                 LiveSessionDestination.TIMER -> LiveSessionTimerContent(timer)
-                LiveSessionDestination.RM -> WorkoutRmCalcContent(bodyWeight = bodyWeight, sessionAccentColor = sessionAccentColor, softInputs = true,
+                LiveSessionDestination.RM -> WorkoutRmCalcContent(
+                    bodyWeight = bodyWeight,
+                    currentLoadMode = activeLoadMode,
+                    exercise = exercises.firstOrNull { it.id == currentExerciseId },
+                    exerciseOptions = exercises,
+                    activeExerciseId = currentExerciseId,
+                    currentSets = completedSets.filterKeys { parseCompletedSetKey(it)?.exerciseId == currentExerciseId }.values.toList(),
+                    sessionAccentColor = sessionAccentColor,
+                    softInputs = true,
                     onWeightSelected = onUseRmWeight?.let { use -> { weight: Double, _ -> use(weight); onDestination(null) } })
                 LiveSessionDestination.VOICE -> LaunchedEffect(Unit) { onDestination(null); onOpenVoice() }
                 LiveSessionDestination.NOTES -> LiveSessionNotesContent(sessionNotes, sessionSavedNotes, sessionChecklist,

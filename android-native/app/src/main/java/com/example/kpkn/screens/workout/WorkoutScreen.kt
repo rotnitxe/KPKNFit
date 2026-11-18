@@ -236,6 +236,8 @@ fun WorkoutScreen(
         }
     )
     val pendingCardioGpsTarget = remember { mutableStateOf<Pair<String, Int>?>(null) }
+    var pendingCardioStartTarget by remember { mutableStateOf<CardioStartTarget?>(null) }
+    var pendingCardioStartPermissionTarget by remember { mutableStateOf<CardioStartTarget?>(null) }
     val gpsPermissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { grants ->
@@ -251,7 +253,12 @@ fun WorkoutScreen(
                 grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
             val target = pendingCardioGpsTarget.value
             pendingCardioGpsTarget.value = null
-            if (target != null && viewModel.isCurrentCardioPageAction(target.first, target.second)) {
+            val startTarget = pendingCardioStartPermissionTarget
+            pendingCardioStartPermissionTarget = null
+            if (startTarget != null && viewModel.isCurrentCardioStartTarget(startTarget)) {
+                if (locationOk) viewModel.startCardioCountdown(startTarget.exerciseId, startTarget.setIndex, useGps = true, expectedSetId = startTarget.setId)
+                else viewModel.cardioGpsPermissionDenied(startTarget.exerciseId, startTarget.setIndex)
+            } else if (target != null && viewModel.isCurrentCardioPageAction(target.first, target.second)) {
                 if (locationOk) viewModel.startCardioGps(target.first, target.second)
                 else viewModel.cardioGpsPermissionDenied(target.first, target.second)
             }
@@ -336,8 +343,10 @@ fun WorkoutScreen(
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
-    var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
-    val showReadinessSheet = !readinessSheetDismissed
+    var readinessSheetDismissed by rememberSaveable(programId, sessionId, uiState.startTimeMs) {
+        mutableStateOf(true)
+    }
+    val showReadinessSheet = uiState.automaticReadinessPending || !readinessSheetDismissed
     // Lo que quedó pendiente al cerrar una capa por accidente (LV4, 15): el estado previo sin responder y el resumen final sin guardar.
     // Mientras estén pendientes, la fila del asa del cockpit enseña la píldora que los vuelve a abrir.
     val readinessPending = false // Optional preparation has no unanswered calibration gate.
@@ -356,7 +365,33 @@ fun WorkoutScreen(
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
     // La preferencia sigue siendo global, pero una sesión exclusivamente de cardio necesita su preparación dedicada.
     // La vista efectiva no escribe de vuelta sobre Settings.liveSessionView.
-    val liveSessionView = effectiveLiveSessionView(session, settings.liveSessionView)
+    var temporaryLiveSessionView by remember(programId, sessionId, uiState.startTimeMs) {
+        mutableStateOf<LiveSessionView?>(null)
+    }
+    val liveSessionView = temporaryLiveSessionView ?: effectiveLiveSessionView(session, settings.liveSessionView)
+    LaunchedEffect(liveSessionView, pendingCardioStartTarget, uiState.startTimeMs) {
+        val target = pendingCardioStartTarget ?: return@LaunchedEffect
+        if (!viewModel.isCurrentCardioStartTarget(target)) {
+            pendingCardioStartTarget = null
+            temporaryLiveSessionView = null
+            return@LaunchedEffect
+        }
+        if (liveSessionView != LiveSessionView.CARDS) return@LaunchedEffect
+        if (pendingCardioStartPermissionTarget != null) return@LaunchedEffect
+        pendingCardioStartTarget = null
+        if (!target.shouldStart) return@LaunchedEffect
+        if (target.useGps && !CardioGpsTracker.hasLocationPermission(context)) {
+            pendingCardioStartPermissionTarget = target
+            gpsPermissionsLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        } else {
+            viewModel.startCardioCountdown(target.exerciseId, target.setIndex, useGps = target.useGps, expectedSetId = target.setId)
+        }
+    }
     val allPrograms by com.example.kpkn.data.repository.ProgramRepository.getInstance().programs.collectAsStateWithLifecycle()
     val activeProgram = remember(allPrograms, programId) { allPrograms.firstOrNull { it.id == programId } }
     LaunchedEffect(settings.exerciseNicknames) {
@@ -996,6 +1031,12 @@ fun WorkoutScreen(
                     }
                 }
             },
+            onRequestCardioStart = { target ->
+                if (viewModel.isCurrentCardioStartTarget(target)) {
+                    if (target.openCardsTemporarily) temporaryLiveSessionView = LiveSessionView.CARDS
+                    pendingCardioStartTarget = target
+                }
+            },
             isMobilityActive = isMobilityOverlayActive,
             isWarmupActive = isWarmupOverlayActive,
             warmupDisplaySets = warmupDisplaySets,
@@ -1091,6 +1132,7 @@ fun WorkoutScreen(
         completedExercises = completedExercisesForSummary,
         omittedSetKeys = uiState.omittedSetKeys,
         currentExerciseId = currentExercise?.id,
+        activeLoadMode = currentSet?.loadModeV2 ?: LoadModeV2.LOAD,
         currentSetNumber = liveRoadmapActiveSetNumber(liveSetStepperHolder.snapshot),
         warmupCompletedIds = uiState.warmupCompletedExerciseIds,
         mobilityCompletedIds = uiState.mobilityCompletedExerciseIds,
@@ -1138,7 +1180,13 @@ fun WorkoutScreen(
         timer = liveSessionTimer,
         sessionAccentColor = sessionAccentColor,
         currentView = liveSessionView,
-        onSelectView = { viewModel.setLiveSessionViewPreference(it.name) },
+        onSelectView = {
+            viewModel.cancelCardioStartCountdown()
+            temporaryLiveSessionView = null
+            pendingCardioStartTarget = null
+            pendingCardioStartPermissionTarget = null
+            viewModel.setLiveSessionViewPreference(it.name)
+        },
         sessionTitle = workoutHeaderSessionTitle(session.name, uiState.livePlanContext?.weekIndexInBlock),
         sessionProgress = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
             .let { "${it.completed} de ${it.total} series" },
@@ -1339,6 +1387,7 @@ fun WorkoutScreen(
         gender = settings.userVitals.gender,
         onReadinessDismissed = {
             readinessSheetDismissed = true
+            viewModel.dismissAutomaticReadiness()
             viewModel.announceCurrentStepOnReadinessDismissed()
         },
         voiceSessionEnabled = uiState.voiceSessionEnabled,

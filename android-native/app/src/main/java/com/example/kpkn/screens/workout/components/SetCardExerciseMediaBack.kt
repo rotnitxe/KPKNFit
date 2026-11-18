@@ -55,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -234,6 +235,7 @@ internal fun SetCardExerciseMediaBack(
     var expanded by remember { mutableStateOf(startExpanded) }
     var techniqueOpen by remember { mutableStateOf(false) }
     var foldRequested by remember { mutableStateOf(false) }
+    var savedVideoForAnalysis by remember { mutableStateOf<WorkoutMedia?>(null) }
     var showAlbum by remember { mutableStateOf(false) }
     var showFicha by remember { mutableStateOf(false) }
     var faceBounds by remember { mutableStateOf(Rect.Zero) }
@@ -254,6 +256,25 @@ internal fun SetCardExerciseMediaBack(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         mediaCapture?.ingestUri(uri, captureRequest)
+    }
+
+    val movableRecorderStage = remember(captureRequest, exercise, mediaCapture, techniqueVideoSettings) {
+        movableContentOf<Modifier> { stageModifier ->
+            TechniqueRecorderStage(
+                request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
+                mediaCapture = mediaCapture,
+                prefer60FpsSetting = techniqueVideoSettings.prefer60Fps,
+                maxRecordSeconds = techniqueVideoSettings.maxRecordSeconds,
+                defaultPlateDiameterMm = techniqueVideoSettings.plateDiameterMm,
+                onFinished = { foldRequested = true },
+                onSwitchToPhoto = { mode = MediaMode.PHOTO; foldRequested = true },
+                onOpenFicha = { showFicha = true },
+                modifier = stageModifier,
+                onOpenAlbum = { showAlbum = true },
+                onOpenGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
+                onCaptureSaved = { savedVideoForAnalysis = it },
+            )
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -313,6 +334,10 @@ internal fun SetCardExerciseMediaBack(
 
     @Composable
     fun Stage(stageModifier: Modifier, compact: Boolean, showPreview: Boolean) {
+        if (techniqueOpen) {
+            movableRecorderStage(stageModifier)
+            return
+        }
         MediaStage(
             modifier = stageModifier,
             compact = compact,
@@ -417,10 +442,12 @@ internal fun SetCardExerciseMediaBack(
                         }
                     }
                 }
-                Stage(
+                if (expanded) {
+                    Box(Modifier.weight(1f).fillMaxWidth().padding(top = 8.dp))
+                } else Stage(
                     stageModifier = Modifier.weight(1f).fillMaxWidth().padding(top = 8.dp),
                     compact = true,
-                    showPreview = !expanded,
+                    showPreview = true,
                 )
                 // `.v2-media-summary`: lo que dice el análisis y «Abrir análisis ›».
                 Row(
@@ -471,13 +498,9 @@ internal fun SetCardExerciseMediaBack(
                     startBounds = faceBounds,
                     title = "Modo visual · serie ${setIndex + 1}",
                     subtitle = details,
-                    onFolded = { expanded = false; techniqueOpen = false; foldRequested = false },
+                    onFolded = { expanded = false; foldRequested = false },
                     foldRequested = foldRequested,
-                    beforeFold = {
-                        if (techniqueOpen) mediaCapture?.let {
-                            stopTechniqueRecorderBeforeExit(it::stopIfRecording, it.isRecording)
-                        }
-                    },
+                    beforeFold = {},
                     onOpenAlbum = if (mediaCapture != null) ({ showAlbum = true }) else null,
                     footer = if (techniqueOpen) null else ({
                         // `.media-copy` + `.media-result`: la serie a la que se asocia la captura y lo que dice el análisis.
@@ -492,27 +515,21 @@ internal fun SetCardExerciseMediaBack(
                                 Modifier.weight(1f), style = KpknType.caption.copy(fontSize = 11.sp), color = Color(0xFFB9B5AE),
                             )
                             val analysis = videoAnalysis
-                            if (analysis != null && onOpenAnalysis != null) {
-                                Text("Ver análisis", Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) { onOpenAnalysis(analysis.mediaId) }
+                            val analyzableMediaId = analysis?.mediaId ?: savedVideoForAnalysis?.id
+                                ?: exerciseFiles.firstOrNull { it.kind == WorkoutMediaKind.VIDEO }?.id
+                            if (onOpenAnalysis != null && analyzableMediaId != null && (analysis != null || onRetryAnalysis != null)) {
+                                Text(if (analysis == null) "Analizar técnica" else "Ver análisis", Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) {
+                                    if (analysis == null) onRetryAnalysis?.invoke(analyzableMediaId)
+                                    onOpenAnalysis(analyzableMediaId)
+                                }
                                     .padding(horizontal = 6.dp, vertical = 12.dp).testTag("media_expanded_analysis"),
                                     style = KpknType.caption.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
                             }
                         }
                     }),
                     stage = { stageModifier ->
-                        if (techniqueOpen) TechniqueRecorderStage(
-                            request = TechniqueRecorderRequest(captureRequest, exercise, "Serie ${setIndex + 1}"),
-                            mediaCapture = mediaCapture,
-                            prefer60FpsSetting = techniqueVideoSettings.prefer60Fps,
-                            maxRecordSeconds = techniqueVideoSettings.maxRecordSeconds,
-                            defaultPlateDiameterMm = techniqueVideoSettings.plateDiameterMm,
-                            onFinished = { foldRequested = true },
-                            onSwitchToPhoto = { mode = MediaMode.PHOTO; foldRequested = true },
-                            onOpenFicha = { showFicha = true },
-                            modifier = stageModifier,
-                            onOpenAlbum = { showAlbum = true },
-                            onOpenGallery = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
-                        ) else Stage(stageModifier = stageModifier, compact = false, showPreview = true)
+                        if (techniqueOpen) movableRecorderStage(stageModifier)
+                        else Stage(stageModifier = stageModifier, compact = false, showPreview = true)
                     },
                 )
             }
@@ -544,6 +561,27 @@ internal fun SetCardExerciseMediaBack(
                         techniqueOpen = false
                         openHistory()
                     }
+                },
+            )
+        }
+        savedVideoForAnalysis?.let { saved ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { savedVideoForAnalysis = null; foldRequested = true },
+                title = { Text("Vídeo guardado") },
+                text = { Text("¿Quieres analizar la técnica de esta toma?") },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        onRetryAnalysis?.invoke(saved.id)
+                        onOpenAnalysis?.invoke(saved.id)
+                        savedVideoForAnalysis = null
+                        foldRequested = true
+                    }) { Text("Analizar técnica") }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        savedVideoForAnalysis = null
+                        foldRequested = true
+                    }) { Text("Ahora no") }
                 },
             )
         }

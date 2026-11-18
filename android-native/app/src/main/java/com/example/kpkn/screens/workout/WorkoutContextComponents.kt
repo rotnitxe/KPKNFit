@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -547,12 +548,46 @@ internal fun WorkoutRmCalcContent(
     onWeightSelected: ((weight: Double, loadMode: LoadModeV2?) -> Unit)? = null,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     softInputs: Boolean = false,
+    exercise: Exercise? = null,
+    exerciseOptions: List<Exercise> = emptyList(),
+    activeExerciseId: String? = exercise?.id,
+    currentSets: List<CompletedSet> = emptyList(),
 ) {
     var rmWeightText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     var rmRepsText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
-    val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
-    val isLastre = currentLoadMode == LoadModeV2.LASTRE
-    val weightLabel = when (currentLoadMode) {
+    var selectedExerciseId by androidx.compose.runtime.saveable.rememberSaveable(activeExerciseId) {
+        mutableStateOf(activeExerciseId.orEmpty())
+    }
+    val selectedExercise = remember(exercise, exerciseOptions, selectedExerciseId) {
+        exerciseOptions.firstOrNull { it.id == selectedExerciseId } ?: exercise
+    }
+    val selectedLoadMode = if (selectedExercise?.id == activeExerciseId) currentLoadMode else selectedExercise?.sets
+        ?.mapNotNull { it.loadModeV2 }?.distinct()?.singleOrNull()
+    val isAssisted = selectedLoadMode == LoadModeV2.ASSISTED
+    val isLastre = selectedLoadMode == LoadModeV2.LASTRE
+    LaunchedEffect(selectedExercise?.id) {
+        rmWeightText = ""
+        rmRepsText = ""
+    }
+    val currentSessionBest = remember(currentSets, selectedExercise, selectedLoadMode) {
+        if (selectedExercise?.id != activeExerciseId) null else currentSets.asSequence()
+            .mapNotNull { eligibleWorkoutRmEstimate(it, selectedLoadMode ?: LoadModeV2.LOAD) }
+            .maxOrNull()
+    }
+    val sharedReference = remember(selectedExercise, currentSessionBest) {
+        currentSessionBest ?: selectedExercise?.let { source ->
+            declaredWorkoutRmReference(source)
+        }
+    }
+    val canApplySelectedWeight = exerciseOptions.isEmpty() || selectedExercise?.id == activeExerciseId
+    val referenceSource = selectedExercise?.let { source -> when {
+        currentSessionBest != null -> "Mejor serie compatible de hoy"
+        source.reference1RM?.let { it.isFinite() && it > 0.0 } == true -> "1RM declarado para esta variante"
+        source.prFor1RM?.let { it.weight > 0.0 && it.reps > 0 } == true -> "PR declarado para esta variante"
+        source.calculated1RM?.let { it.isFinite() && it > 0.0 } == true -> "1RM calculado guardado"
+        else -> null
+    } }
+    val weightLabel = when (selectedLoadMode) {
         LoadModeV2.LASTRE -> "Lastre (kg)"
         LoadModeV2.ASSISTED -> "Asistencia (kg)"
         else -> "Peso (kg)"
@@ -591,6 +626,33 @@ internal fun WorkoutRmCalcContent(
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (exerciseOptions.distinctBy { it.id }.size > 1) {
+            Text("Ejercicio de referencia", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = .65f))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(exerciseOptions.distinctBy { it.id }, key = { it.id }) { option ->
+                    FilterChip(
+                        selected = option.id == selectedExercise?.id,
+                        onClick = { selectedExerciseId = option.id },
+                        label = { Text(displayWorkoutExerciseName(option), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    )
+                }
+            }
+        }
+        if (selectedExercise != null) {
+            if (sharedReference != null) {
+                Text("${referenceSource ?: "Referencia compartida"} · ${String.format(Locale.forLanguageTag("es"), "%.1f", sharedReference)} kg",
+                    style = MaterialTheme.typography.labelSmall, color = sessionAccentColor, modifier = Modifier.testTag("live-rm-shared-reference"))
+            } else {
+                val trainingMax = selectedExercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
+                if (trainingMax != null) {
+                    Text("TM de trabajo · ${String.format(Locale.forLanguageTag("es"), "%.1f", trainingMax)} kg · no se convierte en 1RM",
+                        style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = .65f), modifier = Modifier.testTag("live-rm-training-max-only"))
+                } else {
+                    Text("Sin referencia compatible declarada para ${displayWorkoutExerciseName(selectedExercise)}",
+                        style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = .55f))
+                }
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (softInputs) {
                 com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
@@ -642,7 +704,7 @@ internal fun WorkoutRmCalcContent(
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4CAF50),
                     )
-                    if ((isAssisted || isLastre) && bodyWeight != null) {
+            if ((isAssisted || isLastre) && bodyWeight != null) {
                         Text("Peso corporal (solo cálculo): ${bodyWeight.toTrimmedNumberString()} kg", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
                     }
                 }
@@ -662,8 +724,8 @@ internal fun WorkoutRmCalcContent(
                         lastre != null -> "kg lastre"
                         else -> "kg"
                     }
-                    Surface(
-                        onClick = { onWeightSelected?.invoke(displayWeight, currentLoadMode) },
+                        Surface(
+                        onClick = { if (canApplySelectedWeight) onWeightSelected?.invoke(displayWeight, selectedLoadMode) },
                         shape = RoundedCornerShape(10.dp),
                         color = Color(0xFF2A2A2A),
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),

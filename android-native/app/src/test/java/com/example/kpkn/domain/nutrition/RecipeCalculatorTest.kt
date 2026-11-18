@@ -76,6 +76,55 @@ class RecipeCalculatorTest {
         assertNotNull(RecipeCalculator.calculate(recipe(20.0)).warning)
         assertEquals(200.0, RecipeCalculator.portion(food(20.0), servings = 1.0).calories, 0.0)
     }
+    @Test fun `desglose parcial de grasa no se convierte en completo al sumar receta`() {
+        val recipe = RecipeData(
+            ingredients = listOf(
+                UserRecipeIngredient(LoggedFood(amount = 100.0, fatBreakdown = FatBreakdown(saturated = 2.0))),
+                UserRecipeIngredient(LoggedFood(amount = 100.0, fats = 8.0)),
+            ),
+            servings = 1,
+        )
+        val perServing = RecipeCalculator.calculate(recipe).perServing
+        assertEquals(2.0, perServing.fatBreakdown!!.saturated, 0.0)
+        assertEquals(FatSubtype.entries.toSet(), perServing.fatBreakdown!!.missingSubtypes)
+        val partial = NutrientCoverage.summarize(listOf(perServing), NutrientKey.SAT_FAT)
+        assertEquals(2.0, partial.totalKnown!!, 0.0)
+        assertEquals(1, partial.estimatedCount)
+        assertEquals(NutrientCoverageState.PARTIAL, partial.state)
+    }
+    @Test fun `receta agrega subtipos desde instantaneas incluso cuando uno vale cero`() {
+        val recipe = RecipeData(
+            ingredients = listOf(
+                UserRecipeIngredient(LoggedFood(
+                    foodName = "Aceite A", amount = 50.0, unit = "g", fats = 40.0,
+                    nutrientsPer100g = mapOf("sat_fat" to 0.0, "mono_fat" to 60.0, "poly_fat" to 10.0),
+                    catalogGeneration = "catalog-v4",
+                )),
+                UserRecipeIngredient(LoggedFood(
+                    foodName = "Aceite B", amount = 50.0, unit = "g", fats = 35.0,
+                    nutrientsPer100g = mapOf("sat_fat" to 8.0, "mono_fat" to 30.0),
+                    catalogGeneration = "catalog-v4",
+                )),
+            ),
+            servings = 1,
+        )
+
+        val fat = RecipeCalculator.calculate(recipe).perServing.fatBreakdown!!
+
+        assertEquals(4.0, fat.saturated, 0.0)
+        assertEquals(45.0, fat.monounsaturated, 0.0)
+        assertEquals(5.0, fat.polyunsaturated, 0.0)
+        assertEquals(0.0, fat.trans, 0.0)
+        assertTrue(FatSubtype.SATURATED in fat.knownSubtypes)
+        assertTrue(FatSubtype.SATURATED !in fat.missingSubtypes)
+        assertTrue(FatSubtype.TRANS in fat.missingSubtypes)
+        val partialSat = NutrientCoverage.summarize(listOf(RecipeCalculator.calculate(recipe).perServing), NutrientKey.SAT_FAT)
+        assertEquals(4.0, partialSat.totalKnown!!, 0.0)
+        assertEquals(1, partialSat.declaredCount)
+        val partialPoly = NutrientCoverage.summarize(listOf(RecipeCalculator.calculate(recipe).perServing), NutrientKey.POLY_FAT)
+        assertEquals(5.0, partialPoly.totalKnown!!, 0.0)
+        assertEquals(1, partialPoly.estimatedCount)
+    }
     @Test fun `editar cantidad escala la instantanea y conserva su banda de incertidumbre`() {
         val ingredient = UserRecipeIngredient(LoggedFood(foodName = "Plato", amount = 200.0, calories = 400.0,
             caloriesMin = 300.0, caloriesMax = 500.0, isUncertain = true,

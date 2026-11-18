@@ -176,6 +176,11 @@ internal fun MobilityPhaseLiveCard(
     var selectedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var skipRequested by rememberSaveable { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        // Keep the movement guide attached to its exact checklist item instead
+        // of maintaining a separate navigation tab that can reset the timer.
+        if (view == MOB_VIEW_MOVEMENT) view = MOB_VIEW_LIST
+    }
 
     val doneCount = items.count { it.stepKey in completedStepKeys }
     val finished = items.isNotEmpty() && doneCount == items.size
@@ -322,7 +327,7 @@ internal fun MobilityPhaseLiveCard(
                 PrepRef02Head("MOVILIDAD", "$doneCount / ${items.size}", compact, countTag = "mob-count")
                 PrepRef02Title("Prepara el movimiento.", compact)
                 PrepRef02Tabs(
-                    options = listOf(MOB_VIEW_LIST to "Checklist", MOB_VIEW_MOVEMENT to "Movimiento", MOB_VIEW_GLOBAL to "Articulaciones"),
+                    options = listOf(MOB_VIEW_LIST to "Checklist", MOB_VIEW_GLOBAL to "Articulaciones"),
                     selected = view,
                     onSelect = { view = it },
                     compact = compact,
@@ -371,8 +376,6 @@ internal fun MobilityPhaseLiveCard(
                                                 onToggleComplete(item, checked)
                                             },
                                             onInfo = {
-                                                moveRunning = false
-                                                selectedKey = item.stepKey
                                                 guideKey = item.stepKey
                                             },
                                             tag = "mob-row-${item.stepKey}",
@@ -458,10 +461,13 @@ internal fun MobilityPhaseLiveCard(
                 }, tag = "mob-guide-done")
             },
         ) {
-            if (ReviewedExerciseTechniqueImages.mobilityImage(movementId) != null) {
+            val hasImage = ReviewedExerciseTechniqueImages.mobilityImage(movementId) != null
+            if (hasImage) {
                 Box(Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF0D1015))) {
                     MobilityTechniqueImage(movementId = movementId, contentDescription = "Demostración de ${mob.name}", modifier = Modifier.fillMaxSize())
                 }
+            } else {
+                LiveSheetShortCopy("No hay una foto revisada disponible para este movimiento.")
             }
             LiveSheetSubtitle("Explora el movimiento a tu ritmo antes de añadir carga.")
             Text(mobilityDoseLabel(mob), style = PrepRef02Body(12.sp), color = WizardColors.text, modifier = Modifier.testTag("mob-dose-summary"))
@@ -491,6 +497,7 @@ internal fun MobilityPhaseLiveCard(
                 }
             }
             mob.notes?.takeIf { it.isNotBlank() }?.let { LiveSheetShortCopy(it) }
+                ?: LiveSheetShortCopy("No hay instrucciones adicionales registradas.")
             if (mob.bodyZones.isNotEmpty()) {
                 LiveSheetSectionLabel("Articulaciones")
                 Text(mob.bodyZones.joinToString(" · ") { com.example.kpkn.data.models.mobilityBodyRegionLabel(it.trim()) },
@@ -503,8 +510,6 @@ internal fun MobilityPhaseLiveCard(
             LiveSheetSubtitle("Movimientos de este bloque que trabajan esta zona.")
             items.filter { item -> item.mobility.bodyZones.any { it.trim() == zone } }.forEach { item ->
                 LiveSheetMenuRow(item.mobility.name, {
-                    moveRunning = false
-                    selectedKey = item.stepKey
                     guideKey = item.stepKey
                     close()
                 })
@@ -1496,7 +1501,7 @@ private fun PrepRef02Tabs(options: List<Pair<Int, String>>, selected: Int, onSel
     }
 }
 
-/** `.v2-movement-row`: el círculo de hecho con el nombre (marca el movimiento) y la información a la derecha. */
+/** `.v2-movement-row`: el círculo de hecho con el nombre (marca el movimiento) y un botón explícito para ver su foto/guía. */
 @Composable
 private fun PrepRef02MovementRow(name: String, done: Boolean, onToggle: (Boolean) -> Unit, onInfo: () -> Unit, tag: String) {
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).prepRef02Line(), verticalAlignment = Alignment.CenterVertically) {
@@ -1514,11 +1519,21 @@ private fun PrepRef02MovementRow(name: String, done: Boolean, onToggle: (Boolean
             ) { if (done) Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = Color(0xFF111111)) }
             Text(name, style = PrepRef02Body(12.sp), color = if (done) PrepRef02Muted else WizardColors.text)
         }
-        Box(
-            Modifier.size(48.dp).clickable(role = Role.Button, onClick = onInfo)
-                .semantics { contentDescription = "Detalle de $name" },
-            contentAlignment = Alignment.Center,
-        ) { Icon(KpknLineIcons.Info, null, Modifier.size(15.dp), tint = PrepRef02Muted) }
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF1A1A1A))
+                .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(10.dp))
+                .clickable(role = Role.Button, onClick = onInfo)
+                .semantics { contentDescription = "Ver foto y detalle de $name" }
+                .testTag("$tag-photo")
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Icon(KpknLineIcons.Info, null, Modifier.size(13.dp), tint = WizardColors.text)
+            Text("Ver foto", style = PrepRef02Body(11.sp, FontWeight.SemiBold), color = WizardColors.text)
+        }
     }
 }
 

@@ -93,12 +93,52 @@ class NutrientCoverageTest {
         assertNull(quick.totalKnown); assertEquals(1, quick.missingCount)
     }
     @Test fun `grasa saturada y cafeina legadas salen de sus campos`() {
-        val food = LoggedFood(calories = 100.0, fatBreakdown = FatBreakdown(saturated = 4.0, trans = 0.5), caffeineMg = 80.0, sugar = 12.0)
+        val food = LoggedFood(calories = 100.0, fatBreakdown = FatBreakdown(saturated = 4.0, trans = 0.5,
+            missingSubtypes = setOf(FatSubtype.MONOUNSATURATED, FatSubtype.POLYUNSATURATED)), caffeineMg = 80.0, sugar = 12.0)
         assertEquals(4.0, NutrientCoverage.summarize(listOf(food), NutrientKey.SAT_FAT).totalKnown!!, 0.0)
         assertEquals(0.5, NutrientCoverage.summarize(listOf(food), NutrientKey.TRANS_FAT).totalKnown!!, 0.0)
         assertNull(NutrientCoverage.summarize(listOf(food), NutrientKey.MONO_FAT).totalKnown)
         assertEquals(80.0, NutrientCoverage.summarize(listOf(food), NutrientKey.CAFFEINE).totalKnown!!, 0.0)
         assertEquals(12.0, NutrientCoverage.summarize(listOf(food), NutrientKey.SUGARS).totalKnown!!, 0.0)
+    }
+    @Test fun `desglose de grasa conserva cero explicito y ausencias parciales`() {
+        val zero = LoggedFood(fatBreakdown = FatBreakdown(saturated = 0.0,
+            missingSubtypes = setOf(FatSubtype.MONOUNSATURATED, FatSubtype.POLYUNSATURATED, FatSubtype.TRANS),
+            knownSubtypes = setOf(FatSubtype.SATURATED)))
+        assertEquals(0.0, NutrientCoverage.summarize(listOf(zero), NutrientKey.SAT_FAT).totalKnown!!, 0.0)
+        assertNull(NutrientCoverage.summarize(listOf(zero), NutrientKey.TRANS_FAT).totalKnown)
+        val totalOnly = LoggedFood(fats = 10.0)
+        assertNull(NutrientCoverage.summarize(listOf(totalOnly), NutrientKey.SAT_FAT).totalKnown)
+    }
+    @Test fun `legacy olive oil uses exact catalog ID and keeps missing trans estimated`() {
+        val previous = com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogAccess.current
+        val port = object : com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogPort {
+            override val generation = "ciqual-test"
+            override fun record(id: String) = if (id == "ciqual_17270") com.example.kpkn.domain.nutrition.nutrients.CatalogRecord(
+                id, "CIQUAL", "17270", "Olive oil", "Aceite de oliva", null, "oil", "raw", "liquid", 100.0, "g", null,
+            ) else null
+            override fun nutrientsPer100(id: String) = if (id == "ciqual_17270") mapOf(
+                com.example.kpkn.domain.nutrition.nutrients.NutrientId.SAT_FAT to 15.2,
+                com.example.kpkn.domain.nutrition.nutrients.NutrientId.MONO_FAT to 73.1,
+                com.example.kpkn.domain.nutrition.nutrients.NutrientId.POLY_FAT to 7.17,
+            ) else emptyMap()
+            override fun portions(id: String) = emptyList<com.example.kpkn.domain.nutrition.nutrients.CatalogPortion>()
+            override fun byGtin(gtin: String) = null
+            override fun search(queryNorm: String, limit: Int) = emptyList<com.example.kpkn.domain.nutrition.nutrients.CatalogRecord>()
+            override fun recordFor(source: String, sourceRecordId: String) = null
+        }
+        try {
+            com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogAccess.current = port
+            val oil = LoggedFood(foodName = "Aceite de oliva", amount = 10.0, unit = "g", catalogRecordId = "ciqual_17270")
+            assertEquals(1.52, NutrientCoverage.summarize(listOf(oil), NutrientKey.SAT_FAT).totalKnown!!, 1e-12)
+            assertEquals(7.31, NutrientCoverage.summarize(listOf(oil), NutrientKey.MONO_FAT).totalKnown!!, 1e-12)
+            assertEquals(0.717, NutrientCoverage.summarize(listOf(oil), NutrientKey.POLY_FAT).totalKnown!!, 1e-12)
+            assertNull(NutrientCoverage.summarize(listOf(oil), NutrientKey.TRANS_FAT).totalKnown)
+            assertEquals(1, NutrientCoverage.summarize(listOf(oil), NutrientKey.SAT_FAT).estimatedCount)
+            assertNull(NutrientCoverage.summarize(listOf(oil.copy(catalogGeneration = "old")), NutrientKey.SAT_FAT).totalKnown)
+        } finally {
+            com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogAccess.current = previous
+        }
     }
     @Test fun `los alias de las claves nuevas leen la lista de micronutrientes`() {
         val food = LoggedFood(calories = 100.0, micronutrients = listOf(Micronutrient("Fósforo", 300.0, "mg"), Micronutrient("Colina", 0.1, "g")))

@@ -6,6 +6,41 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.isCardio
 
+/** The exact live series that should open after the user chooses cardio in the list. */
+internal data class CardioStartTarget(
+    val exerciseId: String,
+    val setIndex: Int,
+    val setId: String?,
+    val requiresGps: Boolean,
+    val shouldStart: Boolean,
+    val useGps: Boolean = requiresGps,
+    val executionStartedAtMs: Long = 0L,
+    val openCardsTemporarily: Boolean = false,
+)
+
+/** ViewModel-owned countdown command; every tick is invalidated by execution or cursor changes. */
+internal data class CardioStartCountdown(
+    val requestId: Long,
+    val executionStartedAtMs: Long,
+    val exerciseId: String,
+    val setIndex: Int,
+    val setId: String?,
+    val remainingSeconds: Int,
+    val useGps: Boolean,
+)
+
+internal fun cardioCountdownBelongsToPage(
+    countdown: CardioStartCountdown?,
+    executionStartedAtMs: Long,
+    exerciseId: String,
+    setIndex: Int,
+    setId: String?,
+): Boolean = countdown != null &&
+    countdown.executionStartedAtMs == executionStartedAtMs &&
+    countdown.exerciseId == exerciseId &&
+    countdown.setIndex == setIndex &&
+    countdown.setId == setId
+
 /** True only while the live cursor still identifies the card that received the callback. */
 internal fun isCardioPageActionAllowed(
     pageExerciseId: String,

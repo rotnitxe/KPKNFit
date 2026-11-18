@@ -227,6 +227,7 @@ class WorkoutPersistenceController(
                     readinessMuscularOverride = state.readinessMuscularOverride,
                     readinessSpinalOverride = state.readinessSpinalOverride,
                     readinessMuscleOverrides = state.readinessMuscleOverrides,
+                    automaticReadinessPending = state.automaticReadinessPending,
                     setDrafts = state.setDrafts,
                     manualLoadOverrides = state.manualLoadOverrides,
                     editingSetKey = state.editingState?.setKey,

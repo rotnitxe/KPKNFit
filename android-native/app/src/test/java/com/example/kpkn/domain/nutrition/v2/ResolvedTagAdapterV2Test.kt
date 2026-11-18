@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition.v2
 
 import com.example.kpkn.data.models.AmountIntent
+import com.example.kpkn.data.models.FatSubtype
 import com.example.kpkn.domain.nutrition.ClarificationRequest
 import com.example.kpkn.domain.nutrition.FoodResolutionStatus
 import com.example.kpkn.domain.nutrition.FoodState
@@ -518,6 +519,23 @@ class ResolvedTagAdapterV2Test {
         assertEquals(tag.foodItem!!.id, tag.variantChoices.first().food.id)
         assertEquals(tag.foodItem, tag.variantChoices.first().food)
         assertTrue(tag.reviewCandidates.isEmpty())
+    }
+
+    @Test
+    fun catalogFoodRetainsKnownZeroFatSubtypesAndMarksMissingOnes() {
+        val tag = adaptVariants(
+            mention(
+                per100g = mapOf("energy" to 100.0, "fat" to 10.0, "sat_fat" to 0.0, "mono_fat" to 6.0),
+            ),
+        )
+
+        val breakdown = tag.foodItem!!.fatBreakdown!!
+        assertEquals(0.0, breakdown.saturated, 0.0)
+        assertEquals(6.0, breakdown.monounsaturated, 0.0)
+        assertTrue(FatSubtype.SATURATED in breakdown.knownSubtypes)
+        assertTrue(FatSubtype.SATURATED !in breakdown.missingSubtypes)
+        assertTrue(FatSubtype.POLYUNSATURATED in breakdown.missingSubtypes)
+        assertTrue(FatSubtype.TRANS in breakdown.missingSubtypes)
     }
 
     @Test

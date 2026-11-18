@@ -129,6 +129,15 @@ class WorkoutMediaCaptureController(
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
+    private val _isPaused = MutableStateFlow(false)
+    internal val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+
+    private val _isStartingVideo = MutableStateFlow(false)
+    internal val isStartingVideo: StateFlow<Boolean> = _isStartingVideo.asStateFlow()
+
+    private val _isSavingVideo = MutableStateFlow(false)
+    internal val isSavingVideo: StateFlow<Boolean> = _isSavingVideo.asStateFlow()
+
     private val _cameraChoice = MutableStateFlow(WorkoutCameraChoice())
     internal val cameraChoice: StateFlow<WorkoutCameraChoice> = _cameraChoice.asStateFlow()
 
@@ -163,6 +172,7 @@ class WorkoutMediaCaptureController(
     private val importStarted = AtomicBoolean(false)
     private var activeRecording: Recording? = null
     private var videoStartJob: kotlinx.coroutines.Job? = null
+    private var stopRequestedDuringStart = false
     private var techniqueMetadataInterval: TechniqueCaptureMetadataInterval? = null
 
     init {
@@ -407,7 +417,13 @@ class WorkoutMediaCaptureController(
             stopVideo()
             return
         }
-        if (videoStartJob?.isActive == true) return
+        if (videoStartJob?.isActive == true) {
+            stopRequestedDuringStart = true
+            return
+        }
+        stopRequestedDuringStart = false
+        _isSavingVideo.value = false
+        _isStartingVideo.value = true
         val meta = sessionMeta()
         val id = UUID.randomUUID().toString()
         val createdAtMs = System.currentTimeMillis()
@@ -432,14 +448,19 @@ class WorkoutMediaCaptureController(
                     when (event) {
                         is VideoRecordEvent.Start -> {
                             AnalysisGate.cameraBusy.value = true
+                            _isPaused.value = false
                             _recordedDurationNanos.value = 0L
                         }
+                        is VideoRecordEvent.Pause -> _isPaused.value = true
+                        is VideoRecordEvent.Resume -> _isPaused.value = false
                         is VideoRecordEvent.Status -> {
                             _recordedDurationNanos.value = event.recordingStats.recordedDurationNanos
                         }
                         is VideoRecordEvent.Finalize -> {
                             activeRecording = null
                             _isRecording.value = false
+                            _isPaused.value = false
+                            _isStartingVideo.value = false
                             videoStartJob = null
                             _captureError.value = null
                             _recordedDurationNanos.value = 0L
@@ -455,14 +476,25 @@ class WorkoutMediaCaptureController(
                 }
                 activeRecording = pending
                 _isRecording.value = true
+                _isStartingVideo.value = false
+                if (stopRequestedDuringStart) {
+                    stopRequestedDuringStart = false
+                    stopVideo()
+                }
             } catch (cancelled: CancellationException) {
                 AnalysisGate.cameraBusy.value = false
                 repository.markCameraCaptureCompleted(id)
+                _isStartingVideo.value = false
+                stopRequestedDuringStart = false
                 throw cancelled
             } catch (error: Exception) {
                 AnalysisGate.cameraBusy.value = false
                 preparedEntry?.let { repository.markCameraCaptureCompleted(it.media.id) }
                 _isRecording.value = false
+                _isPaused.value = false
+                _isStartingVideo.value = false
+                stopRequestedDuringStart = false
+                _isSavingVideo.value = false
                 videoStartJob = null
                 _captureError.value = "No se pudo iniciar la captura del vídeo."
                 preparedEntry?.let(repository::abandonEmptyCaptureAsync)
@@ -490,7 +522,13 @@ class WorkoutMediaCaptureController(
             stopVideo()
             return
         }
-        if (videoStartJob?.isActive == true) return
+        if (videoStartJob?.isActive == true) {
+            stopRequestedDuringStart = true
+            return
+        }
+        stopRequestedDuringStart = false
+        _isSavingVideo.value = false
+        _isStartingVideo.value = true
         val meta = sessionMeta()
         val id = UUID.randomUUID().toString()
         val createdAtMs = System.currentTimeMillis()
@@ -523,8 +561,11 @@ class WorkoutMediaCaptureController(
                         is VideoRecordEvent.Start -> {
                             if (!metadataInterval.onStarted()) return@start
                             AnalysisGate.cameraBusy.value = true
+                            _isPaused.value = false
                             _recordedDurationNanos.value = 0L
                         }
+                        is VideoRecordEvent.Pause -> _isPaused.value = true
+                        is VideoRecordEvent.Resume -> _isPaused.value = false
                         is VideoRecordEvent.Status -> {
                             _recordedDurationNanos.value = event.recordingStats.recordedDurationNanos
                         }
@@ -533,6 +574,9 @@ class WorkoutMediaCaptureController(
                             if (techniqueMetadataInterval === metadataInterval) techniqueMetadataInterval = null
                             activeRecording = null
                             _isRecording.value = false
+                            _isPaused.value = false
+                            _isStartingVideo.value = false
+                            _isSavingVideo.value = true
                             videoStartJob = null
                             _captureError.value = null
                             _recordedDurationNanos.value = 0L
@@ -610,6 +654,7 @@ class WorkoutMediaCaptureController(
                                         result.copy(warning = accessoryWarning)
                                     } else result
                                     _captureError.value = deliveredResult.errorMessage
+                                    _isSavingVideo.value = false
                                     refreshSessionMedia()
                                     onFinalized?.invoke(deliveredResult)
                                 }
@@ -619,11 +664,20 @@ class WorkoutMediaCaptureController(
                 }
                 activeRecording = pending
                 _isRecording.value = true
+                _isStartingVideo.value = false
+                _isSavingVideo.value = false
+                if (stopRequestedDuringStart) {
+                    stopRequestedDuringStart = false
+                    stopVideo()
+                }
             } catch (cancelled: CancellationException) {
                 metadataInterval.stopCollecting()
                 if (techniqueMetadataInterval === metadataInterval) techniqueMetadataInterval = null
                 AnalysisGate.cameraBusy.value = false
                 repository.markCameraCaptureCompleted(id)
+                _isStartingVideo.value = false
+                stopRequestedDuringStart = false
+                _isSavingVideo.value = false
                 throw cancelled
             } catch (error: Exception) {
                 metadataInterval.stopCollecting()
@@ -631,6 +685,10 @@ class WorkoutMediaCaptureController(
                 AnalysisGate.cameraBusy.value = false
                 preparedEntry?.let { repository.markCameraCaptureCompleted(it.media.id) }
                 _isRecording.value = false
+                _isPaused.value = false
+                _isStartingVideo.value = false
+                stopRequestedDuringStart = false
+                _isSavingVideo.value = false
                 videoStartJob = null
                 _captureError.value = "No se pudo iniciar la captura del vídeo."
                 preparedEntry?.let(repository::abandonEmptyCaptureAsync)
@@ -640,18 +698,33 @@ class WorkoutMediaCaptureController(
     }
 
     fun stopVideo() {
+        if (videoStartJob?.isActive == true && activeRecording == null) {
+            stopRequestedDuringStart = true
+            return
+        }
         techniqueMetadataInterval?.stopCollecting()
         AnalysisGate.cameraBusy.value = false
         _recordedDurationNanos.value = 0L
         activeRecording?.stop()
         activeRecording = null
+        _isPaused.value = false
+    }
+
+    fun pauseVideo() {
+        if (!_isRecording.value || _isPaused.value) return
+        activeRecording?.pause()
+    }
+
+    fun resumeVideo() {
+        if (!_isRecording.value || !_isPaused.value) return
+        activeRecording?.resume()
     }
 
     fun stopIfRecording() {
         techniqueMetadataInterval?.stopCollecting()
         if (videoStartJob?.isActive == true) {
-            videoStartJob?.cancel()
-            videoStartJob = null
+            stopRequestedDuringStart = true
+            return
         }
         if (_isRecording.value) stopVideo()
     }

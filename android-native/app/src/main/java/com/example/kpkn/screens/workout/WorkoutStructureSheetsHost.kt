@@ -590,11 +590,21 @@ internal fun WorkoutStructureSheetsHost(
     state.rmExerciseId?.let { exerciseId ->
         val exercise = visibleExercises.firstOrNull { it.id == exerciseId }
         if (exercise != null) {
+            val tagOptions = remember(viewModel, exercise.id, exercise.exerciseDbId, exercise.exerciseId) {
+                viewModel.tagsForExercise(exercise.id).ifEmpty {
+                    viewModel.tagsForExercise(exercise.exerciseDbId ?: exercise.exerciseId.orEmpty())
+                }
+            }
+            val activeTag = uiState.exerciseTags[exerciseId]
+            val activeTagId = tagOptions.firstOrNull { it.id == activeTag || it.name == activeTag }?.id ?: activeTag
+            var selectedRmTag by rememberSaveable(exercise.id, exercise.catalogConfigurationId, activeTagId) {
+                mutableStateOf(activeTagId)
+            }
             val history by androidx.compose.runtime.produceState<List<ExerciseHistoryEntry>>(
-                emptyList(), exercise, uiState.exerciseTags[exerciseId],
+                emptyList(), exercise, selectedRmTag,
             ) {
                 value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    viewModel.getExerciseHistory(exercise, limit = Int.MAX_VALUE, preferredTag = uiState.exerciseTags[exerciseId])
+                    viewModel.getExerciseHistory(exercise, limit = Int.MAX_VALUE, preferredTag = selectedRmTag)
                 }
             }
             val currentSets = remember(uiState.completedSets, exerciseId) {
@@ -603,6 +613,10 @@ internal fun WorkoutStructureSheetsHost(
             com.example.kpkn.screens.workout.components.ExerciseRmSheet(
                 exercise = exercise, history = history, currentSets = currentSets,
                 onDismiss = { state.rmExerciseId = null }, hazeState = bottomHazeState,
+                tagOptions = tagOptions,
+                selectedTagId = selectedRmTag,
+                onTagSelected = { selectedRmTag = it },
+                currentTagId = activeTagId,
             )
         }
     }

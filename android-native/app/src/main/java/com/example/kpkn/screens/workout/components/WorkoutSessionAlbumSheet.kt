@@ -48,6 +48,7 @@ import com.example.kpkn.ui.components.LocalMediaImage
 import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import java.io.File
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -117,6 +118,7 @@ internal fun WorkoutMediaPreviewDialog(
     var zoom by remember(media.id) { mutableStateOf(1f) }
     var pan by remember(media.id) { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     val reduced = wizardReducedMotion()
+    val analysisScope = rememberCoroutineScope()
     val entry by animateFloatAsState(if (entered) 1f else .94f, tween(if (reduced) 0 else 300), label = "album-photo-expand")
     LaunchedEffect(media.id) { entered = true }
     val transform = rememberTransformableState { factor, delta, _ ->
@@ -171,12 +173,16 @@ internal fun WorkoutMediaPreviewDialog(
                 val repository = remember { com.example.kpkn.data.repository.VideoAnalysisRepository.getInstance() }
                 val analysis by remember(media.id, repository) { repository.observeByMedia(media.id) }
                     .collectAsStateWithLifecycle(initialValue = null)
-                if (analysis != null) {
-                    com.example.kpkn.ui.design.KpknTextAction("Ver análisis", onClick = {
-                        onDismiss()
-                        onOpenAnalysis(media.id)
-                    })
-                }
+                com.example.kpkn.ui.design.KpknTextAction(
+                    if (analysis == null) "Analizar técnica" else "Ver análisis",
+                    onClick = {
+                        analysisScope.launch {
+                            if (analysis == null) repository.requestAnalysis(media.id)
+                            onDismiss()
+                            onOpenAnalysis(media.id)
+                        }
+                    },
+                )
             }
 
                 }

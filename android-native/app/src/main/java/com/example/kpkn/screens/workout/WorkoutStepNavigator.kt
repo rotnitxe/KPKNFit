@@ -564,7 +564,7 @@ class WorkoutStepNavigator(
         ports.persistOngoingState(immediate = false)
     }
 
-    fun selectWorkoutStep(stepKey: String) {
+    fun selectWorkoutStep(stepKey: String, preserveRestForNextStep: Boolean = false) {
         if (stepKey.isBlank()) return
         val state = getState()
         val visible = ports.visibleExercises(state)
@@ -575,7 +575,8 @@ class WorkoutStepNavigator(
             return
         }
         if (!canSelectStep(state, targetStep)) return
-        val isReviewDuringActiveRest = state.isRestTimerRunning &&
+        val isReviewDuringActiveRest = state.isRestTimerRunning && (
+            preserveRestForNextStep ||
             state.restModalState?.kind == RestTimerKind.STANDARD &&
             targetStep.type == WorkoutStepType.WORKING_SET &&
             targetExercise != null &&
@@ -585,6 +586,7 @@ class WorkoutStepNavigator(
                 position.second,
                 targetExercise.isEffectivelyUnilateral(),
             )
+        )
         if (!isReviewDuringActiveRest) {
             ports.stopRestTimer()
         }

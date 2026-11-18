@@ -1,8 +1,12 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.AnalysisSource
+import com.example.kpkn.data.models.FatSubtype
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.domain.nutrition.nutrients.NutrientId
+import com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogAccess
+import com.example.kpkn.domain.nutrition.nutrients.NutritionCatalogPort
+import com.example.kpkn.domain.nutrition.nutrients.hasNutrientSnapshot
 import com.example.kpkn.domain.nutrition.nutrients.nutrientAmount
 import java.text.Normalizer
 import java.util.Locale
@@ -96,21 +100,80 @@ object NutrientCoverage {
             return Datum(it, if (energyMismatch(food)) NutrientDataKind.ESTIMATED else kind)
         }
         val explicit = food.micronutrients.firstOrNull { normalize(it.name) in aliases(key) }
-        val amount = if (explicit != null) {
-            convert(explicit.amount, explicit.unit, key) ?: return missing
-        } else when (key) {
+        if (explicit != null) {
+            val amount = convert(explicit.amount, explicit.unit, key) ?: return missing
+            return Datum(amount, kind)
+        }
+        val explicitFat = when (key) {
+            NutrientKey.SAT_FAT -> fatSubtypeDatum(food, FatSubtype.SATURATED, kind, missing)
+            NutrientKey.MONO_FAT -> fatSubtypeDatum(food, FatSubtype.MONOUNSATURATED, kind, missing)
+            NutrientKey.POLY_FAT -> fatSubtypeDatum(food, FatSubtype.POLYUNSATURATED, kind, missing)
+            NutrientKey.TRANS_FAT -> fatSubtypeDatum(food, FatSubtype.TRANS, kind, missing)
+            else -> missing
+        }
+        if (explicitFat.kind != NutrientDataKind.MISSING) return explicitFat
+        legacyCatalogDatum(food, key, NutritionCatalogAccess.current)?.let { return it }
+        val amount = when (key) {
             NutrientKey.FIBER -> food.fiber
             NutrientKey.SODIUM -> food.sodiumMg
             NutrientKey.POTASSIUM -> food.potassiumMg
             NutrientKey.SUGARS -> food.sugar
-            NutrientKey.SAT_FAT -> food.fatBreakdown?.saturated ?: 0.0
-            NutrientKey.MONO_FAT -> food.fatBreakdown?.monounsaturated ?: 0.0
-            NutrientKey.POLY_FAT -> food.fatBreakdown?.polyunsaturated ?: 0.0
-            NutrientKey.TRANS_FAT -> food.fatBreakdown?.trans ?: 0.0
             NutrientKey.CAFFEINE -> food.caffeineMg
             else -> 0.0
         }.takeIf { it.isFinite() && it > 0.0 } ?: return missing
         return Datum(amount, kind)
+    }
+
+    private fun fatSubtypeDatum(
+        food: LoggedFood,
+        subtype: FatSubtype,
+        kind: NutrientDataKind,
+        missing: Datum,
+    ): Datum {
+        val breakdown = food.fatBreakdown ?: return missing
+        val amount = when (subtype) {
+            FatSubtype.SATURATED -> breakdown.saturated
+            FatSubtype.MONOUNSATURATED -> breakdown.monounsaturated
+            FatSubtype.POLYUNSATURATED -> breakdown.polyunsaturated
+            FatSubtype.TRANS -> breakdown.trans
+        }
+        val hasDeclaredAmount = subtype in breakdown.knownSubtypes || subtype !in breakdown.missingSubtypes || amount > 0.0
+        if (!hasDeclaredAmount || !amount.isFinite() || amount < 0.0) return missing
+        return Datum(amount, if (subtype in breakdown.missingSubtypes) NutrientDataKind.ESTIMATED else kind)
+    }
+
+    /** Legacy rows may use their exact record ID, a compatible mass/volume base, and a matching known generation. */
+    private fun legacyCatalogDatum(food: LoggedFood, key: NutrientKey, port: NutritionCatalogPort?): Datum? {
+        if (food.catalogRecordId.isNullOrBlank() || port == null) return null
+        if (food.hasNutrientSnapshot() && food.catalogGeneration == null) return null
+        if (food.catalogGeneration != null && food.catalogGeneration != port.generation) return null
+        val record = port.record(food.catalogRecordId) ?: return null
+        if (food.preparation != null && !food.preparation.equals(record.preparation, ignoreCase = true)) return null
+        val raw = port.nutrientsPer100(food.catalogRecordId)[key.nutrientId]
+            ?.takeIf { it.isFinite() && it >= 0.0 } ?: return null
+        if (!food.amount.isFinite() || food.amount <= 0.0 || !record.basisAmount.isFinite() || record.basisAmount <= 0.0) return null
+        val foodUnit = food.unit.lowercase(Locale.ROOT)
+        val basisUnit = record.basisUnit.lowercase(Locale.ROOT)
+        val compatibleAmount = when {
+            foodUnit == basisUnit -> food.amount
+            foodUnit == "g" && basisUnit == "ml" -> {
+                val density = record.densityGPerMl?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+                food.amount / density
+            }
+            foodUnit == "ml" && basisUnit == "g" -> {
+                val density = record.densityGPerMl?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+                food.amount * density
+            }
+            else -> return null
+        }
+        val amount = raw * compatibleAmount / record.basisAmount
+        if (!amount.isFinite()) return null
+        val dataKind = when {
+            food.catalogGeneration == null -> NutrientDataKind.ESTIMATED
+            food.catalogGeneration == port.generation -> NutrientDataKind.DECLARED
+            else -> return null
+        }
+        return Datum(amount, dataKind)
     }
     /** F4-9: si la energía de la instantánea difiere de las kcal del registro en más de 15 % Y más de 25 kcal, la ficha ya no describe lo comido. */
     private fun energyMismatch(food: LoggedFood): Boolean {
