@@ -268,6 +268,7 @@ class EntrenoWeekLayoutCursorTest {
             SetupStepId.WEIGHT -> vm.setStepNumber(SetupStepId.WEIGHT, 72.0)
             SetupStepId.EQUATION_SEX -> vm.setStepChoice(SetupStepId.EQUATION_SEX, "male")
             SetupStepId.BODY_FAT -> vm.updateStep(SetupStepId.BODY_FAT) { it.withBodyFatRulerValue(18) }
+            SetupStepId.PROGRAM_SOURCE -> vm.setProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
             SetupStepId.EXPERIENCE -> vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(setOf(TrainingPlace.GYM)) }
             SetupStepId.GOAL -> vm.setGoalProfile(profile)

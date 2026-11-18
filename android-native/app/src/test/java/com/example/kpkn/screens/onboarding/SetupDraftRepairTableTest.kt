@@ -183,7 +183,7 @@ class SetupDraftRepairTableTest {
 
     @Test
     fun legacyProtocolIsNormalizedWhenUnifiedPlanSelectionIsEnteredNotBefore() {
-        val context = SetupStepContext()
+        val context = SetupStepContext(asksProgramSource = true)
         val legacy = baseDraft().copy(
             programRoute = SetupProgramRoute.PROTOCOL,
             trainingPath = SetupTrainingPath.PERSONALIZE,
@@ -206,7 +206,7 @@ class SetupDraftRepairTableTest {
 
     @Test
     fun olderNativeGraphProgressRewindsToTheFirstUnansweredStableStepAndUpgradesIdempotently() {
-        val context = SetupStepContext()
+        val context = SetupStepContext(asksProgramSource = true)
         val oldProgress = SetupStepProgress(
             block = SetupWizardBlock.BASICS,
             stepIndex = 0,
@@ -234,7 +234,7 @@ class SetupDraftRepairTableTest {
 
     @Test
     fun aValidButOutOfOrderCursorRewindsToANewlyInsertedUnansweredPrerequisite() {
-        val context = SetupStepContext()
+        val context = SetupStepContext(asksProgramSource = true)
         val route = SetupStepGraph.stepIds(context)
         val weekdaysIndex = route.indexOf(SetupStepId.WEEKDAYS)
         val answersBeforeWeekdaysExceptGoal = route.take(weekdaysIndex)

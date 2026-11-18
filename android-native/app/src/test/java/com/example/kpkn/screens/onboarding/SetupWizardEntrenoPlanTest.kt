@@ -541,7 +541,7 @@ class SetupWizardEntrenoPlanTest {
         assertNotNull("alta sin errores: ${vm.state.value.errors}", vm.commit())
         assertEquals(WizChatMachineState.Committed, vm.state.value.machineState)
         assertNull("sin programa no se guarda ningún programa", room { db.programDao().getById(vm.state.value.draft.commitId) })
-        assertEquals(SetupExperience.ADVANCED, vm.state.value.draft.experience)
+        assertNull("al elegir armarlo manualmente antes de experiencia, experiencia queda sin preguntar", vm.state.value.draft.experience)
         assertEquals(ProgramSource.LATER, vm.state.value.draft.programSource)
     }
 

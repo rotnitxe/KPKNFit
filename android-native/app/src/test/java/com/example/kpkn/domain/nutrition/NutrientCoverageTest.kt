@@ -81,8 +81,10 @@ class NutrientCoverageTest {
         val result = NutrientCoverage.summarize(listOf(snap("vitamin_d" to 2.0, amount = 250.0)), NutrientKey.VITAMIN_D)
         assertEquals(5.0, result.totalKnown!!, 1e-9); assertEquals(1, result.declaredCount)
     }
-    @Test fun `con unidad distinta de gramos la instantanea cae a la regla vieja`() {
-        val food = snap("sodium" to 50.0, amount = 250.0, unit = "ml")
+    @Test fun `con unidad distinta de gramos o ml la instantanea cae a la regla vieja`() {
+        val mlFood = snap("sodium" to 50.0, amount = 250.0, unit = "ml")
+        assertEquals(125.0, NutrientCoverage.summarize(listOf(mlFood), NutrientKey.SODIUM).totalKnown!!, 1e-9)
+        val food = snap("sodium" to 50.0, amount = 250.0, unit = "portion")
         assertNull(NutrientCoverage.summarize(listOf(food), NutrientKey.SODIUM).totalKnown)
         assertEquals(80.0, NutrientCoverage.summarize(listOf(food.copy(sodiumMg = 80.0)), NutrientKey.SODIUM).totalKnown!!, 0.0)
     }

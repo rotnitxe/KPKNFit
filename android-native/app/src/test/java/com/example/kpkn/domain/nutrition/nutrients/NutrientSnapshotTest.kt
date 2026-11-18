@@ -28,8 +28,9 @@ class NutrientSnapshotTest {
     }
 
     @Test
-    fun nonGramUnitIsNull() {
-        assertNull(food(unit = "ml").nutrientAmount(NutrientId.CALCIUM))
+    fun nonGramUnitScalesMlAndRejectsUnknownUnits() {
+        assertEquals(100.0, food(unit = "ml").nutrientAmount(NutrientId.CALCIUM)!!, 1e-9)
+        assertNull(food(unit = "portion").nutrientAmount(NutrientId.CALCIUM))
         assertNull(food(amount = 0.0).nutrientAmount(NutrientId.CALCIUM))
     }
 

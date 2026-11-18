@@ -8,7 +8,8 @@ import kotlin.math.max
 enum class LabelBasis { PER_100G, PER_100ML, PER_SERVING, UNKNOWN }
 enum class LabelConfidence { READ, DERIVED, UNSURE }
 enum class LabelField(val label: String) { ENERGY_KCAL("Energía"), PROTEIN_G("Proteína"), CARBS_G("Carbohidratos"), FAT_G("Grasas"),
-    SATURATED_G("Saturadas"), FIBER_G("Fibra"), SUGAR_G("Azúcar"), SODIUM_MG("Sodio") }
+    SATURATED_G("Saturadas"), MONOUNSATURATED_G("Monoinsaturadas"), POLYUNSATURATED_G("Poliinsaturadas"), TRANS_G("Trans"),
+    FIBER_G("Fibra"), SUGAR_G("Azúcar"), SODIUM_MG("Sodio") }
 data class LabelValue(val value: Double, val confidence: LabelConfidence, val raw: String)
 data class LabelParse(
     val basis: LabelBasis = LabelBasis.UNKNOWN, val servingSize: Double? = null, val servingUnit: String? = null,
@@ -110,6 +111,9 @@ object NutritionLabelParser {
         if ("added sugar" in value || "azucares anadidos" in value) return null
         return when {
             value.startsWith("de las cuales saturad") || value.startsWith("grasas saturad") || value.startsWith("saturated fat") -> LabelField.SATURATED_G
+            value.startsWith("de las cuales monoinsaturad") || value.startsWith("grasas monoinsaturad") || value.startsWith("monoinsaturad") || value.startsWith("monounsaturated") -> LabelField.MONOUNSATURATED_G
+            value.startsWith("de las cuales poliinsaturad") || value.startsWith("grasas poliinsaturad") || value.startsWith("poliinsaturad") || value.startsWith("polyunsaturated") -> LabelField.POLYUNSATURATED_G
+            value.startsWith("de las cuales trans") || value.startsWith("grasas trans") || value.startsWith("trans fat") -> LabelField.TRANS_G
             value.startsWith("de los cuales azucar") || value.startsWith("azucar") || value.startsWith("total sugar") || value.startsWith("sugar") -> LabelField.SUGAR_G
             value.startsWith("valor energetico") || value.startsWith("contenido energetico") || value.startsWith("energia") || value.startsWith("energy") || value.startsWith("calorias") || value.startsWith("calories") -> LabelField.ENERGY_KCAL
             value.startsWith("proteina") || value.startsWith("protein") -> LabelField.PROTEIN_G

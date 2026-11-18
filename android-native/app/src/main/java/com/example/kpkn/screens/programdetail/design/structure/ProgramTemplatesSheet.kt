@@ -208,7 +208,12 @@ internal fun ProgramTemplatesSheet(
         onReplaceChange(applyMode == "replace")
     }
 
-    KpknSheet(onDismissRequest = { if (!applying) onDismiss() }, maxHeightFraction = 0.94f, showDragHandle = true) {
+    KpknSheet(
+        onDismissRequest = { if (!applying) onDismiss() },
+        maxHeightFraction = 0.94f,
+        showDragHandle = true,
+        surfaceColor = CtBg,
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -464,7 +469,6 @@ private fun CatalogHome(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(CtBg)
                 .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 8.dp)
         ) {
             Row(

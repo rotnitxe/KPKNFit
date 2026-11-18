@@ -43,7 +43,7 @@ class SetupEntrenoRouteTest {
         val route = trainingRoute(draft(profile = TrainingGoalProfile.POWERLIFTING))
         assertEquals(
             listOf(
-                SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+                SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
                 SetupStepId.COMPETITION, SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
                 SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH,
                 SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES, SetupStepId.TRAINING_VARIANTS, SetupStepId.TRAINING_MAX,

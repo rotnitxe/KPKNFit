@@ -79,6 +79,15 @@ class CatalogScreensV2Test {
                     score = 100,
                 ))
             }
+
+            override fun searchResults(
+                query: String,
+                filters: ExerciseSearchFiltersV2,
+            ): ExerciseCatalogSearchResultsV2 {
+                val hits = search(query, filters)
+                val globalHits = if (filters.isEmpty()) hits else search(query, ExerciseSearchFiltersV2())
+                return ExerciseCatalogSearchResultsV2(hits, globalHits)
+            }
         }
     }
 
@@ -312,9 +321,10 @@ class CatalogScreensV2Test {
         mount("bench_press", "chest_supported_row")
         selectDefault("bench_press"); selectDefault("chest_supported_row")
         rule.onNodeWithText(name("chest_supported_row")).performClick()
+        rule.onNodeWithText("Añadir otra variante").performClick()
         rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Alta").performClick()
-        select("chest_supported_row")
+        rule.onNodeWithText("Medio").performClick()
         rule.onNodeWithText("Con mancuernas").performClick()
         rule.onNodeWithTag("catalog_inline_pulley_height").assertDoesNotExist()
         assertEquals(listOf("bench_press", "chest_supported_row", "chest_supported_row"), selection.map { it.catalogDefinitionId })

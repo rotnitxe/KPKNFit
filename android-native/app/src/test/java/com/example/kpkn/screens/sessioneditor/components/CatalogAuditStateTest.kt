@@ -133,6 +133,10 @@ class CatalogAuditStateTest {
     @Test fun tappingAChosenConfigurationScrollsToItsDefinition() {
         mount(false, fillerCount = 25)
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Press"))
+        val variant = exerciseCatalogVariantTagLabel("barbell", "bench_press")
+        rule.onNodeWithText("Press").performClick()
+        rule.onNodeWithText(variant).performClick()
+        rule.onNodeWithText("Press").performClick()
         rule.onNodeWithContentDescription("Añadir Press a la selección").performClick()
         rule.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
         tapTheChosenName()

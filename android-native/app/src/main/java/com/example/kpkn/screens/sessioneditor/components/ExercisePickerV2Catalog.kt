@@ -938,7 +938,7 @@ private fun ColumnScope.CatalogReadyContent(
             }
         }
     }
-    val mobilityPickerEnabled = !editingExisting && replacement == null && !singleChoice
+    val mobilityPickerEnabled = !editingExisting
     val mobilityResults = remember(query, filterRegion, filterMuscle, mobilityPickerEnabled) {
         if (!mobilityPickerEnabled) emptyList() else MobilityExerciseCatalog.searchMobility(query)
             .filter { movement ->
@@ -1207,6 +1207,7 @@ private fun ColumnScope.CatalogReadyContent(
                             explicitConfigurationByDefinition.value = explicitConfigurationByDefinition.value + (definition.id to choice.id)
                             val info = exactInfo(catalog, definition, choice.id) ?: return@select
                             val replaceKey = activeSelectionKeyByDefinition.value[definition.id]
+                                ?.takeIf { it in selectedRows.value }
                                 ?: existingSelections.lastOrNull()?.key
                             if (addingVariantDefinitionId == definition.id) {
                                 val next = replaceOrAddCatalogSelection(selectedRows.value, null, info)
@@ -1241,7 +1242,7 @@ private fun ColumnScope.CatalogReadyContent(
                         )
                         draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
                         val nextConfigId = exactCatalogConfigurationId(definition, newDraft)
-                        if (nextConfigId != null && (addingVariantDefinitionId == definition.id || existingSelections.isNotEmpty() || editingExisting || (confirmSelection && isSelected))) {
+                        if (nextConfigId != null && (addingVariantDefinitionId == definition.id || existingSelections.isNotEmpty() || (editingExisting && !confirmSelection) || (confirmSelection && isSelected))) {
                             val info = exactInfo(catalog, definition, nextConfigId)
                             if (info != null) {
                                 if (addingVariantDefinitionId == definition.id) {
@@ -1261,6 +1262,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     onSelect(info)
                                 } else {
                                     val replacementKey = activeSelectionKeyByDefinition.value[definition.id]
+                                        ?.takeIf { it in selectedRows.value }
                                         ?: existingSelections.lastOrNull()?.key
                                     val next = replaceOrAddCatalogSelection(selectedRows.value, replacementKey, info)
                                     if (next != selectedRows.value) {
@@ -1281,6 +1283,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     !(info.catalogDefinitionId == definition.id && info.catalogConfigurationId == resolvedConfigurationId)
                             }
                             selectedRows.value = next
+                            activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value.filterValues { it in next }
                             if (confirmSelection) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
                         } else if (!axesComplete) {
@@ -1298,6 +1301,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     onSelect(info)
                                 } else {
                                     val existingKey = activeSelectionKeyByDefinition.value[definition.id]
+                                        ?.takeIf { it in selectedRows.value }
                                         ?: existingSelections.lastOrNull()?.key
                                     val next = if (addingVariantDefinitionId == definition.id) {
                                         replaceOrAddCatalogSelection(selectedRows.value, null, info)
@@ -1362,6 +1366,7 @@ private fun ColumnScope.CatalogReadyContent(
                             onOpenFicha = { expandedDefinitionId = definition.id },
                             onClick = {
                                 val activeKey = activeSelectionKeyByDefinition.value[definition.id]
+                                    ?.takeIf { it in selectedRows.value }
                                     ?: existingSelections.lastOrNull()?.key
                                 if (activeKey != null) {
                                     activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value + (definition.id to activeKey)
@@ -1464,6 +1469,10 @@ private fun ColumnScope.CatalogReadyContent(
                                     description = definition.description.takeIf { it.isNotBlank() },
                                     imageVariants = imageVariants,
                                     selectedImplementation = shownImplementation,
+                                    initialImageImplementation = shownImplementation ?: definition.configurations
+                                        .firstOrNull { it.id == definition.defaultConfigurationId }
+                                        ?.selectedOptions
+                                        ?.get("implement"),
                                     axes = if (hasOptions) {
                                         compatibility.axes.map { axis ->
                                             CatalogDetailAxis(
@@ -1570,7 +1579,7 @@ private fun ColumnScope.CatalogReadyContent(
                         name = info.name,
                         subtitle = "${movement.durationSeconds} s · ${movement.equipment}",
                         matchLabel = if (query.isNotBlank()) "Catálogo de movilidad" else null,
-                        thumbnailResId = null,
+                        thumbnailResId = com.example.kpkn.data.exercises.ReviewedExerciseTechniqueImages.mobilityImage(movement.id),
                         pattern = ExercisePattern.GENERIC,
                         selected = selected,
                         selectionOrder = selectionOrder,
@@ -1692,6 +1701,7 @@ private fun ColumnScope.CatalogReadyContent(
                         onRemove = { id ->
                             val next = selectedRows.value - id
                             selectedRows.value = next
+                            activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value.filterValues { it in next }
                             onSelectionChange(next.values.toList())
                         },
                         onMove = { index, delta ->
@@ -2054,8 +2064,8 @@ internal fun exactCatalogConfigurationId(
     selectedOptions: Map<String, String>,
     explicitConfigurationId: String? = null,
 ): String? {
+    if (definition.configurations.size == 1) return definition.configurations.single().id
     if (definition.optionAxes.isEmpty()) {
-        if (definition.configurations.size == 1) return definition.configurations.single().id
         return explicitConfigurationId?.takeIf { id ->
             definition.configurations.any { it.id == id } && explicitConfigurationIdHasUniqueLabel(definition)
         }

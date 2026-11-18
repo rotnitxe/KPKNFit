@@ -134,5 +134,18 @@ class LoopEngineTest {
             Loop("competition", "Competición", type = LoopType.COMPETITION),
         ))))
         assertFalse(LoopEngine.canAddNewLoop(simpleProgram()))
+
+        val multiWeek = eligible.copy(
+            macrocycles = eligible.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.map { block ->
+                    block.copy(mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(
+                            weeks = meso.weeks + ProgramWeek("w2", "Semana 2", sessions = listOf(trainingSession.copy(id = "s2"))),
+                        )
+                    })
+                })
+            },
+        )
+        assertFalse("Loops are exclusive to single-week routines", LoopEngine.canAddNewLoop(multiWeek))
     }
 }

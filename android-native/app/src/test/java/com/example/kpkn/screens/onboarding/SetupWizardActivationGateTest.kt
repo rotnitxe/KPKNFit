@@ -178,7 +178,10 @@ class SetupWizardActivationGateTest {
         confirm(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
             vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(20) }
         }
-        confirm(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
+        confirm(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE)
+        confirm(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE) {
+            vm.setProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
+        }
         // Lugares y material antes del objetivo; el día con más energía antes de los días.
         confirm(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
         confirm(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }

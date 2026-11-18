@@ -213,7 +213,7 @@ internal fun ExerciseFichaContent(
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
     val openProgress = com.example.kpkn.screens.progress.LocalExerciseProgressOpener.current
     val wizard = model.context == ExerciseFichaContext.WIZARD
-    val catalogHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
+    val catalogHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation ?: model.initialImageImplementation) != null
     val hasHero = model.customCover != null || catalogHero
     val heroHeight = 400.dp
     var knowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
@@ -252,6 +252,7 @@ internal fun ExerciseFichaContent(
                         } else CatalogExerciseImageCarousel(
                             variants = model.imageVariants,
                             selectedImplementation = model.selectedImplementation,
+                            initialImplementation = model.initialImageImplementation,
                             onImplementationSettled = onImplementationSettled,
                             implementOptions = implement,
                             onSelectImplementation = { onSelectOption("implement", it) },

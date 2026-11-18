@@ -461,7 +461,10 @@ class SetupWizardFullJourneyTest {
                 draft.withBodyFatRulerValue(18).copy(physiqueModel = "female")
             }
         }
-        confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
+        confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE)
+        confirmStep(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE) {
+            vm.setProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
+        }
 
         confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
             vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
@@ -875,7 +878,7 @@ class SetupWizardFullJourneyTest {
         // Entreno v2: lugares y material antes del objetivo; ¿compites? tras el objetivo (culturismo con experiencia);
         // día con más energía, días y tiempo; calibración; prioridades, ejercicios a evitar, programa y semana.
         // Culturismo no pregunta capacidades ni marcas.
-        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
+        SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
@@ -892,7 +895,7 @@ class SetupWizardFullJourneyTest {
     private fun fullTrackingOnlyRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
+        SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.COMPETITION,
         SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,

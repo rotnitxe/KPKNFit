@@ -349,7 +349,7 @@ private fun SetupWizardDraft.projectChoice(
         "intermediate" -> SetupExperience.INTERMEDIATE
         "advanced" -> SetupExperience.ADVANCED
         else -> null
-    }).let { updated -> if (updated.experience == SetupExperience.ADVANCED) updated else updated.withProgramSource(null) }
+    })
 
     // Sin opción «después»/manual: ambas rutas implican entrenamiento activo.
     SetupStepId.ROUTE -> if (value == "recommended" || value == "protocol") copy(

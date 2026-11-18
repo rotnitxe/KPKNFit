@@ -53,10 +53,10 @@ class ProgramCyclesSheetDeviceTest {
             }
         }
 
-        composeRule.onNodeWithText("Ciclos").assertIsDisplayed()
-        composeRule.onNodeWithText("TUS CICLOS").assertIsDisplayed()
-        composeRule.onNodeWithText("Nuevo ciclo").assertIsDisplayed()
-        composeRule.onNodeWithText("SEMANAS DE CICLO").assertIsDisplayed()
-        composeRule.onNodeWithText("CICLOS LISTOS").assertIsDisplayed()
+        composeRule.onNodeWithText("Loops").assertIsDisplayed()
+        composeRule.onNodeWithText("TUS LOOPS").assertIsDisplayed()
+        composeRule.onNodeWithText("Nuevo loop").assertIsDisplayed()
+        composeRule.onNodeWithText("SEMANAS DE LOOP").assertIsDisplayed()
+        composeRule.onNodeWithText("LOOPS LISTOS").assertIsDisplayed()
     }
 }

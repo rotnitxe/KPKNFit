@@ -65,7 +65,13 @@ internal fun ProgramSwapSheet(
     availableScopes: List<Pair<SwapScope, String>> = swapScopeOptions,
 ) {
     var selected by remember(sourceName, options, availableScopes) { mutableStateOf<String?>(null) }
-    var scope by remember(sourceName, options, availableScopes) { mutableStateOf(SwapScope.THIS_SESSION) }
+    var scope by remember(sourceName, options, availableScopes) {
+        mutableStateOf(
+            availableScopes.firstOrNull { it.first == SwapScope.THIS_SESSION }?.first
+                ?: availableScopes.firstOrNull()?.first
+                ?: SwapScope.THIS_SESSION,
+        )
+    }
     var equipmentConfirmed by remember(sourceName, options, availableScopes) { mutableStateOf(false) }
     ProgramLienzoSheet(onDismiss = onDismiss, dismissible = !busy) {
         if (previewDetail != null) {

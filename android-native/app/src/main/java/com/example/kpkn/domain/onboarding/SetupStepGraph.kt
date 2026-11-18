@@ -56,7 +56,7 @@ enum class SetupStepId {
     TRAINING_VARIANTS,
     /** Base de cardio de hoy: fija la intensidad y la duración del cardio del alta (sigue al tipo de cardio). */
     CARDIO_BASE,
-    /** Cómo se tiene el programa (solo «Tengo experiencia»): que KPKN lo recomiende, armarlo después o importarlo. */
+    /** Cómo se quiere empezar con el programa (al inicio del bloque Entreno): guiado, saltárselo para después o importarlo. */
     PROGRAM_SOURCE,
     /** Importación del programa (archivo o texto); solo entra en la ruta con la importación disponible. */
     PROGRAM_IMPORT,
@@ -137,7 +137,7 @@ data class SetupStepContext(
     val asksCardioBase: Boolean = false,
     /** ARM_STYLE: Armwrestling. */
     val asksArmStyle: Boolean = false,
-    /** PROGRAM_SOURCE: experiencia «Tengo experiencia» (ver `stepContext()`). */
+    /** PROGRAM_SOURCE: preguntado al inicio de Entreno salvo en la instancia «Nuevo programa» (`stepContext()`). */
     val asksProgramSource: Boolean = false,
     /** Cómo se tiene el programa; null = sin responder, que sigue la ruta de siempre. Solo cuenta con [asksProgramSource]. */
     val programSource: ProgramSource? = null,
@@ -167,10 +167,10 @@ data class SetupStepContext(
 object SetupStepGraph {
 
     /**
-     * Persisted with [SetupStepProgress] so older cursors are repaired once. 5: el punto de partida de Entreno (variantes,
-     * ejercicios a evitar, base de cardio y estilo de mesa) y las marcas con repeticiones añaden pasos a la ruta.
+     * Persisted with [SetupStepProgress] so older cursors are repaired once. 6: PROGRAM_SOURCE pasa al inicio de Entreno
+     * para omitir preguntas innecesarias al elegir «Lo armaré yo más adelante».
      */
-    const val REVISION: Int = 5
+    const val REVISION: Int = 6
 
     private val blocks: Map<SetupStepId, SetupWizardBlock> = mapOf(
         SetupStepId.NAME to SetupWizardBlock.BASICS,
@@ -403,24 +403,7 @@ object SetupStepGraph {
             if (context.asksMarks) add(SetupStepId.TRAINING_MAX)
             if (context.hasWeekLayout) add(SetupStepId.WEEK_LAYOUT)
         } else if (context.includeTraining) {
-            add(SetupStepId.EXPERIENCE)
-            add(SetupStepId.EQUIPMENT)
-            add(SetupStepId.AVAILABILITY)
-            context.inventoryGroups.sortedBy(SetupStepDefinitions::stepOf).forEach { group ->
-                add(SetupStepDefinitions.stepOf(group))
-            }
-            add(SetupStepId.GOAL)
-            if (context.asksCompetition) add(SetupStepId.COMPETITION)
-            addAll(listOf(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
-            if (context.goalIncludesCardio) {
-                addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
-                if (context.asksCardioBase) add(SetupStepId.CARDIO_BASE)
-            }
-            if (context.asksTechnique) add(SetupStepId.VOLUME_TECHNIQUE)
-            addAll(listOf(
-                SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-            ))
-            // Experiencia avanzada: cómo se tiene el programa. «Lo armaré yo» cierra el bloque; «importar» lleva a la revisión.
+            // Pregunta inicial de programa antes de equipamiento/objetivo: quien quiere armarlo manualmente salta directo.
             if (context.asksProgramSource) add(SetupStepId.PROGRAM_SOURCE)
             val programSource = context.programSource.takeIf { context.asksProgramSource }
             when {
@@ -431,6 +414,23 @@ object SetupStepGraph {
                     if (!context.newProgramInstance) add(SetupStepId.MILESTONE_TRAINING)
                 }
                 else -> {
+                    add(SetupStepId.EXPERIENCE)
+                    add(SetupStepId.EQUIPMENT)
+                    add(SetupStepId.AVAILABILITY)
+                    context.inventoryGroups.sortedBy(SetupStepDefinitions::stepOf).forEach { group ->
+                        add(SetupStepDefinitions.stepOf(group))
+                    }
+                    add(SetupStepId.GOAL)
+                    if (context.asksCompetition) add(SetupStepId.COMPETITION)
+                    addAll(listOf(SetupStepId.FRESH_DAY, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
+                    if (context.goalIncludesCardio) {
+                        addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
+                        if (context.asksCardioBase) add(SetupStepId.CARDIO_BASE)
+                    }
+                    if (context.asksTechnique) add(SetupStepId.VOLUME_TECHNIQUE)
+                    addAll(listOf(
+                        SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
+                    ))
                     if (context.asksCapabilities) add(SetupStepId.CAPABILITIES)
                     add(SetupStepId.PRIORITIES)
                     if (context.asksAvoid) add(SetupStepId.AVOIDED_EXERCISES)

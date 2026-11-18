@@ -328,9 +328,9 @@ class RecurrenceNutrition37RecipeDeviceTest {
                 )
             }
         }
-        compose.onNodeWithText("Ciclos").assertIsDisplayed()
+        compose.onNodeWithText("Loops").assertIsDisplayed()
         compose.onNodeWithText("Nacional Power").assertIsDisplayed()
-        compose.onNodeWithText("Nuevo ciclo").performScrollTo().performClick()
+        compose.onNodeWithText("Nuevo loop").performScrollTo().performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Guardar").performScrollTo().assertIsDisplayed()
         }

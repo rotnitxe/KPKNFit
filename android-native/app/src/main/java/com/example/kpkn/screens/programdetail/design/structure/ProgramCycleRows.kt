@@ -68,5 +68,5 @@ internal fun ProgramCycleWeekRow(
 /** «Semana 9 · ciclo 5 (origen 4) · jueves»: dónde cae la semana. La cadencia va en la fila del ciclo; aquí, solo el sitio. */
 private fun weekPlaceLine(week: ProgramCycleWeek): String {
     val origin = week.originCycle?.takeIf { it != week.cycle }?.let { " (origen $it)" }.orEmpty()
-    return "${week.weekName} · ciclo ${week.cycle}$origin · ${week.dayLabel}"
+    return "${week.weekName} · loop ${week.cycle}$origin · ${week.dayLabel}"
 }

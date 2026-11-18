@@ -48,8 +48,8 @@ internal fun ProgramConvertBlocksDialog(
         },
         text = {
             Text(
-                text = "Con un segundo bloque el programa deja de repetirse: se recorre una vez, de bloque en bloque. " +
-                    "Los ciclos y los eventos cíclicos se detienen.",
+                text = "Con un segundo bloque el programa deja de ser de una semana: se recorre una vez, de bloque en bloque. " +
+                    "Los loops y los eventos cíclicos se detienen.",
                 style = KpknType.body,
                 color = WizardColors.textMuted,
             )

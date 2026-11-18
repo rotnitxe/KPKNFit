@@ -195,7 +195,7 @@ class CardioEditorEddComposeTest {
 
         rule.onNodeWithText("Sonidos").assertExists()
         rule.onNodeWithText("Vibración").assertExists()
-        rule.onNodeWithText("Los avisos de fase son del cardio por series o por intervalos: en Continuo no hay cambios de fase que avisar.").assertExists()
+        rule.onNodeWithText("En continuo los avisos acompañan el inicio y el final de la sesión.").assertExists()
         assertTrue(details.keepScreenOn)
         rule.onNode(switchNamed("Pantalla encendida")).performClick()
         settle()

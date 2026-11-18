@@ -88,9 +88,9 @@ class ProgramSourceStepTest {
         setStep(mutableStateOf(null), mutableListOf(), importEnabled = false)
         rule.onNodeWithTag(programSourceTag(ProgramSource.RECOMMEND)).performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Seguimos con unas preguntas y te proponemos programas para tu disciplina.").assertIsDisplayed()
+        rule.onNodeWithText("Te haremos unas preguntas breves para ajustar tu programa.").assertIsDisplayed()
         rule.onNodeWithTag(programSourceTag(ProgramSource.LATER)).performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Podrás crear tu programa desde Programas cuando quieras.").assertIsDisplayed()
+        rule.onNodeWithText("Saltarás el cuestionario de entreno y podrás crearlo manualmente desde Programas.").assertIsDisplayed()
     }
 }

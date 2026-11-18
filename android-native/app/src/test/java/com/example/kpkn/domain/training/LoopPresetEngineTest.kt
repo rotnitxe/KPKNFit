@@ -122,10 +122,13 @@ class LoopPresetEngineTest {
             LoopPresetEngine.materialize(colliding, "deload-4", emptySet())
         }.isFailure)
 
-        val accessoryOnly = program(exercise = mainExercise().copy(isCompetitionLift = false))
-        assertTrue(LoopPresetEngine.preview(accessoryOnly, "1rm-8").testMovements.isEmpty())
+        val accessoryLoad = program(exercise = mainExercise().copy(isCompetitionLift = false))
+        assertFalse(LoopPresetEngine.preview(accessoryLoad, "1rm-8").testMovements.isEmpty())
+
+        val timeOnly = program(exercise = mainExercise().copy(isCompetitionLift = false, trainingMode = com.example.kpkn.data.models.TrainingMode.TIME))
+        assertTrue(LoopPresetEngine.preview(timeOnly, "1rm-8").testMovements.isEmpty())
         assertTrue(runCatching {
-            LoopPresetEngine.materialize(accessoryOnly, "1rm-8", emptySet())
+            LoopPresetEngine.materialize(timeOnly, "1rm-8", emptySet())
         }.isFailure)
 
         val overlappingDifferentCadence = program(loops = listOf(

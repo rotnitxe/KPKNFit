@@ -159,6 +159,7 @@ internal data class CatalogDetailModel(
     val historySummary: com.example.kpkn.domain.exercises.ExerciseHistorySummary? = null,
     val media: List<com.example.kpkn.data.models.WorkoutMedia> = emptyList(),
     val customCover: com.example.kpkn.screens.sessioneditor.design.CustomCoverModel? = null,
+    val initialImageImplementation: String? = null,
 )
 
 /** Un eje de la configuración con sus opciones visibles (las que el catálogo deja elegir). */
@@ -244,8 +245,9 @@ internal fun CatalogExerciseImageCarousel(
     modifier: Modifier = Modifier,
     photoHeight: androidx.compose.ui.unit.Dp = CatalogPhotoHeight,
     showImplementPills: Boolean = true,
+    initialImplementation: String? = null,
 ) {
-    val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation)
+    val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation ?: initialImplementation)
     val showPills = showImplementPills && implementOptions.size > 1
     // La foto es la fuente del desenfoque de las píldoras: el vidrio emborrona lo que hay detrás.
     val haze = remember { HazeState() }

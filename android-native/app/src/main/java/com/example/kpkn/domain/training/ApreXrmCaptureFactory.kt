@@ -4,19 +4,56 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.*
 import com.example.kpkn.domain.calibration.CalibrationContext
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 
 /** Sólo usa el contexto persistido; una etiqueta técnica desconocida no se adivina ni se transfiere. */
-fun plannedApreContext(exercise: Exercise, set: ExerciseSet, side: String?, recorded: CompletedSet? = null): CalibrationContext {
+fun plannedApreContext(
+    exercise: Exercise,
+    set: ExerciseSet,
+    side: String?,
+    recorded: CompletedSet? = null,
+    normalizeDefaultTag: Boolean = true,
+): CalibrationContext {
     val profile = exercise.contextProfilesV3.firstOrNull { it.id == set.contextProfileIdV3 }
     val mode = recorded?.loadMode ?: set.loadModeV2 ?: profile?.loadMode ?: LoadModeV2.LOAD
-    val equipmentKey = recorded?.homologatedResultV3?.contextKey ?: recorded?.setOutcomeV2?.contextKey
-        ?: buildWorkoutContextKey(exercise.resolvedCanonicalExerciseId(),
+    val rawEquipmentKey = recorded?.homologatedResultV3?.contextKey ?: recorded?.setOutcomeV2?.contextKey
+        ?: buildWorkoutContextKey(
+            exercise.resolvedCanonicalExerciseId(),
             recorded?.machineBrand ?: profile?.machineBrand ?: set.machineBrand,
-            recorded?.tagId ?: profile?.tagId, mode, set.unitModeV2 ?: UnitModeV2.REPS)
-    return CalibrationContext(exercise.catalogConfigurationId ?: exercise.resolvedCanonicalExerciseId(), equipmentKey,
-        side, recorded?.setupProfileId ?: profile?.setupProfileId ?: set.defaultSetupProfileIdV3 ?: set.setupId,
-        mode, set.loadQuantityConvention.takeUnless { it == LoadQuantityConvention.UNSPECIFIED }
-            ?: exercise.loadQuantityConvention)
+            recorded?.tagId ?: profile?.tagId,
+            mode,
+            set.unitModeV2 ?: UnitModeV2.REPS,
+        )
+    val equipmentKey = if (normalizeDefaultTag) {
+        normalizeDefaultTagInEquipmentKey(rawEquipmentKey, recorded, profile?.tagId)
+    } else {
+        rawEquipmentKey
+    }
+    return CalibrationContext(
+        exercise.catalogConfigurationId ?: exercise.resolvedCanonicalExerciseId(),
+        equipmentKey,
+        side,
+        recorded?.setupProfileId ?: profile?.setupProfileId ?: set.defaultSetupProfileIdV3 ?: set.setupId,
+        mode,
+        set.loadQuantityConvention.takeUnless { it == LoadQuantityConvention.UNSPECIFIED }
+            ?: exercise.loadQuantityConvention,
+    )
+}
+
+private fun normalizeDefaultTagInEquipmentKey(
+    rawKey: String,
+    recorded: CompletedSet?,
+    plannedTagId: String?,
+): String {
+    if (recorded == null || !WorkoutTagResolver.isDefaultName(recorded.tagName)) return rawKey
+    val parts = rawKey.split('|')
+    if (parts.size != 6) return rawKey
+    val tagToken = parts[2]
+    if (tagToken == "na") return rawKey
+    val matchesDefault = tagToken == recorded.tagId || WorkoutTagResolver.isDefaultName(tagToken)
+    if (!matchesDefault) return rawKey
+    val targetToken = plannedTagId?.takeIf { it.isNotBlank() } ?: "na"
+    return parts.toMutableList().apply { this[2] = targetToken }.joinToString("|")
 }
 
 /** La carga y las reps válidas de S4 alimentan exclusivamente la tabla de Mann. */

@@ -219,6 +219,21 @@ object SetupDraftCompatibility {
                 )
             }
         }
+        // Un borrador nativo anterior a la revisión 6 ya con flujo de entreno asumía recomendación guiada.
+        if (current.stepProgress.origin != SetupProgressOrigin.NOT_CONVERTIBLE &&
+            current.stepProgress.graphRevision < 6 &&
+            current.programSource == null &&
+            SetupStepId.PROGRAM_SOURCE !in current.stepProgress.answers &&
+            (SetupStepId.EXPERIENCE in current.stepProgress.answers || SetupStepId.MILESTONE_TRAINING in current.stepProgress.answers)
+        ) {
+            current = current.withProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND).let { next ->
+                next.copy(
+                    stepProgress = next.stepProgress.copy(
+                        answers = next.stepProgress.answers + (SetupStepId.PROGRAM_SOURCE to SetupAnswerProvenance.DERIVED),
+                    ),
+                )
+            }
+        }
         // Bloque de entreno ya completo con pasos nuevos sin responder: queda por revisar hasta reconfirmar su hito.
         if (SetupStepId.MILESTONE_TRAINING in current.stepProgress.answers) {
             val newlyRequired = SetupStepGraph.stepIds(current.stepContext()).filter { step ->

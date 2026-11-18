@@ -29,25 +29,25 @@ class ProgramCycleRouteTextTest {
 
     @Test
     fun la_cadencia_va_en_plural_salvo_la_de_uno() {
-        assertEquals("cada 4 ciclos", cycleCadenceLabel(4))
-        assertEquals("cada ciclo", cycleCadenceLabel(1))
+        assertEquals("cada 4 loops", cycleCadenceLabel(4))
+        assertEquals("cada loop", cycleCadenceLabel(1))
     }
 
     @Test
-    fun el_resumen_cuenta_los_ciclos_activos_y_dice_el_ciclo_en_curso() {
-        assertEquals(numberWithUnit("2 ciclos activos") + " · vas por el ciclo 5", cycleSummaryLine(2, 5))
-        assertEquals(numberWithUnit("1 ciclo activo"), cycleSummaryLine(1, 0))
-        assertEquals("Sin ciclos activos", cycleSummaryLine(0, 0))
+    fun el_resumen_cuenta_los_loops_activos_y_dice_la_vuelta_en_curso() {
+        assertEquals(numberWithUnit("2 loops activos") + " · vuelta 5", cycleSummaryLine(2, 5))
+        assertEquals(numberWithUnit("1 loop activo"), cycleSummaryLine(1, 0))
+        assertEquals("Sin loops activos", cycleSummaryLine(0, 0))
     }
 
     @Test
     fun el_aviso_de_eventos_antiguos_concuerda_con_el_numero() {
-        assertEquals("Hay 2 eventos antiguos. Pásalos a ciclos para usar el sistema nuevo.", legacyEventsLine(2))
-        assertEquals("Hay 1 evento antiguo. Pásalo a ciclos para usar el sistema nuevo.", legacyEventsLine(1))
+        assertEquals("Hay 2 eventos antiguos. Pásalos a loops para usar el sistema nuevo.", legacyEventsLine(2))
+        assertEquals("Hay 1 evento antiguo. Pásalo a loops para usar el sistema nuevo.", legacyEventsLine(1))
     }
 
     @Test
-    fun un_ciclo_con_la_misma_cadencia_choca_salvo_consigo_mismo() {
+    fun un_loop_con_la_misma_cadencia_choca_salvo_consigo_mismo() {
         val existing = listOf(cycle("a", "Descarga", 4), cycle("b", "Test 1RM", 8))
         assertEquals("a", cycleCadenceConflict(existing, editingId = null, cadence = 4)?.id)
         assertNull(cycleCadenceConflict(existing, editingId = "a", cadence = 4))
@@ -56,9 +56,9 @@ class ProgramCycleRouteTextTest {
     }
 
     @Test
-    fun el_texto_del_choque_nombra_el_ciclo_y_la_cadencia() {
+    fun el_texto_del_choque_nombra_el_loop_y_la_cadencia() {
         assertEquals(
-            "Conflicto: Descarga ya usa cada 4 ciclos. Cambia la cadencia para evitar que dos ciclos compitan por la misma semana.",
+            "Conflicto: Descarga ya usa cada 4 loops. Cambia la cadencia para evitar que dos loops compitan por la misma semana.",
             cycleConflictLine(cycle("a", "Descarga", 4), 4),
         )
     }

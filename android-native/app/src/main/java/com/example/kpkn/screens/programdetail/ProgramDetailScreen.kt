@@ -803,17 +803,21 @@ fun ProgramDetailScreen(
         )
     }
     exerciseSwapRequest?.let { request ->
+        val totalWeeks = p?.macrocycles.orEmpty().flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.size
+        val isSimpleSingleWeek = p != null && (p.isSimpleProgram || totalWeeks <= 1)
+        val scopes = com.example.kpkn.screens.programdetail.design.swapScopeOptions.filter { (scope, _) ->
+            val allowedExecution = request.executionTarget != null || scope != com.example.kpkn.domain.training.SwapScope.THIS_EXECUTION
+            val allowedStructure = !isSimpleSingleWeek || (
+                scope != com.example.kpkn.domain.training.SwapScope.REST_OF_BLOCK &&
+                    scope != com.example.kpkn.domain.training.SwapScope.WHOLE_PROGRAM
+                )
+            allowedExecution && allowedStructure
+        }
         com.example.kpkn.screens.programdetail.design.ProgramSwapSheet(request.sourceName,request.options,
             request.requiresEquipmentConfirmation,exerciseSwapPreview?.result?.programDecisions?.lastOrNull()?.detail,
             exerciseSwapBusy,viewModel::previewExerciseSwap,viewModel::confirmExerciseSwap,
             viewModel::clearExerciseSwapPreview,viewModel::closeExerciseSwap,
-            availableScopes = if (request.executionTarget != null) {
-                com.example.kpkn.screens.programdetail.design.swapScopeOptions
-            } else {
-                com.example.kpkn.screens.programdetail.design.swapScopeOptions.filterNot {
-                    it.first == com.example.kpkn.domain.training.SwapScope.THIS_EXECUTION
-                }
-            })
+            availableScopes = scopes)
     }
     planningCompetition?.let { state ->
         com.example.kpkn.screens.programdetail.design.CompetitionPlanSheet(state,competitionBusy,

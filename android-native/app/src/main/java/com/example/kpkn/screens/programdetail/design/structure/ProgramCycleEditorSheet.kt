@@ -52,7 +52,7 @@ internal fun ProgramCycleEditorSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(StructureSheetPadding),
         ) {
-            StructureSheetHeader(title = if (loop == null) "Nuevo ciclo" else loop.title.ifBlank { "Ciclo" })
+            StructureSheetHeader(title = if (loop == null) "Nuevo loop" else loop.title.ifBlank { "Loop" })
             StructureTextField(label = "Nombre", value = title, onValueChange = { title = it }, placeholder = "Por ejemplo, descarga de verano")
             StructureSheetGroup(text = "Tipo")
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -61,7 +61,7 @@ internal fun ProgramCycleEditorSheet(
                 }
             }
             StructureTextField(
-                label = "Repetir cada (ciclos)",
+                label = "Repetir cada (loops)",
                 value = cadenceText,
                 onValueChange = { cadenceText = it.filter(Char::isDigit) },
                 placeholder = DEFAULT_CADENCE.toString(),
@@ -72,7 +72,7 @@ internal fun ProgramCycleEditorSheet(
                 StructureCaption(text = cycleConflictLine(it, cadence), color = WizardColors.danger, modifier = Modifier.padding(top = 8.dp))
             }
             if (loop != null) {
-                StructureSheetGroup(text = "Este ciclo")
+                StructureSheetGroup(text = "Este loop")
                 StructureMenuRow(
                     icon = KpknLineIcons.Clock,
                     title = "Posponer la próxima semana",
@@ -80,9 +80,9 @@ internal fun ProgramCycleEditorSheet(
                     onClick = { onAction(ProgramCycleAction.POSTPONE_NEXT) },
                 )
                 if (loop.cancelled) {
-                    StructureMenuRow(icon = KpknLineIcons.Play, title = "Reactivar ciclo", onClick = { onAction(ProgramCycleAction.REACTIVATE) })
+                    StructureMenuRow(icon = KpknLineIcons.Play, title = "Reactivar loop", onClick = { onAction(ProgramCycleAction.REACTIVATE) })
                 } else {
-                    StructureMenuRow(icon = KpknLineIcons.Pause, title = "Cancelar ciclo", onClick = { onAction(ProgramCycleAction.CANCEL) })
+                    StructureMenuRow(icon = KpknLineIcons.Pause, title = "Cancelar loop", onClick = { onAction(ProgramCycleAction.CANCEL) })
                 }
             }
             StructurePrimaryPill(
@@ -92,7 +92,7 @@ internal fun ProgramCycleEditorSheet(
                 modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
             )
             if (loop != null) {
-                StructureDangerAction(text = "Eliminar ciclo", onClick = { onAction(ProgramCycleAction.DELETE) })
+                StructureDangerAction(text = "Eliminar loop", onClick = { onAction(ProgramCycleAction.DELETE) })
             }
         }
     }

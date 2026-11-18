@@ -7,6 +7,8 @@ import java.math.BigDecimal
 object LabelFormAdapter {
     val fields = mapOf(LabelField.ENERGY_KCAL to CustomFoodField.CALORIES, LabelField.PROTEIN_G to CustomFoodField.PROTEIN,
         LabelField.CARBS_G to CustomFoodField.CARBS, LabelField.FAT_G to CustomFoodField.FATS, LabelField.SATURATED_G to CustomFoodField.SATURATED,
+        LabelField.MONOUNSATURATED_G to CustomFoodField.MONOUNSATURATED, LabelField.POLYUNSATURATED_G to CustomFoodField.POLYUNSATURATED,
+        LabelField.TRANS_G to CustomFoodField.TRANS,
         LabelField.FIBER_G to CustomFoodField.FIBER, LabelField.SUGAR_G to CustomFoodField.SUGAR, LabelField.SODIUM_MG to CustomFoodField.SODIUM)
     fun number(value: Double): String = BigDecimal.valueOf(value).round(java.math.MathContext(12, java.math.RoundingMode.HALF_UP)).stripTrailingZeros().toPlainString()
     fun apply(before: CustomFoodForm, label: LabelParse): CustomFoodForm {
@@ -17,12 +19,18 @@ object LabelFormAdapter {
             servingAmount = if (byVolume) "100" else label.servingSize?.let(::number).orEmpty(),
             servingUnit = if (byVolume) "ml" else label.servingUnit ?: "g",
             calories = value(LabelField.ENERGY_KCAL), protein = value(LabelField.PROTEIN_G), carbs = value(LabelField.CARBS_G),
-            fats = value(LabelField.FAT_G), saturatedFat = value(LabelField.SATURATED_G), fiber = value(LabelField.FIBER_G),
+            fats = value(LabelField.FAT_G), saturatedFat = value(LabelField.SATURATED_G),
+            monounsaturatedFat = value(LabelField.MONOUNSATURATED_G), polyunsaturatedFat = value(LabelField.POLYUNSATURATED_G),
+            transFat = value(LabelField.TRANS_G),
+            fiber = value(LabelField.FIBER_G),
             sugar = value(LabelField.SUGAR_G), sodiumMg = value(LabelField.SODIUM_MG))
     }
     fun value(form: CustomFoodForm, field: CustomFoodField): String = when (field) {
         CustomFoodField.CALORIES -> form.calories; CustomFoodField.PROTEIN -> form.protein; CustomFoodField.CARBS -> form.carbs
-        CustomFoodField.FATS -> form.fats; CustomFoodField.SATURATED -> form.saturatedFat; CustomFoodField.FIBER -> form.fiber
+        CustomFoodField.FATS -> form.fats; CustomFoodField.SATURATED -> form.saturatedFat
+        CustomFoodField.MONOUNSATURATED -> form.monounsaturatedFat; CustomFoodField.POLYUNSATURATED -> form.polyunsaturatedFat
+        CustomFoodField.TRANS -> form.transFat
+        CustomFoodField.FIBER -> form.fiber
         CustomFoodField.SUGAR -> form.sugar; CustomFoodField.SODIUM -> form.sodiumMg; CustomFoodField.SERVING -> form.servingAmount + " " + form.servingUnit
         else -> ""
     }

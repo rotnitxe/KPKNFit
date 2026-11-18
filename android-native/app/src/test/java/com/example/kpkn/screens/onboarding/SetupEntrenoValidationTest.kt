@@ -28,6 +28,7 @@ class SetupEntrenoValidationTest {
 
     /** Un bloque de entreno completo y coherente: gimnasio, Culturismo, tres días, 60 min, calibración y plan. */
     private fun completeDraft(): SetupWizardDraft = SetupWizardDraft()
+        .withProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
         .withStepChoice(SetupStepId.EXPERIENCE, "intermediate")
         .withPlaces(setOf(TrainingPlace.GYM))
         .withGoalProfile(TrainingGoalProfile.BODYBUILDING)

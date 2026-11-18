@@ -13,11 +13,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
 import com.example.kpkn.screens.onboarding.SetupFormTextField
 import com.example.kpkn.screens.onboarding.SetupWizardState
 import com.example.kpkn.screens.onboarding.SetupWizardViewModel
+import com.example.kpkn.screens.onboarding.stepContext
 import com.example.kpkn.screens.programs.importer.IMPORT_READING_TEXT
 import com.example.kpkn.screens.programs.importer.ImportEditOp
 import com.example.kpkn.screens.programs.importer.ImportKnownProgramNotice
@@ -185,11 +187,17 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
                 ?: importSessionsPerWeek(imported)
             val days = draft.selectedWeekdays.size
             if (sessions > days) {
+                val weekdaysInRoute = SetupStepId.WEEKDAYS in SetupStepGraph.stepIds(draft.stepContext())
                 EntrenoPlanNotice(
                     text = "Tu programa tiene $sessions sesiones por semana y elegiste $days ${if (days == 1) "día" else "días"}.",
                     error = false,
                 )
-                EntrenoTextAction(label = "Cambiar días", onClick = { vm.editStep(SetupStepId.WEEKDAYS) })
+                EntrenoTextAction(
+                    label = if (weekdaysInRoute) "Cambiar días" else "Ajustar a $sessions días",
+                    onClick = {
+                        if (weekdaysInRoute) vm.editStep(SetupStepId.WEEKDAYS) else vm.syncImportedWeekdays()
+                    },
+                )
             }
             if (editor == null) {
                 ImportReview(

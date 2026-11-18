@@ -336,13 +336,16 @@ class SetupEntrenoCompatibilityTest {
 
     /** Lo respondido hasta la constancia, con el tiempo por sesión ya confirmado (la ruta nueva, sin pasos pendientes antes). */
     private val throughTheTimeStep = earlyAnswers + listOf(
-        SetupStepId.AVAILABILITY, SetupStepId.FRESH_DAY, SetupStepId.SESSION_TIME,
+        SetupStepId.PROGRAM_SOURCE, SetupStepId.AVAILABILITY, SetupStepId.FRESH_DAY, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
     )
 
     private fun draftWithMinutes(minutes: Int?, cursor: SetupStepId = SetupStepId.VOLUME_CONSISTENCY) =
         oldDraft(answered = throughTheTimeStep, cursor = cursor, graphRevision = SetupStepGraph.REVISION)
-            .copy(minutesPerSession = minutes)
+            .copy(
+                minutesPerSession = minutes,
+                programSource = com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND,
+            )
 
     @Test
     fun aDraftWithTwentyOrTwentyFiveMinutesIsReadAsThirtyAndLeavesTheTimeStepForReview() {

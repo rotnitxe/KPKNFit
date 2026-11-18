@@ -109,13 +109,14 @@ class WorkoutV2UiTest {
         composeRule.onNodeWithTag("live-card-quantity-input").assertExists()
         composeRule.onNodeWithText("45").assertExists()
         composeRule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").performClick()
+        composeRule.onNodeWithTag("live-card-set-clock-face").assertExists()
         composeRule.onNodeWithContentDescription("Pausar el cronómetro de la serie").assertExists()
-        composeRule.onNodeWithContentDescription("Cantidad registrada").assertIsNotEnabled()
         composeRule.runOnIdle { clockMillis += 10_000 }
         composeRule.waitUntil(5_000L) {
             runCatching { composeRule.onNodeWithText("0:35").fetchSemanticsNode() }.isSuccess
         }
-        composeRule.onNodeWithContentDescription("Pausar el cronómetro de la serie").performClick()
+        composeRule.onNodeWithTag("live-card-set-clock-finish").performClick()
+        composeRule.onNodeWithTag("live-card-set-clock-face").assertDoesNotExist()
         composeRule.onNodeWithContentDescription("Cantidad registrada").assertIsEnabled().assertTextEquals("10")
         composeRule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").assertExists()
     }

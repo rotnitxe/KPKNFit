@@ -190,6 +190,87 @@ class SessionEditorViewModel(
         return taggedExercise
     }
 
+    internal fun hydrateSharedLoadReferences(exercise: Exercise, sessionModifiedAtMs: Long = 0L): Exercise {
+        val configurationId = sharedLoadConfigurationId(exercise) ?: return exercise
+        val exerciseKey = exercise.resolvedCanonicalExerciseId()
+        val tagId = exercise.workoutTagId ?: repository.getWorkoutTagsForExercise(exerciseKey).firstOrNull {
+            it.isDefault || WorkoutTagResolver.isDefaultName(it.name)
+        }?.id
+        val unitMode = exercise.trainingMode.toUnitModeV2()
+        val loadMode = exercise.sets.firstNotNullOfOrNull { it.loadModeV2 } ?: LoadModeV2.LOAD
+        fun requestFor(kind: SharedLoadReferenceKind) = SharedExerciseLoadReference(
+            id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                exerciseKey, configurationId, tagId, unitMode, loadMode, exercise.loadQuantityConvention, kind,
+            ),
+            exerciseKey = exerciseKey,
+            configurationId = configurationId,
+            tagId = tagId,
+            unitMode = unitMode,
+            loadMode = loadMode,
+            quantityConvention = exercise.loadQuantityConvention,
+            kind = kind,
+            baseValueKg = 0.0,
+            sourceAtMs = 0L,
+            sourceId = "",
+        )
+        val prRef = sharedLoadReferences.getCompatible(requestFor(SharedLoadReferenceKind.ESTIMATED_PR))
+        val oneRmRef = sharedLoadReferences.getCompatible(requestFor(SharedLoadReferenceKind.ONE_RM))
+        val obsRef = sharedLoadReferences.getCompatible(requestFor(SharedLoadReferenceKind.OBSERVED_SESSION))
+        val tmRef = sharedLoadReferences.getCompatible(requestFor(SharedLoadReferenceKind.TRAINING_MAX))
+        val bestOneRmRef = listOfNotNull(prRef, oneRmRef, obsRef)
+            .filter { it.suggestedValueKg()?.let { v -> v.isFinite() && v > 0.0 } == true }
+            .maxByOrNull { it.sourceAtMs }
+        val shouldSyncOneRm = bestOneRmRef != null && (
+            exercise.reference1RM == null ||
+                (sessionModifiedAtMs > 0L &&
+                    bestOneRmRef.sourceAtMs > sessionModifiedAtMs &&
+                    bestOneRmRef.sourceId != "editor-pr:${exercise.id}" &&
+                    bestOneRmRef.sourceId != "editor-1rm:${exercise.id}")
+            )
+        val resolved1Rm = if (shouldSyncOneRm) bestOneRmRef?.suggestedValueKg() ?: exercise.reference1RM else exercise.reference1RM
+        val resolvedPr = when {
+            shouldSyncOneRm && bestOneRmRef?.kind == SharedLoadReferenceKind.ESTIMATED_PR -> prRef?.let { ref ->
+                val w = ref.prWeightKg
+                val r = ref.prReps
+                if (w != null && w > 0.0 && r != null && r > 0) {
+                    PrReference(weight = w, reps = r, effortMode = ref.effortMode, effortValue = ref.effortValue)
+                } else null
+            } ?: exercise.prFor1RM
+            exercise.prFor1RM == null -> prRef?.let { ref ->
+                val w = ref.prWeightKg
+                val r = ref.prReps
+                if (w != null && w > 0.0 && r != null && r > 0) {
+                    PrReference(weight = w, reps = r, effortMode = ref.effortMode, effortValue = ref.effortValue)
+                } else null
+            }
+            else -> exercise.prFor1RM
+        }
+        val shouldSyncTm = tmRef != null && (
+            exercise.referenceTrainingMax == null ||
+                (sessionModifiedAtMs > 0L &&
+                    tmRef.sourceAtMs > sessionModifiedAtMs &&
+                    tmRef.sourceId != "editor-tm:${exercise.id}")
+            )
+        val resolvedTm = if (shouldSyncTm) tmRef?.suggestedValueKg() ?: exercise.referenceTrainingMax else exercise.referenceTrainingMax
+        val resolvedTagId = exercise.workoutTagId ?: tagId.takeIf { resolved1Rm != null || resolvedTm != null }
+        return exercise.copy(
+            workoutTagId = resolvedTagId,
+            reference1RM = resolved1Rm,
+            prFor1RM = resolvedPr,
+            referenceTrainingMax = resolvedTm,
+        )
+    }
+
+    private fun hydrateSessionSharedLoadReferences(session: Session): Session {
+        val modifiedAtMs = session.lastModifiedAtMs
+        return session.copy(
+            exercises = session.exercises.map { hydrateSharedLoadReferences(it, modifiedAtMs) },
+            parts = session.parts.map { part ->
+                part.copy(exercises = part.exercises.map { hydrateSharedLoadReferences(it, modifiedAtMs) })
+            },
+        )
+    }
+
     private fun ensureDefaultLoadReferenceTag(exerciseKey: String): String {
         val existing = repository.getWorkoutTagsForExercise(exerciseKey).firstOrNull {
             it.isDefault || WorkoutTagResolver.isDefaultName(it.name)
@@ -1014,7 +1095,7 @@ class SessionEditorViewModel(
         // D3: los programas históricos pueden traer espejo suelto+grupo; el
         // colapso por-id corre al abrir (nombres se reconcilian al guardar).
         val resolution = resolveNewestSessionWithConflict(existing, fallbackDraft, persistedDraft)
-        val draft = SupersetRules.normalizeSession(
+        val preHydratedDraft = SupersetRules.normalizeSession(
             SessionCatalogNameReconciler.normalizeSessionStructure(
                 resolution.session
                     .normalizeEditorScheduledTechniques()
@@ -1022,6 +1103,12 @@ class SessionEditorViewModel(
                     .normalizedIdentityFields(),
             ),
         )
+        val hydratedDraft = hydrateSessionSharedLoadReferences(preHydratedDraft)
+        val draft = if (hydratedDraft != preHydratedDraft) {
+            hydratedDraft.withExplicitRmLoads(preHydratedDraft)
+        } else {
+            preHydratedDraft
+        }
         val weekSessions = ensureSessionInList(week?.sessions.orEmpty(), draft)
         if (existing == null && week != null && targetWeekId.isNotBlank()) {
             val saved = upsertEditorSession(

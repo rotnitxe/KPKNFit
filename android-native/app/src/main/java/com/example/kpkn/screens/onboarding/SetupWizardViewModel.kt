@@ -61,6 +61,7 @@ import com.example.kpkn.screens.programs.importer.importedExerciseCatalogChoiceM
 import com.example.kpkn.screens.programs.importer.ImportUndoStack
 import com.example.kpkn.screens.sessioneditor.ImportedProgramEditorStore
 import com.example.kpkn.screens.programs.importer.importReadingPageText
+import com.example.kpkn.screens.programs.importer.importSessionsPerWeek
 import com.example.kpkn.screens.programs.importer.readPickedFile
 import com.example.kpkn.data.importer.ProgramUrlReader
 import com.example.kpkn.domain.training.generator.GeneratedRoutine
@@ -4185,6 +4186,23 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }
 
+    /** Ajusta los días de entreno del borrador al número de sesiones detectadas en el programa importado. */
+    fun syncImportedWeekdays() = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest ->
+        val imported = latest.importedProgram ?: return@mutateDraft latest
+        val editorSessions = latest.importedProgramEditor?.program?.macrocycles.orEmpty()
+            .flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.maxOfOrNull { it.sessions.size }
+        val targetCount = (editorSessions ?: importSessionsPerWeek(imported)).coerceIn(1, 7)
+        val merged = linkedSetOf<Int>().apply {
+            addAll(latest.selectedWeekdays.filter { it in 1..7 })
+            addAll(defaultImportWeekdays(imported, targetCount))
+            for (day in listOf(1, 4, 2, 5, 3, 6, 7)) {
+                if (size >= targetCount) break
+                add(day)
+            }
+        }
+        latest.withWeekdays(merged)
+    }
+
     /** «Seguir con mi archivo» (H3f): el aviso del programa de KPKN se descarta y no vuelve a salir para esta importación. */
     fun dismissImportKnown() = mutateDraft(SetupStepId.PROGRAM_IMPORT) { latest -> latest.copy(importKnownDismissed = true) }
 
@@ -4209,6 +4227,29 @@ class SetupWizardViewModel @JvmOverloads constructor(
             cleared.withPreselectedPlan(planId) ?: latest
         }
         editStep(SetupStepId.PLAN)
+    }
+
+    private fun defaultImportWeekdays(
+        draft: ImportedProgramDraft,
+        requestedSessions: Int = importSessionsPerWeek(draft),
+    ): Set<Int> {
+        val sessions = requestedSessions.coerceAtMost(7)
+        if (sessions <= 0) return emptySet()
+        val explicit = draft.weeks.flatMap { it.days }
+            .filter { !it.isRestDay }
+            .mapNotNull { it.dayOfWeek }
+            .filter { it in 1..7 }
+            .distinct()
+        if (explicit.size >= sessions) return explicit.take(sessions).toCollection(linkedSetOf())
+        return when (sessions) {
+            1 -> setOf(1)
+            2 -> setOf(1, 4)
+            3 -> setOf(1, 3, 5)
+            4 -> setOf(1, 2, 4, 5)
+            5 -> setOf(1, 2, 3, 5, 6)
+            6 -> setOf(1, 2, 3, 4, 5, 6)
+            else -> (1..7).toSet()
+        }
     }
 
     /** Las tres mejores configuraciones del catálogo para un nombre importado (las del panel «Elegir»). */
@@ -4260,7 +4301,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         return@launch
                     }
                     val old = _state.value.draft
-                    val changed = old.copy(
+                    val baseDraft = if (SetupStepId.WEEKDAYS !in old.stepProgress.answers) {
+                        val autoWeekdays = defaultImportWeekdays(parsed)
+                        if (autoWeekdays.isNotEmpty()) old.withWeekdays(autoWeekdays) else old
+                    } else {
+                        old
+                    }
+                    val changed = baseDraft.copy(
                         importedProgram = parsed, importTitle = parsed.title, importResolutions = emptyMap(),
                         importedProgramEditor = null,
                         importKnownPlanId = known?.planId, importKnownDismissed = false,

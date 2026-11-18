@@ -33,19 +33,20 @@ data class LoopIssue(
 
 object LoopEngine {
 
-    /** Eligibility for creating a loop: one trainable simple cycle, with no planned competition. */
+    /** Eligibility for creating a loop: one single base training week in a cyclic routine, with no planned competition. */
     fun canAddNewLoop(program: Program): Boolean {
         if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC) return false
         if (program.macrocycles.size != 1) return false
         val block = program.macrocycles.singleOrNull()?.blocks?.singleOrNull() ?: return false
         val meso = block.mesocycles.singleOrNull() ?: return false
-        val hasBaseTrainingWeek = meso.weeks.any { week ->
-            !week.isLoopWeek && week.executionKind != WeekExecutionKind.REST &&
+        val baseWeeks = meso.weeks.filterNot { it.isLoopWeek }
+        val hasSingleBaseTrainingWeek = baseWeeks.size == 1 && baseWeeks.single().let { week ->
+            week.executionKind != WeekExecutionKind.REST &&
                 week.sessions.any(SessionTemplateEngine::sessionHasExecutableContent)
         }
         val plannedCompetition = program.keyDates.any { it.type == KeyDateType.COMPETITION } ||
             program.loops.any { it.type == LoopType.COMPETITION }
-        return hasBaseTrainingWeek && !plannedCompetition
+        return hasSingleBaseTrainingWeek && !plannedCompetition
     }
 
     fun materializeLoopWeeks(program: Program): Program {

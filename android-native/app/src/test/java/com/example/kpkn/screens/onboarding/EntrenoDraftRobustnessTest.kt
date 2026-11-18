@@ -268,6 +268,7 @@ class EntrenoDraftRobustnessTest {
     // ═════════════════════════════════════════════════════════════════════════════════════════
 
     private val ENTRENO_STEPS = setOf(
+        SetupStepId.PROGRAM_SOURCE,
         SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL, SetupStepId.FRESH_DAY,
         SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME, SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
@@ -291,8 +292,8 @@ class EntrenoDraftRobustnessTest {
     private fun TestScope.walkBasics(vm: SetupWizardViewModel) {
         await(vm, "primera pregunta") { !it.isLoading && it.currentStep == SetupStepId.NAME }
         var guard = 0
-        while (vm.state.value.currentStep != SetupStepId.EXPERIENCE) {
-            check(guard++ < 12) { "los datos básicos no llegan a EXPERIENCE (cursor ${vm.state.value.currentStep})" }
+        while (vm.state.value.currentStep != SetupStepId.PROGRAM_SOURCE) {
+            check(guard++ < 12) { "los datos básicos no llegan a PROGRAM_SOURCE (cursor ${vm.state.value.currentStep})" }
             val step = vm.state.value.currentStep
             when (step) {
                 SetupStepId.NAME -> vm.setStepText(SetupStepId.NAME, "Ana")
@@ -311,6 +312,7 @@ class EntrenoDraftRobustnessTest {
 
     private fun answer(vm: SetupWizardViewModel, step: SetupStepId, person: Person) {
         when (step) {
+            SetupStepId.PROGRAM_SOURCE -> vm.setProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
             SetupStepId.EXPERIENCE -> vm.setStepChoice(SetupStepId.EXPERIENCE, person.experience)
             SetupStepId.EQUIPMENT -> vm.updateStep(SetupStepId.EQUIPMENT) { it.withPlaces(person.places) }
             SetupStepId.AVAILABILITY -> person.material?.let { material -> vm.updateStep(SetupStepId.AVAILABILITY) { it.withMaterial(material) } }

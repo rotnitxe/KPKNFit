@@ -175,11 +175,13 @@ fun SessionEditorViewModel.getRuleDefaultsForPart(partId: String?): SessionEdito
 
 fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
     val currentSession = currentUiState.activeVariantSession
-    val newExercise = catalogExerciseForSession(
-        info = info,
-        history = repository.history.value,
-        defaults = getRuleDefaultsForPart(partId),
-        isMeetDay = currentSession?.isMeetDay == true,
+    val newExercise = hydrateSharedLoadReferences(
+        catalogExerciseForSession(
+            info = info,
+            history = repository.history.value,
+            defaults = getRuleDefaultsForPart(partId),
+            isMeetDay = currentSession?.isMeetDay == true,
+        ),
     )
     updateSession { session ->
         if (partId == null) {
@@ -195,11 +197,13 @@ fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMusc
 fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<ExerciseMuscleInfo>): List<String> {
     val currentSession = currentUiState.activeVariantSession
     val newExercises = infos.map { info ->
-        catalogExerciseForSession(
-            info = info,
-            history = repository.history.value,
-            defaults = getRuleDefaultsForPart(partId),
-            isMeetDay = currentSession?.isMeetDay == true,
+        hydrateSharedLoadReferences(
+            catalogExerciseForSession(
+                info = info,
+                history = repository.history.value,
+                defaults = getRuleDefaultsForPart(partId),
+                isMeetDay = currentSession?.isMeetDay == true,
+            ),
         )
     }
     updateSession { session ->
@@ -232,11 +236,13 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
     val rounds = config.rounds.coerceAtLeast(1)
     val newExercises = infos.map { info ->
-        val base = catalogExerciseForSession(
-            info = info,
-            history = repository.history.value,
-            defaults = getRuleDefaultsForPart(partId),
-            isMeetDay = currentSession.isMeetDay,
+        val base = hydrateSharedLoadReferences(
+            catalogExerciseForSession(
+                info = info,
+                history = repository.history.value,
+                defaults = getRuleDefaultsForPart(partId),
+                isMeetDay = currentSession.isMeetDay,
+            ),
         )
         base.copy(
             sets = List(rounds) { index ->

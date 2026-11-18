@@ -55,10 +55,10 @@ internal fun LoopPresetPreviewSheet(
         ) {
             StructureSheetHeader(title = presetTitle(preview.presetId), subtitle = preview.sourceWeekName?.let { "Desde la última semana entrenable · $it" })
             if (preview.sourceWeekId == null) {
-                StructureCaption(text = "No hay una semana base con sesiones entrenables para preparar este ciclo.", color = WizardColors.danger)
+                StructureCaption(text = "No hay una semana base con sesiones entrenables para preparar este loop.", color = WizardColors.danger)
             }
             if (includesDeload) {
-                StructureSheetGroup(text = "Vista previa de la descarga · cada 4 ciclos")
+                StructureSheetGroup(text = "Vista previa de la descarga · cada 4 loops")
                 StructureCaption(
                     text = "${preview.sourceWorkingSets} → ${preview.deloadWorkingSets} series de trabajo · volumen ajustado con el factor 0,55 de descarga.",
                 )
@@ -74,7 +74,7 @@ internal fun LoopPresetPreviewSheet(
                 }
             }
             if (isTest) {
-                StructureSheetGroup(text = "Movimientos para el test · cada 8 ciclos")
+                StructureSheetGroup(text = "Movimientos para el test · cada 8 loops")
                 if (preview.testMovements.isEmpty()) {
                     StructureCaption(text = "La rutina no tiene movimientos principales con una configuración exacta para probar.", color = WizardColors.danger)
                 } else {
@@ -108,7 +108,7 @@ internal fun LoopPresetPreviewSheet(
             preview.collisionNotes.forEach { note -> StructureCaption(text = note) }
             preview.cadenceConflicts.forEach { message -> StructureCaption(text = message, color = WizardColors.danger) }
             StructurePrimaryPill(
-                text = "Guardar ciclo listo",
+                text = "Guardar loop listo",
                 onClick = { onConfirm(selected, parsedAttempts) },
                 enabled = canSave,
                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
@@ -135,7 +135,7 @@ private fun presetTitle(id: String): String = when (id) {
     "deload-4" -> "Descarga"
     "1rm-8" -> "Test 1RM"
     "deload-1rm" -> "Descarga + Test 1RM"
-    else -> "Preparar ciclo"
+    else -> "Preparar loop"
 }
 
 private fun dayName(day: Int): String = when (day) {

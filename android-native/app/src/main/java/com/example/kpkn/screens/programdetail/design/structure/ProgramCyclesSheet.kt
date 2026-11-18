@@ -25,12 +25,12 @@ import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
-/** Las frases de «Para qué sirven los ciclos» (las de siempre, con «ciclos» en lugar de «loops»). */
+/** Las frases de «Para qué sirven los loops». */
 private val CYCLE_INFO_LINES = listOf(
-    "Un ciclo no es el evento: es el tramo completo que lleva a ese evento.",
-    "Las semanas S1, S2, etc. son espejo en cada ciclo; si editas S1, cambia S1 en todos los ciclos.",
-    "El evento se muestra como E1, E2… y es una semana real donde puedes crear sesiones.",
-    "Ejemplos: 5 ciclos hasta E1, descarga cada 4 ciclos o competición cada 12 ciclos.",
+    "Un loop no es el evento: es la regla en bucle que programa ese evento cada X vueltas.",
+    "Tu semana base S1 se repite en bucle; al editarla cambia tu semana habitual sin alterar tus semanas de loop.",
+    "El evento se muestra como E1, E2… y es una semana real donde puedes editar sus sesiones.",
+    "Ejemplos: descarga cada 4 loops o competición cada 12 loops.",
 )
 
 /** Qué ciclo se edita en la hoja: null = uno nuevo. */
@@ -97,7 +97,7 @@ internal fun ProgramCyclesSheet(
         if (showInfo) {
             KpknAlertDialog(
                 onDismissRequest = { showInfo = false },
-                title = { Text(text = "Para qué sirven los ciclos", style = KpknType.title, color = WizardColors.text) },
+                title = { Text(text = "Para qué sirven los loops", style = KpknType.title, color = WizardColors.text) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         CYCLE_INFO_LINES.forEach { line ->
@@ -155,28 +155,28 @@ internal fun ProgramCyclesContent(
             .verticalScroll(rememberScrollState())
             .padding(StructureSheetPadding),
     ) {
-        StructureSheetHeader(title = "Ciclos", subtitle = cycleSummaryLine(activeCount, model.currentCycle))
+        StructureSheetHeader(title = "Loops", subtitle = cycleSummaryLine(activeCount, model.currentCycle))
         if (model.legacyEventCount > 0) {
             ProgramCycleLegacyNotice(count = model.legacyEventCount, onMigrate = onMigrateLegacy, modifier = Modifier.padding(bottom = 12.dp))
         }
         if (model.collisionLines.isNotEmpty()) {
             ProgramCycleCollisionNotice(lines = model.collisionLines, modifier = Modifier.padding(bottom = 12.dp))
         }
-        StructureSheetGroup(text = "Tus ciclos")
+        StructureSheetGroup(text = "Tus loops")
         model.loops.forEachIndexed { index, loop ->
             ProgramCycleRow(loop = loop, divider = index > 0, onClick = { openEditor(loop) })
         }
         if (model.canAddLoops) {
             StructureMenuRow(
                 icon = KpknLineIcons.Plus,
-                title = "Nuevo ciclo",
-                detail = if (model.loops.isEmpty()) "Aún no tienes ciclos. Añade uno o elige una plantilla." else null,
+                title = "Nuevo loop",
+                detail = if (model.loops.isEmpty()) "Aún no tienes loops. Añade uno o elige una plantilla." else null,
                 divider = model.loops.isNotEmpty(),
                 onClick = { openEditor(null) },
             )
         }
         if (model.weeks.isNotEmpty()) {
-            StructureSheetGroup(text = "Semanas de ciclo")
+            StructureSheetGroup(text = "Semanas de loop")
             model.weeks.forEachIndexed { index, week ->
                 ProgramCycleWeekRow(
                     week = week,
@@ -188,7 +188,7 @@ internal fun ProgramCyclesContent(
             }
         }
         if (model.canAddLoops) {
-            StructureSheetGroup(text = "Ciclos listos")
+            StructureSheetGroup(text = "Loops listos")
             ProgramCycleTemplatesModule(
                 templates = programCycleTemplates,
                 onAdd = { templateId ->
@@ -198,12 +198,12 @@ internal fun ProgramCyclesContent(
             )
         } else {
             StructureCaption(
-                text = "Para añadir ciclos, usa una rutina repetitiva con una semana base y sin una competición planificada.",
+                text = "Para añadir loops, usa una rutina de una sola semana base y sin una competición planificada.",
                 modifier = Modifier.padding(top = 10.dp),
             )
         }
         StructureAction(
-            text = "Para qué sirven los ciclos",
+            text = "Para qué sirven los loops",
             onClick = openInfo,
             leadingIcon = KpknLineIcons.Info,
             faint = true,
@@ -237,7 +237,7 @@ internal fun ProgramCyclesContent(
     if (localShowInfo) {
         KpknAlertDialog(
             onDismissRequest = { localShowInfo = false },
-            title = { Text(text = "Para qué sirven los ciclos", style = KpknType.title, color = WizardColors.text) },
+            title = { Text(text = "Para qué sirven los loops", style = KpknType.title, color = WizardColors.text) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CYCLE_INFO_LINES.forEach { line ->
@@ -266,8 +266,8 @@ internal fun ProgramCyclesContent(
 internal fun ProgramCycleDeleteDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "¿Eliminar este ciclo?", style = KpknType.title, color = WizardColors.text) },
-        text = { Text(text = "Sus semanas de ciclo dejan de programarse.", style = KpknType.body, color = WizardColors.textMuted) },
+        title = { Text(text = "¿Eliminar este loop?", style = KpknType.title, color = WizardColors.text) },
+        text = { Text(text = "Sus semanas de loop dejan de programarse.", style = KpknType.body, color = WizardColors.textMuted) },
         confirmButton = { KpknDangerPill(text = "Eliminar", onClick = onConfirm) },
         dismissButton = { KpknTextAction(text = "Cancelar", onClick = onDismiss) },
     )

@@ -747,7 +747,12 @@ object ProgramAutoregulationEngine {
                                 storedCapture.sourceRecipeDayId == exercise.recipeDayId) &&
                             (storedCapture.sourceRecipeSlotId == null || exercise.recipeSlotId == null ||
                                 storedCapture.sourceRecipeSlotId == exercise.recipeSlotId)
-                        val recordedContextMatches = pair.performed.contextKey?.let { it == plannedContext.key } ?: true
+                        val rawPlannedContext = plannedApreContext(
+                            exercise, pair.prescribed, pair.performed.side, pair.performed, normalizeDefaultTag = false,
+                        )
+                        val recordedContextMatches = pair.performed.contextKey?.let {
+                            it == plannedContext.key || it == rawPlannedContext.key
+                        } ?: true
                         val legacyPurposeFromPlan = pair.performed.performedPurpose() == null
                         val completedForCapture = if (legacyPurposeFromPlan) {
                             pair.performed.copy(purpose = pair.prescribed.purpose)
@@ -1185,7 +1190,11 @@ object ProgramAutoregulationEngine {
                     capture.context == plannedApreContext(candidate, capturedSet, performed.side, performed)
                 val exactContext = performed.contextKey != null && performed.setIndex != null &&
                     candidate.sets.getOrNull(performed.setIndex)?.let { prescribed ->
-                        performed.contextKey == plannedApreContext(candidate, prescribed, performed.side, performed).key
+                        val normalizedCtx = plannedApreContext(candidate, prescribed, performed.side, performed)
+                        val rawCtx = plannedApreContext(
+                            candidate, prescribed, performed.side, performed, normalizeDefaultTag = false,
+                        )
+                        performed.contextKey == normalizedCtx.key || performed.contextKey == rawCtx.key
                     } == true
                 exactCapture || exactContext
             }

@@ -8,8 +8,12 @@ import com.example.kpkn.data.models.LoggedFood
  */
 fun LoggedFood.nutrientAmount(id: NutrientId): Double? {
     val per100 = nutrientsPer100g?.get(id.key) ?: return null
-    if (unit != "g" || !(amount > 0.0)) return null
-    return per100 * amount / 100.0
+    if (!(amount > 0.0)) return null
+    val effectiveGrams = when {
+        unit.equals("g", ignoreCase = true) || unit.equals("ml", ignoreCase = true) -> amount
+        else -> return null
+    }
+    return per100 * effectiveGrams / 100.0
 }
 
 /** True si el registro lleva el vector de nutrientes del paquete de catálogo. */

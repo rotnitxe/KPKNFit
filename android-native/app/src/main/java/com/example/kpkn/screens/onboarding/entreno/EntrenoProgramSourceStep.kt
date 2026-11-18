@@ -19,8 +19,8 @@ internal fun programSourceTag(source: ProgramSource): String = "setup-program-so
 
 /** La nota bajo los símbolos según la elección; sin elección, no hay nota. */
 internal fun programSourceNote(source: ProgramSource?): String? = when (source) {
-    ProgramSource.RECOMMEND -> "Seguimos con unas preguntas y te proponemos programas para tu disciplina."
-    ProgramSource.LATER -> "Podrás crear tu programa desde Programas cuando quieras."
+    ProgramSource.RECOMMEND -> "Te haremos unas preguntas breves para ajustar tu programa."
+    ProgramSource.LATER -> "Saltarás el cuestionario de entreno y podrás crearlo manualmente desde Programas."
     ProgramSource.IMPORT -> "Excel (.xlsx o .xlsm), CSV o texto pegado."
     null -> null
 }

@@ -14,7 +14,10 @@ import kotlin.math.max
 /** La base de los nutrientes que la persona teclea: los de una porción o los de 100 g. */
 enum class CustomFoodBasis { PER_SERVING, PER_100G }
 
-enum class CustomFoodField { NAME, BRAND, BARCODE, SERVING, BASIS, CALORIES, PROTEIN, CARBS, FATS, FIBER, SUGAR, SODIUM, SATURATED }
+enum class CustomFoodField {
+    NAME, BRAND, BARCODE, SERVING, BASIS, CALORIES, PROTEIN, CARBS, FATS, FIBER, SUGAR, SODIUM,
+    SATURATED, MONOUNSATURATED, POLYUNSATURATED, TRANS,
+}
 
 /**
  * Lo que hay escrito en el formulario de un alimento propio, tal cual (texto). Los números admiten coma o punto decimal.
@@ -35,6 +38,9 @@ data class CustomFoodForm(
     val sugar: String = "",
     val sodiumMg: String = "",
     val saturatedFat: String = "",
+    val monounsaturatedFat: String = "",
+    val polyunsaturatedFat: String = "",
+    val transFat: String = "",
 )
 
 /**
@@ -125,6 +131,9 @@ object CustomFoodValidator {
         val sugar = optional(form.sugar, CustomFoodField.SUGAR, maxMacro, "g", errors)
         val sodium = optional(form.sodiumMg, CustomFoodField.SODIUM, MAX_SODIUM_MG, "mg", errors)
         val saturated = optional(form.saturatedFat, CustomFoodField.SATURATED, maxMacro, "g", errors)
+        val monounsaturated = optional(form.monounsaturatedFat, CustomFoodField.MONOUNSATURATED, maxMacro, "g", errors)
+        val polyunsaturated = optional(form.polyunsaturatedFat, CustomFoodField.POLYUNSATURATED, maxMacro, "g", errors)
+        val trans = optional(form.transFat, CustomFoodField.TRANS, maxMacro, "g", errors)
 
         if (per100 && protein != null && carbs != null && fats != null && protein + carbs + fats > MAX_MACRO_PER_100G + MACRO_SUM_SLACK) {
             errors[CustomFoodField.PROTEIN] = errors[CustomFoodField.PROTEIN] ?: "Proteína, carbohidratos y grasas suman más de 100 g en 100 g."
@@ -141,6 +150,8 @@ object CustomFoodValidator {
             }
         }
         if (fats != null && saturated != null && saturated > fats) warnings += "Las grasas saturadas son mayores que las grasas totales."
+        val fatSubtypesSum = listOfNotNull(saturated, monounsaturated, polyunsaturated, trans).sum()
+        if (fats != null && fatSubtypesSum > fats + 0.1) warnings += "La suma de tipos de grasa supera las grasas totales."
         if (carbs != null && fiber != null && fiber > carbs) warnings += "La fibra es mayor que los carbohidratos."
         if (carbs != null && sugar != null && sugar > carbs) warnings += "El azúcar es mayor que los carbohidratos."
 
@@ -165,16 +176,37 @@ object CustomFoodValidator {
             fats = fats,
             isCustom = true,
             isAiInferred = false,
-            fatBreakdown = when {
-                saturated != null -> (seed.fatBreakdown ?: FatBreakdown()).copy(
-                    saturated = saturated,
-                    missingSubtypes = (seed.fatBreakdown?.missingSubtypes ?: FatSubtype.entries.toSet()) - FatSubtype.SATURATED,
-                )
-                seed.fatBreakdown != null -> seed.fatBreakdown.copy(
-                    saturated = 0.0,
-                    missingSubtypes = seed.fatBreakdown.missingSubtypes + FatSubtype.SATURATED,
-                ).takeIf { FatSubtype.entries.any { subtype -> subtype !in it.missingSubtypes } }
-                else -> null
+            fatBreakdown = run {
+                val anyProvided = saturated != null || monounsaturated != null || polyunsaturated != null || trans != null
+                val seedBreakdown = seed.fatBreakdown
+                if (!anyProvided && seedBreakdown == null) null
+                else {
+                    val baseMissing = seedBreakdown?.missingSubtypes ?: FatSubtype.entries.toSet()
+                    val knownNow = buildSet {
+                        if (saturated != null) add(FatSubtype.SATURATED)
+                        if (monounsaturated != null) add(FatSubtype.MONOUNSATURATED)
+                        if (polyunsaturated != null) add(FatSubtype.POLYUNSATURATED)
+                        if (trans != null) add(FatSubtype.TRANS)
+                    }
+                    val missingNow = (baseMissing - knownNow).let { remaining ->
+                        buildSet {
+                            addAll(remaining)
+                            if (saturated == null && seedBreakdown != null) add(FatSubtype.SATURATED)
+                            if (monounsaturated == null && seedBreakdown != null) add(FatSubtype.MONOUNSATURATED)
+                            if (polyunsaturated == null && seedBreakdown != null) add(FatSubtype.POLYUNSATURATED)
+                            if (trans == null && seedBreakdown != null) add(FatSubtype.TRANS)
+                        }
+                    }
+                    val mergedKnown = (seedBreakdown?.knownSubtypes.orEmpty() + knownNow) - missingNow
+                    FatBreakdown(
+                        saturated = saturated ?: 0.0,
+                        monounsaturated = monounsaturated ?: 0.0,
+                        polyunsaturated = polyunsaturated ?: 0.0,
+                        trans = trans ?: 0.0,
+                        missingSubtypes = missingNow,
+                        knownSubtypes = mergedKnown,
+                    ).takeIf { FatSubtype.entries.any { subtype -> subtype !in it.missingSubtypes } }
+                }
             },
             carbBreakdown = if ((fiber ?: 0.0) > 0.0 || (sugar ?: 0.0) > 0.0) CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugar ?: 0.0) else null,
             micronutrients = micronutrientsConDeclaraciones(seed.micronutrients, sodium, fiber, sugar),
@@ -200,7 +232,10 @@ object CustomFoodValidator {
         protein = format(food.protein),
         carbs = format(food.carbs),
         fats = format(food.fats),
-        saturatedFat = food.fatBreakdown?.let { format(it.saturated) }.orEmpty(),
+        saturatedFat = food.fatBreakdown?.takeIf { FatSubtype.SATURATED !in it.missingSubtypes }?.let { format(it.saturated) }.orEmpty(),
+        monounsaturatedFat = food.fatBreakdown?.takeIf { FatSubtype.MONOUNSATURATED !in it.missingSubtypes }?.let { format(it.monounsaturated) }.orEmpty(),
+        polyunsaturatedFat = food.fatBreakdown?.takeIf { FatSubtype.POLYUNSATURATED !in it.missingSubtypes }?.let { format(it.polyunsaturated) }.orEmpty(),
+        transFat = food.fatBreakdown?.takeIf { FatSubtype.TRANS !in it.missingSubtypes }?.let { format(it.trans) }.orEmpty(),
         fiber = if (tieneCeroDeclarado(food, "Fibra")) "0" else food.carbBreakdown?.fiber?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sugar = if (tieneCeroDeclarado(food, "Azúcar")) "0" else food.carbBreakdown?.sugar?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sodiumMg = food.micronutrients.firstOrNull { it.name.equals("Sodio", ignoreCase = true) }?.amount?.let { format(it) }.orEmpty(),

@@ -18,6 +18,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.FoodItem
@@ -131,12 +132,12 @@ class CustomFoodFormUiTest {
         form = CustomFoodValidator.fromFood(food)
         show(editing = food)
         rule.onNodeWithText("Editar alimento propio").assertExists()
-        rule.onNodeWithTag("custom-food-delete").assertHeightIsAtLeast(48.dp).performClick()
+        rule.onNodeWithTag("custom-food-delete").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
         rule.onNodeWithText("¿Eliminar este alimento?").assertExists()
-        rule.onNodeWithTag("custom-food-delete-cancel").performClick()
+        rule.onNodeWithTag("custom-food-delete-cancel").performScrollTo().performClick()
         rule.onNodeWithText("¿Eliminar este alimento?").assertDoesNotExist()
-        rule.onNodeWithTag("custom-food-delete").performClick()
-        rule.onNodeWithTag("custom-food-delete-confirm").performClick()
+        rule.onNodeWithTag("custom-food-delete").performScrollTo().performClick()
+        rule.onNodeWithTag("custom-food-delete-confirm").performScrollTo().performClick()
         assertEquals(1, deletes)
         rule.onNodeWithTag("custom-food-close").performClick()
         assertTrue(closes == 1)

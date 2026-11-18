@@ -21,12 +21,12 @@ internal fun ProgramCycleLegacyNotice(
 ) {
     StructureModule(modifier = modifier, accent = SymbolPalette.energia) {
         Text(text = legacyEventsLine(count), style = StructureBodyStyle, color = StructureInk)
-        StructureAction(text = "Pasar a ciclos", onClick = onMigrate, leadingIcon = KpknLineIcons.Repeat, modifier = Modifier.padding(top = 4.dp))
+        StructureAction(text = "Pasar a loops", onClick = onMigrate, leadingIcon = KpknLineIcons.Repeat, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
 /**
- * Aviso de choque: dos o más ciclos caen en la misma semana. Lista cada choque por ciclo («C5: Descarga + Test 1RM») y pide que se
+ * Aviso de choque: dos o más loops caen en la misma semana. Lista cada choque («C5: Descarga + Test 1RM») y pide que se
  * posponga o se cancele uno. `.mod` teñido de `--danger`, con el patrón del aviso «Revisa la estructura temporal».
  */
 @Composable
@@ -35,7 +35,7 @@ internal fun ProgramCycleCollisionNotice(
     modifier: Modifier = Modifier,
 ) {
     StructureModule(modifier = modifier, accent = WizardColors.danger) {
-        Text(text = "Ciclos que coinciden", style = StructureRowTitleStyle, color = StructureInk)
+        Text(text = "Loops que coinciden", style = StructureRowTitleStyle, color = StructureInk)
         lines.forEach { line -> StructureCaption(text = line, modifier = Modifier.padding(top = 4.dp)) }
         StructureCaption(text = "Pospón o cancela uno para que no coincidan.", color = StructureMuted, modifier = Modifier.padding(top = 8.dp))
     }

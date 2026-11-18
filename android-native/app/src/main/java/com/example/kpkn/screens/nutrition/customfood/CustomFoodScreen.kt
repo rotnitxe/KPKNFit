@@ -187,7 +187,14 @@ fun CustomFoodFormContent(
                         NumberField("Carbohidratos", form.carbs, { onChange(form.copy(carbs = it)) }, errorOf(CustomFoodField.CARBS), "g", "custom-food-carbs", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.CARBS))
                     }
                     NumberField("Grasas", form.fats, { onChange(form.copy(fats = it)) }, errorOf(CustomFoodField.FATS), "g", "custom-food-fats", source = labelState?.markers?.get(CustomFoodField.FATS))
-                    NumberField("Saturadas (opcional)", form.saturatedFat, { onChange(form.copy(saturatedFat = it)) }, errorOf(CustomFoodField.SATURATED), "g", "custom-food-saturated", source = labelState?.markers?.get(CustomFoodField.SATURATED))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                        NumberField("Saturadas (opc.)", form.saturatedFat, { onChange(form.copy(saturatedFat = it)) }, errorOf(CustomFoodField.SATURATED), "g", "custom-food-saturated", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.SATURATED))
+                        NumberField("Monoinsat. (opc.)", form.monounsaturatedFat, { onChange(form.copy(monounsaturatedFat = it)) }, errorOf(CustomFoodField.MONOUNSATURATED), "g", "custom-food-mono", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.MONOUNSATURATED))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                        NumberField("Poliinsat. (opc.)", form.polyunsaturatedFat, { onChange(form.copy(polyunsaturatedFat = it)) }, errorOf(CustomFoodField.POLYUNSATURATED), "g", "custom-food-poly", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.POLYUNSATURATED))
+                        NumberField("Trans (opc.)", form.transFat, { onChange(form.copy(transFat = it)) }, errorOf(CustomFoodField.TRANS), "g", "custom-food-trans", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.TRANS))
+                    }
                 }
             }
             KpknModule(Modifier.fillMaxWidth()) {

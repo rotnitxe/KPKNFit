@@ -32,7 +32,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCopy
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingOverlay
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanPreparingVariant
-import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCarousel
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanSingleCard
 
 /**
  * PLAN · «Tu programa a medida» (perfil general) / «Elige tu programa» (disciplina): el revelado del programa.
@@ -131,23 +131,27 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                         onSelect = vm::selectPlan,onOpen = { detailId = it },onExpandCatalog = vm::toggleCatalogExpanded)
                 }
                 else -> {
-                    if (offer.tailored.isNotEmpty()) {
+                    val tailoredCandidate = offer.tailored.firstOrNull { it.planId == recommendedId }
+                        ?: offer.tailored.firstOrNull()
+                    if (tailoredCandidate != null) {
                         GeneralReveal(
-                            reveals = offer.tailored,
+                            reveal = tailoredCandidate,
                             recommendedId = recommendedId,
                             selectedId = selectedId,
                             onChoose = { id -> vm.selectPlan(id) },
                             onOpen = { id -> detailId = id },
-                            onAnotherVersion = vm::anotherPlanVersion,
+                            onAnotherVersion = { vm.anotherPlanVersion() },
+                        )
+                    } else if (offer.catalog.isNotEmpty() || offer.catalogHidden > 0) {
+                        CatalogOfferSection(
+                            offer = offer,
+                            recommendedId = recommendedId,
+                            selectedId = selectedId,
+                            onSelect = vm::selectPlan,
+                            onOpen = { detailId = it },
+                            onExpandCatalog = vm::toggleCatalogExpanded,
                         )
                     }
-                    CatalogOnlySection(
-                        offer = offer,
-                        selectedId = selectedId,
-                        onSelect = vm::selectPlan,
-                        onOpen = { detailId = it },
-                        onExpandCatalog = vm::toggleCatalogExpanded,
-                    )
                 }
             }
             state.previewError?.let { error ->
@@ -204,12 +208,12 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
 }
 
 /**
- * El revelado del programa «a medida» de un perfil general: carrusel de alternativas, razones de la recomendada y edición libre.
+ * El revelado del programa «a medida» de un perfil general: una tarjeta fija, razones del generador y edición libre.
  * Sin cajas: texto y acciones sobre la página.
  */
 @Composable
 private fun GeneralReveal(
-    reveals: List<SetupPlanReveal>,
+    reveal: SetupPlanReveal,
     recommendedId: String?,
     selectedId: String?,
     onChoose: (String) -> Unit,
@@ -218,17 +222,13 @@ private fun GeneralReveal(
 ) {
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "Tu programa", style = WizardTypography.controlLabel, color = WizardColors.text)
-        PlanCarousel(
-            cards = cardModelsOf(reveals, recommendedId),
+        PlanSingleCard(
+            card = cardModelsOf(listOf(reveal), recommendedId).single(),
             selectedId = selectedId,
             onSelect = onChoose,
             onOpen = onOpen,
-            initialId = recommendedId,
         )
-        val explainedReveal = reveals.firstOrNull { it.planId == selectedId }
-            ?: reveals.firstOrNull { it.planId == recommendedId }
-            ?: reveals.first()
-        explainedReveal.reasons.take(MAX_REASONS).forEach { reason ->
+        reveal.reasons.take(MAX_REASONS).forEach { reason ->
             Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
         }
         EntrenoTextAction(

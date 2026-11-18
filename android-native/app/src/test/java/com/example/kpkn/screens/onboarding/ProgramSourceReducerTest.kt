@@ -57,8 +57,7 @@ class ProgramSourceReducerTest {
     }
 
     @Test
-    fun leavingAdvancedUndoesALaterProgramAndPutThePlanBackInTheRoute() {
-        // Avanzado con «lo armaré yo» confirmado: al pasar a intermedio, el programa vuelve a la ruta de siempre.
+    fun changingExperienceKeepsProgramSourceAndSkipRoute() {
         val later = SetupWizardDraft(
             includeTraining = true,
             experience = SetupExperience.ADVANCED,
@@ -67,21 +66,21 @@ class ProgramSourceReducerTest {
         )
         assertFalse(SetupStepId.PLAN in SetupStepGraph.stepIds(later.stepContext()))
         val intermediate = later.withStepChoice(SetupStepId.EXPERIENCE, "intermediate", 0L)
-        assertNull(intermediate.programSource)
-        assertEquals(SetupProgramRoute.CUSTOMIZABLE, intermediate.programRoute)
-        assertTrue(SetupStepId.PLAN in SetupStepGraph.stepIds(intermediate.stepContext()))
-        assertTrue(SetupStepId.WEEK_LAYOUT in SetupStepGraph.stepIds(intermediate.stepContext()))
+        assertEquals(ProgramSource.LATER, intermediate.programSource)
+        assertEquals(SetupProgramRoute.LATER, intermediate.programRoute)
+        assertFalse(SetupStepId.PLAN in SetupStepGraph.stepIds(intermediate.stepContext()))
+        assertFalse(SetupStepId.WEEK_LAYOUT in SetupStepGraph.stepIds(intermediate.stepContext()))
     }
 
     @Test
-    fun leavingAdvancedAlsoRetiresAnImportedChoice() {
+    fun changingExperienceAlsoKeepsAnImportedChoice() {
         val imported = SetupWizardDraft(
             includeTraining = true,
             experience = SetupExperience.ADVANCED,
             programSource = ProgramSource.IMPORT,
         )
         val beginner = imported.withStepChoice(SetupStepId.EXPERIENCE, "new", 0L)
-        assertNull(beginner.programSource)
+        assertEquals(ProgramSource.IMPORT, beginner.programSource)
         assertEquals(SetupProgramRoute.CUSTOMIZABLE, beginner.programRoute)
     }
 }

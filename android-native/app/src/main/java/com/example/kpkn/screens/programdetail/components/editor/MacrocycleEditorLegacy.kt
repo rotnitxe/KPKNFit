@@ -812,27 +812,6 @@ private fun RoutinePage(
         ProgramStructureNotice(messages = temporalIssues, modifier = Modifier.padding(bottom = 12.dp).kpknEntrance(ENTRANCE, 1))
     }
     ProgramFromProgramModule(
-        label = "Loops",
-        items = cycleRows.map { row ->
-            ProgramFromProgramItem(
-                title = row.title,
-                detail = row.detail,
-                icon = row.icon,
-                tag = "estructura_ciclo_${row.loopId}",
-                onClick = { onEditCycle(row.loopId) },
-            )
-        } + listOfNotNull(
-            if (canAddLoop) ProgramFromProgramItem(
-                title = "Añadir loop",
-                detail = null,
-                icon = KpknLineIcons.Plus,
-                tag = "estructura_loops",
-                onClick = onAddCycle,
-            ) else null,
-        ),
-        modifier = Modifier.padding(bottom = 12.dp),
-    )
-    ProgramFromProgramModule(
         label = null,
         items = buildList {
             val mesocycles = block?.mesocycles.orEmpty()
@@ -849,7 +828,7 @@ private fun RoutinePage(
                     )
                 }
             }
-            add(ProgramFromProgramItem("Añadir una semana al ciclo", null, KpknLineIcons.Plus, "estructura_semana_nueva", onAddWeek))
+            add(ProgramFromProgramItem("Añadir una semana a la rutina", null, KpknLineIcons.Plus, "estructura_semana_nueva", onAddWeek))
             add(
                 ProgramFromProgramItem(
                     "Calendarizar rutina",
@@ -862,6 +841,29 @@ private fun RoutinePage(
             add(ProgramFromProgramItem("Pasar a programa por bloques/mesociclos", null, KpknLineIcons.Training, "estructura_convertir", onConvert))
         },
     )
+    if (cycleRows.isNotEmpty() || canAddLoop) {
+        ProgramFromProgramModule(
+            label = "Loops",
+            items = cycleRows.map { row ->
+                ProgramFromProgramItem(
+                    title = row.title,
+                    detail = row.detail,
+                    icon = row.icon,
+                    tag = "estructura_ciclo_${row.loopId}",
+                    onClick = { onEditCycle(row.loopId) },
+                )
+            } + listOfNotNull(
+                if (canAddLoop) ProgramFromProgramItem(
+                    title = "Añadir loop",
+                    detail = null,
+                    icon = KpknLineIcons.Plus,
+                    tag = "estructura_loops",
+                    onClick = onAddCycle,
+                ) else null,
+            ),
+            modifier = Modifier.padding(top = 12.dp),
+        )
+    }
     ProgramFromProgramModule(items = fromProgram)
 }
 

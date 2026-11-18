@@ -75,39 +75,39 @@ internal fun loopTypeIcon(type: LoopType): ImageVector = when (type) {
     LoopType.CUSTOM -> KpknLineIcons.Repeat
 }
 
-/** «cada 4 ciclos», o «cada ciclo» cuando la cadencia es 1. */
+/** «cada 4 loops», o «cada loop» cuando la cadencia es 1. */
 internal fun cycleCadenceLabel(cadence: Int): String =
-    if (SpanishPlurals.isSingular(cadence)) "cada ciclo" else "cada $cadence ciclos"
+    if (SpanishPlurals.isSingular(cadence)) "cada loop" else "cada $cadence loops"
 
-/** «2 ciclos activos · vas por el ciclo 5». Sin ciclo en curso (0), la segunda parte no aparece. */
+/** «2 loops activos · vuelta 5». Sin vuelta en curso (0), la segunda parte no aparece. */
 internal fun cycleSummaryLine(activeCount: Int, currentCycle: Int): String {
     val head = if (activeCount == 0) {
-        "Sin ciclos activos"
+        "Sin loops activos"
     } else {
-        numberWithUnit(SpanishPlurals.withNoun(activeCount, "ciclo activo", "ciclos activos"))
+        numberWithUnit(SpanishPlurals.withNoun(activeCount, "loop activo", "loops activos"))
     }
-    return if (currentCycle > 0) "$head · vas por el ciclo $currentCycle" else head
+    return if (currentCycle > 0) "$head · vuelta $currentCycle" else head
 }
 
-/** «Hay 2 eventos antiguos. Pásalos a ciclos para usar el sistema nuevo.» Con uno, en singular. */
+/** «Hay 2 eventos antiguos. Pásalos a loops para usar el sistema nuevo.» Con uno, en singular. */
 internal fun legacyEventsLine(count: Int): String =
     if (SpanishPlurals.isSingular(count)) {
-        "Hay 1 evento antiguo. Pásalo a ciclos para usar el sistema nuevo."
+        "Hay 1 evento antiguo. Pásalo a loops para usar el sistema nuevo."
     } else {
-        "Hay $count eventos antiguos. Pásalos a ciclos para usar el sistema nuevo."
+        "Hay $count eventos antiguos. Pásalos a loops para usar el sistema nuevo."
     }
 
-/** El otro ciclo que ya usa esa cadencia, o null si no hay choque. Una cadencia de 0 (campo vacío) nunca choca. */
+/** El otro loop que ya usa esa cadencia, o null si no hay choque. Una cadencia de 0 (campo vacío) nunca choca. */
 internal fun cycleCadenceConflict(existing: List<ProgramCycleLoop>, editingId: String?, cadence: Int): ProgramCycleLoop? {
     if (cadence <= 0) return null
     return existing.firstOrNull { loop -> loop.id != editingId && loop.cadence.coerceAtLeast(1) == cadence }
 }
 
-/** «Conflicto: Descarga ya usa cada 4 ciclos. Cambia la cadencia para evitar que dos ciclos compitan por la misma semana.» */
+/** «Conflicto: Descarga ya usa cada 4 loops. Cambia la cadencia para evitar que dos loops compitan por la misma semana.» */
 internal fun cycleConflictLine(conflict: ProgramCycleLoop, cadence: Int): String =
-    "Conflicto: ${conflict.title} ya usa ${cycleCadenceLabel(cadence)}. Cambia la cadencia para evitar que dos ciclos compitan por la misma semana."
+    "Conflicto: ${conflict.title} ya usa ${cycleCadenceLabel(cadence)}. Cambia la cadencia para evitar que dos loops compitan por la misma semana."
 
-/** Las cuatro plantillas de ciclos con su icono. Qué ciclos crean vive en `CyclesSection`, que es quien los añade al programa. */
+/** Las cuatro plantillas de loops con su icono. Qué loops crean vive en `CyclesSection`, que es quien los añade al programa. */
 internal val programCycleTemplates: List<ProgramCycleTemplate> = listOf(
     ProgramCycleTemplate(
         id = "custom",
@@ -130,7 +130,7 @@ internal val programCycleTemplates: List<ProgramCycleTemplate> = listOf(
     ProgramCycleTemplate(
         id = "deload-1rm",
         name = "Descarga + Test 1RM",
-        description = "Descarga cada 4 ciclos y test cada 8.",
+        description = "Descarga cada 4 loops y test cada 8.",
         icon = KpknLineIcons.Repeat,
     ),
 )

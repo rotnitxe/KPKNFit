@@ -28,6 +28,7 @@ internal fun ProgramFromProgramModule(
     modifier: Modifier = Modifier,
     label: String? = "Del programa",
 ) {
+    if (items.isEmpty()) return
     if (label != null) StructureGroupLabel(text = label)
     StructureModule(modifier = modifier, tight = true) {
         items.forEachIndexed { index, item ->

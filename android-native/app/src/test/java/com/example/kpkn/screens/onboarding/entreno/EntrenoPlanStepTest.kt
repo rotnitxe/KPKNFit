@@ -466,7 +466,7 @@ class EntrenoPlanStepTest {
         reveal(GeneratedPlans.entryIdFor(profile, variant), title, profile, coverSeed = variant.ordinal)
 
     @Test
-    fun aGeneralProfileOffersItsThreeFormsAndMarksTheOneRecommendedForItsExperience() {
+    fun aGeneralProfileOffersOnlyItsSingleRecommendedCandidate() {
         rule.mainClock.autoAdvance = false
         val profile = TrainingGoalProfile.STRENGTH_MUSCLE
         val simple = tailoredOf(profile, ProgramVariant.SIMPLE, "Base sólida")
@@ -480,9 +480,11 @@ class EntrenoPlanStepTest {
         rule.setContent { Page() }
         finishOverlay()
         rule.onNodeWithTag(REVEAL_TAG).assertExists()
-        // Las tres portadas: la centrada (la de bloques, que es la recomendada para experiencia intermedia) y sus vecinas.
+        // Objetivo genérico: ofrece un único programa candidato (el recomendado para experiencia intermedia) y su versión alterna.
         rule.onNodeWithTag(planCardTag(blocks.planId)).assertExists()
-        rule.onNodeWithTag(planCardTag(simple.planId)).assertExists()
+        rule.onNodeWithTag(planCardTag(simple.planId)).assertDoesNotExist()
+        rule.onNodeWithTag(planCardTag(periodized.planId)).assertDoesNotExist()
+        rule.onNodeWithTag(ANOTHER_VERSION_TAG).assertExists()
         rule.onNodeWithTag(planCardTag(blocks.planId)).assert(hasContentDescription("Para ti", substring = true))
         // Recomendar no elige: la tarjeta no lleva la marca de «elegido».
         rule.onNodeWithTag(planCardTag(blocks.planId)).assertIsNotSelected()

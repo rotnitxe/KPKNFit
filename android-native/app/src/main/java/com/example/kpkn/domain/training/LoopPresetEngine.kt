@@ -186,16 +186,18 @@ object LoopPresetEngine {
 
     private fun movementsOf(program: Program, week: ProgramWeek): List<LoopTestMovement> {
         val seen = mutableSetOf<String>()
-        return week.sessions.flatMap { session ->
+        val candidates = week.sessions.flatMap { session ->
             session.allExercises().mapNotNull { exercise ->
-                val configurationId = (exercise.catalogConfigurationId ?: exercise.exerciseDbId)
-                    ?.takeIf(String::isNotBlank) ?: return@mapNotNull null
-                val isMain = exercise.isCompetitionLift || exercise.slotRole == SlotRole.T1_MAIN || exercise.trainingMode == TrainingMode.RM
-                if (!isMain || exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE) return@mapNotNull null
+                if (exercise.trainingMode == TrainingMode.TIME || exercise.trainingMode == TrainingMode.DISTANCE) {
+                    return@mapNotNull null
+                }
+                val configurationId = (exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.id)
+                    .takeIf(String::isNotBlank) ?: return@mapNotNull null
                 if (!seen.add(configurationId)) return@mapNotNull null
+                val isPrimary = exercise.isCompetitionLift || exercise.slotRole == SlotRole.T1_MAIN || exercise.trainingMode == TrainingMode.RM
                 val reference = ExerciseTrainingMax.capturedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_1RM)
                     ?: exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 }
-                LoopTestMovement(
+                isPrimary to LoopTestMovement(
                     id = configurationId,
                     configurationId = configurationId,
                     exerciseId = exercise.id,
@@ -211,6 +213,7 @@ object LoopPresetEngine {
                 )
             }
         }
+        return candidates.sortedByDescending { it.first }.map { it.second }
     }
 
     private fun deloadSession(source: Session, inventory: EquipmentInventory): Session {

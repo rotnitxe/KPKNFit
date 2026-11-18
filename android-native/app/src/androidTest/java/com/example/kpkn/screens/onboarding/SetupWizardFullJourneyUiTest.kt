@@ -77,6 +77,7 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.GeneratedPlans
 import com.example.kpkn.domain.onboarding.LiftMark
+import com.example.kpkn.domain.onboarding.ProgramSource
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -96,6 +97,7 @@ import com.example.kpkn.screens.home.HOME_PROGRAMS_ROW_TAG
 import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.home.HomeViewModel
 import com.example.kpkn.screens.home.homeProgramCardTag
+import com.example.kpkn.screens.onboarding.entreno.programSourceTag
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.KPKNTheme
 import java.time.LocalDate
@@ -587,13 +589,13 @@ class SetupWizardFullJourneyUiTest {
             SetupAnswerProvenance.USER_DECLARED,
             bodyFatDraft.stepProgress.answers[SetupStepId.BODY_FAT],
         )
-        answerAndContinue(SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
+        answerAndContinue(SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE)
     }
 
     // ─── Bloque 2: Entreno (v2) ──────────────────────────────────────────────
 
     /**
-     * La ruta de Entreno v2: experiencia → lugares → material → objetivo → día con más energía → días → tiempo →
+     * La ruta de Entreno v2: origen del programa → experiencia → lugares → material → objetivo → día con más energía → días → tiempo →
      * [técnica] → constancia → fuerza → movilidad → [capacidades] → músculos → [marcas] → PLAN → WEEK_LAYOUT. Cada paso se
      * responde con los controles de símbolos (marcas `setup-place-*`, `setup-equipment-*`, `setup-goal-*`,
      * `setup-freshday-*`, `setup-weekday-*`, `setup-sessiontime-*`, `setup-capability-*`, `setup-muscles-skip`,
@@ -605,6 +607,10 @@ class SetupWizardFullJourneyUiTest {
             "la ruta nueva no contiene los pasos retirados: ${initialRoute.filter { it in RETIRED_TRAINING_STEPS }}",
             initialRoute.none { it in RETIRED_TRAINING_STEPS },
         )
+
+        answerAndContinue(SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE) {
+            clickTag(SetupStepId.PROGRAM_SOURCE, programSourceTag(ProgramSource.RECOMMEND))
+        }
 
         answerAndContinue(SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
             clickOption(SetupStepId.EXPERIENCE, scenario.experienceLabel)

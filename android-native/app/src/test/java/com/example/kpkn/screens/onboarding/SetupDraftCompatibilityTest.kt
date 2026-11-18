@@ -610,7 +610,7 @@ class SetupDraftCompatibilityTest {
                 answer(WizChatQuestionId.P_WEIGHT, 72.0),
             ),
         )
-        val context = SetupStepContext(nutritionStarted = true)
+        val context = SetupStepContext(nutritionStarted = true, asksProgramSource = true)
         val base = baseDraft.copy(
             selectedCatalogId = "plan-v1",
             stepProgress = progressAt(SetupStepId.PLAN, context),

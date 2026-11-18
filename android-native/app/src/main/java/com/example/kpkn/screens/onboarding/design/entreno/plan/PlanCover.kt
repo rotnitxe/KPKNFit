@@ -152,27 +152,20 @@ internal fun PlanCover(
     val variant = remember(model.coverSeed) { coverVariantOf(model.coverSeed) }
     val identity = remember(model.id, model.coverIdentity) {
         (model.coverIdentity as? com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverIdentity)
-            ?: assignedCoverIdentity(model.id)
+            ?: com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityFor(model.id, null)
     }
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }
     val running = animate && !reduced
-    // El reloj del arte procedural solo corre si ese arte se pinta: con identidad, `CoverStudioArt` lleva el suyo.
-    val clock = rememberSymbolClock(active = running && foreground && visible && identity == null)
+    // Con `identity` siempre resuelta, el arte procedural solo quedaría como respaldo y `CoverStudioArt` lleva su reloj.
+    val clock = rememberSymbolClock(active = false)
     val run = remember { SymbolRun() }
     // Antes de dibujar, anota desde cuándo corre: sin esto el primer cuadro saltaría.
     SideEffect { run.update(running, clock.peek()) }
     val pen = remember { SymbolPen() }
-    var cover = modifier
+    val cover = modifier
         .clip(RoundedCornerShape(cornerRadius))
         .onSymbolsVisible { visible = it }
-    // El fondo de siempre lo pinta el arte procedural; con identidad, el motor cubre la caja entera.
-    if (identity == null) {
-        cover = cover.drawWithCache {
-            val brush = coverBrush(size.width, size.height, variant.angleDeg, accent)
-            onDrawBehind { drawRect(brush) }
-        }
-    }
     BoxWithConstraints(modifier = cover) {
         val banner = when (layout) {
             CoverLayout.BANNER -> true
@@ -198,8 +191,8 @@ internal fun PlanCover(
         }
         val hasPhoto = hasPersonalPhoto || activeBundledPhoto != null
         val mode = coverArtModeOf(hasPhoto = hasPhoto, identity = identity)
-        val studioBand = identity != null && mode == CoverArtMode.STUDIO && identity.palette != CoverPaletteKind.NOCHE
-        if (identity != null && mode == CoverArtMode.STUDIO) {
+        val studioBand = mode == CoverArtMode.STUDIO && identity.palette != CoverPaletteKind.NOCHE
+        if (mode == CoverArtMode.STUDIO) {
             // El motor a sangre; encima, el velo de la parte baja y, en la banda, otro a la izquierda donde va el texto.
             CoverStudioArt(identity, Modifier.matchParentSize(), animate = animate, reduced = reduced, parallax = parallax)
             if (banner) CoverLeftScrim()

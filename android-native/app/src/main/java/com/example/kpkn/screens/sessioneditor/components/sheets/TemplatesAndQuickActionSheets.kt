@@ -427,23 +427,60 @@ internal fun MobilityPickerSheet(
     var expandedMobilityId by rememberSaveable { mutableStateOf<String?>(null) }
     val allMobility = remember { MobilityExerciseCatalog.getAllMobilityExercises() }
     val uniqueRegions = remember(allMobility) { allMobility.map { it.bodyRegion }.distinct().sorted() }
-    val mobilityRecommendations = remember(activeExercise?.catalogConfigurationId, selectedMobilityIds) {
+    val mobilityRecommendations = remember(activeExercise?.id, activeExercise?.catalogConfigurationId, activeExercise?.exerciseDbId, selectedMobilityIds) {
+        val allDefinitions = approvedExerciseCatalogV2()?.families.orEmpty().asSequence()
+            .flatMap { it.definitions.asSequence() }
         val configurationId = activeExercise?.catalogConfigurationId?.takeIf(String::isNotBlank)
-        val configuration = configurationId?.let { id ->
-            approvedExerciseCatalogV2()?.families.orEmpty().asSequence()
-                .flatMap { it.definitions.asSequence() }
-                .flatMap { it.configurations.asSequence() }
-                .firstOrNull { it.id == id }
+        val directConfig = configurationId?.let { id ->
+            allDefinitions.flatMap { it.configurations.asSequence() }.firstOrNull { it.id == id }
         }
-        val profile = configuration?.profile ?: return@remember emptyList()
-        com.example.kpkn.domain.training.approach.JointMobility.recommendationsFor(
-            primaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.PRIMARY }.map { it.jointId },
-            secondaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.SECONDARY }.map { it.jointId },
-            primaryMuscleIds = profile.primaryMuscles,
-            secondaryMuscleIds = profile.secondaryMuscles,
-            excludedMovementIds = selectedMobilityIds,
-            limit = 4,
-        )
+        val fallbackConfig = if (directConfig?.profile != null || activeExercise == null) {
+            directConfig
+        } else {
+            val lookupIds = listOfNotNull(activeExercise.exerciseDbId, activeExercise.exerciseId)
+                .mapNotNull { id -> id.trim().takeIf(String::isNotEmpty)?.lowercase() }
+            allDefinitions.firstOrNull { def ->
+                def.id.lowercase() in lookupIds ||
+                    def.canonicalName.equals(activeExercise.name.trim(), ignoreCase = true)
+            }?.configurations?.firstOrNull { it.profile != null }
+        }
+        val profile = fallbackConfig?.profile
+        if (profile != null) {
+            com.example.kpkn.domain.training.approach.JointMobility.recommendationsFor(
+                primaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.PRIMARY }.map { it.jointId },
+                secondaryJointIds = profile.jointInvolvement.filter { it.role == com.example.kpkn.domain.exercises.catalogv2.JointRoleV2.SECONDARY }.map { it.jointId },
+                primaryMuscleIds = profile.primaryMuscles,
+                secondaryMuscleIds = profile.secondaryMuscles,
+                excludedMovementIds = selectedMobilityIds,
+                limit = 4,
+            )
+        } else if (activeExercise != null) {
+            val muscles = activeExercise.effectiveMuscles.orEmpty().ifEmpty {
+                com.example.kpkn.data.exercises.resolveCatalogExerciseInfo(
+                    catalogConfigurationId = activeExercise.catalogConfigurationId,
+                    exerciseDbId = activeExercise.exerciseDbId,
+                    exerciseId = activeExercise.exerciseId,
+                    exerciseName = activeExercise.name,
+                )?.involvedMuscles.orEmpty()
+            }
+            val primaryMuscles = muscles
+                .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                .map { it.muscle }
+            val secondaryMuscles = muscles
+                .filter { it.role != com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                .map { it.muscle }
+            if (primaryMuscles.isEmpty() && secondaryMuscles.isEmpty()) emptyList()
+            else com.example.kpkn.domain.training.approach.JointMobility.recommendationsFor(
+                primaryJointIds = emptyList(),
+                secondaryJointIds = emptyList(),
+                primaryMuscleIds = primaryMuscles,
+                secondaryMuscleIds = secondaryMuscles,
+                excludedMovementIds = selectedMobilityIds,
+                limit = 4,
+            )
+        } else {
+            emptyList()
+        }
     }
     val recommendationById = remember(mobilityRecommendations) { mobilityRecommendations.associateBy { it.movement.id } }
     val results = remember(query, selectedRegion, allMobility) {

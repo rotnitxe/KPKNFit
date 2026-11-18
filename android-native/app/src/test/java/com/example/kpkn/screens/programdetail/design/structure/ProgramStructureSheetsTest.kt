@@ -139,8 +139,8 @@ class ProgramStructureSheetsTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Ciclos").assertExists()
-        composeRule.onNodeWithText("TUS CICLOS").assertExists()
+        composeRule.onNodeWithText("Loops").assertExists()
+        composeRule.onNodeWithText("TUS LOOPS").assertExists()
     }
 
     @Test

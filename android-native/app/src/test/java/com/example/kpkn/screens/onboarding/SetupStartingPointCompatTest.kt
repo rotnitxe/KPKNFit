@@ -110,6 +110,6 @@ class SetupStartingPointCompatTest {
 
     @Test
     fun theRevisionOfTheGraphIsTheOneThatRepairsTheNewRoute() {
-        assertEquals(5, SetupStepGraph.REVISION)
+        assertEquals(6, SetupStepGraph.REVISION)
     }
 }

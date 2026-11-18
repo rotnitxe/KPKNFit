@@ -125,7 +125,7 @@ class EntrenoSessionTimeDraftTest {
     /** Lo que un alta de la ruta nueva ya había respondido hasta la constancia, con el tiempo por sesión confirmado. */
     private val answered = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX,
-        SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT,
+        SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT,
         SetupStepId.GOAL, SetupStepId.COMPETITION, SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.AVAILABILITY,
         SetupStepId.FRESH_DAY,
         SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
@@ -136,6 +136,7 @@ class EntrenoSessionTimeDraftTest {
         draftId = DRAFT_ID,
         draftScope = "full",
         trainingPath = SetupTrainingPath.PERSONALIZE,
+        programSource = com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND,
         ageYears = 30,
         heightCm = 175.0,
         weightKg = 72.0,

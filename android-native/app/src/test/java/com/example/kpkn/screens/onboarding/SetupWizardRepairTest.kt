@@ -1351,7 +1351,10 @@ class SetupWizardRepairTest {
             confirmStep(vm, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
                 vm.updateStep(SetupStepId.BODY_FAT) { draft -> draft.withBodyFatRulerValue(20) }
             }
-            confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
+            confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.PROGRAM_SOURCE)
+            confirmStep(vm, SetupStepId.PROGRAM_SOURCE, SetupStepId.EXPERIENCE) {
+                vm.setProgramSource(com.example.kpkn.domain.onboarding.ProgramSource.RECOMMEND)
+            }
             confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) { vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate") }
             confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) { vm.setStepChoice(SetupStepId.EQUIPMENT, "gym") }
             confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
